@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Brain Heist</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --plasma-pink: #ff2d91;
+        --ion-blue: #00d0e8;
+        --success-teal: #16e2a1;
+        --amber-warn: #ffb020;
+        --danger-red: #ff3b81;
+        --ink-900: #0d1117;
+        --ink-800: #161b22;
+        --mist-400: #9ba3af;
+        --paper-50: #f6f7fb;
+      }
+
+      body {
+        font-family: 'IBM Plex Sans', sans-serif;
+        background-color: var(--ink-900);
+        background-image: 
+          radial-gradient(circle at 25px 25px, rgba(0, 208, 232, 0.2) 2%, transparent 0%), 
+          radial-gradient(circle at 75px 75px, rgba(255, 45, 145, 0.2) 2%, transparent 0%);
+        background-size: 100px 100px;
+        color: var(--paper-50);
+      }
+      
+      .font-heading {
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-weight: 700;
+      }
+      
+      .card-glass {
+        background: rgba(22, 27, 34, 0.7);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-width: 1px;
+        border-color: rgba(155, 163, 175, 0.2);
+        border-radius: 24px;
+      }
+
+      .glow-ion {
+        box-shadow: 0 0 15px rgba(0, 208, 232, 0.2);
+      }
+      
+      .glow-plasma {
+        box-shadow: 0 0 15px rgba(255, 45, 145, 0.2);
+      }
+      
+      .glow-success {
+        box-shadow: 0 0 15px rgba(22, 226, 161, 0.25);
+      }
+      
+      .glow-warn {
+        box-shadow: 0 0 15px rgba(255, 176, 32, 0.25);
+      }
+
+      .progress-bar-glow-ion {
+        filter: drop-shadow(0 0 4px var(--ion-blue));
+      }
+      
+      .progress-bar-glow-warn {
+        filter: drop-shadow(0 0 4px var(--amber-warn));
+      }
+
+      .progress-bar-glow-plasma {
+        filter: drop-shadow(0 0 4px var(--plasma-pink));
+      }
+      
+      @keyframes pop {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.5); }
+        100% { transform: scale(1); }
+      }
+      .animate-pop {
+        animation: pop 0.3s ease-out forwards;
+        display: inline-block;
+      }
+
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

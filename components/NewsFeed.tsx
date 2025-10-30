@@ -1,0 +1,131 @@
+import React, { useState, useEffect } from 'react';
+import { NewsEvent } from '../types';
+import { LevelUpIcon, PvpWinIcon, PvpBlockedIcon, QuestClearedIcon, PurchaseIcon } from './icons';
+
+const getEventIconAndColor = (kind: NewsEvent['kind']) => {
+    const iconStyle = {width: '1.5rem', height: '1.5rem'};
+    switch (kind) {
+        case 'level_up': return { icon: <div style={{...iconStyle, color: 'var(--amber-warn)'}}><LevelUpIcon /></div>, color: 'var(--amber-warn)' };
+        case 'pvp_win': return { icon: <div style={{...iconStyle, color: 'var(--success-teal)'}}><PvpWinIcon /></div>, color: 'var(--success-teal)' };
+        case 'pvp_loss':
+        case 'pvp_blocked': return { icon: <div style={{...iconStyle, color: 'var(--danger-red)'}}><PvpBlockedIcon /></div>, color: 'var(--danger-red)' };
+        case 'quest_cleared': return { icon: <div style={{...iconStyle, color: 'var(--ion-blue)'}}><QuestClearedIcon /></div>, color: 'var(--ion-blue)' };
+        case 'purchase': return { icon: <div style={{...iconStyle, color: 'var(--success-teal)'}}><PurchaseIcon /></div>, color: 'var(--success-teal)' };
+        default: return { icon: null, color: 'var(--mist-400)'};
+    }
+};
+
+const formatEventText = (event: NewsEvent) => {
+    const actorStyle = { color: 'var(--paper-50)', fontWeight: '600' };
+    switch (event.kind) {
+        case 'pvp_win':
+            return <><span style={{...actorStyle, color: 'var(--success-teal)'}}>{event.actor}</span> hacked <span style={{...actorStyle, color: 'var(--danger-red)'}}>{event.target}</span>. {event.data.details}.</>;
+        case 'pvp_blocked':
+            return <><span style={{...actorStyle, color: 'var(--danger-red)'}}>{event.actor}</span>'s attack on <span style={{...actorStyle}}>{event.target}</span> was blocked.</>;
+        case 'level_up':
+            return <><span style={{...actorStyle, color: 'var(--amber-warn)'}}>{event.actor}</span> has reached <span className="font-bold">{event.data.details}</span>!</>;
+        case 'quest_cleared':
+            return <><span style={{...actorStyle, color: 'var(--ion-blue)'}}>{event.actor}</span> cleared <span className="font-bold">"{event.data.details}"</span>.</>;
+        case 'purchase':
+            return <><span style={{...actorStyle, color: 'var(--success-teal)'}}>{event.actor}</span> bought a <span className="font-bold">{event.data.item}</span>.</>;
+        default:
+            return <span>{event.actor} did something.</span>;
+    }
+};
+
+const EMOJIS = ['🔥', '😮', '😂', '❤️'];
+
+const NewsFeed: React.FC<{ news: NewsEvent[] }> = ({ news }) => {
+  const [localNews, setLocalNews] = useState(news);
+  const [poppingReaction, setPoppingReaction] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLocalNews(news);
+  }, [news]);
+
+  const handleReactionClick = (eventId: string, emoji: string) => {
+    setLocalNews(prevNews =>
+      prevNews.map(event => {
+        if (event.id !== eventId) {
+          return event;
+        }
+
+        const newReactions = { ...event.reactions };
+        const myCurrentReaction = event.my_reaction;
+        let newMyReaction: string | null = emoji;
+
+        if (myCurrentReaction === emoji) {
+          // Toggle off
+          newReactions[emoji] = Math.max(0, newReactions[emoji] - 1);
+          newMyReaction = null;
+        } else {
+          // If there was a previous reaction, decrement it
+          if (myCurrentReaction) {
+            newReactions[myCurrentReaction] = Math.max(0, newReactions[myCurrentReaction] - 1);
+          }
+          // Increment the new one
+          newReactions[emoji] += 1;
+          
+          // Trigger pop animation
+          setPoppingReaction(`${eventId}-${emoji}`);
+          setTimeout(() => setPoppingReaction(null), 300);
+        }
+
+        return {
+          ...event,
+          reactions: newReactions,
+          my_reaction: newMyReaction,
+        };
+      })
+    );
+  };
+
+  return (
+    <div className="card-glass p-4 h-full">
+      <h3 className="font-heading text-lg text-gray-300 mb-4">Activity Feed</h3>
+      <ul className="space-y-3 max-h-[500px] lg:max-h-[calc(100%-2rem)] overflow-y-auto pr-2">
+        {localNews.map(event => {
+          const { icon, color } = getEventIconAndColor(event.kind);
+          return (
+            <li key={event.id} className="bg-black/20 rounded-lg p-3 relative overflow-hidden">
+              <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: color, filter: `blur(2px)` }}></div>
+              <div className="flex items-start space-x-3">
+                <div className="flex-shrink-0 pt-1 pl-2">{icon}</div>
+                <div className="flex-grow">
+                    <p className="text-sm text-gray-300 leading-tight">{formatEventText(event)}</p>
+                    <p className="text-xs" style={{color: 'var(--mist-400)'}}>{event.created_at}</p>
+                    <div className="flex items-center space-x-2 mt-2">
+                      {EMOJIS.map(emoji => {
+                        const isActive = event.my_reaction === emoji;
+                        const isPopping = poppingReaction === `${event.id}-${emoji}`;
+                        return (
+                          <button
+                            key={emoji}
+                            onClick={() => handleReactionClick(event.id, emoji)}
+                            className={`flex items-center space-x-1.5 px-2 py-1 rounded-full transition-all duration-200 border ${
+                              isActive
+                                ? 'bg-blue-500/30 border-blue-400'
+                                : 'bg-black/20 hover:bg-black/40 border-transparent'
+                            }`}
+                          >
+                            <span>{emoji}</span>
+                            <span
+                              className={`font-mono text-sm ${isPopping ? 'animate-pop' : ''} ${isActive ? 'text-white' : 'text-gray-400'}`}
+                            >
+                              {event.reactions[emoji] || 0}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+};
+
+export default NewsFeed;
