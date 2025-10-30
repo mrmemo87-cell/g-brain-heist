@@ -169,3 +169,14 @@ export interface ClanChatMessage {
     created_at: string;
     is_self: boolean;
 }
+
+export interface InventoryItem {
+    inv_id: string;
+    item_id: string;
+    name: string;
+    kind: ShopItem['kind'];
+    state: 'unused' | 'active' | 'expired' | 'consumed';
+    expires_at?: string;
+    description: string;
+    effect_summary: string;
+}

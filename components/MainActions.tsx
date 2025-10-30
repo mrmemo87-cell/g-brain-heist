@@ -1,14 +1,15 @@
 import React from 'react';
-import { QuestIcon, HackIcon, ShopIcon, ClanIcon } from './icons';
+import { QuestIcon, HackIcon, ShopIcon, ClanIcon, InventoryIcon } from './icons';
 
 interface MainActionsProps {
     onStartQuest: () => void;
     onStartPvp: () => void;
     onVisitShop: () => void;
     onGoToClan: () => void;
+    onVisitInventory: () => void;
 }
 
-const ActionButton: React.FC<{ icon: React.ReactNode; label: string; color: string; glowClass: string; onClick?: () => void; }> = ({ icon, label, color, glowClass, onClick }) => {
+const ActionButton: React.FC<{ icon: React.ReactNode; label: string; color: string; glowClass: string; onClick?: () => void; className?: string; }> = ({ icon, label, color, glowClass, onClick, className }) => {
     const style = {
         backgroundColor: `rgba(${color}, 0.2)`,
         borderColor: `rgba(${color}, 0.8)`,
@@ -24,7 +25,7 @@ const ActionButton: React.FC<{ icon: React.ReactNode; label: string; color: stri
     return (
         <button 
             onClick={onClick} 
-            className={`w-full flex flex-col items-center justify-center p-4 rounded-2xl border transition-all duration-300 transform hover:scale-105 ${glowClass}`}
+            className={`w-full h-full flex flex-col items-center justify-center p-4 rounded-2xl border transition-all duration-300 transform hover:scale-105 ${glowClass} ${className || ''}`}
             style={style}
             onMouseOver={e => Object.assign(e.currentTarget.style, hoverStyle)}
             onMouseOut={e => Object.assign(e.currentTarget.style, style)}
@@ -35,9 +36,9 @@ const ActionButton: React.FC<{ icon: React.ReactNode; label: string; color: stri
     );
 };
 
-const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onVisitShop, onGoToClan }) => {
+const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onVisitShop, onGoToClan, onVisitInventory }) => {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4">
+    <div className="grid grid-cols-2 gap-4">
         <ActionButton 
             onClick={onStartQuest}
             icon={<QuestIcon />} 
@@ -65,6 +66,14 @@ const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onV
             label="Clan" 
             color="255, 176, 32" // amber-warn
             glowClass="glow-warn"
+        />
+        <ActionButton 
+            onClick={onVisitInventory}
+            icon={<InventoryIcon />} 
+            label="Inventory" 
+            color="158, 93, 255" // grid-purple
+            glowClass="glow-purple"
+            className="col-span-2"
         />
     </div>
   );

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShopItem, Profile, ToastMessage } from '../types';
 import * as GameService from '../services/gameService';
-import { ShieldIcon, CrackerIcon, BoosterIcon, CoinIcon } from './icons';
+import { ShieldIcon, CrackerIcon, BoosterIcon, CoinIcon, CosmeticIcon } from './icons';
 
 type ShopStage = 'loading' | 'idle' | 'purchasing';
 
@@ -19,6 +19,7 @@ const getItemIcon = (kind: ShopItem['kind']) => {
         case 'cracker': return <div style={{...style, color: 'var(--danger-red)'}}><CrackerIcon /></div>;
         case 'booster':
         case 'major_booster': return <div style={{...style, color: 'var(--amber-warn)'}}><BoosterIcon /></div>;
+        case 'cosmetic': return <div style={{...style, color: 'var(--grid-purple)'}}><CosmeticIcon /></div>;
         default: return null;
     }
 };
@@ -27,8 +28,18 @@ const ItemCard: React.FC<{ item: ShopItem, onBuy: (item: ShopItem) => void }> = 
     const canAfford = true; // Placeholder, real check would be here or in parent
     const limitReached = item.owned_today >= item.daily_limit;
 
+    const typeStyles: Record<ShopItem['kind'], { glow: string, border: string }> = {
+        shield: { glow: 'glow-ion', border: 'rgba(0, 208, 232, 0.2)' },
+        cracker: { glow: 'glow-plasma', border: 'rgba(255, 45, 145, 0.2)' },
+        booster: { glow: 'glow-warn', border: 'rgba(255, 176, 32, 0.2)' },
+        major_booster: { glow: 'glow-warn', border: 'rgba(255, 176, 32, 0.2)' },
+        cosmetic: { glow: 'glow-purple', border: 'rgba(158, 93, 255, 0.2)' },
+        mystery: { glow: 'glow-success', border: 'rgba(22, 226, 161, 0.2)' },
+    };
+    const currentStyle = typeStyles[item.kind] || typeStyles.mystery;
+
     return (
-        <div className="card-glass p-4 flex flex-col text-center relative glow-success" style={{borderColor: 'rgba(22, 226, 161, 0.2)'}}>
+        <div className={`card-glass p-4 flex flex-col text-center relative ${currentStyle.glow}`} style={{borderColor: currentStyle.border}}>
             <div className="w-16 h-16 mx-auto my-2 p-2 bg-black/30 rounded-full">{getItemIcon(item.kind)}</div>
             <h3 className="font-heading text-lg text-white">{item.name}</h3>
             <p className="text-sm text-gray-400 flex-grow mt-1">{item.description}</p>

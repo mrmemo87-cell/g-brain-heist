@@ -1,4 +1,4 @@
-import { Profile, Task, SessionStatus, Caps, NewsEvent, Subject, Question, AnswerResponse, RaidTarget, RaidAttackResult, ShopItem, PurchaseReceipt, Clan, ClanChatMessage, ClanSummary, ClanMember, ClanBuff } from '../types';
+import { Profile, Task, SessionStatus, Caps, NewsEvent, Subject, Question, AnswerResponse, RaidTarget, RaidAttackResult, ShopItem, PurchaseReceipt, Clan, ClanChatMessage, ClanSummary, ClanMember, ClanBuff, InventoryItem } from '../types';
 
 const MOCK_DELAY = 500;
 
@@ -33,6 +33,37 @@ const MOCK_AVAILABLE_BUFFS: ClanBuff[] = [
     { id: 'buff_xp_1', name: 'XP Surge', description: '+10% XP for all members for 24h.', cost: 5000 },
     { id: 'buff_shield_1', name: 'Reinforced Shields', description: 'Clan member shields are 20% stronger for 24h.', cost: 7500 },
     { id: 'buff_attack_1', name: 'Attack Protocol', description: '+5% Attack Power for all members for 24h.', cost: 10000 },
+];
+
+let MOCK_INVENTORY: InventoryItem[] = [
+    {
+        inv_id: 'inv_1',
+        item_id: 'item_booster',
+        name: 'Booster',
+        kind: 'booster',
+        state: 'unused',
+        description: 'Grants 1.5x XP from all sources for 1 hour.',
+        effect_summary: '1.5x XP (1h)'
+    },
+    {
+        inv_id: 'inv_2',
+        item_id: 'item_shield',
+        name: 'Shield',
+        kind: 'shield',
+        state: 'active',
+        expires_at: 'Until Cracked',
+        description: 'Blocks one incoming hack attempt before shattering.',
+        effect_summary: 'Blocks 1 attack'
+    },
+     {
+        inv_id: 'inv_3',
+        item_id: 'item_cracker',
+        name: 'Cracker',
+        kind: 'cracker',
+        state: 'unused',
+        description: 'Bypasses an active enemy shield during a hack.',
+        effect_summary: 'Negates 1 shield'
+    },
 ];
 
 export const whoami = (): Promise<Profile> => {
@@ -222,6 +253,8 @@ const MOCK_SHOP_ITEMS: ShopItem[] = [
     { id: 'item_cracker', name: 'Cracker', kind: 'cracker', price: 200, daily_limit: 2, owned_today: 0, description: 'Bypasses an active enemy shield during a hack.', effect_summary: 'Negates 1 shield' },
     { id: 'item_booster', name: 'Booster', kind: 'booster', price: 250, daily_limit: 1, owned_today: 0, description: 'Grants 1.5x XP from all sources for 1 hour.', effect_summary: '1.5x XP (1h)' },
     { id: 'item_major_booster', name: 'Major Booster', kind: 'major_booster', price: 400, daily_limit: 1, owned_today: 0, description: 'Grants a massive 2.0x XP from all sources for 1 hour.', effect_summary: '2.0x XP (1h)' },
+    { id: 'item_cosmetic_frame', name: 'Neon Frame', kind: 'cosmetic', price: 750, daily_limit: 1, owned_today: 0, description: 'A flashy neon frame for your avatar. Show off your style!', effect_summary: 'Purely cosmetic' },
+    { id: 'item_cosmetic_theme', name: 'Glitch Theme', kind: 'cosmetic', price: 1200, daily_limit: 1, owned_today: 0, description: 'Apply a glitchy, datamosh effect to your profile card.', effect_summary: 'Purely cosmetic' },
 ];
 
 
@@ -255,6 +288,50 @@ export const shop_buy = (item_id: string, quantity: number, current_coins: numbe
     };
     
     return mockApiCall(receipt);
+};
+
+export const inventory_list = (): Promise<InventoryItem[]> => {
+    return mockApiCall(MOCK_INVENTORY);
+};
+
+export const inventory_activate = (inv_id: string): Promise<{ state_after: InventoryItem['state'], effect_window: { start: string, end: string } }> => {
+    const item = MOCK_INVENTORY.find(i => i.inv_id === inv_id);
+
+    if (!item) {
+        return Promise.reject({ message: 'Item not found in inventory.' });
+    }
+    if (item.state !== 'unused') {
+        return Promise.reject({ message: 'Item cannot be activated.' });
+    }
+    // Simple activation logic for mock
+    item.state = 'active';
+    const now = new Date();
+    const expiry = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour for boosters
+    
+    if (item.kind === 'shield') {
+      item.expires_at = 'Until Cracked';
+    } else {
+      item.expires_at = expiry.toISOString();
+    }
+    
+    // Deactivate other boosters if a new one is used
+    if (item.kind === 'booster' || item.kind === 'major_booster') {
+        MOCK_INVENTORY.forEach(i => {
+            if ((i.kind === 'booster' || i.kind === 'major_booster') && i.inv_id !== inv_id && i.state === 'active') {
+                i.state = 'consumed';
+                i.expires_at = 'Replaced';
+            }
+        });
+    }
+    
+    const result = {
+        state_after: item.state,
+        effect_window: {
+            start: now.toISOString(),
+            end: expiry.toISOString()
+        }
+    };
+    return mockApiCall(result);
 };
 
 // --- CLAN MOCKS ---

@@ -13,15 +13,20 @@ import PvPView from './components/PvPView';
 import ShopView from './components/ShopView';
 import Toast from './components/Toast';
 import ClanView from './components/ClanView';
+import InventoryView from './components/InventoryView';
 
-const App: React.FC = () => {
+interface AppProps {
+  onLogout: () => void;
+}
+
+const App: React.FC<AppProps> = ({ onLogout }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [sessionStatus, setSessionStatus] = useState<SessionStatus | null>(null);
   const [caps, setCaps] = useState<Caps | null>(null);
   const [news, setNews] = useState<NewsEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory'>('dashboard');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const addToast = (message: string, type: ToastMessage['type'] = 'info') => {
@@ -108,6 +113,8 @@ const App: React.FC = () => {
             return <ShopView onComplete={handleViewComplete} onPurchase={handleGrantReward} profile={profile} addToast={addToast} />;
         case 'clan':
             return <ClanView onComplete={handleViewComplete} profile={profile} onUpdateProfile={setProfile} addToast={addToast} />;
+        case 'inventory':
+            return <InventoryView onComplete={handleViewComplete} addToast={addToast} />;
         case 'dashboard':
         default:
             return (
@@ -121,7 +128,7 @@ const App: React.FC = () => {
 
                     {/* Middle Column */}
                     <div className="lg:col-span-5 xl:col-span-6 space-y-6">
-                        <MainActions onStartQuest={() => setView('quest')} onStartPvp={() => setView('pvp')} onVisitShop={() => setView('shop')} onGoToClan={() => setView('clan')} />
+                        <MainActions onStartQuest={() => setView('quest')} onStartPvp={() => setView('pvp')} onVisitShop={() => setView('shop')} onGoToClan={() => setView('clan')} onVisitInventory={() => setView('inventory')} />
                         <TaskList tasks={tasks} />
                     </div>
 
@@ -136,7 +143,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8 max-w-screen-2xl mx-auto">
-      <Header profile={profile} />
+      <Header profile={profile} onLogout={onLogout} />
       {renderView()}
       <div className="fixed top-6 right-6 z-[100] space-y-3">
         {toasts.map(toast => (

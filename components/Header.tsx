@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Profile } from '../types';
-import { CoinIcon, XPIcon, APIcon } from './icons';
+import { CoinIcon, XPIcon, APIcon, LogoutIcon } from './icons';
 
 // Custom hook for animating number changes
 const useAnimatedValue = (endValue: number, duration: number = 500) => {
@@ -58,9 +58,10 @@ const StatChip: React.FC<{ icon: React.ReactNode; value: number; 'data-testid': 
 
 interface HeaderProps {
   profile: Profile;
+  onLogout: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ profile }) => {
+const Header: React.FC<HeaderProps> = ({ profile, onLogout }) => {
   return (
     <header className="flex justify-between items-center card-glass glow-ion p-3 sm:p-4">
       <div className="flex items-center space-x-4">
@@ -74,6 +75,14 @@ const Header: React.FC<HeaderProps> = ({ profile }) => {
         <StatChip icon={<XPIcon />} value={profile.xp} data-testid="xp-hud" />
         <StatChip icon={<APIcon />} value={profile.ap_now} data-testid="ap-hud" />
         <img src={profile.avatar_url} alt="Player Avatar" className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2" style={{ borderColor: 'var(--plasma-pink)' }} />
+        <button 
+            onClick={onLogout}
+            className="p-2 rounded-full bg-black/20 hover:bg-plasma-pink/30 transition-colors"
+            aria-label="Log Out"
+            title="Log Out"
+        >
+            <LogoutIcon className="w-6 h-6 text-mist-400" />
+        </button>
       </div>
     </header>
   );
