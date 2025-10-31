@@ -175,7 +175,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
             <div className="flex flex-col items-center mb-4">
               {attackResult.result === 'win' && (
                 <LottieAnimation 
-                  url="https://lottie.host/8cf1bfe4-d67b-4b61-9fc7-36a46b6e9f88/s5R1s3FBhq.json"
+                  url="/animations/victory.json"
                   width={200}
                   height={200}
                   loop={false}
@@ -183,7 +183,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
               )}
               {attackResult.result === 'blocked' && (
                 <LottieAnimation 
-                  url="https://lottie.host/c1f75fa5-6f3e-4c0d-82a5-0f44c1b3ff1a/dkYqy4t3HF.json"
+                  url="/animations/blocked.json"
                   width={200}
                   height={200}
                   loop={false}
@@ -191,7 +191,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
               )}
               {attackResult.result === 'lose' && (
                 <LottieAnimation 
-                  url="https://lottie.host/0a8e2ef0-ff9d-48fa-babe-8e6c4f6ff456/ZUvXN8zLDu.json"
+                  url="/animations/defeat.json"
                   width={200}
                   height={200}
                   loop={false}

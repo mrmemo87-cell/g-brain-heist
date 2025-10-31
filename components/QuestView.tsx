@@ -228,7 +228,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
                 {answerResponse.correct ? (
                   <div className="flex flex-col items-center">
                     <LottieAnimation 
-                      url="https://lottie.host/e2a64c66-6e5f-40db-ad55-1514b52f9f27/T5RhAyKZzc.json"
+                      url="/animations/success.json"
                       width={120}
                       height={120}
                       loop={false}
@@ -239,7 +239,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
                 ) : (
                   <div className="flex flex-col items-center">
                     <LottieAnimation 
-                      url="https://lottie.host/a3ce4e40-0b0a-4a43-8fee-b4db29e0e0e6/GmJp0y2YGg.json"
+                      url="/animations/error.json"
                       width={120}
                       height={120}
                       loop={false}

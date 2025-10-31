@@ -140,7 +140,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <LottieAnimation 
-          url="https://lottie.host/927b97f2-353a-4490-ab6c-19509068da76/3mH15n4v8x.json"
+          url="/animations/loading.json"
           width={250}
           height={250}
         />
