@@ -37,10 +37,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [levelUpData, setLevelUpData] = useState<{ newLevel: number; rewards: any } | null>(null);
   const [previousLevel, setPreviousLevel] = useState<number | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-  const addToast = (message: string, type: ToastMessage['type'] = 'info') => {
+  const addToast = (message: string, type: ToastMessage['type'] = 'info', retryAction?: () => void) => {
     const id = Date.now();
-    setToasts(prev => [...prev, { id, message, type }]);
+    setToasts(prev => [...prev, { id, message, type, retryAction }]);
   };
 
   const removeToast = (id: number) => {
@@ -51,6 +52,12 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const fetchGameData = async () => {
     try {
       setLoading(true);
+
+      // Check if offline before attempting fetch
+      if (!navigator.onLine) {
+        throw new Error('No internet connection');
+      }
+
       const [profileData, tasksData, sessionData, capsData, newsData] = await Promise.all([
         GameService.whoami(),
         GameService.tasks_list(),
@@ -68,9 +75,16 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       if (profileData && !profileData.tutorial_completed) {
         setShowTutorial(true);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to load game data:", error);
-      addToast("Failed to load game data.", "error");
+      
+      // Add retry button for network errors
+      const isNetworkError = !navigator.onLine || error?.message?.includes('fetch') || error?.message?.includes('network');
+      if (isNetworkError) {
+        addToast("Failed to load game data. Check your connection.", "error", fetchGameData);
+      } else {
+        addToast("Failed to load game data.", "error");
+      }
     } finally {
       setLoading(false);
     }
@@ -78,6 +92,29 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
   useEffect(() => {
     fetchGameData();
+  }, []);
+
+  // Network status detection
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      addToast('🌐 Connection restored', 'success');
+      // Refresh data when coming back online
+      fetchGameData();
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      addToast('📡 No internet connection', 'error');
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
 
   // Real-time subscription for activity feed
@@ -272,11 +309,27 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         currentView={view}
         onBackToDashboard={() => setView('dashboard')}
       />
+
+      {/* Offline Banner */}
+      {!isOnline && (
+        <div className="fixed top-20 left-0 right-0 z-50 flex justify-center">
+          <div className="bg-red-500/90 text-white px-6 py-3 rounded-lg shadow-lg backdrop-blur-sm">
+            <p className="font-semibold">📡 No internet connection - Some features may not work</p>
+          </div>
+        </div>
+      )}
+
       {renderView()}
       <div className="fixed top-6 right-6 z-[100] space-y-3">
         {toasts.map(toast => (
-          // FIX: Pass the 'id' prop to the Toast component as it's required by its props interface.
-          <Toast key={toast.id} id={toast.id} message={toast.message} type={toast.type} onDismiss={() => removeToast(toast.id)} />
+          <Toast 
+            key={toast.id} 
+            id={toast.id} 
+            message={toast.message} 
+            type={toast.type} 
+            retryAction={toast.retryAction}
+            onDismiss={() => removeToast(toast.id)} 
+          />
         ))}
       </div>
       
