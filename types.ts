@@ -15,6 +15,7 @@ export interface Profile {
   last_ap_update?: string; // ISO timestamp of last AP regeneration
   attack_power: number; // Base attack power
   defense_power: number; // Base defense power
+  tutorial_completed?: boolean; // Whether user has completed onboarding tutorial
 }
 
 export interface Task {

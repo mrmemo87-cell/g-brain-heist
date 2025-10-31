@@ -18,6 +18,7 @@ import InventoryView from './components/InventoryView';
 import LevelUpModal from './components/LevelUpModal';
 import LeaderboardView from './components/LeaderboardView';
 import AchievementView from './components/AchievementView';
+import TutorialModal from './components/TutorialModal';
 
 interface AppProps {
   onLogout: () => void;
@@ -35,6 +36,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [levelUpData, setLevelUpData] = useState<{ newLevel: number; rewards: any } | null>(null);
   const [previousLevel, setPreviousLevel] = useState<number | null>(null);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const addToast = (message: string, type: ToastMessage['type'] = 'info') => {
     const id = Date.now();
@@ -61,6 +63,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       setSessionStatus(sessionData);
       setCaps(capsData);
       setNews(newsData);
+
+      // Show tutorial if first time user
+      if (profileData && !profileData.tutorial_completed) {
+        setShowTutorial(true);
+      }
     } catch (error) {
       console.error("Failed to load game data:", error);
       addToast("Failed to load game data.", "error");
@@ -281,6 +288,19 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           onClose={() => {
             setShowLevelUpModal(false);
             setLevelUpData(null);
+          }}
+        />
+      )}
+
+      {/* Tutorial Modal */}
+      {showTutorial && (
+        <TutorialModal
+          onComplete={() => {
+            setShowTutorial(false);
+            fetchGameData();
+          }}
+          onSkip={() => {
+            setShowTutorial(false);
           }}
         />
       )}
