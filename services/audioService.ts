@@ -20,12 +20,12 @@ class AudioManager {
   private bgMusicEnabled: boolean = false;
 
   constructor() {
-    // Load audio enabled state from localStorage
+    // Load audio enabled state from localStorage (default: true)
     const savedAudioState = localStorage.getItem('gbh_audio_enabled');
-    this.audioEnabled = savedAudioState !== 'false';
+    this.audioEnabled = savedAudioState !== 'false'; // Default to true
     
     const savedBgMusicState = localStorage.getItem('gbh_bg_music_enabled');
-    this.bgMusicEnabled = savedBgMusicState === 'true';
+    this.bgMusicEnabled = savedBgMusicState !== 'false'; // Default to true
     
     this.preloadSounds();
   }
