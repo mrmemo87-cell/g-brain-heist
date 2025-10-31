@@ -12,6 +12,7 @@ interface ShopViewProps {
   onComplete: () => void;
   onPurchase: (deltas: { coins: number }) => void;
   addToast: (message: string, type: ToastMessage['type']) => void;
+  onNavigateToInventory?: () => void;
 }
 
 const getItemIcon = (kind: ShopItem['kind']) => {
@@ -132,7 +133,7 @@ const PurchaseModal: React.FC<{
     );
 };
 
-const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, addToast }) => {
+const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, addToast, onNavigateToInventory }) => {
   const [stage, setStage] = useState<ShopStage>('loading');
   const [items, setItems] = useState<ShopItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
@@ -170,7 +171,17 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
 
   return (
     <div className="mt-6">
-      <BackButton onClick={onComplete} />
+      <div className="flex justify-between items-center mb-4">
+        <BackButton onClick={onComplete} />
+        {onNavigateToInventory && (
+          <button 
+            onClick={onNavigateToInventory}
+            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-heading hover:from-blue-500 hover:to-purple-500 transition-all"
+          >
+            View Inventory →
+          </button>
+        )}
+      </div>
       <h2 className="font-heading text-3xl text-center mb-8" style={{ color: 'var(--success-teal)' }}>Item Shop</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
         {items.map(item => (

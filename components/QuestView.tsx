@@ -149,7 +149,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
         audioService.play('tada');
         setStage('completed');
       }
-    }, 2000);
+    }, 1500); // Reduced from 2000ms for faster response
   };
 
   const renderSubjectSelection = () => (

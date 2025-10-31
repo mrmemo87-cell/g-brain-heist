@@ -164,11 +164,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         case 'pvp':
             return <PvPView onComplete={handleViewComplete} onGrantReward={handleGrantReward} profile={profile} />;
         case 'shop':
-            return <ShopView onComplete={handleViewComplete} onPurchase={handleGrantReward} profile={profile} addToast={addToast} />;
+            return <ShopView onComplete={handleViewComplete} onPurchase={handleGrantReward} profile={profile} addToast={addToast} onNavigateToInventory={() => setView('inventory')} />;
         case 'clan':
             return <ClanView onComplete={handleViewComplete} profile={profile} onUpdateProfile={setProfile} addToast={addToast} />;
         case 'inventory':
-            return <InventoryView onComplete={handleViewComplete} addToast={addToast} />;
+            return <InventoryView onComplete={handleViewComplete} addToast={addToast} onNavigateToShop={() => setView('shop')} />;
         case 'dashboard':
         default:
             return (

@@ -68,6 +68,19 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(audioService.isAudioEnabled());
   const [bgMusicEnabled, setBgMusicEnabled] = useState(audioService.isBgMusicEnabled());
+  const [selectedAvatar, setSelectedAvatar] = useState<string>(profile.avatar_url || '');
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  const avatarPresets = [
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Shadow',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Cyber',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Ghost',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Matrix',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Glitch',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Hack'
+  ];
 
   const handleAudioToggle = () => {
     const newState = !audioEnabled;
@@ -81,43 +94,65 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
     audioService.setBgMusicEnabled(newState);
   };
 
+  const handleAvatarSelect = async (avatarUrl: string) => {
+    setSelectedAvatar(avatarUrl);
+    setUploadingAvatar(true);
+    try {
+      const { update_avatar } = await import('../services/gameService');
+      await update_avatar(avatarUrl);
+      // Profile will be refreshed via real-time subscription
+      audioService.play('collect');
+    } catch (error) {
+      console.error('Failed to update avatar:', error);
+      audioService.play('wrong');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  useEffect(() => {
+    setSelectedAvatar(profile.avatar_url || '');
+  }, [profile.avatar_url]);
+
   return (
     <>
-      <header className="sticky top-0 z-40 flex justify-between items-center card-glass glow-ion p-3 sm:p-4">
-        <div className="flex items-center space-x-2 sm:space-x-4">
+      <header className="sticky top-0 z-40 flex justify-between items-center card-glass glow-ion p-2 sm:p-4">
+        <div className="flex items-center space-x-1 sm:space-x-4">
           {currentView !== 'dashboard' && onBackToDashboard && (
             <button
               onClick={onBackToDashboard}
-              className="p-2 rounded-full bg-black/20 hover:bg-ion-blue/30 transition-colors"
+              className="p-1.5 sm:p-2 rounded-full bg-black/20 hover:bg-ion-blue/30 transition-colors"
               aria-label="Back to Dashboard"
               title="Back to Dashboard"
             >
-              <span className="text-xl">←</span>
+              <span className="text-lg sm:text-xl">←</span>
             </button>
           )}
-          <h1 className="font-heading text-xl sm:text-2xl md:text-3xl font-bold tracking-wider" style={{ color: 'var(--ion-blue)' }}>
+          <h1 className="font-heading text-lg sm:text-2xl md:text-3xl font-bold tracking-wider" style={{ color: 'var(--ion-blue)' }}>
               BH
           </h1>
           <span className="hidden sm:block text-base sm:text-lg font-medium text-gray-300">{profile.username}</span>
         </div>
-        <div className="flex items-center space-x-2 sm:space-x-3">
-          <StatChip icon={<CoinIcon />} value={profile.coins} data-testid="coin-hud" />
-          <StatChip icon={<XPIcon />} value={profile.xp} data-testid="xp-hud" />
-          <StatChip icon={<APIcon />} value={profile.ap_now} data-testid="ap-hud" />
-          <img src={profile.avatar_url} alt="Player Avatar" className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2" style={{ borderColor: 'var(--plasma-pink)' }} />
+        <div className="flex items-center space-x-1 sm:space-x-3">
+          <div className="hidden xs:flex items-center space-x-1 sm:space-x-2">
+            <StatChip icon={<CoinIcon />} value={profile.coins} data-testid="coin-hud" />
+            <StatChip icon={<XPIcon />} value={profile.xp} data-testid="xp-hud" />
+            <StatChip icon={<APIcon />} value={profile.ap_now} data-testid="ap-hud" />
+          </div>
+          <img src={profile.avatar_url} alt="Player Avatar" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2" style={{ borderColor: 'var(--plasma-pink)' }} />
           
           <button 
               onClick={() => setShowSettingsModal(true)}
-              className="p-2 rounded-full bg-black/20 hover:bg-amber-warn/30 transition-colors"
+              className="p-1.5 sm:p-2 rounded-full bg-black/20 hover:bg-amber-warn/30 transition-colors"
               aria-label="Settings"
               title="Settings"
           >
-              <span className="text-lg sm:text-xl">⚙️</span>
+              <span className="text-base sm:text-xl">⚙️</span>
           </button>
 
           <button 
               onClick={onLogout}
-              className="p-2 rounded-full bg-black/20 hover:bg-plasma-pink/30 transition-colors"
+              className="hidden sm:block p-2 rounded-full bg-black/20 hover:bg-plasma-pink/30 transition-colors"
               aria-label="Log Out"
               title="Log Out"
           >
@@ -135,6 +170,30 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
             </h2>
             
             <div className="space-y-6">
+              {/* Avatar Selection */}
+              <div>
+                <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--amber-warn)' }}>Avatar</h3>
+                <div className="grid grid-cols-4 gap-2 mb-3">
+                  {avatarPresets.map((avatarUrl, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleAvatarSelect(avatarUrl)}
+                      disabled={uploadingAvatar}
+                      className={`w-full aspect-square rounded-lg overflow-hidden border-2 transition-all hover:scale-105 ${
+                        selectedAvatar === avatarUrl 
+                          ? 'border-cyan-400 shadow-lg shadow-cyan-500/50' 
+                          : 'border-gray-600 hover:border-gray-400'
+                      }`}
+                    >
+                      <img src={avatarUrl} alt={`Avatar ${idx + 1}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+                {uploadingAvatar && (
+                  <p className="text-xs text-center text-cyan-400 animate-pulse">Updating avatar...</p>
+                )}
+              </div>
+
               {/* Profile Section */}
               <div>
                 <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--amber-warn)' }}>Profile</h3>
@@ -189,7 +248,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
 
               {/* Note about future features */}
               <div className="text-xs text-gray-500 text-center pt-4 border-t border-gray-700">
-                <p>Profile editing (avatar, name, bio) and theme settings coming soon!</p>
+                <p>Username editing, custom bio, and theme settings coming soon!</p>
               </div>
             </div>
 

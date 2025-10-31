@@ -943,7 +943,6 @@ export const clan_details = async (): Promise<Clan | null> => {
         vault_coins: clan.vault_coins,
         buffs: [],
         members: members,
-        member_count: clan.member_count,
     };
     
     return mockApiCall(fullClan);
@@ -1005,7 +1004,7 @@ export const clan_create = async (name: string, notice: string): Promise<Clan> =
     });
     
     // Return full clan details
-    return clan_details() as Promise<Clan>;
+    return await clan_details();
 };
 
 export const clan_chat_recent = async (): Promise<ClanChatMessage[]> => {
@@ -1182,4 +1181,23 @@ export const clan_kick_member = (user_id: string): Promise<Clan> => {
     MOCK_CLAN.members = MOCK_CLAN.members.filter(m => m.user_id !== user_id);
     saveClan();
     return mockApiCall(MOCK_CLAN);
+};
+
+// ============================================
+// Profile Avatar Management
+// ============================================
+
+export const update_avatar = async (avatar_url: string): Promise<Profile> => {
+    const { data: authData } = await supabase.auth.getUser();
+    if (!authData.user) throw new Error('Not authenticated');
+
+    const { data, error } = await supabase
+        .from('users')
+        .update({ avatar_url })
+        .eq('id', authData.user.id)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
 };

@@ -46,6 +46,8 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
         <StatDisplay icon={<StreakIcon />} label="Streak" value={`${profile.streak} days`} color={'var(--danger-red)'} />
         <StatDisplay icon={<XPIcon />} label="Total XP" value={profile.xp.toLocaleString()} color={'var(--ion-blue)'} />
         <StatDisplay icon={<APIcon />} label="Action Points" value={`${profile.ap_now}/${profile.ap_max}`} color={'var(--success-teal)'} />
+        <StatDisplay icon={<span>⚔️</span>} label="Attack" value={profile.attack_power || 10} color={'var(--danger-red)'} />
+        <StatDisplay icon={<span>🛡️</span>} label="Defense" value={profile.defense_power || 10} color={'var(--ion-blue)'} />
       </div>
     </div>
   );

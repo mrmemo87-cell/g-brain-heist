@@ -8,6 +8,7 @@ import { ShieldIcon, CrackerIcon, BoosterIcon, InventoryIcon } from './icons';
 interface InventoryViewProps {
   onComplete: () => void;
   addToast: (message: string, type: ToastMessage['type']) => void;
+  onNavigateToShop?: () => void;
 }
 
 const getItemIcon = (kind: InventoryItem['kind']) => {
@@ -52,7 +53,11 @@ const ItemCard: React.FC<{ item: InventoryItem, onActivate: (inv_id: string) => 
                     </button>
                  ) : (
                      <p className="text-xs text-gray-500 italic">
-                        {item.state === 'active' && item.expires_at ? `Status: ${item.expires_at === 'Until Cracked' ? 'Active' : new Date(item.expires_at).toLocaleTimeString()}` : 'Cannot be activated directly.'}
+                        {item.state === 'active' && item.expires_at 
+                            ? `Active until ${item.expires_at === 'Until Cracked' ? 'broken' : new Date(item.expires_at).toLocaleTimeString()}` 
+                            : item.kind === 'cracker' || item.kind === 'firewall'
+                            ? 'Used automatically in PvP'
+                            : 'Cannot be activated'}
                     </p>
                  )}
             </div>
@@ -61,7 +66,7 @@ const ItemCard: React.FC<{ item: InventoryItem, onActivate: (inv_id: string) => 
 };
 
 
-const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast }) => {
+const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onNavigateToShop }) => {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [activatingId, setActivatingId] = useState<string | null>(null);
@@ -103,7 +108,17 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast }) =
 
   return (
     <div className="mt-6">
-      <BackButton onClick={onComplete} />
+      <div className="flex justify-between items-center mb-4">
+        <BackButton onClick={onComplete} />
+        {onNavigateToShop && (
+          <button 
+            onClick={onNavigateToShop}
+            className="px-4 py-2 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-lg font-heading hover:from-green-500 hover:to-teal-500 transition-all"
+          >
+            ← Go to Shop
+          </button>
+        )}
+      </div>
       <h2 className="font-heading text-3xl text-center mb-8" style={{ color: 'var(--grid-purple)' }}>Inventory</h2>
       {items.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">

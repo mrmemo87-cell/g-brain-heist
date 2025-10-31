@@ -18,6 +18,7 @@ class AudioManager {
   private audioEnabled: boolean = true;
   private bgMusic: HTMLAudioElement | null = null;
   private bgMusicEnabled: boolean = false;
+  private hasUserInteracted: boolean = false;
 
   constructor() {
     // Load audio enabled state from localStorage (default: true)
@@ -28,6 +29,26 @@ class AudioManager {
     this.bgMusicEnabled = savedBgMusicState !== 'false'; // Default to true
     
     this.preloadSounds();
+    this.setupUserInteractionListener();
+  }
+
+  private setupUserInteractionListener() {
+    const handleInteraction = () => {
+      if (!this.hasUserInteracted) {
+        this.hasUserInteracted = true;
+        if (this.bgMusicEnabled && this.audioEnabled) {
+          this.playBackgroundMusic();
+        }
+        // Remove listeners after first interaction
+        document.removeEventListener('click', handleInteraction);
+        document.removeEventListener('touchstart', handleInteraction);
+        document.removeEventListener('keydown', handleInteraction);
+      }
+    };
+
+    document.addEventListener('click', handleInteraction);
+    document.addEventListener('touchstart', handleInteraction);
+    document.addEventListener('keydown', handleInteraction);
   }
 
   private preloadSounds() {
@@ -67,10 +88,10 @@ class AudioManager {
   }
 
   playBackgroundMusic() {
-    if (!this.bgMusicEnabled || !this.bgMusic) return;
+    if (!this.bgMusicEnabled || !this.bgMusic || !this.hasUserInteracted) return;
     
     this.bgMusic.play().catch(err => {
-      console.warn('Failed to play background music:', err);
+      console.warn('Failed to play background music (autoplay blocked):', err);
     });
   }
 
@@ -87,7 +108,7 @@ class AudioManager {
     
     if (!enabled) {
       this.stopBackgroundMusic();
-    } else if (this.bgMusicEnabled) {
+    } else if (this.bgMusicEnabled && this.hasUserInteracted) {
       this.playBackgroundMusic();
     }
   }
@@ -96,7 +117,7 @@ class AudioManager {
     this.bgMusicEnabled = enabled;
     localStorage.setItem('gbh_bg_music_enabled', enabled.toString());
     
-    if (enabled && this.audioEnabled) {
+    if (enabled && this.audioEnabled && this.hasUserInteracted) {
       this.playBackgroundMusic();
     } else {
       this.stopBackgroundMusic();
