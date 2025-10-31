@@ -15,13 +15,25 @@ const LottieAnimation: React.FC<LottieAnimationProps> = ({ url, width = 200, hei
 
   useEffect(() => {
     setLoading(true);
+    setError(false);
+    setAnimationData(null);
+    
     fetch(url)
-      .then(res => res.json())
-      .then(data => {
-        setAnimationData(data);
-        setLoading(false);
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to load animation');
+        return res.json();
       })
-      .catch(() => {
+      .then(data => {
+        // Validate that we have proper Lottie data
+        if (data && data.v && data.layers) {
+          setAnimationData(data);
+          setLoading(false);
+        } else {
+          throw new Error('Invalid Lottie data');
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load Lottie animation:', url, err);
         setError(true);
         setLoading(false);
       });
@@ -34,10 +46,16 @@ const LottieAnimation: React.FC<LottieAnimationProps> = ({ url, width = 200, hei
   }
 
   if (error || !animationData) {
-    return <div style={{ width, height }} className="animate-pulse bg-black/20 rounded" />;
+    // Return empty div instead of showing error
+    return <div style={{ width, height }} />;
   }
 
-  return <Lottie animationData={animationData} loop={loop} style={{ width, height }} />;
+  try {
+    return <Lottie animationData={animationData} loop={loop} style={{ width, height }} />;
+  } catch (err) {
+    console.error('Error rendering Lottie:', err);
+    return <div style={{ width, height }} />;
+  }
 };
 
 export default LottieAnimation;

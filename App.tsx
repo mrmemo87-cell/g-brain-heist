@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage } from './types';
 import * as GameService from './services/gameService';
 import { supabase } from './services/supabaseClient';
-import LottieAnimation from './components/LottieAnimation';
 import Header from './components/Header';
 import PlayerProfileCard from './components/PlayerProfileCard';
 import SessionTracker from './components/SessionTracker';
@@ -139,11 +138,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
-        <LottieAnimation 
-          url="/animations/loading.json"
-          width={250}
-          height={250}
-        />
+        <div className="relative w-64 h-64 flex items-center justify-center">
+          <div className="absolute w-32 h-32 border-4 border-ion-blue border-t-transparent rounded-full animate-spin"></div>
+          <div className="absolute w-24 h-24 border-4 border-plasma-pink border-t-transparent rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
+        </div>
         <div className="font-heading text-2xl animate-pulse mt-4" style={{color: 'var(--ion-blue)'}}>
           Initializing Heist OS...
         </div>

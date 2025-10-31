@@ -5,7 +5,6 @@ import { audioService } from '../services/audioService';
 import BackButton from './BackButton';
 import { ShieldIcon, HackIcon, CoinIcon, XPIcon } from './icons';
 import { createPortal } from 'react-dom';
-import LottieAnimation from './LottieAnimation';
 
 type PvPStage = 'loading' | 'targets' | 'cinematic' | 'result';
 
@@ -174,28 +173,13 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
         <div className="text-center max-w-lg mx-auto">
             <div className="flex flex-col items-center mb-4">
               {attackResult.result === 'win' && (
-                <LottieAnimation 
-                  url="/animations/victory.json"
-                  width={200}
-                  height={200}
-                  loop={false}
-                />
+                <div className="text-8xl mb-4 animate-bounce">🏆</div>
               )}
               {attackResult.result === 'blocked' && (
-                <LottieAnimation 
-                  url="/animations/blocked.json"
-                  width={200}
-                  height={200}
-                  loop={false}
-                />
+                <div className="text-8xl mb-4 animate-pulse">🛡️</div>
               )}
               {attackResult.result === 'lose' && (
-                <LottieAnimation 
-                  url="/animations/defeat.json"
-                  width={200}
-                  height={200}
-                  loop={false}
-                />
+                <div className="text-8xl mb-4 animate-ping">💥</div>
               )}
               <h2 className="font-heading text-4xl" style={{ color }}>{title}</h2>
             </div>

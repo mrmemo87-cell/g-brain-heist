@@ -5,7 +5,6 @@ import { audioService } from '../services/audioService';
 import { BrainIcon, CoinIcon, XPIcon } from './icons';
 import BackButton from './BackButton';
 import { createPortal } from 'react-dom';
-import LottieAnimation from './LottieAnimation';
 
 type QuestStage = 'loading' | 'subject_selection' | 'in_progress' | 'completed';
 
@@ -227,23 +226,13 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
             <div ref={answerFeedbackRef} className={`mt-6 p-4 rounded-2xl text-center border ${answerResponse.correct ? 'bg-green-900/20 border-green-500/50' : 'bg-red-900/20 border-red-500/50'}`}>
                 {answerResponse.correct ? (
                   <div className="flex flex-col items-center">
-                    <LottieAnimation 
-                      url="/animations/success.json"
-                      width={120}
-                      height={120}
-                      loop={false}
-                    />
+                    <div className="text-6xl mb-2 animate-bounce">✓</div>
                     <h3 className="font-bold text-lg text-green-400">Correct!</h3>
                     <p className="text-gray-200">{answerResponse.explanation}</p>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center">
-                    <LottieAnimation 
-                      url="/animations/error.json"
-                      width={120}
-                      height={120}
-                      loop={false}
-                    />
+                    <div className="text-6xl mb-2 animate-pulse">✗</div>
                     <h3 className="font-bold text-lg text-red-400">Incorrect!</h3>
                     <p className="text-gray-200">{answerResponse.explanation}</p>
                   </div>
