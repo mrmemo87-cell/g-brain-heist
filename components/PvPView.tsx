@@ -50,6 +50,9 @@ const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) 
       </div>
       <h3 className="font-heading text-lg" style={{ color: 'var(--plasma-pink)' }}>{target.username}</h3>
       <p className="text-sm text-gray-400">Lvl {target.level} | Batch {target.batch}</p>
+      {target.clan_name && (
+        <p className="text-xs text-ion-blue mt-1">⚔️ {target.clan_name}</p>
+      )}
       <p className="text-xs text-amber-400 mt-1">~{target.coins.toLocaleString()} Coins</p>
       <button
         onClick={() => onSelect(target)}

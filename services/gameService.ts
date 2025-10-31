@@ -517,38 +517,43 @@ export const mcq_answer_submit = async (question_id: string, choice: string): Pr
 export const raid_targets = async (): Promise<RaidTarget[]> => {
     const user = await getCurrentUser();
     
-    // Fetch all users except current user from database
+    // Fetch all users except current user from database with their clan info
     const { data: players, error } = await supabase
         .from('users')
-        .select('id, username, level, coins, batch, avatar_url, last_seen, attack_power, defense_power')
+        .select(`
+            id, username, level, coins, batch, avatar_url, last_seen, attack_power, defense_power,
+            clan_members!left (
+                clans!inner (name)
+            )
+        `)
         .neq('id', user.id)
         .limit(20);
     
     if (error) throw error;
     
     if (!players || players.length === 0) {
-        // No other players yet, return mock targets
-        const now = new Date();
-        const mockTargets: RaidTarget[] = [
-            { user_id: 'usr_tgt_1', username: 'DataWraith', level: 13, coins: 4500, batch: '8A', has_shield: true, est_win_rate: 0.45, avatar_url: 'https://picsum.photos/seed/datawraith/100/100', last_seen: new Date(now.getTime() - 2 * 60 * 1000).toISOString() },
-            { user_id: 'usr_tgt_2', username: 'CypherPunk', level: 15, coins: 12000, batch: '8C', has_shield: false, est_win_rate: 0.30, avatar_url: 'https://picsum.photos/seed/cypherpunk/100/100', last_seen: new Date(now.getTime() - 15 * 60 * 1000).toISOString() },
-            { user_id: 'usr_tgt_3', username: 'GlitchMaster', level: 11, coins: 2500, batch: '8B', has_shield: false, est_win_rate: 0.65, avatar_url: 'https://picsum.photos/seed/glitchmaster/100/100', last_seen: new Date(now.getTime() - 60 * 60 * 1000).toISOString() },
-        ];
-        return mockApiCall(mockTargets);
+        // No other players yet, return empty array
+        return mockApiCall([]);
     }
     
     // TODO: Check inventory for shields
-    const realTargets: RaidTarget[] = players.map(p => ({
-        user_id: p.id,
-        username: p.username,
-        level: p.level,
-        coins: p.coins,
-        batch: p.batch as '8A' | '8B' | '8C',
-        has_shield: false, // TODO: Check inventory
-        est_win_rate: Math.random() * 0.5 + 0.3,
-        avatar_url: p.avatar_url || '',
-        last_seen: p.last_seen,
-    }));
+    const realTargets: RaidTarget[] = players.map((p: any) => {
+        // Extract clan name if user is in a clan
+        const clanName = p.clan_members?.[0]?.clans?.name || undefined;
+        
+        return {
+            user_id: p.id,
+            username: p.username,
+            level: p.level,
+            coins: p.coins,
+            batch: p.batch as '8A' | '8B' | '8C',
+            has_shield: false, // TODO: Check inventory
+            est_win_rate: Math.random() * 0.5 + 0.3,
+            avatar_url: p.avatar_url || '',
+            last_seen: p.last_seen,
+            clan_name: clanName,
+        };
+    });
     
     return mockApiCall(realTargets);
 };
@@ -828,13 +833,6 @@ export const inventory_activate = async (inv_id: string): Promise<{ state_after:
     return mockApiCall(result);
 };
 
-// --- CLAN MOCKS ---
-const MOCK_CLANS_LIST: ClanSummary[] = [
-    { id: 'clan_data_miners', name: 'Data Miners', crest_url: 'https://picsum.photos/seed/dataminers/100/100', member_count: 15, vault_metric: 250000 },
-    { id: 'clan_net_runners', name: 'Net Runners', crest_url: 'https://picsum.photos/seed/netrunners/100/100', member_count: 8, vault_metric: 150000 },
-    { id: 'clan_glitch_squad', name: 'Glitch Squad', crest_url: 'https://picsum.photos/seed/glitchsquad/100/100', member_count: 22, vault_metric: 450000 },
-];
-
 export const clan_list = async (): Promise<ClanSummary[]> => {
     // Fetch clans from database with member counts
     const { data: clans, error } = await supabase
@@ -843,10 +841,10 @@ export const clan_list = async (): Promise<ClanSummary[]> => {
     
     if (error) {
         console.error('Error fetching clans:', error);
-        return mockApiCall(MOCK_CLANS_LIST); // Fallback to mock data
+        return mockApiCall([]);
     }
     
-    return mockApiCall(clans || MOCK_CLANS_LIST);
+    return mockApiCall(clans || []);
 };
 
 export const clan_join = async (clan_id: string): Promise<Clan> => {

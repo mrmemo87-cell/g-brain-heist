@@ -60,9 +60,11 @@ const StatChip: React.FC<{ icon: React.ReactNode; value: number; 'data-testid': 
 interface HeaderProps {
   profile: Profile;
   onLogout: () => void;
+  currentView: string;
+  onBackToDashboard?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ profile, onLogout }) => {
+const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard }) => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(audioService.isAudioEnabled());
   const [bgMusicEnabled, setBgMusicEnabled] = useState(audioService.isBgMusicEnabled());
@@ -81,12 +83,22 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout }) => {
 
   return (
     <>
-      <header className="flex justify-between items-center card-glass glow-ion p-3 sm:p-4">
-        <div className="flex items-center space-x-4">
-          <h1 className="font-heading text-2xl md:text-3xl font-bold tracking-wider" style={{ color: 'var(--ion-blue)' }}>
+      <header className="sticky top-0 z-40 flex justify-between items-center card-glass glow-ion p-3 sm:p-4">
+        <div className="flex items-center space-x-2 sm:space-x-4">
+          {currentView !== 'dashboard' && onBackToDashboard && (
+            <button
+              onClick={onBackToDashboard}
+              className="p-2 rounded-full bg-black/20 hover:bg-ion-blue/30 transition-colors"
+              aria-label="Back to Dashboard"
+              title="Back to Dashboard"
+            >
+              <span className="text-xl">←</span>
+            </button>
+          )}
+          <h1 className="font-heading text-xl sm:text-2xl md:text-3xl font-bold tracking-wider" style={{ color: 'var(--ion-blue)' }}>
               BH
           </h1>
-          <span className="hidden sm:block text-lg font-medium text-gray-300">{profile.username}</span>
+          <span className="hidden sm:block text-base sm:text-lg font-medium text-gray-300">{profile.username}</span>
         </div>
         <div className="flex items-center space-x-2 sm:space-x-3">
           <StatChip icon={<CoinIcon />} value={profile.coins} data-testid="coin-hud" />
@@ -96,11 +108,11 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout }) => {
           
           <button 
               onClick={() => setShowSettingsModal(true)}
-              className="hidden sm:block p-2 rounded-full bg-black/20 hover:bg-amber-warn/30 transition-colors"
+              className="p-2 rounded-full bg-black/20 hover:bg-amber-warn/30 transition-colors"
               aria-label="Settings"
               title="Settings"
           >
-              <span className="text-xl">⚙️</span>
+              <span className="text-lg sm:text-xl">⚙️</span>
           </button>
 
           <button 
@@ -109,7 +121,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout }) => {
               aria-label="Log Out"
               title="Log Out"
           >
-              <LogoutIcon className="w-6 h-6 text-mist-400" />
+              <LogoutIcon className="w-5 h-5 sm:w-6 sm:h-6 text-mist-400" />
           </button>
         </div>
       </header>

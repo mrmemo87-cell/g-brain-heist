@@ -143,7 +143,12 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8 max-w-screen-2xl mx-auto">
-      <Header profile={profile} onLogout={onLogout} />
+      <Header 
+        profile={profile} 
+        onLogout={onLogout} 
+        currentView={view}
+        onBackToDashboard={() => setView('dashboard')}
+      />
       {renderView()}
       <div className="fixed top-6 right-6 z-[100] space-y-3">
         {toasts.map(toast => (

@@ -91,6 +91,7 @@ export interface RaidTarget {
   est_win_rate: number;
   avatar_url: string;
   last_seen?: string;
+  clan_name?: string;
 }
 
 export interface RaidAttackResult {
