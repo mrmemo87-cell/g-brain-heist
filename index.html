@@ -89,6 +89,56 @@
         display: inline-block;
       }
 
+      /* Mobile Touch Target Optimization */
+      @media (max-width: 768px) {
+        /* Ensure all interactive elements have 44px minimum touch target */
+        button, a, [role="button"], [tabindex="0"] {
+          min-height: 44px;
+          min-width: 44px;
+        }
+
+        /* Increase padding on cards for better spacing */
+        .card-glass {
+          padding: 1rem;
+        }
+
+        /* Make stat chips more touchable */
+        .stat-chip {
+          padding: 0.75rem 1rem;
+          min-height: 44px;
+        }
+
+        /* Better spacing for mobile grid */
+        .grid {
+          gap: 1rem;
+        }
+
+        /* Increase action button padding */
+        .action-btn {
+          padding: 1rem;
+          min-height: 56px;
+        }
+
+        /* Better touch targets for form inputs */
+        input, select, textarea {
+          min-height: 44px;
+          padding: 0.75rem;
+          font-size: 16px; /* Prevents zoom on iOS */
+        }
+
+        /* Improve modal touch targets */
+        .modal-button {
+          min-height: 48px;
+          padding: 0.75rem 1.5rem;
+        }
+      }
+
+      /* Larger touch targets for all screens */
+      button {
+        min-height: 40px;
+        padding: 0.5rem 1rem;
+      }
+
     </style>
   <script type="importmap">
 {

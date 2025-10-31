@@ -27,13 +27,13 @@ const ActionButton: React.FC<{ icon: React.ReactNode; label: string; color: stri
     return (
         <button 
             onClick={onClick} 
-            className={`w-full h-full flex flex-col items-center justify-center p-4 rounded-2xl border transition-all duration-300 transform hover:scale-105 ${glowClass} ${className || ''}`}
+            className={`action-btn w-full h-full flex flex-col items-center justify-center p-4 md:p-6 rounded-2xl border transition-all duration-300 transform hover:scale-105 active:scale-95 min-h-[100px] md:min-h-[120px] ${glowClass} ${className || ''}`}
             style={style}
             onMouseOver={e => Object.assign(e.currentTarget.style, hoverStyle)}
             onMouseOut={e => Object.assign(e.currentTarget.style, style)}
         >
-            <div className="w-10 h-10 mb-2">{icon}</div>
-            <span className="font-heading font-bold text-lg tracking-wider text-white">{label}</span>
+            <div className="w-10 h-10 md:w-12 md:h-12 mb-2">{icon}</div>
+            <span className="font-heading font-bold text-base md:text-lg tracking-wider text-white">{label}</span>
         </button>
     );
 };

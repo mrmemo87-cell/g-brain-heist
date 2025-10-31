@@ -34,7 +34,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onClaim, claiming }) => {
           <button
             onClick={() => onClaim(task.id)}
             disabled={claiming}
-            className="px-3 py-1 text-xs font-bold rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 text-black hover:from-amber-400 hover:to-yellow-400 transition-all disabled:opacity-50"
+            className="px-4 py-2 text-xs md:text-sm font-bold rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 text-black hover:from-amber-400 hover:to-yellow-400 active:scale-95 transition-all disabled:opacity-50 min-h-[44px] touch-manipulation"
           >
             {claiming ? 'Claiming...' : '✨ Claim'}
           </button>

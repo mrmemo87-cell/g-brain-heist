@@ -50,11 +50,11 @@ const useAnimatedValue = (endValue: number, duration: number = 500) => {
 const StatChip: React.FC<{ icon: React.ReactNode; value: number; 'data-testid': string; subtitle?: string }> = ({ icon, value, 'data-testid': testId, subtitle }) => {
     const animatedValue = useAnimatedValue(value);
     return (
-        <div id={testId} className="flex items-center space-x-1 sm:space-x-2 bg-black/20 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
-            <div className="w-4 h-4 sm:w-5 sm:h-5">{icon}</div>
+        <div id={testId} className="stat-chip flex items-center space-x-1 sm:space-x-2 bg-black/20 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full touch-manipulation">
+            <div className="w-5 h-5 sm:w-6 sm:h-6">{icon}</div>
             <div className="flex flex-col">
-                <span className="font-mono font-semibold text-xs sm:text-base leading-none">{animatedValue.toLocaleString()}</span>
-                {subtitle && <span className="font-mono text-[9px] sm:text-[10px] text-gray-400 leading-none mt-0.5">{subtitle}</span>}
+                <span className="font-mono font-semibold text-sm sm:text-base leading-none">{animatedValue.toLocaleString()}</span>
+                {subtitle && <span className="font-mono text-[10px] sm:text-xs text-gray-400 leading-none mt-0.5">{subtitle}</span>}
             </div>
         </div>
     );
