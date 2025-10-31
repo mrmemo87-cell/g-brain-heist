@@ -149,11 +149,20 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
     const [isLoading, setIsLoading] = useState(true);
     const [isJoining, setIsJoining] = useState<string | null>(null);
 
+    const fetchClans = async () => {
+        setIsLoading(true);
+        try {
+            const clans = await GameService.clan_list();
+            setClanList(clans);
+        } catch (error) {
+            addToast("Failed to fetch clan list.", "error");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     useEffect(() => {
-        GameService.clan_list()
-            .then(setClanList)
-            .catch(() => addToast("Failed to fetch clan list.", "error"))
-            .finally(() => setIsLoading(false));
+        fetchClans();
     }, []);
 
     const handleJoin = async (clanId: string) => {
@@ -174,8 +183,22 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
 
     return (
         <div className="text-center max-w-2xl mx-auto">
-            <h2 className="font-heading text-3xl mb-6 text-amber-400">Join a Syndicate</h2>
-            <div className="space-y-4">
+            <div className="flex items-center justify-between mb-6">
+                <h2 className="font-heading text-3xl text-amber-400">Join a Syndicate</h2>
+                <button 
+                    onClick={fetchClans}
+                    disabled={isLoading}
+                    className="px-4 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white rounded-lg font-heading transition-all disabled:opacity-50"
+                >
+                    {isLoading ? 'Refreshing...' : '🔄 Refresh'}
+                </button>
+            </div>
+            {clanList.length === 0 ? (
+                <div className="card-glass p-8 text-gray-400">
+                    <p>No clans available yet. Be the first to create one!</p>
+                </div>
+            ) : (
+                <div className="space-y-4">
                 {clanList.map(clan => (
                     <div key={clan.id} className="card-glass p-4 flex items-center justify-between">
                         <div className="flex items-center space-x-4 text-left">
@@ -195,6 +218,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                     </div>
                 ))}
             </div>
+            )}
              <button onClick={() => setStage('no_clan')} className="text-gray-400 hover:text-white transition-colors mt-6">Back</button>
         </div>
     );
