@@ -6,7 +6,7 @@ interface TaskItemProps {
 }
 
 const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
-  const progressPercent = (task.progress / task.target) * 100;
+  const progressPercent = Math.min(100, (task.progress / task.target) * 100);
   const isDaily = task.kind === 'daily';
   
   const borderColor = isDaily ? 'var(--ion-blue)' : 'var(--plasma-pink)';

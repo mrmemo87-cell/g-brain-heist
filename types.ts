@@ -150,7 +150,7 @@ export interface ClanBuff {
 export interface Clan {
     id: string;
     name: string;
-    crest_url: string;
+    crest_url?: string;
     notice: string;
     vault_metric: number; // This is total XP
     vault_coins: number;
@@ -161,7 +161,7 @@ export interface Clan {
 export interface ClanSummary {
     id: string;
     name: string;
-    crest_url: string;
+    crest_url?: string;
     member_count: number;
     vault_metric: number;
 }

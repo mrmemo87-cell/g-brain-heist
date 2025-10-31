@@ -179,7 +179,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                 {clanList.map(clan => (
                     <div key={clan.id} className="card-glass p-4 flex items-center justify-between">
                         <div className="flex items-center space-x-4 text-left">
-                            <img src={clan.crest_url} alt={`${clan.name} crest`} className="w-16 h-16 rounded-full" />
+                            <img src={clan.crest_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${clan.name}`} alt={`${clan.name} crest`} className="w-16 h-16 rounded-full" />
                             <div>
                                 <p className="font-heading text-lg text-white">{clan.name}</p>
                                 <p className="text-sm text-gray-400">{clan.member_count} members | {clan.vault_metric.toLocaleString()} XP</p>
@@ -339,7 +339,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
     return (
         <div>
              <div className="flex items-center space-x-4 mb-6 max-w-4xl mx-auto">
-                <img src={clan.crest_url} alt={`${clan.name} Crest`} className="w-24 h-24 rounded-full border-4 border-amber-400" />
+                <img src={clan.crest_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${clan.name}`} alt={`${clan.name} Crest`} className="w-24 h-24 rounded-full border-4 border-amber-400" />
                 <div>
                     <h2 className="font-heading text-4xl text-amber-400">{clan.name}</h2>
                     <p className="text-gray-300 mt-1">{clan.notice}</p>

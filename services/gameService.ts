@@ -837,7 +837,7 @@ export const clan_list = async (): Promise<ClanSummary[]> => {
     // Fetch clans from database with member counts
     const { data: clans, error } = await supabase
         .from('clans')
-        .select('id, name, crest_url, member_count, vault_metric');
+        .select('id, name, member_count, vault_metric');
     
     if (error) {
         console.error('Error fetching clans:', error);
@@ -938,7 +938,7 @@ export const clan_details = async (): Promise<Clan | null> => {
         id: clan.id,
         name: clan.name,
         notice: clan.notice || 'Welcome to the clan!',
-        crest_url: clan.crest_url,
+        crest_url: clan.crest_url || undefined,
         vault_metric: clan.vault_metric,
         vault_coins: clan.vault_coins,
         buffs: [],
@@ -983,7 +983,6 @@ export const clan_create = async (name: string, notice: string): Promise<Clan> =
         .insert({
             name: name,
             notice: notice || 'Welcome to the clan!',
-            crest_url: `https://picsum.photos/seed/${name}/100/100`,
             vault_metric: 0,
             vault_coins: 0,
             member_count: 1,
