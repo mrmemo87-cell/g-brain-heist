@@ -38,6 +38,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [previousLevel, setPreviousLevel] = useState<number | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [tutorialChecked, setTutorialChecked] = useState(false); // Track if we've checked tutorial status
 
   const addToast = (message: string, type: ToastMessage['type'] = 'info', retryAction?: () => void) => {
     const id = Date.now();
@@ -71,9 +72,12 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       setCaps(capsData);
       setNews(newsData);
 
-      // Show tutorial if first time user
-      if (profileData && !profileData.tutorial_completed) {
+      // Show tutorial if first time user (only check once on initial load)
+      if (!tutorialChecked && profileData && !profileData.tutorial_completed) {
         setShowTutorial(true);
+        setTutorialChecked(true);
+      } else if (!tutorialChecked) {
+        setTutorialChecked(true);
       }
     } catch (error: any) {
       console.error("Failed to load game data:", error);
@@ -350,10 +354,28 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         <TutorialModal
           onComplete={() => {
             setShowTutorial(false);
-            fetchGameData();
+            // Don't refetch data - tutorial already updated DB
+            // Just refresh the profile to show updated tutorial_completed status
+            setTimeout(async () => {
+              try {
+                const updatedProfile = await GameService.whoami();
+                setProfile(updatedProfile);
+              } catch (error) {
+                console.error('Failed to refresh profile:', error);
+              }
+            }, 100);
           }}
           onSkip={() => {
             setShowTutorial(false);
+            // Skip also marks tutorial as complete, so refresh profile
+            setTimeout(async () => {
+              try {
+                const updatedProfile = await GameService.whoami();
+                setProfile(updatedProfile);
+              } catch (error) {
+                console.error('Failed to refresh profile:', error);
+              }
+            }, 100);
           }}
         />
       )}
