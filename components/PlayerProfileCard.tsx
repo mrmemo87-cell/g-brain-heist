@@ -22,11 +22,11 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
   const xpProgressPercent = (profile.xp / xpForNextLevel) * 100;
 
   return (
-    <div className="card-glass glow-plasma p-5" style={{ borderColor: 'rgba(255, 45, 145, 0.3)' }}>
+    <div className="card-glass glow-plasma p-5 animate-fade-in-up" style={{ borderColor: 'rgba(255, 45, 145, 0.3)' }}>
       <div className="flex items-center space-x-4 mb-5">
-        <img src={profile.avatar_url} alt={profile.username} className="w-20 h-20 rounded-full border-4" style={{ borderColor: 'var(--plasma-pink)' }}/>
+        <img src={profile.avatar_url} alt={profile.username} className="w-20 h-20 rounded-full border-4 animate-float" style={{ borderColor: 'var(--plasma-pink)' }}/>
         <div>
-          <h2 className="text-2xl font-bold font-heading" style={{ color: 'var(--plasma-pink)' }}>{profile.username}</h2>
+          <h2 className="text-2xl font-bold font-heading neon-text" style={{ color: 'var(--plasma-pink)' }}>{profile.username}</h2>
           <p style={{ color: 'var(--mist-400)' }}>Batch {profile.batch} | Level {profile.level}</p>
         </div>
       </div>
@@ -37,7 +37,7 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
           <span className="text-xs font-mono" style={{ color: 'var(--mist-400)' }}>{profile.xp} / {xpForNextLevel}</span>
         </div>
         <div className="w-full bg-black/30 rounded-full h-2.5">
-          <div className="h-2.5 rounded-full progress-bar-glow-ion" style={{ width: `${xpProgressPercent}%`, backgroundColor: 'var(--ion-blue)' }}></div>
+          <div className="h-2.5 rounded-full progress-bar-glow-ion shimmer-effect" style={{ width: `${xpProgressPercent}%`, backgroundColor: 'var(--ion-blue)' }}></div>
         </div>
       </div>
 

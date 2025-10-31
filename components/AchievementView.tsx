@@ -46,9 +46,16 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
         const refreshed = await GameService.achievements_list();
         setAchievements(refreshed);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch achievements:', error);
-      addToast('Failed to load achievements', 'error');
+      
+      // Check if it's a missing table error
+      if (error?.message?.includes('does not exist') || error?.code === '42P01') {
+        addToast('⚠️ Achievements not set up yet. Please run the SQL migrations.', 'error');
+      } else {
+        addToast('Failed to load achievements. Please try again.', 'error');
+      }
+      setAchievements([]); // Set empty array to prevent crashes
     } finally {
       setLoading(false);
     }

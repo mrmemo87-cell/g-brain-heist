@@ -20,13 +20,13 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onClaim, claiming }) => {
   const progressGlow = isDaily ? 'progress-bar-glow-ion' : 'progress-bar-glow-plasma';
   
   return (
-    <div className="bg-black/20 p-4 rounded-2xl border" style={{ borderColor: `rgba(${isDaily ? '0, 208, 232' : '255, 45, 145'}, 0.4)` }}>
+    <div className="bg-black/20 p-4 rounded-2xl border animate-fade-in-up" style={{ borderColor: `rgba(${isDaily ? '0, 208, 232' : '255, 45, 145'}, 0.4)` }}>
       <div className="flex justify-between items-start mb-2">
         <h4 className="font-semibold text-gray-200">{task.title}</h4>
         <span className="text-sm font-mono" style={{ color: 'var(--mist-400)' }}>{task.progress}/{task.target}</span>
       </div>
       <div className="w-full bg-black/30 rounded-full h-1.5 mb-2">
-        <div className={`h-1.5 rounded-full ${progressGlow}`} style={{ width: `${progressPercent}%`, backgroundColor: progressColor }}></div>
+        <div className={`h-1.5 rounded-full ${progressGlow} shimmer-effect`} style={{ width: `${progressPercent}%`, backgroundColor: progressColor }}></div>
       </div>
       <div className="flex justify-between items-center">
         <p className="text-xs" style={{ color: 'var(--amber-warn)' }}>{task.reward_preview}</p>
@@ -34,7 +34,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onClaim, claiming }) => {
           <button
             onClick={() => onClaim(task.id)}
             disabled={claiming}
-            className="px-4 py-2 text-xs md:text-sm font-bold rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 text-black hover:from-amber-400 hover:to-yellow-400 active:scale-95 transition-all disabled:opacity-50 min-h-[44px] touch-manipulation"
+            className="px-4 py-2 text-xs md:text-sm font-bold rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 text-black hover:from-amber-400 hover:to-yellow-400 active:scale-95 transition-all disabled:opacity-50 min-h-[44px] touch-manipulation animate-pulse-glow"
           >
             {claiming ? 'Claiming...' : '✨ Claim'}
           </button>

@@ -146,15 +146,15 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex justify-between items-center card-glass glow-ion p-2 sm:p-4">
+      <header className="sticky top-0 z-40 flex justify-between items-center card-glass glow-ion p-2 sm:p-4 animate-slide-in-right">
         <div className="flex items-center space-x-2 sm:space-x-4">
-          <h1 className="font-heading text-xl sm:text-2xl md:text-3xl font-bold tracking-wider" style={{ color: 'var(--ion-blue)' }}>
+          <h1 className="font-heading text-xl sm:text-2xl md:text-3xl font-bold tracking-wider neon-text" style={{ color: 'var(--ion-blue)' }}>
               BH
           </h1>
-          <span className="hidden sm:block text-base sm:text-lg font-medium text-gray-300">{profile.username}</span>
+          <span className="hidden sm:block text-base sm:text-lg font-medium text-gray-300 animate-fade-in-up">{profile.username}</span>
         </div>
         <div className="flex items-center space-x-1 sm:space-x-3">
-          <div className="flex items-center space-x-1 sm:space-x-2">
+          <div className="flex items-center space-x-1 sm:space-x-2 animate-fade-in-up">
             <StatChip icon={<CoinIcon />} value={profile.coins} data-testid="coin-hud" />
             <StatChip icon={<XPIcon />} value={profile.xp} data-testid="xp-hud" />
             <StatChip 
@@ -164,7 +164,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
               subtitle={apRegenCountdown !== 'MAX' ? `+1 in ${apRegenCountdown}` : undefined}
             />
           </div>
-          <img src={profile.avatar_url} alt="Player Avatar" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2" style={{ borderColor: 'var(--plasma-pink)' }} />
+          <img src={profile.avatar_url} alt="Player Avatar" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 animate-float" style={{ borderColor: 'var(--plasma-pink)' }} />
           
           <button 
               onClick={() => setShowSettingsModal(true)}

@@ -40,20 +40,20 @@ const ActionButton: React.FC<{ icon: React.ReactNode; label: string; color: stri
 
 const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onVisitShop, onGoToClan, onVisitInventory, onViewLeaderboard, onViewAchievements }) => {
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-2 gap-4 animate-fade-in-up">
         <ActionButton 
             onClick={onStartQuest}
             icon={<QuestIcon />} 
             label="Start Quest" 
             color="0, 208, 232" // ion-blue
-            glowClass="glow-ion"
+            glowClass="glow-ion animate-pulse-glow"
         />
         <ActionButton 
             onClick={onStartPvp}
             icon={<HackIcon />} 
             label="Hack Rival" 
             color="255, 45, 145" // plasma-pink
-            glowClass="glow-plasma"
+            glowClass="glow-plasma animate-pulse-glow"
         />
         <ActionButton 
             onClick={onVisitShop}
@@ -78,14 +78,14 @@ const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onV
         />
         <ActionButton 
             onClick={onViewLeaderboard}
-            icon={<span className="text-3xl">🏆</span>} 
+            icon={<span className="text-3xl animate-float">🏆</span>} 
             label="Leaderboard" 
             color="255, 215, 0" // gold
             glowClass="glow-warn"
         />
         <ActionButton 
             onClick={onViewAchievements}
-            icon={<span className="text-3xl">🎖️</span>} 
+            icon={<span className="text-3xl animate-float">🎖️</span>} 
             label="Achievements" 
             color="255, 100, 200" // pink
             glowClass="glow-plasma"
