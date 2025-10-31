@@ -5,6 +5,7 @@ import { audioService } from '../services/audioService';
 import { BrainIcon, CoinIcon, XPIcon } from './icons';
 import BackButton from './BackButton';
 import { createPortal } from 'react-dom';
+import LottieAnimation from './LottieAnimation';
 
 type QuestStage = 'loading' | 'subject_selection' | 'in_progress' | 'completed';
 
@@ -224,8 +225,29 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
         </div>
         {answerResponse && (
             <div ref={answerFeedbackRef} className={`mt-6 p-4 rounded-2xl text-center border ${answerResponse.correct ? 'bg-green-900/20 border-green-500/50' : 'bg-red-900/20 border-red-500/50'}`}>
-                <h3 className="font-bold text-lg">{answerResponse.correct ? 'Correct!' : 'Incorrect!'}</h3>
-                <p>{answerResponse.explanation}</p>
+                {answerResponse.correct ? (
+                  <div className="flex flex-col items-center">
+                    <LottieAnimation 
+                      url="https://lottie.host/e2a64c66-6e5f-40db-ad55-1514b52f9f27/T5RhAyKZzc.json"
+                      width={120}
+                      height={120}
+                      loop={false}
+                    />
+                    <h3 className="font-bold text-lg text-green-400">Correct!</h3>
+                    <p className="text-gray-200">{answerResponse.explanation}</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center">
+                    <LottieAnimation 
+                      url="https://lottie.host/a3ce4e40-0b0a-4a43-8fee-b4db29e0e0e6/GmJp0y2YGg.json"
+                      width={120}
+                      height={120}
+                      loop={false}
+                    />
+                    <h3 className="font-bold text-lg text-red-400">Incorrect!</h3>
+                    <p className="text-gray-200">{answerResponse.explanation}</p>
+                  </div>
+                )}
             </div>
         )}
       </div>

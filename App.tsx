@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage } from './types';
 import * as GameService from './services/gameService';
 import { supabase } from './services/supabaseClient';
+import LottieAnimation from './components/LottieAnimation';
 import Header from './components/Header';
 import PlayerProfileCard from './components/PlayerProfileCard';
 import SessionTracker from './components/SessionTracker';
@@ -137,8 +138,15 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="font-heading text-2xl animate-pulse" style={{color: 'var(--ion-blue)'}}>Initializing Heist OS...</div>
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <LottieAnimation 
+          url="https://lottie.host/927b97f2-353a-4490-ab6c-19509068da76/3mH15n4v8x.json"
+          width={250}
+          height={250}
+        />
+        <div className="font-heading text-2xl animate-pulse mt-4" style={{color: 'var(--ion-blue)'}}>
+          Initializing Heist OS...
+        </div>
       </div>
     );
   }

@@ -5,6 +5,7 @@ import { audioService } from '../services/audioService';
 import BackButton from './BackButton';
 import { ShieldIcon, HackIcon, CoinIcon, XPIcon } from './icons';
 import { createPortal } from 'react-dom';
+import LottieAnimation from './LottieAnimation';
 
 type PvPStage = 'loading' | 'targets' | 'cinematic' | 'result';
 
@@ -171,7 +172,33 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
 
     return (
         <div className="text-center max-w-lg mx-auto">
-            <h2 className="font-heading text-4xl mb-4" style={{ color }}>{title}</h2>
+            <div className="flex flex-col items-center mb-4">
+              {attackResult.result === 'win' && (
+                <LottieAnimation 
+                  url="https://lottie.host/8cf1bfe4-d67b-4b61-9fc7-36a46b6e9f88/s5R1s3FBhq.json"
+                  width={200}
+                  height={200}
+                  loop={false}
+                />
+              )}
+              {attackResult.result === 'blocked' && (
+                <LottieAnimation 
+                  url="https://lottie.host/c1f75fa5-6f3e-4c0d-82a5-0f44c1b3ff1a/dkYqy4t3HF.json"
+                  width={200}
+                  height={200}
+                  loop={false}
+                />
+              )}
+              {attackResult.result === 'lose' && (
+                <LottieAnimation 
+                  url="https://lottie.host/0a8e2ef0-ff9d-48fa-babe-8e6c4f6ff456/ZUvXN8zLDu.json"
+                  width={200}
+                  height={200}
+                  loop={false}
+                />
+              )}
+              <h2 className="font-heading text-4xl" style={{ color }}>{title}</h2>
+            </div>
             <div className="card-glass p-8" style={{borderColor: `${color}80`}}>
                  <p className="text-lg mb-6">{getResultMessage()}</p>
 
