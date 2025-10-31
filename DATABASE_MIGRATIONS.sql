@@ -13,18 +13,15 @@
 -- ==============================================================================
 -- Adds last_ap_update column to track when AP was last regenerated
 -- This enables the 10-minute AP regeneration feature
+-- NOTE: This column is already in the base schema, no action needed
 -- ==============================================================================
 
-ALTER TABLE profiles 
-ADD COLUMN IF NOT EXISTS last_ap_update TIMESTAMP WITH TIME ZONE DEFAULT NOW();
-
--- Initialize existing users with current timestamp
-UPDATE profiles 
-SET last_ap_update = NOW() 
-WHERE last_ap_update IS NULL;
+-- Already exists in supabase-schema.sql
+-- ALTER TABLE users 
+-- ADD COLUMN IF NOT EXISTS last_ap_update TIMESTAMP WITH TIME ZONE DEFAULT NOW();
 
 -- Verification Query:
--- SELECT username, ap_now, ap_max, last_ap_update FROM profiles LIMIT 5;
+-- SELECT username, ap_now, ap_max, last_ap_update FROM users LIMIT 5;
 
 
 -- ==============================================================================
@@ -41,7 +38,7 @@ DECLARE
   v_coins_added INT := 100;
 BEGIN
   -- Increase max AP by 10
-  UPDATE profiles
+  UPDATE users
   SET 
     ap_max = ap_max + 10,
     ap_now = ap_max + 10,  -- Full refill to new max
@@ -84,7 +81,7 @@ CREATE TABLE IF NOT EXISTS achievements (
 -- Create user achievements tracking table
 CREATE TABLE IF NOT EXISTS user_achievements (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   achievement_id UUID NOT NULL REFERENCES achievements(id) ON DELETE CASCADE,
   earned_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(user_id, achievement_id)
@@ -130,7 +127,7 @@ DECLARE
   v_earned_count INT;
 BEGIN
   -- Get player's current stats
-  SELECT * INTO v_profile FROM profiles WHERE id = player_id;
+  SELECT * INTO v_profile FROM users WHERE id = player_id;
 
   -- Loop through all achievements
   FOR v_achievement IN 
@@ -156,7 +153,7 @@ BEGIN
       ON CONFLICT DO NOTHING;
 
       -- Award rewards
-      UPDATE profiles
+      UPDATE users
       SET 
         coins = coins + v_achievement.reward_coins,
         xp = xp + v_achievement.reward_xp
@@ -184,16 +181,16 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Enables showing tutorial modal only once for new players
 -- ==============================================================================
 
-ALTER TABLE profiles 
+ALTER TABLE users 
 ADD COLUMN IF NOT EXISTS tutorial_completed BOOLEAN DEFAULT FALSE;
 
 -- Initialize existing users as having completed tutorial (grandfathered in)
-UPDATE profiles 
+UPDATE users 
 SET tutorial_completed = TRUE 
 WHERE tutorial_completed IS NULL;
 
 -- Verification Query:
--- SELECT username, tutorial_completed FROM profiles LIMIT 5;
+-- SELECT username, tutorial_completed FROM users LIMIT 5;
 
 
 -- ==============================================================================
@@ -203,7 +200,7 @@ WHERE tutorial_completed IS NULL;
 --
 -- ✓ Check columns exist:
 --   SELECT column_name FROM information_schema.columns 
---   WHERE table_name = 'profiles' 
+--   WHERE table_name = 'users' 
 --   AND column_name IN ('last_ap_update', 'tutorial_completed');
 --
 -- ✓ Check functions exist:
