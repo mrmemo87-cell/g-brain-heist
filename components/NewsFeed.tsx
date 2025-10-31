@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NewsEvent } from '../types';
 import { LevelUpIcon, PvpWinIcon, PvpBlockedIcon, QuestClearedIcon, PurchaseIcon } from './icons';
+import { activity_reaction_toggle } from '../services/gameService';
 
 const getEventIconAndColor = (kind: NewsEvent['kind']) => {
     const iconStyle = {width: '1.5rem', height: '1.5rem'};
@@ -56,7 +57,8 @@ const NewsFeed: React.FC<{ news: NewsEvent[] }> = ({ news }) => {
     setLocalNews(news);
   }, [news]);
 
-  const handleReactionClick = (eventId: string, emoji: string) => {
+  const handleReactionClick = async (eventId: string, emoji: string) => {
+    // Optimistically update UI first
     setLocalNews(prevNews =>
       prevNews.map(event => {
         if (event.id !== eventId) {
@@ -91,6 +93,13 @@ const NewsFeed: React.FC<{ news: NewsEvent[] }> = ({ news }) => {
         };
       })
     );
+    
+    // Save to database
+    try {
+      await activity_reaction_toggle(eventId, emoji);
+    } catch (error) {
+      console.error('Failed to save reaction:', error);
+    }
   };
 
   return (

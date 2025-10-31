@@ -279,6 +279,8 @@ export const caps_status = (): Promise<Caps> => {
 };
 
 export const news_feed = async (): Promise<NewsEvent[]> => {
+  const user = await getCurrentUser();
+  
   // Fetch activities from database
   const { data: activities, error } = await supabase
     .from('activities')
@@ -291,9 +293,48 @@ export const news_feed = async (): Promise<NewsEvent[]> => {
     return mockApiCall([]);
   }
   
+  if (!activities || activities.length === 0) {
+    return mockApiCall([]);
+  }
+  
+  // Get all activity IDs
+  const activityIds = activities.map(a => a.id);
+  
+  // Fetch reactions for these activities
+  const { data: reactionsData } = await supabase
+    .from('activity_reactions')
+    .select('activity_id, emoji, user_id')
+    .in('activity_id', activityIds);
+  
+  // Aggregate reactions by activity and emoji
+  const reactionsByActivity: Record<string, { reactions: Record<string, number>, myReaction: string | null }> = {};
+  
+  activities.forEach(activity => {
+    reactionsByActivity[activity.id] = {
+      reactions: { '🔥': 0, '😮': 0, '😂': 0, '❤️': 0 },
+      myReaction: null,
+    };
+  });
+  
+  (reactionsData || []).forEach(reaction => {
+    if (reactionsByActivity[reaction.activity_id]) {
+      // Increment count
+      if (!reactionsByActivity[reaction.activity_id].reactions[reaction.emoji]) {
+        reactionsByActivity[reaction.activity_id].reactions[reaction.emoji] = 0;
+      }
+      reactionsByActivity[reaction.activity_id].reactions[reaction.emoji]++;
+      
+      // Check if this is the current user's reaction
+      if (reaction.user_id === user.id) {
+        reactionsByActivity[reaction.activity_id].myReaction = reaction.emoji;
+      }
+    }
+  });
+  
   // Convert database activities to NewsEvent format
-  const events: NewsEvent[] = (activities || []).map(activity => {
+  const events: NewsEvent[] = activities.map(activity => {
     const timeAgo = getTimeAgo(new Date(activity.created_at));
+    const activityReactions = reactionsByActivity[activity.id];
     
     return {
       id: activity.id,
@@ -302,8 +343,8 @@ export const news_feed = async (): Promise<NewsEvent[]> => {
       target: activity.target_username,
       data: activity.data || {},
       created_at: timeAgo,
-      reactions: {}, // TODO: Load from activity_reactions table
-      my_reaction: null,
+      reactions: activityReactions.reactions,
+      my_reaction: activityReactions.myReaction,
     };
   });
   
@@ -321,6 +362,49 @@ function getTimeAgo(date: Date): string {
   if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
   return `${Math.floor(seconds / 604800)}w ago`;
 }
+
+export const activity_reaction_toggle = async (activity_id: string, emoji: string): Promise<{ added: boolean }> => {
+  const user = await getCurrentUser();
+  
+  // Check if user already has a reaction on this activity
+  const { data: existingReaction } = await supabase
+    .from('activity_reactions')
+    .select('id, emoji')
+    .eq('activity_id', activity_id)
+    .eq('user_id', user.id)
+    .single();
+  
+  if (existingReaction) {
+    if (existingReaction.emoji === emoji) {
+      // Remove the reaction (toggle off)
+      await supabase
+        .from('activity_reactions')
+        .delete()
+        .eq('id', existingReaction.id);
+      
+      return mockApiCall({ added: false });
+    } else {
+      // Update to new emoji
+      await supabase
+        .from('activity_reactions')
+        .update({ emoji: emoji })
+        .eq('id', existingReaction.id);
+      
+      return mockApiCall({ added: true });
+    }
+  } else {
+    // Add new reaction
+    await supabase
+      .from('activity_reactions')
+      .insert({
+        activity_id: activity_id,
+        user_id: user.id,
+        emoji: emoji,
+      });
+    
+    return mockApiCall({ added: true });
+  }
+};
 
 export const mcq_subjects_list = (): Promise<Subject[]> => {
     const subjects: Subject[] = [
