@@ -22,8 +22,15 @@ const getItemIcon = (kind: InventoryItem['kind']) => {
     }
 };
 
-const ItemCard: React.FC<{ item: InventoryItem, onActivate: (inv_id: string) => void, isActivating: boolean }> = ({ item, onActivate, isActivating }) => {
-    const isUsable = item.state === 'unused' && (item.kind === 'booster' || item.kind === 'major_booster' || item.kind === 'shield');
+const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: string) => void, isActivating: boolean, quantity: number }> = ({ item, onActivate, isActivating, quantity }) => {
+    const isUsable = item.state === 'unused' && (
+        item.kind === 'booster' || 
+        item.kind === 'major_booster' || 
+        item.kind === 'shield' ||
+        item.kind === 'encryption_key' ||
+        item.kind === 'exploit_kit' ||
+        item.kind === 'firewall'
+    );
 
     const statePillClasses = {
         active: 'bg-green-500/30 text-green-300 border-green-500/50',
@@ -32,32 +39,40 @@ const ItemCard: React.FC<{ item: InventoryItem, onActivate: (inv_id: string) => 
         expired: 'bg-red-500/30 text-red-300 border-red-500/50',
     };
 
-    return (
+  const invId = (item.inv_id || item.id);
+  return (
         <div className={`card-glass p-4 flex flex-col text-center relative glow-purple`} style={{borderColor: 'rgba(158, 93, 255, 0.2)'}}>
             <div className={`absolute top-2 right-2 px-2 py-1 text-xs font-mono rounded-full border ${statePillClasses[item.state]} capitalize`}>
                 {item.state}
             </div>
+            {quantity > 1 && (
+                <div className="absolute top-2 left-2 px-2 py-1 text-xs font-mono rounded-full border bg-purple-500/30 text-purple-200 border-purple-400">
+                    x{quantity}
+                </div>
+            )}
             <div className="w-16 h-16 mx-auto my-2 p-2 bg-black/30 rounded-full">{getItemIcon(item.kind)}</div>
             <h3 className="font-heading text-lg text-white">{item.name}</h3>
             <p className="text-sm text-gray-400 flex-grow mt-1">{item.description}</p>
             <p className="text-xs text-gray-500 mt-2">{item.effect_summary}</p>
             
             <div className="mt-4 h-12 flex items-center justify-center">
-                 {isUsable ? (
-                     <button 
-                        onClick={() => onActivate(item.inv_id)}
-                        disabled={isActivating}
-                        className="w-full font-heading font-bold py-2.5 rounded-xl transition-all duration-200 border bg-purple-500/20 hover:bg-purple-500/30 border-purple-400 text-white disabled:opacity-50"
-                    >
-                        {isActivating ? 'Activating...' : 'Activate'}
-                    </button>
-                 ) : (
+         {isUsable ? (
+           <button 
+            onClick={() => onActivate(invId)}
+            disabled={isActivating}
+            className="w-full font-heading font-bold py-2.5 rounded-xl transition-all duration-200 border bg-purple-500/20 hover:bg-purple-500/30 border-purple-400 text-white disabled:opacity-50"
+          >
+            {isActivating ? 'Activating...' : 'Activate'}
+          </button>
+         ) : (
                      <p className="text-xs text-gray-500 italic">
-                        {item.state === 'active' && item.expires_at 
-                            ? `Active until ${item.expires_at === 'Until Cracked' ? 'broken' : new Date(item.expires_at).toLocaleTimeString()}` 
-                            : item.kind === 'cracker' || item.kind === 'firewall'
-                            ? 'Used automatically in PvP'
-                            : 'Cannot be activated'}
+            {item.state === 'active' && item.expires_at 
+              ? `Active ${item.expires_at === 'Permanent' || item.expires_at === 'Until Cracked' ? item.expires_at.toLowerCase() : 'until ' + new Date(item.expires_at).toLocaleTimeString()}` 
+              : item.kind === 'cracker'
+              ? 'Used automatically in PvP'
+              : item.kind === 'encryption_key' || item.kind === 'exploit_kit' || item.kind === 'firewall'
+              ? 'Activate to apply bonus to your stats' 
+              : 'Cannot be activated'}
                     </p>
                  )}
             </div>
@@ -100,6 +115,18 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onN
           setActivatingId(null);
       }
   };
+  
+  // Group items by item_id and state to show quantities
+  const groupedItems = items.reduce((acc, item) => {
+    const key = `${item.item_id}_${item.state}`;
+    if (!acc[key]) {
+      acc[key] = { item, count: 0 };
+    }
+    acc[key].count++;
+    return acc;
+  }, {} as Record<string, { item: InventoryItem; count: number }>);
+  
+  const displayItems = Object.values(groupedItems);
 
 
   if (loading) {
@@ -120,11 +147,14 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onN
         )}
       </div>
       <h2 className="font-heading text-3xl text-center mb-8" style={{ color: 'var(--grid-purple)' }}>Inventory</h2>
-      {items.length > 0 ? (
+      {displayItems.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
-            {items.map(item => (
-            <ItemCard key={item.inv_id} item={item} onActivate={handleActivate} isActivating={activatingId === item.inv_id} />
-            ))}
+            {displayItems.map(({ item, count }) => {
+            const invId = (item.inv_id || item.id);
+            return (
+              <ItemCard key={`${item.item_id}_${item.state}_${invId}`} item={item} quantity={count} onActivate={handleActivate} isActivating={activatingId === invId} />
+            );
+            })}
         </div>
       ) : (
         <div className="text-center text-gray-400 card-glass p-8 max-w-md mx-auto">

@@ -751,7 +751,65 @@ export const inventory_activate = async (inv_id: string): Promise<{ state_after:
     const now = new Date();
     const expiry = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour for boosters
     
-    const expiresAt = (item.kind === 'shield' || item.kind === 'firewall') 
+    // Handle different item types
+    if (item.kind === 'encryption_key' || item.kind === 'exploit_kit') {
+        // Permanent attack boost - add to user's attack_power
+        const attackBonus = item.attack_bonus || 0;
+        
+        if (attackBonus > 0) {
+            const { data: profile } = await supabase
+                .from('users')
+                .select('attack_power')
+                .eq('id', user.id)
+                .single();
+            
+            await updateProfile(user.id, {
+                attack_power: (profile?.attack_power || 10) + attackBonus
+            });
+        }
+        
+        // Mark item as consumed (permanent effect applied)
+        await supabase
+            .from('inventory')
+            .update({ state: 'active', activated_at: now.toISOString() })
+            .eq('id', inv_id);
+        
+        return mockApiCall({
+            state_after: 'active' as const,
+            effect_window: { start: now.toISOString(), end: 'Permanent' }
+        });
+    }
+    
+    if (item.kind === 'firewall') {
+        // Permanent defense boost - add to user's defense_power
+        const defenseBonus = item.defense_bonus || 0;
+        
+        if (defenseBonus > 0) {
+            const { data: profile } = await supabase
+                .from('users')
+                .select('defense_power')
+                .eq('id', user.id)
+                .single();
+            
+            await updateProfile(user.id, {
+                defense_power: (profile?.defense_power || 10) + defenseBonus
+            });
+        }
+        
+        // Mark as consumed
+        await supabase
+            .from('inventory')
+            .update({ state: 'active', activated_at: now.toISOString() })
+            .eq('id', inv_id);
+        
+        return mockApiCall({
+            state_after: 'active' as const,
+            effect_window: { start: now.toISOString(), end: 'Permanent' }
+        });
+    }
+    
+    // Shields remain active until cracked
+    const expiresAt = (item.kind === 'shield') 
         ? 'Until Cracked' 
         : expiry.toISOString();
     
