@@ -15,6 +15,7 @@ import ShopView from './components/ShopView';
 import Toast from './components/Toast';
 import ClanView from './components/ClanView';
 import InventoryView from './components/InventoryView';
+import LevelUpModal from './components/LevelUpModal';
 
 interface AppProps {
   onLogout: () => void;
@@ -29,6 +30,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory'>('dashboard');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [showLevelUpModal, setShowLevelUpModal] = useState(false);
+  const [levelUpData, setLevelUpData] = useState<{ newLevel: number; rewards: any } | null>(null);
+  const [previousLevel, setPreviousLevel] = useState<number | null>(null);
 
   const addToast = (message: string, type: ToastMessage['type'] = 'info') => {
     const id = Date.now();
@@ -104,7 +108,32 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         },
         (payload) => {
           console.log('Profile updated!', payload);
-          setProfile(payload.new as Profile);
+          const newProfile = payload.new as Profile;
+          
+          // Detect level up
+          if (previousLevel !== null && newProfile.level > previousLevel) {
+            // Call RPC to grant level-up rewards
+            supabase.rpc('rpc_grant_levelup_rewards', { p_new_level: newProfile.level })
+              .then(({ data, error }) => {
+                if (error) {
+                  console.error('Failed to grant level-up rewards:', error);
+                  return;
+                }
+                
+                const rewards = data || { coins: 100 * newProfile.level, ap_refill: true };
+                setLevelUpData({ newLevel: newProfile.level, rewards });
+                setShowLevelUpModal(true);
+                
+                // Refresh profile to show updated rewards
+                GameService.whoami().then(updatedProfile => {
+                  setProfile(updatedProfile);
+                  setPreviousLevel(updatedProfile.level);
+                });
+              });
+          } else {
+            setProfile(newProfile);
+            setPreviousLevel(newProfile.level);
+          }
         }
       )
       .subscribe();
@@ -112,7 +141,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     return () => {
       supabase.removeChannel(profileChannel);
     };
-  }, [profile?.id]);
+  }, [profile?.id, previousLevel]);
+  
+  // Set initial level when profile loads
+  useEffect(() => {
+    if (profile && previousLevel === null) {
+      setPreviousLevel(profile.level);
+    }
+  }, [profile, previousLevel]);
   
   const handleViewComplete = () => {
     setView('dashboard');
@@ -183,7 +219,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                     {/* Middle Column */}
                     <div className="lg:col-span-5 xl:col-span-6 space-y-6">
                         <MainActions onStartQuest={() => setView('quest')} onStartPvp={() => setView('pvp')} onVisitShop={() => setView('shop')} onGoToClan={() => setView('clan')} onVisitInventory={() => setView('inventory')} />
-                        <TaskList tasks={tasks} />
+                        <TaskList tasks={tasks} onTasksUpdate={fetchGameData} />
                     </div>
 
                     {/* Right Column */}
@@ -210,6 +246,18 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           <Toast key={toast.id} id={toast.id} message={toast.message} type={toast.type} onDismiss={() => removeToast(toast.id)} />
         ))}
       </div>
+      
+      {/* Level Up Modal */}
+      {showLevelUpModal && levelUpData && (
+        <LevelUpModal
+          newLevel={levelUpData.newLevel}
+          rewards={levelUpData.rewards}
+          onClose={() => {
+            setShowLevelUpModal(false);
+            setLevelUpData(null);
+          }}
+        />
+      )}
     </div>
   );
 };

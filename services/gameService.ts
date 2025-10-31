@@ -183,11 +183,37 @@ export const whoami = async (): Promise<Profile> => {
     throw new Error('Profile not found');
   }
 
-  // Update last_seen
-  await supabase
-    .from('users')
-    .update({ last_seen: new Date().toISOString() })
-    .eq('id', user.id);
+  // ====== AP REGENERATION LOGIC ======
+  const now = new Date();
+  const lastApUpdate = profile.last_ap_update ? new Date(profile.last_ap_update) : now;
+  const msElapsed = now.getTime() - lastApUpdate.getTime();
+  const minutesElapsed = Math.floor(msElapsed / (1000 * 60));
+  
+  // Regenerate 1 AP per 10 minutes (600,000 ms)
+  const apToRegen = Math.floor(minutesElapsed / 10);
+  
+  if (apToRegen > 0 && profile.ap_now < profile.ap_max) {
+    const newAP = Math.min(profile.ap_now + apToRegen, profile.ap_max);
+    
+    // Update AP and last_ap_update timestamp
+    await supabase
+      .from('users')
+      .update({ 
+        ap_now: newAP,
+        last_ap_update: now.toISOString(),
+        last_seen: now.toISOString()
+      })
+      .eq('id', user.id);
+    
+    profile.ap_now = newAP;
+    profile.last_ap_update = now.toISOString();
+  } else {
+    // Just update last_seen
+    await supabase
+      .from('users')
+      .update({ last_seen: now.toISOString() })
+      .eq('id', user.id);
+  }
 
   // Register in shared player list for multiplayer features
   addPlayerToSharedList({
@@ -205,6 +231,11 @@ export const whoami = async (): Promise<Profile> => {
 
 export const tasks_list = (): Promise<Task[]> => {
   const progress = getTaskProgress();
+  
+  // Get claimed tasks for today from localStorage
+  const today = new Date().toISOString().split('T')[0];
+  const claimedKey = `task_claims_${today}`;
+  const claimedTasks = JSON.parse(localStorage.getItem(claimedKey) || '[]') as string[];
   
   // Calculate time until midnight for daily reset
   const now = new Date();
@@ -231,6 +262,8 @@ export const tasks_list = (): Promise<Task[]> => {
       target: 3,
       reward_preview: '175 XP, 350 Coins',
       expires_at: dailyExpiry,
+      claimed: claimedTasks.includes('task_d1'),
+      reward: { xp: 175, coins: 350 },
     },
     {
       id: 'task_d2',
@@ -240,6 +273,8 @@ export const tasks_list = (): Promise<Task[]> => {
       target: 1,
       reward_preview: '100 XP, 50 Coins',
       expires_at: dailyExpiry,
+      claimed: claimedTasks.includes('task_d2'),
+      reward: { xp: 100, coins: 50 },
     },
     {
       id: 'task_w1',
@@ -249,9 +284,63 @@ export const tasks_list = (): Promise<Task[]> => {
       target: 15,
       reward_preview: '500 XP, 400 Coins + 1 Item Crate',
       expires_at: weeklyExpiry,
+      claimed: claimedTasks.includes('task_w1'),
+      reward: { xp: 500, coins: 400, items: ['mystery_crate'] },
     },
   ];
   return mockApiCall(tasks);
+};
+
+export const task_claim = async (task_id: string): Promise<{ xp: number; coins: number; items?: string[] }> => {
+  const user = await getCurrentUser();
+  
+  // Get task details
+  const tasks = await tasks_list();
+  const task = tasks.find(t => t.id === task_id);
+  
+  if (!task) {
+    throw new Error('Task not found');
+  }
+  
+  if (task.claimed) {
+    throw new Error('Task already claimed');
+  }
+  
+  if (task.progress < task.target) {
+    throw new Error('Task not completed yet');
+  }
+  
+  if (!task.reward) {
+    throw new Error('No reward defined for this task');
+  }
+  
+  // Grant rewards to user
+  const { data: profile } = await supabase
+    .from('users')
+    .select('xp, coins')
+    .eq('id', user.id)
+    .single();
+  
+  if (!profile) throw new Error('Profile not found');
+  
+  await updateProfile(user.id, {
+    xp: profile.xp + task.reward.xp,
+    coins: profile.coins + task.reward.coins,
+  });
+  
+  // Mark as claimed in localStorage
+  const today = new Date().toISOString().split('T')[0];
+  const claimedKey = `task_claims_${today}`;
+  const claimedTasks = JSON.parse(localStorage.getItem(claimedKey) || '[]') as string[];
+  claimedTasks.push(task_id);
+  localStorage.setItem(claimedKey, JSON.stringify(claimedTasks));
+  
+  // TODO: Grant items if any (add to inventory)
+  if (task.reward.items && task.reward.items.length > 0) {
+    // Future: Add items to inventory
+  }
+  
+  return mockApiCall(task.reward);
 };
 
 export const session_status = (): Promise<SessionStatus> => {

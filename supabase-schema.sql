@@ -23,6 +23,7 @@ CREATE TABLE users (
     last_seen TIMESTAMPTZ DEFAULT NOW(),
     ap_now INTEGER DEFAULT 18,
     ap_max INTEGER DEFAULT 20,
+    last_ap_update TIMESTAMPTZ DEFAULT NOW(),
     attack_power INTEGER DEFAULT 10,
     defense_power INTEGER DEFAULT 10,
     created_at TIMESTAMPTZ DEFAULT NOW(),

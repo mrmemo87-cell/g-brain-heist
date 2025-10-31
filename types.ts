@@ -12,6 +12,7 @@ export interface Profile {
   last_seen: string;
   ap_now: number;
   ap_max: number;
+  last_ap_update?: string; // ISO timestamp of last AP regeneration
   attack_power: number; // Base attack power
   defense_power: number; // Base defense power
 }
@@ -24,6 +25,12 @@ export interface Task {
   target: number;
   reward_preview: string;
   expires_at: string;
+  claimed?: boolean; // Whether reward has been claimed
+  reward?: {
+    xp: number;
+    coins: number;
+    items?: string[];
+  };
 }
 
 export interface SessionStatus {

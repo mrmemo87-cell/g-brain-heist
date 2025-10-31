@@ -47,12 +47,15 @@ const useAnimatedValue = (endValue: number, duration: number = 500) => {
 };
 
 
-const StatChip: React.FC<{ icon: React.ReactNode; value: number; 'data-testid': string }> = ({ icon, value, 'data-testid': testId }) => {
+const StatChip: React.FC<{ icon: React.ReactNode; value: number; 'data-testid': string; subtitle?: string }> = ({ icon, value, 'data-testid': testId, subtitle }) => {
     const animatedValue = useAnimatedValue(value);
     return (
         <div id={testId} className="flex items-center space-x-1 sm:space-x-2 bg-black/20 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
             <div className="w-4 h-4 sm:w-5 sm:h-5">{icon}</div>
-            <span className="font-mono font-semibold text-xs sm:text-base">{animatedValue.toLocaleString()}</span>
+            <div className="flex flex-col">
+                <span className="font-mono font-semibold text-xs sm:text-base leading-none">{animatedValue.toLocaleString()}</span>
+                {subtitle && <span className="font-mono text-[9px] sm:text-[10px] text-gray-400 leading-none mt-0.5">{subtitle}</span>}
+            </div>
         </div>
     );
 };
@@ -70,6 +73,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   const [bgMusicEnabled, setBgMusicEnabled] = useState(audioService.isBgMusicEnabled());
   const [selectedAvatar, setSelectedAvatar] = useState<string>(profile.avatar_url || '');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [apRegenCountdown, setApRegenCountdown] = useState<string>('');
 
   const avatarPresets = [
     'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
@@ -114,6 +118,32 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
     setSelectedAvatar(profile.avatar_url || '');
   }, [profile.avatar_url]);
 
+  // AP Regeneration Countdown Timer
+  useEffect(() => {
+    const calculateCountdown = () => {
+      if (profile.ap_now >= profile.ap_max) {
+        setApRegenCountdown('MAX');
+        return;
+      }
+
+      const now = new Date();
+      const lastUpdate = profile.last_ap_update ? new Date(profile.last_ap_update) : now;
+      const msElapsed = now.getTime() - lastUpdate.getTime();
+      const msPerAP = 10 * 60 * 1000; // 10 minutes in ms
+      const msUntilNextAP = msPerAP - (msElapsed % msPerAP);
+      
+      const minutesLeft = Math.floor(msUntilNextAP / (1000 * 60));
+      const secondsLeft = Math.floor((msUntilNextAP % (1000 * 60)) / 1000);
+      
+      setApRegenCountdown(`${minutesLeft}m ${secondsLeft}s`);
+    };
+
+    calculateCountdown();
+    const interval = setInterval(calculateCountdown, 1000); // Update every second
+
+    return () => clearInterval(interval);
+  }, [profile.ap_now, profile.ap_max, profile.last_ap_update]);
+
   return (
     <>
       <header className="sticky top-0 z-40 flex justify-between items-center card-glass glow-ion p-2 sm:p-4">
@@ -127,7 +157,12 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
           <div className="flex items-center space-x-1 sm:space-x-2">
             <StatChip icon={<CoinIcon />} value={profile.coins} data-testid="coin-hud" />
             <StatChip icon={<XPIcon />} value={profile.xp} data-testid="xp-hud" />
-            <StatChip icon={<APIcon />} value={profile.ap_now} data-testid="ap-hud" />
+            <StatChip 
+              icon={<APIcon />} 
+              value={profile.ap_now} 
+              data-testid="ap-hud" 
+              subtitle={apRegenCountdown !== 'MAX' ? `+1 in ${apRegenCountdown}` : undefined}
+            />
           </div>
           <img src={profile.avatar_url} alt="Player Avatar" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2" style={{ borderColor: 'var(--plasma-pink)' }} />
           
