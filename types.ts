@@ -12,6 +12,8 @@ export interface Profile {
   last_seen: string;
   ap_now: number;
   ap_max: number;
+  attack_power: number; // Base attack power
+  defense_power: number; // Base defense power
 }
 
 export interface Task {
@@ -88,6 +90,7 @@ export interface RaidTarget {
   has_shield: boolean;
   est_win_rate: number;
   avatar_url: string;
+  last_seen?: string;
 }
 
 export interface RaidAttackResult {
@@ -105,7 +108,7 @@ export interface RaidAttackResult {
 export interface ShopItem {
   id: string;
   name: string;
-  kind: 'shield' | 'cracker' | 'booster' | 'major_booster' | 'cosmetic' | 'mystery';
+  kind: 'shield' | 'cracker' | 'booster' | 'major_booster' | 'cosmetic' | 'mystery' | 'encryption_key' | 'firewall' | 'exploit_kit';
   price: number;
   daily_limit: number;
   owned_today: number;
@@ -175,8 +178,11 @@ export interface InventoryItem {
     item_id: string;
     name: string;
     kind: ShopItem['kind'];
-    state: 'unused' | 'active' | 'expired' | 'consumed';
-    expires_at?: string;
+    state: 'unused' | 'active';
+    expires_at?: string; // ISO timestamp for when active items expire
+    activated_at?: string; // ISO timestamp for when item was activated
     description: string;
     effect_summary: string;
+    attack_bonus?: number; // Permanent or timed attack bonus
+    defense_bonus?: number; // Permanent or timed defense bonus
 }

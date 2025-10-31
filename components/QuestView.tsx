@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Subject, Question, AnswerResponse } from '../types';
 import * as GameService from '../services/gameService';
+import { audioService } from '../services/audioService';
 import { BrainIcon, CoinIcon, XPIcon } from './icons';
+import BackButton from './BackButton';
 import { createPortal } from 'react-dom';
 
 type QuestStage = 'loading' | 'subject_selection' | 'in_progress' | 'completed';
@@ -112,9 +114,17 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
     const response = await GameService.mcq_answer_submit(questions[currentQuestionIndex].id, option);
     setAnswerResponse(response);
     
+    // Play sound effect based on answer
+    if (response.correct) {
+      audioService.play('correct');
+    } else {
+      audioService.play('wrong');
+    }
+    
     onGrantReward(response.deltas);
 
     if (response.correct && answerFeedbackRef.current) {
+        audioService.play('collect');
         const startRect = answerFeedbackRef.current.getBoundingClientRect();
         const newParticles: Omit<RewardParticleProps, 'onComplete'>[] = [];
         for (let i = 0; i < 5; i++) {
@@ -136,6 +146,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
         setSelectedOption(null);
         setAnswerResponse(null);
       } else {
+        audioService.play('tada');
         setStage('completed');
       }
     }, 2000);
@@ -230,12 +241,6 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
                 <p>XP Gained: <span style={{color: 'var(--ion-blue)'}}>{score.xp >= 0 ? `+${score.xp}` : score.xp}</span></p>
                 <p>Coins Earned: <span style={{color: 'var(--amber-warn)'}}>{score.coins >= 0 ? `+${score.coins}`: score.coins}</span></p>
             </div>
-            <button
-                onClick={onComplete}
-                className="mt-8 w-full bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white shadow-lg shadow-cyan-500/20 font-heading font-bold text-lg tracking-wider p-4 rounded-2xl transition-all duration-300 transform hover:scale-105"
-            >
-                Return to Dashboard
-            </button>
         </div>
     </div>
   );
@@ -252,6 +257,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
 
   return (
     <div className="mt-6">
+      <BackButton onClick={onComplete} />
       {renderContent()}
     </div>
   );

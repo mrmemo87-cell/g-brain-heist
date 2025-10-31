@@ -17,19 +17,32 @@ const getEventIconAndColor = (kind: NewsEvent['kind']) => {
 
 const formatEventText = (event: NewsEvent) => {
     const actorStyle = { color: 'var(--paper-50)', fontWeight: '600' };
+    
+    // Static messages - no randomization to keep feed stable
     switch (event.kind) {
         case 'pvp_win':
-            return <><span style={{...actorStyle, color: 'var(--success-teal)'}}>{event.actor}</span> hacked <span style={{...actorStyle, color: 'var(--danger-red)'}}>{event.target}</span>. {event.data.details}.</>;
+            return <><span style={{...actorStyle, color: 'var(--success-teal)'}}>{event.actor}</span> hacked <span style={{...actorStyle, color: 'var(--danger-red)'}}>{event.target}</span>. {event.data.details} 💪</>;
+        
         case 'pvp_blocked':
-            return <><span style={{...actorStyle, color: 'var(--danger-red)'}}>{event.actor}</span>'s attack on <span style={{...actorStyle}}>{event.target}</span> was blocked.</>;
+            return <><span style={{...actorStyle, color: 'var(--danger-red)'}}>{event.actor}</span> was blocked by <span style={{...actorStyle, color: 'var(--success-teal)'}}>{event.target}</span>'s shield! 🛡️</>;
+        
+        case 'pvp_loss':
+            return <><span style={{...actorStyle, color: 'var(--danger-red)'}}>{event.actor}</span> failed to hack <span style={{...actorStyle, color: 'var(--success-teal)'}}>{event.target}</span> 😅</>;
+        
         case 'level_up':
-            return <><span style={{...actorStyle, color: 'var(--amber-warn)'}}>{event.actor}</span> has reached <span className="font-bold">{event.data.details}</span>!</>;
+            return <><span style={{...actorStyle, color: 'var(--amber-warn)'}}>{event.actor}</span> leveled up to <span className="font-bold">{event.data.details}</span>! 🎉</>;
+        
         case 'quest_cleared':
-            return <><span style={{...actorStyle, color: 'var(--ion-blue)'}}>{event.actor}</span> cleared <span className="font-bold">"{event.data.details}"</span>.</>;
+            return <><span style={{...actorStyle, color: 'var(--ion-blue)'}}>{event.actor}</span> aced <span className="font-bold">"{event.data.details}"</span>! 🧠</>;
+        
         case 'purchase':
-            return <><span style={{...actorStyle, color: 'var(--success-teal)'}}>{event.actor}</span> bought a <span className="font-bold">{event.data.item}</span>.</>;
+            return <><span style={{...actorStyle, color: 'var(--success-teal)'}}>{event.actor}</span> bought a <span className="font-bold">{event.data.item}</span> 🛒</>;
+        
+        case 'weekly_claim':
+            return <><span style={{...actorStyle, color: 'var(--amber-warn)'}}>{event.actor}</span> claimed weekly rewards! 💰</>;
+        
         default:
-            return <span>{event.actor} did something.</span>;
+            return <><span style={actorStyle}>{event.actor}</span> is up to something... 🤔</>;
     }
 };
 
@@ -94,25 +107,28 @@ const NewsFeed: React.FC<{ news: NewsEvent[] }> = ({ news }) => {
                 <div className="flex-grow">
                     <p className="text-sm text-gray-300 leading-tight">{formatEventText(event)}</p>
                     <p className="text-xs" style={{color: 'var(--mist-400)'}}>{event.created_at}</p>
-                    <div className="flex items-center space-x-2 mt-2">
+                    <div className="flex items-center gap-1.5 mt-2 flex-wrap">
                       {EMOJIS.map(emoji => {
+                        const count = event.reactions[emoji] || 0;
                         const isActive = event.my_reaction === emoji;
                         const isPopping = poppingReaction === `${event.id}-${emoji}`;
                         return (
                           <button
                             key={emoji}
                             onClick={() => handleReactionClick(event.id, emoji)}
-                            className={`flex items-center space-x-1.5 px-2 py-1 rounded-full transition-all duration-200 border ${
+                            className={`flex items-center gap-1 px-2 py-1 rounded-full transition-all duration-200 border min-w-[3rem] ${
                               isActive
                                 ? 'bg-blue-500/30 border-blue-400'
-                                : 'bg-black/20 hover:bg-black/40 border-transparent'
+                                : 'bg-black/30 hover:bg-black/50 border-gray-600 hover:border-gray-500'
                             }`}
                           >
-                            <span>{emoji}</span>
+                            <span className="text-sm leading-none">{emoji}</span>
                             <span
-                              className={`font-mono text-sm ${isPopping ? 'animate-pop' : ''} ${isActive ? 'text-white' : 'text-gray-400'}`}
+                              className={`font-mono text-xs font-bold leading-none ${isPopping ? 'animate-pop' : ''} ${
+                                isActive ? 'text-white' : count > 0 ? 'text-gray-200' : 'text-gray-400'
+                              }`}
                             >
-                              {event.reactions[emoji] || 0}
+                              {count}
                             </span>
                           </button>
                         );

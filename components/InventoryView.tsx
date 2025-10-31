@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { InventoryItem, ToastMessage } from '../types';
 import * as GameService from '../services/gameService';
+import { audioService } from '../services/audioService';
+import BackButton from './BackButton';
 import { ShieldIcon, CrackerIcon, BoosterIcon, InventoryIcon } from './icons';
 
 interface InventoryViewProps {
@@ -84,6 +86,7 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast }) =
       setActivatingId(inv_id);
       try {
           await GameService.inventory_activate(inv_id);
+          audioService.play('activate');
           addToast("Item activated!", "success");
           fetchInventory(); // Refetch to show new state
       } catch (error: any) {
@@ -100,6 +103,7 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast }) =
 
   return (
     <div className="mt-6">
+      <BackButton onClick={onComplete} />
       <h2 className="font-heading text-3xl text-center mb-8" style={{ color: 'var(--grid-purple)' }}>Inventory</h2>
       {items.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
@@ -109,14 +113,13 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast }) =
         </div>
       ) : (
         <div className="text-center text-gray-400 card-glass p-8 max-w-md mx-auto">
-            <InventoryIcon className="w-16 h-16 mx-auto mb-4 text-gray-600" />
+            <div className="w-16 h-16 mx-auto mb-4 text-gray-600">
+              <ShieldIcon />
+            </div>
             <p>Your inventory is empty.</p>
             <p className="text-sm">Visit the shop to purchase items.</p>
         </div>
       )}
-       <div className="text-center mt-8">
-            <button onClick={onComplete} className="text-gray-400 hover:text-white transition-colors">Return to Dashboard</button>
-        </div>
     </div>
   );
 };

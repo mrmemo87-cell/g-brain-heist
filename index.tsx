@@ -1,11 +1,31 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import LoginView from './components/LoginView';
+import ErrorBoundary from './components/ErrorBoundary';
 import * as AuthService from './services/authService';
+import { supabase } from './services/supabaseClient';
 
 const Main: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false); 
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check for existing Supabase session on mount
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+      setIsLoading(false);
+    });
+
+    // Listen for auth state changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleLogin = useCallback(async (email: string, pass: string) => {
     await AuthService.login(email, pass);
@@ -16,6 +36,16 @@ const Main: React.FC = () => {
     await AuthService.logout();
     setIsAuthenticated(false);
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="font-heading text-2xl animate-pulse" style={{color: 'var(--ion-blue)'}}>
+          Initializing Heist OS...
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return <LoginView onLogin={handleLogin} />;
@@ -33,6 +63,8 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <Main />
+    <ErrorBoundary>
+      <Main />
+    </ErrorBoundary>
   </React.StrictMode>
 );

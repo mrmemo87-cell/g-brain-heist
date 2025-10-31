@@ -1,25 +1,39 @@
 import React, { useState } from 'react';
 import { GoogleIcon } from './icons';
+import * as AuthService from '../services/authService';
 
 interface LoginViewProps {
     onLogin: (email: string, pass: string) => Promise<void>;
 }
 
 const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
+    const [mode, setMode] = useState<'login' | 'signup'>('login');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [username, setUsername] = useState('');
+    const [batch, setBatch] = useState<'8A' | '8B' | '8C'>('8A');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+        setSuccess(null);
         setIsLoading(true);
+        
         try {
-            await onLogin(email, password);
-            // On success, the parent component will unmount this view.
+            if (mode === 'signup') {
+                await AuthService.signup(email, password, username, batch);
+                setSuccess('Account created! Please log in.');
+                setMode('login');
+                setPassword('');
+            } else {
+                await onLogin(email, password);
+            }
         } catch (err: any) {
-            setError(err.message || 'Login failed. Please try again.');
+            setError(err.message || 'Operation failed. Please try again.');
+        } finally {
             setIsLoading(false);
         }
     };
@@ -35,9 +49,64 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 </div>
 
                 <div className="card-glass glow-ion p-8">
+                    {/* Toggle Tabs */}
+                    <div className="flex mb-6 bg-black/30 rounded-lg p-1">
+                        <button
+                            onClick={() => setMode('login')}
+                            className={`flex-1 py-2 px-4 rounded-md font-semibold transition-all ${
+                                mode === 'login'
+                                    ? 'bg-ion-blue text-ink-900'
+                                    : 'text-gray-400 hover:text-white'
+                            }`}
+                        >
+                            Login
+                        </button>
+                        <button
+                            onClick={() => setMode('signup')}
+                            className={`flex-1 py-2 px-4 rounded-md font-semibold transition-all ${
+                                mode === 'signup'
+                                    ? 'bg-ion-blue text-ink-900'
+                                    : 'text-gray-400 hover:text-white'
+                            }`}
+                        >
+                            Sign Up
+                        </button>
+                    </div>
+
                     <form onSubmit={handleSubmit} className="space-y-6">
+                        {mode === 'signup' && (
+                            <>
+                                <div>
+                                    <label htmlFor="username" className="block text-sm font-medium text-gray-300">Username</label>
+                                    <input
+                                        id="username"
+                                        name="username"
+                                        type="text"
+                                        required
+                                        value={username}
+                                        onChange={(e) => setUsername(e.target.value)}
+                                        className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+                                        placeholder="ChooseYourName"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="batch" className="block text-sm font-medium text-gray-300">Batch</label>
+                                    <select
+                                        id="batch"
+                                        value={batch}
+                                        onChange={(e) => setBatch(e.target.value as '8A' | '8B' | '8C')}
+                                        className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+                                    >
+                                        <option value="8A">Batch 8A</option>
+                                        <option value="8B">Batch 8B</option>
+                                        <option value="8C">Batch 8C</option>
+                                    </select>
+                                </div>
+                            </>
+                        )}
+                        
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-mist-400">Agent ID (Email)</label>
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-300">Email</label>
                             <input
                                 id="email"
                                 name="email"
@@ -46,13 +115,13 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="mt-1 block w-full bg-ink-800 border border-mist-400/20 rounded-md p-3 text-paper-50 placeholder-mist-400/50 focus:outline-none focus:ring-2 focus:ring-ion-blue focus:border-ion-blue"
+                                className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
                                 placeholder="agent@bh.os"
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="password"className="block text-sm font-medium text-mist-400">Passcode</label>
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-300">Password</label>
                             <input
                                 id="password"
                                 name="password"
@@ -61,12 +130,13 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="mt-1 block w-full bg-ink-800 border border-mist-400/20 rounded-md p-3 text-paper-50 placeholder-mist-400/50 focus:outline-none focus:ring-2 focus:ring-ion-blue focus:border-ion-blue"
+                                className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
                                 placeholder="••••••••"
                             />
                         </div>
 
                         {error && <p className="text-sm text-danger-red text-center">{error}</p>}
+                        {success && <p className="text-sm text-success-teal text-center">{success}</p>}
 
                         <div>
                             <button
@@ -75,31 +145,10 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-bold text-ink-900 bg-ion-blue hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ion-blue disabled:opacity-50 disabled:cursor-wait transition-colors"
                                 style={{textShadow: '0 1px 1px rgba(0,0,0,0.2)'}}
                             >
-                                {isLoading ? 'Authenticating...' : 'Access System'}
+                                {isLoading ? 'Processing...' : mode === 'login' ? 'Access System' : 'Create Account'}
                             </button>
                         </div>
                     </form>
-
-                    <div className="mt-6">
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-mist-400/20"></div>
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-ink-800 text-mist-400">Or continue with</span>
-                            </div>
-                        </div>
-
-                        <div className="mt-6">
-                            <button
-                                onClick={() => onLogin('google-user@gmail.com', 'google-pass')}
-                                className="w-full inline-flex justify-center items-center py-3 px-4 border border-mist-400/40 rounded-md shadow-sm bg-paper-50 text-ink-900 font-medium hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ion-blue"
-                            >
-                                <GoogleIcon className="w-5 h-5 mr-2" />
-                                <span>Use Google</span>
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

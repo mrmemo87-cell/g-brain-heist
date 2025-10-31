@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { RaidTarget, RaidAttackResult, Profile } from '../types';
 import * as GameService from '../services/gameService';
+import { audioService } from '../services/audioService';
+import BackButton from './BackButton';
 import { ShieldIcon, HackIcon, CoinIcon, XPIcon } from './icons';
 import { createPortal } from 'react-dom';
 
@@ -13,6 +15,25 @@ interface PvPViewProps {
 }
 
 const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) => void }> = ({ target, onSelect }) => {
+  // Calculate online status based on last_seen
+  const getOnlineStatus = (last_seen?: string): { color: string; label: string } => {
+    if (!last_seen) return { color: 'bg-gray-500', label: 'Unknown' };
+    
+    const lastSeenTime = new Date(last_seen).getTime();
+    const now = Date.now();
+    const minutesAgo = (now - lastSeenTime) / 1000 / 60;
+    
+    if (minutesAgo < 5) {
+      return { color: 'bg-green-500', label: 'Online' };
+    } else if (minutesAgo < 30) {
+      return { color: 'bg-yellow-500', label: 'Away' };
+    } else {
+      return { color: 'bg-red-500', label: 'Offline' };
+    }
+  };
+  
+  const status = getOnlineStatus(target.last_seen);
+  
   return (
     <div className="card-glass p-4 flex flex-col items-center text-center relative overflow-hidden">
       {target.has_shield && (
@@ -20,7 +41,13 @@ const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) 
           <ShieldIcon />
         </div>
       )}
-      <img src={target.avatar_url} alt={target.username} className="w-20 h-20 rounded-full border-2 border-gray-600 mb-3" />
+      <div className="relative mb-3">
+        <img src={target.avatar_url} alt={target.username} className="w-20 h-20 rounded-full border-2 border-gray-600" />
+        <div 
+          className={`absolute bottom-0 right-0 w-4 h-4 ${status.color} rounded-full border-2 border-gray-900`}
+          title={status.label}
+        />
+      </div>
       <h3 className="font-heading text-lg" style={{ color: 'var(--plasma-pink)' }}>{target.username}</h3>
       <p className="text-sm text-gray-400">Lvl {target.level} | Batch {target.batch}</p>
       <p className="text-xs text-amber-400 mt-1">~{target.coins.toLocaleString()} Coins</p>
@@ -52,15 +79,25 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
   const handleAttack = async (target: RaidTarget) => {
     setSelectedTarget(target);
     setStage('cinematic');
-    
-    // Optimistically deduct AP cost
-    onGrantReward({ ap: -2 });
 
     const result = await GameService.raid_attack(target.user_id, useCracker, target);
     setAttackResult(result);
 
-    // Grant rewards/penalties optimistically
-    onGrantReward(result.attacker_deltas);
+    // Play appropriate sound based on result
+    if (result.result === 'win') {
+      audioService.play('hack_win');
+    } else if (result.result === 'blocked') {
+      audioService.play('hack_fail');
+    } else {
+      audioService.play('hack_fail');
+    }
+
+    // Grant rewards/penalties including AP cost
+    onGrantReward({
+      xp: result.attacker_deltas.xp,
+      coins: result.attacker_deltas.coins,
+      ap: -2, // AP cost for hacking
+    });
     
     setTimeout(() => {
         setStage('result');
@@ -74,9 +111,6 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
         {targets.map(target => (
           <TargetCard key={target.user_id} target={target} onSelect={handleAttack} />
         ))}
-      </div>
-      <div className="text-center mt-8">
-        <button onClick={onComplete} className="text-gray-400 hover:text-white transition-colors">Return to Dashboard</button>
       </div>
     </div>
   );
@@ -105,29 +139,49 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
     if (!attackResult || !selectedTarget) return null;
 
     const resultText = {
-        win: { title: 'Breach Successful!', color: 'var(--success-teal)' },
-        lose: { title: 'Hack Failed', color: 'var(--danger-red)' },
-        blocked: { title: 'Attack Blocked', color: 'var(--amber-warn)' }
+        win: { title: 'Breach Successful! 🎯', color: 'var(--success-teal)' },
+        lose: { title: 'Hack Failed 😤', color: 'var(--danger-red)' },
+        blocked: { title: 'Attack Blocked 🛡️', color: 'var(--amber-warn)' }
     };
     const {title, color} = resultText[attackResult.result];
+
+    // Static result messages - no randomization
+    const getResultMessage = () => {
+        if (attackResult.result === 'win') {
+            return `You successfully hacked ${selectedTarget.username}! Their defenses couldn't hold! �`;
+        } else if (attackResult.result === 'blocked') {
+            return `${selectedTarget.username}'s shield stopped your attack! Better bring a cracker next time! 🔨`;
+        } else {
+            return `${selectedTarget.username}'s defenses held strong. Time to upgrade and try again! 📈`;
+        }
+    };
+
+    const handleHackAnother = () => {
+        setStage('loading');
+        setSelectedTarget(null);
+        setAttackResult(null);
+        GameService.raid_targets().then(data => {
+            setTargets(data);
+            setStage('targets');
+        });
+    };
 
     return (
         <div className="text-center max-w-lg mx-auto">
             <h2 className="font-heading text-4xl mb-4" style={{ color }}>{title}</h2>
             <div className="card-glass p-8" style={{borderColor: `${color}80`}}>
-                 {attackResult.result === 'blocked' && <p className="text-lg mb-6">Your attack was blocked by {selectedTarget.username}'s shield.</p>}
-                 {attackResult.result === 'win' && <p className="text-lg mb-6">You breached {selectedTarget.username}'s defenses!</p>}
-                 {attackResult.result === 'lose' && <p className="text-lg mb-6">You failed to breach {selectedTarget.username}'s defenses.</p>}
+                 <p className="text-lg mb-6">{getResultMessage()}</p>
 
-                <div className="text-2xl font-heading space-y-2">
+                <div className="text-2xl font-heading space-y-2 mb-6">
                     <p>XP Delta: <span style={{color: attackResult.attacker_deltas.xp > 0 ? 'var(--ion-blue)' : 'var(--danger-red)'}}>{attackResult.attacker_deltas.xp >= 0 ? `+${attackResult.attacker_deltas.xp}` : attackResult.attacker_deltas.xp}</span></p>
                     <p>Coins Delta: <span style={{color: 'var(--amber-warn)'}}>{attackResult.attacker_deltas.coins >= 0 ? `+${attackResult.attacker_deltas.coins}`: attackResult.attacker_deltas.coins}</span></p>
                 </div>
+
                 <button
-                    onClick={onComplete}
-                    className="mt-8 w-full bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white font-heading font-bold text-lg p-3 rounded-2xl transition-all"
+                    onClick={handleHackAnother}
+                    className="w-full bg-plasma-pink/20 hover:bg-plasma-pink/30 border border-plasma-pink text-white shadow-lg shadow-plasma-pink/20 font-heading font-bold text-lg tracking-wider p-4 rounded-2xl transition-all duration-300 transform hover:scale-105"
                 >
-                    Return to Dashboard
+                    🎯 Hack Another Target
                 </button>
             </div>
         </div>
@@ -147,6 +201,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
 
   return (
     <div className="mt-6">
+      <BackButton onClick={onComplete} />
       {renderContent()}
     </div>
   );

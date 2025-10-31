@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ShopItem, Profile, ToastMessage } from '../types';
 import * as GameService from '../services/gameService';
+import { audioService } from '../services/audioService';
+import BackButton from './BackButton';
 import { ShieldIcon, CrackerIcon, BoosterIcon, CoinIcon, CosmeticIcon } from './icons';
 
 type ShopStage = 'loading' | 'idle' | 'purchasing';
@@ -30,6 +32,9 @@ const ItemCard: React.FC<{ item: ShopItem, onBuy: (item: ShopItem) => void }> = 
 
     const typeStyles: Record<ShopItem['kind'], { glow: string, border: string }> = {
         shield: { glow: 'glow-ion', border: 'rgba(0, 208, 232, 0.2)' },
+        firewall: { glow: 'glow-ion', border: 'rgba(0, 208, 232, 0.3)' },
+        encryption_key: { glow: 'glow-plasma', border: 'rgba(255, 45, 145, 0.2)' },
+        exploit_kit: { glow: 'glow-plasma', border: 'rgba(255, 45, 145, 0.3)' },
         cracker: { glow: 'glow-plasma', border: 'rgba(255, 45, 145, 0.2)' },
         booster: { glow: 'glow-warn', border: 'rgba(255, 176, 32, 0.2)' },
         major_booster: { glow: 'glow-warn', border: 'rgba(255, 176, 32, 0.2)' },
@@ -142,6 +147,7 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
   const handleBuy = async (item: ShopItem, quantity: number) => {
     try {
         const receipt = await GameService.shop_buy(item.id, quantity, profile.coins);
+        audioService.play('buy');
         onPurchase({ coins: -receipt.coins_spent });
         addToast(`Purchased ${quantity}x ${item.name}!`, 'success');
         setSelectedItem(null);
@@ -164,15 +170,13 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
 
   return (
     <div className="mt-6">
+      <BackButton onClick={onComplete} />
       <h2 className="font-heading text-3xl text-center mb-8" style={{ color: 'var(--success-teal)' }}>Item Shop</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
         {items.map(item => (
           <ItemCard key={item.id} item={item} onBuy={setSelectedItem} />
         ))}
       </div>
-       <div className="text-center mt-8">
-            <button onClick={onComplete} className="text-gray-400 hover:text-white transition-colors">Return to Dashboard</button>
-        </div>
 
         {selectedItem && (
             <PurchaseModal 

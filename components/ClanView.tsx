@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Clan, ClanChatMessage, Profile, ToastMessage, ClanSummary, ClanBuff, ClanMember } from '../types';
 import * as GameService from '../services/gameService';
+import BackButton from './BackButton';
 import { ClanIcon, CoinIcon, DemoteIcon, KickIcon, LeaveIcon, ManageIcon, PromoteIcon } from './icons';
 
 type ClanViewStage = 'loading' | 'no_clan' | 'in_clan' | 'creating' | 'joining';
@@ -218,7 +219,6 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                 Join a Clan
             </button>
         </div>
-        <button onClick={onComplete} className="text-gray-400 hover:text-white transition-colors mt-8">Return to Dashboard</button>
     </div>
   );
 
@@ -384,6 +384,21 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                         ))}
                                     </div>
                                 </div>}
+                                
+                                {/* Leave Clan Button for non-leaders */}
+                                {myMemberInfo.role !== 'leader' && (
+                                    <div className="mt-6">
+                                        <div className="bg-red-900/20 p-4 rounded-lg border border-red-500/30">
+                                            <button 
+                                                onClick={() => setModal('confirm_leave')} 
+                                                className="w-full bg-red-500/20 hover:bg-red-500/30 border border-red-400 text-white font-semibold px-4 py-2 rounded-lg flex items-center justify-center space-x-2"
+                                            >
+                                                <LeaveIcon className="w-5 h-5" />
+                                                <span>Leave Clan</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                              <div>
                                 <h3 className="font-heading text-xl mb-3 text-amber-300">Top Contributors</h3>
@@ -454,9 +469,6 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                     )}
                 </div>
             </div>
-             <div className="text-center mt-8">
-                <button onClick={onComplete} className="text-gray-400 hover:text-white transition-colors">Return to Dashboard</button>
-            </div>
              {modal === 'confirm_leave' && <ConfirmationModal title="Leave Clan" message="Are you sure you want to leave this clan?" confirmText="Yes, Leave" onConfirm={handleLeaveClan} onCancel={() => setModal(null)} />}
              {modal === 'confirm_delete' && <ConfirmationModal title="Delete Clan" message="Are you sure you want to permanently delete this clan? This action cannot be undone." confirmText="Yes, Delete" onConfirm={handleDeleteClan} onCancel={() => setModal(null)} />}
              {modal === 'confirm_kick' && memberToKick && <ConfirmationModal title={`Kick ${memberToKick.username}`} message={`Are you sure you want to kick ${memberToKick.username} from the clan?`} confirmText="Yes, Kick" onConfirm={handleKickMember} onCancel={() => { setModal(null); setMemberToKick(null); }} />}
@@ -482,6 +494,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
 
   return (
     <div className="mt-6">
+      <BackButton onClick={onComplete} />
       {renderContent()}
     </div>
   );
