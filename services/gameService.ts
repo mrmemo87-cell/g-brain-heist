@@ -1351,3 +1351,132 @@ export const update_avatar = async (avatar_url: string): Promise<Profile> => {
     if (error) throw error;
     return data;
 };
+
+// ============ ACHIEVEMENTS ============
+
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  condition_type: string;
+  condition_value: number;
+  reward_xp: number;
+  reward_coins: number;
+  icon: string;
+  is_earned?: boolean;
+  earned_at?: string;
+  progress?: number; // Current progress towards achievement
+}
+
+export const achievements_list = async (): Promise<Achievement[]> => {
+    const user = await getCurrentUser();
+
+    // Get all achievements
+    const { data: allAchievements, error: achError } = await supabase
+        .from('achievements')
+        .select('*')
+        .order('condition_value', { ascending: true });
+
+    if (achError) throw achError;
+
+    // Get user's earned achievements
+    const { data: earnedAchievements, error: earnedError } = await supabase
+        .from('user_achievements')
+        .select('achievement_id, earned_at')
+        .eq('user_id', user.id);
+
+    if (earnedError) throw earnedError;
+
+    const earnedMap: Record<string, string> = {};
+    (earnedAchievements || []).forEach((ua: any) => {
+        earnedMap[ua.achievement_id] = ua.earned_at;
+    });
+
+    // Get user stats for progress calculation
+    const { data: profile } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+    const { data: pvpWins } = await supabase
+        .from('activities')
+        .select('id', { count: 'exact', head: true })
+        .eq('actor_id', user.id)
+        .eq('kind', 'pvp_win');
+
+    const { data: questsCompleted } = await supabase
+        .from('activities')
+        .select('id', { count: 'exact', head: true })
+        .eq('actor_id', user.id)
+        .eq('kind', 'quest_complete');
+
+    const { data: itemsPurchased } = await supabase
+        .from('activities')
+        .select('id', { count: 'exact', head: true })
+        .eq('actor_id', user.id)
+        .eq('kind', 'shop_purchase');
+
+    const pvpWinCount = (pvpWins as any)?.count || 0;
+    const questCount = (questsCompleted as any)?.count || 0;
+    const purchaseCount = (itemsPurchased as any)?.count || 0;
+
+    // Calculate coins earned (current + spent)
+    const { data: purchases } = await supabase
+        .from('activities')
+        .select('amount')
+        .eq('actor_id', user.id)
+        .eq('kind', 'shop_purchase');
+
+    const coinsSpent = (purchases || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+    const coinsEarned = (profile?.coins || 0) + coinsSpent;
+
+    // Map achievements with earned status and progress
+    return (allAchievements || []).map((ach: any) => {
+        const is_earned = !!earnedMap[ach.id];
+        let progress = 0;
+
+        if (!is_earned) {
+            switch (ach.condition_type) {
+                case 'pvp_wins_count':
+                    progress = pvpWinCount;
+                    break;
+                case 'total_xp':
+                    progress = profile?.xp || 0;
+                    break;
+                case 'quests_completed':
+                    progress = questCount;
+                    break;
+                case 'coins_earned':
+                    progress = coinsEarned;
+                    break;
+                case 'items_purchased':
+                    progress = purchaseCount;
+                    break;
+                case 'clan_member':
+                    progress = profile?.clan_id ? 1 : 0;
+                    break;
+            }
+        }
+
+        return {
+            ...ach,
+            is_earned,
+            earned_at: earnedMap[ach.id],
+            progress: Math.min(progress, ach.condition_value),
+        };
+    });
+};
+
+export const check_achievements = async (): Promise<Achievement[]> => {
+    const user = await getCurrentUser();
+
+    const { data, error } = await supabase.rpc('rpc_check_achievements', {
+        p_user_id: user.id,
+    });
+
+    if (error) throw error;
+
+    // Return newly earned achievements
+    return data[0]?.newly_earned || [];
+};

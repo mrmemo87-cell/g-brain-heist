@@ -17,6 +17,7 @@ import ClanView from './components/ClanView';
 import InventoryView from './components/InventoryView';
 import LevelUpModal from './components/LevelUpModal';
 import LeaderboardView from './components/LeaderboardView';
+import AchievementView from './components/AchievementView';
 
 interface AppProps {
   onLogout: () => void;
@@ -220,6 +221,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             return <InventoryView onComplete={handleViewComplete} addToast={addToast} onNavigateToShop={() => setView('shop')} />;
         case 'leaderboard':
             return <LeaderboardView onComplete={handleViewComplete} currentUserId={profile.id} />;
+        case 'achievements':
+            return <AchievementView onComplete={handleViewComplete} addToast={addToast} />;
         case 'dashboard':
         default:
             return (
@@ -239,7 +242,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                             onVisitShop={() => setView('shop')} 
                             onGoToClan={() => setView('clan')} 
                             onVisitInventory={() => setView('inventory')}
-                            onViewLeaderboard={() => setView('leaderboard')} 
+                            onViewLeaderboard={() => setView('leaderboard')}
+                            onViewAchievements={() => setView('achievements')} 
                         />
                         <TaskList tasks={tasks} onTasksUpdate={fetchGameData} />
                     </div>
