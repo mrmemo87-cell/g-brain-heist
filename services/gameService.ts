@@ -562,76 +562,30 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
 export const raid_attack = async (defender_id: string, use_cracker: boolean, target: RaidTarget): Promise<RaidAttackResult> => {
     const user = await getCurrentUser();
     
-    // Fetch attacker profile
-    const { data: attacker, error: attackerError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-    
-    if (attackerError || !attacker) throw new Error('Attacker profile not found');
-    
-    // Deduct AP cost
-    await updateProfile(user.id, { ap_now: Math.max(0, attacker.ap_now - 2) });
-    
-    let result: 'win' | 'lose' | 'blocked' = 'lose';
-    
-    if (target.has_shield && !use_cracker) {
-        result = 'blocked';
-    } else {
-        // Calculate combat (simplified for now)
-        const attackerTotalAttack = attacker.attack_power || 10;
-        const defenderTotalDefense = 10;
-        
-        const winChance = attackerTotalAttack / (attackerTotalAttack + defenderTotalDefense);
-        result = Math.random() < winChance ? 'win' : 'lose';
-    }
-    
-    const xpDelta = result === 'win' ? 30 : (result === 'blocked' ? -10 : 0);
-    const coinsDelta = result === 'win' ? 50 : 0;
-    const defenderCoinsLoss = result === 'win' ? 25 : 0;
-    
-    // Update attacker
-    await updateProfile(user.id, {
-        xp: attacker.xp + xpDelta,
-        coins: attacker.coins + coinsDelta,
+    // Call the Postgres RPC function to handle all combat logic server-side
+    const { data, error } = await supabase.rpc('rpc_hack_attempt', {
+        p_defender_id: defender_id
     });
     
-    // Update defender if they're a real player (not mock)
-    if (defender_id.startsWith('usr_') && !defender_id.startsWith('usr_tgt_')) {
-        const { data: defender } = await supabase
-            .from('users')
-            .select('coins, username')
-            .eq('id', defender_id)
-            .single();
-        
-        if (defender && result === 'win') {
-            await updateProfile(defender_id, {
-                coins: Math.max(0, defender.coins - defenderCoinsLoss),
-            });
-        }
+    if (error) {
+        console.error('Hack attempt RPC error:', error);
+        throw new Error(error.message || 'Hack attempt failed');
     }
     
+    if (!data) {
+        throw new Error('No response from hack attempt');
+    }
+    
+    // The RPC returns the exact format we need
     const response: RaidAttackResult = {
-        result,
-        attacker_deltas: { xp: xpDelta, coins: coinsDelta },
-        defender_deltas: { coins_loss: defenderCoinsLoss },
-        shield_state: target.has_shield ? (use_cracker && result === 'win' ? 'removed' : 'remaining') : 'none',
+        result: data.result,
+        attacker_deltas: data.attacker_deltas,
+        defender_deltas: data.defender_deltas,
+        shield_state: data.shield_state,
     };
     
-    // Log activity to database
-    const activityKind = result === 'win' ? 'pvp_win' : result === 'blocked' ? 'pvp_blocked' : 'pvp_loss';
-    await supabase.from('activities').insert({
-        kind: activityKind,
-        actor_id: user.id,
-        actor_username: attacker.username,
-        target_id: defender_id.startsWith('usr_tgt_') ? null : defender_id,
-        target_username: target.username,
-        data: result === 'win' ? { details: `Stole ${coinsDelta} Coins` } : result === 'blocked' ? { details: 'Attack blocked by Shield' } : { details: 'Hack attempt failed' },
-    });
-    
     // Track progress (localStorage for now)
-    if (result === 'win') {
+    if (response.result === 'win') {
         incrementPvPWin();
         const progress = getTaskProgress();
         if (progress.daily_pvp_wins === 1) {
