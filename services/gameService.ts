@@ -278,27 +278,49 @@ export const caps_status = (): Promise<Caps> => {
   return mockApiCall(caps);
 };
 
-export const news_feed = (): Promise<NewsEvent[]> => {
-  // Get shared activity feed from all students
-  const sharedEvents = getActivityFeed();
+export const news_feed = async (): Promise<NewsEvent[]> => {
+  // Fetch activities from database
+  const { data: activities, error } = await supabase
+    .from('activities')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(20);
   
-  // Mix with some default mock events if needed
-  const defaultEvents: NewsEvent[] = [
-    {
-      id: 'evt_welcome',
-      kind: 'level_up',
-      actor: 'System',
-      data: { details: 'Level 1 - Welcome to G-Brain Heist' },
-      created_at: '1h ago',
-      reactions: { '🔥': 12, '😮': 5, '😂': 3, '❤️': 18 },
+  if (error) {
+    console.error('Error fetching activities:', error);
+    return mockApiCall([]);
+  }
+  
+  // Convert database activities to NewsEvent format
+  const events: NewsEvent[] = (activities || []).map(activity => {
+    const timeAgo = getTimeAgo(new Date(activity.created_at));
+    
+    return {
+      id: activity.id,
+      kind: activity.kind,
+      actor: activity.actor_username || 'Unknown',
+      target: activity.target_username,
+      data: activity.data || {},
+      created_at: timeAgo,
+      reactions: {}, // TODO: Load from activity_reactions table
       my_reaction: null,
-    },
-  ];
+    };
+  });
   
-  // Combine and return (shared events first, then defaults)
-  const combinedEvents = sharedEvents.length > 0 ? sharedEvents : defaultEvents;
-  return mockApiCall(combinedEvents.slice(0, 20)); // Return max 20 events
+  return mockApiCall(events);
 };
+
+// Helper function to format time ago
+function getTimeAgo(date: Date): string {
+  const now = new Date();
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  
+  if (seconds < 60) return 'Just now';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+  return `${Math.floor(seconds / 604800)}w ago`;
+}
 
 export const mcq_subjects_list = (): Promise<Subject[]> => {
     const subjects: Subject[] = [
@@ -729,75 +751,223 @@ const MOCK_CLANS_LIST: ClanSummary[] = [
     { id: 'clan_glitch_squad', name: 'Glitch Squad', crest_url: 'https://picsum.photos/seed/glitchsquad/100/100', member_count: 22, vault_metric: 450000 },
 ];
 
-export const clan_list = (): Promise<ClanSummary[]> => {
-    return mockApiCall(MOCK_CLANS_LIST);
+export const clan_list = async (): Promise<ClanSummary[]> => {
+    // Fetch clans from database with member counts
+    const { data: clans, error } = await supabase
+        .from('clans')
+        .select('id, name, crest_url, member_count, vault_metric');
+    
+    if (error) {
+        console.error('Error fetching clans:', error);
+        return mockApiCall(MOCK_CLANS_LIST); // Fallback to mock data
+    }
+    
+    return mockApiCall(clans || MOCK_CLANS_LIST);
 };
 
-export const clan_join = (clan_id: string): Promise<Clan> => {
-    const clanSummary = MOCK_CLANS_LIST.find(c => c.id === clan_id);
-    if (!clanSummary) {
+export const clan_join = async (clan_id: string): Promise<Clan> => {
+    const user = await getCurrentUser();
+    
+    // Check if clan exists
+    const { data: clanData, error: clanError } = await supabase
+        .from('clans')
+        .select('*')
+        .eq('id', clan_id)
+        .single();
+    
+    if (clanError || !clanData) {
         return Promise.reject({ message: 'Clan not found.' });
     }
+    
+    // Check if user is already in a clan
+    const { data: existingMembership } = await supabase
+        .from('clan_members')
+        .select('clan_id')
+        .eq('user_id', user.id)
+        .single();
+    
+    if (existingMembership) {
+        return Promise.reject({ message: 'You are already in a clan.' });
+    }
+    
+    // Add user to clan
+    await supabase.from('clan_members').insert({
+        clan_id: clan_id,
+        user_id: user.id,
+        role: 'member',
+        contribution: 0,
+    });
+    
+    // Update clan member count
+    await supabase
+        .from('clans')
+        .update({ member_count: clanData.member_count + 1 })
+        .eq('id', clan_id);
+    
+    // Fetch full clan details with members
+    return clan_details();
+};
 
-    const newClan: Clan = {
-        ...clanSummary,
-        notice: `Welcome to ${clanSummary.name}. Be active!`,
-        vault_coins: 12500,
+export const clan_details = async (): Promise<Clan | null> => {
+    const user = await getCurrentUser();
+    
+    // Check if user is in a clan
+    const { data: membership } = await supabase
+        .from('clan_members')
+        .select('clan_id')
+        .eq('user_id', user.id)
+        .single();
+    
+    if (!membership) {
+        return mockApiCall(null);
+    }
+    
+    // Fetch clan details
+    const { data: clan, error } = await supabase
+        .from('clans')
+        .select('*')
+        .eq('id', membership.clan_id)
+        .single();
+    
+    if (error || !clan) {
+        return mockApiCall(null);
+    }
+    
+    // Fetch clan members
+    const { data: membersData } = await supabase
+        .from('clan_members')
+        .select(`
+            user_id,
+            role,
+            contribution,
+            users!inner (username, avatar_url)
+        `)
+        .eq('clan_id', clan.id);
+    
+    const members = (membersData || []).map((m: any) => ({
+        user_id: m.user_id,
+        username: m.users.username,
+        role: m.role,
+        contribution: m.contribution,
+        avatar_url: m.users.avatar_url,
+    }));
+    
+    const fullClan: Clan = {
+        id: clan.id,
+        name: clan.name,
+        notice: clan.notice || 'Welcome to the clan!',
+        crest_url: clan.crest_url,
+        vault_metric: clan.vault_metric,
+        vault_coins: clan.vault_coins,
         buffs: [],
-        members: [
-            { user_id: `leader_${clan_id}`, username: 'ClanLeader', role: 'leader', contribution: 10000, avatar_url: 'https://picsum.photos/seed/leader/100/100' },
-            { user_id: 'officer_1', username: 'SubZero', role: 'officer', contribution: 7500, avatar_url: 'https://picsum.photos/seed/officer/100/100' },
-            {
-                user_id: MOCK_PROFILE.id,
-                username: MOCK_PROFILE.username,
-                role: 'member',
-                contribution: 0,
-                avatar_url: MOCK_PROFILE.avatar_url
-            }
-        ]
+        members: members,
+        member_count: clan.member_count,
     };
-
-    MOCK_CLAN = newClan;
-    saveClan();
-    return mockApiCall(newClan);
+    
+    return mockApiCall(fullClan);
 };
 
-export const clan_details = (): Promise<Clan | null> => {
-    return mockApiCall(MOCK_CLAN);
-};
-
-export const clan_create = (name: string, notice: string): Promise<Clan> => {
+export const clan_create = async (name: string, notice: string): Promise<Clan> => {
+    const user = await getCurrentUser();
     const creationFee = 1000;
-    if (MOCK_PROFILE.coins < creationFee) {
+    
+    // Fetch current user profile
+    const { data: profile } = await supabase
+        .from('users')
+        .select('coins')
+        .eq('id', user.id)
+        .single();
+    
+    if (!profile || profile.coins < creationFee) {
         return Promise.reject({ message: 'Not enough coins to create a clan.' });
     }
-
-    MOCK_PROFILE.coins -= creationFee;
-    saveProfile();
     
-    const newClan: Clan = {
-        id: `clan_${name.toLowerCase().replace(/\s/g, '_')}`,
-        name,
-        notice,
-        crest_url: `https://picsum.photos/seed/${name}/100/100`,
-        vault_metric: 0,
-        vault_coins: 0,
-        buffs: [],
-        members: [{
-            user_id: MOCK_PROFILE.id,
-            username: MOCK_PROFILE.username,
-            role: 'leader',
-            contribution: 0,
-            avatar_url: MOCK_PROFILE.avatar_url
-        }]
-    };
-    MOCK_CLAN = newClan;
-    saveClan();
-    return mockApiCall(newClan);
+    // Check if user is already in a clan
+    const { data: existingMembership } = await supabase
+        .from('clan_members')
+        .select('clan_id')
+        .eq('user_id', user.id)
+        .single();
+    
+    if (existingMembership) {
+        return Promise.reject({ message: 'You are already in a clan.' });
+    }
+    
+    // Deduct coins
+    await updateProfile(user.id, { coins: profile.coins - creationFee });
+    
+    // Create clan
+    const { data: newClan, error } = await supabase
+        .from('clans')
+        .insert({
+            name: name,
+            notice: notice || 'Welcome to the clan!',
+            crest_url: `https://picsum.photos/seed/${name}/100/100`,
+            vault_metric: 0,
+            vault_coins: 0,
+            member_count: 1,
+        })
+        .select()
+        .single();
+    
+    if (error || !newClan) {
+        return Promise.reject({ message: 'Failed to create clan.' });
+    }
+    
+    // Add creator as leader
+    await supabase.from('clan_members').insert({
+        clan_id: newClan.id,
+        user_id: user.id,
+        role: 'leader',
+        contribution: 0,
+    });
+    
+    // Return full clan details
+    return clan_details() as Promise<Clan>;
 };
 
-export const clan_chat_recent = (): Promise<ClanChatMessage[]> => {
-    return mockApiCall(MOCK_CHAT);
+export const clan_chat_recent = async (): Promise<ClanChatMessage[]> => {
+    const user = await getCurrentUser();
+    
+    // Get user's clan
+    const { data: membership } = await supabase
+        .from('clan_members')
+        .select('clan_id')
+        .eq('user_id', user.id)
+        .single();
+    
+    if (!membership) {
+        return mockApiCall([]);
+    }
+    
+    // Fetch recent chat messages
+    const { data: messages, error } = await supabase
+        .from('clan_chat')
+        .select(`
+            id,
+            message,
+            created_at,
+            user_id,
+            users!inner (username)
+        `)
+        .eq('clan_id', membership.clan_id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+    
+    if (error) {
+        console.error('Error fetching chat:', error);
+        return mockApiCall([]);
+    }
+    
+    const chatMessages: ClanChatMessage[] = (messages || []).map((m: any) => ({
+        id: m.id,
+        user: m.users.username,
+        message: m.message,
+        created_at: getTimeAgo(new Date(m.created_at)),
+        is_self: m.user_id === user.id,
+    })).reverse(); // Reverse to show oldest first
+    
+    return mockApiCall(chatMessages);
 };
 
 const toxicityFilter = (message: string): string => {
@@ -810,20 +980,51 @@ const toxicityFilter = (message: string): string => {
     return cleanMessage;
 };
 
-export const clan_chat_post = (message: string): Promise<ClanChatMessage> => {
+export const clan_chat_post = async (message: string): Promise<ClanChatMessage> => {
+    const user = await getCurrentUser();
     const cleanMessage = toxicityFilter(message);
-    const newMessage: ClanChatMessage = {
-        id: `msg_${Date.now()}`,
-        user: MOCK_PROFILE.username,
-        message: cleanMessage,
+    
+    // Get user's clan
+    const { data: membership } = await supabase
+        .from('clan_members')
+        .select('clan_id')
+        .eq('user_id', user.id)
+        .single();
+    
+    if (!membership) {
+        return Promise.reject({ message: 'You are not in a clan.' });
+    }
+    
+    // Insert chat message
+    const { data: newMessage, error } = await supabase
+        .from('clan_chat')
+        .insert({
+            clan_id: membership.clan_id,
+            user_id: user.id,
+            message: cleanMessage,
+        })
+        .select(`
+            id,
+            message,
+            created_at,
+            user_id,
+            users!inner (username)
+        `)
+        .single();
+    
+    if (error || !newMessage) {
+        return Promise.reject({ message: 'Failed to post message.' });
+    }
+    
+    const chatMessage: ClanChatMessage = {
+        id: newMessage.id,
+        user: (newMessage as any).users.username,
+        message: newMessage.message,
         created_at: 'Just now',
         is_self: true,
     };
-    MOCK_CHAT.push(newMessage);
-    if (MOCK_CHAT.length > 20) MOCK_CHAT.shift(); // Keep chat history from growing too big
     
-    saveChat();
-    return mockApiCall(newMessage);
+    return mockApiCall(chatMessage);
 };
 
 export const clan_get_available_buffs = (): Promise<ClanBuff[]> => {
