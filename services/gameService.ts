@@ -960,7 +960,7 @@ export const clan_create = async (name: string, notice: string): Promise<Clan> =
         .single();
     
     if (!profile || profile.coins < creationFee) {
-        return Promise.reject({ message: 'Not enough coins to create a clan.' });
+        throw new Error('Not enough coins to create a clan.');
     }
     
     // Check if user is already in a clan
@@ -971,14 +971,14 @@ export const clan_create = async (name: string, notice: string): Promise<Clan> =
         .single();
     
     if (existingMembership) {
-        return Promise.reject({ message: 'You are already in a clan.' });
+        throw new Error('You are already in a clan.');
     }
     
     // Deduct coins
     await updateProfile(user.id, { coins: profile.coins - creationFee });
     
     // Create clan
-    const { data: newClan, error } = await supabase
+    const { data: newClan, error: clanError } = await supabase
         .from('clans')
         .insert({
             name: name,
@@ -991,17 +991,27 @@ export const clan_create = async (name: string, notice: string): Promise<Clan> =
         .select()
         .single();
     
-    if (error || !newClan) {
-        return Promise.reject({ message: 'Failed to create clan.' });
+    if (clanError) {
+        console.error('Clan creation error:', clanError);
+        throw new Error(clanError.message || 'Failed to create clan.');
+    }
+    
+    if (!newClan) {
+        throw new Error('Failed to create clan - no data returned.');
     }
     
     // Add creator as leader
-    await supabase.from('clan_members').insert({
+    const { error: memberError } = await supabase.from('clan_members').insert({
         clan_id: newClan.id,
         user_id: user.id,
         role: 'leader',
         contribution: 0,
     });
+    
+    if (memberError) {
+        console.error('Clan member creation error:', memberError);
+        throw new Error('Failed to add you as clan leader.');
+    }
     
     // Return full clan details
     return await clan_details();

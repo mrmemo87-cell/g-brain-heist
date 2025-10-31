@@ -50,9 +50,9 @@ const useAnimatedValue = (endValue: number, duration: number = 500) => {
 const StatChip: React.FC<{ icon: React.ReactNode; value: number; 'data-testid': string }> = ({ icon, value, 'data-testid': testId }) => {
     const animatedValue = useAnimatedValue(value);
     return (
-        <div id={testId} className="flex items-center space-x-2 bg-black/20 px-3 py-1.5 rounded-full">
-            <div className="w-5 h-5">{icon}</div>
-            <span className="font-mono font-semibold text-base">{animatedValue.toLocaleString()}</span>
+        <div id={testId} className="flex items-center space-x-1 sm:space-x-2 bg-black/20 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+            <div className="w-4 h-4 sm:w-5 sm:h-5">{icon}</div>
+            <span className="font-mono font-semibold text-xs sm:text-base">{animatedValue.toLocaleString()}</span>
         </div>
     );
 };
@@ -117,24 +117,14 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   return (
     <>
       <header className="sticky top-0 z-40 flex justify-between items-center card-glass glow-ion p-2 sm:p-4">
-        <div className="flex items-center space-x-1 sm:space-x-4">
-          {currentView !== 'dashboard' && onBackToDashboard && (
-            <button
-              onClick={onBackToDashboard}
-              className="p-1.5 sm:p-2 rounded-full bg-black/20 hover:bg-ion-blue/30 transition-colors"
-              aria-label="Back to Dashboard"
-              title="Back to Dashboard"
-            >
-              <span className="text-lg sm:text-xl">←</span>
-            </button>
-          )}
-          <h1 className="font-heading text-lg sm:text-2xl md:text-3xl font-bold tracking-wider" style={{ color: 'var(--ion-blue)' }}>
+        <div className="flex items-center space-x-2 sm:space-x-4">
+          <h1 className="font-heading text-xl sm:text-2xl md:text-3xl font-bold tracking-wider" style={{ color: 'var(--ion-blue)' }}>
               BH
           </h1>
           <span className="hidden sm:block text-base sm:text-lg font-medium text-gray-300">{profile.username}</span>
         </div>
         <div className="flex items-center space-x-1 sm:space-x-3">
-          <div className="hidden xs:flex items-center space-x-1 sm:space-x-2">
+          <div className="flex items-center space-x-1 sm:space-x-2">
             <StatChip icon={<CoinIcon />} value={profile.coins} data-testid="coin-hud" />
             <StatChip icon={<XPIcon />} value={profile.xp} data-testid="xp-hud" />
             <StatChip icon={<APIcon />} value={profile.ap_now} data-testid="ap-hud" />
