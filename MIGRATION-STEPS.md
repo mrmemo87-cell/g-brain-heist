@@ -88,8 +88,7 @@ export default defineConfig({
 })
 ```
 
-### Step 4: Test Locally
-
+  
 ```bash
 npm run dev
 ```
@@ -129,7 +128,7 @@ git push origin main
 4. Configure:
    - **Framework Preset**: Vite
    - **Build Command**: `npm run build`
-   - **Output Directory**: `dist`
+   - **Output Directory**: `dsti`
    - **Install Command**: `npm install`
 
 ### Step 3: Add Environment Variables
