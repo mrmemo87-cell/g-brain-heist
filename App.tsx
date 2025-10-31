@@ -39,6 +39,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [showTutorial, setShowTutorial] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [tutorialChecked, setTutorialChecked] = useState(false); // Track if we've checked tutorial status
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const addToast = (message: string, type: ToastMessage['type'] = 'info', retryAction?: () => void) => {
     const id = Date.now();
@@ -53,19 +54,31 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const fetchGameData = async () => {
     try {
       setLoading(true);
+      setLoadError(null);
 
       // Check if offline before attempting fetch
       if (!navigator.onLine) {
         throw new Error('No internet connection');
       }
 
-      const [profileData, tasksData, sessionData, capsData, newsData] = await Promise.all([
+      // Add timeout to prevent infinite loading (30 seconds)
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout - server took too long to respond')), 30000)
+      );
+
+      const dataPromise = Promise.all([
         GameService.whoami(),
         GameService.tasks_list(),
         GameService.session_status(),
         GameService.caps_status(),
         GameService.news_feed(),
       ]);
+
+      const [profileData, tasksData, sessionData, capsData, newsData] = await Promise.race([
+        dataPromise,
+        timeoutPromise
+      ]) as any;
+
       setProfile(profileData);
       setTasks(tasksData);
       setSessionStatus(sessionData);
@@ -82,13 +95,23 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     } catch (error: any) {
       console.error("Failed to load game data:", error);
       
-      // Add retry button for network errors
-      const isNetworkError = !navigator.onLine || error?.message?.includes('fetch') || error?.message?.includes('network');
-      if (isNetworkError) {
-        addToast("Failed to load game data. Check your connection.", "error", fetchGameData);
+      // Check for database setup issues
+      const isDatabaseError = error?.message?.includes('relation') || 
+                              error?.message?.includes('does not exist') ||
+                              error?.code === '42P01' ||
+                              error?.code === 'PGRST116';
+      
+      if (isDatabaseError) {
+        setLoadError('database_not_setup');
+      } else if (!navigator.onLine || error?.message?.includes('fetch') || error?.message?.includes('network')) {
+        setLoadError('network_error');
+      } else if (error?.message?.includes('timeout')) {
+        setLoadError('timeout_error');
       } else {
-        addToast("Failed to load game data.", "error");
+        setLoadError('unknown_error');
       }
+      
+      addToast(`Failed to load: ${error?.message || 'Unknown error'}`, "error", fetchGameData);
     } finally {
       setLoading(false);
     }
@@ -235,7 +258,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <div className="relative w-64 h-64 flex items-center justify-center">
           <div className="absolute w-32 h-32 border-4 border-ion-blue border-t-transparent rounded-full animate-spin"></div>
           <div className="absolute w-24 h-24 border-4 border-plasma-pink border-t-transparent rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
@@ -243,14 +266,136 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         <div className="font-heading text-2xl animate-pulse mt-4" style={{color: 'var(--ion-blue)'}}>
           Initializing Heist OS...
         </div>
+        <div className="text-sm text-gray-400 mt-2">
+          Loading your profile and game data...
+        </div>
+      </div>
+    );
+  }
+
+  // Database not set up error screen
+  if (loadError === 'database_not_setup') {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="card-glass p-8 max-w-2xl w-full text-center">
+          <div className="text-6xl mb-4">🗄️</div>
+          <h1 className="font-heading text-3xl mb-4" style={{color: 'var(--danger-red)'}}>
+            Database Not Set Up
+          </h1>
+          <p className="text-gray-300 mb-4">
+            The game database needs to be initialized before you can play.
+          </p>
+          <div className="bg-black/40 p-4 rounded-lg text-left mb-6">
+            <p className="font-bold mb-2" style={{color: 'var(--ion-blue)'}}>Quick Setup (2 minutes):</p>
+            <ol className="list-decimal list-inside space-y-2 text-sm text-gray-300">
+              <li>Open your <strong>Supabase Dashboard</strong> → <strong>SQL Editor</strong></li>
+              <li>Run <code className="bg-black/50 px-2 py-1 rounded">supabase-schema.sql</code> (creates tables)</li>
+              <li>Run <code className="bg-black/50 px-2 py-1 rounded">supabase-rls-policies.sql</code> (enables security)</li>
+              <li>Run <code className="bg-black/50 px-2 py-1 rounded">DATABASE_MIGRATIONS.sql</code> (adds features)</li>
+              <li>Click the retry button below</li>
+            </ol>
+          </div>
+          <p className="text-sm text-gray-400 mb-6">
+            📖 See <code className="bg-black/50 px-2 py-1 rounded">DATABASE_SETUP_GUIDE.md</code> in your repo for detailed instructions.
+          </p>
+          <button 
+            onClick={() => {
+              setLoadError(null);
+              fetchGameData();
+            }}
+            className="px-6 py-3 rounded-lg font-bold gradient-cyan hover:scale-105 transition-transform"
+          >
+            🔄 Retry Connection
+          </button>
+          <button 
+            onClick={onLogout}
+            className="ml-4 px-6 py-3 rounded-lg font-bold bg-gray-700 hover:bg-gray-600 transition-colors"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Network error screen
+  if (loadError === 'network_error' || loadError === 'timeout_error') {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="card-glass p-8 max-w-md w-full text-center">
+          <div className="text-6xl mb-4">{loadError === 'timeout_error' ? '⏱️' : '📡'}</div>
+          <h1 className="font-heading text-3xl mb-4" style={{color: 'var(--amber-warn)'}}>
+            {loadError === 'timeout_error' ? 'Request Timeout' : 'Connection Lost'}
+          </h1>
+          <p className="text-gray-300 mb-6">
+            {loadError === 'timeout_error' 
+              ? 'The server took too long to respond. This might be due to slow internet or server issues.'
+              : 'Unable to connect to the game server. Please check your internet connection and try again.'}
+          </p>
+          <button 
+            onClick={() => {
+              setLoadError(null);
+              fetchGameData();
+            }}
+            className="px-6 py-3 rounded-lg font-bold gradient-cyan hover:scale-105 transition-transform"
+          >
+            🔄 Retry Connection
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Unknown error screen
+  if (loadError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="card-glass p-8 max-w-md w-full text-center">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h1 className="font-heading text-3xl mb-4" style={{color: 'var(--danger-red)'}}>
+            Something Went Wrong
+          </h1>
+          <p className="text-gray-300 mb-6">
+            Failed to load game data. This might be a temporary issue.
+          </p>
+          <button 
+            onClick={() => {
+              setLoadError(null);
+              fetchGameData();
+            }}
+            className="px-6 py-3 rounded-lg font-bold gradient-cyan hover:scale-105 transition-transform"
+          >
+            🔄 Try Again
+          </button>
+          <button 
+            onClick={onLogout}
+            className="ml-4 px-6 py-3 rounded-lg font-bold bg-gray-700 hover:bg-gray-600 transition-colors"
+          >
+            Logout
+          </button>
+        </div>
       </div>
     );
   }
 
   if (!profile || !tasks || !sessionStatus || !caps || !news) {
      return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="font-heading text-2xl" style={{color: 'var(--danger-red)'}}>Connection Error: Failed to load critical data.</div>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="card-glass p-8 max-w-md w-full text-center">
+          <div className="text-6xl mb-4">❌</div>
+          <h1 className="font-heading text-2xl mb-4" style={{color: 'var(--danger-red)'}}>
+            Critical Data Missing
+          </h1>
+          <p className="text-gray-300 mb-6">
+            Some required game data failed to load properly.
+          </p>
+          <button 
+            onClick={fetchGameData}
+            className="px-6 py-3 rounded-lg font-bold gradient-cyan hover:scale-105 transition-transform"
+          >
+            🔄 Reload
+          </button>
+        </div>
       </div>
     );
   }
