@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage } from './types';
 import * as GameService from './services/gameService';
+import { supabase } from './services/supabaseClient';
 import Header from './components/Header';
 import PlayerProfileCard from './components/PlayerProfileCard';
 import SessionTracker from './components/SessionTracker';
@@ -65,6 +66,53 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   useEffect(() => {
     fetchGameData();
   }, []);
+
+  // Real-time subscription for activity feed
+  useEffect(() => {
+    if (!profile) return;
+    
+    const activityChannel = supabase
+      .channel('activities')
+      .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'activities'
+        },
+        (payload) => {
+          console.log('New activity detected!', payload);
+          GameService.news_feed().then(setNews);
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(activityChannel);
+    };
+  }, [profile]);
+
+  // Real-time subscription for profile updates
+  useEffect(() => {
+    if (!profile?.id) return;
+    
+    const profileChannel = supabase
+      .channel('profile_updates')
+      .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'users',
+          filter: `id=eq.${profile.id}`
+        },
+        (payload) => {
+          console.log('Profile updated!', payload);
+          setProfile(payload.new as Profile);
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(profileChannel);
+    };
+  }, [profile?.id]);
   
   const handleViewComplete = () => {
     setView('dashboard');
