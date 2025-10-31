@@ -7,6 +7,7 @@ interface MainActionsProps {
     onVisitShop: () => void;
     onGoToClan: () => void;
     onVisitInventory: () => void;
+    onViewLeaderboard: () => void;
 }
 
 const ActionButton: React.FC<{ icon: React.ReactNode; label: string; color: string; glowClass: string; onClick?: () => void; className?: string; }> = ({ icon, label, color, glowClass, onClick, className }) => {
@@ -36,7 +37,7 @@ const ActionButton: React.FC<{ icon: React.ReactNode; label: string; color: stri
     );
 };
 
-const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onVisitShop, onGoToClan, onVisitInventory }) => {
+const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onVisitShop, onGoToClan, onVisitInventory, onViewLeaderboard }) => {
   return (
     <div className="grid grid-cols-2 gap-4">
         <ActionButton 
@@ -73,7 +74,13 @@ const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onV
             label="Inventory" 
             color="158, 93, 255" // grid-purple
             glowClass="glow-purple"
-            className="col-span-2"
+        />
+        <ActionButton 
+            onClick={onViewLeaderboard}
+            icon={<span className="text-3xl">🏆</span>} 
+            label="Leaderboard" 
+            color="255, 215, 0" // gold
+            glowClass="glow-warn"
         />
     </div>
   );

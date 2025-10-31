@@ -16,6 +16,7 @@ import Toast from './components/Toast';
 import ClanView from './components/ClanView';
 import InventoryView from './components/InventoryView';
 import LevelUpModal from './components/LevelUpModal';
+import LeaderboardView from './components/LeaderboardView';
 
 interface AppProps {
   onLogout: () => void;
@@ -84,6 +85,18 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         },
         (payload) => {
           console.log('New activity detected!', payload);
+          const newActivity = payload.new as any;
+          
+          // Show toast if user is the target of an action (got hacked)
+          if (newActivity.target_id === profile.id) {
+            if (newActivity.kind === 'pvp_win') {
+              addToast(`⚔️ ${newActivity.actor_username} hacked you! ${newActivity.data?.details || ''}`, 'error');
+            } else if (newActivity.kind === 'pvp_blocked') {
+              addToast(`🛡️ Your shield blocked ${newActivity.actor_username}'s attack!`, 'success');
+            }
+          }
+          
+          // Refresh feed
           GameService.news_feed().then(setNews);
         }
       )
@@ -205,6 +218,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             return <ClanView onComplete={handleViewComplete} profile={profile} onUpdateProfile={setProfile} addToast={addToast} />;
         case 'inventory':
             return <InventoryView onComplete={handleViewComplete} addToast={addToast} onNavigateToShop={() => setView('shop')} />;
+        case 'leaderboard':
+            return <LeaderboardView onComplete={handleViewComplete} currentUserId={profile.id} />;
         case 'dashboard':
         default:
             return (
@@ -218,7 +233,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
                     {/* Middle Column */}
                     <div className="lg:col-span-5 xl:col-span-6 space-y-6">
-                        <MainActions onStartQuest={() => setView('quest')} onStartPvp={() => setView('pvp')} onVisitShop={() => setView('shop')} onGoToClan={() => setView('clan')} onVisitInventory={() => setView('inventory')} />
+                        <MainActions 
+                            onStartQuest={() => setView('quest')} 
+                            onStartPvp={() => setView('pvp')} 
+                            onVisitShop={() => setView('shop')} 
+                            onGoToClan={() => setView('clan')} 
+                            onVisitInventory={() => setView('inventory')}
+                            onViewLeaderboard={() => setView('leaderboard')} 
+                        />
                         <TaskList tasks={tasks} onTasksUpdate={fetchGameData} />
                     </div>
 
