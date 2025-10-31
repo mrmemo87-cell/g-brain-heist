@@ -21,7 +21,9 @@ declare
   c_coins_win int := 50;
   c_coins_steal int := 25;
   c_xp_loss int := -10;               -- XP penalty for loss or blocked
-  c_max_steal_percent numeric := 0.15; -- steal at most 15% of defender coins
+  c_coins_loss_to_defender int := 50; -- Coins attacker loses to defender on loss
+  c_max_steal_percent_win numeric := 0.75;  -- steal at most 75% of defender coins on win
+  c_max_steal_percent_loss numeric := 0.75; -- attacker loses at most 75% of their coins on loss
 
   -- ====== Variables ======
   attacker record;
@@ -41,6 +43,7 @@ declare
   xp_delta int := 0;
   coins_delta int := 0;
   coins_stolen_from_def int := 0;
+  coins_lost_to_def int := 0;  -- Coins attacker loses to defender on loss
   
   result_kind text;
   attacker_username text;
@@ -159,10 +162,10 @@ begin
     xp_delta := c_xp_win;
     coins_delta := c_coins_win;
     
-    -- Calculate coins stolen from defender (capped)
+    -- Calculate coins stolen from defender (capped at 75% of defender balance)
     coins_stolen_from_def := least(
       c_coins_steal,
-      floor(defender.coins * c_max_steal_percent)
+      floor(defender.coins * c_max_steal_percent_win)
     );
     
     -- If shield blocked, no coin theft
@@ -189,13 +192,27 @@ begin
   else
     -- Attacker loses
     xp_delta := c_xp_loss;
+    
+    -- Calculate coins lost to defender (capped at 75% of attacker balance)
+    coins_lost_to_def := least(
+      c_coins_loss_to_defender,
+      floor(attacker.coins * c_max_steal_percent_loss)
+    );
+    
+    coins_delta := -coins_lost_to_def;  -- Negative because attacker loses coins
     result_kind := 'pvp_loss';
 
-    -- Update attacker (lose XP and AP)
+    -- Update attacker (lose XP, lose coins to defender, and lose AP)
     update public.users
     set xp = xp + xp_delta,
+        coins = greatest(0, coins - coins_lost_to_def),
         ap_now = ap_now - c_ap_cost
     where id = v_attacker_id;
+    
+    -- Update defender (gains coins from failed attack)
+    update public.users
+    set coins = coins + coins_lost_to_def
+    where id = p_defender_id;
   end if;
 
   -- ====== Log activity ======
@@ -213,14 +230,15 @@ begin
       'details', case 
         when result_kind = 'pvp_win' then 'Stole ' || coins_stolen_from_def || ' Coins'
         when result_kind = 'pvp_blocked' then 'Attack blocked by Shield'
-        else 'Hack attempt failed'
+        else 'Lost ' || coins_lost_to_def || ' Coins'
       end,
       'attacker_attack', attacker_attack,
       'defender_defense', defender_defense,
       'win_chance', win_chance,
       'roll', roll,
       'xp_delta', xp_delta,
-      'coins_stolen', coins_stolen_from_def
+      'coins_stolen', coins_stolen_from_def,
+      'coins_lost', coins_lost_to_def
     ),
     v_now
   );
@@ -237,7 +255,10 @@ begin
       'coins', coins_delta
     ),
     'defender_deltas', json_build_object(
-      'coins_loss', coins_stolen_from_def
+      'coins_loss', case 
+        when result_kind = 'pvp_loss' then -coins_lost_to_def  -- Defender gains, so negative loss
+        else coins_stolen_from_def  -- Defender loses
+      end
     ),
     'shield_state', case
       when not has_shield then 'none'
