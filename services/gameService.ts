@@ -832,21 +832,41 @@ export const inventory_activate = async (inv_id: string): Promise<{ state_after:
 };
 
 export const clan_list = async (): Promise<ClanSummary[]> => {
-    // Fetch clans from database with member counts
+    // Fetch clans with member XP sum
     const { data: clans, error } = await supabase
         .from('clans')
-        .select('id, name, member_count, vault_coins');
+        .select(`
+            id,
+            name,
+            member_count,
+            vault_coins,
+            clan_members!inner (
+                users!inner (xp)
+            )
+        `);
     
     if (error) {
         console.error('Error fetching clans:', error);
         return mockApiCall([]);
     }
     
-    // Map vault_coins to vault_metric for compatibility
-    const mappedClans = (clans || []).map(clan => ({
-        ...clan,
-        vault_metric: clan.vault_coins || 0,
-    }));
+    // Calculate total XP from all members
+    const mappedClans = (clans || []).map((clan: any) => {
+        const totalXP = clan.clan_members?.reduce((sum: number, member: any) => {
+            return sum + (member.users?.xp || 0);
+        }, 0) || 0;
+        
+        // Get actual member count from array length
+        const actualMemberCount = clan.clan_members?.length || 0;
+        
+        return {
+            id: clan.id,
+            name: clan.name,
+            member_count: actualMemberCount,
+            vault_metric: totalXP,
+            vault_coins: clan.vault_coins,
+        };
+    });
     
     return mockApiCall(mappedClans);
 };
@@ -918,13 +938,13 @@ export const clan_details = async (): Promise<Clan | null> => {
         return mockApiCall(null);
     }
     
-    // Fetch clan members
+    // Fetch clan members with their XP
     const { data: membersData } = await supabase
         .from('clan_members')
         .select(`
             user_id,
             role,
-            users!inner (username, avatar_url)
+            users!inner (username, avatar_url, xp)
         `)
         .eq('clan_id', clan.id);
     
@@ -936,12 +956,17 @@ export const clan_details = async (): Promise<Clan | null> => {
         avatar_url: m.users.avatar_url,
     }));
     
+    // Calculate total XP from all members
+    const totalXP = (membersData || []).reduce((sum: number, m: any) => {
+        return sum + (m.users?.xp || 0);
+    }, 0);
+    
     const fullClan: Clan = {
         id: clan.id,
         name: clan.name,
         notice: clan.notice || 'Welcome to the clan!',
         crest_url: undefined,
-        vault_metric: clan.vault_coins || 0, // Use vault_coins as vault_metric
+        vault_metric: totalXP, // Use calculated total XP from all members
         vault_coins: clan.vault_coins || 0,
         buffs: [],
         members: members,
