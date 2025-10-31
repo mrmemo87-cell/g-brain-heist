@@ -663,8 +663,7 @@ export const shop_list = async (): Promise<ShopItem[]> => {
         .from('shop_purchases')
         .select('item_id, quantity')
         .eq('user_id', user.id)
-        .gte('purchased_at', `${today}T00:00:00`)
-        .lt('purchased_at', `${today}T23:59:59`);
+        .eq('purchase_date', today); // Use purchase_date column (DATE type)
     
     // Count purchases by item_id
     const purchaseCounts: Record<string, number> = {};
@@ -702,8 +701,7 @@ export const shop_buy = async (item_id: string, quantity: number, current_coins:
         .select('quantity')
         .eq('user_id', user.id)
         .eq('item_id', item_id)
-        .gte('purchased_at', `${today}T00:00:00`)
-        .lt('purchased_at', `${today}T23:59:59`);
+        .eq('purchase_date', today); // Use purchase_date column (DATE type)
     
     const currentPurchaseCount = todayPurchases?.reduce((sum, p) => sum + p.quantity, 0) || 0;
     
@@ -837,14 +835,20 @@ export const clan_list = async (): Promise<ClanSummary[]> => {
     // Fetch clans from database with member counts
     const { data: clans, error } = await supabase
         .from('clans')
-        .select('id, name, member_count, vault_metric');
+        .select('id, name, member_count, vault_coins');
     
     if (error) {
         console.error('Error fetching clans:', error);
         return mockApiCall([]);
     }
     
-    return mockApiCall(clans || []);
+    // Map vault_coins to vault_metric for compatibility
+    const mappedClans = (clans || []).map(clan => ({
+        ...clan,
+        vault_metric: clan.vault_coins || 0,
+    }));
+    
+    return mockApiCall(mappedClans);
 };
 
 export const clan_join = async (clan_id: string): Promise<Clan> => {
@@ -877,7 +881,6 @@ export const clan_join = async (clan_id: string): Promise<Clan> => {
         clan_id: clan_id,
         user_id: user.id,
         role: 'member',
-        contribution: 0,
     });
     
     // Update clan member count
@@ -921,7 +924,6 @@ export const clan_details = async (): Promise<Clan | null> => {
         .select(`
             user_id,
             role,
-            contribution,
             users!inner (username, avatar_url)
         `)
         .eq('clan_id', clan.id);
@@ -930,7 +932,7 @@ export const clan_details = async (): Promise<Clan | null> => {
         user_id: m.user_id,
         username: m.users.username,
         role: m.role,
-        contribution: m.contribution,
+        contribution: 0, // Default since DB doesn't have this column
         avatar_url: m.users.avatar_url,
     }));
     
@@ -938,9 +940,9 @@ export const clan_details = async (): Promise<Clan | null> => {
         id: clan.id,
         name: clan.name,
         notice: clan.notice || 'Welcome to the clan!',
-        crest_url: clan.crest_url || undefined,
-        vault_metric: clan.vault_metric,
-        vault_coins: clan.vault_coins,
+        crest_url: undefined,
+        vault_metric: clan.vault_coins || 0, // Use vault_coins as vault_metric
+        vault_coins: clan.vault_coins || 0,
         buffs: [],
         members: members,
     };
@@ -983,8 +985,8 @@ export const clan_create = async (name: string, notice: string): Promise<Clan> =
         .insert({
             name: name,
             notice: notice || 'Welcome to the clan!',
-            vault_metric: 0,
             vault_coins: 0,
+            leader_id: user.id,
             member_count: 1,
         })
         .select()
@@ -1004,7 +1006,6 @@ export const clan_create = async (name: string, notice: string): Promise<Clan> =
         clan_id: newClan.id,
         user_id: user.id,
         role: 'leader',
-        contribution: 0,
     });
     
     if (memberError) {
