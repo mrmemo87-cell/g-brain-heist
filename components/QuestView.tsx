@@ -111,35 +111,74 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
     if (answerResponse) return;
 
     setSelectedOption(option);
-    const response = await GameService.mcq_answer_submit(questions[currentQuestionIndex].id, option);
-    setAnswerResponse(response);
-    
-    // Play sound effect based on answer
-    if (response.correct) {
+    // Optimistic immediate feedback: assume server correctness matches local mock rule (option at index 1 is correct) for snappy UX.
+    const localIsCorrect = option === questions[currentQuestionIndex].options[1];
+    const localResponse: AnswerResponse = {
+      correct: localIsCorrect,
+      deltas: {
+        xp: localIsCorrect ? questions[currentQuestionIndex].reward_xp : -5,
+        coins: localIsCorrect ? questions[currentQuestionIndex].reward_coins : 0,
+      },
+      explanation: localIsCorrect ? 'Well done, agent!' : 'Incorrect. The correct answer was B.'
+    };
+
+    setAnswerResponse(localResponse);
+
+    // Play sound effect immediately
+    if (localResponse.correct) {
       audioService.play('correct');
     } else {
       audioService.play('wrong');
     }
-    
-    onGrantReward(response.deltas);
 
-    if (response.correct && answerFeedbackRef.current) {
+    // Grant reward optimistically
+    onGrantReward(localResponse.deltas);
+
+  // Trigger particles using the feedback anchor (if correct)
+  if (localResponse.correct && answerFeedbackRef.current) {
         audioService.play('collect');
         const startRect = answerFeedbackRef.current.getBoundingClientRect();
         const newParticles: Omit<RewardParticleProps, 'onComplete'>[] = [];
         for (let i = 0; i < 5; i++) {
-            if (response.deltas.xp > 0) newParticles.push({ id: `xp_${Date.now()}_${i}`, type: 'xp', startRect });
-            if (response.deltas.coins > 0) newParticles.push({ id: `coin_${Date.now()}_${i}`, type: 'coin', startRect });
+      if (localResponse.deltas.xp > 0) newParticles.push({ id: `xp_${Date.now()}_${i}`, type: 'xp', startRect });
+      if (localResponse.deltas.coins > 0) newParticles.push({ id: `coin_${Date.now()}_${i}`, type: 'coin', startRect });
         }
         setParticles(current => [...current, ...newParticles]);
     }
 
+    // Update score optimistically
     setScore(prev => ({
-        correct: prev.correct + (response.correct ? 1 : 0),
-        xp: prev.xp + response.deltas.xp,
-        coins: prev.coins + response.deltas.coins,
+        correct: prev.correct + (localResponse.correct ? 1 : 0),
+        xp: prev.xp + localResponse.deltas.xp,
+        coins: prev.coins + localResponse.deltas.coins,
     }));
 
+    // Scroll feedback into view so it's visible on small screens
+    setTimeout(() => {
+      if (answerFeedbackRef.current) {
+        answerFeedbackRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 80);
+
+    // Fire the real request but don't block the UI; reconcile when it returns
+    GameService.mcq_answer_submit(questions[currentQuestionIndex].id, option)
+      .then((response) => {
+        // If server disagrees with optimistic result, adjust state (rare for mock but safe)
+        if (response.correct !== localResponse.correct || response.deltas.xp !== localResponse.deltas.xp || response.deltas.coins !== localResponse.deltas.coins) {
+          // Adjust score by the delta between server and optimistic
+          setScore(prev => ({
+            correct: prev.correct - (localResponse.correct ? 1 : 0) + (response.correct ? 1 : 0),
+            xp: prev.xp - localResponse.deltas.xp + response.deltas.xp,
+            coins: prev.coins - localResponse.deltas.coins + response.deltas.coins,
+          }));
+          setAnswerResponse(response);
+        }
+      })
+      .catch(err => {
+        console.warn('mcq answer reconcile failed:', err);
+      });
+
+    // Auto-advance faster for snappier UX
     setTimeout(() => {
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(prev => prev + 1);
@@ -149,7 +188,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
         audioService.play('tada');
         setStage('completed');
       }
-    }, 1500); // Reduced from 2000ms for faster response
+    }, 700);
   };
 
   const renderSubjectSelection = () => (

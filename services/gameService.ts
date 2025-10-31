@@ -487,13 +487,14 @@ export const mcq_answer_submit = async (question_id: string, choice: string): Pr
         level: newLevel,
     });
     
-    // Log activity if level up
+    // Log activity if level up. Use `data.details` consistently so the feed renderer can display a human string.
     if (leveledUp) {
+        const { data: unameResult } = await supabase.from('users').select('username').eq('id', user.id).single();
         await supabase.from('activities').insert({
             kind: 'level_up',
             actor_id: user.id,
-            actor_username: (await supabase.from('users').select('username').eq('id', user.id).single()).data?.username || 'Unknown',
-            data: { level: newLevel },
+            actor_username: unameResult?.username || 'Unknown',
+            data: { details: String(newLevel) },
         });
     }
     
@@ -1036,6 +1037,19 @@ export const clan_create = async (name: string, notice: string): Promise<Clan> =
     if (memberError) {
         console.error('Clan member creation error:', memberError);
         throw new Error('Failed to add you as clan leader.');
+    }
+
+    // Log a clan creation activity to the feed so other users see it.
+    try {
+        const { data: creator } = await supabase.from('users').select('username').eq('id', user.id).single();
+        await supabase.from('activities').insert({
+            kind: 'clan_create',
+            actor_id: user.id,
+            actor_username: creator?.username || 'Unknown',
+            data: { details: newClan.name },
+        });
+    } catch (e) {
+        console.warn('Failed to log clan_create activity:', e);
     }
     
     // Return full clan details

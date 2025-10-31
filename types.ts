@@ -46,7 +46,7 @@ export interface Caps {
 
 export interface NewsEvent {
   id: string;
-  kind: 'level_up' | 'quest_cleared' | 'weekly_claim' | 'purchase' | 'pvp_win' | 'pvp_blocked' | 'pvp_loss';
+  kind: 'level_up' | 'quest_cleared' | 'weekly_claim' | 'purchase' | 'pvp_win' | 'pvp_blocked' | 'pvp_loss' | 'clan_create';
   actor: string;
   target?: string;
   data: {

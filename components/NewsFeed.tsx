@@ -10,7 +10,8 @@ const getEventIconAndColor = (kind: NewsEvent['kind']) => {
         case 'pvp_win': return { icon: <div style={{...iconStyle, color: 'var(--success-teal)'}}><PvpWinIcon /></div>, color: 'var(--success-teal)' };
         case 'pvp_loss':
         case 'pvp_blocked': return { icon: <div style={{...iconStyle, color: 'var(--danger-red)'}}><PvpBlockedIcon /></div>, color: 'var(--danger-red)' };
-        case 'quest_cleared': return { icon: <div style={{...iconStyle, color: 'var(--ion-blue)'}}><QuestClearedIcon /></div>, color: 'var(--ion-blue)' };
+  case 'quest_cleared': return { icon: <div style={{...iconStyle, color: 'var(--ion-blue)'}}><QuestClearedIcon /></div>, color: 'var(--ion-blue)' };
+  case 'clan_create': return { icon: <div style={{...iconStyle, color: 'var(--ion-blue)'}}><QuestClearedIcon /></div>, color: 'var(--ion-blue)' };
         case 'purchase': return { icon: <div style={{...iconStyle, color: 'var(--success-teal)'}}><PurchaseIcon /></div>, color: 'var(--success-teal)' };
         default: return { icon: null, color: 'var(--mist-400)'};
     }
@@ -32,6 +33,8 @@ const formatEventText = (event: NewsEvent) => {
         
         case 'level_up':
             return <><span style={{...actorStyle, color: 'var(--amber-warn)'}}>{event.actor}</span> leveled up to <span className="font-bold">{event.data.details}</span>! 🎉</>;
+    case 'clan_create':
+      return <><span style={{...actorStyle, color: 'var(--ion-blue)'}}>{event.actor}</span> created a clan <span className="font-bold">{event.data.details}</span>. Welcome! 🛡️</>;
         
         case 'quest_cleared':
             return <><span style={{...actorStyle, color: 'var(--ion-blue)'}}>{event.actor}</span> aced <span className="font-bold">"{event.data.details}"</span>! 🧠</>;

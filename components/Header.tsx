@@ -154,12 +154,20 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
       {/* Settings Modal */}
       {showSettingsModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="card-glass glow-ion p-8 max-w-md w-full">
-            <h2 className="font-heading text-3xl mb-6" style={{ color: 'var(--ion-blue)' }}>
-              ⚙️ Settings
-            </h2>
+          <div className="card-glass glow-ion max-w-md w-full max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-700">
+              <h2 className="font-heading text-2xl sm:text-3xl" style={{ color: 'var(--ion-blue)' }}>
+                ⚙️ Settings
+              </h2>
+              <button
+                onClick={() => setShowSettingsModal(false)}
+                className="px-3 py-1.5 rounded-lg font-semibold transition-all bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white text-sm"
+              >
+                Close
+              </button>
+            </div>
             
-            <div className="space-y-6">
+            <div className="space-y-6 p-6 overflow-y-auto flex-1">
               {/* Avatar Selection */}
               <div>
                 <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--amber-warn)' }}>Avatar</h3>
@@ -241,13 +249,6 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                 <p>Username editing, custom bio, and theme settings coming soon!</p>
               </div>
             </div>
-
-            <button
-              onClick={() => setShowSettingsModal(false)}
-              className="w-full mt-6 py-3 px-6 rounded-xl font-heading transition-all hover:scale-105 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white"
-            >
-              Close
-            </button>
           </div>
         </div>
       )}
