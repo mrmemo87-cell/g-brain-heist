@@ -4,7 +4,24 @@ import { supabase } from './supabaseClient';
 
 const MOCK_DELAY = 500;
 
-// Helper to simulate API calls
+// Helper to get current authenticated user
+const getCurrentUser = async () => {
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) throw new Error('Not authenticated');
+  return user;
+};
+
+// Helper to update profile fields
+const updateProfile = async (userId: string, updates: Partial<Profile>) => {
+  const { error } = await supabase
+    .from('users')
+    .update(updates)
+    .eq('id', userId);
+  
+  if (error) throw error;
+};
+
+// Helper to simulate API calls (keep for mock data)
 const mockApiCall = <T,>(data: T): Promise<T> => {
   return new Promise(resolve => setTimeout(() => resolve(data), MOCK_DELAY));
 };
@@ -329,8 +346,10 @@ export const mcq_questions_get = (subject_id: string, limit: number = 5): Promis
     return mockApiCall(questions);
 };
 
-export const mcq_answer_submit = (question_id: string, choice: string): Promise<AnswerResponse> => {
+export const mcq_answer_submit = async (question_id: string, choice: string): Promise<AnswerResponse> => {
+    const user = await getCurrentUser();
     const isCorrect = choice === 'Option B (Correct)';
+    
     const response: AnswerResponse = {
         correct: isCorrect,
         deltas: {
@@ -340,19 +359,45 @@ export const mcq_answer_submit = (question_id: string, choice: string): Promise<
         explanation: isCorrect ? 'Well done, agent!' : 'Incorrect. The correct answer was B because of reasons.'
     };
     
-    // Update profile with rewards/penalties
-    MOCK_PROFILE.xp += response.deltas.xp;
-    MOCK_PROFILE.coins += response.deltas.coins;
-    saveProfile();
+    // Update profile with rewards/penalties in database
+    const { data: currentProfile, error: fetchError } = await supabase
+        .from('users')
+        .select('xp, coins, level')
+        .eq('id', user.id)
+        .single();
     
-    // Track quest progress (5 questions = 1 quest)
+    if (fetchError || !currentProfile) throw new Error('Failed to fetch profile');
+    
+    const newXP = currentProfile.xp + response.deltas.xp;
+    const newCoins = Math.max(0, currentProfile.coins + response.deltas.coins);
+    
+    // Check for level up (simple formula: level = floor(xp / 100))
+    const newLevel = Math.floor(newXP / 100) + 1;
+    const leveledUp = newLevel > currentProfile.level;
+    
+    await updateProfile(user.id, {
+        xp: newXP,
+        coins: newCoins,
+        level: newLevel,
+    });
+    
+    // Log activity if level up
+    if (leveledUp) {
+        await supabase.from('activities').insert({
+            kind: 'level_up',
+            actor_id: user.id,
+            actor_username: (await supabase.from('users').select('username').eq('id', user.id).single()).data?.username || 'Unknown',
+            data: { level: newLevel },
+        });
+    }
+    
+    // Track quest progress (use localStorage for now)
     if (isCorrect) {
         currentQuestAnswers++;
         if (currentQuestAnswers >= 5) {
             incrementQuestCompleted();
-            currentQuestAnswers = 0; // Reset for next quest
+            currentQuestAnswers = 0;
             
-            // Check if a daily task was just completed
             const progress = getTaskProgress();
             if (progress.daily_quests_completed === 3 || progress.daily_pvp_wins === 1) {
                 incrementWeeklyTaskCompleted();
@@ -363,28 +408,20 @@ export const mcq_answer_submit = (question_id: string, choice: string): Promise<
     return mockApiCall(response);
 };
 
-export const raid_targets = (): Promise<RaidTarget[]> => {
-    // Get real students from shared storage
-    const sharedPlayers = getSharedPlayers();
-    const currentUserId = MOCK_PROFILE.id;
+export const raid_targets = async (): Promise<RaidTarget[]> => {
+    const user = await getCurrentUser();
     
-    // Filter out current user and map to RaidTarget format
-    const realTargets: RaidTarget[] = sharedPlayers
-        .filter(p => p.id !== currentUserId)
-        .map(p => ({
-            user_id: p.id,
-            username: p.username,
-            level: p.level,
-            coins: p.coins,
-            batch: p.batch,
-            has_shield: p.has_shield || false,
-            est_win_rate: Math.random() * 0.5 + 0.3, // Random between 0.3 and 0.8
-            avatar_url: p.avatar_url,
-            last_seen: p.last_seen,
-        }));
+    // Fetch all users except current user from database
+    const { data: players, error } = await supabase
+        .from('users')
+        .select('id, username, level, coins, batch, avatar_url, last_seen, attack_power, defense_power')
+        .neq('id', user.id)
+        .limit(20);
     
-    // If no other students yet, add mock targets with recent timestamps
-    if (realTargets.length === 0) {
+    if (error) throw error;
+    
+    if (!players || players.length === 0) {
+        // No other players yet, return mock targets
         const now = new Date();
         const mockTargets: RaidTarget[] = [
             { user_id: 'usr_tgt_1', username: 'DataWraith', level: 13, coins: 4500, batch: '8A', has_shield: true, est_win_rate: 0.45, avatar_url: 'https://picsum.photos/seed/datawraith/100/100', last_seen: new Date(now.getTime() - 2 * 60 * 1000).toISOString() },
@@ -394,91 +431,100 @@ export const raid_targets = (): Promise<RaidTarget[]> => {
         return mockApiCall(mockTargets);
     }
     
+    // TODO: Check inventory for shields
+    const realTargets: RaidTarget[] = players.map(p => ({
+        user_id: p.id,
+        username: p.username,
+        level: p.level,
+        coins: p.coins,
+        batch: p.batch as '8A' | '8B' | '8C',
+        has_shield: false, // TODO: Check inventory
+        est_win_rate: Math.random() * 0.5 + 0.3,
+        avatar_url: p.avatar_url || '',
+        last_seen: p.last_seen,
+    }));
+    
     return mockApiCall(realTargets);
 };
 
-export const raid_attack = (defender_id: string, use_cracker: boolean, target: RaidTarget): Promise<RaidAttackResult> => {
-    // Deduct AP cost for hacking
-    MOCK_PROFILE.ap_now = Math.max(0, MOCK_PROFILE.ap_now - 2);
+export const raid_attack = async (defender_id: string, use_cracker: boolean, target: RaidTarget): Promise<RaidAttackResult> => {
+    const user = await getCurrentUser();
+    
+    // Fetch attacker profile
+    const { data: attacker, error: attackerError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+    
+    if (attackerError || !attacker) throw new Error('Attacker profile not found');
+    
+    // Deduct AP cost
+    await updateProfile(user.id, { ap_now: Math.max(0, attacker.ap_now - 2) });
     
     let result: 'win' | 'lose' | 'blocked' = 'lose';
     
     if (target.has_shield && !use_cracker) {
         result = 'blocked';
     } else {
-        // Calculate real combat stats
-        const attackerTotalAttack = getTotalAttackPower(MOCK_PROFILE, MOCK_INVENTORY);
+        // Calculate combat (simplified for now)
+        const attackerTotalAttack = attacker.attack_power || 10;
+        const defenderTotalDefense = 10;
         
-        // Estimate defender stats (base 10 defense + shield bonus if active)
-        let defenderTotalDefense = 10; // Base defense
-        if (target.has_shield && !use_cracker) {
-            defenderTotalDefense += 20; // Shield bonus
-        }
-        
-        // Calculate win probability based on attack vs defense ratio
-        // Formula: winChance = attackerAttack / (attackerAttack + defenderDefense)
-        // This gives ~50% at equal stats, higher with more attack, lower with more defense
         const winChance = attackerTotalAttack / (attackerTotalAttack + defenderTotalDefense);
-        
         result = Math.random() < winChance ? 'win' : 'lose';
     }
     
-    // Apply XP and coin rewards
-    MOCK_PROFILE.xp += result === 'win' ? 30 : (result === 'blocked' ? -10 : 0);
-    MOCK_PROFILE.coins += result === 'win' ? 50 : 0;
+    const xpDelta = result === 'win' ? 30 : (result === 'blocked' ? -10 : 0);
+    const coinsDelta = result === 'win' ? 50 : 0;
+    const defenderCoinsLoss = result === 'win' ? 25 : 0;
     
-    // Save updated profile
-    saveProfile();
+    // Update attacker
+    await updateProfile(user.id, {
+        xp: attacker.xp + xpDelta,
+        coins: attacker.coins + coinsDelta,
+    });
+    
+    // Update defender if they're a real player (not mock)
+    if (defender_id.startsWith('usr_') && !defender_id.startsWith('usr_tgt_')) {
+        const { data: defender } = await supabase
+            .from('users')
+            .select('coins, username')
+            .eq('id', defender_id)
+            .single();
+        
+        if (defender && result === 'win') {
+            await updateProfile(defender_id, {
+                coins: Math.max(0, defender.coins - defenderCoinsLoss),
+            });
+        }
+    }
     
     const response: RaidAttackResult = {
-        result: result,
-        attacker_deltas: {
-            xp: result === 'win' ? 30 : (result === 'blocked' ? -10 : 0),
-            coins: result === 'win' ? 50 : 0,
-        },
-        defender_deltas: {
-            coins_loss: result === 'win' ? 25 : 0,
-        },
+        result,
+        attacker_deltas: { xp: xpDelta, coins: coinsDelta },
+        defender_deltas: { coins_loss: defenderCoinsLoss },
         shield_state: target.has_shield ? (use_cracker && result === 'win' ? 'removed' : 'remaining') : 'none',
     };
     
-    // Log event to shared activity feed
-    const now = new Date();
-    const timeAgo = 'Just now';
+    // Log activity to database
+    const activityKind = result === 'win' ? 'pvp_win' : result === 'blocked' ? 'pvp_blocked' : 'pvp_loss';
+    await supabase.from('activities').insert({
+        kind: activityKind,
+        actor_id: user.id,
+        actor_username: attacker.username,
+        target_id: defender_id.startsWith('usr_tgt_') ? null : defender_id,
+        target_username: target.username,
+        data: result === 'win' ? { details: `Stole ${coinsDelta} Coins` } : result === 'blocked' ? { details: 'Attack blocked by Shield' } : { details: 'Hack attempt failed' },
+    });
     
+    // Track progress (localStorage for now)
     if (result === 'win') {
-        // Track PvP win for tasks
         incrementPvPWin();
-        
-        // Check if this completed the daily PvP task (increment weekly)
         const progress = getTaskProgress();
         if (progress.daily_pvp_wins === 1) {
             incrementWeeklyTaskCompleted();
         }
-        
-        addActivityEvent({
-            kind: 'pvp_win',
-            actor: MOCK_PROFILE.username,
-            target: target.username,
-            data: { details: `Stole ${response.attacker_deltas.coins} Coins` },
-            created_at: timeAgo,
-        });
-    } else if (result === 'blocked') {
-        addActivityEvent({
-            kind: 'pvp_blocked',
-            actor: MOCK_PROFILE.username,
-            target: target.username,
-            data: { details: 'Attack blocked by Shield' },
-            created_at: timeAgo,
-        });
-    } else {
-        addActivityEvent({
-            kind: 'pvp_lose',
-            actor: MOCK_PROFILE.username,
-            target: target.username,
-            data: { details: 'Hack attempt failed' },
-            created_at: timeAgo,
-        });
     }
     
     return mockApiCall(response);
@@ -497,16 +543,35 @@ const MOCK_SHOP_ITEMS: ShopItem[] = [
 ];
 
 
-export const shop_list = (): Promise<ShopItem[]> => {
-    // Update owned_today with real purchase counts from storage
+export const shop_list = async (): Promise<ShopItem[]> => {
+    const user = await getCurrentUser();
+    
+    // Get today's purchases from database
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const { data: purchases } = await supabase
+        .from('shop_purchases')
+        .select('item_id, quantity')
+        .eq('user_id', user.id)
+        .gte('purchased_at', `${today}T00:00:00`)
+        .lt('purchased_at', `${today}T23:59:59`);
+    
+    // Count purchases by item_id
+    const purchaseCounts: Record<string, number> = {};
+    purchases?.forEach(p => {
+        purchaseCounts[p.item_id] = (purchaseCounts[p.item_id] || 0) + p.quantity;
+    });
+    
+    // Update owned_today with real purchase counts
     const itemsWithRealCounts = MOCK_SHOP_ITEMS.map(item => ({
         ...item,
-        owned_today: getPurchaseCount(item.id)
+        owned_today: purchaseCounts[item.id] || 0
     }));
+    
     return mockApiCall(itemsWithRealCounts);
 };
 
-export const shop_buy = (item_id: string, quantity: number, current_coins: number): Promise<PurchaseReceipt> => {
+export const shop_buy = async (item_id: string, quantity: number, current_coins: number): Promise<PurchaseReceipt> => {
+    const user = await getCurrentUser();
     const item = MOCK_SHOP_ITEMS.find(i => i.id === item_id);
     
     if (!item) {
@@ -519,47 +584,51 @@ export const shop_buy = (item_id: string, quantity: number, current_coins: numbe
         return Promise.reject({ message: 'Not enough coins.' });
     }
 
-    // Check real purchase count from storage
-    const currentPurchaseCount = getPurchaseCount(item_id);
+    // Check today's purchase count from database
+    const today = new Date().toISOString().split('T')[0];
+    const { data: todayPurchases } = await supabase
+        .from('shop_purchases')
+        .select('quantity')
+        .eq('user_id', user.id)
+        .eq('item_id', item_id)
+        .gte('purchased_at', `${today}T00:00:00`)
+        .lt('purchased_at', `${today}T23:59:59`);
+    
+    const currentPurchaseCount = todayPurchases?.reduce((sum, p) => sum + p.quantity, 0) || 0;
+    
     if ((currentPurchaseCount + quantity) > item.daily_limit) {
         return Promise.reject({ message: 'Daily purchase limit exceeded.' });
     }
 
     // Update profile coins
-    MOCK_PROFILE.coins -= totalCost;
-    saveProfile();
+    await updateProfile(user.id, { coins: current_coins - totalCost });
     
-    // Track purchase count
-    incrementPurchaseCount(item_id, quantity);
+    // Add purchase record
+    await supabase.from('shop_purchases').insert({
+        user_id: user.id,
+        item_id: item.id,
+        quantity: quantity,
+        total_cost: totalCost,
+    });
     
-    // Add items to inventory with bonuses based on kind
+    // Add items to inventory
+    const inventoryItems = [];
     for (let i = 0; i < quantity; i++) {
-        const newItem: InventoryItem = {
-            inv_id: `inv_${Date.now()}_${i}`,
+        const newItem = {
+            user_id: user.id,
             item_id: item.id,
             name: item.name,
             kind: item.kind,
-            state: 'unused',
+            state: 'unused' as const,
             description: item.description,
-            effect_summary: item.effect_summary
+            effect_summary: item.effect_summary,
+            attack_bonus: item.kind === 'encryption_key' ? 15 : item.kind === 'exploit_kit' ? 25 : undefined,
+            defense_bonus: item.kind === 'shield' ? 20 : item.kind === 'firewall' ? 30 : undefined,
         };
-        
-        // Add combat bonuses for equipment (permanent items don't have expires_at)
-        if (item.kind === 'shield') {
-            newItem.defense_bonus = 20;
-        } else if (item.kind === 'encryption_key') {
-            newItem.attack_bonus = 15;
-            // Encryption keys are permanent (no expires_at)
-        } else if (item.kind === 'firewall') {
-            newItem.defense_bonus = 30;
-        } else if (item.kind === 'exploit_kit') {
-            newItem.attack_bonus = 25;
-            // Exploit kits are permanent (no expires_at)
-        }
-        
-        MOCK_INVENTORY.push(newItem);
+        inventoryItems.push(newItem);
     }
-    saveInventory();
+    
+    await supabase.from('inventory').insert(inventoryItems);
 
     const receipt: PurchaseReceipt = {
         receipt_id: `rec_${Date.now()}`,
@@ -572,54 +641,79 @@ export const shop_buy = (item_id: string, quantity: number, current_coins: numbe
     return mockApiCall(receipt);
 };
 
-export const inventory_list = (): Promise<InventoryItem[]> => {
-    // Clean up expired items before returning list
-    cleanupExpiredItems();
-    return mockApiCall(MOCK_INVENTORY);
+export const inventory_list = async (): Promise<InventoryItem[]> => {
+    const user = await getCurrentUser();
+    
+    // Delete expired items from database
+    const now = new Date().toISOString();
+    await supabase
+        .from('inventory')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('state', 'active')
+        .lt('expires_at', now)
+        .neq('expires_at', 'Until Cracked');
+    
+    // Fetch user's inventory
+    const { data: items, error } = await supabase
+        .from('inventory')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    return mockApiCall(items || []);
 };
 
-export const inventory_activate = (inv_id: string): Promise<{ state_after: InventoryItem['state'], effect_window: { start: string, end: string } }> => {
-    const item = MOCK_INVENTORY.find(i => i.inv_id === inv_id);
+export const inventory_activate = async (inv_id: string): Promise<{ state_after: InventoryItem['state'], effect_window: { start: string, end: string } }> => {
+    const user = await getCurrentUser();
+    
+    // Fetch the item
+    const { data: item, error } = await supabase
+        .from('inventory')
+        .select('*')
+        .eq('id', inv_id)
+        .eq('user_id', user.id)
+        .single();
 
-    if (!item) {
+    if (error || !item) {
         return Promise.reject({ message: 'Item not found in inventory.' });
     }
     if (item.state !== 'unused') {
         return Promise.reject({ message: 'Item cannot be activated.' });
     }
-    // Simple activation logic for mock
-    item.state = 'active';
-    item.activated_at = new Date().toISOString();
+    
     const now = new Date();
     const expiry = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour for boosters
     
-    if (item.kind === 'shield' || item.kind === 'firewall') {
-      item.expires_at = 'Until Cracked';
-    } else {
-      item.expires_at = expiry.toISOString();
-    }
+    const expiresAt = (item.kind === 'shield' || item.kind === 'firewall') 
+        ? 'Until Cracked' 
+        : expiry.toISOString();
     
-    // Deactivate other boosters if a new one is used - delete them instead of marking consumed
+    // Deactivate other boosters if a new one is used
     if (item.kind === 'booster' || item.kind === 'major_booster') {
-        const boosterIds: string[] = [];
-        MOCK_INVENTORY.forEach(i => {
-            if ((i.kind === 'booster' || i.kind === 'major_booster') && i.inv_id !== inv_id && i.state === 'active') {
-                boosterIds.push(i.inv_id);
-            }
-        });
-        // Remove the replaced boosters
-        boosterIds.forEach(id => {
-            const index = MOCK_INVENTORY.findIndex(i => i.inv_id === id);
-            if (index !== -1) {
-                MOCK_INVENTORY.splice(index, 1);
-            }
-        });
+        await supabase
+            .from('inventory')
+            .delete()
+            .eq('user_id', user.id)
+            .neq('id', inv_id)
+            .eq('state', 'active')
+            .in('kind', ['booster', 'major_booster']);
     }
     
-    saveInventory();
+    // Activate this item
+    await supabase
+        .from('inventory')
+        .update({
+            state: 'active',
+            activated_at: now.toISOString(),
+            expires_at: expiresAt,
+        })
+        .eq('id', inv_id);
     
     const result = {
-        state_after: item.state,
+        state_after: 'active' as const,
         effect_window: {
             start: now.toISOString(),
             end: expiry.toISOString()
