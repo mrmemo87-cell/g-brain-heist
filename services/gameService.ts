@@ -190,8 +190,15 @@ export const whoami = async (): Promise<Profile> => {
       user_id_param: user.id
     });
 
-    if (!regenError && regenData && regenData.length > 0) {
-      const { new_ap, ap_regenerated } = regenData[0];
+    if (regenError) {
+      console.warn('Database AP regeneration function not available, using fallback:', regenError.message);
+      throw regenError; // Trigger fallback
+    }
+
+    if (regenData && regenData.length > 0) {
+      const { new_ap, ap_regenerated, minutes_elapsed } = regenData[0];
+      console.log(`AP Regeneration: ${profile.ap_now} → ${new_ap} (+${ap_regenerated} AP, ${minutes_elapsed} min elapsed)`);
+      
       profile.ap_now = new_ap;
       profile.last_ap_update = new Date().toISOString();
 
@@ -207,13 +214,15 @@ export const whoami = async (): Promise<Profile> => {
       }
     }
   } catch (apError) {
-    console.error('AP regeneration failed, using fallback:', apError);
+    console.warn('AP regeneration function failed, using client-side fallback:', apError);
     // Fallback to client-side calculation
     const now = new Date();
     const lastApUpdate = profile.last_ap_update ? new Date(profile.last_ap_update) : now;
     const msElapsed = now.getTime() - lastApUpdate.getTime();
     const minutesElapsed = Math.floor(msElapsed / (1000 * 60));
     const apToRegen = Math.floor(minutesElapsed / 10);
+    
+    console.log(`Fallback AP Regen: Last update: ${lastApUpdate.toISOString()}, Minutes elapsed: ${minutesElapsed}, AP to regen: ${apToRegen}`);
     
     if (apToRegen > 0 && profile.ap_now < profile.ap_max) {
       const newAP = Math.min(profile.ap_now + apToRegen, profile.ap_max);
@@ -222,13 +231,22 @@ export const whoami = async (): Promise<Profile> => {
         last_ap_update: now.toISOString()
       };
       
-      await supabase
+      console.log(`Updating AP in DB: ${profile.ap_now} → ${newAP}`);
+      
+      const { error: updateError } = await supabase
         .from('users')
         .update(updateData)
         .eq('id', user.id);
         
-      profile.ap_now = newAP;
-      profile.last_ap_update = now.toISOString();
+      if (updateError) {
+        console.error('Failed to update AP in database:', updateError);
+      } else {
+        console.log('AP updated successfully in database');
+        profile.ap_now = newAP;
+        profile.last_ap_update = now.toISOString();
+      }
+    } else {
+      console.log(`No AP regeneration needed: current=${profile.ap_now}, max=${profile.ap_max}, toRegen=${apToRegen}`);
     }
   }
   
