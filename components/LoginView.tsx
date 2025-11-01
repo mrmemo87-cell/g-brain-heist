@@ -12,6 +12,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const [password, setPassword] = useState('');
     const [username, setUsername] = useState('');
     const [batch, setBatch] = useState<'8A' | '8B' | '8C'>('8A');
+    const [role, setRole] = useState<'student' | 'teacher'>('student');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
@@ -24,7 +25,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
         
         try {
             if (mode === 'signup') {
-                await AuthService.signup(email, password, username, batch);
+                await AuthService.signup(email, password, username, role, batch);
                 setSuccess('Account created! Please log in.');
                 setMode('login');
                 setPassword('');
@@ -89,19 +90,52 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                         placeholder="ChooseYourName"
                                     />
                                 </div>
+                                
                                 <div>
-                                    <label htmlFor="batch" className="block text-sm font-medium text-gray-300">Batch</label>
-                                    <select
-                                        id="batch"
-                                        value={batch}
-                                        onChange={(e) => setBatch(e.target.value as '8A' | '8B' | '8C')}
-                                        className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
-                                    >
-                                        <option value="8A">Batch 8A</option>
-                                        <option value="8B">Batch 8B</option>
-                                        <option value="8C">Batch 8C</option>
-                                    </select>
+                                    <label className="block text-sm font-medium text-gray-300 mb-3">I am a...</label>
+                                    <div className="flex gap-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => setRole('student')}
+                                            className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${
+                                                role === 'student'
+                                                    ? 'border-cyan-400 bg-cyan-400/10 text-cyan-400'
+                                                    : 'border-gray-600 bg-gray-800/50 text-gray-300 hover:border-gray-500'
+                                            }`}
+                                        >
+                                            <div className="text-2xl mb-1">🎓</div>
+                                            <div className="font-semibold">Student</div>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setRole('teacher')}
+                                            className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${
+                                                role === 'teacher'
+                                                    ? 'border-purple-400 bg-purple-400/10 text-purple-400'
+                                                    : 'border-gray-600 bg-gray-800/50 text-gray-300 hover:border-gray-500'
+                                            }`}
+                                        >
+                                            <div className="text-2xl mb-1">👨‍🏫</div>
+                                            <div className="font-semibold">Teacher</div>
+                                        </button>
+                                    </div>
                                 </div>
+
+                                {role === 'student' && (
+                                    <div>
+                                        <label htmlFor="batch" className="block text-sm font-medium text-gray-300">Batch</label>
+                                        <select
+                                            id="batch"
+                                            value={batch}
+                                            onChange={(e) => setBatch(e.target.value as '8A' | '8B' | '8C')}
+                                            className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+                                        >
+                                            <option value="8A">Batch 8A</option>
+                                            <option value="8B">Batch 8B</option>
+                                            <option value="8C">Batch 8C</option>
+                                        </select>
+                                    </div>
+                                )}
                             </>
                         )}
                         

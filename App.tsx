@@ -440,7 +440,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                             onVisitInventory={() => setView('inventory')}
                             onViewLeaderboard={() => setView('leaderboard')}
                             onViewAchievements={() => setView('achievements')}
-                            onOpenTeacherPortal={() => setView('teacher')} 
+                            onOpenTeacherPortal={profile?.role === 'teacher' ? () => setView('teacher') : undefined} 
                         />
                         <TaskList tasks={tasks} onTasksUpdate={fetchGameData} />
                     </div>

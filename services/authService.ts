@@ -21,8 +21,8 @@ export const login = async (email: string, password: string): Promise<{ success:
     throw new Error('Login failed');
 };
 
-export const signup = async (email: string, password: string, username: string, batch: string): Promise<{ success: boolean }> => {
-    console.log(`Attempting signup for ${email}`);
+export const signup = async (email: string, password: string, username: string, role: 'student' | 'teacher', batch?: string): Promise<{ success: boolean }> => {
+    console.log(`Attempting signup for ${email} as ${role}`);
     
     // Sign up with Supabase Auth
     const { data, error } = await supabase.auth.signUp({
@@ -31,7 +31,8 @@ export const signup = async (email: string, password: string, username: string, 
         options: {
             data: {
                 username,
-                batch,
+                role,
+                batch: role === 'student' ? batch : undefined,
             }
         }
     });
@@ -52,14 +53,28 @@ export const signup = async (email: string, password: string, username: string, 
                 id: data.user.id,
                 email,
                 username,
-                batch,
+                role,
+                batch: role === 'student' ? batch : null,
                 avatar_url: `https://picsum.photos/seed/${username}/100/100`,
             });
         
         if (profileError) {
             console.error('Profile creation error:', profileError);
-            // More detailed error message
             throw new Error(`Failed to create user profile: ${profileError.message} (${profileError.code})`);
+        }
+
+        // If teacher, create teacher profile automatically
+        if (role === 'teacher') {
+            const { error: teacherError } = await supabase.rpc('create_teacher_profile', {
+                school_name: null,
+                subject_specializations: [],
+                bio: null
+            });
+
+            if (teacherError) {
+                console.warn('Teacher profile creation warning:', teacherError);
+                // Don't throw error, user can complete profile later
+            }
         }
         
         console.log('Signup successful:', data.user.email);
