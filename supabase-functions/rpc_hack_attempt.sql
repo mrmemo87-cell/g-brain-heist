@@ -19,11 +19,11 @@ declare
   c_shield_defense_bonus int := 20;  -- Shield adds +20 defense
   c_xp_win int := 30;
   c_coins_win int := 50;
-  c_coins_steal int := 25;
+  c_coins_steal_percent numeric := 0.10;  -- Steal 10% of defender's coins (MASSIVE THEFT ENABLED)
   c_xp_loss int := -10;               -- XP penalty for loss or blocked
   c_coins_loss_to_defender int := 50; -- Coins attacker loses to defender on loss
-  c_max_steal_percent_win numeric := 0.75;  -- steal at most 75% of defender coins on win
-  c_max_steal_percent_loss numeric := 0.75; -- attacker loses at most 75% of their coins on loss
+  c_max_steal_percent_win numeric := 0.30;  -- Can steal up to 30% of defender's total coins
+  c_max_steal_percent_loss numeric := 0.20; -- Attacker can lose up to 20% of their coins on loss
 
   -- ====== Variables ======
   attacker record;
@@ -162,11 +162,16 @@ begin
     xp_delta := c_xp_win;
     coins_delta := c_coins_win;
     
-    -- Calculate coins stolen from defender (capped at 75% of defender balance)
+    -- Calculate coins stolen from defender (10% of their balance, capped at 30% max)
     coins_stolen_from_def := least(
-      c_coins_steal,
+      floor(defender.coins * c_coins_steal_percent),
       floor(defender.coins * c_max_steal_percent_win)
     );
+    
+    -- Minimum steal of 10 coins if they have any
+    if defender.coins > 0 and coins_stolen_from_def < 10 then
+      coins_stolen_from_def := least(10, defender.coins);
+    end if;
     
     -- If shield blocked, no coin theft
     if shield_blocks then
@@ -193,7 +198,7 @@ begin
     -- Attacker loses
     xp_delta := c_xp_loss;
     
-    -- Calculate coins lost to defender (capped at 75% of attacker balance)
+    -- Calculate coins lost to defender (capped at 20% of attacker balance)
     coins_lost_to_def := least(
       c_coins_loss_to_defender,
       floor(attacker.coins * c_max_steal_percent_loss)
