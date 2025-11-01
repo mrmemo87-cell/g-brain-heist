@@ -32,16 +32,22 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
   const fetchLeaderboards = async () => {
     setLoading(true);
     try {
-      // XP Leaderboard - Exclude teachers
+      // XP Leaderboard - Exclude teachers and hidden admins
       const { data: xpData, error: xpError } = await supabase
         .from('users')
-        .select('id, username, avatar_url, xp, batch, last_seen')
+        .select('id, username, avatar_url, xp, batch, last_seen, role, admin_visible')
         .neq('role', 'teacher')
         .order('xp', { ascending: false })
         .limit(50);
 
       if (!xpError && xpData) {
-        const xpLB = xpData.map((user, index) => ({
+        // Filter out admins who have admin_visible = false
+        const filteredData = xpData.filter(user => {
+          if (user.role === 'admin' && !user.admin_visible) return false;
+          return true;
+        });
+        
+        const xpLB = filteredData.map((user, index) => ({
           rank: index + 1,
           username: user.username,
           avatar_url: user.avatar_url,
@@ -49,6 +55,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
           batch: user.batch,
           is_self: user.id === currentUserId,
           last_seen: user.last_seen,
+          role: user.role,
         }));
         setXpLeaderboard(xpLB);
       }
@@ -142,12 +149,14 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
     }
   };
 
-  const renderPlayerRow = (entry: LeaderboardEntry) => {
+  const renderPlayerRow = (entry: LeaderboardEntry & { role?: string }) => {
     const rankColors: Record<number, string> = {
       1: 'text-yellow-400',
       2: 'text-gray-300',
       3: 'text-amber-600',
     };
+    
+    const isAdmin = entry.role === 'admin';
 
     // Calculate online status
     const getOnlineStatus = (last_seen?: string): { color: string; label: string } => {
@@ -172,25 +181,39 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
       <div
         key={`${entry.rank}-${entry.username}`}
         className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
-          entry.is_self ? 'bg-cyan-500/20 border border-cyan-400' : 'bg-black/20 hover:bg-black/30'
+          isAdmin 
+            ? 'bg-gradient-to-r from-yellow-600/30 to-pink-600/30 border-2 border-yellow-400 animate-pulse-glow' 
+            : entry.is_self 
+              ? 'bg-cyan-500/20 border border-cyan-400' 
+              : 'bg-black/20 hover:bg-black/30'
         }`}
       >
         <div className={`font-bold text-lg w-8 text-center ${rankColors[entry.rank] || 'text-gray-400'}`}>
-          {entry.rank <= 3 ? ['🥇', '🥈', '🥉'][entry.rank - 1] : `#${entry.rank}`}
+          {isAdmin ? '👑' : entry.rank <= 3 ? ['🥇', '🥈', '🥉'][entry.rank - 1] : `#${entry.rank}`}
         </div>
         <div className="relative">
           <img
             src={entry.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.username}`}
             alt={entry.username}
-            className="w-10 h-10 rounded-full border-2 border-gray-600"
+            className={`w-10 h-10 rounded-full ${isAdmin ? 'border-4 border-yellow-400 animate-pulse' : 'border-2 border-gray-600'}`}
           />
-          <div 
-            className={`absolute bottom-0 right-0 w-3 h-3 ${status.color} rounded-full border-2 border-gray-900`}
-            title={status.label}
-          />
+          {!isAdmin && (
+            <div 
+              className={`absolute bottom-0 right-0 w-3 h-3 ${status.color} rounded-full border-2 border-gray-900`}
+              title={status.label}
+            />
+          )}
+          {isAdmin && (
+            <div 
+              className="absolute bottom-0 right-0 w-3 h-3 bg-yellow-400 rounded-full border-2 border-gray-900 animate-pulse"
+              title="Admin"
+            />
+          )}
         </div>
         <div className="flex-1">
-          <p className="font-semibold text-white">{entry.username} {entry.is_self && '(You)'}</p>
+          <p className={`font-semibold ${isAdmin ? 'text-yellow-300 drop-shadow-[0_0_10px_rgba(255,215,0,1)]' : 'text-white'}`}>
+            {entry.username} {entry.is_self && '(You)'} {isAdmin && '⚡'}
+          </p>
           <p className="text-xs text-gray-400">Batch {entry.batch}</p>
         </div>
         <div className="text-right">

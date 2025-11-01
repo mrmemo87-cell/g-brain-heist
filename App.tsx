@@ -20,8 +20,10 @@ import LeaderboardView from './components/LeaderboardView';
 import AchievementView from './components/AchievementView';
 import TutorialModal from './components/TutorialModal';
 import TeacherPortal from './components/TeacherPortal';
+import AdminPortal from './components/AdminPortal';
 import HelpModal from './components/HelpModal';
 import { ToastContainer } from './components/ToastNotification';
+import { isAdmin } from './services/adminService';
 
 interface AppProps {
   onLogout: () => void;
@@ -34,7 +36,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [caps, setCaps] = useState<Caps | null>(null);
   const [news, setNews] = useState<NewsEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin'>('dashboard');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [levelUpData, setLevelUpData] = useState<{ newLevel: number; rewards: any } | null>(null);
@@ -444,6 +446,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             return <AchievementView onComplete={handleViewComplete} addToast={addToast} />;
         case 'teacher':
             return <TeacherPortal profile={profile} onComplete={handleViewComplete} />;
+        case 'admin':
+            return <AdminPortal profile={profile} onComplete={handleViewComplete} addToast={addToast} />;
         case 'dashboard':
         default:
             // Teacher Dashboard - simplified view focused on teaching
@@ -511,7 +515,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                             onVisitInventory={() => setView('inventory')}
                             onViewLeaderboard={() => setView('leaderboard')}
                             onViewAchievements={() => setView('achievements')}
-                            onOpenTeacherPortal={profile?.role === 'teacher' ? () => setView('teacher') : undefined} 
+                            onOpenTeacherPortal={profile?.role === 'teacher' ? () => setView('teacher') : undefined}
+                            onOpenAdminPortal={isAdmin(profile) ? () => setView('admin') : undefined}
                         />
                         <TaskList tasks={tasks} onTasksUpdate={fetchGameData} />
                     </div>

@@ -83,7 +83,9 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
 
   useEffect(() => {
     GameService.raid_targets().then(data => {
-      setTargets(data);
+      // Filter out admin users (they cannot be attacked)
+      const attackableTargets = data.filter((target: any) => target.role !== 'admin');
+      setTargets(attackableTargets);
       setStage('targets');
     });
   }, []);

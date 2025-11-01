@@ -18,6 +18,7 @@ export interface Profile {
   attack_power: number; // Base attack power
   defense_power: number; // Base defense power
   tutorial_completed?: boolean; // Whether user has completed onboarding tutorial
+  admin_visible?: boolean; // Whether admin is visible in leaderboards/PvP (default: false)
 }
 
 export interface Task {

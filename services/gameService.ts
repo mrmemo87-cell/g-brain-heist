@@ -823,7 +823,7 @@ export const mcq_answer_submit = async (question_id: string, choice: string): Pr
 export const raid_targets = async (): Promise<RaidTarget[]> => {
     const user = await getCurrentUser();
     
-    // Fetch all users except current user and teachers from database with their clan info
+    // Fetch all users except current user, teachers, and admins from database with their clan info
     // Exclude players who were attacked in the last 5 minutes (300 seconds)
     const { data: players, error } = await supabase
         .from('users')
@@ -835,6 +835,7 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
         `)
         .neq('id', user.id)
         .neq('role', 'teacher')
+        .neq('role', 'admin')
         .or(`last_attacked_at.is.null,last_attacked_at.lt.${new Date(Date.now() - 5 * 60 * 1000).toISOString()}`)
         .limit(20);
     
