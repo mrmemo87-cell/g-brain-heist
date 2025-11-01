@@ -104,6 +104,21 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     }
   };
 
+  const handleDuplicateQuestion = (question: TeacherQuestion) => {
+    // Pre-fill the form with the question data
+    setSubject(question.subject);
+    setDifficulty(question.difficulty);
+    setQuestionType(question.question_type);
+    setQuestionText(question.question_text + ' (Copy)');
+    setOptions(question.question_options);
+    setCorrectAnswer(question.correct_answer);
+    setExplanation(question.explanation || '');
+    setPoints(question.points);
+    
+    // Switch to create view
+    setView('create-question');
+  };
+
   // Render Dashboard
   const renderDashboard = () => (
     <div className="space-y-6">
@@ -171,6 +186,69 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
       >
         <span>←</span> Back to Dashboard
       </button>
+
+      {/* Quick Templates */}
+      <div className="card-glass p-4 mb-6">
+        <h3 className="text-sm font-semibold text-gray-300 mb-3">⚡ Quick Templates</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setQuestionType('multiple_choice');
+              setQuestionText('');
+              setOptions(['', '', '', '']);
+            }}
+            className="p-3 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-lg transition-all text-sm"
+          >
+            <div className="text-2xl mb-1">📝</div>
+            <div className="text-cyan-400 font-semibold">Multiple Choice</div>
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => {
+              setQuestionType('true_false');
+              setQuestionText('');
+              setOptions(['True', 'False']);
+            }}
+            className="p-3 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 rounded-lg transition-all text-sm"
+          >
+            <div className="text-2xl mb-1">✓✗</div>
+            <div className="text-green-400 font-semibold">True/False</div>
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => {
+              setQuestionType('short_answer');
+              setQuestionText('');
+              setOptions([]);
+            }}
+            className="p-3 bg-yellow-500/10 hover:bg-yellow-500/20 border border-yellow-500/30 rounded-lg transition-all text-sm"
+          >
+            <div className="text-2xl mb-1">✏️</div>
+            <div className="text-yellow-400 font-semibold">Short Answer</div>
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => {
+              setQuestionText('');
+              setSubject('Math');
+              setDifficulty('easy');
+              setQuestionType('multiple_choice');
+              setOptions(['', '', '', '']);
+              setCorrectAnswer('');
+              setExplanation('');
+              setPoints(10);
+            }}
+            className="p-3 bg-gray-500/10 hover:bg-gray-500/20 border border-gray-500/30 rounded-lg transition-all text-sm"
+          >
+            <div className="text-2xl mb-1">🔄</div>
+            <div className="text-gray-400 font-semibold">Reset Form</div>
+          </button>
+        </div>
+      </div>
 
       <div className="card-glass p-6">
         <h2 className="font-heading text-3xl text-pink-400 font-bold mb-6">✨ Create New Question</h2>
@@ -372,16 +450,32 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
                     <span>✅ {q.times_correct} correct</span>
                     <span>📊 {q.times_answered} total answers</span>
                     <span>⭐ {q.points} XP</span>
+                    {q.times_answered > 0 && (
+                      <span className={`font-bold ${
+                        (q.times_correct / q.times_answered * 100) >= 70 ? 'text-green-400' : 'text-red-400'
+                      }`}>
+                        {Math.round((q.times_correct / q.times_answered) * 100)}% success
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                <button
-                  onClick={() => handleDeleteQuestion(q.id)}
-                  className="ml-4 text-red-400 hover:text-red-300 p-2"
-                  title="Delete question"
-                >
-                  🗑️
-                </button>
+                <div className="ml-4 flex gap-2">
+                  <button
+                    onClick={() => handleDuplicateQuestion(q)}
+                    className="text-cyan-400 hover:text-cyan-300 p-2 hover:bg-cyan-500/10 rounded-lg transition-all"
+                    title="Duplicate question"
+                  >
+                    📋
+                  </button>
+                  <button
+                    onClick={() => handleDeleteQuestion(q.id)}
+                    className="text-red-400 hover:text-red-300 p-2 hover:bg-red-500/10 rounded-lg transition-all"
+                    title="Delete question"
+                  >
+                    🗑️
+                  </button>
+                </div>
               </div>
             </div>
           ))}
