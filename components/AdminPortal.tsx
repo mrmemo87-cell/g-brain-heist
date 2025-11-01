@@ -15,6 +15,8 @@ type AdminTab = 'dashboard' | 'users' | 'game' | 'clans' | 'analytics' | 'system
 const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeToday: 0,
@@ -28,6 +30,21 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     fetchDashboardData();
   }, []);
 
+  useEffect(() => {
+    // Filter users based on search query
+    if (searchQuery.trim() === '') {
+      setFilteredUsers(allUsers);
+    } else {
+      const query = searchQuery.toLowerCase();
+      const filtered = allUsers.filter(user => 
+        user.username.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query) ||
+        user.batch?.toLowerCase().includes(query)
+      );
+      setFilteredUsers(filtered);
+    }
+  }, [searchQuery, allUsers]);
+
   const fetchDashboardData = async () => {
     try {
       const { data: users, error } = await supabase
@@ -38,6 +55,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       if (error) throw error;
 
       setAllUsers(users || []);
+      setFilteredUsers(users || []);
 
       const now = new Date();
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -100,6 +118,44 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       fetchDashboardData();
     } catch (error) {
       addToast('Failed to grant coins', 'error');
+    }
+  };
+
+  const grantXP = async (userId: string, amount: number) => {
+    try {
+      const user = allUsers.find(u => u.id === userId);
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('users')
+        .update({ xp: user.xp + amount })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      addToast(`⚡ Granted ${amount} XP to ${user.username}`, 'success');
+      fetchDashboardData();
+    } catch (error) {
+      addToast('Failed to grant XP', 'error');
+    }
+  };
+
+  const setUserLevel = async (userId: string, newLevel: number) => {
+    try {
+      const user = allUsers.find(u => u.id === userId);
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('users')
+        .update({ level: newLevel })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      addToast(`🎚️ Set ${user.username} to level ${newLevel}`, 'success');
+      fetchDashboardData();
+    } catch (error) {
+      addToast('Failed to set level', 'error');
     }
   };
 
@@ -271,6 +327,55 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                   </button>
                 </div>
               </div>
+
+              {/* Detailed User Analytics */}
+              <div className="card-glass p-6 border-2 border-cyan-400/50">
+                <h3 className="text-2xl font-heading font-bold text-cyan-300 mb-4">📊 User Analytics</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="bg-black/30 p-4 rounded-lg border border-cyan-400/50">
+                    <p className="text-sm text-gray-400 mb-1">Average Level</p>
+                    <p className="text-3xl font-bold text-cyan-300">
+                      {allUsers.length > 0 ? (allUsers.reduce((sum, u) => sum + u.level, 0) / allUsers.length).toFixed(1) : '0'}
+                    </p>
+                  </div>
+                  <div className="bg-black/30 p-4 rounded-lg border border-blue-400/50">
+                    <p className="text-sm text-gray-400 mb-1">Average XP</p>
+                    <p className="text-3xl font-bold text-blue-300">
+                      {allUsers.length > 0 ? Math.floor(allUsers.reduce((sum, u) => sum + u.xp, 0) / allUsers.length).toLocaleString() : '0'}
+                    </p>
+                  </div>
+                  <div className="bg-black/30 p-4 rounded-lg border border-yellow-400/50">
+                    <p className="text-sm text-gray-400 mb-1">Richest Player</p>
+                    <p className="text-xl font-bold text-yellow-300">
+                      {allUsers.length > 0 ? allUsers.reduce((max, u) => u.coins > max.coins ? u : max, allUsers[0])?.username : 'None'}
+                    </p>
+                    <p className="text-sm text-gray-400">
+                      {allUsers.length > 0 ? allUsers.reduce((max, u) => u.coins > max.coins ? u : max, allUsers[0])?.coins.toLocaleString() + ' 🪙' : ''}
+                    </p>
+                  </div>
+                  <div className="bg-black/30 p-4 rounded-lg border border-purple-400/50">
+                    <p className="text-sm text-gray-400 mb-1">Highest Level</p>
+                    <p className="text-xl font-bold text-purple-300">
+                      {allUsers.length > 0 ? allUsers.reduce((max, u) => u.level > max.level ? u : max, allUsers[0])?.username : 'None'}
+                    </p>
+                    <p className="text-sm text-gray-400">
+                      {allUsers.length > 0 ? 'Level ' + allUsers.reduce((max, u) => u.level > max.level ? u : max, allUsers[0])?.level : ''}
+                    </p>
+                  </div>
+                  <div className="bg-black/30 p-4 rounded-lg border border-green-400/50">
+                    <p className="text-sm text-gray-400 mb-1">Total AP Pool</p>
+                    <p className="text-3xl font-bold text-green-300">
+                      {allUsers.reduce((sum, u) => sum + (u.ap_now || 0), 0)}
+                    </p>
+                  </div>
+                  <div className="bg-black/30 p-4 rounded-lg border border-red-400/50">
+                    <p className="text-sm text-gray-400 mb-1">Students</p>
+                    <p className="text-3xl font-bold text-red-300">
+                      {allUsers.filter(u => u.role === 'student' || !u.role).length}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -278,46 +383,90 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
             <div className="card-glass p-6 border-2 border-purple-400/50">
               <h3 className="text-3xl font-heading font-bold text-purple-300 mb-6">👥 User Management</h3>
               
+              {/* Search Bar */}
+              <div className="mb-6">
+                <input
+                  type="text"
+                  placeholder="🔍 Search by username, email, or batch..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-4 py-3 bg-black/40 border-2 border-purple-400/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 focus:shadow-[0_0_20px_rgba(168,85,247,0.4)]"
+                />
+                <p className="text-sm text-gray-400 mt-2">
+                  Showing {filteredUsers.length} of {allUsers.length} users
+                </p>
+              </div>
+              
               <div className="max-h-[600px] overflow-y-auto space-y-3">
-                {allUsers.map((user) => (
+                {filteredUsers.map((user) => (
                   <div
                     key={user.id}
                     className="bg-black/40 p-4 rounded-lg border border-gray-700 hover:border-purple-400 transition-all"
                   >
-                    <div className="flex items-center justify-between flex-wrap gap-4">
-                      <div className="flex items-center gap-3">
-                        <img src={user.avatar_url} alt={user.username} className="w-12 h-12 rounded-full" />
+                    <div className="flex items-start justify-between flex-wrap gap-4">
+                      {/* User Info */}
+                      <div className="flex items-center gap-3 flex-1">
+                        <img src={user.avatar_url} alt={user.username} className="w-16 h-16 rounded-full border-2 border-purple-400" />
                         <div>
-                          <p className="font-bold text-white">{user.username}</p>
-                          <p className="text-sm text-gray-400">
-                            Level {user.level} | {user.xp.toLocaleString()} XP | {user.coins.toLocaleString()} 🪙
-                          </p>
+                          <p className="font-bold text-white text-lg">{user.username}</p>
+                          <p className="text-sm text-gray-400">{user.email}</p>
+                          <div className="flex gap-3 mt-1">
+                            <span className="text-xs bg-cyan-600/30 text-cyan-300 px-2 py-1 rounded">Lvl {user.level}</span>
+                            <span className="text-xs bg-purple-600/30 text-purple-300 px-2 py-1 rounded">{user.batch || 'No Batch'}</span>
+                            <span className="text-xs bg-yellow-600/30 text-yellow-300 px-2 py-1 rounded">{user.role || 'student'}</span>
+                          </div>
                         </div>
                       </div>
                       
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => grantCoins(user.id, 1000)}
-                          className="bg-yellow-600/30 hover:bg-yellow-600/50 border border-yellow-400 text-white px-3 py-1 rounded text-sm"
-                          title="Grant 1000 coins"
-                        >
-                          💰 +1000
-                        </button>
-                        <button
-                          onClick={() => resetUserAP(user.id)}
-                          className="bg-green-600/30 hover:bg-green-600/50 border border-green-400 text-white px-3 py-1 rounded text-sm"
-                          title="Reset AP to 20"
-                        >
-                          ⚡ Reset AP
-                        </button>
-                        <button
-                          onClick={() => banUser(user.id)}
-                          className="bg-red-600/30 hover:bg-red-600/50 border border-red-400 text-white px-3 py-1 rounded text-sm"
-                          title="Ban user"
-                        >
-                          🔨 Ban
-                        </button>
+                      {/* Stats Grid */}
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div className="bg-blue-600/20 px-3 py-2 rounded border border-blue-400/50">
+                          <p className="text-blue-300 font-mono">{user.xp.toLocaleString()} XP</p>
+                        </div>
+                        <div className="bg-yellow-600/20 px-3 py-2 rounded border border-yellow-400/50">
+                          <p className="text-yellow-300 font-mono">{user.coins.toLocaleString()} 🪙</p>
+                        </div>
+                        <div className="bg-green-600/20 px-3 py-2 rounded border border-green-400/50">
+                          <p className="text-green-300 font-mono">{user.ap_now}/{user.ap_max} AP</p>
+                        </div>
+                        <div className="bg-red-600/20 px-3 py-2 rounded border border-red-400/50">
+                          <p className="text-red-300 font-mono">⚔️ {user.attack_power} | 🛡️ {user.defense_power}</p>
+                        </div>
                       </div>
+                    </div>
+                    
+                    {/* Action Buttons */}
+                    <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-700">
+                      <button
+                        onClick={() => grantCoins(user.id, 1000)}
+                        className="bg-yellow-600/30 hover:bg-yellow-600/50 border border-yellow-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(251,191,36,0.5)]"
+                      >
+                        💰 +1000 Coins
+                      </button>
+                      <button
+                        onClick={() => grantXP(user.id, 500)}
+                        className="bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(59,130,246,0.5)]"
+                      >
+                        ⚡ +500 XP
+                      </button>
+                      <button
+                        onClick={() => resetUserAP(user.id)}
+                        className="bg-green-600/30 hover:bg-green-600/50 border border-green-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(34,197,94,0.5)]"
+                      >
+                        🔋 Reset AP
+                      </button>
+                      <button
+                        onClick={() => setUserLevel(user.id, user.level + 1)}
+                        className="bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(168,85,247,0.5)]"
+                      >
+                        📈 +1 Level
+                      </button>
+                      <button
+                        onClick={() => banUser(user.id)}
+                        className="bg-red-600/30 hover:bg-red-600/50 border border-red-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(239,68,68,0.5)]"
+                      >
+                        🔨 Ban
+                      </button>
                     </div>
                   </div>
                 ))}
