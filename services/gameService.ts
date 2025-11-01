@@ -226,12 +226,18 @@ export const whoami = async (): Promise<Profile> => {
     
     if (apToRegen > 0 && profile.ap_now < profile.ap_max) {
       const newAP = Math.min(profile.ap_now + apToRegen, profile.ap_max);
+      
+      // Calculate exact timestamp: set timer to when the LAST AP was earned (not now)
+      // Example: 35 minutes elapsed = 3 AP earned. Last AP was earned 5 minutes ago.
+      const remainderMinutes = minutesElapsed % 10;
+      const newLastUpdate = new Date(now.getTime() - (remainderMinutes * 60000));
+      
       const updateData: any = { 
         ap_now: newAP,
-        last_ap_update: now.toISOString()
+        last_ap_update: newLastUpdate.toISOString()
       };
       
-      console.log(`Updating AP in DB: ${profile.ap_now} → ${newAP}`);
+      console.log(`Updating AP in DB: ${profile.ap_now} → ${newAP}, Timer: ${newLastUpdate.toISOString()}`);
       
       const { error: updateError } = await supabase
         .from('users')
@@ -241,9 +247,9 @@ export const whoami = async (): Promise<Profile> => {
       if (updateError) {
         console.error('Failed to update AP in database:', updateError);
       } else {
-        console.log('AP updated successfully in database');
+        console.log('✅ AP regenerated successfully');
         profile.ap_now = newAP;
-        profile.last_ap_update = now.toISOString();
+        profile.last_ap_update = newLastUpdate.toISOString();
       }
     } else {
       console.log(`No AP regeneration needed: current=${profile.ap_now}, max=${profile.ap_max}, toRegen=${apToRegen}`);
