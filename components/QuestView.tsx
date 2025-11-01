@@ -193,24 +193,21 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
 
   const renderSubjectSelection = () => (
     <div>
-      <h2 className="font-heading text-3xl text-center mb-8" style={{color: 'var(--ion-blue)'}}>Select a Subject</h2>
+      <h2 className="font-heading text-3xl text-center mb-8 animate-fade-in-up" style={{color: 'var(--ion-blue)'}}>Select a Subject</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
         {subjects.map(subject => (
           <button 
             key={subject.id} 
             onClick={() => handleSubjectSelect(subject)}
-            className="card-glass glow-ion p-6 text-center transform hover:scale-105 hover:border-cyan-400 transition-all duration-300"
+            className="card-glass glow-ion p-6 text-center transform hover:scale-105 hover:border-cyan-400 transition-all duration-300 animate-fade-in-up"
             style={{ borderColor: 'rgba(0, 208, 232, 0.4)' }}
           >
-            <div className="w-16 h-16 mx-auto mb-4" style={{ color: 'var(--ion-blue)'}}><BrainIcon /></div>
+            <div className="w-16 h-16 mx-auto mb-4 animate-float" style={{ color: 'var(--ion-blue)'}}><BrainIcon /></div>
             <h3 className="font-heading text-xl mb-2">{subject.name}</h3>
-            <p style={{color: 'var(--mist-400)'}}>Difficulty: {'*'.repeat(subject.difficulty)}</p>
+            <p style={{color: 'var(--mist-400)'}}>Difficulty: {'⭐'.repeat(subject.difficulty)}</p>
           </button>
         ))}
       </div>
-       <div className="text-center mt-8">
-            <button onClick={onComplete} className="text-gray-400 hover:text-white transition-colors">Cancel</button>
-        </div>
     </div>
   );
 
@@ -284,12 +281,38 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
   
   const renderCompleted = () => (
     <div className="text-center max-w-lg mx-auto">
-        <h2 className="font-heading text-4xl mb-4" style={{color: 'var(--amber-warn)'}}>Quest Complete!</h2>
-        <div className="card-glass glow-warn p-8" style={{borderColor: 'rgba(255, 176, 32, 0.3)'}}>
+        <h2 className="font-heading text-4xl mb-4 animate-fade-in-up" style={{color: 'var(--amber-warn)'}}>Quest Complete!</h2>
+        <div className="card-glass glow-warn p-8 animate-fade-in-up" style={{borderColor: 'rgba(255, 176, 32, 0.3)'}}>
+            <div className="text-6xl mb-4 animate-bounce">🎉</div>
             <p className="text-lg mb-6">You answered <span className="font-bold text-white">{score.correct}</span> out of <span className="font-bold text-white">{questions.length}</span> questions correctly.</p>
-            <div className="text-2xl font-heading space-y-2">
+            <div className="text-2xl font-heading space-y-2 mb-6">
                 <p>XP Gained: <span style={{color: 'var(--ion-blue)'}}>{score.xp >= 0 ? `+${score.xp}` : score.xp}</span></p>
                 <p>Coins Earned: <span style={{color: 'var(--amber-warn)'}}>{score.coins >= 0 ? `+${score.coins}`: score.coins}</span></p>
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+                <button 
+                    onClick={() => {
+                        setStage('subject_selection');
+                        setSelectedSubject(null);
+                        setQuestions([]);
+                        setCurrentQuestionIndex(0);
+                        setScore({ correct: 0, xp: 0, coins: 0 });
+                    }}
+                    className="px-8 py-4 rounded-lg font-bold text-lg gradient-cyan hover:scale-105 active:scale-95 transition-all shadow-lg animate-pulse-glow"
+                >
+                    🎯 Next Quest
+                </button>
+                <button 
+                    onClick={() => {
+                        onGrantReward({ xp: score.xp, coins: score.coins });
+                        onComplete();
+                    }}
+                    className="px-8 py-4 rounded-lg font-bold text-lg bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 hover:scale-105 active:scale-95 transition-all shadow-lg"
+                >
+                    ← Back to Dashboard
+                </button>
             </div>
         </div>
     </div>
