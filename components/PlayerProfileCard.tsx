@@ -28,12 +28,18 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
   // Calculate time until next AP regeneration and current AP
   useEffect(() => {
     const updateCountdown = () => {
+      if (!profile.last_ap_update) {
+        setCalculatedAP(profile.ap_now);
+        setApCountdown('--');
+        return;
+      }
+
       const now = new Date();
-      const lastApUpdate = profile.last_ap_update ? new Date(profile.last_ap_update) : now;
+      const lastApUpdate = new Date(profile.last_ap_update);
       const msElapsed = now.getTime() - lastApUpdate.getTime();
       const minutesElapsed = Math.floor(msElapsed / (1000 * 60));
       
-      // Calculate current AP based on time elapsed
+      // Calculate current AP based on time elapsed (1 AP per 10 minutes)
       const apRegenerated = Math.floor(minutesElapsed / 10);
       const currentAP = Math.min(profile.ap_now + apRegenerated, profile.ap_max);
       setCalculatedAP(currentAP);
@@ -43,12 +49,12 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
         return;
       }
 
-      // Calculate time until next AP
-      const minutesIntoCurrentCycle = minutesElapsed % 10;
-      const secondsIntoCurrentCycle = Math.floor((msElapsed % (1000 * 60)) / 1000);
+      // Calculate time until next AP regen
+      const msPerAP = 10 * 60 * 1000; // 10 minutes in ms
+      const msUntilNextAP = msPerAP - (msElapsed % msPerAP);
       
-      const minutesUntilNext = 9 - minutesIntoCurrentCycle;
-      const secondsUntilNext = 60 - secondsIntoCurrentCycle;
+      const minutesUntilNext = Math.floor(msUntilNextAP / (1000 * 60));
+      const secondsUntilNext = Math.floor((msUntilNextAP % (1000 * 60)) / 1000);
 
       if (minutesUntilNext === 0) {
         setApCountdown(`${secondsUntilNext}s`);

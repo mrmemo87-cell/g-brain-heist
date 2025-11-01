@@ -154,12 +154,18 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   // AP Regeneration Countdown Timer
   useEffect(() => {
     const calculateCountdown = () => {
+      if (!profile.last_ap_update) {
+        setCalculatedAP(profile.ap_now);
+        setApRegenCountdown('--');
+        return;
+      }
+
       const now = new Date();
-      const lastUpdate = profile.last_ap_update ? new Date(profile.last_ap_update) : now;
+      const lastUpdate = new Date(profile.last_ap_update);
       const msElapsed = now.getTime() - lastUpdate.getTime();
       const minutesElapsed = Math.floor(msElapsed / (1000 * 60));
       
-      // Calculate current AP based on time elapsed
+      // Calculate current AP based on time elapsed (1 AP per 10 minutes)
       const apRegenerated = Math.floor(minutesElapsed / 10);
       const currentAP = Math.min(profile.ap_now + apRegenerated, profile.ap_max);
       setCalculatedAP(currentAP);
@@ -169,6 +175,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
         return;
       }
 
+      // Calculate time until next AP regen
       const msPerAP = 10 * 60 * 1000; // 10 minutes in ms
       const msUntilNextAP = msPerAP - (msElapsed % msPerAP);
       
