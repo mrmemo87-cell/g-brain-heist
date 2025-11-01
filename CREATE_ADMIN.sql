@@ -33,8 +33,6 @@ SET
   avatar_url = 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin&backgroundColor=b6e3f4&skinColor=ffdbb4&eyes=default&eyebrows=default&mouth=smile&accessories=prescription01&clothesColor=262e33'
 WHERE email = 'admin@g-brain-heist.com';
 
-WHERE email = 'admin@g-brain-heist.com';
-
 -- Step 3: Verify admin was created/updated
 SELECT 
   email,
