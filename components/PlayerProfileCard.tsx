@@ -23,23 +23,34 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
   const xpProgressPercent = (profile.xp / xpForNextLevel) * 100;
 
   const [apCountdown, setApCountdown] = useState<string>('');
+  const [calculatedAP, setCalculatedAP] = useState<number>(profile.ap_now);
 
-  // Calculate time until next AP regeneration
+  // Calculate time until next AP regeneration and current AP
   useEffect(() => {
     const updateCountdown = () => {
-      if (profile.ap_now >= profile.ap_max) {
-        setApCountdown('Full');
-        return;
-      }
-
       const now = new Date();
       const lastApUpdate = profile.last_ap_update ? new Date(profile.last_ap_update) : now;
       const msElapsed = now.getTime() - lastApUpdate.getTime();
       const minutesElapsed = Math.floor(msElapsed / (1000 * 60));
-      const minutesUntilNext = 10 - (minutesElapsed % 10);
-      const secondsUntilNext = 60 - (Math.floor((msElapsed % (1000 * 60)) / 1000));
+      
+      // Calculate current AP based on time elapsed
+      const apRegenerated = Math.floor(minutesElapsed / 10);
+      const currentAP = Math.min(profile.ap_now + apRegenerated, profile.ap_max);
+      setCalculatedAP(currentAP);
 
-      if (minutesUntilNext === 10) {
+      if (currentAP >= profile.ap_max) {
+        setApCountdown('Full');
+        return;
+      }
+
+      // Calculate time until next AP
+      const minutesIntoCurrentCycle = minutesElapsed % 10;
+      const secondsIntoCurrentCycle = Math.floor((msElapsed % (1000 * 60)) / 1000);
+      
+      const minutesUntilNext = 9 - minutesIntoCurrentCycle;
+      const secondsUntilNext = 60 - secondsIntoCurrentCycle;
+
+      if (minutesUntilNext === 0) {
         setApCountdown(`${secondsUntilNext}s`);
       } else {
         setApCountdown(`${minutesUntilNext}m ${secondsUntilNext}s`);
@@ -82,9 +93,9 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
         <StatDisplay 
           icon={<APIcon />} 
           label="Action Points" 
-          value={`${profile.ap_now}/${profile.ap_max}`} 
+          value={`${calculatedAP}/${profile.ap_max}`} 
           color={'var(--success-teal)'} 
-          subtitle={profile.ap_now < profile.ap_max ? `+1 in ${apCountdown}` : undefined}
+          subtitle={calculatedAP < profile.ap_max ? `+1 in ${apCountdown}` : undefined}
         />
         <StatDisplay icon={<span>⚔️</span>} label="Attack" value={profile.attack_power || 10} color={'var(--danger-red)'} />
         <StatDisplay icon={<span>🛡️</span>} label="Defense" value={profile.defense_power || 10} color={'var(--ion-blue)'} />

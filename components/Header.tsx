@@ -87,6 +87,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   const [selectedAvatar, setSelectedAvatar] = useState<string>(profile.avatar_url || '');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [apRegenCountdown, setApRegenCountdown] = useState<string>('');
+  const [calculatedAP, setCalculatedAP] = useState<number>(profile.ap_now);
 
   const avatarPresets = [
     'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
@@ -153,14 +154,21 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   // AP Regeneration Countdown Timer
   useEffect(() => {
     const calculateCountdown = () => {
-      if (profile.ap_now >= profile.ap_max) {
+      const now = new Date();
+      const lastUpdate = profile.last_ap_update ? new Date(profile.last_ap_update) : now;
+      const msElapsed = now.getTime() - lastUpdate.getTime();
+      const minutesElapsed = Math.floor(msElapsed / (1000 * 60));
+      
+      // Calculate current AP based on time elapsed
+      const apRegenerated = Math.floor(minutesElapsed / 10);
+      const currentAP = Math.min(profile.ap_now + apRegenerated, profile.ap_max);
+      setCalculatedAP(currentAP);
+
+      if (currentAP >= profile.ap_max) {
         setApRegenCountdown('MAX');
         return;
       }
 
-      const now = new Date();
-      const lastUpdate = profile.last_ap_update ? new Date(profile.last_ap_update) : now;
-      const msElapsed = now.getTime() - lastUpdate.getTime();
       const msPerAP = 10 * 60 * 1000; // 10 minutes in ms
       const msUntilNextAP = msPerAP - (msElapsed % msPerAP);
       
@@ -276,7 +284,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                 <div className="flex flex-col">
                   <span className="text-[9px] text-green-300/80 font-semibold uppercase leading-none">AP</span>
                   <div className="flex items-baseline gap-1">
-                    <span id="ap-hud" className="font-mono font-bold text-sm text-white leading-none">{profile.ap_now}</span>
+                    <span id="ap-hud" className="font-mono font-bold text-sm text-white leading-none">{calculatedAP}</span>
                     <span className="text-[10px] text-gray-400">/{profile.ap_max}</span>
                   </div>
                   {apRegenCountdown !== 'MAX' && (
@@ -380,7 +388,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                   <div className="flex flex-col">
                     <span className="text-xs text-green-300/80 font-semibold uppercase tracking-wide leading-none">AP</span>
                     <div className="flex items-baseline gap-1">
-                      <span id="ap-hud" className="font-mono font-bold text-lg text-white leading-none">{profile.ap_now}</span>
+                      <span id="ap-hud" className="font-mono font-bold text-lg text-white leading-none">{calculatedAP}</span>
                       <span className="text-xs text-gray-400">/{profile.ap_max}</span>
                     </div>
                     {apRegenCountdown !== 'MAX' && (
