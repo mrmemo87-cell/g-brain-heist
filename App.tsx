@@ -86,10 +86,19 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       ]) as any;
 
       setProfile(profileData);
-      setTasks(tasksData);
-      setSessionStatus(sessionData);
-      setCaps(capsData);
-      setNews(newsData);
+      
+      // Admin users don't need tasks/sessions - set defaults
+      if (profileData?.role === 'admin') {
+        setTasks(tasksData || []);
+        setSessionStatus(sessionData || { status: 'idle', current_task: null, started_at: null, multiplier: 1 });
+        setCaps(capsData || { daily: 0, weekly: 0, monthly: 0 });
+      } else {
+        setTasks(tasksData);
+        setSessionStatus(sessionData);
+        setCaps(capsData);
+      }
+      
+      setNews(newsData || []);
 
       // Show tutorial if first time user (only check once on initial load)
       if (!tutorialChecked && profileData && !profileData.tutorial_completed) {
