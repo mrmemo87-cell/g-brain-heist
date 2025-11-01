@@ -20,6 +20,7 @@ import LeaderboardView from './components/LeaderboardView';
 import AchievementView from './components/AchievementView';
 import TutorialModal from './components/TutorialModal';
 import TeacherPortal from './components/TeacherPortal';
+import HelpModal from './components/HelpModal';
 import { ToastContainer } from './components/ToastNotification';
 
 interface AppProps {
@@ -39,6 +40,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [levelUpData, setLevelUpData] = useState<{ newLevel: number; rewards: any } | null>(null);
   const [previousLevel, setPreviousLevel] = useState<number | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [tutorialChecked, setTutorialChecked] = useState(false); // Track if we've checked tutorial status
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -530,6 +532,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         onLogout={onLogout} 
         currentView={view}
         onBackToDashboard={() => setView('dashboard')}
+        onShowHelp={() => setShowHelp(true)}
       />
 
       {/* Offline Banner */}
@@ -596,6 +599,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             }, 100);
           }}
         />
+      )}
+
+      {/* Help Modal */}
+      {showHelp && (
+        <HelpModal onClose={() => setShowHelp(false)} />
       )}
 
       {/* Toast Notifications */}

@@ -74,9 +74,10 @@ interface HeaderProps {
   onLogout: () => void;
   currentView: string;
   onBackToDashboard?: () => void;
+  onShowHelp?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard }) => {
+const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard, onShowHelp }) => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -222,6 +223,14 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                       {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                   )}
+                </button>
+                <button 
+                  onClick={() => onShowHelp?.()}
+                  className="p-2 rounded-lg bg-black/40 border border-gray-600 hover:border-cyan-500 transition-colors"
+                  aria-label="Help"
+                  title="Help & Guide"
+                >
+                  <span className="text-lg">❓</span>
                 </button>
                 <button 
                   onClick={() => setShowSettingsModal(true)}
@@ -409,6 +418,16 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
+              </button>
+
+              {/* Help Button */}
+              <button 
+                onClick={() => onShowHelp?.()}
+                className="p-2.5 rounded-xl bg-black/40 border border-gray-600 hover:border-cyan-500 hover:bg-cyan-500/10 transition-all hover:scale-110 backdrop-blur-sm"
+                aria-label="Help"
+                title="Help & Guide"
+              >
+                <span className="text-xl">❓</span>
               </button>
 
               {/* Settings Button */}
