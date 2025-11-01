@@ -17,8 +17,8 @@ declare
   -- ====== CONFIG ======
   c_ap_cost int := 2;                 -- AP cost per hack attempt
   c_shield_defense_bonus int := 20;  -- Shield adds +20 defense
+  c_attack_cooldown_seconds int := 300; -- 5 minutes cooldown after being attacked
   c_xp_win int := 30;
-  c_coins_win int := 50;
   c_coins_steal_percent numeric := 0.10;  -- Steal 10% of defender's coins (MASSIVE THEFT ENABLED)
   c_xp_loss int := -10;               -- XP penalty for loss or blocked
   c_coins_loss_to_defender int := 50; -- Coins attacker loses to defender on loss
@@ -82,7 +82,8 @@ begin
   select 
     id, username, level, xp, coins,
     coalesce(attack_power, 10) as attack_power,
-    coalesce(defense_power, 10) as defense_power
+    coalesce(defense_power, 10) as defense_power,
+    last_attacked_at
   into defender
   from public.users
   where id = p_defender_id
@@ -90,6 +91,14 @@ begin
 
   if not found then
     raise exception 'Defender not found';
+  end if;
+
+  -- ====== Check attack cooldown ======
+  if defender.last_attacked_at is not null then
+    if extract(epoch from (v_now - defender.last_attacked_at)) < c_attack_cooldown_seconds then
+      raise exception 'COOLDOWN: This player was recently attacked. Try again in % seconds.',
+        c_attack_cooldown_seconds - extract(epoch from (v_now - defender.last_attacked_at))::int;
+    end if;
   end if;
 
   -- ====== Check for active shield on defender ======
@@ -160,7 +169,6 @@ begin
   if is_win then
     -- Attacker wins
     xp_delta := c_xp_win;
-    coins_delta := c_coins_win;
     
     -- Calculate coins stolen from defender (10% of their balance, capped at 30% max)
     coins_stolen_from_def := least(
@@ -168,17 +176,14 @@ begin
       floor(defender.coins * c_max_steal_percent_win)
     );
     
-    -- Minimum steal of 10 coins if they have any
-    if defender.coins > 0 and coins_stolen_from_def < 10 then
-      coins_stolen_from_def := least(10, defender.coins);
-    end if;
+    coins_delta := coins_stolen_from_def; -- NO BASE COINS, only what you steal
     
     -- If shield blocked, no coin theft
     if shield_blocks then
       coins_stolen_from_def := 0;
+      coins_delta := 0;
       result_kind := 'pvp_blocked';
     else
-      coins_delta := coins_delta + coins_stolen_from_def;
       result_kind := 'pvp_win';
     end if;
 
@@ -189,9 +194,10 @@ begin
         ap_now = ap_now - c_ap_cost
     where id = v_attacker_id;
 
-    -- Update defender (lose coins if not blocked)
+    -- Update defender (lose coins if not blocked, and set cooldown)
     update public.users
-    set coins = greatest(0, coins - coins_stolen_from_def)
+    set coins = greatest(0, coins - coins_stolen_from_def),
+        last_attacked_at = v_now
     where id = p_defender_id;
 
   else
@@ -214,9 +220,10 @@ begin
         ap_now = ap_now - c_ap_cost
     where id = v_attacker_id;
     
-    -- Update defender (gains coins from failed attack)
+    -- Update defender (gains coins from failed attack, and set cooldown)
     update public.users
-    set coins = coins + coins_lost_to_def
+    set coins = coins + coins_lost_to_def,
+        last_attacked_at = v_now
     where id = p_defender_id;
   end if;
 

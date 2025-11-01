@@ -719,16 +719,18 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
     const user = await getCurrentUser();
     
     // Fetch all users except current user and teachers from database with their clan info
+    // Exclude players who were attacked in the last 5 minutes (300 seconds)
     const { data: players, error } = await supabase
         .from('users')
         .select(`
-            id, username, level, coins, batch, avatar_url, last_seen, attack_power, defense_power,
+            id, username, level, coins, batch, avatar_url, last_seen, attack_power, defense_power, last_attacked_at,
             clan_members!left (
                 clans!inner (name)
             )
         `)
         .neq('id', user.id)
         .neq('role', 'teacher')
+        .or(`last_attacked_at.is.null,last_attacked_at.lt.${new Date(Date.now() - 5 * 60 * 1000).toISOString()}`)
         .limit(20);
     
     if (error) throw error;
@@ -770,6 +772,14 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
     
     if (error) {
         console.error('Hack attempt RPC error:', error);
+        // Check if it's a cooldown error
+        if (error.message && error.message.includes('COOLDOWN:')) {
+            // Extract cooldown time from error message
+            const match = error.message.match(/Try again in (\d+) seconds/);
+            const seconds = match ? parseInt(match[1]) : 300;
+            const minutes = Math.ceil(seconds / 60);
+            throw new Error(`⏰ This player is protected! They were recently attacked. Wait ${minutes} minute${minutes > 1 ? 's' : ''} before attacking again.`);
+        }
         throw new Error(error.message || 'Hack attempt failed');
     }
     
