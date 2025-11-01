@@ -599,29 +599,100 @@ export const mcq_subjects_list = (): Promise<SubjectData[]> => {
     return mockApiCall(subjects);
 };
 
-export const mcq_questions_get = (subject_id: string, limit: number = 5): Promise<Question[]> => {
-    const questions: Question[] = Array.from({ length: limit }, (_, i) => ({
-        id: `q_${subject_id}_${i+1}`,
-        body: `This is question ${i+1} for the ${subject_id.replace('subj_', '')} subject. What is the correct answer?`,
-        options: ['Option A', 'Option B (Correct)', 'Option C', 'Option D'],
-        reward_xp: 20,
-        reward_coins: 30,
+export const mcq_questions_get = async (subject_id: string, limit: number = 5): Promise<Question[]> => {
+    // Map subject_id to subject name for teacher questions
+    const subjectMap: { [key: string]: string } = {
+        'subj_science': 'Science',
+        'subj_math': 'Maths',
+        'subj_mathematics': 'Maths',
+        'subj_english': 'English',
+        'subj_russian_language': 'Russian Language',
+        'subj_kyrgyz_language': 'Kyrgyz Language',
+        'subj_german_language': 'German Language',
+        'subj_geography': 'Geography',
+        'subj_global_perspective': 'Global Perspective',
+        'subj_russian_literature': 'Russian Language',
+        'subj_ict': 'ICT'
+    };
+
+    const subjectName = subjectMap[subject_id] || 'Science';
+
+    // Fetch teacher questions from database
+    const { data, error } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('subject', subjectName)
+        .eq('is_public', true)
+        .eq('is_active', true)
+        .limit(limit * 2); // Get more to randomize
+
+    if (error) {
+        console.error('Error fetching questions:', error);
+        // Return empty array instead of mock data
+        return [];
+    }
+
+    if (!data || data.length === 0) {
+        return [];
+    }
+
+    // Shuffle and take requested number
+    const shuffled = data.sort(() => Math.random() - 0.5).slice(0, limit);
+
+    // Map to Question format (for compatibility with existing UI)
+    return shuffled.map(q => ({
+        id: q.id,
+        body: q.question_text,
+        options: q.options || [],
+        reward_xp: q.points || 20,
+        reward_coins: Math.floor((q.points || 20) * 1.5),
     }));
-    return mockApiCall(questions);
 };
 
 export const mcq_answer_submit = async (question_id: string, choice: string): Promise<AnswerResponse> => {
     const user = await getCurrentUser();
-    const isCorrect = choice === 'Option B (Correct)';
+    
+    // Fetch the question from database to check correct answer
+    const { data: question, error: questionError } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('id', question_id)
+        .single();
+
+    if (questionError || !question) {
+        throw new Error('Question not found');
+    }
+
+    const isCorrect = choice === question.correct_answer;
     
     const response: AnswerResponse = {
         correct: isCorrect,
         deltas: {
-            xp: isCorrect ? 20 : -5,
-            coins: isCorrect ? 30 : 0,
+            xp: isCorrect ? (question.points || 20) : -5,
+            coins: isCorrect ? Math.floor((question.points || 20) * 1.5) : 0,
         },
-        explanation: isCorrect ? 'Well done, agent!' : 'Incorrect. The correct answer was B because of reasons.'
+        explanation: isCorrect 
+            ? (question.explanation || 'Well done, agent!') 
+            : `Incorrect. ${question.explanation || 'The correct answer was: ' + question.correct_answer}`
     };
+
+    // Record the attempt in question_attempts table
+    await supabase.from('question_attempts').insert({
+        student_id: user.id,
+        question_id: question_id,
+        answer_given: choice,
+        is_correct: isCorrect,
+        points_earned: isCorrect ? (question.points || 20) : 0,
+    });
+
+    // Update question statistics
+    await supabase
+        .from('questions')
+        .update({
+            times_answered: (question.times_answered || 0) + 1,
+            times_correct: (question.times_correct || 0) + (isCorrect ? 1 : 0),
+        })
+        .eq('id', question_id);
     
     // Update profile with rewards/penalties in database
     const { data: currentProfile, error: fetchError } = await supabase
@@ -1971,7 +2042,7 @@ export const create_question = async (questionData: CreateQuestionRequest): Prom
             difficulty: questionData.difficulty,
             question_text: questionData.question_text,
             question_type: questionData.question_type,
-            options: questionData.question_options,
+            options: questionData.options,
             correct_answer: questionData.correct_answer,
             explanation: questionData.explanation,
             hints: questionData.hints,
@@ -2033,7 +2104,6 @@ export const update_question = async (
         .from('questions')
         .update({
             ...updates,
-            options: updates.question_options,
             updated_at: new Date().toISOString()
         })
         .eq('id', questionId)
