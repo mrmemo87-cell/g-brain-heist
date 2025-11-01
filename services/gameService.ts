@@ -1215,6 +1215,17 @@ export const clan_chat_post = async (message: string): Promise<ClanChatMessage> 
     const user = await getCurrentUser();
     const cleanMessage = toxicityFilter(message);
     
+    // Get user's profile for username
+    const { data: profile } = await supabase
+        .from('users')
+        .select('username')
+        .eq('id', user.id)
+        .single();
+    
+    if (!profile) {
+        throw new Error('User profile not found.');
+    }
+    
     // Get user's clan
     const { data: membership } = await supabase
         .from('clan_members')
@@ -1223,33 +1234,33 @@ export const clan_chat_post = async (message: string): Promise<ClanChatMessage> 
         .single();
     
     if (!membership) {
-        return Promise.reject({ message: 'You are not in a clan.' });
+        throw new Error('You are not in a clan.');
     }
     
-    // Insert chat message
+    // Insert chat message with username directly
     const { data: newMessage, error } = await supabase
         .from('clan_chat')
         .insert({
             clan_id: membership.clan_id,
             user_id: user.id,
+            username: profile.username,
             message: cleanMessage,
         })
-        .select(`
-            id,
-            message,
-            created_at,
-            user_id,
-            users!inner (username)
-        `)
+        .select('*')
         .single();
     
-    if (error || !newMessage) {
-        return Promise.reject({ message: 'Failed to post message.' });
+    if (error) {
+        console.error('Chat post error:', error);
+        throw new Error(error.message || 'Failed to post message.');
+    }
+    
+    if (!newMessage) {
+        throw new Error('Failed to post message - no data returned.');
     }
     
     const chatMessage: ClanChatMessage = {
         id: newMessage.id,
-        user: (newMessage as any).users.username,
+        user: newMessage.username,
         message: newMessage.message,
         created_at: 'Just now',
         is_self: true,
@@ -1262,75 +1273,285 @@ export const clan_get_available_buffs = (): Promise<ClanBuff[]> => {
     return mockApiCall(MOCK_AVAILABLE_BUFFS);
 };
 
-export const clan_deposit_coins = (amount: number): Promise<{ new_clan_vault: number; new_user_coins: number }> => {
-    if (amount <= 0 || MOCK_PROFILE.coins < amount) {
-        return Promise.reject({ message: 'Invalid amount or insufficient funds.' });
+export const clan_deposit_coins = async (amount: number): Promise<{ new_clan_vault: number; new_user_coins: number }> => {
+    const user = await getCurrentUser();
+    
+    if (amount <= 0) {
+        throw new Error('Invalid amount.');
     }
-    if (!MOCK_CLAN) {
-        return Promise.reject({ message: 'Not in a clan.' });
+    
+    // Get user's current coins and clan membership
+    const { data: profile } = await supabase
+        .from('users')
+        .select('coins')
+        .eq('id', user.id)
+        .single();
+    
+    if (!profile || profile.coins < amount) {
+        throw new Error('Insufficient funds.');
     }
-    MOCK_PROFILE.coins -= amount;
-    MOCK_CLAN.vault_coins += amount;
-    saveProfile();
-    saveClan();
-    return mockApiCall({ new_clan_vault: MOCK_CLAN.vault_coins, new_user_coins: MOCK_PROFILE.coins });
+    
+    // Get user's clan
+    const { data: membership } = await supabase
+        .from('clan_members')
+        .select('clan_id')
+        .eq('user_id', user.id)
+        .single();
+    
+    if (!membership) {
+        throw new Error('Not in a clan.');
+    }
+    
+    // Get clan current vault
+    const { data: clan } = await supabase
+        .from('clans')
+        .select('vault_coins')
+        .eq('id', membership.clan_id)
+        .single();
+    
+    if (!clan) {
+        throw new Error('Clan not found.');
+    }
+    
+    const newUserCoins = profile.coins - amount;
+    const newClanVault = clan.vault_coins + amount;
+    
+    // Update user coins
+    await supabase
+        .from('users')
+        .update({ coins: newUserCoins })
+        .eq('id', user.id);
+    
+    // Update clan vault
+    await supabase
+        .from('clans')
+        .update({ vault_coins: newClanVault })
+        .eq('id', membership.clan_id);
+    
+    return mockApiCall({ new_clan_vault: newClanVault, new_user_coins: newUserCoins });
 };
 
-export const clan_buy_buff = (buff_id: string): Promise<Clan> => {
-    if (!MOCK_CLAN) return Promise.reject({ message: 'Not in a clan.' });
-
+export const clan_buy_buff = async (buff_id: string): Promise<Clan> => {
+    const user = await getCurrentUser();
+    
+    // Get user's clan membership
+    const { data: membership } = await supabase
+        .from('clan_members')
+        .select('clan_id, role')
+        .eq('user_id', user.id)
+        .single();
+    
+    if (!membership) {
+        throw new Error('Not in a clan.');
+    }
+    
+    // Only leaders and officers can buy buffs
+    if (membership.role !== 'leader' && membership.role !== 'officer') {
+        throw new Error('Only leaders and officers can purchase buffs.');
+    }
+    
     const buff = MOCK_AVAILABLE_BUFFS.find(b => b.id === buff_id);
-    if (!buff) return Promise.reject({ message: 'Buff not found.' });
-
-    if (MOCK_CLAN.vault_coins < buff.cost) {
-        return Promise.reject({ message: 'Not enough coins in clan vault.' });
+    if (!buff) {
+        throw new Error('Buff not found.');
     }
-    MOCK_CLAN.vault_coins -= buff.cost;
-    const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-    MOCK_CLAN.buffs.push({ ...buff, active_until: expiry });
-
-    saveClan();
-    return mockApiCall(MOCK_CLAN);
+    
+    // Get clan's vault balance
+    const { data: clan } = await supabase
+        .from('clans')
+        .select('vault_coins')
+        .eq('id', membership.clan_id)
+        .single();
+    
+    if (!clan || clan.vault_coins < buff.cost) {
+        throw new Error('Not enough coins in clan vault.');
+    }
+    
+    // Deduct from vault
+    await supabase
+        .from('clans')
+        .update({ vault_coins: clan.vault_coins - buff.cost })
+        .eq('id', membership.clan_id);
+    
+    // TODO: Store buff activation in a clan_buffs table
+    // For now, just deduct the coins and return updated clan details
+    
+    return await clan_details() as Clan;
 };
 
-export const clan_leave = (): Promise<boolean> => {
-    MOCK_CLAN = null;
-    saveClan();
+export const clan_leave = async (): Promise<boolean> => {
+    const user = await getCurrentUser();
+    
+    // Check if user is in a clan
+    const { data: membership } = await supabase
+        .from('clan_members')
+        .select('clan_id, role')
+        .eq('user_id', user.id)
+        .single();
+    
+    if (!membership) {
+        throw new Error('You are not in a clan.');
+    }
+    
+    // Leaders cannot leave, they must delete the clan or transfer leadership
+    if (membership.role === 'leader') {
+        throw new Error('Leaders cannot leave. Delete the clan or transfer leadership first.');
+    }
+    
+    // Remove user from clan
+    const { error } = await supabase
+        .from('clan_members')
+        .delete()
+        .eq('user_id', user.id);
+    
+    if (error) {
+        console.error('Failed to leave clan:', error);
+        throw new Error('Failed to leave clan.');
+    }
+    
     return mockApiCall(true);
 };
 
-export const clan_delete = (): Promise<boolean> => {
-    // In a real scenario, you'd check if the user is the leader
-    MOCK_CLAN = null;
-    saveClan();
+export const clan_delete = async (): Promise<boolean> => {
+    const user = await getCurrentUser();
+    
+    // Get user's clan and verify they're the leader
+    const { data: membership } = await supabase
+        .from('clan_members')
+        .select('clan_id, role')
+        .eq('user_id', user.id)
+        .single();
+    
+    if (!membership) {
+        throw new Error('You are not in a clan.');
+    }
+    
+    if (membership.role !== 'leader') {
+        throw new Error('Only the clan leader can delete the clan.');
+    }
+    
+    // Delete the clan (cascade will delete members and chat)
+    const { error } = await supabase
+        .from('clans')
+        .delete()
+        .eq('id', membership.clan_id);
+    
+    if (error) {
+        console.error('Failed to delete clan:', error);
+        throw new Error('Failed to delete clan.');
+    }
+    
     return mockApiCall(true);
 };
 
-export const clan_promote_member = (user_id: string): Promise<Clan> => {
-    if (!MOCK_CLAN) return Promise.reject({ message: 'Not in a clan.' });
-    const member = MOCK_CLAN.members.find(m => m.user_id === user_id);
-    if (member && member.role === 'member') {
-        member.role = 'officer';
+export const clan_promote_member = async (user_id: string): Promise<Clan> => {
+    const user = await getCurrentUser();
+    
+    // Get current user's clan and role
+    const { data: membership } = await supabase
+        .from('clan_members')
+        .select('clan_id, role')
+        .eq('user_id', user.id)
+        .single();
+    
+    if (!membership) {
+        throw new Error('Not in a clan.');
     }
-    saveClan();
-    return mockApiCall(MOCK_CLAN);
+    
+    if (membership.role !== 'leader') {
+        throw new Error('Only the clan leader can promote members.');
+    }
+    
+    // Promote the target member to officer
+    const { error } = await supabase
+        .from('clan_members')
+        .update({ role: 'officer' })
+        .eq('user_id', user_id)
+        .eq('clan_id', membership.clan_id);
+    
+    if (error) {
+        console.error('Failed to promote member:', error);
+        throw new Error('Failed to promote member.');
+    }
+    
+    return await clan_details() as Clan;
 };
 
-export const clan_demote_member = (user_id: string): Promise<Clan> => {
-    if (!MOCK_CLAN) return Promise.reject({ message: 'Not in a clan.' });
-    const member = MOCK_CLAN.members.find(m => m.user_id === user_id);
-    if (member && member.role === 'officer') {
-        member.role = 'member';
+export const clan_demote_member = async (user_id: string): Promise<Clan> => {
+    const user = await getCurrentUser();
+    
+    // Get current user's clan and role
+    const { data: membership } = await supabase
+        .from('clan_members')
+        .select('clan_id, role')
+        .eq('user_id', user.id)
+        .single();
+    
+    if (!membership) {
+        throw new Error('Not in a clan.');
     }
-    saveClan();
-    return mockApiCall(MOCK_CLAN);
+    
+    if (membership.role !== 'leader') {
+        throw new Error('Only the clan leader can demote members.');
+    }
+    
+    // Demote the target member to regular member
+    const { error } = await supabase
+        .from('clan_members')
+        .update({ role: 'member' })
+        .eq('user_id', user_id)
+        .eq('clan_id', membership.clan_id);
+    
+    if (error) {
+        console.error('Failed to demote member:', error);
+        throw new Error('Failed to demote member.');
+    }
+    
+    return await clan_details() as Clan;
 };
 
-export const clan_kick_member = (user_id: string): Promise<Clan> => {
-    if (!MOCK_CLAN) return Promise.reject({ message: 'Not in a clan.' });
-    MOCK_CLAN.members = MOCK_CLAN.members.filter(m => m.user_id !== user_id);
-    saveClan();
-    return mockApiCall(MOCK_CLAN);
+export const clan_kick_member = async (user_id: string): Promise<Clan> => {
+    const user = await getCurrentUser();
+    
+    // Get current user's clan and role
+    const { data: membership } = await supabase
+        .from('clan_members')
+        .select('clan_id, role')
+        .eq('user_id', user.id)
+        .single();
+    
+    if (!membership) {
+        throw new Error('Not in a clan.');
+    }
+    
+    if (membership.role !== 'leader' && membership.role !== 'officer') {
+        throw new Error('Only leaders and officers can kick members.');
+    }
+    
+    // Cannot kick the leader
+    const { data: targetMember } = await supabase
+        .from('clan_members')
+        .select('role')
+        .eq('user_id', user_id)
+        .eq('clan_id', membership.clan_id)
+        .single();
+    
+    if (targetMember?.role === 'leader') {
+        throw new Error('Cannot kick the clan leader.');
+    }
+    
+    // Remove the member
+    const { error } = await supabase
+        .from('clan_members')
+        .delete()
+        .eq('user_id', user_id)
+        .eq('clan_id', membership.clan_id);
+    
+    if (error) {
+        console.error('Failed to kick member:', error);
+        throw new Error('Failed to kick member.');
+    }
+    
+    return await clan_details() as Clan;
 };
 
 // ============================================
