@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Profile } from '../types';
-import { CoinIcon, XPIcon, APIcon, LogoutIcon } from './icons';
+import { CoinIcon, XPIcon, APIcon, LogoutIcon, StreakIcon } from './icons';
 import { audioService } from '../services/audioService';
 
 // Custom hook for animating number changes
@@ -47,10 +47,17 @@ const useAnimatedValue = (endValue: number, duration: number = 500) => {
 };
 
 
-const StatChip: React.FC<{ icon: React.ReactNode; value: number; 'data-testid': string; subtitle?: string }> = ({ icon, value, 'data-testid': testId, subtitle }) => {
+const StatChip: React.FC<{ icon: React.ReactNode; value: number; 'data-testid': string; subtitle?: string; highlight?: boolean }> = ({ icon, value, 'data-testid': testId, subtitle, highlight }) => {
     const animatedValue = useAnimatedValue(value);
     return (
-        <div id={testId} className="stat-chip flex items-center space-x-1 sm:space-x-2 bg-black/20 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full touch-manipulation">
+        <div 
+            id={testId} 
+            className={`stat-chip flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full touch-manipulation transition-all ${
+                highlight 
+                    ? 'bg-gradient-to-r from-orange-500/30 to-red-500/30 border border-orange-400 animate-pulse-glow' 
+                    : 'bg-black/30 hover:bg-black/40 backdrop-blur-sm'
+            }`}
+        >
             <div className="w-5 h-5 sm:w-6 sm:h-6">{icon}</div>
             <div className="flex flex-col">
                 <span className="font-mono font-semibold text-sm sm:text-base leading-none">{animatedValue.toLocaleString()}</span>
@@ -146,43 +153,70 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex justify-between items-center card-glass glow-ion p-2 sm:p-4 animate-slide-in-right">
-        <div className="flex items-center space-x-2 sm:space-x-4">
-          <h1 className="font-heading text-xl sm:text-2xl md:text-3xl font-bold tracking-wider neon-text" style={{ color: 'var(--ion-blue)' }}>
-              BH
-          </h1>
-          <span className="hidden sm:block text-base sm:text-lg font-medium text-gray-300 animate-fade-in-up">{profile.username}</span>
+      <header className="sticky top-0 z-40 card-glass backdrop-blur-md animate-slide-in-right shadow-lg shadow-cyan-500/10" style={{ borderBottom: '1px solid rgba(0, 208, 232, 0.2)' }}>
+        {/* Top row - Brand and Actions */}
+        <div className="flex justify-between items-center p-3 sm:p-4">
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <div className="relative">
+              <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl font-bold tracking-wider neon-text" style={{ color: 'var(--ion-blue)' }}>
+                BH
+              </h1>
+              <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-shimmer"></div>
+            </div>
+            <div className="hidden sm:flex flex-col">
+              <span className="text-base sm:text-lg font-bold text-white animate-fade-in-up">{profile.username}</span>
+              <span className="text-xs text-gray-400">Level {profile.level} • {profile.batch}</span>
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <img 
+              src={profile.avatar_url} 
+              alt="Player Avatar" 
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 animate-float cursor-pointer hover:scale-110 transition-transform" 
+              style={{ borderColor: 'var(--plasma-pink)' }}
+              onClick={() => setShowSettingsModal(true)}
+            />
+            
+            <button 
+              onClick={() => setShowSettingsModal(true)}
+              className="p-2 sm:p-2.5 rounded-full bg-black/30 hover:bg-amber-warn/30 transition-all hover:scale-110 backdrop-blur-sm"
+              aria-label="Settings"
+              title="Settings"
+            >
+              <span className="text-lg sm:text-xl">⚙️</span>
+            </button>
+
+            <button 
+              onClick={onLogout}
+              className="hidden sm:flex p-2.5 rounded-full bg-black/30 hover:bg-plasma-pink/30 transition-all hover:scale-110 backdrop-blur-sm items-center justify-center"
+              aria-label="Log Out"
+              title="Log Out"
+            >
+              <LogoutIcon className="w-5 h-5 sm:w-6 sm:h-6 text-mist-400" />
+            </button>
+          </div>
         </div>
-        <div className="flex items-center space-x-1 sm:space-x-3">
-          <div className="flex items-center space-x-1 sm:space-x-2 animate-fade-in-up">
+        
+        {/* Bottom row - Stats */}
+        <div className="flex items-center justify-between px-3 sm:px-4 pb-3 sm:pb-4 gap-2 overflow-x-auto">
+          <div className="flex items-center space-x-2 animate-fade-in-up">
             <StatChip icon={<CoinIcon />} value={profile.coins} data-testid="coin-hud" />
             <StatChip icon={<XPIcon />} value={profile.xp} data-testid="xp-hud" />
             <StatChip 
               icon={<APIcon />} 
               value={profile.ap_now} 
               data-testid="ap-hud" 
-              subtitle={apRegenCountdown !== 'MAX' ? `+1 in ${apRegenCountdown}` : undefined}
+              subtitle={apRegenCountdown !== 'MAX' ? `+1 in ${apRegenCountdown}` : 'MAX'}
+            />
+            <StatChip 
+              icon={<StreakIcon />} 
+              value={profile.streak || 0} 
+              data-testid="streak-hud"
+              subtitle={profile.streak > 1 ? 'days' : 'day'}
+              highlight={profile.streak >= 7}
             />
           </div>
-          <img src={profile.avatar_url} alt="Player Avatar" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 animate-float" style={{ borderColor: 'var(--plasma-pink)' }} />
-          
-          <button 
-              onClick={() => setShowSettingsModal(true)}
-              className="p-1.5 sm:p-2 rounded-full bg-black/20 hover:bg-amber-warn/30 transition-colors"
-              aria-label="Settings"
-              title="Settings"
-          >
-              <span className="text-base sm:text-xl">⚙️</span>
-          </button>
-
-          <button 
-              onClick={onLogout}
-              className="hidden sm:block p-2 rounded-full bg-black/20 hover:bg-plasma-pink/30 transition-colors"
-              aria-label="Log Out"
-              title="Log Out"
-          >
-              <LogoutIcon className="w-5 h-5 sm:w-6 sm:h-6 text-mist-400" />
-          </button>
         </div>
       </header>
 
@@ -242,6 +276,17 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                   <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
                     <span className="text-gray-300">Batch</span>
                     <span className="font-bold text-white">{profile.batch}</span>
+                  </div>
+                  <div className={`flex items-center justify-between p-3 rounded-lg ${
+                    profile.streak >= 7 ? 'bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-400' : 'bg-black/20'
+                  }`}>
+                    <span className="text-gray-300 flex items-center space-x-2">
+                      <span>🔥</span>
+                      <span>Login Streak</span>
+                    </span>
+                    <span className={`font-bold text-xl ${profile.streak >= 7 ? 'text-orange-400' : 'text-white'}`}>
+                      {profile.streak || 0} {profile.streak === 1 ? 'day' : 'days'}
+                    </span>
                   </div>
                 </div>
               </div>

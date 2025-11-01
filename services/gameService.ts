@@ -192,28 +192,48 @@ export const whoami = async (): Promise<Profile> => {
   // Regenerate 1 AP per 10 minutes (600,000 ms)
   const apToRegen = Math.floor(minutesElapsed / 10);
   
+  // ====== STREAK TRACKING LOGIC ======
+  const lastSeen = profile.last_seen ? new Date(profile.last_seen) : null;
+  let newStreak = profile.streak || 0;
+  
+  if (lastSeen) {
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const lastSeenStart = new Date(lastSeen.getFullYear(), lastSeen.getMonth(), lastSeen.getDate());
+    const daysDiff = Math.floor((todayStart.getTime() - lastSeenStart.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysDiff === 1) {
+      // User logged in the next day - increment streak
+      newStreak = (profile.streak || 0) + 1;
+    } else if (daysDiff > 1) {
+      // User missed a day - reset streak
+      newStreak = 1;
+    }
+    // If daysDiff === 0, same day login - don't change streak
+  } else {
+    // First time user
+    newStreak = 1;
+  }
+  
+  const updateData: any = { last_seen: now.toISOString() };
+  
   if (apToRegen > 0 && profile.ap_now < profile.ap_max) {
     const newAP = Math.min(profile.ap_now + apToRegen, profile.ap_max);
-    
-    // Update AP and last_ap_update timestamp
-    await supabase
-      .from('users')
-      .update({ 
-        ap_now: newAP,
-        last_ap_update: now.toISOString(),
-        last_seen: now.toISOString()
-      })
-      .eq('id', user.id);
-    
+    updateData.ap_now = newAP;
+    updateData.last_ap_update = now.toISOString();
     profile.ap_now = newAP;
     profile.last_ap_update = now.toISOString();
-  } else {
-    // Just update last_seen
-    await supabase
-      .from('users')
-      .update({ last_seen: now.toISOString() })
-      .eq('id', user.id);
   }
+  
+  if (newStreak !== profile.streak) {
+    updateData.streak = newStreak;
+    profile.streak = newStreak;
+  }
+  
+  // Update database with all changes
+  await supabase
+    .from('users')
+    .update(updateData)
+    .eq('id', user.id);
 
   // Register in shared player list for multiplayer features
   addPlayerToSharedList({
