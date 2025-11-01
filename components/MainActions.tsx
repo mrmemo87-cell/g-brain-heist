@@ -9,6 +9,7 @@ interface MainActionsProps {
     onVisitInventory: () => void;
     onViewLeaderboard: () => void;
     onViewAchievements: () => void;
+    onOpenTeacherPortal?: () => void;
 }
 
 const ActionButton: React.FC<{ icon: React.ReactNode; label: string; color: string; glowClass: string; onClick?: () => void; className?: string; }> = ({ icon, label, color, glowClass, onClick, className }) => {
@@ -38,7 +39,7 @@ const ActionButton: React.FC<{ icon: React.ReactNode; label: string; color: stri
     );
 };
 
-const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onVisitShop, onGoToClan, onVisitInventory, onViewLeaderboard, onViewAchievements }) => {
+const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onVisitShop, onGoToClan, onVisitInventory, onViewLeaderboard, onViewAchievements, onOpenTeacherPortal }) => {
   return (
     <div className="grid grid-cols-2 gap-4 animate-fade-in-up">
         <ActionButton 
@@ -90,6 +91,15 @@ const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onV
             color="255, 100, 200" // pink
             glowClass="glow-plasma"
         />
+        {onOpenTeacherPortal && (
+            <ActionButton 
+                onClick={onOpenTeacherPortal}
+                icon={<span className="text-3xl animate-bounce">👨‍🏫</span>} 
+                label="Teacher" 
+                color="100, 200, 255" // light blue
+                glowClass="glow-ion"
+            />
+        )}
     </div>
   );
 };

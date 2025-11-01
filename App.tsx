@@ -19,6 +19,7 @@ import LevelUpModal from './components/LevelUpModal';
 import LeaderboardView from './components/LeaderboardView';
 import AchievementView from './components/AchievementView';
 import TutorialModal from './components/TutorialModal';
+import TeacherPortal from './components/TeacherPortal';
 
 interface AppProps {
   onLogout: () => void;
@@ -31,7 +32,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [caps, setCaps] = useState<Caps | null>(null);
   const [news, setNews] = useState<NewsEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher'>('dashboard');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [levelUpData, setLevelUpData] = useState<{ newLevel: number; rewards: any } | null>(null);
@@ -416,6 +417,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             return <LeaderboardView onComplete={handleViewComplete} currentUserId={profile.id} />;
         case 'achievements':
             return <AchievementView onComplete={handleViewComplete} addToast={addToast} />;
+        case 'teacher':
+            return <TeacherPortal profile={profile} onComplete={handleViewComplete} />;
         case 'dashboard':
         default:
             return (
@@ -436,7 +439,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                             onGoToClan={() => setView('clan')} 
                             onVisitInventory={() => setView('inventory')}
                             onViewLeaderboard={() => setView('leaderboard')}
-                            onViewAchievements={() => setView('achievements')} 
+                            onViewAchievements={() => setView('achievements')}
+                            onOpenTeacherPortal={() => setView('teacher')} 
                         />
                         <TaskList tasks={tasks} onTasksUpdate={fetchGameData} />
                     </div>
