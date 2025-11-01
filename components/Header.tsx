@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Profile } from '../types';
 import { CoinIcon, XPIcon, APIcon, LogoutIcon, StreakIcon } from './icons';
 import { audioService } from '../services/audioService';
+import { NotificationCenter } from './NotificationCenter';
+import { notificationService } from '../services/notificationService';
 
 // Custom hook for animating number changes
 const useAnimatedValue = (endValue: number, duration: number = 500) => {
@@ -76,6 +78,8 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard }) => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [audioEnabled, setAudioEnabled] = useState(audioService.isAudioEnabled());
   const [bgMusicEnabled, setBgMusicEnabled] = useState(audioService.isBgMusicEnabled());
   const [selectedAvatar, setSelectedAvatar] = useState<string>(profile.avatar_url || '');
@@ -124,6 +128,25 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   useEffect(() => {
     setSelectedAvatar(profile.avatar_url || '');
   }, [profile.avatar_url]);
+
+  // Load and subscribe to notifications
+  useEffect(() => {
+    const loadUnreadCount = async () => {
+      const count = await notificationService.getUnreadCount();
+      setUnreadCount(count);
+    };
+
+    loadUnreadCount();
+
+    // Subscribe to new notifications
+    const unsubscribe = notificationService.subscribe(() => {
+      loadUnreadCount();
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   // AP Regeneration Countdown Timer
   useEffect(() => {
@@ -187,6 +210,19 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                   className="w-9 h-9 rounded-full border-2 border-pink-500"
                   onClick={() => setShowSettingsModal(true)}
                 />
+                {/* Notification Bell */}
+                <button 
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="relative p-2 rounded-lg bg-black/40 border border-gray-600 hover:border-purple-500 transition-colors"
+                  aria-label="Notifications"
+                >
+                  <span className="text-lg">🔔</span>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full min-w-[20px] text-center">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
                 <button 
                   onClick={() => setShowSettingsModal(true)}
                   className="p-2 rounded-lg bg-black/40 border border-gray-600 hover:border-yellow-500 transition-colors"
@@ -361,6 +397,20 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
               </div>
               )}
 
+              {/* Notification Bell */}
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative p-2.5 rounded-xl bg-black/40 border border-gray-600 hover:border-purple-500 hover:bg-purple-500/10 transition-all hover:scale-110 backdrop-blur-sm"
+                aria-label="Notifications"
+              >
+                <span className="text-xl">🔔</span>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full min-w-[20px] text-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+
               {/* Settings Button */}
               <button 
                 onClick={() => setShowSettingsModal(true)}
@@ -503,6 +553,12 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
           </div>
         </div>
       )}
+
+      {/* Notification Center */}
+      <NotificationCenter 
+        isOpen={showNotifications} 
+        onClose={() => setShowNotifications(false)} 
+      />
     </>
   );
 };

@@ -20,6 +20,7 @@ import LeaderboardView from './components/LeaderboardView';
 import AchievementView from './components/AchievementView';
 import TutorialModal from './components/TutorialModal';
 import TeacherPortal from './components/TeacherPortal';
+import { ToastContainer } from './components/ToastNotification';
 
 interface AppProps {
   onLogout: () => void;
@@ -574,6 +575,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           }}
         />
       )}
+
+      {/* Toast Notifications */}
+      <ToastContainer />
     </div>
   );
 };
