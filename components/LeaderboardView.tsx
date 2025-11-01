@@ -31,10 +31,11 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
   const fetchLeaderboards = async () => {
     setLoading(true);
     try {
-      // XP Leaderboard
+      // XP Leaderboard - Exclude teachers
       const { data: xpData, error: xpError } = await supabase
         .from('users')
         .select('id, username, avatar_url, xp, batch')
+        .neq('role', 'teacher')
         .order('xp', { ascending: false })
         .limit(50);
 

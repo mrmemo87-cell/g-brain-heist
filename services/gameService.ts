@@ -390,12 +390,15 @@ export const caps_status = (): Promise<Caps> => {
 export const news_feed = async (): Promise<NewsEvent[]> => {
   const user = await getCurrentUser();
   
-  // Fetch activities from database
+  // Fetch activities from database, excluding teacher activities
   const { data: activities, error } = await supabase
     .from('activities')
-    .select('*')
+    .select(`
+      *,
+      users!activities_actor_id_fkey (role)
+    `)
     .order('created_at', { ascending: false })
-    .limit(20);
+    .limit(30); // Fetch more to account for filtered teachers
   
   if (error) {
     console.error('Error fetching activities:', error);
@@ -406,8 +409,13 @@ export const news_feed = async (): Promise<NewsEvent[]> => {
     return mockApiCall([]);
   }
   
+  // Filter out teacher activities and limit to 20
+  const studentActivities = activities
+    .filter((a: any) => !a.users || a.users.role !== 'teacher')
+    .slice(0, 20);
+  
   // Get all activity IDs
-  const activityIds = activities.map(a => a.id);
+  const activityIds = studentActivities.map(a => a.id);
   
   // Fetch reactions for these activities
   const { data: reactionsData } = await supabase
@@ -418,7 +426,7 @@ export const news_feed = async (): Promise<NewsEvent[]> => {
   // Aggregate reactions by activity and emoji
   const reactionsByActivity: Record<string, { reactions: Record<string, number>, myReaction: string | null }> = {};
   
-  activities.forEach(activity => {
+  studentActivities.forEach(activity => {
     reactionsByActivity[activity.id] = {
       reactions: { '🔥': 0, '😮': 0, '😂': 0, '❤️': 0 },
       myReaction: null,
@@ -441,7 +449,7 @@ export const news_feed = async (): Promise<NewsEvent[]> => {
   });
   
   // Convert database activities to NewsEvent format
-  const events: NewsEvent[] = activities.map(activity => {
+  const events: NewsEvent[] = studentActivities.map(activity => {
     const timeAgo = getTimeAgo(new Date(activity.created_at));
     const activityReactions = reactionsByActivity[activity.id];
     
@@ -627,7 +635,7 @@ export const mcq_answer_submit = async (question_id: string, choice: string): Pr
 export const raid_targets = async (): Promise<RaidTarget[]> => {
     const user = await getCurrentUser();
     
-    // Fetch all users except current user from database with their clan info
+    // Fetch all users except current user and teachers from database with their clan info
     const { data: players, error } = await supabase
         .from('users')
         .select(`
@@ -637,6 +645,7 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
             )
         `)
         .neq('id', user.id)
+        .neq('role', 'teacher')
         .limit(20);
     
     if (error) throw error;
