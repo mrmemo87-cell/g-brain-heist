@@ -68,11 +68,13 @@ export interface NewsEvent {
   my_reaction: string | null;
 }
 
-export interface Subject {
+export interface SubjectData {
   id: string;
   name: string;
   difficulty: number;
 }
+
+export type Subject = 'Maths' | 'Science' | 'English' | 'Russian Language' | 'Kyrgyz Language' | 'German Language' | 'Geography' | 'Global Perspective' | 'ICT';
 
 export interface Question {
   id: string;

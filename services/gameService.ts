@@ -1,4 +1,4 @@
-import { Profile, Task, SessionStatus, Caps, NewsEvent, Subject, Question, AnswerResponse, RaidTarget, RaidAttackResult, ShopItem, PurchaseReceipt, Clan, ClanChatMessage, ClanSummary, ClanMember, ClanBuff, InventoryItem, Teacher, TeacherQuestion, CreateQuestionRequest, QuestionAttemptResult, QuestTemplate } from '../types';
+import { Profile, Task, SessionStatus, Caps, NewsEvent, SubjectData, Question, AnswerResponse, RaidTarget, RaidAttackResult, ShopItem, PurchaseReceipt, Clan, ClanChatMessage, ClanSummary, ClanMember, ClanBuff, InventoryItem, Teacher, TeacherQuestion, CreateQuestionRequest, QuestionAttemptResult, QuestTemplate } from '../types';
 import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, getSharedPlayers, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount } from './storageService';
 import { supabase } from './supabaseClient';
 
@@ -564,8 +564,8 @@ export const activity_reaction_toggle = async (activity_id: string, emoji: strin
   }
 };
 
-export const mcq_subjects_list = (): Promise<Subject[]> => {
-    const subjects: Subject[] = [
+export const mcq_subjects_list = (): Promise<SubjectData[]> => {
+    const subjects: SubjectData[] = [
         // Science
         { id: 'subj_science', name: 'Science', difficulty: 3 },
         
@@ -2060,7 +2060,7 @@ export const delete_question = async (questionId: string): Promise<void> => {
 /**
  * Get public questions (for students to browse)
  */
-export const get_public_questions = async (subject?: Subject, difficulty?: string): Promise<TeacherQuestion[]> => {
+export const get_public_questions = async (subject?: string, difficulty?: string): Promise<TeacherQuestion[]> => {
     let query = supabase
         .from('questions')
         .select('*')
@@ -2106,7 +2106,7 @@ export const submit_question_answer = async (
 export const create_quest_template = async (
     title: string,
     description: string,
-    subject: Subject,
+    subject: string,
     questionIds: string[],
     difficulty?: string,
     xpReward?: number,
@@ -2138,7 +2138,7 @@ export const create_quest_template = async (
 /**
  * Get quest templates (public or created by teacher)
  */
-export const get_quest_templates = async (subject?: Subject): Promise<QuestTemplate[]> => {
+export const get_quest_templates = async (subject?: string): Promise<QuestTemplate[]> => {
     const teacher = await get_teacher_profile();
 
     let query = supabase

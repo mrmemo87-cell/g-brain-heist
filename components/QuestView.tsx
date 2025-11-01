@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Subject, Question, AnswerResponse, TeacherQuestion, QuestionAttemptResult } from '../types';
+import { SubjectData, Question, AnswerResponse, TeacherQuestion, QuestionAttemptResult } from '../types';
 import * as GameService from '../services/gameService';
 import { audioService } from '../services/audioService';
 import { BrainIcon, CoinIcon, XPIcon } from './icons';
@@ -74,8 +74,8 @@ interface QuestViewProps {
 const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
   const [stage, setStage] = useState<QuestStage>('mode_selection');
   const [mode, setMode] = useState<QuestMode>('practice');
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
+  const [subjects, setSubjects] = useState<SubjectData[]>([]);
+  const [selectedSubject, setSelectedSubject] = useState<SubjectData | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [teacherQuestions, setTeacherQuestions] = useState<TeacherQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -101,11 +101,15 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
       // Load teacher questions subjects
       setStage('subject_selection');
       setSubjects([
-        { id: 'math', name: 'Math', difficulty: 1 },
+        { id: 'maths', name: 'Maths', difficulty: 1 },
         { id: 'science', name: 'Science', difficulty: 1 },
-        { id: 'history', name: 'History', difficulty: 1 },
         { id: 'english', name: 'English', difficulty: 1 },
-        { id: 'geography', name: 'Geography', difficulty: 1 }
+        { id: 'russian_language', name: 'Russian Language', difficulty: 1 },
+        { id: 'kyrgyz_language', name: 'Kyrgyz Language', difficulty: 1 },
+        { id: 'german_language', name: 'German Language', difficulty: 1 },
+        { id: 'geography', name: 'Geography', difficulty: 1 },
+        { id: 'global_perspective', name: 'Global Perspective', difficulty: 1 },
+        { id: 'ict', name: 'ICT', difficulty: 1 }
       ]);
     }
   };
@@ -114,7 +118,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
       setParticles(current => current.filter(p => p.id !== id));
   };
 
-  const handleSubjectSelect = (subject: Subject) => {
+  const handleSubjectSelect = (subject: SubjectData) => {
     setSelectedSubject(subject);
     setStage('loading');
     

@@ -20,7 +20,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
 
   // Question form state
   const [questionText, setQuestionText] = useState('');
-  const [subject, setSubject] = useState<Subject>('Math');
+  const [subject, setSubject] = useState<Subject>('Maths');
   const [difficulty, setDifficulty] = useState<QuestionDifficulty>('easy');
   const [questionType, setQuestionType] = useState<'multiple_choice' | 'true_false' | 'short_answer'>('multiple_choice');
   const [options, setOptions] = useState(['', '', '', '']);
@@ -124,9 +124,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
   // Download CSV template
   const downloadCSVTemplate = () => {
     const template = `subject,difficulty,question_type,question_text,option1,option2,option3,option4,correct_answer,explanation,points
-Math,easy,multiple_choice,"What is 2 + 2?","2","3","4","5","4","Addition of two numbers",10
+Maths,easy,multiple_choice,"What is 2 + 2?","2","3","4","5","4","Addition of two numbers",10
 Science,medium,true_false,"Water boils at 100°C at sea level","True","False","","","True","Water's boiling point at standard pressure",15
-History,hard,short_answer,"Who was the first President of the United States?","","","","","George Washington","First US President",20`;
+English,hard,short_answer,"What is the past tense of 'go'?","","","","","went","Irregular verb conjugation",20`;
     
     const blob = new Blob([template], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -337,7 +337,7 @@ History,hard,short_answer,"Who was the first President of the United States?",""
             type="button"
             onClick={() => {
               setQuestionText('');
-              setSubject('Math');
+              setSubject('Maths');
               setDifficulty('easy');
               setQuestionType('multiple_choice');
               setOptions(['', '', '', '']);
@@ -367,11 +367,15 @@ History,hard,short_answer,"Who was the first President of the United States?",""
                 className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
                 required
               >
-                <option value="Math">Math</option>
+                <option value="Maths">Maths</option>
                 <option value="Science">Science</option>
-                <option value="History">History</option>
                 <option value="English">English</option>
+                <option value="Russian Language">Russian Language</option>
+                <option value="Kyrgyz Language">Kyrgyz Language</option>
+                <option value="German Language">German Language</option>
                 <option value="Geography">Geography</option>
+                <option value="Global Perspective">Global Perspective</option>
+                <option value="ICT">ICT</option>
               </select>
             </div>
 
@@ -619,7 +623,7 @@ History,hard,short_answer,"Who was the first President of the United States?",""
           <h3 className="font-bold text-purple-400 mb-3">📝 CSV Format</h3>
           <div className="text-xs text-gray-400 mb-2">Columns (in order):</div>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <div className="text-gray-300">1. <code className="text-cyan-400">subject</code> - Math, Science, History, etc.</div>
+            <div className="text-gray-300">1. <code className="text-cyan-400">subject</code> - Maths, Science, English, Russian Language, Kyrgyz Language, German Language, Geography, Global Perspective, ICT</div>
             <div className="text-gray-300">2. <code className="text-cyan-400">difficulty</code> - easy, medium, hard</div>
             <div className="text-gray-300">3. <code className="text-cyan-400">question_type</code> - multiple_choice, true_false, short_answer</div>
             <div className="text-gray-300">4. <code className="text-cyan-400">question_text</code> - The question</div>
