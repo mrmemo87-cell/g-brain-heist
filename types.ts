@@ -196,3 +196,134 @@ export interface InventoryItem {
     attack_bonus?: number; // Permanent or timed attack bonus
     defense_bonus?: number; // Permanent or timed defense bonus
 }
+
+// ============================================================
+// Teacher Question System Types
+// ============================================================
+
+export type UserRole = 'student' | 'teacher' | 'admin';
+
+export interface Teacher {
+  id: string;
+  user_id: string;
+  school_name?: string;
+  subject_specializations?: string[];
+  verified: boolean;
+  bio?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type QuestionType = 'multiple_choice' | 'true_false' | 'short_answer';
+export type QuestionDifficulty = 'easy' | 'medium' | 'hard';
+
+export interface TeacherQuestion {
+  id: string;
+  teacher_id: string;
+  
+  // Content
+  subject: Subject;
+  topic?: string;
+  difficulty: QuestionDifficulty;
+  question_text: string;
+  
+  // Answer data
+  question_type: QuestionType;
+  question_options?: string[]; // For multiple choice
+  correct_answer: string;
+  
+  // Additional info
+  explanation?: string;
+  hints?: string[];
+  time_limit: number; // seconds
+  points: number; // XP reward
+  
+  // Organization
+  tags?: string[];
+  grade_level?: string;
+  is_public: boolean;
+  is_active: boolean;
+  
+  // Stats
+  times_answered: number;
+  times_correct: number;
+  
+  created_at: string;
+  updated_at: string;
+}
+
+export interface QuestionAttempt {
+  id: string;
+  student_id: string;
+  question_id: string;
+  quest_session_id?: string;
+  answer_given: string;
+  is_correct: boolean;
+  time_taken?: number;
+  points_earned: number;
+  attempted_at: string;
+}
+
+export interface QuestTemplate {
+  id: string;
+  teacher_id: string;
+  title: string;
+  description?: string;
+  subject: Subject;
+  difficulty?: QuestionDifficulty;
+  question_ids: string[];
+  question_count: number;
+  xp_reward: number;
+  coins_reward: number;
+  min_level: number;
+  max_attempts?: number;
+  is_public: boolean;
+  is_active: boolean;
+  times_completed: number;
+  average_score: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Class {
+  id: string;
+  teacher_id: string;
+  class_name: string;
+  class_code: string;
+  description?: string;
+  subject?: string;
+  grade_level?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface ClassStudent {
+  class_id: string;
+  student_id: string;
+  joined_at: string;
+}
+
+// Request/Response types for teacher operations
+export interface CreateQuestionRequest {
+  subject: Subject;
+  topic?: string;
+  difficulty: QuestionDifficulty;
+  question_text: string;
+  question_type: QuestionType;
+  question_options?: string[];
+  correct_answer: string;
+  explanation?: string;
+  hints?: string[];
+  time_limit?: number;
+  points?: number;
+  tags?: string[];
+  grade_level?: string;
+  is_public?: boolean;
+}
+
+export interface QuestionAttemptResult {
+  is_correct: boolean;
+  points_earned: number;
+  correct_answer: string;
+  explanation?: string;
+}
