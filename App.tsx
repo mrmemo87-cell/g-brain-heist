@@ -123,6 +123,17 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     fetchGameData();
   }, []);
 
+  // Auto-refresh profile every 60 seconds to update AP regeneration
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (navigator.onLine && profile) {
+        refreshProfile();
+      }
+    }, 60000); // 60 seconds
+
+    return () => clearInterval(intervalId);
+  }, [profile]);
+
   // Network status detection
   useEffect(() => {
     const handleOnline = () => {

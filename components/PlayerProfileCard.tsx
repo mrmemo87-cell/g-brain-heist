@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Profile } from '../types';
 import { CoinIcon, StreakIcon, XPIcon, APIcon } from './icons';
 
@@ -6,12 +6,13 @@ interface PlayerProfileCardProps {
   profile: Profile;
 }
 
-const StatDisplay: React.FC<{ icon: React.ReactNode; label: string; value: string | number; color: string }> = ({ icon, label, value, color }) => (
+const StatDisplay: React.FC<{ icon: React.ReactNode; label: string; value: string | number; color: string; subtitle?: string }> = ({ icon, label, value, color, subtitle }) => (
   <div className="flex items-center space-x-3 bg-black/20 p-3 rounded-2xl">
     <div className="w-8 h-8 flex-shrink-0" style={{ color }}>{icon}</div>
     <div>
       <div className="text-sm" style={{ color: 'var(--mist-400)' }}>{label}</div>
       <div className="text-lg font-semibold font-heading">{value}</div>
+      {subtitle && <div className="text-xs" style={{ color: 'var(--mist-400)' }}>{subtitle}</div>}
     </div>
   </div>
 );
@@ -20,6 +21,35 @@ const StatDisplay: React.FC<{ icon: React.ReactNode; label: string; value: strin
 const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
   const xpForNextLevel = Math.ceil(100 * Math.pow(profile.level + 1, 1.5));
   const xpProgressPercent = (profile.xp / xpForNextLevel) * 100;
+
+  const [apCountdown, setApCountdown] = useState<string>('');
+
+  // Calculate time until next AP regeneration
+  useEffect(() => {
+    const updateCountdown = () => {
+      if (profile.ap_now >= profile.ap_max) {
+        setApCountdown('Full');
+        return;
+      }
+
+      const now = new Date();
+      const lastApUpdate = profile.last_ap_update ? new Date(profile.last_ap_update) : now;
+      const msElapsed = now.getTime() - lastApUpdate.getTime();
+      const minutesElapsed = Math.floor(msElapsed / (1000 * 60));
+      const minutesUntilNext = 10 - (minutesElapsed % 10);
+      const secondsUntilNext = 60 - (Math.floor((msElapsed % (1000 * 60)) / 1000));
+
+      if (minutesUntilNext === 10) {
+        setApCountdown(`${secondsUntilNext}s`);
+      } else {
+        setApCountdown(`${minutesUntilNext}m ${secondsUntilNext}s`);
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [profile.ap_now, profile.ap_max, profile.last_ap_update]);
 
   return (
     <div className="card-glass glow-plasma p-5 animate-fade-in-up" style={{ borderColor: 'rgba(255, 45, 145, 0.3)' }}>
@@ -49,7 +79,13 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
         <StatDisplay icon={<CoinIcon />} label="Coins" value={profile.coins.toLocaleString()} color={'var(--amber-warn)'} />
         <StatDisplay icon={<StreakIcon />} label="Streak" value={`${profile.streak} days`} color={'var(--danger-red)'} />
         <StatDisplay icon={<XPIcon />} label="Total XP" value={profile.xp.toLocaleString()} color={'var(--ion-blue)'} />
-        <StatDisplay icon={<APIcon />} label="Action Points" value={`${profile.ap_now}/${profile.ap_max}`} color={'var(--success-teal)'} />
+        <StatDisplay 
+          icon={<APIcon />} 
+          label="Action Points" 
+          value={`${profile.ap_now}/${profile.ap_max}`} 
+          color={'var(--success-teal)'} 
+          subtitle={profile.ap_now < profile.ap_max ? `+1 in ${apCountdown}` : undefined}
+        />
         <StatDisplay icon={<span>⚔️</span>} label="Attack" value={profile.attack_power || 10} color={'var(--danger-red)'} />
         <StatDisplay icon={<span>🛡️</span>} label="Defense" value={profile.defense_power || 10} color={'var(--ion-blue)'} />
       </div>
