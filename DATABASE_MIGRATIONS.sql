@@ -218,5 +218,25 @@ WHERE tutorial_completed IS NULL;
 --   SELECT * FROM check_achievements('your-user-uuid-here');
 --
 -- ==============================================================================
+
+
+-- ==============================================================================
+-- MIGRATION 4: Teacher System - Add Role Column
+-- ==============================================================================
+-- Adds role column to users table to distinguish between students and teachers
+-- This is required before running teacher_question_system.sql
+-- ==============================================================================
+
+-- Add role column to users table
+ALTER TABLE users 
+ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'student' CHECK (role IN ('student', 'teacher', 'admin'));
+
+-- Update existing users to be students
+UPDATE users SET role = 'student' WHERE role IS NULL;
+
+-- Verification Query:
+-- SELECT username, role FROM users LIMIT 10;
+
+-- ==============================================================================
 -- ALL MIGRATIONS COMPLETE! Your database is now ready for production.
 -- ==============================================================================

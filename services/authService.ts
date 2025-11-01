@@ -63,17 +63,23 @@ export const signup = async (email: string, password: string, username: string, 
             throw new Error(`Failed to create user profile: ${profileError.message} (${profileError.code})`);
         }
 
-        // If teacher, create teacher profile automatically
+        // If teacher, try to create teacher profile automatically
+        // Note: This requires the teacher_question_system.sql to be run first
         if (role === 'teacher') {
-            const { error: teacherError } = await supabase.rpc('create_teacher_profile', {
-                school_name: null,
-                subject_specializations: [],
-                bio: null
-            });
+            try {
+                const { error: teacherError } = await supabase.rpc('create_teacher_profile', {
+                    school_name: null,
+                    subject_specializations: [],
+                    bio: null
+                });
 
-            if (teacherError) {
-                console.warn('Teacher profile creation warning:', teacherError);
-                // Don't throw error, user can complete profile later
+                if (teacherError) {
+                    console.warn('Teacher profile will be created on first portal access:', teacherError.message);
+                    // Don't throw error - profile will be created when they open teacher portal
+                }
+            } catch (err) {
+                console.warn('Teacher profile setup pending - will be created on first portal access');
+                // Ignore - not critical for signup
             }
         }
         

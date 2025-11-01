@@ -1,9 +1,11 @@
 export type Batch = '8A' | '8B' | '8C';
+export type UserRole = 'student' | 'teacher' | 'admin';
 
 export interface Profile {
   id: string;
   username: string;
-  batch: Batch;
+  batch: Batch | null; // null for teachers
+  role?: UserRole; // User role - student by default
   avatar_url: string;
   level: number;
   xp: number;
@@ -200,8 +202,6 @@ export interface InventoryItem {
 // ============================================================
 // Teacher Question System Types
 // ============================================================
-
-export type UserRole = 'student' | 'teacher' | 'admin';
 
 export interface Teacher {
   id: string;
