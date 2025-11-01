@@ -224,6 +224,7 @@ WHERE tutorial_completed IS NULL;
 -- MIGRATION 4: Teacher System - Add Role Column
 -- ==============================================================================
 -- Adds role column to users table to distinguish between students and teachers
+-- Also makes batch column nullable for teachers
 -- This is required before running teacher_question_system.sql
 -- ==============================================================================
 
@@ -231,11 +232,15 @@ WHERE tutorial_completed IS NULL;
 ALTER TABLE users 
 ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'student' CHECK (role IN ('student', 'teacher', 'admin'));
 
+-- Make batch column nullable (teachers don't have batches)
+ALTER TABLE users 
+ALTER COLUMN batch DROP NOT NULL;
+
 -- Update existing users to be students
 UPDATE users SET role = 'student' WHERE role IS NULL;
 
 -- Verification Query:
--- SELECT username, role FROM users LIMIT 10;
+-- SELECT username, role, batch FROM users LIMIT 10;
 
 -- ==============================================================================
 -- ALL MIGRATIONS COMPLETE! Your database is now ready for production.

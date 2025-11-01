@@ -47,16 +47,22 @@ export const signup = async (email: string, password: string, username: string, 
         await new Promise(resolve => setTimeout(resolve, 500));
         
         // Create user profile in users table
+        const profileData: any = {
+            id: data.user.id,
+            email,
+            username,
+            role,
+            avatar_url: `https://picsum.photos/seed/${username}/100/100`,
+        };
+        
+        // Only add batch for students
+        if (role === 'student') {
+            profileData.batch = batch;
+        }
+        
         const { error: profileError } = await supabase
             .from('users')
-            .insert({
-                id: data.user.id,
-                email,
-                username,
-                role,
-                batch: role === 'student' ? batch : null,
-                avatar_url: `https://picsum.photos/seed/${username}/100/100`,
-            });
+            .insert(profileData);
         
         if (profileError) {
             console.error('Profile creation error:', profileError);
