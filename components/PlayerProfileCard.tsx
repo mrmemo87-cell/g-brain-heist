@@ -27,7 +27,11 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
         <img src={profile.avatar_url} alt={profile.username} className="w-20 h-20 rounded-full border-4 animate-float" style={{ borderColor: 'var(--plasma-pink)' }}/>
         <div>
           <h2 className="text-2xl font-bold font-heading neon-text" style={{ color: 'var(--plasma-pink)' }}>{profile.username}</h2>
-          <p style={{ color: 'var(--mist-400)' }}>Batch {profile.batch} | Level {profile.level}</p>
+          <p style={{ color: 'var(--mist-400)' }}>
+            {profile.batch ? `Batch ${profile.batch} | ` : ''}
+            {profile.role === 'teacher' ? '👨‍🏫 Teacher | ' : ''}
+            Level {profile.level}
+          </p>
         </div>
       </div>
 

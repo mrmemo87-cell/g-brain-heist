@@ -432,10 +432,18 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                     <span className="text-gray-300">Level</span>
                     <span className="font-bold text-white">{profile.level}</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
-                    <span className="text-gray-300">Batch</span>
-                    <span className="font-bold text-white">{profile.batch}</span>
-                  </div>
+                  {profile.batch && (
+                    <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
+                      <span className="text-gray-300">Batch</span>
+                      <span className="font-bold text-white">{profile.batch}</span>
+                    </div>
+                  )}
+                  {profile.role === 'teacher' && (
+                    <div className="flex items-center justify-between p-3 bg-purple-500/20 rounded-lg border border-purple-400">
+                      <span className="text-gray-300">Role</span>
+                      <span className="font-bold text-white">👨‍🏫 Teacher</span>
+                    </div>
+                  )}
                   <div className={`flex items-center justify-between p-3 rounded-lg ${
                     profile.streak >= 7 ? 'bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-400' : 'bg-black/20'
                   }`}>
