@@ -10,6 +10,7 @@ interface LeaderboardEntry {
   value: number;
   batch: string;
   is_self?: boolean;
+  last_seen?: string;
 }
 
 interface LeaderboardViewProps {
@@ -34,7 +35,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
       // XP Leaderboard - Exclude teachers
       const { data: xpData, error: xpError } = await supabase
         .from('users')
-        .select('id, username, avatar_url, xp, batch')
+        .select('id, username, avatar_url, xp, batch, last_seen')
         .neq('role', 'teacher')
         .order('xp', { ascending: false })
         .limit(50);
@@ -47,6 +48,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
           value: user.xp,
           batch: user.batch,
           is_self: user.id === currentUserId,
+          last_seen: user.last_seen,
         }));
         setXpLeaderboard(xpLB);
       }
@@ -75,12 +77,12 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
         const topPvpIds = Object.keys(winCounts);
         const { data: avatars } = await supabase
           .from('users')
-          .select('id, avatar_url, batch')
+          .select('id, avatar_url, batch, last_seen')
           .in('id', topPvpIds);
 
-        const avatarMap: Record<string, { avatar_url: string; batch: string }> = {};
+        const avatarMap: Record<string, { avatar_url: string; batch: string; last_seen?: string }> = {};
         (avatars || []).forEach((u: any) => {
-          avatarMap[u.id] = { avatar_url: u.avatar_url, batch: u.batch };
+          avatarMap[u.id] = { avatar_url: u.avatar_url, batch: u.batch, last_seen: u.last_seen };
         });
 
         const pvpLB = Object.values(winCounts)
@@ -93,6 +95,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
             value: entry.wins,
             batch: avatarMap[entry.actor_id]?.batch || '?',
             is_self: entry.actor_id === currentUserId,
+            last_seen: avatarMap[entry.actor_id]?.last_seen,
           }));
 
         setPvpLeaderboard(pvpLB);
@@ -146,6 +149,25 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
       3: 'text-amber-600',
     };
 
+    // Calculate online status
+    const getOnlineStatus = (last_seen?: string): { color: string; label: string } => {
+      if (!last_seen) return { color: 'bg-gray-500', label: 'Unknown' };
+      
+      const lastSeenTime = new Date(last_seen).getTime();
+      const now = Date.now();
+      const minutesAgo = (now - lastSeenTime) / 1000 / 60;
+      
+      if (minutesAgo < 5) {
+        return { color: 'bg-green-500', label: 'Online' };
+      } else if (minutesAgo < 30) {
+        return { color: 'bg-yellow-500', label: 'Away' };
+      } else {
+        return { color: 'bg-red-500', label: 'Offline' };
+      }
+    };
+    
+    const status = getOnlineStatus(entry.last_seen);
+
     return (
       <div
         key={`${entry.rank}-${entry.username}`}
@@ -156,11 +178,17 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
         <div className={`font-bold text-lg w-8 text-center ${rankColors[entry.rank] || 'text-gray-400'}`}>
           {entry.rank <= 3 ? ['🥇', '🥈', '🥉'][entry.rank - 1] : `#${entry.rank}`}
         </div>
-        <img
-          src={entry.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.username}`}
-          alt={entry.username}
-          className="w-10 h-10 rounded-full border-2 border-gray-600"
-        />
+        <div className="relative">
+          <img
+            src={entry.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.username}`}
+            alt={entry.username}
+            className="w-10 h-10 rounded-full border-2 border-gray-600"
+          />
+          <div 
+            className={`absolute bottom-0 right-0 w-3 h-3 ${status.color} rounded-full border-2 border-gray-900`}
+            title={status.label}
+          />
+        </div>
         <div className="flex-1">
           <p className="font-semibold text-white">{entry.username} {entry.is_self && '(You)'}</p>
           <p className="text-xs text-gray-400">Batch {entry.batch}</p>

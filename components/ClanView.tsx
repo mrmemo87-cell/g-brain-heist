@@ -5,7 +5,7 @@ import BackButton from './BackButton';
 import { ClanIcon, CoinIcon, DemoteIcon, KickIcon, LeaveIcon, ManageIcon, PromoteIcon } from './icons';
 
 type ClanViewStage = 'loading' | 'no_clan' | 'in_clan' | 'creating' | 'joining';
-type ClanTab = 'home' | 'chat' | 'management';
+type ClanTab = 'home' | 'chat' | 'management' | 'browse';
 type ModalType = null | 'deposit' | 'confirm_leave' | 'confirm_delete' | 'confirm_kick';
 
 interface ClanViewProps {
@@ -290,6 +290,77 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
       );
   };
   
+  const BrowseClansTab: React.FC<{ currentClanId: string; addToast: (msg: string, type: ToastMessage['type']) => void }> = ({ currentClanId, addToast }) => {
+    const [clanList, setClanList] = useState<ClanSummary[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const fetchClans = async () => {
+        setIsLoading(true);
+        try {
+            const clans = await GameService.clan_list();
+            setClanList(clans);
+        } catch (error) {
+            addToast("Failed to fetch clan list.", "error");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchClans();
+    }, []);
+
+    if (isLoading) {
+        return <div className="font-heading text-xl animate-pulse text-center py-8" style={{color: 'var(--amber-warn)'}}>Loading clans...</div>;
+    }
+
+    return (
+        <div>
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="font-heading text-xl text-amber-300">All Syndicates</h3>
+                <button 
+                    onClick={fetchClans}
+                    disabled={isLoading}
+                    className="px-4 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white rounded-lg font-heading transition-all disabled:opacity-50 text-sm"
+                >
+                    {isLoading ? 'Refreshing...' : '🔄 Refresh'}
+                </button>
+            </div>
+            {clanList.length === 0 ? (
+                <div className="bg-black/20 p-8 rounded-lg text-center text-gray-400">
+                    <p>No other clans found.</p>
+                </div>
+            ) : (
+                <div className="space-y-3 max-h-[500px] overflow-y-auto">
+                    {clanList.map(clanItem => (
+                        <div 
+                            key={clanItem.id} 
+                            className={`bg-black/20 p-4 rounded-lg flex items-center justify-between ${clanItem.id === currentClanId ? 'border-2 border-amber-400' : ''}`}
+                        >
+                            <div className="flex items-center space-x-4">
+                                <img 
+                                    src={clanItem.crest_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${clanItem.name}`} 
+                                    alt={`${clanItem.name} crest`} 
+                                    className="w-12 h-12 rounded-full" 
+                                />
+                                <div>
+                                    <p className="font-heading text-lg text-white">
+                                        {clanItem.name}
+                                        {clanItem.id === currentClanId && <span className="ml-2 text-sm text-amber-400">(Your Clan)</span>}
+                                    </p>
+                                    <p className="text-sm text-gray-400">
+                                        {clanItem.member_count} members | {clanItem.vault_metric.toLocaleString()} Total XP
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+  };
+  
   const ClanChat: React.FC = () => {
     const [messages, setMessages] = useState<ClanChatMessage[]>([]);
     const [newMessage, setNewMessage] = useState('');
@@ -374,6 +445,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                 <div className="flex border-b border-white/10 mb-2">
                     <button onClick={() => setActiveTab('home')} className={`px-4 py-2 font-heading ${activeTab === 'home' ? 'text-amber-300 border-b-2 border-amber-300' : 'text-gray-400'}`}>Home</button>
                     <button onClick={() => setActiveTab('chat')} className={`px-4 py-2 font-heading ${activeTab === 'chat' ? 'text-amber-300 border-b-2 border-amber-300' : 'text-gray-400'}`}>Chat</button>
+                    <button onClick={() => setActiveTab('browse')} className={`px-4 py-2 font-heading ${activeTab === 'browse' ? 'text-amber-300 border-b-2 border-amber-300' : 'text-gray-400'}`}>Browse Clans</button>
                     {isPrivileged && <button onClick={() => setActiveTab('management')} className={`px-4 py-2 font-heading ${activeTab === 'management' ? 'text-amber-300 border-b-2 border-amber-300' : 'text-gray-400'}`}>Management</button>}
                 </div>
                 <div className="p-4">
@@ -444,6 +516,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                         </div>
                     )}
                     {activeTab === 'chat' && <ClanChat />}
+                    {activeTab === 'browse' && <BrowseClansTab currentClanId={clan.id} addToast={addToast} />}
                     {activeTab === 'management' && isPrivileged && (
                          <div>
                              <h3 className="font-heading text-xl mb-3 text-amber-300">Member Management</h3>
