@@ -533,6 +533,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         currentView={view}
         onBackToDashboard={() => setView('dashboard')}
         onShowHelp={() => setShowHelp(true)}
+        onNavigate={(targetView) => setView(targetView)}
       />
 
       {/* Offline Banner */}

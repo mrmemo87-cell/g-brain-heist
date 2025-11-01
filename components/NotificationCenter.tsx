@@ -4,9 +4,10 @@ import { notificationService, Notification, NotificationService } from '../servi
 interface NotificationCenterProps {
   isOpen: boolean;
   onClose: () => void;
+  onNavigate?: (view: 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher') => void;
 }
 
-export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose }) => {
+export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose, onNavigate }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -64,6 +65,15 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
     }
   };
 
+  const handleNotificationAction = (notification: Notification) => {
+    const action = notification.action || NotificationService.getDefaultAction(notification.type);
+    if (action?.view && onNavigate) {
+      handleMarkAsRead(notification.id);
+      onNavigate(action.view);
+      onClose();
+    }
+  };
+
   const getTimeAgo = (date: Date): string => {
     const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
     
@@ -86,12 +96,12 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
       />
 
       {/* Notification Panel */}
-      <div className="fixed top-16 right-4 w-96 max-h-[600px] bg-gray-900 border-2 border-purple-500/30 rounded-lg shadow-2xl z-50 flex flex-col">
+      <div className="fixed top-16 right-2 sm:right-4 w-[calc(100vw-1rem)] sm:w-96 max-h-[80vh] sm:max-h-[600px] bg-gray-900 border-2 border-purple-500/30 rounded-lg shadow-2xl z-50 flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-purple-500/20">
+        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-purple-500/20">
           <div className="flex items-center gap-2">
-            <span className="text-xl">🔔</span>
-            <h2 className="text-lg font-bold text-white">Notifications</h2>
+            <span className="text-lg sm:text-xl">🔔</span>
+            <h2 className="text-base sm:text-lg font-bold text-white">Notifications</h2>
             {unreadCount > 0 && (
               <span className="px-2 py-1 text-xs font-bold bg-red-500 text-white rounded-full">
                 {unreadCount}
@@ -100,7 +110,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-gray-400 hover:text-white transition-colors text-lg sm:text-xl"
           >
             ✕
           </button>
@@ -108,7 +118,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
 
         {/* Actions */}
         {notifications.length > 0 && (
-          <div className="flex gap-2 p-3 border-b border-purple-500/20">
+          <div className="flex gap-2 p-2 sm:p-3 border-b border-purple-500/20">
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllAsRead}
@@ -135,44 +145,64 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
             <div className="divide-y divide-purple-500/10">
               {notifications.map((notification) => {
                 const style = NotificationService.getNotificationStyle(notification.type);
+                const action = notification.action || NotificationService.getDefaultAction(notification.type);
                 return (
                   <div
                     key={notification.id}
-                    className={`p-4 hover:bg-gray-800/50 transition-colors cursor-pointer ${
+                    className={`p-3 sm:p-4 transition-colors ${
                       !notification.read ? 'bg-purple-900/20' : ''
                     }`}
-                    onClick={() => !notification.read && handleMarkAsRead(notification.id)}
                   >
-                    <div className="flex items-start gap-3">
-                      <span className="text-2xl flex-shrink-0">{style.emoji}</span>
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <span className="text-xl sm:text-2xl flex-shrink-0">{style.emoji}</span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
-                          <h3 className={`font-semibold text-sm ${style.color}`}>
+                          <h3 className={`font-semibold text-xs sm:text-sm ${style.color}`}>
                             {notification.title}
                           </h3>
-                          <span className="text-xs text-gray-500 flex-shrink-0">
-                            {getTimeAgo(notification.created_at)}
-                          </span>
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <span className="text-[10px] sm:text-xs text-gray-500 flex-shrink-0">
+                              {getTimeAgo(notification.created_at)}
+                            </span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(notification.id);
+                              }}
+                              className="text-gray-600 hover:text-red-400 transition-colors flex-shrink-0 text-sm"
+                              title="Delete notification"
+                            >
+                              ✕
+                            </button>
+                          </div>
                         </div>
-                        <p className="text-sm text-gray-300 mt-1 line-clamp-2">
+                        <p className="text-xs sm:text-sm text-gray-300 mt-1">
                           {notification.message}
                         </p>
-                        {notification.priority === 'urgent' && (
-                          <span className="inline-block mt-2 px-2 py-0.5 text-xs bg-red-500/20 text-red-400 border border-red-500/30 rounded">
-                            URGENT
-                          </span>
-                        )}
+                        <div className="flex items-center flex-wrap gap-2 mt-2 sm:mt-3">
+                          {action && (
+                            <button
+                              onClick={() => handleNotificationAction(notification)}
+                              className="px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-semibold bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/50 text-cyan-400 rounded transition-colors"
+                            >
+                              {action.label}
+                            </button>
+                          )}
+                          {!notification.read && (
+                            <button
+                              onClick={() => handleMarkAsRead(notification.id)}
+                              className="px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs text-gray-400 hover:text-white transition-colors"
+                            >
+                              Mark as read
+                            </button>
+                          )}
+                          {notification.priority === 'urgent' && (
+                            <span className="px-2 py-0.5 text-[10px] sm:text-xs bg-red-500/20 text-red-400 border border-red-500/30 rounded">
+                              URGENT
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(notification.id);
-                        }}
-                        className="text-gray-600 hover:text-red-400 transition-colors flex-shrink-0"
-                        title="Delete notification"
-                      >
-                        🗑️
-                      </button>
                     </div>
                   </div>
                 );

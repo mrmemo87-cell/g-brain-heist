@@ -19,6 +19,12 @@ export type NotificationType =
   | 'new_rival'           // 👊 Competition - New rival appeared
   | 'leaderboard_change'; // 📊 Progress - Rank changed
 
+export type NotificationAction = {
+  label: string;
+  view?: 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher';
+  targetUserId?: string; // For revenge attacks
+};
+
 export interface Notification {
   id: string;
   user_id: string;
@@ -29,6 +35,7 @@ export interface Notification {
   read: boolean;
   priority: 'low' | 'medium' | 'high' | 'urgent';
   created_at: string;
+  action?: NotificationAction;
 }
 
 class NotificationService {
@@ -226,6 +233,31 @@ class NotificationService {
     };
 
     return styles[type];
+  }
+
+  // Get default action for notification type
+  static getDefaultAction(type: NotificationType): NotificationAction | undefined {
+    const actions: Partial<Record<NotificationType, NotificationAction>> = {
+      attack_incoming: { label: 'View Battle', view: 'pvp' },
+      attack_defended: { label: 'View Battle', view: 'pvp' },
+      attack_success: { label: 'View Battle', view: 'pvp' },
+      attack_failed: { label: 'View Battle', view: 'pvp' },
+      level_up: { label: 'View Profile', view: 'dashboard' },
+      achievement_earned: { label: 'View Achievements', view: 'achievements' },
+      coins_earned: { label: 'Visit Shop', view: 'shop' },
+      coins_lost: { label: 'Earn More', view: 'quest' },
+      quest_completed: { label: 'Play Again', view: 'quest' },
+      low_ap: { label: 'View Profile', view: 'dashboard' },
+      ap_full: { label: 'Start Raid', view: 'pvp' },
+      challenge_received: { label: 'Accept Challenge', view: 'pvp' },
+      clan_invite: { label: 'View Clans', view: 'clan' },
+      revenge_available: { label: 'Get Revenge', view: 'pvp' },
+      streak_danger: { label: 'Play Now', view: 'quest' },
+      new_rival: { label: 'View Leaderboard', view: 'leaderboard' },
+      leaderboard_change: { label: 'View Leaderboard', view: 'leaderboard' },
+    };
+
+    return actions[type];
   }
 }
 

@@ -75,9 +75,10 @@ interface HeaderProps {
   currentView: string;
   onBackToDashboard?: () => void;
   onShowHelp?: () => void;
+  onNavigate?: (view: 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher') => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard, onShowHelp }) => {
+const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard, onShowHelp, onNavigate }) => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -577,6 +578,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
       <NotificationCenter 
         isOpen={showNotifications} 
         onClose={() => setShowNotifications(false)} 
+        onNavigate={onNavigate}
       />
     </>
   );
