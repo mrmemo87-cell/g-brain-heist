@@ -64,7 +64,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
         difficulty,
         question_text: questionText,
         question_type: questionType,
-        question_options: questionType === 'multiple_choice' ? options.filter(o => o.trim()) : undefined,
+        options: questionType === 'multiple_choice' ? options.filter(o => o.trim()) : undefined,
         correct_answer: correctAnswer,
         explanation,
         points,
@@ -112,7 +112,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     setDifficulty(question.difficulty);
     setQuestionType(question.question_type);
     setQuestionText(question.question_text + ' (Copy)');
-    setOptions(question.question_options);
+    setOptions(question.options || ['', '', '', '']);
     setCorrectAnswer(question.correct_answer);
     setExplanation(question.explanation || '');
     setPoints(question.points);
@@ -176,8 +176,8 @@ English,hard,short_answer,"What is the past tense of 'go'?","","","","","went","
             difficulty: difficultyStr as QuestionDifficulty,
             question_text: questionText,
             question_type: questionType as 'multiple_choice' | 'true_false' | 'short_answer',
-            question_options: questionType === 'multiple_choice' ? [opt1, opt2, opt3, opt4].filter(Boolean) : 
-                             questionType === 'true_false' ? ['True', 'False'] : [],
+            options: questionType === 'multiple_choice' ? [opt1, opt2, opt3, opt4].filter(Boolean) : 
+                     questionType === 'true_false' ? ['True', 'False'] : undefined,
             correct_answer: correctAnswer,
             explanation: explanation || '',
             points: parseInt(pointsStr) || 10,

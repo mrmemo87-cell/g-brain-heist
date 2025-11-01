@@ -231,7 +231,7 @@ export interface TeacherQuestion {
   
   // Answer data
   question_type: QuestionType;
-  question_options?: string[]; // For multiple choice
+  options?: string[]; // For multiple choice - matches database column name
   correct_answer: string;
   
   // Additional info
@@ -312,7 +312,7 @@ export interface CreateQuestionRequest {
   difficulty: QuestionDifficulty;
   question_text: string;
   question_type: QuestionType;
-  question_options?: string[];
+  options?: string[]; // Matches database column name
   correct_answer: string;
   explanation?: string;
   hints?: string[];

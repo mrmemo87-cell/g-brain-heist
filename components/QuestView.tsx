@@ -363,7 +363,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
     };
 
     const questionText = mode === 'practice' ? question!.body : teacherQuestion!.question_text;
-    const options = mode === 'practice' ? question!.options : teacherQuestion!.question_options;
+    const options = mode === 'practice' ? question!.options : teacherQuestion!.options;
     const correctAnswer = mode === 'practice' ? question!.options[1] : teacherQuestion!.correct_answer;
     const totalQuestions = mode === 'practice' ? questions.length : teacherQuestions.length;
 
