@@ -163,82 +163,64 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
     setSelectedOption(option);
 
     if (mode === 'practice') {
-      // Practice mode: Optimistic immediate feedback
-      const localIsCorrect = option === questions[currentQuestionIndex].options[1];
-      const localResponse: AnswerResponse = {
-        correct: localIsCorrect,
-        deltas: {
-          xp: localIsCorrect ? questions[currentQuestionIndex].reward_xp : -5,
-          coins: localIsCorrect ? questions[currentQuestionIndex].reward_coins : 0,
-        },
-        explanation: localIsCorrect ? 'Well done, agent!' : 'Incorrect. The correct answer was B.'
-      };
+      // Practice mode: Wait for server validation (no more optimistic/fake checking)
+      try {
+        const response = await GameService.mcq_answer_submit(questions[currentQuestionIndex].id, option);
+        
+        setAnswerResponse(response);
 
-      setAnswerResponse(localResponse);
-
-      // Play sound effect immediately
-      if (localResponse.correct) {
-        audioService.play('correct');
-      } else {
-        audioService.play('wrong');
-      }
-
-      // Grant reward optimistically
-      onGrantReward(localResponse.deltas);
-
-      // Trigger particles using the feedback anchor (if correct)
-      if (localResponse.correct && answerFeedbackRef.current) {
-        audioService.play('collect');
-        const startRect = answerFeedbackRef.current.getBoundingClientRect();
-        const newParticles: Omit<RewardParticleProps, 'onComplete'>[] = [];
-        for (let i = 0; i < 5; i++) {
-          if (localResponse.deltas.xp > 0) newParticles.push({ id: `xp_${Date.now()}_${i}`, type: 'xp', startRect });
-          if (localResponse.deltas.coins > 0) newParticles.push({ id: `coin_${Date.now()}_${i}`, type: 'coin', startRect });
-        }
-        setParticles(current => [...current, ...newParticles]);
-      }
-
-      // Update score optimistically
-      setScore(prev => ({
-        correct: prev.correct + (localResponse.correct ? 1 : 0),
-        xp: prev.xp + localResponse.deltas.xp,
-        coins: prev.coins + localResponse.deltas.coins,
-      }));
-
-      // Scroll feedback into view
-      setTimeout(() => {
-        if (answerFeedbackRef.current) {
-          answerFeedbackRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }, 80);
-
-      // Fire the real request but don't block the UI
-      GameService.mcq_answer_submit(questions[currentQuestionIndex].id, option)
-        .then((response) => {
-          if (response.correct !== localResponse.correct || response.deltas.xp !== localResponse.deltas.xp || response.deltas.coins !== localResponse.deltas.coins) {
-            setScore(prev => ({
-              correct: prev.correct - (localResponse.correct ? 1 : 0) + (response.correct ? 1 : 0),
-              xp: prev.xp - localResponse.deltas.xp + response.deltas.xp,
-              coins: prev.coins - localResponse.deltas.coins + response.deltas.coins,
-            }));
-            setAnswerResponse(response);
-          }
-        })
-        .catch(err => {
-          console.warn('mcq answer reconcile failed:', err);
-        });
-
-      // Auto-advance
-      setTimeout(() => {
-        if (currentQuestionIndex < questions.length - 1) {
-          setCurrentQuestionIndex(prev => prev + 1);
-          setSelectedOption(null);
-          setAnswerResponse(null);
+        // Play sound effect
+        if (response.correct) {
+          audioService.play('correct');
         } else {
-          audioService.play('tada');
-          setStage('completed');
+          audioService.play('wrong');
         }
-      }, 700);
+
+        // Grant reward
+        onGrantReward(response.deltas);
+
+        // Trigger particles using the feedback anchor (if correct)
+        if (response.correct && answerFeedbackRef.current) {
+          audioService.play('collect');
+          const startRect = answerFeedbackRef.current.getBoundingClientRect();
+          const newParticles: Omit<RewardParticleProps, 'onComplete'>[] = [];
+          for (let i = 0; i < 5; i++) {
+            if (response.deltas.xp > 0) newParticles.push({ id: `xp_${Date.now()}_${i}`, type: 'xp', startRect });
+            if (response.deltas.coins > 0) newParticles.push({ id: `coin_${Date.now()}_${i}`, type: 'coin', startRect });
+          }
+          setParticles(current => [...current, ...newParticles]);
+        }
+
+        // Update score
+        setScore(prev => ({
+          correct: prev.correct + (response.correct ? 1 : 0),
+          xp: prev.xp + response.deltas.xp,
+          coins: prev.coins + response.deltas.coins,
+        }));
+
+        // Scroll feedback into view
+        setTimeout(() => {
+          if (answerFeedbackRef.current) {
+            answerFeedbackRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 80);
+
+        // Auto-advance
+        setTimeout(() => {
+          if (currentQuestionIndex < questions.length - 1) {
+            setCurrentQuestionIndex(prev => prev + 1);
+            setSelectedOption(null);
+            setAnswerResponse(null);
+          } else {
+            audioService.play('tada');
+            setStage('completed');
+          }
+        }, 1500);
+      } catch (err) {
+        console.error('Error submitting answer:', err);
+        alert('Failed to submit answer. Please try again.');
+        setSelectedOption(null);
+      }
     } else {
       // Teacher mode: Submit to server and wait for grading
       const currentQuestion = teacherQuestions[currentQuestionIndex];
@@ -364,7 +346,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
 
     const questionText = mode === 'practice' ? question!.body : teacherQuestion!.question_text;
     const options = mode === 'practice' ? question!.options : teacherQuestion!.options;
-    const correctAnswer = mode === 'practice' ? question!.options[1] : teacherQuestion!.correct_answer;
+    const correctAnswer = mode === 'practice' ? question!.correct_answer : teacherQuestion!.correct_answer;
     const totalQuestions = mode === 'practice' ? questions.length : teacherQuestions.length;
 
     return (

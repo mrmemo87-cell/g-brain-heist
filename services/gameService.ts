@@ -644,6 +644,7 @@ export const mcq_questions_get = async (subject_id: string, limit: number = 5): 
         id: q.id,
         body: q.question_text,
         options: q.options || [],
+        correct_answer: q.correct_answer, // Include correct answer for validation
         reward_xp: q.points || 20,
         reward_coins: Math.floor((q.points || 20) * 1.5),
     }));

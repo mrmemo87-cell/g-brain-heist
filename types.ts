@@ -80,6 +80,7 @@ export interface Question {
   id: string;
   body: string;
   options: string[];
+  correct_answer?: string; // Added for database questions
   reward_xp: number;
   reward_coins: number;
 }
