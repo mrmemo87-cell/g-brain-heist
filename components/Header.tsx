@@ -153,69 +153,134 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
 
   return (
     <>
-      <header className="sticky top-0 z-40 card-glass backdrop-blur-md animate-slide-in-right shadow-lg shadow-cyan-500/10" style={{ borderBottom: '1px solid rgba(0, 208, 232, 0.2)' }}>
-        {/* Top row - Brand and Actions */}
-        <div className="flex justify-between items-center p-3 sm:p-4">
-          <div className="flex items-center space-x-3 sm:space-x-4">
-            <div className="relative">
-              <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl font-bold tracking-wider neon-text" style={{ color: 'var(--ion-blue)' }}>
-                BH
-              </h1>
-              <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-shimmer"></div>
-            </div>
-            <div className="hidden sm:flex flex-col">
-              <span className="text-base sm:text-lg font-bold text-white animate-fade-in-up">{profile.username}</span>
-              <span className="text-xs text-gray-400">Level {profile.level} • {profile.batch}</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            <img 
-              src={profile.avatar_url} 
-              alt="Player Avatar" 
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 animate-float cursor-pointer hover:scale-110 transition-transform" 
-              style={{ borderColor: 'var(--plasma-pink)' }}
-              onClick={() => setShowSettingsModal(true)}
-            />
+      <header className="sticky top-0 z-40 bg-gradient-to-r from-gray-900 via-black to-gray-900 border-b-2 border-cyan-500/30 shadow-2xl shadow-cyan-500/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
+          {/* Main header content */}
+          <div className="flex items-center justify-between gap-4">
             
-            <button 
-              onClick={() => setShowSettingsModal(true)}
-              className="p-2 sm:p-2.5 rounded-full bg-black/30 hover:bg-amber-warn/30 transition-all hover:scale-110 backdrop-blur-sm"
-              aria-label="Settings"
-              title="Settings"
-            >
-              <span className="text-lg sm:text-xl">⚙️</span>
-            </button>
+            {/* Left: BRAIN HEIST Brand */}
+            <div className="flex items-center space-x-4">
+              <div className="relative group">
+                <h1 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-black tracking-widest select-none">
+                  <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]" 
+                        style={{ 
+                          backgroundImage: 'linear-gradient(90deg, #22d3ee 0%, #3b82f6 25%, #8b5cf6 50%, #3b82f6 75%, #22d3ee 100%)',
+                          animation: 'shimmer 3s linear infinite'
+                        }}>
+                    BRAIN
+                  </span>
+                  {' '}
+                  <span className="bg-gradient-to-r from-pink-500 via-red-500 to-orange-500 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]"
+                        style={{ 
+                          backgroundImage: 'linear-gradient(90deg, #ec4899 0%, #ef4444 25%, #f97316 50%, #ef4444 75%, #ec4899 100%)',
+                          animation: 'shimmer 3s linear infinite',
+                          animationDelay: '1.5s'
+                        }}>
+                    HEIST
+                  </span>
+                </h1>
+                <div className="absolute -bottom-1 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-500 via-pink-500 to-cyan-500 opacity-50 blur-sm"></div>
+              </div>
+              
+              {/* Username badge */}
+              <div className="hidden md:flex items-center space-x-2 px-4 py-2 bg-black/40 rounded-full border border-cyan-500/30 backdrop-blur-sm">
+                <img 
+                  src={profile.avatar_url} 
+                  alt={profile.username} 
+                  className="w-8 h-8 rounded-full border-2 border-pink-500 cursor-pointer hover:scale-110 transition-transform"
+                  onClick={() => setShowSettingsModal(true)}
+                />
+                <span className="font-bold text-white text-sm">{profile.username}</span>
+              </div>
+            </div>
 
-            <button 
-              onClick={onLogout}
-              className="hidden sm:flex p-2.5 rounded-full bg-black/30 hover:bg-plasma-pink/30 transition-all hover:scale-110 backdrop-blur-sm items-center justify-center"
-              aria-label="Log Out"
-              title="Log Out"
-            >
-              <LogoutIcon className="w-5 h-5 sm:w-6 sm:h-6 text-mist-400" />
-            </button>
-          </div>
-        </div>
-        
-        {/* Bottom row - Stats */}
-        <div className="flex items-center justify-between px-3 sm:px-4 pb-3 sm:pb-4 gap-2 overflow-x-auto">
-          <div className="flex items-center space-x-2 animate-fade-in-up">
-            <StatChip icon={<CoinIcon />} value={profile.coins} data-testid="coin-hud" />
-            <StatChip icon={<XPIcon />} value={profile.xp} data-testid="xp-hud" />
-            <StatChip 
-              icon={<APIcon />} 
-              value={profile.ap_now} 
-              data-testid="ap-hud" 
-              subtitle={apRegenCountdown !== 'MAX' ? `+1 in ${apRegenCountdown}` : 'MAX'}
-            />
-            <StatChip 
-              icon={<StreakIcon />} 
-              value={profile.streak || 0} 
-              data-testid="streak-hud"
-              subtitle={profile.streak > 1 ? 'days' : 'day'}
-              highlight={profile.streak >= 7}
-            />
+            {/* Right: Stats and Actions */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              
+              {/* Stats Row */}
+              <div className="flex items-center gap-2 sm:gap-3">
+                {/* Coins */}
+                <div className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-br from-yellow-600/20 to-orange-600/20 rounded-xl border-2 border-yellow-500/50 backdrop-blur-sm hover:scale-105 transition-transform min-w-[80px] sm:min-w-[100px]">
+                  <div className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]">
+                    <CoinIcon />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] sm:text-xs text-yellow-300/80 font-semibold uppercase tracking-wide leading-none">Coins</span>
+                    <span id="coin-hud" className="font-mono font-bold text-base sm:text-lg text-white leading-none mt-0.5">{profile.coins.toLocaleString()}</span>
+                  </div>
+                </div>
+
+                {/* XP */}
+                <div className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-br from-blue-600/20 to-cyan-600/20 rounded-xl border-2 border-cyan-500/50 backdrop-blur-sm hover:scale-105 transition-transform min-w-[80px] sm:min-w-[100px]">
+                  <div className="w-6 h-6 sm:w-7 sm:h-7 text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">
+                    <XPIcon />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] sm:text-xs text-cyan-300/80 font-semibold uppercase tracking-wide leading-none">XP</span>
+                    <span id="xp-hud" className="font-mono font-bold text-base sm:text-lg text-white leading-none mt-0.5">{profile.xp.toLocaleString()}</span>
+                  </div>
+                </div>
+
+                {/* AP */}
+                <div className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-br from-green-600/20 to-emerald-600/20 rounded-xl border-2 border-green-500/50 backdrop-blur-sm hover:scale-105 transition-transform min-w-[80px] sm:min-w-[100px]">
+                  <div className="w-6 h-6 sm:w-7 sm:h-7 text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.8)]">
+                    <APIcon />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] sm:text-xs text-green-300/80 font-semibold uppercase tracking-wide leading-none">AP</span>
+                    <div className="flex items-baseline gap-1">
+                      <span id="ap-hud" className="font-mono font-bold text-base sm:text-lg text-white leading-none">{profile.ap_now}</span>
+                      <span className="text-xs text-gray-400">/{profile.ap_max}</span>
+                    </div>
+                    {apRegenCountdown !== 'MAX' && (
+                      <span className="text-[9px] text-green-300/60 leading-none mt-0.5">+1 in {apRegenCountdown}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Streak - Compact on mobile */}
+                <div className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2.5 rounded-xl border-2 backdrop-blur-sm hover:scale-105 transition-transform ${
+                  profile.streak >= 7 
+                    ? 'bg-gradient-to-br from-orange-600/30 to-red-600/30 border-orange-500/60' 
+                    : 'bg-gradient-to-br from-gray-700/20 to-gray-600/20 border-gray-500/30'
+                }`}>
+                  <div className={`w-5 h-5 sm:w-6 sm:h-6 ${profile.streak >= 7 ? 'text-orange-400 animate-pulse' : 'text-gray-400'}`}>
+                    <StreakIcon />
+                  </div>
+                  <div className="flex flex-col">
+                    <span id="streak-hud" className={`font-mono font-bold text-sm sm:text-base leading-none ${profile.streak >= 7 ? 'text-orange-300' : 'text-white'}`}>
+                      {profile.streak || 0}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile Avatar (shows when username is hidden) */}
+              <img 
+                src={profile.avatar_url} 
+                alt={profile.username} 
+                className="md:hidden w-10 h-10 rounded-full border-2 border-pink-500 cursor-pointer hover:scale-110 transition-transform"
+                onClick={() => setShowSettingsModal(true)}
+              />
+
+              {/* Settings Button */}
+              <button 
+                onClick={() => setShowSettingsModal(true)}
+                className="p-2.5 rounded-xl bg-black/40 border border-gray-600 hover:border-yellow-500 hover:bg-yellow-500/10 transition-all hover:scale-110 backdrop-blur-sm"
+                aria-label="Settings"
+              >
+                <span className="text-xl">⚙️</span>
+              </button>
+
+              {/* Logout Button - Desktop only */}
+              <button 
+                onClick={onLogout}
+                className="hidden sm:flex p-2.5 rounded-xl bg-black/40 border border-gray-600 hover:border-red-500 hover:bg-red-500/10 transition-all hover:scale-110 backdrop-blur-sm items-center justify-center"
+                aria-label="Log Out"
+              >
+                <LogoutIcon className="w-5 h-5 text-red-400" />
+              </button>
+            </div>
           </div>
         </div>
       </header>
