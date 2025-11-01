@@ -1,4 +1,4 @@
-import { Profile, Task, SessionStatus, Caps, NewsEvent, Subject, Question, AnswerResponse, RaidTarget, RaidAttackResult, ShopItem, PurchaseReceipt, Clan, ClanChatMessage, ClanSummary, ClanMember, ClanBuff, InventoryItem } from '../types';
+import { Profile, Task, SessionStatus, Caps, NewsEvent, Subject, Question, AnswerResponse, RaidTarget, RaidAttackResult, ShopItem, PurchaseReceipt, Clan, ClanChatMessage, ClanSummary, ClanMember, ClanBuff, InventoryItem, Teacher, TeacherQuestion, CreateQuestionRequest, QuestionAttemptResult, QuestTemplate } from '../types';
 import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, getSharedPlayers, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount } from './storageService';
 import { supabase } from './supabaseClient';
 
@@ -1720,4 +1720,268 @@ export const check_achievements = async (): Promise<Achievement[]> => {
 
     // Return newly earned achievements
     return data[0]?.newly_earned || [];
+};
+
+// ============================================================
+// Teacher Question System Functions
+// ============================================================
+
+/**
+ * Create a teacher profile for the current user
+ */
+export const create_teacher_profile = async (
+    schoolName?: string,
+    subjectSpecializations?: string[],
+    bio?: string
+): Promise<Teacher> => {
+    const user = await getCurrentUser();
+
+    const { data, error } = await supabase.rpc('create_teacher_profile', {
+        p_school_name: schoolName,
+        p_subject_specializations: subjectSpecializations,
+        p_bio: bio
+    });
+
+    if (error) throw new Error(error.message);
+
+    // Fetch and return the created teacher profile
+    const { data: teacher, error: fetchError } = await supabase
+        .from('teachers')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+    if (fetchError) throw fetchError;
+
+    return teacher;
+};
+
+/**
+ * Get teacher profile for current user
+ */
+export const get_teacher_profile = async (): Promise<Teacher | null> => {
+    const user = await getCurrentUser();
+
+    const { data, error } = await supabase
+        .from('teachers')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+    if (error) {
+        if (error.code === 'PGRST116') return null; // Not found
+        throw error;
+    }
+
+    return data;
+};
+
+/**
+ * Create a new question
+ */
+export const create_question = async (questionData: CreateQuestionRequest): Promise<TeacherQuestion> => {
+    const user = await getCurrentUser();
+
+    // Get teacher ID
+    const teacher = await get_teacher_profile();
+    if (!teacher) throw new Error('User is not a teacher');
+
+    const { data, error } = await supabase
+        .from('questions')
+        .insert({
+            teacher_id: teacher.id,
+            subject: questionData.subject,
+            topic: questionData.topic,
+            difficulty: questionData.difficulty,
+            question_text: questionData.question_text,
+            question_type: questionData.question_type,
+            options: questionData.question_options,
+            correct_answer: questionData.correct_answer,
+            explanation: questionData.explanation,
+            hints: questionData.hints,
+            time_limit: questionData.time_limit || 30,
+            points: questionData.points || 10,
+            tags: questionData.tags,
+            grade_level: questionData.grade_level,
+            is_public: questionData.is_public || false
+        })
+        .select()
+        .single();
+
+    if (error) throw error;
+
+    return data;
+};
+
+/**
+ * Get all questions created by the current teacher
+ */
+export const get_my_questions = async (): Promise<TeacherQuestion[]> => {
+    const teacher = await get_teacher_profile();
+    if (!teacher) throw new Error('User is not a teacher');
+
+    const { data, error } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('teacher_id', teacher.id)
+        .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    return data || [];
+};
+
+/**
+ * Get a single question by ID
+ */
+export const get_question = async (questionId: string): Promise<TeacherQuestion> => {
+    const { data, error } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('id', questionId)
+        .single();
+
+    if (error) throw error;
+
+    return data;
+};
+
+/**
+ * Update a question
+ */
+export const update_question = async (
+    questionId: string,
+    updates: Partial<CreateQuestionRequest>
+): Promise<TeacherQuestion> => {
+    const { data, error } = await supabase
+        .from('questions')
+        .update({
+            ...updates,
+            options: updates.question_options,
+            updated_at: new Date().toISOString()
+        })
+        .eq('id', questionId)
+        .select()
+        .single();
+
+    if (error) throw error;
+
+    return data;
+};
+
+/**
+ * Delete a question
+ */
+export const delete_question = async (questionId: string): Promise<void> => {
+    const { error } = await supabase
+        .from('questions')
+        .delete()
+        .eq('id', questionId);
+
+    if (error) throw error;
+};
+
+/**
+ * Get public questions (for students to browse)
+ */
+export const get_public_questions = async (subject?: Subject, difficulty?: string): Promise<TeacherQuestion[]> => {
+    let query = supabase
+        .from('questions')
+        .select('*')
+        .eq('is_public', true)
+        .eq('is_active', true);
+
+    if (subject) query = query.eq('subject', subject);
+    if (difficulty) query = query.eq('difficulty', difficulty);
+
+    const { data, error } = await query.order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    return data || [];
+};
+
+/**
+ * Submit an answer to a teacher question
+ */
+export const submit_question_answer = async (
+    questionId: string,
+    answer: string,
+    timeTaken?: number,
+    questSessionId?: string
+): Promise<QuestionAttemptResult> => {
+    const user = await getCurrentUser();
+
+    const { data, error } = await supabase.rpc('record_question_attempt', {
+        p_question_id: questionId,
+        p_answer_given: answer,
+        p_time_taken: timeTaken,
+        p_quest_session_id: questSessionId
+    });
+
+    if (error) throw error;
+
+    return data;
+};
+
+/**
+ * Create a quest template
+ */
+export const create_quest_template = async (
+    title: string,
+    description: string,
+    subject: Subject,
+    questionIds: string[],
+    difficulty?: string,
+    xpReward?: number,
+    coinsReward?: number
+): Promise<QuestTemplate> => {
+    const teacher = await get_teacher_profile();
+    if (!teacher) throw new Error('User is not a teacher');
+
+    const { data, error } = await supabase
+        .from('quest_templates')
+        .insert({
+            teacher_id: teacher.id,
+            title,
+            description,
+            subject,
+            difficulty,
+            question_ids: questionIds,
+            xp_reward: xpReward || 0,
+            coins_reward: coinsReward || 0
+        })
+        .select()
+        .single();
+
+    if (error) throw error;
+
+    return data;
+};
+
+/**
+ * Get quest templates (public or created by teacher)
+ */
+export const get_quest_templates = async (subject?: Subject): Promise<QuestTemplate[]> => {
+    const teacher = await get_teacher_profile();
+
+    let query = supabase
+        .from('quest_templates')
+        .select('*')
+        .eq('is_active', true);
+
+    if (subject) query = query.eq('subject', subject);
+
+    // Get public templates or teacher's own templates
+    if (teacher) {
+        query = query.or(`is_public.eq.true,teacher_id.eq.${teacher.id}`);
+    } else {
+        query = query.eq('is_public', true);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    return data || [];
 };
