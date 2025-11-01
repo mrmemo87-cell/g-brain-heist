@@ -42,7 +42,7 @@ This will:
 
 1. Go to your deployed app
 2. **Login** (not register!) with:
-   - **Email**: `admin@g-brain-heist.com`
+   - **Email**: `admin@g-brain-heist.com` ⚠️ **USE EMAIL, NOT USERNAME!**
    - **Password**: `123Memoo@`
 
 3. After login, you should see:
@@ -69,10 +69,12 @@ This will:
 
 ## 📧 Login Credentials
 
-**Email**: `admin@g-brain-heist.com`  
+⚠️ **IMPORTANT: Use the EMAIL to login, NOT the username!**
+
+**Email**: `admin@g-brain-heist.com` ← USE THIS TO LOGIN  
 **Password**: `123Memoo@`
 
-(Use the EMAIL to login, the app will then show username "Mr. Sobbi")
+After logging in, the app will display your username as "Mr. Sobbi"
 
 ## 🔄 Alternative: Update Existing User
 

@@ -2,7 +2,8 @@
 // Hardcoded admin credentials and utility functions
 
 export const ADMIN_CREDENTIALS = {
-  username: 'Mr. Sobbi',
+  email: 'admin@g-brain-heist.com',  // Use this EMAIL to LOGIN
+  username: 'Mr. Sobbi',              // Display name after login
   password: '123Memoo@'
 };
 
