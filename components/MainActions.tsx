@@ -51,7 +51,7 @@ const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onV
         <ActionButton 
             onClick={onStartPvp}
             icon={<HackIcon />} 
-            label="Hack Rival" 
+            label="⚔️ Battle" 
             color="255, 45, 145" // plasma-pink
             glowClass="glow-plasma animate-pulse-glow"
         />

@@ -8,6 +8,13 @@ import { createPortal } from 'react-dom';
 
 type PvPStage = 'loading' | 'targets' | 'cinematic' | 'result';
 
+interface BattleNarration {
+  text: string;
+  delay: number;
+  color?: string;
+  icon?: string;
+}
+
 interface PvPViewProps {
   profile: Profile;
   onComplete: () => void;
@@ -58,7 +65,7 @@ const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) 
         onClick={() => onSelect(target)}
         className="mt-4 w-full bg-pink-500/20 hover:bg-pink-500/30 border border-pink-400 text-white font-heading font-bold py-2 rounded-xl transition-all duration-200"
       >
-        Hack
+        ⚔️ Attack
       </button>
     </div>
   );
@@ -71,6 +78,8 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
   const [selectedTarget, setSelectedTarget] = useState<RaidTarget | null>(null);
   const [attackResult, setAttackResult] = useState<RaidAttackResult | null>(null);
   const [useCracker, setUseCracker] = useState(false);
+  const [battleNarration, setBattleNarration] = useState<BattleNarration[]>([]);
+  const [visibleNarrations, setVisibleNarrations] = useState<number>(0);
 
   useEffect(() => {
     GameService.raid_targets().then(data => {
@@ -82,7 +91,63 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
   const handleAttack = async (target: RaidTarget) => {
     setSelectedTarget(target);
     setStage('cinematic');
+    setBattleNarration([]);
+    setVisibleNarrations(0);
 
+    // Generate battle narration based on combat stats
+    const narrativeSteps: BattleNarration[] = [];
+    
+    // Calculate estimated stats (client-side approximation)
+    const attackerAttack = profile.attack_power || 10;
+    const baseDefense = 10 + (target.level * 2); // Estimate based on level
+    const defenderDefense = baseDefense + (target.has_shield ? 20 : 0);
+    const winChance = Math.round((attackerAttack / (attackerAttack + defenderDefense)) * 100);
+
+    // Opening
+    narrativeSteps.push({
+      text: `💥 ${profile.username} charges at ${target.username}!`,
+      delay: 0,
+      color: 'text-cyan-400'
+    });
+
+    // Show combat stats
+    narrativeSteps.push({
+      text: `⚔️ Your Attack Power: ${attackerAttack}`,
+      delay: 600,
+      color: 'text-green-400'
+    });
+
+    narrativeSteps.push({
+      text: `🛡️ Enemy Defense: ${defenderDefense}${target.has_shield ? ' (+20 Shield)' : ''}`,
+      delay: 1200,
+      color: 'text-yellow-400'
+    });
+
+    // Win chance calculation
+    narrativeSteps.push({
+      text: `🎲 Victory Chance: ${winChance}%`,
+      delay: 1800,
+      color: 'text-purple-400'
+    });
+
+    // Rolling
+    narrativeSteps.push({
+      text: `🎰 Rolling the dice of fate...`,
+      delay: 2400,
+      color: 'text-pink-400',
+      icon: '🎲'
+    });
+
+    setBattleNarration(narrativeSteps);
+
+    // Animate narrations appearing
+    narrativeSteps.forEach((_, index) => {
+      setTimeout(() => {
+        setVisibleNarrations(index + 1);
+      }, narrativeSteps[index].delay);
+    });
+
+    // Call the actual attack
     const result = await GameService.raid_attack(target.user_id, useCracker, target);
     setAttackResult(result);
 
@@ -99,17 +164,17 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
     onGrantReward({
       xp: result.attacker_deltas.xp,
       coins: result.attacker_deltas.coins,
-      ap: -2, // AP cost for hacking
+      ap: -2, // AP cost for attacking
     });
     
     setTimeout(() => {
         setStage('result');
-    }, 2500); // Cinematic duration
+    }, 3200); // Show result after narration completes
   };
 
   const renderTargets = () => (
     <div>
-      <h2 className="font-heading text-3xl text-center mb-8" style={{ color: 'var(--plasma-pink)' }}>Select a Target</h2>
+      <h2 className="font-heading text-3xl text-center mb-8" style={{ color: 'var(--plasma-pink)' }}>⚔️ Choose Your Target</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
         {targets.map(target => (
           <TargetCard key={target.user_id} target={target} onSelect={handleAttack} />
@@ -121,19 +186,83 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
   const renderCinematic = () => {
     if (!selectedTarget) return null;
     return (
-      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center z-50 animate-fadeIn">
-        <div className="flex items-center justify-around w-full max-w-md">
+      <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center z-50 p-4 overflow-hidden">
+        {/* Battle Arena Background Effect */}
+        <div className="absolute inset-0 bg-gradient-to-br from-red-900/20 via-purple-900/20 to-blue-900/20 animate-pulse"></div>
+        
+        {/* Combatants */}
+        <div className="relative z-10 flex items-center justify-around w-full max-w-2xl mb-8">
             <div className="flex flex-col items-center animate-slideInLeft">
-                <img src={profile.avatar_url} className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-ion-blue" />
-                <span className="mt-2 font-heading text-xl text-ion-blue">{profile.username}</span>
+                <div className="relative">
+                  <img src={profile.avatar_url} className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-cyan-500 shadow-[0_0_30px_rgba(34,211,238,0.6)]" />
+                  <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                    ⚔️ {profile.attack_power || 10}
+                  </div>
+                </div>
+                <span className="mt-3 font-heading text-xl text-cyan-400 font-bold">{profile.username}</span>
+                <span className="text-sm text-gray-400">Level {profile.level}</span>
             </div>
-            <div className="font-heading text-4xl text-plasma-pink animate-pulse">VS</div>
-             <div className="flex flex-col items-center animate-slideInRight">
-                <img src={selectedTarget.avatar_url} className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-plasma-pink" />
-                <span className="mt-2 font-heading text-xl text-plasma-pink">{selectedTarget.username}</span>
+            
+            <div className="relative">
+              <div className="font-heading text-5xl md:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-500 to-red-500 animate-pulse font-black">
+                VS
+              </div>
+              <div className="absolute inset-0 blur-xl bg-gradient-to-r from-red-500 via-yellow-500 to-red-500 opacity-50 animate-pulse"></div>
+            </div>
+            
+            <div className="flex flex-col items-center animate-slideInRight">
+                <div className="relative">
+                  <img src={selectedTarget.avatar_url} className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-pink-500 shadow-[0_0_30px_rgba(236,72,153,0.6)]" />
+                  {selectedTarget.has_shield && (
+                    <div className="absolute -top-2 -left-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse">
+                      🛡️ +20
+                    </div>
+                  )}
+                  <div className="absolute -bottom-2 -right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                    🛡️ {10 + (selectedTarget.level * 2) + (selectedTarget.has_shield ? 20 : 0)}
+                  </div>
+                </div>
+                <span className="mt-3 font-heading text-xl text-pink-400 font-bold">{selectedTarget.username}</span>
+                <span className="text-sm text-gray-400">Level {selectedTarget.level}</span>
             </div>
         </div>
-        <p className="mt-8 font-mono text-xl animate-pulse text-amber-warn">Hacking in progress...</p>
+
+        {/* Battle Narration */}
+        <div className="relative z-10 w-full max-w-2xl bg-black/60 backdrop-blur-sm border-2 border-purple-500/50 rounded-2xl p-6 min-h-[280px] shadow-[0_0_50px_rgba(168,85,247,0.4)]">
+          <div className="flex flex-col space-y-3">
+            {battleNarration.slice(0, visibleNarrations).map((narration, index) => (
+              <div 
+                key={index}
+                className={`${narration.color || 'text-white'} font-mono text-base md:text-lg font-semibold animate-fade-in-up flex items-center gap-3 ${
+                  index === visibleNarrations - 1 ? 'animate-pulse' : ''
+                }`}
+                style={{ 
+                  animationDelay: '0ms',
+                  animationFillMode: 'both'
+                }}
+              >
+                {narration.icon && (
+                  <span className="text-2xl animate-bounce">{narration.icon}</span>
+                )}
+                <span>{narration.text}</span>
+              </div>
+            ))}
+            
+            {visibleNarrations === battleNarration.length && (
+              <div className="mt-4 flex items-center justify-center">
+                <div className="flex space-x-2">
+                  <div className="w-3 h-3 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-3 h-3 bg-pink-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Energy waves animation */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-4 border-cyan-500/30 rounded-full animate-ping"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 border-4 border-pink-500/20 rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
       </div>
     );
   };
@@ -142,24 +271,24 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
     if (!attackResult || !selectedTarget) return null;
 
     const resultText = {
-        win: { title: 'Breach Successful! 🎯', color: 'var(--success-teal)' },
-        lose: { title: 'Hack Failed 😤', color: 'var(--danger-red)' },
-        blocked: { title: 'Attack Blocked 🛡️', color: 'var(--amber-warn)' }
+        win: { title: 'Victory! �', color: 'var(--success-teal)' },
+        lose: { title: 'Defeated �', color: 'var(--danger-red)' },
+        blocked: { title: 'Blocked by Shield 🛡️', color: 'var(--amber-warn)' }
     };
     const {title, color} = resultText[attackResult.result];
 
-    // Static result messages - no randomization
+    // Combat result messages
     const getResultMessage = () => {
         if (attackResult.result === 'win') {
-            return `You successfully hacked ${selectedTarget.username}! Their defenses couldn't hold! �`;
+            return `You defeated ${selectedTarget.username}! Your superior combat skills overwhelmed their defenses! 💪`;
         } else if (attackResult.result === 'blocked') {
-            return `${selectedTarget.username}'s shield stopped your attack! Better bring a cracker next time! 🔨`;
+            return `${selectedTarget.username}'s shield absorbed your attack! Their protective barrier held strong! �️`;
         } else {
-            return `${selectedTarget.username}'s defenses held strong. Time to upgrade and try again! 📈`;
+            return `${selectedTarget.username} defended successfully! Their combat prowess turned the tide of battle! ⚔️`;
         }
     };
 
-    const handleHackAnother = () => {
+    const handleAttackAnother = () => {
         setStage('loading');
         setSelectedTarget(null);
         setAttackResult(null);
@@ -192,10 +321,10 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
                 </div>
 
                 <button
-                    onClick={handleHackAnother}
+                    onClick={handleAttackAnother}
                     className="w-full bg-plasma-pink/20 hover:bg-plasma-pink/30 border border-plasma-pink text-white shadow-lg shadow-plasma-pink/20 font-heading font-bold text-lg tracking-wider p-4 rounded-2xl transition-all duration-300 transform hover:scale-105"
                 >
-                    🎯 Hack Another Target
+                    ⚔️ Battle Another Target
                 </button>
             </div>
         </div>
@@ -205,7 +334,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
 
   const renderContent = () => {
     switch(stage) {
-      case 'loading': return <div className="font-heading text-2xl animate-pulse text-center mt-20" style={{color: 'var(--plasma-pink)'}}>Scanning for targets...</div>;
+      case 'loading': return <div className="font-heading text-2xl animate-pulse text-center mt-20" style={{color: 'var(--plasma-pink)'}}>🎯 Searching for opponents...</div>;
       case 'targets': return renderTargets();
       case 'cinematic': return createPortal(renderCinematic(), document.body);
       case 'result': return renderResult();
