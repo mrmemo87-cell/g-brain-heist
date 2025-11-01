@@ -239,7 +239,18 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   
   const handleViewComplete = () => {
     setView('dashboard');
-    fetchGameData(); // Refetch to sync with server state
+    // Only refresh profile data (lightweight) instead of all game data
+    refreshProfile();
+  };
+
+  // Lightweight profile refresh (no loading screen)
+  const refreshProfile = async () => {
+    try {
+      const profileData = await GameService.whoami();
+      setProfile(profileData);
+    } catch (error) {
+      console.error('Failed to refresh profile:', error);
+    }
   };
 
   const handleGrantReward = (deltas: { xp?: number; coins?: number, ap?: number }) => {
