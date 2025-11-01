@@ -222,11 +222,52 @@ export const whoami = async (): Promise<Profile> => {
     updateData.last_ap_update = now.toISOString();
     profile.ap_now = newAP;
     profile.last_ap_update = now.toISOString();
+
+    // ====== NOTIFICATION: AP FULL ======
+    if (newAP === profile.ap_max) {
+      try {
+        await supabase.rpc('notify_ap_full', {
+          user_id_param: user.id
+        });
+      } catch (notifError) {
+        console.error('Failed to send AP full notification:', notifError);
+      }
+    }
+  }
+
+  // ====== NOTIFICATION: LOW AP WARNING ======
+  if (profile.ap_now < profile.ap_max * 0.2) {
+    try {
+      await supabase.rpc('notify_low_ap', {
+        user_id_param: user.id,
+        current_ap: profile.ap_now,
+        max_ap: profile.ap_max
+      });
+    } catch (notifError) {
+      console.error('Failed to send low AP notification:', notifError);
+    }
   }
   
   if (newStreak !== profile.streak) {
     updateData.streak = newStreak;
     profile.streak = newStreak;
+
+    // ====== NOTIFICATION: STREAK DANGER ======
+    // If streak was broken (reset to 1 after having a streak)
+    if (profile.streak > 1 && newStreak === 1) {
+      try {
+        const { notificationService } = await import('./notificationService');
+        await notificationService.createNotification(
+          user.id,
+          'streak_danger',
+          '🔥 Streak Broken!',
+          `You lost your ${profile.streak} day streak! Log in daily to rebuild it.`,
+          'medium'
+        );
+      } catch (notifError) {
+        console.error('Failed to send streak notification:', notifError);
+      }
+    }
   }
   
   // Update database with all changes
@@ -613,6 +654,34 @@ export const mcq_answer_submit = async (question_id: string, choice: string): Pr
             actor_username: unameResult?.username || 'Unknown',
             data: { details: String(newLevel) },
         });
+
+        // ====== NOTIFICATION: LEVEL UP ======
+        try {
+            await supabase.rpc('notify_level_up', {
+                user_id_param: user.id,
+                new_level: newLevel,
+                rewards_xp: response.deltas.xp,
+                rewards_coins: response.deltas.coins
+            });
+        } catch (notifError) {
+            console.error('Failed to send level up notification:', notifError);
+        }
+    }
+
+    // Notify for significant coin gains (correct answers)
+    if (isCorrect && response.deltas.coins >= 30) {
+        try {
+            const { notificationService } = await import('./notificationService');
+            await notificationService.createNotification(
+                user.id,
+                'coins_earned',
+                '💰 Coins Earned!',
+                `You earned ${response.deltas.coins} coins for answering correctly!`,
+                'low'
+            );
+        } catch (notifError) {
+            console.error('Failed to send coins notification:', notifError);
+        }
     }
     
     // Track quest progress (use localStorage for now)
@@ -625,6 +694,20 @@ export const mcq_answer_submit = async (question_id: string, choice: string): Pr
             const progress = getTaskProgress();
             if (progress.daily_quests_completed === 3 || progress.daily_pvp_wins === 1) {
                 incrementWeeklyTaskCompleted();
+            }
+
+            // ====== NOTIFICATION: QUEST COMPLETED ======
+            try {
+                const { notificationService } = await import('./notificationService');
+                await notificationService.createNotification(
+                    user.id,
+                    'quest_completed',
+                    '✅ Quest Complete!',
+                    'You completed a knowledge quest! Keep learning to earn more rewards.',
+                    'high'
+                );
+            } catch (notifError) {
+                console.error('Failed to send quest completion notification:', notifError);
             }
         }
     }
@@ -709,6 +792,57 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
         if (progress.daily_pvp_wins === 1) {
             incrementWeeklyTaskCompleted();
         }
+    }
+
+    // ====== NOTIFICATION TRIGGERS ======
+    try {
+        // Get attacker profile for username
+        const { data: attackerProfile } = await supabase
+            .from('users')
+            .select('username, level')
+            .eq('id', user.id)
+            .single();
+
+        const attackerUsername = attackerProfile?.username || 'Unknown';
+        const attackerLevel = attackerProfile?.level || 1;
+        const attackPower = attackerLevel * 10; // Estimate attack power
+
+        if (response.result === 'win') {
+            // Notify defender they're under attack
+            await supabase.rpc('notify_attack_incoming', {
+                target_user_id: defender_id,
+                attacker_username: attackerUsername,
+                attacker_power: attackPower
+            });
+
+            // If significant coins stolen, notify about coin loss
+            const coinsStolen = response.defender_deltas?.coins_loss || 0;
+            if (coinsStolen > 50) {
+                await supabase.rpc('notify_coins_lost', {
+                    user_id_param: defender_id,
+                    attacker_username: attackerUsername,
+                    coins_lost: coinsStolen
+                });
+            }
+
+            // Offer revenge to defender
+            await supabase.rpc('notify_revenge_available', {
+                user_id_param: defender_id,
+                target_username: attackerUsername,
+                target_user_id: user.id
+            });
+        } else if (response.result === 'lose' || response.result === 'blocked') {
+            // Defender successfully defended
+            const coinsLost = response.defender_deltas?.coins_loss || 0;
+            await supabase.rpc('notify_attack_defended', {
+                user_id_param: defender_id,
+                attacker_username: attackerUsername,
+                coins_kept: Math.max(0, -coinsLost) // Negative loss means they kept coins
+            });
+        }
+    } catch (notifError) {
+        // Don't fail the attack if notifications fail
+        console.error('Failed to send attack notifications:', notifError);
     }
     
     return mockApiCall(response);
@@ -1728,7 +1862,30 @@ export const check_achievements = async (): Promise<Achievement[]> => {
     if (error) throw error;
 
     // Return newly earned achievements
-    return data[0]?.newly_earned || [];
+    const newlyEarned = data[0]?.newly_earned || [];
+
+    // ====== NOTIFICATION: ACHIEVEMENT EARNED ======
+    if (newlyEarned.length > 0) {
+        try {
+            const { notificationService } = await import('./notificationService');
+            
+            // Send notification for each new achievement
+            for (const achievement of newlyEarned) {
+                await notificationService.createNotification(
+                    user.id,
+                    'achievement_earned',
+                    '🏆 Achievement Unlocked!',
+                    `You earned "${achievement.name}"! ${achievement.description}`,
+                    'high',
+                    { achievement_id: achievement.id, achievement_name: achievement.name }
+                );
+            }
+        } catch (notifError) {
+            console.error('Failed to send achievement notifications:', notifError);
+        }
+    }
+
+    return newlyEarned;
 };
 
 // ============================================================
