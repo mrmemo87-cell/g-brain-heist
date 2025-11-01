@@ -184,15 +184,56 @@ export const whoami = async (): Promise<Profile> => {
   }
 
   // ====== AP REGENERATION LOGIC ======
-  const now = new Date();
-  const lastApUpdate = profile.last_ap_update ? new Date(profile.last_ap_update) : now;
-  const msElapsed = now.getTime() - lastApUpdate.getTime();
-  const minutesElapsed = Math.floor(msElapsed / (1000 * 60));
-  
-  // Regenerate 1 AP per 10 minutes (600,000 ms)
-  const apToRegen = Math.floor(minutesElapsed / 10);
+  // Call database function to regenerate AP
+  try {
+    const { data: regenData, error: regenError } = await supabase.rpc('regenerate_user_ap', {
+      user_id_param: user.id
+    });
+
+    if (!regenError && regenData && regenData.length > 0) {
+      const { new_ap, ap_regenerated } = regenData[0];
+      profile.ap_now = new_ap;
+      profile.last_ap_update = new Date().toISOString();
+
+      // ====== NOTIFICATION: AP FULL ======
+      if (ap_regenerated > 0 && new_ap === profile.ap_max) {
+        try {
+          await supabase.rpc('notify_ap_full', {
+            user_id_param: user.id
+          });
+        } catch (notifError) {
+          console.error('Failed to send AP full notification:', notifError);
+        }
+      }
+    }
+  } catch (apError) {
+    console.error('AP regeneration failed, using fallback:', apError);
+    // Fallback to client-side calculation
+    const now = new Date();
+    const lastApUpdate = profile.last_ap_update ? new Date(profile.last_ap_update) : now;
+    const msElapsed = now.getTime() - lastApUpdate.getTime();
+    const minutesElapsed = Math.floor(msElapsed / (1000 * 60));
+    const apToRegen = Math.floor(minutesElapsed / 10);
+    
+    if (apToRegen > 0 && profile.ap_now < profile.ap_max) {
+      const newAP = Math.min(profile.ap_now + apToRegen, profile.ap_max);
+      const updateData: any = { 
+        ap_now: newAP,
+        last_ap_update: now.toISOString()
+      };
+      
+      await supabase
+        .from('users')
+        .update(updateData)
+        .eq('id', user.id);
+        
+      profile.ap_now = newAP;
+      profile.last_ap_update = now.toISOString();
+    }
+  }
   
   // ====== STREAK TRACKING LOGIC ======
+  const now = new Date();
   const lastSeen = profile.last_seen ? new Date(profile.last_seen) : null;
   let newStreak = profile.streak || 0;
   
@@ -215,38 +256,6 @@ export const whoami = async (): Promise<Profile> => {
   }
   
   const updateData: any = { last_seen: now.toISOString() };
-  
-  if (apToRegen > 0 && profile.ap_now < profile.ap_max) {
-    const newAP = Math.min(profile.ap_now + apToRegen, profile.ap_max);
-    updateData.ap_now = newAP;
-    updateData.last_ap_update = now.toISOString();
-    profile.ap_now = newAP;
-    profile.last_ap_update = now.toISOString();
-
-    // ====== NOTIFICATION: AP FULL ======
-    if (newAP === profile.ap_max) {
-      try {
-        await supabase.rpc('notify_ap_full', {
-          user_id_param: user.id
-        });
-      } catch (notifError) {
-        console.error('Failed to send AP full notification:', notifError);
-      }
-    }
-  }
-
-  // ====== NOTIFICATION: LOW AP WARNING ======
-  if (profile.ap_now < profile.ap_max * 0.2) {
-    try {
-      await supabase.rpc('notify_low_ap', {
-        user_id_param: user.id,
-        current_ap: profile.ap_now,
-        max_ap: profile.ap_max
-      });
-    } catch (notifError) {
-      console.error('Failed to send low AP notification:', notifError);
-    }
-  }
   
   if (newStreak !== profile.streak) {
     updateData.streak = newStreak;
