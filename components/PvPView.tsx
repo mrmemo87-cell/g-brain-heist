@@ -147,29 +147,46 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
       }, narrativeSteps[index].delay);
     });
 
-    // Call the actual attack
-    const result = await GameService.raid_attack(target.user_id, useCracker, target);
-    setAttackResult(result);
+    try {
+      // Call the actual attack (starts immediately but runs in parallel with animations)
+      const result = await GameService.raid_attack(target.user_id, useCracker, target);
+      
+      console.log('Battle result received:', result); // Debug log
+      
+      setAttackResult(result);
 
-    // Play appropriate sound based on result
-    if (result.result === 'win') {
-      audioService.play('hack_win');
-    } else if (result.result === 'blocked') {
-      audioService.play('hack_fail');
-    } else {
-      audioService.play('hack_fail');
-    }
+      // Play appropriate sound based on result
+      if (result.result === 'win') {
+        audioService.play('hack_win');
+      } else if (result.result === 'blocked') {
+        audioService.play('hack_fail');
+      } else {
+        audioService.play('hack_fail');
+      }
 
-    // Grant rewards/penalties including AP cost
-    onGrantReward({
-      xp: result.attacker_deltas.xp,
-      coins: result.attacker_deltas.coins,
-      ap: -2, // AP cost for attacking
-    });
-    
-    setTimeout(() => {
+      // Grant rewards/penalties including AP cost
+      onGrantReward({
+        xp: result.attacker_deltas.xp,
+        coins: result.attacker_deltas.coins,
+        ap: -2, // AP cost for attacking
+      });
+      
+      // Wait for minimum animation time (2.8s) before showing result
+      const elapsedTime = 2800;
+      setTimeout(() => {
         setStage('result');
-    }, 3200); // Show result after narration completes
+      }, elapsedTime);
+      
+    } catch (error) {
+      console.error('Battle attack error:', error);
+      // Show error and go back to targets
+      alert('Battle failed: ' + (error as Error).message);
+      setStage('loading');
+      GameService.raid_targets().then(data => {
+        setTargets(data);
+        setStage('targets');
+      });
+    }
   };
 
   const renderTargets = () => (
