@@ -197,7 +197,8 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
               </div>
             </div>
 
-            {/* Bottom row: Stats in 2x2 grid */}
+            {/* Bottom row: Stats in 2x2 grid - Only for students */}
+            {profile.role !== 'teacher' && (
             <div className="grid grid-cols-2 gap-1.5">
               {/* Coins */}
               <div className="flex items-center gap-1.5 px-2 py-1.5 bg-gradient-to-br from-yellow-600/20 to-orange-600/20 rounded-lg border border-yellow-500/50 backdrop-blur-sm">
@@ -255,6 +256,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                 </div>
               </div>
             </div>
+            )}
           </div>
 
           {/* Desktop Layout (>= 768px) */}
@@ -299,7 +301,8 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
             {/* Right: Stats and Actions */}
             <div className="flex items-center gap-3">
               
-              {/* Stats Row */}
+              {/* Stats Row - Only for students */}
+              {profile.role !== 'teacher' && (
               <div className="flex items-center gap-3">
                 {/* Coins */}
                 <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-br from-yellow-600/20 to-orange-600/20 rounded-xl border-2 border-yellow-500/50 backdrop-blur-sm hover:scale-105 transition-transform min-w-[100px]">
@@ -356,6 +359,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                   </div>
                 </div>
               </div>
+              )}
 
               {/* Settings Button */}
               <button 
