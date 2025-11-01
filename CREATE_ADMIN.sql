@@ -12,6 +12,7 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM users WHERE username = 'Mr. Sobbi') THEN
     -- Create new admin user
     INSERT INTO users (
+      email,
       username,
       role,
       batch,
@@ -28,6 +29,7 @@ BEGIN
       last_seen,
       last_ap_update
     ) VALUES (
+      'admin@g-brain-heist.com',
       'Mr. Sobbi',
       'admin',
       NULL,
