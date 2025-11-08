@@ -153,6 +153,20 @@ const randomFloatInRange = ([min, max]: [number, number]): number => {
     return Math.random() * (max - min) + min;
 };
 
+const clampNumber = (value: number, [min, max]: [number, number]): number => {
+    return Math.min(Math.max(value, min), max);
+};
+
+const approximateXpForLevel = (level: number): number => {
+    if (level <= 1) {
+        return 0;
+    }
+
+    const normalizedLevel = Math.max(1, level);
+    // Quadratic growth that keeps numbers within the same order of magnitude as real profiles.
+    return Math.round(((normalizedLevel - 1) * normalizedLevel * 45) + (normalizedLevel - 1) * 120);
+};
+
 const buildBotAvatarUrl = (seed: string): string => {
     const encoded = encodeURIComponent(seed);
     return `https://api.dicebear.com/7.x/adventurer/svg?seed=${encoded}&backgroundColor=c0aede,ffd5dc,ffdfbf&radius=50`;
