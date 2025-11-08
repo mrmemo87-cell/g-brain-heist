@@ -59,8 +59,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
   };
 
-
-  useEffect(() => aiHostService.init(), []);
+  useEffect(() => {
+    return aiHostService.init();
+  }, []);
 
   const fetchGameData = async () => {
     try {
