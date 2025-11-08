@@ -269,6 +269,15 @@ g-brain-heist/
 └── index.tsx            # Entry point
 ```
 
+### Quality & Testing
+- **Static analysis**: `npm run typecheck`
+- **Unit tests**: `npm run test` (compiles TypeScript specs to `dist-tests` and runs Node's native test runner)
+- **Production build**: `npm run build`
+- **Load testing** (requires [k6](https://k6.io/docs/get-started/installation/)):
+  - Leaderboard browsing: `k6 run load-tests/leaderboard.js`
+  - Shop catalogue & purchase RPC: `k6 run load-tests/shop.js`
+  - PvP hack RPC: `k6 run load-tests/pvp.js`
+
 ### Data Persistence
 All game state is saved to localStorage with these keys:
 - `gbh_profile` - Player profile data

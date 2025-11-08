@@ -4,6 +4,7 @@ import { CoinIcon, XPIcon, APIcon, LogoutIcon, StreakIcon } from './icons';
 import { audioService } from '../services/audioService';
 import { NotificationCenter } from './NotificationCenter';
 import { notificationService } from '../services/notificationService';
+import { update_avatar } from '../services/gameService';
 
 // Custom hook for animating number changes
 const useAnimatedValue = (endValue: number, duration: number = 500) => {
@@ -116,7 +117,6 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
     setSelectedAvatar(avatarUrl);
     setUploadingAvatar(true);
     try {
-      const { update_avatar } = await import('../services/gameService');
       await update_avatar(avatarUrl);
       // Profile will be refreshed via real-time subscription
       audioService.play('collect');

@@ -11,6 +11,8 @@ interface MainActionsProps {
     onViewAchievements: () => void;
     onOpenTeacherPortal?: () => void;
     onOpenAdminPortal?: () => void;
+    onOpenTournament?: () => void;
+    onOpenTournamentAdmin?: () => void;
 }
 
 const ActionButton: React.FC<{ icon: React.ReactNode; label: string; color: string; glowClass: string; onClick?: () => void; className?: string; }> = ({ icon, label, color, glowClass, onClick, className }) => {
@@ -40,7 +42,7 @@ const ActionButton: React.FC<{ icon: React.ReactNode; label: string; color: stri
     );
 };
 
-const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onVisitShop, onGoToClan, onVisitInventory, onViewLeaderboard, onViewAchievements, onOpenTeacherPortal, onOpenAdminPortal }) => {
+const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onVisitShop, onGoToClan, onVisitInventory, onViewLeaderboard, onViewAchievements, onOpenTeacherPortal, onOpenAdminPortal, onOpenTournament, onOpenTournamentAdmin }) => {
   return (
     <div className="grid grid-cols-2 gap-4 animate-fade-in-up">
         <ActionButton 
@@ -64,6 +66,15 @@ const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onV
             color="22, 226, 161" // success-teal
             glowClass="glow-success"
         />
+        {onOpenTournament && (
+            <ActionButton
+                onClick={onOpenTournament}
+                icon={<span className="text-3xl animate-bounce">🏀</span>}
+                label="Tournament"
+                color="255, 140, 0"
+                glowClass="glow-warn"
+            />
+        )}
         <ActionButton 
             onClick={onGoToClan}
             icon={<ClanIcon />} 
@@ -93,19 +104,29 @@ const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onV
             glowClass="glow-plasma"
         />
         {onOpenAdminPortal && (
-            <ActionButton 
+            <ActionButton
                 onClick={onOpenAdminPortal}
-                icon={<span className="text-4xl animate-spin-slow">👑</span>} 
+                icon={<span className="text-4xl animate-spin-slow">👑</span>}
                 label="ADMIN" 
                 color="255, 215, 0" // gold
                 glowClass="glow-warn"
                 className="animate-pulse-glow col-span-2"
             />
         )}
+        {onOpenTournamentAdmin && (
+            <ActionButton
+                onClick={onOpenTournamentAdmin}
+                icon={<span className="text-3xl animate-float">📊</span>}
+                label="Tournament Ops"
+                color="135, 206, 250"
+                glowClass="glow-ion"
+                className="col-span-2"
+            />
+        )}
         {onOpenTeacherPortal && (
-            <ActionButton 
+            <ActionButton
                 onClick={onOpenTeacherPortal}
-                icon={<span className="text-3xl animate-bounce">👨‍🏫</span>} 
+                icon={<span className="text-3xl animate-bounce">👨‍🏫</span>}
                 label="Teacher" 
                 color="100, 200, 255" // light blue
                 glowClass="glow-ion"
