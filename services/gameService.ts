@@ -223,172 +223,129 @@ const generateKyrgyzBots = (count: number, existingIds: Set<string>): RaidTarget
     return bots;
 };
 
-type KyrgyzBotLeaderboardProfile = {
+type KyrgyzBotLeaderboardBaseProfile = {
     id: string;
     username: string;
     avatar_url: string;
-    value: number;
-    batch: '8A' | '8B' | '8C';
+    batch: KyrgyzBotPersona['batch'];
     last_seen: string;
     role: 'bot';
 };
 
-type KyrgyzBotPvpProfile = {
+type KyrgyzBotXpLeaderboardEntry = KyrgyzBotLeaderboardBaseProfile & { value: number };
+type KyrgyzBotPvpLeaderboardEntry = KyrgyzBotLeaderboardBaseProfile & { wins: number };
+
+type KyrgyzBotClanLeaderboardEntry = {
     id: string;
-    username: string;
-    avatar_url: string;
-    wins: number;
-    batch: '8A' | '8B' | '8C';
-    last_seen: string;
-    role: 'bot';
+    name: string;
+    member_count: number;
+    total_xp: number;
 };
 
 type KyrgyzBotLeaderboardSnapshot = {
-    xp: KyrgyzBotLeaderboardProfile[];
-    pvp: KyrgyzBotPvpProfile[];
-    clans: { id: string; name: string; member_count: number; total_xp: number }[];
-    generatedAt: string;
+    xp: KyrgyzBotXpLeaderboardEntry[];
+    pvp: KyrgyzBotPvpLeaderboardEntry[];
+    clans: KyrgyzBotClanLeaderboardEntry[];
 };
 
-const KYRGYZ_BOT_LEADERBOARD_KEY = 'gbh_kyrgyz_bot_leaderboard_v1';
-const KYRGYZ_BOT_LEADERBOARD_REFRESH_MS = 5 * 60 * 1000;
-
-const isBrowserEnvironment = (): boolean => typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
-
-const loadKyrgyzBotLeaderboardSnapshot = (): KyrgyzBotLeaderboardSnapshot | null => {
-    if (!isBrowserEnvironment()) {
-        return null;
+const seededRandomFromString = (seed: string): number => {
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+        hash = Math.imul(31, hash) + seed.charCodeAt(i);
+        hash |= 0;
     }
 
-    return loadFromStorage<KyrgyzBotLeaderboardSnapshot>(KYRGYZ_BOT_LEADERBOARD_KEY);
+    const result = Math.sin(hash) * 10000;
+    return result - Math.floor(result);
 };
 
-const saveKyrgyzBotLeaderboardSnapshot = (snapshot: KyrgyzBotLeaderboardSnapshot): void => {
-    if (!isBrowserEnvironment()) {
-        return;
+const seededIntInRange = (seed: string, [min, max]: [number, number]): number => {
+    if (max <= min) {
+        return Math.round(min);
     }
 
-    saveToStorage(KYRGYZ_BOT_LEADERBOARD_KEY, snapshot);
+    const random = seededRandomFromString(seed);
+    return Math.floor(min + random * (max - min + 1));
 };
 
-const shouldRefreshKyrgyzBotLeaderboard = (snapshot: KyrgyzBotLeaderboardSnapshot | null): boolean => {
-    if (!snapshot) {
-        return true;
-    }
+const createBotLeaderboardProfile = (persona: KyrgyzBotPersona): KyrgyzBotLeaderboardBaseProfile => {
+    const username = `${persona.firstName} ${persona.lastName}`;
+    const id = `bot_${persona.firstName.toLowerCase()}_${persona.lastName.toLowerCase().replace(/[^a-z]/g, '')}`;
+    const minutesAgo = seededIntInRange(`${id}_seen`, persona.activityMinutesRange);
+    const lastSeen = new Date(Date.now() - minutesAgo * 60000).toISOString();
 
-    const generatedAt = Date.parse(snapshot.generatedAt);
-    if (Number.isNaN(generatedAt)) {
-        return true;
-    }
-
-    return Date.now() - generatedAt > KYRGYZ_BOT_LEADERBOARD_REFRESH_MS;
+    return {
+        id,
+        username,
+        avatar_url: buildBotAvatarUrl(username),
+        batch: persona.batch,
+        last_seen: lastSeen,
+        role: 'bot',
+    };
 };
 
-const slugify = (value: string): string => {
-    return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-};
-
-const createKyrgyzBotLeaderboardSnapshot = (
-    previous?: KyrgyzBotLeaderboardSnapshot
-): KyrgyzBotLeaderboardSnapshot => {
-    const xpProfiles = KYRGYZ_BOT_PERSONAS.map(persona => {
-        const slug = slugify(`${persona.firstName}-${persona.lastName}`);
-        const id = `bot_lb_${slug}`;
-        const previousXp = previous?.xp.find(entry => entry.id === id);
-        const previousWins = previous?.pvp.find(entry => entry.id === id);
-
-        const xpFloor = approximateXpForLevel(persona.levelRange[0]);
-        const xpCeil = approximateXpForLevel(persona.levelRange[1] + 1) + 500;
-        const baselineXp = Math.round(
-            approximateXpForLevel(randomIntInRange(persona.levelRange)) * randomFloatInRange([1.05, 1.4])
-        );
-        const xpDelta = previousXp ? randomIntInRange([-120, 180]) : 0;
-        const xpValue = clampNumber((previousXp?.value || baselineXp) + xpDelta, [xpFloor, xpCeil]);
-
-        const baselineWins = Math.max(3, Math.round(randomFloatInRange(persona.skillRange) * 45));
-        const winsDelta = previousWins ? randomIntInRange([-2, 5]) : 0;
-        const wins = Math.max(1, (previousWins?.wins || baselineWins) + winsDelta);
-
-        const lastSeenMinutes = randomIntInRange(persona.activityMinutesRange);
-        const last_seen = new Date(Date.now() - lastSeenMinutes * 60 * 1000).toISOString();
-
-        return {
-            id,
-            username: `${persona.firstName} ${persona.lastName}`,
-            avatar_url: buildBotAvatarUrl(`${persona.firstName}-${persona.lastName}-leaderboard`),
-            value: Math.round(xpValue),
-            wins: Math.round(wins),
-            batch: persona.batch,
-            last_seen,
-            role: 'bot' as const,
-            clan: persona.clan,
-        };
-    });
-
-    const xpEntries: KyrgyzBotLeaderboardProfile[] = xpProfiles.map(({ wins, clan, ...rest }) => rest);
-
-    const pvpEntries: KyrgyzBotPvpProfile[] = xpProfiles.map(profile => ({
-        id: profile.id,
-        username: profile.username,
-        avatar_url: profile.avatar_url,
-        wins: profile.wins,
-        batch: profile.batch,
-        last_seen: profile.last_seen,
-        role: profile.role,
+const buildKyrgyzBotLeaderboardSnapshot = (): KyrgyzBotLeaderboardSnapshot => {
+    const personaProfiles = KYRGYZ_BOT_PERSONAS.map(persona => ({
+        persona,
+        profile: createBotLeaderboardProfile(persona),
     }));
 
-    const clanMap = new Map<string, { id: string; name: string; member_count: number; total_xp: number }>();
+    const xpEntries = personaProfiles
+        .map(({ persona, profile }) => {
+            const xpRange: [number, number] = [
+                persona.levelRange[0] * 115,
+                persona.levelRange[1] * 165,
+            ];
 
-    xpProfiles.forEach(profile => {
-        if (!profile.clan) {
-            return;
-        }
+            return {
+                ...profile,
+                value: Math.max(persona.levelRange[0] * 90, seededIntInRange(`${profile.id}_xp`, xpRange)),
+            };
+        })
+        .sort((a, b) => b.value - a.value);
 
-        const clanSlug = slugify(profile.clan);
-        const previousClan = previous?.clans.find(clan => clan.id === `bot_clan_${clanSlug}`);
-        const memberCount = previousClan?.member_count ?? randomIntInRange([12, 28]);
-        const baseTotalXp = previousClan?.total_xp ?? randomIntInRange([18000, 52000]);
+    const pvpEntries = personaProfiles
+        .map(({ persona, profile }) => {
+            const winsRange: [number, number] = persona.style === 'aggressive'
+                ? [24, 60]
+                : persona.style === 'balanced'
+                ? [18, 45]
+                : [12, 35];
 
-        const existing = clanMap.get(profile.clan);
-        if (!existing) {
-            clanMap.set(profile.clan, {
-                id: `bot_clan_${clanSlug}`,
-                name: profile.clan,
+            return {
+                ...profile,
+                wins: Math.max(5, seededIntInRange(`${profile.id}_wins`, winsRange)),
+            };
+        })
+        .sort((a, b) => b.wins - a.wins);
+
+    const clanNames = Array.from(
+        new Set(
+            KYRGYZ_BOT_PERSONAS
+                .map(persona => persona.clan)
+                .filter((clanName): clanName is string => Boolean(clanName))
+        )
+    );
+
+    const clanEntries = clanNames
+        .map((name, index) => {
+            const memberCount = Math.max(10, seededIntInRange(`${name}_members`, [14, 28]));
+            const xpPerMember = Math.max(320, seededIntInRange(`${name}_xp_per_member`, [480, 920]));
+
+            return {
+                id: `bot_clan_${index + 1}`,
+                name,
                 member_count: memberCount,
-                total_xp: baseTotalXp,
-            });
-        }
-
-        const entry = clanMap.get(profile.clan)!;
-        entry.total_xp = clampNumber(
-            entry.total_xp + Math.round(profile.value * randomFloatInRange([0.25, 0.65])),
-            [8000, 120000]
-        );
-        entry.member_count = Math.max(entry.member_count, memberCount);
-    });
-
-    const clans = Array.from(clanMap.values()).map(clan => ({
-        ...clan,
-        total_xp: Math.round(clan.total_xp),
-    }));
+                total_xp: memberCount * xpPerMember,
+            };
+        })
+        .sort((a, b) => b.total_xp - a.total_xp);
 
     return {
         xp: xpEntries,
         pvp: pvpEntries,
-        clans,
-        generatedAt: new Date().toISOString(),
+        clans: clanEntries,
     };
-};
-
-export const getKyrgyzBotLeaderboardProfiles = async (): Promise<KyrgyzBotLeaderboardSnapshot> => {
-    let snapshot = loadKyrgyzBotLeaderboardSnapshot();
-
-    if (!snapshot || shouldRefreshKyrgyzBotLeaderboard(snapshot)) {
-        snapshot = createKyrgyzBotLeaderboardSnapshot(snapshot || undefined);
-        saveKyrgyzBotLeaderboardSnapshot(snapshot);
-    }
-
-    return mockApiCall(snapshot);
 };
 
 // Helper to get current authenticated user
@@ -411,6 +368,11 @@ const updateProfile = async (userId: string, updates: Partial<Profile>) => {
 // Helper to simulate API calls (keep for mock data)
 const mockApiCall = <T,>(data: T): Promise<T> => {
   return new Promise(resolve => setTimeout(() => resolve(data), MOCK_DELAY));
+};
+
+export const getKyrgyzBotLeaderboardProfiles = async (): Promise<KyrgyzBotLeaderboardSnapshot> => {
+    const snapshot = buildKyrgyzBotLeaderboardSnapshot();
+    return mockApiCall(snapshot);
 };
 
 // Initialize default profile data
