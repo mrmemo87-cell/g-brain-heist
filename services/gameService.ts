@@ -1,6 +1,20 @@
 import { Profile, Task, SessionStatus, Caps, NewsEvent, SubjectData, Question, AnswerResponse, RaidTarget, RaidAttackResult, ShopItem, PurchaseReceipt, Clan, ClanChatMessage, ClanSummary, ClanMember, ClanBuff, InventoryItem, Teacher, TeacherQuestion, CreateQuestionRequest, QuestionAttemptResult, QuestTemplate } from '../types';
 import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, getSharedPlayers, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount } from './storageService';
 import { supabase } from './supabaseClient';
+import { notificationService } from './notificationService';
+import {
+    regenerateUserAp,
+    notifyApFull,
+    notifyLevelUp,
+    performHackAttempt,
+    notifyAttackIncoming,
+    notifyCoinsLost,
+    notifyRevengeAvailable,
+    notifyAttackDefended,
+    checkAchievements as rpcCheckAchievements,
+    createTeacherProfile as rpcCreateTeacherProfile,
+    recordQuestionAttempt
+} from './rpcGateway';
 
 const MOCK_DELAY = 500;
 
@@ -186,9 +200,7 @@ export const whoami = async (): Promise<Profile> => {
   // ====== AP REGENERATION LOGIC ======
   // Call database function to regenerate AP
   try {
-    const { data: regenData, error: regenError } = await supabase.rpc('regenerate_user_ap', {
-      user_id_param: user.id
-    });
+    const { data: regenData, error: regenError } = await regenerateUserAp(user.id);
 
     if (regenError) {
       console.warn('Database AP regeneration function not available, using fallback:', regenError.message);
@@ -205,9 +217,7 @@ export const whoami = async (): Promise<Profile> => {
       // ====== NOTIFICATION: AP FULL ======
       if (ap_regenerated > 0 && new_ap === profile.ap_max) {
         try {
-          await supabase.rpc('notify_ap_full', {
-            user_id_param: user.id
-          });
+          await notifyApFull(user.id);
         } catch (notifError) {
           console.error('Failed to send AP full notification:', notifError);
         }
@@ -289,7 +299,6 @@ export const whoami = async (): Promise<Profile> => {
     // If streak was broken (reset to 1 after having a streak)
     if (profile.streak > 1 && newStreak === 1) {
       try {
-        const { notificationService } = await import('./notificationService');
         await notificationService.createNotification(
           user.id,
           'streak_danger',
@@ -762,12 +771,12 @@ export const mcq_answer_submit = async (question_id: string, choice: string): Pr
 
         // ====== NOTIFICATION: LEVEL UP ======
         try {
-            await supabase.rpc('notify_level_up', {
-                user_id_param: user.id,
-                new_level: newLevel,
-                rewards_xp: response.deltas.xp,
-                rewards_coins: response.deltas.coins
-            });
+            await notifyLevelUp(
+                user.id,
+                newLevel,
+                response.deltas.xp,
+                response.deltas.coins
+            );
         } catch (notifError) {
             console.error('Failed to send level up notification:', notifError);
         }
@@ -776,7 +785,6 @@ export const mcq_answer_submit = async (question_id: string, choice: string): Pr
     // Notify for significant coin gains (correct answers)
     if (isCorrect && response.deltas.coins >= 30) {
         try {
-            const { notificationService } = await import('./notificationService');
             await notificationService.createNotification(
                 user.id,
                 'coins_earned',
@@ -803,7 +811,6 @@ export const mcq_answer_submit = async (question_id: string, choice: string): Pr
 
             // ====== NOTIFICATION: QUEST COMPLETED ======
             try {
-                const { notificationService } = await import('./notificationService');
                 await notificationService.createNotification(
                     user.id,
                     'quest_completed',
@@ -872,9 +879,7 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
     const user = await getCurrentUser();
     
     // Call the Postgres RPC function to handle all combat logic server-side
-    const { data, error } = await supabase.rpc('rpc_hack_attempt', {
-        p_defender_id: defender_id
-    });
+    const { data, error } = await performHackAttempt(defender_id);
     
     if (error) {
         console.error('Hack attempt RPC error:', error);
@@ -894,11 +899,18 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
     }
     
     // The RPC returns the exact format we need
+    const rpcResult = data as {
+        result: RaidAttackResult['result'];
+        attacker_deltas: RaidAttackResult['attacker_deltas'];
+        defender_deltas: RaidAttackResult['defender_deltas'];
+        shield_state: RaidAttackResult['shield_state'];
+    };
+
     const response: RaidAttackResult = {
-        result: data.result,
-        attacker_deltas: data.attacker_deltas,
-        defender_deltas: data.defender_deltas,
-        shield_state: data.shield_state,
+        result: rpcResult.result,
+        attacker_deltas: rpcResult.attacker_deltas,
+        defender_deltas: rpcResult.defender_deltas,
+        shield_state: rpcResult.shield_state,
     };
     
     // Track progress (localStorage for now)
@@ -925,7 +937,7 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
 
         if (response.result === 'win') {
             // Notify defender they're under attack
-            await supabase.rpc('notify_attack_incoming', {
+            await notifyAttackIncoming({
                 target_user_id: defender_id,
                 attacker_username: attackerUsername,
                 attacker_power: attackPower
@@ -934,7 +946,7 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
             // If significant coins stolen, notify about coin loss
             const coinsStolen = response.defender_deltas?.coins_loss || 0;
             if (coinsStolen > 50) {
-                await supabase.rpc('notify_coins_lost', {
+                await notifyCoinsLost({
                     user_id_param: defender_id,
                     attacker_username: attackerUsername,
                     coins_lost: coinsStolen
@@ -942,7 +954,7 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
             }
 
             // Offer revenge to defender
-            await supabase.rpc('notify_revenge_available', {
+            await notifyRevengeAvailable({
                 user_id_param: defender_id,
                 target_username: attackerUsername,
                 target_user_id: user.id
@@ -950,7 +962,7 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
         } else if (response.result === 'lose' || response.result === 'blocked') {
             // Defender successfully defended
             const coinsLost = response.defender_deltas?.coins_loss || 0;
-            await supabase.rpc('notify_attack_defended', {
+            await notifyAttackDefended({
                 user_id_param: defender_id,
                 attacker_username: attackerUsername,
                 coins_kept: Math.max(0, -coinsLost) // Negative loss means they kept coins
@@ -1291,7 +1303,11 @@ export const clan_join = async (clan_id: string): Promise<Clan> => {
         .eq('id', clan_id);
     
     // Fetch full clan details with members
-    return clan_details();
+    const clanDetails = await clan_details();
+    if (!clanDetails) {
+        throw new Error('Failed to load clan details after joining.');
+    }
+    return clanDetails;
 };
 
 export const clan_details = async (): Promise<Clan | null> => {
@@ -1433,7 +1449,11 @@ export const clan_create = async (name: string, notice: string): Promise<Clan> =
     }
     
     // Return full clan details
-    return await clan_details();
+    const clanDetails = await clan_details();
+    if (!clanDetails) {
+        throw new Error('Clan created but details could not be retrieved.');
+    }
+    return clanDetails;
 };
 
 export const clan_chat_recent = async (): Promise<ClanChatMessage[]> => {
@@ -1849,7 +1869,7 @@ export const update_avatar = async (avatar_url: string): Promise<Profile> => {
         .single();
 
     if (error) throw error;
-    return data;
+    return data as Profile;
 };
 
 // ============ ACHIEVEMENTS ============
@@ -1971,20 +1991,17 @@ export const achievements_list = async (): Promise<Achievement[]> => {
 export const check_achievements = async (): Promise<Achievement[]> => {
     const user = await getCurrentUser();
 
-    const { data, error } = await supabase.rpc('rpc_check_achievements', {
-        p_user_id: user.id,
-    });
+    const { data, error } = await rpcCheckAchievements(user.id);
 
     if (error) throw error;
 
     // Return newly earned achievements
-    const newlyEarned = data[0]?.newly_earned || [];
+    const achievementRows = data as Array<{ newly_earned: Achievement[] }>;
+    const newlyEarned = achievementRows[0]?.newly_earned || [];
 
     // ====== NOTIFICATION: ACHIEVEMENT EARNED ======
     if (newlyEarned.length > 0) {
         try {
-            const { notificationService } = await import('./notificationService');
-            
             // Send notification for each new achievement
             for (const achievement of newlyEarned) {
                 await notificationService.createNotification(
@@ -2018,7 +2035,7 @@ export const create_teacher_profile = async (
 ): Promise<Teacher> => {
     const user = await getCurrentUser();
 
-    const { data, error } = await supabase.rpc('create_teacher_profile', {
+    const { data, error } = await rpcCreateTeacherProfile({
         p_school_name: schoolName,
         p_subject_specializations: subjectSpecializations,
         p_bio: bio
@@ -2092,7 +2109,7 @@ export const create_question = async (questionData: CreateQuestionRequest): Prom
 
     if (error) throw error;
 
-    return data;
+    return data as TeacherQuestion;
 };
 
 /**
@@ -2125,7 +2142,7 @@ export const get_question = async (questionId: string): Promise<TeacherQuestion>
 
     if (error) throw error;
 
-    return data;
+    return data as TeacherQuestion;
 };
 
 /**
@@ -2147,7 +2164,7 @@ export const update_question = async (
 
     if (error) throw error;
 
-    return data;
+    return data as TeacherQuestion;
 };
 
 /**
@@ -2193,7 +2210,7 @@ export const submit_question_answer = async (
 ): Promise<QuestionAttemptResult> => {
     const user = await getCurrentUser();
 
-    const { data, error } = await supabase.rpc('record_question_attempt', {
+    const { data, error } = await recordQuestionAttempt({
         p_question_id: questionId,
         p_answer_given: answer,
         p_time_taken: timeTaken,
@@ -2202,7 +2219,7 @@ export const submit_question_answer = async (
 
     if (error) throw error;
 
-    return data;
+    return data as QuestionAttemptResult;
 };
 
 /**

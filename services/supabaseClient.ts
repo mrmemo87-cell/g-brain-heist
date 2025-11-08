@@ -1,8 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 
+const envSource: Record<string, string | undefined> =
+  (typeof import.meta !== 'undefined' && import.meta.env)
+    ? import.meta.env as Record<string, string | undefined>
+    : (typeof process !== 'undefined' ? process.env : {});
+
 // Supabase configuration from environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = envSource['VITE_SUPABASE_URL'];
+const supabaseAnonKey = envSource['VITE_SUPABASE_ANON_KEY'];
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error(

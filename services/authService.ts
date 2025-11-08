@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { createTeacherProfile } from './rpcGateway';
 
 export const login = async (email: string, password: string): Promise<{ success: boolean }> => {
     console.log(`Attempting login for ${email}`);
@@ -73,7 +74,7 @@ export const signup = async (email: string, password: string, username: string, 
         // Note: This requires the teacher_question_system.sql to be run first
         if (role === 'teacher') {
             try {
-                const { error: teacherError } = await supabase.rpc('create_teacher_profile', {
+                const { error: teacherError } = await createTeacherProfile({
                     school_name: null,
                     subject_specializations: [],
                     bio: null
