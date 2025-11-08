@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 import { createTeacherProfile } from './rpcGateway';
+import { getAuthRedirectUrl } from './env';
 
 export const login = async (email: string, password: string): Promise<{ success: boolean }> => {
     console.log(`Attempting login for ${email}`);
@@ -30,6 +31,7 @@ export const signup = async (email: string, password: string, username: string, 
         email,
         password,
         options: {
+            emailRedirectTo: getAuthRedirectUrl(),
             data: {
                 username,
                 role,
@@ -107,8 +109,7 @@ export const logout = async (): Promise<void> => {
 };
 
 export const loginWithGoogle = async (): Promise<void> => {
-    // Construct proper redirect URI that matches Supabase auth config
-    const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined;
+    const redirectTo = getAuthRedirectUrl();
 
     const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
