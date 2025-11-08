@@ -27,6 +27,7 @@ import HelpModal from './components/HelpModal';
 import { ToastContainer } from './components/ToastNotification';
 import { isAdmin } from './services/adminService';
 import { audioService } from './services/audioService';
+import { aiHostService } from './services/aiHostService';
 import CinematicEffects from './components/CinematicEffects';
 
 interface AppProps {
