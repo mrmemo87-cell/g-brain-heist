@@ -33,9 +33,33 @@ const rarityStyles: Record<ShopItem['rarity'], { label: string; border: string; 
     legendary: { label: 'Legendary', border: 'rgba(249, 115, 22, 0.55)', badge: 'bg-orange-600/40 text-orange-100' },
 };
 
-const ItemCard: React.FC<{ item: ShopItem, onBuy: (item: ShopItem) => void }> = ({ item, onBuy }) => {
-    const canAfford = true; // Placeholder, real check would be here or in parent
+const ItemCard: React.FC<{
+    item: ShopItem;
+    onBuy: (item: ShopItem) => void;
+    balances: { coins: number; gemstones: number };
+}> = ({ item, onBuy, balances }) => {
+    const remainingToday = Math.max(0, item.daily_limit - item.owned_today);
+    const coinDeficit = Math.max(0, item.price - balances.coins);
+    const gemstonePrice = item.gemstone_price || 0;
+    const gemstoneDeficit = Math.max(0, gemstonePrice - balances.gemstones);
     const limitReached = item.owned_today >= item.daily_limit;
+    const cannotAfford = coinDeficit > 0 || gemstoneDeficit > 0;
+    const shortageParts: string[] = [];
+
+    if (coinDeficit > 0) {
+        shortageParts.push(`${coinDeficit.toLocaleString()} more coin${coinDeficit === 1 ? '' : 's'}`);
+    }
+    if (gemstoneDeficit > 0) {
+        shortageParts.push(`${gemstoneDeficit.toLocaleString()} more gemstone${gemstoneDeficit === 1 ? '' : 's'}`);
+    }
+
+    const shortageMessage = shortageParts.length > 0 ? `Need ${shortageParts.join(' & ')}` : null;
+    const buttonDisabled = limitReached || cannotAfford;
+    const buttonLabel = limitReached
+        ? `Limit Reached (${item.owned_today}/${item.daily_limit})`
+        : cannotAfford
+            ? 'Insufficient Funds'
+            : 'Buy';
 
     const typeStyles: Record<ShopItem['kind'], { glow: string, border: string }> = {
         shield: { glow: 'glow-ion', border: 'rgba(0, 208, 232, 0.2)' },
@@ -80,15 +104,24 @@ const ItemCard: React.FC<{ item: ShopItem, onBuy: (item: ShopItem) => void }> = 
 
             <button
                 onClick={() => onBuy(item)}
-                disabled={!canAfford || limitReached}
+                disabled={buttonDisabled}
                 className={`w-full font-heading font-bold py-2.5 rounded-xl transition-all duration-200 border ${
-                    limitReached
+                    buttonDisabled
                         ? 'bg-gray-700/50 border-gray-600 text-gray-500 cursor-not-allowed'
                         : 'bg-green-500/20 hover:bg-green-500/30 border-green-400 text-white'
                 }`}
             >
-                {limitReached ? `Limit Reached (${item.owned_today}/${item.daily_limit})` : 'Buy'}
+                {buttonLabel}
             </button>
+            {!limitReached && shortageMessage && (
+                <p className="mt-2 text-xs text-red-400 font-mono">{shortageMessage}</p>
+            )}
+            {limitReached && (
+                <p className="mt-2 text-xs text-amber-300 font-mono">Restock after daily reset</p>
+            )}
+            {!limitReached && remainingToday < item.daily_limit && (
+                <p className="mt-2 text-[10px] text-gray-400 font-mono">Remaining today: {remainingToday}</p>
+            )}
         </div>
     );
 };
@@ -221,7 +254,7 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
 
   const handleBuy = async (item: ShopItem, quantity: number) => {
     try {
-        const receipt = await GameService.shop_buy(item.id, quantity, { coins: profile.coins, gemstones: profile.gemstones });
+        const receipt = await GameService.shop_buy(item.id, quantity);
         audioService.play('buy');
         onPurchase({ coins: -receipt.coins_spent, gemstones: -receipt.gemstones_spent });
         const costParts = [
@@ -263,7 +296,12 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
       <h2 className="font-heading text-3xl text-center mb-8" style={{ color: 'var(--success-teal)' }}>Item Shop</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
         {items.map(item => (
-          <ItemCard key={item.id} item={item} onBuy={setSelectedItem} />
+          <ItemCard
+            key={item.id}
+            item={item}
+            onBuy={setSelectedItem}
+            balances={{ coins: profile.coins, gemstones: profile.gemstones }}
+          />
         ))}
       </div>
 

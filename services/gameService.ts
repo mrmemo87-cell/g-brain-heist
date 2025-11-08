@@ -1110,7 +1110,7 @@ export const shop_list = async (): Promise<ShopItem[]> => {
     return mockApiCall(itemsWithRealCounts);
 };
 
-export const shop_buy = async (item_id: string, quantity: number, balances: { coins: number; gemstones: number }): Promise<PurchaseReceipt> => {
+export const shop_buy = async (item_id: string, quantity: number): Promise<PurchaseReceipt> => {
     const user = await getCurrentUser();
     const item = MOCK_SHOP_ITEMS.find(i => i.id === item_id);
 
@@ -1118,15 +1118,28 @@ export const shop_buy = async (item_id: string, quantity: number, balances: { co
         return Promise.reject({ message: 'Item not found.' });
     }
 
+    const { data: balances, error: balanceError } = await supabase
+        .from('users')
+        .select('coins, gemstones')
+        .eq('id', user.id)
+        .single();
+
+    if (balanceError || !balances) {
+        return Promise.reject({ message: 'Failed to load your balances.' });
+    }
+
+    const currentCoins = balances.coins ?? 0;
+    const currentGemstones = balances.gemstones ?? 0;
+
     const totalCoinCost = item.price * quantity;
     const gemstonePrice = item.gemstone_price || 0;
     const totalGemCost = gemstonePrice * quantity;
 
-    if (totalCoinCost > balances.coins) {
+    if (totalCoinCost > currentCoins) {
         return Promise.reject({ message: 'Not enough coins.' });
     }
 
-    if (totalGemCost > balances.gemstones) {
+    if (totalGemCost > currentGemstones) {
         return Promise.reject({ message: 'Not enough gemstones.' });
     }
 
@@ -1145,8 +1158,11 @@ export const shop_buy = async (item_id: string, quantity: number, balances: { co
         return Promise.reject({ message: 'Daily purchase limit exceeded.' });
     }
 
-    // Update profile coins
-    await updateProfile(user.id, { coins: balances.coins - totalCoinCost, gemstones: balances.gemstones - totalGemCost });
+    const newCoinBalance = currentCoins - totalCoinCost;
+    const newGemstoneBalance = currentGemstones - totalGemCost;
+
+    // Update profile balances using the authoritative values from the database
+    await updateProfile(user.id, { coins: newCoinBalance, gemstones: newGemstoneBalance });
 
     // Add purchase record
     await supabase.from('shop_purchases').insert({
@@ -1179,8 +1195,8 @@ export const shop_buy = async (item_id: string, quantity: number, balances: { co
         receipt_id: `rec_${Date.now()}`,
         coins_spent: totalCoinCost,
         gemstones_spent: totalGemCost,
-        new_balance: balances.coins - totalCoinCost,
-        new_gemstone_balance: balances.gemstones - totalGemCost,
+        new_balance: newCoinBalance,
+        new_gemstone_balance: newGemstoneBalance,
         item: item,
         quantity: quantity
     };

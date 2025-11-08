@@ -283,12 +283,18 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     // Optimistic update for smooth UI feedback
     setProfile(prevProfile => {
       if (!prevProfile) return null;
+
+      const nextXP = prevProfile.xp + (deltas.xp || 0);
+      const nextCoins = prevProfile.coins + (deltas.coins || 0);
+      const nextGemstones = prevProfile.gemstones + (deltas.gemstones || 0);
+      const nextAP = prevProfile.ap_now + (deltas.ap || 0);
+
       return {
         ...prevProfile,
-        xp: prevProfile.xp + (deltas.xp || 0),
-        coins: prevProfile.coins + (deltas.coins || 0),
-        gemstones: prevProfile.gemstones + (deltas.gemstones || 0),
-        ap_now: prevProfile.ap_now + (deltas.ap || 0),
+        xp: Math.max(0, nextXP),
+        coins: Math.max(0, nextCoins),
+        gemstones: Math.max(0, nextGemstones),
+        ap_now: Math.min(prevProfile.ap_max, Math.max(0, nextAP)),
       };
     });
   };
