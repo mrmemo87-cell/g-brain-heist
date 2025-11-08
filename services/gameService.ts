@@ -42,6 +42,7 @@ type KyrgyzBotState = {
     batch: KyrgyzBotPersona['batch'];
     clan_name?: string;
     clan_role: 'leader' | 'member';
+    joinedClan?: boolean;
     style: KyrgyzBotPersona['style'];
     level: number;
     xp: number;
@@ -201,6 +202,7 @@ const createInitialBotState = (persona: KyrgyzBotPersona, index: number): Kyrgyz
         batch: persona.batch,
         clan_name: persona.clan,
         clan_role: index % 3 === 0 ? 'leader' : 'member',
+        joinedClan: index % 3 === 0,
         style: persona.style,
         level,
         xp,
@@ -256,6 +258,11 @@ const refreshKyrgyzBotStates = (): KyrgyzBotState[] => {
         const persona = KYRGYZ_PERSONA_LOOKUP.get(bot.personaId);
         if (!persona) {
             return;
+        }
+
+        if (bot.joinedClan === undefined) {
+            bot.joinedClan = bot.clan_role === 'leader';
+            changed = true;
         }
 
         const lastSeenMs = new Date(bot.last_seen).getTime();
@@ -348,6 +355,17 @@ const simulateKyrgyzBotBackgroundActivity = (): KyrgyzBotState[] => {
                 created_at: nowIso(),
             });
             bot.createdClan = true;
+            changed = true;
+        }
+
+        if (bot.clan_name && bot.clan_role === 'member' && !bot.joinedClan) {
+            addActivityEvent({
+                kind: 'clan_join',
+                actor: bot.username,
+                data: { details: bot.clan_name },
+                created_at: nowIso(),
+            });
+            bot.joinedClan = true;
             changed = true;
         }
 
