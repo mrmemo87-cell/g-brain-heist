@@ -1,5 +1,5 @@
 import { Profile, Task, SessionStatus, Caps, NewsEvent, SubjectData, Question, AnswerResponse, RaidTarget, RaidAttackResult, ShopItem, PurchaseReceipt, Clan, ClanChatMessage, ClanSummary, ClanMember, ClanBuff, InventoryItem, Teacher, TeacherQuestion, CreateQuestionRequest, QuestionAttemptResult, QuestTemplate } from '../types';
-import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, getSharedPlayers, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount } from './storageService';
+import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount, getSharedPlayers } from './storageService';
 import { supabase } from './supabaseClient';
 import { notificationService } from './notificationService';
 import {
@@ -17,6 +17,537 @@ import {
 } from './rpcGateway';
 
 const MOCK_DELAY = 500;
+
+type KyrgyzBotPersona = {
+    firstName: string;
+    lastName: string;
+    batch: '8A' | '8B' | '8C';
+    clan?: string;
+    style: 'aggressive' | 'defensive' | 'balanced';
+    levelRange: [number, number];
+    coinsRange: [number, number];
+    skillRange: [number, number];
+    activityMinutesRange: [number, number];
+};
+
+type KyrgyzBotReactionState = {
+    emoji: string;
+    reacted_at: string;
+};
+
+type KyrgyzBotState = {
+    id: string;
+    personaId: string;
+    username: string;
+    batch: KyrgyzBotPersona['batch'];
+    clan_name?: string;
+    clan_role: 'leader' | 'member';
+    joinedClan?: boolean;
+    style: KyrgyzBotPersona['style'];
+    level: number;
+    xp: number;
+    coins: number;
+    last_seen: string;
+    lastRaidAt?: string;
+    createdClan?: boolean;
+    pvp_wins: number;
+    newsReactions: Record<string, KyrgyzBotReactionState>;
+};
+
+const KYRGYZ_BOT_PERSONAS: KyrgyzBotPersona[] = [
+    {
+        firstName: 'Aibek',
+        lastName: 'Sharipov',
+        batch: '8B',
+        clan: 'Osh Cyber Wolves',
+        style: 'balanced',
+        levelRange: [9, 14],
+        coinsRange: [3200, 6700],
+        skillRange: [0.42, 0.68],
+        activityMinutesRange: [8, 35],
+    },
+    {
+        firstName: 'Meerim',
+        lastName: 'Bekbolotova',
+        batch: '8A',
+        clan: 'Issyk-Ata Sentinels',
+        style: 'defensive',
+        levelRange: [11, 16],
+        coinsRange: [4100, 7800],
+        skillRange: [0.36, 0.6],
+        activityMinutesRange: [15, 60],
+    },
+    {
+        firstName: 'Azamat',
+        lastName: 'Kudaibergen',
+        batch: '8C',
+        clan: 'Bishkek Ghosts',
+        style: 'aggressive',
+        levelRange: [12, 18],
+        coinsRange: [5200, 9100],
+        skillRange: [0.48, 0.75],
+        activityMinutesRange: [5, 28],
+    },
+    {
+        firstName: 'Dinara',
+        lastName: 'Samatova',
+        batch: '8B',
+        clan: 'Tian Shan Sparks',
+        style: 'balanced',
+        levelRange: [8, 13],
+        coinsRange: [2800, 5900],
+        skillRange: [0.4, 0.62],
+        activityMinutesRange: [20, 90],
+    },
+    {
+        firstName: 'Bakyt',
+        lastName: 'Uulu',
+        batch: '8C',
+        clan: 'Naryn Nomads',
+        style: 'aggressive',
+        levelRange: [10, 15],
+        coinsRange: [3600, 6400],
+        skillRange: [0.46, 0.7],
+        activityMinutesRange: [12, 48],
+    },
+    {
+        firstName: 'Aidana',
+        lastName: 'Turgunbaeva',
+        batch: '8A',
+        clan: 'At-Bashi Shields',
+        style: 'defensive',
+        levelRange: [7, 12],
+        coinsRange: [2400, 5200],
+        skillRange: [0.33, 0.55],
+        activityMinutesRange: [30, 120],
+    },
+    {
+        firstName: 'Nursultan',
+        lastName: 'Ibraliev',
+        batch: '8B',
+        clan: 'Talas Encryptors',
+        style: 'balanced',
+        levelRange: [9, 15],
+        coinsRange: [3000, 6800],
+        skillRange: [0.45, 0.69],
+        activityMinutesRange: [10, 55],
+    },
+    {
+        firstName: 'Selbi',
+        lastName: 'Alymkulova',
+        batch: '8C',
+        clan: 'Tokmok Phantoms',
+        style: 'defensive',
+        levelRange: [6, 11],
+        coinsRange: [2100, 4700],
+        skillRange: [0.31, 0.54],
+        activityMinutesRange: [25, 150],
+    },
+    {
+        firstName: 'Timur',
+        lastName: 'Osmonov',
+        batch: '8A',
+        clan: 'Batken Overclockers',
+        style: 'aggressive',
+        levelRange: [11, 17],
+        coinsRange: [4800, 8600],
+        skillRange: [0.5, 0.78],
+        activityMinutesRange: [6, 32],
+    },
+    {
+        firstName: 'Aigul',
+        lastName: 'Kerimbekova',
+        batch: '8B',
+        clan: 'Cholpon-Ata Firewalls',
+        style: 'balanced',
+        levelRange: [8, 14],
+        coinsRange: [2700, 6000],
+        skillRange: [0.38, 0.63],
+        activityMinutesRange: [18, 75],
+    },
+];
+
+const getPersonaKey = (persona: KyrgyzBotPersona): string => `${persona.firstName}_${persona.lastName}`;
+
+const KYRGYZ_PERSONA_LOOKUP = new Map<string, KyrgyzBotPersona>(
+    KYRGYZ_BOT_PERSONAS.map(persona => [getPersonaKey(persona), persona])
+);
+
+const KYRGYZ_BOT_STORAGE_KEY = STORAGE_KEYS.KYRGYZ_BOTS;
+
+let KYRGYZ_BOT_CACHE: KyrgyzBotState[] | null = null;
+
+const nowIso = (): string => new Date().toISOString();
+
+const clampNumber = (value: number, [min, max]: [number, number]): number => {
+    return Math.min(Math.max(value, min), max);
+};
+
+const approximateXpForLevel = (level: number): number => {
+    return level * 120 + Math.floor(level * 15);
+};
+
+const createInitialBotState = (persona: KyrgyzBotPersona, index: number): KyrgyzBotState => {
+    const username = `${persona.firstName} ${persona.lastName}`;
+    const userId = `bot_${persona.firstName.toLowerCase()}_${persona.lastName.toLowerCase().replace(/[^a-z]/g, '')}`;
+    const level = randomIntInRange(persona.levelRange);
+    const xp = approximateXpForLevel(level) + randomIntInRange([30, 120]);
+    const coins = randomIntInRange(persona.coinsRange);
+    const minutesAgo = randomIntInRange(persona.activityMinutesRange);
+
+    return {
+        id: userId,
+        personaId: getPersonaKey(persona),
+        username,
+        batch: persona.batch,
+        clan_name: persona.clan,
+        clan_role: index % 3 === 0 ? 'leader' : 'member',
+        joinedClan: index % 3 === 0,
+        style: persona.style,
+        level,
+        xp,
+        coins,
+        last_seen: new Date(Date.now() - minutesAgo * 60 * 1000).toISOString(),
+        lastRaidAt: new Date(Date.now() - randomIntInRange([20, 240]) * 60 * 1000).toISOString(),
+        createdClan: index % 3 !== 0,
+        pvp_wins: randomIntInRange([2, 14]),
+        newsReactions: {},
+    };
+};
+
+const saveKyrgyzBotStates = (states: KyrgyzBotState[]): void => {
+    KYRGYZ_BOT_CACHE = states;
+    saveToStorage(KYRGYZ_BOT_STORAGE_KEY, states);
+};
+
+const loadKyrgyzBotStates = (): KyrgyzBotState[] => {
+    if (KYRGYZ_BOT_CACHE) {
+        return KYRGYZ_BOT_CACHE;
+    }
+
+    const stored = loadFromStorage<KyrgyzBotState[]>(KYRGYZ_BOT_STORAGE_KEY);
+    if (stored && stored.length) {
+        KYRGYZ_BOT_CACHE = stored;
+        return stored;
+    }
+
+    const seeded = KYRGYZ_BOT_PERSONAS.map((persona, index) => createInitialBotState(persona, index));
+    saveKyrgyzBotStates(seeded);
+    return seeded;
+};
+
+const clampBotStateToPersona = (bot: KyrgyzBotState): void => {
+    const persona = KYRGYZ_PERSONA_LOOKUP.get(bot.personaId);
+    if (!persona) {
+        return;
+    }
+
+    bot.level = clampNumber(bot.level, persona.levelRange);
+    bot.coins = clampNumber(bot.coins, persona.coinsRange);
+    const xpFloor = approximateXpForLevel(persona.levelRange[0]);
+    const xpCeil = approximateXpForLevel(persona.levelRange[1] + 1);
+    bot.xp = clampNumber(bot.xp, [xpFloor, xpCeil]);
+};
+
+const refreshKyrgyzBotStates = (): KyrgyzBotState[] => {
+    const bots = loadKyrgyzBotStates();
+    let changed = false;
+    const now = Date.now();
+
+    bots.forEach(bot => {
+        const persona = KYRGYZ_PERSONA_LOOKUP.get(bot.personaId);
+        if (!persona) {
+            return;
+        }
+
+        if (bot.joinedClan === undefined) {
+            bot.joinedClan = bot.clan_role === 'leader';
+            changed = true;
+        }
+
+        const lastSeenMs = new Date(bot.last_seen).getTime();
+        const minutesSinceSeen = (now - lastSeenMs) / 60000;
+        const [minActivity, maxActivity] = persona.activityMinutesRange;
+
+        if (minutesSinceSeen > maxActivity || Math.random() < 0.2) {
+            const minutesAgo = clampNumber(randomIntInRange([minActivity, maxActivity]), persona.activityMinutesRange);
+            bot.last_seen = new Date(now - minutesAgo * 60 * 1000).toISOString();
+            changed = true;
+        }
+
+        clampBotStateToPersona(bot);
+
+        if (bot.newsReactions) {
+            const entries = Object.entries(bot.newsReactions)
+                .sort(([, a], [, b]) => new Date(b.reacted_at).getTime() - new Date(a.reacted_at).getTime())
+                .slice(0, 50);
+            bot.newsReactions = Object.fromEntries(entries);
+        }
+    });
+
+    if (changed) {
+        saveKyrgyzBotStates(bots);
+    }
+
+    return bots;
+};
+
+const getBotWinChance = (bot: KyrgyzBotState): number => {
+    switch (bot.style) {
+        case 'aggressive':
+            return 0.65;
+        case 'defensive':
+            return 0.45;
+        default:
+            return 0.55;
+    }
+};
+
+const getBotShieldChance = (bot: KyrgyzBotState): number => {
+    switch (bot.style) {
+        case 'defensive':
+            return 0.6;
+        case 'balanced':
+            return 0.35;
+        default:
+            return 0.22;
+    }
+};
+
+const getBotEstWinRate = (bot: KyrgyzBotState): number => {
+    const base = getBotWinChance(bot);
+    const variance = (Math.random() - 0.5) * 0.2;
+    return Number(clampNumber(base + variance, [0.32, 0.88]).toFixed(2));
+};
+
+const pickBotOpponentName = (bots: KyrgyzBotState[], botId: string): string => {
+    const others = bots.filter(bot => bot.id !== botId);
+    if (others.length > 0 && Math.random() < 0.6) {
+        const opponent = others[Math.floor(Math.random() * others.length)];
+        return opponent.username;
+    }
+
+    const sharedPlayers = getSharedPlayers();
+    if (sharedPlayers.length > 0) {
+        const opponent = sharedPlayers[Math.floor(Math.random() * sharedPlayers.length)];
+        return opponent.username;
+    }
+
+    return 'Mystery Agent';
+};
+
+const simulateKyrgyzBotBackgroundActivity = (): KyrgyzBotState[] => {
+    const bots = refreshKyrgyzBotStates();
+    const now = Date.now();
+    let changed = false;
+
+    bots.forEach(bot => {
+        const persona = KYRGYZ_PERSONA_LOOKUP.get(bot.personaId);
+        if (!persona) {
+            return;
+        }
+
+        if (bot.clan_name && bot.clan_role === 'leader' && !bot.createdClan) {
+            addActivityEvent({
+                kind: 'clan_create',
+                actor: bot.username,
+                data: { details: bot.clan_name },
+                created_at: nowIso(),
+            });
+            bot.createdClan = true;
+            changed = true;
+        }
+
+        if (bot.clan_name && bot.clan_role === 'member' && !bot.joinedClan) {
+            addActivityEvent({
+                kind: 'clan_join',
+                actor: bot.username,
+                data: { details: bot.clan_name },
+                created_at: nowIso(),
+            });
+            bot.joinedClan = true;
+            changed = true;
+        }
+
+        const lastRaidMs = bot.lastRaidAt ? new Date(bot.lastRaidAt).getTime() : 0;
+        const minutesSinceRaid = (now - lastRaidMs) / 60000;
+        const raidInterval = clampNumber(randomIntInRange([persona.activityMinutesRange[0], persona.activityMinutesRange[1]]), persona.activityMinutesRange);
+
+        if (minutesSinceRaid > raidInterval && Math.random() < 0.6) {
+            const winChance = getBotWinChance(bot);
+            const didWin = Math.random() < winChance;
+            const opponentName = pickBotOpponentName(bots, bot.id);
+            const coinSwing = randomIntInRange([80, 220]);
+            const xpSwing = randomIntInRange([50, 140]);
+
+            if (didWin) {
+                bot.pvp_wins += 1;
+                bot.coins += coinSwing;
+                bot.xp += xpSwing;
+            } else {
+                bot.coins = Math.max(0, bot.coins - Math.floor(coinSwing / 2));
+            }
+
+            bot.lastRaidAt = nowIso();
+            bot.last_seen = nowIso();
+            changed = true;
+
+            addActivityEvent({
+                kind: didWin ? 'pvp_win' : 'pvp_loss',
+                actor: bot.username,
+                target: opponentName,
+                data: {
+                    details: didWin
+                        ? `Stole ${coinSwing} Coins`
+                        : `Lost ${Math.floor(coinSwing / 2)} Coins`,
+                },
+                created_at: nowIso(),
+            });
+        }
+
+        clampBotStateToPersona(bot);
+    });
+
+    if (changed) {
+        saveKyrgyzBotStates(bots);
+    }
+
+    return bots;
+};
+
+type TimedNewsEvent = NewsEvent & { timestamp: number };
+
+const applyKyrgyzBotReactions = (events: TimedNewsEvent[]): TimedNewsEvent[] => {
+    const bots = refreshKyrgyzBotStates();
+    let changed = false;
+
+    events.forEach(event => {
+        const updatedReactions = { ...event.reactions };
+
+        bots.forEach(bot => {
+            const reactionRecord = bot.newsReactions[event.id];
+            if (reactionRecord) {
+                updatedReactions[reactionRecord.emoji] = (updatedReactions[reactionRecord.emoji] || 0) + 1;
+                return;
+            }
+
+            if (Math.random() < 0.35) {
+                const emojiPool = bot.style === 'aggressive'
+                    ? ['🔥', '😮']
+                    : bot.style === 'defensive'
+                        ? ['❤️', '😮']
+                        : ['🔥', '😂', '❤️'];
+                const emoji = emojiPool[Math.floor(Math.random() * emojiPool.length)];
+                updatedReactions[emoji] = (updatedReactions[emoji] || 0) + 1;
+                bot.newsReactions[event.id] = { emoji, reacted_at: nowIso() };
+                changed = true;
+            }
+        });
+
+        event.reactions = updatedReactions;
+    });
+
+    if (changed) {
+        saveKyrgyzBotStates(bots);
+    }
+
+    return events;
+};
+
+const buildBotLeaderboardSnapshot = () => {
+    const bots = simulateKyrgyzBotBackgroundActivity();
+
+    const xpEntries = bots
+        .map(bot => ({
+            id: bot.id,
+            username: bot.username,
+            avatar_url: buildBotAvatarUrl(bot.username),
+            value: bot.xp,
+            batch: bot.batch,
+            last_seen: bot.last_seen,
+            role: 'student' as const,
+        }))
+        .sort((a, b) => b.value - a.value);
+
+    const pvpEntries = bots
+        .map(bot => ({
+            id: bot.id,
+            username: bot.username,
+            avatar_url: buildBotAvatarUrl(bot.username),
+            wins: bot.pvp_wins,
+            batch: bot.batch,
+            last_seen: bot.last_seen,
+        }))
+        .sort((a, b) => b.wins - a.wins);
+
+    const clanMap = new Map<string, { id: string; name: string; member_count: number; total_xp: number }>();
+    bots.forEach(bot => {
+        if (!bot.clan_name) {
+            return;
+        }
+
+        const existing = clanMap.get(bot.clan_name);
+        if (existing) {
+            existing.member_count += 1;
+            existing.total_xp += bot.xp;
+        } else {
+            clanMap.set(bot.clan_name, {
+                id: `botclan_${bot.clan_name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
+                name: bot.clan_name,
+                member_count: 1,
+                total_xp: bot.xp,
+            });
+        }
+    });
+
+    const clanEntries = Array.from(clanMap.values()).sort((a, b) => b.total_xp - a.total_xp);
+
+    return {
+        xp: xpEntries,
+        pvp: pvpEntries,
+        clans: clanEntries,
+    };
+};
+
+const randomIntInRange = ([min, max]: [number, number]): number => {
+    const floorMin = Math.ceil(min);
+    const floorMax = Math.floor(max);
+    return Math.floor(Math.random() * (floorMax - floorMin + 1)) + floorMin;
+};
+
+const buildBotAvatarUrl = (seed: string): string => {
+    const encoded = encodeURIComponent(seed);
+    return `https://api.dicebear.com/7.x/adventurer/svg?seed=${encoded}&backgroundColor=c0aede,ffd5dc,ffdfbf&radius=50`;
+};
+
+const createKyrgyzBotTarget = (bot: KyrgyzBotState): RaidTarget => {
+    return {
+        user_id: bot.id,
+        username: bot.username,
+        level: bot.level,
+        coins: bot.coins,
+        batch: bot.batch,
+        has_shield: Math.random() < getBotShieldChance(bot),
+        est_win_rate: getBotEstWinRate(bot),
+        avatar_url: buildBotAvatarUrl(bot.username),
+        last_seen: bot.last_seen,
+        clan_name: bot.clan_name,
+    };
+};
+
+const generateKyrgyzBots = (count: number, existingIds: Set<string>): RaidTarget[] => {
+    if (count <= 0) {
+        return [];
+    }
+
+    const botStates = simulateKyrgyzBotBackgroundActivity().filter(bot => !existingIds.has(bot.id));
+    const shuffled = botStates.sort(() => Math.random() - 0.5);
+    const selected = shuffled.slice(0, count);
+
+    selected.forEach(bot => existingIds.add(bot.id));
+
+    return selected.map(createKyrgyzBotTarget);
+};
 
 // Helper to get current authenticated user
 const getCurrentUser = async () => {
@@ -471,84 +1002,104 @@ export const caps_status = (): Promise<Caps> => {
 };
 
 export const news_feed = async (): Promise<NewsEvent[]> => {
-  const user = await getCurrentUser();
-  
-  // Fetch activities from database, excluding teacher activities
-  const { data: activities, error } = await supabase
-    .from('activities')
-    .select(`
+    const user = await getCurrentUser();
+
+    // Let bots generate background activity before fetching
+    simulateKyrgyzBotBackgroundActivity();
+
+    // Fetch activities from database, excluding teacher activities
+    const { data: activities, error } = await supabase
+        .from('activities')
+        .select(`
       *,
       users!activities_actor_id_fkey (role)
     `)
-    .order('created_at', { ascending: false })
-    .limit(30); // Fetch more to account for filtered teachers
-  
-  if (error) {
-    console.error('Error fetching activities:', error);
-    return mockApiCall([]);
-  }
-  
-  if (!activities || activities.length === 0) {
-    return mockApiCall([]);
-  }
-  
-  // Filter out teacher activities and limit to 20
-  const studentActivities = activities
-    .filter((a: any) => !a.users || a.users.role !== 'teacher')
-    .slice(0, 20);
-  
-  // Get all activity IDs
-  const activityIds = studentActivities.map(a => a.id);
-  
-  // Fetch reactions for these activities
-  const { data: reactionsData } = await supabase
-    .from('activity_reactions')
-    .select('activity_id, emoji, user_id')
-    .in('activity_id', activityIds);
-  
-  // Aggregate reactions by activity and emoji
-  const reactionsByActivity: Record<string, { reactions: Record<string, number>, myReaction: string | null }> = {};
-  
-  studentActivities.forEach(activity => {
-    reactionsByActivity[activity.id] = {
-      reactions: { '🔥': 0, '😮': 0, '😂': 0, '❤️': 0 },
-      myReaction: null,
-    };
-  });
-  
-  (reactionsData || []).forEach(reaction => {
-    if (reactionsByActivity[reaction.activity_id]) {
-      // Increment count
-      if (!reactionsByActivity[reaction.activity_id].reactions[reaction.emoji]) {
-        reactionsByActivity[reaction.activity_id].reactions[reaction.emoji] = 0;
-      }
-      reactionsByActivity[reaction.activity_id].reactions[reaction.emoji]++;
-      
-      // Check if this is the current user's reaction
-      if (reaction.user_id === user.id) {
-        reactionsByActivity[reaction.activity_id].myReaction = reaction.emoji;
-      }
+        .order('created_at', { ascending: false })
+        .limit(30); // Fetch more to account for filtered teachers
+
+    if (error) {
+        console.error('Error fetching activities:', error);
     }
-  });
-  
-  // Convert database activities to NewsEvent format
-  const events: NewsEvent[] = studentActivities.map(activity => {
-    const timeAgo = getTimeAgo(new Date(activity.created_at));
-    const activityReactions = reactionsByActivity[activity.id];
-    
-    return {
-      id: activity.id,
-      kind: activity.kind,
-      actor: activity.actor_username || 'Unknown',
-      target: activity.target_username,
-      data: activity.data || {},
-      created_at: timeAgo,
-      reactions: activityReactions.reactions,
-      my_reaction: activityReactions.myReaction,
-    };
-  });
-  
-  return mockApiCall(events);
+
+    const studentActivities = (activities || [])
+        .filter((a: any) => !a.users || a.users.role !== 'teacher')
+        .slice(0, 20);
+
+    const activityIds = studentActivities.map(a => a.id);
+
+    const { data: reactionsData } = activityIds.length
+        ? await supabase
+            .from('activity_reactions')
+            .select('activity_id, emoji, user_id')
+            .in('activity_id', activityIds)
+        : { data: [] };
+
+    const reactionsByActivity: Record<string, { reactions: Record<string, number>; myReaction: string | null }> = {};
+
+    studentActivities.forEach(activity => {
+        reactionsByActivity[activity.id] = {
+            reactions: { '🔥': 0, '😮': 0, '😂': 0, '❤️': 0 },
+            myReaction: null,
+        };
+    });
+
+    (reactionsData || []).forEach(reaction => {
+        if (reactionsByActivity[reaction.activity_id]) {
+            if (!reactionsByActivity[reaction.activity_id].reactions[reaction.emoji]) {
+                reactionsByActivity[reaction.activity_id].reactions[reaction.emoji] = 0;
+            }
+            reactionsByActivity[reaction.activity_id].reactions[reaction.emoji]++;
+
+            if (reaction.user_id === user.id) {
+                reactionsByActivity[reaction.activity_id].myReaction = reaction.emoji;
+            }
+        }
+    });
+
+    const dbEvents: TimedNewsEvent[] = studentActivities.map(activity => {
+        const createdAt = new Date(activity.created_at);
+        const timeAgo = getTimeAgo(createdAt);
+        const activityReactions = reactionsByActivity[activity.id];
+
+        return {
+            id: activity.id,
+            kind: activity.kind,
+            actor: activity.actor_username || 'Unknown',
+            target: activity.target_username,
+            data: activity.data || {},
+            created_at: timeAgo,
+            reactions: activityReactions.reactions,
+            my_reaction: activityReactions.myReaction,
+            timestamp: createdAt.getTime(),
+        };
+    });
+
+    const localFeed = getActivityFeed();
+    const localEvents: TimedNewsEvent[] = (localFeed || []).map(event => {
+        const createdAt = event.created_at ? new Date(event.created_at) : new Date();
+        const baseReactions = { '🔥': 0, '😮': 0, '😂': 0, '❤️': 0 };
+        const mergedReactions = { ...baseReactions, ...(event.reactions || {}) };
+
+        return {
+            id: event.id,
+            kind: event.kind,
+            actor: event.actor,
+            target: event.target,
+            data: event.data || {},
+            created_at: getTimeAgo(createdAt),
+            reactions: mergedReactions,
+            my_reaction: event.my_reaction || null,
+            timestamp: createdAt.getTime(),
+        } as TimedNewsEvent;
+    });
+
+    const combined = [...localEvents, ...dbEvents]
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .slice(0, 20);
+
+    const withBotReactions = applyKyrgyzBotReactions(combined);
+
+    return mockApiCall(withBotReactions.map(({ timestamp, ...event }) => event));
 };
 
 // Helper function to format time ago
@@ -565,7 +1116,38 @@ function getTimeAgo(date: Date): string {
 
 export const activity_reaction_toggle = async (activity_id: string, emoji: string): Promise<{ added: boolean }> => {
   const user = await getCurrentUser();
-  
+
+  if (activity_id.startsWith('evt_')) {
+    const events = getActivityFeed();
+    const eventIndex = (events || []).findIndex((event: any) => event.id === activity_id);
+
+    if (eventIndex >= 0) {
+      const updatedEvents = [...events];
+      const event = { ...updatedEvents[eventIndex] };
+      const reactions = { '🔥': 0, '😮': 0, '😂': 0, '❤️': 0, ...(event.reactions || {}) };
+      const currentReaction: string | null = event.my_reaction || null;
+      let added = true;
+
+      if (currentReaction === emoji) {
+        reactions[emoji] = Math.max(0, (reactions[emoji] || 0) - 1);
+        event.my_reaction = null;
+        added = false;
+      } else {
+        if (currentReaction) {
+          reactions[currentReaction] = Math.max(0, (reactions[currentReaction] || 0) - 1);
+        }
+        reactions[emoji] = (reactions[emoji] || 0) + 1;
+        event.my_reaction = emoji;
+      }
+
+      event.reactions = reactions;
+      updatedEvents[eventIndex] = event;
+      saveToStorage(STORAGE_KEYS.ACTIVITY_FEED, updatedEvents);
+
+      return mockApiCall({ added });
+    }
+  }
+
   // Check if user already has a reaction on this activity
   const { data: existingReaction } = await supabase
     .from('activity_reactions')
@@ -848,16 +1430,11 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
     
     if (error) throw error;
     
-    if (!players || players.length === 0) {
-        // No other players yet, return empty array
-        return mockApiCall([]);
-    }
-    
     // TODO: Check inventory for shields
-    const realTargets: RaidTarget[] = players.map((p: any) => {
+    const realTargets: RaidTarget[] = (players || []).map((p: any) => {
         // Extract clan name if user is in a clan
         const clanName = p.clan_members?.[0]?.clans?.name || undefined;
-        
+
         return {
             user_id: p.id,
             username: p.username,
@@ -871,48 +1448,155 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
             clan_name: clanName,
         };
     });
-    
-    return mockApiCall(realTargets);
+
+    const existingIds = new Set(realTargets.map(target => target.user_id));
+    const MIN_TARGETS = 6;
+    const MAX_TARGETS = 20;
+    const botsNeeded = Math.min(
+        Math.max(MIN_TARGETS - realTargets.length, 0),
+        Math.max(MAX_TARGETS - realTargets.length, 0)
+    );
+    const bots = generateKyrgyzBots(botsNeeded, existingIds);
+
+    const combinedTargets = [...realTargets, ...bots];
+
+    if (combinedTargets.length > 1) {
+        combinedTargets.sort(() => Math.random() - 0.5);
+    }
+
+    return mockApiCall(combinedTargets.slice(0, MAX_TARGETS));
+};
+
+export const getKyrgyzBotLeaderboardProfiles = async (): Promise<ReturnType<typeof buildBotLeaderboardSnapshot>> => {
+    const snapshot = buildBotLeaderboardSnapshot();
+    return mockApiCall(snapshot);
 };
 
 export const raid_attack = async (defender_id: string, use_cracker: boolean, target: RaidTarget): Promise<RaidAttackResult> => {
     const user = await getCurrentUser();
-    
-    // Call the Postgres RPC function to handle all combat logic server-side
-    const { data, error } = await performHackAttempt(defender_id);
-    
-    if (error) {
-        console.error('Hack attempt RPC error:', error);
-        // Check if it's a cooldown error
-        if (error.message && error.message.includes('COOLDOWN:')) {
-            // Extract cooldown time from error message
-            const match = error.message.match(/Try again in (\d+) seconds/);
-            const seconds = match ? parseInt(match[1]) : 300;
-            const minutes = Math.ceil(seconds / 60);
-            throw new Error(`⏰ This player is protected! They were recently attacked. Wait ${minutes} minute${minutes > 1 ? 's' : ''} before attacking again.`);
+
+    const simulateBotRaid = (botId: string) => {
+        const bots = refreshKyrgyzBotStates();
+        const botIndex = bots.findIndex(bot => bot.id === botId);
+        if (botIndex === -1) {
+            throw new Error('Raid target is no longer available.');
         }
-        throw new Error(error.message || 'Hack attempt failed');
-    }
-    
-    if (!data) {
-        throw new Error('No response from hack attempt');
-    }
-    
-    // The RPC returns the exact format we need
-    const rpcResult = data as {
-        result: RaidAttackResult['result'];
-        attacker_deltas: RaidAttackResult['attacker_deltas'];
-        defender_deltas: RaidAttackResult['defender_deltas'];
-        shield_state: RaidAttackResult['shield_state'];
+
+        const bot = bots[botIndex];
+        const persona = KYRGYZ_PERSONA_LOOKUP.get(bot.personaId);
+        const hadShield = target?.has_shield ?? false;
+        const shieldBlocks = hadShield && !use_cracker && Math.random() < 0.8;
+        const baseWinChance = clampNumber(target?.est_win_rate ?? getBotWinChance(bot), [0.2, 0.9]);
+        const effectiveWinChance = hadShield && !use_cracker ? baseWinChance * 0.85 : baseWinChance;
+        const roll = Math.random();
+
+        let result: RaidAttackResult['result'];
+        let attackerCoins = 0;
+        let defenderCoinsLoss = 0;
+        let attackerXp = 0;
+        let summary = '';
+        let shield_state: RaidAttackResult['shield_state'] = hadShield ? 'removed' : 'none';
+
+        if (shieldBlocks) {
+            result = 'blocked';
+            attackerCoins = 0;
+            defenderCoinsLoss = 0;
+            attackerXp = -10;
+            summary = 'Attack blocked by Shield';
+            shield_state = 'remaining';
+            bot.pvp_wins += 1;
+        } else if (roll < effectiveWinChance) {
+            result = 'win';
+            const coinsStolen = Math.min(bot.coins, randomIntInRange([110, 240]));
+            attackerCoins = coinsStolen;
+            defenderCoinsLoss = coinsStolen;
+            attackerXp = randomIntInRange([60, 140]);
+            bot.coins = Math.max(0, bot.coins - coinsStolen);
+            bot.xp = Math.max(bot.xp - randomIntInRange([15, 30]), approximateXpForLevel(bot.level));
+            summary = `Stole ${coinsStolen} Coins`;
+        } else {
+            result = 'lose';
+            const coinsLost = randomIntInRange([40, 110]);
+            attackerCoins = -coinsLost;
+            defenderCoinsLoss = -coinsLost;
+            attackerXp = -randomIntInRange([20, 35]);
+            if (persona) {
+                bot.coins = clampNumber(bot.coins + coinsLost, persona.coinsRange);
+            } else {
+                bot.coins += coinsLost;
+            }
+            bot.pvp_wins += 1;
+            summary = `Defended and gained ${coinsLost} Coins`;
+        }
+
+        bot.last_seen = nowIso();
+        bot.lastRaidAt = nowIso();
+        clampBotStateToPersona(bot);
+        bots[botIndex] = bot;
+        saveKyrgyzBotStates(bots);
+
+        return {
+            response: {
+                result,
+                attacker_deltas: {
+                    xp: attackerXp,
+                    coins: attackerCoins,
+                },
+                defender_deltas: {
+                    coins_loss: defenderCoinsLoss,
+                },
+                shield_state,
+            },
+            summary,
+            botUsername: bot.username,
+        };
     };
 
-    const response: RaidAttackResult = {
-        result: rpcResult.result,
-        attacker_deltas: rpcResult.attacker_deltas,
-        defender_deltas: rpcResult.defender_deltas,
-        shield_state: rpcResult.shield_state,
-    };
-    
+    const isBotTarget = defender_id.startsWith('bot_');
+
+    let botSimulation: ReturnType<typeof simulateBotRaid> | null = null;
+    let response: RaidAttackResult;
+
+    if (isBotTarget) {
+        botSimulation = simulateBotRaid(defender_id);
+        response = botSimulation.response;
+    } else {
+        // Call the Postgres RPC function to handle all combat logic server-side
+        const { data, error } = await performHackAttempt(defender_id);
+
+        if (error) {
+            console.error('Hack attempt RPC error:', error);
+            // Check if it's a cooldown error
+            if (error.message && error.message.includes('COOLDOWN:')) {
+                // Extract cooldown time from error message
+                const match = error.message.match(/Try again in (\d+) seconds/);
+                const seconds = match ? parseInt(match[1]) : 300;
+                const minutes = Math.ceil(seconds / 60);
+                throw new Error(`⏰ This player is protected! They were recently attacked. Wait ${minutes} minute${minutes > 1 ? 's' : ''} before attacking again.`);
+            }
+            throw new Error(error.message || 'Hack attempt failed');
+        }
+
+        if (!data) {
+            throw new Error('No response from hack attempt');
+        }
+
+        // The RPC returns the exact format we need
+        const rpcResult = data as {
+            result: RaidAttackResult['result'];
+            attacker_deltas: RaidAttackResult['attacker_deltas'];
+            defender_deltas: RaidAttackResult['defender_deltas'];
+            shield_state: RaidAttackResult['shield_state'];
+        };
+
+        response = {
+            result: rpcResult.result,
+            attacker_deltas: rpcResult.attacker_deltas,
+            defender_deltas: rpcResult.defender_deltas,
+            shield_state: rpcResult.shield_state,
+        };
+    }
+
     // Track progress (localStorage for now)
     if (response.result === 'win') {
         incrementPvPWin();
@@ -935,44 +1619,60 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
         const attackerLevel = attackerProfile?.level || 1;
         const attackPower = attackerLevel * 10; // Estimate attack power
 
-        if (response.result === 'win') {
-            // Notify defender they're under attack
-            await notifyAttackIncoming({
-                target_user_id: defender_id,
-                attacker_username: attackerUsername,
-                attacker_power: attackPower
-            });
+        if (isBotTarget && botSimulation) {
+            const feedKind = response.result === 'win'
+                ? 'pvp_win'
+                : response.result === 'blocked'
+                    ? 'pvp_blocked'
+                    : 'pvp_loss';
 
-            // If significant coins stolen, notify about coin loss
-            const coinsStolen = response.defender_deltas?.coins_loss || 0;
-            if (coinsStolen > 50) {
-                await notifyCoinsLost({
+            addActivityEvent({
+                kind: feedKind,
+                actor: attackerUsername,
+                target: botSimulation.botUsername,
+                data: { details: botSimulation.summary },
+                created_at: nowIso(),
+            });
+        } else if (!isBotTarget) {
+            if (response.result === 'win') {
+                // Notify defender they're under attack
+                await notifyAttackIncoming({
+                    target_user_id: defender_id,
+                    attacker_username: attackerUsername,
+                    attacker_power: attackPower
+                });
+
+                // If significant coins stolen, notify about coin loss
+                const coinsStolen = response.defender_deltas?.coins_loss || 0;
+                if (coinsStolen > 50) {
+                    await notifyCoinsLost({
+                        user_id_param: defender_id,
+                        attacker_username: attackerUsername,
+                        coins_lost: coinsStolen
+                    });
+                }
+
+                // Offer revenge to defender
+                await notifyRevengeAvailable({
+                    user_id_param: defender_id,
+                    target_username: attackerUsername,
+                    target_user_id: user.id
+                });
+            } else if (response.result === 'lose' || response.result === 'blocked') {
+                // Defender successfully defended
+                const coinsLost = response.defender_deltas?.coins_loss || 0;
+                await notifyAttackDefended({
                     user_id_param: defender_id,
                     attacker_username: attackerUsername,
-                    coins_lost: coinsStolen
+                    coins_kept: Math.max(0, -coinsLost) // Negative loss means they kept coins
                 });
             }
-
-            // Offer revenge to defender
-            await notifyRevengeAvailable({
-                user_id_param: defender_id,
-                target_username: attackerUsername,
-                target_user_id: user.id
-            });
-        } else if (response.result === 'lose' || response.result === 'blocked') {
-            // Defender successfully defended
-            const coinsLost = response.defender_deltas?.coins_loss || 0;
-            await notifyAttackDefended({
-                user_id_param: defender_id,
-                attacker_username: attackerUsername,
-                coins_kept: Math.max(0, -coinsLost) // Negative loss means they kept coins
-            });
         }
     } catch (notifError) {
         // Don't fail the attack if notifications fail
-        console.error('Failed to send attack notifications:', notifError);
+        console.error('Failed to handle attack notifications:', notifError);
     }
-    
+
     return mockApiCall(response);
 };
 

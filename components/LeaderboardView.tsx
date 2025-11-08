@@ -1,29 +1,63 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
-import { Profile } from '../types';
 import BackButton from './BackButton';
+import { getKyrgyzBotLeaderboardProfiles } from '../services/gameService';
 
-interface LeaderboardEntry {
-  rank: number;
+type BotLeaderboardSnapshot = Awaited<ReturnType<typeof getKyrgyzBotLeaderboardProfiles>>;
+
+type PlayerLeaderboardEntry = {
+  id: string;
   username: string;
   avatar_url: string;
   value: number;
   batch: string;
   is_self?: boolean;
   last_seen?: string;
-}
+  role?: string;
+};
+
+type RankedPlayerEntry = PlayerLeaderboardEntry & { rank: number };
+
+type ClanLeaderboardEntry = {
+  id: string;
+  name: string;
+  member_count: number;
+  total_xp: number;
+};
+
+type RankedClanEntry = ClanLeaderboardEntry & { rank: number };
 
 interface LeaderboardViewProps {
   onComplete: () => void;
   currentUserId: string;
 }
 
+const rankPlayers = (entries: PlayerLeaderboardEntry[]): RankedPlayerEntry[] =>
+  entries
+    .slice()
+    .sort((a, b) => {
+      const diff = b.value - a.value;
+      if (diff !== 0) return diff;
+      return a.username.localeCompare(b.username);
+    })
+    .map((entry, index) => ({ ...entry, rank: index + 1 }));
+
+const rankClans = (entries: ClanLeaderboardEntry[]): RankedClanEntry[] =>
+  entries
+    .slice()
+    .sort((a, b) => {
+      const diff = b.total_xp - a.total_xp;
+      if (diff !== 0) return diff;
+      return a.name.localeCompare(b.name);
+    })
+    .map((entry, index) => ({ ...entry, rank: index + 1 }));
+
 const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUserId }) => {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'xp' | 'pvp' | 'clans'>('xp');
-  const [xpLeaderboard, setXpLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [pvpLeaderboard, setPvpLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [clanLeaderboard, setClanLeaderboard] = useState<any[]>([]);
+  const [xpLeaderboard, setXpLeaderboard] = useState<RankedPlayerEntry[]>([]);
+  const [pvpLeaderboard, setPvpLeaderboard] = useState<RankedPlayerEntry[]>([]);
+  const [clanLeaderboard, setClanLeaderboard] = useState<RankedClanEntry[]>([]);
 
   useEffect(() => {
     fetchLeaderboards();
@@ -32,6 +66,8 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
   const fetchLeaderboards = async () => {
     setLoading(true);
     try {
+      const botSnapshotPromise = getKyrgyzBotLeaderboardProfiles();
+
       // XP Leaderboard - Exclude teachers and hidden admins
       const { data: xpData, error: xpError } = await supabase
         .from('users')
@@ -40,15 +76,15 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
         .order('xp', { ascending: false })
         .limit(50);
 
+      let realXpEntries: PlayerLeaderboardEntry[] = [];
       if (!xpError && xpData) {
-        // Filter out admins who have admin_visible = false
         const filteredData = xpData.filter(user => {
           if (user.role === 'admin' && !user.admin_visible) return false;
           return true;
         });
-        
-        const xpLB = filteredData.map((user, index) => ({
-          rank: index + 1,
+
+        realXpEntries = filteredData.map(user => ({
+          id: user.id,
           username: user.username,
           avatar_url: user.avatar_url,
           value: user.xp,
@@ -57,7 +93,6 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
           last_seen: user.last_seen,
           role: user.role,
         }));
-        setXpLeaderboard(xpLB);
       }
 
       // PvP Wins Leaderboard (count pvp_win activities per user)
@@ -66,13 +101,16 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
         .select('actor_id, actor_username')
         .eq('kind', 'pvp_win');
 
+      let realPvpEntries: PlayerLeaderboardEntry[] = [];
       if (!pvpError && pvpData) {
-        // Count wins per user
-        const winCounts: Record<string, { username: string; wins: number; actor_id: string }> = {};
+        const winCounts: Record<string, { username: string; wins: number }> = {};
         pvpData.forEach(activity => {
+          if (!activity.actor_id) {
+            return;
+          }
+
           if (!winCounts[activity.actor_id]) {
             winCounts[activity.actor_id] = {
-              actor_id: activity.actor_id,
               username: activity.actor_username,
               wins: 0,
             };
@@ -80,32 +118,28 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
           winCounts[activity.actor_id].wins++;
         });
 
-        // Fetch avatars for top PvP players
         const topPvpIds = Object.keys(winCounts);
-        const { data: avatars } = await supabase
-          .from('users')
-          .select('id, avatar_url, batch, last_seen')
-          .in('id', topPvpIds);
+        const { data: avatars } = topPvpIds.length
+          ? await supabase
+              .from('users')
+              .select('id, avatar_url, batch, last_seen')
+              .in('id', topPvpIds)
+          : { data: [] };
 
         const avatarMap: Record<string, { avatar_url: string; batch: string; last_seen?: string }> = {};
         (avatars || []).forEach((u: any) => {
           avatarMap[u.id] = { avatar_url: u.avatar_url, batch: u.batch, last_seen: u.last_seen };
         });
 
-        const pvpLB = Object.values(winCounts)
-          .sort((a, b) => b.wins - a.wins)
-          .slice(0, 50)
-          .map((entry, index) => ({
-            rank: index + 1,
-            username: entry.username,
-            avatar_url: avatarMap[entry.actor_id]?.avatar_url || '',
-            value: entry.wins,
-            batch: avatarMap[entry.actor_id]?.batch || '?',
-            is_self: entry.actor_id === currentUserId,
-            last_seen: avatarMap[entry.actor_id]?.last_seen,
-          }));
-
-        setPvpLeaderboard(pvpLB);
+        realPvpEntries = Object.entries(winCounts).map(([actorId, entry]) => ({
+          id: actorId,
+          username: entry.username,
+          avatar_url: avatarMap[actorId]?.avatar_url || '',
+          value: entry.wins,
+          batch: avatarMap[actorId]?.batch || '?',
+          is_self: actorId === currentUserId,
+          last_seen: avatarMap[actorId]?.last_seen,
+        }));
       }
 
       // Clan Leaderboard (by total XP)
@@ -120,8 +154,9 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
           )
         `);
 
+      let clansWithXP: ClanLeaderboardEntry[] = [];
       if (!clanError && clanData) {
-        const clansWithXP = clanData.map((clan: any) => {
+        clansWithXP = clanData.map((clan: any) => {
           const totalXP = clan.clan_members?.reduce((sum: number, member: any) => {
             return sum + (member.users?.xp || 0);
           }, 0) || 0;
@@ -133,15 +168,47 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
             total_xp: totalXP,
           };
         });
-
-        clansWithXP.sort((a, b) => b.total_xp - a.total_xp);
-        const topClans = clansWithXP.slice(0, 20).map((clan, index) => ({
-          rank: index + 1,
-          ...clan,
-        }));
-
-        setClanLeaderboard(topClans);
       }
+
+      const botSnapshot: BotLeaderboardSnapshot = await botSnapshotPromise;
+
+      const xpCombined = rankPlayers([
+        ...realXpEntries,
+        ...botSnapshot.xp.map(bot => ({
+          id: bot.id,
+          username: bot.username,
+          avatar_url: bot.avatar_url,
+          value: bot.value,
+          batch: bot.batch,
+          is_self: false,
+          last_seen: bot.last_seen,
+          role: bot.role,
+        })),
+      ]);
+
+      setXpLeaderboard(xpCombined.slice(0, 50));
+
+      const pvpCombined = rankPlayers([
+        ...realPvpEntries,
+        ...botSnapshot.pvp.map(bot => ({
+          id: bot.id,
+          username: bot.username,
+          avatar_url: bot.avatar_url,
+          value: bot.wins,
+          batch: bot.batch,
+          is_self: false,
+          last_seen: bot.last_seen,
+        })),
+      ]);
+
+      setPvpLeaderboard(pvpCombined.slice(0, 50));
+
+      const combinedClans = rankClans([
+        ...clansWithXP,
+        ...botSnapshot.clans,
+      ]);
+
+      setClanLeaderboard(combinedClans.slice(0, 20));
     } catch (error) {
       console.error('Failed to fetch leaderboards:', error);
     } finally {
@@ -149,7 +216,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
     }
   };
 
-  const renderPlayerRow = (entry: LeaderboardEntry & { role?: string }) => {
+  const renderPlayerRow = (entry: RankedPlayerEntry) => {
     const rankColors: Record<number, string> = {
       1: 'text-yellow-400',
       2: 'text-gray-300',
@@ -179,12 +246,12 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
 
     return (
       <div
-        key={`${entry.rank}-${entry.username}`}
+        key={`${entry.rank}-${entry.id}`}
         className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
-          isAdmin 
-            ? 'bg-gradient-to-r from-yellow-600/30 to-pink-600/30 border-2 border-yellow-400 animate-pulse-glow' 
-            : entry.is_self 
-              ? 'bg-cyan-500/20 border border-cyan-400' 
+          isAdmin
+            ? 'bg-gradient-to-r from-yellow-600/30 to-pink-600/30 border-2 border-yellow-400 animate-pulse-glow'
+            : entry.is_self
+              ? 'bg-cyan-500/20 border border-cyan-400'
               : 'bg-black/20 hover:bg-black/30'
         }`}
       >
@@ -224,7 +291,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
     );
   };
 
-  const renderClanRow = (clan: any) => {
+  const renderClanRow = (clan: RankedClanEntry) => {
     const rankColors: Record<number, string> = {
       1: 'text-yellow-400',
       2: 'text-gray-300',
