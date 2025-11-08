@@ -1,4 +1,4 @@
-# 🧪 Local Testing Guide - G-Brain Heist
+# 🧪 Local Testing Guide - G-Brains Heist
 
 ## Prerequisites
 

@@ -35,7 +35,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
       <div className="space-y-3 sm:space-y-4">
         <h2 className="text-xl sm:text-2xl font-bold text-cyan-400">🎮 Game Overview</h2>
         <div className="space-y-2 sm:space-y-3 text-sm sm:text-base text-gray-300">
-          <p><strong className="text-white">Welcome to G-Brain Heist!</strong> An educational adventure where you compete with classmates while learning.</p>
+          <p><strong className="text-white">Welcome to G-Brains Heist!</strong> An educational adventure where you compete with classmates while learning.</p>
           
           <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3 sm:p-4">
             <h3 className="text-base sm:text-lg font-bold text-purple-400 mb-2">🎯 Main Goals</h3>

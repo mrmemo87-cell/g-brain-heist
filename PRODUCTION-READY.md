@@ -1,4 +1,4 @@
-# 🎉 G-Brain Heist - Production Ready Summary
+# 🎉 G-Brains Heist - Production Ready Summary
 
 ## ✅ Improvements Completed
 

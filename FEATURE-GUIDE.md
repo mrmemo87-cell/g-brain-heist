@@ -1,4 +1,4 @@
-# 🎮 G-Brain Heist - Feature Implementation Guide
+# 🎮 G-Brains Heist - Feature Implementation Guide
 
 ## ✅ Completed Features
 

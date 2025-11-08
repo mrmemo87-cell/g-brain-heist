@@ -1,6 +1,6 @@
-# Contributing to G-Brain Heist
+# Contributing to G-Brains Heist
 
-Thank you for your interest in contributing to G-Brain Heist! This educational game is designed to help students learn through gamification.
+Thank you for your interest in contributing to G-Brains Heist! This educational game is designed to help students learn through gamification.
 
 ## Getting Started
 

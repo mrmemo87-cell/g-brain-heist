@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Brain Heist</title>
+    <title>Brains Heist</title>
+    <meta name="description" content="Brains Heist is a neon cyber-heist learning game where students become agents conquering quests, PvP hacks, and leaderboards." />
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -155,6 +156,56 @@
         }
       }
 
+      @keyframes aurora-shift {
+        0% {
+          transform: translate(-10%, -10%) scale(1);
+          opacity: 0.25;
+        }
+        50% {
+          transform: translate(5%, 5%) scale(1.1);
+          opacity: 0.45;
+        }
+        100% {
+          transform: translate(-10%, -10%) scale(1);
+          opacity: 0.25;
+        }
+      }
+
+      @keyframes grid-scan {
+        0% {
+          transform: translateY(0);
+        }
+        100% {
+          transform: translateY(-100%);
+        }
+      }
+
+      @keyframes pulse-ring {
+        0% {
+          transform: scale(0.8);
+          opacity: 0.4;
+        }
+        70% {
+          opacity: 0.75;
+        }
+        100% {
+          transform: scale(1.4);
+          opacity: 0;
+        }
+      }
+
+      @keyframes spectral-ripple {
+        0% {
+          transform: scale(0.95) rotate(0deg);
+        }
+        50% {
+          transform: scale(1.05) rotate(2deg);
+        }
+        100% {
+          transform: scale(0.95) rotate(0deg);
+        }
+      }
+
       .animate-float {
         animation: float 3s ease-in-out infinite;
       }
@@ -183,6 +234,100 @@
 
       .neon-text {
         animation: neon-pulse 2s ease-in-out infinite;
+      }
+
+      .cinematic-effects {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+        mix-blend-mode: screen;
+        transition: opacity 0.6s ease, filter 0.6s ease;
+        z-index: 0;
+      }
+
+      .cinematic-effects__aurora {
+        position: absolute;
+        width: 140%;
+        height: 140%;
+        top: -20%;
+        left: -20%;
+        background: radial-gradient(circle at 30% 20%, rgba(0, 208, 232, 0.25), transparent 55%),
+                    radial-gradient(circle at 70% 80%, rgba(255, 45, 145, 0.2), transparent 60%),
+                    radial-gradient(circle at 50% 50%, rgba(158, 93, 255, 0.15), transparent 70%);
+        filter: blur(40px);
+        animation: aurora-shift 12s ease-in-out infinite;
+      }
+
+      .cinematic-effects__grid {
+        position: absolute;
+        inset: -50%;
+        background-image: linear-gradient(rgba(0, 208, 232, 0.05) 1px, transparent 1px),
+                          linear-gradient(90deg, rgba(255, 45, 145, 0.05) 1px, transparent 1px);
+        background-size: 120px 120px;
+        animation: spectral-ripple 10s ease-in-out infinite;
+      }
+
+      .cinematic-effects__scanline {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(255, 255, 255, 0.08), transparent 60%);
+        mix-blend-mode: overlay;
+        animation: grid-scan 6s linear infinite;
+        background-size: 100% 200%;
+      }
+
+      .cinematic-effects__pulse-ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 60vmax;
+        height: 60vmax;
+        border: 2px solid rgba(0, 208, 232, 0.25);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        animation: pulse-ring 4s ease-out infinite;
+      }
+
+      .cinematic-effects__pulse-ring::after {
+        content: '';
+        position: absolute;
+        inset: 12%;
+        border: 2px solid rgba(255, 45, 145, 0.2);
+        border-radius: 50%;
+      }
+
+      .cinematic-effects--calm {
+        opacity: 0.25;
+        filter: saturate(0.8);
+      }
+
+      .cinematic-effects--active {
+        opacity: 0.45;
+      }
+
+      .cinematic-effects--alert {
+        opacity: 0.65;
+        filter: saturate(1.2) contrast(1.1);
+      }
+
+      .cinematic-view {
+        transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.6s ease;
+        transform-origin: center;
+      }
+
+      .cinematic-view--calm {
+        transform: translateY(0px);
+      }
+
+      .cinematic-view--active {
+        transform: translateY(-6px) scale(1.005);
+        filter: drop-shadow(0 0 25px rgba(0, 208, 232, 0.2));
+      }
+
+      .cinematic-view--alert {
+        transform: translateY(-10px) scale(1.02);
+        filter: drop-shadow(0 0 35px rgba(255, 45, 145, 0.35));
       }
 
       /* Enhanced card hover effects */

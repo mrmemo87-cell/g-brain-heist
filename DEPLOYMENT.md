@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide will help you deploy G-Brain Heist for your students.
+This guide will help you deploy G-Brains Heist for your students.
 
 ## 🚀 Quick Deploy Options
 
