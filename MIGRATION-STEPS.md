@@ -1,6 +1,6 @@
 # 🚀 QUICK START: Supabase + Vercel Migration
 
-Follow these exact steps to migrate G-Brain Heist to production!
+Follow these exact steps to migrate G-Brains Heist to production!
 
 ---
 

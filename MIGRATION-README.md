@@ -1,6 +1,6 @@
 # 🎯 Backend Migration: Complete Package
 
-Everything you need to migrate G-Brain Heist from localStorage to Supabase + Vercel production deployment.
+Everything you need to migrate G-Brains Heist from localStorage to Supabase + Vercel production deployment.
 
 ---
 

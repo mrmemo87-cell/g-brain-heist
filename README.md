@@ -10,7 +10,7 @@
 
 ---
 
-# 🎮 G-Brain Heist
+# 🎮 G-Brains Heist
 
 ## 📚 Table of Contents
 
@@ -27,7 +27,7 @@
 
 ## 🎯 About the Project
 
-**G-Brain Heist** is an educational gamification platform designed to make learning engaging and competitive. Students take on the role of cyber agents in a neon-themed digital world, where they:
+**G-Brains Heist** is an educational gamification platform designed to make learning engaging and competitive. Students take on the role of cyber agents in a neon-themed digital world, where they:
 
 - Complete **knowledge quests** (MCQ challenges)
 - Participate in **PvP hacks** (student vs student competition)

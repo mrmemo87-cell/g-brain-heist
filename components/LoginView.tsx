@@ -44,7 +44,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">
                     <h1 className="font-heading text-5xl font-bold tracking-wider" style={{ color: 'var(--ion-blue)' }}>
-                        Brain Heist
+                        Brains Heist
                     </h1>
                     <p className="text-mist-400 mt-2">Agent Access Terminal</p>
                 </div>

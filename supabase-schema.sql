@@ -1,5 +1,5 @@
 -- ============================================
--- G-Brain Heist - Supabase Database Schema
+-- G-Brains Heist - Supabase Database Schema
 -- ============================================
 -- Run this in Supabase SQL Editor to create all tables
 -- Execution time: ~30 seconds
