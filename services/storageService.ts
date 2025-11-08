@@ -11,6 +11,7 @@ const STORAGE_KEYS = {
   ACTIVITY_FEED: 'gbh_activity_feed', // Shared activity events
   TASK_PROGRESS: 'gbh_task_progress', // Daily/weekly task progress
   PURCHASE_COUNTS: 'gbh_purchase_counts', // Daily purchase tracking
+  GEMSTONE_LEDGER: 'gbh_gemstone_ledger', // Tracks rare gemstone earnings limits
 } as const;
 
 export const saveToStorage = <T>(key: string, data: T): void => {
@@ -70,7 +71,7 @@ export const importGameData = (jsonData: string): boolean => {
 };
 
 // Shared multiplayer functions
-export const addPlayerToSharedList = (profile: { id: string; username: string; level: number; coins: number; batch: string; avatar_url: string; has_shield?: boolean }): void => {
+export const addPlayerToSharedList = (profile: { id: string; username: string; level: number; coins: number; gemstones: number; batch: string; avatar_url: string; has_shield?: boolean }): void => {
   try {
     const players = loadFromStorage<any[]>(STORAGE_KEYS.ALL_PLAYERS) || [];
     const existingIndex = players.findIndex(p => p.id === profile.id);
@@ -195,6 +196,69 @@ export const incrementWeeklyTaskCompleted = (): void => {
   const progress = getTaskProgress();
   progress.weekly_tasks_completed += 1;
   saveToStorage(STORAGE_KEYS.TASK_PROGRESS, progress);
+};
+
+// Gemstone earning limits
+interface GemstoneLedgerEntry {
+  date: string; // YYYY-MM-DD
+  earned: number;
+}
+
+interface GemstoneLedger {
+  quest: GemstoneLedgerEntry;
+  pvp: GemstoneLedgerEntry;
+}
+
+const createEmptyLedger = (today: string): GemstoneLedger => ({
+  quest: { date: today, earned: 0 },
+  pvp: { date: today, earned: 0 },
+});
+
+const normalizeLedgerEntry = (entry: GemstoneLedgerEntry, today: string) => {
+  if (entry.date !== today) {
+    entry.date = today;
+    entry.earned = 0;
+  }
+};
+
+const getGemstoneLedger = (): GemstoneLedger => {
+  const today = getToday();
+  const stored = loadFromStorage<GemstoneLedger>(STORAGE_KEYS.GEMSTONE_LEDGER);
+
+  if (!stored) {
+    const initial = createEmptyLedger(today);
+    saveToStorage(STORAGE_KEYS.GEMSTONE_LEDGER, initial);
+    return initial;
+  }
+
+  normalizeLedgerEntry(stored.quest, today);
+  normalizeLedgerEntry(stored.pvp, today);
+  saveToStorage(STORAGE_KEYS.GEMSTONE_LEDGER, stored);
+  return stored;
+};
+
+export const canEarnQuestGemstone = (dailyCap: number = 2): boolean => {
+  const ledger = getGemstoneLedger();
+  return ledger.quest.earned < dailyCap;
+};
+
+export const recordQuestGemstoneAward = (amount: number): void => {
+  if (amount <= 0) return;
+  const ledger = getGemstoneLedger();
+  ledger.quest.earned += amount;
+  saveToStorage(STORAGE_KEYS.GEMSTONE_LEDGER, ledger);
+};
+
+export const canEarnPvpGemstone = (dailyCap: number = 1): boolean => {
+  const ledger = getGemstoneLedger();
+  return ledger.pvp.earned < dailyCap;
+};
+
+export const recordPvpGemstoneAward = (amount: number): void => {
+  if (amount <= 0) return;
+  const ledger = getGemstoneLedger();
+  ledger.pvp.earned += amount;
+  saveToStorage(STORAGE_KEYS.GEMSTONE_LEDGER, ledger);
 };
 
 // Purchase tracking functions

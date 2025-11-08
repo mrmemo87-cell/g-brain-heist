@@ -3,7 +3,7 @@ import { RaidTarget, RaidAttackResult, Profile } from '../types';
 import * as GameService from '../services/gameService';
 import { audioService } from '../services/audioService';
 import BackButton from './BackButton';
-import { ShieldIcon, HackIcon, CoinIcon, XPIcon } from './icons';
+import { ShieldIcon, HackIcon, CoinIcon, XPIcon, GemIcon } from './icons';
 import { createPortal } from 'react-dom';
 
 type PvPStage = 'loading' | 'targets' | 'cinematic' | 'result';
@@ -18,7 +18,7 @@ interface BattleNarration {
 interface PvPViewProps {
   profile: Profile;
   onComplete: () => void;
-  onGrantReward: (deltas: { xp?: number; coins?: number, ap?: number }) => void;
+  onGrantReward: (deltas: { xp?: number; coins?: number; gemstones?: number; ap?: number }) => void;
 }
 
 const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) => void }> = ({ target, onSelect }) => {
@@ -170,6 +170,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
       onGrantReward({
         xp: result.attacker_deltas.xp,
         coins: result.attacker_deltas.coins,
+        gemstones: result.attacker_deltas.gemstones,
         ap: -2, // AP cost for attacking
       });
       
@@ -337,6 +338,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
                 <div className="text-2xl font-heading space-y-2 mb-6">
                     <p>XP Delta: <span style={{color: attackResult.attacker_deltas.xp > 0 ? 'var(--ion-blue)' : 'var(--danger-red)'}}>{attackResult.attacker_deltas.xp >= 0 ? `+${attackResult.attacker_deltas.xp}` : attackResult.attacker_deltas.xp}</span></p>
                     <p>Coins Delta: <span style={{color: 'var(--amber-warn)'}}>{attackResult.attacker_deltas.coins >= 0 ? `+${attackResult.attacker_deltas.coins}`: attackResult.attacker_deltas.coins}</span></p>
+                    <p className="flex items-center justify-center gap-2">Gemstones: <span className="inline-flex items-center gap-1" style={{color: 'var(--plasma-pink)'}}><GemIcon className="w-5 h-5" />{attackResult.attacker_deltas.gemstones && attackResult.attacker_deltas.gemstones >= 0 ? `+${attackResult.attacker_deltas.gemstones}` : attackResult.attacker_deltas.gemstones || 0}</span></p>
                 </div>
 
                 <button
