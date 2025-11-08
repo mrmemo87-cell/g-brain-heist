@@ -671,84 +671,104 @@ export const caps_status = (): Promise<Caps> => {
 };
 
 export const news_feed = async (): Promise<NewsEvent[]> => {
-  const user = await getCurrentUser();
-  
-  // Fetch activities from database, excluding teacher activities
-  const { data: activities, error } = await supabase
-    .from('activities')
-    .select(`
+    const user = await getCurrentUser();
+
+    // Let bots generate background activity before fetching
+    simulateKyrgyzBotBackgroundActivity();
+
+    // Fetch activities from database, excluding teacher activities
+    const { data: activities, error } = await supabase
+        .from('activities')
+        .select(`
       *,
       users!activities_actor_id_fkey (role)
     `)
-    .order('created_at', { ascending: false })
-    .limit(30); // Fetch more to account for filtered teachers
-  
-  if (error) {
-    console.error('Error fetching activities:', error);
-    return mockApiCall([]);
-  }
-  
-  if (!activities || activities.length === 0) {
-    return mockApiCall([]);
-  }
-  
-  // Filter out teacher activities and limit to 20
-  const studentActivities = activities
-    .filter((a: any) => !a.users || a.users.role !== 'teacher')
-    .slice(0, 20);
-  
-  // Get all activity IDs
-  const activityIds = studentActivities.map(a => a.id);
-  
-  // Fetch reactions for these activities
-  const { data: reactionsData } = await supabase
-    .from('activity_reactions')
-    .select('activity_id, emoji, user_id')
-    .in('activity_id', activityIds);
-  
-  // Aggregate reactions by activity and emoji
-  const reactionsByActivity: Record<string, { reactions: Record<string, number>, myReaction: string | null }> = {};
-  
-  studentActivities.forEach(activity => {
-    reactionsByActivity[activity.id] = {
-      reactions: { '🔥': 0, '😮': 0, '😂': 0, '❤️': 0 },
-      myReaction: null,
-    };
-  });
-  
-  (reactionsData || []).forEach(reaction => {
-    if (reactionsByActivity[reaction.activity_id]) {
-      // Increment count
-      if (!reactionsByActivity[reaction.activity_id].reactions[reaction.emoji]) {
-        reactionsByActivity[reaction.activity_id].reactions[reaction.emoji] = 0;
-      }
-      reactionsByActivity[reaction.activity_id].reactions[reaction.emoji]++;
-      
-      // Check if this is the current user's reaction
-      if (reaction.user_id === user.id) {
-        reactionsByActivity[reaction.activity_id].myReaction = reaction.emoji;
-      }
+        .order('created_at', { ascending: false })
+        .limit(30); // Fetch more to account for filtered teachers
+
+    if (error) {
+        console.error('Error fetching activities:', error);
     }
-  });
-  
-  // Convert database activities to NewsEvent format
-  const events: NewsEvent[] = studentActivities.map(activity => {
-    const timeAgo = getTimeAgo(new Date(activity.created_at));
-    const activityReactions = reactionsByActivity[activity.id];
-    
-    return {
-      id: activity.id,
-      kind: activity.kind,
-      actor: activity.actor_username || 'Unknown',
-      target: activity.target_username,
-      data: activity.data || {},
-      created_at: timeAgo,
-      reactions: activityReactions.reactions,
-      my_reaction: activityReactions.myReaction,
-    };
-  });
-  
-  return mockApiCall(events);
+
+    const studentActivities = (activities || [])
+        .filter((a: any) => !a.users || a.users.role !== 'teacher')
+        .slice(0, 20);
+
+    const activityIds = studentActivities.map(a => a.id);
+
+    const { data: reactionsData } = activityIds.length
+        ? await supabase
+            .from('activity_reactions')
+            .select('activity_id, emoji, user_id')
+            .in('activity_id', activityIds)
+        : { data: [] };
+
+    const reactionsByActivity: Record<string, { reactions: Record<string, number>; myReaction: string | null }> = {};
+
+    studentActivities.forEach(activity => {
+        reactionsByActivity[activity.id] = {
+            reactions: { '🔥': 0, '😮': 0, '😂': 0, '❤️': 0 },
+            myReaction: null,
+        };
+    });
+
+    (reactionsData || []).forEach(reaction => {
+        if (reactionsByActivity[reaction.activity_id]) {
+            if (!reactionsByActivity[reaction.activity_id].reactions[reaction.emoji]) {
+                reactionsByActivity[reaction.activity_id].reactions[reaction.emoji] = 0;
+            }
+            reactionsByActivity[reaction.activity_id].reactions[reaction.emoji]++;
+
+            if (reaction.user_id === user.id) {
+                reactionsByActivity[reaction.activity_id].myReaction = reaction.emoji;
+            }
+        }
+    });
+
+    const dbEvents: TimedNewsEvent[] = studentActivities.map(activity => {
+        const createdAt = new Date(activity.created_at);
+        const timeAgo = getTimeAgo(createdAt);
+        const activityReactions = reactionsByActivity[activity.id];
+
+        return {
+            id: activity.id,
+            kind: activity.kind,
+            actor: activity.actor_username || 'Unknown',
+            target: activity.target_username,
+            data: activity.data || {},
+            created_at: timeAgo,
+            reactions: activityReactions.reactions,
+            my_reaction: activityReactions.myReaction,
+            timestamp: createdAt.getTime(),
+        };
+    });
+
+    const localFeed = getActivityFeed();
+    const localEvents: TimedNewsEvent[] = (localFeed || []).map(event => {
+        const createdAt = event.created_at ? new Date(event.created_at) : new Date();
+        const baseReactions = { '🔥': 0, '😮': 0, '😂': 0, '❤️': 0 };
+        const mergedReactions = { ...baseReactions, ...(event.reactions || {}) };
+
+        return {
+            id: event.id,
+            kind: event.kind,
+            actor: event.actor,
+            target: event.target,
+            data: event.data || {},
+            created_at: getTimeAgo(createdAt),
+            reactions: mergedReactions,
+            my_reaction: event.my_reaction || null,
+            timestamp: createdAt.getTime(),
+        } as TimedNewsEvent;
+    });
+
+    const combined = [...localEvents, ...dbEvents]
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .slice(0, 20);
+
+    const withBotReactions = applyKyrgyzBotReactions(combined);
+
+    return mockApiCall(withBotReactions.map(({ timestamp, ...event }) => event));
 };
 
 // Helper function to format time ago
@@ -765,7 +785,38 @@ function getTimeAgo(date: Date): string {
 
 export const activity_reaction_toggle = async (activity_id: string, emoji: string): Promise<{ added: boolean }> => {
   const user = await getCurrentUser();
-  
+
+  if (activity_id.startsWith('evt_')) {
+    const events = getActivityFeed();
+    const eventIndex = (events || []).findIndex((event: any) => event.id === activity_id);
+
+    if (eventIndex >= 0) {
+      const updatedEvents = [...events];
+      const event = { ...updatedEvents[eventIndex] };
+      const reactions = { '🔥': 0, '😮': 0, '😂': 0, '❤️': 0, ...(event.reactions || {}) };
+      const currentReaction: string | null = event.my_reaction || null;
+      let added = true;
+
+      if (currentReaction === emoji) {
+        reactions[emoji] = Math.max(0, (reactions[emoji] || 0) - 1);
+        event.my_reaction = null;
+        added = false;
+      } else {
+        if (currentReaction) {
+          reactions[currentReaction] = Math.max(0, (reactions[currentReaction] || 0) - 1);
+        }
+        reactions[emoji] = (reactions[emoji] || 0) + 1;
+        event.my_reaction = emoji;
+      }
+
+      event.reactions = reactions;
+      updatedEvents[eventIndex] = event;
+      saveToStorage(STORAGE_KEYS.ACTIVITY_FEED, updatedEvents);
+
+      return mockApiCall({ added });
+    }
+  }
+
   // Check if user already has a reaction on this activity
   const { data: existingReaction } = await supabase
     .from('activity_reactions')
@@ -1151,40 +1202,82 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
 
 export const raid_attack = async (defender_id: string, use_cracker: boolean, target: RaidTarget): Promise<RaidAttackResult> => {
     const user = await getCurrentUser();
-    
-    // Call the Postgres RPC function to handle all combat logic server-side
-    const { data, error } = await performHackAttempt(defender_id);
-    
-    if (error) {
-        console.error('Hack attempt RPC error:', error);
-        // Check if it's a cooldown error
-        if (error.message && error.message.includes('COOLDOWN:')) {
-            // Extract cooldown time from error message
-            const match = error.message.match(/Try again in (\d+) seconds/);
-            const seconds = match ? parseInt(match[1]) : 300;
-            const minutes = Math.ceil(seconds / 60);
-            throw new Error(`⏰ This player is protected! They were recently attacked. Wait ${minutes} minute${minutes > 1 ? 's' : ''} before attacking again.`);
-        }
-        throw new Error(error.message || 'Hack attempt failed');
-    }
-    
-    if (!data) {
-        throw new Error('No response from hack attempt');
-    }
-    
-    // The RPC returns the exact format we need
-    const rpcResult = data as {
-        result: RaidAttackResult['result'];
-        attacker_deltas: RaidAttackResult['attacker_deltas'];
-        defender_deltas: RaidAttackResult['defender_deltas'];
-        shield_state: RaidAttackResult['shield_state'];
-    };
 
-    const response: RaidAttackResult = {
-        result: rpcResult.result,
-        attacker_deltas: rpcResult.attacker_deltas,
-        defender_deltas: rpcResult.defender_deltas,
-        shield_state: rpcResult.shield_state,
+    const simulateBotRaid = (botId: string) => {
+        const bots = refreshKyrgyzBotStates();
+        const botIndex = bots.findIndex(bot => bot.id === botId);
+        if (botIndex === -1) {
+            throw new Error('Raid target is no longer available.');
+        }
+
+        const bot = bots[botIndex];
+        const persona = KYRGYZ_PERSONA_LOOKUP.get(bot.personaId);
+        const hadShield = target?.has_shield ?? false;
+        const shieldBlocks = hadShield && !use_cracker && Math.random() < 0.8;
+        const baseWinChance = clampNumber(target?.est_win_rate ?? getBotWinChance(bot), [0.2, 0.9]);
+        const effectiveWinChance = hadShield && !use_cracker ? baseWinChance * 0.85 : baseWinChance;
+        const roll = Math.random();
+
+        let result: RaidAttackResult['result'];
+        let attackerCoins = 0;
+        let defenderCoinsLoss = 0;
+        let attackerXp = 0;
+        let summary = '';
+        let shield_state: RaidAttackResult['shield_state'] = hadShield ? 'removed' : 'none';
+
+        if (shieldBlocks) {
+            result = 'blocked';
+            attackerCoins = 0;
+            defenderCoinsLoss = 0;
+            attackerXp = -10;
+            summary = 'Attack blocked by Shield';
+            shield_state = 'remaining';
+            bot.pvp_wins += 1;
+        } else if (roll < effectiveWinChance) {
+            result = 'win';
+            const coinsStolen = Math.min(bot.coins, randomIntInRange([110, 240]));
+            attackerCoins = coinsStolen;
+            defenderCoinsLoss = coinsStolen;
+            attackerXp = randomIntInRange([60, 140]);
+            bot.coins = Math.max(0, bot.coins - coinsStolen);
+            bot.xp = Math.max(bot.xp - randomIntInRange([15, 30]), approximateXpForLevel(bot.level));
+            summary = `Stole ${coinsStolen} Coins`;
+        } else {
+            result = 'lose';
+            const coinsLost = randomIntInRange([40, 110]);
+            attackerCoins = -coinsLost;
+            defenderCoinsLoss = -coinsLost;
+            attackerXp = -randomIntInRange([20, 35]);
+            if (persona) {
+                bot.coins = clampNumber(bot.coins + coinsLost, persona.coinsRange);
+            } else {
+                bot.coins += coinsLost;
+            }
+            bot.pvp_wins += 1;
+            summary = `Defended and gained ${coinsLost} Coins`;
+        }
+
+        bot.last_seen = nowIso();
+        bot.lastRaidAt = nowIso();
+        clampBotStateToPersona(bot);
+        bots[botIndex] = bot;
+        saveKyrgyzBotStates(bots);
+
+        return {
+            response: {
+                result,
+                attacker_deltas: {
+                    xp: attackerXp,
+                    coins: attackerCoins,
+                },
+                defender_deltas: {
+                    coins_loss: defenderCoinsLoss,
+                },
+                shield_state,
+            },
+            summary,
+            botUsername: bot.username,
+        };
     };
 
     let gemstoneReward = 0;
@@ -1244,44 +1337,60 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
         const attackerLevel = attackerProfile?.level || 1;
         const attackPower = attackerLevel * 10; // Estimate attack power
 
-        if (response.result === 'win') {
-            // Notify defender they're under attack
-            await notifyAttackIncoming({
-                target_user_id: defender_id,
-                attacker_username: attackerUsername,
-                attacker_power: attackPower
-            });
+        if (isBotTarget && botSimulation) {
+            const feedKind = response.result === 'win'
+                ? 'pvp_win'
+                : response.result === 'blocked'
+                    ? 'pvp_blocked'
+                    : 'pvp_loss';
 
-            // If significant coins stolen, notify about coin loss
-            const coinsStolen = response.defender_deltas?.coins_loss || 0;
-            if (coinsStolen > 50) {
-                await notifyCoinsLost({
+            addActivityEvent({
+                kind: feedKind,
+                actor: attackerUsername,
+                target: botSimulation.botUsername,
+                data: { details: botSimulation.summary },
+                created_at: nowIso(),
+            });
+        } else if (!isBotTarget) {
+            if (response.result === 'win') {
+                // Notify defender they're under attack
+                await notifyAttackIncoming({
+                    target_user_id: defender_id,
+                    attacker_username: attackerUsername,
+                    attacker_power: attackPower
+                });
+
+                // If significant coins stolen, notify about coin loss
+                const coinsStolen = response.defender_deltas?.coins_loss || 0;
+                if (coinsStolen > 50) {
+                    await notifyCoinsLost({
+                        user_id_param: defender_id,
+                        attacker_username: attackerUsername,
+                        coins_lost: coinsStolen
+                    });
+                }
+
+                // Offer revenge to defender
+                await notifyRevengeAvailable({
+                    user_id_param: defender_id,
+                    target_username: attackerUsername,
+                    target_user_id: user.id
+                });
+            } else if (response.result === 'lose' || response.result === 'blocked') {
+                // Defender successfully defended
+                const coinsLost = response.defender_deltas?.coins_loss || 0;
+                await notifyAttackDefended({
                     user_id_param: defender_id,
                     attacker_username: attackerUsername,
-                    coins_lost: coinsStolen
+                    coins_kept: Math.max(0, -coinsLost) // Negative loss means they kept coins
                 });
             }
-
-            // Offer revenge to defender
-            await notifyRevengeAvailable({
-                user_id_param: defender_id,
-                target_username: attackerUsername,
-                target_user_id: user.id
-            });
-        } else if (response.result === 'lose' || response.result === 'blocked') {
-            // Defender successfully defended
-            const coinsLost = response.defender_deltas?.coins_loss || 0;
-            await notifyAttackDefended({
-                user_id_param: defender_id,
-                attacker_username: attackerUsername,
-                coins_kept: Math.max(0, -coinsLost) // Negative loss means they kept coins
-            });
         }
     } catch (notifError) {
         // Don't fail the attack if notifications fail
-        console.error('Failed to send attack notifications:', notifError);
+        console.error('Failed to handle attack notifications:', notifError);
     }
-    
+
     return mockApiCall(response);
 };
 
