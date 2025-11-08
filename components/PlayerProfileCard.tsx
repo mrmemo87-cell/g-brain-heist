@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Profile } from '../types';
-import { CoinIcon, StreakIcon, XPIcon, APIcon } from './icons';
+import { CoinIcon, StreakIcon, XPIcon, APIcon, GemIcon } from './icons';
 
 interface PlayerProfileCardProps {
   profile: Profile;
@@ -94,6 +94,7 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
 
       <div className="grid grid-cols-2 gap-4 mt-6">
         <StatDisplay icon={<CoinIcon />} label="Coins" value={profile.coins.toLocaleString()} color={'var(--amber-warn)'} />
+        <StatDisplay icon={<GemIcon />} label="Gemstones" value={profile.gemstones.toLocaleString()} color={'var(--ion-blue)'} />
         <StatDisplay icon={<StreakIcon />} label="Streak" value={`${profile.streak} days`} color={'var(--danger-red)'} />
         <StatDisplay icon={<XPIcon />} label="Total XP" value={profile.xp.toLocaleString()} color={'var(--ion-blue)'} />
         <StatDisplay 

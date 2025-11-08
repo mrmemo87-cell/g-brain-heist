@@ -21,6 +21,8 @@ import AchievementView from './components/AchievementView';
 import TutorialModal from './components/TutorialModal';
 import TeacherPortal from './components/TeacherPortal';
 import AdminPortal from './components/AdminPortal';
+import TournamentHub from './components/TournamentHub';
+import TournamentAdminDashboard from './components/TournamentAdminDashboard';
 import HelpModal from './components/HelpModal';
 import { ToastContainer } from './components/ToastNotification';
 import { isAdmin } from './services/adminService';
@@ -38,7 +40,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [caps, setCaps] = useState<Caps | null>(null);
   const [news, setNews] = useState<NewsEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin'>('dashboard');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [levelUpData, setLevelUpData] = useState<{ newLevel: number; rewards: any } | null>(null);
@@ -61,6 +63,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
   };
 
+  useEffect(() => {
+    return aiHostService.init();
+  }, []);
 
   const fetchGameData = async () => {
     try {
@@ -324,17 +329,24 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     }
   };
 
-  const handleGrantReward = (deltas: { xp?: number; coins?: number, ap?: number }) => {
+  const handleGrantReward = (deltas: { xp?: number; coins?: number; gemstones?: number; ap?: number }) => {
     if (!profile) return;
-    
+
     // Optimistic update for smooth UI feedback
     setProfile(prevProfile => {
       if (!prevProfile) return null;
+
+      const nextXP = prevProfile.xp + (deltas.xp || 0);
+      const nextCoins = prevProfile.coins + (deltas.coins || 0);
+      const nextGemstones = prevProfile.gemstones + (deltas.gemstones || 0);
+      const nextAP = prevProfile.ap_now + (deltas.ap || 0);
+
       return {
         ...prevProfile,
-        xp: prevProfile.xp + (deltas.xp || 0),
-        coins: prevProfile.coins + (deltas.coins || 0),
-        ap_now: prevProfile.ap_now + (deltas.ap || 0),
+        xp: Math.max(0, nextXP),
+        coins: Math.max(0, nextCoins),
+        gemstones: Math.max(0, nextGemstones),
+        ap_now: Math.min(prevProfile.ap_max, Math.max(0, nextAP)),
       };
     });
   };
@@ -504,6 +516,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             return <TeacherPortal profile={profile} onComplete={handleViewComplete} />;
         case 'admin':
             return <AdminPortal profile={profile} onComplete={handleViewComplete} addToast={addToast} />;
+        case 'tournament':
+            return <TournamentHub profile={profile} onClose={handleViewComplete} addToast={addToast} />;
+        case 'tournament_admin':
+            return <TournamentAdminDashboard profile={profile} onClose={handleViewComplete} addToast={addToast} />;
         case 'dashboard':
         default:
             // Teacher Dashboard - simplified view focused on teaching
@@ -563,16 +579,18 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
                     {/* Middle Column */}
                     <div className="lg:col-span-5 xl:col-span-6 space-y-6">
-                        <MainActions 
-                            onStartQuest={() => setView('quest')} 
-                            onStartPvp={() => setView('pvp')} 
-                            onVisitShop={() => setView('shop')} 
-                            onGoToClan={() => setView('clan')} 
+                        <MainActions
+                            onStartQuest={() => setView('quest')}
+                            onStartPvp={() => setView('pvp')}
+                            onVisitShop={() => setView('shop')}
+                            onGoToClan={() => setView('clan')}
                             onVisitInventory={() => setView('inventory')}
                             onViewLeaderboard={() => setView('leaderboard')}
                             onViewAchievements={() => setView('achievements')}
+                            onOpenTournament={() => setView('tournament')}
                             onOpenTeacherPortal={profile?.role === 'teacher' ? () => setView('teacher') : undefined}
                             onOpenAdminPortal={isAdmin(profile) ? () => setView('admin') : undefined}
+                            onOpenTournamentAdmin={isAdmin(profile) ? () => setView('tournament_admin') : undefined}
                         />
                         <TaskList tasks={tasks} onTasksUpdate={fetchGameData} />
                     </div>
