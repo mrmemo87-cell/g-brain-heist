@@ -2,9 +2,9 @@ class AIHostService {
   private initialized = false;
   private heartbeatIntervalId: number | null = null;
 
-  init(): boolean {
+  init(): () => void {
     if (typeof window === 'undefined' || this.initialized) {
-      return false;
+      return () => {};
     }
 
     this.initialized = true;
@@ -15,7 +15,7 @@ class AIHostService {
     window.addEventListener('visibilitychange', this.handleVisibilityChange);
     window.addEventListener('beforeunload', this.handleBeforeUnload);
 
-    return true;
+    return () => this.stop();
   }
 
   stop() {
