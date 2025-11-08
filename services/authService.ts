@@ -105,3 +105,23 @@ export const logout = async (): Promise<void> => {
         throw error;
     }
 };
+
+export const loginWithGoogle = async (): Promise<void> => {
+    const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}` : undefined;
+
+    const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+            redirectTo,
+            queryParams: {
+                access_type: 'offline',
+                prompt: 'consent',
+            },
+        },
+    });
+
+    if (error) {
+        console.error('Google sign-in error:', error.message);
+        throw new Error(error.message);
+    }
+};

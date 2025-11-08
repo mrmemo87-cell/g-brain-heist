@@ -153,6 +153,20 @@ const randomFloatInRange = ([min, max]: [number, number]): number => {
     return Math.random() * (max - min) + min;
 };
 
+const clampNumber = (value: number, [min, max]: [number, number]): number => {
+    return Math.min(Math.max(value, min), max);
+};
+
+const approximateXpForLevel = (level: number): number => {
+    if (level <= 1) {
+        return 0;
+    }
+
+    const normalizedLevel = Math.max(1, level);
+    // Quadratic growth that keeps numbers within the same order of magnitude as real profiles.
+    return Math.round(((normalizedLevel - 1) * normalizedLevel * 45) + (normalizedLevel - 1) * 120);
+};
+
 const buildBotAvatarUrl = (seed: string): string => {
     const encoded = encodeURIComponent(seed);
     return `https://api.dicebear.com/7.x/adventurer/svg?seed=${encoded}&backgroundColor=c0aede,ffd5dc,ffdfbf&radius=50`;
@@ -207,6 +221,174 @@ const generateKyrgyzBots = (count: number, existingIds: Set<string>): RaidTarget
     }
 
     return bots;
+};
+
+type KyrgyzBotLeaderboardProfile = {
+    id: string;
+    username: string;
+    avatar_url: string;
+    value: number;
+    batch: '8A' | '8B' | '8C';
+    last_seen: string;
+    role: 'bot';
+};
+
+type KyrgyzBotPvpProfile = {
+    id: string;
+    username: string;
+    avatar_url: string;
+    wins: number;
+    batch: '8A' | '8B' | '8C';
+    last_seen: string;
+    role: 'bot';
+};
+
+type KyrgyzBotLeaderboardSnapshot = {
+    xp: KyrgyzBotLeaderboardProfile[];
+    pvp: KyrgyzBotPvpProfile[];
+    clans: { id: string; name: string; member_count: number; total_xp: number }[];
+    generatedAt: string;
+};
+
+const KYRGYZ_BOT_LEADERBOARD_KEY = 'gbh_kyrgyz_bot_leaderboard_v1';
+const KYRGYZ_BOT_LEADERBOARD_REFRESH_MS = 5 * 60 * 1000;
+
+const isBrowserEnvironment = (): boolean => typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
+
+const loadKyrgyzBotLeaderboardSnapshot = (): KyrgyzBotLeaderboardSnapshot | null => {
+    if (!isBrowserEnvironment()) {
+        return null;
+    }
+
+    return loadFromStorage<KyrgyzBotLeaderboardSnapshot>(KYRGYZ_BOT_LEADERBOARD_KEY);
+};
+
+const saveKyrgyzBotLeaderboardSnapshot = (snapshot: KyrgyzBotLeaderboardSnapshot): void => {
+    if (!isBrowserEnvironment()) {
+        return;
+    }
+
+    saveToStorage(KYRGYZ_BOT_LEADERBOARD_KEY, snapshot);
+};
+
+const shouldRefreshKyrgyzBotLeaderboard = (snapshot: KyrgyzBotLeaderboardSnapshot | null): boolean => {
+    if (!snapshot) {
+        return true;
+    }
+
+    const generatedAt = Date.parse(snapshot.generatedAt);
+    if (Number.isNaN(generatedAt)) {
+        return true;
+    }
+
+    return Date.now() - generatedAt > KYRGYZ_BOT_LEADERBOARD_REFRESH_MS;
+};
+
+const slugify = (value: string): string => {
+    return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+};
+
+const createKyrgyzBotLeaderboardSnapshot = (
+    previous?: KyrgyzBotLeaderboardSnapshot
+): KyrgyzBotLeaderboardSnapshot => {
+    const xpProfiles = KYRGYZ_BOT_PERSONAS.map(persona => {
+        const slug = slugify(`${persona.firstName}-${persona.lastName}`);
+        const id = `bot_lb_${slug}`;
+        const previousXp = previous?.xp.find(entry => entry.id === id);
+        const previousWins = previous?.pvp.find(entry => entry.id === id);
+
+        const xpFloor = approximateXpForLevel(persona.levelRange[0]);
+        const xpCeil = approximateXpForLevel(persona.levelRange[1] + 1) + 500;
+        const baselineXp = Math.round(
+            approximateXpForLevel(randomIntInRange(persona.levelRange)) * randomFloatInRange([1.05, 1.4])
+        );
+        const xpDelta = previousXp ? randomIntInRange([-120, 180]) : 0;
+        const xpValue = clampNumber((previousXp?.value || baselineXp) + xpDelta, [xpFloor, xpCeil]);
+
+        const baselineWins = Math.max(3, Math.round(randomFloatInRange(persona.skillRange) * 45));
+        const winsDelta = previousWins ? randomIntInRange([-2, 5]) : 0;
+        const wins = Math.max(1, (previousWins?.wins || baselineWins) + winsDelta);
+
+        const lastSeenMinutes = randomIntInRange(persona.activityMinutesRange);
+        const last_seen = new Date(Date.now() - lastSeenMinutes * 60 * 1000).toISOString();
+
+        return {
+            id,
+            username: `${persona.firstName} ${persona.lastName}`,
+            avatar_url: buildBotAvatarUrl(`${persona.firstName}-${persona.lastName}-leaderboard`),
+            value: Math.round(xpValue),
+            wins: Math.round(wins),
+            batch: persona.batch,
+            last_seen,
+            role: 'bot' as const,
+            clan: persona.clan,
+        };
+    });
+
+    const xpEntries: KyrgyzBotLeaderboardProfile[] = xpProfiles.map(({ wins, clan, ...rest }) => rest);
+
+    const pvpEntries: KyrgyzBotPvpProfile[] = xpProfiles.map(profile => ({
+        id: profile.id,
+        username: profile.username,
+        avatar_url: profile.avatar_url,
+        wins: profile.wins,
+        batch: profile.batch,
+        last_seen: profile.last_seen,
+        role: profile.role,
+    }));
+
+    const clanMap = new Map<string, { id: string; name: string; member_count: number; total_xp: number }>();
+
+    xpProfiles.forEach(profile => {
+        if (!profile.clan) {
+            return;
+        }
+
+        const clanSlug = slugify(profile.clan);
+        const previousClan = previous?.clans.find(clan => clan.id === `bot_clan_${clanSlug}`);
+        const memberCount = previousClan?.member_count ?? randomIntInRange([12, 28]);
+        const baseTotalXp = previousClan?.total_xp ?? randomIntInRange([18000, 52000]);
+
+        const existing = clanMap.get(profile.clan);
+        if (!existing) {
+            clanMap.set(profile.clan, {
+                id: `bot_clan_${clanSlug}`,
+                name: profile.clan,
+                member_count: memberCount,
+                total_xp: baseTotalXp,
+            });
+        }
+
+        const entry = clanMap.get(profile.clan)!;
+        entry.total_xp = clampNumber(
+            entry.total_xp + Math.round(profile.value * randomFloatInRange([0.25, 0.65])),
+            [8000, 120000]
+        );
+        entry.member_count = Math.max(entry.member_count, memberCount);
+    });
+
+    const clans = Array.from(clanMap.values()).map(clan => ({
+        ...clan,
+        total_xp: Math.round(clan.total_xp),
+    }));
+
+    return {
+        xp: xpEntries,
+        pvp: pvpEntries,
+        clans,
+        generatedAt: new Date().toISOString(),
+    };
+};
+
+export const getKyrgyzBotLeaderboardProfiles = async (): Promise<KyrgyzBotLeaderboardSnapshot> => {
+    let snapshot = loadKyrgyzBotLeaderboardSnapshot();
+
+    if (!snapshot || shouldRefreshKyrgyzBotLeaderboard(snapshot)) {
+        snapshot = createKyrgyzBotLeaderboardSnapshot(snapshot || undefined);
+        saveKyrgyzBotLeaderboardSnapshot(snapshot);
+    }
+
+    return mockApiCall(snapshot);
 };
 
 // Helper to get current authenticated user
