@@ -107,7 +107,8 @@ export const logout = async (): Promise<void> => {
 };
 
 export const loginWithGoogle = async (): Promise<void> => {
-    const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}` : undefined;
+    // Construct proper redirect URI that matches Supabase auth config
+    const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined;
 
     const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
