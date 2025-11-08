@@ -2,7 +2,7 @@
 
 ## Overview
 
-Your G-Brain Heist game now has **shared multiplayer features** using localStorage! Students on the same device/browser can see each other in the game and their actions appear in the activity feed.
+Your G-Brains Heist game now has **shared multiplayer features** using localStorage! Students on the same device/browser can see each other in the game and their actions appear in the activity feed.
 
 ---
 

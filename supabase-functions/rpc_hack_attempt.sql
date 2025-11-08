@@ -1,4 +1,4 @@
--- Brain Heist PvP Hack Attempt Function
+-- Brains Heist PvP Hack Attempt Function
 -- Matches our game schema: users, inventory, activities tables
 -- Inputs: p_defender_id uuid
 -- Uses: auth.uid() as attacker
