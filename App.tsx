@@ -277,9 +277,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     }
   };
 
-  const handleGrantReward = (deltas: { xp?: number; coins?: number, ap?: number }) => {
+  const handleGrantReward = (deltas: { xp?: number; coins?: number; gemstones?: number; ap?: number }) => {
     if (!profile) return;
-    
+
     // Optimistic update for smooth UI feedback
     setProfile(prevProfile => {
       if (!prevProfile) return null;
@@ -287,6 +287,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         ...prevProfile,
         xp: prevProfile.xp + (deltas.xp || 0),
         coins: prevProfile.coins + (deltas.coins || 0),
+        gemstones: prevProfile.gemstones + (deltas.gemstones || 0),
         ap_now: prevProfile.ap_now + (deltas.ap || 0),
       };
     });

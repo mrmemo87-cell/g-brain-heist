@@ -1,8 +1,34 @@
 import { Profile, Task, SessionStatus, Caps, NewsEvent, SubjectData, Question, AnswerResponse, RaidTarget, RaidAttackResult, ShopItem, PurchaseReceipt, Clan, ClanChatMessage, ClanSummary, ClanMember, ClanBuff, InventoryItem, Teacher, TeacherQuestion, CreateQuestionRequest, QuestionAttemptResult, QuestTemplate } from '../types';
-import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, getSharedPlayers, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount } from './storageService';
+import {
+  saveToStorage,
+  loadFromStorage,
+  STORAGE_KEYS,
+  addPlayerToSharedList,
+  getSharedPlayers,
+  addActivityEvent,
+  getActivityFeed,
+  getTaskProgress,
+  incrementQuestCompleted,
+  incrementPvPWin,
+  incrementWeeklyTaskCompleted,
+  getPurchaseCount,
+  incrementPurchaseCount,
+  canEarnQuestGemstone,
+  recordQuestGemstoneAward,
+  canEarnPvpGemstone,
+  recordPvpGemstoneAward,
+} from './storageService';
 import { supabase } from './supabaseClient';
 
 const MOCK_DELAY = 500;
+
+const QUEST_STREAK_TARGET = 5;
+const QUEST_GEMSTONE_REWARD = 1;
+const QUEST_GEMSTONE_DAILY_CAP = 2;
+const PVP_GEMSTONE_REWARD = 1;
+const PVP_GEMSTONE_DAILY_CAP = 1;
+const LEVEL_MILESTONE_INTERVAL = 5;
+const LEVEL_MILESTONE_GEMSTONE_REWARD = 2;
 
 // Helper to get current authenticated user
 const getCurrentUser = async () => {
@@ -35,6 +61,7 @@ const DEFAULT_PROFILE: Profile = {
   level: 12,
   xp: 420,
   coins: 8750,
+  gemstones: 24,
   streak: 7,
   last_seen: new Date().toISOString(),
   ap_now: 18,
@@ -183,6 +210,10 @@ export const whoami = async (): Promise<Profile> => {
     throw new Error('Profile not found');
   }
 
+  if (typeof profile.gemstones !== 'number') {
+    profile.gemstones = 0;
+  }
+
   // ====== AP REGENERATION LOGIC ======
   // Call database function to regenerate AP
   try {
@@ -315,6 +346,7 @@ export const whoami = async (): Promise<Profile> => {
     username: profile.username,
     level: profile.level,
     coins: profile.coins,
+    gemstones: profile.gemstones,
     batch: profile.batch,
     avatar_url: profile.avatar_url,
     has_shield: false, // TODO: Check inventory for active shield
@@ -354,10 +386,10 @@ export const tasks_list = (): Promise<Task[]> => {
       kind: 'daily',
       progress: progress.daily_quests_completed,
       target: 3,
-      reward_preview: '175 XP, 350 Coins',
+      reward_preview: '175 XP, 350 Coins, +1 Gemstone',
       expires_at: dailyExpiry,
       claimed: claimedTasks.includes('task_d1'),
-      reward: { xp: 175, coins: 350 },
+      reward: { xp: 175, coins: 350, gemstones: 1 },
     },
     {
       id: 'task_d2',
@@ -365,10 +397,10 @@ export const tasks_list = (): Promise<Task[]> => {
       kind: 'daily',
       progress: progress.daily_pvp_wins,
       target: 1,
-      reward_preview: '100 XP, 50 Coins',
+      reward_preview: '100 XP, 50 Coins, +1 Gemstone',
       expires_at: dailyExpiry,
       claimed: claimedTasks.includes('task_d2'),
-      reward: { xp: 100, coins: 50 },
+      reward: { xp: 100, coins: 50, gemstones: 1 },
     },
     {
       id: 'task_w1',
@@ -376,16 +408,16 @@ export const tasks_list = (): Promise<Task[]> => {
       kind: 'weekly',
       progress: progress.weekly_tasks_completed,
       target: 15,
-      reward_preview: '500 XP, 400 Coins + 1 Item Crate',
+      reward_preview: '500 XP, 400 Coins, +1 Item Crate, +5 Gemstones',
       expires_at: weeklyExpiry,
       claimed: claimedTasks.includes('task_w1'),
-      reward: { xp: 500, coins: 400, items: ['mystery_crate'] },
+      reward: { xp: 500, coins: 400, gemstones: 5, items: ['mystery_crate'] },
     },
   ];
   return mockApiCall(tasks);
 };
 
-export const task_claim = async (task_id: string): Promise<{ xp: number; coins: number; items?: string[] }> => {
+export const task_claim = async (task_id: string): Promise<{ xp: number; coins: number; gemstones?: number; items?: string[] }> => {
   const user = await getCurrentUser();
   
   // Get task details
@@ -411,15 +443,18 @@ export const task_claim = async (task_id: string): Promise<{ xp: number; coins: 
   // Grant rewards to user
   const { data: profile } = await supabase
     .from('users')
-    .select('xp, coins')
+    .select('xp, coins, gemstones')
     .eq('id', user.id)
     .single();
-  
+
   if (!profile) throw new Error('Profile not found');
-  
+
+  const gemstonesEarned = task.reward.gemstones || 0;
+
   await updateProfile(user.id, {
     xp: profile.xp + task.reward.xp,
     coins: profile.coins + task.reward.coins,
+    gemstones: (profile.gemstones || 0) + gemstonesEarned,
   });
   
   // Mark as claimed in localStorage
@@ -704,11 +739,14 @@ export const mcq_answer_submit = async (question_id: string, choice: string): Pr
         deltas: {
             xp: isCorrect ? (question.points || 20) : -5,
             coins: isCorrect ? Math.floor((question.points || 20) * 1.5) : 0,
+            gemstones: 0,
         },
-        explanation: isCorrect 
-            ? (question.explanation || 'Well done, agent!') 
+        explanation: isCorrect
+            ? (question.explanation || 'Well done, agent!')
             : `Incorrect. ${question.explanation || 'The correct answer was: ' + question.correct_answer}`
     };
+
+    let gemstoneDelta = 0;
 
     // Record the attempt in question_attempts table
     await supabase.from('question_attempts').insert({
@@ -727,29 +765,75 @@ export const mcq_answer_submit = async (question_id: string, choice: string): Pr
             times_correct: (question.times_correct || 0) + (isCorrect ? 1 : 0),
         })
         .eq('id', question_id);
-    
+
+    // Track quest progress (use localStorage for now)
+    if (isCorrect) {
+        currentQuestAnswers++;
+        if (currentQuestAnswers >= QUEST_STREAK_TARGET) {
+            incrementQuestCompleted();
+            currentQuestAnswers = 0;
+
+            const progress = getTaskProgress();
+            const questsCompletedToday = progress.daily_quests_completed;
+
+            if ((questsCompletedToday === 1 || questsCompletedToday === 3) && canEarnQuestGemstone(QUEST_GEMSTONE_DAILY_CAP)) {
+                gemstoneDelta += QUEST_GEMSTONE_REWARD;
+                recordQuestGemstoneAward(QUEST_GEMSTONE_REWARD);
+            }
+
+            if (questsCompletedToday === 3 || progress.daily_pvp_wins === 1) {
+                incrementWeeklyTaskCompleted();
+            }
+
+            // ====== NOTIFICATION: QUEST COMPLETED ======
+            try {
+                const { notificationService } = await import('./notificationService');
+                await notificationService.createNotification(
+                    user.id,
+                    'quest_completed',
+                    '✅ Quest Complete!',
+                    'You completed a knowledge quest! Keep learning to earn more rewards.',
+                    'high'
+                );
+            } catch (notifError) {
+                console.error('Failed to send quest completion notification:', notifError);
+            }
+        }
+    } else {
+        currentQuestAnswers = 0;
+    }
+
     // Update profile with rewards/penalties in database
     const { data: currentProfile, error: fetchError } = await supabase
         .from('users')
-        .select('xp, coins, level')
+        .select('xp, coins, level, gemstones')
         .eq('id', user.id)
         .single();
-    
+
     if (fetchError || !currentProfile) throw new Error('Failed to fetch profile');
-    
+
     const newXP = currentProfile.xp + response.deltas.xp;
     const newCoins = Math.max(0, currentProfile.coins + response.deltas.coins);
-    
+
     // Check for level up (simple formula: level = floor(xp / 100))
     const newLevel = Math.floor(newXP / 100) + 1;
     const leveledUp = newLevel > currentProfile.level;
-    
+
+    if (leveledUp && newLevel % LEVEL_MILESTONE_INTERVAL === 0) {
+        gemstoneDelta += LEVEL_MILESTONE_GEMSTONE_REWARD;
+    }
+
+    const newGemstones = Math.max(0, (currentProfile.gemstones || 0) + gemstoneDelta);
+
     await updateProfile(user.id, {
         xp: newXP,
         coins: newCoins,
         level: newLevel,
+        gemstones: newGemstones,
     });
     
+    response.deltas.gemstones = gemstoneDelta;
+
     // Log activity if level up. Use `data.details` consistently so the feed renderer can display a human string.
     if (leveledUp) {
         const { data: unameResult } = await supabase.from('users').select('username').eq('id', user.id).single();
@@ -773,6 +857,21 @@ export const mcq_answer_submit = async (question_id: string, choice: string): Pr
         }
     }
 
+    if (gemstoneDelta > 0) {
+        try {
+            const { notificationService } = await import('./notificationService');
+            await notificationService.createNotification(
+                user.id,
+                'gemstone_earned',
+                '💎 Gemstone Earned!',
+                `You earned ${gemstoneDelta} rare gemstone${gemstoneDelta > 1 ? 's' : ''}!`,
+                'high'
+            );
+        } catch (notifError) {
+            console.error('Failed to send gemstone notification:', notifError);
+        }
+    }
+
     // Notify for significant coin gains (correct answers)
     if (isCorrect && response.deltas.coins >= 30) {
         try {
@@ -786,34 +885,6 @@ export const mcq_answer_submit = async (question_id: string, choice: string): Pr
             );
         } catch (notifError) {
             console.error('Failed to send coins notification:', notifError);
-        }
-    }
-    
-    // Track quest progress (use localStorage for now)
-    if (isCorrect) {
-        currentQuestAnswers++;
-        if (currentQuestAnswers >= 5) {
-            incrementQuestCompleted();
-            currentQuestAnswers = 0;
-            
-            const progress = getTaskProgress();
-            if (progress.daily_quests_completed === 3 || progress.daily_pvp_wins === 1) {
-                incrementWeeklyTaskCompleted();
-            }
-
-            // ====== NOTIFICATION: QUEST COMPLETED ======
-            try {
-                const { notificationService } = await import('./notificationService');
-                await notificationService.createNotification(
-                    user.id,
-                    'quest_completed',
-                    '✅ Quest Complete!',
-                    'You completed a knowledge quest! Keep learning to earn more rewards.',
-                    'high'
-                );
-            } catch (notifError) {
-                console.error('Failed to send quest completion notification:', notifError);
-            }
         }
     }
     
@@ -900,15 +971,50 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
         defender_deltas: data.defender_deltas,
         shield_state: data.shield_state,
     };
-    
+
+    let gemstoneReward = 0;
+
     // Track progress (localStorage for now)
     if (response.result === 'win') {
         incrementPvPWin();
         const progress = getTaskProgress();
+        if (progress.daily_pvp_wins === 1 && canEarnPvpGemstone(PVP_GEMSTONE_DAILY_CAP)) {
+            gemstoneReward += PVP_GEMSTONE_REWARD;
+            recordPvpGemstoneAward(PVP_GEMSTONE_REWARD);
+        }
         if (progress.daily_pvp_wins === 1) {
             incrementWeeklyTaskCompleted();
         }
     }
+
+    if (gemstoneReward > 0) {
+        const { data: gemProfile } = await supabase
+            .from('users')
+            .select('gemstones')
+            .eq('id', user.id)
+            .single();
+
+        const currentGemstones = gemProfile?.gemstones || 0;
+        await updateProfile(user.id, { gemstones: currentGemstones + gemstoneReward });
+
+        try {
+            const { notificationService } = await import('./notificationService');
+            await notificationService.createNotification(
+                user.id,
+                'gemstone_earned',
+                '💎 Gemstone Earned!',
+                `You recovered ${gemstoneReward} gemstone${gemstoneReward > 1 ? 's' : ''} from the heist!`,
+                'high'
+            );
+        } catch (notifError) {
+            console.error('Failed to send gemstone notification:', notifError);
+        }
+    }
+
+    response.attacker_deltas = {
+        ...response.attacker_deltas,
+        gemstones: gemstoneReward,
+    };
 
     // ====== NOTIFICATION TRIGGERS ======
     try {
@@ -965,15 +1071,16 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
 };
 
 const MOCK_SHOP_ITEMS: ShopItem[] = [
-    { id: 'item_shield', name: 'Shield', kind: 'shield', price: 150, daily_limit: 3, owned_today: 0, description: 'Blocks one incoming hack attempt before shattering. +20 Defense.', effect_summary: '+20 Defense' },
-    { id: 'item_firewall', name: 'Firewall', kind: 'firewall', price: 300, daily_limit: 2, owned_today: 0, description: 'Advanced defense system. +30 Defense until cracked.', effect_summary: '+30 Defense' },
-    { id: 'item_encryption_key', name: 'Encryption Key', kind: 'encryption_key', price: 200, daily_limit: 3, owned_today: 0, description: 'Permanent attack boost. +15 Attack.', effect_summary: '+15 Attack (Permanent)' },
-    { id: 'item_exploit_kit', name: 'Exploit Kit', kind: 'exploit_kit', price: 350, daily_limit: 2, owned_today: 0, description: 'Advanced hacking tools. +25 Attack permanently.', effect_summary: '+25 Attack (Permanent)' },
-    { id: 'item_cracker', name: 'Cracker', kind: 'cracker', price: 200, daily_limit: 2, owned_today: 0, description: 'Bypasses an active enemy shield during a hack.', effect_summary: 'Negates 1 shield' },
-    { id: 'item_booster', name: 'Booster', kind: 'booster', price: 250, daily_limit: 1, owned_today: 0, description: 'Grants 1.5x XP from all sources for 1 hour.', effect_summary: '1.5x XP (1h)' },
-    { id: 'item_major_booster', name: 'Major Booster', kind: 'major_booster', price: 400, daily_limit: 1, owned_today: 0, description: 'Grants a massive 2.0x XP from all sources for 1 hour.', effect_summary: '2.0x XP (1h)' },
-    { id: 'item_cosmetic_frame', name: 'Neon Frame', kind: 'cosmetic', price: 750, daily_limit: 1, owned_today: 0, description: 'A flashy neon frame for your avatar. Show off your style!', effect_summary: 'Purely cosmetic' },
-    { id: 'item_cosmetic_theme', name: 'Glitch Theme', kind: 'cosmetic', price: 1200, daily_limit: 1, owned_today: 0, description: 'Apply a glitchy, datamosh effect to your profile card.', effect_summary: 'Purely cosmetic' },
+    { id: 'item_shield', name: 'Shield', kind: 'shield', price: 150, rarity: 'common', daily_limit: 3, owned_today: 0, description: 'Blocks one incoming hack attempt before shattering. +20 Defense.', effect_summary: '+20 Defense' },
+    { id: 'item_firewall', name: 'Firewall', kind: 'firewall', price: 300, rarity: 'common', daily_limit: 2, owned_today: 0, description: 'Advanced defense system. +30 Defense until cracked.', effect_summary: '+30 Defense' },
+    { id: 'item_encryption_key', name: 'Encryption Key', kind: 'encryption_key', price: 200, rarity: 'common', daily_limit: 3, owned_today: 0, description: 'Permanent attack boost. +15 Attack.', effect_summary: '+15 Attack (Permanent)' },
+    { id: 'item_exploit_kit', name: 'Exploit Kit', kind: 'exploit_kit', price: 350, rarity: 'rare', gemstone_price: 4, daily_limit: 2, owned_today: 0, description: 'Advanced hacking tools. +25 Attack permanently.', effect_summary: '+25 Attack (Permanent)' },
+    { id: 'item_cracker', name: 'Cracker', kind: 'cracker', price: 200, rarity: 'common', daily_limit: 2, owned_today: 0, description: 'Bypasses an active enemy shield during a hack.', effect_summary: 'Negates 1 shield' },
+    { id: 'item_booster', name: 'Booster', kind: 'booster', price: 250, rarity: 'common', daily_limit: 1, owned_today: 0, description: 'Grants 1.5x XP from all sources for 1 hour.', effect_summary: '1.5x XP (1h)' },
+    { id: 'item_major_booster', name: 'Major Booster', kind: 'major_booster', price: 400, rarity: 'rare', gemstone_price: 6, daily_limit: 1, owned_today: 0, description: 'Grants a massive 2.0x XP from all sources for 1 hour.', effect_summary: '2.0x XP (1h)' },
+    { id: 'item_cosmetic_frame', name: 'Neon Frame', kind: 'cosmetic', price: 750, rarity: 'rare', gemstone_price: 3, daily_limit: 1, owned_today: 0, description: 'A flashy neon frame for your avatar. Show off your style!', effect_summary: 'Purely cosmetic' },
+    { id: 'item_cosmetic_theme', name: 'Glitch Theme', kind: 'cosmetic', price: 1200, rarity: 'legendary', gemstone_price: 8, daily_limit: 1, owned_today: 0, description: 'Apply a glitchy, datamosh effect to your profile card.', effect_summary: 'Purely cosmetic' },
+    { id: 'item_quantum_cloak', name: 'Quantum Cloak', kind: 'shield', price: 500, rarity: 'legendary', gemstone_price: 12, daily_limit: 1, owned_today: 0, description: 'Phase-shifted armor that nullifies three attacks before collapsing.', effect_summary: 'Blocks 3 attacks' },
 ];
 
 
@@ -1003,18 +1110,24 @@ export const shop_list = async (): Promise<ShopItem[]> => {
     return mockApiCall(itemsWithRealCounts);
 };
 
-export const shop_buy = async (item_id: string, quantity: number, current_coins: number): Promise<PurchaseReceipt> => {
+export const shop_buy = async (item_id: string, quantity: number, balances: { coins: number; gemstones: number }): Promise<PurchaseReceipt> => {
     const user = await getCurrentUser();
     const item = MOCK_SHOP_ITEMS.find(i => i.id === item_id);
-    
+
     if (!item) {
         return Promise.reject({ message: 'Item not found.' });
     }
-    
-    const totalCost = item.price * quantity;
 
-    if (totalCost > current_coins) {
+    const totalCoinCost = item.price * quantity;
+    const gemstonePrice = item.gemstone_price || 0;
+    const totalGemCost = gemstonePrice * quantity;
+
+    if (totalCoinCost > balances.coins) {
         return Promise.reject({ message: 'Not enough coins.' });
+    }
+
+    if (totalGemCost > balances.gemstones) {
+        return Promise.reject({ message: 'Not enough gemstones.' });
     }
 
     // Check today's purchase count from database
@@ -1033,16 +1146,16 @@ export const shop_buy = async (item_id: string, quantity: number, current_coins:
     }
 
     // Update profile coins
-    await updateProfile(user.id, { coins: current_coins - totalCost });
-    
+    await updateProfile(user.id, { coins: balances.coins - totalCoinCost, gemstones: balances.gemstones - totalGemCost });
+
     // Add purchase record
     await supabase.from('shop_purchases').insert({
         user_id: user.id,
         item_id: item.id,
         quantity: quantity,
-        total_cost: totalCost,
+        total_cost: totalCoinCost,
     });
-    
+
     // Add items to inventory
     const inventoryItems = [];
     for (let i = 0; i < quantity; i++) {
@@ -1064,8 +1177,10 @@ export const shop_buy = async (item_id: string, quantity: number, current_coins:
 
     const receipt: PurchaseReceipt = {
         receipt_id: `rec_${Date.now()}`,
-        coins_spent: totalCost,
-        new_balance: current_coins - totalCost,
+        coins_spent: totalCoinCost,
+        gemstones_spent: totalGemCost,
+        new_balance: balances.coins - totalCoinCost,
+        new_gemstone_balance: balances.gemstones - totalGemCost,
         item: item,
         quantity: quantity
     };
