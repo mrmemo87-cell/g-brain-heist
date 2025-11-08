@@ -1,5 +1,5 @@
 import { Profile, Task, SessionStatus, Caps, NewsEvent, SubjectData, Question, AnswerResponse, RaidTarget, RaidAttackResult, ShopItem, PurchaseReceipt, Clan, ClanChatMessage, ClanSummary, ClanMember, ClanBuff, InventoryItem, Teacher, TeacherQuestion, CreateQuestionRequest, QuestionAttemptResult, QuestTemplate } from '../types';
-import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, getSharedPlayers, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount } from './storageService';
+import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount } from './storageService';
 import { supabase } from './supabaseClient';
 import { notificationService } from './notificationService';
 import {
@@ -17,6 +17,197 @@ import {
 } from './rpcGateway';
 
 const MOCK_DELAY = 500;
+
+type KyrgyzBotPersona = {
+    firstName: string;
+    lastName: string;
+    batch: '8A' | '8B' | '8C';
+    clan?: string;
+    style: 'aggressive' | 'defensive' | 'balanced';
+    levelRange: [number, number];
+    coinsRange: [number, number];
+    skillRange: [number, number];
+    activityMinutesRange: [number, number];
+};
+
+const KYRGYZ_BOT_PERSONAS: KyrgyzBotPersona[] = [
+    {
+        firstName: 'Aibek',
+        lastName: 'Sharipov',
+        batch: '8B',
+        clan: 'Osh Cyber Wolves',
+        style: 'balanced',
+        levelRange: [9, 14],
+        coinsRange: [3200, 6700],
+        skillRange: [0.42, 0.68],
+        activityMinutesRange: [8, 35],
+    },
+    {
+        firstName: 'Meerim',
+        lastName: 'Bekbolotova',
+        batch: '8A',
+        clan: 'Issyk-Ata Sentinels',
+        style: 'defensive',
+        levelRange: [11, 16],
+        coinsRange: [4100, 7800],
+        skillRange: [0.36, 0.6],
+        activityMinutesRange: [15, 60],
+    },
+    {
+        firstName: 'Azamat',
+        lastName: 'Kudaibergen',
+        batch: '8C',
+        clan: 'Bishkek Ghosts',
+        style: 'aggressive',
+        levelRange: [12, 18],
+        coinsRange: [5200, 9100],
+        skillRange: [0.48, 0.75],
+        activityMinutesRange: [5, 28],
+    },
+    {
+        firstName: 'Dinara',
+        lastName: 'Samatova',
+        batch: '8B',
+        clan: 'Tian Shan Sparks',
+        style: 'balanced',
+        levelRange: [8, 13],
+        coinsRange: [2800, 5900],
+        skillRange: [0.4, 0.62],
+        activityMinutesRange: [20, 90],
+    },
+    {
+        firstName: 'Bakyt',
+        lastName: 'Uulu',
+        batch: '8C',
+        clan: 'Naryn Nomads',
+        style: 'aggressive',
+        levelRange: [10, 15],
+        coinsRange: [3600, 6400],
+        skillRange: [0.46, 0.7],
+        activityMinutesRange: [12, 48],
+    },
+    {
+        firstName: 'Aidana',
+        lastName: 'Turgunbaeva',
+        batch: '8A',
+        clan: 'At-Bashi Shields',
+        style: 'defensive',
+        levelRange: [7, 12],
+        coinsRange: [2400, 5200],
+        skillRange: [0.33, 0.55],
+        activityMinutesRange: [30, 120],
+    },
+    {
+        firstName: 'Nursultan',
+        lastName: 'Ibraliev',
+        batch: '8B',
+        clan: 'Talas Encryptors',
+        style: 'balanced',
+        levelRange: [9, 15],
+        coinsRange: [3000, 6800],
+        skillRange: [0.45, 0.69],
+        activityMinutesRange: [10, 55],
+    },
+    {
+        firstName: 'Selbi',
+        lastName: 'Alymkulova',
+        batch: '8C',
+        clan: 'Tokmok Phantoms',
+        style: 'defensive',
+        levelRange: [6, 11],
+        coinsRange: [2100, 4700],
+        skillRange: [0.31, 0.54],
+        activityMinutesRange: [25, 150],
+    },
+    {
+        firstName: 'Timur',
+        lastName: 'Osmonov',
+        batch: '8A',
+        clan: 'Batken Overclockers',
+        style: 'aggressive',
+        levelRange: [11, 17],
+        coinsRange: [4800, 8600],
+        skillRange: [0.5, 0.78],
+        activityMinutesRange: [6, 32],
+    },
+    {
+        firstName: 'Aigul',
+        lastName: 'Kerimbekova',
+        batch: '8B',
+        clan: 'Cholpon-Ata Firewalls',
+        style: 'balanced',
+        levelRange: [8, 14],
+        coinsRange: [2700, 6000],
+        skillRange: [0.38, 0.63],
+        activityMinutesRange: [18, 75],
+    },
+];
+
+const randomIntInRange = ([min, max]: [number, number]): number => {
+    const floorMin = Math.ceil(min);
+    const floorMax = Math.floor(max);
+    return Math.floor(Math.random() * (floorMax - floorMin + 1)) + floorMin;
+};
+
+const randomFloatInRange = ([min, max]: [number, number]): number => {
+    return Math.random() * (max - min) + min;
+};
+
+const buildBotAvatarUrl = (seed: string): string => {
+    const encoded = encodeURIComponent(seed);
+    return `https://api.dicebear.com/7.x/adventurer/svg?seed=${encoded}&backgroundColor=c0aede,ffd5dc,ffdfbf&radius=50`;
+};
+
+const createKyrgyzBotTarget = (persona: KyrgyzBotPersona): RaidTarget => {
+    const username = `${persona.firstName} ${persona.lastName}`;
+    const userId = `bot_${persona.firstName.toLowerCase()}_${persona.lastName.toLowerCase().replace(/[^a-z]/g, '')}`;
+    const level = randomIntInRange(persona.levelRange);
+    const coins = randomIntInRange(persona.coinsRange);
+    const hasShieldBase = persona.style === 'defensive' ? 0.55 : persona.style === 'balanced' ? 0.35 : 0.25;
+    const has_shield = Math.random() < hasShieldBase;
+    const est_win_rate = Number(randomFloatInRange(persona.skillRange).toFixed(2));
+    const minutesAgo = randomIntInRange(persona.activityMinutesRange);
+    const last_seen = new Date(Date.now() - minutesAgo * 60 * 1000).toISOString();
+
+    return {
+        user_id: userId,
+        username,
+        level,
+        coins,
+        batch: persona.batch,
+        has_shield,
+        est_win_rate,
+        avatar_url: buildBotAvatarUrl(username),
+        last_seen,
+        clan_name: persona.clan,
+    };
+};
+
+const generateKyrgyzBots = (count: number, existingIds: Set<string>): RaidTarget[] => {
+    if (count <= 0) {
+        return [];
+    }
+
+    const personas = KYRGYZ_BOT_PERSONAS.slice().sort(() => Math.random() - 0.5);
+    const bots: RaidTarget[] = [];
+
+    for (const persona of personas) {
+        if (bots.length >= count) {
+            break;
+        }
+
+        const bot = createKyrgyzBotTarget(persona);
+
+        if (existingIds.has(bot.user_id)) {
+            continue;
+        }
+
+        existingIds.add(bot.user_id);
+        bots.push(bot);
+    }
+
+    return bots;
+};
 
 // Helper to get current authenticated user
 const getCurrentUser = async () => {
@@ -848,16 +1039,11 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
     
     if (error) throw error;
     
-    if (!players || players.length === 0) {
-        // No other players yet, return empty array
-        return mockApiCall([]);
-    }
-    
     // TODO: Check inventory for shields
-    const realTargets: RaidTarget[] = players.map((p: any) => {
+    const realTargets: RaidTarget[] = (players || []).map((p: any) => {
         // Extract clan name if user is in a clan
         const clanName = p.clan_members?.[0]?.clans?.name || undefined;
-        
+
         return {
             user_id: p.id,
             username: p.username,
@@ -871,8 +1057,23 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
             clan_name: clanName,
         };
     });
-    
-    return mockApiCall(realTargets);
+
+    const existingIds = new Set(realTargets.map(target => target.user_id));
+    const MIN_TARGETS = 6;
+    const MAX_TARGETS = 20;
+    const botsNeeded = Math.min(
+        Math.max(MIN_TARGETS - realTargets.length, 0),
+        Math.max(MAX_TARGETS - realTargets.length, 0)
+    );
+    const bots = generateKyrgyzBots(botsNeeded, existingIds);
+
+    const combinedTargets = [...realTargets, ...bots];
+
+    if (combinedTargets.length > 1) {
+        combinedTargets.sort(() => Math.random() - 0.5);
+    }
+
+    return mockApiCall(combinedTargets.slice(0, MAX_TARGETS));
 };
 
 export const raid_attack = async (defender_id: string, use_cracker: boolean, target: RaidTarget): Promise<RaidAttackResult> => {
