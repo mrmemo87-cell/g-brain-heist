@@ -11,6 +11,7 @@ const STORAGE_KEYS = {
   ACTIVITY_FEED: 'gbh_activity_feed', // Shared activity events
   TASK_PROGRESS: 'gbh_task_progress', // Daily/weekly task progress
   PURCHASE_COUNTS: 'gbh_purchase_counts', // Daily purchase tracking
+  KYRGYZ_BOTS: 'gbh_kyrgyz_bots', // Persistent state for simulated Kyrgyz bot agents
 } as const;
 
 export const saveToStorage = <T>(key: string, data: T): void => {
