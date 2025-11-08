@@ -213,6 +213,90 @@ export interface InventoryItem {
     defense_bonus?: number; // Permanent or timed defense bonus
 }
 
+export type TournamentSeasonStatus = 'draft' | 'registration' | 'active' | 'completed' | 'archived';
+
+export interface TournamentSeason {
+  id: string;
+  slug: string;
+  name: string;
+  description?: string | null;
+  registration_opens?: string | null;
+  registration_closes?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  status: TournamentSeasonStatus;
+  created_by?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface TournamentSignupPayload {
+  season_id: string;
+  school_name: string;
+  school_code: string;
+  contact_name?: string;
+  contact_email?: string;
+  notes?: string;
+  roster?: Array<{
+    player: string;
+    grade?: string;
+  }>;
+}
+
+export interface TournamentSignup extends TournamentSignupPayload {
+  id: string;
+  status: 'pending' | 'approved' | 'rejected';
+  created_at?: string;
+}
+
+export type TournamentMatchStatus = 'pending' | 'scheduled' | 'completed' | 'cancelled';
+
+export interface TournamentMatch {
+  id: string;
+  season_id: string;
+  round_number: number;
+  match_number: number;
+  team_a_id: string | null;
+  team_b_id: string | null;
+  scheduled_at?: string | null;
+  location?: string | null;
+  stream_url?: string | null;
+  status: TournamentMatchStatus;
+  winner_id?: string | null;
+  metadata?: Record<string, any> | null;
+}
+
+export interface TournamentBracketTeam {
+  name: string;
+  code?: string;
+}
+
+export interface TournamentBracketMatch {
+  id: string;
+  round: number;
+  matchNumber: number;
+  teamA: TournamentBracketTeam | null;
+  teamB: TournamentBracketTeam | null;
+  scheduledAt: string | null;
+  location: string | null;
+  streamUrl: string | null;
+  status: TournamentMatchStatus;
+  winnerId: string | null;
+}
+
+export interface TournamentBracketRound {
+  roundNumber: number;
+  matches: TournamentBracketMatch[];
+}
+
+export interface TournamentSchedulePayload {
+  matchId: string;
+  scheduledAt: string | null;
+  location: string | null;
+  streamUrl: string | null;
+  metadata?: Record<string, any>;
+}
+
 // ============================================================
 // Teacher Question System Types
 // ============================================================
