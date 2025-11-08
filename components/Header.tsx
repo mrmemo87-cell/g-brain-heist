@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Profile } from '../types';
-import { CoinIcon, XPIcon, APIcon, LogoutIcon, StreakIcon } from './icons';
+import { CoinIcon, XPIcon, APIcon, LogoutIcon, StreakIcon, GemIcon } from './icons';
 import { audioService } from '../services/audioService';
 import { NotificationCenter } from './NotificationCenter';
 import { notificationService } from '../services/notificationService';
+import { update_avatar } from '../services/gameService';
 
 // Custom hook for animating number changes
 const useAnimatedValue = (endValue: number, duration: number = 500) => {
@@ -116,7 +117,6 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
     setSelectedAvatar(avatarUrl);
     setUploadingAvatar(true);
     try {
-      const { update_avatar } = await import('../services/gameService');
       await update_avatar(avatarUrl);
       // Profile will be refreshed via real-time subscription
       audioService.play('collect');
@@ -272,6 +272,17 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                 </div>
               </div>
 
+              {/* Gemstones */}
+              <div className="flex items-center gap-1.5 px-2 py-1.5 bg-gradient-to-br from-cyan-600/20 to-blue-600/20 rounded-lg border border-cyan-500/50 backdrop-blur-sm">
+                <div className="w-5 h-5 text-cyan-300">
+                  <GemIcon />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[9px] text-cyan-200/80 font-semibold uppercase leading-none">Gemstones</span>
+                  <span id="gem-hud" className="font-mono font-bold text-sm text-white leading-none mt-0.5">{profile.gemstones.toLocaleString()}</span>
+                </div>
+              </div>
+
               {/* XP */}
               <div className="flex items-center gap-1.5 px-2 py-1.5 bg-gradient-to-br from-blue-600/20 to-cyan-600/20 rounded-lg border border-cyan-500/50 backdrop-blur-sm">
                 <div className="w-5 h-5 text-cyan-400">
@@ -373,6 +384,17 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                   <div className="flex flex-col">
                     <span className="text-xs text-yellow-300/80 font-semibold uppercase tracking-wide leading-none">Coins</span>
                     <span id="coin-hud" className="font-mono font-bold text-lg text-white leading-none mt-0.5">{profile.coins.toLocaleString()}</span>
+                  </div>
+                </div>
+
+                {/* Gemstones */}
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-br from-cyan-600/20 to-blue-600/20 rounded-xl border-2 border-cyan-500/50 backdrop-blur-sm hover:scale-105 transition-transform min-w-[100px]">
+                  <div className="w-7 h-7 text-cyan-300 drop-shadow-[0_0_8px_rgba(56,189,248,0.8)]">
+                    <GemIcon />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs text-cyan-200/80 font-semibold uppercase tracking-wide leading-none">Gemstones</span>
+                    <span id="gem-hud" className="font-mono font-bold text-lg text-white leading-none mt-0.5">{profile.gemstones.toLocaleString()}</span>
                   </div>
                 </div>
 

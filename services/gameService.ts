@@ -1,8 +1,213 @@
 import { Profile, Task, SessionStatus, Caps, NewsEvent, SubjectData, Question, AnswerResponse, RaidTarget, RaidAttackResult, ShopItem, PurchaseReceipt, Clan, ClanChatMessage, ClanSummary, ClanMember, ClanBuff, InventoryItem, Teacher, TeacherQuestion, CreateQuestionRequest, QuestionAttemptResult, QuestTemplate } from '../types';
-import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, getSharedPlayers, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount } from './storageService';
+import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount } from './storageService';
 import { supabase } from './supabaseClient';
+import { notificationService } from './notificationService';
+import {
+    regenerateUserAp,
+    notifyApFull,
+    notifyLevelUp,
+    performHackAttempt,
+    notifyAttackIncoming,
+    notifyCoinsLost,
+    notifyRevengeAvailable,
+    notifyAttackDefended,
+    checkAchievements as rpcCheckAchievements,
+    createTeacherProfile as rpcCreateTeacherProfile,
+    recordQuestionAttempt
+} from './rpcGateway';
 
 const MOCK_DELAY = 500;
+
+type KyrgyzBotPersona = {
+    firstName: string;
+    lastName: string;
+    batch: '8A' | '8B' | '8C';
+    clan?: string;
+    style: 'aggressive' | 'defensive' | 'balanced';
+    levelRange: [number, number];
+    coinsRange: [number, number];
+    skillRange: [number, number];
+    activityMinutesRange: [number, number];
+};
+
+const KYRGYZ_BOT_PERSONAS: KyrgyzBotPersona[] = [
+    {
+        firstName: 'Aibek',
+        lastName: 'Sharipov',
+        batch: '8B',
+        clan: 'Osh Cyber Wolves',
+        style: 'balanced',
+        levelRange: [9, 14],
+        coinsRange: [3200, 6700],
+        skillRange: [0.42, 0.68],
+        activityMinutesRange: [8, 35],
+    },
+    {
+        firstName: 'Meerim',
+        lastName: 'Bekbolotova',
+        batch: '8A',
+        clan: 'Issyk-Ata Sentinels',
+        style: 'defensive',
+        levelRange: [11, 16],
+        coinsRange: [4100, 7800],
+        skillRange: [0.36, 0.6],
+        activityMinutesRange: [15, 60],
+    },
+    {
+        firstName: 'Azamat',
+        lastName: 'Kudaibergen',
+        batch: '8C',
+        clan: 'Bishkek Ghosts',
+        style: 'aggressive',
+        levelRange: [12, 18],
+        coinsRange: [5200, 9100],
+        skillRange: [0.48, 0.75],
+        activityMinutesRange: [5, 28],
+    },
+    {
+        firstName: 'Dinara',
+        lastName: 'Samatova',
+        batch: '8B',
+        clan: 'Tian Shan Sparks',
+        style: 'balanced',
+        levelRange: [8, 13],
+        coinsRange: [2800, 5900],
+        skillRange: [0.4, 0.62],
+        activityMinutesRange: [20, 90],
+    },
+    {
+        firstName: 'Bakyt',
+        lastName: 'Uulu',
+        batch: '8C',
+        clan: 'Naryn Nomads',
+        style: 'aggressive',
+        levelRange: [10, 15],
+        coinsRange: [3600, 6400],
+        skillRange: [0.46, 0.7],
+        activityMinutesRange: [12, 48],
+    },
+    {
+        firstName: 'Aidana',
+        lastName: 'Turgunbaeva',
+        batch: '8A',
+        clan: 'At-Bashi Shields',
+        style: 'defensive',
+        levelRange: [7, 12],
+        coinsRange: [2400, 5200],
+        skillRange: [0.33, 0.55],
+        activityMinutesRange: [30, 120],
+    },
+    {
+        firstName: 'Nursultan',
+        lastName: 'Ibraliev',
+        batch: '8B',
+        clan: 'Talas Encryptors',
+        style: 'balanced',
+        levelRange: [9, 15],
+        coinsRange: [3000, 6800],
+        skillRange: [0.45, 0.69],
+        activityMinutesRange: [10, 55],
+    },
+    {
+        firstName: 'Selbi',
+        lastName: 'Alymkulova',
+        batch: '8C',
+        clan: 'Tokmok Phantoms',
+        style: 'defensive',
+        levelRange: [6, 11],
+        coinsRange: [2100, 4700],
+        skillRange: [0.31, 0.54],
+        activityMinutesRange: [25, 150],
+    },
+    {
+        firstName: 'Timur',
+        lastName: 'Osmonov',
+        batch: '8A',
+        clan: 'Batken Overclockers',
+        style: 'aggressive',
+        levelRange: [11, 17],
+        coinsRange: [4800, 8600],
+        skillRange: [0.5, 0.78],
+        activityMinutesRange: [6, 32],
+    },
+    {
+        firstName: 'Aigul',
+        lastName: 'Kerimbekova',
+        batch: '8B',
+        clan: 'Cholpon-Ata Firewalls',
+        style: 'balanced',
+        levelRange: [8, 14],
+        coinsRange: [2700, 6000],
+        skillRange: [0.38, 0.63],
+        activityMinutesRange: [18, 75],
+    },
+];
+
+const randomIntInRange = ([min, max]: [number, number]): number => {
+    const floorMin = Math.ceil(min);
+    const floorMax = Math.floor(max);
+    return Math.floor(Math.random() * (floorMax - floorMin + 1)) + floorMin;
+};
+
+const randomFloatInRange = ([min, max]: [number, number]): number => {
+    return Math.random() * (max - min) + min;
+};
+
+const buildBotAvatarUrl = (seed: string): string => {
+    const encoded = encodeURIComponent(seed);
+    return `https://api.dicebear.com/7.x/adventurer/svg?seed=${encoded}&backgroundColor=c0aede,ffd5dc,ffdfbf&radius=50`;
+};
+
+const createKyrgyzBotTarget = (persona: KyrgyzBotPersona): RaidTarget => {
+    const username = `${persona.firstName} ${persona.lastName}`;
+    const userId = `bot_${persona.firstName.toLowerCase()}_${persona.lastName.toLowerCase().replace(/[^a-z]/g, '')}`;
+    const level = randomIntInRange(persona.levelRange);
+    const coins = randomIntInRange(persona.coinsRange);
+    const hasShieldBase = persona.style === 'defensive' ? 0.55 : persona.style === 'balanced' ? 0.35 : 0.25;
+    const has_shield = Math.random() < hasShieldBase;
+    const est_win_rate = Number(randomFloatInRange(persona.skillRange).toFixed(2));
+    const minutesAgo = randomIntInRange(persona.activityMinutesRange);
+    const last_seen = new Date(Date.now() - minutesAgo * 60 * 1000).toISOString();
+
+    return {
+        user_id: userId,
+        username,
+        level,
+        coins,
+        batch: persona.batch,
+        has_shield,
+        est_win_rate,
+        avatar_url: buildBotAvatarUrl(username),
+        last_seen,
+        clan_name: persona.clan,
+    };
+};
+
+const generateKyrgyzBots = (count: number, existingIds: Set<string>): RaidTarget[] => {
+    if (count <= 0) {
+        return [];
+    }
+
+    const personas = KYRGYZ_BOT_PERSONAS.slice().sort(() => Math.random() - 0.5);
+    const bots: RaidTarget[] = [];
+
+    for (const persona of personas) {
+        if (bots.length >= count) {
+            break;
+        }
+
+        const bot = createKyrgyzBotTarget(persona);
+
+        if (existingIds.has(bot.user_id)) {
+            continue;
+        }
+
+        existingIds.add(bot.user_id);
+        bots.push(bot);
+    }
+
+    return bots;
+};
 
 // Helper to get current authenticated user
 const getCurrentUser = async () => {
@@ -35,6 +240,7 @@ const DEFAULT_PROFILE: Profile = {
   level: 12,
   xp: 420,
   coins: 8750,
+  gemstones: 24,
   streak: 7,
   last_seen: new Date().toISOString(),
   ap_now: 18,
@@ -183,12 +389,14 @@ export const whoami = async (): Promise<Profile> => {
     throw new Error('Profile not found');
   }
 
+  if (typeof profile.gemstones !== 'number') {
+    profile.gemstones = 0;
+  }
+
   // ====== AP REGENERATION LOGIC ======
   // Call database function to regenerate AP
   try {
-    const { data: regenData, error: regenError } = await supabase.rpc('regenerate_user_ap', {
-      user_id_param: user.id
-    });
+    const { data: regenData, error: regenError } = await regenerateUserAp(user.id);
 
     if (regenError) {
       console.warn('Database AP regeneration function not available, using fallback:', regenError.message);
@@ -205,9 +413,7 @@ export const whoami = async (): Promise<Profile> => {
       // ====== NOTIFICATION: AP FULL ======
       if (ap_regenerated > 0 && new_ap === profile.ap_max) {
         try {
-          await supabase.rpc('notify_ap_full', {
-            user_id_param: user.id
-          });
+          await notifyApFull(user.id);
         } catch (notifError) {
           console.error('Failed to send AP full notification:', notifError);
         }
@@ -289,7 +495,6 @@ export const whoami = async (): Promise<Profile> => {
     // If streak was broken (reset to 1 after having a streak)
     if (profile.streak > 1 && newStreak === 1) {
       try {
-        const { notificationService } = await import('./notificationService');
         await notificationService.createNotification(
           user.id,
           'streak_danger',
@@ -315,6 +520,7 @@ export const whoami = async (): Promise<Profile> => {
     username: profile.username,
     level: profile.level,
     coins: profile.coins,
+    gemstones: profile.gemstones,
     batch: profile.batch,
     avatar_url: profile.avatar_url,
     has_shield: false, // TODO: Check inventory for active shield
@@ -354,10 +560,10 @@ export const tasks_list = (): Promise<Task[]> => {
       kind: 'daily',
       progress: progress.daily_quests_completed,
       target: 3,
-      reward_preview: '175 XP, 350 Coins',
+      reward_preview: '175 XP, 350 Coins, +1 Gemstone',
       expires_at: dailyExpiry,
       claimed: claimedTasks.includes('task_d1'),
-      reward: { xp: 175, coins: 350 },
+      reward: { xp: 175, coins: 350, gemstones: 1 },
     },
     {
       id: 'task_d2',
@@ -365,10 +571,10 @@ export const tasks_list = (): Promise<Task[]> => {
       kind: 'daily',
       progress: progress.daily_pvp_wins,
       target: 1,
-      reward_preview: '100 XP, 50 Coins',
+      reward_preview: '100 XP, 50 Coins, +1 Gemstone',
       expires_at: dailyExpiry,
       claimed: claimedTasks.includes('task_d2'),
-      reward: { xp: 100, coins: 50 },
+      reward: { xp: 100, coins: 50, gemstones: 1 },
     },
     {
       id: 'task_w1',
@@ -376,16 +582,16 @@ export const tasks_list = (): Promise<Task[]> => {
       kind: 'weekly',
       progress: progress.weekly_tasks_completed,
       target: 15,
-      reward_preview: '500 XP, 400 Coins + 1 Item Crate',
+      reward_preview: '500 XP, 400 Coins, +1 Item Crate, +5 Gemstones',
       expires_at: weeklyExpiry,
       claimed: claimedTasks.includes('task_w1'),
-      reward: { xp: 500, coins: 400, items: ['mystery_crate'] },
+      reward: { xp: 500, coins: 400, gemstones: 5, items: ['mystery_crate'] },
     },
   ];
   return mockApiCall(tasks);
 };
 
-export const task_claim = async (task_id: string): Promise<{ xp: number; coins: number; items?: string[] }> => {
+export const task_claim = async (task_id: string): Promise<{ xp: number; coins: number; gemstones?: number; items?: string[] }> => {
   const user = await getCurrentUser();
   
   // Get task details
@@ -411,15 +617,18 @@ export const task_claim = async (task_id: string): Promise<{ xp: number; coins: 
   // Grant rewards to user
   const { data: profile } = await supabase
     .from('users')
-    .select('xp, coins')
+    .select('xp, coins, gemstones')
     .eq('id', user.id)
     .single();
-  
+
   if (!profile) throw new Error('Profile not found');
-  
+
+  const gemstonesEarned = task.reward.gemstones || 0;
+
   await updateProfile(user.id, {
     xp: profile.xp + task.reward.xp,
     coins: profile.coins + task.reward.coins,
+    gemstones: (profile.gemstones || 0) + gemstonesEarned,
   });
   
   // Mark as claimed in localStorage
@@ -704,11 +913,14 @@ export const mcq_answer_submit = async (question_id: string, choice: string): Pr
         deltas: {
             xp: isCorrect ? (question.points || 20) : -5,
             coins: isCorrect ? Math.floor((question.points || 20) * 1.5) : 0,
+            gemstones: 0,
         },
-        explanation: isCorrect 
-            ? (question.explanation || 'Well done, agent!') 
+        explanation: isCorrect
+            ? (question.explanation || 'Well done, agent!')
             : `Incorrect. ${question.explanation || 'The correct answer was: ' + question.correct_answer}`
     };
+
+    let gemstoneDelta = 0;
 
     // Record the attempt in question_attempts table
     await supabase.from('question_attempts').insert({
@@ -727,29 +939,75 @@ export const mcq_answer_submit = async (question_id: string, choice: string): Pr
             times_correct: (question.times_correct || 0) + (isCorrect ? 1 : 0),
         })
         .eq('id', question_id);
-    
+
+    // Track quest progress (use localStorage for now)
+    if (isCorrect) {
+        currentQuestAnswers++;
+        if (currentQuestAnswers >= QUEST_STREAK_TARGET) {
+            incrementQuestCompleted();
+            currentQuestAnswers = 0;
+
+            const progress = getTaskProgress();
+            const questsCompletedToday = progress.daily_quests_completed;
+
+            if ((questsCompletedToday === 1 || questsCompletedToday === 3) && canEarnQuestGemstone(QUEST_GEMSTONE_DAILY_CAP)) {
+                gemstoneDelta += QUEST_GEMSTONE_REWARD;
+                recordQuestGemstoneAward(QUEST_GEMSTONE_REWARD);
+            }
+
+            if (questsCompletedToday === 3 || progress.daily_pvp_wins === 1) {
+                incrementWeeklyTaskCompleted();
+            }
+
+            // ====== NOTIFICATION: QUEST COMPLETED ======
+            try {
+                const { notificationService } = await import('./notificationService');
+                await notificationService.createNotification(
+                    user.id,
+                    'quest_completed',
+                    '✅ Quest Complete!',
+                    'You completed a knowledge quest! Keep learning to earn more rewards.',
+                    'high'
+                );
+            } catch (notifError) {
+                console.error('Failed to send quest completion notification:', notifError);
+            }
+        }
+    } else {
+        currentQuestAnswers = 0;
+    }
+
     // Update profile with rewards/penalties in database
     const { data: currentProfile, error: fetchError } = await supabase
         .from('users')
-        .select('xp, coins, level')
+        .select('xp, coins, level, gemstones')
         .eq('id', user.id)
         .single();
-    
+
     if (fetchError || !currentProfile) throw new Error('Failed to fetch profile');
-    
+
     const newXP = currentProfile.xp + response.deltas.xp;
     const newCoins = Math.max(0, currentProfile.coins + response.deltas.coins);
-    
+
     // Check for level up (simple formula: level = floor(xp / 100))
     const newLevel = Math.floor(newXP / 100) + 1;
     const leveledUp = newLevel > currentProfile.level;
-    
+
+    if (leveledUp && newLevel % LEVEL_MILESTONE_INTERVAL === 0) {
+        gemstoneDelta += LEVEL_MILESTONE_GEMSTONE_REWARD;
+    }
+
+    const newGemstones = Math.max(0, (currentProfile.gemstones || 0) + gemstoneDelta);
+
     await updateProfile(user.id, {
         xp: newXP,
         coins: newCoins,
         level: newLevel,
+        gemstones: newGemstones,
     });
     
+    response.deltas.gemstones = gemstoneDelta;
+
     // Log activity if level up. Use `data.details` consistently so the feed renderer can display a human string.
     if (leveledUp) {
         const { data: unameResult } = await supabase.from('users').select('username').eq('id', user.id).single();
@@ -762,21 +1020,35 @@ export const mcq_answer_submit = async (question_id: string, choice: string): Pr
 
         // ====== NOTIFICATION: LEVEL UP ======
         try {
-            await supabase.rpc('notify_level_up', {
-                user_id_param: user.id,
-                new_level: newLevel,
-                rewards_xp: response.deltas.xp,
-                rewards_coins: response.deltas.coins
-            });
+            await notifyLevelUp(
+                user.id,
+                newLevel,
+                response.deltas.xp,
+                response.deltas.coins
+            );
         } catch (notifError) {
             console.error('Failed to send level up notification:', notifError);
+        }
+    }
+
+    if (gemstoneDelta > 0) {
+        try {
+            const { notificationService } = await import('./notificationService');
+            await notificationService.createNotification(
+                user.id,
+                'gemstone_earned',
+                '💎 Gemstone Earned!',
+                `You earned ${gemstoneDelta} rare gemstone${gemstoneDelta > 1 ? 's' : ''}!`,
+                'high'
+            );
+        } catch (notifError) {
+            console.error('Failed to send gemstone notification:', notifError);
         }
     }
 
     // Notify for significant coin gains (correct answers)
     if (isCorrect && response.deltas.coins >= 30) {
         try {
-            const { notificationService } = await import('./notificationService');
             await notificationService.createNotification(
                 user.id,
                 'coins_earned',
@@ -803,7 +1075,6 @@ export const mcq_answer_submit = async (question_id: string, choice: string): Pr
 
             // ====== NOTIFICATION: QUEST COMPLETED ======
             try {
-                const { notificationService } = await import('./notificationService');
                 await notificationService.createNotification(
                     user.id,
                     'quest_completed',
@@ -841,16 +1112,11 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
     
     if (error) throw error;
     
-    if (!players || players.length === 0) {
-        // No other players yet, return empty array
-        return mockApiCall([]);
-    }
-    
     // TODO: Check inventory for shields
-    const realTargets: RaidTarget[] = players.map((p: any) => {
+    const realTargets: RaidTarget[] = (players || []).map((p: any) => {
         // Extract clan name if user is in a clan
         const clanName = p.clan_members?.[0]?.clans?.name || undefined;
-        
+
         return {
             user_id: p.id,
             username: p.username,
@@ -864,17 +1130,30 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
             clan_name: clanName,
         };
     });
-    
-    return mockApiCall(realTargets);
+
+    const existingIds = new Set(realTargets.map(target => target.user_id));
+    const MIN_TARGETS = 6;
+    const MAX_TARGETS = 20;
+    const botsNeeded = Math.min(
+        Math.max(MIN_TARGETS - realTargets.length, 0),
+        Math.max(MAX_TARGETS - realTargets.length, 0)
+    );
+    const bots = generateKyrgyzBots(botsNeeded, existingIds);
+
+    const combinedTargets = [...realTargets, ...bots];
+
+    if (combinedTargets.length > 1) {
+        combinedTargets.sort(() => Math.random() - 0.5);
+    }
+
+    return mockApiCall(combinedTargets.slice(0, MAX_TARGETS));
 };
 
 export const raid_attack = async (defender_id: string, use_cracker: boolean, target: RaidTarget): Promise<RaidAttackResult> => {
     const user = await getCurrentUser();
     
     // Call the Postgres RPC function to handle all combat logic server-side
-    const { data, error } = await supabase.rpc('rpc_hack_attempt', {
-        p_defender_id: defender_id
-    });
+    const { data, error } = await performHackAttempt(defender_id);
     
     if (error) {
         console.error('Hack attempt RPC error:', error);
@@ -894,21 +1173,63 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
     }
     
     // The RPC returns the exact format we need
-    const response: RaidAttackResult = {
-        result: data.result,
-        attacker_deltas: data.attacker_deltas,
-        defender_deltas: data.defender_deltas,
-        shield_state: data.shield_state,
+    const rpcResult = data as {
+        result: RaidAttackResult['result'];
+        attacker_deltas: RaidAttackResult['attacker_deltas'];
+        defender_deltas: RaidAttackResult['defender_deltas'];
+        shield_state: RaidAttackResult['shield_state'];
     };
-    
+
+    const response: RaidAttackResult = {
+        result: rpcResult.result,
+        attacker_deltas: rpcResult.attacker_deltas,
+        defender_deltas: rpcResult.defender_deltas,
+        shield_state: rpcResult.shield_state,
+    };
+
+    let gemstoneReward = 0;
+
     // Track progress (localStorage for now)
     if (response.result === 'win') {
         incrementPvPWin();
         const progress = getTaskProgress();
+        if (progress.daily_pvp_wins === 1 && canEarnPvpGemstone(PVP_GEMSTONE_DAILY_CAP)) {
+            gemstoneReward += PVP_GEMSTONE_REWARD;
+            recordPvpGemstoneAward(PVP_GEMSTONE_REWARD);
+        }
         if (progress.daily_pvp_wins === 1) {
             incrementWeeklyTaskCompleted();
         }
     }
+
+    if (gemstoneReward > 0) {
+        const { data: gemProfile } = await supabase
+            .from('users')
+            .select('gemstones')
+            .eq('id', user.id)
+            .single();
+
+        const currentGemstones = gemProfile?.gemstones || 0;
+        await updateProfile(user.id, { gemstones: currentGemstones + gemstoneReward });
+
+        try {
+            const { notificationService } = await import('./notificationService');
+            await notificationService.createNotification(
+                user.id,
+                'gemstone_earned',
+                '💎 Gemstone Earned!',
+                `You recovered ${gemstoneReward} gemstone${gemstoneReward > 1 ? 's' : ''} from the heist!`,
+                'high'
+            );
+        } catch (notifError) {
+            console.error('Failed to send gemstone notification:', notifError);
+        }
+    }
+
+    response.attacker_deltas = {
+        ...response.attacker_deltas,
+        gemstones: gemstoneReward,
+    };
 
     // ====== NOTIFICATION TRIGGERS ======
     try {
@@ -925,7 +1246,7 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
 
         if (response.result === 'win') {
             // Notify defender they're under attack
-            await supabase.rpc('notify_attack_incoming', {
+            await notifyAttackIncoming({
                 target_user_id: defender_id,
                 attacker_username: attackerUsername,
                 attacker_power: attackPower
@@ -934,7 +1255,7 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
             // If significant coins stolen, notify about coin loss
             const coinsStolen = response.defender_deltas?.coins_loss || 0;
             if (coinsStolen > 50) {
-                await supabase.rpc('notify_coins_lost', {
+                await notifyCoinsLost({
                     user_id_param: defender_id,
                     attacker_username: attackerUsername,
                     coins_lost: coinsStolen
@@ -942,7 +1263,7 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
             }
 
             // Offer revenge to defender
-            await supabase.rpc('notify_revenge_available', {
+            await notifyRevengeAvailable({
                 user_id_param: defender_id,
                 target_username: attackerUsername,
                 target_user_id: user.id
@@ -950,7 +1271,7 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
         } else if (response.result === 'lose' || response.result === 'blocked') {
             // Defender successfully defended
             const coinsLost = response.defender_deltas?.coins_loss || 0;
-            await supabase.rpc('notify_attack_defended', {
+            await notifyAttackDefended({
                 user_id_param: defender_id,
                 attacker_username: attackerUsername,
                 coins_kept: Math.max(0, -coinsLost) // Negative loss means they kept coins
@@ -965,15 +1286,16 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
 };
 
 const MOCK_SHOP_ITEMS: ShopItem[] = [
-    { id: 'item_shield', name: 'Shield', kind: 'shield', price: 150, daily_limit: 3, owned_today: 0, description: 'Blocks one incoming hack attempt before shattering. +20 Defense.', effect_summary: '+20 Defense' },
-    { id: 'item_firewall', name: 'Firewall', kind: 'firewall', price: 300, daily_limit: 2, owned_today: 0, description: 'Advanced defense system. +30 Defense until cracked.', effect_summary: '+30 Defense' },
-    { id: 'item_encryption_key', name: 'Encryption Key', kind: 'encryption_key', price: 200, daily_limit: 3, owned_today: 0, description: 'Permanent attack boost. +15 Attack.', effect_summary: '+15 Attack (Permanent)' },
-    { id: 'item_exploit_kit', name: 'Exploit Kit', kind: 'exploit_kit', price: 350, daily_limit: 2, owned_today: 0, description: 'Advanced hacking tools. +25 Attack permanently.', effect_summary: '+25 Attack (Permanent)' },
-    { id: 'item_cracker', name: 'Cracker', kind: 'cracker', price: 200, daily_limit: 2, owned_today: 0, description: 'Bypasses an active enemy shield during a hack.', effect_summary: 'Negates 1 shield' },
-    { id: 'item_booster', name: 'Booster', kind: 'booster', price: 250, daily_limit: 1, owned_today: 0, description: 'Grants 1.5x XP from all sources for 1 hour.', effect_summary: '1.5x XP (1h)' },
-    { id: 'item_major_booster', name: 'Major Booster', kind: 'major_booster', price: 400, daily_limit: 1, owned_today: 0, description: 'Grants a massive 2.0x XP from all sources for 1 hour.', effect_summary: '2.0x XP (1h)' },
-    { id: 'item_cosmetic_frame', name: 'Neon Frame', kind: 'cosmetic', price: 750, daily_limit: 1, owned_today: 0, description: 'A flashy neon frame for your avatar. Show off your style!', effect_summary: 'Purely cosmetic' },
-    { id: 'item_cosmetic_theme', name: 'Glitch Theme', kind: 'cosmetic', price: 1200, daily_limit: 1, owned_today: 0, description: 'Apply a glitchy, datamosh effect to your profile card.', effect_summary: 'Purely cosmetic' },
+    { id: 'item_shield', name: 'Shield', kind: 'shield', price: 150, rarity: 'common', daily_limit: 3, owned_today: 0, description: 'Blocks one incoming hack attempt before shattering. +20 Defense.', effect_summary: '+20 Defense' },
+    { id: 'item_firewall', name: 'Firewall', kind: 'firewall', price: 300, rarity: 'common', daily_limit: 2, owned_today: 0, description: 'Advanced defense system. +30 Defense until cracked.', effect_summary: '+30 Defense' },
+    { id: 'item_encryption_key', name: 'Encryption Key', kind: 'encryption_key', price: 200, rarity: 'common', daily_limit: 3, owned_today: 0, description: 'Permanent attack boost. +15 Attack.', effect_summary: '+15 Attack (Permanent)' },
+    { id: 'item_exploit_kit', name: 'Exploit Kit', kind: 'exploit_kit', price: 350, rarity: 'rare', gemstone_price: 4, daily_limit: 2, owned_today: 0, description: 'Advanced hacking tools. +25 Attack permanently.', effect_summary: '+25 Attack (Permanent)' },
+    { id: 'item_cracker', name: 'Cracker', kind: 'cracker', price: 200, rarity: 'common', daily_limit: 2, owned_today: 0, description: 'Bypasses an active enemy shield during a hack.', effect_summary: 'Negates 1 shield' },
+    { id: 'item_booster', name: 'Booster', kind: 'booster', price: 250, rarity: 'common', daily_limit: 1, owned_today: 0, description: 'Grants 1.5x XP from all sources for 1 hour.', effect_summary: '1.5x XP (1h)' },
+    { id: 'item_major_booster', name: 'Major Booster', kind: 'major_booster', price: 400, rarity: 'rare', gemstone_price: 6, daily_limit: 1, owned_today: 0, description: 'Grants a massive 2.0x XP from all sources for 1 hour.', effect_summary: '2.0x XP (1h)' },
+    { id: 'item_cosmetic_frame', name: 'Neon Frame', kind: 'cosmetic', price: 750, rarity: 'rare', gemstone_price: 3, daily_limit: 1, owned_today: 0, description: 'A flashy neon frame for your avatar. Show off your style!', effect_summary: 'Purely cosmetic' },
+    { id: 'item_cosmetic_theme', name: 'Glitch Theme', kind: 'cosmetic', price: 1200, rarity: 'legendary', gemstone_price: 8, daily_limit: 1, owned_today: 0, description: 'Apply a glitchy, datamosh effect to your profile card.', effect_summary: 'Purely cosmetic' },
+    { id: 'item_quantum_cloak', name: 'Quantum Cloak', kind: 'shield', price: 500, rarity: 'legendary', gemstone_price: 12, daily_limit: 1, owned_today: 0, description: 'Phase-shifted armor that nullifies three attacks before collapsing.', effect_summary: 'Blocks 3 attacks' },
 ];
 
 
@@ -1003,18 +1325,37 @@ export const shop_list = async (): Promise<ShopItem[]> => {
     return mockApiCall(itemsWithRealCounts);
 };
 
-export const shop_buy = async (item_id: string, quantity: number, current_coins: number): Promise<PurchaseReceipt> => {
+export const shop_buy = async (item_id: string, quantity: number): Promise<PurchaseReceipt> => {
     const user = await getCurrentUser();
     const item = MOCK_SHOP_ITEMS.find(i => i.id === item_id);
-    
+
     if (!item) {
         return Promise.reject({ message: 'Item not found.' });
     }
-    
-    const totalCost = item.price * quantity;
 
-    if (totalCost > current_coins) {
+    const { data: balances, error: balanceError } = await supabase
+        .from('users')
+        .select('coins, gemstones')
+        .eq('id', user.id)
+        .single();
+
+    if (balanceError || !balances) {
+        return Promise.reject({ message: 'Failed to load your balances.' });
+    }
+
+    const currentCoins = balances.coins ?? 0;
+    const currentGemstones = balances.gemstones ?? 0;
+
+    const totalCoinCost = item.price * quantity;
+    const gemstonePrice = item.gemstone_price || 0;
+    const totalGemCost = gemstonePrice * quantity;
+
+    if (totalCoinCost > currentCoins) {
         return Promise.reject({ message: 'Not enough coins.' });
+    }
+
+    if (totalGemCost > currentGemstones) {
+        return Promise.reject({ message: 'Not enough gemstones.' });
     }
 
     // Check today's purchase count from database
@@ -1032,17 +1373,20 @@ export const shop_buy = async (item_id: string, quantity: number, current_coins:
         return Promise.reject({ message: 'Daily purchase limit exceeded.' });
     }
 
-    // Update profile coins
-    await updateProfile(user.id, { coins: current_coins - totalCost });
-    
+    const newCoinBalance = currentCoins - totalCoinCost;
+    const newGemstoneBalance = currentGemstones - totalGemCost;
+
+    // Update profile balances using the authoritative values from the database
+    await updateProfile(user.id, { coins: newCoinBalance, gemstones: newGemstoneBalance });
+
     // Add purchase record
     await supabase.from('shop_purchases').insert({
         user_id: user.id,
         item_id: item.id,
         quantity: quantity,
-        total_cost: totalCost,
+        total_cost: totalCoinCost,
     });
-    
+
     // Add items to inventory
     const inventoryItems = [];
     for (let i = 0; i < quantity; i++) {
@@ -1064,8 +1408,10 @@ export const shop_buy = async (item_id: string, quantity: number, current_coins:
 
     const receipt: PurchaseReceipt = {
         receipt_id: `rec_${Date.now()}`,
-        coins_spent: totalCost,
-        new_balance: current_coins - totalCost,
+        coins_spent: totalCoinCost,
+        gemstones_spent: totalGemCost,
+        new_balance: newCoinBalance,
+        new_gemstone_balance: newGemstoneBalance,
         item: item,
         quantity: quantity
     };
@@ -1291,7 +1637,11 @@ export const clan_join = async (clan_id: string): Promise<Clan> => {
         .eq('id', clan_id);
     
     // Fetch full clan details with members
-    return clan_details();
+    const clanDetails = await clan_details();
+    if (!clanDetails) {
+        throw new Error('Failed to load clan details after joining.');
+    }
+    return clanDetails;
 };
 
 export const clan_details = async (): Promise<Clan | null> => {
@@ -1433,7 +1783,11 @@ export const clan_create = async (name: string, notice: string): Promise<Clan> =
     }
     
     // Return full clan details
-    return await clan_details();
+    const clanDetails = await clan_details();
+    if (!clanDetails) {
+        throw new Error('Clan created but details could not be retrieved.');
+    }
+    return clanDetails;
 };
 
 export const clan_chat_recent = async (): Promise<ClanChatMessage[]> => {
@@ -1849,7 +2203,7 @@ export const update_avatar = async (avatar_url: string): Promise<Profile> => {
         .single();
 
     if (error) throw error;
-    return data;
+    return data as Profile;
 };
 
 // ============ ACHIEVEMENTS ============
@@ -1971,20 +2325,17 @@ export const achievements_list = async (): Promise<Achievement[]> => {
 export const check_achievements = async (): Promise<Achievement[]> => {
     const user = await getCurrentUser();
 
-    const { data, error } = await supabase.rpc('rpc_check_achievements', {
-        p_user_id: user.id,
-    });
+    const { data, error } = await rpcCheckAchievements(user.id);
 
     if (error) throw error;
 
     // Return newly earned achievements
-    const newlyEarned = data[0]?.newly_earned || [];
+    const achievementRows = data as Array<{ newly_earned: Achievement[] }>;
+    const newlyEarned = achievementRows[0]?.newly_earned || [];
 
     // ====== NOTIFICATION: ACHIEVEMENT EARNED ======
     if (newlyEarned.length > 0) {
         try {
-            const { notificationService } = await import('./notificationService');
-            
             // Send notification for each new achievement
             for (const achievement of newlyEarned) {
                 await notificationService.createNotification(
@@ -2018,7 +2369,7 @@ export const create_teacher_profile = async (
 ): Promise<Teacher> => {
     const user = await getCurrentUser();
 
-    const { data, error } = await supabase.rpc('create_teacher_profile', {
+    const { data, error } = await rpcCreateTeacherProfile({
         p_school_name: schoolName,
         p_subject_specializations: subjectSpecializations,
         p_bio: bio
@@ -2092,7 +2443,7 @@ export const create_question = async (questionData: CreateQuestionRequest): Prom
 
     if (error) throw error;
 
-    return data;
+    return data as TeacherQuestion;
 };
 
 /**
@@ -2125,7 +2476,7 @@ export const get_question = async (questionId: string): Promise<TeacherQuestion>
 
     if (error) throw error;
 
-    return data;
+    return data as TeacherQuestion;
 };
 
 /**
@@ -2147,7 +2498,7 @@ export const update_question = async (
 
     if (error) throw error;
 
-    return data;
+    return data as TeacherQuestion;
 };
 
 /**
@@ -2193,7 +2544,7 @@ export const submit_question_answer = async (
 ): Promise<QuestionAttemptResult> => {
     const user = await getCurrentUser();
 
-    const { data, error } = await supabase.rpc('record_question_attempt', {
+    const { data, error } = await recordQuestionAttempt({
         p_question_id: questionId,
         p_answer_given: answer,
         p_time_taken: timeTaken,
@@ -2202,7 +2553,7 @@ export const submit_question_answer = async (
 
     if (error) throw error;
 
-    return data;
+    return data as QuestionAttemptResult;
 };
 
 /**

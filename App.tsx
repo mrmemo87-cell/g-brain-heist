@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage } from './types';
 import * as GameService from './services/gameService';
 import { supabase } from './services/supabaseClient';
@@ -26,7 +26,8 @@ import TournamentAdminDashboard from './components/TournamentAdminDashboard';
 import HelpModal from './components/HelpModal';
 import { ToastContainer } from './components/ToastNotification';
 import { isAdmin } from './services/adminService';
-import { aiHostService } from './services/aiHostService';
+import { audioService } from './services/audioService';
+import CinematicEffects from './components/CinematicEffects';
 
 interface AppProps {
   onLogout: () => void;
@@ -49,6 +50,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [tutorialChecked, setTutorialChecked] = useState(false); // Track if we've checked tutorial status
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [effectsIntensity, setEffectsIntensity] = useState<'calm' | 'active' | 'alert'>('calm');
+  const previousViewRef = useRef(view);
+  const previousSessionActiveRef = useRef<boolean | null>(null);
 
   const addToast = (message: string, type: ToastMessage['type'] = 'info', retryAction?: () => void) => {
     const id = Date.now();
@@ -141,6 +145,48 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   useEffect(() => {
     fetchGameData();
   }, []);
+
+  useEffect(() => {
+    if (previousViewRef.current !== view) {
+      if (previousViewRef.current) {
+        audioService.play('activate');
+      }
+      previousViewRef.current = view;
+    }
+  }, [view]);
+
+  useEffect(() => {
+    if (sessionStatus) {
+      if (previousSessionActiveRef.current !== null && previousSessionActiveRef.current !== sessionStatus.active) {
+        audioService.play(sessionStatus.active ? 'hack_win' : 'collect');
+      }
+      previousSessionActiveRef.current = sessionStatus.active;
+    }
+  }, [sessionStatus]);
+
+  useEffect(() => {
+    if (!sessionStatus) return;
+
+    if (sessionStatus.active) {
+      setEffectsIntensity('alert');
+    } else if (view !== 'dashboard') {
+      setEffectsIntensity('active');
+    } else {
+      setEffectsIntensity('calm');
+    }
+  }, [sessionStatus, view]);
+
+  const cinematicViewClass = useMemo(() => {
+    if (sessionStatus?.active) {
+      return 'cinematic-view cinematic-view--alert';
+    }
+
+    if (view !== 'dashboard') {
+      return 'cinematic-view cinematic-view--active';
+    }
+
+    return 'cinematic-view cinematic-view--calm';
+  }, [view, sessionStatus?.active]);
 
   // Auto-refresh profile every 60 seconds to update AP regeneration
   useEffect(() => {
@@ -283,17 +329,24 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     }
   };
 
-  const handleGrantReward = (deltas: { xp?: number; coins?: number, ap?: number }) => {
+  const handleGrantReward = (deltas: { xp?: number; coins?: number; gemstones?: number; ap?: number }) => {
     if (!profile) return;
-    
+
     // Optimistic update for smooth UI feedback
     setProfile(prevProfile => {
       if (!prevProfile) return null;
+
+      const nextXP = prevProfile.xp + (deltas.xp || 0);
+      const nextCoins = prevProfile.coins + (deltas.coins || 0);
+      const nextGemstones = prevProfile.gemstones + (deltas.gemstones || 0);
+      const nextAP = prevProfile.ap_now + (deltas.ap || 0);
+
       return {
         ...prevProfile,
-        xp: prevProfile.xp + (deltas.xp || 0),
-        coins: prevProfile.coins + (deltas.coins || 0),
-        ap_now: prevProfile.ap_now + (deltas.ap || 0),
+        xp: Math.max(0, nextXP),
+        coins: Math.max(0, nextCoins),
+        gemstones: Math.max(0, nextGemstones),
+        ap_now: Math.min(prevProfile.ap_max, Math.max(0, nextAP)),
       };
     });
   };
@@ -552,89 +605,94 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6 lg:p-8 max-w-screen-2xl mx-auto">
-      <Header 
-        profile={profile} 
-        onLogout={onLogout} 
-        currentView={view}
-        onBackToDashboard={() => setView('dashboard')}
-        onShowHelp={() => setShowHelp(true)}
-        onNavigate={(targetView) => setView(targetView)}
-      />
+    <div className="relative min-h-screen overflow-hidden p-4 md:p-6 lg:p-8 max-w-screen-2xl mx-auto">
+      <CinematicEffects intensity={effectsIntensity} />
+      <div className="relative z-10">
+        <Header
+          profile={profile}
+          onLogout={onLogout}
+          currentView={view}
+          onBackToDashboard={() => setView('dashboard')}
+          onShowHelp={() => setShowHelp(true)}
+          onNavigate={(targetView) => setView(targetView)}
+        />
 
-      {/* Offline Banner */}
-      {!isOnline && (
-        <div className="fixed top-20 left-0 right-0 z-50 flex justify-center">
-          <div className="bg-red-500/90 text-white px-6 py-3 rounded-lg shadow-lg backdrop-blur-sm">
-            <p className="font-semibold">📡 No internet connection - Some features may not work</p>
+        {/* Offline Banner */}
+        {!isOnline && (
+          <div className="fixed top-20 left-0 right-0 z-50 flex justify-center">
+            <div className="bg-red-500/90 text-white px-6 py-3 rounded-lg shadow-lg backdrop-blur-sm">
+              <p className="font-semibold">📡 No internet connection - Some features may not work</p>
+            </div>
           </div>
+        )}
+
+        <div className={cinematicViewClass}>
+          {renderView()}
         </div>
-      )}
+        <div className="fixed top-6 right-6 z-[100] space-y-3">
+          {toasts.map(toast => (
+            <Toast
+              key={toast.id}
+              id={toast.id}
+              message={toast.message}
+              type={toast.type}
+              retryAction={toast.retryAction}
+              onDismiss={() => removeToast(toast.id)}
+            />
+          ))}
+        </div>
 
-      {renderView()}
-      <div className="fixed top-6 right-6 z-[100] space-y-3">
-        {toasts.map(toast => (
-          <Toast 
-            key={toast.id} 
-            id={toast.id} 
-            message={toast.message} 
-            type={toast.type} 
-            retryAction={toast.retryAction}
-            onDismiss={() => removeToast(toast.id)} 
+        {/* Level Up Modal */}
+        {showLevelUpModal && levelUpData && (
+          <LevelUpModal
+            newLevel={levelUpData.newLevel}
+            rewards={levelUpData.rewards}
+            onClose={() => {
+              setShowLevelUpModal(false);
+              setLevelUpData(null);
+            }}
           />
-        ))}
+        )}
+
+        {/* Tutorial Modal */}
+        {showTutorial && (
+          <TutorialModal
+            onComplete={() => {
+              setShowTutorial(false);
+              // Don't refetch data - tutorial already updated DB
+              // Just refresh the profile to show updated tutorial_completed status
+              setTimeout(async () => {
+                try {
+                  const updatedProfile = await GameService.whoami();
+                  setProfile(updatedProfile);
+                } catch (error) {
+                  console.error('Failed to refresh profile:', error);
+                }
+              }, 100);
+            }}
+            onSkip={() => {
+              setShowTutorial(false);
+              // Skip also marks tutorial as complete, so refresh profile
+              setTimeout(async () => {
+                try {
+                  const updatedProfile = await GameService.whoami();
+                  setProfile(updatedProfile);
+                } catch (error) {
+                  console.error('Failed to refresh profile:', error);
+                }
+              }, 100);
+            }}
+          />
+        )}
+
+        {/* Help Modal */}
+        {showHelp && (
+          <HelpModal onClose={() => setShowHelp(false)} />
+        )}
+
+        {/* Toast Notifications */}
+        <ToastContainer />
       </div>
-      
-      {/* Level Up Modal */}
-      {showLevelUpModal && levelUpData && (
-        <LevelUpModal
-          newLevel={levelUpData.newLevel}
-          rewards={levelUpData.rewards}
-          onClose={() => {
-            setShowLevelUpModal(false);
-            setLevelUpData(null);
-          }}
-        />
-      )}
-
-      {/* Tutorial Modal */}
-      {showTutorial && (
-        <TutorialModal
-          onComplete={() => {
-            setShowTutorial(false);
-            // Don't refetch data - tutorial already updated DB
-            // Just refresh the profile to show updated tutorial_completed status
-            setTimeout(async () => {
-              try {
-                const updatedProfile = await GameService.whoami();
-                setProfile(updatedProfile);
-              } catch (error) {
-                console.error('Failed to refresh profile:', error);
-              }
-            }, 100);
-          }}
-          onSkip={() => {
-            setShowTutorial(false);
-            // Skip also marks tutorial as complete, so refresh profile
-            setTimeout(async () => {
-              try {
-                const updatedProfile = await GameService.whoami();
-                setProfile(updatedProfile);
-              } catch (error) {
-                console.error('Failed to refresh profile:', error);
-              }
-            }, 100);
-          }}
-        />
-      )}
-
-      {/* Help Modal */}
-      {showHelp && (
-        <HelpModal onClose={() => setShowHelp(false)} />
-      )}
-
-      {/* Toast Notifications */}
-      <ToastContainer />
     </div>
   );
 };

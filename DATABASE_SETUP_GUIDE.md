@@ -1,4 +1,4 @@
-# 🗄️ Database Setup Guide - G-Brain Heist
+# 🗄️ Database Setup Guide - G-Brains Heist
 
 ## ⚠️ IMPORTANT: Run These Scripts in Order!
 

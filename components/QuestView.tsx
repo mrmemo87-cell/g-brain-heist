@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { SubjectData, Question, AnswerResponse, TeacherQuestion, QuestionAttemptResult } from '../types';
 import * as GameService from '../services/gameService';
 import { audioService } from '../services/audioService';
-import { BrainIcon, CoinIcon, XPIcon } from './icons';
+import { BrainIcon, CoinIcon, GemIcon, XPIcon } from './icons';
 import BackButton from './BackButton';
 import { createPortal } from 'react-dom';
 
@@ -11,7 +11,7 @@ type QuestMode = 'practice' | 'teacher';
 
 interface RewardParticleProps {
     id: string;
-    type: 'xp' | 'coin';
+    type: 'xp' | 'coin' | 'gem';
     startRect: DOMRect;
     onComplete: (id: string) => void;
 }
@@ -23,7 +23,8 @@ const RewardParticle: React.FC<RewardParticleProps> = ({ id, type, startRect, on
         const el = elRef.current;
         if (!el) return;
 
-        const destination = document.getElementById(type === 'xp' ? 'xp-hud' : 'coin-hud');
+        const destinationId = type === 'xp' ? 'xp-hud' : type === 'coin' ? 'coin-hud' : 'gem-hud';
+        const destination = document.getElementById(destinationId);
         if (!destination) {
             onComplete(id);
             return;
@@ -54,12 +55,16 @@ const RewardParticle: React.FC<RewardParticleProps> = ({ id, type, startRect, on
         zIndex: 100,
     };
     
-    const iconColor = type === 'xp' ? 'var(--ion-blue)' : 'var(--amber-warn)';
+    const iconColor = type === 'xp'
+        ? 'var(--ion-blue)'
+        : type === 'coin'
+            ? 'var(--amber-warn)'
+            : 'var(--plasma-pink)';
 
     return (
         <div ref={elRef} style={style}>
-           <div className="w-6 h-6" style={{ color: iconColor, filter: `drop-shadow(0 0 5px ${iconColor})` }}>
-                {type === 'xp' ? <XPIcon /> : <CoinIcon />}
+            <div className="w-6 h-6" style={{ color: iconColor, filter: `drop-shadow(0 0 5px ${iconColor})` }}>
+                {type === 'xp' ? <XPIcon /> : type === 'coin' ? <CoinIcon /> : <GemIcon />}
             </div>
         </div>
     );
@@ -68,7 +73,7 @@ const RewardParticle: React.FC<RewardParticleProps> = ({ id, type, startRect, on
 
 interface QuestViewProps {
   onComplete: () => void;
-  onGrantReward: (deltas: { xp: number; coins: number }) => void;
+  onGrantReward: (deltas: { xp: number; coins: number; gemstones?: number }) => void;
 }
 
 const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
@@ -81,7 +86,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [answerResponse, setAnswerResponse] = useState<AnswerResponse | null>(null);
-  const [score, setScore] = useState({ correct: 0, xp: 0, coins: 0 });
+  const [score, setScore] = useState({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
   const [particles, setParticles] = useState<Omit<RewardParticleProps, 'onComplete'>[]>([]);
 
   const answerFeedbackRef = useRef<HTMLDivElement>(null);
@@ -127,7 +132,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
       GameService.mcq_questions_get(subject.id, 5).then(data => {
         setQuestions(data);
         setCurrentQuestionIndex(0);
-        setScore({ correct: 0, xp: 0, coins: 0 });
+            setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
         setSelectedOption(null);
         setAnswerResponse(null);
         setStage('in_progress');
@@ -145,7 +150,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
         const shuffled = data.sort(() => Math.random() - 0.5);
         setTeacherQuestions(shuffled.slice(0, Math.min(5, shuffled.length)));
         setCurrentQuestionIndex(0);
-        setScore({ correct: 0, xp: 0, coins: 0 });
+            setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
         setSelectedOption(null);
         setAnswerResponse(null);
         setStage('in_progress');
@@ -184,9 +189,22 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
           audioService.play('collect');
           const startRect = answerFeedbackRef.current.getBoundingClientRect();
           const newParticles: Omit<RewardParticleProps, 'onComplete'>[] = [];
-          for (let i = 0; i < 5; i++) {
-            if (response.deltas.xp > 0) newParticles.push({ id: `xp_${Date.now()}_${i}`, type: 'xp', startRect });
-            if (response.deltas.coins > 0) newParticles.push({ id: `coin_${Date.now()}_${i}`, type: 'coin', startRect });
+          if (response.deltas.xp > 0) {
+            for (let i = 0; i < 5; i++) {
+              newParticles.push({ id: `xp_${Date.now()}_${i}`, type: 'xp', startRect });
+            }
+          }
+          if (response.deltas.coins > 0) {
+            for (let i = 0; i < 5; i++) {
+              newParticles.push({ id: `coin_${Date.now()}_${i}`, type: 'coin', startRect });
+            }
+          }
+          const gemstoneCount = response.deltas.gemstones || 0;
+          if (gemstoneCount > 0) {
+            const particleCount = Math.min(3, gemstoneCount);
+            for (let i = 0; i < particleCount; i++) {
+              newParticles.push({ id: `gem_${Date.now()}_${i}`, type: 'gem', startRect });
+            }
           }
           setParticles(current => [...current, ...newParticles]);
         }
@@ -196,6 +214,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
           correct: prev.correct + (response.correct ? 1 : 0),
           xp: prev.xp + response.deltas.xp,
           coins: prev.coins + response.deltas.coins,
+          gemstones: prev.gemstones + (response.deltas.gemstones || 0),
         }));
 
         // Scroll feedback into view
@@ -238,6 +257,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
           deltas: {
             xp: result.points_earned,
             coins: result.is_correct ? Math.floor(result.points_earned / 2) : 0,
+            gemstones: 0,
           },
           explanation: result.is_correct 
             ? currentQuestion.explanation || 'Correct!' 
@@ -261,9 +281,22 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
           audioService.play('collect');
           const startRect = answerFeedbackRef.current.getBoundingClientRect();
           const newParticles: Omit<RewardParticleProps, 'onComplete'>[] = [];
-          for (let i = 0; i < 5; i++) {
-            if (response.deltas.xp > 0) newParticles.push({ id: `xp_${Date.now()}_${i}`, type: 'xp', startRect });
-            if (response.deltas.coins > 0) newParticles.push({ id: `coin_${Date.now()}_${i}`, type: 'coin', startRect });
+          if (response.deltas.xp > 0) {
+            for (let i = 0; i < 5; i++) {
+              newParticles.push({ id: `xp_${Date.now()}_${i}`, type: 'xp', startRect });
+            }
+          }
+          if (response.deltas.coins > 0) {
+            for (let i = 0; i < 5; i++) {
+              newParticles.push({ id: `coin_${Date.now()}_${i}`, type: 'coin', startRect });
+            }
+          }
+          const gemstoneCount = response.deltas.gemstones || 0;
+          if (gemstoneCount > 0) {
+            const particleCount = Math.min(3, gemstoneCount);
+            for (let i = 0; i < particleCount; i++) {
+              newParticles.push({ id: `gem_${Date.now()}_${i}`, type: 'gem', startRect });
+            }
           }
           setParticles(current => [...current, ...newParticles]);
         }
@@ -273,6 +306,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
           correct: prev.correct + (response.correct ? 1 : 0),
           xp: prev.xp + response.deltas.xp,
           coins: prev.coins + response.deltas.coins,
+          gemstones: prev.gemstones + (response.deltas.gemstones || 0),
         }));
 
         // Scroll feedback into view
@@ -459,6 +493,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
             <div className="text-2xl font-heading space-y-2 mb-6">
                 <p>XP Gained: <span style={{color: 'var(--ion-blue)'}}>{score.xp >= 0 ? `+${score.xp}` : score.xp}</span></p>
                 <p>Coins Earned: <span style={{color: 'var(--amber-warn)'}}>{score.coins >= 0 ? `+${score.coins}`: score.coins}</span></p>
+                <p>Gemstones Found: <span style={{color: 'var(--plasma-pink)'}}>{score.gemstones >= 0 ? `+${score.gemstones}` : score.gemstones}</span></p>
             </div>
             
             {/* Action Buttons */}
@@ -470,7 +505,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
                         setQuestions([]);
                         setTeacherQuestions([]);
                         setCurrentQuestionIndex(0);
-                        setScore({ correct: 0, xp: 0, coins: 0 });
+                        setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
                     }}
                     className="px-8 py-4 rounded-lg font-bold text-lg gradient-cyan hover:scale-105 active:scale-95 transition-all shadow-lg animate-pulse-glow"
                 >
@@ -478,7 +513,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
                 </button>
                 <button 
                     onClick={() => {
-                        onGrantReward({ xp: score.xp, coins: score.coins });
+                        onGrantReward({ xp: score.xp, coins: score.coins, gemstones: score.gemstones });
                         onComplete();
                     }}
                     className="px-8 py-4 rounded-lg font-bold text-lg bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 hover:scale-105 active:scale-95 transition-all shadow-lg"

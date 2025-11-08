@@ -6,7 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "npm run typecheck",
+    "test:clean": "rm -rf dist-tests",
+    "test:build": "tsc --project tsconfig.tests.json",
+    "test": "npm run test:clean && npm run test:build && NODE_ENV=test VITE_SUPABASE_URL=http://localhost VITE_SUPABASE_ANON_KEY=test node --test dist-tests/tests/rpcGateway.test.js",
+    "load:leaderboard": "k6 run load-tests/leaderboard.js",
+    "load:shop": "k6 run load-tests/shop.js",
+    "load:pvp": "k6 run load-tests/pvp.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.78.0",
@@ -15,9 +23,9 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "vite": "^6.2.0",
+    "@types/node": "^22.14.0"
   }
 }
