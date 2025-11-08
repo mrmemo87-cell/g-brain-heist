@@ -61,8 +61,12 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
 
   useEffect(() => {
-    aiHostService.init();
-    return () => aiHostService.stop();
+    const initialized = aiHostService.init();
+    return () => {
+      if (initialized) {
+        aiHostService.stop();
+      }
+    };
   }, []);
 
   const fetchGameData = async () => {
