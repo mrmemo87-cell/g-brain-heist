@@ -10,6 +10,7 @@ export type NotificationType =
   | 'coins_earned'         // 💰 Happiness - Got coins
   | 'coins_lost'           // 😰 Danger - Lost coins
   | 'quest_completed'      // ✅ Success - Quest done
+  | 'gemstone_earned'      // 💎 Celebration - Rare gemstone obtained
   | 'low_ap'              // ⚠️ Warning - AP running low
   | 'ap_full'             // ⚡ Ready - AP is full
   | 'challenge_received'   // 🎯 Excitement - Someone challenged you
@@ -91,6 +92,7 @@ class NotificationService {
       coins_earned: 'collect',        // Cha-ching!
       coins_lost: 'error',           // Sad sound
       quest_completed: 'complete',    // Success chime
+      gemstone_earned: 'achievement', // Sparkly reward
       low_ap: 'warning',             // Beep
       ap_full: 'ready',              // Ready sound
       challenge_received: 'challenge', // Battle drum
@@ -222,6 +224,7 @@ class NotificationService {
       coins_earned: { emoji: '💰', color: 'text-yellow-400', bgColor: 'bg-yellow-500/20' },
       coins_lost: { emoji: '😰', color: 'text-red-400', bgColor: 'bg-red-500/20' },
       quest_completed: { emoji: '✅', color: 'text-green-400', bgColor: 'bg-green-500/20' },
+      gemstone_earned: { emoji: '💎', color: 'text-indigo-300', bgColor: 'bg-indigo-500/20' },
       low_ap: { emoji: '⚠️', color: 'text-orange-400', bgColor: 'bg-orange-500/20' },
       ap_full: { emoji: '⚡', color: 'text-cyan-400', bgColor: 'bg-cyan-500/20' },
       challenge_received: { emoji: '🎯', color: 'text-pink-400', bgColor: 'bg-pink-500/20' },
@@ -247,6 +250,7 @@ class NotificationService {
       coins_earned: { label: 'Visit Shop', view: 'shop' },
       coins_lost: { label: 'Earn More', view: 'quest' },
       quest_completed: { label: 'Play Again', view: 'quest' },
+      gemstone_earned: { label: 'View Rewards', view: 'quest' },
       low_ap: { label: 'View Profile', view: 'dashboard' },
       ap_full: { label: 'Start Raid', view: 'pvp' },
       challenge_received: { label: 'Accept Challenge', view: 'pvp' },
