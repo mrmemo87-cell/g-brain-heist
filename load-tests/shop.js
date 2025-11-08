@@ -68,4 +68,3 @@ export function simulatePurchase() {
   });
   sleep(1);
 }
-

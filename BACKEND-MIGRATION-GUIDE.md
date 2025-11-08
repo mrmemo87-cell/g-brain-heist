@@ -1,6 +1,6 @@
 # 🚀 Supabase + Vercel Migration Guide
 
-This guide walks you through migrating G-Brain Heist from localStorage to Supabase backend with Vercel deployment.
+This guide walks you through migrating G-Brains Heist from localStorage to Supabase backend with Vercel deployment.
 
 ---
 

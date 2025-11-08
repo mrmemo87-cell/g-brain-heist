@@ -462,4 +462,3 @@ const WinnerSelector: React.FC<WinnerSelectorProps> = ({ match, signups, onSelec
 };
 
 export default TournamentAdminDashboard;
-

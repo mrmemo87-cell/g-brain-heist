@@ -40,4 +40,3 @@ export default function leaderboardLoad() {
 
   sleep(1);
 }
-

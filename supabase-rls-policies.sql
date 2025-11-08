@@ -1,5 +1,5 @@
 -- ============================================
--- G-Brain Heist - Row Level Security Policies
+-- G-Brains Heist - Row Level Security Policies
 -- ============================================
 -- Run this AFTER running supabase-schema.sql
 -- This ensures users can only access their own data

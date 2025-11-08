@@ -27,8 +27,8 @@ import HelpModal from './components/HelpModal';
 import { ToastContainer } from './components/ToastNotification';
 import { isAdmin } from './services/adminService';
 import { audioService } from './services/audioService';
-import CinematicEffects from './components/CinematicEffects';
 import { aiHostService } from './services/aiHostService';
+import CinematicEffects from './components/CinematicEffects';
 
 interface AppProps {
   onLogout: () => void;
@@ -64,6 +64,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
   };
 
+  useEffect(() => {
+    return aiHostService.init();
+  }, []);
 
   const fetchGameData = async () => {
     try {
@@ -142,11 +145,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
   useEffect(() => {
     fetchGameData();
-  }, []);
-
-  useEffect(() => {
-    aiHostService.init();
-    return () => aiHostService.stop();
   }, []);
 
   useEffect(() => {
@@ -332,17 +330,24 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     }
   };
 
-  const handleGrantReward = (deltas: { xp?: number; coins?: number, ap?: number }) => {
+  const handleGrantReward = (deltas: { xp?: number; coins?: number; gemstones?: number; ap?: number }) => {
     if (!profile) return;
-    
+
     // Optimistic update for smooth UI feedback
     setProfile(prevProfile => {
       if (!prevProfile) return null;
+
+      const nextXP = prevProfile.xp + (deltas.xp || 0);
+      const nextCoins = prevProfile.coins + (deltas.coins || 0);
+      const nextGemstones = prevProfile.gemstones + (deltas.gemstones || 0);
+      const nextAP = prevProfile.ap_now + (deltas.ap || 0);
+
       return {
         ...prevProfile,
-        xp: prevProfile.xp + (deltas.xp || 0),
-        coins: prevProfile.coins + (deltas.coins || 0),
-        ap_now: prevProfile.ap_now + (deltas.ap || 0),
+        xp: Math.max(0, nextXP),
+        coins: Math.max(0, nextCoins),
+        gemstones: Math.max(0, nextGemstones),
+        ap_now: Math.min(prevProfile.ap_max, Math.max(0, nextAP)),
       };
     });
   };

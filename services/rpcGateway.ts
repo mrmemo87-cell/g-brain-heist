@@ -72,4 +72,3 @@ export const recordQuestionAttempt = (
 ): RpcResult<unknown> => {
   return execute('record_question_attempt', payload, client);
 };
-

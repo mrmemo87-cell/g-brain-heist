@@ -22,4 +22,3 @@ const CinematicEffects: React.FC<CinematicEffectsProps> = ({ intensity }) => {
 };
 
 export default CinematicEffects;
-

@@ -1,6 +1,6 @@
 # 🎮 Student Quick Start Guide
 
-Welcome to **G-Brain Heist**! You're about to become a cyber agent in a neon digital world.
+Welcome to **G-Brains Heist**! You're about to become a cyber agent in a neon digital world.
 
 ---
 

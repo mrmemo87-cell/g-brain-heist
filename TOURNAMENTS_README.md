@@ -3,7 +3,6 @@
 This document explains the new tournament scaffolding built on top of Supabase and the existing authentication system. It is intended for engineers and operations staff who want to run seasonal bracket play across schools.
 
 ## Contents
-
 - [Database schema](#database-schema)
 - [API routes](#api-routes)
 - [Front-end surfaces](#front-end-surfaces)
@@ -65,7 +64,6 @@ All routes inherit Supabase auth—admins should call from privileged sessions.
 Two new React surfaces wire the schema into the game shell:
 
 - `TournamentHub` – player/teacher landing zone with season selector, signup form, and public bracket display.
-
 - `TournamentAdminDashboard` – admin-only control room for season creation, approvals, bracket generation, scheduling, and result capture.
 
 The dashboard wiring lives inside `App.tsx` via new `tournament` and `tournament_admin` views.
@@ -75,15 +73,10 @@ The dashboard wiring lives inside `App.tsx` via new `tournament` and `tournament
 ## Admin workflow
 
 1. Visit **Tournament Ops** from the main dashboard (admin only).
-
 2. Create a season and toggle its status.
-
 3. Approve incoming school codes.
-
 4. Generate the opening bracket once enough signups are approved.
-
 5. Set match times, locations, and optional stream links.
-
 6. Record winners as results come in.
 
 The admin view is intentionally verbose to make later automation easier (auto-advancing rounds, seeding logic, etc.).
@@ -95,9 +88,7 @@ The admin view is intentionally verbose to make later automation easier (auto-ad
 Teachers (and admins) can:
 
 1. Open the **Tournament** tile from the dashboard.
-
 2. Select the active season and submit their school code.
-
 3. Track approval status and see the published bracket.
 
 Students can still browse the bracket, but they do not see the signup form.

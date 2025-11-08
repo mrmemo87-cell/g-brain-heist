@@ -297,4 +297,3 @@ const TournamentHub: React.FC<TournamentHubProps> = ({ profile, onClose, addToas
 };
 
 export default TournamentHub;
-

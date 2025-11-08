@@ -10,6 +10,7 @@ export interface Profile {
   level: number;
   xp: number;
   coins: number;
+  gemstones: number;
   streak: number;
   last_seen: string;
   ap_now: number;
@@ -33,6 +34,7 @@ export interface Task {
   reward?: {
     xp: number;
     coins: number;
+    gemstones?: number;
     items?: string[];
   };
 }
@@ -91,6 +93,7 @@ export interface AnswerResponse {
   deltas: {
     xp: number;
     coins: number;
+    gemstones?: number;
   };
   explanation?: string;
 }
@@ -113,6 +116,7 @@ export interface RaidAttackResult {
   attacker_deltas: {
     xp: number;
     coins: number;
+    gemstones?: number;
   };
   defender_deltas: {
     coins_loss: number;
@@ -120,11 +124,15 @@ export interface RaidAttackResult {
   shield_state: 'removed' | 'remaining' | 'none';
 }
 
+export type ShopItemRarity = 'common' | 'rare' | 'legendary';
+
 export interface ShopItem {
   id: string;
   name: string;
   kind: 'shield' | 'cracker' | 'booster' | 'major_booster' | 'cosmetic' | 'mystery' | 'encryption_key' | 'firewall' | 'exploit_kit';
   price: number;
+  gemstone_price?: number;
+  rarity: ShopItemRarity;
   daily_limit: number;
   owned_today: number;
   description: string;
@@ -134,7 +142,9 @@ export interface ShopItem {
 export interface PurchaseReceipt {
     receipt_id: string;
     coins_spent: number;
+    gemstones_spent: number;
     new_balance: number;
+    new_gemstone_balance: number;
     item: ShopItem;
     quantity: number;
 }

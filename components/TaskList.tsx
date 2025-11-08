@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Task } from '../types';
 import * as GameService from '../services/gameService';
 import { audioService } from '../services/audioService';
+import { CoinIcon, GemIcon, XPIcon } from './icons';
 
 interface TaskItemProps {
   task: Task;
@@ -14,10 +15,37 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onClaim, claiming }) => {
   const isDaily = task.kind === 'daily';
   const isCompleted = task.progress >= task.target;
   const canClaim = isCompleted && !task.claimed;
-  
+
   const borderColor = isDaily ? 'var(--ion-blue)' : 'var(--plasma-pink)';
   const progressColor = isDaily ? 'var(--ion-blue)' : 'var(--plasma-pink)';
   const progressGlow = isDaily ? 'progress-bar-glow-ion' : 'progress-bar-glow-plasma';
+
+  const rewardChips = [
+    task.reward?.xp
+      ? {
+          id: 'xp',
+          icon: <XPIcon className="w-4 h-4" />, 
+          color: 'var(--ion-blue)',
+          text: `+${task.reward.xp} XP`,
+        }
+      : null,
+    task.reward?.coins
+      ? {
+          id: 'coins',
+          icon: <CoinIcon className="w-4 h-4" />, 
+          color: 'var(--amber-warn)',
+          text: `+${task.reward.coins} Coins`,
+        }
+      : null,
+    task.reward?.gemstones
+      ? {
+          id: 'gemstones',
+          icon: <GemIcon className="w-4 h-4" />, 
+          color: 'var(--plasma-pink)',
+          text: `+${task.reward.gemstones} Gem${task.reward.gemstones === 1 ? '' : 's'}`,
+        }
+      : null,
+  ].filter(Boolean) as { id: string; icon: React.ReactNode; color: string; text: string }[];
   
   return (
     <div className="bg-black/20 p-4 rounded-2xl border animate-fade-in-up" style={{ borderColor: `rgba(${isDaily ? '0, 208, 232' : '255, 45, 145'}, 0.4)` }}>
@@ -30,6 +58,22 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onClaim, claiming }) => {
       </div>
       <div className="flex justify-between items-center">
         <p className="text-xs" style={{ color: 'var(--amber-warn)' }}>{task.reward_preview}</p>
+      </div>
+      {rewardChips.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-2">
+          {rewardChips.map(chip => (
+            <span
+              key={chip.id}
+              className="flex items-center gap-1 px-2 py-1 rounded-full bg-black/30 border border-white/10 text-xs font-mono"
+              style={{ color: chip.color }}
+            >
+              {chip.icon}
+              {chip.text}
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="flex justify-between items-center mt-3">
         {canClaim && (
           <button
             onClick={() => onClaim(task.id)}

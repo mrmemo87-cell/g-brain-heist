@@ -96,4 +96,3 @@ test('notifyApFull triggers notification RPC', async () => {
     params: { user_id_param: 'user-xyz' }
   });
 });
-

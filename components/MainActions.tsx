@@ -45,10 +45,10 @@ const ActionButton: React.FC<{ icon: React.ReactNode; label: string; color: stri
 const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onVisitShop, onGoToClan, onVisitInventory, onViewLeaderboard, onViewAchievements, onOpenTeacherPortal, onOpenAdminPortal, onOpenTournament, onOpenTournamentAdmin }) => {
   return (
     <div className="grid grid-cols-2 gap-4 animate-fade-in-up">
-        <ActionButton 
+        <ActionButton
             onClick={onStartQuest}
-            icon={<QuestIcon />} 
-            label="Start Quest" 
+            icon={<QuestIcon />}
+            label="Start Quest"
             color="0, 208, 232" // ion-blue
             glowClass="glow-ion animate-pulse-glow"
         />
@@ -75,10 +75,10 @@ const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onV
                 glowClass="glow-warn"
             />
         )}
-        <ActionButton 
+        <ActionButton
             onClick={onGoToClan}
-            icon={<ClanIcon />} 
-            label="Clan" 
+            icon={<ClanIcon />}
+            label="Clan"
             color="255, 176, 32" // amber-warn
             glowClass="glow-warn"
         />

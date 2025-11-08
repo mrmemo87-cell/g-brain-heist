@@ -49,4 +49,3 @@ export default function simulateHackAttempt() {
 
   sleep(0.5);
 }
-

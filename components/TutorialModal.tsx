@@ -15,7 +15,7 @@ interface TutorialModalProps {
 
 const TUTORIAL_STEPS: TutorialStep[] = [
   {
-    title: 'Welcome to G-Brain Heist!',
+    title: 'Welcome to G-Brains Heist!',
     description: 'Complete quests to earn XP and level up your hacker skills. Each quest tests your knowledge and rewards you with coins.',
     action: 'Try completing a quest from the main dashboard',
     icon: '📚',
