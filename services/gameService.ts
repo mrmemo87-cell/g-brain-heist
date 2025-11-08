@@ -1424,6 +1424,48 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
         };
     };
 
+    const isBotTarget = target?.user_id?.startsWith('bot_') ?? defender_id.startsWith('bot_');
+    let botSimulation: ReturnType<typeof simulateBotRaid> | null = null;
+    let response: RaidAttackResult;
+
+    if (isBotTarget) {
+        if (!target?.user_id) {
+            throw new Error('Raid target is no longer available.');
+        }
+        botSimulation = simulateBotRaid(target.user_id);
+        response = botSimulation.response;
+    } else {
+        const { data, error } = await performHackAttempt(defender_id);
+
+        if (error) {
+            throw new Error(error.message || 'Failed to execute raid attack.');
+        }
+
+        if (!data) {
+            throw new Error('Hack attempt returned no data.');
+        }
+
+        const payload = data as any;
+
+        response = {
+            result: (payload.result ?? 'lose') as RaidAttackResult['result'],
+            attacker_deltas: {
+                xp: payload.attacker_deltas?.xp ?? 0,
+                coins: payload.attacker_deltas?.coins ?? 0,
+                gemstones: payload.attacker_deltas?.gemstones ?? 0,
+            },
+            defender_deltas: {
+                coins_loss: payload.defender_deltas?.coins_loss ?? 0,
+            },
+            shield_state: (payload.shield_state ?? 'none') as RaidAttackResult['shield_state'],
+        };
+
+        // Surface Supabase combat stats in debug logs to aid balancing
+        if (payload.combat_stats) {
+            console.debug('PvP combat stats', payload.combat_stats);
+        }
+    }
+
     let gemstoneReward = 0;
 
     // Track progress (localStorage for now)
@@ -1465,7 +1507,7 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
 
     response.attacker_deltas = {
         ...response.attacker_deltas,
-        gemstones: gemstoneReward,
+        gemstones: (response.attacker_deltas?.gemstones ?? 0) + gemstoneReward,
     };
 
     // ====== NOTIFICATION TRIGGERS ======
