@@ -209,6 +209,131 @@ const generateKyrgyzBots = (count: number, existingIds: Set<string>): RaidTarget
     return bots;
 };
 
+type KyrgyzBotLeaderboardBaseProfile = {
+    id: string;
+    username: string;
+    avatar_url: string;
+    batch: KyrgyzBotPersona['batch'];
+    last_seen: string;
+    role: 'bot';
+};
+
+type KyrgyzBotXpLeaderboardEntry = KyrgyzBotLeaderboardBaseProfile & { value: number };
+type KyrgyzBotPvpLeaderboardEntry = KyrgyzBotLeaderboardBaseProfile & { wins: number };
+
+type KyrgyzBotClanLeaderboardEntry = {
+    id: string;
+    name: string;
+    member_count: number;
+    total_xp: number;
+};
+
+type KyrgyzBotLeaderboardSnapshot = {
+    xp: KyrgyzBotXpLeaderboardEntry[];
+    pvp: KyrgyzBotPvpLeaderboardEntry[];
+    clans: KyrgyzBotClanLeaderboardEntry[];
+};
+
+const seededRandomFromString = (seed: string): number => {
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+        hash = Math.imul(31, hash) + seed.charCodeAt(i);
+        hash |= 0;
+    }
+
+    const result = Math.sin(hash) * 10000;
+    return result - Math.floor(result);
+};
+
+const seededIntInRange = (seed: string, [min, max]: [number, number]): number => {
+    if (max <= min) {
+        return Math.round(min);
+    }
+
+    const random = seededRandomFromString(seed);
+    return Math.floor(min + random * (max - min + 1));
+};
+
+const createBotLeaderboardProfile = (persona: KyrgyzBotPersona): KyrgyzBotLeaderboardBaseProfile => {
+    const username = `${persona.firstName} ${persona.lastName}`;
+    const id = `bot_${persona.firstName.toLowerCase()}_${persona.lastName.toLowerCase().replace(/[^a-z]/g, '')}`;
+    const minutesAgo = seededIntInRange(`${id}_seen`, persona.activityMinutesRange);
+    const lastSeen = new Date(Date.now() - minutesAgo * 60000).toISOString();
+
+    return {
+        id,
+        username,
+        avatar_url: buildBotAvatarUrl(username),
+        batch: persona.batch,
+        last_seen: lastSeen,
+        role: 'bot',
+    };
+};
+
+const buildKyrgyzBotLeaderboardSnapshot = (): KyrgyzBotLeaderboardSnapshot => {
+    const personaProfiles = KYRGYZ_BOT_PERSONAS.map(persona => ({
+        persona,
+        profile: createBotLeaderboardProfile(persona),
+    }));
+
+    const xpEntries = personaProfiles
+        .map(({ persona, profile }) => {
+            const xpRange: [number, number] = [
+                persona.levelRange[0] * 115,
+                persona.levelRange[1] * 165,
+            ];
+
+            return {
+                ...profile,
+                value: Math.max(persona.levelRange[0] * 90, seededIntInRange(`${profile.id}_xp`, xpRange)),
+            };
+        })
+        .sort((a, b) => b.value - a.value);
+
+    const pvpEntries = personaProfiles
+        .map(({ persona, profile }) => {
+            const winsRange: [number, number] = persona.style === 'aggressive'
+                ? [24, 60]
+                : persona.style === 'balanced'
+                ? [18, 45]
+                : [12, 35];
+
+            return {
+                ...profile,
+                wins: Math.max(5, seededIntInRange(`${profile.id}_wins`, winsRange)),
+            };
+        })
+        .sort((a, b) => b.wins - a.wins);
+
+    const clanNames = Array.from(
+        new Set(
+            KYRGYZ_BOT_PERSONAS
+                .map(persona => persona.clan)
+                .filter((clanName): clanName is string => Boolean(clanName))
+        )
+    );
+
+    const clanEntries = clanNames
+        .map((name, index) => {
+            const memberCount = Math.max(10, seededIntInRange(`${name}_members`, [14, 28]));
+            const xpPerMember = Math.max(320, seededIntInRange(`${name}_xp_per_member`, [480, 920]));
+
+            return {
+                id: `bot_clan_${index + 1}`,
+                name,
+                member_count: memberCount,
+                total_xp: memberCount * xpPerMember,
+            };
+        })
+        .sort((a, b) => b.total_xp - a.total_xp);
+
+    return {
+        xp: xpEntries,
+        pvp: pvpEntries,
+        clans: clanEntries,
+    };
+};
+
 // Helper to get current authenticated user
 const getCurrentUser = async () => {
   const { data: { user }, error } = await supabase.auth.getUser();
@@ -229,6 +354,11 @@ const updateProfile = async (userId: string, updates: Partial<Profile>) => {
 // Helper to simulate API calls (keep for mock data)
 const mockApiCall = <T,>(data: T): Promise<T> => {
   return new Promise(resolve => setTimeout(() => resolve(data), MOCK_DELAY));
+};
+
+export const getKyrgyzBotLeaderboardProfiles = async (): Promise<KyrgyzBotLeaderboardSnapshot> => {
+    const snapshot = buildKyrgyzBotLeaderboardSnapshot();
+    return mockApiCall(snapshot);
 };
 
 // Initialize default profile data
