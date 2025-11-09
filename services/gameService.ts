@@ -6,7 +6,7 @@ import {
     regenerateUserAp,
     notifyApFull,
     notifyLevelUp,
-    performAttackAttempt,
+    performHackAttempt,
     notifyAttackIncoming,
     notifyCoinsLost,
     notifyRevengeAvailable,
@@ -554,6 +554,7 @@ export const getKyrgyzBotLeaderboardProfiles = async (): Promise<KyrgyzBotLeader
 const DEFAULT_PROFILE: Profile = {
   id: 'usr_1a2b3c',
   username: 'NeonGhost',
+  grade: 8,
   batch: '8B',
   avatar_url: 'https://picsum.photos/seed/neonghost/100/100',
   level: 12,
@@ -710,7 +711,7 @@ export const whoami = async (): Promise<Profile> => {
     
     // Extract username from email or use name from OAuth provider
     const emailUsername = user.email?.split('@')[0] || 'user';
-    const displayName = user.user_metadata?.full_name || user.user_metadata?.name;
+    const displayName = user.user_metadata?.['full_name'] || user.user_metadata?.['name'];
     const username = displayName || emailUsername;
 
     // Create user profile with default student role
@@ -719,8 +720,9 @@ export const whoami = async (): Promise<Profile> => {
         email: user.email,
         username: username,
         role: 'student', // Default to student for OAuth users
+        grade: 8,
         batch: '8A', // Default batch
-        avatar_url: user.user_metadata?.avatar_url || `https://picsum.photos/seed/${username}/100/100`,
+        avatar_url: user.user_metadata?.['avatar_url'] || `https://picsum.photos/seed/${username}/100/100`,
     };
 
     const { data: newProfile, error: createError } = await supabase
@@ -742,6 +744,21 @@ export const whoami = async (): Promise<Profile> => {
 
   if (typeof profile.gemstones !== 'number') {
     profile.gemstones = 0;
+  }
+
+  if (profile.grade !== null) {
+    const parsedGrade = typeof profile.grade === 'string'
+      ? parseInt(profile.grade as unknown as string, 10)
+      : profile.grade;
+    profile.grade = (parsedGrade === 8 || parsedGrade === 9) ? parsedGrade : null;
+  }
+
+  if (typeof profile.is_admin !== 'boolean') {
+    profile.is_admin = profile.role === 'admin';
+  }
+
+  if (typeof profile.is_banned !== 'boolean') {
+    profile.is_banned = false;
   }
 
   // ====== AP REGENERATION LOGIC ======

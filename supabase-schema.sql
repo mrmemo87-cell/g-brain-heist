@@ -14,7 +14,8 @@ CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email TEXT UNIQUE NOT NULL,
     username TEXT UNIQUE NOT NULL,
-    batch TEXT NOT NULL CHECK (batch IN ('8A', '8B', '8C')),
+    grade SMALLINT CHECK (grade IS NULL OR grade IN (8, 9)),
+    batch TEXT CHECK (batch IS NULL OR batch IN ('8A', '8B', '8C', '9A', '9B', '9C')),
     avatar_url TEXT,
     level INTEGER DEFAULT 1,
     xp INTEGER DEFAULT 0,
@@ -26,6 +27,8 @@ CREATE TABLE users (
     last_ap_update TIMESTAMPTZ DEFAULT NOW(),
     attack_power INTEGER DEFAULT 10,
     defense_power INTEGER DEFAULT 10,
+    is_admin BOOLEAN DEFAULT false,
+    is_banned BOOLEAN DEFAULT false,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -34,6 +37,92 @@ CREATE TABLE users (
 CREATE INDEX idx_users_username ON users(username);
 CREATE INDEX idx_users_batch ON users(batch);
 CREATE INDEX idx_users_last_seen ON users(last_seen);
+
+-- ============================================
+-- PROFILES VIEW (Phase 1 Competition)
+-- ============================================
+CREATE OR REPLACE VIEW profiles AS
+SELECT
+    id,
+    username,
+    grade,
+    batch,
+    xp,
+    coins,
+    streak,
+    avatar_url,
+    last_seen,
+    level,
+    updated_at,
+    is_admin,
+    is_banned
+FROM users;
+
+-- ============================================
+-- MCQ QUESTIONS (Silk Road Event)
+-- ============================================
+CREATE TABLE mcq_questions (
+    id BIGSERIAL PRIMARY KEY,
+    subject TEXT,
+    grade SMALLINT NOT NULL CHECK (grade IN (8, 9)),
+    difficulty TEXT CHECK (difficulty IN ('easy', 'med', 'hard')),
+    stem TEXT NOT NULL,
+    opt1 TEXT NOT NULL,
+    opt2 TEXT NOT NULL,
+    opt3 TEXT NOT NULL,
+    opt4 TEXT NOT NULL,
+    correct SMALLINT NOT NULL CHECK (correct BETWEEN 1 AND 4),
+    lang TEXT DEFAULT 'ru',
+    reward_xp INTEGER DEFAULT 20,
+    reward_coins INTEGER DEFAULT 10,
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_mcq_questions_grade ON mcq_questions(grade);
+CREATE INDEX idx_mcq_questions_active ON mcq_questions(active);
+
+-- ============================================
+-- ATTEMPTS TABLE (Quiz Attempts)
+-- ============================================
+CREATE TABLE attempts (
+    id BIGSERIAL PRIMARY KEY,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    question_id BIGINT REFERENCES mcq_questions(id) ON DELETE CASCADE,
+    is_correct BOOLEAN NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_attempts_user ON attempts(user_id, created_at DESC);
+CREATE INDEX idx_attempts_question ON attempts(question_id);
+
+-- ============================================
+-- ANNOUNCEMENTS TABLE (Broadcasts)
+-- ============================================
+CREATE TABLE announcements (
+    id BIGSERIAL PRIMARY KEY,
+    text TEXT NOT NULL,
+    created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_announcements_created_at ON announcements(created_at DESC);
+
+-- ============================================
+-- RPC EVENT LOG (Telemetry)
+-- ============================================
+CREATE TABLE rpc_event_log (
+    id BIGSERIAL PRIMARY KEY,
+    function_name TEXT NOT NULL,
+    level TEXT NOT NULL CHECK (level IN ('info', 'error')),
+    message TEXT,
+    context JSONB DEFAULT '{}'::jsonb,
+    user_id UUID,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_rpc_event_log_level ON rpc_event_log(level, created_at DESC);
 
 -- ============================================
 -- INVENTORY TABLE

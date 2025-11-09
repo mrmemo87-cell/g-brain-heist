@@ -13,6 +13,9 @@ interface MainActionsProps {
     onOpenAdminPortal?: () => void;
     onOpenTournament?: () => void;
     onOpenTournamentAdmin?: () => void;
+    onOpenCompetitionPlay?: () => void;
+    onOpenCompetitionLeaderboard?: () => void;
+    onOpenCompetitionAdmin?: () => void;
 }
 
 const ActionButton: React.FC<{ icon: React.ReactNode; label: string; color: string; glowClass: string; onClick?: () => void; className?: string; }> = ({ icon, label, color, glowClass, onClick, className }) => {
@@ -42,9 +45,29 @@ const ActionButton: React.FC<{ icon: React.ReactNode; label: string; color: stri
     );
 };
 
-const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onVisitShop, onGoToClan, onVisitInventory, onViewLeaderboard, onViewAchievements, onOpenTeacherPortal, onOpenAdminPortal, onOpenTournament, onOpenTournamentAdmin }) => {
+const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onVisitShop, onGoToClan, onVisitInventory, onViewLeaderboard, onViewAchievements, onOpenTeacherPortal, onOpenAdminPortal, onOpenTournament, onOpenTournamentAdmin, onOpenCompetitionPlay, onOpenCompetitionLeaderboard, onOpenCompetitionAdmin }) => {
   return (
     <div className="grid grid-cols-2 gap-4 animate-fade-in-up">
+        {onOpenCompetitionPlay && (
+            <ActionButton
+                onClick={onOpenCompetitionPlay}
+                icon={<span className="text-3xl">🧠</span>}
+                label="Silk Road Play"
+                color="0, 255, 200"
+                glowClass="glow-success animate-pulse-glow"
+                className="col-span-2"
+            />
+        )}
+        {onOpenCompetitionLeaderboard && (
+            <ActionButton
+                onClick={onOpenCompetitionLeaderboard}
+                icon={<span className="text-3xl">📊</span>}
+                label="Silk Road Rankings"
+                color="0, 160, 255"
+                glowClass="glow-ion"
+                className={onOpenCompetitionPlay ? 'col-span-2' : ''}
+            />
+        )}
         <ActionButton
             onClick={onStartQuest}
             icon={<QuestIcon />}
@@ -107,10 +130,20 @@ const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onV
             <ActionButton
                 onClick={onOpenAdminPortal}
                 icon={<span className="text-4xl animate-spin-slow">👑</span>}
-                label="ADMIN" 
+                label="ADMIN"
                 color="255, 215, 0" // gold
                 glowClass="glow-warn"
                 className="animate-pulse-glow col-span-2"
+            />
+        )}
+        {onOpenCompetitionAdmin && (
+            <ActionButton
+                onClick={onOpenCompetitionAdmin}
+                icon={<span className="text-3xl">🛰️</span>}
+                label="Silk Road Admin"
+                color="0, 191, 255"
+                glowClass="glow-ion"
+                className="col-span-2"
             />
         )}
         {onOpenTournamentAdmin && (

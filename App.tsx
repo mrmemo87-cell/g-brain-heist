@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage } from './types';
+import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage, Announcement } from './types';
 import * as GameService from './services/gameService';
 import { supabase } from './services/supabaseClient';
 import Header from './components/Header';
@@ -29,6 +29,11 @@ import { isAdmin } from './services/adminService';
 import { audioService } from './services/audioService';
 import { aiHostService } from './services/aiHostService';
 import CinematicEffects from './components/CinematicEffects';
+import Phase1PlayView from './components/phase1/Phase1PlayView';
+import Phase1LeaderboardView from './components/phase1/Phase1LeaderboardView';
+import Phase1AdminDashboard from './components/phase1/Phase1AdminDashboard';
+import AnnouncementBanner from './components/phase1/AnnouncementBanner';
+import { fetchLatestAnnouncement } from './services/competitionService';
 
 interface AppProps {
   onLogout: () => void;
@@ -41,7 +46,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [caps, setCaps] = useState<Caps | null>(null);
   const [news, setNews] = useState<NewsEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin'>('dashboard');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [levelUpData, setLevelUpData] = useState<{ newLevel: number; rewards: any } | null>(null);
@@ -52,6 +57,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [tutorialChecked, setTutorialChecked] = useState(false); // Track if we've checked tutorial status
   const [loadError, setLoadError] = useState<string | null>(null);
   const [effectsIntensity, setEffectsIntensity] = useState<'calm' | 'active' | 'alert'>('calm');
+  const [activeAnnouncement, setActiveAnnouncement] = useState<Announcement | null>(null);
+  const [dismissedAnnouncements, setDismissedAnnouncements] = useState<number[]>([]);
   const previousViewRef = useRef(view);
   const previousSessionActiveRef = useRef<boolean | null>(null);
 
@@ -146,6 +153,24 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   useEffect(() => {
     fetchGameData();
   }, []);
+
+  useEffect(() => {
+    const loadAnnouncement = async () => {
+      try {
+        const latest = await fetchLatestAnnouncement();
+        if (latest && !dismissedAnnouncements.includes(latest.id)) {
+          setActiveAnnouncement(latest);
+        }
+      } catch (err) {
+        console.warn('Failed to load announcements', err);
+      }
+    };
+
+    loadAnnouncement();
+    const interval = setInterval(loadAnnouncement, 60000);
+
+    return () => clearInterval(interval);
+  }, [dismissedAnnouncements]);
 
   useEffect(() => {
     if (previousViewRef.current !== view) {
@@ -521,6 +546,31 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             return <TournamentHub profile={profile} onClose={handleViewComplete} addToast={addToast} />;
         case 'tournament_admin':
             return <TournamentAdminDashboard profile={profile} onClose={handleViewComplete} addToast={addToast} />;
+        case 'phase1_play':
+            return (
+              <Phase1PlayView
+                profile={profile}
+                onExit={() => setView('dashboard')}
+                onProfileUpdate={(updatedProfile) => setProfile(updatedProfile)}
+                addToast={addToast}
+              />
+            );
+        case 'phase1_leaderboard':
+            return (
+              <Phase1LeaderboardView
+                profile={profile}
+                onExit={() => setView('dashboard')}
+                addToast={addToast}
+              />
+            );
+        case 'phase1_admin':
+            return (
+              <Phase1AdminDashboard
+                profile={profile}
+                onExit={() => setView('dashboard')}
+                addToast={addToast}
+              />
+            );
         case 'dashboard':
         default:
             // Teacher Dashboard - simplified view focused on teaching
@@ -592,6 +642,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                             onOpenTeacherPortal={profile?.role === 'teacher' ? () => setView('teacher') : undefined}
                             onOpenAdminPortal={isAdmin(profile) ? () => setView('admin') : undefined}
                             onOpenTournamentAdmin={isAdmin(profile) ? () => setView('tournament_admin') : undefined}
+                            onOpenCompetitionPlay={profile?.grade && !profile?.is_banned ? () => setView('phase1_play') : undefined}
+                            onOpenCompetitionLeaderboard={() => setView('phase1_leaderboard')}
+                            onOpenCompetitionAdmin={profile?.is_admin ? () => setView('phase1_admin') : undefined}
                         />
                         <TaskList tasks={tasks} onTasksUpdate={fetchGameData} />
                     </div>
@@ -625,6 +678,16 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               <p className="font-semibold">📡 No internet connection - Some features may not work</p>
             </div>
           </div>
+        )}
+
+        {activeAnnouncement && (
+          <AnnouncementBanner
+            announcement={activeAnnouncement}
+            onDismiss={() => {
+              setDismissedAnnouncements(prev => [...prev, activeAnnouncement.id]);
+              setActiveAnnouncement(null);
+            }}
+          />
         )}
 
         <div className={cinematicViewClass}>
