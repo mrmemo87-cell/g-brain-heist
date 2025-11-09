@@ -15,6 +15,8 @@ interface BattleNarration {
   icon?: string;
 }
 
+const RAID_AP_COST = 2;
+
 interface PvPViewProps {
   profile: Profile;
   onComplete: () => void;
@@ -91,6 +93,14 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
   }, []);
 
   const handleAttack = async (target: RaidTarget) => {
+    if (profile.ap_now < RAID_AP_COST) {
+      audioService.play('wrong');
+      alert('Not enough Action Points to launch a raid. Regain AP before attacking again.');
+      return;
+    }
+
+    onGrantReward({ ap: -RAID_AP_COST });
+
     setSelectedTarget(target);
     setStage('cinematic');
     setBattleNarration([]);
@@ -152,7 +162,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
     try {
       // Call the actual attack (starts immediately but runs in parallel with animations)
       const result = await GameService.raid_attack(target.user_id, useCracker, target);
-      
+
       console.log('Battle result received:', result); // Debug log
       
       setAttackResult(result);
@@ -166,24 +176,23 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
         audioService.play('hack_fail');
       }
 
-      // Grant rewards/penalties including AP cost
+      // Grant rewards/penalties (AP cost already deducted when the raid was initiated)
       onGrantReward({
         xp: result.attacker_deltas.xp,
         coins: result.attacker_deltas.coins,
         gemstones: result.attacker_deltas.gemstones,
-        ap: -2, // AP cost for attacking
       });
-      
+
       // Wait for minimum animation time (2.8s) before showing result
       const elapsedTime = 2800;
       setTimeout(() => {
         setStage('result');
       }, elapsedTime);
-      
+
     } catch (error) {
       console.error('Battle attack error:', error);
       // Show error and go back to targets
-      alert('Battle failed: ' + (error as Error).message);
+      alert('Battle failed and action points were still consumed: ' + (error as Error).message);
       setStage('loading');
       GameService.raid_targets().then(data => {
         setTargets(data);
