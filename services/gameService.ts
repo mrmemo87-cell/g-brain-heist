@@ -1,5 +1,5 @@
 import { Profile, Task, SessionStatus, Caps, NewsEvent, SubjectData, Question, AnswerResponse, RaidTarget, RaidAttackResult, ShopItem, PurchaseReceipt, Clan, ClanChatMessage, ClanSummary, ClanMember, ClanBuff, InventoryItem, Teacher, TeacherQuestion, CreateQuestionRequest, QuestionAttemptResult, QuestTemplate } from '../types';
-import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount } from './storageService';
+import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount, canEarnQuestGemstone, recordQuestGemstoneAward, canEarnPvpGemstone, recordPvpGemstoneAward } from './storageService';
 import { supabase } from './supabaseClient';
 import { notificationService } from './notificationService';
 import {
@@ -17,6 +17,16 @@ import {
 } from './rpcGateway';
 
 const MOCK_DELAY = 500;
+
+const QUEST_STREAK_TARGET = 5;
+const QUEST_GEMSTONE_REWARD = 1;
+const QUEST_GEMSTONE_DAILY_CAP = 2;
+const LEVEL_MILESTONE_INTERVAL = 5;
+const LEVEL_MILESTONE_GEMSTONE_REWARD = 1;
+const PVP_GEMSTONE_REWARD = 1;
+const PVP_GEMSTONE_DAILY_CAP = 1;
+
+const nowIso = (): string => new Date().toISOString();
 
 type KyrgyzBotPersona = {
     firstName: string;
@@ -143,6 +153,30 @@ const KYRGYZ_BOT_PERSONAS: KyrgyzBotPersona[] = [
     },
 ];
 
+const getPersonaBotId = (persona: KyrgyzBotPersona): string =>
+    `bot_${persona.firstName.toLowerCase()}_${persona.lastName.toLowerCase().replace(/[^a-z]/g, '')}`;
+
+const KYRGYZ_PERSONA_LOOKUP = new Map<string, KyrgyzBotPersona>(
+    KYRGYZ_BOT_PERSONAS.map(persona => [getPersonaBotId(persona), persona])
+);
+
+type KyrgyzBotState = {
+    id: string;
+    personaId: string;
+    username: string;
+    level: number;
+    xp: number;
+    coins: number;
+    pvp_wins: number;
+    last_seen: string;
+    lastRaidAt: string | null;
+};
+
+type TimedNewsEvent = NewsEvent & { timestamp: number };
+
+const KYRGYZ_BOT_STATE_KEY = STORAGE_KEYS.KYRGYZ_BOTS;
+const BOT_REACTION_EMOJIS = ['🔥', '😮', '😂', '❤️'] as const;
+
 const randomIntInRange = ([min, max]: [number, number]): number => {
     const floorMin = Math.ceil(min);
     const floorMax = Math.floor(max);
@@ -174,7 +208,7 @@ const buildBotAvatarUrl = (seed: string): string => {
 
 const createKyrgyzBotTarget = (persona: KyrgyzBotPersona): RaidTarget => {
     const username = `${persona.firstName} ${persona.lastName}`;
-    const userId = `bot_${persona.firstName.toLowerCase()}_${persona.lastName.toLowerCase().replace(/[^a-z]/g, '')}`;
+    const userId = getPersonaBotId(persona);
     const level = randomIntInRange(persona.levelRange);
     const coins = randomIntInRange(persona.coinsRange);
     const hasShieldBase = persona.style === 'defensive' ? 0.55 : persona.style === 'balanced' ? 0.35 : 0.25;
@@ -221,6 +255,147 @@ const generateKyrgyzBots = (count: number, existingIds: Set<string>): RaidTarget
     }
 
     return bots;
+};
+
+const loadKyrgyzBotStates = (): KyrgyzBotState[] => {
+    const stored = loadFromStorage<KyrgyzBotState[]>(KYRGYZ_BOT_STATE_KEY);
+    return stored ? stored.map(bot => ({ ...bot })) : [];
+};
+
+const createInitialBotState = (persona: KyrgyzBotPersona): KyrgyzBotState => {
+    const level = randomIntInRange(persona.levelRange);
+    const coins = randomIntInRange(persona.coinsRange);
+    const xpFloor = approximateXpForLevel(level);
+
+    return {
+        id: getPersonaBotId(persona),
+        personaId: getPersonaBotId(persona),
+        username: `${persona.firstName} ${persona.lastName}`,
+        level,
+        xp: xpFloor + randomIntInRange([0, 120]),
+        coins,
+        pvp_wins: randomIntInRange([6, 28]),
+        last_seen: nowIso(),
+        lastRaidAt: null,
+    };
+};
+
+const clampBotStateToPersona = (bot: KyrgyzBotState): KyrgyzBotState => {
+    const persona = KYRGYZ_PERSONA_LOOKUP.get(bot.personaId);
+    if (!persona) {
+        return bot;
+    }
+
+    const level = clampNumber(Math.round(bot.level), persona.levelRange);
+    const coins = clampNumber(Math.round(bot.coins), persona.coinsRange);
+    const xpFloor = approximateXpForLevel(level);
+
+    return {
+        ...bot,
+        level,
+        coins,
+        xp: Math.max(bot.xp, xpFloor),
+        username: `${persona.firstName} ${persona.lastName}`,
+    };
+};
+
+const saveKyrgyzBotStates = (bots: KyrgyzBotState[]): void => {
+    saveToStorage(KYRGYZ_BOT_STATE_KEY, bots);
+};
+
+const refreshKyrgyzBotStates = (): KyrgyzBotState[] => {
+    const stored = loadKyrgyzBotStates();
+    const byId = new Map(stored.map(bot => [bot.personaId, bot]));
+    const refreshed: KyrgyzBotState[] = KYRGYZ_BOT_PERSONAS.map(persona => {
+        const personaId = getPersonaBotId(persona);
+        const existing = byId.get(personaId);
+        const hydrated = existing ? { ...existing, id: personaId, personaId } : createInitialBotState(persona);
+        return clampBotStateToPersona(hydrated);
+    });
+
+    saveKyrgyzBotStates(refreshed);
+    return refreshed;
+};
+
+const getBotWinChance = (bot: KyrgyzBotState): number => {
+    const persona = KYRGYZ_PERSONA_LOOKUP.get(bot.personaId);
+    if (!persona) {
+        return 0.5;
+    }
+
+    const styleBase = persona.style === 'aggressive' ? 0.65 : persona.style === 'defensive' ? 0.45 : 0.55;
+    const levelProgress = (bot.level - persona.levelRange[0]) / Math.max(1, persona.levelRange[1] - persona.levelRange[0]);
+    const normalizedProgress = clampNumber(levelProgress, [0, 1]);
+    const bonus = normalizedProgress * 0.15;
+
+    return clampNumber(styleBase + bonus, [0.25, 0.9]);
+};
+
+const applyKyrgyzBotReactions = (events: TimedNewsEvent[]): TimedNewsEvent[] => {
+    const bots = loadKyrgyzBotStates();
+    if (!bots.length || !events.length) {
+        return events;
+    }
+
+    return events.map(event => {
+        const reactions = { ...event.reactions };
+        const reactionRoll = Math.random();
+        const maxChance = Math.min(0.35, bots.length * 0.05);
+
+        if (reactionRoll < maxChance) {
+            const emoji = BOT_REACTION_EMOJIS[Math.floor(Math.random() * BOT_REACTION_EMOJIS.length)];
+            reactions[emoji] = (reactions[emoji] || 0) + 1;
+        }
+
+        return { ...event, reactions };
+    });
+};
+
+const simulateKyrgyzBotBackgroundActivity = (): void => {
+    const bots = refreshKyrgyzBotStates();
+    let changed = false;
+
+    bots.forEach(bot => {
+        const persona = KYRGYZ_PERSONA_LOOKUP.get(bot.personaId);
+        if (!persona) {
+            return;
+        }
+
+        const lastSeen = bot.last_seen ? new Date(bot.last_seen).getTime() : 0;
+        const minutesSinceSeen = lastSeen ? (Date.now() - lastSeen) / 60000 : Number.POSITIVE_INFINITY;
+
+        if (minutesSinceSeen > 5) {
+            bot.xp += randomIntInRange([15, 45]);
+            bot.coins = clampNumber(bot.coins + randomIntInRange([-120, 180]), persona.coinsRange);
+            bot.last_seen = nowIso();
+            changed = true;
+        }
+
+        const lastRaidAt = bot.lastRaidAt ? new Date(bot.lastRaidAt).getTime() : 0;
+        const minutesSinceRaid = lastRaidAt ? (Date.now() - lastRaidAt) / 60000 : Number.POSITIVE_INFINITY;
+
+        if (minutesSinceRaid > 30 && Math.random() < 0.15) {
+            const eventKind: NewsEvent['kind'] = Math.random() < 0.6 ? 'pvp_win' : 'quest_cleared';
+            addActivityEvent({
+                kind: eventKind,
+                actor: bot.username,
+                target: undefined,
+                data: {
+                    details:
+                        eventKind === 'pvp_win'
+                            ? 'Crushed a simulated rival in training.'
+                            : 'Completed an elite training quest.',
+                },
+                created_at: nowIso(),
+            });
+            bot.lastRaidAt = nowIso();
+            changed = true;
+        }
+    });
+
+    if (changed) {
+        saveKyrgyzBotStates(bots.map(clampBotStateToPersona));
+    }
 };
 
 type KyrgyzBotLeaderboardBaseProfile = {
@@ -944,7 +1119,7 @@ export const news_feed = async (): Promise<NewsEvent[]> => {
 
     const withBotReactions = applyKyrgyzBotReactions(combined);
 
-    return mockApiCall(withBotReactions.map(({ timestamp, ...event }) => event));
+    return mockApiCall(withBotReactions.map(({ timestamp, ...event }): NewsEvent => event));
 };
 
 // Helper function to format time ago
@@ -1435,8 +1610,8 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
 
         bot.last_seen = nowIso();
         bot.lastRaidAt = nowIso();
-        clampBotStateToPersona(bot);
-        bots[botIndex] = bot;
+        const normalizedBot = clampBotStateToPersona(bot);
+        bots[botIndex] = normalizedBot;
         saveKyrgyzBotStates(bots);
 
         return {
@@ -1452,7 +1627,7 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
                 shield_state,
             },
             summary,
-            botUsername: bot.username,
+            botUsername: normalizedBot.username,
         };
     };
 

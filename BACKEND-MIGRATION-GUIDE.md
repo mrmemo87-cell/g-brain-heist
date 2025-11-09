@@ -71,6 +71,9 @@ npm install @supabase/supabase-js
    ```env
    VITE_SUPABASE_URL=https://xxxxx.supabase.co
    VITE_SUPABASE_ANON_KEY=your-anon-key-here
+   # Optional: override where Supabase redirects back after email links or Google OAuth
+   # Use either a full URL or leave unset to default to https://<your-site>/auth/callback
+   VITE_SUPABASE_AUTH_REDIRECT_URL=https://your-production-domain.com/auth/callback
    ```
 
 2. Add `.env` to `.gitignore` (already should be there)
@@ -79,6 +82,7 @@ npm install @supabase/supabase-js
    ```env
    VITE_SUPABASE_URL=your-supabase-url
    VITE_SUPABASE_ANON_KEY=your-anon-key
+   VITE_SUPABASE_AUTH_REDIRECT_URL=https://your-site.com/auth/callback
    ```
 
 ---

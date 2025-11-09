@@ -12,6 +12,7 @@ const STORAGE_KEYS = {
   TASK_PROGRESS: 'gbh_task_progress', // Daily/weekly task progress
   PURCHASE_COUNTS: 'gbh_purchase_counts', // Daily purchase tracking
   GEMSTONE_LEDGER: 'gbh_gemstone_ledger', // Tracks rare gemstone earnings limits
+  KYRGYZ_BOTS: 'gbh_kyrgyz_bots', // Persistent Kyrgyz bot state for simulated activity
 } as const;
 
 export const saveToStorage = <T>(key: string, data: T): void => {

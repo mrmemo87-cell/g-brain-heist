@@ -23,7 +23,7 @@ const MATCHES_VIEW = 'tournament_public_bracket';
 
 export async function listSeasons(): Promise<TournamentSeason[]> {
   const { data, error } = await supabase
-    .from<TournamentSeason>(SEASONS_TABLE)
+    .from(SEASONS_TABLE)
     .select('*')
     .order('start_date', { ascending: false });
 
@@ -31,55 +31,55 @@ export async function listSeasons(): Promise<TournamentSeason[]> {
     throw error;
   }
 
-  return data || [];
+  return (data as TournamentSeason[] | null) || [];
 }
 
 export async function createSeason(payload: Partial<TournamentSeason>): Promise<TournamentSeason> {
   const { data, error } = await supabase
-    .from<TournamentSeason>(SEASONS_TABLE)
+    .from(SEASONS_TABLE)
     .insert(payload)
-    .select()
+    .select('*')
     .single();
 
   if (error) {
     throw error;
   }
 
-  return data;
+  return data as TournamentSeason;
 }
 
 export async function updateSeason(id: string, payload: Partial<TournamentSeason>): Promise<TournamentSeason> {
   const { data, error } = await supabase
-    .from<TournamentSeason>(SEASONS_TABLE)
+    .from(SEASONS_TABLE)
     .update(payload)
     .eq('id', id)
-    .select()
+    .select('*')
     .single();
 
   if (error) {
     throw error;
   }
 
-  return data;
+  return data as TournamentSeason;
 }
 
 export async function registerSchool(payload: TournamentSignupPayload): Promise<TournamentSignup> {
   const { data, error } = await supabase
-    .from<TournamentSignup>(SIGNUPS_TABLE)
+    .from(SIGNUPS_TABLE)
     .insert(payload)
-    .select()
+    .select('*')
     .single();
 
   if (error) {
     throw error;
   }
 
-  return data;
+  return data as TournamentSignup;
 }
 
 export async function listSignups(seasonId: string): Promise<TournamentSignup[]> {
   const { data, error } = await supabase
-    .from<TournamentSignup>(SIGNUPS_TABLE)
+    .from(SIGNUPS_TABLE)
     .select('*')
     .eq('season_id', seasonId)
     .order('created_at', { ascending: true });
@@ -88,12 +88,12 @@ export async function listSignups(seasonId: string): Promise<TournamentSignup[]>
     throw error;
   }
 
-  return data || [];
+  return (data as TournamentSignup[] | null) || [];
 }
 
 export async function approveSignup(signupId: string): Promise<TournamentSignup> {
   const { data, error } = await supabase
-    .rpc<TournamentSignup>('approve_tournament_signup', { signup_id: signupId });
+    .rpc('approve_tournament_signup', { signup_id: signupId });
 
   if (error) {
     throw error;
@@ -104,18 +104,18 @@ export async function approveSignup(signupId: string): Promise<TournamentSignup>
 
 export async function generateBracket(seasonId: string): Promise<TournamentMatch[]> {
   const { data, error } = await supabase
-    .rpc<TournamentMatch>('generate_season_bracket', { season_id: seasonId });
+    .rpc('generate_season_bracket', { season_id: seasonId });
 
   if (error) {
     throw error;
   }
 
-  return data || [];
+  return (data as TournamentMatch[]) || [];
 }
 
 export async function getBracket(seasonId: string): Promise<TournamentBracketRound[]> {
   const { data, error } = await supabase
-    .from<TournamentBracketRow>(MATCHES_VIEW)
+    .from(MATCHES_VIEW)
     .select('*')
     .eq('season_id', seasonId)
     .order('round_number', { ascending: true })
@@ -125,9 +125,11 @@ export async function getBracket(seasonId: string): Promise<TournamentBracketRou
     throw error;
   }
 
+  const rows = (data as TournamentBracketRow[] | null) || [];
+
   const rounds: Record<number, TournamentBracketRound> = {};
 
-  (data || []).forEach(match => {
+  rows.forEach(match => {
     const round = match.round_number;
     if (!rounds[round]) {
       rounds[round] = {
@@ -163,7 +165,7 @@ export async function getBracket(seasonId: string): Promise<TournamentBracketRou
 
 export async function listMatches(seasonId: string): Promise<TournamentMatch[]> {
   const { data, error } = await supabase
-    .from<TournamentMatch>('tournament_matches')
+    .from('tournament_matches')
     .select('*')
     .eq('season_id', seasonId)
     .order('round_number', { ascending: true })
@@ -173,12 +175,12 @@ export async function listMatches(seasonId: string): Promise<TournamentMatch[]> 
     throw error;
   }
 
-  return data || [];
+  return (data as TournamentMatch[] | null) || [];
 }
 
 export async function updateSchedule(payload: TournamentSchedulePayload): Promise<TournamentMatch> {
   const { data, error } = await supabase
-    .rpc<TournamentMatch>('update_match_schedule', {
+    .rpc('update_match_schedule', {
       match_id: payload.matchId,
       scheduled_at: payload.scheduledAt,
       location: payload.location,
@@ -195,7 +197,7 @@ export async function updateSchedule(payload: TournamentSchedulePayload): Promis
 
 export async function recordWinner(matchId: string, winnerId: string): Promise<TournamentMatch> {
   const { data, error } = await supabase
-    .rpc<TournamentMatch>('record_match_winner', {
+    .rpc('record_match_winner', {
       match_id: matchId,
       winner: winnerId
     });
@@ -209,7 +211,7 @@ export async function recordWinner(matchId: string, winnerId: string): Promise<T
 
 export async function getPublicBracket(): Promise<TournamentBracketRound[]> {
   const { data, error } = await supabase
-    .from<TournamentBracketRow>(MATCHES_VIEW)
+    .from(MATCHES_VIEW)
     .select('*')
     .order('season_id', { ascending: false })
     .order('round_number', { ascending: true })
@@ -219,7 +221,7 @@ export async function getPublicBracket(): Promise<TournamentBracketRound[]> {
     throw error;
   }
 
-  return getBracketRounds(data || []);
+  return getBracketRounds(((data as TournamentBracketRow[] | null) || []));
 }
 
 function getBracketRounds(matches: TournamentBracketRow[]): TournamentBracketRound[] {
