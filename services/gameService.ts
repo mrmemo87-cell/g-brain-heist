@@ -6,7 +6,7 @@ import {
     regenerateUserAp,
     notifyApFull,
     notifyLevelUp,
-    performHackAttempt,
+    performAttackAttempt,
     notifyAttackIncoming,
     notifyCoinsLost,
     notifyRevengeAvailable,
@@ -576,7 +576,7 @@ let MOCK_CLAN: Clan | null = loadFromStorage<Clan>(STORAGE_KEYS.CLAN) || null;
 let MOCK_CHAT: ClanChatMessage[] = loadFromStorage<ClanChatMessage[]>(STORAGE_KEYS.CHAT) || [
     { id: `msg_${Date.now() - 300000}`, user: 'CypherPunk', message: 'Anyone up for a raid later?', created_at: '5m ago', is_self: false },
     { id: `msg_${Date.now() - 180000}`, user: 'NeonGhost', message: 'Yeah, I have enough AP. Let\'s do it.', created_at: '3m ago', is_self: true },
-    { id: `msg_${Date.now() - 60000}`, user: 'ZeroCool', message: 'I am in! Let\'s hack some noobs.', created_at: '1m ago', is_self: false },
+    { id: `msg_${Date.now() - 60000}`, user: 'ZeroCool', message: 'I am in! Let\'s attack some noobs.', created_at: '1m ago', is_self: false },
 ];
 
 const MOCK_AVAILABLE_BUFFS: ClanBuff[] = [
@@ -593,7 +593,7 @@ const DEFAULT_INVENTORY: InventoryItem[] = [
         kind: 'shield',
         state: 'active',
         activated_at: new Date().toISOString(),
-        description: 'Blocks one incoming hack attempt before shattering.',
+        description: 'Blocks one incoming attack attempt before shattering.',
         effect_summary: 'Blocks 1 attack',
         defense_bonus: 20,
     },
@@ -681,7 +681,7 @@ export const resetGameData = (): void => {
   MOCK_CHAT = [
     { id: `msg_${Date.now() - 300000}`, user: 'CypherPunk', message: 'Anyone up for a raid later?', created_at: '5m ago', is_self: false },
     { id: `msg_${Date.now() - 180000}`, user: 'NeonGhost', message: 'Yeah, I have enough AP. Let\'s do it.', created_at: '3m ago', is_self: true },
-    { id: `msg_${Date.now() - 60000}`, user: 'ZeroCool', message: 'I am in! Let\'s hack some noobs.', created_at: '1m ago', is_self: false },
+    { id: `msg_${Date.now() - 60000}`, user: 'ZeroCool', message: 'I am in! Let\'s attack some noobs.', created_at: '1m ago', is_self: false },
   ];
   saveProfile();
   saveInventory();
