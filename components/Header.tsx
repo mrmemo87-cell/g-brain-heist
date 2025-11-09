@@ -221,14 +221,14 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                 </h1>
               </div>
               <div className="flex items-center gap-2">
-                <img 
-                  src={profile.avatar_url} 
-                  alt={profile.username} 
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.username}
                   className="w-9 h-9 rounded-full border-2 border-pink-500"
                   onClick={() => setShowSettingsModal(true)}
                 />
                 {/* Notification Bell */}
-                <button 
+                <button
                   onClick={() => setShowNotifications(!showNotifications)}
                   className="relative p-2 rounded-lg bg-black/40 border border-gray-600 hover:border-purple-500 transition-colors"
                   aria-label="Notifications"
@@ -240,7 +240,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                     </span>
                   )}
                 </button>
-                <button 
+                <button
                   onClick={() => onShowHelp?.()}
                   className="p-2 rounded-lg bg-black/40 border border-gray-600 hover:border-cyan-500 transition-colors"
                   aria-label="Help"
@@ -248,12 +248,20 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                 >
                   <span className="text-lg">❓</span>
                 </button>
-                <button 
+                <button
                   onClick={() => setShowSettingsModal(true)}
                   className="p-2 rounded-lg bg-black/40 border border-gray-600 hover:border-yellow-500 transition-colors"
                   aria-label="Settings"
                 >
                   <span className="text-lg">⚙️</span>
+                </button>
+                <button
+                  onClick={onLogout}
+                  className="p-2 rounded-lg bg-black/40 border border-gray-600 hover:border-red-500 transition-colors"
+                  aria-label="Log Out"
+                  title="Log Out"
+                >
+                  <LogoutIcon className="w-5 h-5 text-red-400" />
                 </button>
               </div>
             </div>
