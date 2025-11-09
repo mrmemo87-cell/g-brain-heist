@@ -126,3 +126,49 @@ export const loginWithGoogle = async (): Promise<void> => {
         throw new Error(error.message);
     }
 };
+
+// Create profile for OAuth users (Google sign-in)
+export const createOAuthProfile = async (): Promise<void> => {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+        throw new Error('Not authenticated');
+    }
+
+    // Check if profile already exists
+    const { data: existingProfile } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+
+    if (existingProfile) {
+        return; // Profile already exists
+    }
+
+    // Extract username from email or use name from OAuth provider
+    const emailUsername = user.email?.split('@')[0] || 'user';
+    const displayName = user.user_metadata?.full_name || user.user_metadata?.name;
+    const username = displayName || emailUsername;
+
+    // Create user profile with default student role
+    const profileData = {
+        id: user.id,
+        email: user.email,
+        username: username,
+        role: 'student', // Default to student for OAuth users
+        batch: '8A', // Default batch
+        avatar_url: user.user_metadata?.avatar_url || `https://picsum.photos/seed/${username}/100/100`,
+    };
+
+    const { error: profileError } = await supabase
+        .from('users')
+        .insert(profileData);
+
+    if (profileError) {
+        console.error('OAuth profile creation error:', profileError);
+        throw new Error(`Failed to create user profile: ${profileError.message}`);
+    }
+
+    console.log('OAuth profile created successfully for:', user.email);
+};

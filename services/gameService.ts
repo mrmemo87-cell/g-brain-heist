@@ -523,13 +523,45 @@ export const whoami = async (): Promise<Profile> => {
   }
 
   // Fetch profile from database
-  const { data: profile, error: profileError } = await supabase
+  let { data: profile, error: profileError } = await supabase
     .from('users')
     .select('*')
     .eq('id', user.id)
     .single();
 
-  if (profileError || !profile) {
+  // If profile doesn't exist (OAuth user), create it
+  if (profileError && profileError.code === 'PGRST116') {
+    console.log('Profile not found for OAuth user, creating new profile...');
+    
+    // Extract username from email or use name from OAuth provider
+    const emailUsername = user.email?.split('@')[0] || 'user';
+    const displayName = user.user_metadata?.full_name || user.user_metadata?.name;
+    const username = displayName || emailUsername;
+
+    // Create user profile with default student role
+    const profileData = {
+        id: user.id,
+        email: user.email,
+        username: username,
+        role: 'student', // Default to student for OAuth users
+        batch: '8A', // Default batch
+        avatar_url: user.user_metadata?.avatar_url || `https://picsum.photos/seed/${username}/100/100`,
+    };
+
+    const { data: newProfile, error: createError } = await supabase
+        .from('users')
+        .insert(profileData)
+        .select()
+        .single();
+
+    if (createError) {
+        console.error('Failed to create OAuth profile:', createError);
+        throw new Error(`Failed to create user profile: ${createError.message}`);
+    }
+
+    profile = newProfile;
+    console.log('OAuth profile created successfully for:', user.email);
+  } else if (profileError || !profile) {
     throw new Error('Profile not found');
   }
 
