@@ -10,7 +10,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- ============================================
 -- USERS TABLE
 -- ============================================
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email TEXT UNIQUE NOT NULL,
     username TEXT UNIQUE NOT NULL,
@@ -34,9 +34,9 @@ CREATE TABLE users (
 );
 
 -- Index for fast lookups
-CREATE INDEX idx_users_username ON users(username);
-CREATE INDEX idx_users_batch ON users(batch);
-CREATE INDEX idx_users_last_seen ON users(last_seen);
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_users_batch ON users(batch);
+CREATE INDEX IF NOT EXISTS idx_users_last_seen ON users(last_seen);
 
 -- ============================================
 -- PROFILES VIEW (Phase 1 Competition)
@@ -61,7 +61,7 @@ FROM users;
 -- ============================================
 -- MCQ QUESTIONS (Silk Road Event)
 -- ============================================
-CREATE TABLE mcq_questions (
+CREATE TABLE IF NOT EXISTS mcq_questions (
     id BIGSERIAL PRIMARY KEY,
     subject TEXT,
     grade SMALLINT NOT NULL CHECK (grade IN (8, 9)),
@@ -80,13 +80,13 @@ CREATE TABLE mcq_questions (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_mcq_questions_grade ON mcq_questions(grade);
-CREATE INDEX idx_mcq_questions_active ON mcq_questions(active);
+CREATE INDEX IF NOT EXISTS idx_mcq_questions_grade ON mcq_questions(grade);
+CREATE INDEX IF NOT EXISTS idx_mcq_questions_active ON mcq_questions(active);
 
 -- ============================================
 -- ATTEMPTS TABLE (Quiz Attempts)
 -- ============================================
-CREATE TABLE attempts (
+CREATE TABLE IF NOT EXISTS attempts (
     id BIGSERIAL PRIMARY KEY,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     question_id BIGINT REFERENCES mcq_questions(id) ON DELETE CASCADE,
@@ -94,40 +94,101 @@ CREATE TABLE attempts (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_attempts_user ON attempts(user_id, created_at DESC);
-CREATE INDEX idx_attempts_question ON attempts(question_id);
+CREATE INDEX IF NOT EXISTS idx_attempts_user ON attempts(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_attempts_question ON attempts(question_id);
 
 -- ============================================
 -- ANNOUNCEMENTS TABLE (Broadcasts)
 -- ============================================
-CREATE TABLE announcements (
+CREATE TABLE IF NOT EXISTS announcements (
     id BIGSERIAL PRIMARY KEY,
     text TEXT NOT NULL,
     created_by UUID REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_announcements_created_at ON announcements(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_announcements_created_at ON announcements(created_at DESC);
+
+-- Track which users have seen each announcement
+CREATE TABLE IF NOT EXISTS announcement_receipts (
+    id BIGSERIAL PRIMARY KEY,
+    announcement_id BIGINT REFERENCES announcements(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    seen_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (announcement_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_announcement_receipts_user ON announcement_receipts(user_id);
+CREATE INDEX IF NOT EXISTS idx_announcement_receipts_announcement ON announcement_receipts(announcement_id);
 
 -- ============================================
 -- RPC EVENT LOG (Telemetry)
 -- ============================================
-CREATE TABLE rpc_event_log (
+CREATE TABLE IF NOT EXISTS rpc_event_log (
     id BIGSERIAL PRIMARY KEY,
     function_name TEXT NOT NULL,
-    level TEXT NOT NULL CHECK (level IN ('info', 'error')),
+    log_level TEXT NOT NULL CHECK (log_level IN ('info', 'error')),
     message TEXT,
     context JSONB DEFAULT '{}'::jsonb,
     user_id UUID,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_rpc_event_log_level ON rpc_event_log(level, created_at DESC);
+-- Ensure legacy installations have the new log_level column
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'rpc_event_log'
+          AND column_name = 'level'
+    ) THEN
+        ALTER TABLE rpc_event_log RENAME COLUMN level TO log_level;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'rpc_event_log'
+          AND column_name = 'log_level'
+    ) THEN
+        ALTER TABLE rpc_event_log ADD COLUMN log_level TEXT;
+    END IF;
+
+    -- Drop legacy constraint if present and re-add with the correct name
+    IF EXISTS (
+        SELECT 1 FROM information_schema.table_constraints
+        WHERE table_schema = 'public'
+          AND table_name = 'rpc_event_log'
+          AND constraint_name = 'rpc_event_log_level_check'
+    ) THEN
+        ALTER TABLE rpc_event_log DROP CONSTRAINT rpc_event_log_level_check;
+    END IF;
+
+    BEGIN
+        ALTER TABLE rpc_event_log ADD CONSTRAINT rpc_event_log_log_level_check CHECK (log_level IN ('info', 'error'));
+    EXCEPTION
+        WHEN duplicate_object THEN NULL;
+    END;
+END;
+$$;
+
+ALTER TABLE rpc_event_log
+    ALTER COLUMN log_level SET DEFAULT 'info';
+
+UPDATE rpc_event_log
+SET log_level = COALESCE(log_level, 'info')
+WHERE log_level IS NULL;
+
+ALTER TABLE rpc_event_log
+    ALTER COLUMN log_level SET NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_rpc_event_log_level ON rpc_event_log(log_level, created_at DESC);
 
 -- ============================================
 -- INVENTORY TABLE
 -- ============================================
-CREATE TABLE inventory (
+CREATE TABLE IF NOT EXISTS inventory (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     item_id TEXT NOT NULL,
@@ -143,13 +204,13 @@ CREATE TABLE inventory (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_inventory_user_id ON inventory(user_id);
-CREATE INDEX idx_inventory_state ON inventory(state);
+CREATE INDEX IF NOT EXISTS idx_inventory_user_id ON inventory(user_id);
+CREATE INDEX IF NOT EXISTS idx_inventory_state ON inventory(state);
 
 -- ============================================
 -- CLANS TABLE
 -- ============================================
-CREATE TABLE clans (
+CREATE TABLE IF NOT EXISTS clans (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT UNIQUE NOT NULL,
     notice TEXT,
@@ -160,13 +221,13 @@ CREATE TABLE clans (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_clans_name ON clans(name);
-CREATE INDEX idx_clans_leader_id ON clans(leader_id);
+CREATE INDEX IF NOT EXISTS idx_clans_name ON clans(name);
+CREATE INDEX IF NOT EXISTS idx_clans_leader_id ON clans(leader_id);
 
 -- ============================================
 -- CLAN MEMBERS TABLE
 -- ============================================
-CREATE TABLE clan_members (
+CREATE TABLE IF NOT EXISTS clan_members (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     clan_id UUID REFERENCES clans(id) ON DELETE CASCADE,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -175,13 +236,13 @@ CREATE TABLE clan_members (
     UNIQUE(clan_id, user_id)
 );
 
-CREATE INDEX idx_clan_members_clan_id ON clan_members(clan_id);
-CREATE INDEX idx_clan_members_user_id ON clan_members(user_id);
+CREATE INDEX IF NOT EXISTS idx_clan_members_clan_id ON clan_members(clan_id);
+CREATE INDEX IF NOT EXISTS idx_clan_members_user_id ON clan_members(user_id);
 
 -- ============================================
 -- CLAN CHAT TABLE
 -- ============================================
-CREATE TABLE clan_chat (
+CREATE TABLE IF NOT EXISTS clan_chat (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     clan_id UUID REFERENCES clans(id) ON DELETE CASCADE,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -190,12 +251,12 @@ CREATE TABLE clan_chat (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_clan_chat_clan_id ON clan_chat(clan_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_clan_chat_clan_id ON clan_chat(clan_id, created_at DESC);
 
 -- ============================================
 -- ACTIVITIES TABLE (News Feed)
 -- ============================================
-CREATE TABLE activities (
+CREATE TABLE IF NOT EXISTS activities (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     kind TEXT NOT NULL,
     actor_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -207,13 +268,13 @@ CREATE TABLE activities (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_activities_created_at ON activities(created_at DESC);
-CREATE INDEX idx_activities_actor_id ON activities(actor_id);
+CREATE INDEX IF NOT EXISTS idx_activities_created_at ON activities(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_activities_actor_id ON activities(actor_id);
 
 -- ============================================
 -- ACTIVITY REACTIONS TABLE
 -- ============================================
-CREATE TABLE activity_reactions (
+CREATE TABLE IF NOT EXISTS activity_reactions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     activity_id UUID REFERENCES activities(id) ON DELETE CASCADE,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -222,12 +283,12 @@ CREATE TABLE activity_reactions (
     UNIQUE(activity_id, user_id)
 );
 
-CREATE INDEX idx_reactions_activity_id ON activity_reactions(activity_id);
+CREATE INDEX IF NOT EXISTS idx_reactions_activity_id ON activity_reactions(activity_id);
 
 -- ============================================
 -- TASKS TABLE
 -- ============================================
-CREATE TABLE tasks (
+CREATE TABLE IF NOT EXISTS tasks (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     kind TEXT NOT NULL CHECK (kind IN ('daily', 'weekly')),
@@ -238,13 +299,13 @@ CREATE TABLE tasks (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_tasks_user_id ON tasks(user_id);
-CREATE INDEX idx_tasks_expires_at ON tasks(expires_at);
+CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks(user_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_expires_at ON tasks(expires_at);
 
 -- ============================================
 -- SHOP PURCHASES TABLE
 -- ============================================
-CREATE TABLE shop_purchases (
+CREATE TABLE IF NOT EXISTS shop_purchases (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     item_id TEXT NOT NULL,
@@ -254,12 +315,12 @@ CREATE TABLE shop_purchases (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_purchases_user_date ON shop_purchases(user_id, purchase_date);
+CREATE INDEX IF NOT EXISTS idx_purchases_user_date ON shop_purchases(user_id, purchase_date);
 
 -- ============================================
 -- SESSIONS TABLE (for XP boosters)
 -- ============================================
-CREATE TABLE sessions (
+CREATE TABLE IF NOT EXISTS sessions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     multiplier NUMERIC DEFAULT 1.0,
@@ -269,12 +330,12 @@ CREATE TABLE sessions (
     UNIQUE(user_id)
 );
 
-CREATE INDEX idx_sessions_user_id ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
 
 -- ============================================
 -- CAPS TABLE (daily/weekly limits)
 -- ============================================
-CREATE TABLE caps (
+CREATE TABLE IF NOT EXISTS caps (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     xp_daily_earned INTEGER DEFAULT 0,
@@ -286,7 +347,7 @@ CREATE TABLE caps (
     UNIQUE(user_id)
 );
 
-CREATE INDEX idx_caps_user_id ON caps(user_id);
+CREATE INDEX IF NOT EXISTS idx_caps_user_id ON caps(user_id);
 
 -- ============================================
 -- FUNCTIONS & TRIGGERS
@@ -301,11 +362,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS users_updated_at ON users;
 CREATE TRIGGER users_updated_at
     BEFORE UPDATE ON users
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at();
 
+DROP TRIGGER IF EXISTS clans_updated_at ON clans;
 CREATE TRIGGER clans_updated_at
     BEFORE UPDATE ON clans
     FOR EACH ROW
@@ -324,6 +387,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS clan_members_count ON clan_members;
 CREATE TRIGGER clan_members_count
     AFTER INSERT OR DELETE ON clan_members
     FOR EACH ROW
@@ -338,10 +402,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Note: Triggers for this function should be added to specific tables as needed
+
 -- ============================================
 -- SAMPLE DATA (for testing)
 -- ============================================
 -- Uncomment to add sample data
+-- NOTE: This is commented out to avoid constraint violations on re-runs
 
 /*
 -- Insert a test user

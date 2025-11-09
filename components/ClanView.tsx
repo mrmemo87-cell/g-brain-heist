@@ -6,7 +6,7 @@ import { ClanIcon, CoinIcon, DemoteIcon, KickIcon, LeaveIcon, ManageIcon, Promot
 
 type ClanViewStage = 'loading' | 'no_clan' | 'in_clan' | 'creating' | 'joining';
 type ClanTab = 'home' | 'chat' | 'management' | 'browse';
-type ModalType = null | 'deposit' | 'confirm_leave' | 'confirm_delete' | 'confirm_kick';
+type ModalType = null | 'deposit' | 'confirm_leave' | 'confirm_delete' | 'confirm_kick' | 'view_members';
 
 interface ClanViewProps {
   profile: Profile;
@@ -40,6 +40,9 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   const [depositAmount, setDepositAmount] = useState('');
   const [modal, setModal] = useState<ModalType>(null);
   const [memberToKick, setMemberToKick] = useState<ClanMember | null>(null);
+    const [memberModalState, setMemberModalState] = useState<{ clanId: string; clanName: string; members: ClanMember[] } | null>(null);
+    const [isMemberModalLoading, setIsMemberModalLoading] = useState(false);
+    const [memberModalError, setMemberModalError] = useState<string | null>(null);
   
   const myMemberInfo = clan?.members.find(m => m.user_id === profile.id);
 
@@ -143,8 +146,32 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
           addToast("Member demoted.", "success");
       } catch (e) { addToast("Failed to demote.", "error"); }
   };
+
+  const openMembersModal = async (clanId: string, clanName: string) => {
+      setMemberModalError(null);
+      setModal('view_members');
+      setMemberModalState({ clanId, clanName, members: [] });
+      setIsMemberModalLoading(true);
+      try {
+          const members = await GameService.clan_get_members_by_id(clanId);
+          setMemberModalState({ clanId, clanName, members });
+      } catch (error: any) {
+          const message = error?.message || "Failed to load clan members.";
+          setMemberModalError(message);
+          addToast(message, "error");
+      } finally {
+          setIsMemberModalLoading(false);
+      }
+  };
+
+  const closeMembersModal = () => {
+      setModal(null);
+      setMemberModalState(null);
+      setMemberModalError(null);
+      setIsMemberModalLoading(false);
+  };
   
-  const JoinClanView: React.FC<{ onJoined: (clan: Clan) => void }> = ({ onJoined }) => {
+    const JoinClanView: React.FC<{ onJoined: (clan: Clan) => void; onViewMembers: (clan: ClanSummary) => void }> = ({ onJoined, onViewMembers }) => {
     const [clanList, setClanList] = useState<ClanSummary[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isJoining, setIsJoining] = useState<string | null>(null);
@@ -204,7 +231,14 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                         <div className="flex items-center space-x-4 text-left">
                             <img src={clan.crest_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${clan.name}`} alt={`${clan.name} crest`} className="w-16 h-16 rounded-full" />
                             <div>
-                                <p className="font-heading text-lg text-white">{clan.name}</p>
+                                <button
+                                    type="button"
+                                    onClick={() => onViewMembers(clan)}
+                                    className="font-heading text-lg text-white text-left hover:text-amber-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 rounded"
+                                >
+                                    {clan.name}
+                                </button>
+                                <p className="text-xs text-gray-500">View members</p>
                                 <p className="text-sm text-gray-400">{clan.member_count} members | {clan.vault_metric.toLocaleString()} XP</p>
                             </div>
                         </div>
@@ -290,7 +324,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
       );
   };
   
-  const BrowseClansTab: React.FC<{ currentClanId: string; addToast: (msg: string, type: ToastMessage['type']) => void }> = ({ currentClanId, addToast }) => {
+    const BrowseClansTab: React.FC<{ currentClanId: string; addToast: (msg: string, type: ToastMessage['type']) => void; onViewMembers: (clan: ClanSummary) => void }> = ({ currentClanId, addToast, onViewMembers }) => {
     const [clanList, setClanList] = useState<ClanSummary[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -344,10 +378,15 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                     className="w-12 h-12 rounded-full" 
                                 />
                                 <div>
-                                    <p className="font-heading text-lg text-white">
+                                    <button
+                                        type="button"
+                                        onClick={() => onViewMembers(clanItem)}
+                                        className="font-heading text-lg text-white text-left hover:text-amber-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 rounded"
+                                    >
                                         {clanItem.name}
                                         {clanItem.id === currentClanId && <span className="ml-2 text-sm text-amber-400">(Your Clan)</span>}
-                                    </p>
+                                    </button>
+                                    <p className="text-xs text-gray-500">View members</p>
                                     <p className="text-sm text-gray-400">
                                         {clanItem.member_count} members | {clanItem.vault_metric.toLocaleString()} Total XP
                                     </p>
@@ -516,7 +555,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                         </div>
                     )}
                     {activeTab === 'chat' && <ClanChat />}
-                    {activeTab === 'browse' && <BrowseClansTab currentClanId={clan.id} addToast={addToast} />}
+                    {activeTab === 'browse' && <BrowseClansTab currentClanId={clan.id} addToast={addToast} onViewMembers={(clanItem) => openMembersModal(clanItem.id, clanItem.name)} />}
                     {activeTab === 'management' && isPrivileged && (
                          <div>
                              <h3 className="font-heading text-xl mb-3 text-amber-300">Member Management</h3>
@@ -566,6 +605,37 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                     )}
                 </div>
             </div>
+             {modal === 'view_members' && memberModalState && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div className="card-glass w-full max-w-lg m-4 p-6 border-2 border-amber-400">
+                        <h2 className="font-heading text-2xl text-center mb-2 text-amber-300">{`Members of ${memberModalState.clanName}`}</h2>
+                        {isMemberModalLoading ? (
+                            <p className="text-center text-gray-300 py-6">Loading roster...</p>
+                        ) : memberModalError ? (
+                            <p className="text-center text-danger-red py-6">{memberModalError}</p>
+                        ) : memberModalState.members.length === 0 ? (
+                            <p className="text-center text-gray-300 py-6">No agents enlisted yet.</p>
+                        ) : (
+                            <ul className="space-y-3 max-h-80 overflow-y-auto mt-4">
+                                {memberModalState.members.map(member => (
+                                    <li key={member.user_id} className="flex items-center justify-between bg-black/20 p-3 rounded-lg">
+                                        <div className="flex items-center space-x-3">
+                                            <img src={member.avatar_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${member.username}`} className="w-10 h-10 rounded-full" alt="Clan member avatar" />
+                                            <div>
+                                                <p className="font-semibold text-white">{member.username}</p>
+                                                <p className="text-xs text-gray-400 capitalize">{member.role}</p>
+                                            </div>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                        <button onClick={closeMembersModal} className="w-full mt-6 font-heading py-3 rounded-xl bg-gray-600/50 hover:bg-gray-500/50 border border-gray-500">
+                            Close
+                        </button>
+                    </div>
+                </div>
+             )}
              {modal === 'confirm_leave' && <ConfirmationModal title="Leave Clan" message="Are you sure you want to leave this clan?" confirmText="Yes, Leave" onConfirm={handleLeaveClan} onCancel={() => setModal(null)} />}
              {modal === 'confirm_delete' && <ConfirmationModal title="Delete Clan" message="Are you sure you want to permanently delete this clan? This action cannot be undone." confirmText="Yes, Delete" onConfirm={handleDeleteClan} onCancel={() => setModal(null)} />}
              {modal === 'confirm_kick' && memberToKick && <ConfirmationModal title={`Kick ${memberToKick.username}`} message={`Are you sure you want to kick ${memberToKick.username} from the clan?`} confirmText="Yes, Kick" onConfirm={handleKickMember} onCancel={() => { setModal(null); setMemberToKick(null); }} />}
@@ -583,7 +653,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
       case 'joining': return <JoinClanView onJoined={(joinedClan) => {
           setClan(joinedClan);
           setStage('in_clan');
-      }} />;
+      }} onViewMembers={(clanSummary) => openMembersModal(clanSummary.id, clanSummary.name)} />;
       case 'in_clan': return renderInClan();
       default: return null;
     }

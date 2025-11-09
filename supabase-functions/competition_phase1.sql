@@ -50,7 +50,7 @@ begin
     from users u
     where u.id = v_user_id
       and coalesce(u.is_banned, false) = false
-      and coalesce(u.grade, p_grade) = p_grade
+      and coalesce(u.grade::int, p_grade) = p_grade
   ) then
     raise exception 'grade_mismatch';
   end if;
@@ -92,7 +92,7 @@ begin
          coalesce(v_question.reward_xp, 20),
          coalesce(v_question.reward_coins, 10);
 exception when others then
-  insert into rpc_event_log(function_name, level, message, user_id, context)
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
   values ('rpc_questions_next', 'error', SQLERRM, v_user_id, json_build_object('grade', p_grade));
   raise;
 end;
@@ -196,7 +196,7 @@ begin
          v_profile.coins,
          v_profile.streak;
 exception when others then
-  insert into rpc_event_log(function_name, level, message, user_id, context)
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
   values ('rpc_submit_attempt', 'error', SQLERRM, v_user_id, json_build_object('question_id', p_question_id));
   raise;
 end;
@@ -225,9 +225,9 @@ as $$
          u.coins,
          u.streak,
          u.batch,
-         coalesce(u.grade, p_grade)
+         coalesce(u.grade::int, p_grade)
   from users u
-  where u.grade = p_grade
+  where u.grade::int = p_grade
     and coalesce(u.is_banned, false) = false
   order by u.xp desc, u.coins desc
   limit greatest(p_limit, 1);
@@ -256,7 +256,7 @@ as $$
          u.coins,
          u.streak,
          u.batch,
-         coalesce(u.grade, 0)
+         coalesce(u.grade::int, 0)
   from users u
   where u.batch = p_batch
     and coalesce(u.is_banned, false) = false
@@ -297,12 +297,12 @@ begin
     raise exception 'user_not_found';
   end if;
 
-  insert into rpc_event_log(function_name, level, message, user_id, context)
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
   values ('rpc_admin_grant', 'info', 'grant_applied', v_actor, json_build_object('target', p_user_id, 'xp_delta', p_xp_delta, 'coins_delta', p_coins_delta));
 
   return query select v_row.id, v_row.xp, v_row.coins, v_row.streak;
 exception when others then
-  insert into rpc_event_log(function_name, level, message, user_id, context)
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
   values ('rpc_admin_grant', 'error', SQLERRM, v_actor, json_build_object('target', p_user_id));
   raise;
 end;
@@ -342,12 +342,12 @@ begin
     raise exception 'user_not_found';
   end if;
 
-  insert into rpc_event_log(function_name, level, message, user_id, context)
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
   values ('rpc_admin_reset_user', 'info', 'reset_applied', v_actor, json_build_object('target', p_user_id));
 
   return query select v_row.id, v_row.xp, v_row.coins, v_row.streak;
 exception when others then
-  insert into rpc_event_log(function_name, level, message, user_id, context)
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
   values ('rpc_admin_reset_user', 'error', SQLERRM, v_actor, json_build_object('target', p_user_id));
   raise;
 end;
@@ -384,13 +384,118 @@ begin
     raise exception 'user_not_found';
   end if;
 
-  insert into rpc_event_log(function_name, level, message, user_id, context)
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
   values ('rpc_admin_ban_user', 'info', 'ban_state_changed', v_actor, json_build_object('target', p_user_id, 'is_banned', p_is_banned));
 
   return query select v_row.id, v_row.is_banned;
 exception when others then
-  insert into rpc_event_log(function_name, level, message, user_id, context)
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
   values ('rpc_admin_ban_user', 'error', SQLERRM, v_actor, json_build_object('target', p_user_id));
+  raise;
+end;
+$$;
+
+-- ============================================
+-- Admin: Update Grade/Class
+-- ============================================
+create or replace function rpc_admin_set_user_academics(p_user_id uuid, p_grade int, p_batch text)
+returns table (
+  user_id uuid,
+  grade int,
+  batch text
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_row users%rowtype;
+  v_grade int := p_grade;
+  v_batch text := p_batch;
+begin
+  if v_actor is null or not is_current_user_admin() then
+    raise exception 'forbidden';
+  end if;
+
+  if v_grade is not null and v_grade not in (8, 9) then
+    raise exception 'invalid_grade';
+  end if;
+
+  if v_batch is not null and v_batch not in ('8A', '8B', '8C', '9A', '9B', '9C') then
+    raise exception 'invalid_batch';
+  end if;
+
+  if v_batch is not null and v_grade is not null then
+    if left(v_batch, 1) <> v_grade::text then
+      raise exception 'batch_grade_mismatch';
+    end if;
+  end if;
+
+  if v_grade is null then
+    v_batch := null;
+  end if;
+
+  update users
+  set grade = v_grade,
+      batch = v_batch,
+      updated_at = now()
+  where id = p_user_id
+  returning * into v_row;
+
+  if not found then
+    raise exception 'user_not_found';
+  end if;
+
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
+  values ('rpc_admin_set_user_academics', 'info', 'academics_updated', v_actor, json_build_object('target', p_user_id, 'grade', v_grade, 'batch', v_batch));
+
+  return query select v_row.id, v_row.grade::int, v_row.batch;
+exception when others then
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
+  values ('rpc_admin_set_user_academics', 'error', SQLERRM, v_actor, json_build_object('target', p_user_id, 'grade', p_grade, 'batch', p_batch));
+  raise;
+end;
+$$;
+
+-- ============================================
+-- Admin: Reset All Player Progress
+-- ============================================
+create or replace function rpc_admin_reset_all()
+returns table (
+  affected_rows int
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_count int;
+begin
+  if v_actor is null or not is_current_user_admin() then
+    raise exception 'forbidden';
+  end if;
+
+  update users
+  set xp = 0,
+      coins = 0,
+      streak = 0,
+      ap_now = ap_max,
+      last_ap_update = now(),
+      updated_at = now()
+  where coalesce(is_admin, false) = false
+    and coalesce(is_banned, false) = false;
+
+  get diagnostics v_count = row_count;
+
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
+  values ('rpc_admin_reset_all', 'info', 'global_reset', v_actor, json_build_object('affected_rows', v_count));
+
+  return query select coalesce(v_count, 0);
+exception when others then
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
+  values ('rpc_admin_reset_all', 'error', SQLERRM, v_actor, json_build_object());
   raise;
 end;
 $$;
@@ -420,13 +525,93 @@ begin
   values (p_text, v_actor)
   returning * into v_row;
 
-  insert into rpc_event_log(function_name, level, message, user_id, context)
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
   values ('rpc_announcement_post', 'info', 'broadcast', v_actor, json_build_object('announcement_id', v_row.id));
 
   return query select v_row.id, v_row.text, v_row.created_at;
 exception when others then
-  insert into rpc_event_log(function_name, level, message, user_id, context)
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
   values ('rpc_announcement_post', 'error', SQLERRM, v_actor, json_build_object());
+  raise;
+end;
+$$;
+
+-- ============================================
+-- Announcements: Fetch next unseen
+-- ============================================
+create or replace function rpc_announcement_next()
+returns table (
+  id bigint,
+  text text,
+  created_at timestamptz,
+  created_by uuid,
+  seen_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user uuid := auth.uid();
+begin
+  if v_user is null then
+    raise exception 'not_authenticated';
+  end if;
+
+  return query
+  select a.id,
+         a.text,
+         a.created_at,
+         a.created_by,
+         ar.seen_at
+  from announcements a
+  left join announcement_receipts ar
+    on ar.announcement_id = a.id
+   and ar.user_id = v_user
+  where ar.id is null
+  order by a.created_at desc
+  limit 1;
+exception when others then
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
+  values ('rpc_announcement_next', 'error', SQLERRM, v_user, json_build_object());
+  raise;
+end;
+$$;
+
+-- ============================================
+-- Announcements: Mark seen
+-- ============================================
+create or replace function rpc_announcement_mark_seen(p_announcement_id bigint)
+returns table (
+  announcement_id bigint,
+  seen_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user uuid := auth.uid();
+  v_receipt announcement_receipts%rowtype;
+begin
+  if v_user is null then
+    raise exception 'not_authenticated';
+  end if;
+
+  if not exists (select 1 from announcements where id = p_announcement_id) then
+    raise exception 'announcement_not_found';
+  end if;
+
+  insert into announcement_receipts(announcement_id, user_id, seen_at)
+  values (p_announcement_id, v_user, now())
+  on conflict (announcement_id, user_id)
+  do update set seen_at = excluded.seen_at
+  returning * into v_receipt;
+
+  return query select v_receipt.announcement_id, v_receipt.seen_at;
+exception when others then
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
+  values ('rpc_announcement_mark_seen', 'error', SQLERRM, v_user, json_build_object('announcement_id', p_announcement_id));
   raise;
 end;
 $$;

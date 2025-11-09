@@ -2117,6 +2117,34 @@ export const clan_list = async (): Promise<ClanSummary[]> => {
     return mockApiCall(mappedClans);
 };
 
+export const clan_get_members_by_id = async (clanId: string): Promise<ClanMember[]> => {
+    const { data, error } = await supabase
+        .from('clan_members')
+        .select(`
+            user_id,
+            role,
+            users!inner (
+                username,
+                avatar_url
+            )
+        `)
+        .eq('clan_id', clanId)
+        .order('role', { ascending: true })
+        .order('user_id', { ascending: true });
+
+    if (error) {
+        throw error;
+    }
+
+    return (data || []).map((member: any) => ({
+        user_id: member.user_id,
+        username: member.users?.username ?? 'Unknown agent',
+        role: member.role || 'member',
+        contribution: 0,
+        avatar_url: member.users?.avatar_url || '',
+    }));
+};
+
 export const clan_join = async (clan_id: string): Promise<Clan> => {
     const user = await getCurrentUser();
     

@@ -7,7 +7,7 @@
 
 -- Create bot users table for persistent bot data
 CREATE TABLE IF NOT EXISTS bot_users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     bot_persona_id TEXT UNIQUE NOT NULL,
     username TEXT UNIQUE NOT NULL,
     email TEXT UNIQUE NOT NULL,
@@ -38,6 +38,29 @@ CREATE TABLE IF NOT EXISTS bot_users (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Ensure existing bot_users.id stays linked to users.id
+DO $$
+BEGIN
+    -- Drop any leftover default that could desync ids
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'bot_users'
+          AND column_name = 'id'
+          AND column_default IS NOT NULL
+    ) THEN
+        ALTER TABLE bot_users ALTER COLUMN id DROP DEFAULT;
+    END IF;
+
+    BEGIN
+        ALTER TABLE bot_users
+            ADD CONSTRAINT bot_users_id_fkey FOREIGN KEY (id) REFERENCES users(id) ON DELETE CASCADE;
+    EXCEPTION
+        WHEN duplicate_object THEN NULL;
+    END;
+END;
+$$;
+
 -- Enable RLS for bot users
 ALTER TABLE bot_users ENABLE ROW LEVEL SECURITY;
 
@@ -61,14 +84,25 @@ CREATE INDEX IF NOT EXISTS idx_bot_users_clan ON bot_users(clan_affiliation);
 -- 2. INSERT ENHANCED KYRGYZ BOT PERSONAS
 -- ============================================
 
--- Delete existing bot users to refresh
-DELETE FROM bot_users;
-
--- Insert enhanced Kyrgyz bot personas
-INSERT INTO bot_users (
-    bot_persona_id, username, email, batch, avatar_url, level, xp, coins, gemstones, streak,
-    attack_power, defense_power, bot_personality, clan_affiliation, total_questions_answered, achievement_points
-) VALUES 
+WITH persona (
+    bot_persona_id,
+    username,
+    email,
+    batch,
+    avatar_url,
+    level,
+    xp,
+    coins,
+    gemstones,
+    streak,
+    attack_power,
+    defense_power,
+    bot_personality,
+    clan_affiliation,
+    total_questions_answered,
+    achievement_points
+) AS (
+    VALUES
 -- Aggressive Attackers
 ('aida_bekova', 'Aida Bekova', 'aida.bekova@student.kg', '8A', 'https://api.dicebear.com/7.x/adventurer/svg?seed=aida_bekova&backgroundColor=c0aede,ffd5dc,ffdfbf&radius=50', 18, 1650, 4200, 12, 8, 28, 15, 'aggressive', 'Kyrgyz Cyber Eagles', 145, 85),
 ('elnur_sydykov', 'Elnur Sydykov', 'elnur.sydykov@student.kg', '8B', 'https://api.dicebear.com/7.x/adventurer/svg?seed=elnur_sydykov&backgroundColor=c0aede,ffd5dc,ffdfbf&radius=50', 16, 1420, 3800, 8, 6, 25, 18, 'aggressive', 'Bishkek Hackers', 128, 72),
@@ -95,7 +129,155 @@ INSERT INTO bot_users (
 ('manas_koichuev', 'Manas Koichuev', 'manas.koichuev@student.kg', '8B', 'https://api.dicebear.com/7.x/adventurer/svg?seed=manas_koichuev&backgroundColor=c0aede,ffd5dc,ffdfbf&radius=50', 12, 980, 2500, 4, 2, 14, 24, 'defensive', 'Bishkek Hackers', 95, 52),
 ('altynai_zakirova', 'Altynai Zakirova', 'altynai.zakirova@student.kg', '8C', 'https://api.dicebear.com/7.x/adventurer/svg?seed=altynai_zakirova&backgroundColor=c0aede,ffd5dc,ffdfbf&radius=50', 22, 2180, 6200, 20, 14, 34, 28, 'balanced', 'Tian Shan Warriors', 189, 108),
 ('tilek_nazaraliev', 'Tilek Nazaraliev', 'tilek.nazaraliev@student.kg', '8A', 'https://api.dicebear.com/7.x/adventurer/svg?seed=tilek_nazaraliev&backgroundColor=c0aede,ffd5dc,ffdfbf&radius=50', 11, 850, 2200, 3, 1, 13, 22, 'defensive', 'Issyk-Kul Guardians', 87, 48),
-('zhyldyz_bakirova', 'Zhyldyz Bakirova', 'zhyldyz.bakirova@student.kg', '8B', 'https://api.dicebear.com/7.x/adventurer/svg?seed=zhyldyz_bakirova&backgroundColor=c0aede,ffd5dc,ffdfbf&radius=50', 23, 2320, 6800, 22, 15, 36, 30, 'aggressive', 'Ala-Too Defenders', 203, 115);
+    ('zhyldyz_bakirova', 'Zhyldyz Bakirova', 'zhyldyz.bakirova@student.kg', '8B', 'https://api.dicebear.com/7.x/adventurer/svg?seed=zhyldyz_bakirova&backgroundColor=c0aede,ffd5dc,ffdfbf&radius=50', 23, 2320, 6800, 22, 15, 36, 30, 'aggressive', 'Ala-Too Defenders', 203, 115)
+),
+upsert_users AS (
+    INSERT INTO users AS u (
+        email,
+        username,
+        grade,
+        batch,
+        avatar_url,
+        level,
+        xp,
+        coins,
+        streak,
+        last_seen,
+        ap_now,
+        ap_max,
+        last_ap_update,
+        attack_power,
+        defense_power,
+        is_admin,
+        is_banned,
+        created_at,
+        updated_at
+    )
+    SELECT
+        p.email,
+        p.username,
+        COALESCE((substring(p.batch from '^[0-9]+'))::SMALLINT, 8),
+        p.batch,
+        p.avatar_url,
+        p.level,
+        p.xp,
+        p.coins,
+        p.streak,
+        NOW(),
+        20,
+        20,
+        NOW(),
+        p.attack_power,
+        p.defense_power,
+        false,
+        false,
+        NOW(),
+        NOW()
+    FROM persona p
+    ON CONFLICT (email) DO UPDATE
+    SET
+        username = EXCLUDED.username,
+        grade = EXCLUDED.grade,
+        batch = EXCLUDED.batch,
+        avatar_url = EXCLUDED.avatar_url,
+        level = EXCLUDED.level,
+        xp = EXCLUDED.xp,
+        coins = EXCLUDED.coins,
+        streak = EXCLUDED.streak,
+        last_seen = NOW(),
+        ap_now = EXCLUDED.ap_now,
+        ap_max = EXCLUDED.ap_max,
+        last_ap_update = NOW(),
+        attack_power = EXCLUDED.attack_power,
+        defense_power = EXCLUDED.defense_power,
+        updated_at = NOW()
+)
+INSERT INTO bot_users AS b (
+    id,
+    bot_persona_id,
+    username,
+    email,
+    batch,
+    avatar_url,
+    level,
+    xp,
+    coins,
+    gemstones,
+    streak,
+    last_seen,
+    ap_now,
+    ap_max,
+    last_ap_update,
+    attack_power,
+    defense_power,
+    role,
+    tutorial_completed,
+    total_questions_answered,
+    achievement_points,
+    last_attacked_at,
+    bot_personality,
+    clan_affiliation,
+    activity_pattern,
+    created_at,
+    updated_at
+)
+SELECT
+    u.id,
+    p.bot_persona_id,
+    p.username,
+    p.email,
+    p.batch,
+    p.avatar_url,
+    p.level,
+    p.xp,
+    p.coins,
+    p.gemstones,
+    p.streak,
+    NOW(),
+    20,
+    20,
+    NOW(),
+    p.attack_power,
+    p.defense_power,
+    'student',
+    true,
+    p.total_questions_answered,
+    p.achievement_points,
+    existing.last_attacked_at,
+    p.bot_personality,
+    p.clan_affiliation,
+    COALESCE(existing.activity_pattern, 'regular'),
+    COALESCE(existing.created_at, NOW()),
+    NOW()
+FROM persona p
+JOIN users u ON u.email = p.email
+LEFT JOIN bot_users existing ON existing.bot_persona_id = p.bot_persona_id
+ON CONFLICT (bot_persona_id) DO UPDATE
+SET
+    id = EXCLUDED.id,
+    username = EXCLUDED.username,
+    email = EXCLUDED.email,
+    batch = EXCLUDED.batch,
+    avatar_url = EXCLUDED.avatar_url,
+    level = EXCLUDED.level,
+    xp = EXCLUDED.xp,
+    coins = EXCLUDED.coins,
+    gemstones = EXCLUDED.gemstones,
+    streak = EXCLUDED.streak,
+    last_seen = NOW(),
+    ap_now = EXCLUDED.ap_now,
+    ap_max = EXCLUDED.ap_max,
+    last_ap_update = NOW(),
+    attack_power = EXCLUDED.attack_power,
+    defense_power = EXCLUDED.defense_power,
+    role = EXCLUDED.role,
+    tutorial_completed = EXCLUDED.tutorial_completed,
+    total_questions_answered = EXCLUDED.total_questions_answered,
+    achievement_points = EXCLUDED.achievement_points,
+    bot_personality = EXCLUDED.bot_personality,
+    clan_affiliation = EXCLUDED.clan_affiliation,
+    activity_pattern = EXCLUDED.activity_pattern,
+    updated_at = NOW();
 
 -- ============================================
 -- 3. BOT ACTIVITY SIMULATION FUNCTIONS
@@ -351,12 +533,14 @@ BEGIN
         b.level,
         b.coins,
         b.batch,
-        (b.bot_personality = 'defensive' AND random() < 0.6)::BOOLEAN as has_shield,
-        CASE 
-            WHEN b.bot_personality = 'aggressive' THEN 0.3 + (random() * 0.3)
-            WHEN b.bot_personality = 'defensive' THEN 0.6 + (random() * 0.3)  
-            ELSE 0.45 + (random() * 0.3) -- balanced
-        END as est_win_rate,
+        (b.bot_personality = 'defensive' AND random() < 0.6)::BOOLEAN AS has_shield,
+        ROUND((
+            CASE 
+                WHEN b.bot_personality = 'aggressive' THEN 0.3 + (random() * 0.3)
+                WHEN b.bot_personality = 'defensive' THEN 0.6 + (random() * 0.3)  
+                ELSE 0.45 + (random() * 0.3) -- balanced
+            END
+        )::numeric, 2) AS est_win_rate,
         b.avatar_url,
         b.last_seen,
         b.clan_affiliation,

@@ -33,7 +33,7 @@ import Phase1PlayView from './components/phase1/Phase1PlayView';
 import Phase1LeaderboardView from './components/phase1/Phase1LeaderboardView';
 import Phase1AdminDashboard from './components/phase1/Phase1AdminDashboard';
 import AnnouncementBanner from './components/phase1/AnnouncementBanner';
-import { fetchLatestAnnouncement } from './services/competitionService';
+import { fetchNextAnnouncement, markAnnouncementSeen } from './services/competitionService';
 
 interface AppProps {
   onLogout: () => void;
@@ -58,7 +58,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [effectsIntensity, setEffectsIntensity] = useState<'calm' | 'active' | 'alert'>('calm');
   const [activeAnnouncement, setActiveAnnouncement] = useState<Announcement | null>(null);
-  const [dismissedAnnouncements, setDismissedAnnouncements] = useState<number[]>([]);
   const previousViewRef = useRef(view);
   const previousSessionActiveRef = useRef<boolean | null>(null);
 
@@ -155,11 +154,13 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadAnnouncement = async () => {
       try {
-        const latest = await fetchLatestAnnouncement();
-        if (latest && !dismissedAnnouncements.includes(latest.id)) {
-          setActiveAnnouncement(latest);
+        const next = await fetchNextAnnouncement();
+        if (!cancelled) {
+          setActiveAnnouncement(next);
         }
       } catch (err) {
         console.warn('Failed to load announcements', err);
@@ -169,8 +170,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     loadAnnouncement();
     const interval = setInterval(loadAnnouncement, 60000);
 
-    return () => clearInterval(interval);
-  }, [dismissedAnnouncements]);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     if (previousViewRef.current !== view) {
@@ -375,6 +379,26 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         ap_now: Math.min(prevProfile.ap_max, Math.max(0, nextAP)),
       };
     });
+  };
+
+  const handleDismissAnnouncement = async () => {
+    if (!activeAnnouncement) {
+      return;
+    }
+
+    const announcementId = activeAnnouncement.id;
+    setActiveAnnouncement(null);
+
+    try {
+      await markAnnouncementSeen(announcementId);
+
+      const next = await fetchNextAnnouncement();
+      if (next && next.id !== announcementId) {
+        setActiveAnnouncement(next);
+      }
+    } catch (error) {
+      console.warn('Failed to dismiss announcement', error);
+    }
   };
 
 
@@ -683,10 +707,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         {activeAnnouncement && (
           <AnnouncementBanner
             announcement={activeAnnouncement}
-            onDismiss={() => {
-              setDismissedAnnouncements(prev => [...prev, activeAnnouncement.id]);
-              setActiveAnnouncement(null);
-            }}
+            onDismiss={handleDismissAnnouncement}
           />
         )}
 

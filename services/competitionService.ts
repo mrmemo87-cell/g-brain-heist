@@ -166,9 +166,29 @@ export const postAnnouncement = async (text: string): Promise<void> => {
   }
 };
 
-export const fetchLatestAnnouncement = async (): Promise<Announcement | null> => {
-  const announcements = await fetchAnnouncements(1);
-  return announcements.length > 0 ? announcements[0] : null;
+export const fetchNextAnnouncement = async (): Promise<Announcement | null> => {
+  const { data, error } = await supabase.rpc('rpc_announcement_next');
+
+  if (error) {
+    throw new Error(error.message || 'Failed to load announcements');
+  }
+
+  if (!data || (Array.isArray(data) && data.length === 0)) {
+    return null;
+  }
+
+  const payload = Array.isArray(data) ? data[0] : data;
+  return payload as Announcement;
+};
+
+export const markAnnouncementSeen = async (announcementId: number): Promise<void> => {
+  const { error } = await supabase.rpc('rpc_announcement_mark_seen', {
+    p_announcement_id: announcementId,
+  });
+
+  if (error) {
+    throw new Error(error.message || 'Failed to dismiss announcement');
+  }
 };
 
 export const grantPlayerRewards = async (
@@ -194,6 +214,40 @@ export const resetPlayerProgress = async (userId: string): Promise<void> => {
 
   if (error) {
     throw new Error(error.message || 'Failed to reset player');
+  }
+};
+
+export const resetAllPlayerProgress = async (): Promise<number> => {
+  const { data, error } = await supabase.rpc('rpc_admin_reset_all');
+
+  if (error) {
+    throw new Error(error.message || 'Failed to reset all players');
+  }
+
+  if (Array.isArray(data) && data.length > 0) {
+    return Number(data[0]?.affected_rows ?? 0);
+  }
+
+  if (typeof data === 'object' && data !== null && 'affected_rows' in data) {
+    return Number((data as any).affected_rows ?? 0);
+  }
+
+  return 0;
+};
+
+export const updatePlayerAcademics = async (
+  userId: string,
+  grade: number | null,
+  batch: string | null
+): Promise<void> => {
+  const { error } = await supabase.rpc('rpc_admin_set_user_academics', {
+    p_user_id: userId,
+    p_grade: grade,
+    p_batch: batch,
+  });
+
+  if (error) {
+    throw new Error(error.message || 'Failed to update user grade/class');
   }
 };
 
@@ -304,8 +358,8 @@ export const fetchAdminOverviewStats = async (): Promise<AdminOverviewStats> => 
     fetchBatchSummaries(),
     supabase
       .from('rpc_event_log')
-      .select('message, created_at')
-      .eq('level', 'error')
+      .select('message, created_at, log_level')
+      .eq('log_level', 'error')
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle(),

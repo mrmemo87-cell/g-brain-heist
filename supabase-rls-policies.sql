@@ -21,11 +21,18 @@ ALTER TABLE caps ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mcq_questions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE attempts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE announcement_receipts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rpc_event_log ENABLE ROW LEVEL SECURITY;
 
 -- ============================================
 -- USERS TABLE POLICIES
 -- ============================================
+
+-- Drop existing policies to avoid conflicts
+DROP POLICY IF EXISTS "Users can view own profile" ON users;
+DROP POLICY IF EXISTS "Users can update own profile" ON users;
+DROP POLICY IF EXISTS "Users can view other users" ON users;
+DROP POLICY IF EXISTS "Users can insert own profile" ON users;
 
 -- Users can read their own profile
 CREATE POLICY "Users can view own profile"
@@ -50,6 +57,10 @@ CREATE POLICY "Users can insert own profile"
 -- ============================================
 -- MCQ QUESTIONS POLICIES
 -- ============================================
+
+-- Drop existing policies
+DROP POLICY IF EXISTS "Students view grade questions" ON mcq_questions;
+DROP POLICY IF EXISTS "Admins manage questions" ON mcq_questions;
 
 -- Students can view active questions in their grade
 CREATE POLICY "Students view grade questions"
@@ -86,6 +97,11 @@ CREATE POLICY "Admins manage questions"
 -- ATTEMPTS POLICIES
 -- ============================================
 
+-- Drop existing policies
+DROP POLICY IF EXISTS "Students view own attempts" ON attempts;
+DROP POLICY IF EXISTS "Students insert own attempts" ON attempts;
+DROP POLICY IF EXISTS "Admins view attempts" ON attempts;
+
 CREATE POLICY "Students view own attempts"
     ON attempts FOR SELECT
     USING (auth.uid() = user_id);
@@ -108,6 +124,10 @@ CREATE POLICY "Admins view attempts"
 -- ANNOUNCEMENTS POLICIES
 -- ============================================
 
+-- Drop existing policies
+DROP POLICY IF EXISTS "Announcements are public" ON announcements;
+DROP POLICY IF EXISTS "Admins create announcements" ON announcements;
+
 CREATE POLICY "Announcements are public"
     ON announcements FOR SELECT
     USING (true);
@@ -122,9 +142,29 @@ CREATE POLICY "Admins create announcements"
         )
     );
 
+-- Announcement receipts policies
+DROP POLICY IF EXISTS "Players view own receipts" ON announcement_receipts;
+DROP POLICY IF EXISTS "Players acknowledge announcements" ON announcement_receipts;
+DROP POLICY IF EXISTS "Players refresh receipt" ON announcement_receipts;
+
+CREATE POLICY "Players view own receipts"
+    ON announcement_receipts FOR SELECT
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "Players acknowledge announcements"
+    ON announcement_receipts FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Players refresh receipt"
+    ON announcement_receipts FOR UPDATE
+    USING (auth.uid() = user_id);
+
 -- ============================================
 -- RPC EVENT LOG POLICIES
 -- ============================================
+
+-- Drop existing policies
+DROP POLICY IF EXISTS "Admins read rpc logs" ON rpc_event_log;
 
 CREATE POLICY "Admins read rpc logs"
     ON rpc_event_log FOR SELECT
@@ -139,6 +179,12 @@ CREATE POLICY "Admins read rpc logs"
 -- ============================================
 -- INVENTORY TABLE POLICIES
 -- ============================================
+
+-- Drop existing policies
+DROP POLICY IF EXISTS "Users can view own inventory" ON inventory;
+DROP POLICY IF EXISTS "Users can add to own inventory" ON inventory;
+DROP POLICY IF EXISTS "Users can update own inventory" ON inventory;
+DROP POLICY IF EXISTS "Users can delete own inventory" ON inventory;
 
 -- Users can only see their own inventory
 CREATE POLICY "Users can view own inventory"
@@ -164,6 +210,12 @@ CREATE POLICY "Users can delete own inventory"
 -- CLANS TABLE POLICIES
 -- ============================================
 
+-- Drop existing policies
+DROP POLICY IF EXISTS "Anyone can view clans" ON clans;
+DROP POLICY IF EXISTS "Users can create clans" ON clans;
+DROP POLICY IF EXISTS "Leaders can update own clan" ON clans;
+DROP POLICY IF EXISTS "Leaders can delete own clan" ON clans;
+
 -- Everyone can view clans (for clan list)
 CREATE POLICY "Anyone can view clans"
     ON clans FOR SELECT
@@ -187,6 +239,12 @@ CREATE POLICY "Leaders can delete own clan"
 -- ============================================
 -- CLAN MEMBERS TABLE POLICIES
 -- ============================================
+
+-- Drop existing policies
+DROP POLICY IF EXISTS "Anyone can view clan members" ON clan_members;
+DROP POLICY IF EXISTS "Users can join clans" ON clan_members;
+DROP POLICY IF EXISTS "Users can leave clans" ON clan_members;
+DROP POLICY IF EXISTS "Leaders can remove members" ON clan_members;
 
 -- Everyone can view clan members
 CREATE POLICY "Anyone can view clan members"
@@ -218,6 +276,10 @@ CREATE POLICY "Leaders can remove members"
 -- CLAN CHAT TABLE POLICIES
 -- ============================================
 
+-- Drop existing policies
+DROP POLICY IF EXISTS "Clan members can view clan chat" ON clan_chat;
+DROP POLICY IF EXISTS "Clan members can post messages" ON clan_chat;
+
 -- Clan members can view their clan's chat
 CREATE POLICY "Clan members can view clan chat"
     ON clan_chat FOR SELECT
@@ -245,6 +307,10 @@ CREATE POLICY "Clan members can post messages"
 -- ACTIVITIES TABLE POLICIES
 -- ============================================
 
+-- Drop existing policies
+DROP POLICY IF EXISTS "Anyone can view activities" ON activities;
+DROP POLICY IF EXISTS "Users can create activities" ON activities;
+
 -- Everyone can view activities (global news feed)
 CREATE POLICY "Anyone can view activities"
     ON activities FOR SELECT
@@ -258,6 +324,11 @@ CREATE POLICY "Users can create activities"
 -- ============================================
 -- ACTIVITY REACTIONS TABLE POLICIES
 -- ============================================
+
+-- Drop existing policies
+DROP POLICY IF EXISTS "Anyone can view reactions" ON activity_reactions;
+DROP POLICY IF EXISTS "Users can add reactions" ON activity_reactions;
+DROP POLICY IF EXISTS "Users can delete own reactions" ON activity_reactions;
 
 -- Everyone can view reactions
 CREATE POLICY "Anyone can view reactions"
@@ -277,6 +348,12 @@ CREATE POLICY "Users can delete own reactions"
 -- ============================================
 -- TASKS TABLE POLICIES
 -- ============================================
+
+-- Drop existing policies
+DROP POLICY IF EXISTS "Users can view own tasks" ON tasks;
+DROP POLICY IF EXISTS "Users can create own tasks" ON tasks;
+DROP POLICY IF EXISTS "Users can update own tasks" ON tasks;
+DROP POLICY IF EXISTS "Users can delete own tasks" ON tasks;
 
 -- Users can only see their own tasks
 CREATE POLICY "Users can view own tasks"
@@ -302,6 +379,10 @@ CREATE POLICY "Users can delete own tasks"
 -- SHOP PURCHASES TABLE POLICIES
 -- ============================================
 
+-- Drop existing policies
+DROP POLICY IF EXISTS "Users can view own purchases" ON shop_purchases;
+DROP POLICY IF EXISTS "Users can create purchases" ON shop_purchases;
+
 -- Users can only see their own purchases
 CREATE POLICY "Users can view own purchases"
     ON shop_purchases FOR SELECT
@@ -315,6 +396,12 @@ CREATE POLICY "Users can create purchases"
 -- ============================================
 -- SESSIONS TABLE POLICIES
 -- ============================================
+
+-- Drop existing policies
+DROP POLICY IF EXISTS "Users can view own session" ON sessions;
+DROP POLICY IF EXISTS "Users can create own session" ON sessions;
+DROP POLICY IF EXISTS "Users can update own session" ON sessions;
+DROP POLICY IF EXISTS "Users can delete own session" ON sessions;
 
 -- Users can only see their own session
 CREATE POLICY "Users can view own session"
@@ -339,6 +426,11 @@ CREATE POLICY "Users can delete own session"
 -- ============================================
 -- CAPS TABLE POLICIES
 -- ============================================
+
+-- Drop existing policies
+DROP POLICY IF EXISTS "Users can view own caps" ON caps;
+DROP POLICY IF EXISTS "Users can create own caps" ON caps;
+DROP POLICY IF EXISTS "Users can update own caps" ON caps;
 
 -- Users can only see their own caps
 CREATE POLICY "Users can view own caps"

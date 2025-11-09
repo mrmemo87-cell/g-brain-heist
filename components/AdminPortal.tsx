@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Profile, ToastMessage } from '../types';
+import { Batch, Grade, Profile, ToastMessage } from '../types';
 import BackButton from './BackButton';
 import * as GameService from '../services/gameService';
 import { supabase } from '../services/supabaseClient';
+import * as CompetitionService from '../services/competitionService';
 
 interface AdminPortalProps {
   profile: Profile;
@@ -25,6 +26,16 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     totalClans: 0
   });
   const [adminVisible, setAdminVisible] = useState(profile.admin_visible || false);
+  const [showAnnouncementComposer, setShowAnnouncementComposer] = useState(false);
+  const [announcementText, setAnnouncementText] = useState('');
+  const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false);
+  const [isResettingAll, setIsResettingAll] = useState(false);
+
+  const gradeOptions: Grade[] = [8, 9];
+  const batchByGrade: Record<Grade, Batch[]> = {
+    8: ['8A', '8B', '8C'],
+    9: ['9A', '9B', '9C'],
+  };
 
   useEffect(() => {
     fetchDashboardData();
@@ -175,6 +186,102 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     }
   };
 
+  const resetUserProgress = async (userId: string, username: string) => {
+    try {
+      const confirmReset = window.confirm(`Reset progress for ${username}? This clears XP, coins, and streak.`);
+      if (!confirmReset) {
+        return;
+      }
+
+      await CompetitionService.resetPlayerProgress(userId);
+      addToast(`♻️ Progress reset for ${username}`, 'success');
+      fetchDashboardData();
+    } catch (error) {
+      addToast('Failed to reset progress', 'error');
+    }
+  };
+
+  const resetAllProgress = async () => {
+    try {
+      const confirmReset = window.confirm('Reset progress for ALL players (excluding admins)? This action cannot be undone.');
+      if (!confirmReset) {
+        return;
+      }
+
+      setIsResettingAll(true);
+      const affected = await CompetitionService.resetAllPlayerProgress();
+      addToast(`🧨 Reset progress for ${affected} players`, 'success');
+      fetchDashboardData();
+    } catch (error) {
+      addToast('Failed to reset everyone', 'error');
+    } finally {
+      setIsResettingAll(false);
+    }
+  };
+
+  const handleGradeChange = async (userId: string, nextGrade: string) => {
+    const grade = nextGrade ? parseInt(nextGrade, 10) : null;
+    const user = allUsers.find(u => u.id === userId);
+    if (!user) return;
+
+    const batch: Batch | null = (() => {
+      if (!grade) {
+        return null;
+      }
+      const existingBatch = user.batch as Batch | null;
+      if (!existingBatch) {
+        return null;
+      }
+      const allowed = batchByGrade[grade as Grade];
+      return allowed.includes(existingBatch) ? existingBatch : null;
+    })();
+
+    try {
+      await CompetitionService.updatePlayerAcademics(userId, grade, batch);
+      addToast(`🎓 Updated grade${batch ? ' and class' : ''} for ${user.username}`, 'success');
+      setAllUsers(prev => prev.map(u => u.id === userId ? { ...u, grade, batch } : u));
+      setFilteredUsers(prev => prev.map(u => u.id === userId ? { ...u, grade, batch } : u));
+    } catch (error) {
+      addToast('Failed to update grade', 'error');
+    }
+  };
+
+  const handleBatchChange = async (userId: string, nextBatch: string) => {
+    const user = allUsers.find(u => u.id === userId);
+    if (!user) return;
+
+    const grade = user.grade !== null && user.grade !== undefined ? Number(user.grade) : null;
+    const batch = nextBatch || null;
+
+    try {
+      await CompetitionService.updatePlayerAcademics(userId, grade, batch);
+      addToast(`🏫 Updated class for ${user.username}`, 'success');
+      setAllUsers(prev => prev.map(u => u.id === userId ? { ...u, batch } : u));
+      setFilteredUsers(prev => prev.map(u => u.id === userId ? { ...u, batch } : u));
+    } catch (error) {
+      addToast('Failed to update class', 'error');
+    }
+  };
+
+  const sendAnnouncement = async () => {
+    if (!announcementText.trim()) {
+      addToast('Announcement text is empty', 'error');
+      return;
+    }
+
+    try {
+      setIsSendingAnnouncement(true);
+      await CompetitionService.postAnnouncement(announcementText.trim());
+      addToast('📢 Announcement sent to all players', 'success');
+      setAnnouncementText('');
+      setShowAnnouncementComposer(false);
+    } catch (error) {
+      addToast('Failed to send announcement', 'error');
+    } finally {
+      setIsSendingAnnouncement(false);
+    }
+  };
+
   const banUser = async (userId: string) => {
     addToast('🔨 Ban feature coming soon!', 'info');
   };
@@ -314,16 +421,21 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                     🔄 Refresh Data
                   </button>
                   <button
-                    onClick={() => addToast('🚀 Coming soon!', 'info')}
+                    onClick={() => setShowAnnouncementComposer(true)}
                     className="bg-green-600/30 hover:bg-green-600/50 border border-green-400 text-white font-semibold px-6 py-3 rounded-lg transition-all hover:shadow-[0_0_20px_rgba(34,197,94,0.6)]"
                   >
                     📢 Send Announcement
                   </button>
                   <button
-                    onClick={() => addToast('🔥 God Mode Active!', 'success')}
-                    className="bg-pink-600/30 hover:bg-pink-600/50 border border-pink-400 text-white font-semibold px-6 py-3 rounded-lg transition-all hover:shadow-[0_0_20px_rgba(236,72,153,0.6)]"
+                    onClick={resetAllProgress}
+                    disabled={isResettingAll}
+                    className={`border border-red-400 text-white font-semibold px-6 py-3 rounded-lg transition-all ${
+                      isResettingAll
+                        ? 'bg-red-600/20 cursor-not-allowed'
+                        : 'bg-red-600/30 hover:bg-red-600/50 hover:shadow-[0_0_20px_rgba(248,113,113,0.6)]'
+                    }`}
                   >
-                    👑 God Powers
+                    {isResettingAll ? '⏳ Resetting...' : '🧨 Reset All Progress'}
                   </button>
                 </div>
               </div>
@@ -398,78 +510,131 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
               </div>
               
               <div className="max-h-[600px] overflow-y-auto space-y-3">
-                {filteredUsers.map((user) => (
-                  <div
-                    key={user.id}
-                    className="bg-black/40 p-4 rounded-lg border border-gray-700 hover:border-purple-400 transition-all"
-                  >
-                    <div className="flex items-start justify-between flex-wrap gap-4">
-                      {/* User Info */}
-                      <div className="flex items-center gap-3 flex-1">
-                        <img src={user.avatar_url} alt={user.username} className="w-16 h-16 rounded-full border-2 border-purple-400" />
-                        <div>
-                          <p className="font-bold text-white text-lg">{user.username}</p>
-                          <p className="text-sm text-gray-400">{user.email}</p>
-                          <div className="flex gap-3 mt-1">
-                            <span className="text-xs bg-cyan-600/30 text-cyan-300 px-2 py-1 rounded">Lvl {user.level}</span>
-                            <span className="text-xs bg-purple-600/30 text-purple-300 px-2 py-1 rounded">{user.batch || 'No Batch'}</span>
-                            <span className="text-xs bg-yellow-600/30 text-yellow-300 px-2 py-1 rounded">{user.role || 'student'}</span>
+                {filteredUsers.map((user) => {
+                  const userGrade: Grade | null = (() => {
+                    if (typeof user.grade === 'number') {
+                      return user.grade as Grade;
+                    }
+                    if (typeof user.grade === 'string' && user.grade.trim() !== '') {
+                      const parsed = parseInt(user.grade, 10);
+                      return (parsed === 8 || parsed === 9) ? (parsed as Grade) : null;
+                    }
+                    return null;
+                  })();
+
+                  const gradeValue = userGrade ?? '';
+                  const batchValue = typeof user.batch === 'string' ? user.batch : '';
+                  const availableBatches = userGrade ? batchByGrade[userGrade] : [];
+
+                  return (
+                    <div
+                      key={user.id}
+                      className="bg-black/40 p-4 rounded-lg border border-gray-700 hover:border-purple-400 transition-all"
+                    >
+                      <div className="flex items-start justify-between flex-wrap gap-4">
+                        {/* User Info */}
+                        <div className="flex items-center gap-3 flex-1">
+                          <img src={user.avatar_url} alt={user.username} className="w-16 h-16 rounded-full border-2 border-purple-400" />
+                          <div>
+                            <p className="font-bold text-white text-lg">{user.username}</p>
+                            <p className="text-sm text-gray-400">{user.email}</p>
+                            <div className="flex gap-3 mt-1">
+                              <span className="text-xs bg-cyan-600/30 text-cyan-300 px-2 py-1 rounded">Lvl {user.level}</span>
+                              <span className="text-xs bg-purple-600/30 text-purple-300 px-2 py-1 rounded">{user.batch || 'No Batch'}</span>
+                              <span className="text-xs bg-yellow-600/30 text-yellow-300 px-2 py-1 rounded">{user.role || 'student'}</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Stats Grid */}
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div className="bg-blue-600/20 px-3 py-2 rounded border border-blue-400/50">
+                            <p className="text-blue-300 font-mono">{user.xp.toLocaleString()} XP</p>
+                          </div>
+                          <div className="bg-yellow-600/20 px-3 py-2 rounded border border-yellow-400/50">
+                            <p className="text-yellow-300 font-mono">{user.coins.toLocaleString()} 🪙</p>
+                          </div>
+                          <div className="bg-green-600/20 px-3 py-2 rounded border border-green-400/50">
+                            <p className="text-green-300 font-mono">{user.ap_now}/{user.ap_max} AP</p>
+                          </div>
+                          <div className="bg-red-600/20 px-3 py-2 rounded border border-red-400/50">
+                            <p className="text-red-300 font-mono">⚔️ {user.attack_power} | 🛡️ {user.defense_power}</p>
                           </div>
                         </div>
                       </div>
                       
-                      {/* Stats Grid */}
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div className="bg-blue-600/20 px-3 py-2 rounded border border-blue-400/50">
-                          <p className="text-blue-300 font-mono">{user.xp.toLocaleString()} XP</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                        <div>
+                          <label className="text-xs text-gray-400 mb-1 block">Grade</label>
+                          <select
+                            value={gradeValue}
+                            onChange={(e) => handleGradeChange(user.id, e.target.value)}
+                            className="w-full bg-black/40 border border-purple-400/50 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-300"
+                          >
+                            <option value="">Unset</option>
+                            {gradeOptions.map((grade) => (
+                              <option key={grade} value={grade}>{grade}</option>
+                            ))}
+                          </select>
                         </div>
-                        <div className="bg-yellow-600/20 px-3 py-2 rounded border border-yellow-400/50">
-                          <p className="text-yellow-300 font-mono">{user.coins.toLocaleString()} 🪙</p>
-                        </div>
-                        <div className="bg-green-600/20 px-3 py-2 rounded border border-green-400/50">
-                          <p className="text-green-300 font-mono">{user.ap_now}/{user.ap_max} AP</p>
-                        </div>
-                        <div className="bg-red-600/20 px-3 py-2 rounded border border-red-400/50">
-                          <p className="text-red-300 font-mono">⚔️ {user.attack_power} | 🛡️ {user.defense_power}</p>
+                        <div>
+                          <label className="text-xs text-gray-400 mb-1 block">Class</label>
+                          <select
+                            value={batchValue}
+                            onChange={(e) => handleBatchChange(user.id, e.target.value)}
+                            disabled={!userGrade}
+                            className="w-full bg-black/40 border border-purple-400/50 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-300 disabled:opacity-50"
+                          >
+                            <option value="">Unset</option>
+                            {availableBatches.map((batch) => (
+                              <option key={batch} value={batch}>{batch}</option>
+                            ))}
+                          </select>
                         </div>
                       </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-700">
+                        <button
+                          onClick={() => grantCoins(user.id, 1000)}
+                          className="bg-yellow-600/30 hover:bg-yellow-600/50 border border-yellow-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(251,191,36,0.5)]"
+                        >
+                          💰 +1000 Coins
+                        </button>
+                        <button
+                          onClick={() => grantXP(user.id, 500)}
+                          className="bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(59,130,246,0.5)]"
+                        >
+                          ⚡ +500 XP
+                        </button>
+                        <button
+                          onClick={() => resetUserAP(user.id)}
+                          className="bg-green-600/30 hover:bg-green-600/50 border border-green-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(34,197,94,0.5)]"
+                        >
+                          🔋 Reset AP
+                        </button>
+                        <button
+                          onClick={() => setUserLevel(user.id, user.level + 1)}
+                          className="bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(168,85,247,0.5)]"
+                        >
+                          📈 +1 Level
+                        </button>
+                        <button
+                          onClick={() => resetUserProgress(user.id, user.username)}
+                          className="bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(99,102,241,0.5)]"
+                        >
+                          ♻️ Reset Progress
+                        </button>
+                        <button
+                          onClick={() => banUser(user.id)}
+                          className="bg-red-600/30 hover:bg-red-600/50 border border-red-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(239,68,68,0.5)]"
+                        >
+                          🔨 Ban
+                        </button>
+                      </div>
                     </div>
-                    
-                    {/* Action Buttons */}
-                    <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-700">
-                      <button
-                        onClick={() => grantCoins(user.id, 1000)}
-                        className="bg-yellow-600/30 hover:bg-yellow-600/50 border border-yellow-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(251,191,36,0.5)]"
-                      >
-                        💰 +1000 Coins
-                      </button>
-                      <button
-                        onClick={() => grantXP(user.id, 500)}
-                        className="bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(59,130,246,0.5)]"
-                      >
-                        ⚡ +500 XP
-                      </button>
-                      <button
-                        onClick={() => resetUserAP(user.id)}
-                        className="bg-green-600/30 hover:bg-green-600/50 border border-green-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(34,197,94,0.5)]"
-                      >
-                        🔋 Reset AP
-                      </button>
-                      <button
-                        onClick={() => setUserLevel(user.id, user.level + 1)}
-                        className="bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(168,85,247,0.5)]"
-                      >
-                        📈 +1 Level
-                      </button>
-                      <button
-                        onClick={() => banUser(user.id)}
-                        className="bg-red-600/30 hover:bg-red-600/50 border border-red-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(239,68,68,0.5)]"
-                      >
-                        🔨 Ban
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -544,6 +709,46 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
           75% { background-position: 0% 100%; }
         }
       `}</style>
+
+      {showAnnouncementComposer && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4">
+          <div className="bg-gray-900 border border-green-400/60 rounded-2xl max-w-xl w-full p-6 space-y-4">
+            <h3 className="text-2xl font-heading text-green-300">📢 Broadcast Announcement</h3>
+            <p className="text-sm text-gray-400">
+              This message will appear once for every player until they dismiss it.
+            </p>
+            <textarea
+              value={announcementText}
+              onChange={(e) => setAnnouncementText(e.target.value)}
+              rows={5}
+              className="w-full bg-black/50 border border-green-400/40 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-300"
+              placeholder="Share mission updates, tournament news, or urgent warnings..."
+            />
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowAnnouncementComposer(false);
+                  setAnnouncementText('');
+                }}
+                className="px-4 py-2 rounded-lg border border-gray-500 text-gray-300 hover:bg-gray-800/80"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={sendAnnouncement}
+                disabled={isSendingAnnouncement}
+                className={`px-5 py-2 rounded-lg border border-green-400 text-white font-semibold transition-all ${
+                  isSendingAnnouncement
+                    ? 'bg-green-600/30 cursor-not-allowed'
+                    : 'bg-green-600/40 hover:bg-green-600/60 hover:shadow-[0_0_20px_rgba(34,197,94,0.6)]'
+                }`}
+              >
+                {isSendingAnnouncement ? 'Sending...' : 'Send Broadcast'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

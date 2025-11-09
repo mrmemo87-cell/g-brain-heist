@@ -135,6 +135,7 @@ export interface Announcement {
   text: string;
   created_at: string;
   created_by: string | null;
+  seen_at?: string | null;
 }
 
 export interface AdminOverviewStats {

@@ -14,9 +14,13 @@ DECLARE
   minutes_elapsed INT;
   ap_to_regen INT;
   new_ap INT;
+  current_local TIMESTAMP;
+  last_local TIMESTAMP;
 BEGIN
-  -- Calculate minutes elapsed since last update
-  minutes_elapsed := EXTRACT(EPOCH FROM (NOW() - last_update))::INT / 60;
+  -- Calculate minutes elapsed using Asia/Bishkek timezone reference
+  current_local := timezone('Asia/Bishkek', NOW());
+  last_local := timezone('Asia/Bishkek', last_update);
+  minutes_elapsed := GREATEST(0, EXTRACT(EPOCH FROM (current_local - last_local))::INT / 60);
   
   -- Regenerate 1 AP per 10 minutes
   ap_to_regen := minutes_elapsed / 10;
@@ -49,6 +53,8 @@ DECLARE
   minutes_elapsed_val INT;
   ap_to_regen INT;
   new_ap_val INT;
+  current_local TIMESTAMP;
+  last_local TIMESTAMP;
 BEGIN
   -- Get user data
   SELECT ap_now, ap_max, COALESCE(last_ap_update, NOW()) as last_ap_update
@@ -60,8 +66,10 @@ BEGIN
     RAISE EXCEPTION 'User not found';
   END IF;
   
-  -- Calculate minutes elapsed
-  minutes_elapsed_val := EXTRACT(EPOCH FROM (NOW() - user_record.last_ap_update))::INT / 60;
+  -- Calculate minutes elapsed in Asia/Bishkek time
+  current_local := timezone('Asia/Bishkek', NOW());
+  last_local := timezone('Asia/Bishkek', user_record.last_ap_update);
+  minutes_elapsed_val := GREATEST(0, EXTRACT(EPOCH FROM (current_local - last_local))::INT / 60);
   
   -- Regenerate 1 AP per 10 minutes
   ap_to_regen := minutes_elapsed_val / 10;
@@ -74,7 +82,7 @@ BEGIN
     UPDATE users
     SET 
       ap_now = new_ap_val,
-      last_ap_update = NOW()
+      last_ap_update = timezone('Asia/Bishkek', NOW()) AT TIME ZONE 'Asia/Bishkek'
     WHERE id = user_id_param;
     
     RETURN QUERY SELECT new_ap_val, ap_to_regen, minutes_elapsed_val;
@@ -89,24 +97,22 @@ $$;
 -- This requires pg_cron extension (enable in Supabase dashboard)
 -- To enable: Go to Database > Extensions > Enable pg_cron
 
--- Uncomment below if you want automatic regeneration every 10 minutes
-/*
-SELECT cron.schedule(
-  'regenerate-all-users-ap',
-  '*/10 * * * *', -- Every 10 minutes
-  $$
-  UPDATE users
-  SET 
-    ap_now = LEAST(
-      ap_now + (EXTRACT(EPOCH FROM (NOW() - COALESCE(last_ap_update, NOW())))::INT / 60 / 10),
-      ap_max
-    ),
-    last_ap_update = NOW()
-  WHERE ap_now < ap_max
-    AND (EXTRACT(EPOCH FROM (NOW() - COALESCE(last_ap_update, NOW())))::INT / 60) >= 10;
-  $$
-);
-*/
+-- Example: schedule regeneration every 10 minutes (requires pg_cron)
+-- SELECT cron.schedule(
+--   'regenerate-all-users-ap',
+--   '*/10 * * * *',
+--   $$
+--   UPDATE users
+--   SET 
+--     ap_now = LEAST(
+--       ap_now + (EXTRACT(EPOCH FROM (NOW() - COALESCE(last_ap_update, NOW())))::INT / 60 / 10),
+--       ap_max
+--     ),
+--     last_ap_update = timezone('Asia/Bishkek', NOW()) AT TIME ZONE 'Asia/Bishkek'
+--   WHERE ap_now < ap_max
+--     AND (EXTRACT(EPOCH FROM (NOW() - COALESCE(last_ap_update, NOW())))::INT / 60) >= 10;
+--   $$
+-- );
 
 COMMENT ON FUNCTION calculate_current_ap IS 'Calculates current AP with regeneration without updating database';
 COMMENT ON FUNCTION regenerate_user_ap IS 'Regenerates and updates AP for a specific user in database';

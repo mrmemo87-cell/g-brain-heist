@@ -139,13 +139,15 @@ BEGIN
   LOOP
     -- Check if conditions are met based on condition_type
     IF (
-      (v_achievement.condition_type = 'quest_count' AND v_profile.quests_completed >= (v_achievement.condition_value->>'threshold')::INT) OR
-      (v_achievement.condition_type = 'pvp_wins' AND v_profile.pvp_wins >= (v_achievement.condition_value->>'threshold')::INT) OR
       (v_achievement.condition_type = 'level' AND v_profile.level >= (v_achievement.condition_value->>'threshold')::INT) OR
       (v_achievement.condition_type = 'streak' AND v_profile.streak >= (v_achievement.condition_value->>'threshold')::INT) OR
       (v_achievement.condition_type = 'coins' AND v_profile.coins >= (v_achievement.condition_value->>'threshold')::INT) OR
-      (v_achievement.condition_type = 'shop_purchases' AND COALESCE(v_profile.shop_purchases, 0) >= (v_achievement.condition_value->>'threshold')::INT) OR
-      (v_achievement.condition_type = 'clan_joined' AND v_profile.clan_id IS NOT NULL)
+      (v_achievement.condition_type = 'shop_purchases' AND (
+        SELECT COUNT(*) FROM shop_purchases sp WHERE sp.user_id = player_id
+      ) >= (v_achievement.condition_value->>'threshold')::INT) OR
+      (v_achievement.condition_type = 'clan_joined' AND EXISTS (
+        SELECT 1 FROM clan_members cm WHERE cm.user_id = player_id
+      ))
     ) THEN
       -- Grant achievement
       INSERT INTO user_achievements (user_id, achievement_id)

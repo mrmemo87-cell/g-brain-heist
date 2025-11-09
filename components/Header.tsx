@@ -191,6 +191,14 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
     return () => clearInterval(interval);
   }, [profile.ap_now, profile.ap_max, profile.last_ap_update]);
 
+  const handleBrandClick = () => {
+    if (onNavigate) {
+      onNavigate('dashboard');
+    } else {
+      onBackToDashboard?.();
+    }
+  };
+
   return (
     <>
       <header className="sticky top-0 z-40 bg-gradient-to-r from-gray-900 via-black to-gray-900 border-b-2 border-cyan-500/30 shadow-2xl shadow-cyan-500/20">
@@ -201,13 +209,18 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
             {/* Top row: Brand + Avatar + Settings */}
             <div className="flex items-center justify-between mb-2">
               <div className="relative">
-                <h1 className="font-heading text-lg font-black tracking-wider select-none">
+                <button
+                  type="button"
+                  onClick={handleBrandClick}
+                  className="font-heading text-lg font-black tracking-wider select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 rounded"
+                  aria-label="Go to dashboard"
+                >
                   <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]" 
                         style={{ 
                           backgroundImage: 'linear-gradient(90deg, #22d3ee 0%, #3b82f6 25%, #8b5cf6 50%, #3b82f6 75%, #22d3ee 100%)',
                           animation: 'shimmer 3s linear infinite'
                         }}>
-                    BRAIN
+                    BRAINS
                   </span>
                   {' '}
                   <span className="bg-gradient-to-r from-pink-500 via-red-500 to-orange-500 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]"
@@ -218,7 +231,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                         }}>
                     HEIST
                   </span>
-                </h1>
+                </button>
               </div>
               <div className="flex items-center gap-2">
                 <img
@@ -345,13 +358,18 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
             {/* Left: BRAIN HEIST Brand */}
             <div className="flex items-center space-x-4">
               <div className="relative group">
-                <h1 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-black tracking-widest select-none">
+                <button
+                  type="button"
+                  onClick={handleBrandClick}
+                  className="font-heading text-2xl sm:text-3xl lg:text-4xl font-black tracking-widest select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 rounded"
+                  aria-label="Go to dashboard"
+                >
                   <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]" 
                         style={{ 
                           backgroundImage: 'linear-gradient(90deg, #22d3ee 0%, #3b82f6 25%, #8b5cf6 50%, #3b82f6 75%, #22d3ee 100%)',
                           animation: 'shimmer 3s linear infinite'
                         }}>
-                    BRAIN
+                    BRAINS
                   </span>
                   {' '}
                   <span className="bg-gradient-to-r from-pink-500 via-red-500 to-orange-500 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]"
@@ -362,7 +380,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                         }}>
                     HEIST
                   </span>
-                </h1>
+                </button>
                 <div className="absolute -bottom-1 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-500 via-pink-500 to-cyan-500 opacity-50 blur-sm"></div>
               </div>
               
