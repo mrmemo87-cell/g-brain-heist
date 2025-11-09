@@ -18,6 +18,10 @@ ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE shop_purchases ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE caps ENABLE ROW LEVEL SECURITY;
+ALTER TABLE mcq_questions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE attempts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE rpc_event_log ENABLE ROW LEVEL SECURITY;
 
 -- ============================================
 -- USERS TABLE POLICIES
@@ -42,6 +46,95 @@ CREATE POLICY "Users can view other users"
 CREATE POLICY "Users can insert own profile"
     ON users FOR INSERT
     WITH CHECK (auth.uid() = id);
+
+-- ============================================
+-- MCQ QUESTIONS POLICIES
+-- ============================================
+
+-- Students can view active questions in their grade
+CREATE POLICY "Students view grade questions"
+    ON mcq_questions FOR SELECT
+    USING (
+        active
+        AND EXISTS (
+            SELECT 1 FROM users u
+            WHERE u.id = auth.uid()
+              AND u.grade = mcq_questions.grade
+              AND COALESCE(u.is_banned, false) = false
+        )
+    );
+
+-- Admins can manage all questions
+CREATE POLICY "Admins manage questions"
+    ON mcq_questions FOR ALL
+    USING (
+        EXISTS (
+            SELECT 1 FROM users u
+            WHERE u.id = auth.uid()
+              AND u.is_admin = true
+        )
+    )
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM users u
+            WHERE u.id = auth.uid()
+              AND u.is_admin = true
+        )
+    );
+
+-- ============================================
+-- ATTEMPTS POLICIES
+-- ============================================
+
+CREATE POLICY "Students view own attempts"
+    ON attempts FOR SELECT
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "Students insert own attempts"
+    ON attempts FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Admins view attempts"
+    ON attempts FOR SELECT
+    USING (
+        EXISTS (
+            SELECT 1 FROM users u
+            WHERE u.id = auth.uid()
+              AND u.is_admin = true
+        )
+    );
+
+-- ============================================
+-- ANNOUNCEMENTS POLICIES
+-- ============================================
+
+CREATE POLICY "Announcements are public"
+    ON announcements FOR SELECT
+    USING (true);
+
+CREATE POLICY "Admins create announcements"
+    ON announcements FOR INSERT
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM users u
+            WHERE u.id = auth.uid()
+              AND u.is_admin = true
+        )
+    );
+
+-- ============================================
+-- RPC EVENT LOG POLICIES
+-- ============================================
+
+CREATE POLICY "Admins read rpc logs"
+    ON rpc_event_log FOR SELECT
+    USING (
+        EXISTS (
+            SELECT 1 FROM users u
+            WHERE u.id = auth.uid()
+              AND u.is_admin = true
+        )
+    );
 
 -- ============================================
 -- INVENTORY TABLE POLICIES

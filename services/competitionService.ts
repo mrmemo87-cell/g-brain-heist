@@ -1,0 +1,349 @@
+import { supabase } from './supabaseClient';
+import type {
+  AttemptSubmissionResult,
+  Batch,
+  BatchLeaderboardSummary,
+  Grade,
+  LeaderboardEntry,
+  PhaseQuestion,
+  Announcement,
+  AdminOverviewStats,
+} from '../types';
+
+const mapQuestionRow = (row: any): PhaseQuestion | null => {
+  if (!row) return null;
+  return {
+    id: row.id,
+    stem: row.stem,
+    opt1: row.opt1,
+    opt2: row.opt2,
+    opt3: row.opt3,
+    opt4: row.opt4,
+    lang: row.lang ?? 'ru',
+    reward_xp: row.reward_xp ?? 20,
+    reward_coins: row.reward_coins ?? 10,
+  };
+};
+
+export const fetchNextQuestion = async (grade: Grade): Promise<PhaseQuestion | null> => {
+  const { data, error } = await supabase.rpc('rpc_questions_next', { p_grade: grade });
+
+  if (error) {
+    throw new Error(error.message || 'Failed to load question');
+  }
+
+  if (!data || data.length === 0) {
+    return null;
+  }
+
+  return mapQuestionRow(Array.isArray(data) ? data[0] : data);
+};
+
+export const submitAttempt = async (
+  questionId: number,
+  choice: number
+): Promise<AttemptSubmissionResult> => {
+  const { data, error } = await supabase.rpc('rpc_submit_attempt', {
+    p_question_id: questionId,
+    p_choice: choice,
+  });
+
+  if (error) {
+    throw new Error(error.message || 'Failed to submit attempt');
+  }
+
+  if (!data || data.length === 0) {
+    throw new Error('Invalid response from submit attempt RPC');
+  }
+
+  const payload = Array.isArray(data) ? data[0] : data;
+
+  return {
+    is_correct: !!payload.is_correct,
+    correct_option: Number(payload.correct_option ?? payload.correct),
+    xp_awarded: Number(payload.xp_awarded ?? payload.reward_xp ?? 0),
+    coins_awarded: Number(payload.coins_awarded ?? payload.reward_coins ?? 0),
+    profile_xp: Number(payload.profile_xp ?? payload.new_xp ?? 0),
+    profile_coins: Number(payload.profile_coins ?? payload.new_coins ?? 0),
+    profile_streak: Number(payload.profile_streak ?? payload.new_streak ?? 0),
+  };
+};
+
+const mapLeaderboard = (data: any[]): LeaderboardEntry[] => {
+  if (!Array.isArray(data)) return [];
+
+  return data.map((row) => ({
+    user_id: row.user_id ?? row.id,
+    username: row.username,
+    xp: Number(row.xp ?? 0),
+    coins: Number(row.coins ?? 0),
+    streak: Number(row.streak ?? 0),
+    batch: (row.batch ?? null) as Batch | null,
+    grade: Number(row.grade ?? row.player_grade ?? 8) as Grade,
+  }));
+};
+
+export const fetchGradeLeaderboard = async (
+  grade: Grade,
+  limit = 10
+): Promise<LeaderboardEntry[]> => {
+  const { data, error } = await supabase.rpc('rpc_leaderboard_grade', {
+    p_grade: grade,
+    p_limit: limit,
+  });
+
+  if (error) {
+    throw new Error(error.message || 'Failed to load grade leaderboard');
+  }
+
+  return mapLeaderboard(data ?? []);
+};
+
+export const fetchBatchLeaderboard = async (
+  batch: Batch,
+  limit = 10
+): Promise<LeaderboardEntry[]> => {
+  const { data, error } = await supabase.rpc('rpc_leaderboard_batch', {
+    p_batch: batch,
+    p_limit: limit,
+  });
+
+  if (error) {
+    throw new Error(error.message || 'Failed to load class leaderboard');
+  }
+
+  return mapLeaderboard(data ?? []);
+};
+
+export const fetchBatchSummaries = async (): Promise<BatchLeaderboardSummary[]> => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, batch, xp, grade');
+
+  if (error) {
+    throw new Error(error.message || 'Failed to load profiles for summaries');
+  }
+
+  const summaries = new Map<Batch, { total: number; count: number }>();
+
+  (data ?? []).forEach((row) => {
+    const batch = row.batch as Batch | null;
+    if (!batch) return;
+    if (!summaries.has(batch)) {
+      summaries.set(batch, { total: 0, count: 0 });
+    }
+    const stat = summaries.get(batch)!;
+    stat.total += Number(row.xp ?? 0);
+    stat.count += 1;
+  });
+
+  return Array.from(summaries.entries()).map(([batch, values]) => ({
+    batch,
+    total_xp: values.total,
+    player_count: values.count,
+  }));
+};
+
+export const fetchAnnouncements = async (limit = 10): Promise<Announcement[]> => {
+  const { data, error } = await supabase
+    .from('announcements')
+    .select('id, text, created_at, created_by')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw new Error(error.message || 'Failed to fetch announcements');
+  }
+
+  return (data ?? []) as Announcement[];
+};
+
+export const postAnnouncement = async (text: string): Promise<void> => {
+  const { error } = await supabase.rpc('rpc_announcement_post', { p_text: text });
+
+  if (error) {
+    throw new Error(error.message || 'Failed to send announcement');
+  }
+};
+
+export const fetchLatestAnnouncement = async (): Promise<Announcement | null> => {
+  const announcements = await fetchAnnouncements(1);
+  return announcements.length > 0 ? announcements[0] : null;
+};
+
+export const grantPlayerRewards = async (
+  userId: string,
+  xpDelta: number,
+  coinsDelta: number
+): Promise<void> => {
+  const { error } = await supabase.rpc('rpc_admin_grant', {
+    p_user_id: userId,
+    p_xp_delta: xpDelta,
+    p_coins_delta: coinsDelta,
+  });
+
+  if (error) {
+    throw new Error(error.message || 'Failed to grant rewards');
+  }
+};
+
+export const resetPlayerProgress = async (userId: string): Promise<void> => {
+  const { error } = await supabase.rpc('rpc_admin_reset_user', {
+    p_user_id: userId,
+  });
+
+  if (error) {
+    throw new Error(error.message || 'Failed to reset player');
+  }
+};
+
+export const setPlayerBanned = async (userId: string, isBanned: boolean): Promise<void> => {
+  const { error } = await supabase.rpc('rpc_admin_ban_user', {
+    p_user_id: userId,
+    p_is_banned: isBanned,
+  });
+
+  if (error) {
+    throw new Error(error.message || 'Failed to update ban status');
+  }
+};
+
+export const searchPlayers = async (query: string, limit = 20) => {
+  const trimmed = query.trim();
+  if (!trimmed) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, username, grade, batch, xp, coins, streak, updated_at, is_banned')
+    .ilike('username', `%${trimmed}%`)
+    .limit(limit);
+
+  if (error) {
+    throw new Error(error.message || 'Failed to search players');
+  }
+
+  return data ?? [];
+};
+
+export const fetchPlayerLastAttempt = async (userId: string): Promise<string | null> => {
+  const { data, error } = await supabase
+    .from('attempts')
+    .select('created_at')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message || 'Failed to load attempt history');
+  }
+
+  return data?.created_at ?? null;
+};
+
+export const fetchQuestionBank = async () => {
+  const { data, error } = await supabase
+    .from('mcq_questions')
+    .select('id, grade, difficulty, active, stem, lang');
+
+  if (error) {
+    throw new Error(error.message || 'Failed to load question bank');
+  }
+
+  return data ?? [];
+};
+
+export const updateQuestionActiveState = async (questionId: number, active: boolean) => {
+  const { error } = await supabase
+    .from('mcq_questions')
+    .update({ active })
+    .eq('id', questionId);
+
+  if (error) {
+    throw new Error(error.message || 'Failed to update question state');
+  }
+};
+
+export const fetchQuestionCountsByGrade = async () => {
+  const questions = await fetchQuestionBank();
+  const counts = new Map<Grade, { total: number; active: number; difficulty: Record<string, number> }>();
+
+  questions.forEach((question: any) => {
+    const grade = Number(question.grade) as Grade;
+    if (!counts.has(grade)) {
+      counts.set(grade, { total: 0, active: 0, difficulty: {} });
+    }
+    const entry = counts.get(grade)!;
+    entry.total += 1;
+    if (question.active) {
+      entry.active += 1;
+    }
+    const key = question.difficulty ?? 'unknown';
+    entry.difficulty[key] = (entry.difficulty[key] ?? 0) + 1;
+  });
+
+  return Array.from(counts.entries()).map(([grade, value]) => ({ grade, ...value }));
+};
+
+export const fetchAdminOverviewStats = async (): Promise<AdminOverviewStats> => {
+  const now = new Date();
+  const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
+  const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+
+  const [playersTodayRes, attemptsRes, summaries, errorLogRes] = await Promise.all([
+    supabase
+      .from('attempts')
+      .select('user_id', { head: true, count: 'exact' })
+      .gte('created_at', startOfDay.toISOString()),
+    supabase
+      .from('attempts')
+      .select('id', { head: true, count: 'exact' })
+      .gte('created_at', fiveMinutesAgo.toISOString()),
+    fetchBatchSummaries(),
+    supabase
+      .from('rpc_event_log')
+      .select('message, created_at')
+      .eq('level', 'error')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+
+  const errorLogData = (errorLogRes as { data?: { message?: string; created_at?: string } | null })?.data ?? null;
+
+  const topBatch = summaries.reduce<{ batch: Batch | null; total: number | null }>(
+    (acc, curr) => {
+      if (acc.total === null || curr.total_xp > acc.total) {
+        return { batch: curr.batch, total: curr.total_xp };
+      }
+      return acc;
+    },
+    { batch: null, total: null }
+  );
+
+  return {
+    players_today: playersTodayRes.count ?? 0,
+    attempts_last_five_minutes: attemptsRes.count ?? 0,
+    top_batch: topBatch.batch,
+    top_batch_total_xp: topBatch.total,
+    last_error_message: errorLogData?.message ?? null,
+    last_error_at: errorLogData?.created_at ?? null,
+  };
+};
+
+export const fetchAttemptsPerMinute = async () => {
+  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+  const { data, error } = await supabase
+    .from('attempts')
+    .select('created_at')
+    .gte('created_at', tenMinutesAgo);
+
+  if (error) {
+    throw new Error(error.message || 'Failed to load telemetry');
+  }
+
+  return data ?? [];
+};
+

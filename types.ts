@@ -1,9 +1,11 @@
-export type Batch = '8A' | '8B' | '8C';
+export type Grade = 8 | 9;
+export type Batch = '8A' | '8B' | '8C' | '9A' | '9B' | '9C';
 export type UserRole = 'student' | 'teacher' | 'admin';
 
 export interface Profile {
   id: string;
   username: string;
+  grade: Grade | null; // null for teachers or admins without grade assignment
   batch: Batch | null; // null for teachers
   role?: UserRole; // User role - student by default
   avatar_url: string;
@@ -20,6 +22,8 @@ export interface Profile {
   defense_power: number; // Base defense power
   tutorial_completed?: boolean; // Whether user has completed onboarding tutorial
   admin_visible?: boolean; // Whether admin is visible in leaderboards/PvP (default: false)
+  is_admin?: boolean;
+  is_banned?: boolean;
 }
 
 export interface Task {
@@ -86,6 +90,60 @@ export interface Question {
   correct_answer?: string; // Added for database questions
   reward_xp: number;
   reward_coins: number;
+}
+
+export interface PhaseQuestion {
+  id: number;
+  stem: string;
+  opt1: string;
+  opt2: string;
+  opt3: string;
+  opt4: string;
+  lang: string;
+  reward_xp: number;
+  reward_coins: number;
+}
+
+export interface AttemptSubmissionResult {
+  is_correct: boolean;
+  correct_option: number;
+  xp_awarded: number;
+  coins_awarded: number;
+  profile_xp: number;
+  profile_coins: number;
+  profile_streak: number;
+}
+
+export interface LeaderboardEntry {
+  user_id: string;
+  username: string;
+  xp: number;
+  coins: number;
+  streak: number;
+  batch: Batch | null;
+  grade: Grade;
+}
+
+export interface BatchLeaderboardSummary {
+  batch: Batch;
+  total_xp: number;
+  player_count: number;
+}
+
+export interface Announcement {
+  id: number;
+  text: string;
+  created_at: string;
+  created_by: string | null;
+}
+
+export interface AdminOverviewStats {
+  players_today: number;
+  attempts_last_five_minutes: number;
+  top_batch: Batch | null;
+  top_batch_total_xp: number | null;
+  last_error_message: string | null;
+  last_error_at: string | null;
 }
 
 export interface AnswerResponse {

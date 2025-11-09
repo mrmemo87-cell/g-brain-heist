@@ -1,6 +1,7 @@
 import { supabase } from './supabaseClient';
 import { createTeacherProfile } from './rpcGateway';
 import { getAuthRedirectUrl } from './env';
+import type { Batch, Grade } from '../types';
 
 export const login = async (email: string, password: string): Promise<{ success: boolean }> => {
     console.log(`Attempting login for ${email}`);
@@ -23,7 +24,14 @@ export const login = async (email: string, password: string): Promise<{ success:
     throw new Error('Login failed');
 };
 
-export const signup = async (email: string, password: string, username: string, role: 'student' | 'teacher', batch?: string): Promise<{ success: boolean }> => {
+export const signup = async (
+    email: string,
+    password: string,
+    username: string,
+    role: 'student' | 'teacher',
+    grade?: Grade,
+    batch?: Batch
+): Promise<{ success: boolean }> => {
     console.log(`Attempting signup for ${email} as ${role}`);
     
     // Sign up with Supabase Auth
@@ -60,7 +68,11 @@ export const signup = async (email: string, password: string, username: string, 
         
         // Only add batch for students
         if (role === 'student') {
+            profileData.grade = grade ?? 8;
             profileData.batch = batch;
+        } else {
+            profileData.grade = null;
+            profileData.batch = null;
         }
         
         const { error: profileError } = await supabase
@@ -149,7 +161,7 @@ export const createOAuthProfile = async (): Promise<void> => {
 
     // Extract username from email or use name from OAuth provider
     const emailUsername = user.email?.split('@')[0] || 'user';
-    const displayName = user.user_metadata?.full_name || user.user_metadata?.name;
+    const displayName = user.user_metadata?.['full_name'] || user.user_metadata?.['name'];
     const username = displayName || emailUsername;
 
     // Create user profile with default student role
@@ -158,8 +170,9 @@ export const createOAuthProfile = async (): Promise<void> => {
         email: user.email,
         username: username,
         role: 'student', // Default to student for OAuth users
-        batch: '8A', // Default batch
-        avatar_url: user.user_metadata?.avatar_url || `https://picsum.photos/seed/${username}/100/100`,
+        grade: 8 as Grade,
+        batch: '8A' as Batch, // Default batch
+        avatar_url: user.user_metadata?.['avatar_url'] || `https://picsum.photos/seed/${username}/100/100`,
     };
 
     const { error: profileError } = await supabase

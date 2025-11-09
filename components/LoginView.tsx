@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { GoogleIcon } from './icons';
 import * as AuthService from '../services/authService';
+import type { Batch, Grade } from '../types';
 
 interface LoginViewProps {
     onLogin: (email: string, pass: string) => Promise<void>;
@@ -11,7 +12,8 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [username, setUsername] = useState('');
-    const [batch, setBatch] = useState<'8A' | '8B' | '8C'>('8A');
+    const [grade, setGrade] = useState<Grade>(8);
+    const [batch, setBatch] = useState<Batch>('8A');
     const [role, setRole] = useState<'student' | 'teacher'>('student');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -26,7 +28,9 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
 
         try {
             if (mode === 'signup') {
-                await AuthService.signup(email, password, username, role, batch);
+                const gradeForSignup = role === 'student' ? grade : undefined;
+                const batchForSignup = role === 'student' ? batch : undefined;
+                await AuthService.signup(email, password, username, role, gradeForSignup, batchForSignup);
                 setSuccess('Account created! Please log in.');
                 setMode('login');
                 setPassword('');
@@ -51,6 +55,19 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
             setError(err.message || 'Google sign-in failed. Please try again.');
         } finally {
             setIsGoogleLoading(false);
+        }
+    };
+
+    const gradeOptions: Record<Grade, Batch[]> = useMemo(() => ({
+        8: ['8A', '8B', '8C'],
+        9: ['9A', '9B', '9C'],
+    }), []);
+
+    const handleGradeChange = (value: Grade) => {
+        setGrade(value);
+        const availableBatches = gradeOptions[value];
+        if (!availableBatches.includes(batch)) {
+            setBatch(availableBatches[0]);
         }
     };
 
@@ -137,19 +154,33 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                 </div>
 
                                 {role === 'student' && (
-                                    <div>
-                                        <label htmlFor="batch" className="block text-sm font-medium text-gray-300">Batch</label>
-                                        <select
-                                            id="batch"
-                                            value={batch}
-                                            onChange={(e) => setBatch(e.target.value as '8A' | '8B' | '8C')}
-                                            className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
-                                        >
-                                            <option value="8A">Batch 8A</option>
-                                            <option value="8B">Batch 8B</option>
-                                            <option value="8C">Batch 8C</option>
-                                        </select>
-                                    </div>
+                                    <>
+                                        <div>
+                                            <label htmlFor="grade" className="block text-sm font-medium text-gray-300">Grade</label>
+                                            <select
+                                                id="grade"
+                                                value={grade}
+                                                onChange={(e) => handleGradeChange(Number(e.target.value) as Grade)}
+                                                className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+                                            >
+                                                <option value={8}>Grade 8</option>
+                                                <option value={9}>Grade 9</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label htmlFor="batch" className="block text-sm font-medium text-gray-300">Class</label>
+                                            <select
+                                                id="batch"
+                                                value={batch}
+                                                onChange={(e) => setBatch(e.target.value as Batch)}
+                                                className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+                                            >
+                                                {gradeOptions[grade].map((option) => (
+                                                    <option key={option} value={option}>{`Class ${option}`}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </>
                                 )}
                             </>
                         )}
