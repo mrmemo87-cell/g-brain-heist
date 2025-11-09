@@ -255,6 +255,13 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                 >
                   <span className="text-lg">⚙️</span>
                 </button>
+                <button 
+                  onClick={onLogout}
+                  className="flex p-2 rounded-lg bg-black/40 border border-gray-600 hover:border-red-500 transition-colors items-center justify-center"
+                  aria-label="Log Out"
+                >
+                  <LogoutIcon className="w-5 h-5 text-red-400" />
+                </button>
               </div>
             </div>
 
