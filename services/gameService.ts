@@ -1553,6 +1553,7 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
 
 export const raid_attack = async (defender_id: string, use_cracker: boolean, target: RaidTarget): Promise<RaidAttackResult> => {
     const user = await getCurrentUser();
+    const AP_COST = 2; // AP cost per raid attack (must match database function)
 
     const simulateBotRaid = (botId: string) => {
         const bots = refreshKyrgyzBotStates();
@@ -1641,6 +1642,21 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
         }
         botSimulation = simulateBotRaid(target.user_id);
         response = botSimulation.response;
+        
+        // Deduct AP for bot raids (consistent with database function for player raids)
+        const { data: currentProfile } = await supabase
+            .from('users')
+            .select('ap_now')
+            .eq('id', user.id)
+            .single();
+        
+        if (!currentProfile || currentProfile.ap_now < AP_COST) {
+            throw new Error('Not enough AP');
+        }
+        
+        await updateProfile(user.id, {
+            ap_now: currentProfile.ap_now - AP_COST
+        });
     } else {
         const { data, error } = await performHackAttempt(defender_id);
 
