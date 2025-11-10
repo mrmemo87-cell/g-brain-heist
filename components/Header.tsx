@@ -5,6 +5,7 @@ import { audioService } from '../services/audioService';
 import { NotificationCenter } from './NotificationCenter';
 import { notificationService } from '../services/notificationService';
 import { update_avatar } from '../services/gameService';
+import { isAdmin } from '../services/adminService';
 
 // Custom hook for animating number changes
 const useAnimatedValue = (endValue: number, duration: number = 500) => {
@@ -76,7 +77,7 @@ interface HeaderProps {
   currentView: string;
   onBackToDashboard?: () => void;
   onShowHelp?: () => void;
-  onNavigate?: (view: 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher') => void;
+  onNavigate?: (view: 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin') => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard, onShowHelp, onNavigate }) => {
@@ -493,6 +494,18 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
               >
                 <span className="text-xl">❓</span>
               </button>
+
+              {/* Admin Button (only for admins) */}
+              {isAdmin(profile) && (
+                <button 
+                  onClick={() => onNavigate?.('admin')}
+                  className="p-2.5 rounded-xl bg-gradient-to-br from-amber-600/40 to-yellow-600/40 border border-amber-500/80 hover:border-amber-400 hover:bg-amber-500/20 transition-all hover:scale-110 backdrop-blur-sm shadow-lg shadow-amber-500/30 animate-pulse"
+                  aria-label="Admin Portal"
+                  title="Admin Portal - God Mode Active 👑"
+                >
+                  <span className="text-xl">👑</span>
+                </button>
+              )}
 
               {/* Settings Button */}
               <button 
