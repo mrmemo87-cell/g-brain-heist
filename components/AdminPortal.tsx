@@ -66,24 +66,26 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
       if (error) throw error;
 
-      setAllUsers(users || []);
-      setFilteredUsers(users || []);
+  const playerRoster = (users || []).filter((u) => !u.is_admin && u.role !== 'admin');
+
+  setAllUsers(playerRoster);
+  setFilteredUsers(playerRoster);
 
       const now = new Date();
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-      const activeToday = users?.filter(u => {
+      const activeToday = playerRoster.filter(u => {
         const lastSeen = u.last_seen ? new Date(u.last_seen) : null;
         return lastSeen && lastSeen >= todayStart;
-      }).length || 0;
+      }).length;
 
-      const totalXP = users?.reduce((sum, u) => sum + (u.xp || 0), 0) || 0;
-      const totalCoins = users?.reduce((sum, u) => sum + (u.coins || 0), 0) || 0;
+      const totalXP = playerRoster.reduce((sum, u) => sum + (u.xp || 0), 0);
+      const totalCoins = playerRoster.reduce((sum, u) => sum + (u.coins || 0), 0);
 
       const { data: clans } = await supabase.from('clans').select('id');
 
       setStats({
-        totalUsers: users?.length || 0,
+  totalUsers: playerRoster.length,
         activeToday,
         totalXP,
         totalCoins,

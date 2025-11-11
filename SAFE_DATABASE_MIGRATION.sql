@@ -161,6 +161,34 @@ BEGIN
 END;
 $$;
 
+-- Ensure notifications type constraint includes all runtime notification kinds
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.table_constraints
+        WHERE table_schema = 'public'
+          AND table_name = 'notifications'
+          AND constraint_name = 'notifications_type_check'
+    ) THEN
+        ALTER TABLE notifications DROP CONSTRAINT notifications_type_check;
+    END IF;
+
+    BEGIN
+        ALTER TABLE notifications
+        ADD CONSTRAINT notifications_type_check CHECK (type IN (
+            'attack_incoming', 'attack_defended', 'attack_success', 'attack_failed',
+            'level_up', 'achievement_earned', 'coins_earned', 'coins_lost',
+            'quest_completed', 'gemstone_earned', 'low_ap', 'ap_full',
+            'challenge_received', 'clan_invite', 'revenge_available',
+            'streak_danger', 'new_rival', 'leaderboard_change'
+        ));
+    EXCEPTION
+        WHEN duplicate_object THEN NULL;
+    END;
+END;
+$$;
+
 -- ============================================
 -- 3. ADD MISSING COLUMNS TO EXISTING TABLES
 -- ============================================

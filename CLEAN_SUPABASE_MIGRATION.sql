@@ -37,13 +37,13 @@ END $$;
 CREATE TABLE IF NOT EXISTS notifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
-  type TEXT NOT NULL CHECK (type IN (
-    'attack_incoming', 'attack_defended', 'attack_success', 'attack_failed',
-    'level_up', 'achievement_earned', 'coins_earned', 'coins_lost',
-    'quest_completed', 'low_ap', 'ap_full', 'challenge_received',
-    'clan_invite', 'revenge_available', 'streak_danger', 'new_rival',
-    'leaderboard_change'
-  )),
+    type TEXT NOT NULL CHECK (type IN (
+        'attack_incoming', 'attack_defended', 'attack_success', 'attack_failed',
+        'level_up', 'achievement_earned', 'coins_earned', 'coins_lost',
+        'quest_completed', 'gemstone_earned', 'low_ap', 'ap_full',
+        'challenge_received', 'clan_invite', 'revenge_available',
+        'streak_danger', 'new_rival', 'leaderboard_change'
+    )),
   title TEXT NOT NULL,
   message TEXT NOT NULL,
   data JSONB,
