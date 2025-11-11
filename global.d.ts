@@ -6,6 +6,8 @@ declare module 'react/jsx-runtime' {
   export { jsx, jsxs, jsxDEV };
 }
 
+declare module '*.css';
+
 declare namespace React {
   type AnyFunction = (...args: any[]) => any;
   type Dispatch<A> = (value: A) => void;

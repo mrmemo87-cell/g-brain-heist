@@ -5,6 +5,7 @@ import LoginView from './components/LoginView';
 import ErrorBoundary from './components/ErrorBoundary';
 import * as AuthService from './services/authService';
 import { supabase } from './services/supabaseClient';
+import './src/index.css';
 
 const Main: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
