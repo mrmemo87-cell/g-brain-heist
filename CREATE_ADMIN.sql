@@ -4,7 +4,7 @@
 -- IMPORTANT: Before running this SQL, you need to:
 -- 1. Go to Supabase Dashboard → Authentication → Users
 -- 2. Click "Add user" → "Create new user"
--- 3. Email: admin@g-brain-heist.com
+-- 3. Email: sobbi@bh.com
 -- 4. Password: 123Memoo@
 -- 5. Auto Confirm User: YES (check this box)
 -- 6. Click "Create user"
@@ -32,7 +32,7 @@ SET
   defense_power = 999,
   admin_visible = false,
   avatar_url = 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin&backgroundColor=b6e3f4&skinColor=ffdbb4&eyes=default&eyebrows=default&mouth=smile&accessories=prescription01&clothesColor=262e33'
-WHERE email = 'admin@g-brain-heist.com';
+WHERE email = 'sobbi@bh.com';
 
 -- Step 3: Verify admin was created/updated
 SELECT 
@@ -44,6 +44,6 @@ SELECT
   coins,
   admin_visible
 FROM users 
-WHERE email = 'admin@g-brain-heist.com';
+WHERE email = 'sobbi@bh.com';
 
--- Expected: email='admin@g-brain-heist.com', username='Mr. Sobbi', role='admin', godly stats
+-- Expected: email='sobbi@bh.com', username='Mr. Sobbi', role='admin', godly stats

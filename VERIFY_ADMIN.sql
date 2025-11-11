@@ -1,7 +1,6 @@
 -- VERIFICATION SCRIPT
 -- Run this to check if admin user exists
 
--- Check if user exists in database
 SELECT 
   id,
   email,
@@ -12,9 +11,6 @@ SELECT
   coins,
   admin_visible
 FROM users 
-WHERE email = 'admin@g-brain-heist.com';
+WHERE email = 'sobbi@bh.com';
 
--- If this returns NO ROWS, then you need to:
--- 1. Go to Authentication → Users in Supabase
--- 2. Create user with email: admin@g-brain-heist.com
--- 3. Then run CREATE_ADMIN.sql again
+-- 2. Create user with email: sobbi@bh.com

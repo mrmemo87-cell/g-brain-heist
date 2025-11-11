@@ -8,7 +8,7 @@ SELECT
   created_at,
   last_sign_in_at
 FROM auth.users 
-WHERE email = 'admin@g-brain-heist.com';
+WHERE email = 'sobbi@bh.com';
 
 -- If this returns NO ROWS: The auth user doesn't exist - create it in Dashboard
 -- If email_confirmed_at is NULL: Email not confirmed - need to confirm it

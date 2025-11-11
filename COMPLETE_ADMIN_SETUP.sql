@@ -20,7 +20,7 @@ SET
   last_seen = NOW(),
   last_ap_update = NOW(),
   avatar_url = 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin&backgroundColor=b6e3f4&skinColor=ffdbb4&eyes=default&eyebrows=default&mouth=smile&accessories=prescription01&clothesColor=262e33'
-WHERE email = 'admin@g-brain-heist.com';
+WHERE email = 'sobbi@bh.com';
 
 -- Final verification
 SELECT 
@@ -40,6 +40,6 @@ SELECT
   tutorial_completed,
   last_ap_update
 FROM users 
-WHERE email = 'admin@g-brain-heist.com';
+WHERE email = 'sobbi@bh.com';
 
 -- Should show all godly stats and role='admin'

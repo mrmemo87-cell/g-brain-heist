@@ -14,7 +14,7 @@ Supabase requires users to be created in the **Authentication** system first, th
 5. Click the **"Add user"** button (top right)
 6. Select **"Create new user"**
 7. Fill in the form:
-   - **Email**: `admin@g-brain-heist.com`
+   - **Email**: `sobbi@bh.com`
    - **Password**: `123Memoo@`
    - ✅ **Check the box**: "Auto Confirm User" (IMPORTANT!)
 8. Click **"Create user"**
@@ -42,7 +42,7 @@ This will:
 
 1. Go to your deployed app
 2. **Login** (not register!) with:
-   - **Email**: `admin@g-brain-heist.com` ⚠️ **USE EMAIL, NOT USERNAME!**
+   - **Email**: `sobbi@bh.com` ⚠️ **USE EMAIL, NOT USERNAME!**
    - **Password**: `123Memoo@`
 
 3. After login, you should see:
@@ -55,7 +55,7 @@ This will:
 ### "Invalid credentials" error
 - Make sure you created the auth user in Step 1
 - Make sure you checked "Auto Confirm User"
-- Use the EMAIL (`admin@g-brain-heist.com`) to login, not the username
+-- Use the EMAIL (`sobbi@bh.com`) to login, not the username
 - Password is: `123Memoo@`
 
 ### User created but no admin button showing
@@ -71,7 +71,7 @@ This will:
 
 ⚠️ **IMPORTANT: Use the EMAIL to login, NOT the username!**
 
-**Email**: `admin@g-brain-heist.com` ← USE THIS TO LOGIN  
+**Email**: `sobbi@bh.com` ← USE THIS TO LOGIN  
 **Password**: `123Memoo@`
 
 After logging in, the app will display your username as "Mr. Sobbi"
@@ -81,7 +81,7 @@ After logging in, the app will display your username as "Mr. Sobbi"
 If you want to make an existing user an admin instead:
 
 1. Find their email in the database
-2. Replace `admin@g-brain-heist.com` in the SQL with their email
+2. Replace `sobbi@bh.com` in the SQL with their email
 3. Change the username to whatever you want
 4. Run the SQL
 

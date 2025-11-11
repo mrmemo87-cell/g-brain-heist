@@ -2,7 +2,7 @@
 -- This deletes the old database user and lets auth create the correct one
 
 -- Step 1: Delete the existing database user (wrong ID)
-DELETE FROM users WHERE email = 'admin@g-brain-heist.com';
+DELETE FROM users WHERE email = 'sobbi@bh.com';
 
 -- Step 2: Now login through the app
 -- Supabase will automatically create a users row with the CORRECT ID

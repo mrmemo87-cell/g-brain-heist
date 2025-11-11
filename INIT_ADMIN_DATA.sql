@@ -4,7 +4,7 @@
 -- Set tutorial as completed for admin
 UPDATE users 
 SET tutorial_completed = true 
-WHERE email = 'admin@g-brain-heist.com';
+WHERE email = 'sobbi@bh.com';
 
 -- Verify admin setup
 SELECT 
@@ -18,4 +18,4 @@ SELECT
   u.coins,
   u.tutorial_completed
 FROM users u
-WHERE u.email = 'admin@g-brain-heist.com';
+WHERE u.email = 'sobbi@bh.com';
