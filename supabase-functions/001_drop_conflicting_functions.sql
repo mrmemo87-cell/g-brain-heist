@@ -10,6 +10,7 @@ BEGIN;
 
 -- Drop announcement-related RPCs that had return/param signature changes
 DROP FUNCTION IF EXISTS rpc_announcement_mark_seen(bigint);
+DROP FUNCTION IF EXISTS rpc_announcement_mark_seen(uuid);
 DROP FUNCTION IF EXISTS rpc_announcement_next();
 DROP FUNCTION IF EXISTS rpc_announcement_post(text);
 

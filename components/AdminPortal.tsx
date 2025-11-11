@@ -34,8 +34,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
   const gradeOptions: Grade[] = [8, 9];
   const batchByGrade: Record<Grade, Batch[]> = {
-    8: ['8A', '8B', '8C'],
-    9: ['9A', '9B', '9C'],
+    8: ['8A', '8B', '8C', 'N/A'],
+    9: ['9A', '9B', '9C', 'N/A'],
   };
 
   useEffect(() => {
@@ -226,10 +226,12 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     if (!user) return;
 
     const batch: Batch | null = (() => {
+      const existingBatch = (typeof user.batch === 'string' ? user.batch : null) as Batch | null;
+
       if (!grade) {
-        return null;
+        return existingBatch === 'N/A' ? 'N/A' : null;
       }
-      const existingBatch = user.batch as Batch | null;
+
       if (!existingBatch) {
         return null;
       }
@@ -534,7 +536,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
                   const gradeValue = userGrade ?? '';
                   const batchValue = typeof user.batch === 'string' ? user.batch : '';
-                  const availableBatches = userGrade ? batchByGrade[userGrade] : [];
+                  const availableBatches = userGrade ? batchByGrade[userGrade] : ['N/A'];
 
                   return (
                     <div
@@ -592,8 +594,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                           <select
                             value={batchValue}
                             onChange={(e) => handleBatchChange(user.id, e.target.value)}
-                            disabled={!userGrade}
-                            className="w-full bg-black/40 border border-purple-400/50 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-300 disabled:opacity-50"
+                            className="w-full bg-black/40 border border-purple-400/50 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-300"
                           >
                             <option value="">Unset</option>
                             {availableBatches.map((batch) => (

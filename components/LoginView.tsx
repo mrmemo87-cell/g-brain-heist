@@ -13,7 +13,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const [password, setPassword] = useState('');
     const [username, setUsername] = useState('');
     const [grade, setGrade] = useState<Grade>(8);
-    const [batch, setBatch] = useState<Batch>('8A');
+    const [batch, setBatch] = useState<Batch>('N/A');
     const [role, setRole] = useState<'student' | 'teacher'>('student');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -59,8 +59,8 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     };
 
     const gradeOptions: Record<Grade, Batch[]> = useMemo(() => ({
-        8: ['8A', '8B', '8C'],
-        9: ['9A', '9B', '9C'],
+        8: ['8A', '8B', '8C', 'N/A'],
+        9: ['9A', '9B', '9C', 'N/A'],
     }), []);
 
     const handleGradeChange = (value: Grade) => {

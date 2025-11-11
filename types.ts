@@ -1,5 +1,5 @@
 export type Grade = 8 | 9;
-export type Batch = '8A' | '8B' | '8C' | '9A' | '9B' | '9C';
+export type Batch = '8A' | '8B' | '8C' | '9A' | '9B' | '9C' | 'N/A';
 export type UserRole = 'student' | 'teacher' | 'admin';
 
 export interface Profile {
@@ -211,7 +211,7 @@ export interface PurchaseReceipt {
 export interface ToastMessage {
     id: number;
     message: string;
-    type: 'success' | 'error' | 'info';
+  type: 'success' | 'error' | 'info' | 'warning';
     retryAction?: () => void; // Optional retry callback for errors
 }
 
@@ -259,17 +259,17 @@ export interface ClanChatMessage {
 }
 
 export interface InventoryItem {
-    inv_id: string;
-    item_id: string;
-    name: string;
-    kind: ShopItem['kind'];
-    state: 'unused' | 'active';
-    expires_at?: string; // ISO timestamp for when active items expire
-    activated_at?: string; // ISO timestamp for when item was activated
-    description: string;
-    effect_summary: string;
-    attack_bonus?: number; // Permanent or timed attack bonus
-    defense_bonus?: number; // Permanent or timed defense bonus
+  inv_id: string;
+  item_id: string;
+  name: string;
+  kind: ShopItem['kind'];
+  state: 'unused' | 'active' | 'consumed' | 'used' | 'expired';
+  expires_at?: string | null; // ISO timestamp for when active items expire; null indicates indefinite duration
+  activated_at?: string; // ISO timestamp for when item was activated
+  description: string;
+  effect_summary: string;
+  attack_bonus?: number; // Permanent or timed attack bonus
+  defense_bonus?: number; // Permanent or timed defense bonus
 }
 
 export type TournamentSeasonStatus = 'draft' | 'registration' | 'active' | 'completed' | 'archived';

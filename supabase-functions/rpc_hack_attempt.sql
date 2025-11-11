@@ -21,9 +21,9 @@ declare
   c_xp_win int := 30;
   c_coins_steal_percent numeric := 0.10;  -- Steal 10% of defender's coins (MASSIVE THEFT ENABLED)
   c_xp_loss int := -10;               -- XP penalty for loss or blocked
-  c_coins_loss_to_defender int := 50; -- Coins attacker loses to defender on loss
+  c_coins_loss_min int := 100;        -- Minimum coins attacker loses to defender on loss
   c_max_steal_percent_win numeric := 0.30;  -- Can steal up to 30% of defender's total coins
-  c_max_steal_percent_loss numeric := 0.20; -- Attacker can lose up to 20% of their coins on loss
+  c_coins_loss_percent numeric := 0.35; -- Attacker loses 35% of their coins on loss
 
   -- ====== Variables ======
   attacker record;
@@ -109,7 +109,7 @@ begin
     where user_id = p_defender_id
       and kind in ('shield', 'firewall')
       and state = 'active'
-      and (expires_at is null or expires_at::text = 'Until Cracked' or expires_at::timestamptz > v_now)
+  and (expires_at is null or expires_at > v_now)
   ) into has_shield;
 
   -- ====== Check if attacker has cracker in inventory ======
@@ -147,11 +147,11 @@ begin
     
     -- Break the shield
     update public.inventory
-    set state = 'used', expires_at = v_now::text
+  set state = 'used', expires_at = v_now
     where user_id = p_defender_id
       and kind in ('shield', 'firewall')
       and state = 'active'
-      and (expires_at is null or expires_at::text = 'Until Cracked' or expires_at::timestamptz > v_now);
+  and (expires_at is null or expires_at > v_now);
     
     shield_blocks := false;
     has_shield := false; -- Shield broken
@@ -205,10 +205,12 @@ begin
     xp_delta := c_xp_loss;
     
     -- Calculate coins lost to defender (capped at 20% of attacker balance)
-    coins_lost_to_def := least(
-      c_coins_loss_to_defender,
-      floor(attacker.coins * c_max_steal_percent_loss)
+    coins_lost_to_def := greatest(
+      c_coins_loss_min,
+      floor(attacker.coins * c_coins_loss_percent)
     );
+
+    coins_lost_to_def := least(coins_lost_to_def, attacker.coins);
     
     coins_delta := -coins_lost_to_def;  -- Negative because attacker loses coins
     result_kind := 'pvp_loss';

@@ -32,12 +32,13 @@ const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: strin
         item.kind === 'firewall'
     );
 
-    const statePillClasses = {
-        active: 'bg-green-500/30 text-green-300 border-green-500/50',
-        unused: 'bg-gray-500/30 text-gray-300 border-gray-500/50',
-        consumed: 'bg-red-500/30 text-red-300 border-red-500/50',
-        expired: 'bg-red-500/30 text-red-300 border-red-500/50',
-    };
+  const statePillClasses: Record<InventoryItem['state'], string> = {
+    active: 'bg-green-500/30 text-green-300 border-green-500/50',
+    unused: 'bg-gray-500/30 text-gray-300 border-gray-500/50',
+    consumed: 'bg-red-500/30 text-red-300 border-red-500/50',
+    used: 'bg-red-500/30 text-red-300 border-red-500/50',
+    expired: 'bg-red-500/30 text-red-300 border-red-500/50',
+  };
 
   const invId = (item.inv_id || item.id);
   return (
@@ -66,13 +67,29 @@ const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: strin
           </button>
          ) : (
                      <p className="text-xs text-gray-500 italic">
-            {item.state === 'active' && item.expires_at 
-              ? `Active ${item.expires_at === 'Permanent' || item.expires_at === 'Until Cracked' ? item.expires_at.toLowerCase() : 'until ' + new Date(item.expires_at).toLocaleTimeString()}` 
-              : item.kind === 'cracker'
-              ? 'Used automatically in PvP'
-              : item.kind === 'encryption_key' || item.kind === 'exploit_kit' || item.kind === 'firewall'
-              ? 'Activate to apply bonus to your stats' 
-              : 'Cannot be activated'}
+            {(() => {
+              if (item.state === 'active') {
+                if (item.kind === 'shield') {
+                  return 'Active until cracked';
+                }
+
+                if (!item.expires_at) {
+                  return 'Active permanently';
+                }
+
+                return `Active until ${new Date(item.expires_at).toLocaleTimeString()}`;
+              }
+
+              if (item.kind === 'cracker') {
+                return 'Used automatically in PvP';
+              }
+
+              if (item.kind === 'encryption_key' || item.kind === 'exploit_kit' || item.kind === 'firewall') {
+                return 'Activate to apply bonus to your stats';
+              }
+
+              return 'Cannot be activated';
+            })()}
                     </p>
                  )}
             </div>

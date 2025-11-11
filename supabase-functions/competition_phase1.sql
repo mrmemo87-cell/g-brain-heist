@@ -422,17 +422,17 @@ begin
     raise exception 'invalid_grade';
   end if;
 
-  if v_batch is not null and v_batch not in ('8A', '8B', '8C', '9A', '9B', '9C') then
+  if v_batch is not null and v_batch not in ('8A', '8B', '8C', '9A', '9B', '9C', 'N/A') then
     raise exception 'invalid_batch';
   end if;
 
-  if v_batch is not null and v_grade is not null then
+  if v_batch is not null and v_batch <> 'N/A' and v_grade is not null then
     if left(v_batch, 1) <> v_grade::text then
       raise exception 'batch_grade_mismatch';
     end if;
   end if;
 
-  if v_grade is null then
+  if v_grade is null and v_batch <> 'N/A' then
     v_batch := null;
   end if;
 

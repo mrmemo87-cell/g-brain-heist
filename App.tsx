@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage, Announcement } from './types';
+import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage, Announcement, Grade, Batch } from './types';
 import * as GameService from './services/gameService';
 import { supabase } from './services/supabaseClient';
 import Header from './components/Header';
@@ -34,6 +34,13 @@ import Phase1LeaderboardView from './components/phase1/Phase1LeaderboardView';
 import Phase1AdminDashboard from './components/phase1/Phase1AdminDashboard';
 import AnnouncementBanner from './components/phase1/AnnouncementBanner';
 import { fetchNextAnnouncement, markAnnouncementSeen } from './services/competitionService';
+import { notificationService } from './services/notificationService';
+
+const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
+  8: ['8A', '8B', '8C', 'N/A'],
+  9: ['9A', '9B', '9C', 'N/A'],
+};
+const DEFAULT_BATCH: Batch = 'N/A';
 
 interface AppProps {
   onLogout: () => void;
@@ -60,19 +67,136 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [activeAnnouncement, setActiveAnnouncement] = useState<Announcement | null>(null);
   const previousViewRef = useRef(view);
   const previousSessionActiveRef = useRef<boolean | null>(null);
+  const [showAcademicSetup, setShowAcademicSetup] = useState(false);
+  const [pendingGrade, setPendingGrade] = useState<Grade | null>(null);
+  const [pendingBatch, setPendingBatch] = useState<Batch>(DEFAULT_BATCH);
+  const [savingAcademic, setSavingAcademic] = useState(false);
+  const [academicError, setAcademicError] = useState<string | null>(null);
+  const [attackAlert, setAttackAlert] = useState(false);
+  const attackAlertTimeoutRef = useRef<number | null>(null);
+  const academicClassOptions = useMemo(() => {
+    if (pendingGrade === null) {
+      return [DEFAULT_BATCH];
+    }
+    return GRADE_TO_BATCH[pendingGrade as Grade];
+  }, [pendingGrade]);
 
   const addToast = (message: string, type: ToastMessage['type'] = 'info', retryAction?: () => void) => {
     const id = Date.now();
-    setToasts(prev => [...prev, { id, message, type, retryAction }]);
+    setToasts((prevToasts: ToastMessage[]) => [...prevToasts, { id, message, type, retryAction }]);
   };
 
   const removeToast = (id: number) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id));
+    setToasts((prevToasts: ToastMessage[]) => prevToasts.filter((toast: ToastMessage) => toast.id !== id));
+  };
+
+  const handleAcademicGradeChange = (value: string) => {
+    if (!value) {
+      setPendingGrade(null);
+      setPendingBatch(DEFAULT_BATCH);
+      setAcademicError(null);
+      return;
+    }
+
+    const parsed = parseInt(value, 10) as Grade;
+    setPendingGrade(parsed);
+    setAcademicError(null);
+
+    const validOptions = GRADE_TO_BATCH[parsed];
+    if (!validOptions.includes(pendingBatch)) {
+      setPendingBatch(DEFAULT_BATCH);
+    }
+  };
+
+  const handleAcademicBatchChange = (value: string) => {
+    setPendingBatch((value as Batch) || DEFAULT_BATCH);
+    setAcademicError(null);
+  };
+
+  const handleAcademicSave = async () => {
+    if (!profile) {
+      return;
+    }
+
+    if (pendingGrade === null) {
+      setAcademicError('Select your grade to continue.');
+      return;
+    }
+
+    setSavingAcademic(true);
+    setAcademicError(null);
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({
+          grade: pendingGrade,
+          batch: pendingBatch,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', profile.id);
+
+      if (error) {
+        console.error('Failed to update grade/class', error);
+        setAcademicError('Failed to save your class info. Please try again.');
+        return;
+      }
+
+        setProfile((prevProfile: Profile | null) =>
+          prevProfile
+            ? { ...prevProfile, grade: pendingGrade, batch: pendingBatch }
+            : prevProfile
+      );
+      setShowAcademicSetup(false);
+      addToast('Class info saved. Welcome agent!', 'success');
+    } finally {
+      setSavingAcademic(false);
+    }
   };
 
   useEffect(() => {
     return aiHostService.init();
   }, []);
+
+  useEffect(() => {
+    const unsubscribe = notificationService.subscribe((notification) => {
+      if (notification.type === 'attack_incoming') {
+        if (attackAlertTimeoutRef.current) {
+          window.clearTimeout(attackAlertTimeoutRef.current);
+        }
+
+        setAttackAlert(true);
+        attackAlertTimeoutRef.current = window.setTimeout(() => {
+          setAttackAlert(false);
+          attackAlertTimeoutRef.current = null;
+        }, 6000);
+      }
+    });
+
+    return () => {
+      if (attackAlertTimeoutRef.current) {
+        window.clearTimeout(attackAlertTimeoutRef.current);
+      }
+      unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!profile || profile.role === 'teacher' || profile.role === 'admin') {
+      setShowAcademicSetup(false);
+      return;
+    }
+
+    const needsGrade = profile.grade === null;
+    const needsBatch = !profile.batch;
+
+    if (needsGrade || needsBatch) {
+      setPendingGrade(profile.grade);
+      setPendingBatch((profile.batch ?? DEFAULT_BATCH) as Batch);
+      setShowAcademicSetup(true);
+    } else {
+      setShowAcademicSetup(false);
+    }
+  }, [profile]);
 
   const fetchGameData = async () => {
     try {
@@ -363,7 +487,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     if (!profile) return;
 
     // Optimistic update for smooth UI feedback
-    setProfile(prevProfile => {
+      setProfile((prevProfile: Profile | null) => {
       if (!prevProfile) return null;
 
       const nextXP = prevProfile.xp + (deltas.xp || 0);
@@ -685,6 +809,83 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   return (
     <div className="relative min-h-screen overflow-hidden p-4 md:p-6 lg:p-8 max-w-screen-2xl mx-auto">
       <CinematicEffects intensity={effectsIntensity} />
+      {attackAlert && (
+        <div className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center">
+          <div className="absolute inset-0 bg-red-700/40 backdrop-blur-sm transition-opacity duration-300 animate-pulse" />
+          <div className="pointer-events-none relative rounded-xl border border-red-500/80 bg-red-950/70 px-6 py-4 text-center shadow-2xl">
+            <div className="text-5xl mb-2">🚨</div>
+            <p className="font-heading text-xl text-red-200 tracking-wide uppercase">Incoming Attack Detected</p>
+            <p className="text-sm text-red-100/80 mt-1">Hold tight while defenses deploy…</p>
+          </div>
+        </div>
+      )}
+      {showAcademicSetup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4">
+          <div className="w-full max-w-xl rounded-2xl bg-slate-900 p-8 shadow-2xl ring-2 ring-amber-400/40">
+            <h2 className="font-heading text-2xl text-white mb-2">Almost ready!</h2>
+            <p className="text-sm text-gray-300 mb-6">
+              We need your grade and class to place you on the right leaderboards. You can pick <span className="font-semibold text-amber-300">N/A</span> if you are not sure yet.
+            </p>
+            <form
+              className="space-y-6"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void handleAcademicSave();
+              }}
+            >
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-200">Grade</label>
+                <select
+                  required
+                  className="w-full rounded-lg border border-gray-700 bg-black/40 px-4 py-3 text-white focus:border-amber-300 focus:outline-none"
+                  value={pendingGrade ?? ''}
+                  onChange={(event) => handleAcademicGradeChange(event.target.value)}
+                >
+                  <option value="" disabled>
+                    Select your grade
+                  </option>
+                  <option value="8">Grade 8</option>
+                  <option value="9">Grade 9</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-200">Class</label>
+                <select
+                  required
+                  className="w-full rounded-lg border border-gray-700 bg-black/40 px-4 py-3 text-white focus:border-amber-300 focus:outline-none"
+                  value={pendingBatch}
+                  onChange={(event) => handleAcademicBatchChange(event.target.value)}
+                >
+                  <option value="" disabled>
+                    Select your class
+                  </option>
+                  {academicClassOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-3">
+                {academicError && (
+                  <p className="rounded-lg border border-red-500/60 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                    {academicError}
+                  </p>
+                )}
+                <button
+                  type="submit"
+                  disabled={savingAcademic}
+                  className="flex h-12 w-full items-center justify-center rounded-lg bg-amber-500 text-black font-semibold hover:bg-amber-400 disabled:cursor-not-allowed disabled:bg-amber-600/40"
+                >
+                  {savingAcademic ? 'Saving…' : 'Save and Continue'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       <div className="relative z-10">
         <Header
           profile={profile}

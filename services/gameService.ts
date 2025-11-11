@@ -1,4 +1,4 @@
-import { Profile, Task, SessionStatus, Caps, NewsEvent, SubjectData, Question, AnswerResponse, RaidTarget, RaidAttackResult, ShopItem, PurchaseReceipt, Clan, ClanChatMessage, ClanSummary, ClanMember, ClanBuff, InventoryItem, Teacher, TeacherQuestion, CreateQuestionRequest, QuestionAttemptResult, QuestTemplate } from '../types';
+import { Profile, Task, SessionStatus, Caps, NewsEvent, SubjectData, Question, AnswerResponse, RaidTarget, RaidAttackResult, ShopItem, PurchaseReceipt, Clan, ClanChatMessage, ClanSummary, ClanMember, ClanBuff, InventoryItem, Teacher, TeacherQuestion, CreateQuestionRequest, QuestionAttemptResult, QuestTemplate, Batch } from '../types';
 import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount, canEarnQuestGemstone, recordQuestGemstoneAward, canEarnPvpGemstone, recordPvpGemstoneAward } from './storageService';
 import { supabase } from './supabaseClient';
 import { notificationService } from './notificationService';
@@ -720,8 +720,8 @@ export const whoami = async (): Promise<Profile> => {
         email: user.email,
         username: username,
         role: 'student', // Default to student for OAuth users
-        grade: 8,
-        batch: '8A', // Default batch
+        grade: null,
+        batch: 'N/A' as Batch,
         avatar_url: user.user_metadata?.['avatar_url'] || `https://picsum.photos/seed/${username}/100/100`,
     };
 
@@ -750,7 +750,7 @@ export const whoami = async (): Promise<Profile> => {
     const parsedGrade = typeof profile.grade === 'string'
       ? parseInt(profile.grade as unknown as string, 10)
       : profile.grade;
-    profile.grade = (parsedGrade === 8 || parsedGrade === 9) ? parsedGrade : null;
+        profile.grade = (parsedGrade === 8 || parsedGrade === 9) ? parsedGrade : null;
   }
 
   if (typeof profile.is_admin !== 'boolean') {
@@ -1948,8 +1948,8 @@ export const inventory_list = async (): Promise<InventoryItem[]> => {
         .delete()
         .eq('user_id', user.id)
         .eq('state', 'active')
-        .lt('expires_at', now)
-        .neq('expires_at', 'Until Cracked');
+        .not('expires_at', 'is', null)
+        .lt('expires_at', now);
     
     // Fetch user's inventory
     const { data: items, error } = await supabase
@@ -2041,10 +2041,8 @@ export const inventory_activate = async (inv_id: string): Promise<{ state_after:
         });
     }
     
-    // Shields remain active until cracked
-    const expiresAt = (item.kind === 'shield') 
-        ? 'Until Cracked' 
-        : expiry.toISOString();
+    const isShield = item.kind === 'shield';
+    const expiresAt = isShield ? null : expiry.toISOString();
     
     // Deactivate other boosters if a new one is used
     if (item.kind === 'booster' || item.kind === 'major_booster') {
@@ -2071,7 +2069,7 @@ export const inventory_activate = async (inv_id: string): Promise<{ state_after:
         state_after: 'active' as const,
         effect_window: {
             start: now.toISOString(),
-            end: expiry.toISOString()
+            end: isShield ? 'Until Cracked' : expiry.toISOString()
         }
     };
     return mockApiCall(result);
