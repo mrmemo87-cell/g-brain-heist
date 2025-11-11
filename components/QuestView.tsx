@@ -88,6 +88,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
   const [answerResponse, setAnswerResponse] = useState<AnswerResponse | null>(null);
   const [score, setScore] = useState({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
   const [particles, setParticles] = useState<Omit<RewardParticleProps, 'onComplete'>[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const answerFeedbackRef = useRef<HTMLDivElement>(null);
 
@@ -163,9 +164,10 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
   };
 
   const handleAnswerSubmit = async (option: string) => {
-    if (answerResponse) return;
+  if (answerResponse || isSubmitting) return;
 
-    setSelectedOption(option);
+  setSelectedOption(option);
+  setIsSubmitting(true);
 
     if (mode === 'practice') {
       const currentQuestion = questions[currentQuestionIndex];
@@ -244,6 +246,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
         console.error('Error submitting answer:', err);
         alert('Failed to submit answer. Please try again.');
         setSelectedOption(null);
+      } finally {
+        setIsSubmitting(false);
       }
     } else {
       // Teacher mode: Submit to server and wait for grading
@@ -336,6 +340,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
         console.error('Error submitting teacher answer:', err);
         alert('Failed to submit answer. Please try again.');
         setSelectedOption(null);
+      } finally {
+        setIsSubmitting(false);
       }
     }
   };
@@ -417,7 +423,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
           {options.map((option, index) => (
             <button
               key={index}
-              disabled={!!answerResponse}
+              disabled={!!answerResponse || isSubmitting}
               onClick={() => handleAnswerSubmit(option)}
               className={getOptionClasses(option, correctAnswer)}
             >
