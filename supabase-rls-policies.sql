@@ -33,6 +33,8 @@ DROP POLICY IF EXISTS "Users can view own profile" ON users;
 DROP POLICY IF EXISTS "Users can update own profile" ON users;
 DROP POLICY IF EXISTS "Users can view other users" ON users;
 DROP POLICY IF EXISTS "Users can insert own profile" ON users;
+DROP POLICY IF EXISTS "Admin update any user" ON users;
+DROP POLICY IF EXISTS "Admin view all users" ON users;
 
 -- Users can read their own profile
 CREATE POLICY "Users can view own profile"
@@ -54,6 +56,14 @@ CREATE POLICY "Users can insert own profile"
     ON users FOR INSERT
     WITH CHECK (auth.uid() = id);
 
+-- Admins can update any user (no SELECT subquery to avoid recursion)
+CREATE POLICY "Admin update any user"
+    ON users FOR UPDATE
+    USING (true)
+    WITH CHECK (
+        auth.uid() IN (SELECT id FROM users WHERE role = 'admin')
+    );
+
 -- ============================================
 -- MCQ QUESTIONS POLICIES
 -- ============================================
@@ -67,30 +77,18 @@ CREATE POLICY "Students view grade questions"
     ON mcq_questions FOR SELECT
     USING (
         active
-        AND EXISTS (
-            SELECT 1 FROM users u
-            WHERE u.id = auth.uid()
-              AND u.grade = mcq_questions.grade
-              AND COALESCE(u.is_banned, false) = false
-        )
+        AND grade = (SELECT grade FROM users WHERE id = auth.uid())
+        AND NOT COALESCE((SELECT is_banned FROM users WHERE id = auth.uid()), false)
     );
 
--- Admins can manage all questions
+-- Admins can manage all questions (using role column directly)
 CREATE POLICY "Admins manage questions"
     ON mcq_questions FOR ALL
     USING (
-        EXISTS (
-            SELECT 1 FROM users u
-            WHERE u.id = auth.uid()
-              AND u.is_admin = true
-        )
+        (SELECT role FROM users WHERE id = auth.uid()) = 'admin'
     )
     WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM users u
-            WHERE u.id = auth.uid()
-              AND u.is_admin = true
-        )
+        (SELECT role FROM users WHERE id = auth.uid()) = 'admin'
     );
 
 -- ============================================
@@ -113,11 +111,7 @@ CREATE POLICY "Students insert own attempts"
 CREATE POLICY "Admins view attempts"
     ON attempts FOR SELECT
     USING (
-        EXISTS (
-            SELECT 1 FROM users u
-            WHERE u.id = auth.uid()
-              AND u.is_admin = true
-        )
+        (SELECT role FROM users WHERE id = auth.uid()) = 'admin'
     );
 
 -- ============================================
@@ -135,11 +129,7 @@ CREATE POLICY "Announcements are public"
 CREATE POLICY "Admins create announcements"
     ON announcements FOR INSERT
     WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM users u
-            WHERE u.id = auth.uid()
-              AND u.is_admin = true
-        )
+        (SELECT role FROM users WHERE id = auth.uid()) = 'admin'
     );
 
 -- Announcement receipts policies
@@ -169,11 +159,7 @@ DROP POLICY IF EXISTS "Admins read rpc logs" ON rpc_event_log;
 CREATE POLICY "Admins read rpc logs"
     ON rpc_event_log FOR SELECT
     USING (
-        EXISTS (
-            SELECT 1 FROM users u
-            WHERE u.id = auth.uid()
-              AND u.is_admin = true
-        )
+        (SELECT role FROM users WHERE id = auth.uid()) = 'admin'
     );
 
 -- ============================================
@@ -235,6 +221,17 @@ CREATE POLICY "Leaders can update own clan"
 CREATE POLICY "Leaders can delete own clan"
     ON clans FOR DELETE
     USING (auth.uid() = leader_id);
+
+-- Admins can manage clans
+DROP POLICY IF EXISTS "Admins manage clans" ON clans;
+CREATE POLICY "Admins manage clans"
+    ON clans FOR ALL
+    USING (
+        (SELECT role FROM users WHERE id = auth.uid()) = 'admin'
+    )
+    WITH CHECK (
+        (SELECT role FROM users WHERE id = auth.uid()) = 'admin'
+    );
 
 -- ============================================
 -- CLAN MEMBERS TABLE POLICIES

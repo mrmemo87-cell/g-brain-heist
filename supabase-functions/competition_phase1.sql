@@ -14,7 +14,7 @@ as $$
   select exists (
     select 1 from users u
     where u.id = auth.uid()
-      and u.is_admin = true
+      and (u.is_admin = true or u.role = 'admin')
   );
 $$;
 
@@ -500,6 +500,77 @@ exception when others then
 end;
 $$;
 
+-- ============================================
+-- Admin: Refill AP for all players (non-admins)
+-- ============================================
+create or replace function rpc_admin_refill_all_ap()
+returns table(
+  affected_rows int
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_count int;
+begin
+  if v_actor is null or not is_current_user_admin() then
+    raise exception 'forbidden';
+  end if;
+
+  update users
+  set ap_now = ap_max,
+      last_ap_update = now(),
+      updated_at = now()
+  where coalesce(is_admin, false) = false
+    and coalesce(is_banned, false) = false;
+
+  get diagnostics v_count = row_count;
+
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
+  values ('rpc_admin_refill_all_ap', 'info', 'refill_all', v_actor, json_build_object('affected_rows', v_count));
+
+  return query select coalesce(v_count, 0);
+exception when others then
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
+  values ('rpc_admin_refill_all_ap', 'error', SQLERRM, v_actor, json_build_object());
+  raise;
+end;
+$$;
+
+-- ============================================
+-- Admin: Disband clan by id
+-- ============================================
+create or replace function rpc_admin_disband_clan(p_clan_id uuid)
+returns table(
+  clan_id uuid
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_count int;
+begin
+  if v_actor is null or not is_current_user_admin() then
+    raise exception 'forbidden';
+  end if;
+
+  delete from clans where id = p_clan_id;
+  get diagnostics v_count = row_count;
+
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
+  values ('rpc_admin_disband_clan', 'info', 'clan_disbanded', v_actor, json_build_object('clan_id', p_clan_id, 'affected_rows', v_count));
+
+  return query select p_clan_id;
+exception when others then
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
+  values ('rpc_admin_disband_clan', 'error', SQLERRM, v_actor, json_build_object('clan_id', p_clan_id));
+  raise;
+end;
+$$;
 -- ============================================
 -- Admin: Broadcast Announcement
 -- ============================================

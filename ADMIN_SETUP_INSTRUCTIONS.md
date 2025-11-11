@@ -12,6 +12,7 @@ This will:
 - Add the `admin_visible` column to your users table
 - Create/update the admin user "Mr. Sobbi" with godly stats (Level 999, 999999 XP/Coins)
 - Set the admin role and permissions
+   - NOTE: `CREATE_ADMIN.sql` will set both `role='admin'` and `is_admin=true` in the database; re-run if you previously created the account and the buttons do not appear.
 
 ## Step 2: Fix AP Regeneration (If Not Already Done)
 

@@ -18,6 +18,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [clanList, setClanList] = useState<any[]>([]);
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeToday: 0,
@@ -283,7 +284,16 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   };
 
   const banUser = async (userId: string) => {
-    addToast('🔨 Ban feature coming soon!', 'info');
+    try {
+      const confirmBan = window.confirm('Ban this player from the game?');
+      if (!confirmBan) return;
+
+      await CompetitionService.setPlayerBanned(userId, true);
+      addToast('🔨 Player banned successfully', 'success');
+      fetchDashboardData();
+    } catch (error) {
+      addToast('Failed to ban player', 'error');
+    }
   };
 
   return (
@@ -642,28 +652,105 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
           {activeTab === 'game' && (
             <div className="card-glass p-6 border-2 border-green-400/50">
               <h3 className="text-3xl font-heading font-bold text-green-300 mb-6">🎮 Game Management</h3>
-              <p className="text-gray-400">Game management features coming soon...</p>
+                        <div className="space-y-3">
+                          <button onClick={async () => {
+                              try {
+                                  const affected = await CompetitionService.refillAllAp();
+                                  addToast(`⚡ Refilled AP for ${affected} players`, 'success');
+                                  fetchDashboardData();
+                              } catch (e) { addToast('Failed to refill AP', 'error'); }
+                          }} className="w-full bg-green-500/20 hover:bg-green-500/30 border border-green-400 text-white px-4 py-2 rounded">Refill AP for all players</button>
+
+                          <button onClick={async () => {
+                              try {
+                                  const affected = await CompetitionService.resetAllPlayerProgress();
+                                  addToast(`Reset progress for ${affected} players`, 'success');
+                                  fetchDashboardData();
+                              } catch (e) { addToast('Failed to reset all progress', 'error'); }
+                          }} className="w-full bg-red-500/20 hover:bg-red-500/30 border border-red-400 text-white px-4 py-2 rounded">Reset ALL player progress</button>
+                        </div>
             </div>
           )}
 
           {activeTab === 'clans' && (
             <div className="card-glass p-6 border-2 border-blue-400/50">
               <h3 className="text-3xl font-heading font-bold text-blue-300 mb-6">🛡️ Clan Management</h3>
-              <p className="text-gray-400">Clan management features coming soon...</p>
+                        <div className="space-y-4">
+                          <button onClick={async () => {
+                            try {
+                              const { data, error } = await supabase.from('clans').select('*').order('name');
+                              if (error) throw error;
+                              setClanList(data || []);
+                              addToast(`Loaded ${data?.length ?? 0} clans`, 'success');
+                            } catch (e) {
+                              addToast('Failed to load clans', 'error');
+                            }
+                          }} className="w-full bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white px-4 py-2 rounded">Refresh Clans</button>
+
+                          <div className="text-sm text-gray-400">Tip: Click 'Refresh Clans' then choose a clan from the list to disband it.</div>
+                          {clanList.length > 0 && (
+                            <div className="mt-4 space-y-2">
+                              {clanList.map(c => (
+                                <div key={c.id} className="flex items-center justify-between bg-black/20 p-2 rounded">
+                                  <div>
+                                    <p className="font-semibold text-white">{c.name}</p>
+                                    <p className="text-xs text-gray-400">{c.member_count ?? 0} members</p>
+                                  </div>
+                                  <div>
+                                    <button onClick={async () => {
+                                      try {
+                                        if (!confirm(`Disband ${c.name}? This will delete the clan.`)) return;
+                                        await CompetitionService.disbandClan(c.id);
+                                        addToast(`${c.name} disbanded`, 'success');
+                                        setClanList(prev => prev.filter(x => x.id !== c.id));
+                                        fetchDashboardData();
+                                      } catch (err) {
+                                        addToast('Failed to disband clan', 'error');
+                                      }
+                                    }} className="bg-red-500/20 hover:bg-red-500/30 border border-red-400 text-white px-3 py-1 rounded">Disband</button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
             </div>
           )}
 
           {activeTab === 'analytics' && (
             <div className="card-glass p-6 border-2 border-pink-400/50">
               <h3 className="text-3xl font-heading font-bold text-pink-300 mb-6">📊 Analytics</h3>
-              <p className="text-gray-400">Analytics dashboard coming soon...</p>
+                        <div>
+                          <button className="w-full bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white px-4 py-2 rounded" onClick={async () => {
+                            try {
+                              const stats = await CompetitionService.fetchAdminOverviewStats();
+                              addToast(`Players today: ${stats.players_today}`, 'success');
+                            } catch (e) {
+                              addToast('Failed to fetch analytics', 'error');
+                            }
+                          }}>Refresh Analytics</button>
+                          <p className="text-gray-400 mt-2">Quick analytics and health checks for the server</p>
+                        </div>
             </div>
           )}
 
           {activeTab === 'system' && (
             <div className="card-glass p-6 border-2 border-red-400/50">
               <h3 className="text-3xl font-heading font-bold text-red-300 mb-6">⚙️ System Control</h3>
-              <p className="text-gray-400">System control panel coming soon...</p>
+                        <div className="space-y-2">
+                          <button className="w-full bg-gray-700/20 hover:bg-gray-700/30 border border-gray-600 text-white px-4 py-2 rounded" onClick={async () => {
+                            try {
+                              await CompetitionService.resetAllPlayerProgress();
+                              addToast('System: reset player progress triggered', 'success');
+                            } catch (e) { addToast('Failed system reset', 'error'); }
+                          }}>Reset Player Progress (System)</button>
+                          <button className="w-full bg-gray-700/20 hover:bg-gray-700/30 border border-gray-600 text-white px-4 py-2 rounded" onClick={async () => {
+                            try {
+                              const affected = await CompetitionService.refillAllAp();
+                              addToast(`System: Refilled AP for ${affected} players`, 'success');
+                            } catch (e) { addToast('Failed system AP refill', 'error'); }
+                          }}>Refill AP (System)</button>
+                        </div>
             </div>
           )}
         </div>

@@ -21,6 +21,7 @@ UPDATE users
 SET 
   username = 'Mr. Sobbi',
   role = 'admin',
+  is_admin = true,
   level = 999,
   xp = 999999,
   coins = 999999,
