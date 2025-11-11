@@ -4,7 +4,7 @@ import { CoinIcon, XPIcon, APIcon, LogoutIcon, StreakIcon, GemIcon } from './ico
 import { audioService } from '../services/audioService';
 import { NotificationCenter } from './NotificationCenter';
 import { notificationService } from '../services/notificationService';
-import { update_avatar } from '../services/gameService';
+import { update_avatar, upload_avatar_file } from '../services/gameService';
 import { isAdmin } from '../services/adminService';
 
 // Custom hook for animating number changes
@@ -80,9 +80,10 @@ interface HeaderProps {
   onNavigate?: (view: 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin') => void;
   liteMode?: boolean;
   onToggleLiteMode?: () => void;
+  onProfileAvatarChange?: (avatarUrl: string) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard, onShowHelp, onNavigate, liteMode, onToggleLiteMode }) => {
+const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard, onShowHelp, onNavigate, liteMode, onToggleLiteMode, onProfileAvatarChange }) => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -90,6 +91,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   const [bgMusicEnabled, setBgMusicEnabled] = useState(audioService.isBgMusicEnabled());
   const [selectedAvatar, setSelectedAvatar] = useState<string>(profile.avatar_url || '');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarUploadError, setAvatarUploadError] = useState<string | null>(null);
   const [apRegenCountdown, setApRegenCountdown] = useState<string>('');
   const [calculatedAP, setCalculatedAP] = useState<number>(profile.ap_now);
 
@@ -116,18 +118,59 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
     audioService.setBgMusicEnabled(newState);
   };
 
-  const handleAvatarSelect = async (avatarUrl: string) => {
-    setSelectedAvatar(avatarUrl);
-    setUploadingAvatar(true);
+  const applyAvatarChange = async (avatarUrl: string) => {
     try {
       await update_avatar(avatarUrl);
-      // Profile will be refreshed via real-time subscription
+      setSelectedAvatar(avatarUrl);
+      onProfileAvatarChange?.(avatarUrl);
+      setAvatarUploadError(null);
       audioService.play('collect');
     } catch (error) {
       console.error('Failed to update avatar:', error);
+      setAvatarUploadError('Failed to update avatar. Please try again.');
+      audioService.play('wrong');
+      throw error;
+    }
+  };
+
+  const handleAvatarSelect = async (avatarUrl: string) => {
+    if (uploadingAvatar) return;
+    setUploadingAvatar(true);
+    try {
+      await applyAvatarChange(avatarUrl);
+    } catch {
+      /* handled in applyAvatarChange */
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    if (file.size > 1024 * 1024) {
+      setAvatarUploadError('Please choose an image smaller than 1MB.');
+      audioService.play('wrong');
+      input.value = '';
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      const publicUrl = await upload_avatar_file(file);
+      await applyAvatarChange(publicUrl);
+    } catch (error) {
+      if (error instanceof Error) {
+        setAvatarUploadError(error.message);
+      } else {
+        setAvatarUploadError('Failed to upload avatar. Please try again.');
+      }
       audioService.play('wrong');
     } finally {
       setUploadingAvatar(false);
+      input.value = '';
     }
   };
 
@@ -555,7 +598,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                   {avatarPresets.map((avatarUrl, idx) => (
                     <button
                       key={idx}
-                      onClick={() => handleAvatarSelect(avatarUrl)}
+                      onClick={() => void handleAvatarSelect(avatarUrl)}
                       disabled={uploadingAvatar}
                       className={`w-full aspect-square rounded-lg overflow-hidden border-2 transition-all hover:scale-105 ${
                         selectedAvatar === avatarUrl 
@@ -567,8 +610,22 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                     </button>
                   ))}
                 </div>
+                <div className="mt-4 border-t border-gray-700 pt-4">
+                  <label className="block text-sm text-gray-300 mb-2">Upload custom avatar</label>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={handleAvatarUpload}
+                    disabled={uploadingAvatar}
+                    className="w-full text-sm text-gray-300 file:mr-3 file:rounded-md file:border-0 file:bg-cyan-500/20 file:px-3 file:py-2 file:text-white hover:file:bg-cyan-500/30 disabled:opacity-60"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">Max 1MB. PNG, JPG, or WebP.</p>
+                  {avatarUploadError && (
+                    <p className="mt-2 text-xs text-red-300">{avatarUploadError}</p>
+                  )}
+                </div>
                 {uploadingAvatar && (
-                  <p className="text-xs text-center text-cyan-400 animate-pulse">Updating avatar...</p>
+                  <p className="text-xs text-center text-cyan-400 animate-pulse mt-3">Saving avatar...</p>
                 )}
               </div>
 

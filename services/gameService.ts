@@ -2543,6 +2543,33 @@ export const clan_kick_member = async (user_id: string): Promise<Clan> => {
 // Profile Avatar Management
 // ============================================
 
+export const upload_avatar_file = async (file: File): Promise<string> => {
+    const user = await getCurrentUser();
+    const extension = file.name.split('.').pop()?.toLowerCase() || 'png';
+    const safeExtension = extension.replace(/[^a-z0-9]/gi, '') || 'png';
+    const uniqueSuffix = Math.random().toString(36).slice(2);
+    const filePath = `${user.id}/${Date.now()}-${uniqueSuffix}.${safeExtension}`;
+
+    const { data, error } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: true,
+            contentType: file.type || 'image/png',
+        });
+
+    if (error) {
+        console.error('Avatar upload failed:', error);
+        throw new Error('Failed to upload avatar. Please try again.');
+    }
+
+    const {
+        data: { publicUrl },
+    } = supabase.storage.from('avatars').getPublicUrl(data.path);
+
+    return publicUrl;
+};
+
 export const update_avatar = async (avatar_url: string): Promise<Profile> => {
     const { data: authData } = await supabase.auth.getUser();
     if (!authData.user) throw new Error('Not authenticated');
@@ -3033,7 +3060,34 @@ const finalizeMcqAnswer = async ({
     isCorrect,
     baseResponse,
 }: FinalizeAnswerParams): Promise<AnswerResponse> => {
-    const xpReward = baseResponse.deltas.xp;
+    let xpReward = baseResponse.deltas.xp;
+    let coinDelta = baseResponse.deltas.coins;
+    let duplicateCorrect = false;
+
+    if (isCorrect) {
+        const { data: existingCorrect, error: existingCorrectError } = await supabase
+            .from('question_attempts')
+            .select('id')
+            .eq('student_id', userId)
+            .eq('question_id', question.id)
+            .eq('is_correct', true)
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+        if (existingCorrectError) {
+            console.warn('Failed to verify duplicate MCQ attempts:', existingCorrectError);
+        } else if (existingCorrect && existingCorrect.length > 0) {
+            duplicateCorrect = true;
+        }
+    }
+
+    if (duplicateCorrect) {
+        xpReward = 0;
+        coinDelta = 0;
+        baseResponse.deltas.xp = 0;
+        baseResponse.deltas.coins = 0;
+        baseResponse.explanation = 'Correct, but rewards already claimed for this question.';
+    }
 
     const attemptInsert = (async () => {
         const { error } = await supabase.from('question_attempts').insert({
@@ -3041,7 +3095,7 @@ const finalizeMcqAnswer = async ({
             question_id: question.id,
             answer_given: choice,
             is_correct: isCorrect,
-            points_earned: isCorrect ? Math.max(0, xpReward) : 0,
+            points_earned: isCorrect && xpReward > 0 ? xpReward : 0,
         });
 
         if (error) throw error;
@@ -3061,7 +3115,7 @@ const finalizeMcqAnswer = async ({
           })()
         : null;
 
-    const questOutcome = applyQuestProgress(userId, isCorrect);
+    const questOutcome = duplicateCorrect ? { gemstoneDelta: 0, notifications: [] } : applyQuestProgress(userId, isCorrect);
 
     const { data: currentProfile, error: fetchError } = await supabase
         .from('users')
@@ -3073,7 +3127,6 @@ const finalizeMcqAnswer = async ({
         throw new Error('Failed to fetch profile');
     }
 
-    const coinDelta = baseResponse.deltas.coins;
     const newXP = currentProfile.xp + xpReward;
     const newCoins = Math.max(0, currentProfile.coins + coinDelta);
     const newLevel = Math.floor(newXP / 100) + 1;
