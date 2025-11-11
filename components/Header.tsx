@@ -78,9 +78,11 @@ interface HeaderProps {
   onBackToDashboard?: () => void;
   onShowHelp?: () => void;
   onNavigate?: (view: 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin') => void;
+  liteMode?: boolean;
+  onToggleLiteMode?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard, onShowHelp, onNavigate }) => {
+const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard, onShowHelp, onNavigate, liteMode, onToggleLiteMode }) => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -636,6 +638,26 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                       }`}
                     >
                       {bgMusicEnabled ? 'ON' : 'OFF'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Display Settings */}
+              <div>
+                <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--amber-warn)' }}>Display</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
+                    <span className="text-gray-300">Lite Mode</span>
+                    <button
+                      onClick={() => onToggleLiteMode?.()}
+                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                        liteMode
+                          ? 'bg-green-500/30 text-green-400 border border-green-500'
+                          : 'bg-gray-500/30 text-gray-200 border border-gray-500'
+                      }`}
+                    >
+                      {liteMode ? 'ON' : 'OFF'}
                     </button>
                   </div>
                 </div>

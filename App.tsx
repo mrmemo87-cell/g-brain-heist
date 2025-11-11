@@ -41,6 +41,7 @@ const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
   9: ['9A', '9B', '9C', 'N/A'],
 };
 const DEFAULT_BATCH: Batch = 'N/A';
+const LITE_MODE_STORAGE_KEY = 'gbrain-lite-mode';
 
 interface AppProps {
   onLogout: () => void;
@@ -74,6 +75,16 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [academicError, setAcademicError] = useState<string | null>(null);
   const [attackAlert, setAttackAlert] = useState(false);
   const attackAlertTimeoutRef = useRef<number | null>(null);
+  const [isLiteMode, setIsLiteMode] = useState<boolean>(() => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+    try {
+      return window.localStorage.getItem(LITE_MODE_STORAGE_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
   const academicClassOptions = useMemo(() => {
     if (pendingGrade === null) {
       return [DEFAULT_BATCH];
@@ -156,6 +167,19 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   useEffect(() => {
     return aiHostService.init();
   }, []);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.body.classList.toggle('lite-mode', isLiteMode);
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem(LITE_MODE_STORAGE_KEY, String(isLiteMode));
+      } catch {
+        /* no-op */
+      }
+    }
+  }, [isLiteMode]);
 
   useEffect(() => {
     const unsubscribe = notificationService.subscribe((notification) => {
@@ -807,8 +831,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden p-4 md:p-6 lg:p-8 max-w-screen-2xl mx-auto">
-      <CinematicEffects intensity={effectsIntensity} />
+    <div className={`relative min-h-screen overflow-hidden p-4 md:p-6 lg:p-8 max-w-screen-2xl mx-auto${isLiteMode ? ' lite-mode-wrapper' : ''}`}>
+      {!isLiteMode && <CinematicEffects intensity={effectsIntensity} />}
       {attackAlert && (
         <div className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center">
           <div className="absolute inset-0 bg-red-700/40 backdrop-blur-sm transition-opacity duration-300 animate-pulse" />
@@ -894,6 +918,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           onBackToDashboard={() => setView('dashboard')}
           onShowHelp={() => setShowHelp(true)}
           onNavigate={(targetView) => setView(targetView)}
+          liteMode={isLiteMode}
+          onToggleLiteMode={() => setIsLiteMode((current) => !current)}
         />
 
         {/* Offline Banner */}

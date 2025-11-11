@@ -25,6 +25,16 @@ body {
   color: var(--paper-50);
 }
 
+body.lite-mode {
+  --ink-900: #f8fafc;
+  --ink-800: #e2e8f0;
+  --paper-50: #0f172a;
+  --mist-400: #475569;
+  background-color: var(--ink-900);
+  background-image: none;
+  color: var(--paper-50);
+}
+
 .font-heading {
   font-family: 'IBM Plex Sans', sans-serif;
   font-weight: 700;
@@ -37,6 +47,12 @@ body {
   border-width: 1px;
   border-color: rgba(155, 163, 175, 0.2);
   border-radius: 24px;
+}
+
+body.lite-mode .card-glass {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(15, 23, 42, 0.12);
+  color: inherit;
 }
 
 .glow-ion {
@@ -57,6 +73,36 @@ body {
 
 .glow-purple {
   box-shadow: 0 0 15px rgba(158, 93, 255, 0.25);
+}
+
+body.lite-mode .glow-ion,
+body.lite-mode .glow-plasma,
+body.lite-mode .glow-success,
+body.lite-mode .glow-warn,
+body.lite-mode .glow-purple {
+  box-shadow: none;
+}
+
+.lite-mode-wrapper {
+  color: var(--paper-50);
+}
+
+body.lite-mode .stat-chip {
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+body.lite-mode .stat-chip span {
+  color: inherit;
+}
+
+body.lite-mode [class*="bg-black/"] {
+  background-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+body.lite-mode [class*="border-gray-6"],
+body.lite-mode [class*="border-gray-7"] {
+  border-color: rgba(148, 163, 184, 0.3) !important;
 }
 
 .progress-bar-glow-ion {
