@@ -161,6 +161,14 @@ BEGIN
 END;
 $$;
 
+-- Ensure canonical admin account is correctly flagged
+UPDATE users
+SET
+    role = 'admin',
+    is_admin = true,
+    admin_visible = COALESCE(admin_visible, false)
+WHERE lower(email) = 'sobbi@bh.com';
+
 -- Ensure notifications type constraint includes all runtime notification kinds
 DO $$
 BEGIN

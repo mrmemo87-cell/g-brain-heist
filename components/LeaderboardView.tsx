@@ -71,17 +71,14 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
       // XP Leaderboard - Exclude teachers and hidden admins
       const { data: xpData, error: xpError } = await supabase
         .from('users')
-        .select('id, username, avatar_url, xp, batch, last_seen, role, admin_visible')
+        .select('id, username, avatar_url, xp, batch, last_seen, role, admin_visible, is_admin')
         .neq('role', 'teacher')
         .order('xp', { ascending: false })
         .limit(50);
 
       let realXpEntries: PlayerLeaderboardEntry[] = [];
       if (!xpError && xpData) {
-        const filteredData = xpData.filter(user => {
-          if (user.role === 'admin' && !user.admin_visible) return false;
-          return true;
-        });
+        const filteredData = xpData.filter(user => !user.is_admin && user.role !== 'admin');
 
         realXpEntries = filteredData.map(user => ({
           id: user.id,
@@ -122,24 +119,30 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
         const { data: avatars } = topPvpIds.length
           ? await supabase
               .from('users')
-              .select('id, avatar_url, batch, last_seen')
+              .select('id, avatar_url, batch, last_seen, role, is_admin')
               .in('id', topPvpIds)
           : { data: [] };
 
-        const avatarMap: Record<string, { avatar_url: string; batch: string; last_seen?: string }> = {};
+        const avatarMap: Record<string, { avatar_url: string; batch: string; last_seen?: string; role?: string; is_admin?: boolean }> = {};
         (avatars || []).forEach((u: any) => {
-          avatarMap[u.id] = { avatar_url: u.avatar_url, batch: u.batch, last_seen: u.last_seen };
+          avatarMap[u.id] = { avatar_url: u.avatar_url, batch: u.batch, last_seen: u.last_seen, role: u.role, is_admin: u.is_admin };
         });
 
-        realPvpEntries = Object.entries(winCounts).map(([actorId, entry]) => ({
-          id: actorId,
-          username: entry.username,
-          avatar_url: avatarMap[actorId]?.avatar_url || '',
-          value: entry.wins,
-          batch: avatarMap[actorId]?.batch || '?',
-          is_self: actorId === currentUserId,
-          last_seen: avatarMap[actorId]?.last_seen,
-        }));
+        realPvpEntries = Object.entries(winCounts)
+          .filter(([actorId]) => {
+            const profile = avatarMap[actorId];
+            if (!profile) return false;
+            return !profile.is_admin && profile.role !== 'admin';
+          })
+          .map(([actorId, entry]) => ({
+            id: actorId,
+            username: entry.username,
+            avatar_url: avatarMap[actorId]?.avatar_url || '',
+            value: entry.wins,
+            batch: avatarMap[actorId]?.batch || '?',
+            is_self: actorId === currentUserId,
+            last_seen: avatarMap[actorId]?.last_seen,
+          }));
       }
 
       // Clan Leaderboard (by total XP)

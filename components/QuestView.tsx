@@ -168,9 +168,14 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
     setSelectedOption(option);
 
     if (mode === 'practice') {
+      const currentQuestion = questions[currentQuestionIndex];
+      if (!currentQuestion) {
+        console.error('No question available for current index');
+        return;
+      }
       // Practice mode: Wait for server validation (no more optimistic/fake checking)
       try {
-        const response = await GameService.mcq_answer_submit(questions[currentQuestionIndex].id, option);
+        const response = await GameService.mcq_answer_submit(currentQuestion, option);
         
         setAnswerResponse(response);
 
@@ -379,8 +384,10 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
     };
 
     const questionText = mode === 'practice' ? question!.body : teacherQuestion!.question_text;
-    const options = mode === 'practice' ? question!.options : teacherQuestion!.options;
-    const correctAnswer = mode === 'practice' ? question!.correct_answer : teacherQuestion!.correct_answer;
+    const options: string[] = mode === 'practice' ? question!.options : teacherQuestion!.options;
+    const correctAnswer = mode === 'practice'
+      ? question!.correct_answer ?? ''
+      : teacherQuestion!.correct_answer ?? '';
     const totalQuestions = mode === 'practice' ? questions.length : teacherQuestions.length;
 
     return (

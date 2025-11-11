@@ -90,6 +90,11 @@ export interface Question {
   correct_answer?: string; // Added for database questions
   reward_xp: number;
   reward_coins: number;
+  explanation?: string;
+  points?: number;
+  times_answered?: number;
+  times_correct?: number;
+  subject?: string;
 }
 
 export interface PhaseQuestion {

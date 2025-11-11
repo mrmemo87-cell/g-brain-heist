@@ -1308,207 +1308,14 @@ export const mcq_questions_get = async (subject_id: string, limit: number = 5): 
         correct_answer: q.correct_answer, // Include correct answer for validation
         reward_xp: q.points || 20,
         reward_coins: Math.floor((q.points || 20) * 1.5),
+        explanation: q.explanation,
+        points: q.points,
+        times_answered: q.times_answered,
+        times_correct: q.times_correct,
+        subject: q.subject,
     }));
 };
 
-export const mcq_answer_submit = async (question_id: string, choice: string): Promise<AnswerResponse> => {
-    const user = await getCurrentUser();
-    
-    // Fetch the question from database to check correct answer
-    const { data: question, error: questionError } = await supabase
-        .from('questions')
-        .select('*')
-        .eq('id', question_id)
-        .single();
-
-    if (questionError || !question) {
-        throw new Error('Question not found');
-    }
-
-    const isCorrect = choice === question.correct_answer;
-    
-    const response: AnswerResponse = {
-        correct: isCorrect,
-        deltas: {
-            xp: isCorrect ? (question.points || 20) : -5,
-            coins: isCorrect ? Math.floor((question.points || 20) * 1.5) : 0,
-            gemstones: 0,
-        },
-        explanation: isCorrect
-            ? (question.explanation || 'Well done, agent!')
-            : `Incorrect. ${question.explanation || 'The correct answer was: ' + question.correct_answer}`
-    };
-
-    let gemstoneDelta = 0;
-
-    // Record the attempt in question_attempts table
-    await supabase.from('question_attempts').insert({
-        student_id: user.id,
-        question_id: question_id,
-        answer_given: choice,
-        is_correct: isCorrect,
-        points_earned: isCorrect ? (question.points || 20) : 0,
-    });
-
-    // Update question statistics
-    await supabase
-        .from('questions')
-        .update({
-            times_answered: (question.times_answered || 0) + 1,
-            times_correct: (question.times_correct || 0) + (isCorrect ? 1 : 0),
-        })
-        .eq('id', question_id);
-
-    // Track quest progress (use localStorage for now)
-    if (isCorrect) {
-        currentQuestAnswers++;
-        if (currentQuestAnswers >= QUEST_STREAK_TARGET) {
-            incrementQuestCompleted();
-            currentQuestAnswers = 0;
-
-            const progress = getTaskProgress();
-            const questsCompletedToday = progress.daily_quests_completed;
-
-            if ((questsCompletedToday === 1 || questsCompletedToday === 3) && canEarnQuestGemstone(QUEST_GEMSTONE_DAILY_CAP)) {
-                gemstoneDelta += QUEST_GEMSTONE_REWARD;
-                recordQuestGemstoneAward(QUEST_GEMSTONE_REWARD);
-            }
-
-            if (questsCompletedToday === 3 || progress.daily_pvp_wins === 1) {
-                incrementWeeklyTaskCompleted();
-            }
-
-            // ====== NOTIFICATION: QUEST COMPLETED ======
-            try {
-                const { notificationService } = await import('./notificationService');
-                await notificationService.createNotification(
-                    user.id,
-                    'quest_completed',
-                    '✅ Quest Complete!',
-                    'You completed a knowledge quest! Keep learning to earn more rewards.',
-                    'high'
-                );
-            } catch (notifError) {
-                console.error('Failed to send quest completion notification:', notifError);
-            }
-        }
-    } else {
-        currentQuestAnswers = 0;
-    }
-
-    // Update profile with rewards/penalties in database
-    const { data: currentProfile, error: fetchError } = await supabase
-        .from('users')
-        .select('xp, coins, level, gemstones')
-        .eq('id', user.id)
-        .single();
-
-    if (fetchError || !currentProfile) throw new Error('Failed to fetch profile');
-
-    const newXP = currentProfile.xp + response.deltas.xp;
-    const newCoins = Math.max(0, currentProfile.coins + response.deltas.coins);
-
-    // Check for level up (simple formula: level = floor(xp / 100))
-    const newLevel = Math.floor(newXP / 100) + 1;
-    const leveledUp = newLevel > currentProfile.level;
-
-    if (leveledUp && newLevel % LEVEL_MILESTONE_INTERVAL === 0) {
-        gemstoneDelta += LEVEL_MILESTONE_GEMSTONE_REWARD;
-    }
-
-    const newGemstones = Math.max(0, (currentProfile.gemstones || 0) + gemstoneDelta);
-
-    await updateProfile(user.id, {
-        xp: newXP,
-        coins: newCoins,
-        level: newLevel,
-        gemstones: newGemstones,
-    });
-    
-    response.deltas.gemstones = gemstoneDelta;
-
-    // Log activity if level up. Use `data.details` consistently so the feed renderer can display a human string.
-    if (leveledUp) {
-        const { data: unameResult } = await supabase.from('users').select('username').eq('id', user.id).single();
-        await supabase.from('activities').insert({
-            kind: 'level_up',
-            actor_id: user.id,
-            actor_username: unameResult?.username || 'Unknown',
-            data: { details: String(newLevel) },
-        });
-
-        // ====== NOTIFICATION: LEVEL UP ======
-        try {
-            await notifyLevelUp(
-                user.id,
-                newLevel,
-                response.deltas.xp,
-                response.deltas.coins
-            );
-        } catch (notifError) {
-            console.error('Failed to send level up notification:', notifError);
-        }
-    }
-
-    if (gemstoneDelta > 0) {
-        try {
-            const { notificationService } = await import('./notificationService');
-            await notificationService.createNotification(
-                user.id,
-                'gemstone_earned',
-                '💎 Gemstone Earned!',
-                `You earned ${gemstoneDelta} rare gemstone${gemstoneDelta > 1 ? 's' : ''}!`,
-                'high'
-            );
-        } catch (notifError) {
-            console.error('Failed to send gemstone notification:', notifError);
-        }
-    }
-
-    // Notify for significant coin gains (correct answers)
-    if (isCorrect && response.deltas.coins >= 30) {
-        try {
-            await notificationService.createNotification(
-                user.id,
-                'coins_earned',
-                '💰 Coins Earned!',
-                `You earned ${response.deltas.coins} coins for answering correctly!`,
-                'low'
-            );
-        } catch (notifError) {
-            console.error('Failed to send coins notification:', notifError);
-        }
-    }
-    
-    // Track quest progress (use localStorage for now)
-    if (isCorrect) {
-        currentQuestAnswers++;
-        if (currentQuestAnswers >= 5) {
-            incrementQuestCompleted();
-            currentQuestAnswers = 0;
-            
-            const progress = getTaskProgress();
-            if (progress.daily_quests_completed === 3 || progress.daily_pvp_wins === 1) {
-                incrementWeeklyTaskCompleted();
-            }
-
-            // ====== NOTIFICATION: QUEST COMPLETED ======
-            try {
-                await notificationService.createNotification(
-                    user.id,
-                    'quest_completed',
-                    '✅ Quest Complete!',
-                    'You completed a knowledge quest! Keep learning to earn more rewards.',
-                    'high'
-                );
-            } catch (notifError) {
-                console.error('Failed to send quest completion notification:', notifError);
-            }
-        }
-    }
-    
-    return mockApiCall(response);
-};
 
 export const raid_targets = async (): Promise<RaidTarget[]> => {
     const user = await getCurrentUser();
@@ -3161,4 +2968,230 @@ export const get_quest_templates = async (subject?: string): Promise<QuestTempla
     if (error) throw error;
 
     return data || [];
+};
+
+type QuestProgressOutcome = {
+    gemstoneDelta: number;
+    notifications: Promise<unknown>[];
+};
+
+const applyQuestProgress = (userId: string, isCorrect: boolean): QuestProgressOutcome => {
+    const notifications: Promise<unknown>[] = [];
+
+    if (!isCorrect) {
+        currentQuestAnswers = 0;
+        return { gemstoneDelta: 0, notifications };
+    }
+
+    currentQuestAnswers += 1;
+    if (currentQuestAnswers < QUEST_STREAK_TARGET) {
+        return { gemstoneDelta: 0, notifications };
+    }
+
+    currentQuestAnswers = 0;
+    incrementQuestCompleted();
+
+    const progress = getTaskProgress();
+    const questsCompletedToday = progress.daily_quests_completed;
+
+    notifications.push(
+        notificationService.createNotification(
+            userId,
+            'quest_completed',
+            '✅ Quest Complete!',
+            'You completed a knowledge quest! Keep learning to earn more rewards.',
+            'high'
+        )
+    );
+
+    let gemstoneDelta = 0;
+
+    if ((questsCompletedToday === 1 || questsCompletedToday === 3) && canEarnQuestGemstone(QUEST_GEMSTONE_DAILY_CAP)) {
+        gemstoneDelta += QUEST_GEMSTONE_REWARD;
+        recordQuestGemstoneAward(QUEST_GEMSTONE_REWARD);
+    }
+
+    if (questsCompletedToday === 3 || progress.daily_pvp_wins === 1) {
+        incrementWeeklyTaskCompleted();
+    }
+
+    return { gemstoneDelta, notifications };
+};
+
+type FinalizeAnswerParams = {
+    userId: string;
+    question: Question;
+    choice: string;
+    isCorrect: boolean;
+    baseResponse: AnswerResponse;
+};
+
+const finalizeMcqAnswer = async ({
+    userId,
+    question,
+    choice,
+    isCorrect,
+    baseResponse,
+}: FinalizeAnswerParams): Promise<AnswerResponse> => {
+    const xpReward = baseResponse.deltas.xp;
+
+    const attemptInsert = (async () => {
+        const { error } = await supabase.from('question_attempts').insert({
+            student_id: userId,
+            question_id: question.id,
+            answer_given: choice,
+            is_correct: isCorrect,
+            points_earned: isCorrect ? Math.max(0, xpReward) : 0,
+        });
+
+        if (error) throw error;
+    })();
+
+    const questionStatsUpdate = question.id
+        ? (async () => {
+              const { error } = await supabase
+                  .from('questions')
+                  .update({
+                      times_answered: (question.times_answered || 0) + 1,
+                      times_correct: (question.times_correct || 0) + (isCorrect ? 1 : 0),
+                  })
+                  .eq('id', question.id);
+
+              if (error) throw error;
+          })()
+        : null;
+
+    const questOutcome = applyQuestProgress(userId, isCorrect);
+
+    const { data: currentProfile, error: fetchError } = await supabase
+        .from('users')
+        .select('xp, coins, level, gemstones, username')
+        .eq('id', userId)
+        .single();
+
+    if (fetchError || !currentProfile) {
+        throw new Error('Failed to fetch profile');
+    }
+
+    const coinDelta = baseResponse.deltas.coins;
+    const newXP = currentProfile.xp + xpReward;
+    const newCoins = Math.max(0, currentProfile.coins + coinDelta);
+    const newLevel = Math.floor(newXP / 100) + 1;
+    const leveledUp = newLevel > currentProfile.level;
+
+    let gemstoneDelta = questOutcome.gemstoneDelta;
+    if (leveledUp && newLevel % LEVEL_MILESTONE_INTERVAL === 0) {
+        gemstoneDelta += LEVEL_MILESTONE_GEMSTONE_REWARD;
+    }
+
+    const newGemstones = Math.max(0, (currentProfile.gemstones || 0) + gemstoneDelta);
+
+    const profileUpdate = updateProfile(userId, {
+        xp: newXP,
+        coins: newCoins,
+        level: newLevel,
+        gemstones: newGemstones,
+    });
+
+    const dataOperations: Promise<unknown>[] = [attemptInsert, profileUpdate];
+    if (questionStatsUpdate) {
+        dataOperations.push(questionStatsUpdate);
+    }
+
+    const notificationOperations: Promise<unknown>[] = [...questOutcome.notifications];
+
+    if (leveledUp) {
+        const activityInsert = (async () => {
+            const { error } = await supabase.from('activities').insert({
+                kind: 'level_up',
+                actor_id: userId,
+                actor_username: currentProfile.username || 'Unknown',
+                data: { details: String(newLevel) },
+            });
+
+            if (error) throw error;
+        })();
+        dataOperations.push(activityInsert);
+
+        notificationOperations.push(
+            notifyLevelUp(userId, newLevel, xpReward, coinDelta)
+        );
+    }
+
+    if (gemstoneDelta > 0) {
+        notificationOperations.push(
+            notificationService.createNotification(
+                userId,
+                'gemstone_earned',
+                '💎 Gemstone Earned!',
+                `You earned ${gemstoneDelta} rare gemstone${gemstoneDelta > 1 ? 's' : ''}!`,
+                'high'
+            )
+        );
+    }
+
+    if (isCorrect && coinDelta >= 30) {
+        notificationOperations.push(
+            notificationService.createNotification(
+                userId,
+                'coins_earned',
+                '💰 Coins Earned!',
+                `You earned ${coinDelta} coins for answering correctly!`,
+                'low'
+            )
+        );
+    }
+
+    const [dataResults, notificationResults] = await Promise.all([
+        Promise.allSettled(dataOperations),
+        Promise.allSettled(notificationOperations),
+    ]);
+
+    dataResults.forEach(result => {
+        if (result.status === 'rejected') {
+            console.error('Failed to persist MCQ answer data:', result.reason);
+        }
+    });
+
+    notificationResults.forEach(result => {
+        if (result.status === 'rejected') {
+            console.error('Failed to deliver MCQ notification:', result.reason);
+        }
+    });
+
+    baseResponse.deltas.gemstones = gemstoneDelta;
+    return baseResponse;
+};
+
+export const mcq_answer_submit = async (question: Question, choice: string): Promise<AnswerResponse> => {
+    const user = await getCurrentUser();
+
+    if (!question?.id) {
+        throw new Error('Question payload missing identifier');
+    }
+
+    const rewardXp = question.reward_xp ?? question.points ?? 20;
+    const rewardCoins = question.reward_coins ?? Math.floor(rewardXp * 1.5);
+    const correctAnswer = question.correct_answer ?? '';
+    const isCorrect = choice === correctAnswer;
+
+    const response: AnswerResponse = {
+        correct: isCorrect,
+        deltas: {
+            xp: isCorrect ? rewardXp : -5,
+            coins: isCorrect ? rewardCoins : 0,
+            gemstones: 0,
+        },
+        explanation: isCorrect
+            ? question.explanation || 'Well done, agent!'
+            : `Incorrect. ${question.explanation || 'The correct answer was: ' + correctAnswer}`,
+    };
+
+    return finalizeMcqAnswer({
+        userId: user.id,
+        question,
+        choice,
+        isCorrect,
+        baseResponse: response,
+    });
 };
