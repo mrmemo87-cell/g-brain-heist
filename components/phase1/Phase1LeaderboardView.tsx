@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import type { Batch, Grade, LeaderboardEntry, Profile } from '../../types';
 import {
   fetchBatchLeaderboard,
   fetchBatchSummaries,
   fetchGradeLeaderboard,
+  subscribeToGradeLeaderboard,
+  subscribeToBatchLeaderboard,
+  mapRowToEntry,
 } from '../../services/competitionService';
 
 interface Phase1LeaderboardViewProps {
@@ -52,6 +55,7 @@ const Phase1LeaderboardView: React.FC<Phase1LeaderboardViewProps> = ({ profile, 
     '9A': { total_xp: 0, player_count: 0 },
     '9B': { total_xp: 0, player_count: 0 },
     '9C': { total_xp: 0, player_count: 0 },
+    'N/A': { total_xp: 0, player_count: 0 },
   });
   const [activeGrade, setActiveGrade] = useState<Grade>(profile.grade === 9 ? 9 : 8);
   const [activeClass, setActiveClass] = useState<Batch>(
@@ -60,15 +64,70 @@ const Phase1LeaderboardView: React.FC<Phase1LeaderboardViewProps> = ({ profile, 
   const [loadingGrade, setLoadingGrade] = useState(false);
   const [loadingClass, setLoadingClass] = useState(false);
 
+  // Refs to store unsubscribe functions for cleanup
+  const unsubscribeGrade8Ref = useRef<(() => void) | null>(null);
+  const unsubscribeGrade9Ref = useRef<(() => void) | null>(null);
+  const unsubscribeBatchRef = useRef<(() => void) | null>(null);
+
+  // Patch-mode update handler for grade leaderboards
+  const handleGradeUpdate = (grade: Grade, entry: LeaderboardEntry) => {
+    setGradeLeaderboards((prev) => {
+      const list = [...prev[grade]];
+      const existingIndex = list.findIndex((e) => e.user_id === entry.user_id);
+
+      if (existingIndex >= 0) {
+        list[existingIndex] = entry;
+      } else {
+        list.push(entry);
+      }
+
+      // Re-sort and slice to top 50
+      list.sort((a, b) => b.xp - a.xp);
+      const sliced = list.slice(0, 50);
+
+      return { ...prev, [grade]: sliced };
+    });
+  };
+
+  // Patch-mode update handler for class leaderboards
+  const handleBatchUpdate = (entry: LeaderboardEntry) => {
+    setClassLeaderboard((prev) => {
+      const list = [...prev];
+      const existingIndex = list.findIndex((e) => e.user_id === entry.user_id);
+
+      if (existingIndex >= 0) {
+        list[existingIndex] = entry;
+      } else {
+        list.push(entry);
+      }
+
+      // Re-sort and slice to top 50
+      list.sort((a, b) => b.xp - a.xp);
+      const sliced = list.slice(0, 50);
+
+      return sliced;
+    });
+  };
+
   useEffect(() => {
     const loadLeaderboards = async () => {
       setLoadingGrade(true);
       try {
         const [grade8, grade9] = await Promise.all([
-          fetchGradeLeaderboard(8),
-          fetchGradeLeaderboard(9),
+          fetchGradeLeaderboard(8, 50),
+          fetchGradeLeaderboard(9, 50),
         ]);
         setGradeLeaderboards({ 8: grade8, 9: grade9 });
+
+        // Subscribe to grade 8 changes
+        unsubscribeGrade8Ref.current = subscribeToGradeLeaderboard(8, (entry) => {
+          handleGradeUpdate(8, entry);
+        });
+
+        // Subscribe to grade 9 changes
+        unsubscribeGrade9Ref.current = subscribeToGradeLeaderboard(9, (entry) => {
+          handleGradeUpdate(9, entry);
+        });
       } catch (err: any) {
         addToast(err?.message || 'Failed to load grade leaderboards', 'error');
       } finally {
@@ -96,14 +155,27 @@ const Phase1LeaderboardView: React.FC<Phase1LeaderboardViewProps> = ({ profile, 
 
     loadLeaderboards();
     loadSummaries();
+
+    // Cleanup on unmount
+    return () => {
+      unsubscribeGrade8Ref.current?.();
+      unsubscribeGrade9Ref.current?.();
+      unsubscribeBatchRef.current?.();
+    };
   }, [addToast]);
 
   useEffect(() => {
     const loadClassLeaderboard = async () => {
       setLoadingClass(true);
       try {
-        const rows = await fetchBatchLeaderboard(activeClass);
+        const rows = await fetchBatchLeaderboard(activeClass, 50);
         setClassLeaderboard(rows);
+
+        // Subscribe to batch changes (with patch-mode updates)
+        unsubscribeBatchRef.current?.();
+        unsubscribeBatchRef.current = subscribeToBatchLeaderboard(activeClass, (entry) => {
+          handleBatchUpdate(entry);
+        });
       } catch (err: any) {
         addToast(err?.message || 'Failed to load class leaderboard', 'error');
       } finally {
@@ -112,6 +184,11 @@ const Phase1LeaderboardView: React.FC<Phase1LeaderboardViewProps> = ({ profile, 
     };
 
     loadClassLeaderboard();
+
+    // Cleanup previous batch subscription when activeClass changes
+    return () => {
+      unsubscribeBatchRef.current?.();
+    };
   }, [activeClass, addToast]);
 
   const highlightId = profile.id;

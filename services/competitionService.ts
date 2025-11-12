@@ -435,3 +435,103 @@ export const fetchAttemptsPerMinute = async () => {
   return data ?? [];
 };
 
+// ============================================================================
+// Realtime Subscriptions (Patch Mode)
+// ============================================================================
+
+export const mapRowToEntry = (row: any): LeaderboardEntry => {
+  return {
+    user_id: row.user_id ?? row.id,
+    username: row.username,
+    xp: Number(row.xp ?? 0),
+    coins: Number(row.coins ?? 0),
+    streak: Number(row.streak ?? 0),
+    batch: (row.batch ?? null) as Batch | null,
+    grade: Number(row.grade ?? 8) as Grade,
+  };
+};
+
+export const handlePatchUpdate = (
+  setList: React.Dispatch<React.SetStateAction<LeaderboardEntry[]>>,
+  updateFn: (entry: LeaderboardEntry) => LeaderboardEntry
+) => {
+  setList((prev) => {
+    const newList = prev.map(updateFn);
+    return newList.sort((a, b) => b.xp - a.xp).slice(0, 50);
+  });
+};
+
+export const subscribeToGradeLeaderboard = (
+  grade: Grade,
+  onUpdate: (entry: LeaderboardEntry) => void
+): (() => void) => {
+  const channelName = `grade-${grade}-realtime`;
+
+  const channel = supabase
+    .channel(channelName)
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'profiles',
+        filter: `grade=eq.${grade}`,
+      },
+      (payload: any) => {
+        if (payload.eventType === 'DELETE') {
+          // When a user is deleted, refetch since complex operation
+          // In patch mode, we just trigger a refetch for this case
+          console.warn('[realtime] DELETE event, consider refetching');
+          return;
+        }
+
+        const row = payload.new;
+        if (!row) return;
+
+        const entry = mapRowToEntry(row);
+        onUpdate(entry);
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+};
+
+export const subscribeToBatchLeaderboard = (
+  batch: Batch,
+  onUpdate: (entry: LeaderboardEntry) => void
+): (() => void) => {
+  const channelName = `batch-${batch}-realtime`;
+
+  const channel = supabase
+    .channel(channelName)
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'profiles',
+        filter: `batch=eq.${batch}`,
+      },
+      (payload: any) => {
+        if (payload.eventType === 'DELETE') {
+          console.warn('[realtime] DELETE event, consider refetching');
+          return;
+        }
+
+        const row = payload.new;
+        if (!row) return;
+
+        const entry = mapRowToEntry(row);
+        onUpdate(entry);
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+};
+
