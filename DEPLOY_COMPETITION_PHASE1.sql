@@ -249,23 +249,33 @@ RETURNS TABLE (
   batch TEXT,
   grade INT
 )
-LANGUAGE sql
+LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+  v_sql_result RECORD;
+BEGIN
+  -- Validate input
+  IF p_grade IS NULL OR p_grade NOT IN (8, 9) THEN
+    RAISE EXCEPTION 'invalid_grade';
+  END IF;
+
+  RETURN QUERY
   SELECT u.id,
          u.username,
          COALESCE(u.xp, 0)::INT,
          COALESCE(u.coins, 0)::INT,
          COALESCE(u.streak, 0)::INT,
          u.batch,
-         COALESCE(u.grade::INT, p_grade)
+         COALESCE(u.grade::INT, p_grade::INT)::INT
   FROM users u
-  WHERE u.grade::INT = p_grade
+  WHERE u.grade::INT = p_grade::INT
     AND COALESCE(u.is_banned, FALSE) = FALSE
     AND COALESCE(u.is_admin, FALSE) = FALSE
   ORDER BY u.xp DESC, u.coins DESC
   LIMIT GREATEST(p_limit, 1);
+END;
 $$;
 
 -- ============================================
@@ -282,23 +292,31 @@ RETURNS TABLE (
   batch TEXT,
   grade INT
 )
-LANGUAGE sql
+LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+BEGIN
+  -- Validate batch input
+  IF p_batch IS NULL OR p_batch NOT IN ('8A','8B','8C','9A','9B','9C') THEN
+    RAISE EXCEPTION 'invalid_batch';
+  END IF;
+
+  RETURN QUERY
   SELECT u.id,
          u.username,
          COALESCE(u.xp, 0)::INT,
          COALESCE(u.coins, 0)::INT,
          COALESCE(u.streak, 0)::INT,
          u.batch,
-         COALESCE(u.grade::INT, 0)
+         COALESCE(u.grade::INT, 0)::INT
   FROM users u
   WHERE u.batch = p_batch
     AND COALESCE(u.is_banned, FALSE) = FALSE
     AND COALESCE(u.is_admin, FALSE) = FALSE
   ORDER BY u.xp DESC, u.coins DESC
   LIMIT GREATEST(p_limit, 1);
+END;
 $$;
 
 -- ============================================
@@ -358,12 +376,18 @@ $$;
 -- 8. ADMIN: RESET PLAYER PROGRESS
 -- ============================================
 
-CREATE OR REPLACE FUNCTION rpc_admin_reset_user(p_user_id UUID)
+-- Ensure cleanup before changing return type (Postgres won't allow return type changes with CREATE OR REPLACE)
+DROP FUNCTION IF EXISTS rpc_admin_reset_user(UUID) CASCADE;
+CREATE FUNCTION rpc_admin_reset_user(p_user_id UUID)
 RETURNS TABLE (
   user_id UUID,
   xp INT,
   coins INT,
-  streak INT
+  streak INT,
+  level INT,
+  gemstones INT,
+  attack_power INT,
+  defense_power INT
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -377,10 +401,15 @@ BEGIN
     RAISE EXCEPTION 'forbidden';
   END IF;
 
+  -- Reset all player stats
   UPDATE users
   SET xp = 0,
       coins = 0,
       streak = 0,
+      level = 1,
+      gemstones = 0,
+      attack_power = 10,
+      defense_power = 10,
       updated_at = NOW()
   WHERE id = p_user_id
   RETURNING * INTO v_row;
@@ -389,6 +418,9 @@ BEGIN
     RAISE EXCEPTION 'user_not_found';
   END IF;
 
+  -- Empty the player's inventory
+  DELETE FROM inventory WHERE user_id = p_user_id;
+
   BEGIN
     INSERT INTO rpc_event_log(function_name, log_level, message, user_id, context)
     VALUES ('rpc_admin_reset_user', 'info', 'reset_applied', v_actor, JSON_BUILD_OBJECT('target', p_user_id));
@@ -396,7 +428,9 @@ BEGIN
     NULL;
   END;
 
-  RETURN QUERY SELECT v_row.id, v_row.xp, v_row.coins, v_row.streak;
+  RETURN QUERY SELECT v_row.id, v_row.xp, v_row.coins, v_row.streak, v_row.level, 
+                      COALESCE(v_row.gemstones, 0) as gemstones, 
+                      v_row.attack_power, v_row.defense_power;
 EXCEPTION WHEN OTHERS THEN
   BEGIN
     INSERT INTO rpc_event_log(function_name, log_level, message, user_id, context)
@@ -551,10 +585,15 @@ BEGIN
     RAISE EXCEPTION 'forbidden';
   END IF;
 
+  -- Reset all player stats
   UPDATE users
   SET xp = 0,
       coins = 0,
       streak = 0,
+      level = 1,
+      gemstones = 0,
+      attack_power = 10,
+      defense_power = 10,
       ap_now = ap_max,
       last_ap_update = NOW(),
       updated_at = NOW()
@@ -562,6 +601,14 @@ BEGIN
     AND COALESCE(is_banned, FALSE) = FALSE;
 
   GET DIAGNOSTICS v_count = ROW_COUNT;
+
+  -- Empty all player inventories (exclude admins)
+  DELETE FROM inventory
+  WHERE user_id IN (
+    SELECT id FROM users
+    WHERE COALESCE(is_admin, FALSE) = FALSE
+      AND COALESCE(is_banned, FALSE) = FALSE
+  );
 
   BEGIN
     INSERT INTO rpc_event_log(function_name, log_level, message, user_id, context)

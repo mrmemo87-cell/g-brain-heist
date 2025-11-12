@@ -87,32 +87,53 @@ export const fetchGradeLeaderboard = async (
   grade: Grade,
   limit = 10
 ): Promise<LeaderboardEntry[]> => {
-  const { data, error } = await supabase.rpc('rpc_leaderboard_grade', {
-    p_grade: grade,
-    p_limit: limit,
-  });
+  // Ensure the grade is a number and within allowed values before calling RPC
+  const g = Number(grade);
+  if (![8, 9].includes(g)) throw new Error('Invalid grade parameter');
 
-  if (error) {
-    throw new Error(error.message || 'Failed to load grade leaderboard');
+  let rpcData: any, rpcError: any;
+  try {
+    const resp = await supabase.rpc('rpc_leaderboard_grade', {
+      p_grade: g,
+      p_limit: Number(limit),
+    });
+  rpcData = resp.data;
+  rpcError = resp.error;
+  } catch (e: any) {
+    throw new Error(`RPC rpc_leaderboard_grade failed: ${e?.message || String(e)}`);
   }
 
-  return mapLeaderboard(data ?? []);
+  if (rpcError) {
+    throw new Error(rpcError.message || `Failed to load grade leaderboard (code: ${rpcError?.code ?? 'unknown'})`);
+  }
+
+  return mapLeaderboard(rpcData ?? []);
 };
 
 export const fetchBatchLeaderboard = async (
   batch: Batch,
   limit = 10
 ): Promise<LeaderboardEntry[]> => {
-  const { data, error } = await supabase.rpc('rpc_leaderboard_batch', {
-    p_batch: batch,
-    p_limit: limit,
-  });
+  // Validate batch parameter
+  const validBatches: Batch[] = ['8A', '8B', '8C', '9A', '9B', '9C'];
+  if (!validBatches.includes(batch)) throw new Error('Invalid batch parameter');
 
-  if (error) {
-    throw new Error(error.message || 'Failed to load class leaderboard');
+  let rpcData: any, rpcError: any;
+  try {
+    const resp = await supabase.rpc('rpc_leaderboard_batch', {
+      p_batch: String(batch),
+      p_limit: Number(limit),
+    });
+    rpcData = resp.data;
+    rpcError = resp.error;
+  } catch (e: any) {
+    throw new Error(`RPC rpc_leaderboard_batch failed: ${e?.message || String(e)}`);
+  }
+  if (rpcError) {
+    throw new Error(rpcError.message || `Failed to load class leaderboard (code: ${rpcError?.code ?? 'unknown'})`);
   }
 
-  return mapLeaderboard(data ?? []);
+  return mapLeaderboard(rpcData ?? []);
 };
 
 export const fetchBatchSummaries = async (): Promise<BatchLeaderboardSummary[]> => {

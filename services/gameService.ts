@@ -2613,16 +2613,18 @@ export const achievements_list = async (): Promise<Achievement[]> => {
     if (achError) throw achError;
 
     // Get user's earned achievements
+    // Select either earned_at or unlocked_at depending on which column exists
     const { data: earnedAchievements, error: earnedError } = await supabase
         .from('user_achievements')
-        .select('achievement_id, earned_at')
+        .select('achievement_id, COALESCE(earned_at, unlocked_at) as earned_at')
         .eq('user_id', user.id);
 
     if (earnedError) throw earnedError;
 
     const earnedMap: Record<string, string> = {};
     (earnedAchievements || []).forEach((ua: any) => {
-        earnedMap[ua.achievement_id] = ua.earned_at;
+        // some migrations used `unlocked_at` instead of `earned_at`, coalesced above
+        earnedMap[ua.achievement_id] = ua.earned_at || ua.unlocked_at || null;
     });
 
     // Get user stats for progress calculation

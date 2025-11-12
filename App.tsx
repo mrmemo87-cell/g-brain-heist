@@ -920,6 +920,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           onNavigate={(targetView) => setView(targetView)}
           liteMode={isLiteMode}
           onToggleLiteMode={() => setIsLiteMode((current) => !current)}
+          onProfileAvatarChange={(avatarUrl) => setProfile((p) => p ? { ...p, avatar_url: avatarUrl } : p)}
         />
 
         {/* Offline Banner */}

@@ -215,22 +215,29 @@ returns table (
   batch text,
   grade int
 )
-language sql
+language plpgsql
 security definer
 set search_path = public
 as $$
+BEGIN
+  IF p_grade IS NULL OR p_grade NOT IN (8, 9) THEN
+    RAISE EXCEPTION 'invalid_grade';
+  END IF;
+
+  RETURN QUERY
   select u.id,
          u.username,
          u.xp,
          u.coins,
          u.streak,
          u.batch,
-         coalesce(u.grade::int, p_grade)
+         coalesce(u.grade::int, p_grade::int)
   from users u
-  where u.grade::int = p_grade
+  where u.grade::int = p_grade::int
     and coalesce(u.is_banned, false) = false
   order by u.xp desc, u.coins desc
   limit greatest(p_limit, 1);
+END;
 $$;
 
 -- ============================================
@@ -246,22 +253,29 @@ returns table (
   batch text,
   grade int
 )
-language sql
+language plpgsql
 security definer
 set search_path = public
 as $$
+BEGIN
+  IF p_batch IS NULL OR p_batch NOT IN ('8A','8B','8C','9A','9B','9C') THEN
+    RAISE EXCEPTION 'invalid_batch';
+  END IF;
+
+  RETURN QUERY
   select u.id,
          u.username,
          u.xp,
          u.coins,
          u.streak,
          u.batch,
-         coalesce(u.grade::int, 0)
+         coalesce(u.grade::int, 0)::INT
   from users u
   where u.batch = p_batch
     and coalesce(u.is_banned, false) = false
   order by u.xp desc, u.coins desc
   limit greatest(p_limit, 1);
+END;
 $$;
 
 -- ============================================
@@ -311,7 +325,9 @@ $$;
 -- ============================================
 -- Admin: Reset Player Progress
 -- ============================================
-create or replace function rpc_admin_reset_user(p_user_id uuid)
+-- Ensure we drop the function first when changing return signature as needed
+drop function if exists rpc_admin_reset_user(uuid) cascade;
+create function rpc_admin_reset_user(p_user_id uuid)
 returns table (
   user_id uuid,
   xp int,
