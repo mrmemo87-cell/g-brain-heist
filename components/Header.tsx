@@ -151,14 +151,8 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
     const file = input.files?.[0];
     if (!file) return;
 
-    if (file.size > 1024 * 1024) {
-      setAvatarUploadError('Please choose an image smaller than 1MB.');
-      audioService.play('wrong');
-      input.value = '';
-      return;
-    }
-
     setUploadingAvatar(true);
+    setAvatarUploadError(null);
     try {
       const publicUrl = await upload_avatar_file(file);
       await applyAvatarChange(publicUrl);

@@ -81,7 +81,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 disabled={uploadingAvatar}
                 className="w-full text-sm text-gray-300 file:mr-3 file:rounded-md file:border-0 file:bg-cyan-500/20 file:px-3 file:py-2 file:text-white hover:file:bg-cyan-500/30 disabled:opacity-60"
               />
-              <p className="text-xs text-gray-500 mt-2">Max 1MB. PNG, JPG, or WebP.</p>
+              <p className="text-xs text-gray-500 mt-2">PNG, JPG, or WebP. Large images are auto-resized to fit.</p>
               {avatarUploadError && (
                 <p className="mt-2 text-xs text-red-300">{avatarUploadError}</p>
               )}

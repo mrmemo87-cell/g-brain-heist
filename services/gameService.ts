@@ -2543,24 +2543,152 @@ export const clan_kick_member = async (user_id: string): Promise<Clan> => {
 // Profile Avatar Management
 // ============================================
 
+const AVATAR_MAX_DIMENSION = 640;
+const AVATAR_TARGET_SIZE_BYTES = 3.5 * 1024 * 1024; // ~3.5MB target after compression
+const AVATAR_ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
+
+const sanitizeAvatarExtension = (filename: string, fallback: string): string => {
+    const extension = filename.split('.').pop()?.toLowerCase();
+    if (!extension) {
+        return fallback;
+    }
+    return extension.replace(/[^a-z0-9]/gi, '') || fallback;
+};
+
+const stripExtension = (filename: string): string => {
+    const lastDot = filename.lastIndexOf('.');
+    if (lastDot === -1) {
+        return filename;
+    }
+    return filename.slice(0, lastDot);
+};
+
+const pickAvatarMime = (type: string): string => {
+    if (AVATAR_ALLOWED_TYPES.includes(type)) {
+        return type;
+    }
+    if (type === 'image/gif') {
+        return 'image/png';
+    }
+    return 'image/jpeg';
+};
+
+const loadImageFromFile = (file: File): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
+        const objectUrl = URL.createObjectURL(file);
+        const image = new Image();
+        image.onload = () => {
+            URL.revokeObjectURL(objectUrl);
+            resolve(image);
+        };
+        image.onerror = (event) => {
+            URL.revokeObjectURL(objectUrl);
+            reject(event);
+        };
+        image.src = objectUrl;
+    });
+};
+
+const canvasToBlob = (canvas: HTMLCanvasElement, mime: string, quality?: number): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => {
+            if (blob) {
+                resolve(blob);
+            } else {
+                reject(new Error('Avatar compression failed.'));
+            }
+        }, mime, quality);
+    });
+};
+
+const compressAvatarIfNeeded = async (file: File): Promise<File> => {
+    if (typeof document === 'undefined' || typeof window === 'undefined') {
+        return file;
+    }
+
+    if (!file.type.startsWith('image/')) {
+        return file;
+    }
+
+    // Quick exit if already within target size and reasonable dimensions
+    if (file.size <= AVATAR_TARGET_SIZE_BYTES) {
+        return file;
+    }
+
+    let image: HTMLImageElement;
+    try {
+        image = await loadImageFromFile(file);
+    } catch (error) {
+        console.warn('Avatar compression skipped - unable to read image', error);
+        return file;
+    }
+
+    const largestSide = Math.max(image.width, image.height) || 1;
+    const scale = Math.min(1, AVATAR_MAX_DIMENSION / largestSide);
+
+    const targetWidth = Math.max(1, Math.round(image.width * scale));
+    const targetHeight = Math.max(1, Math.round(image.height * scale));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+
+    const context = canvas.getContext('2d');
+    if (!context) {
+        return file;
+    }
+
+    context.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+    const preferredMime = pickAvatarMime(file.type);
+    const qualitySteps = preferredMime === 'image/png'
+        ? [1]
+        : [0.92, 0.85, 0.75, 0.68, 0.6, 0.5];
+
+    for (const quality of qualitySteps) {
+        try {
+            const blob = await canvasToBlob(canvas, preferredMime, quality);
+
+            if (blob.size <= AVATAR_TARGET_SIZE_BYTES || quality === qualitySteps[qualitySteps.length - 1]) {
+                const extension = sanitizeAvatarExtension(file.name, preferredMime.split('/')[1] ?? 'jpg');
+                const optimizedFile = new File([blob], `${stripExtension(file.name)}.${extension}`, {
+                    type: preferredMime,
+                    lastModified: Date.now(),
+                });
+                return optimizedFile.size < file.size ? optimizedFile : file;
+            }
+        } catch (error) {
+            console.warn('Avatar compression attempt failed', error);
+            break;
+        }
+    }
+
+    return file;
+};
+
 export const upload_avatar_file = async (file: File): Promise<string> => {
     const user = await getCurrentUser();
-    const extension = file.name.split('.').pop()?.toLowerCase() || 'png';
-    const safeExtension = extension.replace(/[^a-z0-9]/gi, '') || 'png';
+    const normalizedFile = await compressAvatarIfNeeded(file);
+
+    const mimeType = pickAvatarMime(normalizedFile.type || file.type || 'image/png');
+    const extension = sanitizeAvatarExtension(normalizedFile.name, mimeType.split('/')[1] ?? 'png');
     const uniqueSuffix = Math.random().toString(36).slice(2);
-    const filePath = `${user.id}/${Date.now()}-${uniqueSuffix}.${safeExtension}`;
+    const filePath = `${user.id}/${Date.now()}-${uniqueSuffix}.${extension}`;
 
     const { data, error } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file, {
+        .upload(filePath, normalizedFile, {
             cacheControl: '3600',
             upsert: true,
-            contentType: file.type || 'image/png',
+            contentType: mimeType,
         });
 
     if (error) {
         console.error('Avatar upload failed:', error);
-        throw new Error('Failed to upload avatar. Please try again.');
+        const message = error.message?.toLowerCase().includes('payload too large')
+            ? 'Avatar is still too large after optimization. Please try a smaller image.'
+            : error.message || 'Failed to upload avatar. Please try again.';
+        throw new Error(message);
     }
 
     const {
