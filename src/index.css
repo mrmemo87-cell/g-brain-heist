@@ -26,10 +26,10 @@ body {
 }
 
 body.lite-mode {
-  --ink-900: #f8fafc;
-  --ink-800: #e2e8f0;
-  --paper-50: #0f172a;
-  --mist-400: #475569;
+  --ink-900: #0b1120;
+  --ink-800: #111827;
+  --paper-50: #e2e8f0;
+  --mist-400: #cbd5f5;
   background-color: var(--ink-900);
   background-image: none;
   color: var(--paper-50);

@@ -1,0 +1,302 @@
+/* ========================================
+   LIGHT MODE - ULTRA PERFORMANCE MODE
+   ======================================== */
+
+/* Ensure body and root containers remain scrollable */
+body.light-mode,
+body.light-mode #root,
+body.light-mode main,
+body.light-mode [class*="container"] {
+  overflow-y: auto !important;
+  overflow-x: visible !important;
+  height: auto !important;
+  min-height: 100vh !important;
+}
+
+/* Fix main app wrapper overflow */
+body.light-mode .relative.min-h-screen,
+body.light-mode > div,
+body.light-mode #root > div {
+  overflow-y: auto !important;
+  overflow-x: visible !important;
+}
+
+/* Global light mode overrides */
+body.light-mode {
+  /* Disable all transitions and animations globally */
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Disable all backdrop filters and shadows */
+body.light-mode .card-glass,
+body.light-mode [class*="glass"],
+body.light-mode [class*="backdrop"] {
+  background: #1a1a1a !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  border: 1px solid #333 !important;
+}
+
+/* Remove all hover effects */
+body.light-mode button:hover,
+body.light-mode a:hover,
+body.light-mode [class*="hover"]:hover {
+  transform: none !important;
+  scale: 1 !important;
+  box-shadow: none !important;
+}
+
+/* Simplify buttons */
+body.light-mode button {
+  background: #222 !important;
+  border: 1px solid #444 !important;
+  box-shadow: none !important;
+  border-radius: 4px !important;
+}
+
+body.light-mode button:active {
+  background: #333 !important;
+}
+
+body.light-mode button:disabled {
+  opacity: 0.5 !important;
+  background: #111 !important;
+}
+
+/* Remove particle effects */
+body.light-mode [class*="particle"],
+body.light-mode [class*="confetti"],
+body.light-mode canvas {
+  display: none !important;
+}
+
+/* Simplify modals */
+body.light-mode [class*="modal"],
+body.light-mode [class*="dialog"] {
+  background: #1a1a1a !important;
+  border: 1px solid #333 !important;
+  box-shadow: none !important;
+}
+
+/* Remove all blur effects */
+body.light-mode * {
+  filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Simplify text shadows and glows */
+body.light-mode h1,
+body.light-mode h2,
+body.light-mode h3,
+body.light-mode h4,
+body.light-mode h5,
+body.light-mode h6 {
+  text-shadow: none !important;
+}
+
+/* Disable toast animations */
+body.light-mode [class*="toast"],
+body.light-mode [class*="notification"] {
+  animation: none !important;
+  margin: 4px 0 !important;
+}
+
+/* Simplify progress bars */
+body.light-mode [class*="progress"] {
+  background: #222 !important;
+  border: 1px solid #444 !important;
+  height: 8px !important;
+  border-radius: 2px !important;
+}
+
+body.light-mode [class*="progress-bar"],
+body.light-mode [class*="progress"] > div {
+  background: #0ea5e9 !important;
+  box-shadow: none !important;
+}
+
+/* Remove level-up modal animations */
+body.light-mode [class*="level-up"],
+body.light-mode [class*="achievement"] {
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Simplify leaderboard */
+body.light-mode table {
+  border-collapse: collapse !important;
+}
+
+body.light-mode table th,
+body.light-mode table td {
+  padding: 8px !important;
+  border: 1px solid #333 !important;
+}
+
+body.light-mode table tr:hover {
+  background: #222 !important;
+}
+
+/* Remove all Lottie animations */
+body.light-mode [class*="lottie"],
+body.light-mode [class*="animation"] {
+  display: none !important;
+}
+
+/* Simplify inventory items */
+body.light-mode [class*="inventory"] img,
+body.light-mode [class*="item"] img {
+  filter: none !important;
+  transform: none !important;
+}
+
+/* Flat header */
+body.light-mode header {
+  background: #000 !important;
+  border-bottom: 1px solid #333 !important;
+  box-shadow: none !important;
+}
+
+/* Simplify stat displays */
+body.light-mode [class*="stat"],
+body.light-mode [class*="counter"] {
+  background: transparent !important;
+  border: none !important;
+  padding: 4px 8px !important;
+}
+
+/* Remove all keyframe animations */
+@media (prefers-reduced-motion: no-preference) {
+  body.light-mode * {
+    animation-play-state: paused !important;
+  }
+}
+
+/* Simplify scrollbars */
+body.light-mode ::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+body.light-mode ::-webkit-scrollbar-track {
+  background: #000 !important;
+}
+
+body.light-mode ::-webkit-scrollbar-thumb {
+  background: #444 !important;
+  border-radius: 0 !important;
+}
+
+/* Remove all opacity transitions */
+body.light-mode [class*="fade"],
+body.light-mode [class*="opacity"] {
+  opacity: 1 !important;
+}
+
+/* Simplify images - remove filters */
+body.light-mode img {
+  filter: none !important;
+  image-rendering: pixelated !important;
+}
+
+/* Remove loading spinners - show text instead */
+body.light-mode [class*="spinner"],
+body.light-mode [class*="loading"] {
+  animation: none !important;
+  border: none !important;
+}
+
+/* Flat input fields */
+body.light-mode input,
+body.light-mode textarea,
+body.light-mode select {
+  background: #1a1a1a !important;
+  border: 1px solid #444 !important;
+  box-shadow: none !important;
+  border-radius: 2px !important;
+}
+
+body.light-mode input:focus,
+body.light-mode textarea:focus,
+body.light-mode select:focus {
+  outline: 1px solid #0ea5e9 !important;
+  box-shadow: none !important;
+}
+
+/* Remove badge animations */
+body.light-mode [class*="badge"],
+body.light-mode [class*="pill"] {
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Simplify grid layouts - reduce gaps */
+body.light-mode [class*="grid"] {
+  gap: 8px !important;
+}
+
+/* Remove all ::before and ::after decorative elements */
+body.light-mode *::before,
+body.light-mode *::after {
+  display: none !important;
+}
+
+/* Flat tabs */
+body.light-mode [role="tab"],
+body.light-mode [class*="tab"] {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+}
+
+body.light-mode [role="tab"][aria-selected="true"],
+body.light-mode [class*="tab"].active {
+  border-bottom-color: #0ea5e9 !important;
+}
+
+/* Remove all SVG filters */
+body.light-mode svg {
+  filter: none !important;
+}
+
+body.light-mode svg * {
+  filter: none !important;
+}
+
+/* Disable pointer events on decorative elements */
+body.light-mode [aria-hidden="true"] {
+  pointer-events: none !important;
+  display: none !important;
+}
+
+/* Minimal spacing */
+body.light-mode [class*="space-y"] > * + * {
+  margin-top: 8px !important;
+}
+
+body.light-mode [class*="space-x"] > * + * {
+  margin-left: 8px !important;
+}
+
+/* Remove all transform origins */
+body.light-mode * {
+  transform-origin: center !important;
+}
+
+/* Flat cards - no depth */
+body.light-mode [class*="card"] {
+  box-shadow: none !important;
+  border: 1px solid #333 !important;
+  background: #1a1a1a !important;
+}
+
+/* Disable all CSS animations */
+body.light-mode {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+}

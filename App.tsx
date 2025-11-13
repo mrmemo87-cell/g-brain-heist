@@ -3,6 +3,7 @@ import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage, Announceme
 import * as GameService from './services/gameService';
 import { supabase } from './services/supabaseClient';
 import Header from './components/Header';
+import { useLightMode } from './src/contexts/LightModeContext';
 import PlayerProfileCard from './components/PlayerProfileCard';
 import SessionTracker from './components/SessionTracker';
 import TaskList from './components/TaskList';
@@ -41,8 +42,6 @@ const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
   9: ['9A', '9B', '9C', 'N/A'],
 };
 const DEFAULT_BATCH: Batch = 'N/A';
-const LITE_MODE_STORAGE_KEY = 'gbrain-lite-mode';
-
 interface AppProps {
   onLogout: () => void;
 }
@@ -75,16 +74,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [academicError, setAcademicError] = useState<string | null>(null);
   const [attackAlert, setAttackAlert] = useState(false);
   const attackAlertTimeoutRef = useRef<number | null>(null);
-  const [isLiteMode, setIsLiteMode] = useState<boolean>(() => {
-    if (typeof window === 'undefined') {
-      return false;
-    }
-    try {
-      return window.localStorage.getItem(LITE_MODE_STORAGE_KEY) === 'true';
-    } catch {
-      return false;
-    }
-  });
+  const { isLightMode: isLiteMode, toggleLightMode } = useLightMode();
   const academicClassOptions = useMemo(() => {
     if (pendingGrade === null) {
       return [DEFAULT_BATCH];
@@ -167,19 +157,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   useEffect(() => {
     return aiHostService.init();
   }, []);
-
-  useEffect(() => {
-    if (typeof document !== 'undefined') {
-      document.body.classList.toggle('lite-mode', isLiteMode);
-    }
-    if (typeof window !== 'undefined') {
-      try {
-        window.localStorage.setItem(LITE_MODE_STORAGE_KEY, String(isLiteMode));
-      } catch {
-        /* no-op */
-      }
-    }
-  }, [isLiteMode]);
 
   useEffect(() => {
     const unsubscribe = notificationService.subscribe((notification) => {
@@ -831,7 +808,13 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }
 
   return (
-    <div className={`relative min-h-screen overflow-hidden p-4 md:p-6 lg:p-8 max-w-screen-2xl mx-auto${isLiteMode ? ' lite-mode-wrapper' : ''}`}>
+    <div
+      className={
+        isLiteMode
+          ? 'relative min-h-screen w-full p-4 md:p-6 lg:p-8 max-w-screen-2xl mx-auto lite-mode-wrapper overflow-y-auto'
+          : 'relative min-h-screen overflow-hidden p-4 md:p-6 lg:p-8 max-w-screen-2xl mx-auto'
+      }
+    >
       {!isLiteMode && <CinematicEffects intensity={effectsIntensity} />}
       {attackAlert && (
         <div className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center">
@@ -919,7 +902,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           onShowHelp={() => setShowHelp(true)}
           onNavigate={(targetView) => setView(targetView)}
           liteMode={isLiteMode}
-          onToggleLiteMode={() => setIsLiteMode((current) => !current)}
+          onToggleLiteMode={toggleLightMode}
           onProfileAvatarChange={(avatarUrl) => setProfile((p) => p ? { ...p, avatar_url: avatarUrl } : p)}
         />
 

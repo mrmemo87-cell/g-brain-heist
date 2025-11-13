@@ -5,7 +5,9 @@ import LoginView from './components/LoginView';
 import ErrorBoundary from './components/ErrorBoundary';
 import * as AuthService from './services/authService';
 import { supabase } from './services/supabaseClient';
+import { LightModeProvider } from './src/contexts/LightModeContext';
 import './src/index.css';
+import './src/styles/light-mode.css';
 
 const Main: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -65,7 +67,9 @@ const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <ErrorBoundary>
-      <Main />
+      <LightModeProvider>
+        <Main />
+      </LightModeProvider>
     </ErrorBoundary>
   </React.StrictMode>
 );

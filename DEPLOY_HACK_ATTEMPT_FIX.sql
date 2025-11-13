@@ -1,9 +1,14 @@
--- Brains Heist PvP Hack Attempt Function
--- Matches our game schema: users, inventory, activities tables
--- Inputs: p_defender_id uuid
--- Uses: auth.uid() as attacker
--- Returns: JSON with outcome + deltas
+-- ========================================
+-- DEPLOY FIX: rpc_hack_attempt State Fix
+-- ========================================
+-- Issue: inventory_state_check violation on attack
+-- Root Cause: Using state='used' instead of state='consumed'
+-- Constraint: state IN ('unused', 'active', 'consumed')
 
+-- Drop the old function
+DROP FUNCTION IF EXISTS public.rpc_hack_attempt(uuid);
+
+-- Recreate with correct state values
 create or replace function public.rpc_hack_attempt(p_defender_id uuid)
 returns json
 language plpgsql
@@ -133,7 +138,7 @@ begin
 
   -- If attacker has cracker, consume it and negate shield
   if has_shield and has_cracker then
-    -- Consume one cracker
+    -- Consume one cracker (FIX: use 'consumed' instead of 'used')
     update public.inventory
     set state = 'consumed'
     where id = (
@@ -145,7 +150,7 @@ begin
       limit 1
     );
     
-    -- Break the shield
+    -- Break the shield (FIX: use 'consumed' instead of 'used')
     update public.inventory
   set state = 'consumed', expires_at = v_now
     where user_id = p_defender_id

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Lottie from 'lottie-react';
+import { useLightMode } from '../src/contexts/LightModeContext';
 
 interface LottieAnimationProps {
   url: string;
@@ -12,6 +13,12 @@ const LottieAnimation: React.FC<LottieAnimationProps> = ({ url, width = 200, hei
   const [animationData, setAnimationData] = useState<any>(null);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { isLightMode } = useLightMode();
+
+  // Don't load or render animations in light mode
+  if (isLightMode) {
+    return null;
+  }
 
   useEffect(() => {
     setLoading(true);

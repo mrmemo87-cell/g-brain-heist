@@ -6,6 +6,7 @@ import { NotificationCenter } from './NotificationCenter';
 import { notificationService } from '../services/notificationService';
 import { update_avatar, upload_avatar_file } from '../services/gameService';
 import { isAdmin } from '../services/adminService';
+import SettingsModal from './SettingsModal';
 
 // Custom hook for animating number changes
 const useAnimatedValue = (endValue: number, duration: number = 500) => {
@@ -574,162 +575,20 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
         </div>
       </header>
 
-      {/* Settings Modal */}
+      {/* Notification Center */}
       {showSettingsModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="card-glass glow-ion max-w-md w-full max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-700">
-              <h2 className="font-heading text-2xl sm:text-3xl" style={{ color: 'var(--ion-blue)' }}>
-                ⚙️ Settings
-              </h2>
-              <button
-                onClick={() => setShowSettingsModal(false)}
-                className="px-3 py-1.5 rounded-lg font-semibold transition-all bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white text-sm"
-              >
-                Close
-              </button>
-            </div>
-            
-            <div className="space-y-6 p-6 overflow-y-auto flex-1">
-              {/* Avatar Selection */}
-              <div>
-                <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--amber-warn)' }}>Avatar</h3>
-                <div className="grid grid-cols-4 gap-2 mb-3">
-                  {avatarPresets.map((avatarUrl, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => void handleAvatarSelect(avatarUrl)}
-                      disabled={uploadingAvatar}
-                      className={`w-full aspect-square rounded-lg overflow-hidden border-2 transition-all hover:scale-105 ${
-                        selectedAvatar === avatarUrl 
-                          ? 'border-cyan-400 shadow-lg shadow-cyan-500/50' 
-                          : 'border-gray-600 hover:border-gray-400'
-                      }`}
-                    >
-                      <img src={avatarUrl} alt={`Avatar ${idx + 1}`} className="w-full h-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-                <div className="mt-4 border-t border-gray-700 pt-4">
-                  <label className="block text-sm text-gray-300 mb-2">Upload custom avatar</label>
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp"
-                    onChange={handleAvatarUpload}
-                    disabled={uploadingAvatar}
-                    className="w-full text-sm text-gray-300 file:mr-3 file:rounded-md file:border-0 file:bg-cyan-500/20 file:px-3 file:py-2 file:text-white hover:file:bg-cyan-500/30 disabled:opacity-60"
-                  />
-                  <p className="text-xs text-gray-500 mt-2">Max 1MB. PNG, JPG, or WebP.</p>
-                  {avatarUploadError && (
-                    <p className="mt-2 text-xs text-red-300">{avatarUploadError}</p>
-                  )}
-                </div>
-                {uploadingAvatar && (
-                  <p className="text-xs text-center text-cyan-400 animate-pulse mt-3">Saving avatar...</p>
-                )}
-              </div>
-
-              {/* Profile Section */}
-              <div>
-                <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--amber-warn)' }}>Profile</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
-                    <span className="text-gray-300">Username</span>
-                    <span className="font-bold text-white">{profile.username}</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
-                    <span className="text-gray-300">Level</span>
-                    <span className="font-bold text-white">{profile.level}</span>
-                  </div>
-                  {profile.batch && (
-                    <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
-                      <span className="text-gray-300">Batch</span>
-                      <span className="font-bold text-white">{profile.batch}</span>
-                    </div>
-                  )}
-                  {profile.role === 'teacher' && (
-                    <div className="flex items-center justify-between p-3 bg-purple-500/20 rounded-lg border border-purple-400">
-                      <span className="text-gray-300">Role</span>
-                      <span className="font-bold text-white">👨‍🏫 Teacher</span>
-                    </div>
-                  )}
-                  <div className={`flex items-center justify-between p-3 rounded-lg ${
-                    profile.streak >= 7 ? 'bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-400' : 'bg-black/20'
-                  }`}>
-                    <span className="text-gray-300 flex items-center space-x-2">
-                      <span>🔥</span>
-                      <span>Login Streak</span>
-                    </span>
-                    <span className={`font-bold text-xl ${profile.streak >= 7 ? 'text-orange-400' : 'text-white'}`}>
-                      {profile.streak || 0} {profile.streak === 1 ? 'day' : 'days'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Audio Settings */}
-              <div>
-                <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--amber-warn)' }}>Audio</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
-                    <span className="text-gray-300">Sound Effects</span>
-                    <button
-                      onClick={handleAudioToggle}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                        audioEnabled 
-                          ? 'bg-green-500/30 text-green-400 border border-green-500' 
-                          : 'bg-red-500/30 text-red-400 border border-red-500'
-                      }`}
-                    >
-                      {audioEnabled ? 'ON' : 'OFF'}
-                    </button>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
-                    <span className="text-gray-300">Background Music</span>
-                    <button
-                      onClick={handleBgMusicToggle}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                        bgMusicEnabled 
-                          ? 'bg-green-500/30 text-green-400 border border-green-500' 
-                          : 'bg-red-500/30 text-red-400 border border-red-500'
-                      }`}
-                    >
-                      {bgMusicEnabled ? 'ON' : 'OFF'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Display Settings */}
-              <div>
-                <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--amber-warn)' }}>Display</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
-                    <span className="text-gray-300">Lite Mode</span>
-                    <button
-                      onClick={() => onToggleLiteMode?.()}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                        liteMode
-                          ? 'bg-green-500/30 text-green-400 border border-green-500'
-                          : 'bg-gray-500/30 text-gray-200 border border-gray-500'
-                      }`}
-                    >
-                      {liteMode ? 'ON' : 'OFF'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Note about future features */}
-              <div className="text-xs text-gray-500 text-center pt-4 border-t border-gray-700">
-                <p>Username editing, custom bio, and theme settings coming soon!</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <SettingsModal 
+          onClose={() => setShowSettingsModal(false)}
+          profile={profile}
+          avatarPresets={avatarPresets}
+          selectedAvatar={selectedAvatar}
+          uploadingAvatar={uploadingAvatar}
+          avatarUploadError={avatarUploadError || ''}
+          onAvatarSelect={handleAvatarSelect}
+          onAvatarUpload={handleAvatarUpload}
+        />
       )}
 
-      {/* Notification Center */}
       <NotificationCenter 
         isOpen={showNotifications} 
         onClose={() => setShowNotifications(false)} 
