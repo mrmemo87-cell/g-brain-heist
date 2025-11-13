@@ -590,11 +590,18 @@ $$;
 -- ============================================
 -- Admin: Broadcast Announcement
 -- ============================================
-create or replace function rpc_announcement_post(p_text text)
+create or replace function rpc_announcement_post(
+  p_text text,
+  p_priority text default 'normal',
+  p_active boolean default true
+)
 returns table (
   id bigint,
   text text,
-  created_at timestamptz
+  priority text,
+  active boolean,
+  created_at timestamptz,
+  created_by uuid
 )
 language plpgsql
 security definer
@@ -608,14 +615,20 @@ begin
     raise exception 'forbidden';
   end if;
 
-  insert into announcements(text, created_by)
-  values (p_text, v_actor)
+  insert into announcements(text, priority, active, created_by)
+  values (p_text, coalesce(p_priority, 'normal'), coalesce(p_active, true), v_actor)
   returning * into v_row;
 
   insert into rpc_event_log(function_name, log_level, message, user_id, context)
   values ('rpc_announcement_post', 'info', 'broadcast', v_actor, json_build_object('announcement_id', v_row.id));
 
-  return query select v_row.id, v_row.text, v_row.created_at;
+  return query select
+    v_row.id,
+    v_row.text,
+    v_row.priority,
+    v_row.active,
+    v_row.created_at,
+    v_row.created_by;
 exception when others then
   insert into rpc_event_log(function_name, log_level, message, user_id, context)
   values ('rpc_announcement_post', 'error', SQLERRM, v_actor, json_build_object());
@@ -626,10 +639,14 @@ $$;
 -- ============================================
 -- Announcements: Fetch next unseen
 -- ============================================
-create or replace function rpc_announcement_next()
+-- Drop to allow return signature adjustments when needed
+drop function if exists rpc_announcement_next();
+create function rpc_announcement_next()
 returns table (
   id bigint,
   text text,
+  priority text,
+  active boolean,
   created_at timestamptz,
   created_by uuid,
   seen_at timestamptz
@@ -648,6 +665,8 @@ begin
   return query
   select a.id,
          a.text,
+    a.priority,
+    a.active,
          a.created_at,
          a.created_by,
          ar.seen_at
@@ -668,7 +687,9 @@ $$;
 -- ============================================
 -- Announcements: Mark seen
 -- ============================================
-create or replace function rpc_announcement_mark_seen(p_announcement_id bigint)
+-- Drop to allow signature changes without manual cleanup
+drop function if exists rpc_announcement_mark_seen(bigint);
+create function rpc_announcement_mark_seen(p_announcement_id bigint)
 returns table (
   announcement_id bigint,
   seen_at timestamptz

@@ -138,6 +138,8 @@ export interface BatchLeaderboardSummary {
 export interface Announcement {
   id: number;
   text: string;
+  priority?: string;
+  active?: boolean;
   created_at: string;
   created_by: string | null;
   seen_at?: string | null;
