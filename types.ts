@@ -136,7 +136,7 @@ export interface BatchLeaderboardSummary {
 }
 
 export interface Announcement {
-  id: number;
+  id: string;
   text: string;
   priority?: string;
   active?: boolean;

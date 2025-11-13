@@ -4,6 +4,52 @@
 
 set check_function_bodies = off;
 
+-- Ensure announcements tables are aligned with expected columns
+do $$
+begin
+  if exists (
+    select 1 from information_schema.tables
+    where table_schema = 'public'
+      and table_name = 'announcements'
+  ) then
+    if not exists (
+      select 1 from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'announcements'
+        and column_name = 'priority'
+    ) then
+      alter table announcements add column priority text default 'normal';
+      update announcements set priority = coalesce(priority, 'normal');
+    end if;
+
+    if not exists (
+      select 1 from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'announcements'
+        and column_name = 'active'
+    ) then
+      alter table announcements add column active boolean default true;
+      update announcements set active = coalesce(active, true);
+    end if;
+  end if;
+
+  if exists (
+    select 1 from information_schema.tables
+    where table_schema = 'public'
+      and table_name = 'announcement_receipts'
+  ) then
+    if not exists (
+      select 1 from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'announcement_receipts'
+        and column_name = 'seen_at'
+    ) then
+      alter table announcement_receipts add column seen_at timestamptz default now();
+    end if;
+  end if;
+end;
+$$;
+
 -- Helper function to assert admin access
 create or replace function is_current_user_admin()
 returns boolean
@@ -350,6 +396,9 @@ begin
   set xp = 0,
       coins = 0,
       streak = 0,
+      level = 1,
+      attack_power = 10,
+      defense_power = 10,
       updated_at = now()
   where id = p_user_id
   returning * into v_row;
@@ -497,6 +546,9 @@ begin
   set xp = 0,
       coins = 0,
       streak = 0,
+      level = 1,
+      attack_power = 10,
+      defense_power = 10,
       ap_now = ap_max,
       last_ap_update = now(),
       updated_at = now()
@@ -596,7 +648,7 @@ create or replace function rpc_announcement_post(
   p_active boolean default true
 )
 returns table (
-  id bigint,
+  id text,
   text text,
   priority text,
   active boolean,
@@ -623,7 +675,7 @@ begin
   values ('rpc_announcement_post', 'info', 'broadcast', v_actor, json_build_object('announcement_id', v_row.id));
 
   return query select
-    v_row.id,
+    v_row.id::text,
     v_row.text,
     v_row.priority,
     v_row.active,
@@ -643,7 +695,7 @@ $$;
 drop function if exists rpc_announcement_next();
 create function rpc_announcement_next()
 returns table (
-  id bigint,
+  id text,
   text text,
   priority text,
   active boolean,
@@ -663,13 +715,13 @@ begin
   end if;
 
   return query
-  select a.id,
-         a.text,
-    a.priority,
-    a.active,
-         a.created_at,
-         a.created_by,
-         ar.seen_at
+  select a.id::text,
+    a.text::text,
+         coalesce(a.priority, 'normal')::text,
+         coalesce(a.active, true)::boolean,
+         a.created_at::timestamptz,
+         a.created_by::uuid,
+         ar.seen_at::timestamptz
   from announcements a
   left join announcement_receipts ar
     on ar.announcement_id = a.id
@@ -689,9 +741,10 @@ $$;
 -- ============================================
 -- Drop to allow signature changes without manual cleanup
 drop function if exists rpc_announcement_mark_seen(bigint);
-create function rpc_announcement_mark_seen(p_announcement_id bigint)
+drop function if exists rpc_announcement_mark_seen(text);
+create function rpc_announcement_mark_seen(p_announcement_id text)
 returns table (
-  announcement_id bigint,
+  announcement_id text,
   seen_at timestamptz
 )
 language plpgsql
@@ -701,22 +754,29 @@ as $$
 declare
   v_user uuid := auth.uid();
   v_receipt announcement_receipts%rowtype;
+  v_target announcements.id%type;
 begin
   if v_user is null then
     raise exception 'not_authenticated';
   end if;
 
-  if not exists (select 1 from announcements where id = p_announcement_id) then
+  begin
+    v_target := p_announcement_id::announcements.id%type;
+  exception when invalid_text_representation then
+    raise exception 'announcement_not_found';
+  end;
+
+  if not exists (select 1 from announcements where id = v_target) then
     raise exception 'announcement_not_found';
   end if;
 
   insert into announcement_receipts(announcement_id, user_id, seen_at)
-  values (p_announcement_id, v_user, now())
+  values (v_target, v_user, now())
   on conflict (announcement_id, user_id)
   do update set seen_at = excluded.seen_at
   returning * into v_receipt;
 
-  return query select v_receipt.announcement_id, v_receipt.seen_at;
+  return query select v_receipt.announcement_id::text, v_receipt.seen_at;
 exception when others then
   insert into rpc_event_log(function_name, log_level, message, user_id, context)
   values ('rpc_announcement_mark_seen', 'error', SQLERRM, v_user, json_build_object('announcement_id', p_announcement_id));

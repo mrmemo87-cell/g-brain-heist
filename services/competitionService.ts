@@ -176,7 +176,10 @@ export const fetchAnnouncements = async (limit = 10): Promise<Announcement[]> =>
     throw new Error(error.message || 'Failed to fetch announcements');
   }
 
-  return (data ?? []) as Announcement[];
+  return (data ?? []).map((row) => ({
+    ...row,
+    id: String((row as any).id),
+  })) as Announcement[];
 };
 
 export const postAnnouncement = async (text: string): Promise<void> => {
@@ -199,10 +202,13 @@ export const fetchNextAnnouncement = async (): Promise<Announcement | null> => {
   }
 
   const payload = Array.isArray(data) ? data[0] : data;
-  return payload as Announcement;
+  return {
+    ...(payload as Record<string, unknown>),
+    id: String((payload as any).id),
+  } as Announcement;
 };
 
-export const markAnnouncementSeen = async (announcementId: number): Promise<void> => {
+export const markAnnouncementSeen = async (announcementId: string): Promise<void> => {
   const { error } = await supabase.rpc('rpc_announcement_mark_seen', {
     p_announcement_id: announcementId,
   });
