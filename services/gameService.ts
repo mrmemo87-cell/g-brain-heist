@@ -1,6 +1,7 @@
 import { Profile, Task, SessionStatus, Caps, NewsEvent, SubjectData, Question, AnswerResponse, RaidTarget, RaidAttackResult, ShopItem, PurchaseReceipt, Clan, ClanChatMessage, ClanSummary, ClanMember, ClanBuff, InventoryItem, Teacher, TeacherQuestion, CreateQuestionRequest, QuestionAttemptResult, QuestTemplate, Batch } from '../types';
 import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount, canEarnQuestGemstone, recordQuestGemstoneAward, canEarnPvpGemstone, recordPvpGemstoneAward } from './storageService';
 import { supabase } from './supabaseClient';
+import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage';
 import { notificationService } from './notificationService';
 import {
     regenerateUserAp,
@@ -694,7 +695,7 @@ export const whoami = async (): Promise<Profile> => {
   // Get current authenticated user
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   
-  if (authError || !user) {
+    if (authError || !user) {
     throw new Error('Not authenticated');
   }
 
@@ -740,7 +741,14 @@ export const whoami = async (): Promise<Profile> => {
     console.log('OAuth profile created successfully for:', user.email);
   } else if (profileError || !profile) {
     throw new Error('Profile not found');
-  }
+    }
+
+    const banned = isBannedFlag(profile.is_banned);
+    if (banned) {
+        storeBanMessage(BAN_MESSAGE);
+        await supabase.auth.signOut();
+        throw new Error(BAN_MESSAGE);
+    }
 
   if (typeof profile.gemstones !== 'number') {
     profile.gemstones = 0;
@@ -753,13 +761,11 @@ export const whoami = async (): Promise<Profile> => {
         profile.grade = (parsedGrade === 8 || parsedGrade === 9) ? parsedGrade : null;
   }
 
-  if (typeof profile.is_admin !== 'boolean') {
-    profile.is_admin = profile.role === 'admin';
-  }
+    profile.is_admin = typeof profile.is_admin === 'boolean'
+        ? profile.is_admin
+        : profile.role === 'admin';
 
-  if (typeof profile.is_banned !== 'boolean') {
-    profile.is_banned = false;
-  }
+    profile.is_banned = banned;
 
   // ====== AP REGENERATION LOGIC ======
   // Call database function to regenerate AP

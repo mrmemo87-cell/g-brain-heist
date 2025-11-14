@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { GoogleIcon } from './icons';
 import * as AuthService from '../services/authService';
 import type { Batch, Grade } from '../types';
+import { consumeBanMessage } from '../services/banMessage';
 
 interface LoginViewProps {
     onLogin: (email: string, pass: string) => Promise<void>;
@@ -19,6 +20,14 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+    useEffect(() => {
+        const persisted = consumeBanMessage();
+        if (persisted) {
+            setMode('login');
+            setError(persisted);
+        }
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

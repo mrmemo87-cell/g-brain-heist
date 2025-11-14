@@ -183,6 +183,7 @@ const Phase1PlayView: React.FC<Phase1PlayViewProps> = ({
   }
 
   const options = [question.opt1, question.opt2, question.opt3, question.opt4];
+  const selectionLocked = choice.selected !== null && !choice.feedback;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -234,7 +235,7 @@ const Phase1PlayView: React.FC<Phase1PlayViewProps> = ({
             return (
               <button
                 key={index}
-                disabled={!!choice.feedback}
+                disabled={selectionLocked || !!choice.feedback || choice.isSubmitting}
                 onClick={() => setChoice({ selected: index, isSubmitting: false, feedback: choice.feedback })}
                 className={buttonClass}
                 style={buttonStyle}
@@ -246,7 +247,16 @@ const Phase1PlayView: React.FC<Phase1PlayViewProps> = ({
           })}
         </div>
 
-        <div className="mt-6 flex items-center gap-3">
+        <div className="mt-6 flex items-center gap-3 flex-wrap">
+          {selectionLocked && stage === 'question' && (
+            <button
+              onClick={() => setChoice({ selected: null, isSubmitting: false, feedback: null })}
+              className="px-4 py-2 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-800 transition disabled:opacity-50"
+              disabled={choice.isSubmitting}
+            >
+              Change Selection
+            </button>
+          )}
           {stage === 'question' && (
             <button
               disabled={choice.selected === null || choice.isSubmitting}

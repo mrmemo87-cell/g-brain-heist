@@ -152,6 +152,7 @@ export interface AdminOverviewStats {
   top_batch_total_xp: number | null;
   last_error_message: string | null;
   last_error_at: string | null;
+  total_gemstones?: number | null;
 }
 
 export interface AnswerResponse {

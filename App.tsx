@@ -36,6 +36,7 @@ import Phase1AdminDashboard from './components/phase1/Phase1AdminDashboard';
 import AnnouncementBanner from './components/phase1/AnnouncementBanner';
 import { fetchNextAnnouncement, markAnnouncementSeen } from './services/competitionService';
 import { notificationService } from './services/notificationService';
+import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './services/banMessage';
 
 const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
   8: ['8A', '8B', '8C', 'N/A'],
@@ -427,6 +428,21 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         (payload) => {
           console.log('Profile updated!', payload);
           const newProfile = payload.new as Profile;
+          const oldProfile = (payload.old as Profile) || null;
+
+          const isNowBanned = isBannedFlag(newProfile?.is_banned);
+          const wasBanned = isBannedFlag(oldProfile?.is_banned);
+
+          if (isNowBanned) {
+            if (!wasBanned) {
+              storeBanMessage(BAN_MESSAGE);
+              addToast(BAN_MESSAGE, 'error');
+              void supabase.auth.signOut().catch((err) => {
+                console.error('Failed to sign out after ban enforcement', err);
+              });
+            }
+            return;
+          }
           
           // Detect level up
           if (previousLevel !== null && newProfile.level > previousLevel) {

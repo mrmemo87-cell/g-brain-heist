@@ -35,6 +35,7 @@ type PlayerSearchResult = {
   batch: Batch | null;
   xp: number;
   coins: number;
+  gemstones?: number;
   streak: number;
   updated_at: string;
   is_banned?: boolean;
@@ -121,6 +122,10 @@ const Phase1AdminDashboard: React.FC<Phase1AdminDashboardProps> = ({ profile, on
 
   const refreshLeaderboards = async () => {
     try {
+        <div className="p-4 bg-gradient-to-br from-emerald-700/20 to-emerald-900/10 rounded-lg border border-emerald-400/30">
+          <p className="text-sm text-gray-300">Total Gemstones</p>
+          <div className="text-3xl font-heading text-white">{overview?.total_gemstones ?? 0}</div>
+        </div>
       const [grade8, grade9, classData] = await Promise.all([
         fetchGradeLeaderboard(8),
         fetchGradeLeaderboard(9),
@@ -255,9 +260,9 @@ const Phase1AdminDashboard: React.FC<Phase1AdminDashboardProps> = ({ profile, on
     if (!selectedPlayer) return;
     setLoading(true);
     try {
-      await setPlayerBanned(selectedPlayer.id, isBanned);
-      addToast(isBanned ? 'Player banned' : 'Player unbanned', 'success');
-      setSelectedPlayer({ ...selectedPlayer, is_banned: isBanned });
+      const newStatus = await setPlayerBanned(selectedPlayer.id, isBanned);
+      addToast(newStatus ? 'Player banned' : 'Player unbanned', 'success');
+      setSelectedPlayer(prev => (prev ? { ...prev, is_banned: newStatus } : prev));
       await refreshOverview();
     } catch (err: any) {
       addToast(err?.message || 'Failed to update ban status', 'error');

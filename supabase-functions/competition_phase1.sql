@@ -50,6 +50,86 @@ begin
 end;
 $$;
 
+-- ============================================
+-- AP Regeneration Helpers
+-- ============================================
+drop view if exists users_with_current_ap;
+drop function if exists calculate_current_ap(int, int, timestamptz);
+drop function if exists regenerate_user_ap(uuid);
+
+create or replace function calculate_current_ap(
+  current_ap int,
+  max_ap int,
+  last_update timestamptz
+)
+returns int
+language plpgsql
+set search_path = public
+as $$
+declare
+  minutes_elapsed int;
+  ap_to_regen int;
+begin
+  minutes_elapsed := greatest(0, extract(epoch from (now() - last_update))::int / 60);
+  ap_to_regen := minutes_elapsed / 10;
+  return least(current_ap + ap_to_regen, max_ap);
+end;
+$$;
+
+create or replace view users_with_current_ap as
+select
+  u.*,
+  calculate_current_ap(u.ap_now, u.ap_max, coalesce(u.last_ap_update, now())) as ap_current
+from users u;
+
+create or replace function regenerate_user_ap(user_id_param uuid)
+returns table (
+  new_ap int,
+  ap_regenerated int,
+  minutes_elapsed int
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user record;
+  v_minutes int;
+  v_regen int;
+  v_new_ap int;
+begin
+  select
+    u.ap_now,
+    u.ap_max,
+    coalesce(u.last_ap_update, now()) as last_ap_update
+  into v_user
+  from users u
+  where u.id = user_id_param
+  for update;
+
+  if not found then
+    raise exception 'user_not_found';
+  end if;
+
+  v_minutes := greatest(0, extract(epoch from (now() - v_user.last_ap_update))::int / 60);
+  v_regen := v_minutes / 10;
+
+  if v_regen > 0 and v_user.ap_now < v_user.ap_max then
+    v_new_ap := least(v_user.ap_now + v_regen, v_user.ap_max);
+
+    update users
+    set ap_now = v_new_ap,
+        last_ap_update = now(),
+        updated_at = now()
+    where id = user_id_param;
+
+    return query select v_new_ap, v_new_ap - v_user.ap_now, v_minutes;
+  else
+    return query select v_user.ap_now, 0, v_minutes;
+  end if;
+end;
+$$;
+
 -- Helper function to assert admin access
 create or replace function is_current_user_admin()
 returns boolean
@@ -395,6 +475,7 @@ begin
   update users
   set xp = 0,
       coins = 0,
+    gemstones = 0,
       streak = 0,
       level = 1,
       attack_power = 10,
@@ -447,6 +528,34 @@ begin
 
   if not found then
     raise exception 'user_not_found';
+  end if;
+
+  if coalesce(p_is_banned, false) then
+    begin
+      perform auth.disable_user(p_user_id);
+    exception when others then
+      null;
+    end;
+
+    begin
+      perform auth.invalidate_refresh_tokens(p_user_id);
+    exception when others then
+      -- Ignore if helper function is unavailable or permissions are limited
+      null;
+    end;
+
+    begin
+      delete from auth.sessions where user_id = p_user_id;
+      delete from auth.refresh_tokens where user_id = p_user_id;
+    exception when others then
+      null;
+    end;
+  elsex
+    begin
+      perform auth.enable_user(p_user_id);
+    exception when others then
+      null;
+    end;
   end if;
 
   insert into rpc_event_log(function_name, log_level, message, user_id, context)
@@ -545,6 +654,7 @@ begin
   update users
   set xp = 0,
       coins = 0,
+    gemstones = 0,
       streak = 0,
       level = 1,
       attack_power = 10,
@@ -642,8 +752,13 @@ $$;
 -- ============================================
 -- Admin: Broadcast Announcement
 -- ============================================
+drop function if exists rpc_announcement_post(text);
+drop function if exists rpc_announcement_post(text, text);
+drop function if exists rpc_announcement_post(text, text, boolean);
+drop function if exists rpc_announcement_post(text, text, text, boolean);
 create or replace function rpc_announcement_post(
   p_text text,
+  p_title text default null,
   p_priority text default 'normal',
   p_active boolean default true
 )
@@ -667,12 +782,28 @@ begin
     raise exception 'forbidden';
   end if;
 
-  insert into announcements(text, priority, active, created_by)
-  values (p_text, coalesce(p_priority, 'normal'), coalesce(p_active, true), v_actor)
+  insert into announcements(title, content, text, priority, active, created_by)
+  values (
+    coalesce(nullif(trim(p_title), ''), left(p_text, 120)),
+    p_text,
+    p_text,
+    coalesce(p_priority, 'normal'),
+    coalesce(p_active, true),
+    v_actor
+  )
   returning * into v_row;
 
   insert into rpc_event_log(function_name, log_level, message, user_id, context)
-  values ('rpc_announcement_post', 'info', 'broadcast', v_actor, json_build_object('announcement_id', v_row.id));
+  values (
+    'rpc_announcement_post',
+    'info',
+    'broadcast',
+    v_actor,
+    json_build_object(
+      'announcement_id', v_row.id,
+      'title', v_row.title
+    )
+  );
 
   return query select
     v_row.id::text,
@@ -753,7 +884,6 @@ set search_path = public
 as $$
 declare
   v_user uuid := auth.uid();
-  v_receipt announcement_receipts%rowtype;
   v_target announcements.id%type;
 begin
   if v_user is null then
@@ -761,7 +891,7 @@ begin
   end if;
 
   begin
-    v_target := p_announcement_id::announcements.id%type;
+    v_target := p_announcement_id::uuid;
   exception when invalid_text_representation then
     raise exception 'announcement_not_found';
   end;
@@ -770,13 +900,21 @@ begin
     raise exception 'announcement_not_found';
   end if;
 
-  insert into announcement_receipts(announcement_id, user_id, seen_at)
-  values (v_target, v_user, now())
-  on conflict (announcement_id, user_id)
-  do update set seen_at = excluded.seen_at
-  returning * into v_receipt;
+  update announcement_receipts as ar
+  set seen_at = now()
+  where ar.announcement_id = v_target
+    and ar.user_id = v_user;
 
-  return query select v_receipt.announcement_id::text, v_receipt.seen_at;
+  if not found then
+  insert into announcement_receipts as ar (announcement_id, user_id, seen_at)
+  values (v_target, v_user, now());
+  end if;
+
+  return query
+  select ar.announcement_id::text, ar.seen_at
+  from announcement_receipts as ar
+  where ar.announcement_id = v_target
+    and ar.user_id = v_user;
 exception when others then
   insert into rpc_event_log(function_name, log_level, message, user_id, context)
   values ('rpc_announcement_mark_seen', 'error', SQLERRM, v_user, json_build_object('announcement_id', p_announcement_id));

@@ -24,6 +24,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     activeToday: 0,
     totalXP: 0,
     totalCoins: 0,
+    totalGemstones: 0,
     totalClans: 0
   });
   const [adminVisible, setAdminVisible] = useState(profile.admin_visible || false);
@@ -41,6 +42,11 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  const updateUserInState = (userId: string, patch: Record<string, unknown>) => {
+    setAllUsers(prev => prev.map(user => user.id === userId ? { ...user, ...patch } : user));
+    setFilteredUsers(prev => prev.map(user => user.id === userId ? { ...user, ...patch } : user));
+  };
 
   useEffect(() => {
     // Filter users based on search query
@@ -79,16 +85,18 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         return lastSeen && lastSeen >= todayStart;
       }).length;
 
-      const totalXP = playerRoster.reduce((sum, u) => sum + (u.xp || 0), 0);
-      const totalCoins = playerRoster.reduce((sum, u) => sum + (u.coins || 0), 0);
+  const totalXP = playerRoster.reduce((sum, u) => sum + (u.xp || 0), 0);
+  const totalCoins = playerRoster.reduce((sum, u) => sum + (u.coins || 0), 0);
+  const totalGemstones = playerRoster.reduce((sum, u) => sum + (u.gemstones || 0), 0);
 
       const { data: clans } = await supabase.from('clans').select('id');
 
       setStats({
-  totalUsers: playerRoster.length,
+        totalUsers: playerRoster.length,
         activeToday,
         totalXP,
         totalCoins,
+        totalGemstones,
         totalClans: clans?.length || 0
       });
     } catch (error) {
@@ -287,16 +295,22 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     }
   };
 
-  const banUser = async (userId: string) => {
-    try {
-      const confirmBan = window.confirm('Ban this player from the game?');
-      if (!confirmBan) return;
+  const setUserBanState = async (userId: string, username: string, shouldBan: boolean) => {
+    const confirmMessage = shouldBan
+      ? `Ban ${username}? They will be kicked immediately.`
+      : `Unban ${username}? They can log in again.`;
 
-      await CompetitionService.setPlayerBanned(userId, true);
-      addToast('🔨 Player banned successfully', 'success');
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      const newStatus = await CompetitionService.setPlayerBanned(userId, shouldBan);
+      updateUserInState(userId, { is_banned: newStatus });
       fetchDashboardData();
+      addToast(shouldBan ? '🔨 Player banned successfully' : '✅ Player unbanned', 'success');
     } catch (error) {
-      addToast('Failed to ban player', 'error');
+      addToast(shouldBan ? 'Failed to ban player' : 'Failed to unban player', 'error');
     }
   };
 
@@ -404,21 +418,64 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
               {/* Stats Grid - Godly Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[
-                  { label: 'Total Users', value: stats.totalUsers, icon: '👥', color: 'cyan' },
-                  { label: 'Active Today', value: stats.activeToday, icon: '🔥', color: 'orange' },
-                  { label: 'Total XP', value: stats.totalXP.toLocaleString(), icon: '⚡', color: 'blue' },
-                  { label: 'Total Coins', value: stats.totalCoins.toLocaleString(), icon: '🪙', color: 'yellow' },
-                  { label: 'Total Clans', value: stats.totalClans, icon: '🛡️', color: 'purple' },
-                  { label: 'God Mode', value: 'ACTIVE', icon: '👑', color: 'pink' }
+                  {
+                    label: 'Total Users',
+                    value: stats.totalUsers,
+                    icon: '👥',
+                    containerClass: 'bg-gradient-to-br from-cyan-600/20 to-cyan-900/20 border-2 border-cyan-400',
+                    valueClass: 'text-cyan-300'
+                  },
+                  {
+                    label: 'Active Today',
+                    value: stats.activeToday,
+                    icon: '🔥',
+                    containerClass: 'bg-gradient-to-br from-orange-600/20 to-orange-900/20 border-2 border-orange-400',
+                    valueClass: 'text-orange-300'
+                  },
+                  {
+                    label: 'Total XP',
+                    value: stats.totalXP.toLocaleString(),
+                    icon: '⚡',
+                    containerClass: 'bg-gradient-to-br from-blue-600/20 to-blue-900/20 border-2 border-blue-400',
+                    valueClass: 'text-blue-300'
+                  },
+                  {
+                    label: 'Total Coins',
+                    value: stats.totalCoins.toLocaleString(),
+                    icon: '🪙',
+                    containerClass: 'bg-gradient-to-br from-yellow-600/20 to-yellow-900/20 border-2 border-yellow-400',
+                    valueClass: 'text-yellow-300'
+                  },
+                  {
+                    label: 'Total Gemstones',
+                    value: stats.totalGemstones.toLocaleString(),
+                    icon: '💎',
+                    containerClass: 'bg-gradient-to-br from-emerald-600/20 to-emerald-900/20 border-2 border-emerald-400',
+                    valueClass: 'text-emerald-300'
+                  },
+                  {
+                    label: 'Total Clans',
+                    value: stats.totalClans,
+                    icon: '🛡️',
+                    containerClass: 'bg-gradient-to-br from-purple-600/20 to-purple-900/20 border-2 border-purple-400',
+                    valueClass: 'text-purple-300'
+                  },
+                  {
+                    label: 'God Mode',
+                    value: 'ACTIVE',
+                    icon: '👑',
+                    containerClass: 'bg-gradient-to-br from-pink-600/20 to-pink-900/20 border-2 border-pink-400',
+                    valueClass: 'text-pink-300'
+                  }
                 ].map((stat, idx) => (
                   <div
                     key={idx}
-                    className={`relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-${stat.color}-600/20 to-${stat.color}-900/20 border-2 border-${stat.color}-400 hover:shadow-[0_0_40px_rgba(255,215,0,0.4)] transition-all duration-300 hover:scale-105`}
+                    className={`relative overflow-hidden rounded-2xl p-6 ${stat.containerClass} hover:shadow-[0_0_40px_rgba(255,215,0,0.4)] transition-all duration-300 hover:scale-105`}
                   >
                     <div className="absolute top-0 right-0 text-9xl opacity-10">{stat.icon}</div>
                     <div className="relative">
                       <p className="text-sm text-gray-300 mb-2">{stat.label}</p>
-                      <p className={`text-4xl font-bold text-${stat.color}-300 font-mono`}>{stat.value}</p>
+                      <p className={`text-4xl font-bold font-mono ${stat.valueClass}`}>{stat.value}</p>
                     </div>
                   </div>
                 ))}
@@ -525,6 +582,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
               
               <div className="max-h-[600px] overflow-y-auto space-y-3">
                 {filteredUsers.map((user) => {
+                  const isBanned = Boolean(user.is_banned);
                   const userGrade: Grade | null = (() => {
                     if (typeof user.grade === 'number') {
                       return user.grade as Grade;
@@ -543,7 +601,11 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                   return (
                     <div
                       key={user.id}
-                      className="bg-black/40 p-4 rounded-lg border border-gray-700 hover:border-purple-400 transition-all"
+                      className={`p-4 rounded-lg border transition-all ${
+                        isBanned
+                          ? 'bg-red-950/40 border-red-500/70 hover:border-red-400'
+                          : 'bg-black/40 border-gray-700 hover:border-purple-400'
+                      }`}
                     >
                       <div className="flex items-start justify-between flex-wrap gap-4">
                         {/* User Info */}
@@ -556,6 +618,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                               <span className="text-xs bg-cyan-600/30 text-cyan-300 px-2 py-1 rounded">Lvl {user.level}</span>
                               <span className="text-xs bg-purple-600/30 text-purple-300 px-2 py-1 rounded">{user.batch || 'No Batch'}</span>
                               <span className="text-xs bg-yellow-600/30 text-yellow-300 px-2 py-1 rounded">{user.role || 'student'}</span>
+                              {isBanned && (
+                                <span className="text-xs bg-red-700/60 text-red-200 px-2 py-1 rounded">BANNED</span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -567,6 +632,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                           </div>
                           <div className="bg-yellow-600/20 px-3 py-2 rounded border border-yellow-400/50">
                             <p className="text-yellow-300 font-mono">{user.coins.toLocaleString()} 🪙</p>
+                          </div>
+                          <div className="bg-emerald-600/20 px-3 py-2 rounded border border-emerald-400/50">
+                            <p className="text-emerald-300 font-mono">{Number(user.gemstones ?? 0).toLocaleString()} 💎</p>
                           </div>
                           <div className="bg-green-600/20 px-3 py-2 rounded border border-green-400/50">
                             <p className="text-green-300 font-mono">{user.ap_now}/{user.ap_max} AP</p>
@@ -639,10 +707,14 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                           ♻️ Reset Progress
                         </button>
                         <button
-                          onClick={() => banUser(user.id)}
-                          className="bg-red-600/30 hover:bg-red-600/50 border border-red-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(239,68,68,0.5)]"
+                          onClick={() => setUserBanState(user.id, user.username, !isBanned)}
+                          className={`${
+                            isBanned
+                              ? 'bg-green-600/30 hover:bg-green-600/50 border border-green-400 hover:shadow-[0_0_15px_rgba(34,197,94,0.5)]'
+                              : 'bg-red-600/30 hover:bg-red-600/50 border border-red-400 hover:shadow-[0_0_15px_rgba(239,68,68,0.5)]'
+                          } text-white text-sm px-3 py-2 rounded transition-all`}
                         >
-                          🔨 Ban
+                          {isBanned ? '♻️ Unban' : '🔨 Ban'}
                         </button>
                       </div>
                     </div>

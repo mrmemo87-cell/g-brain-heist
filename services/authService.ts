@@ -1,6 +1,7 @@
 import { supabase } from './supabaseClient';
 import { createTeacherProfile } from './rpcGateway';
 import { getAuthRedirectUrl } from './env';
+import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage';
 import type { Batch, Grade } from '../types';
 
 export const login = async (email: string, password: string): Promise<{ success: boolean }> => {
@@ -17,6 +18,33 @@ export const login = async (email: string, password: string): Promise<{ success:
     }
     
     if (data.user) {
+        try {
+            const { data: profile, error: profileError } = await supabase
+                .from('users')
+                .select('is_banned')
+                .eq('id', data.user.id)
+                .single();
+
+            if (profileError && profileError.code !== 'PGRST116') {
+                console.error('Profile lookup error during login:', profileError.message);
+                throw new Error('Unable to load user profile. Please try again later.');
+            }
+
+            if (isBannedFlag(profile?.is_banned)) {
+                await supabase.auth.signOut();
+                storeBanMessage(BAN_MESSAGE);
+                throw new Error(BAN_MESSAGE);
+            }
+        } catch (lookupError) {
+            if (lookupError instanceof Error && lookupError.message === BAN_MESSAGE) {
+                throw lookupError;
+            }
+            console.error('Login post-check failed:', lookupError);
+            throw lookupError instanceof Error
+                ? lookupError
+                : new Error('Login failed due to an unexpected error.');
+        }
+
         console.log('Login successful:', data.user.email);
         return { success: true };
     }

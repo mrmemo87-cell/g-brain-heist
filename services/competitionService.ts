@@ -291,8 +291,8 @@ export const updatePlayerAcademics = async (
   }
 };
 
-export const setPlayerBanned = async (userId: string, isBanned: boolean): Promise<void> => {
-  const { error } = await supabase.rpc('rpc_admin_ban_user', {
+export const setPlayerBanned = async (userId: string, isBanned: boolean): Promise<boolean> => {
+  const { data, error } = await supabase.rpc('rpc_admin_ban_user', {
     p_user_id: userId,
     p_is_banned: isBanned,
   });
@@ -300,6 +300,16 @@ export const setPlayerBanned = async (userId: string, isBanned: boolean): Promis
   if (error) {
     throw new Error(error.message || 'Failed to update ban status');
   }
+
+  if (Array.isArray(data) && data.length > 0) {
+    return Boolean(data[0]?.is_banned);
+  }
+
+  if (data && typeof data === 'object' && 'is_banned' in data) {
+    return Boolean((data as any).is_banned);
+  }
+
+  return isBanned;
 };
 
 export const searchPlayers = async (query: string, limit = 20) => {
@@ -310,7 +320,7 @@ export const searchPlayers = async (query: string, limit = 20) => {
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, username, grade, batch, xp, coins, streak, updated_at, is_banned')
+    .select('id, username, grade, batch, xp, coins, streak, gemstones, updated_at, is_banned')
     .ilike('username', `%${trimmed}%`)
     .limit(limit);
 
@@ -386,7 +396,7 @@ export const fetchAdminOverviewStats = async (): Promise<AdminOverviewStats> => 
   const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
   const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
 
-  const [playersTodayRes, attemptsRes, summaries, errorLogRes] = await Promise.all([
+  const [playersTodayRes, attemptsRes, summaries, errorLogRes, gemRes] = await Promise.all([
     supabase
       .from('attempts')
       .select('user_id', { head: true, count: 'exact' })
@@ -402,6 +412,11 @@ export const fetchAdminOverviewStats = async (): Promise<AdminOverviewStats> => 
       .eq('log_level', 'error')
       .order('created_at', { ascending: false })
       .limit(1)
+      .maybeSingle(),
+    // aggregate gemstones across users (non-null numbers expected)
+    supabase
+      .from('users')
+      .select('sum(gemstones)')
       .maybeSingle(),
   ]);
 
@@ -424,6 +439,7 @@ export const fetchAdminOverviewStats = async (): Promise<AdminOverviewStats> => 
     top_batch_total_xp: topBatch.total,
     last_error_message: errorLogData?.message ?? null,
     last_error_at: errorLogData?.created_at ?? null,
+    total_gemstones: gemRes && (gemRes as any).data ? Number(((gemRes as any).data as any)[Object.keys((gemRes as any).data)[0]] ?? 0) : 0,
   };
 };
 

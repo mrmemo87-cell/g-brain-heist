@@ -474,6 +474,33 @@ BEGIN
     RAISE EXCEPTION 'user_not_found';
   END IF;
 
+  IF COALESCE(p_is_banned, FALSE) THEN
+    BEGIN
+      PERFORM auth.disable_user(p_user_id);
+    EXCEPTION WHEN OTHERS THEN
+      NULL;
+    END;
+
+    BEGIN
+      PERFORM auth.invalidate_refresh_tokens(p_user_id);
+    EXCEPTION WHEN OTHERS THEN
+      NULL;
+    END;
+
+    BEGIN
+      DELETE FROM auth.sessions WHERE user_id = p_user_id;
+      DELETE FROM auth.refresh_tokens WHERE user_id = p_user_id;
+    EXCEPTION WHEN OTHERS THEN
+      NULL;
+    END;
+  ELSE
+    BEGIN
+      PERFORM auth.enable_user(p_user_id);
+    EXCEPTION WHEN OTHERS THEN
+      NULL;
+    END;
+  END IF;
+
   BEGIN
     INSERT INTO rpc_event_log(function_name, log_level, message, user_id, context)
     VALUES ('rpc_admin_ban_user', 'info', 'ban_state_changed', v_actor, JSON_BUILD_OBJECT('target', p_user_id, 'is_banned', p_is_banned));
