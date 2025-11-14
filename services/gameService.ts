@@ -2691,9 +2691,17 @@ export const upload_avatar_file = async (file: File): Promise<string> => {
 
     if (error) {
         console.error('Avatar upload failed:', error);
-        const message = error.message?.toLowerCase().includes('payload too large')
-            ? 'Avatar is still too large after optimization. Please try a smaller image.'
-            : error.message || 'Failed to upload avatar. Please try again.';
+        const rawMessage = (error.message || '').toLowerCase();
+        let message: string;
+
+        if (rawMessage.includes('payload too large')) {
+            message = 'Avatar is still too large after optimization. Please try a smaller image.';
+        } else if (rawMessage.includes('bucket') && rawMessage.includes('not') && rawMessage.includes('found')) {
+            message = 'Avatar storage bucket is missing. An administrator needs to run CREATE_AVATARS_BUCKET.sql in Supabase.';
+        } else {
+            message = error.message || 'Failed to upload avatar. Please try again.';
+        }
+
         throw new Error(message);
     }
 

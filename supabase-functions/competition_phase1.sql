@@ -1,7 +1,6 @@
 -- ============================================
 -- Silk Road Competition Phase 1 RPCs
 -- ============================================
-
 set check_function_bodies = off;
 
 -- Ensure announcements tables are aligned with expected columns
@@ -550,7 +549,7 @@ begin
     exception when others then
       null;
     end;
-  elsex
+  else
     begin
       perform auth.enable_user(p_user_id);
     exception when others then
@@ -565,6 +564,59 @@ begin
 exception when others then
   insert into rpc_event_log(function_name, log_level, message, user_id, context)
   values ('rpc_admin_ban_user', 'error', SQLERRM, v_actor, json_build_object('target', p_user_id));
+  raise;
+end;
+$$;
+
+-- ============================================
+-- Admin: Delete Player
+create or replace function rpc_admin_delete_user(p_user_id uuid)
+returns table (
+  user_id uuid
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_deleted uuid;
+begin
+  if v_actor is null or not is_current_user_admin() then
+    raise exception 'forbidden';
+  end if;
+
+  if p_user_id = v_actor then
+    raise exception 'cannot_delete_self';
+  end if;
+
+  begin
+    perform auth.delete_user(p_user_id);
+  exception when undefined_function then
+    begin
+      perform auth.admin_delete_user(p_user_id);
+    exception when others then
+      null;
+    end;
+  exception when others then
+    null;
+  end;
+
+  delete from users
+  where id = p_user_id
+  returning id into v_deleted;
+
+  if not found then
+    raise exception 'user_not_found';
+  end if;
+
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
+  values ('rpc_admin_delete_user', 'info', 'user_deleted', v_actor, json_build_object('target', p_user_id));
+
+  return query select v_deleted;
+exception when others then
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
+  values ('rpc_admin_delete_user', 'error', SQLERRM, v_actor, json_build_object('target', p_user_id));
   raise;
 end;
 $$;
@@ -616,7 +668,6 @@ begin
       updated_at = now()
   where id = p_user_id
   returning * into v_row;
-
   if not found then
     raise exception 'user_not_found';
   end if;

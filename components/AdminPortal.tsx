@@ -314,6 +314,22 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     }
   };
 
+  const deleteUser = async (userId: string, username: string) => {
+    if (!window.confirm(`Delete ${username}? This will remove their account permanently.`)) {
+      return;
+    }
+
+    try {
+      await CompetitionService.deletePlayer(userId);
+      setAllUsers(prev => prev.filter(u => u.id !== userId));
+      setFilteredUsers(prev => prev.filter(u => u.id !== userId));
+      fetchDashboardData();
+      addToast(`🗑️ Deleted ${username}`, 'success');
+    } catch (error) {
+      addToast('Failed to delete user', 'error');
+    }
+  };
+
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Epic Animated Background */}
@@ -715,6 +731,12 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                           } text-white text-sm px-3 py-2 rounded transition-all`}
                         >
                           {isBanned ? '♻️ Unban' : '🔨 Ban'}
+                        </button>
+                        <button
+                          onClick={() => deleteUser(user.id, user.username)}
+                          className="bg-red-900/40 hover:bg-red-900/60 border border-red-600 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_18px_rgba(220,38,38,0.5)]"
+                        >
+                          🗑️ Delete User
                         </button>
                       </div>
                     </div>

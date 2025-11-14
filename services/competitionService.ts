@@ -312,6 +312,16 @@ export const setPlayerBanned = async (userId: string, isBanned: boolean): Promis
   return isBanned;
 };
 
+export const deletePlayer = async (userId: string): Promise<void> => {
+  const { error } = await supabase.rpc('rpc_admin_delete_user', {
+    p_user_id: userId,
+  });
+
+  if (error) {
+    throw new Error(error.message || 'Failed to delete player');
+  }
+};
+
 export const searchPlayers = async (query: string, limit = 20) => {
   const trimmed = query.trim();
   if (!trimmed) {
