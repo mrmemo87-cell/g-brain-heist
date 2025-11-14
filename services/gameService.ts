@@ -1383,6 +1383,28 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
 
 export const raid_attack = async (defender_id: string, use_cracker: boolean, target: RaidTarget): Promise<RaidAttackResult> => {
     const user = await getCurrentUser();
+    const AP_COST = 2; // AP cost per raid attack (must match database function)
+
+    // Check if attacking a bot target
+    const isBotTarget = target?.user_id?.startsWith('bot_') ?? defender_id.startsWith('bot_');
+    
+    // For bot raids, check and deduct AP before simulation
+    if (isBotTarget) {
+        const { data: currentProfile } = await supabase
+            .from('users')
+            .select('ap_now')
+            .eq('id', user.id)
+            .single();
+        
+        if (!currentProfile || currentProfile.ap_now < AP_COST) {
+            throw new Error('Not enough AP');
+        }
+        
+        // Deduct AP immediately for bot raids
+        await updateProfile(user.id, {
+            ap_now: currentProfile.ap_now - AP_COST
+        });
+    }
 
     const simulateBotRaid = (botId: string) => {
         const bots = refreshKyrgyzBotStates();
@@ -1461,7 +1483,6 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
         };
     };
 
-    const isBotTarget = target?.user_id?.startsWith('bot_') ?? defender_id.startsWith('bot_');
     let botSimulation: ReturnType<typeof simulateBotRaid> | null = null;
     let response: RaidAttackResult;
 
