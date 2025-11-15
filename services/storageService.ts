@@ -13,6 +13,8 @@ const STORAGE_KEYS = {
   PURCHASE_COUNTS: 'gbh_purchase_counts', // Daily purchase tracking
   GEMSTONE_LEDGER: 'gbh_gemstone_ledger', // Tracks rare gemstone earnings limits
   KYRGYZ_BOTS: 'gbh_kyrgyz_bots', // Persistent Kyrgyz bot state for simulated activity
+  TOPIC_STATS: 'gbh_topic_stats', // Aggregated per-topic performance
+  BRANCH_HISTORY: 'gbh_branch_history', // Branch-level mission history
 } as const;
 
 export const saveToStorage = <T>(key: string, data: T): void => {

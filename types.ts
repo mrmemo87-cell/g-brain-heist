@@ -1,6 +1,8 @@
 export type Grade = 8 | 9;
 export type Batch = '8A' | '8B' | '8C' | '9A' | '9B' | '9C' | 'N/A';
 export type UserRole = 'student' | 'teacher' | 'admin';
+export type SoloDifficulty = 'easy' | 'medium' | 'hard';
+export type TopicStatus = 'CRUSHED' | 'AVERAGE' | 'STRUGGLED';
 
 export interface Profile {
   id: string;
@@ -95,6 +97,8 @@ export interface Question {
   times_answered?: number;
   times_correct?: number;
   subject?: string;
+  difficulty?: SoloDifficulty;
+  time_limit?: number; // seconds
 }
 
 export interface PhaseQuestion {
@@ -163,6 +167,7 @@ export interface AnswerResponse {
     gemstones?: number;
   };
   explanation?: string;
+  score?: number;
 }
 
 export interface RaidTarget {
@@ -362,6 +367,53 @@ export interface TournamentSchedulePayload {
   location: string | null;
   streamUrl: string | null;
   metadata?: Record<string, any>;
+}
+
+// ============================================================
+// Brains Heist Progress & Analytics
+// ============================================================
+
+export interface SoloQuestionPerformance {
+  topicId: string;
+  branchId: string;
+  difficulty: SoloDifficulty;
+  timeLimitSeconds: number;
+  answerTimeSeconds: number;
+  wasCorrect: boolean;
+  timestamp: string;
+}
+
+export interface SoloMissionSummary {
+  topicId: string;
+  branchId: string;
+  difficulty: SoloDifficulty;
+  questionCount: number;
+  correctCount: number;
+  missionScore: number;
+  accuracy: number; // 0..1
+  avgTimeRatio: number;
+  recordedAt: string;
+  retryAttempts?: number;
+}
+
+export interface TopicSummary {
+  topicId: string;
+  branchId: string;
+  missionsCompleted: number;
+  accuracy: number;
+  avgTimeRatio: number;
+  retryCount: number;
+  status: TopicStatus;
+  canUnlockNextTopic: boolean;
+  updatedAt: string;
+}
+
+export interface BranchProgressSummary {
+  branchId: string;
+  topics: TopicSummary[];
+  crushedTopics: number;
+  canUnlockBossNode: boolean;
+  recentMissionCount: number;
 }
 
 // ============================================================

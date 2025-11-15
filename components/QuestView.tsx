@@ -1,10 +1,29 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { SubjectData, Question, AnswerResponse, TeacherQuestion, QuestionAttemptResult } from '../types';
+import {
+  SubjectData,
+  Question,
+  AnswerResponse,
+  TeacherQuestion,
+  QuestionAttemptResult,
+  SoloDifficulty,
+  SoloMissionSummary,
+  SoloQuestionPerformance,
+  TopicSummary,
+} from '../types';
 import * as GameService from '../services/gameService';
 import { audioService } from '../services/audioService';
 import { BrainIcon, CoinIcon, GemIcon, XPIcon } from './icons';
 import BackButton from './BackButton';
 import { createPortal } from 'react-dom';
+import {
+  calculateSoloQuestionScore,
+  SoloQuestionScoreBreakdown,
+  calculateMissionScore,
+  buildMissionSummary,
+  normalizeDifficulty,
+} from '../src/lib/brains_heist/scoring';
+import { getMilestoneReward } from '../src/lib/brains_heist/rewards';
+import { recordSoloQuestion, recordMissionSummary } from '../services/adaptiveService';
 
 type QuestStage = 'loading' | 'mode_selection' | 'subject_selection' | 'in_progress' | 'completed';
 type QuestMode = 'practice' | 'teacher';
@@ -87,10 +106,136 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [answerResponse, setAnswerResponse] = useState<AnswerResponse | null>(null);
   const [score, setScore] = useState({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
+  const [questionScores, setQuestionScores] = useState<SoloQuestionScoreBreakdown[]>([]);
+  const [questionPerformances, setQuestionPerformances] = useState<SoloQuestionPerformance[]>([]);
+  const [questionStartTime, setQuestionStartTime] = useState<number | null>(null);
+  const [soloStreak, setSoloStreak] = useState(0);
+  const [missionSummary, setMissionSummary] = useState<SoloMissionSummary | null>(null);
+  const [topicSummary, setTopicSummary] = useState<TopicSummary | null>(null);
   const [particles, setParticles] = useState<Omit<RewardParticleProps, 'onComplete'>[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const answerFeedbackRef = useRef<HTMLDivElement>(null);
+
+  const resolveDifficulty = (questionLike: Question | TeacherQuestion): SoloDifficulty => {
+    const difficultyValue = (questionLike as TeacherQuestion).difficulty ?? (questionLike as Question).difficulty;
+    if (typeof difficultyValue === 'number') {
+      if (difficultyValue >= 3) return 'hard';
+      if (difficultyValue >= 2) return 'medium';
+      return 'easy';
+    }
+    return normalizeDifficulty(difficultyValue ?? null);
+  };
+
+  const resolveTimeLimit = (questionLike: Question | TeacherQuestion): number => {
+    const raw =
+      (questionLike as TeacherQuestion).time_limit ??
+      (questionLike as any)?.time_limit_seconds ??
+      (questionLike as any)?.time_limit ??
+      0;
+    const parsed = typeof raw === 'string' ? parseInt(raw, 10) : Number(raw);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+    return 40;
+  };
+
+  const computeMissionDifficulty = (performances: SoloQuestionPerformance[]): SoloDifficulty => {
+    const weights: Record<SoloDifficulty, number> = { easy: 1, medium: 2, hard: 3 };
+    const maxWeight = performances.reduce((current, item) => {
+      return Math.max(current, weights[item.difficulty]);
+    }, 1);
+    if (maxWeight >= 3) return 'hard';
+    if (maxWeight === 2) return 'medium';
+    return 'easy';
+  };
+
+  const computeAnswerTime = (timeLimitSeconds: number): number => {
+    if (!questionStartTime) {
+      return timeLimitSeconds;
+    }
+    const elapsed = (Date.now() - questionStartTime) / 1000;
+    if (!Number.isFinite(elapsed) || elapsed < 0) {
+      return timeLimitSeconds;
+    }
+    return Math.max(0, elapsed);
+  };
+
+  const finalizeMission = (
+    scores: SoloQuestionScoreBreakdown[],
+    performances: SoloQuestionPerformance[],
+    branchId: string,
+    topicId: string
+  ) => {
+    if (!scores.length || !performances.length || missionSummary) {
+      return;
+    }
+
+    const missionScore = calculateMissionScore(scores);
+    const missionDifficulty = computeMissionDifficulty(performances);
+    const summary = buildMissionSummary(topicId, branchId, missionDifficulty, performances, missionScore);
+
+    setMissionSummary(summary);
+    const updatedTopic = recordMissionSummary(summary);
+    setTopicSummary(updatedTopic);
+
+    const reward = getMilestoneReward('missionCompleted');
+    if (reward.xp || reward.coins) {
+      onGrantReward({ xp: reward.xp, coins: reward.coins });
+    }
+  };
+
+  const applyQuestionTelemetry = (
+    questionLike: Question | TeacherQuestion,
+    wasCorrect: boolean,
+    response: AnswerResponse
+  ) => {
+    const difficulty = resolveDifficulty(questionLike);
+    const timeLimitSeconds = resolveTimeLimit(questionLike);
+    const answerTimeSeconds = computeAnswerTime(timeLimitSeconds);
+    const topicId = selectedSubject?.id || questionLike.subject || 'unknown_topic';
+    const branchId = selectedSubject?.id || questionLike.subject || 'unknown_branch';
+    const streakCount = wasCorrect ? soloStreak + 1 : 0;
+
+    const scoreBreakdown = calculateSoloQuestionScore({
+      difficulty,
+      answerTimeSeconds,
+      timeLimitSeconds,
+      streakCount,
+      wasCorrect,
+    });
+
+    response.score = scoreBreakdown.total;
+
+    const performance: SoloQuestionPerformance = {
+      topicId,
+      branchId,
+      difficulty,
+      timeLimitSeconds,
+      answerTimeSeconds,
+      wasCorrect,
+      timestamp: new Date().toISOString(),
+    };
+
+    const updatedScores = [...questionScores, scoreBreakdown];
+    const updatedPerformances = [...questionPerformances, performance];
+
+    setQuestionScores(updatedScores);
+    setQuestionPerformances(updatedPerformances);
+    setSoloStreak(streakCount);
+
+    if (selectedSubject?.id) {
+      recordSoloQuestion(performance);
+    }
+
+    return {
+      updatedScores,
+      updatedPerformances,
+      branchId,
+      topicId,
+      scoreBreakdown,
+    };
+  };
 
   // Don't auto-load anymore - wait for mode selection
   const handleModeSelect = (selectedMode: QuestMode) => {
@@ -127,6 +272,12 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
   const handleSubjectSelect = (subject: SubjectData) => {
     setSelectedSubject(subject);
     setStage('loading');
+    setQuestionScores([]);
+    setQuestionPerformances([]);
+    setSoloStreak(0);
+    setMissionSummary(null);
+    setTopicSummary(null);
+    setQuestionStartTime(null);
     
     if (mode === 'practice') {
       // Load regular practice questions
@@ -137,6 +288,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
         setSelectedOption(null);
         setAnswerResponse(null);
         setStage('in_progress');
+        setQuestionStartTime(Date.now());
       });
     } else {
       // Load teacher questions for this subject
@@ -155,6 +307,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
         setSelectedOption(null);
         setAnswerResponse(null);
         setStage('in_progress');
+        setQuestionStartTime(Date.now());
       }).catch(err => {
         console.error('Error loading teacher questions:', err);
         alert('Failed to load teacher questions');
@@ -163,102 +316,139 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
     }
   };
 
-  const handleAnswerSubmit = async (option: string) => {
-  if (answerResponse || isSubmitting) return;
+  useEffect(() => {
+    if (stage !== 'in_progress') return;
+    const activeQuestion = mode === 'practice' ? questions[currentQuestionIndex] : teacherQuestions[currentQuestionIndex];
+    if (activeQuestion) {
+      setQuestionStartTime(Date.now());
+    }
+  }, [stage, currentQuestionIndex, mode, questions, teacherQuestions]);
 
-  setSelectedOption(option);
-  setIsSubmitting(true);
+  const handleAnswerSubmit = async (option: string) => {
+    if (answerResponse || isSubmitting) return;
+
+    setSelectedOption(option);
+    setIsSubmitting(true);
+
+    const spawnParticles = (response: AnswerResponse) => {
+      if (!response.correct || !answerFeedbackRef.current) return;
+      audioService.play('collect');
+      const startRect = answerFeedbackRef.current.getBoundingClientRect();
+      const newParticles: Omit<RewardParticleProps, 'onComplete'>[] = [];
+      if (response.deltas.xp > 0) {
+        for (let i = 0; i < 5; i += 1) {
+          newParticles.push({ id: `xp_${Date.now()}_${i}`, type: 'xp', startRect });
+        }
+      }
+      if (response.deltas.coins > 0) {
+        for (let i = 0; i < 5; i += 1) {
+          newParticles.push({ id: `coin_${Date.now()}_${i}`, type: 'coin', startRect });
+        }
+      }
+      const gemstoneCount = response.deltas.gemstones || 0;
+      if (gemstoneCount > 0) {
+        const particleCount = Math.min(3, gemstoneCount);
+        for (let i = 0; i < particleCount; i += 1) {
+          newParticles.push({ id: `gem_${Date.now()}_${i}`, type: 'gem', startRect });
+        }
+      }
+      setParticles((current) => [...current, ...newParticles]);
+    };
+
+    const afterAnswerCommon = (
+      response: AnswerResponse,
+      isLastQuestion: boolean,
+      updatedScores: SoloQuestionScoreBreakdown[],
+      updatedPerformances: SoloQuestionPerformance[],
+      branchId: string,
+      topicId: string,
+      advanceFn: () => void
+    ) => {
+      setAnswerResponse(response);
+
+      if (response.correct) {
+        audioService.play('correct');
+      } else {
+        audioService.play('wrong');
+      }
+
+      onGrantReward(response.deltas);
+      spawnParticles(response);
+
+      setScore((prev) => ({
+        correct: prev.correct + (response.correct ? 1 : 0),
+        xp: prev.xp + response.deltas.xp,
+        coins: prev.coins + response.deltas.coins,
+        gemstones: prev.gemstones + (response.deltas.gemstones || 0),
+      }));
+
+      setTimeout(() => {
+        if (answerFeedbackRef.current) {
+          answerFeedbackRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 80);
+
+      if (isLastQuestion) {
+        setTimeout(() => {
+          finalizeMission(updatedScores, updatedPerformances, branchId, topicId);
+          audioService.play('tada');
+          setStage('completed');
+        }, 1500);
+      } else {
+        setTimeout(() => {
+          advanceFn();
+          setSelectedOption(null);
+          setAnswerResponse(null);
+        }, 1500);
+      }
+    };
 
     if (mode === 'practice') {
       const currentQuestion = questions[currentQuestionIndex];
       if (!currentQuestion) {
         console.error('No question available for current index');
+        setIsSubmitting(false);
         return;
       }
-      // Practice mode: Wait for server validation (no more optimistic/fake checking)
+
       try {
         const response = await GameService.mcq_answer_submit(currentQuestion, option);
-        
-        setAnswerResponse(response);
+        const telemetry = applyQuestionTelemetry(currentQuestion, response.correct, response);
 
-        // Play sound effect
-        if (response.correct) {
-          audioService.play('correct');
-        } else {
-          audioService.play('wrong');
+        setQuestionStartTime(null);
+
+        if (telemetry) {
+          afterAnswerCommon(
+            response,
+            currentQuestionIndex >= questions.length - 1,
+            telemetry.updatedScores,
+            telemetry.updatedPerformances,
+            telemetry.branchId,
+            telemetry.topicId,
+            () => setCurrentQuestionIndex((prev) => prev + 1)
+          );
         }
-
-        // Grant reward
-        onGrantReward(response.deltas);
-
-        // Trigger particles using the feedback anchor (if correct)
-        if (response.correct && answerFeedbackRef.current) {
-          audioService.play('collect');
-          const startRect = answerFeedbackRef.current.getBoundingClientRect();
-          const newParticles: Omit<RewardParticleProps, 'onComplete'>[] = [];
-          if (response.deltas.xp > 0) {
-            for (let i = 0; i < 5; i++) {
-              newParticles.push({ id: `xp_${Date.now()}_${i}`, type: 'xp', startRect });
-            }
-          }
-          if (response.deltas.coins > 0) {
-            for (let i = 0; i < 5; i++) {
-              newParticles.push({ id: `coin_${Date.now()}_${i}`, type: 'coin', startRect });
-            }
-          }
-          const gemstoneCount = response.deltas.gemstones || 0;
-          if (gemstoneCount > 0) {
-            const particleCount = Math.min(3, gemstoneCount);
-            for (let i = 0; i < particleCount; i++) {
-              newParticles.push({ id: `gem_${Date.now()}_${i}`, type: 'gem', startRect });
-            }
-          }
-          setParticles(current => [...current, ...newParticles]);
-        }
-
-        // Update score
-        setScore(prev => ({
-          correct: prev.correct + (response.correct ? 1 : 0),
-          xp: prev.xp + response.deltas.xp,
-          coins: prev.coins + response.deltas.coins,
-          gemstones: prev.gemstones + (response.deltas.gemstones || 0),
-        }));
-
-        // Scroll feedback into view
-        setTimeout(() => {
-          if (answerFeedbackRef.current) {
-            answerFeedbackRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }, 80);
-
-        // Auto-advance
-        setTimeout(() => {
-          if (currentQuestionIndex < questions.length - 1) {
-            setCurrentQuestionIndex(prev => prev + 1);
-            setSelectedOption(null);
-            setAnswerResponse(null);
-          } else {
-            audioService.play('tada');
-            setStage('completed');
-          }
-        }, 1500);
-      } catch (err) {
-        console.error('Error submitting answer:', err);
+      } catch (error) {
+        console.error('Error submitting answer:', error);
         alert('Failed to submit answer. Please try again.');
         setSelectedOption(null);
       } finally {
         setIsSubmitting(false);
       }
     } else {
-      // Teacher mode: Submit to server and wait for grading
       const currentQuestion = teacherQuestions[currentQuestionIndex];
-      
+      if (!currentQuestion) {
+        console.error('No teacher question available for current index');
+        setIsSubmitting(false);
+        return;
+      }
+
       try {
         const result = await GameService.submit_question_answer(
           currentQuestion.id,
           option,
-          undefined, // time_taken
-          undefined  // quest_session_id
+          undefined,
+          undefined
         );
 
         const response: AnswerResponse = {
@@ -268,76 +458,27 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
             coins: result.is_correct ? Math.floor(result.points_earned / 2) : 0,
             gemstones: 0,
           },
-          explanation: result.is_correct 
-            ? currentQuestion.explanation || 'Correct!' 
-            : `Incorrect. ${currentQuestion.explanation || 'The correct answer was ' + currentQuestion.correct_answer}`
+          explanation: result.is_correct
+            ? currentQuestion.explanation || 'Correct!'
+            : `Incorrect. ${currentQuestion.explanation || 'The correct answer was ' + currentQuestion.correct_answer}`,
         };
 
-        setAnswerResponse(response);
+        const telemetry = applyQuestionTelemetry(currentQuestion, response.correct, response);
+        setQuestionStartTime(null);
 
-        // Play sound effect
-        if (response.correct) {
-          audioService.play('correct');
-        } else {
-          audioService.play('wrong');
+        if (telemetry) {
+          afterAnswerCommon(
+            response,
+            currentQuestionIndex >= teacherQuestions.length - 1,
+            telemetry.updatedScores,
+            telemetry.updatedPerformances,
+            telemetry.branchId,
+            telemetry.topicId,
+            () => setCurrentQuestionIndex((prev) => prev + 1)
+          );
         }
-
-        // Grant reward
-        onGrantReward(response.deltas);
-
-        // Trigger particles
-        if (response.correct && answerFeedbackRef.current) {
-          audioService.play('collect');
-          const startRect = answerFeedbackRef.current.getBoundingClientRect();
-          const newParticles: Omit<RewardParticleProps, 'onComplete'>[] = [];
-          if (response.deltas.xp > 0) {
-            for (let i = 0; i < 5; i++) {
-              newParticles.push({ id: `xp_${Date.now()}_${i}`, type: 'xp', startRect });
-            }
-          }
-          if (response.deltas.coins > 0) {
-            for (let i = 0; i < 5; i++) {
-              newParticles.push({ id: `coin_${Date.now()}_${i}`, type: 'coin', startRect });
-            }
-          }
-          const gemstoneCount = response.deltas.gemstones || 0;
-          if (gemstoneCount > 0) {
-            const particleCount = Math.min(3, gemstoneCount);
-            for (let i = 0; i < particleCount; i++) {
-              newParticles.push({ id: `gem_${Date.now()}_${i}`, type: 'gem', startRect });
-            }
-          }
-          setParticles(current => [...current, ...newParticles]);
-        }
-
-        // Update score
-        setScore(prev => ({
-          correct: prev.correct + (response.correct ? 1 : 0),
-          xp: prev.xp + response.deltas.xp,
-          coins: prev.coins + response.deltas.coins,
-          gemstones: prev.gemstones + (response.deltas.gemstones || 0),
-        }));
-
-        // Scroll feedback into view
-        setTimeout(() => {
-          if (answerFeedbackRef.current) {
-            answerFeedbackRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }, 80);
-
-        // Auto-advance
-        setTimeout(() => {
-          if (currentQuestionIndex < teacherQuestions.length - 1) {
-            setCurrentQuestionIndex(prev => prev + 1);
-            setSelectedOption(null);
-            setAnswerResponse(null);
-          } else {
-            audioService.play('tada');
-            setStage('completed');
-          }
-        }, 1500); // Slightly longer for teacher mode to read explanation
-      } catch (err) {
-        console.error('Error submitting teacher answer:', err);
+      } catch (error) {
+        console.error('Error submitting teacher answer:', error);
         alert('Failed to submit answer. Please try again.');
         setSelectedOption(null);
       } finally {
@@ -390,7 +531,9 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
     };
 
     const questionText = mode === 'practice' ? question!.body : teacherQuestion!.question_text;
-    const options: string[] = mode === 'practice' ? question!.options : teacherQuestion!.options;
+    const options: string[] = mode === 'practice'
+      ? question?.options ?? []
+      : teacherQuestion?.options ?? [];
     const correctAnswer = mode === 'practice'
       ? question!.correct_answer ?? ''
       : teacherQuestion!.correct_answer ?? '';
@@ -415,6 +558,24 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
               </span>
             </div>
           )}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="card-glass p-4 text-center">
+            <p className="text-xs uppercase tracking-widest text-gray-400">Mission Score</p>
+            <p className="font-heading text-2xl text-white mt-1">{Math.round(calculateMissionScore(questionScores))}</p>
+          </div>
+          <div className="card-glass p-4 text-center">
+            <p className="text-xs uppercase tracking-widest text-gray-400">Accuracy</p>
+            <p className="font-heading text-2xl text-white mt-1">
+              {questionPerformances.length
+                ? `${Math.round((questionPerformances.filter((item) => item.wasCorrect).length / questionPerformances.length) * 100)}%`
+                : '—'}
+            </p>
+          </div>
+          <div className="card-glass p-4 text-center">
+            <p className="text-xs uppercase tracking-widest text-gray-400">Streak</p>
+            <p className="font-heading text-2xl text-white mt-1">{soloStreak}</p>
+          </div>
         </div>
         <div className="card-glass p-6 mb-6">
             <p className="text-xl text-gray-200">{questionText}</p>
@@ -496,46 +657,117 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
 
   const renderCompleted = () => {
     const totalQuestions = mode === 'practice' ? questions.length : teacherQuestions.length;
-    
+    const missionTotal = missionSummary?.missionScore ?? Math.round(calculateMissionScore(questionScores));
+    const accuracyPercent = missionSummary
+      ? Math.round(missionSummary.accuracy * 100)
+      : questionPerformances.length
+        ? Math.round((questionPerformances.filter((item) => item.wasCorrect).length / questionPerformances.length) * 100)
+        : 0;
+    const fallbackTimeRatio = (() => {
+      if (!questionPerformances.length) {
+        return 0;
+      }
+      const totalTime = questionPerformances.reduce((sum, item) => sum + item.answerTimeSeconds, 0);
+      const totalLimit = questionPerformances.reduce((sum, item) => sum + item.timeLimitSeconds, 0);
+      if (totalLimit <= 0) {
+        return 0;
+      }
+      return totalTime / totalLimit;
+    })();
+    const timeRatio = missionSummary?.avgTimeRatio ?? fallbackTimeRatio;
+    const avgTimePercent = Math.round(Math.min(Math.max(timeRatio, 0), 2) * 100);
+    const statusLabelMap: Record<TopicSummary['status'], string> = {
+      CRUSHED: 'Crushed',
+      AVERAGE: 'Holding Steady',
+      STRUGGLED: 'Needs Work',
+    };
+    const topicStatusRaw = topicSummary?.status ?? 'AVERAGE';
+    const topicStatus = statusLabelMap[topicStatusRaw] ?? topicStatusRaw;
+    const unlockNote = topicSummary
+      ? topicSummary.canUnlockNextTopic
+        ? '✅ Next topic unlocked'
+        : 'Keep pushing to unlock the next topic'
+      : 'Run more missions to unlock new branches';
+
     return (
-    <div className="text-center max-w-lg mx-auto">
-        <h2 className="font-heading text-4xl mb-4 animate-fade-in-up" style={{color: 'var(--amber-warn)'}}>Quest Complete!</h2>
-        <div className="card-glass glow-warn p-8 animate-fade-in-up" style={{borderColor: 'rgba(255, 176, 32, 0.3)'}}>
-            <div className="text-6xl mb-4 animate-bounce">🎉</div>
-            <p className="text-lg mb-6">You answered <span className="font-bold text-white">{score.correct}</span> out of <span className="font-bold text-white">{totalQuestions}</span> questions correctly.</p>
-            <div className="text-2xl font-heading space-y-2 mb-6">
-                <p>XP Gained: <span style={{color: 'var(--ion-blue)'}}>{score.xp >= 0 ? `+${score.xp}` : score.xp}</span></p>
-                <p>Coins Earned: <span style={{color: 'var(--amber-warn)'}}>{score.coins >= 0 ? `+${score.coins}`: score.coins}</span></p>
-                <p>Gemstones Found: <span style={{color: 'var(--plasma-pink)'}}>{score.gemstones >= 0 ? `+${score.gemstones}` : score.gemstones}</span></p>
+      <div className="text-center max-w-2xl mx-auto">
+        <h2 className="font-heading text-4xl mb-4 animate-fade-in-up" style={{ color: 'var(--amber-warn)' }}>
+          Quest Complete!
+        </h2>
+        <div className="card-glass glow-warn p-8 animate-fade-in-up" style={{ borderColor: 'rgba(255, 176, 32, 0.3)' }}>
+          <div className="text-6xl mb-4 animate-bounce">🎉</div>
+          <p className="text-lg mb-6">
+            You answered <span className="font-bold text-white">{score.correct}</span> out of{' '}
+            <span className="font-bold text-white">{totalQuestions}</span> questions correctly.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="card-glass p-4 border border-cyan-500/30">
+              <p className="text-xs uppercase tracking-widest text-gray-400">Mission Score</p>
+              <p className="font-heading text-2xl text-white mt-1">{missionTotal}</p>
             </div>
-            
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-                <button 
-                    onClick={() => {
-                        setStage('subject_selection');
-                        setSelectedSubject(null);
-                        setQuestions([]);
-                        setTeacherQuestions([]);
-                        setCurrentQuestionIndex(0);
-                        setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
-                    }}
-                    className="px-8 py-4 rounded-lg font-bold text-lg gradient-cyan hover:scale-105 active:scale-95 transition-all shadow-lg animate-pulse-glow"
-                >
-                    🎯 Next Quest
-                </button>
-                <button 
-                    onClick={() => {
-                        onGrantReward({ xp: score.xp, coins: score.coins, gemstones: score.gemstones });
-                        onComplete();
-                    }}
-                    className="px-8 py-4 rounded-lg font-bold text-lg bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 hover:scale-105 active:scale-95 transition-all shadow-lg"
-                >
-                    ← Back to Dashboard
-                </button>
+            <div className="card-glass p-4 border border-cyan-500/30">
+              <p className="text-xs uppercase tracking-widest text-gray-400">Accuracy</p>
+              <p className="font-heading text-2xl text-white mt-1">{accuracyPercent}%</p>
             </div>
+            <div className="card-glass p-4 border border-cyan-500/30">
+              <p className="text-xs uppercase tracking-widest text-gray-400">Avg Time Used</p>
+              <p className="font-heading text-2xl text-white mt-1">{avgTimePercent}%</p>
+            </div>
+            <div className="card-glass p-4 border border-cyan-500/30">
+              <p className="text-xs uppercase tracking-widest text-gray-400">Current Classification</p>
+              <p className="font-heading text-2xl text-white mt-1">{topicStatus}</p>
+              <p className="text-xs text-gray-300 mt-2">{unlockNote}</p>
+              {topicSummary ? (
+                <p className="text-xs text-gray-400 mt-1">
+                  Missions cleared: {topicSummary.missionsCompleted} · Avg accuracy {(topicSummary.accuracy * 100).toFixed(0)}%
+                </p>
+              ) : (
+                <p className="text-xs text-gray-400 mt-1">First mission logged for this topic</p>
+              )}
+            </div>
+          </div>
+          <div className="text-2xl font-heading space-y-2 mb-6">
+            <p>
+              XP Gained: <span style={{ color: 'var(--ion-blue)' }}>{score.xp >= 0 ? `+${score.xp}` : score.xp}</span>
+            </p>
+            <p>
+              Coins Earned: <span style={{ color: 'var(--amber-warn)' }}>{score.coins >= 0 ? `+${score.coins}` : score.coins}</span>
+            </p>
+            <p>
+              Gemstones Found:{' '}
+              <span style={{ color: 'var(--plasma-pink)' }}>{score.gemstones >= 0 ? `+${score.gemstones}` : score.gemstones}</span>
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+            <button
+              onClick={() => {
+                setStage('subject_selection');
+                setSelectedSubject(null);
+                setQuestions([]);
+                setTeacherQuestions([]);
+                setCurrentQuestionIndex(0);
+                setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
+                setQuestionScores([]);
+                setQuestionPerformances([]);
+                setSoloStreak(0);
+                setMissionSummary(null);
+                setTopicSummary(null);
+                setQuestionStartTime(null);
+              }}
+              className="px-8 py-4 rounded-lg font-bold text-lg gradient-cyan hover:scale-105 active:scale-95 transition-all shadow-lg animate-pulse-glow"
+            >
+              🎯 Next Quest
+            </button>
+            <button
+              onClick={onComplete}
+              className="px-8 py-4 rounded-lg font-bold text-lg bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 hover:scale-105 active:scale-95 transition-all shadow-lg"
+            >
+              ← Back to Dashboard
+            </button>
+          </div>
         </div>
-    </div>
+      </div>
     );
   };
 
