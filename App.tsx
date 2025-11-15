@@ -37,6 +37,8 @@ import AnnouncementBanner from './components/phase1/AnnouncementBanner';
 import { fetchNextAnnouncement, markAnnouncementSeen } from './services/competitionService';
 import { notificationService } from './services/notificationService';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './services/banMessage';
+import RaidView from './src/features/raids/RaidView';
+import RaidAdminView from './src/features/raids/RaidAdminView';
 
 const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
   8: ['8A', '8B', '8C', 'N/A'],
@@ -54,7 +56,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [caps, setCaps] = useState<Caps | null>(null);
   const [news, setNews] = useState<NewsEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin'>('dashboard');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [levelUpData, setLevelUpData] = useState<{ newLevel: number; rewards: any } | null>(null);
@@ -703,6 +705,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             return <LeaderboardView onComplete={handleViewComplete} currentUserId={profile.id} />;
         case 'achievements':
             return <AchievementView onComplete={handleViewComplete} addToast={addToast} />;
+        case 'raids':
+            return <RaidView profile={profile} onComplete={handleViewComplete} addToast={addToast} />;
+        case 'raid_admin':
+            return <RaidAdminView profile={profile} onComplete={handleViewComplete} addToast={addToast} />;
         case 'teacher':
             return <TeacherPortal profile={profile} onComplete={handleViewComplete} />;
         case 'admin':
@@ -798,11 +804,13 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         <MainActions
                             onStartQuest={() => setView('quest')}
                             onStartPvp={() => setView('pvp')}
+                            onOpenRaid={() => setView('raids')}
                             onVisitShop={() => setView('shop')}
                             onGoToClan={() => setView('clan')}
                             onVisitInventory={() => setView('inventory')}
                             onViewLeaderboard={() => setView('leaderboard')}
                             onViewAchievements={() => setView('achievements')}
+                            onOpenRaidAdmin={profile?.role === 'teacher' ? () => setView('raid_admin') : undefined}
                             onOpenTournament={() => setView('tournament')}
                             onOpenTeacherPortal={profile?.role === 'teacher' ? () => setView('teacher') : undefined}
                             onOpenAdminPortal={isAdmin(profile) ? () => setView('admin') : undefined}
