@@ -11,6 +11,7 @@ Welcome to the documentation bundle for **Brains Heist** – a light-mode, spy/h
 | Developers | [Database Schema Reference](./database.md) | Tables, relationships, triggers |
 | Developers | [RPC & API Reference](./api.md) | RPC names, parameters, request/response samples |
 | Teachers (Handlers) | [Teacher Mission Builder Guide](./teacher-guide.md) | Creating subjects, topics, missions, analytics |
+| Teachers & Admins | [Teacher & School Systems Blueprint](./teacher-systems.md) | Content flows, analytics dashboards, assignments, events |
 | Students (Agents) | [Student Field Manual](./student-guide.md) | Missions, progress map, battles, scoring |
 
 Each guide can be copied directly into a docs site. Update these files whenever schema, RPCs, or gameplay rules evolve so that onboarding stays frictionless.
