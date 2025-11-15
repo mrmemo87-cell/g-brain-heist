@@ -24,6 +24,8 @@ body.light-mode #root > div:not(.lite-mode-wrapper) {
 
 body.light-mode .lite-mode-wrapper {
   overflow-y: auto !important;
+  height: auto !important;
+  max-height: none !important;
   -webkit-overflow-scrolling: touch !important;
 }
 
