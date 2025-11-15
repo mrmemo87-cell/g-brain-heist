@@ -45,6 +45,10 @@ const persistBranchHistory = (history: BranchHistoryMap) => {
   saveToStorage(STORAGE_KEYS.BRANCH_HISTORY, history);
 };
 
+export const getBranchHistories = (): BranchHistoryMap => {
+  return loadBranchHistory();
+};
+
 const touchTopicStats = (
   topicId: string,
   branchId: string,

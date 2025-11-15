@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Profile } from '../../../types';
 import * as GameService from '../../../services/gameService';
 import { RaidParticipantState, RaidStatus, RaidWaveState, BossUnlockState } from './raidTypes';
+import { getBranchHistories, getTopicSummaries } from '../../../services/adaptiveService';
 
 interface RaidViewProps {
   profile: Profile;
@@ -51,6 +52,57 @@ const generateQuestions = (wave: RaidWaveState): RaidQuestion[] => {
   });
 };
 
+const computeLocalBossUnlock = (): BossUnlockState | null => {
+  const branchHistories = getBranchHistories();
+  const topicSummaries = getTopicSummaries();
+
+  let unlocked = false;
+  let bestStreak = 0;
+  const crushedTopicSet = new Set<string>();
+
+  for (const [branchId, missions] of Object.entries(branchHistories)) {
+    if (!missions || missions.length === 0) continue;
+
+    const ordered = missions
+      .slice()
+      .sort((a, b) => new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime());
+
+    let streak = 0;
+    let branchBest = 0;
+    ordered.forEach((mission) => {
+      const isMediumOrHard = mission.difficulty === 'medium' || mission.difficulty === 'hard';
+      const accuracyOk = mission.accuracy >= 0.8;
+      if (isMediumOrHard && accuracyOk) {
+        streak += 1;
+        branchBest = Math.max(branchBest, streak);
+      } else {
+        streak = 0;
+      }
+    });
+
+    const crushed = topicSummaries.filter(
+      (topic) => topic.branchId === branchId && topic.status === 'CRUSHED'
+    );
+
+    if (branchBest >= 3 && crushed.length > 0) {
+      unlocked = true;
+      bestStreak = Math.max(bestStreak, branchBest);
+      crushed.forEach((topic) => crushedTopicSet.add(topic.topicId));
+    }
+  }
+
+  if (!unlocked) {
+    return null;
+  }
+
+  return {
+    unlocked: true,
+    consecutiveMissions: Math.min(bestStreak, 3),
+    crushedTopics: Array.from(crushedTopicSet),
+    reason: undefined,
+  };
+};
+
 const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) => {
   const [status, setStatus] = useState<RaidStatus | null>(null);
   const [participant, setParticipant] = useState<RaidParticipantState | null>(null);
@@ -75,7 +127,23 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
         GameService.getBossUnlockState(profile.id),
       ]);
       setStatus(raid);
-      setBossUnlock(unlock);
+      let mergedUnlock = unlock ?? null;
+      if (!mergedUnlock || !mergedUnlock.unlocked) {
+        const localUnlock = computeLocalBossUnlock();
+        if (localUnlock) {
+          mergedUnlock = localUnlock;
+        }
+      }
+      setBossUnlock(
+        mergedUnlock || {
+          unlocked: false,
+          consecutiveMissions: 0,
+          crushedTopics: [],
+          reason:
+            unlock?.reason ||
+            'Complete 3 Medium+ missions in a row with ≥80% accuracy and maintain at least one crushed topic.',
+        }
+      );
       if (raid) {
         const joined = raid.participants.find((p) => p.userId === profile.id) ?? null;
         setParticipant(joined);

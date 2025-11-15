@@ -1422,6 +1422,28 @@ export const finalizeRaidEncounter = (
 
 export const raid_attack = async (defender_id: string, use_cracker: boolean, target: RaidTarget): Promise<RaidAttackResult> => {
     const user = await getCurrentUser();
+    const AP_COST = 2;
+
+    const { data: attackerProfile, error: attackerError } = await supabase
+        .from('users')
+        .select('ap_now, ap_max, last_ap_update')
+        .eq('id', user.id)
+        .single();
+
+    if (attackerError || !attackerProfile) {
+        throw new Error(attackerError?.message ?? 'Unable to verify Action Points before attack.');
+    }
+
+    const currentAp = attackerProfile.ap_now ?? 0;
+    if (currentAp < AP_COST) {
+        throw new Error('Not enough Action Points to launch a raid.');
+    }
+
+    const updatedAp = Math.max(0, currentAp - AP_COST);
+    await updateProfile(user.id, {
+        ap_now: updatedAp,
+        last_ap_update: new Date().toISOString(),
+    });
 
     const simulateBotRaid = (botId: string) => {
         const bots = refreshKyrgyzBotStates();
