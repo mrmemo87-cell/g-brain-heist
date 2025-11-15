@@ -224,6 +224,7 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
   }
 
   if (!status) {
+    const unlockReady = bossUnlock?.unlocked ?? false;
     return (
       <div className="p-6">
         <p className="text-center text-slate-500">No raid is live yet. Spark one for your squad and set the pace.</p>
@@ -231,15 +232,17 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
           <button
             className="rounded-md bg-slate-900 px-4 py-2 text-sm text-white disabled:opacity-40"
             onClick={handleStudentLaunch}
-            disabled={launching || !bossUnlock?.unlocked}
+            disabled={launching || loading || !unlockReady}
           >
             {launching ? 'Launching…' : 'Launch Raid' }
           </button>
-          {!bossUnlock?.unlocked && (
+          {loading ? (
+            <p className="text-xs text-slate-500 text-center">Checking your raid credentials…</p>
+          ) : !unlockReady ? (
             <p className="text-xs text-slate-500 text-center">
               Clear three Medium+ streak missions at ≥80% accuracy and maintain a Crushed topic in-branch to unlock raids.
             </p>
-          )}
+          ) : null}
           <button className="rounded-md border border-slate-300 px-4 py-2 text-sm" onClick={handleLeave}>
             Back
           </button>
