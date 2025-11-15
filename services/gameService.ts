@@ -1,4 +1,6 @@
 import { Profile, Task, SessionStatus, Caps, NewsEvent, SubjectData, Question, AnswerResponse, RaidTarget, RaidAttackResult, ShopItem, PurchaseReceipt, Clan, ClanChatMessage, ClanSummary, ClanMember, ClanBuff, InventoryItem, Teacher, TeacherQuestion, CreateQuestionRequest, QuestionAttemptResult, QuestTemplate, Batch } from '../types';
+import * as RaidFeatureService from '../src/features/raids/raidService';
+import { BossUnlockState, RaidAnswerPayload, RaidFinalizationResult, RaidParticipantState, RaidStatus, RaidWaveState } from '../src/features/raids/raidTypes';
 import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount, canEarnQuestGemstone, recordQuestGemstoneAward, canEarnPvpGemstone, recordPvpGemstoneAward } from './storageService';
 import { supabase } from './supabaseClient';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage';
@@ -1379,6 +1381,43 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
     }
 
     return mockApiCall(combinedTargets.slice(0, MAX_TARGETS));
+};
+
+// Raid system integration -------------------------------------------------
+
+export const getActiveRaidStatus = (): Promise<RaidStatus | null> => {
+    return RaidFeatureService.getActiveRaid();
+};
+
+export const getRaidStatusById = (raidId: string): Promise<RaidStatus | null> => {
+    return RaidFeatureService.getRaidStatus(raidId);
+};
+
+export const getBossUnlockState = (userId: string): Promise<BossUnlockState> => {
+    return RaidFeatureService.getBossUnlockState(userId);
+};
+
+export const startRaidEncounter = (bossId: string): Promise<RaidStatus> => {
+    return RaidFeatureService.startRaid(bossId);
+};
+
+export const joinRaid = (raidId: string, username: string, userId: string): Promise<RaidParticipantState> => {
+    return RaidFeatureService.joinRaid(raidId, username, userId);
+};
+
+export const submitRaidWaveAnswer = (
+    payload: RaidAnswerPayload,
+    wave: RaidWaveState,
+    participant: RaidParticipantState,
+) => {
+    return RaidFeatureService.submitRaidAnswer(payload, wave, participant);
+};
+
+export const finalizeRaidEncounter = (
+    raidId: string,
+    participants: RaidParticipantState[],
+): Promise<RaidFinalizationResult> => {
+    return RaidFeatureService.finalizeRaid(raidId, participants);
 };
 
 export const raid_attack = async (defender_id: string, use_cracker: boolean, target: RaidTarget): Promise<RaidAttackResult> => {
