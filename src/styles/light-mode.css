@@ -17,10 +17,14 @@ body.light-mode .lite-mode-wrapper {
 /* Ensure scroll events bubble instead of trapping inside nested containers */
 body.light-mode main,
 body.light-mode [class*="container"],
-body.light-mode .relative.min-h-screen,
 body.light-mode > div,
 body.light-mode #root > div {
   overflow: visible !important;
+}
+
+body.light-mode .lite-mode-wrapper {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
 }
 
 /* Global light mode overrides */

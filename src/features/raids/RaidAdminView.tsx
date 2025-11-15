@@ -73,8 +73,8 @@ const RaidAdminView: React.FC<RaidAdminViewProps> = ({ profile, onComplete, addT
     <div className="space-y-6 bg-slate-50 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Raid Control Center</h2>
-          <p className="text-sm text-slate-500">Teachers can schedule raids and monitor student progress.</p>
+          <h2 className="text-2xl font-bold text-slate-900">Raid Operations HQ</h2>
+          <p className="text-sm text-slate-500">Coordinate live raids, energize competition, and track results in real time.</p>
           <p className="text-xs text-slate-400">Signed in as {profile.username}</p>
         </div>
         <button className="rounded-md border border-slate-300 px-3 py-2 text-sm" onClick={onComplete}>
@@ -83,7 +83,7 @@ const RaidAdminView: React.FC<RaidAdminViewProps> = ({ profile, onComplete, addT
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <p className="text-sm font-semibold text-slate-500">Schedule next raid</p>
+        <p className="text-sm font-semibold text-slate-500">Schedule the next assault</p>
         <div className="mt-3 flex flex-col gap-3 md:flex-row">
           <input
             className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm"
@@ -96,14 +96,14 @@ const RaidAdminView: React.FC<RaidAdminViewProps> = ({ profile, onComplete, addT
             onClick={handleSchedule}
             disabled={busy}
           >
-            Start Raid
+            Launch Raid
           </button>
         </div>
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white p-4">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold text-slate-500">Active raid status</p>
+          <p className="text-sm font-semibold text-slate-500">Live raid telemetry</p>
           <button className="text-sm text-slate-500 underline" onClick={() => void loadRaid()}>
             Refresh
           </button>
@@ -117,7 +117,7 @@ const RaidAdminView: React.FC<RaidAdminViewProps> = ({ profile, onComplete, addT
             <div>
               <p className="text-sm font-semibold text-slate-500">Participants</p>
               {raid.participants.length === 0 ? (
-                <p className="mt-1 text-sm text-slate-500">No students have joined yet.</p>
+                <p className="mt-1 text-sm text-slate-500">Roster is empty—prompt your class to get in the fight.</p>
               ) : (
                 <ul className="mt-1 space-y-1">{raid.participants.map(renderParticipant)}</ul>
               )}
@@ -127,19 +127,19 @@ const RaidAdminView: React.FC<RaidAdminViewProps> = ({ profile, onComplete, addT
               onClick={handleFinalize}
               disabled={busy}
             >
-              Finalize & distribute rewards
+              Finalize raid & allocate rewards
             </button>
           </div>
         ) : (
-          <p className="mt-2 text-sm text-slate-500">No raid scheduled.</p>
+          <p className="mt-2 text-sm text-slate-500">No raid is scheduled yet—queue one when your players are ready.</p>
         )}
       </div>
 
       {finalization && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-          <p className="font-semibold text-emerald-700">Raid finalized</p>
+          <p className="font-semibold text-emerald-700">Raid finalized—rewards in motion</p>
           {finalization.mvp && (
-            <p className="text-sm text-emerald-700">MVP: {finalization.mvp.username}</p>
+            <p className="text-sm text-emerald-700">MVP honors: {finalization.mvp.username}</p>
           )}
           <div className="mt-2">
             <p className="text-xs font-semibold uppercase text-emerald-700">Rewards</p>

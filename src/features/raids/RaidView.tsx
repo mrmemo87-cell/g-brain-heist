@@ -58,6 +58,7 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [answering, setAnswering] = useState(false);
+  const [launching, setLaunching] = useState(false);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [answerFeedback, setAnswerFeedback] = useState<string | null>(null);
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -107,6 +108,27 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
     }
   };
 
+  const handleStudentLaunch = async () => {
+    if (launching) return;
+    if (!bossUnlock?.unlocked) {
+      addToast?.('Meet the unlock requirements before launching a raid.', 'error');
+      return;
+    }
+    setLaunching(true);
+    try {
+      const scheduled = await GameService.startRaidEncounter('obsidian_sentinel');
+      const joined = await GameService.joinRaid(scheduled.raidId, profile.username, profile.id);
+      setParticipant(joined);
+      setStatus({ ...scheduled, participants: [joined] });
+      addToast?.('Raid launched! Rally your team.', 'success');
+    } catch (err) {
+      console.error(err);
+      addToast?.('Unable to launch raid right now.', 'error');
+    } finally {
+      setLaunching(false);
+    }
+  };
+
   const handleAnswer = async (choiceIndex: number) => {
     if (!status || !status.raidId || !activeWave || !participant || !currentQuestion) return;
     if (answering) return;
@@ -142,8 +164,8 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
       setParticipant(result.updatedParticipant);
       setAnswerFeedback(
         result.damage > 0
-          ? `Damage dealt: ${result.damage}. ${result.waveCleared ? 'Wave cleared!' : ''}`
-          : `Wrong answer. +${result.penaltySeconds}s team penalty.`,
+          ? `Delivered ${result.damage} damage! ${result.waveCleared ? 'Wave secured—advance!' : 'Stay sharp for the next prompt.'}`
+          : `Missed—team clock adds +${result.penaltySeconds}s. Rally and recover!`,
       );
       setQuestionIndex((prev) => (prev + 1) % waveQuestions.length);
       setSelectedOption(null);
@@ -177,7 +199,7 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
           />
         </div>
         <p className="mt-2 text-sm text-slate-500">{progress}% integrity broken</p>
-        <p className="mt-1 text-xs text-slate-500">Spike questions: {wave.spikeQuestions} hard stingers</p>
+  <p className="mt-1 text-xs text-slate-500">Spike challenges: {wave.spikeQuestions} elite prompts</p>
       </div>
     );
   };
@@ -204,10 +226,24 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
   if (!status) {
     return (
       <div className="p-6">
-        <p className="text-center text-slate-500">No raid scheduled yet. Check back soon.</p>
-        <button className="mt-4 rounded-md border border-slate-300 px-4 py-2" onClick={handleLeave}>
-          Back
-        </button>
+        <p className="text-center text-slate-500">No raid is live yet. Spark one for your squad and set the pace.</p>
+        <div className="mt-4 flex flex-col items-center gap-3">
+          <button
+            className="rounded-md bg-slate-900 px-4 py-2 text-sm text-white disabled:opacity-40"
+            onClick={handleStudentLaunch}
+            disabled={launching || !bossUnlock?.unlocked}
+          >
+            {launching ? 'Launching…' : 'Launch Raid' }
+          </button>
+          {!bossUnlock?.unlocked && (
+            <p className="text-xs text-slate-500 text-center">
+              Clear three Medium+ streak missions at ≥80% accuracy and maintain a Crushed topic in-branch to unlock raids.
+            </p>
+          )}
+          <button className="rounded-md border border-slate-300 px-4 py-2 text-sm" onClick={handleLeave}>
+            Back
+          </button>
+        </div>
       </div>
     );
   }
@@ -218,8 +254,8 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
     <div className="space-y-6 bg-slate-50 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Raid Operation</h2>
-          <p className="text-sm text-slate-500">Coordinate with your class to defeat the boss.</p>
+          <h2 className="text-2xl font-bold text-slate-900">Raid Command Center</h2>
+          <p className="text-sm text-slate-500">Mobilize your crew, outscore the boss, and keep the momentum high.</p>
         </div>
         <button className="rounded-md border border-slate-300 px-3 py-2 text-sm" onClick={handleLeave}>
           Exit
@@ -228,10 +264,10 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
 
       {!unlocked && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="font-semibold text-amber-700">Boss node locked</p>
+          <p className="font-semibold text-amber-700">Boss Node Locked</p>
           <p className="text-sm text-amber-700/80">
             {bossUnlock?.reason ||
-              'Complete 3 Medium+ missions in a row with ≥80% accuracy and keep at least one crushed topic to unlock raids.'}
+              'Clear three Medium+ streak missions at ≥80% accuracy and maintain a Crushed topic in-branch to unlock raid access.'}
           </p>
         </div>
       )}
@@ -243,7 +279,7 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
       <div className="rounded-xl border border-slate-200 bg-white p-4">
         <p className="text-sm font-semibold text-slate-500">Team status</p>
         {status.participants.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-500">No agents have joined yet.</p>
+          <p className="mt-2 text-sm text-slate-500">Roster is open—claim a slot and set the pace.</p>
         ) : (
           <ul className="mt-2 space-y-2">
             {status.participants.map((p) => (
@@ -258,14 +294,14 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
           </ul>
         )}
         {participant ? (
-          <p className="mt-3 text-sm text-emerald-600">You are enlisted. Keep attacking!</p>
+          <p className="mt-3 text-sm text-emerald-600">You’re on the strike team—keep pressure on the boss!</p>
         ) : (
           <button
             className="mt-3 rounded-md bg-slate-900 px-4 py-2 text-sm text-white disabled:opacity-40"
             onClick={handleJoin}
             disabled={!unlocked}
           >
-            Join Raid
+            Join Strike Team
           </button>
         )}
       </div>
@@ -274,10 +310,10 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
         <div className="rounded-xl border border-slate-200 bg-white p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold text-slate-500">Current Wave</p>
+              <p className="text-sm font-semibold text-slate-500">Current Engagement</p>
               <p className="text-lg font-bold text-slate-900">Wave {activeWave.waveNumber}</p>
             </div>
-            <span className="text-sm text-slate-500">Damage dealt: {participant.damageDealt}</span>
+            <span className="text-sm text-slate-500">Total damage: {participant.damageDealt}</span>
           </div>
           <div className="mt-4">
             <p className="font-semibold text-slate-800">{currentQuestion.prompt}</p>
