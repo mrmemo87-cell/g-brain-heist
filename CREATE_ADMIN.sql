@@ -13,7 +13,10 @@
 
 -- Step 1: Add admin_visible column to users table
 ALTER TABLE users 
-ADD COLUMN IF NOT EXISTS admin_visible BOOLEAN DEFAULT false;
+ADD COLUMN IF NOT EXISTS admin_visible BOOLEAN DEFAULT true;
+
+ALTER TABLE users
+ALTER COLUMN admin_visible SET DEFAULT true;
 
 -- Step 2: Update the existing authenticated user to be admin
 -- Find the user by email and update their username and role

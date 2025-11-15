@@ -262,6 +262,14 @@ BEGIN
 END;
 $$;
 
+ALTER TABLE users
+        ALTER COLUMN admin_visible SET DEFAULT true;
+
+UPDATE users
+SET admin_visible = true
+WHERE COALESCE(is_admin, false) = false
+    AND COALESCE(admin_visible, false) = false;
+
 -- ============================================
 -- 4. CREATE INDEXES FOR PERFORMANCE
 -- ============================================

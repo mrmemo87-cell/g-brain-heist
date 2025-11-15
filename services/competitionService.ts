@@ -270,6 +270,14 @@ export const refillAllAp = async (): Promise<number> => {
   return 0;
 };
 
+export const resetPvpWinsLeaderboard = async (): Promise<number> => {
+  const { data, error } = await supabase.rpc('rpc_admin_reset_pvp_wins');
+  if (error) throw new Error(error.message || 'Failed to reset PvP wins');
+  if (Array.isArray(data) && data.length > 0) return Number(data[0]?.affected_rows ?? 0);
+  if (typeof data === 'object' && data !== null && 'affected_rows' in data) return Number((data as any).affected_rows ?? 0);
+  return 0;
+};
+
 export const disbandClan = async (clanId: string): Promise<void> => {
   const { error } = await supabase.rpc('rpc_admin_disband_clan', { p_clan_id: clanId });
   if (error) throw new Error(error.message || 'Failed to disband clan');

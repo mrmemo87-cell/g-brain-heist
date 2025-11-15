@@ -849,6 +849,17 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                               addToast(`System: Refilled AP for ${affected} players`, 'success');
                             } catch (e) { addToast('Failed system AP refill', 'error'); }
                           }}>Refill AP (System)</button>
+                          <button className="w-full bg-gray-700/20 hover:bg-gray-700/30 border border-gray-600 text-white px-4 py-2 rounded" onClick={async () => {
+                            try {
+                              if (!confirm('Reset PvP Champions leaderboard? This removes all recorded PvP wins.')) {
+                                return;
+                              }
+                              const affected = await CompetitionService.resetPvpWinsLeaderboard();
+                              addToast(`System: Cleared ${affected} PvP win records`, 'success');
+                            } catch (e) {
+                              addToast('Failed to reset PvP leaderboard', 'error');
+                            }
+                          }}>Reset PvP Champions Leaderboard</button>
                         </div>
             </div>
           )}

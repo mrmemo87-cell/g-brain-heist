@@ -872,6 +872,47 @@ end;
 $$;
 
 -- ============================================
+-- Admin: Reset PvP Wins Leaderboard
+-- ============================================
+create or replace function rpc_admin_reset_pvp_wins()
+returns table (
+  affected_rows int
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_deleted int := 0;
+begin
+  if v_actor is null or not is_current_user_admin() then
+    raise exception 'forbidden';
+  end if;
+
+  delete from activities
+  where kind = 'pvp_win';
+
+  get diagnostics v_deleted = row_count;
+
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
+  values (
+    'rpc_admin_reset_pvp_wins',
+    'info',
+    'pvp_wins_cleared',
+    v_actor,
+    json_build_object('deleted_rows', coalesce(v_deleted, 0))
+  );
+
+  return query select coalesce(v_deleted, 0);
+exception when others then
+  insert into rpc_event_log(function_name, log_level, message, user_id, context)
+  values ('rpc_admin_reset_pvp_wins', 'error', SQLERRM, v_actor, json_build_object());
+  raise;
+end;
+$$;
+
+-- ============================================
 -- Admin: Refill AP for all players (non-admins)
 -- ============================================
 create or replace function rpc_admin_refill_all_ap()
