@@ -11,6 +11,7 @@ import {
   RaidAnswerPayload,
   RaidAnswerResult,
   RaidFinalizationResult,
+  RaidMode,
   RaidParticipantState,
   RaidRewardBreakdown,
   RaidRewardPool,
@@ -22,6 +23,20 @@ import {
 const RAID_REWARD_POOL: RaidRewardPool = { xp: 500, coins: 800, badge: 'Neural Siege Victor' };
 const WRONG_ANSWER_PENALTY_SECONDS = 5;
 const MVP_BONUS_RATIO = 0.3;
+const DEFAULT_MODE: RaidMode = 'mega_crew';
+const MODE_LIMITS: Record<RaidMode, { teamSize: number; lobbyDurationSeconds: number }> = {
+  strike_squad: { teamSize: 3, lobbyDurationSeconds: 600 },
+  mega_crew: { teamSize: 5, lobbyDurationSeconds: 900 },
+  clan_war: { teamSize: 12, lobbyDurationSeconds: 1200 },
+};
+const PANIC_PHASE_SECONDS = 60;
+const ARENA_THEMES: Record<RaidMode, string> = {
+  strike_squad: 'Solar Flare Alley',
+  mega_crew: 'Neon Cortex Arena',
+  clan_war: 'Galactic Study Coliseum',
+};
+
+const getArenaTheme = (mode: RaidMode = DEFAULT_MODE): string => ARENA_THEMES[mode] ?? ARENA_THEMES.mega_crew;
 
 const DEFAULT_WAVES: RaidWaveConfig[] = [
   { waveNumber: 1, difficulty: 'easy', scoreThreshold: 5, bossHp: 300, spikeQuestions: 2 },
@@ -110,6 +125,7 @@ export const startRaid = async (bossId: string): Promise<RaidStatus> => {
   if (error) {
     throw new Error(error.message ?? 'Failed to create raid');
   }
+  const mode = DEFAULT_MODE;
   return {
     raidId: data.raid_id,
     bossId,
@@ -117,6 +133,12 @@ export const startRaid = async (bossId: string): Promise<RaidStatus> => {
     rewardPool: RAID_REWARD_POOL,
     waves: DEFAULT_WAVES.map(createWaveState),
     participants: [],
+    spectators: [],
+    mode,
+    lobbyDurationSeconds: MODE_LIMITS[mode].lobbyDurationSeconds,
+    panicPhaseSeconds: PANIC_PHASE_SECONDS,
+    arenaTheme: getArenaTheme(mode),
+    activePhase: 'briefing',
     startsAt: getNowIso(),
   };
 };
@@ -143,6 +165,7 @@ export const joinRaid = async (raidId: string, username: string, userId: string)
     damageDealt: 0,
     answersSubmitted: 0,
     lastActive: getNowIso(),
+    role: 'player',
   };
 };
 
@@ -258,14 +281,18 @@ const inflateRaid = async (raidRow: any): Promise<RaidStatus> => {
     .select('user_id, username, damage, answers_submitted, last_active, is_mvp')
     .eq('raid_id', raidRow.id);
 
-  const participants: RaidParticipantState[] = (participantRows ?? []).map((row) => ({
+  const participants: RaidParticipantState[] = (participantRows ?? []).map((row, idx) => ({
     userId: row.user_id,
     username: row.username,
     damageDealt: row.damage ?? 0,
     answersSubmitted: row.answers_submitted ?? 0,
     lastActive: row.last_active ?? raidRow.created_at,
     isMvp: row.is_mvp ?? false,
+    team: idx % 2 === 0 ? 'alpha' : 'beta',
+    role: 'player',
   }));
+
+  const mode: RaidMode = raidRow.mode ?? DEFAULT_MODE;
 
   return {
     raidId: raidRow.id,
@@ -274,6 +301,12 @@ const inflateRaid = async (raidRow: any): Promise<RaidStatus> => {
     rewardPool: raidRow.reward_pool ?? RAID_REWARD_POOL,
     waves,
     participants,
+    spectators: raidRow.spectators ?? [],
+    mode,
+    lobbyDurationSeconds: raidRow.lobby_duration_seconds ?? MODE_LIMITS[mode].lobbyDurationSeconds,
+    panicPhaseSeconds: raidRow.panic_phase_seconds ?? PANIC_PHASE_SECONDS,
+    arenaTheme: raidRow.arena_theme ?? getArenaTheme(mode),
+    activePhase: raidRow.active_phase ?? 'wave',
     createdBy: raidRow.created_by,
     startsAt: raidRow.starts_at,
     endsAt: raidRow.ends_at,
@@ -430,4 +463,10 @@ export const getDefaultRaidStatus = (bossId: string): RaidStatus => ({
   rewardPool: RAID_REWARD_POOL,
   waves: DEFAULT_WAVES.map(createWaveState),
   participants: [],
+  spectators: [],
+  mode: DEFAULT_MODE,
+  lobbyDurationSeconds: MODE_LIMITS[DEFAULT_MODE].lobbyDurationSeconds,
+  panicPhaseSeconds: PANIC_PHASE_SECONDS,
+  arenaTheme: getArenaTheme(DEFAULT_MODE),
+  activePhase: 'briefing',
 });
