@@ -36,15 +36,45 @@ score = baseScore * difficultyMultiplier + speedBonus + streakBonus
 
 ---
 
-## 2. Topic Classification
+## 2. Adaptive Mastery Engine
 
-| Classification | Accuracy | Avg Time vs Limit | Attempts |
-|----------------|----------|-------------------|----------|
-| **Crushed**    | ≥ 90%    | ≤ 70% of limit    | ≤ 1 retry|
-| **Average**    | 70-89%   | 71-100%           | ≤ 2      |
-| **Struggled**  | < 70%    | >100%             | ≥ 3      |
+### 2.1 Rolling Metrics
 
-A topic is marked by the lowest satisfied category across these metrics.
+Maintain per-student, per-topic (and aggregated per task group) stats over the most recent 30 days or the last 20 attempts—whichever contains more data. Track:
+
+| Metric | Definition |
+| --- | --- |
+| `accuracy(s,t)` | `correct_attempts / total_attempts` (null if no attempts). |
+| `avg_time(s,t)` | `sum(time_spent_per_attempt) / total_attempts` (median optional to reduce outliers). |
+| `total_attempts(s,t)` | Count of attempts in the window. |
+| `recency_score(s,t)` | `exp(-Δt / τ)` where Δt is days since last attempt and τ defaults to 14 days. |
+
+Use the same formulas for task groups, aggregating across their topics. Configuration knobs: `min_attempt_threshold` (default 10), `time_benchmark(t)` (80th percentile answer time), and `stale_threshold` (recency score 0.4).
+
+### 2.2 Topic Classification Rules
+
+```
+if topic locked by prerequisites:
+    status = "locked"
+elif total_attempts < min_attempt_threshold:
+    status = "average"  # more data required
+else:
+    if accuracy ≥ 0.85 and avg_time ≤ time_benchmark and recency_score ≥ 0.4:
+        status = "crushed"
+    elif accuracy < 0.60 or avg_time ≥ 1.5 * time_benchmark or recency_score < 0.2:
+        status = "struggled"
+    else:
+        status = "average"
+```
+
+Interpretation:
+
+- **Crushed:** high accuracy, efficient timing, and recently practiced.
+- **Average:** meets attempt + recency minimums but fails a mastery check (accuracy between 0.60–0.85, slow timing, or stale practice).
+- **Struggled:** low accuracy, severe timing issues, or long inactivity after attempts.
+- **Locked:** prerequisite topics still in “struggled” or under-attempted state.
+
+Tag task groups using the worst status among their covered topics.
 
 ---
 
@@ -134,4 +164,78 @@ teamDamage = (individualScore / waveScoreThreshold) * bossHPPerWave
 
 ---
 
-Use this spec to implement mission scoring, topic assessments, progression thresholds, PvP, and optional raids.
+## 6. Next-Mission Recommendation + API Contract
+
+### 6.1 Decision Rules
+
+```
+function recommend_next_task(student):
+    struggled = topics_with_status(student, "struggled")
+    average = topics_with_status(student, "average")
+    crushed = topics_with_status(student, "crushed")
+    upcoming = get_upcoming_milestone(student)
+
+    if struggled not empty:
+        target = least_recent_or_lowest_accuracy(struggled)
+        return reinforcement_group(target), "reinforce weak topic", "remedial"
+
+    if upcoming and upcoming.deadline_within(7 days):
+        blockers = average ∩ upcoming.required_topics
+        if blockers not empty:
+            target = priority_topic(blockers)
+            return targeted_practice(target), "stabilize before milestone", "core"
+
+    next_topic = next_unlocked_topic(student)
+    if next_topic:
+        return intro_group(next_topic), "progress to next level", next_topic.default_difficulty
+
+    return enrichment_bundle(crushed), "enrich mastered topics", "challenge"
+```
+
+Milestone unlocking requires: no prerequisite topic in “struggled”, each prerequisite has ≥ `min_attempt_threshold`, and accuracy ≥ 0.75.
+
+### 6.2 API-Friendly Output
+
+Expose the adaptive state via `/api/brains_heist/game/progress` (per student) using:
+
+```json
+{
+  "student_topic_summary": [
+    {
+      "topic_id": "fractions_basics",
+      "status": "struggled",
+      "stats": {
+        "accuracy": 0.52,
+        "avg_time": 75.2,
+        "attempts": 15,
+        "last_activity": "2024-07-02T15:12:00Z"
+      }
+    }
+  ],
+  "student_taskgroup_summary": [
+    {
+      "task_group_id": "mission_fractions_reinforce",
+      "covered_topics": ["fractions_basics"],
+      "status": "struggled",
+      "stats": {
+        "accuracy": 0.52,
+        "avg_time": 75.2,
+        "attempts": 15,
+        "last_activity": "2024-07-02T15:12:00Z"
+      }
+    }
+  ],
+  "next_mission_recommendation": {
+    "task_group_id": "mission_fractions_reinforce",
+    "reason": "reinforce weak topic",
+    "difficulty": "remedial",
+    "related_topic": "fractions_basics"
+  }
+}
+```
+
+Optional extras: `unlockable_milestones` with blockers list, and a `confidence` score derived from attempt volume.
+
+---
+
+Use this spec to implement mission scoring, adaptive mastery tracking, progression thresholds, PvP, and optional raids.
