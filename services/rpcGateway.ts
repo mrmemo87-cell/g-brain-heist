@@ -72,3 +72,39 @@ export const recordQuestionAttempt = (
 ): RpcResult<unknown> => {
   return execute('record_question_attempt', payload, client);
 };
+
+export const createRaidSession = (
+  bossId: string,
+  waveInfo: Record<string, unknown>,
+  client?: RpcClient
+): RpcResult<{ raid_id: string }> => {
+  return execute('create_raid', { boss_id: bossId, wave_info: waveInfo }, client);
+};
+
+export const joinRaidSession = (
+  raidId: string,
+  client?: RpcClient
+): RpcResult<{ participant_id: string }> => {
+  return execute('join_raid', { raid_id: raidId }, client);
+};
+
+export const submitRaidAnswer = (
+  payload: { raid_id: string; question_id: string; answer: string; time_spent: number },
+  client?: RpcClient
+): RpcResult<{ event_id: string }> => {
+  return execute('submit_raid_answer', payload, client);
+};
+
+export const finalizeRaidSession = (
+  raidId: string,
+  client?: RpcClient
+): RpcResult<{ raid_id: string }> => {
+  return execute('finalize_raid', { raid_id: raidId }, client);
+};
+
+export const fetchRaidStatus = (
+  raidId: string,
+  client?: RpcClient
+): RpcResult<any> => {
+  return execute('get_raid_status', { raid_id: raidId }, client);
+};

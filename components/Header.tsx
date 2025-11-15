@@ -78,7 +78,7 @@ interface HeaderProps {
   currentView: string;
   onBackToDashboard?: () => void;
   onShowHelp?: () => void;
-  onNavigate?: (view: 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin') => void;
+  onNavigate?: (view: 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'raids' | 'raid_admin') => void;
   liteMode?: boolean;
   onToggleLiteMode?: () => void;
   onProfileAvatarChange?: (avatarUrl: string) => void;

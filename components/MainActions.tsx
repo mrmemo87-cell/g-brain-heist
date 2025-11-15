@@ -4,11 +4,13 @@ import { QuestIcon, HackIcon, ShopIcon, ClanIcon, InventoryIcon } from './icons'
 interface MainActionsProps {
     onStartQuest: () => void;
     onStartPvp: () => void;
+    onOpenRaid: () => void;
     onVisitShop: () => void;
     onGoToClan: () => void;
     onVisitInventory: () => void;
     onViewLeaderboard: () => void;
     onViewAchievements: () => void;
+    onOpenRaidAdmin?: () => void;
     onOpenTeacherPortal?: () => void;
     onOpenAdminPortal?: () => void;
     onOpenTournament?: () => void;
@@ -45,7 +47,7 @@ const ActionButton: React.FC<{ icon: React.ReactNode; label: string; color: stri
     );
 };
 
-const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onVisitShop, onGoToClan, onVisitInventory, onViewLeaderboard, onViewAchievements, onOpenTeacherPortal, onOpenAdminPortal, onOpenTournament, onOpenTournamentAdmin, onOpenCompetitionPlay, onOpenCompetitionLeaderboard, onOpenCompetitionAdmin }) => {
+const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onOpenRaid, onVisitShop, onGoToClan, onVisitInventory, onViewLeaderboard, onViewAchievements, onOpenRaidAdmin, onOpenTeacherPortal, onOpenAdminPortal, onOpenTournament, onOpenTournamentAdmin, onOpenCompetitionPlay, onOpenCompetitionLeaderboard, onOpenCompetitionAdmin }) => {
   return (
     <div className="grid grid-cols-2 gap-4 animate-fade-in-up">
         {onOpenCompetitionPlay && (
@@ -75,17 +77,24 @@ const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onV
             color="0, 208, 232" // ion-blue
             glowClass="glow-ion animate-pulse-glow"
         />
-        <ActionButton 
+        <ActionButton
             onClick={onStartPvp}
-            icon={<HackIcon />} 
-            label="⚔️ Battle" 
+            icon={<HackIcon />}
+            label="⚔️ Battle"
             color="255, 45, 145" // plasma-pink
             glowClass="glow-plasma animate-pulse-glow"
         />
-        <ActionButton 
+        <ActionButton
+            onClick={onOpenRaid}
+            icon={<span className="text-3xl">🐉</span>}
+            label="Raids"
+            color="72, 61, 139" // deep purple
+            glowClass="glow-purple"
+        />
+        <ActionButton
             onClick={onVisitShop}
-            icon={<ShopIcon />} 
-            label="Visit Shop" 
+            icon={<ShopIcon />}
+            label="Visit Shop"
             color="22, 226, 161" // success-teal
             glowClass="glow-success"
         />
@@ -134,6 +143,15 @@ const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onV
                 color="255, 215, 0" // gold
                 glowClass="glow-warn"
                 className="animate-pulse-glow col-span-2"
+            />
+        )}
+        {onOpenRaidAdmin && (
+            <ActionButton
+                onClick={onOpenRaidAdmin}
+                icon={<span className="text-3xl">🛡️</span>}
+                label="Raid Admin"
+                color="0, 191, 255"
+                glowClass="glow-ion"
             />
         )}
         {onOpenCompetitionAdmin && (
