@@ -204,9 +204,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         return;
       }
 
-      await CompetitionService.resetPlayerProgress(userId);
+  await CompetitionService.resetPlayerProgress(userId);
       addToast(`♻️ Progress reset for ${username}`, 'success');
-      fetchDashboardData();
+  fetchDashboardData();
+  window.dispatchEvent(new CustomEvent('leaderboards:refresh'));
     } catch (error) {
       addToast('Failed to reset progress', 'error');
     }
@@ -220,9 +221,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       }
 
       setIsResettingAll(true);
-      const affected = await CompetitionService.resetAllPlayerProgress();
+  const affected = await CompetitionService.resetAllPlayerProgress();
       addToast(`🧨 Reset progress for ${affected} players`, 'success');
-      fetchDashboardData();
+  fetchDashboardData();
+  window.dispatchEvent(new CustomEvent('leaderboards:refresh'));
     } catch (error) {
       addToast('Failed to reset everyone', 'error');
     } finally {

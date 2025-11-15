@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 import BackButton from './BackButton';
-import { getKyrgyzBotLeaderboardProfiles } from '../services/gameService';
 
-type BotLeaderboardSnapshot = Awaited<ReturnType<typeof getKyrgyzBotLeaderboardProfiles>>;
+
 
 type PlayerLeaderboardEntry = {
   id: string;
@@ -61,157 +60,79 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
 
   useEffect(() => {
     fetchLeaderboards();
+
+    const handler = () => fetchLeaderboards();
+    window.addEventListener('leaderboards:refresh', handler);
+    return () => {
+      window.removeEventListener('leaderboards:refresh', handler);
+    };
   }, []);
 
   const fetchLeaderboards = async () => {
     setLoading(true);
     try {
-      const botSnapshotPromise = getKyrgyzBotLeaderboardProfiles();
-
-      // XP Leaderboard - Exclude teachers and hidden admins
+      // XP Leaderboard - unified view filters admins/bots
       const { data: xpData, error: xpError } = await supabase
-        .from('users')
-        .select('id, username, avatar_url, xp, batch, last_seen, role, admin_visible, is_admin')
-        .neq('role', 'teacher')
+        .from('leaderboard_player_stats')
+        .select('id, username, avatar_url, xp, batch, grade, last_seen, pvp_wins')
         .order('xp', { ascending: false })
         .limit(50);
 
       let realXpEntries: PlayerLeaderboardEntry[] = [];
       if (!xpError && xpData) {
-        const filteredData = xpData.filter(user => !user.is_admin && user.role !== 'admin');
-
-        realXpEntries = filteredData.map(user => ({
+        realXpEntries = xpData.map((user: any) => ({
           id: user.id,
           username: user.username,
           avatar_url: user.avatar_url,
-          value: user.xp,
+          value: Number(user.xp ?? 0),
           batch: user.batch,
           is_self: user.id === currentUserId,
           last_seen: user.last_seen,
-          role: user.role,
         }));
       }
 
-      // PvP Wins Leaderboard (count pvp_win activities per user)
+      // PvP Wins Leaderboard
       const { data: pvpData, error: pvpError } = await supabase
-        .from('activities')
-        .select('actor_id, actor_username')
-        .eq('kind', 'pvp_win');
+        .from('leaderboard_player_stats')
+        .select('id, username, avatar_url, batch, last_seen, pvp_wins')
+        .order('pvp_wins', { ascending: false })
+        .limit(50);
 
       let realPvpEntries: PlayerLeaderboardEntry[] = [];
       if (!pvpError && pvpData) {
-        const winCounts: Record<string, { username: string; wins: number }> = {};
-        pvpData.forEach(activity => {
-          if (!activity.actor_id) {
-            return;
-          }
-
-          if (!winCounts[activity.actor_id]) {
-            winCounts[activity.actor_id] = {
-              username: activity.actor_username,
-              wins: 0,
-            };
-          }
-          winCounts[activity.actor_id].wins++;
-        });
-
-        const topPvpIds = Object.keys(winCounts);
-        const { data: avatars } = topPvpIds.length
-          ? await supabase
-              .from('users')
-              .select('id, avatar_url, batch, last_seen, role, is_admin')
-              .in('id', topPvpIds)
-          : { data: [] };
-
-        const avatarMap: Record<string, { avatar_url: string; batch: string; last_seen?: string; role?: string; is_admin?: boolean }> = {};
-        (avatars || []).forEach((u: any) => {
-          avatarMap[u.id] = { avatar_url: u.avatar_url, batch: u.batch, last_seen: u.last_seen, role: u.role, is_admin: u.is_admin };
-        });
-
-        realPvpEntries = Object.entries(winCounts)
-          .filter(([actorId]) => {
-            const profile = avatarMap[actorId];
-            if (!profile) return false;
-            return !profile.is_admin && profile.role !== 'admin';
-          })
-          .map(([actorId, entry]) => ({
-            id: actorId,
-            username: entry.username,
-            avatar_url: avatarMap[actorId]?.avatar_url || '',
-            value: entry.wins,
-            batch: avatarMap[actorId]?.batch || '?',
-            is_self: actorId === currentUserId,
-            last_seen: avatarMap[actorId]?.last_seen,
+        realPvpEntries = pvpData
+          .filter((row: any) => (row.pvp_wins ?? 0) > 0)
+          .map((row: any) => ({
+            id: row.id,
+            username: row.username,
+            avatar_url: row.avatar_url,
+            value: Number(row.pvp_wins ?? 0),
+            batch: row.batch,
+            is_self: row.id === currentUserId,
+            last_seen: row.last_seen,
           }));
       }
 
       // Clan Leaderboard (by total XP)
       const { data: clanData, error: clanError } = await supabase
-        .from('clans')
-        .select(`
-          id,
-          name,
-          member_count,
-          clan_members!inner (
-            users!inner (xp)
-          )
-        `);
+        .from('leaderboard_clan_stats')
+        .select('id, name, member_count, total_xp')
+        .order('total_xp', { ascending: false })
+        .limit(20);
 
       let clansWithXP: ClanLeaderboardEntry[] = [];
       if (!clanError && clanData) {
-        clansWithXP = clanData.map((clan: any) => {
-          const totalXP = clan.clan_members?.reduce((sum: number, member: any) => {
-            return sum + (member.users?.xp || 0);
-          }, 0) || 0;
-
-          return {
-            id: clan.id,
-            name: clan.name,
-            member_count: clan.clan_members?.length || 0,
-            total_xp: totalXP,
-          };
-        });
+        clansWithXP = clanData.map((clan: any) => ({
+          id: clan.id,
+          name: clan.name,
+          member_count: clan.member_count,
+          total_xp: clan.total_xp,
+        }));
       }
 
-      const botSnapshot: BotLeaderboardSnapshot = await botSnapshotPromise;
-
-      const xpCombined = rankPlayers([
-        ...realXpEntries,
-        ...botSnapshot.xp.map(bot => ({
-          id: bot.id,
-          username: bot.username,
-          avatar_url: bot.avatar_url,
-          value: bot.value,
-          batch: bot.batch,
-          is_self: false,
-          last_seen: bot.last_seen,
-          role: bot.role,
-        })),
-      ]);
-
-      setXpLeaderboard(xpCombined.slice(0, 50));
-
-      const pvpCombined = rankPlayers([
-        ...realPvpEntries,
-        ...botSnapshot.pvp.map(bot => ({
-          id: bot.id,
-          username: bot.username,
-          avatar_url: bot.avatar_url,
-          value: bot.wins,
-          batch: bot.batch,
-          is_self: false,
-          last_seen: bot.last_seen,
-        })),
-      ]);
-
-      setPvpLeaderboard(pvpCombined.slice(0, 50));
-
-      const combinedClans = rankClans([
-        ...clansWithXP,
-        ...botSnapshot.clans,
-      ]);
-
-      setClanLeaderboard(combinedClans.slice(0, 20));
+      setXpLeaderboard(rankPlayers(realXpEntries).slice(0, 50));
+      setPvpLeaderboard(rankPlayers(realPvpEntries).slice(0, 50));
+      setClanLeaderboard(rankClans(clansWithXP).slice(0, 20));
     } catch (error) {
       console.error('Failed to fetch leaderboards:', error);
     } finally {
@@ -226,8 +147,6 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
       3: 'text-amber-600',
     };
     
-    const isAdmin = entry.role === 'admin';
-
     // Calculate online status
     const getOnlineStatus = (last_seen?: string): { color: string; label: string } => {
       if (!last_seen) return { color: 'bg-gray-500', label: 'Unknown' };
@@ -251,38 +170,28 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
       <div
         key={`${entry.rank}-${entry.id}`}
         className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
-          isAdmin
-            ? 'bg-gradient-to-r from-yellow-600/30 to-pink-600/30 border-2 border-yellow-400 animate-pulse-glow'
-            : entry.is_self
-              ? 'bg-cyan-500/20 border border-cyan-400'
-              : 'bg-black/20 hover:bg-black/30'
+          entry.is_self
+            ? 'bg-cyan-500/20 border border-cyan-400'
+            : 'bg-black/20 hover:bg-black/30'
         }`}
       >
         <div className={`font-bold text-lg w-8 text-center ${rankColors[entry.rank] || 'text-gray-400'}`}>
-          {isAdmin ? '👑' : entry.rank <= 3 ? ['🥇', '🥈', '🥉'][entry.rank - 1] : `#${entry.rank}`}
+          {entry.rank <= 3 ? ['🥇', '🥈', '🥉'][entry.rank - 1] : `#${entry.rank}`}
         </div>
         <div className="relative">
           <img
             src={entry.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.username}`}
             alt={entry.username}
-            className={`w-10 h-10 rounded-full ${isAdmin ? 'border-4 border-yellow-400 animate-pulse' : 'border-2 border-gray-600'}`}
+            className="w-10 h-10 rounded-full border-2 border-gray-600"
           />
-          {!isAdmin && (
-            <div 
-              className={`absolute bottom-0 right-0 w-3 h-3 ${status.color} rounded-full border-2 border-gray-900`}
-              title={status.label}
-            />
-          )}
-          {isAdmin && (
-            <div 
-              className="absolute bottom-0 right-0 w-3 h-3 bg-yellow-400 rounded-full border-2 border-gray-900 animate-pulse"
-              title="Admin"
-            />
-          )}
+          <div 
+            className={`absolute bottom-0 right-0 w-3 h-3 ${status.color} rounded-full border-2 border-gray-900`}
+            title={status.label}
+          />
         </div>
         <div className="flex-1">
-          <p className={`font-semibold ${isAdmin ? 'text-yellow-300 drop-shadow-[0_0_10px_rgba(255,215,0,1)]' : 'text-white'}`}>
-            {entry.username} {entry.is_self && '(You)'} {isAdmin && '⚡'}
+          <p className="font-semibold text-white">
+            {entry.username} {entry.is_self && '(You)'}
           </p>
           <p className="text-xs text-gray-400">Batch {entry.batch}</p>
         </div>

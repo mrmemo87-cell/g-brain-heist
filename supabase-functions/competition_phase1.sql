@@ -50,6 +50,52 @@ end;
 $$;
 
 -- ============================================
+-- Unified Leaderboard Views
+-- ============================================
+create or replace view leaderboard_player_stats as
+select
+  u.id,
+  u.username,
+  u.avatar_url,
+  u.batch,
+  u.grade,
+  coalesce(u.xp, 0)::int as xp,
+  coalesce(u.coins, 0)::int as coins,
+  coalesce(u.streak, 0)::int as streak,
+  u.last_seen,
+  coalesce(pvp.wins, 0)::int as pvp_wins
+from users u
+left join (
+  select actor_id, count(*)::int as wins
+  from activities
+  where kind = 'pvp_win'
+  group by actor_id
+) as pvp on pvp.actor_id = u.id
+where coalesce(u.is_admin, false) = false
+  and coalesce(u.is_banned, false) = false
+  and coalesce(u.admin_visible, true) = true;
+
+create or replace view leaderboard_clan_stats as
+select
+  c.id,
+  c.name,
+  coalesce(count(distinct cm.user_id), 0)::int as member_count,
+  coalesce(sum(
+    case
+      when u.id is not null
+        and coalesce(u.is_admin, false) = false
+        and coalesce(u.is_banned, false) = false
+        and coalesce(u.admin_visible, true) = true
+      then coalesce(u.xp, 0)
+      else 0
+    end
+  ), 0)::int as total_xp
+from clans c
+left join clan_members cm on cm.clan_id = c.id
+left join users u on u.id = cm.user_id
+group by c.id, c.name;
+
+-- ============================================
 -- AP Regeneration Helpers
 -- ============================================
 drop view if exists users_with_current_ap;
@@ -175,14 +221,14 @@ begin
     from users u
     where u.id = v_user_id
       and coalesce(u.is_banned, false) = false
-      and coalesce(u.grade::int, p_grade) = p_grade
+  and coalesce(u.grade::text, '') = p_grade::text
   ) then
     raise exception 'grade_mismatch';
   end if;
 
   select * into v_question
   from mcq_questions q
-  where q.grade = p_grade
+  where q.grade::text = p_grade::text
     and q.active = true
     and not exists (
       select 1 from attempts a
@@ -194,9 +240,9 @@ begin
   limit 1;
 
   if not found then
-    select * into v_question
-    from mcq_questions q
-    where q.grade = p_grade
+  select * into v_question
+  from mcq_questions q
+  where q.grade::text = p_grade::text
       and q.active = true
     order by random()
     limit 1;
@@ -352,14 +398,16 @@ BEGIN
   RETURN QUERY
   select u.id,
          u.username,
-         u.xp,
-         u.coins,
-         u.streak,
+         coalesce(u.xp, 0),
+         coalesce(u.coins, 0),
+         coalesce(u.streak, 0),
          u.batch,
          coalesce(u.grade::int, p_grade::int)
   from users u
-  where u.grade::int = p_grade::int
+  where u.grade::text = p_grade::text
     and coalesce(u.is_banned, false) = false
+    and coalesce(u.is_admin, false) = false
+    and coalesce(u.admin_visible, true) = true
   order by u.xp desc, u.coins desc
   limit greatest(p_limit, 1);
 END;
@@ -390,14 +438,16 @@ BEGIN
   RETURN QUERY
   select u.id,
          u.username,
-         u.xp,
-         u.coins,
-         u.streak,
+         coalesce(u.xp, 0),
+         coalesce(u.coins, 0),
+         coalesce(u.streak, 0),
          u.batch,
          coalesce(u.grade::int, 0)::INT
   from users u
   where u.batch = p_batch
     and coalesce(u.is_banned, false) = false
+    and coalesce(u.is_admin, false) = false
+    and coalesce(u.admin_visible, true) = true
   order by u.xp desc, u.coins desc
   limit greatest(p_limit, 1);
 END;
@@ -474,11 +524,13 @@ begin
   update users
   set xp = 0,
       coins = 0,
-    gemstones = 0,
+      gemstones = 0,
       streak = 0,
       level = 1,
       attack_power = 10,
       defense_power = 10,
+      ap_now = ap_max,
+      last_ap_update = now(),
       updated_at = now()
   where id = p_user_id
   returning * into v_row;
@@ -486,6 +538,15 @@ begin
   if not found then
     raise exception 'user_not_found';
   end if;
+
+  delete from activities
+  where actor_id = p_user_id
+    and kind in ('pvp_win', 'pvp_loss', 'pvp_blocked');
+
+  delete from activities
+  where kind in ('pvp_win', 'pvp_loss', 'pvp_blocked')
+    and target_id = p_user_id
+    and created_at > now() - interval '30 days';
 
   insert into rpc_event_log(function_name, log_level, message, user_id, context)
   values ('rpc_admin_reset_user', 'info', 'reset_applied', v_actor, json_build_object('target', p_user_id));
@@ -495,6 +556,58 @@ exception when others then
   insert into rpc_event_log(function_name, log_level, message, user_id, context)
   values ('rpc_admin_reset_user', 'error', SQLERRM, v_actor, json_build_object('target', p_user_id));
   raise;
+end;
+$$;
+
+-- Helper: Reset multiple players by username list
+create or replace function rpc_admin_reset_users(p_usernames text[])
+returns table (
+  username text,
+  status text
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_row record;
+begin
+  if v_actor is null or not is_current_user_admin() then
+    raise exception 'forbidden';
+  end if;
+
+  if p_usernames is null or array_length(p_usernames, 1) is null then
+    return;
+  end if;
+
+  for v_row in
+    select
+      input.username as requested_username,
+      u.id as user_id
+    from unnest(p_usernames) with ordinality as input(username, ord)
+    left join users u
+      on u.username = input.username
+     and coalesce(u.is_admin, false) = false
+    order by input.ord
+  loop
+    if v_row.user_id is null then
+      username := v_row.requested_username;
+      status := 'not_found';
+      return next;
+    else
+      begin
+        perform rpc_admin_reset_user(v_row.user_id);
+        username := v_row.requested_username;
+        status := 'reset';
+        return next;
+      exception when others then
+        username := v_row.requested_username;
+        status := 'error:' || SQLERRM;
+        return next;
+      end;
+    end if;
+  end loop;
 end;
 $$;
 
@@ -581,6 +694,8 @@ as $$
 declare
   v_actor uuid := auth.uid();
   v_deleted uuid;
+  v_delete_proc regprocedure := to_regprocedure('auth.delete_user(uuid)');
+  v_admin_delete_proc regprocedure := to_regprocedure('auth.admin_delete_user(uuid)');
 begin
   if v_actor is null or not is_current_user_admin() then
     raise exception 'forbidden';
@@ -591,13 +706,11 @@ begin
   end if;
 
   begin
-    perform auth.delete_user(p_user_id);
-  exception when undefined_function then
-    begin
+    if v_delete_proc is not null then
+      perform auth.delete_user(p_user_id);
+    elsif v_admin_delete_proc is not null then
       perform auth.admin_delete_user(p_user_id);
-    exception when others then
-      null;
-    end;
+    end if;
   exception when others then
     null;
   end;
@@ -696,7 +809,8 @@ set search_path = public
 as $$
 declare
   v_actor uuid := auth.uid();
-  v_count int;
+  v_player_count int;
+  v_bot_count int;
 begin
   if v_actor is null or not is_current_user_admin() then
     raise exception 'forbidden';
@@ -705,7 +819,7 @@ begin
   update users
   set xp = 0,
       coins = 0,
-    gemstones = 0,
+      gemstones = 0,
       streak = 0,
       level = 1,
       attack_power = 10,
@@ -716,12 +830,40 @@ begin
   where coalesce(is_admin, false) = false
     and coalesce(is_banned, false) = false;
 
-  get diagnostics v_count = row_count;
+  get diagnostics v_player_count = row_count;
+
+  update bot_users
+  set xp = 0,
+      coins = 0,
+      gemstones = 0,
+      streak = 0,
+      level = 1,
+      attack_power = 10,
+      defense_power = 10,
+      ap_now = ap_max,
+      last_ap_update = now(),
+      total_questions_answered = 0,
+      achievement_points = 0,
+      last_attacked_at = null,
+      last_seen = now(),
+      updated_at = now()
+  where true;
+
+  get diagnostics v_bot_count = row_count;
+
+  delete from activities
+  where kind in ('pvp_win', 'pvp_loss', 'pvp_blocked');
 
   insert into rpc_event_log(function_name, log_level, message, user_id, context)
-  values ('rpc_admin_reset_all', 'info', 'global_reset', v_actor, json_build_object('affected_rows', v_count));
+  values (
+    'rpc_admin_reset_all',
+    'info',
+    'global_reset',
+    v_actor,
+    json_build_object('player_rows', coalesce(v_player_count, 0), 'bot_rows', coalesce(v_bot_count, 0))
+  );
 
-  return query select coalesce(v_count, 0);
+  return query select coalesce(v_player_count, 0) + coalesce(v_bot_count, 0);
 exception when others then
   insert into rpc_event_log(function_name, log_level, message, user_id, context)
   values ('rpc_admin_reset_all', 'error', SQLERRM, v_actor, json_build_object());
