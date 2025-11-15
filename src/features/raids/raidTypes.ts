@@ -1,5 +1,9 @@
 export type RaidDifficulty = 'easy' | 'medium' | 'hard';
 
+export type RaidMode = 'strike_squad' | 'mega_crew' | 'clan_war';
+export type RaidTeam = 'alpha' | 'beta';
+export type RaidRole = 'player' | 'spectator';
+
 export interface RaidWaveConfig {
   waveNumber: number;
   difficulty: RaidDifficulty;
@@ -21,6 +25,10 @@ export interface RaidParticipantState {
   answersSubmitted: number;
   lastActive: string;
   isMvp?: boolean;
+  team?: RaidTeam;
+  role?: RaidRole;
+  avatarColor?: string;
+  cheerCount?: number;
 }
 
 export interface RaidRewardPool {
@@ -36,6 +44,12 @@ export interface RaidStatus {
   rewardPool: RaidRewardPool;
   waves: RaidWaveState[];
   participants: RaidParticipantState[];
+  spectators?: RaidParticipantState[];
+  mode?: RaidMode;
+  lobbyDurationSeconds?: number;
+  panicPhaseSeconds?: number;
+  arenaTheme?: string;
+  activePhase?: 'briefing' | 'wave' | 'panic' | 'loot';
   createdBy?: string;
   startsAt?: string | null;
   endsAt?: string | null;
