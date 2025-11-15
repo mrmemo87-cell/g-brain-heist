@@ -18,7 +18,7 @@ body.light-mode .lite-mode-wrapper {
 body.light-mode main,
 body.light-mode [class*="container"],
 body.light-mode > div,
-body.light-mode #root > div {
+body.light-mode #root > div:not(.lite-mode-wrapper) {
   overflow: visible !important;
 }
 
