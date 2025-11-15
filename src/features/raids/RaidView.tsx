@@ -84,10 +84,23 @@ const computeLocalBossUnlock = (): BossUnlockState | null => {
       (topic) => topic.branchId === branchId && topic.status === 'CRUSHED'
     );
 
-    if (branchBest >= 3 && crushed.length > 0) {
+    // Fallback: if no official crushed topic, infer mastery from mission accuracy
+    const aggregateAccuracy = (() => {
+      if (missions.length === 0) return 0;
+      const correctTotal = missions.reduce((sum, mission) => sum + mission.accuracy, 0);
+      return correctTotal / missions.length;
+    })();
+
+    const inferredCrushed = crushed.length > 0 || (missions.length >= 3 && aggregateAccuracy >= 0.85);
+
+    if (branchBest >= 3 && inferredCrushed) {
       unlocked = true;
       bestStreak = Math.max(bestStreak, branchBest);
-      crushed.forEach((topic) => crushedTopicSet.add(topic.topicId));
+      if (crushed.length > 0) {
+        crushed.forEach((topic) => crushedTopicSet.add(topic.topicId));
+      } else {
+        crushedTopicSet.add(`branch-${branchId}`);
+      }
     }
   }
 
