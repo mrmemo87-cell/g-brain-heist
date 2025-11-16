@@ -441,15 +441,9 @@ export interface TeacherQuestion {
 
   // Content
   subject: Subject;
-<<<<<<< HEAD
-  subject_id?: string;
-  topic?: string;
-  topic_name?: string;
-=======
   subject_id?: string | null;
   topic?: string;
   topic_name?: string | null;
->>>>>>> 201c1acc3663b15e1c735f9c503144bc53bef4b4
   difficulty: QuestionDifficulty;
   question_text: string;
   
@@ -619,34 +613,4 @@ export interface QuestionAttemptResult {
   points_earned: number;
   correct_answer: string;
   explanation?: string;
-}
-
-export interface Assignment {
-  id: string;
-  teacher_id: string;
-  subject_id?: string | null;
-  subject_name: string;
-  topic_name?: string | null;
-  grade_levels?: Grade[] | null;
-  batch_codes?: Batch[] | null;
-  difficulty?: QuestionDifficulty | null;
-  title?: string | null;
-  instructions?: string | null;
-  assigned_at: string;
-  due_at?: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CreateAssignmentRequest {
-  subject: Subject;
-  topic_name?: string;
-  grade_levels?: Grade[];
-  batch_codes?: Batch[];
-  question_ids: string[];
-  assigned_at?: string;
-  due_at?: string;
-  title: string;
-  instructions?: string;
-  difficulty?: QuestionDifficulty;
 }
