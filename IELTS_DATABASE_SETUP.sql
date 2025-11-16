@@ -3,7 +3,7 @@ create extension if not exists "pgcrypto";
 
 -- Table to store teacher/admin accounts allowed to manage IELTS content
 create table if not exists ielts_teachers (
-  user_id uuid primary key references profiles(id) on delete cascade,
+  user_id uuid primary key references users(id) on delete cascade,
   added_at timestamptz not null default now()
 );
 
@@ -17,7 +17,7 @@ create table if not exists ielts_reading_sets (
   est_band_min numeric(2,1),
   est_band_max numeric(2,1),
   duration_minutes integer not null,
-  created_by uuid references profiles(id),
+  created_by uuid references users(id),
   created_at timestamptz not null default now(),
   is_active boolean not null default true
 );
@@ -50,7 +50,7 @@ create table if not exists ielts_listening_sets (
   est_band_max numeric(2,1),
   duration_minutes integer not null,
   audio_url text not null,
-  created_by uuid references profiles(id),
+  created_by uuid references users(id),
   created_at timestamptz not null default now(),
   is_active boolean not null default true
 );
@@ -81,7 +81,7 @@ create table if not exists ielts_writing_tasks (
   prompt text not null,
   bands_target text,
   sample_answer text,
-  created_by uuid references profiles(id),
+  created_by uuid references users(id),
   created_at timestamptz not null default now(),
   is_active boolean not null default true
 );
@@ -96,7 +96,7 @@ create table if not exists ielts_speaking_tasks (
   part integer not null,
   prompt text not null,
   follow_ups jsonb,
-  created_by uuid references profiles(id),
+  created_by uuid references users(id),
   created_at timestamptz not null default now(),
   is_active boolean not null default true
 );
@@ -107,7 +107,7 @@ create index if not exists idx_ielts_speaking_tasks_created_by on ielts_speaking
 -- IELTS Reading Attempts
 create table if not exists ielts_reading_attempts (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references profiles(id) on delete cascade,
+  user_id uuid not null references users(id) on delete cascade,
   set_id bigint not null references ielts_reading_sets(id) on delete cascade,
   started_at timestamptz not null default now(),
   completed_at timestamptz,
@@ -125,7 +125,7 @@ create index if not exists idx_ielts_reading_attempts_set on ielts_reading_attem
 -- IELTS Listening Attempts
 create table if not exists ielts_listening_attempts (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references profiles(id) on delete cascade,
+  user_id uuid not null references users(id) on delete cascade,
   set_id bigint not null references ielts_listening_sets(id) on delete cascade,
   started_at timestamptz not null default now(),
   completed_at timestamptz,
@@ -143,7 +143,7 @@ create index if not exists idx_ielts_listening_attempts_set on ielts_listening_a
 -- IELTS Writing Attempts
 create table if not exists ielts_writing_attempts (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references profiles(id) on delete cascade,
+  user_id uuid not null references users(id) on delete cascade,
   task_id bigint not null references ielts_writing_tasks(id) on delete cascade,
   submitted_at timestamptz not null default now(),
   answer_text text not null,
@@ -162,7 +162,7 @@ create index if not exists idx_ielts_writing_attempts_task on ielts_writing_atte
 -- IELTS Speaking Attempts
 create table if not exists ielts_speaking_attempts (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references profiles(id) on delete cascade,
+  user_id uuid not null references users(id) on delete cascade,
   task_id bigint not null references ielts_speaking_tasks(id) on delete cascade,
   submitted_at timestamptz not null default now(),
   audio_url text not null,
@@ -192,7 +192,7 @@ create table if not exists ielts_mock_tests (
   speaking_task_part1_id bigint references ielts_speaking_tasks(id),
   speaking_task_part2_id bigint references ielts_speaking_tasks(id),
   speaking_task_part3_id bigint references ielts_speaking_tasks(id),
-  created_by uuid references profiles(id),
+  created_by uuid references users(id),
   created_at timestamptz not null default now(),
   is_active boolean not null default true
 );
@@ -202,7 +202,7 @@ create index if not exists idx_ielts_mock_tests_created_by on ielts_mock_tests(c
 -- IELTS Mock Test Attempts
 create table if not exists ielts_mock_test_attempts (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references profiles(id) on delete cascade,
+  user_id uuid not null references users(id) on delete cascade,
   test_id bigint not null references ielts_mock_tests(id) on delete cascade,
   started_at timestamptz not null default now(),
   completed_at timestamptz,
@@ -233,27 +233,32 @@ alter table ielts_mock_tests enable row level security;
 alter table ielts_mock_test_attempts enable row level security;
 
 -- Policies for ielts_teachers table
-create policy if not exists "Teachers can view their membership" on ielts_teachers
+drop policy if exists "Teachers can view their membership" on ielts_teachers;
+create policy "Teachers can view their membership" on ielts_teachers
 for select
 using (auth.uid() = user_id);
 
-create policy if not exists "Service roles manage teacher membership" on ielts_teachers
+drop policy if exists "Service roles manage teacher membership" on ielts_teachers;
+create policy "Service roles manage teacher membership" on ielts_teachers
 as permissive
 for all
 using (auth.role() = 'service_role')
 with check (auth.role() = 'service_role');
 
 -- Content table policies
-create policy if not exists "Reading sets selectable when active" on ielts_reading_sets
+drop policy if exists "Reading sets selectable when active" on ielts_reading_sets;
+create policy "Reading sets selectable when active" on ielts_reading_sets
 for select
 using (is_active and auth.uid() is not null);
 
-create policy if not exists "Reading sets full access for teachers" on ielts_reading_sets
+drop policy if exists "Reading sets full access for teachers" on ielts_reading_sets;
+create policy "Reading sets full access for teachers" on ielts_reading_sets
 for all
 using (exists (select 1 from ielts_teachers t where t.user_id = auth.uid()))
 with check (exists (select 1 from ielts_teachers t where t.user_id = auth.uid()));
 
-create policy if not exists "Reading questions selectable from active sets" on ielts_reading_questions
+drop policy if exists "Reading questions selectable from active sets" on ielts_reading_questions;
+create policy "Reading questions selectable from active sets" on ielts_reading_questions
 for select
 using (
   auth.uid() is not null and
@@ -264,21 +269,25 @@ using (
   )
 );
 
-create policy if not exists "Reading questions full access for teachers" on ielts_reading_questions
+drop policy if exists "Reading questions full access for teachers" on ielts_reading_questions;
+create policy "Reading questions full access for teachers" on ielts_reading_questions
 for all
 using (exists (select 1 from ielts_teachers t where t.user_id = auth.uid()))
 with check (exists (select 1 from ielts_teachers t where t.user_id = auth.uid()));
 
-create policy if not exists "Listening sets selectable when active" on ielts_listening_sets
+drop policy if exists "Listening sets selectable when active" on ielts_listening_sets;
+create policy "Listening sets selectable when active" on ielts_listening_sets
 for select
 using (is_active and auth.uid() is not null);
 
-create policy if not exists "Listening sets full access for teachers" on ielts_listening_sets
+drop policy if exists "Listening sets full access for teachers" on ielts_listening_sets;
+create policy "Listening sets full access for teachers" on ielts_listening_sets
 for all
 using (exists (select 1 from ielts_teachers t where t.user_id = auth.uid()))
 with check (exists (select 1 from ielts_teachers t where t.user_id = auth.uid()));
 
-create policy if not exists "Listening questions selectable from active sets" on ielts_listening_questions
+drop policy if exists "Listening questions selectable from active sets" on ielts_listening_questions;
+create policy "Listening questions selectable from active sets" on ielts_listening_questions
 for select
 using (
   auth.uid() is not null and
@@ -289,111 +298,138 @@ using (
   )
 );
 
-create policy if not exists "Listening questions full access for teachers" on ielts_listening_questions
+drop policy if exists "Listening questions full access for teachers" on ielts_listening_questions;
+create policy "Listening questions full access for teachers" on ielts_listening_questions
 for all
 using (exists (select 1 from ielts_teachers t where t.user_id = auth.uid()))
 with check (exists (select 1 from ielts_teachers t where t.user_id = auth.uid()));
 
-create policy if not exists "Writing tasks selectable when active" on ielts_writing_tasks
+drop policy if exists "Writing tasks selectable when active" on ielts_writing_tasks;
+create policy "Writing tasks selectable when active" on ielts_writing_tasks
 for select
 using (is_active and auth.uid() is not null);
 
-create policy if not exists "Writing tasks full access for teachers" on ielts_writing_tasks
+drop policy if exists "Writing tasks full access for teachers" on ielts_writing_tasks;
+create policy "Writing tasks full access for teachers" on ielts_writing_tasks
 for all
 using (exists (select 1 from ielts_teachers t where t.user_id = auth.uid()))
 with check (exists (select 1 from ielts_teachers t where t.user_id = auth.uid()));
 
-create policy if not exists "Speaking tasks selectable when active" on ielts_speaking_tasks
+drop policy if exists "Speaking tasks selectable when active" on ielts_speaking_tasks;
+create policy "Speaking tasks selectable when active" on ielts_speaking_tasks
 for select
 using (is_active and auth.uid() is not null);
 
-create policy if not exists "Speaking tasks full access for teachers" on ielts_speaking_tasks
+drop policy if exists "Speaking tasks full access for teachers" on ielts_speaking_tasks;
+create policy "Speaking tasks full access for teachers" on ielts_speaking_tasks
 for all
 using (exists (select 1 from ielts_teachers t where t.user_id = auth.uid()))
 with check (exists (select 1 from ielts_teachers t where t.user_id = auth.uid()));
 
-create policy if not exists "Mock tests selectable when active" on ielts_mock_tests
+drop policy if exists "Mock tests selectable when active" on ielts_mock_tests;
+create policy "Mock tests selectable when active" on ielts_mock_tests
 for select
 using (is_active and auth.uid() is not null);
 
-create policy if not exists "Mock tests full access for teachers" on ielts_mock_tests
+drop policy if exists "Mock tests full access for teachers" on ielts_mock_tests;
+create policy "Mock tests full access for teachers" on ielts_mock_tests
 for all
 using (exists (select 1 from ielts_teachers t where t.user_id = auth.uid()))
 with check (exists (select 1 from ielts_teachers t where t.user_id = auth.uid()));
 
 -- Attempt table policies (students manage own attempts)
-create policy if not exists "Students manage reading attempts" on ielts_reading_attempts
+drop policy if exists "Students manage reading attempts" on ielts_reading_attempts;
+create policy "Students manage reading attempts" on ielts_reading_attempts
 for select using (auth.uid() = user_id);
 
-create policy if not exists "Students insert reading attempts" on ielts_reading_attempts
+drop policy if exists "Students insert reading attempts" on ielts_reading_attempts;
+create policy "Students insert reading attempts" on ielts_reading_attempts
 for insert with check (auth.uid() = user_id);
 
-create policy if not exists "Students update reading attempts" on ielts_reading_attempts
+drop policy if exists "Students update reading attempts" on ielts_reading_attempts;
+create policy "Students update reading attempts" on ielts_reading_attempts
 for update
 using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
 
-create policy if not exists "Teachers view reading attempts" on ielts_reading_attempts
+drop policy if exists "Teachers view reading attempts" on ielts_reading_attempts;
+create policy "Teachers view reading attempts" on ielts_reading_attempts
 for select
 using (exists (select 1 from ielts_teachers t where t.user_id = auth.uid()));
 
-create policy if not exists "Students manage listening attempts" on ielts_listening_attempts
+drop policy if exists "Students manage listening attempts" on ielts_listening_attempts;
+create policy "Students manage listening attempts" on ielts_listening_attempts
 for select using (auth.uid() = user_id);
 
-create policy if not exists "Students insert listening attempts" on ielts_listening_attempts
+drop policy if exists "Students insert listening attempts" on ielts_listening_attempts;
+create policy "Students insert listening attempts" on ielts_listening_attempts
 for insert with check (auth.uid() = user_id);
 
-create policy if not exists "Students update listening attempts" on ielts_listening_attempts
+drop policy if exists "Students update listening attempts" on ielts_listening_attempts;
+create policy "Students update listening attempts" on ielts_listening_attempts
 for update
 using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
 
-create policy if not exists "Teachers view listening attempts" on ielts_listening_attempts
+drop policy if exists "Teachers view listening attempts" on ielts_listening_attempts;
+create policy "Teachers view listening attempts" on ielts_listening_attempts
 for select
 using (exists (select 1 from ielts_teachers t where t.user_id = auth.uid()));
 
-create policy if not exists "Students manage writing attempts" on ielts_writing_attempts
+drop policy if exists "Students manage writing attempts" on ielts_writing_attempts;
+create policy "Students manage writing attempts" on ielts_writing_attempts
 for select using (auth.uid() = user_id);
 
-create policy if not exists "Students insert writing attempts" on ielts_writing_attempts
+drop policy if exists "Students insert writing attempts" on ielts_writing_attempts;
+create policy "Students insert writing attempts" on ielts_writing_attempts
 for insert with check (auth.uid() = user_id);
 
-create policy if not exists "Students update writing attempts" on ielts_writing_attempts
+drop policy if exists "Students update writing attempts" on ielts_writing_attempts;
+create policy "Students update writing attempts" on ielts_writing_attempts
 for update
 using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
 
-create policy if not exists "Teachers view writing attempts" on ielts_writing_attempts
+drop policy if exists "Teachers view writing attempts" on ielts_writing_attempts;
+create policy "Teachers view writing attempts" on ielts_writing_attempts
 for select
 using (exists (select 1 from ielts_teachers t where t.user_id = auth.uid()));
 
-create policy if not exists "Students manage speaking attempts" on ielts_speaking_attempts
+drop policy if exists "Students manage speaking attempts" on ielts_speaking_attempts;
+create policy "Students manage speaking attempts" on ielts_speaking_attempts
 for select using (auth.uid() = user_id);
 
-create policy if not exists "Students insert speaking attempts" on ielts_speaking_attempts
+drop policy if exists "Students insert speaking attempts" on ielts_speaking_attempts;
+create policy "Students insert speaking attempts" on ielts_speaking_attempts
 for insert with check (auth.uid() = user_id);
 
-create policy if not exists "Students update speaking attempts" on ielts_speaking_attempts
+drop policy if exists "Students update speaking attempts" on ielts_speaking_attempts;
+create policy "Students update speaking attempts" on ielts_speaking_attempts
 for update
 using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
 
-create policy if not exists "Teachers view speaking attempts" on ielts_speaking_attempts
+drop policy if exists "Teachers view speaking attempts" on ielts_speaking_attempts;
+create policy "Teachers view speaking attempts" on ielts_speaking_attempts
 for select
 using (exists (select 1 from ielts_teachers t where t.user_id = auth.uid()));
 
-create policy if not exists "Students manage mock test attempts" on ielts_mock_test_attempts
+drop policy if exists "Students manage mock test attempts" on ielts_mock_test_attempts;
+create policy "Students manage mock test attempts" on ielts_mock_test_attempts
 for select using (auth.uid() = user_id);
 
-create policy if not exists "Students insert mock test attempts" on ielts_mock_test_attempts
+drop policy if exists "Students insert mock test attempts" on ielts_mock_test_attempts;
+create policy "Students insert mock test attempts" on ielts_mock_test_attempts
 for insert with check (auth.uid() = user_id);
 
-create policy if not exists "Students update mock test attempts" on ielts_mock_test_attempts
+drop policy if exists "Students update mock test attempts" on ielts_mock_test_attempts;
+create policy "Students update mock test attempts" on ielts_mock_test_attempts
 for update
 using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
 
-create policy if not exists "Teachers view mock test attempts" on ielts_mock_test_attempts
+drop policy if exists "Teachers view mock test attempts" on ielts_mock_test_attempts;
+create policy "Teachers view mock test attempts" on ielts_mock_test_attempts
 for select
 using (exists (select 1 from ielts_teachers t where t.user_id = auth.uid()));
 
