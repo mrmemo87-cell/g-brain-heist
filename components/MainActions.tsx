@@ -18,6 +18,7 @@ interface MainActionsProps {
     onOpenCompetitionPlay?: () => void;
     onOpenCompetitionLeaderboard?: () => void;
     onOpenCompetitionAdmin?: () => void;
+    onOpenIeltsPrep?: () => void;
 }
 
 const ActionButton: React.FC<{ icon: React.ReactNode; label: string; color: string; glowClass: string; onClick?: () => void; className?: string; }> = ({ icon, label, color, glowClass, onClick, className }) => {
@@ -47,7 +48,7 @@ const ActionButton: React.FC<{ icon: React.ReactNode; label: string; color: stri
     );
 };
 
-const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onOpenRaid, onVisitShop, onGoToClan, onVisitInventory, onViewLeaderboard, onViewAchievements, onOpenRaidAdmin, onOpenTeacherPortal, onOpenAdminPortal, onOpenTournament, onOpenTournamentAdmin, onOpenCompetitionPlay, onOpenCompetitionLeaderboard, onOpenCompetitionAdmin }) => {
+const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onOpenRaid, onVisitShop, onGoToClan, onVisitInventory, onViewLeaderboard, onViewAchievements, onOpenRaidAdmin, onOpenTeacherPortal, onOpenAdminPortal, onOpenTournament, onOpenTournamentAdmin, onOpenCompetitionPlay, onOpenCompetitionLeaderboard, onOpenCompetitionAdmin, onOpenIeltsPrep }) => {
   return (
     <div className="grid grid-cols-2 gap-4 animate-fade-in-up">
         {onOpenCompetitionPlay && (
@@ -128,13 +129,23 @@ const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onO
             color="255, 215, 0" // gold
             glowClass="glow-warn"
         />
-        <ActionButton 
+        <ActionButton
             onClick={onViewAchievements}
-            icon={<span className="text-3xl animate-float">🎖️</span>} 
-            label="Achievements" 
+            icon={<span className="text-3xl animate-float">🎖️</span>}
+            label="Achievements"
             color="255, 100, 200" // pink
             glowClass="glow-plasma"
         />
+        {onOpenIeltsPrep && (
+            <ActionButton
+                onClick={onOpenIeltsPrep}
+                icon={<span className="text-3xl">🎯</span>}
+                label="IELTS Prep"
+                color="0, 191, 255"
+                glowClass="glow-ion"
+                className="col-span-2"
+            />
+        )}
         {onOpenAdminPortal && (
             <ActionButton
                 onClick={onOpenAdminPortal}

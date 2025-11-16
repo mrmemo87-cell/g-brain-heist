@@ -1,8 +1,35 @@
-<<<<<<< HEAD
-import { Profile, Task, SessionStatus, Caps, NewsEvent, SubjectData, Question, AnswerResponse, RaidTarget, RaidAttackResult, ShopItem, PurchaseReceipt, Clan, ClanChatMessage, ClanSummary, ClanMember, ClanBuff, InventoryItem, Teacher, TeacherQuestion, CreateQuestionRequest, QuestionAttemptResult, QuestTemplate, Batch, Assignment, CreateAssignmentRequest } from '../types';
-=======
-import { Profile, Task, SessionStatus, Caps, NewsEvent, SubjectData, Question, AnswerResponse, RaidTarget, RaidAttackResult, ShopItem, PurchaseReceipt, Clan, ClanChatMessage, ClanSummary, ClanMember, ClanBuff, InventoryItem, Teacher, TeacherQuestion, CreateQuestionRequest, QuestionAttemptResult, QuestTemplate, Batch, Subject, TeacherAssignmentSummary, StudentAssignmentTask, TeacherAssignmentReportRow, CreateAssignmentRequest, AssignmentResultInput } from '../types';
->>>>>>> 201c1acc3663b15e1c735f9c503144bc53bef4b4
+import {
+    Profile,
+    Task,
+    SessionStatus,
+    Caps,
+    NewsEvent,
+    SubjectData,
+    Question,
+    AnswerResponse,
+    RaidTarget,
+    RaidAttackResult,
+    ShopItem,
+    PurchaseReceipt,
+    Clan,
+    ClanChatMessage,
+    ClanSummary,
+    ClanMember,
+    ClanBuff,
+    InventoryItem,
+    Teacher,
+    TeacherQuestion,
+    CreateQuestionRequest,
+    QuestionAttemptResult,
+    QuestTemplate,
+    Batch,
+    CreateAssignmentRequest,
+    Subject,
+    TeacherAssignmentSummary,
+    StudentAssignmentTask,
+    TeacherAssignmentReportRow,
+    AssignmentResultInput,
+} from '../types';
 import * as RaidFeatureService from '../src/features/raids/raidService';
 import { BossUnlockState, RaidAnswerPayload, RaidFinalizationResult, RaidParticipantState, RaidStatus, RaidWaveState } from '../src/features/raids/raidTypes';
 import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount, canEarnQuestGemstone, recordQuestGemstoneAward, canEarnPvpGemstone, recordPvpGemstoneAward } from './storageService';
@@ -3063,15 +3090,9 @@ export const create_question = async (questionData: CreateQuestionRequest): Prom
         .insert({
             teacher_id: teacher.id,
             subject: questionData.subject,
-<<<<<<< HEAD
-            subject_id: mapSubjectToId(questionData.subject),
-            topic: questionData.topic,
-            topic_name: questionData.topic,
-=======
             subject_id: subjectId,
             topic: topicName,
             topic_name: topicName,
->>>>>>> 201c1acc3663b15e1c735f9c503144bc53bef4b4
             difficulty: questionData.difficulty,
             question_text: questionData.question_text,
             question_type: questionData.question_type,
@@ -3133,34 +3154,24 @@ export const update_question = async (
     questionId: string,
     updates: Partial<CreateQuestionRequest>
 ): Promise<TeacherQuestion> => {
-<<<<<<< HEAD
+    const resolvedSubjectId = updates.subject ? resolveSubjectIdentifier(updates.subject, updates.subject_id) : updates.subject_id;
+    const shouldNormalizeTopic =
+        Object.prototype.hasOwnProperty.call(updates, 'topic') || Object.prototype.hasOwnProperty.call(updates, 'topic_name');
+    const normalizedTopic = shouldNormalizeTopic ? normalizeTopicName(updates.topic, updates.topic_name) : undefined;
+
     const payload: Record<string, unknown> = {
         ...updates,
-        updated_at: new Date().toISOString()
-    };
-
-    if (Object.prototype.hasOwnProperty.call(updates, 'subject') && updates.subject) {
-        payload.subject_id = mapSubjectToId(updates.subject);
-    }
-
-    if (Object.prototype.hasOwnProperty.call(updates, 'topic')) {
-        payload.topic_name = updates.topic ?? null;
-    }
-
-=======
-    const resolvedSubjectId = updates.subject ? resolveSubjectIdentifier(updates.subject, updates.subject_id) : updates.subject_id;
-    const shouldNormalizeTopic = typeof updates.topic === 'string' || typeof updates.topic_name === 'string';
-    const resolvedTopic = shouldNormalizeTopic ? normalizeTopicName(updates.topic, updates.topic_name) : undefined;
-
-    const payload = {
-        ...updates,
-        subject_id: resolvedSubjectId,
-        topic: resolvedTopic ?? updates.topic,
-        topic_name: resolvedTopic ?? updates.topic_name,
         updated_at: new Date().toISOString(),
     };
 
->>>>>>> 201c1acc3663b15e1c735f9c503144bc53bef4b4
+    if (resolvedSubjectId !== undefined) {
+        payload.subject_id = resolvedSubjectId;
+    }
+
+    if (shouldNormalizeTopic) {
+        payload.topic = normalizedTopic;
+        payload.topic_name = normalizedTopic;
+    }
     const { data, error } = await supabase
         .from('questions')
         .update(payload)
@@ -3183,48 +3194,6 @@ export const delete_question = async (questionId: string): Promise<void> => {
         .eq('id', questionId);
 
     if (error) throw error;
-};
-
-/**
- * Create a teacher assignment targeting specific grades and batches
- */
-export const create_assignment = async (payload: CreateAssignmentRequest): Promise<Assignment> => {
-    if (!payload.question_ids || payload.question_ids.length === 0) {
-        throw new Error('Select at least one question for the assignment');
-    }
-
-    const teacher = await get_teacher_profile();
-    if (!teacher) throw new Error('User is not a teacher');
-
-    const subjectId = mapSubjectToId(payload.subject);
-
-    const rpcPayload = {
-        p_teacher_id: teacher.id,
-        p_subject_id: subjectId,
-        p_subject_name: payload.subject,
-        p_topic_name: payload.topic_name ?? null,
-        p_grade_levels: payload.grade_levels && payload.grade_levels.length > 0 ? payload.grade_levels : null,
-        p_batch_codes: payload.batch_codes && payload.batch_codes.length > 0 ? payload.batch_codes : null,
-        p_question_ids: payload.question_ids,
-        p_assigned_at: payload.assigned_at ?? new Date().toISOString(),
-        p_due_at: payload.due_at ?? null,
-        p_title: payload.title,
-        p_instructions: payload.instructions ?? null,
-        p_difficulty: payload.difficulty ?? null
-    };
-
-    const { data, error } = await supabase.rpc('rpc_create_assignment', rpcPayload);
-
-    if (error) {
-        throw new Error(error.message || 'Failed to create assignment');
-    }
-
-    if (!data) {
-        throw new Error('Assignment was created but no data was returned');
-    }
-
-    const assignment = Array.isArray(data) ? (data[0] as Assignment) : (data as Assignment);
-    return assignment;
 };
 
 /**

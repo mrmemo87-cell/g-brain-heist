@@ -39,6 +39,7 @@ import { notificationService } from './services/notificationService';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './services/banMessage';
 import RaidView from './src/features/raids/RaidView';
 import RaidAdminView from './src/features/raids/RaidAdminView';
+import IeltsPrepHub from './components/IeltsPrepHub';
 
 const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
   8: ['8A', '8B', '8C', 'N/A'],
@@ -56,7 +57,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [caps, setCaps] = useState<Caps | null>(null);
   const [news, setNews] = useState<NewsEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts'>('dashboard');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [levelUpData, setLevelUpData] = useState<{ newLevel: number; rewards: any } | null>(null);
@@ -742,6 +743,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                 addToast={addToast}
               />
             );
+        case 'ielts':
+            return <IeltsPrepHub onBack={() => setView('dashboard')} />;
         case 'dashboard':
         default:
             // Teacher Dashboard - simplified view focused on teaching
@@ -816,6 +819,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                             onOpenCompetitionPlay={profile?.grade && !profile?.is_banned ? () => setView('phase1_play') : undefined}
                             onOpenCompetitionLeaderboard={() => setView('phase1_leaderboard')}
                             onOpenCompetitionAdmin={profile?.is_admin ? () => setView('phase1_admin') : undefined}
+                            onOpenIeltsPrep={() => setView('ielts')}
                         />
                         <TaskList tasks={tasks} onTasksUpdate={fetchGameData} />
                     </div>
