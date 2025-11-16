@@ -1,0 +1,477 @@
+{
+  "ielts_reading_sets": [
+    {
+      "slug": "urban-greening-initiatives",
+      "title": "Urban Greening Initiatives",
+      "description": "An article exploring how cities integrate vegetation to improve living standards and ecological stability.",
+      "level": "upper-intermediate",
+      "est_band_min": 6.5,
+      "est_band_max": 8.0,
+      "duration_minutes": 20
+    },
+    {
+      "slug": "adaptive-learning-platforms",
+      "title": "Adaptive Learning Platforms",
+      "description": "A report discussing data-driven educational platforms and their impact on student progress monitoring.",
+      "level": "upper-intermediate",
+      "est_band_min": 6.0,
+      "est_band_max": 7.5,
+      "duration_minutes": 20
+    }
+  ],
+  "ielts_reading_questions": [
+    {
+      "set_slug": "urban-greening-initiatives",
+      "question_order": 1,
+      "question_type": "tfng",
+      "body": "Some cities in the passage saw green roofs primarily as decorative projects.",
+      "correct_answer": "false",
+      "explanation": "The passage states that early adopters viewed green roofs as experimental solutions to insulation and drainage, not decoration."
+    },
+    {
+      "set_slug": "urban-greening-initiatives",
+      "question_order": 2,
+      "question_type": "tfng",
+      "body": "European regulations compelled all large commercial buildings to install rooftop gardens.",
+      "correct_answer": "not given",
+      "explanation": "The text mentions incentives in parts of Europe but no universal regulation or requirement for all large buildings."
+    },
+    {
+      "set_slug": "urban-greening-initiatives",
+      "question_order": 3,
+      "question_type": "tfng",
+      "body": "Residents in coastal districts opposed the creation of bioswales because they reduced parking space.",
+      "correct_answer": "true",
+      "explanation": "The article describes resistance in coastal districts where bioswales replaced roadside parking, leading to initial opposition."
+    },
+    {
+      "set_slug": "urban-greening-initiatives",
+      "question_order": 4,
+      "question_type": "short_answer",
+      "body": "According to the passage, what feature allowed the city of Norham to reduce flood insurance premiums?",
+      "correct_answer": "permeable tram tracks",
+      "explanation": "Norham’s transport authority embedded permeable materials beneath tram tracks, which improved drainage and convinced insurers to lower premiums."
+    },
+    {
+      "set_slug": "urban-greening-initiatives",
+      "question_order": 5,
+      "question_type": "short_answer",
+      "body": "What data did Vellan City collect to justify expanding tree canopies?",
+      "correct_answer": "summer electricity consumption",
+      "explanation": "Vellan City monitored household electricity use during summer and linked reduced consumption to streets with dense tree cover."
+    },
+    {
+      "set_slug": "urban-greening-initiatives",
+      "question_order": 6,
+      "question_type": "matching",
+      "body": "Match each city with the primary challenge it faced when implementing greening projects.",
+      "options": {
+        "items": ["Harwick", "Norham", "Lazaro"],
+        "attributes": ["limited technical expertise", "maintenance funding gaps", "heritage building restrictions"]
+      },
+      "correct_answer": ["Harwick: limited technical expertise", "Norham: maintenance funding gaps", "Lazaro: heritage building restrictions"],
+      "explanation": "Harwick lacked trained installers, Norham struggled to keep systems funded once grants ended, and Lazaro needed special permits to modify heritage facades."
+    },
+    {
+      "set_slug": "urban-greening-initiatives",
+      "question_order": 7,
+      "question_type": "mcq",
+      "body": "Which benefit of community orchards is highlighted in the passage?",
+      "options": [
+        "They shorten food supply chains by exporting fruit abroad.",
+        "They provide seasonal meeting spaces that strengthen neighbourhood ties.",
+        "They double the biodiversity of existing parks within one year.",
+        "They eliminate the need for city-funded composting services."
+      ],
+      "correct_answer": "They provide seasonal meeting spaces that strengthen neighbourhood ties.",
+      "explanation": "The text emphasises how orchard harvest days drew residents together, enhancing social cohesion."
+    },
+    {
+      "set_slug": "urban-greening-initiatives",
+      "question_order": 8,
+      "question_type": "mcq",
+      "body": "Why did the transport department trial vertical gardens on noise barriers?",
+      "options": [
+        "To comply with new wildlife protection legislation",
+        "To disguise concrete walls near tourist areas",
+        "To test whether vegetation could absorb traffic pollution",
+        "To replace ageing drainage pipes"
+      ],
+      "correct_answer": "To test whether vegetation could absorb traffic pollution",
+      "explanation": "The department installed vertical gardens on sound barriers to see if plants could capture fine particulates from congested roads."
+    },
+    {
+      "set_slug": "adaptive-learning-platforms",
+      "question_order": 1,
+      "question_type": "tfng",
+      "body": "Pilot schools abandoned traditional grades entirely when adopting adaptive platforms.",
+      "correct_answer": "false",
+      "explanation": "The report notes that schools combined adaptive feedback with existing grade books rather than discarding grades."
+    },
+    {
+      "set_slug": "adaptive-learning-platforms",
+      "question_order": 2,
+      "question_type": "tfng",
+      "body": "Teachers initially worried that adaptive software would limit their autonomy.",
+      "correct_answer": "true",
+      "explanation": "Early interviews revealed concern that algorithm-generated lesson paths might override teacher judgement."
+    },
+    {
+      "set_slug": "adaptive-learning-platforms",
+      "question_order": 3,
+      "question_type": "tfng",
+      "body": "The platform delivered identical question banks to all learners.",
+      "correct_answer": "false",
+      "explanation": "It specifically customises question banks based on the learner’s speed and accuracy data."
+    },
+    {
+      "set_slug": "adaptive-learning-platforms",
+      "question_order": 4,
+      "question_type": "short_answer",
+      "body": "Which subject saw the fastest improvement during the second term of the trial?",
+      "correct_answer": "mathematics",
+      "explanation": "The report indicates that mathematics classes experienced measurable progress earlier than literacy classes."
+    },
+    {
+      "set_slug": "adaptive-learning-platforms",
+      "question_order": 5,
+      "question_type": "short_answer",
+      "body": "What two metrics did the analytics dashboard display for each student?",
+      "correct_answer": "time on task and mastery probability",
+      "explanation": "Teachers monitored how long students spent on activities and the system’s prediction of mastery for each objective."
+    },
+    {
+      "set_slug": "adaptive-learning-platforms",
+      "question_order": 6,
+      "question_type": "mcq",
+      "body": "According to the passage, what persuaded administrators to continue funding the platform?",
+      "options": [
+        "Parents volunteered to cover licensing costs",
+        "The vendor offered lifetime access for a single payment",
+        "Benchmark exams showed gains among previously underperforming pupils",
+        "The platform integrated with the city’s public transport cards"
+      ],
+      "correct_answer": "Benchmark exams showed gains among previously underperforming pupils",
+      "explanation": "Administrators renewed the programme after seeing a significant rise in benchmark scores for students below level."
+    },
+    {
+      "set_slug": "adaptive-learning-platforms",
+      "question_order": 7,
+      "question_type": "matching",
+      "body": "Match each stakeholder with their primary concern or benefit.",
+      "options": {
+        "items": ["Students", "Teachers", "Parents"],
+        "attributes": ["wanting more immediate feedback", "seeking reliable workload predictions", "needing transparency on data privacy"]
+      },
+      "correct_answer": [
+        "Students: wanting more immediate feedback",
+        "Teachers: seeking reliable workload predictions",
+        "Parents: needing transparency on data privacy"
+      ],
+      "explanation": "The passage highlights students’ desire for instant hints, teachers’ request for workload forecasts, and parents’ questions about data storage."
+    },
+    {
+      "set_slug": "adaptive-learning-platforms",
+      "question_order": 8,
+      "question_type": "mcq",
+      "body": "What challenge delayed the platform’s expansion to rural campuses?",
+      "options": [
+        "Shortage of bilingual content",
+        "Limited broadband connectivity",
+        "Higher licensing fees",
+        "Opposition from university researchers"
+      ],
+      "correct_answer": "Limited broadband connectivity",
+      "explanation": "Rural schools lacked stable broadband, making it difficult to synchronise data in real time."
+    }
+  ],
+  "ielts_listening_sets": [
+    {
+      "slug": "coastal-research-internship-briefing",
+      "title": "Coastal Research Internship Briefing",
+      "description": "A university coordinator explains internship logistics, followed by a returning student sharing fieldwork experiences.",
+      "level": "upper-intermediate",
+      "est_band_min": 6.0,
+      "est_band_max": 7.5,
+      "duration_minutes": 15,
+      "audio_script": "[Coordinator] Good morning everyone. Before you register for the coastal research internship, let me outline the essentials. Applications close on the fifteenth of May, so please have your forms and supervisor signatures ready a week earlier for checks. Only second- and third-year students with at least one lab course completed may apply. The university pays for your return ferry ticket to Silverstrand Island, but you must arrange your own train fare to the harbour. Accommodation is provided in converted lighthouse quarters, which sleep six per room. They are basic but include lockers, showers and a shared workspace. Before you travel, you must attend the on-campus first-aid workshop on the 22nd of April; it is compulsory because we work on slippery jetties. During the five-week placement, Mondays are reserved for drone mapping, Wednesdays for water sampling, and Fridays for community presentations in the village hall. Pack sturdy boots, a waterproof jacket and especially a headlamp, as the island paths have no lighting after sunset. Finally, on the first weekend you will meet local fishers to record oral histories about shoreline change, so prepare respectful interview questions. [Student] Hi everyone, I’m Lia, and I joined last year’s team. The work is rewarding but be ready for surprises. For example, heavy fog settled over the island during our second week, so we had to postpone drone flights until the sky cleared. Instead, we focused on cataloguing specimens indoors. The science tasks are manageable, yet uploading files can be frustrating because the satellite internet is slow; I often stayed up late waiting for tide data to sync. My advice is to take neat field notes so you can catch up on data entry when the connection improves. The local community is welcoming, and the fishers will happily share stories if you show patience."
+    }
+  ],
+  "ielts_listening_questions": [
+    {
+      "set_slug": "coastal-research-internship-briefing",
+      "question_order": 1,
+      "question_type": "short_answer",
+      "body": "What is the application deadline mentioned by the coordinator?",
+      "correct_answer": "15 May",
+      "explanation": "The coordinator states that applications must be submitted by the 15th of May."
+    },
+    {
+      "set_slug": "coastal-research-internship-briefing",
+      "question_order": 2,
+      "question_type": "mcq",
+      "body": "Which skill workshop is mandatory before departure?",
+      "options": ["Advanced statistics", "First aid", "Marine photography", "Public speaking"],
+      "correct_answer": "First aid",
+      "explanation": "All interns must complete a campus-based first aid course as stated in the briefing."
+    },
+    {
+      "set_slug": "coastal-research-internship-briefing",
+      "question_order": 3,
+      "question_type": "short_answer",
+      "body": "Which transport cost is covered by the university?",
+      "correct_answer": "return ferry ticket",
+      "explanation": "The coordinator explains that the university pays for the return ferry ticket to the research island."
+    },
+    {
+      "set_slug": "coastal-research-internship-briefing",
+      "question_order": 4,
+      "question_type": "mcq",
+      "body": "How are students accommodated on the island?",
+      "options": ["Hotels in the harbour town", "Tents near the dunes", "Converted lighthouse quarters", "Guest rooms at the marine college"],
+      "correct_answer": "Converted lighthouse quarters",
+      "explanation": "The briefing specifies that interns stay in dormitories inside a renovated lighthouse complex."
+    },
+    {
+      "set_slug": "coastal-research-internship-briefing",
+      "question_order": 5,
+      "question_type": "short_answer",
+      "body": "Which weather condition forced last year’s team to pause surveys?",
+      "correct_answer": "heavy fog",
+      "explanation": "The returning student recalls a week of heavy fog that halted drone-based coastline surveys."
+    },
+    {
+      "set_slug": "coastal-research-internship-briefing",
+      "question_order": 6,
+      "question_type": "mcq",
+      "body": "What did the returning student find most challenging about data entry?",
+      "options": [
+        "Synchronising handwritten notes",
+        "Switching between three software dashboards",
+        "Uploading files with limited internet",
+        "Calibrating temperature sensors"
+      ],
+      "correct_answer": "Uploading files with limited internet",
+      "explanation": "She states that the unstable satellite link made file uploads frustrating."
+    },
+    {
+      "set_slug": "coastal-research-internship-briefing",
+      "question_order": 7,
+      "question_type": "matching",
+      "body": "Match each task with the day of the week it is scheduled.",
+      "options": {
+        "items": ["Drone mapping", "Water sampling", "Community presentations"],
+        "attributes": ["Monday", "Wednesday", "Friday"]
+      },
+      "correct_answer": [
+        "Drone mapping: Monday",
+        "Water sampling: Wednesday",
+        "Community presentations: Friday"
+      ],
+      "explanation": "The coordinator outlines the weekly cycle: mapping on Monday, sampling mid-week, and presentations to residents on Friday afternoons."
+    },
+    {
+      "set_slug": "coastal-research-internship-briefing",
+      "question_order": 8,
+      "question_type": "short_answer",
+      "body": "What item does the coordinator advise students to bring for evening field walks?",
+      "correct_answer": "headlamp",
+      "explanation": "She emphasises packing a headlamp because paths lack lighting after sunset."
+    },
+    {
+      "set_slug": "coastal-research-internship-briefing",
+      "question_order": 9,
+      "question_type": "mcq",
+      "body": "Why will interns meet local fishers on their first weekend?",
+      "options": [
+        "To help repair nets",
+        "To collect oral histories of shoreline change",
+        "To trade supplies",
+        "To arrange private boat tours"
+      ],
+      "correct_answer": "To collect oral histories of shoreline change",
+      "explanation": "Students conduct interviews with fishers to gather qualitative data about erosion patterns."
+    }
+  ],
+  "ielts_writing_tasks": [
+    {
+      "slug": "task1-urban-transport-chart",
+      "task_type": "task1",
+      "title": "Changes in Urban Transport Preferences",
+      "prompt": "The charts below show the percentage of commuters using four modes of transport (metro, bus, cycling, ride-sharing) in a European city in 2000, 2010 and 2020. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
+      "bands_target": "6.5-8.0"
+    },
+    {
+      "slug": "task1-water-cycle-factory",
+      "task_type": "task1",
+      "title": "Process Diagram: Water Recycling Factory",
+      "prompt": "The diagram illustrates how a factory collects, filters, and reuses wastewater for industrial cooling. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
+      "bands_target": "6.0-7.5",
+      "sample_answer": "The diagram depicts a closed-loop system through which a factory captures wastewater and recycles it for cooling machinery. Overall, the process features three stages: collection and storage, mechanical and chemical treatment, and redistribution to the cooling units.\n\nFirst, wastewater from manufacturing lines flows through floor drains into a covered reservoir. A set of coarse grates removes large debris before water enters the reservoir. From there, pumps move the liquid into a primary filtration chamber that contains sand and gravel layers. Suspended particles settle to the bottom while a conveyor extracts sludge for external disposal.\n\nThe partially cleaned water proceeds to a chemical treatment tank where it is aerated and exposed to ultraviolet lamps. A measured quantity of neutralising solution is added to balance the pH. Once sensors confirm that the water meets safety standards, it is transferred to an elevated storage tower. Finally, gravity feeds the recycled water back into the cooling jackets surrounding heavy machinery. After absorbing heat, the water returns to the drains, and the cycle begins again."
+    },
+    {
+      "slug": "task1-dual-campus-map",
+      "task_type": "task1",
+      "title": "Maps of Proposed Campus Relocation",
+      "prompt": "The maps show the current layout of Greybridge College and a proposed redesign that shifts several facilities to a new site. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
+      "bands_target": "6.5-8.0"
+    },
+    {
+      "slug": "task2-remote-work-impact",
+      "task_type": "task2",
+      "title": "Remote Work and Urban Centres",
+      "prompt": "More employees now work from home at least part of the week. Some people believe this trend will revitalise smaller towns, while others think it will weaken city economies. Discuss both views and give your opinion.",
+      "bands_target": "6.5-8.0",
+      "sample_answer": "The rise of remote work has triggered debates about its impact on urban centres. While many argue that flexible work arrangements will breathe new life into smaller towns, others worry that large cities will suffer economically. In my view, the most likely outcome is a partial redistribution of activity rather than a dramatic decline in urban economies.\n\nSupporters of remote work point out that employees are no longer tied to city offices. When people move to smaller towns, they bring purchasing power and fresh demand for services, which can stimulate local shops, co-working hubs and cultural venues. Furthermore, remote professionals can volunteer their skills in regional schools or start-ups, diversifying local labour markets.\n\nHowever, opponents claim that when commuters stay home, metropolitan businesses such as cafes, transport operators and retail outlets lose revenue. This concern is valid in the short term, especially for neighbourhoods that depend on office workers. Yet major cities have historically adapted by reinventing their use of space, converting older office towers into housing or labs, and attracting new industries such as green tech or media production.\n\nOverall, remote work does not necessarily spell decline for city economies. Instead, it encourages both urban and rural areas to innovate. Policymakers should facilitate this transition by improving broadband infrastructure nationwide and redesigning city centres to support mixed-use developments."
+    },
+    {
+      "slug": "task2-cultural-festivals",
+      "task_type": "task2",
+      "title": "Funding Cultural Festivals",
+      "prompt": "Some people say local governments should fund cultural festivals only if they attract tourists, while others believe any community celebration deserves public support. Discuss both views and give your opinion.",
+      "bands_target": "6.0-7.5"
+    },
+    {
+      "slug": "task2-technology-education",
+      "task_type": "task2",
+      "title": "Technology in Classrooms",
+      "prompt": "In many schools, tablets and laptops are replacing printed textbooks. Do the advantages of this development outweigh the disadvantages?",
+      "bands_target": "6.0-7.5"
+    },
+    {
+      "slug": "task2-public-transport-investment",
+      "task_type": "task2",
+      "title": "Investment in Public Transport",
+      "prompt": "Some cities spend heavily on building underground rail networks, while others invest in cycling infrastructure. Which approach do you think is better for reducing congestion?",
+      "bands_target": "6.5-8.0"
+    },
+    {
+      "slug": "task2-lifelong-learning",
+      "task_type": "task2",
+      "title": "Lifelong Learning",
+      "prompt": "Many adults return to formal education later in life. What are the reasons for this, and is it a positive or negative trend?",
+      "bands_target": "6.0-7.5"
+    }
+  ],
+  "ielts_speaking_tasks": [
+    {
+      "slug": "speaking-p1-study-environment",
+      "part": "1",
+      "prompt": "Do you prefer to study at home or in a public place? Why?"
+    },
+    {
+      "slug": "speaking-p1-daily-travel",
+      "part": "1",
+      "prompt": "How do you usually travel around your city, and has this changed recently?"
+    },
+    {
+      "slug": "speaking-p1-reading-habits",
+      "part": "1",
+      "prompt": "What kinds of books or articles do you read most often?"
+    },
+    {
+      "slug": "speaking-p1-technology-break",
+      "part": "1",
+      "prompt": "How often do you try to take a break from digital devices?"
+    },
+    {
+      "slug": "speaking-p1-celebrations",
+      "part": "1",
+      "prompt": "Is there a celebration in your country that you particularly enjoy?"
+    },
+    {
+      "slug": "speaking-p1-morning-routine",
+      "part": "1",
+      "prompt": "What is the first thing you do after waking up, and why?"
+    },
+    {
+      "slug": "speaking-p2-community-project",
+      "part": "2",
+      "prompt": "Describe a community project or event you took part in. You should say what the project was, who organised it, what you did, and explain how you felt about the experience."
+    },
+    {
+      "slug": "speaking-p2-interesting-building",
+      "part": "2",
+      "prompt": "Describe a building you find interesting. You should say where it is, what it looks like, what it is used for, and why you find it interesting."
+    },
+    {
+      "slug": "speaking-p2-useful-app",
+      "part": "2",
+      "prompt": "Describe a mobile application that has been helpful in your studies or work. You should say what the app does, how you discovered it, how often you use it, and explain why you recommend it."
+    },
+    {
+      "slug": "speaking-p2-journey-change",
+      "part": "2",
+      "prompt": "Describe a journey that changed your perspective. You should say where you went, why you travelled there, what happened during the journey, and how it changed your outlook."
+    },
+    {
+      "slug": "speaking-p3-urban-planning",
+      "part": "3",
+      "prompt": "How should cities balance the need for housing with the desire for green spaces?",
+      "follow_ups": [
+        "What role can technology play in monitoring urban green areas?",
+        "Should residents be involved in planning new parks?"
+      ]
+    },
+    {
+      "slug": "speaking-p3-digital-literacy",
+      "part": "3",
+      "prompt": "What skills do students need to succeed in technology-rich classrooms?",
+      "follow_ups": [
+        "How can schools help parents understand new learning platforms?",
+        "Do you think teachers will always be more important than software?"
+      ]
+    },
+    {
+      "slug": "speaking-p3-work-life-balance",
+      "part": "3",
+      "prompt": "Is it realistic for employees to maintain a healthy work-life balance today?",
+      "follow_ups": [
+        "Should companies monitor overtime more strictly?",
+        "How might flexible hours affect productivity?"
+      ]
+    },
+    {
+      "slug": "speaking-p3-cultural-events",
+      "part": "3",
+      "prompt": "Why do communities invest in cultural festivals?",
+      "follow_ups": [
+        "Are small neighbourhood events as valuable as national celebrations?",
+        "How can festivals adapt to environmental concerns?"
+      ]
+    },
+    {
+      "slug": "speaking-p3-lifelong-learning",
+      "part": "3",
+      "prompt": "Why are more adults returning to education?",
+      "follow_ups": [
+        "What challenges do older students face?",
+        "Should employers pay for their staff to study?"
+      ]
+    },
+    {
+      "slug": "speaking-p3-eco-travel",
+      "part": "3",
+      "prompt": "How can tourism be made more sustainable?",
+      "follow_ups": [
+        "Do travellers care more about comfort or sustainability?",
+        "What responsibility do tour operators have?"
+      ]
+    }
+  ],
+  "ielts_mock_tests": [
+    {
+      "slug": "mock-green-learning-suite",
+      "title": "Mock Test: Green Learning Suite",
+      "description": "An integrated mock test focusing on urban development and educational innovation themes.",
+      "duration_minutes": 180,
+      "reading_set_slug": "urban-greening-initiatives",
+      "listening_set_slug": "coastal-research-internship-briefing",
+      "writing_task1_slug": "task1-water-cycle-factory",
+      "writing_task2_slug": "task2-remote-work-impact",
+      "speaking_part1_slug": "speaking-p1-study-environment",
+      "speaking_part2_slug": "speaking-p2-useful-app",
+      "speaking_part3_slug": "speaking-p3-digital-literacy"
+    }
+  ]
+}
