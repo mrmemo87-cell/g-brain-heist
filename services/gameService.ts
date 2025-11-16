@@ -1,4 +1,4 @@
-import { Profile, Task, SessionStatus, Caps, NewsEvent, SubjectData, Question, AnswerResponse, RaidTarget, RaidAttackResult, ShopItem, PurchaseReceipt, Clan, ClanChatMessage, ClanSummary, ClanMember, ClanBuff, InventoryItem, Teacher, TeacherQuestion, CreateQuestionRequest, QuestionAttemptResult, QuestTemplate, Batch } from '../types';
+import { Profile, Task, SessionStatus, Caps, NewsEvent, SubjectData, Question, AnswerResponse, RaidTarget, RaidAttackResult, ShopItem, PurchaseReceipt, Clan, ClanChatMessage, ClanSummary, ClanMember, ClanBuff, InventoryItem, Teacher, TeacherQuestion, CreateQuestionRequest, QuestionAttemptResult, QuestTemplate, Batch, Subject, TeacherAssignmentSummary, StudentAssignmentTask, TeacherAssignmentReportRow, CreateAssignmentRequest, AssignmentResultInput } from '../types';
 import * as RaidFeatureService from '../src/features/raids/raidService';
 import { BossUnlockState, RaidAnswerPayload, RaidFinalizationResult, RaidParticipantState, RaidStatus, RaidWaveState } from '../src/features/raids/raidTypes';
 import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount, canEarnQuestGemstone, recordQuestGemstoneAward, canEarnPvpGemstone, recordPvpGemstoneAward } from './storageService';
@@ -16,7 +16,12 @@ import {
     notifyAttackDefended,
     checkAchievements as rpcCheckAchievements,
     createTeacherProfile as rpcCreateTeacherProfile,
-    recordQuestionAttempt
+    recordQuestionAttempt,
+    createAssignment as rpcCreateAssignment,
+    getAssignmentsForTeacher as rpcGetAssignmentsForTeacher,
+    getStudentActiveAssignment as rpcGetStudentActiveAssignment,
+    submitAssignmentResult as rpcSubmitAssignmentResult,
+    teacherAssignmentReport as rpcTeacherAssignmentReport
 } from './rpcGateway';
 
 const MOCK_DELAY = 500;
@@ -30,6 +35,29 @@ const PVP_GEMSTONE_REWARD = 1;
 const PVP_GEMSTONE_DAILY_CAP = 1;
 
 const nowIso = (): string => new Date().toISOString();
+
+const SUBJECT_ID_LOOKUP: Record<Subject, string> = {
+    Maths: 'maths',
+    Science: 'science',
+    English: 'english',
+    'Russian Language': 'russian_language',
+    'Kyrgyz Language': 'kyrgyz_language',
+    'German Language': 'german_language',
+    Geography: 'geography',
+    'Global Perspective': 'global_perspective',
+    ICT: 'ict',
+};
+
+const resolveSubjectIdentifier = (subject: Subject, provided?: string): string | undefined => {
+    if (provided) return provided;
+    return SUBJECT_ID_LOOKUP[subject] || subject.toLowerCase().replace(/\s+/g, '_');
+};
+
+const normalizeTopicName = (topic?: string | null, fallback?: string | null): string => {
+    const value = topic || fallback || 'General';
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : 'General';
+};
 
 type KyrgyzBotPersona = {
     firstName: string;
@@ -3003,12 +3031,17 @@ export const create_question = async (questionData: CreateQuestionRequest): Prom
     const teacher = await get_teacher_profile();
     if (!teacher) throw new Error('User is not a teacher');
 
+    const subjectId = resolveSubjectIdentifier(questionData.subject, questionData.subject_id);
+    const topicName = normalizeTopicName(questionData.topic, questionData.topic_name);
+
     const { data, error } = await supabase
         .from('questions')
         .insert({
             teacher_id: teacher.id,
             subject: questionData.subject,
-            topic: questionData.topic,
+            subject_id: subjectId,
+            topic: topicName,
+            topic_name: topicName,
             difficulty: questionData.difficulty,
             question_text: questionData.question_text,
             question_type: questionData.question_type,
@@ -3070,12 +3103,21 @@ export const update_question = async (
     questionId: string,
     updates: Partial<CreateQuestionRequest>
 ): Promise<TeacherQuestion> => {
+    const resolvedSubjectId = updates.subject ? resolveSubjectIdentifier(updates.subject, updates.subject_id) : updates.subject_id;
+    const shouldNormalizeTopic = typeof updates.topic === 'string' || typeof updates.topic_name === 'string';
+    const resolvedTopic = shouldNormalizeTopic ? normalizeTopicName(updates.topic, updates.topic_name) : undefined;
+
+    const payload = {
+        ...updates,
+        subject_id: resolvedSubjectId,
+        topic: resolvedTopic ?? updates.topic,
+        topic_name: resolvedTopic ?? updates.topic_name,
+        updated_at: new Date().toISOString(),
+    };
+
     const { data, error } = await supabase
         .from('questions')
-        .update({
-            ...updates,
-            updated_at: new Date().toISOString()
-        })
+        .update(payload)
         .eq('id', questionId)
         .select()
         .single();
@@ -3200,6 +3242,96 @@ export const get_quest_templates = async (subject?: string): Promise<QuestTempla
     if (error) throw error;
 
     return data || [];
+};
+
+export const create_assignment = async (
+    payload: Omit<CreateAssignmentRequest, 'teacher_id'>
+): Promise<TeacherAssignmentSummary> => {
+    const teacher = await get_teacher_profile();
+    if (!teacher) throw new Error('User is not a teacher');
+    if (!payload.question_ids?.length) {
+        throw new Error('Select at least one question for the assignment');
+    }
+
+    const { data, error } = await rpcCreateAssignment({
+        p_teacher_id: teacher.id,
+        p_subject_id: payload.subject_id ?? resolveSubjectIdentifier(payload.subject),
+        p_subject_name: payload.subject,
+        p_topic_name: normalizeTopicName(payload.topic_name),
+        p_batch: payload.batch,
+        p_question_ids: payload.question_ids,
+        p_assigned_at: payload.assigned_at ?? nowIso(),
+        p_due_at: payload.due_at ?? null,
+        p_title: payload.title ?? null,
+        p_instructions: payload.instructions ?? null,
+        p_difficulty: payload.difficulty ?? null,
+    });
+
+    if (error) throw new Error(error.message || 'Failed to create assignment');
+
+    const assignment = (Array.isArray(data) ? data[0] : data) as TeacherAssignmentSummary | undefined;
+    if (!assignment) {
+        throw new Error('Assignment could not be created');
+    }
+    return assignment;
+};
+
+export const get_teacher_assignments = async (): Promise<TeacherAssignmentSummary[]> => {
+    const teacher = await get_teacher_profile();
+    if (!teacher) throw new Error('User is not a teacher');
+
+    const { data, error } = await rpcGetAssignmentsForTeacher({ p_teacher_id: teacher.id });
+    if (error) throw new Error(error.message || 'Failed to load assignments');
+
+    return (data as TeacherAssignmentSummary[]) || [];
+};
+
+export const get_student_active_assignment = async (): Promise<StudentAssignmentTask | null> => {
+    const { data, error } = await rpcGetStudentActiveAssignment();
+    if (error) throw new Error(error.message || 'Failed to load assignment');
+
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row) return null;
+
+    const parsedRow = row as StudentAssignmentTask;
+    const normalizedQuestions = ((parsedRow.questions ?? []) as TeacherQuestion[]).map((question) => ({
+        ...question,
+        topic_name: question.topic_name ?? question.topic ?? 'General',
+    }));
+
+    return {
+        ...parsedRow,
+        questions: normalizedQuestions,
+    };
+};
+
+export const submit_assignment_result = async (payload: AssignmentResultInput): Promise<void> => {
+    const { error } = await rpcSubmitAssignmentResult({
+        p_assignment_id: payload.assignmentId,
+        p_correct: payload.correct,
+        p_incorrect: payload.incorrect,
+        p_accuracy: payload.accuracy,
+        p_score: payload.score,
+        p_time_taken: payload.timeTakenSeconds,
+    });
+
+    if (error) throw new Error(error.message || 'Failed to submit assignment');
+};
+
+export const get_teacher_assignment_report = async (
+    assignmentId: string
+): Promise<TeacherAssignmentReportRow[]> => {
+    const teacher = await get_teacher_profile();
+    if (!teacher) throw new Error('User is not a teacher');
+
+    const { data, error } = await rpcTeacherAssignmentReport({
+        p_assignment_id: assignmentId,
+        p_teacher_id: teacher.id,
+    });
+
+    if (error) throw new Error(error.message || 'Failed to load report');
+
+    return (data as TeacherAssignmentReportRow[]) || [];
 };
 
 type QuestProgressOutcome = {
