@@ -9,6 +9,7 @@ import {
   SoloMissionSummary,
   SoloQuestionPerformance,
   TopicSummary,
+  StudentAssignmentTask,
 } from '../types';
 import * as GameService from '../services/gameService';
 import { audioService } from '../services/audioService';
@@ -25,8 +26,8 @@ import {
 import { getMilestoneReward } from '../src/lib/brains_heist/rewards';
 import { recordSoloQuestion, recordMissionSummary } from '../services/adaptiveService';
 
-type QuestStage = 'loading' | 'mode_selection' | 'subject_selection' | 'in_progress' | 'completed';
-type QuestMode = 'practice' | 'teacher';
+type QuestStage = 'loading' | 'mode_selection' | 'subject_selection' | 'in_progress' | 'completed' | 'assignment_blocked';
+type QuestMode = 'practice' | 'teacher' | 'assignment';
 
 interface RewardParticleProps {
     id: string;
@@ -114,6 +115,10 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
   const [topicSummary, setTopicSummary] = useState<TopicSummary | null>(null);
   const [particles, setParticles] = useState<Omit<RewardParticleProps, 'onComplete'>[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeAssignment, setActiveAssignment] = useState<StudentAssignmentTask | null>(null);
+  const [lastCompletedAssignment, setLastCompletedAssignment] = useState<StudentAssignmentTask | null>(null);
+  const [assignmentStartTime, setAssignmentStartTime] = useState<number | null>(null);
+  const [assignmentSubmissionState, setAssignmentSubmissionState] = useState<'idle' | 'submitting' | 'submitted'>('idle');
 
   const answerFeedbackRef = useRef<HTMLDivElement>(null);
 
@@ -239,6 +244,12 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
 
   // Don't auto-load anymore - wait for mode selection
   const handleModeSelect = (selectedMode: QuestMode) => {
+    if (activeAssignment) {
+      setMode('assignment');
+      setStage('assignment_blocked');
+      return;
+    }
+
     setMode(selectedMode);
     setStage('loading');
     
@@ -267,6 +278,42 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
   
   const handleParticleComplete = (id: string) => {
       setParticles(current => current.filter(p => p.id !== id));
+  };
+
+  const hydrateAssignment = async () => {
+      try {
+          const assignment = await GameService.get_student_active_assignment();
+          if (assignment) {
+              setActiveAssignment(assignment);
+              setLastCompletedAssignment(null);
+              setMode('assignment');
+              setTeacherQuestions(assignment.questions);
+              setSelectedSubject({ id: assignment.subject_id || assignment.subject_name, name: assignment.subject_name, difficulty: 1 });
+              setStage('assignment_blocked');
+              setCurrentQuestionIndex(0);
+              setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
+              setSelectedOption(null);
+              setAnswerResponse(null);
+              setQuestionScores([]);
+              setQuestionPerformances([]);
+              setMissionSummary(null);
+              setTopicSummary(null);
+              setAssignmentSubmissionState('idle');
+              setAssignmentStartTime(null);
+          } else {
+              setActiveAssignment(null);
+              setTeacherQuestions([]);
+              setSelectedSubject(null);
+              if (mode === 'assignment') {
+                  setMode('practice');
+              }
+              if (stage === 'assignment_blocked') {
+                  setStage('mode_selection');
+              }
+          }
+      } catch (error) {
+          console.error('Error loading assignment:', error);
+      }
   };
 
   const handleSubjectSelect = (subject: SubjectData) => {
@@ -316,6 +363,24 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
     }
   };
 
+  const handleAssignmentBegin = () => {
+    if (!activeAssignment) return;
+    setStage('in_progress');
+    setMode('assignment');
+    setCurrentQuestionIndex(0);
+    setSelectedOption(null);
+    setAnswerResponse(null);
+    setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
+    setQuestionScores([]);
+    setQuestionPerformances([]);
+    setSoloStreak(0);
+    setMissionSummary(null);
+    setTopicSummary(null);
+    const now = Date.now();
+    setAssignmentStartTime(now);
+    setQuestionStartTime(now);
+  };
+
   useEffect(() => {
     if (stage !== 'in_progress') return;
     const activeQuestion = mode === 'practice' ? questions[currentQuestionIndex] : teacherQuestions[currentQuestionIndex];
@@ -323,6 +388,47 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
       setQuestionStartTime(Date.now());
     }
   }, [stage, currentQuestionIndex, mode, questions, teacherQuestions]);
+
+  useEffect(() => {
+    if (stage === 'mode_selection') {
+      hydrateAssignment();
+    }
+  }, [stage]);
+
+  useEffect(() => {
+    const submitResult = async () => {
+      if (stage !== 'completed' || mode !== 'assignment' || !activeAssignment || assignmentSubmissionState !== 'idle') {
+        return;
+      }
+
+      const totalQuestions = teacherQuestions.length;
+      const correctCount = score.correct;
+      const incorrectCount = Math.max(0, totalQuestions - correctCount);
+      const accuracyPercent = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+      const missionTotal = Math.round(calculateMissionScore(questionScores));
+      const timeTakenSeconds = assignmentStartTime ? Math.max(0, Math.round((Date.now() - assignmentStartTime) / 1000)) : 0;
+
+      try {
+        setAssignmentSubmissionState('submitting');
+        await GameService.submit_assignment_result({
+          assignmentId: activeAssignment.assignment_id,
+          correct: correctCount,
+          incorrect: incorrectCount,
+          accuracy: accuracyPercent,
+          score: missionTotal,
+          timeTakenSeconds,
+        });
+        setAssignmentSubmissionState('submitted');
+        setLastCompletedAssignment(activeAssignment);
+        setActiveAssignment(null);
+      } catch (error) {
+        console.error('Failed to submit assignment result:', error);
+        setAssignmentSubmissionState('idle');
+      }
+    };
+
+    submitResult();
+  }, [stage, mode, activeAssignment, teacherQuestions.length, score.correct, questionScores, assignmentStartTime, assignmentSubmissionState]);
 
   const handleAnswerSubmit = async (option: string) => {
     if (answerResponse || isSubmitting) return;
@@ -510,8 +616,9 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
   const renderInProgress = () => {
     const question = mode === 'practice' ? questions[currentQuestionIndex] : null;
     const teacherQuestion = mode === 'teacher' ? teacherQuestions[currentQuestionIndex] : null;
-    
-    if (!question && !teacherQuestion) return null;
+    const assignmentQuestion = mode === 'assignment' ? teacherQuestions[currentQuestionIndex] : null;
+
+    if (!question && !teacherQuestion && !assignmentQuestion) return null;
 
     const getOptionClasses = (option: string, correctAnswer: string) => {
         const baseClass = 'p-4 rounded-2xl border text-left transition-colors duration-300 disabled:cursor-not-allowed';
@@ -530,14 +637,16 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
         return `${baseClass} bg-black/10 border-gray-700 opacity-50`;
     };
 
-    const questionText = mode === 'practice' ? question!.body : teacherQuestion!.question_text;
+    const activeTeacherQuestion = mode === 'assignment' ? assignmentQuestion : teacherQuestion;
+    const questionText = mode === 'practice' ? question!.body : activeTeacherQuestion!.question_text;
     const options: string[] = mode === 'practice'
       ? question?.options ?? []
-      : teacherQuestion?.options ?? [];
+      : activeTeacherQuestion?.options ?? [];
     const correctAnswer = mode === 'practice'
       ? question!.correct_answer ?? ''
-      : teacherQuestion!.correct_answer ?? '';
+      : activeTeacherQuestion!.correct_answer ?? '';
     const totalQuestions = mode === 'practice' ? questions.length : teacherQuestions.length;
+    const assignmentDetails = mode === 'assignment' ? (activeAssignment || lastCompletedAssignment) : null;
 
     return (
       <div className="max-w-3xl mx-auto">
@@ -556,6 +665,12 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
               <span className="text-xs px-2 py-1 rounded-full bg-yellow-500/20 border border-yellow-400">
                 {teacherQuestion.points} XP
               </span>
+            </div>
+          )}
+          {mode === 'assignment' && assignmentDetails && (
+            <div className="flex flex-col items-center gap-1 mt-2 text-sm text-gray-300">
+              <span>Assigned by {assignmentDetails.teacher_username}</span>
+              <span>Due {assignmentDetails.due_at ? new Date(assignmentDetails.due_at).toLocaleString() : 'No deadline'}</span>
             </div>
           )}
         </div>
@@ -580,6 +695,11 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
         <div className="card-glass p-6 mb-6">
             <p className="text-xl text-gray-200">{questionText}</p>
         </div>
+        {mode === 'assignment' && assignmentDetails?.instructions && (
+          <div className="card-glass p-4 mb-6 border border-purple-500/30 text-sm text-gray-200">
+            {assignmentDetails.instructions}
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {options.map((option, index) => (
             <button
@@ -655,6 +775,47 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
     </div>
   );
 
+  const renderAssignmentBlocker = () => {
+    if (!activeAssignment) return null;
+    return (
+      <div className="max-w-3xl mx-auto card-glass p-8 text-center">
+        <div className="text-6xl mb-4">🚨</div>
+        <h2 className="font-heading text-3xl text-white mb-3">Mandatory Assignment</h2>
+        <p className="text-gray-300 mb-4">
+          You have a compulsory assignment from <span className="text-white font-semibold">{activeAssignment.teacher_username}</span>.
+          Complete it before continuing regular quests.
+        </p>
+        {activeAssignment.instructions && (
+          <p className="text-gray-400 mb-4">{activeAssignment.instructions}</p>
+        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-sm">
+          <div className="card-glass p-4 border border-purple-500/30">
+            <p className="text-gray-400">Subject</p>
+            <p className="text-white font-semibold">{activeAssignment.subject_name}</p>
+          </div>
+          <div className="card-glass p-4 border border-purple-500/30">
+            <p className="text-gray-400">Topic</p>
+            <p className="text-white font-semibold">{activeAssignment.topic_name}</p>
+          </div>
+          <div className="card-glass p-4 border border-purple-500/30">
+            <p className="text-gray-400">Assigned</p>
+            <p className="text-white font-semibold">{new Date(activeAssignment.assigned_at).toLocaleString()}</p>
+          </div>
+          <div className="card-glass p-4 border border-purple-500/30">
+            <p className="text-gray-400">Due</p>
+            <p className="text-white font-semibold">{activeAssignment.due_at ? new Date(activeAssignment.due_at).toLocaleString() : 'No deadline'}</p>
+          </div>
+        </div>
+        <button
+          onClick={handleAssignmentBegin}
+          className="px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white font-heading text-lg hover:scale-105 transition-all"
+        >
+          Begin Assignment
+        </button>
+      </div>
+    );
+  };
+
   const renderCompleted = () => {
     const totalQuestions = mode === 'practice' ? questions.length : teacherQuestions.length;
     const missionTotal = missionSummary?.missionScore ?? Math.round(calculateMissionScore(questionScores));
@@ -688,6 +849,10 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
         ? '✅ Next topic unlocked'
         : 'Keep pushing to unlock the next topic'
       : 'Run more missions to unlock new branches';
+
+    const assignmentContext = mode === 'assignment' ? (activeAssignment || lastCompletedAssignment) : lastCompletedAssignment;
+    const isAssignmentRun = Boolean(mode === 'assignment' || assignmentContext);
+    const isAssignmentSubmitting = mode === 'assignment' && assignmentSubmissionState === 'submitting';
 
     return (
       <div className="text-center max-w-2xl mx-auto">
@@ -738,26 +903,54 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
               <span style={{ color: 'var(--plasma-pink)' }}>{score.gemstones >= 0 ? `+${score.gemstones}` : score.gemstones}</span>
             </p>
           </div>
+          {isAssignmentRun && assignmentContext && (
+            <div className="card-glass p-4 border border-purple-500/40 text-left text-sm text-gray-200 mb-6">
+              <p><span className="text-gray-400">Assigned by:</span> {assignmentContext.teacher_username}</p>
+              <p><span className="text-gray-400">Subject:</span> {assignmentContext.subject_name} · {assignmentContext.topic_name}</p>
+              <p><span className="text-gray-400">Due:</span> {assignmentContext.due_at ? new Date(assignmentContext.due_at).toLocaleString() : 'No deadline'}</p>
+            </div>
+          )}
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
             <button
+              disabled={isAssignmentSubmitting}
               onClick={() => {
-                setStage('subject_selection');
-                setSelectedSubject(null);
-                setQuestions([]);
-                setTeacherQuestions([]);
-                setCurrentQuestionIndex(0);
-                setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
-                setQuestionScores([]);
-                setQuestionPerformances([]);
-                setSoloStreak(0);
-                setMissionSummary(null);
-                setTopicSummary(null);
-                setQuestionStartTime(null);
+                if (mode === 'assignment' || assignmentContext) {
+                  setMode('practice');
+                  setStage('mode_selection');
+                  setSelectedSubject(null);
+                  setQuestions([]);
+                  setTeacherQuestions([]);
+                  setCurrentQuestionIndex(0);
+                  setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
+                  setQuestionScores([]);
+                  setQuestionPerformances([]);
+                  setSoloStreak(0);
+                  setMissionSummary(null);
+                  setTopicSummary(null);
+                  setQuestionStartTime(null);
+                  setAssignmentStartTime(null);
+                  setLastCompletedAssignment(null);
+                  setAssignmentSubmissionState('idle');
+                  hydrateAssignment();
+                } else {
+                  setStage('subject_selection');
+                  setSelectedSubject(null);
+                  setQuestions([]);
+                  setTeacherQuestions([]);
+                  setCurrentQuestionIndex(0);
+                  setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
+                  setQuestionScores([]);
+                  setQuestionPerformances([]);
+                  setSoloStreak(0);
+                  setMissionSummary(null);
+                  setTopicSummary(null);
+                  setQuestionStartTime(null);
+                }
               }}
-              className="px-8 py-4 rounded-lg font-bold text-lg gradient-cyan hover:scale-105 active:scale-95 transition-all shadow-lg animate-pulse-glow"
+              className={`px-8 py-4 rounded-lg font-bold text-lg transition-all shadow-lg ${isAssignmentSubmitting ? 'opacity-60 cursor-not-allowed bg-gray-600 text-gray-300' : 'gradient-cyan hover:scale-105 active:scale-95 animate-pulse-glow'}`}
             >
-              🎯 Next Quest
+              {isAssignmentSubmitting ? 'Submitting...' : '🎯 Next Quest'}
             </button>
             <button
               onClick={onComplete}
@@ -778,6 +971,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
       case 'subject_selection': return renderSubjectSelection();
       case 'in_progress': return renderInProgress();
       case 'completed': return renderCompleted();
+      case 'assignment_blocked': return renderAssignmentBlocker();
       default: return null;
     }
   }

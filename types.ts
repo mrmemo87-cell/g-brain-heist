@@ -84,6 +84,7 @@ export interface SubjectData {
 }
 
 export type Subject = 'Maths' | 'Science' | 'English' | 'Russian Language' | 'Kyrgyz Language' | 'German Language' | 'Geography' | 'Global Perspective' | 'ICT';
+export type AssignmentBatch = '8A' | '8B' | '8C' | 'All';
 
 export interface Question {
   id: string;
@@ -437,12 +438,18 @@ export type QuestionDifficulty = 'easy' | 'medium' | 'hard';
 export interface TeacherQuestion {
   id: string;
   teacher_id: string;
-  
+
   // Content
   subject: Subject;
+<<<<<<< HEAD
   subject_id?: string;
   topic?: string;
   topic_name?: string;
+=======
+  subject_id?: string | null;
+  topic?: string;
+  topic_name?: string | null;
+>>>>>>> 201c1acc3663b15e1c735f9c503144bc53bef4b4
   difficulty: QuestionDifficulty;
   question_text: string;
   
@@ -525,7 +532,9 @@ export interface ClassStudent {
 // Request/Response types for teacher operations
 export interface CreateQuestionRequest {
   subject: Subject;
+  subject_id?: string;
   topic?: string;
+  topic_name?: string;
   difficulty: QuestionDifficulty;
   question_text: string;
   question_type: QuestionType;
@@ -538,6 +547,71 @@ export interface CreateQuestionRequest {
   tags?: string[];
   grade_level?: string;
   is_public?: boolean;
+}
+
+export interface TeacherAssignmentSummary {
+  id: string;
+  teacher_id: string;
+  subject_id?: string | null;
+  subject_name: string;
+  topic_name: string;
+  batch: AssignmentBatch;
+  difficulty?: QuestionDifficulty | null;
+  question_count: number;
+  title?: string | null;
+  instructions?: string | null;
+  assigned_at: string;
+  due_at?: string | null;
+  completed_count: number;
+  student_count: number;
+}
+
+export interface StudentAssignmentTask {
+  assignment_id: string;
+  subject_id?: string | null;
+  subject_name: string;
+  topic_name: string;
+  batch: AssignmentBatch;
+  teacher_username: string;
+  assigned_at: string;
+  due_at?: string | null;
+  title?: string | null;
+  instructions?: string | null;
+  questions: TeacherQuestion[];
+}
+
+export interface TeacherAssignmentReportRow {
+  student_id: string;
+  student_name: string;
+  batch: Batch | null;
+  score: number;
+  correct: number;
+  incorrect: number;
+  accuracy: number;
+  completed_at: string;
+}
+
+export interface CreateAssignmentRequest {
+  teacher_id: string;
+  subject: Subject;
+  subject_id?: string;
+  topic_name: string;
+  batch: AssignmentBatch;
+  question_ids: string[];
+  assigned_at: string;
+  due_at?: string;
+  title?: string;
+  instructions?: string;
+  difficulty?: QuestionDifficulty;
+}
+
+export interface AssignmentResultInput {
+  assignmentId: string;
+  correct: number;
+  incorrect: number;
+  accuracy: number;
+  score: number;
+  timeTakenSeconds: number;
 }
 
 export interface QuestionAttemptResult {

@@ -73,6 +73,38 @@ export const recordQuestionAttempt = (
   return execute('record_question_attempt', payload, client);
 };
 
+export const createAssignment = (
+  payload: Record<string, unknown>,
+  client?: RpcClient
+): RpcResult<unknown> => {
+  return execute('rpc_create_assignment', payload, client);
+};
+
+export const getAssignmentsForTeacher = (
+  payload: Record<string, unknown>,
+  client?: RpcClient
+): RpcResult<unknown> => {
+  return execute('rpc_get_assignments_for_teacher', payload, client);
+};
+
+export const getStudentActiveAssignment = (client?: RpcClient): RpcResult<unknown> => {
+  return execute('rpc_get_student_active_assignment', {}, client);
+};
+
+export const submitAssignmentResult = (
+  payload: Record<string, unknown>,
+  client?: RpcClient
+): RpcResult<unknown> => {
+  return execute('rpc_submit_assignment_result', payload, client);
+};
+
+export const teacherAssignmentReport = (
+  payload: Record<string, unknown>,
+  client?: RpcClient
+): RpcResult<unknown> => {
+  return execute('rpc_teacher_assignment_report', payload, client);
+};
+
 export const createRaidSession = (
   bossId: string,
   waveInfo: Record<string, unknown>,
