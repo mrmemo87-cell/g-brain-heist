@@ -1,4 +1,4 @@
-import { Profile, Task, SessionStatus, Caps, NewsEvent, SubjectData, Question, AnswerResponse, RaidTarget, RaidAttackResult, ShopItem, PurchaseReceipt, Clan, ClanChatMessage, ClanSummary, ClanMember, ClanBuff, InventoryItem, Teacher, TeacherQuestion, CreateQuestionRequest, QuestionAttemptResult, QuestTemplate, Batch } from '../types';
+import { Profile, Task, SessionStatus, Caps, NewsEvent, SubjectData, Question, AnswerResponse, RaidTarget, RaidAttackResult, ShopItem, PurchaseReceipt, Clan, ClanChatMessage, ClanSummary, ClanMember, ClanBuff, InventoryItem, Teacher, TeacherQuestion, CreateQuestionRequest, QuestionAttemptResult, QuestTemplate, Batch, Assignment, CreateAssignmentRequest } from '../types';
 import * as RaidFeatureService from '../src/features/raids/raidService';
 import { BossUnlockState, RaidAnswerPayload, RaidFinalizationResult, RaidParticipantState, RaidStatus, RaidWaveState } from '../src/features/raids/raidTypes';
 import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount, canEarnQuestGemstone, recordQuestGemstoneAward, canEarnPvpGemstone, recordPvpGemstoneAward } from './storageService';
@@ -1233,6 +1233,41 @@ export const activity_reaction_toggle = async (activity_id: string, emoji: strin
   }
 };
 
+const SUBJECT_ID_BY_NAME: Record<string, string> = {
+    Maths: 'subj_math',
+    Mathematics: 'subj_math',
+    Science: 'subj_science',
+    English: 'subj_english',
+    'Russian Language': 'subj_russian_language',
+    'Russian Literature': 'subj_russian_literature',
+    'Kyrgyz Language': 'subj_kyrgyz_language',
+    'Kyrgyz History': 'subj_kyrgyz_history',
+    'German Language': 'subj_german_language',
+    Geography: 'subj_geography',
+    'Global Perspective': 'subj_global_perspective',
+    ICT: 'subj_ict',
+};
+
+const SUBJECT_NAME_BY_ID: Record<string, string> = {
+    subj_science: 'Science',
+    subj_math: 'Maths',
+    subj_mathematics: 'Maths',
+    subj_english: 'English',
+    subj_russian_language: 'Russian Language',
+    subj_russian_literature: 'Russian Language',
+    subj_kyrgyz_language: 'Kyrgyz Language',
+    subj_kyrgyz_history: 'Kyrgyz History',
+    subj_german_language: 'German Language',
+    subj_geography: 'Geography',
+    subj_global_perspective: 'Global Perspective',
+    subj_ict: 'ICT',
+};
+
+const mapSubjectToId = (subject?: string | null): string | null => {
+    if (!subject) return null;
+    return SUBJECT_ID_BY_NAME[subject] || null;
+};
+
 export const mcq_subjects_list = (): Promise<SubjectData[]> => {
     const subjects: SubjectData[] = [
         // Science
@@ -1269,22 +1304,7 @@ export const mcq_subjects_list = (): Promise<SubjectData[]> => {
 };
 
 export const mcq_questions_get = async (subject_id: string, limit: number = 5): Promise<Question[]> => {
-    // Map subject_id to subject name for teacher questions
-    const subjectMap: { [key: string]: string } = {
-        'subj_science': 'Science',
-        'subj_math': 'Maths',
-        'subj_mathematics': 'Maths',
-        'subj_english': 'English',
-        'subj_russian_language': 'Russian Language',
-        'subj_kyrgyz_language': 'Kyrgyz Language',
-        'subj_german_language': 'German Language',
-        'subj_geography': 'Geography',
-        'subj_global_perspective': 'Global Perspective',
-        'subj_russian_literature': 'Russian Language',
-        'subj_ict': 'ICT'
-    };
-
-    const subjectName = subjectMap[subject_id] || 'Science';
+    const subjectName = SUBJECT_NAME_BY_ID[subject_id] || 'Science';
 
     // Fetch teacher questions from database
     const { data, error } = await supabase
@@ -3008,7 +3028,9 @@ export const create_question = async (questionData: CreateQuestionRequest): Prom
         .insert({
             teacher_id: teacher.id,
             subject: questionData.subject,
+            subject_id: mapSubjectToId(questionData.subject),
             topic: questionData.topic,
+            topic_name: questionData.topic,
             difficulty: questionData.difficulty,
             question_text: questionData.question_text,
             question_type: questionData.question_type,
@@ -3070,12 +3092,22 @@ export const update_question = async (
     questionId: string,
     updates: Partial<CreateQuestionRequest>
 ): Promise<TeacherQuestion> => {
+    const payload: Record<string, unknown> = {
+        ...updates,
+        updated_at: new Date().toISOString()
+    };
+
+    if (Object.prototype.hasOwnProperty.call(updates, 'subject') && updates.subject) {
+        payload.subject_id = mapSubjectToId(updates.subject);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(updates, 'topic')) {
+        payload.topic_name = updates.topic ?? null;
+    }
+
     const { data, error } = await supabase
         .from('questions')
-        .update({
-            ...updates,
-            updated_at: new Date().toISOString()
-        })
+        .update(payload)
         .eq('id', questionId)
         .select()
         .single();
@@ -3095,6 +3127,48 @@ export const delete_question = async (questionId: string): Promise<void> => {
         .eq('id', questionId);
 
     if (error) throw error;
+};
+
+/**
+ * Create a teacher assignment targeting specific grades and batches
+ */
+export const create_assignment = async (payload: CreateAssignmentRequest): Promise<Assignment> => {
+    if (!payload.question_ids || payload.question_ids.length === 0) {
+        throw new Error('Select at least one question for the assignment');
+    }
+
+    const teacher = await get_teacher_profile();
+    if (!teacher) throw new Error('User is not a teacher');
+
+    const subjectId = mapSubjectToId(payload.subject);
+
+    const rpcPayload = {
+        p_teacher_id: teacher.id,
+        p_subject_id: subjectId,
+        p_subject_name: payload.subject,
+        p_topic_name: payload.topic_name ?? null,
+        p_grade_levels: payload.grade_levels && payload.grade_levels.length > 0 ? payload.grade_levels : null,
+        p_batch_codes: payload.batch_codes && payload.batch_codes.length > 0 ? payload.batch_codes : null,
+        p_question_ids: payload.question_ids,
+        p_assigned_at: payload.assigned_at ?? new Date().toISOString(),
+        p_due_at: payload.due_at ?? null,
+        p_title: payload.title,
+        p_instructions: payload.instructions ?? null,
+        p_difficulty: payload.difficulty ?? null
+    };
+
+    const { data, error } = await supabase.rpc('rpc_create_assignment', rpcPayload);
+
+    if (error) {
+        throw new Error(error.message || 'Failed to create assignment');
+    }
+
+    if (!data) {
+        throw new Error('Assignment was created but no data was returned');
+    }
+
+    const assignment = Array.isArray(data) ? (data[0] as Assignment) : (data as Assignment);
+    return assignment;
 };
 
 /**
@@ -3276,7 +3350,7 @@ const finalizeMcqAnswer = async ({
             .eq('student_id', userId)
             .eq('question_id', question.id)
             .eq('is_correct', true)
-            .order('created_at', { ascending: false })
+            .order('attempted_at', { ascending: false })
             .limit(1);
 
         if (existingCorrectError) {

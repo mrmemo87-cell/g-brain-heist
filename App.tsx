@@ -783,8 +783,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                             </div>
                         </div>
                         
-                        {/* News Feed */}
-                        <NewsFeed news={news} />
                     </main>
                 );
             }
@@ -823,9 +821,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                     </div>
 
                     {/* Right Column */}
-                    <div className="lg:col-span-3 xl:col-span-3 space-y-6">
-                        <NewsFeed news={news} />
-                    </div>
+          <div className="lg:col-span-3 xl:col-span-3 space-y-6">
+            {profile?.role !== 'teacher' && <NewsFeed news={news} />}
+          </div>
                 </main>
             );
     }

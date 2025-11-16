@@ -351,7 +351,7 @@ export const searchPlayers = async (query: string, limit = 20) => {
 
 export const fetchPlayerLastAttempt = async (userId: string): Promise<string | null> => {
   const { data, error } = await supabase
-    .from('attempts')
+    .from('competition_attempts')
     .select('created_at')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
@@ -416,11 +416,11 @@ export const fetchAdminOverviewStats = async (): Promise<AdminOverviewStats> => 
 
   const [playersTodayRes, attemptsRes, summaries, errorLogRes, gemRes] = await Promise.all([
     supabase
-      .from('attempts')
+      .from('competition_attempts')
       .select('user_id', { head: true, count: 'exact' })
       .gte('created_at', startOfDay.toISOString()),
     supabase
-      .from('attempts')
+      .from('competition_attempts')
       .select('id', { head: true, count: 'exact' })
       .gte('created_at', fiveMinutesAgo.toISOString()),
     fetchBatchSummaries(),
@@ -433,7 +433,7 @@ export const fetchAdminOverviewStats = async (): Promise<AdminOverviewStats> => 
       .maybeSingle(),
     // aggregate gemstones across users (non-null numbers expected)
     supabase
-      .from('users')
+      .from('competition_players')
       .select('sum(gemstones)')
       .maybeSingle(),
   ]);
@@ -464,7 +464,7 @@ export const fetchAdminOverviewStats = async (): Promise<AdminOverviewStats> => 
 export const fetchAttemptsPerMinute = async () => {
   const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
   const { data, error } = await supabase
-    .from('attempts')
+    .from('competition_attempts')
     .select('created_at')
     .gte('created_at', tenMinutesAgo);
 

@@ -27,7 +27,9 @@ CREATE TABLE IF NOT EXISTS questions (
   
   -- Question content
   subject TEXT NOT NULL, -- Math, Science, History, English, etc.
+  subject_id TEXT, -- Optional subject slug for legacy compatibility
   topic TEXT, -- Algebra, World War II, etc.
+  topic_name TEXT, -- Legacy topic label support
   difficulty TEXT NOT NULL CHECK (difficulty IN ('easy', 'medium', 'hard')),
   question_text TEXT NOT NULL,
   
@@ -68,8 +70,51 @@ CREATE TABLE IF NOT EXISTS question_attempts (
   time_taken INTEGER, -- seconds taken to answer
   points_earned INTEGER DEFAULT 0,
   
-  attempted_at TIMESTAMPTZ DEFAULT NOW()
+  attempted_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ GENERATED ALWAYS AS (attempted_at) STORED
 );
+
+-- Ensure legacy subject_id column exists for compatibility
+ALTER TABLE questions
+  ADD COLUMN IF NOT EXISTS subject_id TEXT;
+
+ALTER TABLE questions
+  ADD COLUMN IF NOT EXISTS topic_name TEXT;
+
+-- Backfill subject_id values when missing
+DO $$
+BEGIN
+  UPDATE questions
+  SET subject_id = CASE subject
+    WHEN 'Maths' THEN 'subj_math'
+    WHEN 'Mathematics' THEN 'subj_math'
+    WHEN 'Science' THEN 'subj_science'
+    WHEN 'English' THEN 'subj_english'
+    WHEN 'Russian Language' THEN 'subj_russian_language'
+    WHEN 'Russian Literature' THEN 'subj_russian_literature'
+    WHEN 'Kyrgyz Language' THEN 'subj_kyrgyz_language'
+    WHEN 'Kyrgyz History' THEN 'subj_kyrgyz_history'
+    WHEN 'German Language' THEN 'subj_german_language'
+    WHEN 'Geography' THEN 'subj_geography'
+    WHEN 'Global Perspective' THEN 'subj_global_perspective'
+    WHEN 'ICT' THEN 'subj_ict'
+    ELSE subject_id
+  END
+  WHERE subject IS NOT NULL AND subject_id IS NULL;
+END;
+$$;
+
+DO $$
+BEGIN
+  UPDATE questions
+  SET topic_name = topic
+  WHERE topic IS NOT NULL AND topic_name IS NULL;
+END;
+$$;
+
+-- Backfill compatibility column if table already existed without generated created_at
+ALTER TABLE question_attempts
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ GENERATED ALWAYS AS (attempted_at) STORED;
 
 -- Step 5: Create quest_templates table (teacher-created quests)
 CREATE TABLE IF NOT EXISTS quest_templates (
@@ -131,6 +176,7 @@ CREATE TABLE IF NOT EXISTS class_students (
 CREATE INDEX IF NOT EXISTS idx_teachers_user_id ON teachers(user_id);
 CREATE INDEX IF NOT EXISTS idx_questions_teacher_id ON questions(teacher_id);
 CREATE INDEX IF NOT EXISTS idx_questions_subject ON questions(subject);
+CREATE INDEX IF NOT EXISTS idx_questions_subject_id ON questions(subject_id);
 CREATE INDEX IF NOT EXISTS idx_questions_difficulty ON questions(difficulty);
 CREATE INDEX IF NOT EXISTS idx_questions_is_public ON questions(is_public);
 CREATE INDEX IF NOT EXISTS idx_question_attempts_student_id ON question_attempts(student_id);
@@ -147,120 +193,324 @@ CREATE INDEX IF NOT EXISTS idx_class_students_student_id ON class_students(stude
 -- Teachers table policies
 ALTER TABLE teachers ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Teachers are viewable by everyone"
-  ON teachers FOR SELECT
-  USING (true);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'teachers'
+      AND policyname = 'Teachers are viewable by everyone'
+  ) THEN
+    EXECUTE 'CREATE POLICY "Teachers are viewable by everyone"
+      ON teachers FOR SELECT
+      USING (true)';
+  END IF;
+END;
+$$;
 
-CREATE POLICY "Users can insert their own teacher profile"
-  ON teachers FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'teachers'
+      AND policyname = 'Users can insert their own teacher profile'
+  ) THEN
+    EXECUTE 'CREATE POLICY "Users can insert their own teacher profile"
+      ON teachers FOR INSERT
+      WITH CHECK (auth.uid() = user_id)';
+  END IF;
+END;
+$$;
 
-CREATE POLICY "Users can update their own teacher profile"
-  ON teachers FOR UPDATE
-  USING (auth.uid() = user_id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'teachers'
+      AND policyname = 'Users can update their own teacher profile'
+  ) THEN
+    EXECUTE 'CREATE POLICY "Users can update their own teacher profile"
+      ON teachers FOR UPDATE
+      USING (auth.uid() = user_id)';
+  END IF;
+END;
+$$;
 
 -- Questions table policies
 ALTER TABLE questions ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Public questions are viewable by everyone"
-  ON questions FOR SELECT
-  USING (is_public = true OR teacher_id IN (
-    SELECT id FROM teachers WHERE user_id = auth.uid()
-  ));
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'questions'
+      AND policyname = 'Public questions are viewable by everyone'
+  ) THEN
+    EXECUTE 'CREATE POLICY "Public questions are viewable by everyone"
+      ON questions FOR SELECT
+      USING (is_public = true OR teacher_id IN (
+        SELECT id FROM teachers WHERE user_id = auth.uid()
+      ))';
+  END IF;
+END;
+$$;
 
-CREATE POLICY "Teachers can insert their own questions"
-  ON questions FOR INSERT
-  WITH CHECK (teacher_id IN (
-    SELECT id FROM teachers WHERE user_id = auth.uid()
-  ));
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'questions'
+      AND policyname = 'Teachers can insert their own questions'
+  ) THEN
+    EXECUTE 'CREATE POLICY "Teachers can insert their own questions"
+      ON questions FOR INSERT
+      WITH CHECK (teacher_id IN (
+        SELECT id FROM teachers WHERE user_id = auth.uid()
+      ))';
+  END IF;
+END;
+$$;
 
-CREATE POLICY "Teachers can update their own questions"
-  ON questions FOR UPDATE
-  USING (teacher_id IN (
-    SELECT id FROM teachers WHERE user_id = auth.uid()
-  ));
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'questions'
+      AND policyname = 'Teachers can update their own questions'
+  ) THEN
+    EXECUTE 'CREATE POLICY "Teachers can update their own questions"
+      ON questions FOR UPDATE
+      USING (teacher_id IN (
+        SELECT id FROM teachers WHERE user_id = auth.uid()
+      ))';
+  END IF;
+END;
+$$;
 
-CREATE POLICY "Teachers can delete their own questions"
-  ON questions FOR DELETE
-  USING (teacher_id IN (
-    SELECT id FROM teachers WHERE user_id = auth.uid()
-  ));
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'questions'
+      AND policyname = 'Teachers can delete their own questions'
+  ) THEN
+    EXECUTE 'CREATE POLICY "Teachers can delete their own questions"
+      ON questions FOR DELETE
+      USING (teacher_id IN (
+        SELECT id FROM teachers WHERE user_id = auth.uid()
+      ))';
+  END IF;
+END;
+$$;
 
 -- Question attempts policies
 ALTER TABLE question_attempts ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Students can view their own attempts"
-  ON question_attempts FOR SELECT
-  USING (student_id = auth.uid());
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'question_attempts'
+      AND policyname = 'Students can view their own attempts'
+  ) THEN
+    EXECUTE 'CREATE POLICY "Students can view their own attempts"
+      ON question_attempts FOR SELECT
+      USING (student_id = auth.uid())';
+  END IF;
+END;
+$$;
 
-CREATE POLICY "Teachers can view attempts on their questions"
-  ON question_attempts FOR SELECT
-  USING (question_id IN (
-    SELECT q.id FROM questions q
-    JOIN teachers t ON q.teacher_id = t.id
-    WHERE t.user_id = auth.uid()
-  ));
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'question_attempts'
+      AND policyname = 'Teachers can view attempts on their questions'
+  ) THEN
+    EXECUTE 'CREATE POLICY "Teachers can view attempts on their questions"
+      ON question_attempts FOR SELECT
+      USING (question_id IN (
+        SELECT q.id FROM questions q
+        JOIN teachers t ON q.teacher_id = t.id
+        WHERE t.user_id = auth.uid()
+      ))';
+  END IF;
+END;
+$$;
 
-CREATE POLICY "Students can insert their own attempts"
-  ON question_attempts FOR INSERT
-  WITH CHECK (student_id = auth.uid());
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'question_attempts'
+      AND policyname = 'Students can insert their own attempts'
+  ) THEN
+    EXECUTE 'CREATE POLICY "Students can insert their own attempts"
+      ON question_attempts FOR INSERT
+      WITH CHECK (student_id = auth.uid())';
+  END IF;
+END;
+$$;
 
 -- Quest templates policies
 ALTER TABLE quest_templates ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Public quest templates are viewable by everyone"
-  ON quest_templates FOR SELECT
-  USING (is_public = true OR teacher_id IN (
-    SELECT id FROM teachers WHERE user_id = auth.uid()
-  ));
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'quest_templates'
+      AND policyname = 'Public quest templates are viewable by everyone'
+  ) THEN
+    EXECUTE 'CREATE POLICY "Public quest templates are viewable by everyone"
+      ON quest_templates FOR SELECT
+      USING (is_public = true OR teacher_id IN (
+        SELECT id FROM teachers WHERE user_id = auth.uid()
+      ))';
+  END IF;
+END;
+$$;
 
-CREATE POLICY "Teachers can manage their own quest templates"
-  ON quest_templates FOR ALL
-  USING (teacher_id IN (
-    SELECT id FROM teachers WHERE user_id = auth.uid()
-  ));
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'quest_templates'
+      AND policyname = 'Teachers can manage their own quest templates'
+  ) THEN
+    EXECUTE 'CREATE POLICY "Teachers can manage their own quest templates"
+      ON quest_templates FOR ALL
+      USING (teacher_id IN (
+        SELECT id FROM teachers WHERE user_id = auth.uid()
+      ))';
+  END IF;
+END;
+$$;
 
 -- Classes policies
 ALTER TABLE classes ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Teachers can view their own classes"
-  ON classes FOR SELECT
-  USING (teacher_id IN (
-    SELECT id FROM teachers WHERE user_id = auth.uid()
-  ));
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'classes'
+      AND policyname = 'Teachers can view their own classes'
+  ) THEN
+    EXECUTE 'CREATE POLICY "Teachers can view their own classes"
+      ON classes FOR SELECT
+      USING (teacher_id IN (
+        SELECT id FROM teachers WHERE user_id = auth.uid()
+      ))';
+  END IF;
+END;
+$$;
 
-CREATE POLICY "Students can view classes they're in"
-  ON classes FOR SELECT
-  USING (id IN (
-    SELECT class_id FROM class_students WHERE student_id = auth.uid()
-  ));
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'classes'
+      AND policyname = 'Students can view classes they''re in'
+  ) THEN
+    EXECUTE 'CREATE POLICY "Students can view classes they''re in"
+      ON classes FOR SELECT
+      USING (id IN (
+        SELECT class_id FROM class_students WHERE student_id = auth.uid()
+      ))';
+  END IF;
+END;
+$$;
 
-CREATE POLICY "Teachers can manage their own classes"
-  ON classes FOR ALL
-  USING (teacher_id IN (
-    SELECT id FROM teachers WHERE user_id = auth.uid()
-  ));
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'classes'
+      AND policyname = 'Teachers can manage their own classes'
+  ) THEN
+    EXECUTE 'CREATE POLICY "Teachers can manage their own classes"
+      ON classes FOR ALL
+      USING (teacher_id IN (
+        SELECT id FROM teachers WHERE user_id = auth.uid()
+      ))';
+  END IF;
+END;
+$$;
 
 -- Class students policies
 ALTER TABLE class_students ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Students can view their class enrollments"
-  ON class_students FOR SELECT
-  USING (student_id = auth.uid());
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'class_students'
+      AND policyname = 'Students can view their class enrollments'
+  ) THEN
+    EXECUTE 'CREATE POLICY "Students can view their class enrollments"
+      ON class_students FOR SELECT
+      USING (student_id = auth.uid())';
+  END IF;
+END;
+$$;
 
-CREATE POLICY "Teachers can manage students in their classes"
-  ON class_students FOR ALL
-  USING (class_id IN (
-    SELECT id FROM classes WHERE teacher_id IN (
-      SELECT id FROM teachers WHERE user_id = auth.uid()
-    )
-  ));
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'class_students'
+      AND policyname = 'Teachers can manage students in their classes'
+  ) THEN
+    EXECUTE 'CREATE POLICY "Teachers can manage students in their classes"
+      ON class_students FOR ALL
+      USING (class_id IN (
+        SELECT id FROM classes WHERE teacher_id IN (
+          SELECT id FROM teachers WHERE user_id = auth.uid()
+        )
+      ))';
+  END IF;
+END;
+$$;
 
 -- ============================================================
 -- HELPER FUNCTIONS
 -- ============================================================
 
 -- Function to create a teacher profile
+DO $$
+DECLARE
+  rec RECORD;
+BEGIN
+  -- Drop any existing create_teacher_profile overloads to keep redeploys clean
+  FOR rec IN
+    SELECT p.oid::regprocedure AS signature
+    FROM pg_proc p
+    JOIN pg_namespace n ON p.pronamespace = n.oid
+    WHERE n.nspname = 'public'
+      AND p.proname = 'create_teacher_profile'
+  LOOP
+    EXECUTE format('DROP FUNCTION %s;', rec.signature);
+  END LOOP;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION create_teacher_profile(
   p_school_name TEXT DEFAULT NULL,
   p_subject_specializations TEXT[] DEFAULT NULL,
@@ -294,6 +544,23 @@ $$;
 GRANT EXECUTE ON FUNCTION create_teacher_profile TO authenticated;
 
 -- Function to record a question attempt and update stats
+DO $$
+DECLARE
+  rec RECORD;
+BEGIN
+  -- Drop any existing record_question_attempt overloads to avoid signature conflicts
+  FOR rec IN
+    SELECT p.oid::regprocedure AS signature
+    FROM pg_proc p
+    JOIN pg_namespace n ON p.pronamespace = n.oid
+    WHERE n.nspname = 'public'
+      AND p.proname = 'record_question_attempt'
+  LOOP
+    EXECUTE format('DROP FUNCTION %s;', rec.signature);
+  END LOOP;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION record_question_attempt(
   p_question_id UUID,
   p_answer_given TEXT,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty } from '../types';
+import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, Grade, Batch } from '../types';
 import * as GameService from '../services/gameService';
 import BackButton from './BackButton';
 
@@ -8,7 +8,7 @@ interface TeacherPortalProps {
   onComplete: () => void;
 }
 
-type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload';
+type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'create-assignment';
 
 const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) => {
   const [view, setView] = useState<PortalView>('dashboard');
@@ -28,9 +28,123 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
   const [explanation, setExplanation] = useState('');
   const [points, setPoints] = useState(10);
 
+  // Assignment builder state
+  const [assignmentTitle, setAssignmentTitle] = useState('');
+  const [assignmentInstructions, setAssignmentInstructions] = useState('');
+  const [assignmentSubject, setAssignmentSubject] = useState<Subject>('Maths');
+  const [assignmentTopic, setAssignmentTopic] = useState('');
+  const [assignmentDifficulty, setAssignmentDifficulty] = useState<QuestionDifficulty>('medium');
+  const [assignmentDueDate, setAssignmentDueDate] = useState('');
+  const [selectedGrades, setSelectedGrades] = useState<Grade[]>([]);
+  const [selectedBatches, setSelectedBatches] = useState<Batch[]>([]);
+  const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
+  const [creatingAssignment, setCreatingAssignment] = useState(false);
+
+  const gradeOptions: Grade[] = [8, 9];
+  const batchOptionsByGrade: Record<Grade, Batch[]> = {
+    8: ['8A', '8B', '8C'],
+    9: ['9A', '9B', '9C'],
+  };
+  const allBatchOptions: Batch[] = gradeOptions.flatMap((grade) => batchOptionsByGrade[grade]);
+  const subjectOptions: Subject[] = [
+    'Maths',
+    'Science',
+    'English',
+    'Russian Language',
+    'Kyrgyz Language',
+    'German Language',
+    'Geography',
+    'Global Perspective',
+    'ICT',
+  ];
+
+  const getGradeForBatch = (batch: Batch): Grade | null => {
+    if (batch === 'N/A') return null;
+    const parsed = parseInt(batch[0], 10);
+    return gradeOptions.includes(parsed as Grade) ? (parsed as Grade) : null;
+  };
+
+  const toggleGrade = (grade: Grade) => {
+    setSelectedGrades((prev) => {
+      const isSelected = prev.includes(grade);
+      const nextGrades = isSelected ? prev.filter((g) => g !== grade) : [...prev, grade];
+
+      if (isSelected) {
+        const batchesToRemove = new Set(batchOptionsByGrade[grade]);
+        setSelectedBatches((current) => current.filter((batch) => !batchesToRemove.has(batch)));
+      }
+
+      return nextGrades;
+    });
+  };
+
+  const toggleBatch = (batch: Batch) => {
+    setSelectedBatches((prev) => {
+      const isSelected = prev.includes(batch);
+      if (isSelected) {
+        return prev.filter((b) => b !== batch);
+      }
+
+      const batchGrade = getGradeForBatch(batch);
+      if (batchGrade !== null) {
+        setSelectedGrades((grades) => (grades.includes(batchGrade) ? grades : [...grades, batchGrade]));
+      }
+
+      return [...prev, batch];
+    });
+  };
+
+  const handleSelectAllTargets = () => {
+    setSelectedGrades([...gradeOptions]);
+    setSelectedBatches([...allBatchOptions]);
+  };
+
+  const handleClearTargets = () => {
+    setSelectedGrades([]);
+    setSelectedBatches([]);
+  };
+
+  const resetAssignmentForm = () => {
+    setAssignmentTitle('');
+    setAssignmentInstructions('');
+    setAssignmentSubject('Maths');
+    setAssignmentTopic('');
+    setAssignmentDifficulty('medium');
+    setAssignmentDueDate('');
+    setSelectedGrades([]);
+    setSelectedBatches([]);
+    setSelectedQuestionIds([]);
+  };
+
+  const toggleQuestionSelection = (questionId: string) => {
+    setSelectedQuestionIds((prev) =>
+      prev.includes(questionId) ? prev.filter((id) => id !== questionId) : [...prev, questionId]
+    );
+  };
+
   useEffect(() => {
     loadTeacherData();
   }, []);
+
+  useEffect(() => {
+    if (view === 'create-assignment') {
+      resetAssignmentForm();
+    }
+  }, [view]);
+
+  useEffect(() => {
+    setSelectedQuestionIds((prev) => {
+      if (prev.length === 0) return prev;
+      const allowed = new Set(
+        questions.filter((q) => q.subject === assignmentSubject).map((q) => q.id)
+      );
+      if (allowed.size === 0) {
+        return [];
+      }
+      const filtered = prev.filter((id) => allowed.has(id));
+      return filtered.length === prev.length ? prev : filtered;
+    });
+  }, [assignmentSubject, questions]);
 
   const loadTeacherData = async () => {
     try {
@@ -119,6 +233,53 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     
     // Switch to create view
     setView('create-question');
+  };
+
+  const handleCreateAssignment = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (selectedQuestionIds.length === 0) {
+      alert('Select at least one question to include in the assignment.');
+      return;
+    }
+
+    if (selectedGrades.length === 0 && selectedBatches.length === 0) {
+      alert('Select at least one grade or batch to target.');
+      return;
+    }
+
+    try {
+      setCreatingAssignment(true);
+
+      const dueAtIso = assignmentDueDate
+        ? (() => {
+            const parsed = new Date(assignmentDueDate);
+            return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
+          })()
+        : undefined;
+
+      await GameService.create_assignment({
+        subject: assignmentSubject,
+        topic_name: assignmentTopic || undefined,
+        grade_levels: selectedGrades.length > 0 ? selectedGrades : undefined,
+        batch_codes: selectedBatches.length > 0 ? selectedBatches : undefined,
+        question_ids: selectedQuestionIds,
+        assigned_at: new Date().toISOString(),
+        due_at: dueAtIso,
+        title: assignmentTitle,
+        instructions: assignmentInstructions || undefined,
+        difficulty: assignmentDifficulty,
+      });
+
+      alert('✅ Assignment created and scheduled for your selected students!');
+      resetAssignmentForm();
+      setView('dashboard');
+    } catch (error) {
+      console.error('Error creating assignment:', error);
+      alert('❌ Failed to create assignment: ' + (error as Error).message);
+    } finally {
+      setCreatingAssignment(false);
+    }
   };
 
   // Download CSV template
@@ -249,7 +410,7 @@ English,hard,short_answer,"What is the past tense of 'go'?","","","","","went","
       </div>
 
       {/* Action Buttons */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <button
           onClick={() => setView('create-question')}
           className="card-glass p-8 hover:scale-105 transition-transform border-2 border-pink-500/50 hover:border-pink-500"
@@ -275,6 +436,15 @@ English,hard,short_answer,"What is the past tense of 'go'?","","","","","went","
           <div className="text-6xl mb-3">📤</div>
           <div className="font-heading text-2xl text-green-400 font-bold">Bulk Upload CSV</div>
           <div className="text-sm text-gray-400 mt-2">Import multiple questions at once</div>
+        </button>
+
+        <button
+          onClick={() => setView('create-assignment')}
+          className="card-glass p-8 hover:scale-105 transition-transform border-2 border-purple-500/50 hover:border-purple-500"
+        >
+          <div className="text-6xl mb-3">🎯</div>
+          <div className="font-heading text-2xl text-purple-400 font-bold">Create Assignment</div>
+          <div className="text-sm text-gray-400 mt-2">Schedule targeted practice for your classes</div>
         </button>
       </div>
     </div>
@@ -367,15 +537,11 @@ English,hard,short_answer,"What is the past tense of 'go'?","","","","","went","
                 className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
                 required
               >
-                <option value="Maths">Maths</option>
-                <option value="Science">Science</option>
-                <option value="English">English</option>
-                <option value="Russian Language">Russian Language</option>
-                <option value="Kyrgyz Language">Kyrgyz Language</option>
-                <option value="German Language">German Language</option>
-                <option value="Geography">Geography</option>
-                <option value="Global Perspective">Global Perspective</option>
-                <option value="ICT">ICT</option>
+                {subjectOptions.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -497,6 +663,257 @@ English,hard,short_answer,"What is the past tense of 'go'?","","","","","went","
       </div>
     </div>
   );
+
+  const renderCreateAssignment = () => {
+    const subjectQuestions = questions.filter((q) => q.subject === assignmentSubject);
+
+    return (
+      <div className="max-w-5xl mx-auto">
+        <button
+          onClick={() => setView('dashboard')}
+          className="mb-4 text-cyan-400 hover:text-cyan-300 flex items-center gap-2"
+        >
+          <span>←</span> Back to Dashboard
+        </button>
+
+        <div className="card-glass p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+            <h2 className="font-heading text-3xl text-pink-400 font-bold flex items-center gap-2">
+              <span>🎯</span> Create Assignment
+            </h2>
+            <span className="text-sm text-gray-400">
+              {selectedQuestionIds.length} question{selectedQuestionIds.length === 1 ? '' : 's'} selected
+            </span>
+          </div>
+
+          <form onSubmit={handleCreateAssignment} className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">Assignment Title</label>
+                <input
+                  type="text"
+                  value={assignmentTitle}
+                  onChange={(e) => setAssignmentTitle(e.target.value)}
+                  className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-pink-500 focus:outline-none"
+                  placeholder="e.g., Algebra Practice Set"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">Subject</label>
+                <select
+                  value={assignmentSubject}
+                  onChange={(e) => setAssignmentSubject(e.target.value as Subject)}
+                  className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-pink-500 focus:outline-none"
+                  required
+                >
+                  {subjectOptions.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">Topic (optional)</label>
+                <input
+                  type="text"
+                  value={assignmentTopic}
+                  onChange={(e) => setAssignmentTopic(e.target.value)}
+                  className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
+                  placeholder="e.g., Linear Equations"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">Difficulty</label>
+                <select
+                  value={assignmentDifficulty}
+                  onChange={(e) => setAssignmentDifficulty(e.target.value as QuestionDifficulty)}
+                  className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
+                  required
+                >
+                  <option value="easy">⭐ Easy</option>
+                  <option value="medium">⭐⭐ Medium</option>
+                  <option value="hard">⭐⭐⭐ Hard</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">Due Date (optional)</label>
+                <input
+                  type="datetime-local"
+                  value={assignmentDueDate}
+                  onChange={(e) => setAssignmentDueDate(e.target.value)}
+                  className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">Instructions (optional)</label>
+                <textarea
+                  value={assignmentInstructions}
+                  onChange={(e) => setAssignmentInstructions(e.target.value)}
+                  className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none min-h-[60px]"
+                  placeholder="Share guidance, reminders, or success criteria"
+                />
+              </div>
+            </div>
+
+            <div className="bg-black/30 border border-cyan-500/30 rounded-xl p-4 space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-lg font-semibold text-cyan-300 flex items-center gap-2">
+                  <span>🎓</span> Target Students
+                </h3>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleSelectAllTargets}
+                    className="px-3 py-1 text-xs font-semibold rounded-lg border border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/20 transition-all"
+                  >
+                    Select All
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleClearTargets}
+                    className="px-3 py-1 text-xs font-semibold rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-600/40 transition-all"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <div className="text-xs uppercase tracking-wide text-gray-400 mb-2">Grades</div>
+                <div className="flex flex-wrap gap-2">
+                  {gradeOptions.map((grade) => {
+                    const isSelected = selectedGrades.includes(grade);
+                    return (
+                      <button
+                        type="button"
+                        key={grade}
+                        onClick={() => toggleGrade(grade)}
+                        className={`px-4 py-2 rounded-lg border transition-all text-sm font-semibold ${
+                          isSelected
+                            ? 'border-pink-400 bg-pink-500/20 text-pink-100'
+                            : 'border-gray-600 bg-black/40 text-gray-300 hover:border-pink-400/60'
+                        }`}
+                      >
+                        Grade {grade}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <div className="text-xs uppercase tracking-wide text-gray-400 mb-2">Classes / Batches</div>
+                <div className="space-y-3">
+                  {gradeOptions.map((grade) => (
+                    <div key={grade}>
+                      <div className="text-xs text-gray-500 mb-1">Grade {grade}</div>
+                      <div className="flex flex-wrap gap-2">
+                        {batchOptionsByGrade[grade].map((batch) => {
+                          const isSelected = selectedBatches.includes(batch);
+                          return (
+                            <button
+                              type="button"
+                              key={batch}
+                              onClick={() => toggleBatch(batch)}
+                              className={`px-3 py-1.5 rounded-lg border transition-all text-sm ${
+                                isSelected
+                                  ? 'border-cyan-400 bg-cyan-500/20 text-cyan-100'
+                                  : 'border-gray-600 bg-black/40 text-gray-300 hover:border-cyan-400/60'
+                              }`}
+                            >
+                              {batch}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="text-xs text-gray-400">
+                {selectedGrades.length === 0
+                  ? 'No grades selected yet.'
+                  : `Grades: ${[...selectedGrades].sort((a, b) => a - b).join(', ')}`}
+                <br />
+                {selectedBatches.length === 0 ? 'No batches selected yet.' : `Batches: ${selectedBatches.join(', ')}`}
+              </div>
+            </div>
+
+            <div className="bg-black/30 border border-pink-500/30 rounded-xl p-4">
+              <h3 className="text-lg font-semibold text-pink-300 flex items-center gap-2">
+                <span>🧠</span> Pick Questions
+              </h3>
+              <p className="text-sm text-gray-400 mt-1">
+                Showing questions for <span className="text-pink-200">{assignmentSubject}</span>.
+              </p>
+
+              {subjectQuestions.length === 0 ? (
+                <div className="mt-4 text-sm text-gray-400">
+                  You don’t have any questions for this subject yet. Switch subjects or create new questions first.
+                </div>
+              ) : (
+                <div className="mt-4 space-y-3 max-h-72 overflow-y-auto pr-1">
+                  {subjectQuestions.map((q) => {
+                    const checked = selectedQuestionIds.includes(q.id);
+                    return (
+                      <label
+                        key={q.id}
+                        className={`flex items-start gap-3 p-3 rounded-lg border transition-colors cursor-pointer ${
+                          checked
+                            ? 'border-pink-400 bg-pink-500/15 shadow-[0_0_12px_rgba(236,72,153,0.15)]'
+                            : 'border-gray-700 bg-black/30 hover:border-pink-400/60'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          className="mt-1 h-4 w-4 text-pink-500 focus:ring-pink-400"
+                          checked={checked}
+                          onChange={() => toggleQuestionSelection(q.id)}
+                        />
+                        <div className="flex-1">
+                          <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 mb-1">
+                            <span className="px-2 py-0.5 rounded-full bg-gray-700/60 uppercase tracking-wide">
+                              {q.difficulty}
+                            </span>
+                            <span>{q.question_type.replace('_', ' ')}</span>
+                            <span>⭐ {q.points}</span>
+                            <span>Answered {q.times_answered ?? 0}</span>
+                          </div>
+                          <p className="text-sm text-white leading-snug">{q.question_text}</p>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={creatingAssignment}
+              className={`w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-heading font-bold text-lg py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg ${
+                creatingAssignment ? 'opacity-70 cursor-not-allowed' : 'hover:from-pink-600 hover:to-purple-700'
+              }`}
+            >
+              {creatingAssignment ? 'Creating Assignment...' : '🚀 Assign to Students'}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  };
 
   // Render Question Bank
   const renderQuestionBank = () => (
@@ -717,6 +1134,7 @@ English,hard,short_answer,"What is the past tense of 'go'?","","","","","went","
       <div className="max-w-6xl mx-auto">
         {view === 'dashboard' && renderDashboard()}
         {view === 'create-question' && renderCreateQuestion()}
+        {view === 'create-assignment' && renderCreateAssignment()}
         {view === 'question-bank' && renderQuestionBank()}
         {view === 'csv-upload' && renderCSVUpload()}
       </div>
