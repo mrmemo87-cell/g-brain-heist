@@ -2,31 +2,13 @@
    LIGHT MODE - ULTRA PERFORMANCE MODE
    ======================================== */
 
-/* Ensure body and root containers remain scrollable */
+/* Allow default scrolling behavior; avoid forcing custom overflow */
 body.light-mode,
 body.light-mode #root,
 body.light-mode .lite-mode-wrapper {
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
+  overflow: visible !important;
   height: auto !important;
   min-height: 100vh !important;
-  -webkit-overflow-scrolling: touch !important;
-  overscroll-behavior: contain !important;
-}
-
-/* Ensure scroll events bubble instead of trapping inside nested containers */
-body.light-mode main,
-body.light-mode [class*="container"],
-body.light-mode > div,
-body.light-mode #root > div:not(.lite-mode-wrapper) {
-  overflow: visible !important;
-}
-
-body.light-mode .lite-mode-wrapper {
-  overflow-y: auto !important;
-  height: auto !important;
-  max-height: none !important;
-  -webkit-overflow-scrolling: touch !important;
 }
 
 /* Global light mode overrides */
