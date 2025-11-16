@@ -21,6 +21,12 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "react-router-dom": [
+        "./src/lib/router"
+      ],
+      "@tanstack/react-query": [
+        "./src/lib/simple-react-query"
       ]
     },
     "allowImportingTsExtensions": true,
