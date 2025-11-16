@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty } from '../types';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, TeacherAssignmentSummary, TeacherAssignmentReportRow, AssignmentBatch } from '../types';
 import * as GameService from '../services/gameService';
 import BackButton from './BackButton';
 
@@ -8,7 +8,7 @@ interface TeacherPortalProps {
   onComplete: () => void;
 }
 
-type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload';
+type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail';
 
 const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) => {
   const [view, setView] = useState<PortalView>('dashboard');
@@ -27,10 +27,81 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
   const [correctAnswer, setCorrectAnswer] = useState('');
   const [explanation, setExplanation] = useState('');
   const [points, setPoints] = useState(10);
+  const [topicMode, setTopicMode] = useState<'general' | 'custom'>('general');
+  const [customTopicName, setCustomTopicName] = useState('');
+
+  // Assignment state
+  const [assignments, setAssignments] = useState<TeacherAssignmentSummary[]>([]);
+  const [assignmentBatch, setAssignmentBatch] = useState<AssignmentBatch>('All');
+  const [assignmentSubject, setAssignmentSubject] = useState<Subject>('Maths');
+  const [assignmentTopicMode, setAssignmentTopicMode] = useState<'general' | 'custom'>('general');
+  const [assignmentTopicName, setAssignmentTopicName] = useState('');
+  const [assignmentTitle, setAssignmentTitle] = useState('');
+  const [assignmentInstructions, setAssignmentInstructions] = useState('');
+  const [assignmentQuestionIds, setAssignmentQuestionIds] = useState<string[]>([]);
+  const [assignmentDueAt, setAssignmentDueAt] = useState('');
+  const [assignmentAssignedAt, setAssignmentAssignedAt] = useState(() => new Date().toISOString().slice(0, 16));
+  const [assignmentDifficulty, setAssignmentDifficulty] = useState<QuestionDifficulty>('easy');
+  const [assignmentSubmitting, setAssignmentSubmitting] = useState(false);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [assignmentReport, setAssignmentReport] = useState<TeacherAssignmentReportRow[]>([]);
+  const [selectedReportAssignment, setSelectedReportAssignment] = useState<TeacherAssignmentSummary | null>(null);
+
+  const questionTopicLabel = useMemo(() => (
+    topicMode === 'general' ? 'General' : (customTopicName.trim() || 'Custom Topic')
+  ), [topicMode, customTopicName]);
+
+  const assignmentTopicLabel = useMemo(() => (
+    assignmentTopicMode === 'general' ? 'General' : (assignmentTopicName.trim() || 'Custom Topic')
+  ), [assignmentTopicMode, assignmentTopicName]);
+  const assignmentQuestionPool = useMemo(() => (
+    questions.filter((q) => q.subject === assignmentSubject)
+  ), [questions, assignmentSubject]);
+  const primarySection = useMemo<'dashboard' | 'questions' | 'assignments' | 'reports'>(() => {
+    if (view === 'dashboard') return 'dashboard';
+    if (view === 'question-bank' || view === 'create-question' || view === 'csv-upload') return 'questions';
+    if (view === 'assignments' || view === 'create-assignment') return 'assignments';
+    return 'reports';
+  }, [view]);
+
+  const changeSection = (section: 'dashboard' | 'questions' | 'assignments' | 'reports') => {
+    switch (section) {
+      case 'dashboard':
+        setView('dashboard');
+        break;
+      case 'questions':
+        setView('question-bank');
+        break;
+      case 'assignments':
+        setSelectedReportAssignment(null);
+        setView('assignments');
+        break;
+      case 'reports':
+        setSelectedReportAssignment(null);
+        setAssignmentReport([]);
+        setView('reports');
+        break;
+      default:
+        setView('dashboard');
+    }
+  };
 
   useEffect(() => {
     loadTeacherData();
   }, []);
+
+  useEffect(() => {
+    setAssignmentQuestionIds([]);
+  }, [assignmentSubject]);
+
+  const loadAssignments = async () => {
+    try {
+      const rows = await GameService.get_teacher_assignments();
+      setAssignments(rows);
+    } catch (error) {
+      console.error('Error loading assignments:', error);
+    }
+  };
 
   const loadTeacherData = async () => {
     try {
@@ -48,6 +119,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
       // Load questions
       const myQuestions = await GameService.get_my_questions();
       setQuestions(myQuestions);
+      await loadAssignments();
     } catch (error) {
       console.error('Error loading teacher data:', error);
     } finally {
@@ -58,9 +130,16 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
   const handleCreateQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (topicMode === 'custom' && !customTopicName.trim()) {
+      alert('Please enter a topic name for your question.');
+      return;
+    }
+
     try {
       const questionData = {
         subject,
+        topic: questionTopicLabel,
+        topic_name: questionTopicLabel,
         difficulty,
         question_text: questionText,
         question_type: questionType,
@@ -78,6 +157,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
       setOptions(['', '', '', '']);
       setCorrectAnswer('');
       setExplanation('');
+      setTopicMode('general');
+      setCustomTopicName('');
 
       // Reload questions
       const myQuestions = await GameService.get_my_questions();
@@ -116,17 +197,122 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     setCorrectAnswer(question.correct_answer);
     setExplanation(question.explanation || '');
     setPoints(question.points);
-    
+    const existingTopic = question.topic_name || question.topic || 'General';
+    if (existingTopic !== 'General') {
+      setTopicMode('custom');
+      setCustomTopicName(existingTopic);
+    } else {
+      setTopicMode('general');
+      setCustomTopicName('');
+    }
+
     // Switch to create view
     setView('create-question');
   };
 
+  const toggleAssignmentQuestion = (questionId: string) => {
+    setAssignmentQuestionIds((prev) => (
+      prev.includes(questionId) ? prev.filter((id) => id !== questionId) : [...prev, questionId]
+    ));
+  };
+
+  const handleCreateAssignment = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (assignmentTopicMode === 'custom' && !assignmentTopicName.trim()) {
+      alert('Please enter a topic for this assignment.');
+      return;
+    }
+
+    if (!assignmentQuestionIds.length) {
+      alert('Select at least one question to assign.');
+      return;
+    }
+
+    const toIso = (value: string): string | undefined => {
+      if (!value) return undefined;
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return undefined;
+      return date.toISOString();
+    };
+
+    try {
+      setAssignmentSubmitting(true);
+      await GameService.create_assignment({
+        subject: assignmentSubject,
+        topic_name: assignmentTopicLabel,
+        batch: assignmentBatch,
+        question_ids: assignmentQuestionIds,
+        assigned_at: toIso(assignmentAssignedAt) ?? new Date().toISOString(),
+        due_at: toIso(assignmentDueAt),
+        title: assignmentTitle || undefined,
+        instructions: assignmentInstructions || undefined,
+        difficulty: assignmentDifficulty,
+      });
+
+      alert('📌 Assignment created and sent to students!');
+      setAssignmentQuestionIds([]);
+      setAssignmentTitle('');
+      setAssignmentInstructions('');
+      setAssignmentTopicMode('general');
+      setAssignmentTopicName('');
+      setAssignmentDueAt('');
+      setAssignmentAssignedAt(new Date().toISOString().slice(0, 16));
+      await loadAssignments();
+      setView('assignments');
+    } catch (error) {
+      console.error('Error creating assignment:', error);
+      alert('❌ Failed to create assignment: ' + (error as Error).message);
+    } finally {
+      setAssignmentSubmitting(false);
+    }
+  };
+
+  const handleOpenReport = async (assignment: TeacherAssignmentSummary) => {
+    try {
+      setReportLoading(true);
+      setSelectedReportAssignment(assignment);
+      const rows = await GameService.get_teacher_assignment_report(assignment.id);
+      setAssignmentReport(rows);
+      setView('report-detail');
+    } catch (error) {
+      console.error('Error loading assignment report:', error);
+      alert('❌ Failed to load report: ' + (error as Error).message);
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
+  const handleExportReport = () => {
+    if (!selectedReportAssignment || assignmentReport.length === 0) return;
+    const header = 'Student,Batch,Score,Correct,Incorrect,Accuracy (%),Completed At';
+    const rows = assignmentReport.map((row) => (
+      [
+        row.student_name,
+        row.batch ?? '—',
+        row.score,
+        row.correct,
+        row.incorrect,
+        row.accuracy,
+        new Date(row.completed_at).toLocaleString(),
+      ].join(',')
+    ));
+    const csv = [header, ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${selectedReportAssignment.topic_name || 'assignment'}-report.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   // Download CSV template
   const downloadCSVTemplate = () => {
-    const template = `subject,difficulty,question_type,question_text,option1,option2,option3,option4,correct_answer,explanation,points
-Maths,easy,multiple_choice,"What is 2 + 2?","2","3","4","5","4","Addition of two numbers",10
-Science,medium,true_false,"Water boils at 100°C at sea level","True","False","","","True","Water's boiling point at standard pressure",15
-English,hard,short_answer,"What is the past tense of 'go'?","","","","","went","Irregular verb conjugation",20`;
+    const template = `subject,topic,difficulty,question_type,question_text,option1,option2,option3,option4,correct_answer,explanation,points
+Maths,General,easy,multiple_choice,"What is 2 + 2?","2","3","4","5","4","Addition of two numbers",10
+Science,Lab Safety,medium,true_false,"Water boils at 100°C at sea level","True","False","","","True","Water's boiling point at standard pressure",15
+English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","","went","Irregular verb conjugation",20`;
     
     const blob = new Blob([template], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -163,16 +349,18 @@ English,hard,short_answer,"What is the past tense of 'go'?","","","","","went","
           // Parse CSV line (handle quoted values)
           const values = line.match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g)?.map(v => v.replace(/^"|"$/g, '').trim()) || [];
           
-          if (values.length < 8) {
+          if (values.length < 12) {
             errors.push(`Row ${i + 2}: Insufficient columns`);
             errorCount++;
             continue;
           }
 
-          const [subjectStr, difficultyStr, questionType, questionText, opt1, opt2, opt3, opt4, correctAnswer, explanation, pointsStr] = values;
+          const [subjectStr, topicStr, difficultyStr, questionType, questionText, opt1, opt2, opt3, opt4, correctAnswer, explanation, pointsStr] = values;
 
           const questionData = {
             subject: subjectStr as Subject,
+            topic: topicStr || 'General',
+            topic_name: topicStr || 'General',
             difficulty: difficultyStr as QuestionDifficulty,
             question_text: questionText,
             question_type: questionType as 'multiple_choice' | 'true_false' | 'short_answer',
@@ -224,7 +412,7 @@ English,hard,short_answer,"What is the past tense of 'go'?","","","","","went","
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="card-glass p-6 text-center border-l-4 border-cyan-500">
           <div className="text-4xl font-bold text-cyan-400">{questions.length}</div>
           <div className="text-sm text-gray-400 mt-1">Questions Created</div>
@@ -239,17 +427,25 @@ English,hard,short_answer,"What is the past tense of 'go'?","","","","","went","
         
         <div className="card-glass p-6 text-center border-l-4 border-yellow-500">
           <div className="text-4xl font-bold text-yellow-400">
-            {questions.length > 0 
-              ? Math.round((questions.reduce((sum, q) => sum + q.times_correct, 0) / 
+            {questions.length > 0
+              ? Math.round((questions.reduce((sum, q) => sum + q.times_correct, 0) /
                   Math.max(questions.reduce((sum, q) => sum + q.times_answered, 0), 1)) * 100)
               : 0}%
           </div>
           <div className="text-sm text-gray-400 mt-1">Average Success Rate</div>
         </div>
+        <div className="card-glass p-6 text-center border-l-4 border-purple-500">
+          <div className="text-4xl font-bold text-purple-400">{assignments.length}</div>
+          <div className="text-sm text-gray-400 mt-1">Assignments Scheduled</div>
+          <div className="text-xs text-gray-500 mt-2">
+            {assignments.filter((a) => a.completed_count < a.student_count).length} active ·{' '}
+            {assignments.reduce((sum, a) => sum + a.completed_count, 0)} completions
+          </div>
+        </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <button
           onClick={() => setView('create-question')}
           className="card-glass p-8 hover:scale-105 transition-transform border-2 border-pink-500/50 hover:border-pink-500"
@@ -276,6 +472,22 @@ English,hard,short_answer,"What is the past tense of 'go'?","","","","","went","
           <div className="font-heading text-2xl text-green-400 font-bold">Bulk Upload CSV</div>
           <div className="text-sm text-gray-400 mt-2">Import multiple questions at once</div>
         </button>
+        <button
+          onClick={() => setView('assignments')}
+          className="card-glass p-8 hover:scale-105 transition-transform border-2 border-purple-500/50 hover:border-purple-500"
+        >
+          <div className="text-6xl mb-3">🗂️</div>
+          <div className="font-heading text-2xl text-purple-300 font-bold">Assignments</div>
+          <div className="text-sm text-gray-400 mt-2">Create and monitor mandatory quests</div>
+        </button>
+        <button
+          onClick={() => setView('reports')}
+          className="card-glass p-8 hover:scale-105 transition-transform border-2 border-blue-500/50 hover:border-blue-500"
+        >
+          <div className="text-6xl mb-3">📊</div>
+          <div className="font-heading text-2xl text-blue-300 font-bold">Reports</div>
+          <div className="text-sm text-gray-400 mt-2">Track accuracy and completion</div>
+        </button>
       </div>
     </div>
   );
@@ -284,10 +496,10 @@ English,hard,short_answer,"What is the past tense of 'go'?","","","","","went","
   const renderCreateQuestion = () => (
     <div className="max-w-3xl mx-auto">
       <button
-        onClick={() => setView('dashboard')}
+        onClick={() => setView('question-bank')}
         className="mb-4 text-cyan-400 hover:text-cyan-300 flex items-center gap-2"
       >
-        <span>←</span> Back to Dashboard
+        <span>←</span> Back to Questions
       </button>
 
       {/* Quick Templates */}
@@ -392,6 +604,32 @@ English,hard,short_answer,"What is the past tense of 'go'?","","","","","went","
                 <option value="hard">⭐⭐⭐ Hard</option>
               </select>
             </div>
+          </div>
+
+          {/* Topic Selection */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-300 mb-2">Topic</label>
+            <div className="flex flex-col md:flex-row gap-4">
+              <select
+                value={topicMode}
+                onChange={(e) => setTopicMode(e.target.value as 'general' | 'custom')}
+                className="bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
+              >
+                <option value="general">General</option>
+                <option value="custom">Custom</option>
+              </select>
+              {topicMode === 'custom' && (
+                <input
+                  type="text"
+                  value={customTopicName}
+                  onChange={(e) => setCustomTopicName(e.target.value)}
+                  className="flex-1 bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
+                  placeholder="Enter topic name"
+                  required
+                />
+              )}
+            </div>
+            <p className="text-xs text-gray-400 mt-2">Topic helps group assignments and question reports.</p>
           </div>
 
           {/* Question Type */}
@@ -501,13 +739,6 @@ English,hard,short_answer,"What is the past tense of 'go'?","","","","","went","
   // Render Question Bank
   const renderQuestionBank = () => (
     <div>
-      <button
-        onClick={() => setView('dashboard')}
-        className="mb-4 text-cyan-400 hover:text-cyan-300 flex items-center gap-2"
-      >
-        <span>←</span> Back to Dashboard
-      </button>
-
       <div className="flex items-center justify-between mb-6">
         <h2 className="font-heading text-3xl text-cyan-400 font-bold">📚 Question Bank</h2>
         <button
@@ -545,6 +776,9 @@ English,hard,short_answer,"What is the past tense of 'go'?","","","","","went","
                     </span>
                     <span className="px-3 py-1 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-400">
                       {q.subject}
+                    </span>
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/20 text-blue-300">
+                      {q.topic_name || q.topic || 'General'}
                     </span>
                     <span className="text-xs text-gray-500">
                       {q.question_type.replace('_', ' ').toUpperCase()}
@@ -595,10 +829,10 @@ English,hard,short_answer,"What is the past tense of 'go'?","","","","","went","
   const renderCSVUpload = () => (
     <div className="max-w-3xl mx-auto">
       <button
-        onClick={() => setView('dashboard')}
+        onClick={() => setView('question-bank')}
         className="mb-4 text-cyan-400 hover:text-cyan-300 flex items-center gap-2"
       >
-        ← Back to Dashboard
+        ← Back to Questions
       </button>
 
       <div className="card-glass p-8">
@@ -624,13 +858,14 @@ English,hard,short_answer,"What is the past tense of 'go'?","","","","","went","
           <div className="text-xs text-gray-400 mb-2">Columns (in order):</div>
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div className="text-gray-300">1. <code className="text-cyan-400">subject</code> - Maths, Science, English, Russian Language, Kyrgyz Language, German Language, Geography, Global Perspective, ICT</div>
-            <div className="text-gray-300">2. <code className="text-cyan-400">difficulty</code> - easy, medium, hard</div>
-            <div className="text-gray-300">3. <code className="text-cyan-400">question_type</code> - multiple_choice, true_false, short_answer</div>
-            <div className="text-gray-300">4. <code className="text-cyan-400">question_text</code> - The question</div>
-            <div className="text-gray-300">5-8. <code className="text-cyan-400">option1-4</code> - Answer choices (for multiple choice)</div>
-            <div className="text-gray-300">9. <code className="text-cyan-400">correct_answer</code> - The correct answer</div>
-            <div className="text-gray-300">10. <code className="text-cyan-400">explanation</code> - Why it's correct</div>
-            <div className="text-gray-300">11. <code className="text-cyan-400">points</code> - Point value (10-50)</div>
+            <div className="text-gray-300">2. <code className="text-cyan-400">topic</code> - General or any custom topic name</div>
+            <div className="text-gray-300">3. <code className="text-cyan-400">difficulty</code> - easy, medium, hard</div>
+            <div className="text-gray-300">4. <code className="text-cyan-400">question_type</code> - multiple_choice, true_false, short_answer</div>
+            <div className="text-gray-300">5. <code className="text-cyan-400">question_text</code> - The question</div>
+            <div className="text-gray-300">6-9. <code className="text-cyan-400">option1-4</code> - Answer choices (for multiple choice)</div>
+            <div className="text-gray-300">10. <code className="text-cyan-400">correct_answer</code> - The correct answer</div>
+            <div className="text-gray-300">11. <code className="text-cyan-400">explanation</code> - Why it's correct</div>
+            <div className="text-gray-300">12. <code className="text-cyan-400">points</code> - Point value (10-50)</div>
           </div>
         </div>
 
@@ -702,6 +937,349 @@ English,hard,short_answer,"What is the past tense of 'go'?","","","","","went","
     </div>
   );
 
+  const renderAssignments = () => (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="font-heading text-3xl text-purple-300 font-bold">🗂️ Assignments</h2>
+        <button
+          onClick={() => setView('create-assignment')}
+          className="bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400 text-purple-200 px-4 py-2 rounded-lg font-semibold transition-all"
+        >
+          ➕ New Assignment
+        </button>
+      </div>
+
+      {assignments.length === 0 ? (
+        <div className="card-glass p-12 text-center">
+          <div className="text-6xl mb-4">🧭</div>
+          <p className="text-xl text-gray-400 mb-4">No assignments yet</p>
+          <p className="text-gray-500">Create a mission to block normal quests until students finish.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {assignments.map((assignment) => (
+            <div key={assignment.id} className="card-glass p-6 border border-purple-500/20">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                  <h3 className="font-heading text-2xl text-white mb-1">{assignment.title || assignment.topic_name}</h3>
+                  <p className="text-sm text-gray-400">
+                    {assignment.subject_name} · Topic: {assignment.topic_name}
+                  </p>
+                  <p className="text-sm text-gray-400">
+                    Batch: {assignment.batch} · Assigned {new Date(assignment.assigned_at).toLocaleDateString()}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Due: {assignment.due_at ? new Date(assignment.due_at).toLocaleString() : 'No due date'}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-purple-300">
+                    {assignment.completed_count}/{assignment.student_count}
+                  </div>
+                  <div className="text-xs text-gray-400">Students completed</div>
+                  <button
+                    onClick={() => handleOpenReport(assignment)}
+                    className="mt-3 px-4 py-2 rounded-lg bg-purple-500/20 border border-purple-400 text-purple-200 hover:bg-purple-500/30 transition-all"
+                  >
+                    View Report
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderCreateAssignment = () => (
+    <div className="max-w-4xl mx-auto">
+      <button
+        onClick={() => setView('assignments')}
+        className="mb-4 text-purple-300 hover:text-purple-200 flex items-center gap-2"
+      >
+        <span>←</span> Back to Assignments
+      </button>
+
+      <div className="card-glass p-6">
+        <h2 className="font-heading text-3xl text-purple-300 font-bold mb-6">Create Assignment</h2>
+        <form onSubmit={handleCreateAssignment} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-300 mb-2">Batch</label>
+              <select
+                value={assignmentBatch}
+                onChange={(e) => setAssignmentBatch(e.target.value as AssignmentBatch)}
+                className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white"
+              >
+                <option value="All">All</option>
+                <option value="8A">8A</option>
+                <option value="8B">8B</option>
+                <option value="8C">8C</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-300 mb-2">Subject</label>
+              <select
+                value={assignmentSubject}
+                onChange={(e) => setAssignmentSubject(e.target.value as Subject)}
+                className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white"
+              >
+                <option value="Maths">Maths</option>
+                <option value="Science">Science</option>
+                <option value="English">English</option>
+                <option value="Russian Language">Russian Language</option>
+                <option value="Kyrgyz Language">Kyrgyz Language</option>
+                <option value="German Language">German Language</option>
+                <option value="Geography">Geography</option>
+                <option value="Global Perspective">Global Perspective</option>
+                <option value="ICT">ICT</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-300 mb-2">Topic</label>
+            <div className="flex flex-col md:flex-row gap-4">
+              <select
+                value={assignmentTopicMode}
+                onChange={(e) => setAssignmentTopicMode(e.target.value as 'general' | 'custom')}
+                className="bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white"
+              >
+                <option value="general">General</option>
+                <option value="custom">Custom</option>
+              </select>
+              {assignmentTopicMode === 'custom' && (
+                <input
+                  type="text"
+                  value={assignmentTopicName}
+                  onChange={(e) => setAssignmentTopicName(e.target.value)}
+                  className="flex-1 bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                  placeholder="Enter topic name"
+                  required
+                />
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-300 mb-2">Title (optional)</label>
+              <input
+                type="text"
+                value={assignmentTitle}
+                onChange={(e) => setAssignmentTitle(e.target.value)}
+                className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                placeholder="Fractions drill"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-300 mb-2">Difficulty</label>
+              <select
+                value={assignmentDifficulty}
+                onChange={(e) => setAssignmentDifficulty(e.target.value as QuestionDifficulty)}
+                className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white"
+              >
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-300 mb-2">Instructions (optional)</label>
+            <textarea
+              value={assignmentInstructions}
+              onChange={(e) => setAssignmentInstructions(e.target.value)}
+              className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-3 text-white min-h-[80px]"
+              placeholder="Focus on word problems and show your work."
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-300 mb-2">Assigned At</label>
+              <input
+                type="datetime-local"
+                value={assignmentAssignedAt}
+                onChange={(e) => setAssignmentAssignedAt(e.target.value)}
+                className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-300 mb-2">Due At</label>
+              <input
+                type="datetime-local"
+                value={assignmentDueAt}
+                onChange={(e) => setAssignmentDueAt(e.target.value)}
+                className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white"
+              />
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-semibold text-gray-300">Questions ({assignmentQuestionIds.length} selected)</label>
+              <span className="text-xs text-gray-400">Only questions from {assignmentSubject} are shown</span>
+            </div>
+            <div className="max-h-64 overflow-y-auto border border-gray-700 rounded-lg divide-y divide-gray-800">
+              {assignmentQuestionPool.length === 0 ? (
+                <div className="p-4 text-sm text-gray-400">No questions for this subject. Create some first.</div>
+              ) : (
+                assignmentQuestionPool.map((question) => (
+                  <label key={question.id} className="flex items-start gap-3 p-4 cursor-pointer hover:bg-white/5">
+                    <input
+                      type="checkbox"
+                      checked={assignmentQuestionIds.includes(question.id)}
+                      onChange={() => toggleAssignmentQuestion(question.id)}
+                      className="mt-1"
+                    />
+                    <div>
+                      <p className="text-white">{question.question_text}</p>
+                      <p className="text-xs text-gray-400">Topic: {question.topic_name || question.topic || 'General'}</p>
+                    </div>
+                  </label>
+                ))
+              )}
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={assignmentSubmitting}
+            className={`w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white font-heading font-bold text-lg py-4 rounded-xl transition-all ${assignmentSubmitting ? 'opacity-60 cursor-not-allowed' : 'hover:scale-105'}`}
+          >
+            {assignmentSubmitting ? 'Creating...' : 'Create Assignment'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+
+  const renderReports = () => (
+    <div>
+      <h2 className="font-heading text-3xl text-blue-300 font-bold mb-6">📊 Assignment Reports</h2>
+      {assignments.length === 0 ? (
+        <div className="card-glass p-10 text-center">
+          <div className="text-5xl mb-3">📄</div>
+          <p className="text-gray-400">Create an assignment to see progress here.</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto card-glass p-4">
+          <table className="min-w-full text-left text-sm">
+            <thead>
+              <tr className="text-gray-400">
+                <th className="py-2 px-3">Subject</th>
+                <th className="py-2 px-3">Topic</th>
+                <th className="py-2 px-3">Batch</th>
+                <th className="py-2 px-3">Due</th>
+                <th className="py-2 px-3">Completed</th>
+                <th className="py-2 px-3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {assignments.map((assignment) => (
+                <tr key={assignment.id} className="border-t border-gray-800">
+                  <td className="py-3 px-3 text-white">{assignment.subject_name}</td>
+                  <td className="py-3 px-3 text-gray-300">{assignment.topic_name}</td>
+                  <td className="py-3 px-3 text-gray-300">{assignment.batch}</td>
+                  <td className="py-3 px-3 text-gray-300">
+                    {assignment.due_at ? new Date(assignment.due_at).toLocaleDateString() : '—'}
+                  </td>
+                  <td className="py-3 px-3 text-gray-300">
+                    {assignment.completed_count}/{assignment.student_count}
+                  </td>
+                  <td className="py-3 px-3">
+                    <button
+                      onClick={() => handleOpenReport(assignment)}
+                      className="px-4 py-2 rounded-lg bg-blue-500/20 border border-blue-400 text-blue-200 hover:bg-blue-500/30"
+                    >
+                      View
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderReportDetail = () => (
+    <div>
+      <button
+        onClick={() => setView('reports')}
+        className="mb-4 text-blue-300 hover:text-blue-200 flex items-center gap-2"
+      >
+        <span>←</span> Back to Reports
+      </button>
+
+      {reportLoading ? (
+        <div className="card-glass p-12 text-center text-blue-300">Loading report...</div>
+      ) : !selectedReportAssignment ? (
+        <div className="card-glass p-12 text-center text-gray-400">Select an assignment to view details.</div>
+      ) : (
+        <div className="space-y-6">
+          <div className="card-glass p-6">
+            <h2 className="font-heading text-3xl text-white mb-2">{selectedReportAssignment.title || selectedReportAssignment.topic_name}</h2>
+            <p className="text-gray-400">
+              {selectedReportAssignment.subject_name} · Topic {selectedReportAssignment.topic_name} · Batch {selectedReportAssignment.batch}
+            </p>
+            <p className="text-sm text-gray-500">
+              Due {selectedReportAssignment.due_at ? new Date(selectedReportAssignment.due_at).toLocaleString() : 'No deadline'}
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl text-white">Student Performance</h3>
+            <button
+              onClick={handleExportReport}
+              disabled={assignmentReport.length === 0}
+              className={`px-4 py-2 rounded-lg border ${assignmentReport.length === 0 ? 'border-gray-600 text-gray-500 cursor-not-allowed' : 'border-blue-400 text-blue-200 hover:bg-blue-500/20'}`}
+            >
+              Export CSV
+            </button>
+          </div>
+
+          {assignmentReport.length === 0 ? (
+            <div className="card-glass p-10 text-center text-gray-400">No students have completed this assignment yet.</div>
+          ) : (
+            <div className="overflow-x-auto card-glass p-4">
+              <table className="min-w-full text-left text-sm">
+                <thead>
+                  <tr className="text-gray-400">
+                    <th className="py-2 px-3">Student</th>
+                    <th className="py-2 px-3">Batch</th>
+                    <th className="py-2 px-3">Score</th>
+                    <th className="py-2 px-3">Correct</th>
+                    <th className="py-2 px-3">Incorrect</th>
+                    <th className="py-2 px-3">Accuracy</th>
+                    <th className="py-2 px-3">Completed</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {assignmentReport.map((row) => (
+                    <tr key={row.student_id} className="border-t border-gray-800">
+                      <td className="py-2 px-3 text-white">{row.student_name}</td>
+                      <td className="py-2 px-3 text-gray-300">{row.batch ?? '—'}</td>
+                      <td className="py-2 px-3 text-gray-300">{row.score}</td>
+                      <td className="py-2 px-3 text-gray-300">{row.correct}</td>
+                      <td className="py-2 px-3 text-gray-300">{row.incorrect}</td>
+                      <td className="py-2 px-3 text-gray-300">{row.accuracy}%</td>
+                      <td className="py-2 px-3 text-gray-300">{new Date(row.completed_at).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -710,15 +1288,39 @@ English,hard,short_answer,"What is the past tense of 'go'?","","","","","went","
     );
   }
 
+  const navTabs: Array<{ id: 'dashboard' | 'questions' | 'assignments' | 'reports'; label: string; icon: string }> = [
+    { id: 'dashboard', label: 'Overview', icon: '🏠' },
+    { id: 'questions', label: 'Questions', icon: '📚' },
+    { id: 'assignments', label: 'Assignments', icon: '🗂️' },
+    { id: 'reports', label: 'Reports', icon: '📊' },
+  ];
+
   return (
     <div className="mt-6">
       <BackButton onClick={onComplete} />
-      
+
       <div className="max-w-6xl mx-auto">
+        <div className="flex flex-wrap gap-3 mb-6">
+          {navTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => changeSection(tab.id)}
+              className={`px-4 py-2 rounded-full border transition-all ${primarySection === tab.id ? 'border-cyan-400 text-white bg-cyan-500/20' : 'border-gray-700 text-gray-400 hover:border-cyan-400 hover:text-white'}`}
+            >
+              <span className="mr-2">{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
         {view === 'dashboard' && renderDashboard()}
         {view === 'create-question' && renderCreateQuestion()}
         {view === 'question-bank' && renderQuestionBank()}
         {view === 'csv-upload' && renderCSVUpload()}
+        {view === 'assignments' && renderAssignments()}
+        {view === 'create-assignment' && renderCreateAssignment()}
+        {view === 'reports' && renderReports()}
+        {view === 'report-detail' && renderReportDetail()}
       </div>
     </div>
   );
