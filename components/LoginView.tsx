@@ -3,7 +3,6 @@ import { GoogleIcon } from './icons';
 import * as AuthService from '../services/authService';
 import type { Batch, Grade } from '../types';
 import { consumeBanMessage } from '../services/banMessage';
-import IeltsPrepHub from './IeltsPrepHub';
 
 interface LoginViewProps {
     onLogin: (email: string, pass: string) => Promise<void>;
@@ -21,7 +20,6 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-    const [showIeltsPreview, setShowIeltsPreview] = useState(false);
 
     useEffect(() => {
         const persisted = consumeBanMessage();
@@ -91,13 +89,12 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                         Brains Heist
                     </h1>
                     <p className="text-mist-400 mt-2">Agent Access Terminal</p>
-                    <button
-                        type="button"
-                        onClick={() => setShowIeltsPreview(true)}
-                        className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-ion-blue/60 text-ion-blue hover:bg-ion-blue/10 text-sm font-semibold"
+                    <a
+                        href="/ielts"
+                        className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-ion-blue/60 text-ion-blue hover:bg-ion-blue/10 text-sm font-semibold transition-all"
                     >
-                        🎯 Explore IELTS Prep
-                    </button>
+                        🎯 Go to IELTS Prep Hub
+                    </a>
                 </div>
 
                 <div className="card-glass glow-ion p-8">
@@ -276,13 +273,6 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 </div>
             </div>
         </div>
-        {showIeltsPreview && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-                <div className="w-full max-w-5xl">
-                    <IeltsPrepHub onBack={() => setShowIeltsPreview(false)} />
-                </div>
-            </div>
-        )}
         </>
     );
 };
