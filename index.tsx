@@ -13,6 +13,8 @@ import './src/styles/light-mode.css';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
 import IeltsHome from './src/pages/ielts/IeltsHome';
 import IeltsSession from './src/pages/ielts/IeltsSession';
+import ReadingPractice from './src/pages/ielts/ReadingPractice';
+import SpeakingPractice from './src/pages/ielts/SpeakingPractice';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient();
@@ -52,6 +54,8 @@ const Main: React.FC = () => {
         { path: '/', element: <App onLogout={handleLogout} /> },
         { path: '/ielts', element: <IeltsHome /> },
         { path: '/ielts/session/:sessionId', element: <IeltsSession /> },
+        { path: '/ielts/reading/:setId', element: <ReadingPractice /> },
+        { path: '/ielts/speaking/:taskId', element: <SpeakingPractice /> },
         { path: '*', element: <Navigate to="/" replace /> },
       ]),
     [handleLogout]
