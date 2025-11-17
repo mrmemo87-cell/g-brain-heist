@@ -394,9 +394,22 @@ export interface IELTSReadingSet {
   est_band_min: number | null;
   est_band_max: number | null;
   duration_minutes: number;
+  passage_text: string | null;
+  required_tier: string | null;
   created_by: string | null;
   created_at: string;
   is_active: boolean;
+}
+
+export interface IELTSReadingQuestion {
+  id: number;
+  set_id: number;
+  question_order: number;
+  question_type: string;
+  body: string;
+  options: string[] | null;
+  correct_answer: string;
+  explanation: string | null;
 }
 
 export interface IELTSListeningSet {

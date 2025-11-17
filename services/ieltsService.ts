@@ -97,6 +97,7 @@ export interface IeltsSessionRecord extends IeltsSessionSummary {
 import type {
   IELTSUserProfile,
   IELTSReadingSet,
+  IELTSReadingQuestion,
   IELTSListeningSet,
   IELTSWritingTask,
   IELTSSpeakingTask,
@@ -456,7 +457,7 @@ const normalizeSessionRecord = (
 export const fetchActiveReadingSets = async (): Promise<IELTSReadingSet[]> => {
   const { data, error } = await supabase
     .from('ielts_reading_sets')
-    .select('id, slug, title, description, level, est_band_min, est_band_max, duration_minutes, created_by, created_at, is_active')
+    .select('id, slug, title, description, level, est_band_min, est_band_max, duration_minutes, passage_text, required_tier, created_by, created_at, is_active')
     .eq('is_active', true)
     .order('created_at', { ascending: false });
 
@@ -691,3 +692,72 @@ export const finaliseSession = async (
 
   return normalizeSessionRecord(data as Record<string, unknown>);
 };
+
+// Fetch questions for a reading set
+export const fetchReadingQuestions = async (setId: number) => {
+  const { data, error } = await supabase
+    .from('ielts_reading_questions')
+    .select('*')
+    .eq('set_id', setId)
+    .order('question_order', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching reading questions:', error);
+    throw new Error('Failed to load questions');
+  }
+
+  return data;
+};
+
+// Submit reading practice attempt
+export const submitReadingAttempt = async (
+  setId: number,
+  answers: Record<number, string>,
+  timeSpent: number
+) => {
+  const { data: session } = await supabase.auth.getSession();
+  if (!session?.session?.user) {
+    throw new Error('Not authenticated');
+  }
+
+  const { data, error } = await supabase
+    .from('ielts_reading_attempts')
+    .insert({
+      user_id: session.session.user.id,
+      set_id: setId,
+      answers,
+      time_spent: timeSpent,
+      completed_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error submitting attempt:', error);
+    throw new Error('Failed to submit attempt');
+  }
+
+  return data;
+};
+
+// Get user's tier
+export const getUserTier = async () => {
+  const { data: session } = await supabase.auth.getSession();
+  if (!session?.session?.user) {
+    return 'free';
+  }
+
+  const { data, error } = await supabase
+    .from('ielts_users')
+    .select('tier')
+    .eq('id', session.session.user.id)
+    .single();
+
+  if (error) {
+    console.error('Error fetching user tier:', error);
+    return 'free';
+  }
+
+  return data?.tier || 'free';
+};
+

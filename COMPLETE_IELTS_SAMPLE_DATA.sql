@@ -28,13 +28,19 @@ DECLARE
   v_coffee_set_id BIGINT;
   v_coral_set_id BIGINT;
   v_wfh_set_id BIGINT;
+  v_question_count INTEGER;
 BEGIN
   -- Get the set IDs
   SELECT id INTO v_coffee_set_id FROM ielts_reading_sets WHERE slug = 'history-of-coffee';
   SELECT id INTO v_coral_set_id FROM ielts_reading_sets WHERE slug = 'climate-change-coral-reefs';
   SELECT id INTO v_wfh_set_id FROM ielts_reading_sets WHERE slug = 'working-from-home';
 
-  -- Add questions for Coffee passage (using actual schema: question_order, question_type, body, options, correct_answer, explanation)
+  -- Check if questions already exist
+  SELECT COUNT(*) INTO v_question_count FROM ielts_reading_questions WHERE set_id = v_coffee_set_id;
+  
+  -- Only add questions if they don't exist
+  IF v_question_count = 0 THEN
+    -- Add questions for Coffee passage (using actual schema: question_order, question_type, body, options, correct_answer, explanation)
   INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation) VALUES
   (
     v_coffee_set_id, 
@@ -132,6 +138,7 @@ BEGIN
     '"Hybrid models"'::jsonb,
     'The passage concludes that "many organizations are adopting hybrid models."'
   );
+  END IF; -- End of question existence check
 
 END;
 $$;

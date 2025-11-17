@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   createPack,
   fetchRecentSessions,
+  fetchActiveReadingSets,
   getByReference,
   IeltsModuleType,
   IeltsSessionSummary,
@@ -39,6 +40,11 @@ const IeltsHome: React.FC = () => {
   const { data: recentSessions, isLoading: isSessionsLoading, error: sessionsError } = useQuery({
     queryKey: ['ielts-sessions', 'recent'],
     queryFn: fetchRecentSessions,
+  });
+
+  const { data: readingSets, isLoading: isReadingSetsLoading } = useQuery({
+    queryKey: ['reading-sets'],
+    queryFn: fetchActiveReadingSets,
   });
 
   const createPackMutation = useMutation({
