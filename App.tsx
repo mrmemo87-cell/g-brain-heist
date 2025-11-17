@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage, Announcement, Grade, Batch } from './types';
+import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage, Announcement, Grade, Batch, StudentAssignmentTask } from './types';
 import * as GameService from './services/gameService';
 import { supabase } from './services/supabaseClient';
 import Header from './components/Header';
@@ -56,6 +56,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [sessionStatus, setSessionStatus] = useState<SessionStatus | null>(null);
   const [caps, setCaps] = useState<Caps | null>(null);
   const [news, setNews] = useState<NewsEvent[]>([]);
+  const [activeAssignment, setActiveAssignment] = useState<StudentAssignmentTask | null>(null);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts'>('dashboard');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -116,6 +117,23 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const handleAcademicBatchChange = (value: string) => {
     setPendingBatch((value as Batch) || DEFAULT_BATCH);
     setAcademicError(null);
+  };
+
+  const refreshAssignment = async (profileOverride?: Profile | null) => {
+    const targetProfile = profileOverride ?? profile;
+    const role = targetProfile?.role ?? 'student';
+
+    if (!targetProfile || role === 'teacher' || role === 'admin') {
+      setActiveAssignment(null);
+      return;
+    }
+
+    try {
+      const assignment = await GameService.get_student_active_assignment();
+      setActiveAssignment(assignment);
+    } catch (error) {
+      console.error('Failed to load assignment state:', error);
+    }
   };
 
   const handleAcademicSave = async () => {
@@ -245,6 +263,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       }
       
       setNews(newsData || []);
+
+      await refreshAssignment(profileData);
 
       // Show tutorial if first time user (only check once on initial load)
       if (!tutorialChecked && profileData && !profileData.tutorial_completed) {
@@ -498,9 +518,18 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     try {
       const profileData = await GameService.whoami();
       setProfile(profileData);
+      await refreshAssignment(profileData);
     } catch (error) {
       console.error('Failed to refresh profile:', error);
     }
+  };
+
+  const handleQuestAction = () => {
+    if (activeAssignment) {
+      const teacherName = activeAssignment.teacher_username || 'your teacher';
+      addToast(`Assignment pending from ${teacherName}. Complete it before starting new quests.`, 'warning');
+    }
+    setView('quest');
   };
 
   const handleGrantReward = (deltas: { xp?: number; coins?: number; gemstones?: number; ap?: number }) => {
@@ -693,7 +722,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const renderView = () => {
     switch(view) {
         case 'quest':
-            return <QuestView onComplete={handleViewComplete} onGrantReward={handleGrantReward} />;
+            return (
+              <QuestView
+                onComplete={handleViewComplete}
+                onGrantReward={handleGrantReward}
+                initialAssignment={activeAssignment}
+                refreshAssignment={() => refreshAssignment()}
+              />
+            );
         case 'pvp':
             return <PvPView onComplete={handleViewComplete} onGrantReward={handleGrantReward} profile={profile} />;
         case 'shop':
@@ -803,7 +839,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                     {/* Middle Column */}
                     <div className="lg:col-span-5 xl:col-span-6 space-y-6">
                         <MainActions
-                            onStartQuest={() => setView('quest')}
+                            onStartQuest={handleQuestAction}
                             onStartPvp={() => setView('pvp')}
                             onOpenRaid={() => setView('raids')}
                             onVisitShop={() => setView('shop')}
@@ -811,22 +847,22 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                             onVisitInventory={() => setView('inventory')}
                             onViewLeaderboard={() => setView('leaderboard')}
                             onViewAchievements={() => setView('achievements')}
-                            onOpenRaidAdmin={profile?.role === 'teacher' ? () => setView('raid_admin') : undefined}
+                            onOpenRaidAdmin={isAdmin(profile) ? () => setView('raid_admin') : undefined}
                             onOpenTournament={() => setView('tournament')}
-                            onOpenTeacherPortal={profile?.role === 'teacher' ? () => setView('teacher') : undefined}
                             onOpenAdminPortal={isAdmin(profile) ? () => setView('admin') : undefined}
                             onOpenTournamentAdmin={isAdmin(profile) ? () => setView('tournament_admin') : undefined}
                             onOpenCompetitionPlay={profile?.grade && !profile?.is_banned ? () => setView('phase1_play') : undefined}
                             onOpenCompetitionLeaderboard={() => setView('phase1_leaderboard')}
                             onOpenCompetitionAdmin={profile?.is_admin ? () => setView('phase1_admin') : undefined}
                             onOpenIeltsPrep={() => setView('ielts')}
+                            hasPendingAssignment={Boolean(activeAssignment)}
                         />
                         <TaskList tasks={tasks} onTasksUpdate={fetchGameData} />
                     </div>
 
                     {/* Right Column */}
           <div className="lg:col-span-3 xl:col-span-3 space-y-6">
-            {profile?.role !== 'teacher' && <NewsFeed news={news} />}
+            <NewsFeed news={news} />
           </div>
                 </main>
             );

@@ -1,9 +1,34 @@
 -- Enable required extension for UUID generation
 create extension if not exists "pgcrypto";
 
+-- Dedicated IELTS user profiles separate from Brains Heist players
+create table if not exists ielts_users (
+  id uuid primary key references auth.users(id) on delete cascade,
+  username text unique not null,
+  full_name text,
+  email text unique,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create or replace function set_ielts_users_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_ielts_users_updated_at on ielts_users;
+create trigger trg_ielts_users_updated_at
+before update on ielts_users
+for each row execute function set_ielts_users_updated_at();
+
 -- Table to store teacher/admin accounts allowed to manage IELTS content
 create table if not exists ielts_teachers (
-  user_id uuid primary key references users(id) on delete cascade,
+  user_id uuid primary key references ielts_users(id) on delete cascade,
   added_at timestamptz not null default now()
 );
 
@@ -17,7 +42,7 @@ create table if not exists ielts_reading_sets (
   est_band_min numeric(2,1),
   est_band_max numeric(2,1),
   duration_minutes integer not null,
-  created_by uuid references users(id),
+  created_by uuid references ielts_users(id),
   created_at timestamptz not null default now(),
   is_active boolean not null default true
 );
@@ -50,7 +75,7 @@ create table if not exists ielts_listening_sets (
   est_band_max numeric(2,1),
   duration_minutes integer not null,
   audio_url text not null,
-  created_by uuid references users(id),
+  created_by uuid references ielts_users(id),
   created_at timestamptz not null default now(),
   is_active boolean not null default true
 );
@@ -81,7 +106,7 @@ create table if not exists ielts_writing_tasks (
   prompt text not null,
   bands_target text,
   sample_answer text,
-  created_by uuid references users(id),
+  created_by uuid references ielts_users(id),
   created_at timestamptz not null default now(),
   is_active boolean not null default true
 );
@@ -96,7 +121,7 @@ create table if not exists ielts_speaking_tasks (
   part integer not null,
   prompt text not null,
   follow_ups jsonb,
-  created_by uuid references users(id),
+  created_by uuid references ielts_users(id),
   created_at timestamptz not null default now(),
   is_active boolean not null default true
 );
@@ -107,7 +132,7 @@ create index if not exists idx_ielts_speaking_tasks_created_by on ielts_speaking
 -- IELTS Reading Attempts
 create table if not exists ielts_reading_attempts (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references users(id) on delete cascade,
+  user_id uuid not null references ielts_users(id) on delete cascade,
   set_id bigint not null references ielts_reading_sets(id) on delete cascade,
   started_at timestamptz not null default now(),
   completed_at timestamptz,
@@ -125,7 +150,7 @@ create index if not exists idx_ielts_reading_attempts_set on ielts_reading_attem
 -- IELTS Listening Attempts
 create table if not exists ielts_listening_attempts (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references users(id) on delete cascade,
+  user_id uuid not null references ielts_users(id) on delete cascade,
   set_id bigint not null references ielts_listening_sets(id) on delete cascade,
   started_at timestamptz not null default now(),
   completed_at timestamptz,
@@ -143,7 +168,7 @@ create index if not exists idx_ielts_listening_attempts_set on ielts_listening_a
 -- IELTS Writing Attempts
 create table if not exists ielts_writing_attempts (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references users(id) on delete cascade,
+  user_id uuid not null references ielts_users(id) on delete cascade,
   task_id bigint not null references ielts_writing_tasks(id) on delete cascade,
   submitted_at timestamptz not null default now(),
   answer_text text not null,
@@ -162,7 +187,7 @@ create index if not exists idx_ielts_writing_attempts_task on ielts_writing_atte
 -- IELTS Speaking Attempts
 create table if not exists ielts_speaking_attempts (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references users(id) on delete cascade,
+  user_id uuid not null references ielts_users(id) on delete cascade,
   task_id bigint not null references ielts_speaking_tasks(id) on delete cascade,
   submitted_at timestamptz not null default now(),
   audio_url text not null,
@@ -192,7 +217,7 @@ create table if not exists ielts_mock_tests (
   speaking_task_part1_id bigint references ielts_speaking_tasks(id),
   speaking_task_part2_id bigint references ielts_speaking_tasks(id),
   speaking_task_part3_id bigint references ielts_speaking_tasks(id),
-  created_by uuid references users(id),
+  created_by uuid references ielts_users(id),
   created_at timestamptz not null default now(),
   is_active boolean not null default true
 );
@@ -202,7 +227,7 @@ create index if not exists idx_ielts_mock_tests_created_by on ielts_mock_tests(c
 -- IELTS Mock Test Attempts
 create table if not exists ielts_mock_test_attempts (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references users(id) on delete cascade,
+  user_id uuid not null references ielts_users(id) on delete cascade,
   test_id bigint not null references ielts_mock_tests(id) on delete cascade,
   started_at timestamptz not null default now(),
   completed_at timestamptz,
@@ -218,6 +243,7 @@ create index if not exists idx_ielts_mock_test_attempts_user on ielts_mock_test_
 create index if not exists idx_ielts_mock_test_attempts_test on ielts_mock_test_attempts(test_id);
 
 -- Enable RLS on all tables
+alter table ielts_users enable row level security;
 alter table ielts_teachers enable row level security;
 alter table ielts_reading_sets enable row level security;
 alter table ielts_reading_questions enable row level security;
@@ -231,6 +257,30 @@ alter table ielts_writing_attempts enable row level security;
 alter table ielts_speaking_attempts enable row level security;
 alter table ielts_mock_tests enable row level security;
 alter table ielts_mock_test_attempts enable row level security;
+
+-- IELTS user profile policies
+drop policy if exists "IELTS users can view their profile" on ielts_users;
+create policy "IELTS users can view their profile" on ielts_users
+for select
+using (auth.uid() = id);
+
+drop policy if exists "IELTS users can create their profile" on ielts_users;
+create policy "IELTS users can create their profile" on ielts_users
+for insert
+with check (auth.uid() = id);
+
+drop policy if exists "IELTS users can update their profile" on ielts_users;
+create policy "IELTS users can update their profile" on ielts_users
+for update
+using (auth.uid() = id)
+with check (auth.uid() = id);
+
+drop policy if exists "Service roles manage IELTS profiles" on ielts_users;
+create policy "Service roles manage IELTS profiles" on ielts_users
+as permissive
+for all
+using (auth.role() = 'service_role')
+with check (auth.role() = 'service_role');
 
 -- Policies for ielts_teachers table
 drop policy if exists "Teachers can view their membership" on ielts_teachers;

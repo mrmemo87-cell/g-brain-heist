@@ -94,10 +94,18 @@ const RewardParticle: React.FC<RewardParticleProps> = ({ id, type, startRect, on
 interface QuestViewProps {
   onComplete: () => void;
   onGrantReward: (deltas: { xp: number; coins: number; gemstones?: number }) => void;
+  /**
+   * Optional pre-fetched assignment supplied by the parent so we can avoid double loading.
+   */
+  initialAssignment?: StudentAssignmentTask | null;
+  /**
+   * Callback to refresh the global assignment state once the student completes it.
+   */
+  refreshAssignment?: () => Promise<void> | void;
 }
 
-const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
-  const [stage, setStage] = useState<QuestStage>('mode_selection');
+const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initialAssignment, refreshAssignment }) => {
+  const [stage, setStage] = useState<QuestStage>('loading');
   const [mode, setMode] = useState<QuestMode>('practice');
   const [subjects, setSubjects] = useState<SubjectData[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<SubjectData | null>(null);
@@ -119,6 +127,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
   const [lastCompletedAssignment, setLastCompletedAssignment] = useState<StudentAssignmentTask | null>(null);
   const [assignmentStartTime, setAssignmentStartTime] = useState<number | null>(null);
   const [assignmentSubmissionState, setAssignmentSubmissionState] = useState<'idle' | 'submitting' | 'submitted'>('idle');
+  const [freeformAnswer, setFreeformAnswer] = useState('');
 
   const answerFeedbackRef = useRef<HTMLDivElement>(null);
 
@@ -280,26 +289,94 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
       setParticles(current => current.filter(p => p.id !== id));
   };
 
-  const hydrateAssignment = async () => {
+  const normalizeAssignmentQuestion = (question: TeacherQuestion): TeacherQuestion => {
+    const rawOptions = (question as any).options;
+    const normalizeOptions = (): string[] => {
+      if (Array.isArray(rawOptions)) {
+        return rawOptions.map((value) => (value == null ? '' : String(value)));
+      }
+
+      if (typeof rawOptions === 'string') {
+        try {
+          const parsed = JSON.parse(rawOptions);
+          if (Array.isArray(parsed)) {
+            return parsed.map((value) => (value == null ? '' : String(value)));
+          }
+        } catch (error) {
+          // Ignore JSON parse failures and fall back to defaults
+        }
+      }
+
+      if (rawOptions && typeof rawOptions === 'object') {
+        const values = Object.values(rawOptions as Record<string, unknown>)
+          .map((value) => (value == null ? '' : String(value)));
+        if (values.length) {
+          return values;
+        }
+      }
+
+      if (question.question_type === 'true_false') {
+        return ['True', 'False'];
+      }
+
+      return [];
+    };
+
+    const resolvedTimeLimitRaw = (question as any).time_limit ?? (question as any).time_limit_seconds;
+    const numericTimeLimit = typeof resolvedTimeLimitRaw === 'number' ? resolvedTimeLimitRaw : Number(resolvedTimeLimitRaw);
+    const resolvedTimeLimit = Number.isFinite(numericTimeLimit) && numericTimeLimit > 0 ? numericTimeLimit : 30;
+
+    const resolvedPointsRaw = (question as any).points;
+    const numericPoints = typeof resolvedPointsRaw === 'number' ? resolvedPointsRaw : Number(resolvedPointsRaw);
+    const resolvedPoints = Number.isFinite(numericPoints) && numericPoints >= 0 ? numericPoints : 10;
+
+    return {
+      ...question,
+      topic_name: question.topic_name || question.topic || 'General',
+      options: normalizeOptions(),
+      time_limit: resolvedTimeLimit,
+      points: resolvedPoints,
+    };
+  };
+
+  const applyAssignmentState = (assignment: StudentAssignmentTask) => {
+    const normalizedQuestions = (assignment.questions || []).map(normalizeAssignmentQuestion);
+
+    setActiveAssignment({ ...assignment, questions: normalizedQuestions });
+    setLastCompletedAssignment(null);
+    setMode('assignment');
+    setTeacherQuestions(normalizedQuestions);
+    setSelectedSubject({
+      id: assignment.subject_id || assignment.subject_name,
+      name: assignment.subject_name,
+      difficulty: 1,
+    });
+    setStage('assignment_blocked');
+    setCurrentQuestionIndex(0);
+    setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
+    setSelectedOption(null);
+    setAnswerResponse(null);
+    setQuestionScores([]);
+    setQuestionPerformances([]);
+    setMissionSummary(null);
+    setTopicSummary(null);
+    setAssignmentSubmissionState('idle');
+    setAssignmentStartTime(null);
+  };
+
+  const hydrateAssignment = async (options: { showLoading?: boolean } = {}) => {
+    const { showLoading = false } = options;
+    if (showLoading) {
+      setStage('loading');
+    }
       try {
           const assignment = await GameService.get_student_active_assignment();
           if (assignment) {
-              setActiveAssignment(assignment);
-              setLastCompletedAssignment(null);
-              setMode('assignment');
-              setTeacherQuestions(assignment.questions);
-              setSelectedSubject({ id: assignment.subject_id || assignment.subject_name, name: assignment.subject_name, difficulty: 1 });
-              setStage('assignment_blocked');
-              setCurrentQuestionIndex(0);
-              setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
-              setSelectedOption(null);
-              setAnswerResponse(null);
-              setQuestionScores([]);
-              setQuestionPerformances([]);
-              setMissionSummary(null);
-              setTopicSummary(null);
-              setAssignmentSubmissionState('idle');
-              setAssignmentStartTime(null);
+              applyAssignmentState({
+                ...assignment,
+                questions: (assignment.questions || []).map(normalizeAssignmentQuestion),
+              });
+              await refreshAssignment?.();
           } else {
               setActiveAssignment(null);
               setTeacherQuestions([]);
@@ -307,12 +384,14 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
               if (mode === 'assignment') {
                   setMode('practice');
               }
-              if (stage === 'assignment_blocked') {
-                  setStage('mode_selection');
-              }
+        setStage('mode_selection');
+        await refreshAssignment?.();
           }
       } catch (error) {
           console.error('Error loading assignment:', error);
+      if (showLoading || stage === 'loading') {
+        setStage('mode_selection');
+      }
       }
   };
 
@@ -390,10 +469,15 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
   }, [stage, currentQuestionIndex, mode, questions, teacherQuestions]);
 
   useEffect(() => {
-    if (stage === 'mode_selection') {
+    if (initialAssignment) {
+      applyAssignmentState(initialAssignment);
+      // Ensure we have the freshest data in case the parent state is stale
       hydrateAssignment();
+    } else {
+      hydrateAssignment({ showLoading: true });
     }
-  }, [stage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialAssignment?.assignment_id]);
 
   useEffect(() => {
     const submitResult = async () => {
@@ -421,6 +505,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
         setAssignmentSubmissionState('submitted');
         setLastCompletedAssignment(activeAssignment);
         setActiveAssignment(null);
+        await refreshAssignment?.();
+        hydrateAssignment({ showLoading: true });
       } catch (error) {
         console.error('Failed to submit assignment result:', error);
         setAssignmentSubmissionState('idle');
@@ -932,7 +1018,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
                   setAssignmentStartTime(null);
                   setLastCompletedAssignment(null);
                   setAssignmentSubmissionState('idle');
-                  hydrateAssignment();
+                  hydrateAssignment({ showLoading: true });
                 } else {
                   setStage('subject_selection');
                   setSelectedSubject(null);

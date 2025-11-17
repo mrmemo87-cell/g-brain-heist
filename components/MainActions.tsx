@@ -19,9 +19,19 @@ interface MainActionsProps {
     onOpenCompetitionLeaderboard?: () => void;
     onOpenCompetitionAdmin?: () => void;
     onOpenIeltsPrep?: () => void;
+    hasPendingAssignment?: boolean;
 }
 
-const ActionButton: React.FC<{ icon: React.ReactNode; label: string; color: string; glowClass: string; onClick?: () => void; className?: string; }> = ({ icon, label, color, glowClass, onClick, className }) => {
+const ActionButton: React.FC<{
+    icon: React.ReactNode;
+    label: string;
+    color: string;
+    glowClass: string;
+    onClick?: () => void;
+    className?: string;
+    badgeText?: string;
+    subtitle?: string;
+}> = ({ icon, label, color, glowClass, onClick, className, badgeText, subtitle }) => {
     const style = {
         backgroundColor: `rgba(${color}, 0.2)`,
         borderColor: `rgba(${color}, 0.8)`,
@@ -37,18 +47,28 @@ const ActionButton: React.FC<{ icon: React.ReactNode; label: string; color: stri
     return (
         <button 
             onClick={onClick} 
-            className={`action-btn w-full h-full flex flex-col items-center justify-center p-4 md:p-6 rounded-2xl border transition-all duration-300 transform hover:scale-105 active:scale-95 min-h-[100px] md:min-h-[120px] ${glowClass} ${className || ''}`}
+            className={`action-btn relative w-full h-full flex flex-col items-center justify-center p-4 md:p-6 rounded-2xl border transition-all duration-300 transform hover:scale-105 active:scale-95 min-h-[100px] md:min-h-[120px] ${glowClass} ${className || ''}`}
             style={style}
             onMouseOver={e => Object.assign(e.currentTarget.style, hoverStyle)}
             onMouseOut={e => Object.assign(e.currentTarget.style, style)}
         >
+            {badgeText && (
+                <span className="absolute -top-2 -right-2 rounded-full bg-amber-400 text-slate-900 text-xs font-bold px-2 py-0.5 shadow-lg shadow-amber-400/50">
+                    {badgeText}
+                </span>
+            )}
             <div className="w-10 h-10 md:w-12 md:h-12 mb-2">{icon}</div>
             <span className="font-heading font-bold text-base md:text-lg tracking-wider text-white">{label}</span>
+            {subtitle && (
+                <span className="mt-1 text-xs text-gray-200 text-center leading-snug">
+                    {subtitle}
+                </span>
+            )}
         </button>
     );
 };
 
-const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onOpenRaid, onVisitShop, onGoToClan, onVisitInventory, onViewLeaderboard, onViewAchievements, onOpenRaidAdmin, onOpenTeacherPortal, onOpenAdminPortal, onOpenTournament, onOpenTournamentAdmin, onOpenCompetitionPlay, onOpenCompetitionLeaderboard, onOpenCompetitionAdmin, onOpenIeltsPrep }) => {
+const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onOpenRaid, onVisitShop, onGoToClan, onVisitInventory, onViewLeaderboard, onViewAchievements, onOpenRaidAdmin, onOpenTeacherPortal, onOpenAdminPortal, onOpenTournament, onOpenTournamentAdmin, onOpenCompetitionPlay, onOpenCompetitionLeaderboard, onOpenCompetitionAdmin, onOpenIeltsPrep, hasPendingAssignment }) => {
   return (
     <div className="grid grid-cols-2 gap-4 animate-fade-in-up">
         {onOpenCompetitionPlay && (
@@ -74,9 +94,12 @@ const MainActions: React.FC<MainActionsProps> = ({ onStartQuest, onStartPvp, onO
         <ActionButton
             onClick={onStartQuest}
             icon={<QuestIcon />}
-            label="Start Quest"
+            label={hasPendingAssignment ? 'Assignment Required' : 'Start Quest'}
+            subtitle={hasPendingAssignment ? 'Complete your assignment first' : undefined}
+            badgeText={hasPendingAssignment ? '!' : undefined}
             color="0, 208, 232" // ion-blue
-            glowClass="glow-ion animate-pulse-glow"
+            glowClass={hasPendingAssignment ? 'glow-warn animate-pulse-glow' : 'glow-ion animate-pulse-glow'}
+            className={hasPendingAssignment ? 'ring-2 ring-amber-300 shadow-lg shadow-amber-300/40' : ''}
         />
         <ActionButton
             onClick={onStartPvp}
