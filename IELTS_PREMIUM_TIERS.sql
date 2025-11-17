@@ -33,14 +33,24 @@ CREATE TABLE IF NOT EXISTS ielts_prime_applications (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Add tier restrictions to reading sets
+-- Add tier restrictions to all content types
 ALTER TABLE ielts_reading_sets 
 ADD COLUMN IF NOT EXISTS required_tier TEXT DEFAULT 'free' CHECK (required_tier IN ('free', 'prime_prep_user'));
 
--- Mark existing sets as free (samples)
-UPDATE ielts_reading_sets 
-SET required_tier = 'free' 
-WHERE required_tier IS NULL;
+ALTER TABLE ielts_listening_sets 
+ADD COLUMN IF NOT EXISTS required_tier TEXT DEFAULT 'free' CHECK (required_tier IN ('free', 'prime_prep_user'));
+
+ALTER TABLE ielts_writing_tasks 
+ADD COLUMN IF NOT EXISTS required_tier TEXT DEFAULT 'free' CHECK (required_tier IN ('free', 'prime_prep_user'));
+
+ALTER TABLE ielts_speaking_tasks 
+ADD COLUMN IF NOT EXISTS required_tier TEXT DEFAULT 'free' CHECK (required_tier IN ('free', 'prime_prep_user'));
+
+-- Mark existing content as free (samples)
+UPDATE ielts_reading_sets SET required_tier = 'free' WHERE required_tier IS NULL;
+UPDATE ielts_listening_sets SET required_tier = 'free' WHERE required_tier IS NULL;
+UPDATE ielts_writing_tasks SET required_tier = 'free' WHERE required_tier IS NULL;
+UPDATE ielts_speaking_tasks SET required_tier = 'free' WHERE required_tier IS NULL;
 
 -- Create certificates table
 CREATE TABLE IF NOT EXISTS ielts_certificates (
