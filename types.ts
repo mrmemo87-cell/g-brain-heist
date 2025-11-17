@@ -371,6 +371,148 @@ export interface TournamentSchedulePayload {
 }
 
 // ============================================================
+// IELTS Test Prep Domain
+// ============================================================
+
+export type IELTSSectionKey = 'dashboard' | 'reading' | 'listening' | 'writing' | 'speaking' | 'mock-tests' | 'progress';
+
+export interface IELTSUserProfile {
+  id: string;
+  username: string;
+  full_name: string | null;
+  email: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IELTSReadingSet {
+  id: number;
+  slug: string;
+  title: string;
+  description: string | null;
+  level: string;
+  est_band_min: number | null;
+  est_band_max: number | null;
+  duration_minutes: number;
+  created_by: string | null;
+  created_at: string;
+  is_active: boolean;
+}
+
+export interface IELTSListeningSet {
+  id: number;
+  slug: string;
+  title: string;
+  description: string | null;
+  level: string;
+  est_band_min: number | null;
+  est_band_max: number | null;
+  duration_minutes: number;
+  audio_url: string;
+  created_by: string | null;
+  created_at: string;
+  is_active: boolean;
+}
+
+export interface IELTSWritingTask {
+  id: number;
+  slug: string;
+  task_type: string;
+  title: string | null;
+  prompt: string;
+  bands_target: string | null;
+  sample_answer: string | null;
+  created_by: string | null;
+  created_at: string;
+  is_active: boolean;
+}
+
+export interface IELTSSpeakingTask {
+  id: number;
+  slug: string;
+  part: number;
+  prompt: string;
+  follow_ups: Record<string, any> | null;
+  created_by: string | null;
+  created_at: string;
+  is_active: boolean;
+}
+
+export interface IELTSMockTest {
+  id: number;
+  slug: string;
+  title: string;
+  description: string | null;
+  duration_minutes: number | null;
+  reading_set_id: number | null;
+  listening_set_id: number | null;
+  writing_task1_id: number | null;
+  writing_task2_id: number | null;
+  speaking_task_part1_id: number | null;
+  speaking_task_part2_id: number | null;
+  speaking_task_part3_id: number | null;
+  created_by: string | null;
+  created_at: string;
+  is_active: boolean;
+}
+
+export interface IELTSReadingAttempt {
+  id: string;
+  set_id: number;
+  started_at: string;
+  completed_at: string | null;
+  raw_score: number | null;
+  total_questions: number | null;
+  percent: number | null;
+  est_band: number | null;
+}
+
+export interface IELTSListeningAttempt {
+  id: string;
+  set_id: number;
+  started_at: string;
+  completed_at: string | null;
+  raw_score: number | null;
+  total_questions: number | null;
+  percent: number | null;
+  est_band: number | null;
+}
+
+export interface IELTSWritingAttempt {
+  id: string;
+  task_id: number;
+  submitted_at: string;
+  band_overall: number | null;
+  feedback: Record<string, any> | null;
+}
+
+export interface IELTSSpeakingAttempt {
+  id: string;
+  task_id: number;
+  submitted_at: string;
+  band_overall: number | null;
+  band_fluency: number | null;
+  band_pronunciation: number | null;
+}
+
+export interface IELTSMockTestAttempt {
+  id: string;
+  test_id: number;
+  started_at: string;
+  completed_at: string | null;
+  overall_band_est: number | null;
+  summary: Record<string, any> | null;
+}
+
+export interface IELTSRecentAttempts {
+  reading: IELTSReadingAttempt[];
+  listening: IELTSListeningAttempt[];
+  writing: IELTSWritingAttempt[];
+  speaking: IELTSSpeakingAttempt[];
+  mock: IELTSMockTestAttempt[];
+}
+
+// ============================================================
 // Brains Heist Progress & Analytics
 // ============================================================
 
