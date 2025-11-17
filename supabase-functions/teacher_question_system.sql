@@ -264,6 +264,27 @@ BEGIN
     SELECT 1 FROM pg_policies
     WHERE schemaname = 'public'
       AND tablename = 'questions'
+      AND policyname = 'Students view assignment questions'
+  ) THEN
+    EXECUTE 'CREATE POLICY "Students view assignment questions"
+      ON questions FOR SELECT
+      USING (EXISTS (
+        SELECT 1
+        FROM assignment_questions aq
+        JOIN student_assignments sa ON sa.assignment_id = aq.assignment_id
+        WHERE aq.question_id = questions.id
+          AND sa.student_id = auth.uid()
+      ))';
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'questions'
       AND policyname = 'Teachers can insert their own questions'
   ) THEN
     EXECUTE 'CREATE POLICY "Teachers can insert their own questions"
