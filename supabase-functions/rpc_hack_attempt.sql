@@ -191,7 +191,8 @@ begin
     update public.users
     set xp = xp + xp_delta,
         coins = coins + coins_delta,
-        ap_now = ap_now - c_ap_cost
+        ap_now = ap_now - c_ap_cost,
+        last_ap_update = v_now
     where id = v_attacker_id;
 
     -- Update defender (lose coins if not blocked, and set cooldown)
@@ -219,7 +220,8 @@ begin
     update public.users
     set xp = xp + xp_delta,
         coins = greatest(0, coins - coins_lost_to_def),
-        ap_now = ap_now - c_ap_cost
+        ap_now = ap_now - c_ap_cost,
+        last_ap_update = v_now
     where id = v_attacker_id;
     
     -- Update defender (gains coins from failed attack, and set cooldown)
