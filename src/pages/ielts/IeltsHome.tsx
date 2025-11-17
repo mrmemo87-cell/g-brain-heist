@@ -12,7 +12,6 @@ import {
   IeltsModuleType,
   IeltsSessionSummary,
 } from '../../../services/ieltsService';
-import { BookOpen, Headphones, PenTool, Mic } from 'lucide-react';
 
 const moduleLabels: Record<IeltsModuleType, string> = {
   general: 'General Training',
@@ -146,8 +145,8 @@ const IeltsHome: React.FC = () => {
           {/* Reading */}
           <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <BookOpen className="w-6 h-6 text-blue-700" />
+              <div className="p-3 bg-blue-100 rounded-lg text-3xl">
+                📚
               </div>
               <div className="flex-1">
                 <h3 className="text-xl font-semibold text-slate-900">Reading</h3>
@@ -185,8 +184,8 @@ const IeltsHome: React.FC = () => {
           {/* Listening */}
           <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <Headphones className="w-6 h-6 text-purple-700" />
+              <div className="p-3 bg-purple-100 rounded-lg text-3xl">
+                🎧
               </div>
               <div className="flex-1">
                 <h3 className="text-xl font-semibold text-slate-900">Listening</h3>
@@ -224,8 +223,8 @@ const IeltsHome: React.FC = () => {
           {/* Writing */}
           <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <PenTool className="w-6 h-6 text-green-700" />
+              <div className="p-3 bg-green-100 rounded-lg text-3xl">
+                ✍️
               </div>
               <div className="flex-1">
                 <h3 className="text-xl font-semibold text-slate-900">Writing</h3>
@@ -263,8 +262,8 @@ const IeltsHome: React.FC = () => {
           {/* Speaking */}
           <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-orange-100 rounded-lg">
-                <Mic className="w-6 h-6 text-orange-700" />
+              <div className="p-3 bg-orange-100 rounded-lg text-3xl">
+                🎤
               </div>
               <div className="flex-1">
                 <h3 className="text-xl font-semibold text-slate-900">Speaking</h3>
