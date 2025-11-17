@@ -15,14 +15,12 @@ const Main: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check for existing Supabase session on mount
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
       setIsLoading(false);
     });
 
-    // Listen for auth state changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -32,80 +30,21 @@ const Main: React.FC = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-
-  const IELTSMain: React.FC = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        setIsAuthenticated(!!session);
-        setIsLoading(false);
-      });
-
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange((_event, session) => {
-        setIsAuthenticated(!!session);
-      });
-
-      return () => subscription.unsubscribe();
-    }, []);
-
-    const handleAuthenticated = useCallback(() => {
-      setIsAuthenticated(true);
-    }, []);
-
-    const handleLogout = useCallback(() => {
-      setIsAuthenticated(false);
-    }, []);
-
-    if (isLoading) {
-      return (
-        <div className="ielts-auth-wrapper">
-          <div className="ielts-auth-panel" style={{ textAlign: 'center' }}>
-            <div className="ielts-auth-badge">IELTS Prep Hub</div>
-            <p style={{ margin: '0.5rem 0 0', color: 'var(--ielts-slate-600)' }}>Preparing secure study environment…</p>
-          </div>
-        </div>
-      );
-    }
-
-    if (!isAuthenticated) {
-      return <IELTSLoginView onAuthenticated={handleAuthenticated} />;
-    }
-
-    return <IELTSApp onLogout={handleLogout} />;
-  };
-
-
   const handleLogin = useCallback(async (email: string, pass: string) => {
     await AuthService.login(email, pass);
     setIsAuthenticated(true);
   }, []);
 
   const handleLogout = useCallback(async () => {
-  const isIELTSRoute = window.location.pathname.startsWith('/ielts');
+    await AuthService.logout();
+    setIsAuthenticated(false);
+  }, []);
 
-  if (isIELTSRoute) {
-    root.render(
-      <React.StrictMode>
-        <ErrorBoundary>
-          <IELTSMain />
-        </ErrorBoundary>
-      </React.StrictMode>
-    );
-  } else {
-    root.render(
-      <React.StrictMode>
-        <ErrorBoundary>
-          <LightModeProvider>
-            <Main />
-          </LightModeProvider>
-        </ErrorBoundary>
-      </React.StrictMode>
-    );
-  }
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="font-heading text-2xl animate-pulse" style={{ color: 'var(--ion-blue)' }}>
+          Initializing Heist OS...
         </div>
       </div>
     );
@@ -118,19 +57,76 @@ const Main: React.FC = () => {
   return <App onLogout={handleLogout} />;
 };
 
+const IELTSMain: React.FC = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+      setIsLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleAuthenticated = useCallback(() => {
+    setIsAuthenticated(true);
+  }, []);
+
+  const handleLogout = useCallback(async () => {
+    await supabase.auth.signOut();
+    setIsAuthenticated(false);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="ielts-auth-wrapper">
+        <div className="ielts-auth-panel" style={{ textAlign: 'center' }}>
+          <div className="ielts-auth-badge">IELTS Prep Hub</div>
+          <p style={{ margin: '0.5rem 0 0', color: 'var(--ielts-slate-600)' }}>Preparing secure study environment…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <IELTSLoginView onAuthenticated={handleAuthenticated} />;
+  }
+
+  return <IELTSApp onLogout={handleLogout} />;
+};
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
+  throw new Error('Could not find root element to mount to');
 }
 
 const root = ReactDOM.createRoot(rootElement);
-root.render(
-  <React.StrictMode>
-    <ErrorBoundary>
-      <LightModeProvider>
-        <Main />
-      </LightModeProvider>
-    </ErrorBoundary>
-  </React.StrictMode>
-);
+const isIELTSRoute = window.location.pathname.startsWith('/ielts');
+
+if (isIELTSRoute) {
+  root.render(
+    <React.StrictMode>
+      <ErrorBoundary>
+        <IELTSMain />
+      </ErrorBoundary>
+    </React.StrictMode>
+  );
+} else {
+  root.render(
+    <React.StrictMode>
+      <ErrorBoundary>
+        <LightModeProvider>
+          <Main />
+        </LightModeProvider>
+      </ErrorBoundary>
+    </React.StrictMode>
+  );
+}
