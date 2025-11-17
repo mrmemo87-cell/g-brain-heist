@@ -444,6 +444,9 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
   const handleAssignmentBegin = () => {
     if (!activeAssignment) return;
+    if (!teacherQuestions.length && activeAssignment.questions?.length) {
+      setTeacherQuestions(activeAssignment.questions);
+    }
     setStage('in_progress');
     setMode('assignment');
     setCurrentQuestionIndex(0);
@@ -700,9 +703,12 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   );
 
   const renderInProgress = () => {
+    const assignmentQuestions = mode === 'assignment'
+      ? (teacherQuestions.length ? teacherQuestions : activeAssignment?.questions || [])
+      : [];
     const question = mode === 'practice' ? questions[currentQuestionIndex] : null;
     const teacherQuestion = mode === 'teacher' ? teacherQuestions[currentQuestionIndex] : null;
-    const assignmentQuestion = mode === 'assignment' ? teacherQuestions[currentQuestionIndex] : null;
+    const assignmentQuestion = mode === 'assignment' ? assignmentQuestions[currentQuestionIndex] : null;
 
     if (!question && !teacherQuestion && !assignmentQuestion) return null;
 
@@ -731,7 +737,11 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     const correctAnswer = mode === 'practice'
       ? question!.correct_answer ?? ''
       : activeTeacherQuestion!.correct_answer ?? '';
-    const totalQuestions = mode === 'practice' ? questions.length : teacherQuestions.length;
+    const totalQuestions = mode === 'practice'
+      ? questions.length
+      : mode === 'assignment'
+        ? assignmentQuestions.length
+        : teacherQuestions.length;
     const assignmentDetails = mode === 'assignment' ? (activeAssignment || lastCompletedAssignment) : null;
 
     return (
