@@ -15,16 +15,18 @@ const LottieAnimation: React.FC<LottieAnimationProps> = ({ url, width = 200, hei
   const [loading, setLoading] = useState(true);
   const { isLightMode } = useLightMode();
 
-  // Don't load or render animations in light mode
-  if (isLightMode) {
-    return null;
-  }
-
   useEffect(() => {
+    if (isLightMode) {
+      setLoading(false);
+      setError(false);
+      setAnimationData(null);
+      return;
+    }
+
     setLoading(true);
     setError(false);
     setAnimationData(null);
-    
+
     fetch(url)
       .then(res => {
         if (!res.ok) throw new Error('Failed to load animation');
@@ -44,7 +46,12 @@ const LottieAnimation: React.FC<LottieAnimationProps> = ({ url, width = 200, hei
         setError(true);
         setLoading(false);
       });
-  }, [url]);
+  }, [url, isLightMode]);
+
+  // Don't load or render animations in light mode
+  if (isLightMode) {
+    return null;
+  }
 
   if (loading) {
     return <div style={{ width, height }} className="flex items-center justify-center">
