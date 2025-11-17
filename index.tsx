@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import LoginView from './components/LoginView';
@@ -10,6 +10,12 @@ import { supabase } from './services/supabaseClient';
 import { LightModeProvider } from './src/contexts/LightModeContext';
 import './src/index.css';
 import './src/styles/light-mode.css';
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
+import IeltsHome from './src/pages/ielts/IeltsHome';
+import IeltsSession from './src/pages/ielts/IeltsSession';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
 
 const Main: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -54,7 +60,18 @@ const Main: React.FC = () => {
     return <LoginView onLogin={handleLogin} />;
   }
 
-  return <App onLogout={handleLogout} />;
+  const router = useMemo(
+    () =>
+      createBrowserRouter([
+        { path: '/', element: <App onLogout={handleLogout} /> },
+        { path: '/ielts', element: <IeltsHome /> },
+        { path: '/ielts/session/:sessionId', element: <IeltsSession /> },
+        { path: '*', element: <Navigate to="/" replace /> },
+      ]),
+    [handleLogout]
+  );
+
+  return <RouterProvider router={router} />;
 };
 
 const IELTSMain: React.FC = () => {

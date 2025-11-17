@@ -29,6 +29,8 @@ export default defineConfig(({ mode }) => {
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),
+          'react-router-dom': path.resolve(__dirname, 'src/lib/router.tsx'),
+          '@tanstack/react-query': path.resolve(__dirname, 'src/lib/simple-react-query.tsx'),
         }
       }
     };
