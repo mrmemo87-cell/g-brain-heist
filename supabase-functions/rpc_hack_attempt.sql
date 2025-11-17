@@ -44,6 +44,8 @@ declare
   coins_delta int := 0;
   coins_stolen_from_def int := 0;
   coins_lost_to_def int := 0;  -- Coins attacker loses to defender on loss
+
+  current_ap int;
   
   result_kind text;
   attacker_username text;
@@ -60,8 +62,8 @@ begin
   end if;
 
   -- ====== Fetch attacker profile (with row lock) ======
-  select 
-    id, username, level, xp, coins, ap_now, 
+  select
+    id, username, level, xp, coins, ap_now, ap_max, last_ap_update,
     coalesce(attack_power, 10) as attack_power,
     coalesce(defense_power, 10) as defense_power
   into attacker
@@ -73,8 +75,28 @@ begin
     raise exception 'Attacker not found';
   end if;
 
-  -- Check AP
-  if attacker.ap_now < c_ap_cost then
+  -- Refresh AP based on regeneration before spending
+  current_ap := calculate_current_ap(attacker.ap_now, attacker.ap_max, coalesce(attacker.last_ap_update, v_now));
+
+  if current_ap <> attacker.ap_now then
+    update public.users
+    set ap_now = current_ap,
+        last_ap_update = v_now
+    where id = v_attacker_id
+    returning ap_now into attacker.ap_now;
+  else
+    attacker.ap_now := current_ap;
+  end if;
+
+  -- Spend AP up front to ensure battles always deduct cost
+  update public.users
+  set ap_now = ap_now - c_ap_cost,
+      last_ap_update = v_now
+  where id = v_attacker_id
+    and ap_now >= c_ap_cost
+  returning ap_now into attacker.ap_now;
+
+  if not found then
     raise exception 'Not enough AP';
   end if;
 
@@ -190,9 +212,7 @@ begin
     -- Update attacker
     update public.users
     set xp = xp + xp_delta,
-        coins = coins + coins_delta,
-        ap_now = ap_now - c_ap_cost,
-        last_ap_update = v_now
+        coins = coins + coins_delta
     where id = v_attacker_id;
 
     -- Update defender (lose coins if not blocked, and set cooldown)
@@ -219,9 +239,7 @@ begin
     -- Update attacker (lose XP, lose coins to defender, and lose AP)
     update public.users
     set xp = xp + xp_delta,
-        coins = greatest(0, coins - coins_lost_to_def),
-        ap_now = ap_now - c_ap_cost,
-        last_ap_update = v_now
+        coins = greatest(0, coins - coins_lost_to_def)
     where id = v_attacker_id;
     
     -- Update defender (gains coins from failed attack, and set cooldown)

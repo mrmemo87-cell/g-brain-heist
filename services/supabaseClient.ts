@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { getRequiredEnvVar } from './env';
+import { getRequiredEnvVar } from './env.js';
 
 // Supabase configuration from environment variables
 const supabaseUrl = getRequiredEnvVar('VITE_SUPABASE_URL');
