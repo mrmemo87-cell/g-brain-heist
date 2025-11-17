@@ -79,38 +79,151 @@ ALTER TABLE assignment_questions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE student_assignments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE student_assignment_results ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Teachers manage own assignments"
-  ON assignments
-  USING (EXISTS (SELECT 1 FROM teachers t WHERE t.id = assignments.teacher_id AND t.user_id = auth.uid()))
-  WITH CHECK (EXISTS (SELECT 1 FROM teachers t WHERE t.id = assignments.teacher_id AND t.user_id = auth.uid()));
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'assignments'
+      AND policyname = 'Teachers manage own assignments'
+  ) THEN
+    EXECUTE $policy$
+      CREATE POLICY "Teachers manage own assignments"
+      ON assignments
+      USING (EXISTS (SELECT 1 FROM teachers t WHERE t.id = assignments.teacher_id AND t.user_id = auth.uid()))
+      WITH CHECK (EXISTS (SELECT 1 FROM teachers t WHERE t.id = assignments.teacher_id AND t.user_id = auth.uid()))
+    $policy$;
+  END IF;
+END;
+$$;
 
-CREATE POLICY "Teachers manage assignment questions"
-  ON assignment_questions
-  USING (EXISTS (
-    SELECT 1 FROM assignments a
-    JOIN teachers t ON t.id = a.teacher_id
-    WHERE a.id = assignment_id AND t.user_id = auth.uid()
-  ))
-  WITH CHECK (EXISTS (
-    SELECT 1 FROM assignments a
-    JOIN teachers t ON t.id = a.teacher_id
-    WHERE a.id = assignment_id AND t.user_id = auth.uid()
-  ));
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'assignment_questions'
+      AND policyname = 'Teachers manage assignment questions'
+  ) THEN
+    EXECUTE $policy_assignment_questions$
+      CREATE POLICY "Teachers manage assignment questions"
+      ON assignment_questions
+      USING (EXISTS (
+        SELECT 1 FROM assignments a
+        JOIN teachers t ON t.id = a.teacher_id
+        WHERE a.id = assignment_id AND t.user_id = auth.uid()
+      ))
+      WITH CHECK (EXISTS (
+        SELECT 1 FROM assignments a
+        JOIN teachers t ON t.id = a.teacher_id
+        WHERE a.id = assignment_id AND t.user_id = auth.uid()
+      ))
+    $policy_assignment_questions$;
+  END IF;
+END;
+$$;
 
-CREATE POLICY "Students view own assignments"
-  ON student_assignments
-  FOR SELECT
-  USING (student_id = auth.uid());
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'assignments'
+      AND policyname = 'Students view assigned assignments'
+  ) THEN
+    EXECUTE $policy_assignments_students$
+      CREATE POLICY "Students view assigned assignments"
+      ON assignments
+      FOR SELECT
+      USING (
+        EXISTS (
+          SELECT 1 FROM student_assignments sa
+          WHERE sa.assignment_id = assignments.id
+            AND sa.student_id = auth.uid()
+        )
+      )
+    $policy_assignments_students$;
+  END IF;
+END;
+$$;
 
-CREATE POLICY "Students update own assignments"
-  ON student_assignments
-  FOR UPDATE
-  USING (student_id = auth.uid());
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'assignment_questions'
+      AND policyname = 'Students view assigned questions'
+  ) THEN
+    EXECUTE $policy_assignment_questions_students$
+      CREATE POLICY "Students view assigned questions"
+      ON assignment_questions
+      FOR SELECT
+      USING (
+        EXISTS (
+          SELECT 1 FROM student_assignments sa
+          WHERE sa.assignment_id = assignment_questions.assignment_id
+            AND sa.student_id = auth.uid()
+        )
+      )
+    $policy_assignment_questions_students$;
+  END IF;
+END;
+$$;
 
-CREATE POLICY "Students view own assignment results"
-  ON student_assignment_results
-  FOR SELECT
-  USING (student_id = auth.uid());
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'student_assignments'
+      AND policyname = 'Students view own assignments'
+  ) THEN
+    EXECUTE $policy_student_assignments_select$
+      CREATE POLICY "Students view own assignments"
+      ON student_assignments
+      FOR SELECT
+      USING (student_id = auth.uid())
+    $policy_student_assignments_select$;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'student_assignments'
+      AND policyname = 'Students update own assignments'
+  ) THEN
+    EXECUTE $policy_student_assignments_update$
+      CREATE POLICY "Students update own assignments"
+      ON student_assignments
+      FOR UPDATE
+      USING (student_id = auth.uid())
+    $policy_student_assignments_update$;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'student_assignment_results'
+      AND policyname = 'Students view own assignment results'
+  ) THEN
+    EXECUTE $policy_student_results_select$
+      CREATE POLICY "Students view own assignment results"
+      ON student_assignment_results
+      FOR SELECT
+      USING (student_id = auth.uid())
+    $policy_student_results_select$;
+  END IF;
+END;
+$$;
 
 -- ============================================================
 -- Helper function
@@ -196,10 +309,10 @@ BEGIN
     new_assignment.assigned_at,
     new_assignment.due_at
   FROM users u
-  WHERE u.role = 'student'
+  WHERE COALESCE(u.role, 'student') = 'student'
     AND (
-      (p_batch = 'All' AND u.batch IN ('8A','8B','8C'))
-      OR (p_batch <> 'All' AND u.batch = p_batch)
+      p_batch = 'All'
+      OR u.batch = p_batch
     );
 
   RETURN new_assignment;
@@ -269,7 +382,7 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  student_id uuid := auth.uid();
+  v_student_id uuid := auth.uid();
   payload jsonb;
 BEGIN
   SELECT row_to_json(wrapper) INTO payload
@@ -297,7 +410,7 @@ BEGIN
     JOIN assignments a ON a.id = sa.assignment_id
     JOIN teachers t ON t.id = a.teacher_id
     JOIN users u ON u.id = t.user_id
-    WHERE sa.student_id = student_id
+    WHERE sa.student_id = v_student_id
       AND sa.status = 'pending'
     ORDER BY a.assigned_at
     LIMIT 1

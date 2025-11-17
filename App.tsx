@@ -722,7 +722,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const renderView = () => {
     switch(view) {
         case 'quest':
-            return <QuestView onComplete={handleViewComplete} onGrantReward={handleGrantReward} />;
+            return (
+              <QuestView
+                onComplete={handleViewComplete}
+                onGrantReward={handleGrantReward}
+                initialAssignment={activeAssignment}
+                refreshAssignment={() => refreshAssignment()}
+              />
+            );
         case 'pvp':
             return <PvPView onComplete={handleViewComplete} onGrantReward={handleGrantReward} profile={profile} />;
         case 'shop':
