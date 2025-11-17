@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 import BackButton from './BackButton';
+import { ClanMember } from '../types';
 
 
 
@@ -57,6 +58,12 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
   const [xpLeaderboard, setXpLeaderboard] = useState<RankedPlayerEntry[]>([]);
   const [pvpLeaderboard, setPvpLeaderboard] = useState<RankedPlayerEntry[]>([]);
   const [clanLeaderboard, setClanLeaderboard] = useState<RankedClanEntry[]>([]);
+  const [clanMembersModal, setClanMembersModal] = useState<{
+    clan: RankedClanEntry;
+    members: ClanMember[];
+    loading: boolean;
+    error: string | null;
+  } | null>(null);
 
   useEffect(() => {
     fetchLeaderboards();
@@ -140,6 +147,41 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
     }
   };
 
+  const openClanMembers = async (clan: RankedClanEntry) => {
+    setClanMembersModal({ clan, members: [], loading: true, error: null });
+
+    try {
+      const { data, error } = await supabase
+        .from('clan_members')
+        .select(`
+          user_id,
+          role,
+          users!inner (
+            username,
+            avatar_url
+          )
+        `)
+        .eq('clan_id', clan.id)
+        .order('role', { ascending: true })
+        .order('user_id', { ascending: true });
+
+      if (error) throw error;
+
+      const members: ClanMember[] = (data || []).map((member: any) => ({
+        user_id: member.user_id,
+        username: member.users?.username ?? 'Unknown agent',
+        role: member.role || 'member',
+        contribution: 0,
+        avatar_url: member.users?.avatar_url || '',
+      }));
+
+      setClanMembersModal({ clan, members, loading: false, error: null });
+    } catch (err: any) {
+      const message = err?.message || 'Failed to load clan members.';
+      setClanMembersModal(prev => (prev ? { ...prev, loading: false, error: message } : prev));
+    }
+  };
+
   const renderPlayerRow = (entry: RankedPlayerEntry) => {
     const rankColors: Record<number, string> = {
       1: 'text-yellow-400',
@@ -211,22 +253,29 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
     };
 
     return (
-      <div
+      <button
         key={clan.id}
-        className="flex items-center gap-3 p-3 rounded-lg bg-black/20 hover:bg-black/30 transition-all"
+        type="button"
+        onClick={() => openClanMembers(clan)}
+        className="flex w-full items-center gap-3 p-3 rounded-lg bg-black/20 hover:bg-black/30 transition-all text-left"
       >
         <div className={`font-bold text-lg w-8 text-center ${rankColors[clan.rank] || 'text-gray-400'}`}>
           {clan.rank <= 3 ? ['🥇', '🥈', '🥉'][clan.rank - 1] : `#${clan.rank}`}
         </div>
         <div className="flex-1">
-          <p className="font-semibold text-white">{clan.name}</p>
-          <p className="text-xs text-gray-400">{clan.member_count} members</p>
+          <p className="font-semibold text-white flex items-center gap-2">
+            <span>{clan.name}</span>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-white/10 text-gray-200 border border-white/10">
+              {clan.member_count} members
+            </span>
+          </p>
+          <p className="text-xs text-gray-400">Tap to view roster</p>
         </div>
         <div className="text-right">
           <p className="font-bold text-white text-lg">{clan.total_xp.toLocaleString()}</p>
           <p className="text-xs text-gray-400">Total XP</p>
         </div>
-      </div>
+      </button>
     );
   };
 
@@ -291,6 +340,56 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
           {tab === 'clans' && clanLeaderboard.length === 0 && <p className="text-center text-gray-400">No clans yet</p>}
         </div>
       </div>
+
+      {clanMembersModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="card-glass w-full max-w-lg m-4 p-6 border border-amber-400/50">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h3 className="font-heading text-2xl text-amber-300">{clanMembersModal.clan.name}</h3>
+                <p className="text-sm text-gray-400">
+                  {clanMembersModal.clan.member_count} members • Tap a clan row to view its roster
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setClanMembersModal(null)}
+                className="text-gray-300 hover:text-white px-3 py-1 rounded-lg bg-white/10"
+              >
+                Close
+              </button>
+            </div>
+
+            {clanMembersModal.loading && <p className="text-center text-gray-300 py-4">Loading members...</p>}
+            {!clanMembersModal.loading && clanMembersModal.error && (
+              <p className="text-center text-danger-red py-4">{clanMembersModal.error}</p>
+            )}
+            {!clanMembersModal.loading && !clanMembersModal.error && (
+              <ul className="space-y-3 max-h-80 overflow-y-auto pr-1">
+                {clanMembersModal.members.length === 0 ? (
+                  <li className="text-center text-gray-300 py-4">No members yet.</li>
+                ) : (
+                  clanMembersModal.members.map(member => (
+                    <li key={member.user_id} className="flex items-center justify-between bg-black/20 p-3 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={member.avatar_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${member.username}`}
+                          alt={member.username}
+                          className="w-10 h-10 rounded-full"
+                        />
+                        <div>
+                          <p className="font-semibold text-white">{member.username}</p>
+                          <p className="text-xs text-gray-400 capitalize">{member.role}</p>
+                        </div>
+                      </div>
+                    </li>
+                  ))
+                )}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
