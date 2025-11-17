@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { supabase } from '@/services/supabaseClient';
+import { supabase } from '../../../services/supabaseClient';
 
 interface SpeakingTask {
   id: number;

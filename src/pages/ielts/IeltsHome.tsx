@@ -11,7 +11,7 @@ import {
   getByReference,
   IeltsModuleType,
   IeltsSessionSummary,
-} from '@/services/ieltsService';
+} from '../../../services/ieltsService';
 import { BookOpen, Headphones, PenTool, Mic } from 'lucide-react';
 
 const moduleLabels: Record<IeltsModuleType, string> = {

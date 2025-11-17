@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation } from '@tantml:react-query';
-import { fetchActiveReadingSets, fetchReadingQuestions, submitReadingAttempt } from '@/services/ieltsService';
-import type { IELTSReadingQuestion } from '@/types';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { fetchActiveReadingSets, fetchReadingQuestions, submitReadingAttempt } from '../../../services/ieltsService';
+import type { IELTSReadingQuestion } from '../../../types';
 
 interface Answer {
   questionId: number;
