@@ -289,10 +289,15 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   };
 
   const applyAssignmentState = (assignment: StudentAssignmentTask) => {
-    setActiveAssignment(assignment);
+    const normalizedQuestions = (assignment.questions || []).map((question) => ({
+      ...question,
+      topic_name: question.topic_name || question.topic || 'General',
+    }));
+
+    setActiveAssignment({ ...assignment, questions: normalizedQuestions });
     setLastCompletedAssignment(null);
     setMode('assignment');
-    setTeacherQuestions(assignment.questions || []);
+    setTeacherQuestions(normalizedQuestions);
     setSelectedSubject({
       id: assignment.subject_id || assignment.subject_name,
       name: assignment.subject_name,
@@ -319,7 +324,14 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       try {
           const assignment = await GameService.get_student_active_assignment();
           if (assignment) {
-              applyAssignmentState(assignment);
+              const normalized = {
+                ...assignment,
+                questions: (assignment.questions || []).map((question) => ({
+                  ...question,
+                  topic_name: question.topic_name || question.topic || 'General',
+                })),
+              };
+              applyAssignmentState(normalized);
               await refreshAssignment?.();
           } else {
               setActiveAssignment(null);
@@ -329,7 +341,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                   setMode('practice');
               }
         setStage('mode_selection');
-          await refreshAssignment?.();
+        await refreshAssignment?.();
           }
       } catch (error) {
           console.error('Error loading assignment:', error);
@@ -415,11 +427,13 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   useEffect(() => {
     if (initialAssignment) {
       applyAssignmentState(initialAssignment);
+      // Ensure we have the freshest data in case the parent state is stale
+      hydrateAssignment();
     } else {
       hydrateAssignment({ showLoading: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialAssignment]);
+  }, [initialAssignment?.assignment_id]);
 
   useEffect(() => {
     const submitResult = async () => {
@@ -448,6 +462,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         setLastCompletedAssignment(activeAssignment);
         setActiveAssignment(null);
         await refreshAssignment?.();
+        hydrateAssignment({ showLoading: true });
       } catch (error) {
         console.error('Failed to submit assignment result:', error);
         setAssignmentSubmissionState('idle');
