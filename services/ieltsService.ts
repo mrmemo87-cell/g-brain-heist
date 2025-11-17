@@ -108,6 +108,90 @@ interface EnsureProfileOptions {
   fullName?: string | null;
 }
 
+export type IeltsModuleType = 'general' | 'academic';
+
+export type IeltsSessionStatus = 'in-progress' | 'completed';
+
+export interface IeltsSessionSummary {
+  id: string;
+  module: IeltsModuleType;
+  module_type?: IeltsModuleType;
+  target_band: number | null;
+  reference_code: string;
+  created_at: string;
+  completed_at: string | null;
+  band_overall: number | null;
+  status: IeltsSessionStatus;
+}
+
+export interface IeltsQuestion {
+  id: string;
+  prompt: string;
+  type: string;
+  options?: string[];
+}
+
+export interface IeltsReadingBlock {
+  title: string;
+  passage: string;
+  questions: IeltsQuestion[];
+}
+
+export interface IeltsListeningBlock {
+  title: string;
+  audioScript?: string;
+  questions: IeltsQuestion[];
+}
+
+export interface IeltsWritingTask {
+  title?: string | null;
+  prompt: string;
+  bands_target?: string | null;
+  task_type?: string | null;
+}
+
+export interface IeltsAnalyticsBreakdownRow {
+  questionId: string;
+  studentAnswer?: string | null;
+  correctAnswer?: string | null;
+  isCorrect?: boolean;
+  explanation?: string | null;
+}
+
+export interface IeltsAnalyticsSection {
+  correct: number;
+  total: number;
+  breakdown: IeltsAnalyticsBreakdownRow[];
+}
+
+export interface IeltsWritingFeedback {
+  wordCount?: number | null;
+  strengths?: string[];
+  weaknesses?: string[];
+  suggestions?: string[];
+  overallBand?: number | null;
+}
+
+export interface IeltsAnalytics {
+  readingAnalytics?: IeltsAnalyticsSection;
+  listeningAnalytics?: IeltsAnalyticsSection;
+  writingFeedback?: IeltsWritingFeedback;
+  summaryText?: string;
+}
+
+export interface IeltsSessionRecord extends IeltsSessionSummary {
+  reading_block?: IeltsReadingBlock | null;
+  listening_block?: IeltsListeningBlock | null;
+  writing_task?: IeltsWritingTask | null;
+  reading_answers?: Record<string, string> | null;
+  listening_answers?: Record<string, string> | null;
+  writing_answer?: string | null;
+  analytics?: IeltsAnalytics | null;
+  band_reading?: number | null;
+  band_listening?: number | null;
+  band_writing?: number | null;
+}
+
 const sanitizeUsername = (input: string): string => {
   const base = (input || '')
     .trim()

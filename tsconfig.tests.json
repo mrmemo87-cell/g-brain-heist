@@ -9,6 +9,11 @@
     "allowImportingTsExtensions": false,
     "esModuleInterop": true
   },
-  "include": ["tests/**/*.ts"],
+  "include": [
+    "tests/**/*.ts",
+    "services/rpcGateway.ts",
+    "services/supabaseClient.ts",
+    "services/env.ts"
+  ],
   "exclude": ["node_modules"]
 }
