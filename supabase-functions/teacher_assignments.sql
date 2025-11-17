@@ -385,6 +385,13 @@ DECLARE
   v_student_id uuid := auth.uid();
   payload jsonb;
 BEGIN
+  IF v_student_id IS NULL THEN
+    RAISE EXCEPTION 'NOT_AUTHENTICATED';
+  END IF;
+
+  -- Temporarily disable RLS so we can hydrate assignment details safely within the definer context.
+  PERFORM set_config('row_security', 'off', true);
+
   SELECT row_to_json(wrapper) INTO payload
   FROM (
     SELECT
@@ -398,14 +405,15 @@ BEGIN
       a.due_at,
       a.title,
       a.instructions,
-      (SELECT jsonb_agg(row_to_json(q_row))
-       FROM (
-         SELECT q.*
-         FROM assignment_questions aq
-         JOIN questions q ON q.id = aq.question_id
-         WHERE aq.assignment_id = a.id
-         ORDER BY aq.order_index
-       ) AS q_row) AS questions
+      (
+        SELECT COALESCE(
+          jsonb_agg(row_to_json(q) ORDER BY aq.order_index),
+          '[]'::jsonb
+        )
+        FROM assignment_questions aq
+        JOIN questions q ON q.id = aq.question_id
+        WHERE aq.assignment_id = a.id
+      ) AS questions
     FROM student_assignments sa
     JOIN assignments a ON a.id = sa.assignment_id
     JOIN teachers t ON t.id = a.teacher_id

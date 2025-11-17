@@ -288,11 +288,58 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       setParticles(current => current.filter(p => p.id !== id));
   };
 
-  const applyAssignmentState = (assignment: StudentAssignmentTask) => {
-    const normalizedQuestions = (assignment.questions || []).map((question) => ({
+  const normalizeAssignmentQuestion = (question: TeacherQuestion): TeacherQuestion => {
+    const rawOptions = (question as any).options;
+    const normalizeOptions = (): string[] => {
+      if (Array.isArray(rawOptions)) {
+        return rawOptions.map((value) => (value == null ? '' : String(value)));
+      }
+
+      if (typeof rawOptions === 'string') {
+        try {
+          const parsed = JSON.parse(rawOptions);
+          if (Array.isArray(parsed)) {
+            return parsed.map((value) => (value == null ? '' : String(value)));
+          }
+        } catch (error) {
+          // Ignore JSON parse failures and fall back to defaults
+        }
+      }
+
+      if (rawOptions && typeof rawOptions === 'object') {
+        const values = Object.values(rawOptions as Record<string, unknown>)
+          .map((value) => (value == null ? '' : String(value)));
+        if (values.length) {
+          return values;
+        }
+      }
+
+      if (question.question_type === 'true_false') {
+        return ['True', 'False'];
+      }
+
+      return [];
+    };
+
+    const resolvedTimeLimitRaw = (question as any).time_limit ?? (question as any).time_limit_seconds;
+    const numericTimeLimit = typeof resolvedTimeLimitRaw === 'number' ? resolvedTimeLimitRaw : Number(resolvedTimeLimitRaw);
+    const resolvedTimeLimit = Number.isFinite(numericTimeLimit) && numericTimeLimit > 0 ? numericTimeLimit : 30;
+
+    const resolvedPointsRaw = (question as any).points;
+    const numericPoints = typeof resolvedPointsRaw === 'number' ? resolvedPointsRaw : Number(resolvedPointsRaw);
+    const resolvedPoints = Number.isFinite(numericPoints) && numericPoints >= 0 ? numericPoints : 10;
+
+    return {
       ...question,
       topic_name: question.topic_name || question.topic || 'General',
-    }));
+      options: normalizeOptions(),
+      time_limit: resolvedTimeLimit,
+      points: resolvedPoints,
+    };
+  };
+
+  const applyAssignmentState = (assignment: StudentAssignmentTask) => {
+    const normalizedQuestions = (assignment.questions || []).map(normalizeAssignmentQuestion);
 
     setActiveAssignment({ ...assignment, questions: normalizedQuestions });
     setLastCompletedAssignment(null);
@@ -324,14 +371,10 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       try {
           const assignment = await GameService.get_student_active_assignment();
           if (assignment) {
-              const normalized = {
+              applyAssignmentState({
                 ...assignment,
-                questions: (assignment.questions || []).map((question) => ({
-                  ...question,
-                  topic_name: question.topic_name || question.topic || 'General',
-                })),
-              };
-              applyAssignmentState(normalized);
+                questions: (assignment.questions || []).map(normalizeAssignmentQuestion),
+              });
               await refreshAssignment?.();
           } else {
               setActiveAssignment(null);

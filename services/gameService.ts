@@ -90,6 +90,58 @@ const normalizeTopicName = (topic?: string | null, fallback?: string | null): st
     return trimmed.length > 0 ? trimmed : 'General';
 };
 
+const coerceQuestionOptions = (
+    rawOptions: unknown,
+    questionType?: string | null
+): string[] => {
+    if (Array.isArray(rawOptions)) {
+        return rawOptions.map((value) => (value == null ? '' : String(value)));
+    }
+
+    if (typeof rawOptions === 'string') {
+        try {
+            const parsed = JSON.parse(rawOptions);
+            if (Array.isArray(parsed)) {
+                return parsed.map((value) => (value == null ? '' : String(value)));
+            }
+        } catch (error) {
+            // Ignore JSON parse failures and fall back to defaults
+        }
+    }
+
+    if (rawOptions && typeof rawOptions === 'object') {
+        const values = Object.values(rawOptions as Record<string, unknown>)
+            .map((value) => (value == null ? '' : String(value)));
+        if (values.length) {
+            return values;
+        }
+    }
+
+    if (questionType === 'true_false') {
+        return ['True', 'False'];
+    }
+
+    return [];
+};
+
+const normalizeTeacherQuestionPayload = (question: TeacherQuestion): TeacherQuestion => {
+    const resolvedTimeLimitRaw = (question as any).time_limit ?? (question as any).time_limit_seconds;
+    const numericTimeLimit = typeof resolvedTimeLimitRaw === 'number' ? resolvedTimeLimitRaw : Number(resolvedTimeLimitRaw);
+    const resolvedTimeLimit = Number.isFinite(numericTimeLimit) && numericTimeLimit > 0 ? numericTimeLimit : 30;
+
+    const resolvedPointsRaw = (question as any).points;
+    const numericPoints = typeof resolvedPointsRaw === 'number' ? resolvedPointsRaw : Number(resolvedPointsRaw);
+    const resolvedPoints = Number.isFinite(numericPoints) && numericPoints >= 0 ? numericPoints : 10;
+
+    return {
+        ...question,
+        topic_name: normalizeTopicName(question.topic_name ?? undefined, question.topic ?? undefined),
+        options: coerceQuestionOptions((question as any).options, question.question_type),
+        time_limit: resolvedTimeLimit,
+        points: resolvedPoints,
+    };
+};
+
 type KyrgyzBotPersona = {
     firstName: string;
     lastName: string;
@@ -3351,10 +3403,7 @@ export const get_student_active_assignment = async (): Promise<StudentAssignment
     if (!row) return null;
 
     const parsedRow = row as StudentAssignmentTask;
-    const normalizedQuestions = ((parsedRow.questions ?? []) as TeacherQuestion[]).map((question) => ({
-        ...question,
-        topic_name: question.topic_name ?? question.topic ?? 'General',
-    }));
+    const normalizedQuestions = ((parsedRow.questions ?? []) as TeacherQuestion[]).map(normalizeTeacherQuestionPayload);
 
     return {
         ...parsedRow,
