@@ -88,18 +88,6 @@ begin
     attacker.ap_now := current_ap;
   end if;
 
-  -- Spend AP up front to ensure battles always deduct cost
-  update public.users
-  set ap_now = ap_now - c_ap_cost,
-      last_ap_update = v_now
-  where id = v_attacker_id
-    and ap_now >= c_ap_cost
-  returning ap_now into attacker.ap_now;
-
-  if not found then
-    raise exception 'Not enough AP';
-  end if;
-
   -- ====== Fetch defender profile (with row lock) ======
   select 
     id, username, level, xp, coins,
@@ -121,6 +109,18 @@ begin
       raise exception 'COOLDOWN: This player was recently attacked. Try again in % seconds.',
         c_attack_cooldown_seconds - extract(epoch from (v_now - defender.last_attacked_at))::int;
     end if;
+  end if;
+
+  -- Spend AP only after the defender passes validation and cooldown checks
+  update public.users
+  set ap_now = ap_now - c_ap_cost,
+      last_ap_update = v_now
+  where id = v_attacker_id
+    and ap_now >= c_ap_cost
+  returning ap_now into attacker.ap_now;
+
+  if not found then
+    raise exception 'Not enough AP';
   end if;
 
   -- ====== Check for active shield on defender ======
