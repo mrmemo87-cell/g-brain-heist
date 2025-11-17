@@ -46,6 +46,17 @@ const Main: React.FC = () => {
     setIsAuthenticated(false);
   }, []);
 
+  const router = useMemo(
+    () =>
+      createBrowserRouter([
+        { path: '/', element: <App onLogout={handleLogout} /> },
+        { path: '/ielts', element: <IeltsHome /> },
+        { path: '/ielts/session/:sessionId', element: <IeltsSession /> },
+        { path: '*', element: <Navigate to="/" replace /> },
+      ]),
+    [handleLogout]
+  );
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -59,17 +70,6 @@ const Main: React.FC = () => {
   if (!isAuthenticated) {
     return <LoginView onLogin={handleLogin} />;
   }
-
-  const router = useMemo(
-    () =>
-      createBrowserRouter([
-        { path: '/', element: <App onLogout={handleLogout} /> },
-        { path: '/ielts', element: <IeltsHome /> },
-        { path: '/ielts/session/:sessionId', element: <IeltsSession /> },
-        { path: '*', element: <Navigate to="/" replace /> },
-      ]),
-    [handleLogout]
-  );
 
   return <RouterProvider router={router} />;
 };
