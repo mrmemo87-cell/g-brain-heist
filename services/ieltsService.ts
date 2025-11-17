@@ -1,4 +1,99 @@
 import { supabase } from './supabaseClient';
+
+export type IeltsModuleType = 'general' | 'academic';
+
+export interface IeltsSessionSummary {
+  id: string;
+  module: IeltsModuleType;
+  target_band: number | null;
+  created_at: string;
+  completed_at: string | null;
+  reference_code: string;
+  band_overall: number | null;
+  status: 'in_progress' | 'completed';
+}
+
+export interface IeltsSessionPayload {
+  id: string;
+  reference_code: string;
+  reading_block?: unknown;
+  listening_block?: unknown;
+  writing_task?: unknown;
+  target_band?: number | null;
+  module?: IeltsModuleType;
+  created_at?: string;
+  completed_at?: string | null;
+  band_overall?: number | null;
+}
+
+export interface IeltsQuestion {
+  id: string;
+  prompt: string;
+  type?: string;
+  options?: string[];
+}
+
+export interface IeltsReadingBlock {
+  title: string;
+  passage?: string;
+  questions: IeltsQuestion[];
+}
+
+export interface IeltsListeningBlock {
+  title: string;
+  audioScript?: string;
+  questions: IeltsQuestion[];
+}
+
+export interface IeltsWritingTask {
+  title?: string;
+  prompt: string;
+  bandTarget?: number | null;
+  wordLimit?: number | null;
+}
+
+export interface IeltsAnalyticsBreakdownRow {
+  questionId: string;
+  studentAnswer?: string | null;
+  correctAnswer?: string | null;
+  isCorrect: boolean;
+  explanation?: string | null;
+}
+
+export interface IeltsSectionAnalytics {
+  correct: number;
+  total: number;
+  breakdown: IeltsAnalyticsBreakdownRow[];
+}
+
+export interface IeltsWritingFeedback {
+  wordCount?: number | null;
+  strengths?: string[];
+  weaknesses?: string[];
+  suggestions?: string[];
+  originalAnswer?: string | null;
+  improvedAnswer?: string | null;
+}
+
+export interface IeltsAnalytics {
+  readingAnalytics?: IeltsSectionAnalytics;
+  listeningAnalytics?: IeltsSectionAnalytics;
+  writingFeedback?: IeltsWritingFeedback;
+  summaryText?: string | null;
+}
+
+export interface IeltsSessionRecord extends IeltsSessionSummary {
+  reading_block?: IeltsReadingBlock | null;
+  listening_block?: IeltsListeningBlock | null;
+  writing_task?: IeltsWritingTask | null;
+  reading_answers?: Record<string, string> | null;
+  listening_answers?: Record<string, string> | null;
+  writing_answer?: string | null;
+  analytics?: IeltsAnalytics | null;
+  band_reading?: number | null;
+  band_listening?: number | null;
+  band_writing?: number | null;
+}
 import type {
   IELTSUserProfile,
   IELTSReadingSet,
@@ -466,7 +561,7 @@ export const fetchRecentAttempts = async (): Promise<IELTSRecentAttempts> => {
   handleSelectError(speaking.error, 'speaking attempts');
   handleSelectError(mock.error, 'mock test attempts');
 
-  return {
+  return {  
     reading: readingAttempts,
     listening: listeningAttempts,
     writing: writingAttempts,
