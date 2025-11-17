@@ -37,7 +37,7 @@ const ReadingPractice: React.FC = () => {
     },
   });
 
-  const currentSet = readingSets?.find(set => set.id === Number(setId));
+  const currentSet = readingSets?.find((set: any) => set.id === Number(setId));
   const currentQuestion = questions?.[currentQuestionIndex];
 
   const handleAnswer = (answer: string) => {

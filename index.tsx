@@ -130,24 +130,16 @@ if (!rootElement) {
 }
 
 const root = ReactDOM.createRoot(rootElement);
-const isIELTSRoute = window.location.pathname.startsWith('/ielts');
 
-if (isIELTSRoute) {
-  root.render(
-    <React.StrictMode>
-      <ErrorBoundary>
-        <IELTSMain />
-      </ErrorBoundary>
-    </React.StrictMode>
-  );
-} else {
-  root.render(
-    <React.StrictMode>
-      <ErrorBoundary>
+// Render the main app with routing for all paths
+root.render(
+  <React.StrictMode>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
         <LightModeProvider>
           <Main />
         </LightModeProvider>
-      </ErrorBoundary>
-    </React.StrictMode>
-  );
-}
+      </QueryClientProvider>
+    </ErrorBoundary>
+  </React.StrictMode>
+);
