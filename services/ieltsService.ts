@@ -1,4 +1,99 @@
 import { supabase } from './supabaseClient';
+
+export type IeltsModuleType = 'general' | 'academic';
+
+export interface IeltsSessionSummary {
+  id: string;
+  module: IeltsModuleType;
+  target_band: number | null;
+  created_at: string;
+  completed_at: string | null;
+  reference_code: string;
+  band_overall: number | null;
+  status: 'in_progress' | 'completed';
+}
+
+export interface IeltsSessionPayload {
+  id: string;
+  reference_code: string;
+  reading_block?: unknown;
+  listening_block?: unknown;
+  writing_task?: unknown;
+  target_band?: number | null;
+  module?: IeltsModuleType;
+  created_at?: string;
+  completed_at?: string | null;
+  band_overall?: number | null;
+}
+
+export interface IeltsQuestion {
+  id: string;
+  prompt: string;
+  type?: string;
+  options?: string[];
+}
+
+export interface IeltsReadingBlock {
+  title: string;
+  passage?: string;
+  questions: IeltsQuestion[];
+}
+
+export interface IeltsListeningBlock {
+  title: string;
+  audioScript?: string;
+  questions: IeltsQuestion[];
+}
+
+export interface IeltsWritingTask {
+  title?: string;
+  prompt: string;
+  bandTarget?: number | null;
+  wordLimit?: number | null;
+}
+
+export interface IeltsAnalyticsBreakdownRow {
+  questionId: string;
+  studentAnswer?: string | null;
+  correctAnswer?: string | null;
+  isCorrect: boolean;
+  explanation?: string | null;
+}
+
+export interface IeltsSectionAnalytics {
+  correct: number;
+  total: number;
+  breakdown: IeltsAnalyticsBreakdownRow[];
+}
+
+export interface IeltsWritingFeedback {
+  wordCount?: number | null;
+  strengths?: string[];
+  weaknesses?: string[];
+  suggestions?: string[];
+  originalAnswer?: string | null;
+  improvedAnswer?: string | null;
+}
+
+export interface IeltsAnalytics {
+  readingAnalytics?: IeltsSectionAnalytics;
+  listeningAnalytics?: IeltsSectionAnalytics;
+  writingFeedback?: IeltsWritingFeedback;
+  summaryText?: string | null;
+}
+
+export interface IeltsSessionRecord extends IeltsSessionSummary {
+  reading_block?: IeltsReadingBlock | null;
+  listening_block?: IeltsListeningBlock | null;
+  writing_task?: IeltsWritingTask | null;
+  reading_answers?: Record<string, string> | null;
+  listening_answers?: Record<string, string> | null;
+  writing_answer?: string | null;
+  analytics?: IeltsAnalytics | null;
+  band_reading?: number | null;
+  band_listening?: number | null;
+  band_writing?: number | null;
+}
 import type {
   IELTSUserProfile,
   IELTSReadingSet,
@@ -250,11 +345,137 @@ export const fetchRecentAttempts = async (): Promise<IELTSRecentAttempts> => {
   handleSelectError(speaking.error, 'speaking attempts');
   handleSelectError(mock.error, 'mock test attempts');
 
-  return {
+  return {  
     reading: readingAttempts,
     listening: listeningAttempts,
     writing: writingAttempts,
     speaking: speakingAttempts,
     mock: mockAttempts,
   };
+};
+
+const buildSessionSummary = (payload: IeltsSessionPayload): IeltsSessionSummary => ({
+  id: payload.id,
+  module: (payload.module ?? 'general') as IeltsModuleType,
+  target_band: payload.target_band ?? null,
+  created_at: payload.created_at ?? new Date().toISOString(),
+  completed_at: payload.completed_at ?? null,
+  reference_code: payload.reference_code,
+  band_overall: payload.band_overall ?? null,
+  status: payload.completed_at ? 'completed' : 'in_progress',
+});
+
+const invokeIeltsSessionFunction = async (body: Record<string, unknown>) => {
+  const { data, error } = await supabase.functions.invoke('ielts_session', { body });
+
+  if (error) {
+    throw new Error(error.message || 'Unable to reach IELTS session service.');
+  }
+
+  const typed = data as Record<string, unknown> & { error?: string };
+  if (typed?.error) {
+    throw new Error(typed.error);
+  }
+
+  return typed;
+};
+
+export const createPack = async (
+  module: IeltsModuleType,
+  targetBand?: number
+): Promise<IeltsSessionPayload> => {
+  const response = await invokeIeltsSessionFunction({
+    mode: 'create-pack',
+    module,
+    targetBand: targetBand ?? null,
+  });
+
+  return {
+    id: response.sessionId as string,
+    reference_code: response.referenceCode as string,
+    reading_block: response.reading,
+    listening_block: response.listening,
+    writing_task: response.writing,
+    module,
+    target_band: targetBand ?? null,
+  };
+};
+
+export const getByReference = async (referenceCode: string): Promise<IeltsSessionPayload> => {
+  const response = await invokeIeltsSessionFunction({
+    mode: 'get-by-reference',
+    referenceCode,
+  });
+
+  return {
+    id: response.id as string,
+    reference_code: response.reference_code as string,
+    reading_block: response.reading_block,
+    listening_block: response.listening_block,
+    writing_task: response.writing_task,
+    target_band: (response.target_band as number | null | undefined) ?? null,
+    module: (response.module as IeltsModuleType | undefined) ?? 'general',
+    created_at: response.created_at as string | undefined,
+    completed_at: (response.completed_at as string | null | undefined) ?? null,
+    band_overall: (response.band_overall as number | null | undefined) ?? null,
+  };
+};
+
+export const fetchRecentSessions = async (): Promise<IeltsSessionSummary[]> => {
+  const { data: userData, error: authError } = await supabase.auth.getUser();
+  if (authError || !userData.user) {
+    throw new Error('Not authenticated');
+  }
+
+  const { data, error } = await supabase
+    .from('ielts_sessions')
+    .select('id, module, target_band, created_at, completed_at, reference_code, band_overall')
+    .eq('student_id', userData.user.id)
+    .order('created_at', { ascending: false })
+    .limit(5);
+
+  if (error) {
+    throw new Error(`Failed to load recent sessions: ${error.message}`);
+  }
+
+  return (data ?? []).map((row) => buildSessionSummary(row as IeltsSessionPayload));
+};
+
+export const fetchSessionById = async (sessionId: string): Promise<IeltsSessionRecord> => {
+  const { data, error } = await supabase
+    .from('ielts_sessions')
+    .select('*')
+    .eq('id', sessionId)
+    .single();
+
+  if (error || !data) {
+    throw new Error(`Unable to load session: ${error?.message || 'not found'}`);
+  }
+
+  const summary = buildSessionSummary(data as IeltsSessionPayload);
+  return {
+    ...(data as Record<string, unknown>),
+    ...summary,
+  } as IeltsSessionRecord;
+};
+
+export const finaliseSession = async (
+  sessionId: string,
+  readingAnswers: Record<string, string>,
+  listeningAnswers: Record<string, string>,
+  writingAnswer: string
+): Promise<IeltsSessionRecord> => {
+  const response = await invokeIeltsSessionFunction({
+    mode: 'finalise-session',
+    sessionId,
+    readingAnswers,
+    listeningAnswers,
+    writingAnswer,
+  });
+
+  const summary = buildSessionSummary(response as IeltsSessionPayload);
+  return {
+    ...(response as Record<string, unknown>),
+    ...summary,
+  } as IeltsSessionRecord;
 };
