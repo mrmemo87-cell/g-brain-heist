@@ -1,4 +1,37 @@
 -- ============================================================
+-- View: assignment_question_details
+-- ============================================================
+
+CREATE OR REPLACE VIEW assignment_question_details AS
+SELECT
+  aq.assignment_id,
+  aq.question_id,
+  aq.order_index,
+  q.teacher_id,
+  q.subject,
+  q.subject_id,
+  q.topic,
+  q.topic_name,
+  q.difficulty,
+  q.question_text,
+  q.question_type,
+  q.options,
+  q.correct_answer,
+  q.explanation,
+  q.hints,
+  q.time_limit,
+  q.points,
+  q.tags,
+  q.grade_level,
+  q.is_public,
+  q.is_active,
+  q.times_answered,
+  q.times_correct,
+  q.created_at,
+  q.updated_at
+FROM assignment_questions aq
+JOIN questions q ON q.id = aq.question_id;
+-- ============================================================
 -- Teacher Assignment + Topic Upgrade
 -- ============================================================
 
@@ -78,6 +111,7 @@ ALTER TABLE assignments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE assignment_questions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE student_assignments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE student_assignment_results ENABLE ROW LEVEL SECURITY;
+ALTER VIEW assignment_question_details SET (security_invoker = true);
 
 DO $$
 BEGIN
@@ -206,6 +240,8 @@ BEGIN
   END IF;
 END;
 $$;
+
+GRANT SELECT ON assignment_question_details TO authenticated;
 
 DO $$
 BEGIN
@@ -383,46 +419,85 @@ SET search_path = public
 AS $$
 DECLARE
   v_student_id uuid := auth.uid();
+  v_assignment_id uuid;
   payload jsonb;
 BEGIN
   IF v_student_id IS NULL THEN
     RAISE EXCEPTION 'NOT_AUTHENTICATED';
   END IF;
 
-  -- Temporarily disable RLS so we can hydrate assignment details safely within the definer context.
-  PERFORM set_config('row_security', 'off', true);
+  -- First, find the active assignment for this student
+  -- Only select assignments that actually have questions
+  SELECT sa.assignment_id INTO v_assignment_id
+  FROM student_assignments sa
+  WHERE sa.student_id = v_student_id
+    AND sa.status = 'pending'
+    AND EXISTS (
+      SELECT 1 FROM assignment_questions aq
+      WHERE aq.assignment_id = sa.assignment_id
+    )
+  ORDER BY sa.assigned_at
+  LIMIT 1;
 
-  SELECT row_to_json(wrapper) INTO payload
-  FROM (
-    SELECT
-      sa.assignment_id,
-      a.subject_id,
-      a.subject_name,
-      a.topic_name,
-      a.batch,
-      u.username AS teacher_username,
-      a.assigned_at,
-      a.due_at,
-      a.title,
-      a.instructions,
-      (
-        SELECT COALESCE(
-          jsonb_agg(row_to_json(q) ORDER BY aq.order_index),
-          '[]'::jsonb
-        )
-        FROM assignment_questions aq
-        JOIN questions q ON q.id = aq.question_id
-        WHERE aq.assignment_id = a.id
-      ) AS questions
-    FROM student_assignments sa
-    JOIN assignments a ON a.id = sa.assignment_id
-    JOIN teachers t ON t.id = a.teacher_id
-    JOIN users u ON u.id = t.user_id
-    WHERE sa.student_id = v_student_id
-      AND sa.status = 'pending'
-    ORDER BY a.assigned_at
-    LIMIT 1
-  ) AS wrapper;
+  -- If no assignment found, return null
+  IF v_assignment_id IS NULL THEN
+    RETURN NULL;
+  END IF;
+
+  -- Build the payload with all assignment details and questions
+  -- Using SECURITY DEFINER context to bypass RLS on questions table
+  SELECT jsonb_build_object(
+    'assignment_id', a.id,
+    'subject_id', a.subject_id,
+    'subject_name', a.subject_name,
+    'topic_name', a.topic_name,
+    'batch', a.batch,
+    'teacher_username', u.username,
+    'assigned_at', a.assigned_at,
+    'due_at', a.due_at,
+    'title', a.title,
+    'instructions', a.instructions,
+    'questions', (
+      SELECT COALESCE(
+        jsonb_agg(
+          jsonb_build_object(
+            'id', q.id,
+            'teacher_id', q.teacher_id,
+            'subject', q.subject,
+            'subject_id', q.subject_id,
+            'topic', q.topic,
+            'topic_name', q.topic_name,
+            'difficulty', q.difficulty,
+            'question_text', q.question_text,
+            'question_type', q.question_type,
+            'options', q.options,
+            'correct_answer', q.correct_answer,
+            'explanation', q.explanation,
+            'hints', q.hints,
+            'time_limit', q.time_limit,
+            'points', q.points,
+            'tags', q.tags,
+            'grade_level', q.grade_level,
+            'is_public', q.is_public,
+            'is_active', q.is_active,
+            'times_answered', q.times_answered,
+            'times_correct', q.times_correct,
+            'created_at', q.created_at,
+            'updated_at', q.updated_at
+          )
+          ORDER BY aq.order_index
+        ),
+        '[]'::jsonb
+      )
+      FROM assignment_questions aq
+      JOIN questions q ON q.id = aq.question_id
+      WHERE aq.assignment_id = v_assignment_id
+    )
+  ) INTO payload
+  FROM assignments a
+  JOIN teachers t ON t.id = a.teacher_id
+  JOIN users u ON u.id = t.user_id
+  WHERE a.id = v_assignment_id;
 
   RETURN payload;
 END;

@@ -17,6 +17,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
+  const [editingQuestion, setEditingQuestion] = useState<TeacherQuestion | null>(null);
 
   // Question form state
   const [questionText, setQuestionText] = useState('');
@@ -150,7 +151,15 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
         is_public: true // Default to public for now
       };
 
-      await GameService.create_question(questionData);
+      if (editingQuestion) {
+        // Update existing question
+        await GameService.update_question(editingQuestion.id, questionData);
+        alert('✅ Question updated successfully!');
+      } else {
+        // Create new question
+        await GameService.create_question(questionData);
+        alert('✅ Question created successfully!');
+      }
 
       // Reset form
       setQuestionText('');
@@ -159,17 +168,16 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
       setExplanation('');
       setTopicMode('general');
       setCustomTopicName('');
+      setEditingQuestion(null);
 
       // Reload questions
       const myQuestions = await GameService.get_my_questions();
       setQuestions(myQuestions);
 
-      // Show success message
-      alert('✅ Question created successfully!');
       setView('question-bank');
     } catch (error) {
-      console.error('Error creating question:', error);
-      alert('❌ Failed to create question: ' + (error as Error).message);
+      console.error('Error saving question:', error);
+      alert('❌ Failed to save question: ' + (error as Error).message);
     }
   };
 
@@ -187,7 +195,36 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     }
   };
 
+  const handleEditQuestion = (question: TeacherQuestion) => {
+    // Set editing mode
+    setEditingQuestion(question);
+    
+    // Pre-fill the form with the question data
+    setSubject(question.subject);
+    setDifficulty(question.difficulty);
+    setQuestionType(question.question_type);
+    setQuestionText(question.question_text);
+    setOptions(question.options || ['', '', '', '']);
+    setCorrectAnswer(question.correct_answer);
+    setExplanation(question.explanation || '');
+    setPoints(question.points);
+    const existingTopic = question.topic_name || question.topic || 'General';
+    if (existingTopic !== 'General') {
+      setTopicMode('custom');
+      setCustomTopicName(existingTopic);
+    } else {
+      setTopicMode('general');
+      setCustomTopicName('');
+    }
+
+    // Switch to create view
+    setView('create-question');
+  };
+
   const handleDuplicateQuestion = (question: TeacherQuestion) => {
+    // Clear editing mode
+    setEditingQuestion(null);
+    
     // Pre-fill the form with the question data
     setSubject(question.subject);
     setDifficulty(question.difficulty);
@@ -496,7 +533,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
   const renderCreateQuestion = () => (
     <div className="max-w-3xl mx-auto">
       <button
-        onClick={() => setView('question-bank')}
+        onClick={() => {
+          setEditingQuestion(null);
+          setView('question-bank');
+        }}
         className="mb-4 text-cyan-400 hover:text-cyan-300 flex items-center gap-2"
       >
         <span>←</span> Back to Questions
@@ -566,7 +606,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       </div>
 
       <div className="card-glass p-6">
-        <h2 className="font-heading text-3xl text-pink-400 font-bold mb-6">✨ Create New Question</h2>
+        <h2 className="font-heading text-3xl text-pink-400 font-bold mb-6">
+          {editingQuestion ? '✏️ Edit Question' : '✨ Create New Question'}
+        </h2>
 
         <form onSubmit={handleCreateQuestion} className="space-y-6">
           {/* Subject & Difficulty */}
@@ -729,7 +771,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             type="submit"
             className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-heading font-bold text-lg py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg"
           >
-            ✨ Create Question
+            {editingQuestion ? '💾 Save Changes' : '✨ Create Question'}
           </button>
         </form>
       </div>
@@ -742,7 +784,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       <div className="flex items-center justify-between mb-6">
         <h2 className="font-heading text-3xl text-cyan-400 font-bold">📚 Question Bank</h2>
         <button
-          onClick={() => setView('create-question')}
+          onClick={() => {
+            setEditingQuestion(null);
+            setView('create-question');
+          }}
           className="bg-pink-500/20 hover:bg-pink-500/30 border border-pink-400 text-pink-400 px-4 py-2 rounded-lg font-semibold transition-all"
         >
           ➕ New Question
@@ -802,6 +847,13 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 </div>
 
                 <div className="ml-4 flex gap-2">
+                  <button
+                    onClick={() => handleEditQuestion(q)}
+                    className="text-yellow-400 hover:text-yellow-300 p-2 hover:bg-yellow-500/10 rounded-lg transition-all"
+                    title="Edit question"
+                  >
+                    ✏️
+                  </button>
                   <button
                     onClick={() => handleDuplicateQuestion(q)}
                     className="text-cyan-400 hover:text-cyan-300 p-2 hover:bg-cyan-500/10 rounded-lg transition-all"

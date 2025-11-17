@@ -3403,7 +3403,25 @@ export const get_student_active_assignment = async (): Promise<StudentAssignment
     if (!row) return null;
 
     const parsedRow = row as StudentAssignmentTask;
-    const normalizedQuestions = ((parsedRow.questions ?? []) as TeacherQuestion[]).map(normalizeTeacherQuestionPayload);
+    let normalizedQuestions = ((parsedRow.questions ?? []) as TeacherQuestion[]).map(normalizeTeacherQuestionPayload);
+
+    if (!normalizedQuestions.length) {
+        const { data: assignmentQuestionRows, error: assignmentQuestionError } = await supabase
+            .from('assignment_question_details')
+            .select('*')
+            .eq('assignment_id', parsedRow.assignment_id)
+            .order('order_index');
+
+        if (assignmentQuestionError) {
+            console.warn('Failed to hydrate assignment questions, falling back to empty set:', assignmentQuestionError);
+        } else {
+            console.info('[gameService] Fallback loaded rows:', assignmentQuestionRows?.length, assignmentQuestionRows);
+            normalizedQuestions = (assignmentQuestionRows ?? [])
+                .map((row: any) => normalizeTeacherQuestionPayload(row as TeacherQuestion))
+                .filter((question): question is TeacherQuestion => Boolean(question));
+            console.info('[gameService] After normalization:', normalizedQuestions.length, normalizedQuestions);
+        }
+    }
 
     return {
         ...parsedRow,
