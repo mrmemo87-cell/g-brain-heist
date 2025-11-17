@@ -97,7 +97,7 @@ interface QuestViewProps {
 }
 
 const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
-  const [stage, setStage] = useState<QuestStage>('mode_selection');
+  const [stage, setStage] = useState<QuestStage>('loading');
   const [mode, setMode] = useState<QuestMode>('practice');
   const [subjects, setSubjects] = useState<SubjectData[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<SubjectData | null>(null);
@@ -280,7 +280,11 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
       setParticles(current => current.filter(p => p.id !== id));
   };
 
-  const hydrateAssignment = async () => {
+  const hydrateAssignment = async (options: { showLoading?: boolean } = {}) => {
+    const { showLoading = false } = options;
+    if (showLoading) {
+      setStage('loading');
+    }
       try {
           const assignment = await GameService.get_student_active_assignment();
           if (assignment) {
@@ -307,12 +311,13 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
               if (mode === 'assignment') {
                   setMode('practice');
               }
-              if (stage === 'assignment_blocked') {
-                  setStage('mode_selection');
-              }
+        setStage('mode_selection');
           }
       } catch (error) {
           console.error('Error loading assignment:', error);
+      if (showLoading || stage === 'loading') {
+        setStage('mode_selection');
+      }
       }
   };
 
@@ -390,10 +395,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
   }, [stage, currentQuestionIndex, mode, questions, teacherQuestions]);
 
   useEffect(() => {
-    if (stage === 'mode_selection') {
-      hydrateAssignment();
-    }
-  }, [stage]);
+    hydrateAssignment({ showLoading: true });
+  }, []);
 
   useEffect(() => {
     const submitResult = async () => {
@@ -932,7 +935,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward }) => {
                   setAssignmentStartTime(null);
                   setLastCompletedAssignment(null);
                   setAssignmentSubmissionState('idle');
-                  hydrateAssignment();
+                  hydrateAssignment({ showLoading: true });
                 } else {
                   setStage('subject_selection');
                   setSelectedSubject(null);
