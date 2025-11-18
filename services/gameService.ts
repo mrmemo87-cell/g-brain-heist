@@ -852,7 +852,11 @@ export const whoami = async (): Promise<Profile> => {
 
     profile = newProfile;
     console.log('OAuth profile created successfully for:', user.email);
-  } else if (profileError || !profile) {
+  } else if (profileError) {
+    console.error('Profile fetch error:', profileError);
+    throw new Error(`Failed to load profile: ${profileError.message} (Code: ${profileError.code})`);
+  } else if (!profile) {
+    console.error('Profile is null despite no error');
     throw new Error('Profile not found');
     }
 
