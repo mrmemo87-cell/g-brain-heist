@@ -9,7 +9,7 @@ interface LoginViewProps {
 }
 
 const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
-    const [mode, setMode] = useState<'login' | 'signup'>('login');
+    const [mode, setMode] = useState<'login' | 'signup' | 'reset'>('login');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [username, setUsername] = useState('');
@@ -36,7 +36,11 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
         setIsLoading(true);
 
         try {
-            if (mode === 'signup') {
+            if (mode === 'reset') {
+                await AuthService.sendPasswordResetEmail(email);
+                setSuccess('Password reset email sent! Check your inbox.');
+                setMode('login');
+            } else if (mode === 'signup') {
                 const gradeForSignup = role === 'student' ? grade : undefined;
                 const batchForSignup = role === 'student' ? batch : undefined;
                 await AuthService.signup(email, password, username, role, gradeForSignup, batchForSignup);
@@ -128,6 +132,20 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
+                        {mode === 'reset' && (
+                            <div className="mb-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setMode('login')}
+                                    className="text-cyan-400 hover:text-cyan-300 text-sm"
+                                >
+                                    ← Back to Login
+                                </button>
+                                <h3 className="text-xl font-bold text-white mt-2">Reset Password</h3>
+                                <p className="text-gray-400 text-sm mt-1">Enter your email to receive a reset link</p>
+                            </div>
+                        )}
+                        
                         {mode === 'signup' && (
                             <>
                                 <div>
@@ -221,20 +239,34 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                             />
                         </div>
 
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-300">Password</label>
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                autoComplete="current-password"
-                                required
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
-                                placeholder="••••••••"
-                            />
-                        </div>
+                        {mode !== 'reset' && (
+                            <div>
+                                <label htmlFor="password" className="block text-sm font-medium text-gray-300">Password</label>
+                                <input
+                                    id="password"
+                                    name="password"
+                                    type="password"
+                                    autoComplete="current-password"
+                                    required
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+                                    placeholder="••••••••"
+                                />
+                            </div>
+                        )}
+
+                        {mode === 'login' && (
+                            <div className="text-right">
+                                <button
+                                    type="button"
+                                    onClick={() => setMode('reset')}
+                                    className="text-sm text-cyan-400 hover:text-cyan-300"
+                                >
+                                    Forgot password?
+                                </button>
+                            </div>
+                        )}
 
                         {error && <p className="text-sm text-danger-red text-center">{error}</p>}
                         {success && <p className="text-sm text-success-teal text-center">{success}</p>}
@@ -246,35 +278,37 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-bold text-ink-900 bg-ion-blue hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ion-blue disabled:opacity-50 disabled:cursor-wait transition-colors"
                                 style={{ textShadow: '0 1px 1px rgba(0,0,0,0.2)' }}
                             >
-                                {isLoading ? 'Processing...' : mode === 'login' ? 'Access System' : 'Create Account'}
+                                {isLoading ? 'Processing...' : mode === 'reset' ? 'Send Reset Link' : mode === 'login' ? 'Access System' : 'Create Account'}
                             </button>
                         </div>
                     </form>
 
-                    <div className="mt-8 space-y-4">
-                        <div className="flex items-center gap-4 text-gray-500 text-xs uppercase tracking-[0.35em]">
-                            <span className="flex-1 h-px bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
-                            or
-                            <span className="flex-1 h-px bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
-                        </div>
+                    {mode !== 'reset' && (
+                        <div className="mt-8 space-y-4">
+                            <div className="flex items-center gap-4 text-gray-500 text-xs uppercase tracking-[0.35em]">
+                                <span className="flex-1 h-px bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
+                                or
+                                <span className="flex-1 h-px bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
+                            </div>
 
-                        <button
-                            type="button"
-                            onClick={handleGoogleSignIn}
-                            disabled={isGoogleLoading || isLoading}
-                            className="group relative w-full overflow-hidden rounded-xl border border-white/10 bg-white/5 py-3 px-4 font-semibold text-white shadow-lg shadow-cyan-500/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-cyan-400/40 focus:outline-none focus:ring-2 focus:ring-cyan-400 disabled:cursor-wait disabled:opacity-60"
-                        >
-                            <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/10 via-cyan-400/20 to-white/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                            <span className="relative flex items-center justify-center gap-3 text-base">
-                                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
-                                    <GoogleIcon className="h-5 w-5" />
+                            <button
+                                type="button"
+                                onClick={handleGoogleSignIn}
+                                disabled={isGoogleLoading || isLoading}
+                                className="group relative w-full overflow-hidden rounded-xl border border-white/10 bg-white/5 py-3 px-4 font-semibold text-white shadow-lg shadow-cyan-500/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-cyan-400/40 focus:outline-none focus:ring-2 focus:ring-cyan-400 disabled:cursor-wait disabled:opacity-60"
+                            >
+                                <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/10 via-cyan-400/20 to-white/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                                <span className="relative flex items-center justify-center gap-3 text-base">
+                                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
+                                        <GoogleIcon className="h-5 w-5" />
+                                    </span>
+                                    <span className="text-lg font-semibold tracking-wide text-white">
+                                        {isGoogleLoading ? 'Contacting Google...' : 'Continue with Google'}
+                                    </span>
                                 </span>
-                                <span className="text-lg font-semibold tracking-wide text-white">
-                                    {isGoogleLoading ? 'Contacting Google...' : 'Continue with Google'}
-                                </span>
-                            </span>
-                        </button>
-                    </div>
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

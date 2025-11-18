@@ -87,6 +87,13 @@ export const getAssignmentsForTeacher = (
   return execute('rpc_get_assignments_for_teacher', payload, client);
 };
 
+export const getStudentsForAssignment = (
+  payload: Record<string, unknown>,
+  client?: RpcClient
+): RpcResult<unknown> => {
+  return execute('rpc_get_students_for_assignment', payload, client);
+};
+
 export const getStudentActiveAssignment = (client?: RpcClient): RpcResult<unknown> => {
   return execute('rpc_get_student_active_assignment', {}, client);
 };

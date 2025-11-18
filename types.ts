@@ -704,7 +704,7 @@ export interface TeacherAssignmentSummary {
   subject_id?: string | null;
   subject_name: string;
   topic_name: string;
-  batch: AssignmentBatch;
+  batch: AssignmentBatch | null;
   difficulty?: QuestionDifficulty | null;
   question_count: number;
   title?: string | null;
@@ -713,6 +713,7 @@ export interface TeacherAssignmentSummary {
   due_at?: string | null;
   completed_count: number;
   student_count: number;
+  assignment_mode?: 'batch' | 'custom';
 }
 
 export interface StudentAssignmentTask {
@@ -745,13 +746,24 @@ export interface CreateAssignmentRequest {
   subject: Subject;
   subject_id?: string;
   topic_name: string;
-  batch: AssignmentBatch;
+  batch?: AssignmentBatch;
   question_ids: string[];
   assigned_at: string;
   due_at?: string;
   title?: string;
   instructions?: string;
   difficulty?: QuestionDifficulty;
+  assignment_mode?: 'batch' | 'custom';
+  student_ids?: string[];
+}
+
+export interface StudentForAssignment {
+  id: string;
+  username: string;
+  display_name: string;
+  grade: number;
+  batch: Batch | null;
+  avatar_url?: string | null;
 }
 
 export interface AssignmentResultInput {

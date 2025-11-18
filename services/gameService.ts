@@ -29,6 +29,7 @@ import {
     StudentAssignmentTask,
     TeacherAssignmentReportRow,
     AssignmentResultInput,
+    StudentForAssignment,
 } from '../types';
 import * as RaidFeatureService from '../src/features/raids/raidService';
 import { BossUnlockState, RaidAnswerPayload, RaidFinalizationResult, RaidParticipantState, RaidStatus, RaidWaveState } from '../src/features/raids/raidTypes';
@@ -50,6 +51,7 @@ import {
     recordQuestionAttempt,
     createAssignment as rpcCreateAssignment,
     getAssignmentsForTeacher as rpcGetAssignmentsForTeacher,
+    getStudentsForAssignment as rpcGetStudentsForAssignment,
     getStudentActiveAssignment as rpcGetStudentActiveAssignment,
     submitAssignmentResult as rpcSubmitAssignmentResult,
     teacherAssignmentReport as rpcTeacherAssignmentReport
@@ -3366,18 +3368,29 @@ export const create_assignment = async (
         throw new Error('Select at least one question for the assignment');
     }
 
+    // Validate mode-specific requirements
+    const mode = payload.assignment_mode || 'batch';
+    if (mode === 'batch' && !payload.batch) {
+        throw new Error('Batch is required for batch mode assignments');
+    }
+    if (mode === 'custom' && (!payload.student_ids || payload.student_ids.length === 0)) {
+        throw new Error('At least one student is required for custom assignments');
+    }
+
     const { data, error } = await rpcCreateAssignment({
         p_teacher_id: teacher.id,
         p_subject_id: payload.subject_id ?? resolveSubjectIdentifier(payload.subject),
         p_subject_name: payload.subject,
         p_topic_name: normalizeTopicName(payload.topic_name),
-        p_batch: payload.batch,
+        p_batch: payload.batch ?? null,
         p_question_ids: payload.question_ids,
         p_assigned_at: payload.assigned_at ?? nowIso(),
         p_due_at: payload.due_at ?? null,
         p_title: payload.title ?? null,
         p_instructions: payload.instructions ?? null,
         p_difficulty: payload.difficulty ?? null,
+        p_assignment_mode: mode,
+        p_student_ids: payload.student_ids ?? null,
     });
 
     if (error) throw new Error(error.message || 'Failed to create assignment');
@@ -3397,6 +3410,22 @@ export const get_teacher_assignments = async (): Promise<TeacherAssignmentSummar
     if (error) throw new Error(error.message || 'Failed to load assignments');
 
     return (data as TeacherAssignmentSummary[]) || [];
+};
+
+export const get_students_for_assignment = async (): Promise<StudentForAssignment[]> => {
+    const teacher = await get_teacher_profile();
+    if (!teacher) throw new Error('User is not a teacher');
+
+    const { data, error } = await rpcGetStudentsForAssignment({ p_teacher_id: teacher.id });
+    
+    if (error) {
+        console.error('RPC error getting students:', error);
+        throw new Error(error.message || 'Failed to load students');
+    }
+
+    const result = (data as StudentForAssignment[]) || [];
+    console.log('get_students_for_assignment result:', result);
+    return result;
 };
 
 export const get_student_active_assignment = async (): Promise<StudentAssignmentTask | null> => {

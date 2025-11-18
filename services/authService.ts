@@ -217,3 +217,37 @@ export const createOAuthProfile = async (): Promise<void> => {
 
     console.log('OAuth profile created successfully for:', user.email);
 };
+
+// Send password reset email
+export const sendPasswordResetEmail = async (email: string): Promise<void> => {
+    console.log(`Sending password reset email to ${email}`);
+    
+    const redirectTo = getAuthRedirectUrl();
+    
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo,
+    });
+    
+    if (error) {
+        console.error('Password reset error:', error.message);
+        throw new Error(error.message);
+    }
+    
+    console.log('Password reset email sent successfully');
+};
+
+// Update password (after clicking reset link)
+export const updatePassword = async (newPassword: string): Promise<void> => {
+    console.log('Updating password');
+    
+    const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+    });
+    
+    if (error) {
+        console.error('Password update error:', error.message);
+        throw new Error(error.message);
+    }
+    
+    console.log('Password updated successfully');
+};

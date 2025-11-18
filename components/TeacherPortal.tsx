@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, TeacherAssignmentSummary, TeacherAssignmentReportRow, AssignmentBatch } from '../types';
+import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, TeacherAssignmentSummary, TeacherAssignmentReportRow, AssignmentBatch, StudentForAssignment } from '../types';
 import * as GameService from '../services/gameService';
 import BackButton from './BackButton';
 
@@ -33,6 +33,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
 
   // Assignment state
   const [assignments, setAssignments] = useState<TeacherAssignmentSummary[]>([]);
+  const [assignmentMode, setAssignmentMode] = useState<'batch' | 'custom'>('batch');
   const [assignmentBatch, setAssignmentBatch] = useState<AssignmentBatch>('All');
   const [assignmentSubject, setAssignmentSubject] = useState<Subject>('Maths');
   const [assignmentTopicMode, setAssignmentTopicMode] = useState<'general' | 'custom'>('general');
@@ -47,6 +48,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
   const [reportLoading, setReportLoading] = useState(false);
   const [assignmentReport, setAssignmentReport] = useState<TeacherAssignmentReportRow[]>([]);
   const [selectedReportAssignment, setSelectedReportAssignment] = useState<TeacherAssignmentSummary | null>(null);
+  const [availableStudents, setAvailableStudents] = useState<StudentForAssignment[]>([]);
+  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
+  const [studentSearchTerm, setStudentSearchTerm] = useState('');
 
   const questionTopicLabel = useMemo(() => (
     topicMode === 'general' ? 'General' : (customTopicName.trim() || 'Custom Topic')
@@ -58,6 +62,15 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
   const assignmentQuestionPool = useMemo(() => (
     questions.filter((q) => q.subject === assignmentSubject)
   ), [questions, assignmentSubject]);
+  const filteredStudents = useMemo(() => {
+    if (!studentSearchTerm.trim()) return availableStudents;
+    const search = studentSearchTerm.toLowerCase();
+    return availableStudents.filter(s => 
+      s.username.toLowerCase().includes(search) ||
+      s.display_name.toLowerCase().includes(search) ||
+      s.batch?.toLowerCase().includes(search)
+    );
+  }, [availableStudents, studentSearchTerm]);
   const primarySection = useMemo<'dashboard' | 'questions' | 'assignments' | 'reports'>(() => {
     if (view === 'dashboard') return 'dashboard';
     if (view === 'question-bank' || view === 'create-question' || view === 'csv-upload') return 'questions';
@@ -117,9 +130,19 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
         setTeacher(teacherProfile);
       }
 
-      // Load questions
+      // Load questions and students
       const myQuestions = await GameService.get_my_questions();
       setQuestions(myQuestions);
+      
+      try {
+        const students = await GameService.get_students_for_assignment();
+        console.log('Loaded students:', students);
+        setAvailableStudents(students);
+      } catch (studentError) {
+        console.error('Error loading students:', studentError);
+        setAvailableStudents([]);
+      }
+      
       await loadAssignments();
     } catch (error) {
       console.error('Error loading teacher data:', error);
@@ -253,6 +276,20 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     ));
   };
 
+  const toggleStudentSelection = (studentId: string) => {
+    setSelectedStudentIds((prev) => 
+      prev.includes(studentId) ? prev.filter((id) => id !== studentId) : [...prev, studentId]
+    );
+  };
+
+  const selectAllStudents = () => {
+    setSelectedStudentIds(filteredStudents.map(s => s.id));
+  };
+
+  const deselectAllStudents = () => {
+    setSelectedStudentIds([]);
+  };
+
   const handleCreateAssignment = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -263,6 +300,16 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
 
     if (!assignmentQuestionIds.length) {
       alert('Select at least one question to assign.');
+      return;
+    }
+
+    if (assignmentMode === 'batch' && !assignmentBatch) {
+      alert('Please select a batch for this assignment.');
+      return;
+    }
+
+    if (assignmentMode === 'custom' && selectedStudentIds.length === 0) {
+      alert('Please select at least one student for this assignment.');
       return;
     }
 
@@ -278,19 +325,23 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
       await GameService.create_assignment({
         subject: assignmentSubject,
         topic_name: assignmentTopicLabel,
-        batch: assignmentBatch,
+        batch: assignmentMode === 'batch' ? assignmentBatch : undefined,
         question_ids: assignmentQuestionIds,
         assigned_at: toIso(assignmentAssignedAt) ?? new Date().toISOString(),
         due_at: toIso(assignmentDueAt),
         title: assignmentTitle || undefined,
         instructions: assignmentInstructions || undefined,
         difficulty: assignmentDifficulty,
+        assignment_mode: assignmentMode,
+        student_ids: assignmentMode === 'custom' ? selectedStudentIds : undefined,
       });
 
       alert('📌 Assignment created and sent to students!');
       setAssignmentQuestionIds([]);
       setAssignmentTitle('');
       setAssignmentInstructions('');
+      setSelectedStudentIds([]);
+      setStudentSearchTerm('');
       setAssignmentTopicMode('general');
       setAssignmentTopicName('');
       setAssignmentDueAt('');
@@ -1018,7 +1069,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                     {assignment.subject_name} · Topic: {assignment.topic_name}
                   </p>
                   <p className="text-sm text-gray-400">
-                    Batch: {assignment.batch} · Assigned {new Date(assignment.assigned_at).toLocaleDateString()}
+                    {assignment.assignment_mode === 'custom' 
+                      ? `Custom (${assignment.student_count} students)` 
+                      : `Batch: ${assignment.batch}`
+                    } · Assigned {new Date(assignment.assigned_at).toLocaleDateString()}
                   </p>
                   <p className="text-sm text-gray-500">
                     Due: {assignment.due_at ? new Date(assignment.due_at).toLocaleString() : 'No due date'}
@@ -1056,7 +1110,37 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       <div className="card-glass p-6">
         <h2 className="font-heading text-3xl text-purple-300 font-bold mb-6">Create Assignment</h2>
         <form onSubmit={handleCreateAssignment} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Assignment Mode Selection */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-300 mb-2">Assignment Mode</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setAssignmentMode('batch')}
+                className={`px-4 py-3 rounded-lg border transition-all ${
+                  assignmentMode === 'batch'
+                    ? 'bg-purple-500/30 border-purple-400 text-purple-200'
+                    : 'bg-black/40 border-gray-600 text-gray-400 hover:border-gray-500'
+                }`}
+              >
+                📚 Assign to Batch
+              </button>
+              <button
+                type="button"
+                onClick={() => setAssignmentMode('custom')}
+                className={`px-4 py-3 rounded-lg border transition-all ${
+                  assignmentMode === 'custom'
+                    ? 'bg-purple-500/30 border-purple-400 text-purple-200'
+                    : 'bg-black/40 border-gray-600 text-gray-400 hover:border-gray-500'
+                }`}
+              >
+                👥 Select Students
+              </button>
+            </div>
+          </div>
+
+          {/* Batch Selection (only shown in batch mode) */}
+          {assignmentMode === 'batch' && (
             <div>
               <label className="block text-sm font-semibold text-gray-300 mb-2">Batch</label>
               <select
@@ -1070,6 +1154,70 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 <option value="8C">8C</option>
               </select>
             </div>
+          )}
+
+          {/* Student Selection (only shown in custom mode) */}
+          {assignmentMode === 'custom' && (
+            <div className="border border-gray-600 rounded-lg p-4 bg-black/20">
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-sm font-semibold text-gray-300">
+                  Select Students ({selectedStudentIds.length} selected)
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={selectAllStudents}
+                    className="text-xs px-3 py-1 rounded bg-blue-500/20 border border-blue-400 text-blue-200 hover:bg-blue-500/30"
+                  >
+                    Select All
+                  </button>
+                  <button
+                    type="button"
+                    onClick={deselectAllStudents}
+                    className="text-xs px-3 py-1 rounded bg-gray-500/20 border border-gray-500 text-gray-300 hover:bg-gray-500/30"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+              
+              <input
+                type="text"
+                placeholder="Search students..."
+                value={studentSearchTerm}
+                onChange={(e) => setStudentSearchTerm(e.target.value)}
+                className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white mb-3"
+              />
+
+              <div className="max-h-64 overflow-y-auto space-y-2">
+                {filteredStudents.length === 0 ? (
+                  <p className="text-gray-500 text-sm text-center py-4">No students found</p>
+                ) : (
+                  filteredStudents.map((student) => (
+                    <label
+                      key={student.id}
+                      className="flex items-center gap-3 p-3 rounded-lg bg-black/40 border border-gray-700 hover:border-gray-600 cursor-pointer transition-all"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedStudentIds.includes(student.id)}
+                        onChange={() => toggleStudentSelection(student.id)}
+                        className="w-4 h-4"
+                      />
+                      <div className="flex-1">
+                        <div className="text-white font-medium">{student.display_name}</div>
+                        <div className="text-xs text-gray-400">
+                          @{student.username} · Grade {student.grade} · {student.batch || 'No batch'}
+                        </div>
+                      </div>
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-300 mb-2">Subject</label>
               <select
