@@ -25,12 +25,15 @@ export const login = async (email: string, password: string): Promise<{ success:
                 .eq('id', data.user.id)
                 .single();
 
-            if (profileError && profileError.code !== 'PGRST116') {
+            // If profile doesn't exist (PGRST116 = no rows), create it
+            if (profileError && profileError.code === 'PGRST116') {
+                console.log('Profile not found, creating profile for existing auth user...');
+                await createOAuthProfile();
+                console.log('Profile created successfully');
+            } else if (profileError) {
                 console.error('Profile lookup error during login:', profileError.message);
                 throw new Error('Unable to load user profile. Please try again later.');
-            }
-
-            if (isBannedFlag(profile?.is_banned)) {
+            } else if (isBannedFlag(profile?.is_banned)) {
                 await supabase.auth.signOut();
                 storeBanMessage(BAN_MESSAGE);
                 throw new Error(BAN_MESSAGE);
