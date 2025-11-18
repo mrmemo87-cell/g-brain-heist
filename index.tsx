@@ -78,24 +78,9 @@ const Main: React.FC = () => {
 
   const handleLogout = useCallback(async () => {
     await AuthService.logout();
+    // Immediately set to false - the auth state change will confirm
     setIsAuthenticated(false);
   }, []);
-
-  const router = useMemo(
-    () =>
-      createBrowserRouter([
-        { 
-          path: '/', 
-          element: isAuthenticated ? <App onLogout={handleLogout} /> : <LoginView onLogin={handleLogin} />
-        },
-        { path: '/ielts', element: <IeltsHome /> },
-        { path: '/ielts/session/:sessionId', element: <IeltsSession /> },
-        { path: '/ielts/reading/:setId', element: <ReadingPractice /> },
-        { path: '/ielts/speaking/:taskId', element: <SpeakingPractice /> },
-        { path: '*', element: <Navigate to="/" replace /> },
-      ]),
-    [handleLogout, handleLogin, isAuthenticated]
-  );
 
   if (isLoading) {
     return (
@@ -107,7 +92,11 @@ const Main: React.FC = () => {
     );
   }
 
-  return <RouterProvider router={router} />;
+  if (!isAuthenticated) {
+    return <LoginView onLogin={handleLogin} />;
+  }
+
+  return <App onLogout={handleLogout} />;
 };
 
 const IELTSMain: React.FC = () => {
