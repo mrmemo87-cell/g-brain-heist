@@ -39,7 +39,7 @@ import { notificationService } from './services/notificationService';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './services/banMessage';
 import RaidView from './src/features/raids/RaidView';
 import RaidAdminView from './src/features/raids/RaidAdminView';
-import IeltsPrepHub from './components/IeltsPrepHub';
+import IeltsHome from './src/pages/ielts/IeltsHome';
 
 const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
   8: ['8A', '8B', '8C', 'N/A'],
@@ -58,7 +58,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [news, setNews] = useState<NewsEvent[]>([]);
   const [activeAssignment, setActiveAssignment] = useState<StudentAssignmentTask | null>(null);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts'>('dashboard');
+    const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts'>('dashboard');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [levelUpData, setLevelUpData] = useState<{ newLevel: number; rewards: any } | null>(null);
@@ -780,7 +780,17 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               />
             );
         case 'ielts':
-            return <IeltsPrepHub onBack={() => setView('dashboard')} />;
+            return (
+                <div className="relative">
+                    <button
+                        onClick={() => setView('dashboard')}
+                        className="mb-4 px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors flex items-center gap-2"
+                    >
+                        ← Back to Dashboard
+                    </button>
+                    <IeltsHome />
+                </div>
+            );
         case 'dashboard':
         default:
             // Teacher Dashboard - simplified view focused on teaching

@@ -89,12 +89,12 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                         Brains Heist
                     </h1>
                     <p className="text-mist-400 mt-2">Agent Access Terminal</p>
-                    <a
-                        href="/ielts"
-                        className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-ion-blue/60 text-ion-blue hover:bg-ion-blue/10 text-sm font-semibold transition-all"
+                    <button
+                        onClick={() => window.location.assign('/ielts')}
+                        className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 border-emerald-500/70 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400 text-sm font-bold transition-all shadow-lg hover:shadow-emerald-500/50"
                     >
-                        🎯 Go to IELTS Prep Hub
-                    </a>
+                        📚 IELTS PREPARATION
+                    </button>
                 </div>
 
                 <div className="card-glass glow-ion p-8">

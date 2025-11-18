@@ -15,9 +15,10 @@
 }
 
 body.ielts-theme {
-  background: var(--ielts-sky-50);
-  color: var(--ielts-slate-900);
-  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background: var(--ielts-sky-50) !important;
+  background-image: none !important;
+  color: var(--ielts-slate-900) !important;
+  font-family: 'Inter', 'Segoe UI', sans-serif !important;
 }
 
 /* Authentication */
@@ -46,6 +47,7 @@ body.ielts-theme {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  background: transparent;
 }
 
 .ielts-auth-badge {
@@ -64,13 +66,15 @@ body.ielts-theme {
   margin: 0;
   font-size: 1.9rem;
   font-weight: 700;
-  color: var(--ielts-slate-900);
+  color: var(--ielts-slate-900) !important;
+  background: transparent !important;
 }
 
 .ielts-auth-subtitle {
   margin: 0;
   font-size: 1rem;
-  color: var(--ielts-slate-600);
+  color: var(--ielts-slate-600) !important;
+  background: transparent !important;
   line-height: 1.5;
 }
 
@@ -89,6 +93,7 @@ body.ielts-theme {
   padding: 0.55rem 0;
   font-weight: 600;
   color: var(--ielts-slate-600);
+  cursor: pointer;
   transition: all 0.2s ease;
 }
 
@@ -112,11 +117,18 @@ body.ielts-theme {
   color: var(--ielts-slate-600);
 }
 
+.ielts-auth-field span {
+  color: var(--ielts-slate-900);
+  font-weight: 500;
+}
+
 .ielts-auth-field input {
   border: 1px solid var(--ielts-border);
   border-radius: 12px;
   padding: 0.75rem 0.9rem;
   font-size: 1rem;
+  background: var(--ielts-white);
+  color: var(--ielts-slate-900);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -182,7 +194,7 @@ body.ielts-theme {
 
 .ielts-shell__sidebar {
   width: 260px;
-  background: var(--ielts-white);
+  background: var(--ielts-white) !important;
   border-right: 1px solid var(--ielts-border);
   display: flex;
   flex-direction: column;
@@ -207,19 +219,24 @@ body.ielts-theme {
 
 .ielts-shell__nav-btn {
   border: none;
-  background: transparent;
+  background: var(--ielts-white);
   text-align: left;
   padding: 0.7rem 0.85rem;
   border-radius: 10px;
-  color: var(--ielts-slate-600);
+  color: var(--ielts-slate-600) !important;
   font-weight: 500;
   transition: background 0.15s ease, color 0.15s ease;
   cursor: pointer;
 }
 
+.ielts-shell__nav-btn:hover:not(.ielts-shell__nav-btn--active) {
+  background: var(--ielts-sky-100);
+  color: var(--ielts-slate-900) !important;
+}
+
 .ielts-shell__nav-btn--active {
-  background: var(--ielts-blue-100);
-  color: var(--ielts-blue-900);
+  background: var(--ielts-blue-100) !important;
+  color: var(--ielts-blue-900) !important;
   font-weight: 600;
 }
 
@@ -264,7 +281,7 @@ body.ielts-theme {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: var(--ielts-sky-100);
+  background: var(--ielts-sky-100) !important;
 }
 
 .ielts-shell__header {
