@@ -63,6 +63,7 @@ const Main: React.FC = () => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthenticated(!!session);
+      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -70,7 +71,9 @@ const Main: React.FC = () => {
 
   const handleLogin = useCallback(async (email: string, pass: string) => {
     await AuthService.login(email, pass);
-    setIsAuthenticated(true);
+    // Force immediate state update and session check
+    const { data: { session } } = await supabase.auth.getSession();
+    setIsAuthenticated(!!session);
   }, []);
 
   const handleLogout = useCallback(async () => {
