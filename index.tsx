@@ -19,6 +19,36 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient();
 
+const ProtectedRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="font-heading text-2xl animate-pulse" style={{ color: 'var(--ion-blue)' }}>
+          Initializing Heist OS...
+        </div>
+      </div>
+    );
+  }
+
+  return element;
+};
+
 const Main: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,14 +81,17 @@ const Main: React.FC = () => {
   const router = useMemo(
     () =>
       createBrowserRouter([
-        { path: '/', element: <App onLogout={handleLogout} /> },
+        { 
+          path: '/', 
+          element: isAuthenticated ? <App onLogout={handleLogout} /> : <LoginView onLogin={handleLogin} />
+        },
         { path: '/ielts', element: <IeltsHome /> },
         { path: '/ielts/session/:sessionId', element: <IeltsSession /> },
         { path: '/ielts/reading/:setId', element: <ReadingPractice /> },
         { path: '/ielts/speaking/:taskId', element: <SpeakingPractice /> },
         { path: '*', element: <Navigate to="/" replace /> },
       ]),
-    [handleLogout]
+    [handleLogout, handleLogin, isAuthenticated]
   );
 
   if (isLoading) {
@@ -69,10 +102,6 @@ const Main: React.FC = () => {
         </div>
       </div>
     );
-  }
-
-  if (!isAuthenticated) {
-    return <LoginView onLogin={handleLogin} />;
   }
 
   return <RouterProvider router={router} />;

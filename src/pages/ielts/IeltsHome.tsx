@@ -26,174 +26,345 @@ const IeltsHome: React.FC = () => {
     { id: 3, part: 3, prompt: 'Discuss travel and tourism' },
   ];
 
+  const getLevelColor = (level: string) => {
+    switch(level) {
+      case 'Beginner': return 'bg-emerald-100 text-emerald-700 border-emerald-300';
+      case 'Intermediate': return 'bg-blue-100 text-blue-700 border-blue-300';
+      case 'Advanced': return 'bg-amber-100 text-amber-700 border-amber-300';
+      default: return 'bg-slate-100 text-slate-700';
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="border-b bg-white">
-        <div className="max-w-4xl mx-auto px-4 py-10">
-          <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Study mode</p>
-          <h1 className="text-4xl font-semibold text-slate-900">IELTS Prep Center</h1>
-          <p className="mt-2 text-slate-600">Serious practice for General & Academic modules.</p>
+    <div className="min-h-screen" style={{ backgroundColor: '#FFFFFF' }}>
+      {/* Header - Clean, Professional */}
+      <div className="border-b" style={{ borderColor: '#E5E7EB', backgroundColor: '#FFFFFF' }}>
+        <div className="max-w-7xl mx-auto px-8 py-10">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-14 h-14 rounded-lg flex items-center justify-center text-3xl" style={{ backgroundColor: '#F0F9FF' }}>
+              📚
+            </div>
+            <div>
+              <p className="text-xs font-bold tracking-wider" style={{ color: '#6B7280' }}>IELTS EXAM PREPARATION</p>
+              <h1 className="text-4xl font-bold" style={{ color: '#111827' }}>IELTS Prep Center</h1>
+            </div>
+          </div>
+          <p className="text-lg" style={{ color: '#374151' }}>Master all four skills with structured practice, expert feedback, and proven strategies. Start free or upgrade to Prime for full mock tests.</p>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-10">
-        {/* NEW: 4-Skill Practice System */}
-        <section className="space-y-4">
-          <div>
-            <h2 className="text-2xl font-semibold text-slate-900">Practice by Skill</h2>
-            <p className="text-sm text-slate-500">Free sample exercises to build your confidence. Upgrade to Prime for full mock tests.</p>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-8 py-16">
+        {/* Section Introduction */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold mb-3" style={{ color: '#111827' }}>Practice by Skill</h2>
+          <p className="text-lg mb-6" style={{ color: '#6B7280' }}>Choose your skill focus and start practicing today. Each section includes free sample questions to help you prepare.</p>
+          <div className="flex gap-3 flex-wrap">
+            <div className="px-4 py-2 rounded-full text-sm font-semibold" style={{ backgroundColor: '#DBEAFE', color: '#1E40AF' }}>✓ Free to Start</div>
+            <div className="px-4 py-2 rounded-full text-sm font-semibold" style={{ backgroundColor: '#CCFBF1', color: '#0D9488' }}>✓ Expert Content</div>
+            <div className="px-4 py-2 rounded-full text-sm font-semibold" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>✓ Proven Results</div>
           </div>
+        </div>
 
+        {/* Skills Grid */}
+        <div className="grid gap-12">
           {/* Reading */}
-          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6">
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-blue-100 rounded-lg text-3xl">
-                📚
+          <div>
+            <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+              <div className="flex items-start gap-6 mb-8">
+                <div className="w-16 h-16 rounded-lg flex items-center justify-center text-4xl flex-shrink-0" style={{ backgroundColor: '#EFF6FF' }}>
+                  📚
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold mb-2" style={{ color: '#111827' }}>Reading</h3>
+                  <p style={{ color: '#6B7280' }}>Three passages with comprehension questions. Build speed and accuracy in extracting key information.</p>
+                </div>
               </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-semibold text-slate-900">Reading</h3>
-                <p className="text-sm text-slate-600 mt-1">Academic passages with comprehension questions</p>
-                <div className="mt-4 space-y-2">
-                  {readingSets?.map((set) => (
-                    <button
-                      key={set.id}
-                      onClick={() => alert(`Practice: ${set.title}\n\nThis will open the reading practice interface. Feature coming soon!`)}
-                      className="w-full text-left p-3 border border-slate-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-slate-900">{set.title}</p>
-                          <p className="text-sm text-slate-600">{set.description}</p>
-                        </div>
-                        <div className="text-right">
-                          <span className="inline-block px-2 py-1 text-xs font-medium bg-slate-100 text-slate-700 rounded">
-                            {set.level}
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {readingSets?.map((set) => (
+                  <button
+                    key={set.id}
+                    onClick={() => alert(`Practice: ${set.title}\n\nThis will open the reading practice interface. Feature coming soon!`)}
+                    style={{ 
+                      backgroundColor: '#FFFFFF !important',
+                      border: '2px solid #E5E7EB',
+                      borderRadius: '12px',
+                      padding: '20px',
+                      width: '100%',
+                      textAlign: 'left',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      color: '#111827 !important',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+                      cursor: 'pointer',
+                      transform: 'translateY(0)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#3B82F6';
+                      e.currentTarget.style.backgroundColor = '#F0F9FF !important';
+                      e.currentTarget.style.boxShadow = '0 12px 24px rgba(59, 130, 246, 0.15)';
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#E5E7EB';
+                      e.currentTarget.style.backgroundColor = '#FFFFFF !important';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    <div className="flex flex-col h-full">
+                      <div className="mb-3 text-3xl">📖</div>
+                      <div className="flex-grow">
+                        <p className="font-bold text-lg" style={{ color: '#000000 !important' }}>{set.title}</p>
+                        <p className="text-sm mt-2" style={{ color: '#374151 !important' }}>{set.description}</p>
+                      </div>
+                      <div className="mt-4 pt-4 border-t" style={{ borderColor: '#E5E7EB' }}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold px-3 py-1 rounded-full" style={{ backgroundColor: '#0369A1', color: '#FFFFFF !important' }}>
+                            Band {set.est_band_min}-{set.est_band_max}
                           </span>
-                          <p className="text-xs text-slate-500 mt-1">Band {set.est_band_min}-{set.est_band_max}</p>
+                          <span className="text-xs font-bold" style={{ color: '#0369A1 !important' }}>{set.level}</span>
                         </div>
                       </div>
-                    </button>
-                  ))}
-                </div>
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
           </div>
 
           {/* Listening */}
-          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6">
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-purple-100 rounded-lg text-3xl">
-                🎧
+          <div>
+            <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+              <div className="flex items-start gap-6 mb-8">
+                <div className="w-16 h-16 rounded-lg flex items-center justify-center text-4xl flex-shrink-0" style={{ backgroundColor: '#F3E8FF' }}>
+                  🎧
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold mb-2" style={{ color: '#111827' }}>Listening</h3>
+                  <p style={{ color: '#6B7280' }}>Four sections with real-world audio. Develop note-taking skills and improve concentration.</p>
+                </div>
               </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-semibold text-slate-900">Listening</h3>
-                <p className="text-sm text-slate-600 mt-1">Audio exercises with note-taking practice</p>
-                <div className="mt-4 space-y-2">
-                  {listeningSets?.map((set) => (
-                    <button
-                      key={set.id}
-                      onClick={() => alert(`Practice: ${set.title}\n\nThis will open the listening practice interface. Feature coming soon!`)}
-                      className="w-full text-left p-3 border border-slate-200 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-colors"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-slate-900">{set.title}</p>
-                          <p className="text-sm text-slate-600">{set.description}</p>
-                        </div>
-                        <div className="text-right">
-                          <span className="inline-block px-2 py-1 text-xs font-medium bg-slate-100 text-slate-700 rounded">
-                            {set.level}
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {listeningSets?.map((set) => (
+                  <button
+                    key={set.id}
+                    onClick={() => alert(`Practice: ${set.title}\n\nThis will open the listening practice interface. Feature coming soon!`)}
+                    style={{ 
+                      backgroundColor: '#FFFFFF !important',
+                      border: '2px solid #E5E7EB',
+                      borderRadius: '12px',
+                      padding: '20px',
+                      width: '100%',
+                      textAlign: 'left',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      color: '#111827 !important',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+                      cursor: 'pointer',
+                      transform: 'translateY(0)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#A855F7';
+                      e.currentTarget.style.backgroundColor = '#FAF5FF !important';
+                      e.currentTarget.style.boxShadow = '0 12px 24px rgba(168, 85, 247, 0.15)';
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#E5E7EB';
+                      e.currentTarget.style.backgroundColor = '#FFFFFF !important';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    <div className="flex flex-col h-full">
+                      <div className="mb-3 text-3xl">🎧</div>
+                      <div className="flex-grow">
+                        <p className="font-bold text-lg" style={{ color: '#000000 !important' }}>{set.title}</p>
+                        <p className="text-sm mt-2" style={{ color: '#374151 !important' }}>{set.description}</p>
+                      </div>
+                      <div className="mt-4 pt-4 border-t" style={{ borderColor: '#E5E7EB' }}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold px-3 py-1 rounded-full" style={{ backgroundColor: '#9333EA', color: '#FFFFFF !important' }}>
+                            Band {set.est_band_min}-{set.est_band_max}
                           </span>
-                          <p className="text-xs text-slate-500 mt-1">Band {set.est_band_min}-{set.est_band_max}</p>
+                          <span className="text-xs font-bold" style={{ color: '#7E22CE !important' }}>{set.level}</span>
                         </div>
                       </div>
-                    </button>
-                  ))}
-                </div>
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
           </div>
 
           {/* Writing */}
-          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6">
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-green-100 rounded-lg text-3xl">
-                ✍️
-              </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-semibold text-slate-900">Writing</h3>
-                <p className="text-sm text-slate-600 mt-1">Task 1 & Task 2 prompts with expert feedback</p>
-                <div className="mt-4 space-y-2">
-                  {writingTasks?.map((task) => (
-                    <button
-                      key={task.id}
-                      onClick={() => alert(`Practice: ${task.title}\n\nThis will open the writing practice interface. Feature coming soon!`)}
-                      className="w-full text-left p-3 border border-slate-200 rounded-lg hover:border-green-400 hover:bg-green-50 transition-colors"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-slate-900">{task.title}</p>
-                          <p className="text-sm text-slate-600">{task.prompt.substring(0, 100)}...</p>
-                        </div>
-                        <div className="text-right">
-                          <span className="inline-block px-2 py-1 text-xs font-medium bg-slate-100 text-slate-700 rounded">
-                            {task.task_type === 'task1' ? 'Task 1' : 'Task 2'}
-                          </span>
-                          <p className="text-xs text-slate-500 mt-1">Target: {task.bands_target}</p>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
+          <div>
+            <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+              <div className="flex items-start gap-6 mb-8">
+                <div className="w-16 h-16 rounded-lg flex items-center justify-center text-4xl flex-shrink-0" style={{ backgroundColor: '#F0FDF4' }}>
+                  ✍️
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold mb-2" style={{ color: '#111827' }}>Writing</h3>
+                  <p style={{ color: '#6B7280' }}>Task 1 (graphs) and Task 2 (essays) with detailed feedback on grammar, vocabulary, and structure.</p>
                 </div>
               </div>
-            </div>
-          </div>
-          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6">
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-orange-100 rounded-lg text-3xl">
-                🎤
-              </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-semibold text-slate-900">Speaking</h3>
-                <p className="text-sm text-slate-600 mt-1">Record your responses and get expert feedback</p>
-                {(
-                  <div className="mt-4 space-y-2">
-                    {speakingTasks?.map((task) => (
-                      <button
-                        key={task.id}
-                        onClick={() => alert(`Speaking Task: Part ${task.part}\n\nThis will open the speaking practice interface with recording. Feature coming soon!`)}
-                        className="w-full text-left p-3 border border-slate-200 rounded-lg hover:border-orange-400 hover:bg-orange-50 transition-colors"
-                      >
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {writingTasks?.map((task) => (
+                  <button
+                    key={task.id}
+                    onClick={() => alert(`Practice: ${task.title}\n\nThis will open the writing practice interface. Feature coming soon!`)}
+                    style={{ 
+                      backgroundColor: '#FFFFFF !important',
+                      border: '2px solid #E5E7EB',
+                      borderRadius: '12px',
+                      padding: '20px',
+                      width: '100%',
+                      textAlign: 'left',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      color: '#111827 !important',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+                      cursor: 'pointer',
+                      transform: 'translateY(0)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#10B981';
+                      e.currentTarget.style.backgroundColor = '#F0FDF4 !important';
+                      e.currentTarget.style.boxShadow = '0 12px 24px rgba(16, 185, 129, 0.15)';
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#E5E7EB';
+                      e.currentTarget.style.backgroundColor = '#FFFFFF !important';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    <div className="flex flex-col h-full">
+                      <div className="mb-3 text-3xl">✍️</div>
+                      <div className="flex-grow">
+                        <p className="font-bold text-lg" style={{ color: '#000000 !important' }}>{task.title}</p>
+                        <p className="text-sm mt-2" style={{ color: '#374151 !important' }}>{task.prompt.substring(0, 80)}...</p>
+                      </div>
+                      <div className="mt-4 pt-4 border-t" style={{ borderColor: '#E5E7EB' }}>
                         <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium text-slate-900">{task.prompt.substring(0, 80)}...</p>
-                          </div>
-                          <div className="text-right">
-                            <span className="inline-block px-2 py-1 text-xs font-medium bg-slate-100 text-slate-700 rounded">
-                              Part {task.part}
-                            </span>
-                          </div>
+                          <span className="text-xs font-semibold px-3 py-1 rounded-full" style={{ backgroundColor: '#059669', color: '#FFFFFF !important' }}>
+                            Target: {task.bands_target}
+                          </span>
+                          <span className="text-xs font-bold" style={{ color: '#047857 !important' }}>{task.task_type === 'task1' ? 'Task 1' : 'Task 2'}</span>
                         </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
+                      </div>
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* Upgrade CTA */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 text-white">
-            <h3 className="text-xl font-semibold">Ready for the Full Experience?</h3>
-            <p className="text-sm text-blue-100 mt-2">Upgrade to Prime Prep for full mock tests, detailed feedback, and certificates signed by Brains Heist Academy.</p>
-            <button
-              onClick={() => alert('Prime Access application coming soon! This will unlock:\n• Full mock tests\n• Expert feedback\n• Official certificates\n• Band score predictions')}
-              className="mt-4 px-6 py-2 bg-white text-blue-700 font-medium rounded-lg hover:bg-blue-50 transition-colors"
-            >
-              Apply for Prime Access
-            </button>
+          {/* Speaking */}
+          <div>
+            <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+              <div className="flex items-start gap-6 mb-8">
+                <div className="w-16 h-16 rounded-lg flex items-center justify-center text-4xl flex-shrink-0" style={{ backgroundColor: '#FEF2F2' }}>
+                  🎤
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold mb-2" style={{ color: '#111827' }}>Speaking</h3>
+                  <p style={{ color: '#6B7280' }}>3-part interview simulation with instant AI feedback on pronunciation, fluency, and coherence.</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {speakingTasks?.map((task) => (
+                  <button
+                    key={task.id}
+                    onClick={() => alert(`Practice: Part ${task.part} - ${task.prompt}\n\nThis will open the speaking practice interface. Feature coming soon!`)}
+                    style={{ 
+                      backgroundColor: '#FFFFFF !important',
+                      border: '2px solid #E5E7EB',
+                      borderRadius: '12px',
+                      padding: '20px',
+                      width: '100%',
+                      textAlign: 'left',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      color: '#111827 !important',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+                      cursor: 'pointer',
+                      transform: 'translateY(0)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#DC2626';
+                      e.currentTarget.style.backgroundColor = '#FEF2F2 !important';
+                      e.currentTarget.style.boxShadow = '0 12px 24px rgba(220, 38, 38, 0.15)';
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#E5E7EB';
+                      e.currentTarget.style.backgroundColor = '#FFFFFF !important';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    <div className="flex flex-col h-full">
+                      <div className="mb-3 text-3xl">🎤</div>
+                      <div className="flex-grow">
+                        <p className="font-bold text-lg" style={{ color: '#000000 !important' }}>Part {task.part}: {task.prompt}</p>
+                        <p className="text-sm mt-2" style={{ color: '#374151 !important' }}>Record and get instant AI-powered feedback</p>
+                      </div>
+                      <div className="mt-4 pt-4 border-t" style={{ borderColor: '#E5E7EB' }}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold px-3 py-1 rounded-full" style={{ backgroundColor: '#DC2626', color: '#FFFFFF !important' }}>
+                            Part {task.part}
+                          </span>
+                          <span className="text-xs font-bold" style={{ color: '#B91C1C !important' }}>Interview</span>
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
-        </section>
+        </div>
+
+        {/* Footer CTA - Premium */}
+        <div className="mt-20 p-12 rounded-2xl text-center" style={{ 
+          background: 'linear-gradient(135deg, #0369A1 0%, #0C4A6E 100%)',
+          boxShadow: '0 20px 60px rgba(3, 105, 161, 0.3)'
+        }}>
+          <h3 className="text-4xl font-bold mb-4" style={{ color: '#FFFFFF' }}>Unlock Your Full Potential</h3>
+          <p className="mb-8 text-lg" style={{ color: '#BAE6FD' }}>Upgrade to Prime and get unlimited mock tests, expert feedback, and official certificates. Limited spots available!</p>
+          
+          <button style={{ 
+            background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+            color: '#FFFFFF !important',
+            fontWeight: 'bold',
+            padding: '16px 48px',
+            borderRadius: '12px',
+            border: 'none',
+            fontSize: '18px',
+            cursor: 'pointer',
+            transition: 'all 0.3s',
+            boxShadow: '0 8px 25px rgba(5, 150, 105, 0.4)',
+            textTransform: 'uppercase',
+            letterSpacing: '1px'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-3px)';
+            e.currentTarget.style.boxShadow = '0 12px 35px rgba(5, 150, 105, 0.6)';
+            e.currentTarget.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 8px 25px rgba(5, 150, 105, 0.4)';
+            e.currentTarget.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
+          }}
+          >
+            Explore Prime Membership
+          </button>
+        </div>
       </div>
     </div>
   );

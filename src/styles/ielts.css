@@ -15,10 +15,48 @@
 }
 
 body.ielts-theme {
-  background: var(--ielts-sky-50) !important;
+  background: #FFFFFF !important;
+  background-attachment: fixed !important;
   background-image: none !important;
-  color: var(--ielts-slate-900) !important;
-  font-family: 'Inter', 'Segoe UI', sans-serif !important;
+  color: #0f172a !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+}
+
+body.ielts-theme {
+  color: #0f172a !important;
+}
+
+/* Force light theme for IELTS pages */
+body.ielts-theme button,
+body.ielts-theme div,
+body.ielts-theme span,
+body.ielts-theme p {
+  background-color: transparent !important;
+  color: #111827 !important;
+}
+
+body.ielts-theme input,
+body.ielts-theme textarea {
+  background-color: #FFFFFF !important;
+  color: #111827 !important;
+  border: 1px solid #E5E7EB !important;
+}
+
+/* Ensure section containers are white */
+body.ielts-theme > * {
+  background-color: #FFFFFF !important;
+}
+
+/* Force button styling */
+body.ielts-theme button {
+  background-color: transparent !important;
+  color: #111827 !important;
+  border: none !important;
+}
+
+/* Ensure all text is dark */
+body.ielts-theme {
+  --text-color: #111827;
 }
 
 /* Authentication */
