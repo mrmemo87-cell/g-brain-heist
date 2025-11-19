@@ -1,6 +1,7 @@
 export type Grade = 8 | 9;
 export type Batch = '8A' | '8B' | '8C' | '9A' | '9B' | '9C' | 'N/A';
 export type UserRole = 'student' | 'teacher' | 'admin';
+export type ClanRole = 'leader' | 'officer' | 'moderator' | 'member';
 export type SoloDifficulty = 'easy' | 'medium' | 'hard';
 export type TopicStatus = 'CRUSHED' | 'AVERAGE' | 'STRUGGLED';
 
@@ -11,21 +12,33 @@ export interface Profile {
   batch: Batch | null; // null for teachers
   role?: UserRole; // User role - student by default
   avatar_url: string;
+  bio?: string | null;
   level: number;
   xp: number;
   coins: number;
   gemstones: number;
   streak: number;
+  pvp_score: number; // PvP score: +3 per win, +1 per loss
+  total_score?: number;
   last_seen: string;
   ap_now: number;
   ap_max: number;
   last_ap_update?: string; // ISO timestamp of last AP regeneration
   attack_power: number; // Base attack power
   defense_power: number; // Base defense power
+  attack_power_effective?: number;
+  defense_power_effective?: number;
   tutorial_completed?: boolean; // Whether user has completed onboarding tutorial
   admin_visible?: boolean; // Whether admin is visible in leaderboards/PvP (default: false)
   is_admin?: boolean;
   is_banned?: boolean;
+  clan_id?: string | null;
+  clan_name?: string | null;
+  clan_role?: ClanRole;
+  clan_custom_title?: string | null;
+  clan_total_score?: number | null;
+  active_clan_buffs?: ActiveClanBuff[];
+  clan_buff_effects?: ClanBuffEffect;
 }
 
 export interface Task {
@@ -182,6 +195,13 @@ export interface RaidTarget {
   avatar_url: string;
   last_seen?: string;
   clan_name?: string;
+  clan_id?: string;
+  is_bot?: boolean;
+  attack_power?: number;
+  defense_power?: number;
+  last_attacked_at?: string;
+  total_score?: number;
+  clan_total_score?: number;
 }
 
 export interface RaidAttackResult {
@@ -232,17 +252,60 @@ export interface ToastMessage {
 export interface ClanMember {
     user_id: string;
     username: string;
-    role: 'leader' | 'officer' | 'member';
-    contribution: number;
-    avatar_url: string;
+  role: ClanRole;
+  contribution: number;
+  avatar_url: string;
+  custom_title?: string | null;
+  bio?: string | null;
+  total_score?: number;
+  xp?: number;
+  pvp_score?: number;
 }
 
-export interface ClanBuff {
-    id: string;
-    name: string;
-    description: string;
-    cost: number;
-    active_until?: string;
+// NEW: Competition-based clan member with scores
+export interface ClanMemberWithScore {
+    player_id: string;
+    username: string;
+    total_score: number;
+    xp: number;
+    pvp_score: number;
+    level: number;
+    avatar_url: string;
+  role: ClanRole;
+    joined_at: string;
+}
+
+export interface ClanBuffEffect {
+  xp_multiplier?: number;
+  attack_multiplier?: number;
+  defense_multiplier?: number;
+  shield_bonus_percent?: number;
+  ap_bonus?: number;
+}
+
+export interface ClanBuffTemplate {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  cost: number;
+  duration_minutes: number;
+  effect: ClanBuffEffect;
+}
+
+export type ClanBuff = ClanBuffTemplate;
+
+export interface ActiveClanBuff {
+  id: string;
+  clan_id: string;
+  template_code: string;
+  name: string;
+  description: string;
+  effect: ClanBuffEffect;
+  activated_by?: string;
+  activated_by_name?: string;
+  activated_at: string;
+  expires_at: string;
 }
 
 export interface Clan {
@@ -252,8 +315,10 @@ export interface Clan {
     notice: string;
     vault_metric: number; // This is total XP
     vault_coins: number;
-    members: ClanMember[];
-    buffs: ClanBuff[];
+  members: ClanMember[];
+  active_buffs: ActiveClanBuff[];
+  clan_total_score?: number;
+  leader_id?: string;
 }
 
 export interface ClanSummary {
@@ -262,6 +327,37 @@ export interface ClanSummary {
     crest_url?: string;
     member_count: number;
     vault_metric: number;
+  clan_total_score?: number;
+  notice?: string;
+}
+
+// NEW: Competition-based clan score view
+export interface CompetitionClanScore {
+    id: string;
+    name: string;
+    description?: string;
+    leader_id: string;
+    avatar_url?: string;
+    created_at: string;
+    updated_at: string;
+    member_count: number;
+    clan_total_score: number;
+    avg_member_score: number;
+    highest_member_score: number;
+    highest_pvp_score: number;
+}
+
+// NEW: Competition clan leaderboard entry
+export interface CompetitionClanLeaderboardEntry {
+    rank: number;
+    clan_id: string;
+    clan_name: string;
+    clan_total_score: number;
+    member_count: number;
+    avg_member_score: number;
+    highest_member_score: number;
+    leader_name: string;
+    created_at: string;
 }
 
 export interface ClanChatMessage {

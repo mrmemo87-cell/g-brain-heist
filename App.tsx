@@ -552,6 +552,31 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         ap_now: Math.min(prevProfile.ap_max, Math.max(0, nextAP)),
       };
     });
+
+    // Verify rewards were actually saved to database by refreshing after a short delay
+    // This helps catch silent failures in the reward persistence
+    if ((deltas.xp || 0) + (deltas.coins || 0) > 0) {
+      setTimeout(async () => {
+        try {
+          const currentProfile = await GameService.whoami();
+          const expectedXP = profile.xp + (deltas.xp || 0);
+          const expectedCoins = profile.coins + (deltas.coins || 0);
+          
+          // If the database values don't match expectations, something went wrong
+          if (currentProfile.xp < expectedXP || currentProfile.coins < expectedCoins) {
+            console.warn('[REWARD VERIFICATION] Mismatch detected:', {
+              expected: { xp: expectedXP, coins: expectedCoins },
+              actual: { xp: currentProfile.xp, coins: currentProfile.coins }
+            });
+            addToast('⚠️ Warning: Your rewards may not have been saved. Refreshing...', 'warning');
+            // Refresh the full profile to get accurate data
+            await refreshProfile();
+          }
+        } catch (error) {
+          console.error('[REWARD VERIFICATION] Failed to verify rewards:', error);
+        }
+      }, 2000); // Wait 2 seconds to let database transaction complete
+    }
   };
 
   const handleDismissAnnouncement = async () => {

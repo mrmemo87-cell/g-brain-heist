@@ -16,6 +16,10 @@ import {
     ClanSummary,
     ClanMember,
     ClanBuff,
+    ClanBuffTemplate,
+    ActiveClanBuff,
+    ClanBuffEffect,
+    ClanRole,
     InventoryItem,
     Teacher,
     TeacherQuestion,
@@ -661,6 +665,13 @@ const mockApiCall = <T,>(data: T): Promise<T> => {
   return new Promise(resolve => setTimeout(() => resolve(data), MOCK_DELAY));
 };
 
+const getRpcSingleRow = <T,>(data: T | T[] | null): T | null => {
+        if (!data) {
+                return null;
+        }
+        return Array.isArray(data) ? data[0] ?? null : data;
+};
+
 export const getKyrgyzBotLeaderboardProfiles = async (): Promise<KyrgyzBotLeaderboardSnapshot> => {
     const snapshot = buildKyrgyzBotLeaderboardSnapshot();
     return mockApiCall(snapshot);
@@ -673,6 +684,7 @@ const DEFAULT_PROFILE: Profile = {
   grade: 8,
   batch: '8B',
   avatar_url: 'https://picsum.photos/seed/neonghost/100/100',
+    bio: null,
   level: 12,
   xp: 420,
   coins: 8750,
@@ -683,6 +695,16 @@ const DEFAULT_PROFILE: Profile = {
   ap_max: 20,
   attack_power: 10, // Base attack
   defense_power: 10, // Base defense
+  pvp_score: 0, // PvP score for clan competition
+    total_score: 420,
+    attack_power_effective: 10,
+    defense_power_effective: 10,
+    clan_id: null,
+    clan_name: null,
+    clan_role: undefined,
+    clan_custom_title: null,
+    clan_total_score: null,
+    active_clan_buffs: [],
 };
 
 // Load from storage or use defaults
@@ -696,10 +718,10 @@ let MOCK_CHAT: ClanChatMessage[] = loadFromStorage<ClanChatMessage[]>(STORAGE_KE
     { id: `msg_${Date.now() - 60000}`, user: 'ZeroCool', message: 'I am in! Let\'s attack some noobs.', created_at: '1m ago', is_self: false },
 ];
 
-const MOCK_AVAILABLE_BUFFS: ClanBuff[] = [
-    { id: 'buff_xp_1', name: 'XP Surge', description: '+10% XP for all members for 24h.', cost: 5000 },
-    { id: 'buff_shield_1', name: 'Reinforced Shields', description: 'Clan member shields are 20% stronger for 24h.', cost: 7500 },
-    { id: 'buff_attack_1', name: 'Attack Protocol', description: '+5% Attack Power for all members for 24h.', cost: 10000 },
+const MOCK_AVAILABLE_BUFFS: ClanBuffTemplate[] = [
+    { id: 'buff_xp_1', code: 'xp_surge', name: 'XP Surge', description: '+10% XP for all members for 24h.', cost: 5000, duration_minutes: 1440, effect: { xp_multiplier: 1.1 } },
+    { id: 'buff_shield_1', code: 'shield_wall', name: 'Reinforced Shields', description: 'Clan member shields are 20% stronger for 24h.', cost: 7500, duration_minutes: 1440, effect: { defense_multiplier: 1.1, shield_bonus_percent: 20 } },
+    { id: 'buff_attack_1', code: 'attack_protocol', name: 'Attack Protocol', description: '+5% Attack Power for all members for 24h.', cost: 10000, duration_minutes: 1440, effect: { attack_multiplier: 1.05 } },
 ];
 
 const DEFAULT_INVENTORY: InventoryItem[] = [
@@ -726,6 +748,97 @@ const saveProfile = () => saveToStorage(STORAGE_KEYS.PROFILE, MOCK_PROFILE);
 const saveInventory = () => saveToStorage(STORAGE_KEYS.INVENTORY, MOCK_INVENTORY);
 const saveClan = () => saveToStorage(STORAGE_KEYS.CLAN, MOCK_CLAN);
 const saveChat = () => saveToStorage(STORAGE_KEYS.CHAT, MOCK_CHAT);
+
+const calculateTotalScore = (xp: number = 0, pvpScore: number = 0): number => xp + pvpScore * 10;
+
+const mapBuffTemplateRow = (row: any): ClanBuffTemplate => ({
+    id: row.id,
+    code: row.code,
+    name: row.name,
+    description: row.description,
+    cost: row.cost,
+    duration_minutes: row.duration_minutes,
+    effect: row.effect ?? {},
+});
+
+const mapActiveBuffRow = (row: any): ActiveClanBuff => ({
+    id: row.id,
+    clan_id: row.clan_id,
+    template_code: row.code || row.template_code,
+    name: row.name,
+    description: row.description,
+    effect: row.effect ?? {},
+    activated_by: row.activated_by,
+    activated_by_name: row.activated_by_name,
+    activated_at: row.purchased_at,
+    expires_at: row.expires_at,
+});
+
+const combineClanBuffEffects = (buffs: ActiveClanBuff[]): ClanBuffEffect => {
+    return buffs.reduce<ClanBuffEffect>((acc, buff) => {
+        const effect = buff.effect || {};
+        if (effect.xp_multiplier) {
+            acc.xp_multiplier = (acc.xp_multiplier ?? 1) * effect.xp_multiplier;
+        }
+        if (effect.attack_multiplier) {
+            acc.attack_multiplier = (acc.attack_multiplier ?? 1) * effect.attack_multiplier;
+        }
+        if (effect.defense_multiplier) {
+            acc.defense_multiplier = (acc.defense_multiplier ?? 1) * effect.defense_multiplier;
+        }
+        if (effect.shield_bonus_percent) {
+            acc.shield_bonus_percent = (acc.shield_bonus_percent ?? 0) + effect.shield_bonus_percent;
+        }
+        if (effect.ap_bonus) {
+            acc.ap_bonus = (acc.ap_bonus ?? 0) + effect.ap_bonus;
+        }
+        return acc;
+    }, {});
+};
+
+const applyClanBuffsToProfile = (profile: Profile, buffs: ActiveClanBuff[]) => {
+    profile.active_clan_buffs = buffs;
+    if (!buffs.length) {
+        profile.clan_buff_effects = undefined;
+        profile.attack_power_effective = profile.attack_power;
+        profile.defense_power_effective = profile.defense_power;
+        return;
+    }
+
+    const combined = combineClanBuffEffects(buffs);
+    profile.clan_buff_effects = combined;
+    profile.attack_power_effective = Math.round(profile.attack_power * (combined.attack_multiplier ?? 1));
+    profile.defense_power_effective = Math.round(profile.defense_power * (combined.defense_multiplier ?? 1));
+};
+
+const fetchClanActiveBuffs = async (clanId: string): Promise<ActiveClanBuff[]> => {
+    const { data, error } = await supabase
+        .from('clan_active_buffs')
+        .select('id, clan_id, code, name, description, effect, activated_by, activated_by_name, purchased_at, expires_at')
+        .eq('clan_id', clanId)
+        .order('expires_at', { ascending: true });
+
+    if (error) {
+        console.warn('Failed to load active clan buffs:', error.message);
+        return [];
+    }
+
+    return (data || []).map(mapActiveBuffRow);
+};
+
+const fetchClanScoreValue = async (clanId: string): Promise<number | null> => {
+    const { data, error } = await supabase
+        .from('clan_scores')
+        .select('clan_total_score')
+        .eq('id', clanId)
+        .maybeSingle();
+
+    if (error && error.code !== 'PGRST116') {
+        console.warn('Failed to fetch clan score:', error.message);
+    }
+
+    return data?.clan_total_score ?? null;
+};
 
 // Helper functions to calculate total combat stats
 const getTotalAttackPower = (profile: Profile, inventory: InventoryItem[]): number => {
@@ -885,6 +998,7 @@ export const whoami = async (): Promise<Profile> => {
         : profile.role === 'admin';
 
     profile.is_banned = banned;
+    profile.total_score = calculateTotalScore(profile.xp ?? 0, profile.pvp_score ?? 0);
 
   // ====== AP REGENERATION LOGIC ======
   // Call database function to regenerate AP
@@ -1019,7 +1133,43 @@ export const whoami = async (): Promise<Profile> => {
     has_shield: false, // TODO: Check inventory for active shield
   });
 
-  return profile;
+    applyClanBuffsToProfile(profile, []);
+
+    const { data: membership, error: membershipError } = await supabase
+        .from('clan_members')
+        .select('clan_id, role, custom_title, clans!inner(name)')
+        .eq('user_id', profile.id)
+        .maybeSingle();
+
+    if (membershipError && membershipError.code !== 'PGRST116') {
+        console.warn('Failed to fetch clan membership:', membershipError.message);
+    }
+
+    if (membership) {
+        profile.clan_id = membership.clan_id;
+        profile.clan_role = membership.role as ClanRole;
+        profile.clan_custom_title = membership.custom_title;
+        const clanRecord = Array.isArray(membership.clans) ? membership.clans[0] : membership.clans;
+        profile.clan_name = clanRecord?.name ?? null;
+
+        const [clanScore, activeBuffs] = await Promise.all([
+            fetchClanScoreValue(membership.clan_id),
+            fetchClanActiveBuffs(membership.clan_id),
+        ]);
+
+        profile.clan_total_score = clanScore;
+        applyClanBuffsToProfile(profile, activeBuffs);
+    } else {
+        profile.clan_id = null;
+        profile.clan_role = undefined;
+        profile.clan_custom_title = null;
+        profile.clan_name = null;
+        profile.clan_total_score = null;
+    }
+
+    profile.total_score = calculateTotalScore(profile.xp ?? 0, profile.pvp_score ?? 0);
+
+    return profile;
 };
 
 export const tasks_list = (): Promise<Task[]> => {
@@ -1465,28 +1615,43 @@ export const mcq_questions_get = async (subject_id: string, limit: number = 5): 
 export const raid_targets = async (): Promise<RaidTarget[]> => {
     const user = await getCurrentUser();
     
-    // Fetch all users except current user, teachers, and admins from database with their clan info
-    // Exclude players who were attacked in the last 5 minutes (300 seconds)
+    // Fetch current user's profile for stats
+    const { data: profileData } = await supabase
+        .from('users')
+        .select('level, batch, attack_power')
+        .eq('id', user.id)
+        .single();
+    
+    const userLevel = profileData?.level || 1;
+    const userBatch = profileData?.batch || '8B';
+    const userAttackPower = profileData?.attack_power || 10;
+    
+    // Fetch all users (no cooldown filter - will disable attack button instead)
     const { data: players, error } = await supabase
         .from('users')
         .select(`
-            id, username, level, coins, batch, avatar_url, last_seen, attack_power, defense_power, last_attacked_at,
+            id, username, level, coins, batch, avatar_url, last_seen, attack_power, defense_power, last_attacked_at, xp,
             clan_members!left (
+                clan_id,
                 clans!inner (name)
             )
         `)
         .neq('id', user.id)
         .neq('role', 'teacher')
         .neq('role', 'admin')
-        .or(`last_attacked_at.is.null,last_attacked_at.lt.${new Date(Date.now() - 5 * 60 * 1000).toISOString()}`)
-        .limit(20);
+        .limit(100); // Increased limit to show more targets
     
     if (error) throw error;
     
     // TODO: Check inventory for shields
     const realTargets: RaidTarget[] = (players || []).map((p: any) => {
-        // Extract clan name if user is in a clan
+        // Extract clan info if user is in a clan
         const clanName = p.clan_members?.[0]?.clans?.name || undefined;
+        const clanId = p.clan_members?.[0]?.clan_id || undefined;
+        
+        // Calculate win rate based on attack vs defense
+        const defenderPower = (p.defense_power || 10) + (p.has_shield ? 20 : 0);
+        const winRate = Math.min(0.95, Math.max(0.05, userAttackPower / (userAttackPower + defenderPower)));
 
         return {
             user_id: p.id,
@@ -1495,29 +1660,45 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
             coins: p.coins,
             batch: p.batch as '8A' | '8B' | '8C',
             has_shield: false, // TODO: Check inventory
-            est_win_rate: Math.random() * 0.5 + 0.3,
+            est_win_rate: winRate,
             avatar_url: p.avatar_url || '',
             last_seen: p.last_seen,
             clan_name: clanName,
+            clan_id: clanId,
+            is_bot: false,
+            attack_power: p.attack_power,
+            defense_power: p.defense_power,
+            last_attacked_at: p.last_attacked_at,
         };
     });
 
-    const existingIds = new Set(realTargets.map(target => target.user_id));
-    const MIN_TARGETS = 6;
-    const MAX_TARGETS = 20;
-    const botsNeeded = Math.min(
-        Math.max(MIN_TARGETS - realTargets.length, 0),
-        Math.max(MAX_TARGETS - realTargets.length, 0)
-    );
-    const bots = generateKyrgyzBots(botsNeeded, existingIds);
+    // Prioritize targets: same batch > similar level > active players
+    const prioritizedTargets = realTargets.sort((a, b) => {
+        // Same batch gets priority
+        if (a.batch === userBatch && b.batch !== userBatch) return -1;
+        if (b.batch === userBatch && a.batch !== userBatch) return 1;
+        
+        // Similar level gets priority
+        const levelDiffA = Math.abs(a.level - userLevel);
+        const levelDiffB = Math.abs(b.level - userLevel);
+        if (levelDiffA !== levelDiffB) return levelDiffA - levelDiffB;
+        
+        // Active players (online recently) get priority
+        const timeA = a.last_seen ? new Date(a.last_seen).getTime() : 0;
+        const timeB = b.last_seen ? new Date(b.last_seen).getTime() : 0;
+        return timeB - timeA;
+    });
 
-    const combinedTargets = [...realTargets, ...bots];
+    const existingIds = new Set(prioritizedTargets.map(target => target.user_id));
+    // Add bots to fill gaps (but mark them as real players for display)
+    const MIN_TARGETS = 10;
+    const botsNeeded = Math.max(MIN_TARGETS - prioritizedTargets.length, 0);
+    const bots = generateKyrgyzBots(botsNeeded, existingIds).map(bot => ({ ...bot, is_bot: false })); // Hide bot status
 
-    if (combinedTargets.length > 1) {
-        combinedTargets.sort(() => Math.random() - 0.5);
-    }
+    // Return all targets (no artificial limit)
+    const combinedTargets = [...prioritizedTargets, ...bots];
 
-    return mockApiCall(combinedTargets.slice(0, MAX_TARGETS));
+    return mockApiCall(combinedTargets);
 };
 
 // Raid system integration -------------------------------------------------
@@ -1706,6 +1887,10 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
     // Track progress (localStorage for now)
     if (response.result === 'win') {
         incrementPvPWin();
+        
+        // Update PvP score in database (affects clan competition)
+        await updatePvPScore(user.id, true);
+        
         const progress = getTaskProgress();
         if (progress.daily_pvp_wins === 1 && canEarnPvpGemstone(PVP_GEMSTONE_DAILY_CAP)) {
             gemstoneReward += PVP_GEMSTONE_REWARD;
@@ -1714,6 +1899,9 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
         if (progress.daily_pvp_wins === 1) {
             incrementWeeklyTaskCompleted();
         }
+    } else {
+        // Also track losses for PvP score (less points but still progression)
+        await updatePvPScore(user.id, false);
     }
 
     if (gemstoneReward > 0) {
@@ -2093,10 +2281,11 @@ export const clan_list = async (): Promise<ClanSummary[]> => {
         .select(`
             id,
             name,
+            notice,
             member_count,
             vault_coins,
             clan_members!inner (
-                users!inner (xp)
+                users!inner (xp, pvp_score)
             )
         `);
     
@@ -2107,8 +2296,10 @@ export const clan_list = async (): Promise<ClanSummary[]> => {
     
     // Calculate total XP from all members
     const mappedClans = (clans || []).map((clan: any) => {
-        const totalXP = clan.clan_members?.reduce((sum: number, member: any) => {
-            return sum + (member.users?.xp || 0);
+        const totalScore = clan.clan_members?.reduce((sum: number, member: any) => {
+            const xp = member.users?.xp || 0;
+            const pvp = member.users?.pvp_score || 0;
+            return sum + calculateTotalScore(xp, pvp);
         }, 0) || 0;
         
         // Get actual member count from array length
@@ -2117,9 +2308,11 @@ export const clan_list = async (): Promise<ClanSummary[]> => {
         return {
             id: clan.id,
             name: clan.name,
+            notice: clan.notice,
             member_count: actualMemberCount,
-            vault_metric: totalXP,
+            vault_metric: totalScore,
             vault_coins: clan.vault_coins,
+            clan_total_score: totalScore,
         };
     });
     
@@ -2128,18 +2321,10 @@ export const clan_list = async (): Promise<ClanSummary[]> => {
 
 export const clan_get_members_by_id = async (clanId: string): Promise<ClanMember[]> => {
     const { data, error } = await supabase
-        .from('clan_members')
-        .select(`
-            user_id,
-            role,
-            users!inner (
-                username,
-                avatar_url
-            )
-        `)
+        .from('clan_member_scores')
+        .select('*')
         .eq('clan_id', clanId)
-        .order('role', { ascending: true })
-        .order('user_id', { ascending: true });
+        .order('total_score', { ascending: false });
 
     if (error) {
         throw error;
@@ -2147,10 +2332,15 @@ export const clan_get_members_by_id = async (clanId: string): Promise<ClanMember
 
     return (data || []).map((member: any) => ({
         user_id: member.user_id,
-        username: member.users?.username ?? 'Unknown agent',
+        username: member.username ?? 'Unknown agent',
         role: member.role || 'member',
-        contribution: 0,
-        avatar_url: member.users?.avatar_url || '',
+        contribution: member.total_score || 0,
+        avatar_url: member.avatar_url || '',
+        custom_title: member.custom_title,
+        bio: member.bio,
+        total_score: member.total_score,
+        xp: member.xp,
+        pvp_score: member.pvp_score,
     }));
 };
 
@@ -2203,18 +2393,21 @@ export const clan_join = async (clan_id: string): Promise<Clan> => {
 export const clan_details = async (): Promise<Clan | null> => {
     const user = await getCurrentUser();
     
-    // Check if user is in a clan
-    const { data: membership } = await supabase
+    const { data: membership, error: membershipError } = await supabase
         .from('clan_members')
         .select('clan_id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
     
+    if (membershipError && membershipError.code !== 'PGRST116') {
+        console.error('Failed to resolve clan membership:', membershipError);
+        throw membershipError;
+    }
+
     if (!membership) {
         return mockApiCall(null);
     }
     
-    // Fetch clan details
     const { data: clan, error } = await supabase
         .from('clans')
         .select('*')
@@ -2225,38 +2418,50 @@ export const clan_details = async (): Promise<Clan | null> => {
         return mockApiCall(null);
     }
     
-    // Fetch clan members with their XP
-    const { data: membersData } = await supabase
-        .from('clan_members')
-        .select(`
-            user_id,
-            role,
-            users!inner (username, avatar_url, xp)
-        `)
-        .eq('clan_id', clan.id);
-    
+    const { data: membersData, error: membersError } = await supabase
+        .from('clan_member_scores')
+        .select('*')
+        .eq('clan_id', clan.id)
+        .order('total_score', { ascending: false });
+
+    if (membersError) {
+        console.error('Failed to fetch clan members:', membersError);
+        throw membersError;
+    }
+
     const members = (membersData || []).map((m: any) => ({
         user_id: m.user_id,
-        username: m.users.username,
+        username: m.username,
         role: m.role,
-        contribution: 0, // Default since DB doesn't have this column
-        avatar_url: m.users.avatar_url,
+        contribution: m.total_score || 0,
+        avatar_url: m.avatar_url,
+        custom_title: m.custom_title,
+        bio: m.bio,
+        total_score: m.total_score,
+        xp: m.xp,
+        pvp_score: m.pvp_score,
     }));
-    
-    // Calculate total XP from all members
-    const totalXP = (membersData || []).reduce((sum: number, m: any) => {
-        return sum + (m.users?.xp || 0);
-    }, 0);
-    
+
+    const calculatedScore = members.reduce((sum, member) => sum + (member.total_score || 0), 0);
+    const [clanScore, activeBuffs] = await Promise.all([
+        fetchClanScoreValue(clan.id),
+        fetchClanActiveBuffs(clan.id),
+    ]);
+
+    const totalScore = clanScore ?? calculatedScore;
+    const crestUrl = (clan as any).crest_url;
+
     const fullClan: Clan = {
         id: clan.id,
         name: clan.name,
         notice: clan.notice || 'Welcome to the clan!',
-        crest_url: undefined,
-        vault_metric: totalXP, // Use calculated total XP from all members
+        crest_url: crestUrl,
+        vault_metric: totalScore,
         vault_coins: clan.vault_coins || 0,
-        buffs: [],
-        members: members,
+        members,
+        active_buffs: activeBuffs,
+        clan_total_score: totalScore,
+        leader_id: clan.leader_id,
     };
     
     return mockApiCall(fullClan);
@@ -2458,8 +2663,22 @@ export const clan_chat_post = async (message: string): Promise<ClanChatMessage> 
     return mockApiCall(chatMessage);
 };
 
-export const clan_get_available_buffs = (): Promise<ClanBuff[]> => {
-    return mockApiCall(MOCK_AVAILABLE_BUFFS);
+export const clan_get_available_buffs = async (): Promise<ClanBuffTemplate[]> => {
+    const { data, error } = await supabase
+        .from('clan_buff_templates')
+        .select('*')
+        .order('cost', { ascending: true });
+
+    if (error) {
+        console.warn('Failed to load clan buff templates, using defaults:', error.message);
+        return mockApiCall(MOCK_AVAILABLE_BUFFS);
+    }
+
+    if (!data || !data.length) {
+        return mockApiCall(MOCK_AVAILABLE_BUFFS);
+    }
+
+    return data.map(mapBuffTemplateRow);
 };
 
 export const clan_deposit_coins = async (amount: number): Promise<{ new_clan_vault: number; new_user_coins: number }> => {
@@ -2520,50 +2739,69 @@ export const clan_deposit_coins = async (amount: number): Promise<{ new_clan_vau
     return mockApiCall({ new_clan_vault: newClanVault, new_user_coins: newUserCoins });
 };
 
-export const clan_buy_buff = async (buff_id: string): Promise<Clan> => {
-    const user = await getCurrentUser();
-    
-    // Get user's clan membership
-    const { data: membership } = await supabase
-        .from('clan_members')
-        .select('clan_id, role')
-        .eq('user_id', user.id)
-        .single();
-    
-    if (!membership) {
-        throw new Error('Not in a clan.');
+export const clan_buy_buff = async (buffCode: string): Promise<Clan> => {
+    await getCurrentUser();
+
+    const { data, error } = await supabase.rpc('rpc_purchase_clan_buff', {
+        p_buff_code: buffCode,
+    });
+
+    if (error) {
+        console.error('Failed to purchase clan buff:', error);
+        throw new Error(error.message || 'Failed to buy buff.');
     }
-    
-    // Only leaders and officers can buy buffs
-    if (membership.role !== 'leader' && membership.role !== 'officer') {
-        throw new Error('Only leaders and officers can purchase buffs.');
+
+    const result = getRpcSingleRow(data);
+    if (!result?.success) {
+        throw new Error(result?.error_message || 'Failed to buy buff.');
     }
-    
-    const buff = MOCK_AVAILABLE_BUFFS.find(b => b.id === buff_id);
-    if (!buff) {
-        throw new Error('Buff not found.');
+
+    return await clan_details() as Clan;
+};
+
+export const clan_transfer_leadership = async (targetUserId: string): Promise<Clan> => {
+    await getCurrentUser();
+
+    const { data, error } = await supabase.rpc('rpc_transfer_clan_leadership', {
+        p_target_user_id: targetUserId,
+    });
+
+    if (error) {
+        console.error('Failed to transfer clan leadership:', error);
+        throw new Error(error.message || 'Failed to transfer leadership.');
     }
-    
-    // Get clan's vault balance
-    const { data: clan } = await supabase
-        .from('clans')
-        .select('vault_coins')
-        .eq('id', membership.clan_id)
-        .single();
-    
-    if (!clan || clan.vault_coins < buff.cost) {
-        throw new Error('Not enough coins in clan vault.');
+
+    const result = getRpcSingleRow(data);
+    if (!result?.success) {
+        throw new Error(result?.error_message || 'Failed to transfer leadership.');
     }
-    
-    // Deduct from vault
-    await supabase
-        .from('clans')
-        .update({ vault_coins: clan.vault_coins - buff.cost })
-        .eq('id', membership.clan_id);
-    
-    // TODO: Store buff activation in a clan_buffs table
-    // For now, just deduct the coins and return updated clan details
-    
+
+    return await clan_details() as Clan;
+};
+
+export const clan_update_member_role = async (
+    memberId: string,
+    newRole?: ClanRole,
+    customTitle?: string | null,
+): Promise<Clan> => {
+    await getCurrentUser();
+
+    const { data, error } = await supabase.rpc('rpc_update_clan_member_role', {
+        p_member_id: memberId,
+        p_new_role: newRole ?? null,
+        p_custom_title: customTitle ?? null,
+    });
+
+    if (error) {
+        console.error('Failed to update clan member role/title:', error);
+        throw new Error(error.message || 'Failed to update member.');
+    }
+
+    const result = getRpcSingleRow(data);
+    if (!result?.success) {
+        throw new Error(result?.error_message || 'Failed to update member.');
+    }
+
     return await clan_details() as Clan;
 };
 
@@ -2633,69 +2871,11 @@ export const clan_delete = async (): Promise<boolean> => {
 };
 
 export const clan_promote_member = async (user_id: string): Promise<Clan> => {
-    const user = await getCurrentUser();
-    
-    // Get current user's clan and role
-    const { data: membership } = await supabase
-        .from('clan_members')
-        .select('clan_id, role')
-        .eq('user_id', user.id)
-        .single();
-    
-    if (!membership) {
-        throw new Error('Not in a clan.');
-    }
-    
-    if (membership.role !== 'leader') {
-        throw new Error('Only the clan leader can promote members.');
-    }
-    
-    // Promote the target member to officer
-    const { error } = await supabase
-        .from('clan_members')
-        .update({ role: 'officer' })
-        .eq('user_id', user_id)
-        .eq('clan_id', membership.clan_id);
-    
-    if (error) {
-        console.error('Failed to promote member:', error);
-        throw new Error('Failed to promote member.');
-    }
-    
-    return await clan_details() as Clan;
+    return clan_update_member_role(user_id, 'officer');
 };
 
 export const clan_demote_member = async (user_id: string): Promise<Clan> => {
-    const user = await getCurrentUser();
-    
-    // Get current user's clan and role
-    const { data: membership } = await supabase
-        .from('clan_members')
-        .select('clan_id, role')
-        .eq('user_id', user.id)
-        .single();
-    
-    if (!membership) {
-        throw new Error('Not in a clan.');
-    }
-    
-    if (membership.role !== 'leader') {
-        throw new Error('Only the clan leader can demote members.');
-    }
-    
-    // Demote the target member to regular member
-    const { error } = await supabase
-        .from('clan_members')
-        .update({ role: 'member' })
-        .eq('user_id', user_id)
-        .eq('clan_id', membership.clan_id);
-    
-    if (error) {
-        console.error('Failed to demote member:', error);
-        throw new Error('Failed to demote member.');
-    }
-    
-    return await clan_details() as Clan;
+    return clan_update_member_role(user_id, 'member');
 };
 
 export const clan_kick_member = async (user_id: string): Promise<Clan> => {
@@ -2740,6 +2920,41 @@ export const clan_kick_member = async (user_id: string): Promise<Clan> => {
         throw new Error('Failed to kick member.');
     }
     
+    return await clan_details() as Clan;
+};
+
+export const clan_update_notice = async (notice: string): Promise<Clan> => {
+    const user = await getCurrentUser();
+    const sanitized = (notice ?? '').trim();
+
+    const { data: membership } = await supabase
+        .from('clan_members')
+        .select('clan_id, role')
+        .eq('user_id', user.id)
+        .single();
+
+    if (!membership) {
+        throw new Error('You must be in a clan to edit its bio.');
+    }
+
+    if (!['leader', 'officer', 'moderator'].includes(membership.role)) {
+        throw new Error('Only clan leadership can edit the clan bio.');
+    }
+
+    if (sanitized.length > 280) {
+        throw new Error('Clan bio must be 280 characters or fewer.');
+    }
+
+    const { error } = await supabase
+        .from('clans')
+        .update({ notice: sanitized })
+        .eq('id', membership.clan_id);
+
+    if (error) {
+        console.error('Failed to update clan bio:', error);
+        throw new Error(error.message || 'Failed to update clan bio.');
+    }
+
     return await clan_details() as Clan;
 };
 
@@ -3223,12 +3438,12 @@ export const update_question = async (
     };
 
     if (resolvedSubjectId !== undefined) {
-        payload.subject_id = resolvedSubjectId;
+        payload['subject_id'] = resolvedSubjectId;
     }
 
     if (shouldNormalizeTopic) {
-        payload.topic = normalizedTopic;
-        payload.topic_name = normalizedTopic;
+        payload['topic'] = normalizedTopic;
+        payload['topic_name'] = normalizedTopic;
     }
     const { data, error } = await supabase
         .from('questions')
@@ -3558,30 +3773,9 @@ const finalizeMcqAnswer = async ({
     let coinDelta = baseResponse.deltas.coins;
     let duplicateCorrect = false;
 
-    if (isCorrect) {
-        const { data: existingCorrect, error: existingCorrectError } = await supabase
-            .from('question_attempts')
-            .select('id')
-            .eq('student_id', userId)
-            .eq('question_id', question.id)
-            .eq('is_correct', true)
-            .order('attempted_at', { ascending: false })
-            .limit(1);
-
-        if (existingCorrectError) {
-            console.warn('Failed to verify duplicate MCQ attempts:', existingCorrectError);
-        } else if (existingCorrect && existingCorrect.length > 0) {
-            duplicateCorrect = true;
-        }
-    }
-
-    if (duplicateCorrect) {
-        xpReward = 0;
-        coinDelta = 0;
-        baseResponse.deltas.xp = 0;
-        baseResponse.deltas.coins = 0;
-        baseResponse.explanation = 'Correct, but rewards already claimed for this question.';
-    }
+    // NOTE: Duplicate detection now happens at database level via unique constraint
+    // If user submits from multiple tabs, the second submission will get a 23505 error
+    // which is caught in the attemptInsert handler below
 
     const attemptInsert = (async () => {
         const { error } = await supabase.from('question_attempts').insert({
@@ -3592,7 +3786,22 @@ const finalizeMcqAnswer = async ({
             points_earned: isCorrect && xpReward > 0 ? xpReward : 0,
         });
 
-        if (error) throw error;
+        // Check for unique constraint violation (duplicate correct answer)
+        if (error) {
+            if (error.code === '23505' && isCorrect) {
+                // Unique constraint violation - user already has a correct answer for this question
+                // This can happen with multi-tab submissions
+                duplicateCorrect = true;
+                xpReward = 0;
+                coinDelta = 0;
+                baseResponse.deltas.xp = 0;
+                baseResponse.deltas.coins = 0;
+                baseResponse.explanation = 'Correct, but rewards already claimed for this question.';
+                console.warn(`Duplicate correct attempt blocked for user ${userId} on question ${question.id}`);
+                return; // Don't throw - treat as valid but no reward
+            }
+            throw error;
+        }
     })();
 
     const questionStatsUpdate = question.id
@@ -3689,21 +3898,32 @@ const finalizeMcqAnswer = async ({
         );
     }
 
-    const [dataResults, notificationResults] = await Promise.all([
-        Promise.allSettled(dataOperations),
-        Promise.allSettled(notificationOperations),
-    ]);
+    // Execute data operations - profile update must succeed for rewards to count
+    const dataResults = await Promise.allSettled(dataOperations);
 
-    dataResults.forEach(result => {
+    // Check if profile update succeeded (it's the second operation after attemptInsert)
+    const profileUpdateIndex = 1; // attemptInsert=0, profileUpdate=1
+    const profileUpdateResult = dataResults[profileUpdateIndex];
+
+    if (profileUpdateResult.status === 'rejected') {
+        console.error('CRITICAL: Failed to persist profile update for MCQ answer:', profileUpdateResult.reason);
+        throw new Error(`Failed to save profile rewards: ${profileUpdateResult.reason}`);
+    }
+
+    // Log any other data failures
+    dataResults.forEach((result, index) => {
         if (result.status === 'rejected') {
-            console.error('Failed to persist MCQ answer data:', result.reason);
+            console.error(`Failed to persist MCQ answer data (operation ${index}):`, result.reason);
         }
     });
 
-    notificationResults.forEach(result => {
-        if (result.status === 'rejected') {
-            console.error('Failed to deliver MCQ notification:', result.reason);
-        }
+    // Handle notifications separately (don't block if they fail)
+    Promise.allSettled(notificationOperations).then(notificationResults => {
+        notificationResults.forEach(result => {
+            if (result.status === 'rejected') {
+                console.error('Failed to deliver MCQ notification:', result.reason);
+            }
+        });
     });
 
     baseResponse.deltas.gemstones = gemstoneDelta;
@@ -3741,4 +3961,168 @@ export const mcq_answer_submit = async (question: Question, choice: string): Pro
         isCorrect,
         baseResponse: response,
     });
+};
+
+// ============================================================
+// CLAN SYSTEM - Competition Based on Total Score
+// ============================================================
+
+export const createClan = async (
+    clanName: string,
+    description?: string,
+    avatarUrl?: string
+): Promise<{ clanId: string; success: boolean; error?: string }> => {
+    try {
+        const { data, error } = await supabase.rpc('rpc_create_clan', {
+            p_clan_name: clanName,
+            p_description: description || null,
+            p_avatar_url: avatarUrl || null,
+        });
+
+        if (error || !data || data.length === 0) {
+            throw new Error(error?.message || 'Failed to create clan');
+        }
+
+        const result = data[0];
+        if (!result.success) {
+            return { clanId: '', success: false, error: result.error_message };
+        }
+
+        return { clanId: result.clan_id, success: true };
+    } catch (err) {
+        console.error('Create clan error:', err);
+        return { clanId: '', success: false, error: (err as Error).message };
+    }
+};
+
+export const joinClan = async (clanId: string): Promise<{ success: boolean; error?: string; memberCount?: number }> => {
+    try {
+        const { data, error } = await supabase.rpc('rpc_join_clan', {
+            p_clan_id: clanId,
+        });
+
+        if (error || !data || data.length === 0) {
+            throw new Error(error?.message || 'Failed to join clan');
+        }
+
+        const result = data[0];
+        return {
+            success: result.success,
+            error: result.error_message || undefined,
+            memberCount: result.member_count,
+        };
+    } catch (err) {
+        console.error('Join clan error:', err);
+        return { success: false, error: (err as Error).message };
+    }
+};
+
+export const leaveClan = async (): Promise<{ success: boolean; error?: string }> => {
+    try {
+        const { data, error } = await supabase.rpc('rpc_leave_clan');
+
+        if (error || !data || data.length === 0) {
+            throw new Error(error?.message || 'Failed to leave clan');
+        }
+
+        const result = data[0];
+        return {
+            success: result.success,
+            error: result.error_message || undefined,
+        };
+    } catch (err) {
+        console.error('Leave clan error:', err);
+        return { success: false, error: (err as Error).message };
+    }
+};
+
+export const getClanLeaderboard = async (limit: number = 20): Promise<any[]> => {
+    try {
+        const { data, error } = await supabase.rpc('rpc_get_clan_leaderboard', {
+            p_limit: limit,
+        });
+
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        return data || [];
+    } catch (err) {
+        console.error('Get clan leaderboard error:', err);
+        return [];
+    }
+};
+
+export const getClanMembers = async (clanId: string): Promise<any[]> => {
+    try {
+        const { data, error } = await supabase.rpc('rpc_get_clan_members', {
+            p_clan_id: clanId,
+        });
+
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        return data || [];
+    } catch (err) {
+        console.error('Get clan members error:', err);
+        return [];
+    }
+};
+
+export const getUserClan = async (userId: string): Promise<any | null> => {
+    try {
+        const { data, error } = await supabase
+            .from('clan_members')
+            .select('clan_id')
+            .eq('player_id', userId)
+            .single();
+
+        if (error || !data) {
+            return null;
+        }
+
+        // Get full clan details
+        const { data: clanData, error: clanError } = await supabase
+            .from('clans')
+            .select('*')
+            .eq('id', data.clan_id)
+            .single();
+
+        if (clanError || !clanData) {
+            return null;
+        }
+
+        return clanData;
+    } catch (err) {
+        console.error('Get user clan error:', err);
+        return null;
+    }
+};
+
+export const updatePvPScore = async (
+    userId: string,
+    isWin: boolean
+): Promise<{ newPvpScore: number; newTotalScore: number; success: boolean; error?: string }> => {
+    try {
+        const { data, error } = await supabase.rpc('rpc_update_pvp_score', {
+            p_user_id: userId,
+            p_is_win: isWin,
+        });
+
+        if (error || !data || data.length === 0) {
+            throw new Error(error?.message || 'Failed to update PvP score');
+        }
+
+        const result = data[0];
+        return {
+            newPvpScore: result.new_pvp_score,
+            newTotalScore: result.new_total_score,
+            success: result.success,
+            error: result.error_message || undefined,
+        };
+    } catch (err) {
+        console.error('Update PvP score error:', err);
+        return { newPvpScore: 0, newTotalScore: 0, success: false, error: (err as Error).message };
+    }
 };

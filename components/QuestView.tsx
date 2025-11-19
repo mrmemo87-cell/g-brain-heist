@@ -607,7 +607,10 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       }
 
       try {
+        console.log('[Quest] Submitting answer for question:', currentQuestion.id);
         const response = await GameService.mcq_answer_submit(currentQuestion, option);
+        console.log('[Quest] Answer submitted, response:', { correct: response.correct, deltas: response.deltas });
+        
         const telemetry = applyQuestionTelemetry(currentQuestion, response.correct, response);
 
         setQuestionStartTime(null);
@@ -624,8 +627,15 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           );
         }
       } catch (error) {
-        console.error('Error submitting answer:', error);
-        alert('Failed to submit answer. Please try again.');
+        console.error('[Quest] CRITICAL ERROR submitting answer:', error);
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        
+        // If it's a profile update error, it means rewards failed to save
+        if (errorMsg.includes('profile') || errorMsg.includes('persist')) {
+          alert('⚠️ ERROR: Your rewards could not be saved to the database.\n\nPlease:\n1. Try again\n2. Refresh the page\n\nIf the problem persists, contact your administrator.');
+        } else {
+          alert('❌ Failed to submit answer. Please try again.');
+        }
         setSelectedOption(null);
       } finally {
         setIsSubmitting(false);

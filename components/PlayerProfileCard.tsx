@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Profile } from '../types';
+import { Profile, ActiveClanBuff } from '../types';
 import { CoinIcon, StreakIcon, XPIcon, APIcon, GemIcon } from './icons';
 
 interface PlayerProfileCardProps {
@@ -17,10 +17,50 @@ const StatDisplay: React.FC<{ icon: React.ReactNode; label: string; value: strin
   </div>
 );
 
+const describeClanBuffEffect = (effect: ActiveClanBuff['effect'] = {}): string => {
+  const segments: string[] = [];
+  if (effect.xp_multiplier && effect.xp_multiplier !== 1) {
+    segments.push(`XP +${Math.round((effect.xp_multiplier - 1) * 100)}%`);
+  }
+  if (effect.attack_multiplier && effect.attack_multiplier !== 1) {
+    segments.push(`Attack +${Math.round((effect.attack_multiplier - 1) * 100)}%`);
+  }
+  if (effect.defense_multiplier && effect.defense_multiplier !== 1) {
+    segments.push(`Defense +${Math.round((effect.defense_multiplier - 1) * 100)}%`);
+  }
+  if (effect.shield_bonus_percent) {
+    segments.push(`Shield +${effect.shield_bonus_percent}%`);
+  }
+  if (effect.ap_bonus) {
+    segments.push(`AP +${effect.ap_bonus}`);
+  }
+  return segments.length ? segments.join(' • ') : 'Passive effect active';
+};
+
+const formatBuffTimeRemaining = (expiresAt?: string): string => {
+  if (!expiresAt) return 'Unknown expiry';
+  const expires = new Date(expiresAt).getTime();
+  const now = Date.now();
+  const minutes = Math.max(0, Math.round((expires - now) / (1000 * 60)));
+  if (minutes <= 0) return 'Expiring soon';
+  if (minutes < 60) return `${minutes}m left`;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  if (hours < 24) return `${hours}h ${remainingMinutes}m left`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ${hours % 24}h left`;
+};
+
 
 const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
   const xpForNextLevel = Math.ceil(100 * Math.pow(profile.level + 1, 1.5));
   const xpProgressPercent = (profile.xp / xpForNextLevel) * 100;
+  const totalScore = profile.total_score ?? (profile.xp + (profile.pvp_score ?? 0) * 10);
+  const clanBuffs = profile.active_clan_buffs ?? [];
+  const attackValue = profile.attack_power_effective ?? profile.attack_power;
+  const defenseValue = profile.defense_power_effective ?? profile.defense_power;
+  const attackSubtitle = clanBuffs.length ? `Base ${profile.attack_power}` : undefined;
+  const defenseSubtitle = clanBuffs.length ? `Base ${profile.defense_power}` : undefined;
 
   const [apCountdown, setApCountdown] = useState<string>('');
   const [calculatedAP, setCalculatedAP] = useState<number>(profile.ap_now);
@@ -96,7 +136,9 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
         <StatDisplay icon={<CoinIcon />} label="Coins" value={profile.coins.toLocaleString()} color={'var(--amber-warn)'} />
         <StatDisplay icon={<GemIcon />} label="Gemstones" value={profile.gemstones.toLocaleString()} color={'var(--ion-blue)'} />
         <StatDisplay icon={<StreakIcon />} label="Streak" value={`${profile.streak} days`} color={'var(--danger-red)'} />
+        <StatDisplay icon={<span>🏆</span>} label="Total Score" value={totalScore.toLocaleString()} color={'var(--amber-warn)'} subtitle="XP + PvP" />
         <StatDisplay icon={<XPIcon />} label="Total XP" value={profile.xp.toLocaleString()} color={'var(--ion-blue)'} />
+        <StatDisplay icon={<span>🥊</span>} label="PvP Score" value={profile.pvp_score.toLocaleString()} color={'var(--danger-red)'} subtitle="3 pts per win" />
         <StatDisplay 
           icon={<APIcon />} 
           label="Action Points" 
@@ -104,9 +146,55 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
           color={'var(--success-teal)'} 
           subtitle={calculatedAP < profile.ap_max ? `+1 in ${apCountdown}` : undefined}
         />
-        <StatDisplay icon={<span>⚔️</span>} label="Attack" value={profile.attack_power || 10} color={'var(--danger-red)'} />
-        <StatDisplay icon={<span>🛡️</span>} label="Defense" value={profile.defense_power || 10} color={'var(--ion-blue)'} />
+        <StatDisplay icon={<span>⚔️</span>} label="Attack" value={attackValue || 10} color={'var(--danger-red)'} subtitle={attackSubtitle} />
+        <StatDisplay icon={<span>🛡️</span>} label="Defense" value={defenseValue || 10} color={'var(--ion-blue)'} subtitle={defenseSubtitle} />
       </div>
+
+      {profile.clan_name && (
+        <>
+          <div className="mt-6 bg-black/20 p-4 rounded-2xl border border-white/5">
+            <p className="text-xs uppercase tracking-wide text-gray-400">Clan</p>
+            <div className="flex items-center justify-between mt-1">
+              <div>
+                <p className="text-xl font-heading text-amber-300">{profile.clan_name}</p>
+                <p className="text-sm text-gray-400 capitalize">
+                  {profile.clan_role}
+                  {profile.clan_custom_title ? ` • ${profile.clan_custom_title}` : ''}
+                </p>
+              </div>
+              {typeof profile.clan_total_score === 'number' && (
+                <div className="text-right">
+                  <p className="font-semibold text-white">{profile.clan_total_score.toLocaleString()}</p>
+                  <p className="text-xs text-gray-400">Clan Score</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-4 bg-black/20 p-4 rounded-2xl border border-white/5">
+            <h3 className="font-heading text-xl text-amber-300 mb-3">Active Clan Effects</h3>
+            {clanBuffs.length === 0 ? (
+              <p className="text-sm text-gray-400">No clan buffs are active right now.</p>
+            ) : (
+              <ul className="space-y-3">
+                {clanBuffs.map(buff => (
+                  <li key={buff.id} className="bg-black/30 p-3 rounded-xl flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-white">{buff.name}</p>
+                      <p className="text-xs text-gray-400">{describeClanBuffEffect(buff.effect)}</p>
+                      {buff.activated_by_name && <p className="text-[11px] text-gray-500 mt-1">Activated by {buff.activated_by_name}</p>}
+                    </div>
+                    <div className="text-right text-xs text-gray-400">
+                      <p>{formatBuffTimeRemaining(buff.expires_at)}</p>
+                      <p className="text-[11px]">Since {new Date(buff.activated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 };

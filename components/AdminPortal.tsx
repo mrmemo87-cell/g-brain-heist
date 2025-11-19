@@ -839,8 +839,12 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                         <div className="space-y-2">
                           <button className="w-full bg-gray-700/20 hover:bg-gray-700/30 border border-gray-600 text-white px-4 py-2 rounded" onClick={async () => {
                             try {
-                              await CompetitionService.resetAllPlayerProgress();
-                              addToast('System: reset player progress triggered', 'success');
+                              if (!confirm('This will wipe EVERY player\'s XP, level, AP, PvP stats/champions, tasks, inventory, clans, and activity feed. This cannot be undone. Proceed?')) {
+                                return;
+                              }
+                              const affected = await CompetitionService.resetAllPlayerProgress();
+                              addToast(`System: reset applied to ${affected} accounts`, 'success');
+                              fetchDashboardData();
                             } catch (e) { addToast('Failed system reset', 'error'); }
                           }}>Reset Player Progress (System)</button>
                           <button className="w-full bg-gray-700/20 hover:bg-gray-700/30 border border-gray-600 text-white px-4 py-2 rounded" onClick={async () => {

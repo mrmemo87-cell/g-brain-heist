@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { RaidTarget, RaidAttackResult, Profile } from '../types';
 import * as GameService from '../services/gameService';
+import { supabase } from '../services/supabaseClient';
 import { audioService } from '../services/audioService';
 import BackButton from './BackButton';
 import { ShieldIcon, HackIcon, CoinIcon, XPIcon, GemIcon } from './icons';
@@ -41,10 +42,28 @@ const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) 
     }
   };
   
+  // Check if target is on cooldown (attacked in last 5 minutes)
+  const isOnCooldown = target.last_attacked_at && 
+    (Date.now() - new Date(target.last_attacked_at).getTime()) < 5 * 60 * 1000;
+  
+  const getCooldownRemaining = () => {
+    if (!isOnCooldown || !target.last_attacked_at) return 0;
+    const elapsed = Date.now() - new Date(target.last_attacked_at).getTime();
+    const remaining = (5 * 60 * 1000) - elapsed;
+    return Math.ceil(remaining / 1000 / 60); // minutes
+  };
+  
   const status = getOnlineStatus(target.last_seen);
   
   return (
     <div className="card-glass p-4 flex flex-col items-center text-center relative overflow-hidden">
+      {/* Cooldown Badge */}
+      {isOnCooldown && (
+        <div className="absolute top-2 left-2 bg-red-500/80 text-white text-xs px-2 py-0.5 rounded-full z-10" title="Recently attacked">
+          🕐 {getCooldownRemaining()}m
+        </div>
+      )}
+      
       {target.has_shield && (
         <div className="absolute top-2 right-2 w-6 h-6 text-cyan-400" title="Shield Active">
           <ShieldIcon />
@@ -59,20 +78,46 @@ const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) 
       </div>
       <h3 className="font-heading text-lg" style={{ color: 'var(--plasma-pink)' }}>{target.username}</h3>
       <p className="text-sm text-gray-400">Lvl {target.level} | Batch {target.batch}</p>
-      {target.clan_name && (
+      {target.clan_name && target.clan_id && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            (window as any).openClanMembers?.(target.clan_id, target.clan_name);
+          }}
+          className="text-xs text-ion-blue mt-1 hover:text-cyan-300 transition-colors underline"
+        >
+          ⚔️ {target.clan_name}
+        </button>
+      )}
+      {target.clan_name && !target.clan_id && (
         <p className="text-xs text-ion-blue mt-1">⚔️ {target.clan_name}</p>
       )}
       <p className="text-xs text-amber-400 mt-1">~{target.coins.toLocaleString()} Coins</p>
       <button
         onClick={() => onSelect(target)}
-        className="mt-4 w-full bg-pink-500/20 hover:bg-pink-500/30 border border-pink-400 text-white font-heading font-bold py-2 rounded-xl transition-all duration-200"
+        disabled={isOnCooldown}
+        className={`mt-4 w-full font-heading font-bold py-2 rounded-xl transition-all duration-200 ${
+          isOnCooldown
+            ? 'bg-gray-500/20 border border-gray-600 text-gray-500 cursor-not-allowed'
+            : 'bg-pink-500/20 hover:bg-pink-500/30 border border-pink-400 text-white'
+        }`}
       >
-        ⚔️ Attack
+        {isOnCooldown ? `🕐 Cooldown ${getCooldownRemaining()}m` : '⚔️ Attack'}
       </button>
     </div>
   );
 };
 
+
+interface ClanMember {
+  user_id: string;
+  username: string;
+  role: string;
+  avatar_url?: string;
+}
+
+type TargetFilter = 'all' | 'nearby' | 'easy' | 'challenge' | 'rivals';
 
 const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward }) => {
   const [stage, setStage] = useState<PvPStage>('loading');
@@ -82,6 +127,8 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
   const [useCracker, setUseCracker] = useState(false);
   const [battleNarration, setBattleNarration] = useState<BattleNarration[]>([]);
   const [visibleNarrations, setVisibleNarrations] = useState<number>(0);
+  const [clanModal, setClanModal] = useState<{ clanId: string; clanName: string; members: ClanMember[]; loading: boolean } | null>(null);
+  const [filterTab, setFilterTab] = useState<TargetFilter>('all');
 
   useEffect(() => {
     GameService.raid_targets().then(data => {
@@ -91,6 +138,62 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
       setStage('targets');
     });
   }, []);
+
+  const openClanMembers = async (clanId: string, clanName: string) => {
+    setClanModal({ clanId, clanName, members: [], loading: true });
+    
+    try {
+      const { data, error } = await supabase
+        .from('clan_members')
+        .select(`
+          user_id,
+          role,
+          users!inner (
+            username,
+            avatar_url
+          )
+        `)
+        .eq('clan_id', clanId);
+
+      if (error) throw error;
+
+      const members: ClanMember[] = (data || []).map((m: any) => ({
+        user_id: m.user_id,
+        username: m.users?.username || 'Unknown',
+        role: m.role || 'member',
+        avatar_url: m.users?.avatar_url,
+      }));
+
+      setClanModal({ clanId, clanName, members, loading: false });
+    } catch (err) {
+      console.error('Failed to load clan members:', err);
+      setClanModal(null);
+    }
+  };
+
+  useEffect(() => {
+    (window as any).openClanMembers = openClanMembers;
+    return () => {
+      delete (window as any).openClanMembers;
+    };
+  }, []);
+
+  const getFilteredTargets = () => {
+    switch (filterTab) {
+      case 'nearby':
+        return targets.filter(t => Math.abs(t.level - profile.level) <= 2);
+      case 'easy':
+        return targets.filter(t => t.level < profile.level);
+      case 'challenge':
+        return targets.filter(t => t.level > profile.level);
+      case 'rivals':
+        return targets.filter(t => t.clan_name && t.clan_name !== profile.clan_name);
+      default:
+        return targets;
+    }
+  };
+
+  const filteredTargets = getFilteredTargets();
 
   const handleAttack = async (target: RaidTarget) => {
     if (profile.ap_now < RAID_AP_COST) {
@@ -203,12 +306,75 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
 
   const renderTargets = () => (
     <div>
-      <h2 className="font-heading text-3xl text-center mb-8" style={{ color: 'var(--plasma-pink)' }}>⚔️ Choose Your Target</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
-        {targets.map(target => (
-          <TargetCard key={target.user_id} target={target} onSelect={handleAttack} />
-        ))}
+      <h2 className="font-heading text-3xl text-center mb-4" style={{ color: 'var(--plasma-pink)' }}>⚔️ Choose Your Target</h2>
+      
+      {/* Filter Tabs */}
+      <div className="flex justify-center gap-2 mb-6 flex-wrap">
+        <button
+          onClick={() => setFilterTab('all')}
+          className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+            filterTab === 'all'
+              ? 'bg-pink-500/30 border-2 border-pink-400 text-white'
+              : 'bg-black/20 border border-gray-600 text-gray-400 hover:text-white'
+          }`}
+        >
+          All ({targets.length})
+        </button>
+        <button
+          onClick={() => setFilterTab('nearby')}
+          className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+            filterTab === 'nearby'
+              ? 'bg-pink-500/30 border-2 border-pink-400 text-white'
+              : 'bg-black/20 border border-gray-600 text-gray-400 hover:text-white'
+          }`}
+        >
+          ⚖️ Fair Fights ({targets.filter(t => Math.abs(t.level - profile.level) <= 2).length})
+        </button>
+        <button
+          onClick={() => setFilterTab('easy')}
+          className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+            filterTab === 'easy'
+              ? 'bg-pink-500/30 border-2 border-pink-400 text-white'
+              : 'bg-black/20 border border-gray-600 text-gray-400 hover:text-white'
+          }`}
+        >
+          ✅ Easy ({targets.filter(t => t.level < profile.level).length})
+        </button>
+        <button
+          onClick={() => setFilterTab('challenge')}
+          className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+            filterTab === 'challenge'
+              ? 'bg-pink-500/30 border-2 border-pink-400 text-white'
+              : 'bg-black/20 border border-gray-600 text-gray-400 hover:text-white'
+          }`}
+        >
+          💪 Challenges ({targets.filter(t => t.level > profile.level).length})
+        </button>
+        <button
+          onClick={() => setFilterTab('rivals')}
+          className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+            filterTab === 'rivals'
+              ? 'bg-pink-500/30 border-2 border-pink-400 text-white'
+              : 'bg-black/20 border border-gray-600 text-gray-400 hover:text-white'
+          }`}
+        >
+          ⚔️ Clan Rivals ({targets.filter(t => t.clan_name && t.clan_name !== profile.clan_name).length})
+        </button>
       </div>
+      
+      {/* Targets Grid */}
+      {filteredTargets.length === 0 ? (
+        <div className="text-center text-gray-400 py-8">
+          <p className="text-xl">No targets in this category</p>
+          <p className="text-sm mt-2">Try a different filter</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 max-w-7xl mx-auto">
+          {filteredTargets.map(target => (
+            <TargetCard key={target.user_id} target={target} onSelect={handleAttack} />
+          ))}
+        </div>
+      )}
     </div>
   );
 
@@ -376,6 +542,54 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
     <div className="mt-6">
       <BackButton onClick={onComplete} />
       {renderContent()}
+      
+      {/* Clan Members Modal */}
+      {clanModal && (
+        <div 
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setClanModal(null)}
+        >
+          <div 
+            className="card-glass max-w-md w-full max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-heading text-2xl text-amber-300">⚔️ {clanModal.clanName}</h3>
+                <button 
+                  onClick={() => setClanModal(null)}
+                  className="text-gray-400 hover:text-white text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+              
+              {clanModal.loading ? (
+                <p className="text-center text-gray-300 py-4">Loading members...</p>
+              ) : (
+                <div className="space-y-2">
+                  {clanModal.members.map((member) => (
+                    <div key={member.user_id} className="flex items-center gap-3 p-3 bg-black/20 rounded-lg">
+                      <img
+                        src={member.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${member.username}`}
+                        alt={member.username}
+                        className="w-10 h-10 rounded-full border-2 border-gray-600"
+                      />
+                      <div className="flex-1">
+                        <p className="font-semibold text-white">{member.username}</p>
+                        <p className="text-xs text-gray-400 capitalize">{member.role}</p>
+                      </div>
+                    </div>
+                  ))}
+                  {clanModal.members.length === 0 && (
+                    <p className="text-center text-gray-400 py-4">No members found</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

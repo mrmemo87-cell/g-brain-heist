@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Clan, ClanChatMessage, Profile, ToastMessage, ClanSummary, ClanBuff, ClanMember } from '../types';
+import { Clan, ClanChatMessage, Profile, ToastMessage, ClanSummary, ClanBuff, ClanMember, ActiveClanBuff } from '../types';
 import * as GameService from '../services/gameService';
 import BackButton from './BackButton';
 import { ClanIcon, CoinIcon, DemoteIcon, KickIcon, LeaveIcon, ManageIcon, PromoteIcon } from './icons';
@@ -31,6 +31,55 @@ const ConfirmationModal: React.FC<{ title: string, message: string, confirmText:
     </div>
 );
 
+const StatCard: React.FC<{ label: string; value: string | number; accent?: string; subtitle?: string }> = ({ label, value, accent = 'var(--amber-warn)', subtitle }) => (
+    <div className="bg-black/30 rounded-2xl p-4 border border-white/5">
+        <p className="text-xs uppercase tracking-wide text-gray-400">{label}</p>
+        <p className="text-2xl font-heading" style={{ color: accent }}>{value}</p>
+        {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
+    </div>
+);
+
+const describeBuffEffect = (effect: ClanBuff['effect'] = {}): string => {
+    const parts: string[] = [];
+    if (effect.xp_multiplier && effect.xp_multiplier !== 1) {
+        const boost = Math.round((effect.xp_multiplier - 1) * 100);
+        parts.push(`XP +${boost}%`);
+    }
+    if (effect.attack_multiplier && effect.attack_multiplier !== 1) {
+        const boost = Math.round((effect.attack_multiplier - 1) * 100);
+        parts.push(`Attack +${boost}%`);
+    }
+    if (effect.defense_multiplier && effect.defense_multiplier !== 1) {
+        const boost = Math.round((effect.defense_multiplier - 1) * 100);
+        parts.push(`Defense +${boost}%`);
+    }
+    if (effect.shield_bonus_percent) {
+        parts.push(`Shield +${effect.shield_bonus_percent}%`);
+    }
+    if (effect.ap_bonus) {
+        parts.push(`AP +${effect.ap_bonus}`);
+    }
+    return parts.length ? parts.join(' • ') : 'Passive effect active';
+};
+
+const formatExpiresIn = (expiresAt?: string | null): string => {
+    if (!expiresAt) return 'Unknown expiry';
+    const expiry = new Date(expiresAt).getTime();
+    const now = Date.now();
+    const diffMinutes = Math.max(0, Math.round((expiry - now) / (1000 * 60)));
+    if (diffMinutes <= 0) return 'Expiring soon';
+    const hours = Math.floor(diffMinutes / 60);
+    const minutes = diffMinutes % 60;
+    if (hours === 0) {
+        return `${minutes}m left`;
+    }
+    if (hours < 24) {
+        return `${hours}h ${minutes}m left`;
+    }
+    const days = Math.floor(hours / 24);
+    return `${days}d ${(hours % 24)}h left`;
+};
+
 
 const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfile, addToast }) => {
   const [stage, setStage] = useState<ClanViewStage>('loading');
@@ -43,8 +92,12 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
     const [memberModalState, setMemberModalState] = useState<{ clanId: string; clanName: string; members: ClanMember[] } | null>(null);
     const [isMemberModalLoading, setIsMemberModalLoading] = useState(false);
     const [memberModalError, setMemberModalError] = useState<string | null>(null);
+        const [noticeDraft, setNoticeDraft] = useState('');
+        const [isEditingNotice, setIsEditingNotice] = useState(false);
+        const [isSavingNotice, setIsSavingNotice] = useState(false);
   
   const myMemberInfo = clan?.members.find(m => m.user_id === profile.id);
+    const isPrivileged = !!myMemberInfo && ['leader', 'officer', 'moderator'].includes(myMemberInfo.role);
 
   const fetchClanDetails = async () => {
     setStage('loading');
@@ -65,6 +118,10 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   useEffect(() => {
     fetchClanDetails();
   }, []);
+
+    useEffect(() => {
+            setNoticeDraft(clan?.notice || '');
+    }, [clan?.notice]);
   
   const handleDeposit = async () => {
     const amount = parseInt(depositAmount, 10);
@@ -83,13 +140,31 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
     }
   };
   
-  const handleBuyBuff = async (buffId: string) => {
+  const handleBuyBuff = async (buffCode: string) => {
       try {
-          const updatedClan = await GameService.clan_buy_buff(buffId);
+          const updatedClan = await GameService.clan_buy_buff(buffCode);
           setClan(updatedClan);
           addToast("Buff purchased successfully!", "success");
       } catch (error: any) {
           addToast(error.message || "Failed to buy buff.", "error");
+      }
+  };
+
+  const handleSaveNotice = async () => {
+      if (!isPrivileged) {
+          addToast("Only clan leadership can edit the bio.", "error");
+          return;
+      }
+      setIsSavingNotice(true);
+      try {
+          const updated = await GameService.clan_update_notice(noticeDraft);
+          setClan(updated);
+          addToast("Clan bio updated.", "success");
+          setIsEditingNotice(false);
+      } catch (error: any) {
+          addToast(error.message || "Failed to update bio.", "error");
+      } finally {
+          setIsSavingNotice(false);
       }
   };
 
@@ -148,15 +223,18 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   };
 
   const openMembersModal = async (clanId: string, clanName: string) => {
+      console.log('Opening members modal for:', clanName, clanId);
       setMemberModalError(null);
       setModal('view_members');
       setMemberModalState({ clanId, clanName, members: [] });
       setIsMemberModalLoading(true);
       try {
           const members = await GameService.clan_get_members_by_id(clanId);
+          console.log('Loaded members:', members);
           setMemberModalState({ clanId, clanName, members });
       } catch (error: any) {
           const message = error?.message || "Failed to load clan members.";
+          console.error('Error loading members:', error);
           setMemberModalError(message);
           addToast(message, "error");
       } finally {
@@ -233,7 +311,11 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                             <div>
                                 <button
                                     type="button"
-                                    onClick={() => onViewMembers(clan)}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        onViewMembers(clan);
+                                    }}
                                     className="font-heading text-lg text-white text-left hover:text-amber-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 rounded"
                                 >
                                     {clan.name}
@@ -380,7 +462,11 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                 <div>
                                     <button
                                         type="button"
-                                        onClick={() => onViewMembers(clanItem)}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            onViewMembers(clanItem);
+                                        }}
                                         className="font-heading text-lg text-white text-left hover:text-amber-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 rounded"
                                     >
                                         {clanItem.name}
@@ -461,14 +547,19 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
 
   const renderInClan = () => {
     if (!clan || !myMemberInfo) return null;
-    const isPrivileged = myMemberInfo.role === 'leader' || myMemberInfo.role === 'officer';
 
     const getRolePower = (role: ClanMember['role']) => {
         if (role === 'leader') return 2;
         if (role === 'officer') return 1;
         return 0;
-    }
+    };
+
     const myPower = getRolePower(myMemberInfo.role);
+    const sortedMembers = [...clan.members].sort((a, b) => (b.total_score ?? b.contribution ?? 0) - (a.total_score ?? a.contribution ?? 0));
+    const clanScoreValue = clan.clan_total_score ?? clan.vault_metric ?? 0;
+    const myScoreValue = myMemberInfo.total_score ?? profile.total_score ?? 0;
+    const memberCount = clan.members?.length ?? 0;
+    const activeBuffs = clan.active_buffs || [];
 
     return (
         <div>
@@ -476,12 +567,12 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                 <img src={clan.crest_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${clan.name}`} alt={`${clan.name} Crest`} className="w-24 h-24 rounded-full border-4 border-amber-400" />
                 <div>
                     <h2 className="font-heading text-4xl text-amber-400">{clan.name}</h2>
-                    <p className="text-gray-300 mt-1">{clan.notice}</p>
+                    <p className="text-gray-300 mt-1 capitalize">{myMemberInfo.role} • {memberCount} agents enlisted</p>
                 </div>
             </div>
 
             <div className="max-w-4xl mx-auto card-glass p-2">
-                <div className="flex border-b border-white/10 mb-2">
+                <div className="flex border-b border-white/10 mb-2 flex-wrap gap-2">
                     <button onClick={() => setActiveTab('home')} className={`px-4 py-2 font-heading ${activeTab === 'home' ? 'text-amber-300 border-b-2 border-amber-300' : 'text-gray-400'}`}>Home</button>
                     <button onClick={() => setActiveTab('chat')} className={`px-4 py-2 font-heading ${activeTab === 'chat' ? 'text-amber-300 border-b-2 border-amber-300' : 'text-gray-400'}`}>Chat</button>
                     <button onClick={() => setActiveTab('browse')} className={`px-4 py-2 font-heading ${activeTab === 'browse' ? 'text-amber-300 border-b-2 border-amber-300' : 'text-gray-400'}`}>Browse Clans</button>
@@ -489,68 +580,150 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                 </div>
                 <div className="p-4">
                     {activeTab === 'home' && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <h3 className="font-heading text-xl mb-3 text-amber-300">Clan Vault</h3>
-                                <div className="bg-black/20 p-4 rounded-lg">
-                                    <div className="flex items-center justify-center space-x-2 text-3xl font-mono text-amber-300">
-                                        <span>{clan.vault_coins.toLocaleString()}</span>
-                                        <CoinIcon />
-                                    </div>
-                                    <div className="flex mt-4">
-                                        <input type="number" value={depositAmount} onChange={e => setDepositAmount(e.target.value)} placeholder="Amount" className="w-full bg-gray-900 p-2 rounded-l-lg border border-gray-600 focus:border-amber-400 outline-none" />
-                                        <button onClick={handleDeposit} className="bg-amber-500/80 hover:bg-amber-500 text-ink-900 font-bold p-2 rounded-r-lg">Deposit</button>
-                                    </div>
-                                </div>
-                                
-                                {isPrivileged && <div className="mt-6">
-                                    <h3 className="font-heading text-xl mb-3 text-amber-300">Purchase Clan Buffs</h3>
-                                    <div className="space-y-3">
-                                        {availableBuffs.map(buff => (
-                                             <div key={buff.id} className="bg-black/20 p-3 rounded-lg flex justify-between items-center">
-                                                 <div>
-                                                     <p className="font-semibold text-white">{buff.name}</p>
-                                                     <p className="text-xs text-gray-400">{buff.description}</p>
-                                                 </div>
-                                                 <button onClick={() => handleBuyBuff(buff.id)} disabled={clan.vault_coins < buff.cost} className="bg-ion-blue/20 hover:bg-ion-blue/30 text-white font-semibold px-3 py-1 rounded-md text-sm disabled:opacity-50">
-                                                     {buff.cost.toLocaleString()} <CoinIcon className="inline h-4 w-4" />
-                                                 </button>
-                                             </div>
-                                        ))}
-                                    </div>
-                                </div>}
-                                
-                                {/* Leave Clan Button for non-leaders */}
-                                {myMemberInfo.role !== 'leader' && (
-                                    <div className="mt-6">
-                                        <div className="bg-red-900/20 p-4 rounded-lg border border-red-500/30">
-                                            <button 
-                                                onClick={() => setModal('confirm_leave')} 
-                                                className="w-full bg-red-500/20 hover:bg-red-500/30 border border-red-400 text-white font-semibold px-4 py-2 rounded-lg flex items-center justify-center space-x-2"
-                                            >
-                                                <LeaveIcon className="w-5 h-5" />
-                                                <span>Leave Clan</span>
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <StatCard label="Clan Score" value={clanScoreValue.toLocaleString()} subtitle="Sum of top operatives" />
+                                <StatCard label="Vault Coins" value={clan.vault_coins.toLocaleString()} subtitle="Shared funds" />
+                                <StatCard label="My Score" value={myScoreValue.toLocaleString()} subtitle="XP + PvP" />
+                                <StatCard label="Active Effects" value={activeBuffs.length} subtitle="Live clan buffs" />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="bg-black/20 p-4 rounded-lg border border-white/5">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h3 className="font-heading text-xl text-amber-300">Clan Bio</h3>
+                                        {isPrivileged && (
+                                            <button className="text-xs text-cyan-300 hover:text-white" onClick={() => {
+                                                setIsEditingNotice(prev => !prev);
+                                                setNoticeDraft(clan.notice || '');
+                                            }}>
+                                                {isEditingNotice ? 'Cancel' : 'Edit'}
                                             </button>
+                                        )}
+                                    </div>
+                                    {isEditingNotice ? (
+                                        <div>
+                                            <textarea
+                                                value={noticeDraft}
+                                                maxLength={280}
+                                                onChange={(e) => setNoticeDraft(e.target.value)}
+                                                className="w-full bg-gray-900/60 border border-gray-700 rounded-lg p-3 text-sm focus:border-amber-400 outline-none"
+                                                rows={4}
+                                                placeholder="Describe your clan's vibe..."
+                                            />
+                                            <div className="flex items-center justify-between text-xs text-gray-400 mt-2">
+                                                <span>{noticeDraft.length}/280</span>
+                                                <button
+                                                    onClick={handleSaveNotice}
+                                                    disabled={isSavingNotice}
+                                                    className="px-3 py-1 rounded-md bg-amber-500/80 hover:bg-amber-500 text-ink-900 font-semibold disabled:opacity-50"
+                                                >
+                                                    {isSavingNotice ? 'Saving...' : 'Save bio'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <p className="text-gray-200 leading-relaxed min-h-[64px]">{clan.notice || 'No bio added yet. Let the world know what makes your clan special.'}</p>
+                                    )}
+                                </div>
+
+                                <div className="bg-black/20 p-4 rounded-lg border border-white/5">
+                                    <h3 className="font-heading text-xl mb-3 text-amber-300">Active Clan Effects</h3>
+                                    {activeBuffs.length === 0 ? (
+                                        <p className="text-gray-400 text-sm">No buffs active. Purchase one to empower the whole team.</p>
+                                    ) : (
+                                        <ul className="space-y-3 max-h-60 overflow-y-auto pr-1">
+                                            {activeBuffs.map((buff: ActiveClanBuff) => (
+                                                <li key={buff.id} className="bg-black/30 p-3 rounded-lg border border-white/5">
+                                                    <div className="flex items-start justify-between gap-3">
+                                                        <div>
+                                                            <p className="font-semibold text-white">{buff.name}</p>
+                                                            <p className="text-xs text-gray-400">{describeBuffEffect(buff.effect)}</p>
+                                                            {buff.activated_by_name && (
+                                                                <p className="text-[11px] text-gray-500 mt-1">Activated by {buff.activated_by_name}</p>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-right text-xs text-gray-300">
+                                                            <p>{formatExpiresIn(buff.expires_at)}</p>
+                                                            <p className="text-[11px] text-gray-500">Since {new Date(buff.activated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <h3 className="font-heading text-xl mb-3 text-amber-300">Clan Vault</h3>
+                                    <div className="bg-black/20 p-4 rounded-lg">
+                                        <div className="flex items-center justify-center space-x-2 text-3xl font-mono text-amber-300">
+                                            <span>{clan.vault_coins.toLocaleString()}</span>
+                                            <CoinIcon />
+                                        </div>
+                                        <div className="flex mt-4">
+                                            <input type="number" value={depositAmount} onChange={e => setDepositAmount(e.target.value)} placeholder="Amount" className="w-full bg-gray-900 p-2 rounded-l-lg border border-gray-600 focus:border-amber-400 outline-none" />
+                                            <button onClick={handleDeposit} className="bg-amber-500/80 hover:bg-amber-500 text-ink-900 font-bold p-2 rounded-r-lg">Deposit</button>
                                         </div>
                                     </div>
-                                )}
-                            </div>
-                             <div>
-                                <h3 className="font-heading text-xl mb-3 text-amber-300">Top Contributors</h3>
-                                <ul className="space-y-3">
-                                    {clan.members.sort((a,b) => b.contribution - a.contribution).map(member => (
-                                        <li key={member.user_id} className="flex items-center justify-between bg-black/20 p-3 rounded-lg">
-                                            <div className="flex items-center space-x-3">
-                                                <img src={member.avatar_url} className="w-10 h-10 rounded-full" />
-                                                <div>
-                                                    <p className="font-semibold text-white">{member.username}</p>
-                                                    <p className="text-xs text-gray-400 capitalize">{member.role}</p>
-                                                </div>
+
+                                    {isPrivileged && <div className="mt-6">
+                                        <h3 className="font-heading text-xl mb-3 text-amber-300">Purchase Clan Buffs</h3>
+                                        <div className="space-y-3">
+                                            {availableBuffs.map(buff => (
+                                                 <div key={buff.id} className="bg-black/20 p-3 rounded-lg flex justify-between items-center">
+                                                     <div>
+                                                         <p className="font-semibold text-white">{buff.name}</p>
+                                                         <p className="text-xs text-gray-400">{buff.description}</p>
+                                                     </div>
+                                                     <button onClick={() => handleBuyBuff(buff.code)} disabled={clan.vault_coins < buff.cost} className="bg-ion-blue/20 hover:bg-ion-blue/30 text-white font-semibold px-3 py-1 rounded-md text-sm disabled:opacity-50">
+                                                         {buff.cost.toLocaleString()} <CoinIcon className="inline h-4 w-4" />
+                                                     </button>
+                                                 </div>
+                                            ))}
+                                        </div>
+                                    </div>}
+
+                                    {myMemberInfo.role !== 'leader' && (
+                                        <div className="mt-6">
+                                            <div className="bg-red-900/20 p-4 rounded-lg border border-red-500/30">
+                                                <button 
+                                                    onClick={() => setModal('confirm_leave')} 
+                                                    className="w-full bg-red-500/20 hover:bg-red-500/30 border border-red-400 text-white font-semibold px-4 py-2 rounded-lg flex items-center justify-center space-x-2"
+                                                >
+                                                    <LeaveIcon className="w-5 h-5" />
+                                                    <span>Leave Clan</span>
+                                                </button>
                                             </div>
-                                            <div className="font-mono text-amber-300">{member.contribution.toLocaleString()} XP</div>
-                                        </li>
-                                    ))}
-                                </ul>
+                                        </div>
+                                    )}
+                                </div>
+                                 <div>
+                                    <h3 className="font-heading text-xl mb-3 text-amber-300">Top Contributors</h3>
+                                    <ul className="space-y-3">
+                                        {sortedMembers.map(member => (
+                                            <li key={member.user_id} className="flex items-start justify-between bg-black/20 p-3 rounded-lg">
+                                                <div className="flex items-start space-x-3">
+                                                    <img src={member.avatar_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${member.username}`} className="w-10 h-10 rounded-full" />
+                                                    <div>
+                                                        <p className="font-semibold text-white flex items-center gap-2">
+                                                            {member.username}
+                                                            {member.custom_title && <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 text-amber-200">{member.custom_title}</span>}
+                                                        </p>
+                                                        <p className="text-xs text-gray-400 capitalize">{member.role}</p>
+                                                        {member.bio && <p className="text-[11px] text-gray-500 mt-1 line-clamp-2">{member.bio}</p>}
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="font-mono text-amber-300 text-lg">{(member.total_score ?? member.contribution ?? 0).toLocaleString()} pts</p>
+                                                    <p className="text-xs text-gray-400">XP {(member.xp ?? 0).toLocaleString()} • PvP {member.pvp_score ?? 0}</p>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -565,10 +738,11 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                     return (
                                     <li key={member.user_id} className="flex items-center justify-between bg-black/20 p-3 rounded-lg">
                                         <div className="flex items-center space-x-3">
-                                            <img src={member.avatar_url} className="w-10 h-10 rounded-full" />
+                                            <img src={member.avatar_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${member.username}`} className="w-10 h-10 rounded-full" />
                                             <div>
                                                 <p className="font-semibold text-white">{member.username}</p>
                                                 <p className="text-xs text-gray-400 capitalize">{member.role}</p>
+                                                {member.custom_title && <p className="text-[11px] text-gray-400">{member.custom_title}</p>}
                                             </div>
                                         </div>
                                         <div className="flex items-center space-x-2">
@@ -605,41 +779,6 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                     )}
                 </div>
             </div>
-             {modal === 'view_members' && memberModalState && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="card-glass w-full max-w-lg m-4 p-6 border-2 border-amber-400">
-                        <h2 className="font-heading text-2xl text-center mb-2 text-amber-300">{`Members of ${memberModalState.clanName}`}</h2>
-                        {isMemberModalLoading ? (
-                            <p className="text-center text-gray-300 py-6">Loading roster...</p>
-                        ) : memberModalError ? (
-                            <p className="text-center text-danger-red py-6">{memberModalError}</p>
-                        ) : memberModalState.members.length === 0 ? (
-                            <p className="text-center text-gray-300 py-6">No agents enlisted yet.</p>
-                        ) : (
-                            <ul className="space-y-3 max-h-80 overflow-y-auto mt-4">
-                                {memberModalState.members.map(member => (
-                                    <li key={member.user_id} className="flex items-center justify-between bg-black/20 p-3 rounded-lg">
-                                        <div className="flex items-center space-x-3">
-                                            <img src={member.avatar_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${member.username}`} className="w-10 h-10 rounded-full" alt="Clan member avatar" />
-                                            <div>
-                                                <p className="font-semibold text-white">{member.username}</p>
-                                                <p className="text-xs text-gray-400 capitalize">{member.role}</p>
-                                            </div>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                        <button onClick={closeMembersModal} className="w-full mt-6 font-heading py-3 rounded-xl bg-gray-600/50 hover:bg-gray-500/50 border border-gray-500">
-                            Close
-                        </button>
-                    </div>
-                </div>
-             )}
-             {modal === 'confirm_leave' && <ConfirmationModal title="Leave Clan" message="Are you sure you want to leave this clan?" confirmText="Yes, Leave" onConfirm={handleLeaveClan} onCancel={() => setModal(null)} />}
-             {modal === 'confirm_delete' && <ConfirmationModal title="Delete Clan" message="Are you sure you want to permanently delete this clan? This action cannot be undone." confirmText="Yes, Delete" onConfirm={handleDeleteClan} onCancel={() => setModal(null)} />}
-             {modal === 'confirm_kick' && memberToKick && <ConfirmationModal title={`Kick ${memberToKick.username}`} message={`Are you sure you want to kick ${memberToKick.username} from the clan?`} confirmText="Yes, Kick" onConfirm={handleKickMember} onCancel={() => { setModal(null); setMemberToKick(null); }} />}
-
         </div>
     );
   };
@@ -663,6 +802,50 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
     <div className="mt-6">
       <BackButton onClick={onComplete} />
       {renderContent()}
+      
+      {/* Modals - rendered outside stage content so they work in all stages */}
+      {modal === 'view_members' && memberModalState && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="card-glass w-full max-w-lg m-4 p-6 border-2 border-amber-400">
+            <h2 className="font-heading text-2xl text-center mb-2 text-amber-300">{`Members of ${memberModalState.clanName}`}</h2>
+            {isMemberModalLoading ? (
+              <p className="text-center text-gray-300 py-6">Loading roster...</p>
+            ) : memberModalError ? (
+              <p className="text-center text-danger-red py-6">{memberModalError}</p>
+            ) : memberModalState.members.length === 0 ? (
+              <p className="text-center text-gray-300 py-6">No agents enlisted yet.</p>
+            ) : (
+              <ul className="space-y-3 max-h-80 overflow-y-auto mt-4">
+                                {memberModalState.members.map(member => (
+                                    <li key={member.user_id} className="flex items-start justify-between bg-black/20 p-3 rounded-lg">
+                                        <div className="flex items-start space-x-3">
+                                            <img src={member.avatar_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${member.username}`} className="w-10 h-10 rounded-full" alt="Clan member avatar" />
+                                            <div>
+                                                <p className="font-semibold text-white flex items-center gap-2">
+                                                        {member.username}
+                                                        {member.custom_title && <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 text-amber-200">{member.custom_title}</span>}
+                                                </p>
+                                                <p className="text-xs text-gray-400 capitalize">{member.role}</p>
+                                                {member.bio && <p className="text-[11px] text-gray-500 mt-1 line-clamp-2">{member.bio}</p>}
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                                <p className="font-semibold text-amber-300">{(member.total_score ?? member.contribution ?? 0).toLocaleString()} pts</p>
+                                                <p className="text-xs text-gray-400">XP {(member.xp ?? 0).toLocaleString()} • PvP {member.pvp_score ?? 0}</p>
+                                        </div>
+                                    </li>
+                                ))}
+              </ul>
+            )}
+            <button onClick={closeMembersModal} className="w-full mt-6 font-heading py-3 rounded-xl bg-gray-600/50 hover:bg-gray-500/50 border border-gray-500">
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+      {modal === 'confirm_leave' && <ConfirmationModal title="Leave Clan" message="Are you sure you want to leave this clan?" confirmText="Yes, Leave" onConfirm={handleLeaveClan} onCancel={() => setModal(null)} />}
+      {modal === 'confirm_delete' && <ConfirmationModal title="Delete Clan" message="Are you sure you want to permanently delete this clan? This action cannot be undone." confirmText="Yes, Delete" onConfirm={handleDeleteClan} onCancel={() => setModal(null)} />}
+      {modal === 'confirm_kick' && memberToKick && <ConfirmationModal title={`Kick ${memberToKick.username}`} message={`Are you sure you want to kick ${memberToKick.username} from the clan?`} confirmText="Yes, Kick" onConfirm={handleKickMember} onCancel={() => { setModal(null); setMemberToKick(null); }} />}
     </div>
   );
 };

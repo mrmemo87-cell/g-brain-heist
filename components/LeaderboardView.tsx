@@ -22,7 +22,9 @@ type ClanLeaderboardEntry = {
   id: string;
   name: string;
   member_count: number;
-  total_xp: number;
+  clan_total_score: number;
+  avg_member_score?: number;
+  highest_member_score?: number;
 };
 
 type RankedClanEntry = ClanLeaderboardEntry & { rank: number };
@@ -46,7 +48,7 @@ const rankClans = (entries: ClanLeaderboardEntry[]): RankedClanEntry[] =>
   entries
     .slice()
     .sort((a, b) => {
-      const diff = b.total_xp - a.total_xp;
+      const diff = b.clan_total_score - a.clan_total_score;
       if (diff !== 0) return diff;
       return a.name.localeCompare(b.name);
     })
@@ -54,7 +56,8 @@ const rankClans = (entries: ClanLeaderboardEntry[]): RankedClanEntry[] =>
 
 const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUserId }) => {
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'xp' | 'pvp' | 'clans'>('xp');
+  const [tab, setTab] = useState<'score' | 'xp' | 'pvp' | 'clans'>('score');
+  const [scoreLeaderboard, setScoreLeaderboard] = useState<RankedPlayerEntry[]>([]);
   const [xpLeaderboard, setXpLeaderboard] = useState<RankedPlayerEntry[]>([]);
   const [pvpLeaderboard, setPvpLeaderboard] = useState<RankedPlayerEntry[]>([]);
   const [clanLeaderboard, setClanLeaderboard] = useState<RankedClanEntry[]>([]);
@@ -78,68 +81,99 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
   const fetchLeaderboards = async () => {
     setLoading(true);
     try {
-      // XP Leaderboard - unified view filters admins/bots
-      const { data: xpData, error: xpError } = await supabase
-        .from('leaderboard_player_stats')
-        .select('id, username, avatar_url, xp, batch, grade, last_seen, pvp_wins')
-        .order('xp', { ascending: false })
-        .limit(50);
+      const playerSelect = 'id, username, avatar_url, batch, total_score, xp, pvp_score, updated_at';
 
-      let realXpEntries: PlayerLeaderboardEntry[] = [];
-      if (!xpError && xpData) {
-        realXpEntries = xpData.map((user: any) => ({
-          id: user.id,
-          username: user.username,
-          avatar_url: user.avatar_url,
-          value: Number(user.xp ?? 0),
-          batch: user.batch,
-          is_self: user.id === currentUserId,
-          last_seen: user.last_seen,
+      const [
+        scoreResult,
+        xpResult,
+        pvpResult,
+        clanResult,
+      ] = await Promise.all([
+        supabase
+          .from('player_total_scores')
+          .select(playerSelect)
+          .order('total_score', { ascending: false })
+          .limit(100),
+        supabase
+          .from('player_total_scores')
+          .select(playerSelect)
+          .order('xp', { ascending: false })
+          .limit(100),
+        supabase
+          .from('player_total_scores')
+          .select(playerSelect)
+          .order('pvp_score', { ascending: false })
+          .limit(100),
+        supabase
+          .from('clan_scores')
+          .select('id, name, member_count, clan_total_score, avg_member_score, highest_member_score')
+          .order('clan_total_score', { ascending: false })
+          .limit(20),
+      ]);
+
+      const { data: totalPlayers, error: totalError } = scoreResult;
+      const { data: xpPlayers, error: xpError } = xpResult;
+      const { data: pvpPlayers, error: pvpError } = pvpResult;
+      const { data: clanData, error: clanError } = clanResult;
+
+      let scoreEntries: PlayerLeaderboardEntry[] = [];
+      let xpEntries: PlayerLeaderboardEntry[] = [];
+      let pvpEntries: PlayerLeaderboardEntry[] = [];
+
+      if (!totalError && totalPlayers) {
+        scoreEntries = totalPlayers.map((row: any) => ({
+          id: row.id,
+          username: row.username ?? 'Unknown agent',
+          avatar_url: row.avatar_url || '',
+          value: Number(row.total_score ?? 0),
+          batch: row.batch ?? '—',
+          is_self: row.id === currentUserId,
+          last_seen: row.updated_at,
         }));
       }
 
-      // PvP Wins Leaderboard
-      const { data: pvpData, error: pvpError } = await supabase
-        .from('leaderboard_player_stats')
-        .select('id, username, avatar_url, batch, last_seen, pvp_wins')
-        .order('pvp_wins', { ascending: false })
-        .limit(50);
+      if (!xpError && xpPlayers) {
+        xpEntries = xpPlayers.map((row: any) => ({
+          id: row.id,
+          username: row.username ?? 'Unknown agent',
+          avatar_url: row.avatar_url || '',
+          value: Number(row.xp ?? 0),
+          batch: row.batch ?? '—',
+          is_self: row.id === currentUserId,
+          last_seen: row.updated_at,
+        }));
+      }
 
-      let realPvpEntries: PlayerLeaderboardEntry[] = [];
-      if (!pvpError && pvpData) {
-        realPvpEntries = pvpData
-          .filter((row: any) => (row.pvp_wins ?? 0) > 0)
+      if (!pvpError && pvpPlayers) {
+        pvpEntries = pvpPlayers
+          .filter((row: any) => Number(row.pvp_score ?? 0) > 0)
           .map((row: any) => ({
             id: row.id,
-            username: row.username,
-            avatar_url: row.avatar_url,
-            value: Number(row.pvp_wins ?? 0),
-            batch: row.batch,
+            username: row.username ?? 'Unknown agent',
+            avatar_url: row.avatar_url || '',
+            value: Number(row.pvp_score ?? 0),
+            batch: row.batch ?? '—',
             is_self: row.id === currentUserId,
-            last_seen: row.last_seen,
+            last_seen: row.updated_at,
           }));
       }
 
-      // Clan Leaderboard (by total XP)
-      const { data: clanData, error: clanError } = await supabase
-        .from('leaderboard_clan_stats')
-        .select('id, name, member_count, total_xp')
-        .order('total_xp', { ascending: false })
-        .limit(20);
-
-      let clansWithXP: ClanLeaderboardEntry[] = [];
+      let clansWithScores: ClanLeaderboardEntry[] = [];
       if (!clanError && clanData) {
-        clansWithXP = clanData.map((clan: any) => ({
+        clansWithScores = clanData.map((clan: any) => ({
           id: clan.id,
           name: clan.name,
-          member_count: clan.member_count,
-          total_xp: clan.total_xp,
+          member_count: clan.member_count ?? 0,
+          clan_total_score: Number(clan.clan_total_score ?? 0),
+          avg_member_score: clan.avg_member_score,
+          highest_member_score: clan.highest_member_score,
         }));
       }
 
-      setXpLeaderboard(rankPlayers(realXpEntries).slice(0, 50));
-      setPvpLeaderboard(rankPlayers(realPvpEntries).slice(0, 50));
-      setClanLeaderboard(rankClans(clansWithXP).slice(0, 20));
+      setScoreLeaderboard(rankPlayers(scoreEntries).slice(0, 50));
+      setXpLeaderboard(rankPlayers(xpEntries).slice(0, 50));
+      setPvpLeaderboard(rankPlayers(pvpEntries).slice(0, 50));
+      setClanLeaderboard(rankClans(clansWithScores).slice(0, 20));
     } catch (error) {
       console.error('Failed to fetch leaderboards:', error);
     } finally {
@@ -151,28 +185,21 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
     setClanMembersModal({ clan, members: [], loading: true, error: null });
 
     try {
-      const { data, error } = await supabase
-        .from('clan_members')
-        .select(`
-          user_id,
-          role,
-          users!inner (
-            username,
-            avatar_url
-          )
-        `)
-        .eq('clan_id', clan.id)
-        .order('role', { ascending: true })
-        .order('user_id', { ascending: true });
+      const { data, error } = await supabase.rpc('rpc_get_clan_members', { p_clan_id: clan.id });
 
       if (error) throw error;
 
       const members: ClanMember[] = (data || []).map((member: any) => ({
-        user_id: member.user_id,
-        username: member.users?.username ?? 'Unknown agent',
-        role: member.role || 'member',
-        contribution: 0,
-        avatar_url: member.users?.avatar_url || '',
+        user_id: member.player_id,
+        username: member.username ?? 'Unknown agent',
+        role: (member.role_name as ClanMember['role']) || 'member',
+        contribution: Number(member.total_score ?? 0),
+        avatar_url: member.avatar_url || '',
+        total_score: member.total_score,
+        xp: member.xp,
+        pvp_score: member.pvp_score,
+        bio: member.bio,
+        custom_title: member.custom_title,
       }));
 
       setClanMembersModal({ clan, members, loading: false, error: null });
@@ -207,6 +234,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
     };
     
     const status = getOnlineStatus(entry.last_seen);
+    const metricLabel = tab === 'score' ? 'Score' : tab === 'xp' ? 'XP' : 'PvP';
 
     return (
       <div
@@ -239,7 +267,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
         </div>
         <div className="text-right">
           <p className="font-bold text-white text-lg">{entry.value.toLocaleString()}</p>
-          <p className="text-xs text-gray-400">{tab === 'xp' ? 'XP' : 'Wins'}</p>
+          <p className="text-xs text-gray-400">{metricLabel}</p>
         </div>
       </div>
     );
@@ -272,8 +300,11 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
           <p className="text-xs text-gray-400">Tap to view roster</p>
         </div>
         <div className="text-right">
-          <p className="font-bold text-white text-lg">{clan.total_xp.toLocaleString()}</p>
-          <p className="text-xs text-gray-400">Total XP</p>
+          <p className="font-bold text-white text-lg">{clan.clan_total_score.toLocaleString()}</p>
+          <p className="text-xs text-gray-400">Clan Score</p>
+          {typeof clan.avg_member_score === 'number' && (
+            <p className="text-[11px] text-gray-500">Avg {Math.round(clan.avg_member_score).toLocaleString()}</p>
+          )}
         </div>
       </button>
     );
@@ -295,7 +326,17 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
       </h2>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 justify-center">
+      <div className="flex gap-2 mb-6 justify-center flex-wrap">
+        <button
+          onClick={() => setTab('score')}
+          className={`px-6 py-2 rounded-lg font-heading transition-all ${
+            tab === 'score'
+              ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white'
+              : 'bg-black/20 text-gray-400 hover:text-white'
+          }`}
+        >
+          Total Score
+        </button>
         <button
           onClick={() => setTab('xp')}
           className={`px-6 py-2 rounded-lg font-heading transition-all ${
@@ -331,10 +372,12 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
       {/* Leaderboard Content */}
       <div className="card-glass p-6 max-h-[600px] overflow-y-auto">
         <div className="space-y-2">
+          {tab === 'score' && scoreLeaderboard.map(renderPlayerRow)}
           {tab === 'xp' && xpLeaderboard.map(renderPlayerRow)}
           {tab === 'pvp' && pvpLeaderboard.map(renderPlayerRow)}
           {tab === 'clans' && clanLeaderboard.map(renderClanRow)}
           
+          {tab === 'score' && scoreLeaderboard.length === 0 && <p className="text-center text-gray-400">No score data yet</p>}
           {tab === 'xp' && xpLeaderboard.length === 0 && <p className="text-center text-gray-400">No data yet</p>}
           {tab === 'pvp' && pvpLeaderboard.length === 0 && <p className="text-center text-gray-400">No PvP battles yet</p>}
           {tab === 'clans' && clanLeaderboard.length === 0 && <p className="text-center text-gray-400">No clans yet</p>}
@@ -370,17 +413,29 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
                   <li className="text-center text-gray-300 py-4">No members yet.</li>
                 ) : (
                   clanMembersModal.members.map(member => (
-                    <li key={member.user_id} className="flex items-center justify-between bg-black/20 p-3 rounded-lg">
-                      <div className="flex items-center gap-3">
+                    <li key={member.user_id} className="flex items-start justify-between bg-black/20 p-3 rounded-lg">
+                      <div className="flex items-start gap-3">
                         <img
                           src={member.avatar_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${member.username}`}
                           alt={member.username}
                           className="w-10 h-10 rounded-full"
                         />
                         <div>
-                          <p className="font-semibold text-white">{member.username}</p>
+                          <p className="font-semibold text-white flex items-center gap-2">
+                            {member.username}
+                            {member.custom_title && (
+                              <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 text-amber-200">
+                                {member.custom_title}
+                              </span>
+                            )}
+                          </p>
                           <p className="text-xs text-gray-400 capitalize">{member.role}</p>
+                          {member.bio && <p className="text-[11px] text-gray-500 mt-1 line-clamp-2">{member.bio}</p>}
                         </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-amber-300">{(member.total_score ?? member.contribution ?? 0).toLocaleString()} pts</p>
+                        <p className="text-xs text-gray-400">XP {(member.xp ?? 0).toLocaleString()} • PvP {member.pvp_score ?? 0}</p>
                       </div>
                     </li>
                   ))
