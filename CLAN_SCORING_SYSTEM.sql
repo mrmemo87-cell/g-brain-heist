@@ -106,6 +106,8 @@ SELECT
     updated_at
 FROM users
 WHERE is_banned = FALSE
+    AND COALESCE(is_admin, FALSE) = FALSE
+    AND COALESCE(role, 'student') = 'student'
 ORDER BY total_score DESC;
 
 -- STEP 5B: Member score helper view
@@ -125,7 +127,9 @@ SELECT
     (u.xp + (u.pvp_score * 10))::INTEGER AS total_score
 FROM clan_members cm
 JOIN users u ON u.id = cm.user_id
-WHERE u.is_banned = FALSE;
+WHERE u.is_banned = FALSE
+    AND COALESCE(u.is_admin, FALSE) = FALSE
+    AND COALESCE(u.role, 'student') = 'student';
 
 -- STEP 6: Create view for clan scores (max 5 members)
 CREATE OR REPLACE VIEW clan_scores AS
@@ -142,7 +146,10 @@ SELECT
     MAX(u.pvp_score) as highest_pvp_score
 FROM clans c
 LEFT JOIN clan_members cm ON cm.clan_id = c.id
-LEFT JOIN users u ON u.id = cm.user_id AND u.is_banned = FALSE
+LEFT JOIN users u ON u.id = cm.user_id
+    AND u.is_banned = FALSE
+    AND COALESCE(u.is_admin, FALSE) = FALSE
+    AND COALESCE(u.role, 'student') = 'student'
 GROUP BY c.id, c.name, c.leader_id, c.created_at, c.updated_at
 HAVING COUNT(cm.id) > 0
 ORDER BY clan_total_score DESC;

@@ -65,7 +65,10 @@ begin
   select
     id, username, level, xp, coins, ap_now, ap_max, last_ap_update,
     coalesce(attack_power, 10) as attack_power,
-    coalesce(defense_power, 10) as defense_power
+    coalesce(defense_power, 10) as defense_power,
+    coalesce(is_admin, false) as is_admin,
+    coalesce(role, 'student') as role,
+    coalesce(is_banned, false) as is_banned
   into attacker
   from public.users
   where id = v_attacker_id
@@ -73,6 +76,10 @@ begin
 
   if not found then
     raise exception 'Attacker not found';
+  end if;
+
+  if attacker.is_admin or attacker.role <> 'student' or attacker.is_banned then
+    raise exception 'attacker_not_allowed';
   end if;
 
   -- Refresh AP based on regeneration before spending
@@ -93,7 +100,10 @@ begin
     id, username, level, xp, coins,
     coalesce(attack_power, 10) as attack_power,
     coalesce(defense_power, 10) as defense_power,
-    last_attacked_at
+    last_attacked_at,
+    coalesce(is_admin, false) as is_admin,
+    coalesce(role, 'student') as role,
+    coalesce(is_banned, false) as is_banned
   into defender
   from public.users
   where id = p_defender_id
@@ -101,6 +111,10 @@ begin
 
   if not found then
     raise exception 'Defender not found';
+  end if;
+
+  if defender.is_admin or defender.role <> 'student' or defender.is_banned then
+    raise exception 'defender_not_attackable';
   end if;
 
   -- ====== Check attack cooldown ======

@@ -54,6 +54,7 @@ create or replace view competition_players as
 select *
 from users
 where coalesce(is_admin, false) = false
+  and coalesce(role, 'student') = 'student'
   and coalesce(is_banned, false) = false
   and coalesce(admin_visible, true) = true;
 
@@ -418,6 +419,7 @@ BEGIN
   where u.grade::text = p_grade::text
     and coalesce(u.is_banned, false) = false
     and coalesce(u.is_admin, false) = false
+    and coalesce(u.role, 'student') = 'student'
     and coalesce(u.admin_visible, true) = true
   order by u.xp desc, u.coins desc
   limit greatest(p_limit, 1);
@@ -458,6 +460,7 @@ BEGIN
   where u.batch = p_batch
     and coalesce(u.is_banned, false) = false
     and coalesce(u.is_admin, false) = false
+    and coalesce(u.role, 'student') = 'student'
     and coalesce(u.admin_visible, true) = true
   order by u.xp desc, u.coins desc
   limit greatest(p_limit, 1);
