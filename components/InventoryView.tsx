@@ -144,6 +144,50 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onN
   }, {} as Record<string, { item: InventoryItem; count: number }>);
   
   const displayItems = Object.values(groupedItems);
+  const sectionDefinitions = [
+    {
+      id: 'active',
+      label: 'Active Buffs',
+      description: 'Currently applied boosts keeping you ahead of raids.',
+      states: ['active'] as InventoryItem['state'][],
+    },
+    {
+      id: 'ready',
+      label: 'Ready to Activate',
+      description: 'Prepare these items to launch on demand.',
+      states: ['unused'],
+    },
+    {
+      id: 'consumed',
+      label: 'Consumed & Expired',
+      description: 'Items that have already been used or expired.',
+      states: ['used', 'consumed', 'expired'],
+    },
+  ];
+  const handledStates = new Set<string>();
+  const sectionGroups = sectionDefinitions
+    .map(section => {
+      const itemsInSection = displayItems.filter(({ item }) => {
+        const matches = section.states.includes(item.state);
+        if (matches) {
+          handledStates.add(item.state);
+        }
+        return matches;
+      });
+      return { ...section, items: itemsInSection };
+    })
+    .filter(section => section.items.length > 0);
+
+  const uncategorized = displayItems.filter(({ item }) => !handledStates.has(item.state));
+  if (uncategorized.length > 0) {
+    sectionGroups.push({
+      id: 'misc',
+      label: 'Other Inventory',
+      description: 'Fallback stash for unexpected states.',
+      states: [],
+      items: uncategorized,
+    });
+  }
 
 
   if (loading) {
@@ -164,22 +208,41 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onN
         )}
       </div>
       <h2 className="font-heading text-3xl text-center mb-8" style={{ color: 'var(--grid-purple)' }}>Inventory</h2>
-      {displayItems.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
-            {displayItems.map(({ item, count }) => {
-            const invId = (item.inv_id || item.id);
-            return (
-              <ItemCard key={`${item.item_id}_${item.state}_${invId}`} item={item} quantity={count} onActivate={handleActivate} isActivating={activatingId === invId} />
-            );
-            })}
+      {sectionGroups.length > 0 ? (
+        <div className="space-y-6">
+          {sectionGroups.map(section => (
+            <section key={section.id} className="bg-black/40 border border-white/5 rounded-3xl p-6 space-y-4">
+              <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h3 className="font-heading text-2xl text-white">{section.label}</h3>
+                  <p className="text-sm text-gray-400">{section.description}</p>
+                </div>
+                <span className="text-xs uppercase tracking-widest text-gray-400">{section.items.length} Slot{section.items.length === 1 ? '' : 's'}</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {section.items.map(({ item, count }) => {
+                  const invId = (item.inv_id || item.id);
+                  return (
+                    <ItemCard
+                      key={`${item.item_id}_${item.state}_${invId}`}
+                      item={item}
+                      quantity={count}
+                      onActivate={handleActivate}
+                      isActivating={activatingId === invId}
+                    />
+                  );
+                })}
+              </div>
+            </section>
+          ))}
         </div>
       ) : (
         <div className="text-center text-gray-400 card-glass p-8 max-w-md mx-auto">
-            <div className="w-16 h-16 mx-auto mb-4 text-gray-600">
-              <ShieldIcon />
-            </div>
-            <p>Your inventory is empty.</p>
-            <p className="text-sm">Visit the shop to purchase items.</p>
+          <div className="w-16 h-16 mx-auto mb-4 text-gray-600">
+            <ShieldIcon />
+          </div>
+          <p>Your inventory is empty.</p>
+          <p className="text-sm">Visit the shop to purchase items.</p>
         </div>
       )}
     </div>

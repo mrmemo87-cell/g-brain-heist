@@ -18,6 +18,24 @@ export interface RaidWaveState extends RaidWaveConfig {
   completed: boolean;
 }
 
+export interface RaidQuestion {
+  id: string;
+  prompt: string;
+  answers: string[];
+  correctIndex: number;
+  difficulty: RaidDifficulty;
+  baseScore: number;
+  isSpike: boolean;
+  subject?: string;
+}
+
+export interface RaidQuestionRequest {
+  wave: RaidWaveState;
+  spikeSlots: number[];
+  grade?: number | null;
+  totalQuestions?: number;
+}
+
 export interface RaidParticipantState {
   userId: string;
   username: string;

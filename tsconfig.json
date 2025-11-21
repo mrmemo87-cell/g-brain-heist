@@ -18,6 +18,7 @@
     "isolatedModules": true,
     "moduleDetection": "force",
     "jsx": "react-jsx",
+    "allowArbitraryExtensions": true,
     "paths": {
       "@/*": [
         "./*"

@@ -4,6 +4,7 @@ export enum GamePhase {
   LOBBY = "LOBBY",
   VOTING_RULES = "VOTING_RULES",
   ACTIVE_ROUNDS = "ACTIVE_ROUNDS",
+  PAUSED = "PAUSED",
   FINISHED = "FINISHED",
 }
 
@@ -92,6 +93,24 @@ export type PlayerState = {
   riskRoute?: QuestionRiskRoute;
   accuracy: PlayerAccuracy;
   disconnected?: boolean;
+  clanId?: string;
+  clanName?: string;
+  currentRegion?: string;
+};
+
+export type ClanStats = {
+  clanId: string;
+  clanName: string;
+  avatarUrl?: string;
+  correctAnswers: number;
+  totalAnswers: number;
+  percentage: number;
+};
+
+export type RegionStats = {
+  regionId: string;
+  clanStats: ClanStats[];
+  topClan?: ClanStats;
 };
 
 export type RuleSet = {
@@ -112,6 +131,7 @@ export type GameState = {
   remainingTimeMs: number;
   round: number;
   finishReason?: FinishReason;
+  regionStats?: Record<string, RegionStats>;
 };
 
 export type JoinGameAction = {
@@ -176,6 +196,27 @@ export type AdvancePhaseAction = {
   type: "ADVANCE_PHASE";
 };
 
+export type StartGameAction = {
+  type: "START_GAME";
+};
+
+export type TriggerPanicAction = {
+  type: "TRIGGER_PANIC";
+};
+
+export type PauseGameAction = {
+  type: "PAUSE_GAME";
+};
+
+export type ResumeGameAction = {
+  type: "RESUME_GAME";
+};
+
+export type KickPlayerAction = {
+  type: "KICK_PLAYER";
+  playerId: string;
+};
+
 export type GameAction =
   | JoinGameAction
   | LeaveGameAction
@@ -187,5 +228,10 @@ export type GameAction =
   | FinalizeConditionAction
   | ChaosTriggerAction
   | TickAction
-  | AdvancePhaseAction;
+  | AdvancePhaseAction
+  | StartGameAction
+  | TriggerPanicAction
+  | PauseGameAction
+  | ResumeGameAction
+  | KickPlayerAction;
 

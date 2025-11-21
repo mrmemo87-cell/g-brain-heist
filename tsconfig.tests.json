@@ -11,6 +11,7 @@
   },
   "include": [
     "tests/**/*.ts",
+    "src/features/lockdown/**/*.ts",
     "services/rpcGateway.ts",
     "services/supabaseClient.ts",
     "services/env.ts"

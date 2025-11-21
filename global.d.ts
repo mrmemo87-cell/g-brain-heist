@@ -7,6 +7,10 @@ declare module 'react/jsx-runtime' {
 }
 
 declare module '*.css';
+declare module '*.svg?raw' {
+  const content: string;
+  export default content;
+}
 
 declare namespace React {
   type AnyFunction = (...args: any[]) => any;

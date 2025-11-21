@@ -5,6 +5,7 @@ import {
   BossUnlockState,
   RaidMode,
   RaidParticipantState,
+  RaidQuestion,
   RaidStatus,
   RaidTeam,
   RaidWaveState,
@@ -15,16 +16,6 @@ interface RaidViewProps {
   profile: Profile;
   onComplete: () => void;
   addToast?: (message: string, type?: 'info' | 'success' | 'error') => void;
-}
-
-interface RaidQuestion {
-  id: string;
-  prompt: string;
-  answers: string[];
-  correctIndex: number;
-  difficulty: 'easy' | 'medium' | 'hard';
-  baseScore: number;
-  isSpike: boolean;
 }
 
 interface CheerEvent {
@@ -121,14 +112,14 @@ const generateSpikeIndexes = (wave: RaidWaveState): number[] => {
   return Array.from(indexes);
 };
 
-const generateQuestions = (wave: RaidWaveState): RaidQuestion[] => {
+const buildFallbackQuestions = (wave: RaidWaveState): RaidQuestion[] => {
   const spikeIndexes = generateSpikeIndexes(wave);
   return Array.from({ length: 5 }, (_, idx) => {
     const isSpike = spikeIndexes.includes(idx);
     const difficulty = isSpike ? 'hard' : wave.difficulty;
     const baseScore = difficulty === 'easy' ? 60 : difficulty === 'medium' ? 80 : 100;
     return {
-      id: `${wave.waveNumber}_${idx}`,
+      id: `fallback_${wave.waveNumber}_${idx}`,
       prompt: isSpike
         ? `Spike protocol ${idx + 1}: Crack the encrypted pattern for wave ${wave.waveNumber}.`
         : `Solve checkpoint ${idx + 1} for wave ${wave.waveNumber}.`,
@@ -229,6 +220,10 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [answerFeedback, setAnswerFeedback] = useState<string | null>(null);
   const [questionIndex, setQuestionIndex] = useState(0);
+  const [waveQuestionsMap, setWaveQuestionsMap] = useState<Record<number, RaidQuestion[]>>({});
+  const [questionsLoading, setQuestionsLoading] = useState(false);
+  const [questionLoadError, setQuestionLoadError] = useState<string | null>(null);
+  const [lastRaidId, setLastRaidId] = useState<string | null>(null);
   const [showHowTo, setShowHowTo] = useState(false);
   const [selectedMode, setSelectedMode] = useState<RaidMode>('mega_crew');
   const [teamPreference, setTeamPreference] = useState<RaidTeam>('alpha');
@@ -237,8 +232,11 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
   const [cheerFeed, setCheerFeed] = useState<CheerEvent[]>([]);
 
   const activeWave = useMemo(() => status?.waves.find((wave) => !wave.completed) ?? null, [status]);
-  const waveQuestions = useMemo(() => (activeWave ? generateQuestions(activeWave) : []), [activeWave]);
-  const currentQuestion = waveQuestions[questionIndex] ?? null;
+  const waveQuestions = useMemo(() => {
+    if (!activeWave) return [];
+    return waveQuestionsMap[activeWave.waveNumber] ?? [];
+  }, [activeWave, waveQuestionsMap]);
+  const currentQuestion = waveQuestions.length > 0 ? waveQuestions[Math.min(questionIndex, waveQuestions.length - 1)] : null;
   const participantsWithStyle = useMemo(() => {
     if (!status) return [];
     return status.participants.map((p, idx) => stylizeParticipant(p, getTeamByIndex(idx)));
@@ -335,6 +333,42 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
   }, []);
 
   useEffect(() => {
+    if (!activeWave || waveQuestionsMap[activeWave.waveNumber]) {
+      return;
+    }
+    let cancelled = false;
+    setQuestionsLoading(true);
+    setQuestionLoadError(null);
+    GameService.getRaidWaveQuestions({
+      wave: activeWave,
+      spikeSlots: generateSpikeIndexes(activeWave),
+      grade: profile.grade ?? null,
+    })
+      .then((questions) => {
+        if (cancelled) return;
+        const hydrated = questions.length > 0 ? questions : buildFallbackQuestions(activeWave);
+        setWaveQuestionsMap((prev) => ({ ...prev, [activeWave.waveNumber]: hydrated }));
+        setQuestionIndex(0);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error(err);
+        setQuestionLoadError('Failed to load raid questions. Using fallback prompts.');
+        addToast?.('Failed to load raid questions. Using fallback prompts.', 'error');
+        setWaveQuestionsMap((prev) => ({ ...prev, [activeWave.waveNumber]: buildFallbackQuestions(activeWave) }));
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setQuestionsLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeWave, waveQuestionsMap, profile.grade, addToast]);
+
+  useEffect(() => {
     if (status?.mode) {
       setSelectedMode(status.mode);
     }
@@ -343,6 +377,21 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
       setIsSpectating(false);
     }
   }, [status]);
+
+  useEffect(() => {
+    const raidId = status?.raidId ?? null;
+    if (raidId !== lastRaidId) {
+      setWaveQuestionsMap({});
+      setQuestionIndex(0);
+      setLastRaidId(raidId);
+    }
+  }, [status?.raidId, lastRaidId]);
+
+  useEffect(() => {
+    if (waveQuestions.length > 0 && questionIndex >= waveQuestions.length) {
+      setQuestionIndex(0);
+    }
+  }, [waveQuestions.length, questionIndex]);
 
   useEffect(() => {
     if (status?.spectators && status.spectators.length > 0) {
@@ -471,6 +520,7 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
     setAnswering(true);
 
     try {
+      const answerText = currentQuestion.answers[choiceIndex] ?? currentQuestion.answers[0] ?? '';
       const payload = {
         raidId: status.raidId,
         questionId: currentQuestion.id,
@@ -481,7 +531,7 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
         bossHp: activeWave.bossHp,
         timeTakenSeconds: 20,
         participantId: participant.userId,
-        answerText: currentQuestion.answers[choiceIndex],
+        answerText,
       };
 
       const result = await GameService.submitRaidWaveAnswer(payload, activeWave, participant);
@@ -501,7 +551,12 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
           ? `Delivered ${result.damage} damage! ${result.waveCleared ? 'Wave secured—advance!' : 'Stay sharp for the next prompt.'}`
           : `Missed—team clock adds +${result.penaltySeconds}s. Rally and recover!`,
       );
-      setQuestionIndex((prev) => (prev + 1) % waveQuestions.length);
+      setQuestionIndex((prev) => {
+        if (waveQuestions.length === 0) {
+          return prev;
+        }
+        return (prev + 1) % waveQuestions.length;
+      });
       setSelectedOption(null);
     } catch (err) {
       console.error(err);
@@ -863,6 +918,21 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
         </div>
       </div>
 
+      {participant && activeWave && !currentQuestion && (
+        <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-white">
+          <p className="text-sm font-semibold text-slate-300">Wave {activeWave.waveNumber}</p>
+          <p className="text-lg font-bold text-white">
+            {questionsLoading ? 'Synchronizing live questions…' : 'Questions loading'}
+          </p>
+          <p className="text-sm text-slate-300">
+            {questionsLoading
+              ? 'Pulling spike prompts from the MCQ vault.'
+              : 'Question feed unavailable. Fallback prompts will appear shortly.'}
+          </p>
+          {questionLoadError && <p className="mt-2 text-xs text-amber-300">{questionLoadError}</p>}
+        </div>
+      )}
+
       {participant && activeWave && currentQuestion && (
         <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 text-white shadow-2xl shadow-indigo-900/30">
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
@@ -883,7 +953,7 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
             <div className="grid gap-3 md:grid-cols-2">
               {currentQuestion.answers.map((answer, idx) => (
                 <button
-                  key={answer}
+                  key={`${currentQuestion.id}_${idx}`}
                   className={`rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition-all ${
                     selectedOption === idx
                       ? 'border-emerald-300 bg-emerald-400/20 text-white'

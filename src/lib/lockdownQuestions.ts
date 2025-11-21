@@ -1,16 +1,12 @@
+import { QuestionRiskRoute } from "../features/lockdown/lockdownTypes";
+
 export type QuestionId = string;
 export type PlayerId = string;
 
 export enum QuestionDifficulty {
-  EASY = 'EASY',
-  MEDIUM = 'MEDIUM',
-  HARD = 'HARD',
-}
-
-export enum QuestionRiskRoute {
-  SAFE = 'SAFE',
-  RISKY = 'RISKY',
-  INSANE = 'INSANE',
+  EASY = "EASY",
+  MEDIUM = "MEDIUM",
+  HARD = "HARD",
 }
 
 export interface Question {
@@ -70,7 +66,7 @@ export const getRiskRouteForQuestion = (question: Question): QuestionRiskRoute =
       return QuestionRiskRoute.RISKY;
     case QuestionDifficulty.HARD:
     default:
-      return QuestionRiskRoute.INSANE;
+      return QuestionRiskRoute.ALL_IN;
   }
 };
 

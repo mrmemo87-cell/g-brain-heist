@@ -11,6 +11,7 @@ import {
   QuestionRiskRoute,
   RoomSettings,
 } from "./lockdownTypes";
+import { calculateRegionStats } from "./regionCalculator";
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
@@ -355,12 +356,31 @@ export const applyAction = (state: GameState, action: GameAction): GameState => 
     case "ADVANCE_PHASE":
       updatedState = progressPhase(state);
       break;
+    case "START_GAME":
+      updatedState = { ...state, phase: GamePhase.ACTIVE_ROUNDS };
+      break;
+    case "TRIGGER_PANIC":
+      updatedState = { ...state, panicModeActive: true };
+      break;
+    case "PAUSE_GAME":
+      updatedState = { ...state, phase: GamePhase.PAUSED };
+      break;
+    case "RESUME_GAME":
+      updatedState = { ...state, phase: GamePhase.ACTIVE_ROUNDS };
+      break;
+    case "KICK_PLAYER":
+      updatedState = applyLeave(state, action.playerId);
+      break;
     default:
       updatedState = state;
   }
 
   updatedState = applyPanicModeIfNeeded(updatedState);
   updatedState = finalizeIfFinished(updatedState);
+  
+  // Update region statistics based on player answers and clan membership
+  updatedState = { ...updatedState, regionStats: calculateRegionStats(updatedState) };
+  
   return updatedState;
 };
 

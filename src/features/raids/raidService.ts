@@ -13,6 +13,9 @@ import {
   RaidFinalizationResult,
   RaidMode,
   RaidParticipantState,
+  RaidDifficulty,
+  RaidQuestion,
+  RaidQuestionRequest,
   RaidRewardBreakdown,
   RaidRewardPool,
   RaidStatus,
@@ -34,6 +37,133 @@ const ARENA_THEMES: Record<RaidMode, string> = {
   strike_squad: 'Solar Flare Alley',
   mega_crew: 'Neon Cortex Arena',
   clan_war: 'Galactic Study Coliseum',
+};
+
+const QUESTIONS_PER_WAVE = 5;
+const QUESTION_FETCH_MULTIPLIER = 3;
+
+type McqQuestionRow = {
+  id: number | string;
+  stem: string;
+  opt1: string;
+  opt2: string;
+  opt3: string;
+  opt4: string;
+  correct: number | null;
+  difficulty: string | null;
+  subject?: string | null;
+};
+
+const RAID_TO_MCQ_DIFFICULTY: Record<RaidDifficulty, string[]> = {
+  easy: ['easy'],
+  medium: ['medium', 'med'],
+  hard: ['hard'],
+};
+
+const ALL_MCQ_DIFFICULTIES = ['easy', 'medium', 'med', 'hard'];
+
+const shuffleArray = <T,>(items: T[]): T[] => {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+};
+
+const normalizeRaidDifficulty = (value: string | null | undefined): RaidDifficulty => {
+  if (!value) return 'easy';
+  if (value === 'med' || value === 'medium') return 'medium';
+  if (value === 'hard') return 'hard';
+  return 'easy';
+};
+
+const getBaseScoreForDifficulty = (difficulty: RaidDifficulty, isSpike = false): number => {
+  const base = difficulty === 'easy' ? 60 : difficulty === 'medium' ? 80 : 100;
+  return isSpike ? base + 20 : base;
+};
+
+const mcqRowToRaidQuestion = (row: McqQuestionRow, isSpike: boolean): RaidQuestion => {
+  const difficulty = normalizeRaidDifficulty(row.difficulty);
+  return {
+    id: String(row.id),
+    prompt: row.stem,
+    answers: [row.opt1, row.opt2, row.opt3, row.opt4].map((choice, idx) => choice || `Option ${idx + 1}`),
+    correctIndex: Math.max(0, Math.min(3, (row.correct ?? 1) - 1)),
+    difficulty,
+    baseScore: getBaseScoreForDifficulty(difficulty, isSpike),
+    isSpike,
+    subject: row.subject ?? undefined,
+  };
+};
+
+const buildSyntheticQuestion = (wave: RaidWaveState, slotIndex: number, isSpike: boolean): RaidQuestion => {
+  const difficulty: RaidDifficulty = isSpike ? 'hard' : wave.difficulty;
+  return {
+    id: `synthetic_${wave.waveNumber}_${slotIndex}`,
+    prompt: isSpike
+      ? `Spike protocol ${slotIndex + 1}: Crack the encrypted pattern for wave ${wave.waveNumber}.`
+      : `Solve checkpoint ${slotIndex + 1} for wave ${wave.waveNumber}.`,
+    answers: ['A - option', 'B - option', 'C - option', 'D - option'],
+    correctIndex: slotIndex % 4,
+    difficulty,
+    baseScore: getBaseScoreForDifficulty(difficulty, isSpike),
+    isSpike,
+  };
+};
+
+const selectMcqRows = async (
+  difficulties: string[],
+  limit: number,
+  grade?: number | null,
+): Promise<McqQuestionRow[]> => {
+  if (difficulties.length === 0 || limit <= 0) {
+    return [];
+  }
+
+  let query = supabase
+    .from('mcq_questions')
+    .select('id, stem, opt1, opt2, opt3, opt4, correct, difficulty, subject')
+    .eq('active', true)
+    .in('difficulty', difficulties)
+    .limit(limit);
+
+  if (typeof grade === 'number') {
+    query = query.eq('grade', grade);
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    console.error('Failed to load MCQ questions for raids', error);
+    return [];
+  }
+
+  return data ?? [];
+};
+
+const fetchMcqPool = async (
+  difficulties: string[],
+  requested: number,
+  grade?: number | null,
+): Promise<McqQuestionRow[]> => {
+  if (requested <= 0) {
+    return [];
+  }
+
+  const selectionLimit = Math.max(requested * QUESTION_FETCH_MULTIPLIER, requested);
+  let rows = await selectMcqRows(difficulties, selectionLimit, grade);
+
+  if (rows.length < requested && typeof grade === 'number') {
+    const fallback = await selectMcqRows(difficulties, selectionLimit, null);
+    const seen = new Set(rows.map((row) => row.id));
+    fallback.forEach((row) => {
+      if (!seen.has(row.id)) {
+        rows.push(row);
+      }
+    });
+  }
+
+  return shuffleArray(rows).slice(0, requested);
 };
 
 const getArenaTheme = (mode: RaidMode = DEFAULT_MODE): string => ARENA_THEMES[mode] ?? ARENA_THEMES.mega_crew;
@@ -251,6 +381,58 @@ export const finalizeRaid = async (raidId: string, participants: RaidParticipant
   };
 };
 
+export const getRaidWaveQuestions = async (request: RaidQuestionRequest): Promise<RaidQuestion[]> => {
+  const { wave, spikeSlots, grade, totalQuestions = QUESTIONS_PER_WAVE } = request;
+  const spikeSet = new Set(spikeSlots);
+  const baseDifficultyFilters = RAID_TO_MCQ_DIFFICULTY[wave.difficulty];
+
+  const basePool = await fetchMcqPool(baseDifficultyFilters, Math.max(totalQuestions - spikeSlots.length, 0), grade);
+  const spikePool = spikeSlots.length
+    ? await fetchMcqPool(RAID_TO_MCQ_DIFFICULTY.hard, spikeSlots.length, grade)
+    : [];
+  const fillerPool = await fetchMcqPool(ALL_MCQ_DIFFICULTIES, totalQuestions, grade);
+
+  const baseQueue = [...basePool];
+  const spikeQueue = [...spikePool];
+  const fillerQueue = [...fillerPool];
+  const usedIds = new Set<string>();
+  const questions: RaidQuestion[] = [];
+
+  for (let slot = 0; slot < totalQuestions; slot += 1) {
+    const isSpike = spikeSet.has(slot);
+    let pick: McqQuestionRow | undefined;
+
+    const chooseNext = (queue: McqQuestionRow[]): McqQuestionRow | undefined => {
+      while (queue.length > 0) {
+        const candidate = queue.shift();
+        if (candidate && !usedIds.has(String(candidate.id))) {
+          usedIds.add(String(candidate.id));
+          return candidate;
+        }
+      }
+      return undefined;
+    };
+
+    if (isSpike) {
+      pick = chooseNext(spikeQueue);
+    }
+    if (!pick) {
+      pick = chooseNext(baseQueue);
+    }
+    if (!pick) {
+      pick = chooseNext(fillerQueue);
+    }
+
+    if (pick) {
+      questions.push(mcqRowToRaidQuestion(pick, isSpike));
+    } else {
+      questions.push(buildSyntheticQuestion(wave, slot, isSpike));
+    }
+  }
+
+  return questions;
+};
+
 const inflateRaid = async (raidRow: any): Promise<RaidStatus> => {
   const { data: waveRows } = await supabase
     .from('raid_waves')
@@ -387,7 +569,7 @@ export const getBossUnlockState = async (userId: string): Promise<BossUnlockStat
     };
   }
 
-  const attempts: AttemptRow[] = (data as AttemptRow[]) || [];
+  const attempts: AttemptRow[] = ((data as unknown) as AttemptRow[]) || [];
   if (attempts.length === 0) {
     return {
       unlocked: false,

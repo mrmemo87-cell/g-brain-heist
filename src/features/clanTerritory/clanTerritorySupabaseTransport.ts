@@ -1,0 +1,215 @@
+import { createClient } from "@supabase/supabase-js";
+import { supabase } from "../../../services/supabaseClient";
+import { ClanTerritoryTransport, RoomId, PlayerId } from "./clanTerritoryTransport";
+import { ClanTerritoryGameState, GameAction } from "./clanTerritoryTypes";
+import { clanTerritoryReducer, INITIAL_STATE } from "./clanTerritoryEngine";
+
+// NOTE: In a real app, these would be environment variables
+// const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || "";
+// const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || "";
+
+// const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
+  private channel: any;
+  private discoveryChannel: any;
+  private discoveryBroadcastInterval: any;
+  private state: ClanTerritoryGameState = INITIAL_STATE;
+  private isHost: boolean = false;
+
+  async createRoom(): Promise<RoomId> {
+    const roomId = Math.floor(1000 + Math.random() * 9000).toString();
+    this.isHost = true;
+    this.state = { ...INITIAL_STATE };
+    
+    // Start hosting logic immediately
+    this.setupChannel(roomId);
+    this.startBroadcastingDiscovery(roomId);
+    
+    return roomId;
+  }
+
+  // --- Discovery Logic ---
+  private startBroadcastingDiscovery(roomId: RoomId) {
+    this.discoveryChannel = supabase.channel('clan-territory-discovery');
+    this.discoveryChannel.subscribe((status: string) => {
+      if (status === 'SUBSCRIBED') {
+        // Broadcast presence periodically
+        this.discoveryBroadcastInterval = setInterval(() => {
+          this.discoveryChannel.send({
+            type: 'broadcast',
+            event: 'room_open',
+            payload: { roomId }
+          });
+        }, 2000);
+      }
+    });
+  }
+
+  private stopBroadcastingDiscovery() {
+    if (this.discoveryBroadcastInterval) {
+      clearInterval(this.discoveryBroadcastInterval);
+      this.discoveryBroadcastInterval = null;
+    }
+    if (this.discoveryChannel) {
+      supabase.removeChannel(this.discoveryChannel);
+      this.discoveryChannel = null;
+    }
+  }
+
+  startDiscovery(onRoomFound: (roomId: RoomId) => void) {
+    this.discoveryChannel = supabase.channel('clan-territory-discovery');
+    this.discoveryChannel
+      .on('broadcast', { event: 'room_open' }, (payload: any) => {
+        onRoomFound(payload.payload.roomId);
+      })
+      .subscribe();
+  }
+
+  stopDiscovery() {
+    if (this.discoveryChannel) {
+      supabase.removeChannel(this.discoveryChannel);
+      this.discoveryChannel = null;
+    }
+  }
+  // -----------------------
+
+  async joinRoom(
+    roomId: RoomId,
+    playerName: string,
+    clanId: string,
+    clanName: string
+  ): Promise<PlayerId> {
+    const playerId = crypto.randomUUID();
+    this.isHost = false;
+    
+    this.setupChannel(roomId);
+
+    // Send join request
+    // We need to wait a bit for connection to be established in a real scenario, 
+    // but Supabase realtime buffers messages usually.
+    // However, for 'broadcast', we need to be connected.
+    
+    // Hack: Wait for channel to subscribe
+    await new Promise<void>((resolve) => {
+        const check = setInterval(() => {
+            if (this.channel && this.channel.state === 'joined') {
+                clearInterval(check);
+                resolve();
+            }
+        }, 100);
+    });
+
+    await this.sendAction(roomId, {
+      type: "JOIN",
+      payload: { player: { id: playerId, name: playerName, clanId, clanName } },
+    });
+
+    return playerId;
+  }
+
+  onGameState(roomId: RoomId, callback: (state: ClanTerritoryGameState) => void): () => void {
+    // The callback will be called whenever state changes
+    // We store the callback to invoke it on updates
+    this.onStateUpdate = callback;
+    // Immediately hydrate listener with whatever state we already have to avoid waiting for next tick
+    callback(this.state);
+    if (!this.isHost) {
+      // Ask the host to rebroadcast in case we subscribed after the last state push
+      void this.sendAction(roomId, { type: "REQUEST_STATE" });
+    }
+    return () => {
+      if (this.channel) supabase.removeChannel(this.channel);
+      if (this.isHost) this.stopBroadcastingDiscovery();
+    };
+  }
+
+  async sendAction(roomId: RoomId, action: GameAction): Promise<void> {
+    if (this.channel) {
+      await this.channel.send({
+        type: "broadcast",
+        event: "game_action",
+        payload: action,
+      });
+    }
+  }
+
+  private onStateUpdate: ((state: ClanTerritoryGameState) => void) | null = null;
+
+  private setupChannel(roomId: RoomId) {
+    if (this.channel) return;
+
+    this.channel = supabase.channel(`clan-territory:${roomId}`, {
+      config: {
+        broadcast: { self: true },
+      },
+    });
+
+    this.channel
+      .on("broadcast", { event: "game_action" }, (payload: any) => {
+        const action = payload.payload as GameAction;
+        
+        // If host, process action and broadcast new state? 
+        // Actually, for simplicity in this peer-to-peer-ish setup (or host-authoritative),
+        // let's make the HOST the source of truth.
+        
+        if (this.isHost) {
+          if (action.type === "REQUEST_STATE") {
+            this.broadcastState();
+            if (this.onStateUpdate) this.onStateUpdate(this.state);
+            return;
+          }
+          const newState = clanTerritoryReducer(this.state, action);
+          if (newState !== this.state) {
+            this.state = newState;
+            this.broadcastState();
+            if (this.onStateUpdate) this.onStateUpdate(this.state);
+          }
+        } else {
+            // Clients just send actions, they don't process them locally until they get state update?
+            // OR: Optimistic updates.
+            // For now: Clients listen for STATE updates from host.
+            // BUT: We are listening to 'game_action' here.
+            
+            // If we are a client, we might want to optimistically update for some things,
+            // but generally we wait for the host to send the full state.
+        }
+      })
+      .on("broadcast", { event: "game_state" }, (payload: any) => {
+        if (!this.isHost) {
+          this.state = payload.payload;
+          if (this.onStateUpdate) this.onStateUpdate(this.state);
+        }
+      })
+      .subscribe((status: string) => {
+        if (status === "SUBSCRIBED") {
+            if (this.isHost) {
+                // Start the game loop (tick)
+                setInterval(() => {
+                    if (this.state.phase === 'ACTIVE') {
+                        const newState = clanTerritoryReducer(this.state, { type: 'TICK' });
+                        if (newState !== this.state) {
+                            this.state = newState;
+                            this.broadcastState();
+                            if (this.onStateUpdate) this.onStateUpdate(this.state);
+                        }
+                    }
+                }, 1000);
+                
+                // Broadcast initial state
+                this.broadcastState();
+            }
+        }
+      });
+  }
+
+  private broadcastState() {
+    if (this.channel && this.isHost) {
+      this.channel.send({
+        type: "broadcast",
+        event: "game_state",
+        payload: this.state,
+      });
+    }
+  }
+}

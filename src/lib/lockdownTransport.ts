@@ -1,12 +1,18 @@
+import { applyAction, createInitialGameState } from "../features/lockdown/lockdownEngine";
+import { buildRoomSettings } from "../features/lockdown/defaultRoomSettings";
+import {
+  GameAction,
+  GameState,
+  RoomSettings,
+} from "../features/lockdown/lockdownTypes";
+
 export type RoomId = string;
 export type PlayerId = string;
-export type RoomSettings = Record<string, unknown>;
-export type GameState = Record<string, unknown>;
-export type GameAction = { type: string; [key: string]: unknown };
-export type TeacherCommand = { type: string; [key: string]: unknown };
+export type TeacherCommand = GameAction;
+type PlayerAction = Extract<GameAction, { playerId: string }>;
 
 export interface LockdownTransport {
-  createRoom(settings: RoomSettings): Promise<RoomId>;
+  createRoom(settings?: Partial<RoomSettings>): Promise<RoomId>;
   joinRoom(roomId: RoomId, playerName: string): Promise<PlayerId>;
   onGameState(roomId: RoomId, callback: (state: GameState) => void): () => void;
   sendAction(roomId: RoomId, action: GameAction): Promise<void>;
@@ -15,11 +21,9 @@ export interface LockdownTransport {
 
 export interface LockdownRoomClient {
   subscribe(callback: (state: GameState) => void): () => void;
-  act(action: GameAction): Promise<void>;
+  act(action: Omit<PlayerAction, "playerId">): Promise<void>;
   teacher(command: TeacherCommand): Promise<void>;
 }
-
-import { applyAction, createInitialGameState } from "./lockdownEngine";
 
 type StateSubscriber = (state: GameState) => void;
 
@@ -35,12 +39,13 @@ export class InMemoryLockdownTransport implements LockdownTransport {
   private roomCounter = 0;
   private playerCounter = 0;
 
-  async createRoom(settings: RoomSettings): Promise<RoomId> {
+  async createRoom(settings?: Partial<RoomSettings>): Promise<RoomId> {
     const roomId = `room-${++this.roomCounter}` as RoomId;
-    const state = createInitialGameState(settings);
+    const resolvedSettings = buildRoomSettings(settings);
+    const state = createInitialGameState(resolvedSettings);
 
     this.rooms.set(roomId, {
-      settings,
+      settings: resolvedSettings,
       state,
       subscribers: new Set<StateSubscriber>(),
       players: new Map<PlayerId, string>(),
@@ -57,6 +62,11 @@ export class InMemoryLockdownTransport implements LockdownTransport {
 
     const playerId = `player-${++this.playerCounter}` as PlayerId;
     room.players.set(playerId, playerName);
+    this.applyAndBroadcast(roomId, {
+      type: "JOIN",
+      playerId,
+      name: playerName,
+    });
     return playerId;
   }
 
@@ -82,13 +92,13 @@ export class InMemoryLockdownTransport implements LockdownTransport {
     this.applyAndBroadcast(roomId, command);
   }
 
-  private applyAndBroadcast(roomId: RoomId, update: GameAction | TeacherCommand): void {
+  private applyAndBroadcast(roomId: RoomId, action: GameAction): void {
     const room = this.rooms.get(roomId);
     if (!room) {
       throw new Error(`Room ${roomId} does not exist`);
     }
 
-    room.state = applyAction(room.state, update);
+    room.state = applyAction(room.state, action);
     for (const subscriber of room.subscribers) {
       subscriber(room.state);
     }
@@ -103,11 +113,14 @@ export function createRoomClient(
   const taggedPlayerId = playerId;
   return {
     subscribe: (callback: (state: GameState) => void) => transport.onGameState(roomId, callback),
-    act: (action: GameAction) =>
-      transport.sendAction(roomId, {
-        ...action,
-        playerId: taggedPlayerId,
-      }),
+    act: (action: Omit<PlayerAction, "playerId">) =>
+      transport.sendAction(
+        roomId,
+        {
+          ...action,
+          playerId: taggedPlayerId,
+        } as PlayerAction,
+      ),
     teacher: (command: TeacherCommand) => transport.sendTeacherCommand(roomId, command),
   };
 }

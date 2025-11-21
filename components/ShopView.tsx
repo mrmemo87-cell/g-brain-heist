@@ -276,6 +276,50 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
   };
 
 
+    const sectionBlueprints = [
+        {
+            id: 'defense',
+            label: 'Defensive Arsenal',
+            description: 'Shields, firewalls, and cryptographic wards that soak up enemy strikes.',
+            matcher: (item: ShopItem) => ['shield', 'firewall', 'encryption_key'].includes(item.kind),
+        },
+        {
+            id: 'boost',
+            label: 'Boosters & Exploits',
+            description: 'Tempo-shifting tools that spike damage, XP, or resource gains.',
+            matcher: (item: ShopItem) => ['booster', 'major_booster', 'exploit_kit'].includes(item.kind),
+        },
+        {
+            id: 'cosmetic',
+            label: 'Style & Mystery',
+            description: 'Cosmetic flairs and mysterious drops for extra prestige.',
+            matcher: (item: ShopItem) => ['cosmetic', 'mystery'].includes(item.kind),
+        },
+    ];
+
+    const assignedIds = new Set<string>();
+    const sections = sectionBlueprints
+            .map(section => {
+                const matched = items.filter(item => {
+                    const result = section.matcher(item);
+                    if (result) assignedIds.add(item.id);
+                    return result;
+                });
+                return { ...section, items: matched };
+            })
+            .filter(section => section.items.length > 0);
+
+    const uncategorized = items.filter(item => !assignedIds.has(item.id));
+    if (uncategorized.length > 0) {
+        sections.push({
+            id: 'utility',
+            label: 'Utility Gear',
+            description: 'Grab anything that does not fall into the core stacks above.',
+            matcher: () => true,
+            items: uncategorized,
+        });
+    }
+
   if (stage === 'loading') {
      return <div className="font-heading text-2xl animate-pulse text-center mt-20" style={{color: 'var(--success-teal)'}}>Accessing Secure Market...</div>;
   }
@@ -294,16 +338,29 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
         )}
       </div>
       <h2 className="font-heading text-3xl text-center mb-8" style={{ color: 'var(--success-teal)' }}>Item Shop</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
-        {items.map(item => (
-          <ItemCard
-            key={item.id}
-            item={item}
-            onBuy={setSelectedItem}
-            balances={{ coins: profile.coins, gemstones: profile.gemstones }}
-          />
-        ))}
-      </div>
+            <div className="space-y-6">
+                {sections.map(section => (
+                    <section key={section.id} className="bg-black/40 border border-white/5 rounded-3xl p-6 space-y-4">
+                        <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                            <div>
+                                <h3 className="font-heading text-2xl text-white">{section.label}</h3>
+                                <p className="text-sm text-gray-400">{section.description}</p>
+                            </div>
+                            <span className="text-xs uppercase tracking-widest text-gray-400">{section.items.length} Item{section.items.length === 1 ? '' : 's'}</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {section.items.map(item => (
+                                <ItemCard
+                                    key={item.id}
+                                    item={item}
+                                    onBuy={setSelectedItem}
+                                    balances={{ coins: profile.coins, gemstones: profile.gemstones }}
+                                />
+                            ))}
+                        </div>
+                    </section>
+                ))}
+            </div>
 
         {selectedItem && (
             <PurchaseModal 

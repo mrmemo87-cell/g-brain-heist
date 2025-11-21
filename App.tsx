@@ -40,6 +40,7 @@ import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './services/banMessag
 import RaidView from './src/features/raids/RaidView';
 import RaidAdminView from './src/features/raids/RaidAdminView';
 import IeltsHome from './src/pages/ielts/IeltsHome';
+import { ClanTerritoryManager } from './src/features/clanTerritory/ClanTerritoryManager';
 
 const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
   8: ['8A', '8B', '8C', 'N/A'],
@@ -58,7 +59,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [news, setNews] = useState<NewsEvent[]>([]);
   const [activeAssignment, setActiveAssignment] = useState<StudentAssignmentTask | null>(null);
   const [loading, setLoading] = useState(true);
-    const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts'>('dashboard');
+    const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'lockdown'>('dashboard');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [levelUpData, setLevelUpData] = useState<{ newLevel: number; rewards: any } | null>(null);
@@ -366,6 +367,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
     return 'cinematic-view cinematic-view--calm';
   }, [view, sessionStatus?.active]);
+
+  const isStudent = profile?.role === 'student';
 
   // Auto-refresh profile every 60 seconds to update AP regeneration
   useEffect(() => {
@@ -816,6 +819,16 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                     <IeltsHome />
                 </div>
             );
+        case 'lockdown':
+          return (
+            <ClanTerritoryManager 
+              onExit={() => setView('dashboard')} 
+              isTeacher={profile?.role === 'teacher'} 
+              playerName={profile?.username || 'Agent'} 
+              clanId={profile?.clan_id}
+              clanName={profile?.clan_name}
+            />
+          );
         case 'dashboard':
         default:
             // Teacher Dashboard - simplified view focused on teaching
@@ -846,14 +859,24 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                             {/* Quick Actions */}
                             <div className="card-glass p-6">
                                 <h3 className="font-heading text-xl mb-4" style={{color: 'var(--amber-warn)'}}>Quick Actions</h3>
-                                <button
-                                    onClick={() => setView('teacher')}
-                                    className="w-full p-6 rounded-xl bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-2 border-purple-400 hover:border-purple-300 transition-all hover:scale-105 active:scale-95"
-                                >
-                                    <div className="text-4xl mb-2">📚</div>
-                                    <div className="font-heading text-xl mb-1">Question Management</div>
-                                    <div className="text-sm text-gray-300">Create and manage your questions</div>
-                                </button>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <button
+                                        onClick={() => setView('teacher')}
+                                        className="w-full p-6 rounded-xl bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-2 border-purple-400 hover:border-purple-300 transition-all hover:scale-105 active:scale-95"
+                                    >
+                                        <div className="text-4xl mb-2">📚</div>
+                                        <div className="font-heading text-xl mb-1">Question Management</div>
+                                        <div className="text-sm text-gray-300">Create and manage your questions</div>
+                                    </button>
+                                    <button
+                                        onClick={() => setView('lockdown')}
+                                        className="w-full p-6 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border-2 border-emerald-400 hover:border-emerald-300 transition-all hover:scale-105 active:scale-95"
+                                    >
+                                        <div className="text-4xl mb-2">🚨</div>
+                                        <div className="font-heading text-xl mb-1">Lockdown Mode</div>
+                                        <div className="text-sm text-gray-300">Host a live classroom session</div>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         
@@ -876,7 +899,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         <MainActions
                             onStartQuest={handleQuestAction}
                             onStartPvp={() => setView('pvp')}
-                            onOpenRaid={() => setView('raids')}
+                            onOpenRaid={!isStudent ? () => setView('raids') : undefined}
                             onVisitShop={() => setView('shop')}
                             onGoToClan={() => setView('clan')}
                             onVisitInventory={() => setView('inventory')}
@@ -886,10 +909,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                             onOpenTournament={() => setView('tournament')}
                             onOpenAdminPortal={isAdmin(profile) ? () => setView('admin') : undefined}
                             onOpenTournamentAdmin={isAdmin(profile) ? () => setView('tournament_admin') : undefined}
-                            onOpenCompetitionPlay={profile?.grade && !profile?.is_banned ? () => setView('phase1_play') : undefined}
+                            onOpenCompetitionPlay={!isStudent && profile?.grade && !profile?.is_banned ? () => setView('phase1_play') : undefined}
                             onOpenCompetitionLeaderboard={() => setView('phase1_leaderboard')}
                             onOpenCompetitionAdmin={profile?.is_admin ? () => setView('phase1_admin') : undefined}
-                            onOpenIeltsPrep={() => setView('ielts')}
+                            onOpenIeltsPrep={!isStudent ? () => setView('ielts') : undefined}
+                            onOpenLockdown={() => setView('lockdown')}
                             hasPendingAssignment={Boolean(activeAssignment)}
                         />
                         <TaskList tasks={tasks} onTasksUpdate={fetchGameData} />

@@ -36,7 +36,16 @@ import {
     StudentForAssignment,
 } from '../types';
 import * as RaidFeatureService from '../src/features/raids/raidService';
-import { BossUnlockState, RaidAnswerPayload, RaidFinalizationResult, RaidParticipantState, RaidStatus, RaidWaveState } from '../src/features/raids/raidTypes';
+import {
+    BossUnlockState,
+    RaidAnswerPayload,
+    RaidFinalizationResult,
+    RaidParticipantState,
+    RaidQuestion,
+    RaidQuestionRequest,
+    RaidStatus,
+    RaidWaveState,
+} from '../src/features/raids/raidTypes';
 import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount, canEarnQuestGemstone, recordQuestGemstoneAward, canEarnPvpGemstone, recordPvpGemstoneAward } from './storageService';
 import { supabase } from './supabaseClient';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage';
@@ -1736,6 +1745,10 @@ export const finalizeRaidEncounter = (
     participants: RaidParticipantState[],
 ): Promise<RaidFinalizationResult> => {
     return RaidFeatureService.finalizeRaid(raidId, participants);
+};
+
+export const getRaidWaveQuestions = (request: RaidQuestionRequest): Promise<RaidQuestion[]> => {
+    return RaidFeatureService.getRaidWaveQuestions(request);
 };
 
 export const raid_attack = async (defender_id: string, use_cracker: boolean, target: RaidTarget): Promise<RaidAttackResult> => {

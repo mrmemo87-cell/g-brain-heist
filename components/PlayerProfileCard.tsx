@@ -171,26 +171,56 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
             </div>
           </div>
 
-          <div className="mt-4 bg-black/20 p-4 rounded-2xl border border-white/5">
-            <h3 className="font-heading text-xl text-amber-300 mb-3">Active Clan Effects</h3>
+          <div className="mt-4 bg-black/20 p-4 rounded-3xl border border-white/5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-heading text-xl text-amber-300">Active Clan Effects</h3>
+              <p className="text-xs uppercase tracking-wider text-gray-400">{clanBuffs.length} aligned</p>
+            </div>
             {clanBuffs.length === 0 ? (
               <p className="text-sm text-gray-400">No clan buffs are active right now.</p>
             ) : (
-              <ul className="space-y-3">
-                {clanBuffs.map(buff => (
-                  <li key={buff.id} className="bg-black/30 p-3 rounded-xl flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-semibold text-white">{buff.name}</p>
-                      <p className="text-xs text-gray-400">{describeClanBuffEffect(buff.effect)}</p>
-                      {buff.activated_by_name && <p className="text-[11px] text-gray-500 mt-1">Activated by {buff.activated_by_name}</p>}
+              <div className="grid gap-4 sm:grid-cols-2">
+                {clanBuffs.map((buff, index) => (
+                  <div
+                    key={buff.id}
+                    className="relative card-glass p-4 rounded-2xl border border-white/10 shadow-[0_15px_35px_rgba(0,0,0,0.35)]"
+                    style={{
+                      backgroundImage: 'linear-gradient(145deg, rgba(9, 37, 68, 0.9), rgba(8, 17, 36, 0.95))',
+                      borderColor: 'rgba(255,255,255,0.08)'
+                    }}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-white text-lg">{buff.name}</p>
+                        <p className="text-xs text-gray-400">{describeClanBuffEffect(buff.effect)}</p>
+                      </div>
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-amber-300">
+                        {buff.template_code?.toUpperCase() ?? 'Buff'}
+                      </span>
                     </div>
-                    <div className="text-right text-xs text-gray-400">
-                      <p>{formatBuffTimeRemaining(buff.expires_at)}</p>
-                      <p className="text-[11px]">Since {new Date(buff.activated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                    <div className="mt-3 flex justify-between items-center text-xs text-gray-400">
+                      <div>
+                        <p>{formatBuffTimeRemaining(buff.expires_at)}</p>
+                        {buff.activated_by_name && <p>Activated by {buff.activated_by_name}</p>}
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[11px] text-gray-500">
+                          {buff.activated_at
+                            ? `Since ${new Date(buff.activated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                            : 'Activation time unknown'}
+                        </p>
+                      </div>
                     </div>
-                  </li>
+                    <div
+                      className="absolute inset-0 rounded-2xl pointer-events-none"
+                      style={{
+                        border: '1px solid rgba(96, 165, 250, 0.4)',
+                        boxShadow: '0 0 35px rgba(14, 165, 233, 0.4)'
+                      }}
+                    />
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
           </div>
         </>
