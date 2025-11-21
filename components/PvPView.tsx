@@ -294,6 +294,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
 
     } catch (error) {
       console.error('Battle attack error:', error);
+      onGrantReward({ ap: RAID_AP_COST });
       // Show error and go back to targets
       alert('Battle failed and action points were still consumed: ' + (error as Error).message);
       setStage('loading');
