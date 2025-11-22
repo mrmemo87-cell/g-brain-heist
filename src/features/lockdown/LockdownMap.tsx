@@ -87,40 +87,30 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
     const style = document.createElement("style");
     style.id = styleId;
     style.textContent = `
+      /* Base region styles - child elements get CSS variables via setAttribute */
       .lockdown-map-region {
-        /* Smooth transitions for all dynamic properties */
-        transition: opacity 0.35s ease, stroke-width 0.3s ease, filter 0.4s ease, fill 0.25s linear;
-        
-        /* Base styles using CSS custom properties - no inline styles in SVG means these work perfectly */
-        opacity: var(--region-base-opacity, 0.65);
-        stroke-width: var(--region-base-stroke-width, 2);
-        filter: var(--region-base-filter, none);
-        cursor: var(--region-cursor, default);
-        fill: var(--region-base-fill, #1f2937);
-        stroke: var(--region-base-stroke, #475569);
+        cursor: pointer;
+        transition: filter 0.3s ease;
       }
       
-      /* Apply to all child shapes - cleaned SVG has no inline fill/stroke, so inheritance works */
+      /* Child elements use CSS variables set via setAttribute */
       .lockdown-map-region path,
       .lockdown-map-region rect,
       .lockdown-map-region circle,
       .lockdown-map-region ellipse,
       .lockdown-map-region polygon,
       .lockdown-map-region polyline {
-        fill: inherit;
-        stroke: inherit;
-        opacity: inherit;
-        transition: inherit;
-      }
-      
-      .lockdown-map-region * {
+        transition: fill 0.25s linear, opacity 0.35s ease, stroke 0.3s ease;
         pointer-events: none;
       }
       
-      .lockdown-map-region:hover {
-        opacity: var(--region-hover-opacity, 1) !important;
-        stroke-width: var(--region-hover-stroke-width, var(--region-base-stroke-width, 2)) !important;
-        filter: var(--region-hover-filter, var(--region-base-filter, none)) !important;
+      .lockdown-map-region:hover path,
+      .lockdown-map-region:hover rect,
+      .lockdown-map-region:hover circle,
+      .lockdown-map-region:hover ellipse,
+      .lockdown-map-region:hover polygon,
+      .lockdown-map-region:hover polyline {
+        opacity: 1 !important;
       }
     `;
 
@@ -163,12 +153,18 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
         }
         lastRegionStyleKeyRef.current[regionId] = neutralKey;
         
-        // Set CSS variables on group - child elements inherit via CSS
+        // Set CSS variables on parent for reference
         regionGroup.style.setProperty("--region-base-fill", "#1f2937");
         regionGroup.style.setProperty("--region-base-opacity", "0.5");
         regionGroup.style.setProperty("--region-base-stroke", "#475569");
-        regionGroup.style.setProperty("--region-base-stroke-width", "2");
-        regionGroup.style.setProperty("--region-base-filter", "none");
+        
+        // Apply CSS variables to all child elements via setAttribute
+        const childElements = regionGroup.querySelectorAll<SVGElement>("path, rect, circle, ellipse, polygon, polyline");
+        childElements.forEach((child) => {
+          child.setAttribute("fill", "var(--region-base-fill)");
+          child.setAttribute("opacity", "var(--region-base-opacity)");
+          child.setAttribute("stroke", "var(--region-base-stroke)");
+        });
         return;
       }
 
@@ -183,12 +179,19 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
       }
       lastRegionStyleKeyRef.current[regionId] = styleKey;
 
-      // Set CSS variables - no need to touch child elements, inheritance handles it
+      // Set CSS variables on parent for reference
       regionGroup.style.setProperty("--region-base-fill", clanColor);
       regionGroup.style.setProperty("--region-base-opacity", opacity.toString());
       regionGroup.style.setProperty("--region-base-stroke", clanColor);
-      regionGroup.style.setProperty("--region-base-stroke-width", "2");
-      regionGroup.style.setProperty("--region-base-filter", `drop-shadow(0 0 10px ${clanColor})`);
+      
+      // Apply CSS variables to all child elements via setAttribute
+      // This works perfectly with cleaned SVG that has no inline fill/stroke styles
+      const childElements = regionGroup.querySelectorAll<SVGElement>("path, rect, circle, ellipse, polygon, polyline");
+      childElements.forEach((child) => {
+        child.setAttribute("fill", "var(--region-base-fill)");
+        child.setAttribute("opacity", "var(--region-base-opacity)");
+        child.setAttribute("stroke", "var(--region-base-stroke)");
+      });
     });
   }, [mounted, regionStats, mapMarkup]);
 
