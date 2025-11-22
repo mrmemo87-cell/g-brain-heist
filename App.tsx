@@ -892,101 +892,114 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             const xpUsed = caps.daily_xp_cap ? Math.max(0, caps.daily_xp_cap - caps.xp_daily_remaining) : 0;
             const xpUsedPercent = caps.daily_xp_cap ? Math.min(100, Math.round((xpUsed / caps.daily_xp_cap) * 100)) : 0;
 
-            const activeAssignmentLabel = activeAssignment?.title ?? 'No active assignment — pick your next target.';
-
             return (
               <main className="mt-6 space-y-6">
-                <section className="rounded-2xl border border-slate-800/70 bg-slate-950/70 p-6 shadow-lg">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <section className="relative overflow-hidden rounded-3xl border border-slate-800/80 bg-slate-950/70 p-6 shadow-[0_30px_80px_-35px_rgba(0,0,0,0.8)] backdrop-blur-xl dashboard-aurora">
+                  <div className="absolute inset-0 opacity-60 neon-grid-pattern" aria-hidden="true" />
+                  <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-plasma blur-3xl opacity-40" aria-hidden="true" />
+                  <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.25em] text-amber-200/80">Today&apos;s dashboard</p>
-                      <h2 className="mt-1 font-heading text-2xl text-white">Stay sharp, clear, and ready</h2>
-                      <p className="text-sm text-slate-300">Focus on what moves you forward: finish studies, protect your rank, and strike when ready.</p>
+                      <p className="text-xs uppercase tracking-[0.3em] text-amber-200/80">Brains Heist Command</p>
+                      <h2 className="mt-2 font-heading text-2xl font-extrabold text-white sm:text-3xl">
+                        Study. Strategize. Attack.
+                      </h2>
+                      <p className="mt-2 max-w-2xl text-sm text-slate-200/80">
+                        Shape your mind, defend your rank, and launch smart strikes. Every quest is training, every battle is a brain heist.
+                      </p>
                     </div>
-                    <div className="flex flex-wrap gap-2 sm:justify-end">
-                      {profile.grade && <span className="pill">🎓 Grade {profile.grade}</span>}
-                      {profile.batch && <span className="pill">🛰️ Batch {profile.batch}</span>}
-                      <span className="pill pill-strong">🔥 {profile.streak}d streak</span>
+                    <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                      {profile.grade && (
+                        <span className="badge-chip">🎓 Grade {profile.grade}</span>
+                      )}
+                      {profile.batch && (
+                        <span className="badge-chip">🛰️ Batch {profile.batch}</span>
+                      )}
+                      <span className="badge-chip glow">🔥 Streak {profile.streak}d</span>
                     </div>
                   </div>
 
-                  <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    <div className="priority-card">
-                      <div className="flex items-center justify-between text-xs text-slate-300">
-                        <span>Study progress</span>
-                        <span className="text-amber-200">{pendingTasks} left</span>
+                  <div className="relative mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div className="glass-tile">
+                      <div className="flex items-center justify-between text-sm text-slate-300">
+                        <span>Study Queue</span>
+                        <span className="text-xs text-amber-200/90">{pendingTasks} active</span>
                       </div>
-                      <div className="mt-2 flex items-baseline gap-2">
-                        <h3 className="font-heading text-xl text-white">{studyProgress}%</h3>
-                        <span className="text-xs text-slate-400">of queue done</span>
+                      <h3 className="mt-2 font-heading text-xl text-white">{studyProgress}% ready</h3>
+                      <div className="mt-3 h-2.5 rounded-full bg-slate-900/70">
+                        <div
+                          className="h-full rounded-full progress-bar-glow-ion"
+                          style={{ width: `${studyProgress}%`, backgroundColor: 'var(--ion-blue)' }}
+                        />
                       </div>
-                      <div className="priority-bar mt-3">
-                        <div className="priority-bar-fill" style={{ width: `${studyProgress}%`, backgroundColor: 'var(--ion-blue)' }} />
-                      </div>
-                      <p className="mt-2 text-xs text-slate-400">Finish tasks before moving to the next raid.</p>
+                      <p className="mt-2 text-xs text-slate-300">Complete assignments to unlock bigger raids.</p>
                     </div>
 
-                    <div className="priority-card">
-                      <div className="flex items-center justify-between text-xs text-slate-300">
+                    <div className="glass-tile">
+                      <div className="flex items-center justify-between text-sm text-slate-300">
                         <span>Energy & AP</span>
-                        <span className="text-emerald-200">{profile.ap_now}/{profile.ap_max}</span>
+                        <span className="text-xs text-emerald-200/90">{profile.ap_now}/{profile.ap_max}</span>
                       </div>
-                      <div className="mt-2 flex items-baseline gap-2">
-                        <h3 className="font-heading text-xl text-white">{apReadyPercent}%</h3>
-                        <span className="text-xs text-slate-400">strike ready</span>
+                      <h3 className="mt-2 font-heading text-xl text-white">{apReadyPercent}% ready to strike</h3>
+                      <div className="mt-3 h-2.5 rounded-full bg-slate-900/70">
+                        <div
+                          className="h-full rounded-full progress-bar-glow-warn"
+                          style={{ width: `${apReadyPercent}%`, backgroundColor: 'var(--amber-warn)' }}
+                        />
                       </div>
-                      <div className="priority-bar mt-3">
-                        <div className="priority-bar-fill" style={{ width: `${apReadyPercent}%`, backgroundColor: 'var(--amber-warn)' }} />
-                      </div>
-                      <p className="mt-2 text-xs text-slate-400">Plan attacks when AP is high for smoother wins.</p>
+                      <p className="mt-2 text-xs text-slate-300">AP regenerates while you plan your next move.</p>
                     </div>
 
-                    <div className="priority-card">
-                      <div className="flex items-center justify-between text-xs text-slate-300">
-                        <span>Rank readiness</span>
-                        <span className="text-cyan-200">{sessionStatus.active ? 'Boosted' : 'Standby'}</span>
+                    <div className="glass-tile">
+                      <div className="flex items-center justify-between text-sm text-slate-300">
+                        <span>Rank Defense</span>
+                        <span className="text-xs text-cyan-200/90">{sessionStatus.active ? 'Boosted' : 'Standby'}</span>
                       </div>
-                      <div className="mt-2 flex items-baseline gap-2">
-                        <h3 className="font-heading text-xl text-white">Atk {profile.attack_power_effective ?? profile.attack_power}</h3>
-                        <span className="text-xs text-slate-400">Def {profile.defense_power_effective ?? profile.defense_power}</span>
+                      <h3 className="mt-2 font-heading text-xl text-white">Atk {profile.attack_power_effective ?? profile.attack_power} • Def {profile.defense_power_effective ?? profile.defense_power}</h3>
+                      <div className="mt-3 h-2.5 rounded-full bg-slate-900/70">
+                        <div
+                          className="h-full rounded-full progress-bar-glow-plasma"
+                          style={{ width: `${xpUsedPercent}%`, backgroundColor: 'var(--plasma-pink)' }}
+                        />
                       </div>
-                      <div className="priority-bar mt-3">
-                        <div className="priority-bar-fill" style={{ width: `${xpUsedPercent}%`, backgroundColor: 'var(--plasma-pink)' }} />
-                      </div>
-                      <p className="mt-2 text-xs text-slate-400">{xpUsedPercent}% of today&apos;s XP cap used. Keep training.</p>
+                      <p className="mt-2 text-xs text-slate-300">{xpUsedPercent}% of today’s XP cap spent. Keep training.</p>
                     </div>
                   </div>
 
-                  <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.15em] text-slate-400">Current focus</p>
-                      <p className="text-sm font-semibold text-white">{activeAssignmentLabel}</p>
-                    </div>
-                    <div className="flex flex-col gap-3 sm:flex-row">
-                      <button
-                        onClick={handleQuestAction}
-                        className="priority-action bg-emerald-500/80 text-black hover:bg-emerald-400"
-                      >
-                        <span className="priority-icon" style={{ background: 'linear-gradient(135deg, #a7f3d0, #6ee7b7)', color: '#064e3b' }}>
-                          📘
-                        </span>
-                        <span>Start study run</span>
-                      </button>
-                      <button
-                        onClick={() => setView('pvp')}
-                        className="priority-action border border-rose-400/70 text-white hover:border-rose-200 hover:bg-rose-500/10"
-                      >
-                        <span className="priority-icon" style={{ background: 'linear-gradient(135deg, #fb7185, #f43f5e)', color: '#0b0b0f' }}>
-                          🚀
-                        </span>
-                        <span>Launch attack</span>
-                      </button>
-                    </div>
+                  <div className="relative mt-6 grid gap-3 sm:grid-cols-2">
+                    <button
+                      onClick={handleQuestAction}
+                      className="w-full rounded-2xl border border-emerald-400/60 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 px-5 py-4 text-left font-heading text-lg text-white shadow-[0_15px_45px_-30px_rgba(16,185,129,0.9)] transition-all hover:-translate-y-0.5 hover:border-emerald-200 active:translate-y-0"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>Start a Study Run</span>
+                        <span className="text-sm text-emerald-100">Quests & assignments</span>
+                      </div>
+                      <p className="mt-1 text-sm text-emerald-50/80">Crack topics, earn XP, and prep your crew.</p>
+                    </button>
+
+                    <button
+                      onClick={() => setView('pvp')}
+                      className="w-full rounded-2xl border border-rose-400/70 bg-gradient-to-r from-rose-500/25 to-purple-500/25 px-5 py-4 text-left font-heading text-lg text-white shadow-[0_15px_45px_-30px_rgba(244,63,94,0.9)] transition-all hover:-translate-y-0.5 hover:border-rose-200 active:translate-y-0"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>Launch an Attack</span>
+                        <span className="text-sm text-rose-100">PvP & raids</span>
+                      </div>
+                      <p className="mt-1 text-sm text-rose-50/80">Test your build, steal rank, and guard your loot.</p>
+                    </button>
                   </div>
                 </section>
 
                 <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-                  <div className="space-y-6 lg:col-span-8">
+                  {/* Left Column */}
+                  <div className="space-y-6 lg:col-span-4 xl:col-span-3">
+                    <PlayerProfileCard profile={profile} />
+                    <SessionTracker sessionStatus={sessionStatus} />
+                    <CapTracker caps={caps} />
+                  </div>
+
+                  {/* Middle Column */}
+                  <div className="space-y-6 lg:col-span-5 xl:col-span-6">
                     <MainActions
                       onStartQuest={handleQuestAction}
                       onStartPvp={() => setView('pvp')}
@@ -1010,10 +1023,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                     <TaskList tasks={tasks} onTasksUpdate={fetchGameData} />
                   </div>
 
-                  <div className="space-y-4 lg:col-span-4">
-                    <PlayerProfileCard profile={profile} />
-                    <SessionTracker sessionStatus={sessionStatus} />
-                    <CapTracker caps={caps} />
+                  {/* Right Column */}
+                  <div className="space-y-6 lg:col-span-3 xl:col-span-3">
                     <NewsFeed news={news} />
                   </div>
                 </section>
