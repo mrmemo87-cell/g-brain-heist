@@ -1,5 +1,4 @@
 ﻿import React from 'react';
-import { QuestIcon, HackIcon, ShopIcon, ClanIcon, InventoryIcon } from './icons';
 
 interface MainActionsProps {
   onStartQuest: () => void;
@@ -47,6 +46,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   const accent = `rgba(${color}, 1)`;
   const panel = `rgba(${color}, 0.14)`;
   const border = `rgba(${color}, 0.45)`;
+  const iconPanel = `linear-gradient(135deg, rgba(${color}, 0.4), rgba(${color}, 0.15))`;
 
   return (
     <button
@@ -64,7 +64,14 @@ const ActionButton: React.FC<ActionButtonProps> = ({
           {badgeText}
         </span>
       )}
-      <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950/60 text-2xl text-white shadow-inner sm:h-12 sm:w-12">
+      <div
+        className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl text-2xl shadow-inner sm:h-12 sm:w-12"
+        style={{
+          background: iconPanel,
+          color: '#0b0b0f',
+          boxShadow: `inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 10px 18px -14px ${accent}`,
+        }}
+      >
         {icon}
       </div>
       <span className="font-heading text-sm font-semibold tracking-wide text-white sm:text-base">{label}</span>
@@ -111,170 +118,170 @@ const MainActions: React.FC<MainActionsProps> = ({
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-          {onOpenCompetitionPlay && (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+            {onOpenCompetitionPlay && (
+              <ActionButton
+                onClick={onOpenCompetitionPlay}
+                icon={<span aria-hidden className="text-3xl">🎪</span>}
+                label="Silk Road Play"
+                color="0, 255, 200"
+                glowClass="glow-success animate-pulse-glow"
+                className="col-span-2"
+              />
+            )}
+            {onOpenCompetitionLeaderboard && (
+              <ActionButton
+                onClick={onOpenCompetitionLeaderboard}
+                icon={<span aria-hidden className="text-3xl">🏁</span>}
+                label="Silk Road Rankings"
+                color="0, 160, 255"
+                glowClass="glow-ion"
+                className={onOpenCompetitionPlay ? 'col-span-2' : ''}
+              />
+            )}
             <ActionButton
-              onClick={onOpenCompetitionPlay}
-              icon={<span className="text-3xl"></span>}
-              label="Silk Road Play"
-              color="0, 255, 200"
-              glowClass="glow-success animate-pulse-glow"
-              className="col-span-2"
+              onClick={onStartQuest}
+              icon={<span aria-hidden className="text-3xl">📘</span>}
+              label={hasPendingAssignment ? 'Assignment Required' : 'Start Quest'}
+              subtitle={hasPendingAssignment ? 'Complete your assignment first' : undefined}
+              badgeText={hasPendingAssignment ? '!' : undefined}
+              color="0, 208, 232"
+              glowClass={hasPendingAssignment ? 'glow-warn animate-pulse-glow' : 'glow-ion animate-pulse-glow'}
+              className={hasPendingAssignment ? 'ring-2 ring-amber-300 shadow-lg shadow-amber-300/40' : ''}
             />
-          )}
-          {onOpenCompetitionLeaderboard && (
             <ActionButton
-              onClick={onOpenCompetitionLeaderboard}
-              icon={<span className="text-3xl"></span>}
-              label="Silk Road Rankings"
-              color="0, 160, 255"
-              glowClass="glow-ion"
-              className={onOpenCompetitionPlay ? 'col-span-2' : ''}
+              onClick={onStartPvp}
+              icon={<span aria-hidden className="text-3xl">⚔️</span>}
+              label="Launch Attack"
+              color="255, 45, 145"
+              glowClass="glow-plasma animate-pulse-glow"
             />
-          )}
-          <ActionButton
-            onClick={onStartQuest}
-            icon={<QuestIcon />}
-            label={hasPendingAssignment ? 'Assignment Required' : 'Start Quest'}
-            subtitle={hasPendingAssignment ? 'Complete your assignment first' : undefined}
-            badgeText={hasPendingAssignment ? '!' : undefined}
-            color="0, 208, 232"
-            glowClass={hasPendingAssignment ? 'glow-warn animate-pulse-glow' : 'glow-ion animate-pulse-glow'}
-            className={hasPendingAssignment ? 'ring-2 ring-amber-300 shadow-lg shadow-amber-300/40' : ''}
-          />
-          <ActionButton
-            onClick={onStartPvp}
-            icon={<HackIcon />}
-            label=" Battle"
-            color="255, 45, 145"
-            glowClass="glow-plasma animate-pulse-glow"
-          />
-          {onOpenRaid && (
+            {onOpenRaid && (
+              <ActionButton
+                onClick={onOpenRaid}
+                icon={<span aria-hidden className="text-3xl">🛡️</span>}
+                label="Raids"
+                color="72, 61, 139"
+                glowClass="glow-purple"
+              />
+            )}
+            {onOpenLockdown && (
+              <ActionButton
+                onClick={onOpenLockdown}
+                icon={<span aria-hidden className="text-3xl">🔒</span>}
+                label="Lockdown Mode"
+                color="255, 69, 58"
+                glowClass="glow-plasma"
+                subtitle="Countdown ops sandbox"
+                className="col-span-2"
+              />
+            )}
             <ActionButton
-              onClick={onOpenRaid}
-              icon={<span className="text-3xl"></span>}
-              label="Raids"
-              color="72, 61, 139"
+              onClick={onVisitShop}
+              icon={<span aria-hidden className="text-3xl">🛒</span>}
+              label="Visit Shop"
+              color="22, 226, 161"
+              glowClass="glow-success"
+            />
+            {onOpenTournament && (
+              <ActionButton
+                onClick={onOpenTournament}
+                icon={<span aria-hidden className="text-3xl animate-bounce">🏟️</span>}
+                label="Tournament"
+                color="255, 140, 0"
+                glowClass="glow-warn"
+              />
+            )}
+            <ActionButton
+              onClick={onGoToClan}
+              icon={<span aria-hidden className="text-3xl">🧠</span>}
+              label="Clan"
+              color="255, 176, 32"
+              glowClass="glow-warn"
+            />
+            <ActionButton
+              onClick={onVisitInventory}
+              icon={<span aria-hidden className="text-3xl">🎒</span>}
+              label="Inventory"
+              color="158, 93, 255"
               glowClass="glow-purple"
             />
-          )}
-          {onOpenLockdown && (
             <ActionButton
-              onClick={onOpenLockdown}
-              icon={<span className="text-3xl"></span>}
-              label="Lockdown Mode"
-              color="255, 69, 58"
-              glowClass="glow-plasma"
-              subtitle="Countdown ops sandbox"
-              className="col-span-2"
-            />
-          )}
-          <ActionButton
-            onClick={onVisitShop}
-            icon={<ShopIcon />}
-            label="Visit Shop"
-            color="22, 226, 161"
-            glowClass="glow-success"
-          />
-          {onOpenTournament && (
-            <ActionButton
-              onClick={onOpenTournament}
-              icon={<span className="text-3xl animate-bounce"></span>}
-              label="Tournament"
-              color="255, 140, 0"
-              glowClass="glow-warn"
-            />
-          )}
-          <ActionButton
-            onClick={onGoToClan}
-            icon={<ClanIcon />}
-            label="Clan"
-            color="255, 176, 32"
-            glowClass="glow-warn"
-          />
-          <ActionButton
-            onClick={onVisitInventory}
-            icon={<InventoryIcon />}
-            label="Inventory"
-            color="158, 93, 255"
-            glowClass="glow-purple"
-          />
-          <ActionButton
-            onClick={onViewLeaderboard}
-            icon={<span className="text-3xl animate-float"></span>}
-            label="Leaderboard"
-            color="255, 215, 0"
-            glowClass="glow-warn"
-          />
-          <ActionButton
-            onClick={onViewAchievements}
-            icon={<span className="text-3xl animate-float"></span>}
-            label="Achievements"
-            color="255, 100, 200"
-            glowClass="glow-plasma"
-          />
-          {onOpenIeltsPrep && (
-            <ActionButton
-              onClick={onOpenIeltsPrep}
-              icon={<span className="text-3xl"></span>}
-              label="IELTS Prep"
-              color="0, 191, 255"
-              glowClass="glow-ion"
-              className="col-span-2"
-            />
-          )}
-          {onOpenAdminPortal && (
-            <ActionButton
-              onClick={onOpenAdminPortal}
-              icon={<span className="text-4xl animate-spin-slow"></span>}
-              label="ADMIN"
+              onClick={onViewLeaderboard}
+              icon={<span aria-hidden className="text-3xl animate-float">🏆</span>}
+              label="Leaderboard"
               color="255, 215, 0"
               glowClass="glow-warn"
-              className="col-span-2 animate-pulse-glow"
             />
-          )}
-          {onOpenRaidAdmin && (
             <ActionButton
-              onClick={onOpenRaidAdmin}
-              icon={<span className="text-3xl"></span>}
-              label="Raid Admin"
-              color="0, 191, 255"
-              glowClass="glow-ion"
+              onClick={onViewAchievements}
+              icon={<span aria-hidden className="text-3xl animate-float">🎖️</span>}
+              label="Achievements"
+              color="255, 100, 200"
+              glowClass="glow-plasma"
             />
-          )}
-          {onOpenCompetitionAdmin && (
-            <ActionButton
-              onClick={onOpenCompetitionAdmin}
-              icon={<span className="text-3xl"></span>}
-              label="Silk Road Admin"
-              color="0, 191, 255"
-              glowClass="glow-ion"
-              className="col-span-2"
-            />
-          )}
-          {onOpenTournamentAdmin && (
-            <ActionButton
-              onClick={onOpenTournamentAdmin}
-              icon={<span className="text-3xl animate-float"></span>}
-              label="Tournament Ops"
-              color="135, 206, 250"
-              glowClass="glow-ion"
-              className="col-span-2"
-            />
-          )}
-          {onOpenTeacherPortal && (
-            <ActionButton
-              onClick={onOpenTeacherPortal}
-              icon={<span className="text-3xl animate-bounce"></span>}
-              label="Teacher"
-              color="100, 200, 255"
-              glowClass="glow-ion"
-            />
-          )}
+            {onOpenIeltsPrep && (
+              <ActionButton
+                onClick={onOpenIeltsPrep}
+                icon={<span aria-hidden className="text-3xl">🗣️</span>}
+                label="IELTS Prep"
+                color="0, 191, 255"
+                glowClass="glow-ion"
+                className="col-span-2"
+              />
+            )}
+            {onOpenAdminPortal && (
+              <ActionButton
+                onClick={onOpenAdminPortal}
+                icon={<span aria-hidden className="text-4xl animate-spin-slow">🛠️</span>}
+                label="ADMIN"
+                color="255, 215, 0"
+                glowClass="glow-warn"
+                className="col-span-2 animate-pulse-glow"
+              />
+            )}
+            {onOpenRaidAdmin && (
+              <ActionButton
+                onClick={onOpenRaidAdmin}
+                icon={<span aria-hidden className="text-3xl">🛡️</span>}
+                label="Raid Admin"
+                color="0, 191, 255"
+                glowClass="glow-ion"
+              />
+            )}
+            {onOpenCompetitionAdmin && (
+              <ActionButton
+                onClick={onOpenCompetitionAdmin}
+                icon={<span aria-hidden className="text-3xl">📊</span>}
+                label="Silk Road Admin"
+                color="0, 191, 255"
+                glowClass="glow-ion"
+                className="col-span-2"
+              />
+            )}
+            {onOpenTournamentAdmin && (
+              <ActionButton
+                onClick={onOpenTournamentAdmin}
+                icon={<span aria-hidden className="text-3xl animate-float">🎮</span>}
+                label="Tournament Ops"
+                color="135, 206, 250"
+                glowClass="glow-ion"
+                className="col-span-2"
+              />
+            )}
+            {onOpenTeacherPortal && (
+              <ActionButton
+                onClick={onOpenTeacherPortal}
+                icon={<span aria-hidden className="text-3xl animate-bounce">🧑‍🏫</span>}
+                label="Teacher"
+                color="100, 200, 255"
+                glowClass="glow-ion"
+              />
+            )}
+          </div>
         </div>
-      </div>
-    </section>
-  );
-};
+      </section>
+    );
+  };
 
 export default MainActions;
