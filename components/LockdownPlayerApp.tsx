@@ -358,9 +358,12 @@ export const AnswerOptions: React.FC<AnswerOptionsProps> = ({
   disabled,
   onSelect,
 }) => {
+  // Memoize the stable option list to prevent re-renders from shuffling
+  const stableOptions = React.useMemo(() => options, [options.length, options[0]?.id]);
+  
   return (
     <div className="grid grid-cols-1 gap-3">
-      {options.map((option, index) => {
+      {stableOptions.map((option, index) => {
         const isSelected = option.id === selectedOptionId;
         return (
           <button

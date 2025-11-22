@@ -6,6 +6,28 @@ const REGIONS = [
   "region_5", "region_6", "region_7", "region_8"
 ];
 
+// Color palette for clans (consistent hashing)
+const CLAN_COLOR_PALETTE = [
+  "#f97316",  // orange
+  "#0ea5e9",  // sky blue
+  "#10b981",  // emerald
+  "#a855f7",  // purple
+  "#f43f5e",  // rose
+  "#14b8a6",  // teal
+  "#6366f1",  // indigo
+  "#eab308",  // yellow
+];
+
+const getClanColor = (clanId: string): string => {
+  let hash = 0;
+  for (let i = 0; i < clanId.length; i += 1) {
+    hash = (hash << 5) - hash + clanId.charCodeAt(i);
+    hash |= 0; // Convert to 32bit integer
+  }
+  const index = Math.abs(hash) % CLAN_COLOR_PALETTE.length;
+  return CLAN_COLOR_PALETTE[index];
+};
+
 /**
  * Calculate region statistics based on player answers and clan membership
  * Maps players to regions based on their current activity
@@ -70,10 +92,12 @@ export const calculateRegionStats = (state: GameState): Record<string, RegionSta
       // Get clan name from first player
       const clanName = clanData.players[0]?.clanName || "Unknown";
       const avatarUrl = clanData.players[0]?.clanAvatarUrl;
+      const color = getClanColor(clanId);
 
       clanStatsArray.push({
         clanId,
         clanName,
+        color,
         avatarUrl,
         correctAnswers: clanData.correct,
         totalAnswers: clanData.total,
