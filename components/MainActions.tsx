@@ -205,7 +205,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             <ActionButton
               onClick={onStartQuest}
               icon={<span aria-hidden className="text-3xl">📜✨</span>}
-              label={hasPendingAssignment ? 'Assignment Required' : 'Start Quest'}
+              label={hasPendingAssignment ? 'Assignment Required ⚠️' : 'Start Quest 📜✨'}
               subtitle={hasPendingAssignment ? 'Complete your assignment first' : undefined}
               badgeText={hasPendingAssignment ? '!' : undefined}
               color="0, 208, 232"
@@ -215,7 +215,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             <ActionButton
               onClick={onStartPvp}
               icon={<span aria-hidden className="text-3xl">⚔️🔥</span>}
-              label="Launch Attack"
+              label="Launch Attack ⚔️🔥"
               color="255, 45, 145"
               glowClass="glow-plasma animate-pulse-glow"
             />
@@ -223,7 +223,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               <ActionButton
                 onClick={onOpenRaid}
                 icon={<span aria-hidden className="text-3xl">🛡️🚀</span>}
-                label="Raids"
+                label="Raids 🛡️🚀"
                 color="72, 61, 139"
                 glowClass="glow-purple"
               />
@@ -232,7 +232,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               <ActionButton
                 onClick={onOpenLockdown}
                 icon={<span aria-hidden className="text-3xl">🔒🛰️</span>}
-                label="Lockdown Mode"
+                label="Lockdown Mode 🔒🛰️"
                 color="255, 69, 58"
                 glowClass="glow-plasma"
                 subtitle="Countdown ops sandbox"
@@ -242,7 +242,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             <ActionButton
               onClick={onVisitShop}
               icon={<span aria-hidden className="text-3xl">🛍️💎</span>}
-              label="Visit Shop"
+              label="Visit Shop 🛍️💎"
               color="22, 226, 161"
               glowClass="glow-success"
             />
@@ -250,7 +250,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               <ActionButton
                 onClick={onOpenTournament}
                 icon={<span aria-hidden className="text-3xl animate-bounce">🏟️🥇</span>}
-                label="Tournament"
+                label="Tournament 🏟️🥇"
                 color="255, 140, 0"
                 glowClass="glow-warn"
               />
@@ -258,28 +258,28 @@ const MainActions: React.FC<MainActionsProps> = ({
             <ActionButton
               onClick={onGoToClan}
               icon={<span aria-hidden className="text-3xl">🧠🤝</span>}
-              label="Clan"
+              label="Clan 🧠🤝"
               color="255, 176, 32"
               glowClass="glow-warn"
             />
             <ActionButton
               onClick={onVisitInventory}
               icon={<span aria-hidden className="text-3xl">🎒📦</span>}
-              label="Inventory"
+              label="Inventory 🎒📦"
               color="158, 93, 255"
               glowClass="glow-purple"
             />
             <ActionButton
               onClick={onViewLeaderboard}
               icon={<span aria-hidden className="text-3xl animate-float">🏆📈</span>}
-              label="Leaderboard"
+              label="Leaderboard 🏆📈"
               color="255, 215, 0"
               glowClass="glow-warn"
             />
             <ActionButton
               onClick={onViewAchievements}
               icon={<span aria-hidden className="text-3xl animate-float">🎖️🌟</span>}
-              label="Achievements"
+              label="Achievements 🎖️🌟"
               color="255, 100, 200"
               glowClass="glow-plasma"
             />
@@ -287,7 +287,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               <ActionButton
                 onClick={onOpenIeltsPrep}
                 icon={<span aria-hidden className="text-3xl">🗣️🎯</span>}
-                label="IELTS Prep"
+                label="IELTS Prep 🗣️🎯"
                 color="0, 191, 255"
                 glowClass="glow-ion"
                 className="col-span-2"
@@ -297,7 +297,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               <ActionButton
                 onClick={onOpenAdminPortal}
                 icon={<span aria-hidden className="text-4xl animate-spin-slow">🛠️⚡</span>}
-                label="ADMIN"
+                label="ADMIN 🛠️⚡"
                 color="255, 215, 0"
                 glowClass="glow-warn"
                 className="col-span-2 animate-pulse-glow"
@@ -307,7 +307,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               <ActionButton
                 onClick={onOpenRaidAdmin}
                 icon={<span aria-hidden className="text-3xl">🛡️🧭</span>}
-                label="Raid Admin"
+                label="Raid Admin 🛡️🧭"
                 color="0, 191, 255"
                 glowClass="glow-ion"
               />
