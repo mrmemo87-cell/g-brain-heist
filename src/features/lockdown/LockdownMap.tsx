@@ -153,17 +153,12 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
         }
         lastRegionStyleKeyRef.current[regionId] = neutralKey;
         
-        // Set CSS variables on parent for reference
-        regionGroup.style.setProperty("--region-base-fill", "#1f2937");
-        regionGroup.style.setProperty("--region-base-opacity", "0.5");
-        regionGroup.style.setProperty("--region-base-stroke", "#475569");
-        
-        // Apply CSS variables to all child elements via setAttribute
+        // Apply actual color values directly to all child elements
         const childElements = regionGroup.querySelectorAll<SVGElement>("path, rect, circle, ellipse, polygon, polyline");
         childElements.forEach((child) => {
-          child.setAttribute("fill", "var(--region-base-fill)");
-          child.setAttribute("opacity", "var(--region-base-opacity)");
-          child.setAttribute("stroke", "var(--region-base-stroke)");
+          child.setAttribute("fill", "#1f2937");
+          child.setAttribute("opacity", "0.5");
+          child.setAttribute("stroke", "#475569");
         });
         return;
       }
@@ -179,18 +174,13 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
       }
       lastRegionStyleKeyRef.current[regionId] = styleKey;
 
-      // Set CSS variables on parent for reference
-      regionGroup.style.setProperty("--region-base-fill", clanColor);
-      regionGroup.style.setProperty("--region-base-opacity", opacity.toString());
-      regionGroup.style.setProperty("--region-base-stroke", clanColor);
-      
-      // Apply CSS variables to all child elements via setAttribute
-      // This works perfectly with cleaned SVG that has no inline fill/stroke styles
+      // Apply actual color values directly to all child elements
+      // With cleaned SVG (no inline styles), setAttribute works perfectly
       const childElements = regionGroup.querySelectorAll<SVGElement>("path, rect, circle, ellipse, polygon, polyline");
       childElements.forEach((child) => {
-        child.setAttribute("fill", "var(--region-base-fill)");
-        child.setAttribute("opacity", "var(--region-base-opacity)");
-        child.setAttribute("stroke", "var(--region-base-stroke)");
+        child.setAttribute("fill", clanColor);
+        child.setAttribute("opacity", opacity.toString());
+        child.setAttribute("stroke", clanColor);
       });
     });
   }, [mounted, regionStats, mapMarkup]);
