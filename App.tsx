@@ -864,7 +864,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                                         onClick={() => setView('teacher')}
                                         className="w-full p-6 rounded-xl bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-2 border-purple-400 hover:border-purple-300 transition-all hover:scale-105 active:scale-95"
                                     >
-                                        <div className="text-4xl mb-2">📚</div>
+                                        <div className="text-4xl mb-2">🧑‍🏫📘</div>
                                         <div className="font-heading text-xl mb-1">Question Management</div>
                                         <div className="text-sm text-gray-300">Create and manage your questions</div>
                                     </button>
@@ -872,7 +872,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                                         onClick={() => setView('lockdown')}
                                         className="w-full p-6 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border-2 border-emerald-400 hover:border-emerald-300 transition-all hover:scale-105 active:scale-95"
                                     >
-                                        <div className="text-4xl mb-2">🚨</div>
+                                        <div className="text-4xl mb-2">🔒🛰️</div>
                                         <div className="font-heading text-xl mb-1">Lockdown Mode</div>
                                         <div className="text-sm text-gray-300">Host a live classroom session</div>
                                     </button>

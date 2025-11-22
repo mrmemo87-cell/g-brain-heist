@@ -212,9 +212,9 @@ body.light-mode .lite-mode-wrapper main {
 }
 
 body.light-mode .dashboard-panel {
-  background: #ffffff !important;
-  border-color: #d9e2ec !important;
-  box-shadow: 0 6px 18px -8px rgba(15, 23, 42, 0.15);
+  background: #1a1a1a !important;
+  border-color: #333 !important;
+  box-shadow: none !important;
   backdrop-filter: none !important;
 }
 
@@ -234,20 +234,20 @@ body.light-mode .dashboard-panel img {
 }
 
 body.light-mode .dashboard-panel .dashboard-action {
-  background: #f6f8fb !important;
-  border-color: #d7dde7 !important;
+  background: #222 !important;
+  border-color: #444 !important;
   box-shadow: none !important;
   transform: none !important;
-  color: #0f172a !important;
+  color: #ffffff !important;
 }
 
 body.light-mode .dashboard-panel button {
-  background: #f6f8fb !important;
-  color: #0f172a !important;
+  background: #222 !important;
+  color: #ffffff !important;
 }
 
 body.light-mode .dashboard-panel .dashboard-action:hover {
-  background: #e6ebf5 !important;
+  background: #333 !important;
 }
 
 body.light-mode .dashboard-panel .dashboard-action > span[aria-hidden="true"] {
@@ -255,17 +255,17 @@ body.light-mode .dashboard-panel .dashboard-action > span[aria-hidden="true"] {
 }
 
 body.light-mode .dashboard-panel .dashboard-action__icon {
-  background: #e0e7f1 !important;
+  background: #333 !important;
   box-shadow: none !important;
-  color: #0f172a !important;
+  color: #ffffff !important;
 }
 
 body.light-mode .dashboard-panel .dashboard-action__label {
-  color: #0f172a !important;
+  color: #ffffff !important;
 }
 
 body.light-mode .dashboard-panel .dashboard-action__subtitle {
-  color: #334155 !important;
+  color: #cbd5e1 !important;
 }
 
 body.light-mode .dashboard-panel button,
