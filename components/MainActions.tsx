@@ -54,7 +54,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
     <button
       type="button"
       onClick={onClick}
-      className={`group relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-2xl border px-4 py-5 text-center transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_-22px_rgba(0,0,0,0.75)] active:scale-[0.99] sm:px-5 sm:py-6 ${glowClass} ${className ?? ''}`}
+      className={`dashboard-action group relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-2xl border px-4 py-5 text-center transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_-22px_rgba(0,0,0,0.75)] active:scale-[0.99] sm:px-5 sm:py-6 ${glowClass} ${className ?? ''}`}
       style={{
         background: `radial-gradient(circle at 18% 16%, rgba(255,255,255,0.06), transparent 30%), radial-gradient(circle at 82% 12%, rgba(255,255,255,0.05), transparent 26%), linear-gradient(150deg, ${panel}, rgba(15, 23, 42, 0.7))`,
         borderColor: border,
@@ -75,7 +75,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
         </span>
       )}
       <div
-        className="relative z-[1] mb-2 flex h-12 w-12 items-center justify-center rounded-2xl text-3xl shadow-inner shadow-slate-950/60 ring-1 ring-white/10 sm:h-14 sm:w-14"
+        className="dashboard-action__icon relative z-[1] mb-2 flex h-12 w-12 items-center justify-center rounded-2xl text-3xl shadow-inner shadow-slate-950/60 ring-1 ring-white/10 sm:h-14 sm:w-14"
         style={{
           background: iconPanel,
           color: '#030712',
@@ -84,11 +84,11 @@ const ActionButton: React.FC<ActionButtonProps> = ({
       >
         {icon}
       </div>
-      <span className="relative z-[1] font-heading text-sm font-semibold tracking-wide text-white sm:text-base">
+      <span className="dashboard-action__label relative z-[1] font-heading text-sm font-semibold tracking-wide text-white sm:text-base">
         {label}
       </span>
       {subtitle && (
-        <span className="relative z-[1] mt-2 max-w-[160px] text-[0.7rem] leading-snug text-slate-200/90 sm:text-xs">
+        <span className="dashboard-action__subtitle relative z-[1] mt-2 max-w-[160px] text-[0.7rem] leading-snug text-slate-200/90 sm:text-xs">
           {subtitle}
         </span>
       )}
@@ -118,7 +118,7 @@ const MainActions: React.FC<MainActionsProps> = ({
   hasPendingAssignment,
 }) => {
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-950/60 p-4 shadow-2xl shadow-slate-950/50 backdrop-blur sm:p-6">
+    <section className="dashboard-panel relative overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-950/60 p-4 shadow-2xl shadow-slate-950/50 backdrop-blur sm:p-6">
       <span
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-80"
@@ -205,7 +205,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             <ActionButton
               onClick={onStartQuest}
               icon={<span aria-hidden className="text-3xl">📜✨</span>}
-              label={hasPendingAssignment ? 'Assignment Required' : 'Start Quest'}
+              label={hasPendingAssignment ? 'Assignment Required ⚠️' : 'Start Quest 📜✨'}
               subtitle={hasPendingAssignment ? 'Complete your assignment first' : undefined}
               badgeText={hasPendingAssignment ? '!' : undefined}
               color="0, 208, 232"
@@ -215,7 +215,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             <ActionButton
               onClick={onStartPvp}
               icon={<span aria-hidden className="text-3xl">⚔️🔥</span>}
-              label="Launch Attack"
+              label="Launch Attack ⚔️🔥"
               color="255, 45, 145"
               glowClass="glow-plasma animate-pulse-glow"
             />
@@ -223,7 +223,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               <ActionButton
                 onClick={onOpenRaid}
                 icon={<span aria-hidden className="text-3xl">🛡️🚀</span>}
-                label="Raids"
+                label="Raids 🛡️🚀"
                 color="72, 61, 139"
                 glowClass="glow-purple"
               />
@@ -232,7 +232,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               <ActionButton
                 onClick={onOpenLockdown}
                 icon={<span aria-hidden className="text-3xl">🔒🛰️</span>}
-                label="Lockdown Mode"
+                label="Lockdown Mode 🔒🛰️"
                 color="255, 69, 58"
                 glowClass="glow-plasma"
                 subtitle="Countdown ops sandbox"
@@ -242,7 +242,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             <ActionButton
               onClick={onVisitShop}
               icon={<span aria-hidden className="text-3xl">🛍️💎</span>}
-              label="Visit Shop"
+              label="Visit Shop 🛍️💎"
               color="22, 226, 161"
               glowClass="glow-success"
             />
@@ -250,7 +250,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               <ActionButton
                 onClick={onOpenTournament}
                 icon={<span aria-hidden className="text-3xl animate-bounce">🏟️🥇</span>}
-                label="Tournament"
+                label="Tournament 🏟️🥇"
                 color="255, 140, 0"
                 glowClass="glow-warn"
               />
@@ -258,28 +258,28 @@ const MainActions: React.FC<MainActionsProps> = ({
             <ActionButton
               onClick={onGoToClan}
               icon={<span aria-hidden className="text-3xl">🧠🤝</span>}
-              label="Clan"
+              label="Clan 🧠🤝"
               color="255, 176, 32"
               glowClass="glow-warn"
             />
             <ActionButton
               onClick={onVisitInventory}
               icon={<span aria-hidden className="text-3xl">🎒📦</span>}
-              label="Inventory"
+              label="Inventory 🎒📦"
               color="158, 93, 255"
               glowClass="glow-purple"
             />
             <ActionButton
               onClick={onViewLeaderboard}
               icon={<span aria-hidden className="text-3xl animate-float">🏆📈</span>}
-              label="Leaderboard"
+              label="Leaderboard 🏆📈"
               color="255, 215, 0"
               glowClass="glow-warn"
             />
             <ActionButton
               onClick={onViewAchievements}
               icon={<span aria-hidden className="text-3xl animate-float">🎖️🌟</span>}
-              label="Achievements"
+              label="Achievements 🎖️🌟"
               color="255, 100, 200"
               glowClass="glow-plasma"
             />
@@ -287,7 +287,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               <ActionButton
                 onClick={onOpenIeltsPrep}
                 icon={<span aria-hidden className="text-3xl">🗣️🎯</span>}
-                label="IELTS Prep"
+                label="IELTS Prep 🗣️🎯"
                 color="0, 191, 255"
                 glowClass="glow-ion"
                 className="col-span-2"
@@ -297,7 +297,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               <ActionButton
                 onClick={onOpenAdminPortal}
                 icon={<span aria-hidden className="text-4xl animate-spin-slow">🛠️⚡</span>}
-                label="ADMIN"
+                label="ADMIN 🛠️⚡"
                 color="255, 215, 0"
                 glowClass="glow-warn"
                 className="col-span-2 animate-pulse-glow"
@@ -307,7 +307,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               <ActionButton
                 onClick={onOpenRaidAdmin}
                 icon={<span aria-hidden className="text-3xl">🛡️🧭</span>}
-                label="Raid Admin"
+                label="Raid Admin 🛡️🧭"
                 color="0, 191, 255"
                 glowClass="glow-ion"
               />
