@@ -52,7 +52,7 @@ export class SupabaseLockdownTransport implements LockdownTransport {
   async joinRoom(
     roomId: RoomId,
     playerName: string,
-    options?: { clanId?: string; clanName?: string; clanAvatarUrl?: string; clanColor?: string },
+    options?: { clanId?: string; clanName?: string; clanAvatarUrl?: string },
   ): Promise<PlayerId> {
     this.isHost = false;
     // Generate a persistent ID for this session if possible, or random
@@ -92,7 +92,6 @@ export class SupabaseLockdownTransport implements LockdownTransport {
               clanId: options?.clanId,
               clanName: options?.clanName,
               clanAvatarUrl: options?.clanAvatarUrl,
-              clanColor: options?.clanColor,
             } as any);
           }
         });

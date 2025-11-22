@@ -96,7 +96,6 @@ export type PlayerState = {
   clanId?: string;
   clanName?: string;
   clanAvatarUrl?: string;
-  clanColor?: string;
   currentRegion?: string;
 };
 
@@ -144,7 +143,6 @@ export type JoinGameAction = {
   clanId?: string;
   clanName?: string;
   clanAvatarUrl?: string;
-  clanColor?: string;
 };
 
 export type LeaveGameAction = {

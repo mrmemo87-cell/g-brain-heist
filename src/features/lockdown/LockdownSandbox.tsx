@@ -42,10 +42,10 @@ const alarmBadges: Record<AlarmLevel, string> = {
 };
 
 const SANDBOX_CLANS = [
-  { clanId: "clan-alpha", clanName: "Alpha Wolves", clanAvatarUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=alpha", clanColor: "#3b82f6" },
-  { clanId: "clan-bravo", clanName: "Bravo Syndicate", clanAvatarUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=bravo", clanColor: "#ef4444" },
-  { clanId: "clan-charlie", clanName: "Charlie Ops", clanAvatarUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=charlie", clanColor: "#f59e0b" },
-  { clanId: "clan-delta", clanName: "Delta Ghosts", clanAvatarUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=delta", clanColor: "#06b6d4" },
+  { clanId: "clan-alpha", clanName: "Alpha Wolves", clanAvatarUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=alpha" },
+  { clanId: "clan-bravo", clanName: "Bravo Syndicate", clanAvatarUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=bravo" },
+  { clanId: "clan-charlie", clanName: "Charlie Ops", clanAvatarUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=charlie" },
+  { clanId: "clan-delta", clanName: "Delta Ghosts", clanAvatarUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=delta" },
 ];
 
 interface LocalPlayer {

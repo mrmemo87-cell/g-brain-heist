@@ -4,7 +4,7 @@ import { LockdownTeacherView } from './LockdownTeacherView';
 import { LockdownStudentView } from './LockdownStudentView';
 import { RoomId, PlayerId } from '../../lib/lockdownTransport';
 
-export const LockdownManager: React.FC<{ onExit: () => void; isTeacher?: boolean; playerName?: string; clanId?: string | null; clanName?: string | null; clanAvatarUrl?: string | null; clanColor?: string | null }> = ({ onExit, isTeacher = false, playerName: initialPlayerName = '', clanId = null, clanName = null, clanAvatarUrl = null, clanColor = null }) => {
+export const LockdownManager: React.FC<{ onExit: () => void; isTeacher?: boolean; playerName?: string; clanId?: string | null; clanName?: string | null; clanAvatarUrl?: string | null }> = ({ onExit, isTeacher = false, playerName: initialPlayerName = '', clanId = null, clanName = null, clanAvatarUrl = null }) => {
   const [mode, setMode] = useState<'lobby' | 'host' | 'player'>('lobby');
   const [transport] = useState(() => new SupabaseLockdownTransport());
   const [roomId, setRoomId] = useState<RoomId | null>(null);
@@ -45,7 +45,6 @@ export const LockdownManager: React.FC<{ onExit: () => void; isTeacher?: boolean
         clanId: clanId ?? undefined,
         clanName: clanName ?? undefined,
         clanAvatarUrl: clanAvatarUrl ?? undefined,
-        clanColor: clanColor ?? undefined,
       });
       setRoomId(id);
       setPlayerId(pid);

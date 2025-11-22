@@ -68,7 +68,6 @@ const applyJoin = (state: GameState, action: JoinGameAction): GameState => {
     clanId: action.clanId,
     clanName: action.clanName,
     clanAvatarUrl: action.clanAvatarUrl,
-    clanColor: action.clanColor,
   };
   return { ...state, players: { ...state.players, [action.playerId]: player } };
 };

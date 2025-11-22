@@ -16,7 +16,7 @@ export interface LockdownTransport {
   joinRoom(
     roomId: RoomId,
     playerName: string,
-    options?: { clanId?: string; clanName?: string; clanAvatarUrl?: string; clanColor?: string },
+    options?: { clanId?: string; clanName?: string; clanAvatarUrl?: string },
   ): Promise<PlayerId>;
   onGameState(roomId: RoomId, callback: (state: GameState) => void): () => void;
   sendAction(roomId: RoomId, action: GameAction): Promise<void>;
@@ -61,7 +61,7 @@ export class InMemoryLockdownTransport implements LockdownTransport {
   async joinRoom(
     roomId: RoomId,
     playerName: string,
-    options?: { clanId?: string; clanName?: string; clanAvatarUrl?: string; clanColor?: string },
+    options?: { clanId?: string; clanName?: string; clanAvatarUrl?: string },
   ): Promise<PlayerId> {
     const room = this.rooms.get(roomId);
     if (!room) {
@@ -77,7 +77,6 @@ export class InMemoryLockdownTransport implements LockdownTransport {
       clanId: options?.clanId,
       clanName: options?.clanName,
       clanAvatarUrl: options?.clanAvatarUrl,
-      clanColor: options?.clanColor,
     });
     return playerId;
   }
