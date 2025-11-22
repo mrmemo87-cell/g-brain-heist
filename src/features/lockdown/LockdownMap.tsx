@@ -88,17 +88,35 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
     style.id = styleId;
     style.textContent = `
       .lockdown-map-region {
+        /* Smooth transitions for all dynamic properties */
         transition: opacity 0.35s ease, stroke-width 0.3s ease, filter 0.4s ease, fill 0.25s linear;
+        
+        /* Base styles using CSS custom properties - no inline styles in SVG means these work perfectly */
         opacity: var(--region-base-opacity, 0.65);
         stroke-width: var(--region-base-stroke-width, 2);
         filter: var(--region-base-filter, none);
         cursor: var(--region-cursor, default);
-        fill: var(--region-base-fill, currentColor);
-        stroke: var(--region-base-stroke, currentColor);
+        fill: var(--region-base-fill, #1f2937);
+        stroke: var(--region-base-stroke, #475569);
       }
+      
+      /* Apply to all child shapes - cleaned SVG has no inline fill/stroke, so inheritance works */
+      .lockdown-map-region path,
+      .lockdown-map-region rect,
+      .lockdown-map-region circle,
+      .lockdown-map-region ellipse,
+      .lockdown-map-region polygon,
+      .lockdown-map-region polyline {
+        fill: inherit;
+        stroke: inherit;
+        opacity: inherit;
+        transition: inherit;
+      }
+      
       .lockdown-map-region * {
         pointer-events: none;
       }
+      
       .lockdown-map-region:hover {
         opacity: var(--region-hover-opacity, 1) !important;
         stroke-width: var(--region-hover-stroke-width, var(--region-base-stroke-width, 2)) !important;
@@ -126,29 +144,31 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
     if (!svg) return;
 
     // Update each region based on clan statistics
+    // Clean SVG with no inline styles means CSS variables work perfectly via inheritance
     Object.entries(regionStats).forEach(([regionId, stats]) => {
       const regionGroup = svg.querySelector(`#${regionId}`) as SVGGElement | null;
       if (!regionGroup) return;
 
+      // Add class for CSS inheritance
+      if (!regionGroup.classList.contains("lockdown-map-region")) {
+        regionGroup.classList.add("lockdown-map-region");
+      }
+
       const topClan = stats.topClan;
       if (!topClan) {
-        // No data - set to neutral
-        const neutralKey = `neutral|#1f2937|0.5|#475569|2|none`;
+        // No data - set to neutral colors
+        const neutralKey = `neutral|#1f2937|0.5|#475569`;
         if (lastRegionStyleKeyRef.current[regionId] === neutralKey) {
           return;
         }
         lastRegionStyleKeyRef.current[regionId] = neutralKey;
+        
+        // Set CSS variables on group - child elements inherit via CSS
         regionGroup.style.setProperty("--region-base-fill", "#1f2937");
         regionGroup.style.setProperty("--region-base-opacity", "0.5");
         regionGroup.style.setProperty("--region-base-stroke", "#475569");
-        regionGroup.querySelectorAll<SVGElement>("path, rect, circle, ellipse, polygon, polyline, text").forEach((child) => {
-          child.style.setProperty("fill", "var(--region-base-fill)");
-          child.style.setProperty("stroke", "var(--region-base-stroke)");
-          child.style.setProperty("stroke-dasharray", "var(--region-stroke-dasharray, none)");
-        });
         regionGroup.style.setProperty("--region-base-stroke-width", "2");
         regionGroup.style.setProperty("--region-base-filter", "none");
-        regionGroup.style.setProperty("--region-cursor", "default");
         return;
       }
 
@@ -156,25 +176,19 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
       const clanColor = topClan.color || getColorForClan(topClan.clanId);
       const opacity = Math.max(0.3, topClan.percentage / 100); // Scale opacity by percentage
 
-      const styleKey = `${regionId}|${clanColor}|${opacity.toFixed(3)}|2`;
+      // Memoization: skip if style unchanged
+      const styleKey = `${topClan.clanId}|${clanColor}|${opacity.toFixed(3)}`;
       if (lastRegionStyleKeyRef.current[regionId] === styleKey) {
         return;
       }
       lastRegionStyleKeyRef.current[regionId] = styleKey;
 
+      // Set CSS variables - no need to touch child elements, inheritance handles it
       regionGroup.style.setProperty("--region-base-fill", clanColor);
       regionGroup.style.setProperty("--region-base-opacity", opacity.toString());
       regionGroup.style.setProperty("--region-base-stroke", clanColor);
-      regionGroup.querySelectorAll<SVGElement>("path, rect, circle, ellipse, polygon, polyline, text").forEach((child) => {
-        child.style.setProperty("fill", "var(--region-base-fill)");
-        child.style.setProperty("stroke", "var(--region-base-stroke)");
-        child.style.setProperty("stroke-dasharray", "var(--region-stroke-dasharray, none)");
-      });
       regionGroup.style.setProperty("--region-base-stroke-width", "2");
       regionGroup.style.setProperty("--region-base-filter", `drop-shadow(0 0 10px ${clanColor})`);
-      regionGroup.style.setProperty("--region-cursor", "default");
-      regionGroup.onmouseenter = null;
-      regionGroup.onmouseleave = null;
     });
   }, [mounted, regionStats, mapMarkup]);
 
