@@ -222,11 +222,20 @@ body.light-mode .dashboard-panel > span[aria-hidden="true"] {
   display: none !important;
 }
 
-body.light-mode .dashboard-panel h2,
-body.light-mode .dashboard-panel p,
-body.light-mode .dashboard-panel span,
+body.light-mode .dashboard-panel h2 {
+  color: #ffffff !important;
+}
+
+body.light-mode .dashboard-panel p {
+  color: #94a3b8 !important;
+}
+
+body.light-mode .dashboard-panel span {
+  color: #e2e8f0 !important;
+}
+
 body.light-mode .dashboard-panel div {
-  color: inherit !important;
+  color: #e2e8f0 !important;
 }
 
 body.light-mode .dashboard-panel img {
@@ -339,6 +348,19 @@ body.light-mode [aria-hidden="true"] {
   display: none !important;
 }
 
+/* BUT allow emojis/icons to show in dashboard panels */
+body.light-mode .dashboard-panel [aria-hidden="true"] {
+  display: inline !important;
+}
+
+body.light-mode .dashboard-panel .dashboard-action [aria-hidden="true"] {
+  display: inline !important;
+}
+
+body.light-mode .dashboard-panel .dashboard-action__icon [aria-hidden="true"] {
+  display: inline !important;
+}
+
 /* Minimal spacing */
 body.light-mode [class*="space-y"] > * + * {
   margin-top: 8px !important;
@@ -366,4 +388,14 @@ body.light-mode {
   animation-delay: 0s !important;
   transition-duration: 0s !important;
   transition-delay: 0s !important;
+}
+
+/* Ensure login page has dark background */
+body.light-mode .min-h-screen {
+  background: #0a0a0a !important;
+}
+
+body.light-mode .card-glass {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
 }
