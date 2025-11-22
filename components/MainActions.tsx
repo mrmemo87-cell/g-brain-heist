@@ -1,6 +1,6 @@
 import React from 'react';
 
-const silkRoadLogoPath = '/schools/silk_road/silk_road_logo.svg';
+const silkRoadLogoPath = '/schools/silk_road/silk_road_logo.jpg';
 
 interface MainActionsProps {
   onStartQuest: () => void;
@@ -130,33 +130,28 @@ const MainActions: React.FC<MainActionsProps> = ({
       <div className="relative flex flex-col gap-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-300/30 bg-gradient-to-br from-slate-900/80 via-slate-900 to-slate-950 shadow-lg shadow-slate-900/60">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900/70 shadow-inner shadow-slate-900/60">
               <span aria-hidden className="text-3xl">🛰️🚀</span>
-              <span className="absolute inset-0 rounded-2xl border border-white/5" />
             </div>
             <div>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2">
                 <h2 className="font-heading text-lg font-bold text-white sm:text-xl">Mission Console</h2>
-                <span className="rounded-full border border-cyan-300/50 bg-cyan-500/20 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-cyan-100 shadow shadow-cyan-500/20">
+                <span className="rounded-full border border-cyan-300/40 bg-cyan-500/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-cyan-100">
                   🎯 Ready
                 </span>
               </div>
-              <p className="text-sm text-slate-300">Pick your next move. Everything stays crisp on phones.</p>
+              <p className="text-sm text-slate-400">Pick your next move. Everything fits comfortably on phones.</p>
             </div>
           </div>
-          <div className="relative flex items-center gap-2 rounded-full border border-emerald-400/40 bg-gradient-to-r from-emerald-600/30 via-slate-900/70 to-cyan-500/30 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-slate-50 shadow-lg shadow-emerald-500/20">
-            <span className="pointer-events-none absolute inset-0 rounded-full border border-white/5" aria-hidden />
+          <div className="flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/70 px-3 py-1 shadow-inner shadow-slate-900/40">
             <img
               src={silkRoadLogoPath}
               alt="Silk Road school logo"
-              className="h-9 w-9 rounded-full border border-white/40 bg-white/80 object-cover shadow-md shadow-slate-950/50"
+              className="h-8 w-8 rounded-full object-cover"
             />
-            <div className="flex flex-col leading-tight">
-              <span className="text-[0.65rem] uppercase tracking-[0.14em] text-emerald-100">Silk Road</span>
-              <span className="flex items-center gap-1 text-xs font-semibold text-white">
-                <span aria-hidden>🏺✨</span>
-                <span>Mission Ready</span>
-              </span>
+            <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-100">
+              <span aria-hidden>🏺✨</span>
+              <span>Silk Road School</span>
             </div>
           </div>
           {hasPendingAssignment && (
