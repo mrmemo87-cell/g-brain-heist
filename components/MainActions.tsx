@@ -1,4 +1,6 @@
-﻿import React from 'react';
+import React from 'react';
+
+const silkRoadLogoPath = '/schools/silk_road/silk_road_logo.jpg';
 
 interface MainActionsProps {
   onStartQuest: () => void;
@@ -107,9 +109,30 @@ const MainActions: React.FC<MainActionsProps> = ({
     <section className="animate-fade-in-up rounded-3xl border border-slate-800/70 bg-slate-950/60 p-4 shadow-xl shadow-slate-950/40 backdrop-blur sm:p-6">
       <div className="flex flex-col gap-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="font-heading text-lg font-bold text-white sm:text-xl">Mission Console</h2>
-            <p className="text-sm text-slate-400">Pick your next move. Everything fits comfortably on phones.</p>
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900/70 shadow-inner shadow-slate-900/60">
+              <span aria-hidden className="text-3xl">🛰️🚀</span>
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="font-heading text-lg font-bold text-white sm:text-xl">Mission Console</h2>
+                <span className="rounded-full border border-cyan-300/40 bg-cyan-500/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-cyan-100">
+                  🎯 Ready
+                </span>
+              </div>
+              <p className="text-sm text-slate-400">Pick your next move. Everything fits comfortably on phones.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/70 px-3 py-1 shadow-inner shadow-slate-900/40">
+            <img
+              src={silkRoadLogoPath}
+              alt="Silk Road school logo"
+              className="h-8 w-8 rounded-full object-cover"
+            />
+            <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-100">
+              <span aria-hidden>🏺✨</span>
+              <span>Silk Road School</span>
+            </div>
           </div>
           {hasPendingAssignment && (
             <span className="inline-flex items-center justify-center rounded-full border border-amber-400/60 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-200">
@@ -122,7 +145,16 @@ const MainActions: React.FC<MainActionsProps> = ({
             {onOpenCompetitionPlay && (
               <ActionButton
                 onClick={onOpenCompetitionPlay}
-                icon={<span aria-hidden className="text-3xl">🎪</span>}
+                icon={
+                  <div className="relative flex items-center justify-center">
+                    <img
+                      src={silkRoadLogoPath}
+                      alt="Silk Road play"
+                      className="h-9 w-9 rounded-lg object-cover shadow-md shadow-slate-950/40"
+                    />
+                    <span aria-hidden className="absolute -bottom-2 -right-2 text-xl">🎭</span>
+                  </div>
+                }
                 label="Silk Road Play"
                 color="0, 255, 200"
                 glowClass="glow-success animate-pulse-glow"
@@ -132,7 +164,16 @@ const MainActions: React.FC<MainActionsProps> = ({
             {onOpenCompetitionLeaderboard && (
               <ActionButton
                 onClick={onOpenCompetitionLeaderboard}
-                icon={<span aria-hidden className="text-3xl">🏁</span>}
+                icon={
+                  <div className="relative flex items-center justify-center">
+                    <img
+                      src={silkRoadLogoPath}
+                      alt="Silk Road rankings"
+                      className="h-9 w-9 rounded-lg object-cover shadow-md shadow-slate-950/40"
+                    />
+                    <span aria-hidden className="absolute -bottom-2 -right-2 text-xl">🏁</span>
+                  </div>
+                }
                 label="Silk Road Rankings"
                 color="0, 160, 255"
                 glowClass="glow-ion"
@@ -141,7 +182,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             )}
             <ActionButton
               onClick={onStartQuest}
-              icon={<span aria-hidden className="text-3xl">📘</span>}
+              icon={<span aria-hidden className="text-3xl">📜✨</span>}
               label={hasPendingAssignment ? 'Assignment Required' : 'Start Quest'}
               subtitle={hasPendingAssignment ? 'Complete your assignment first' : undefined}
               badgeText={hasPendingAssignment ? '!' : undefined}
@@ -151,7 +192,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={onStartPvp}
-              icon={<span aria-hidden className="text-3xl">⚔️</span>}
+              icon={<span aria-hidden className="text-3xl">⚔️🔥</span>}
               label="Launch Attack"
               color="255, 45, 145"
               glowClass="glow-plasma animate-pulse-glow"
@@ -159,7 +200,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             {onOpenRaid && (
               <ActionButton
                 onClick={onOpenRaid}
-                icon={<span aria-hidden className="text-3xl">🛡️</span>}
+                icon={<span aria-hidden className="text-3xl">🛡️🚀</span>}
                 label="Raids"
                 color="72, 61, 139"
                 glowClass="glow-purple"
@@ -168,7 +209,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             {onOpenLockdown && (
               <ActionButton
                 onClick={onOpenLockdown}
-                icon={<span aria-hidden className="text-3xl">🔒</span>}
+                icon={<span aria-hidden className="text-3xl">🔒🛰️</span>}
                 label="Lockdown Mode"
                 color="255, 69, 58"
                 glowClass="glow-plasma"
@@ -178,7 +219,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             )}
             <ActionButton
               onClick={onVisitShop}
-              icon={<span aria-hidden className="text-3xl">🛒</span>}
+              icon={<span aria-hidden className="text-3xl">🛍️💎</span>}
               label="Visit Shop"
               color="22, 226, 161"
               glowClass="glow-success"
@@ -186,7 +227,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             {onOpenTournament && (
               <ActionButton
                 onClick={onOpenTournament}
-                icon={<span aria-hidden className="text-3xl animate-bounce">🏟️</span>}
+                icon={<span aria-hidden className="text-3xl animate-bounce">🏟️🥇</span>}
                 label="Tournament"
                 color="255, 140, 0"
                 glowClass="glow-warn"
@@ -194,28 +235,28 @@ const MainActions: React.FC<MainActionsProps> = ({
             )}
             <ActionButton
               onClick={onGoToClan}
-              icon={<span aria-hidden className="text-3xl">🧠</span>}
+              icon={<span aria-hidden className="text-3xl">🧠🤝</span>}
               label="Clan"
               color="255, 176, 32"
               glowClass="glow-warn"
             />
             <ActionButton
               onClick={onVisitInventory}
-              icon={<span aria-hidden className="text-3xl">🎒</span>}
+              icon={<span aria-hidden className="text-3xl">🎒📦</span>}
               label="Inventory"
               color="158, 93, 255"
               glowClass="glow-purple"
             />
             <ActionButton
               onClick={onViewLeaderboard}
-              icon={<span aria-hidden className="text-3xl animate-float">🏆</span>}
+              icon={<span aria-hidden className="text-3xl animate-float">🏆📈</span>}
               label="Leaderboard"
               color="255, 215, 0"
               glowClass="glow-warn"
             />
             <ActionButton
               onClick={onViewAchievements}
-              icon={<span aria-hidden className="text-3xl animate-float">🎖️</span>}
+              icon={<span aria-hidden className="text-3xl animate-float">🎖️🌟</span>}
               label="Achievements"
               color="255, 100, 200"
               glowClass="glow-plasma"
@@ -223,7 +264,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             {onOpenIeltsPrep && (
               <ActionButton
                 onClick={onOpenIeltsPrep}
-                icon={<span aria-hidden className="text-3xl">🗣️</span>}
+                icon={<span aria-hidden className="text-3xl">🗣️🎯</span>}
                 label="IELTS Prep"
                 color="0, 191, 255"
                 glowClass="glow-ion"
@@ -233,7 +274,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             {onOpenAdminPortal && (
               <ActionButton
                 onClick={onOpenAdminPortal}
-                icon={<span aria-hidden className="text-4xl animate-spin-slow">🛠️</span>}
+                icon={<span aria-hidden className="text-4xl animate-spin-slow">🛠️⚡</span>}
                 label="ADMIN"
                 color="255, 215, 0"
                 glowClass="glow-warn"
@@ -243,7 +284,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             {onOpenRaidAdmin && (
               <ActionButton
                 onClick={onOpenRaidAdmin}
-                icon={<span aria-hidden className="text-3xl">🛡️</span>}
+                icon={<span aria-hidden className="text-3xl">🛡️🧭</span>}
                 label="Raid Admin"
                 color="0, 191, 255"
                 glowClass="glow-ion"
@@ -252,7 +293,16 @@ const MainActions: React.FC<MainActionsProps> = ({
             {onOpenCompetitionAdmin && (
               <ActionButton
                 onClick={onOpenCompetitionAdmin}
-                icon={<span aria-hidden className="text-3xl">📊</span>}
+                icon={
+                  <div className="relative flex items-center justify-center">
+                    <img
+                      src={silkRoadLogoPath}
+                      alt="Silk Road admin"
+                      className="h-9 w-9 rounded-lg object-cover shadow-md shadow-slate-950/40"
+                    />
+                    <span aria-hidden className="absolute -bottom-2 -right-2 text-xl">📊</span>
+                  </div>
+                }
                 label="Silk Road Admin"
                 color="0, 191, 255"
                 glowClass="glow-ion"
@@ -262,7 +312,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             {onOpenTournamentAdmin && (
               <ActionButton
                 onClick={onOpenTournamentAdmin}
-                icon={<span aria-hidden className="text-3xl animate-float">🎮</span>}
+                icon={<span aria-hidden className="text-3xl animate-float">🎮🛰️</span>}
                 label="Tournament Ops"
                 color="135, 206, 250"
                 glowClass="glow-ion"
@@ -272,7 +322,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             {onOpenTeacherPortal && (
               <ActionButton
                 onClick={onOpenTeacherPortal}
-                icon={<span aria-hidden className="text-3xl animate-bounce">🧑‍🏫</span>}
+                icon={<span aria-hidden className="text-3xl animate-bounce">🧑‍🏫📘</span>}
                 label="Teacher"
                 color="100, 200, 255"
                 glowClass="glow-ion"
