@@ -119,23 +119,37 @@ export const LockdownStudentView: React.FC<LockdownStudentViewProps> = ({
   const timePercent = Math.min(100, (remainingSeconds / totalDurationSeconds) * 100);
   const coinGoal = Math.max(1, gameState.roomSettings.coinGoal);
   const coinProgress = Math.min(100, (myPlayer.coins / coinGoal) * 100);
+// --- Territory / Region Stats (merged conflict) ---
 
-  const neutralRegionStats = useMemo(
-    () =>
-      [1, 2, 3, 4, 5, 6, 7, 8].reduce<Record<string, { regionId: string; clanStats: never[] }>>((acc, num) => {
+// If backend has regionStats → use it. Otherwise generate neutral regions 1–8.
+const neutralRegionStats = useMemo(
+  () =>
+    [1, 2, 3, 4, 5, 6, 7, 8].reduce<Record<string, { regionId: string; clanStats: never[] }>>(
+      (acc, num) => {
         acc[`region_${num}`] = { regionId: `region_${num}`, clanStats: [] };
         return acc;
-      }, {}),
-    []
-  );
+      },
+      {}
+    ),
+  []
+);
 
-  const hasRegionStats = Boolean(gameState.regionStats && Object.keys(gameState.regionStats).length > 0);
-  const regionStats = hasRegionStats ? gameState.regionStats! : neutralRegionStats;
-  const totalRegions = Object.keys(regionStats).length;
-  const capturedByClan = hasRegionStats && myPlayer.clanId
-    ? Object.values(regionStats).filter((region) => region.topClan?.clanId === myPlayer.clanId).length
+const hasRegionStats =
+  Boolean(gameState.regionStats && Object.keys(gameState.regionStats).length > 0);
+
+const regionStats = hasRegionStats ? gameState.regionStats! : neutralRegionStats;
+
+const totalRegions = Object.keys(regionStats).length;
+
+const capturedByClan =
+  hasRegionStats && myPlayer.clanId
+    ? Object.values(regionStats).filter(
+        (region) => region.topClan?.clanId === myPlayer.clanId
+      ).length
     : 0;
-  const capturedLabel = hasRegionStats && myPlayer.clanName ? `${myPlayer.clanName} control` : "Captured";
+
+const capturedLabel =
+  hasRegionStats && myPlayer.clanName ? `${myPlayer.clanName} control` : "Captured";
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 px-4 py-6 text-white sm:px-6">
@@ -219,9 +233,22 @@ export const LockdownStudentView: React.FC<LockdownStudentViewProps> = ({
           />
           <ProgressCard
             title="Territory"
-            highlight={hasRegionStats ? `${capturedByClan}/${totalRegions}` : "Mapping"}
-            helper={hasRegionStats ? `${capturedLabel} zones` : "Awaiting intel"}
-            percent={hasRegionStats ? (capturedByClan / totalRegions) * 100 : 0}
+highlight={
+  hasRegionStats
+    ? `${capturedByClan}/${totalRegions}`
+    : "Mapping"
+}
+helper={
+  hasRegionStats
+    ? `${capturedLabel} zones`
+    : "Awaiting intel"
+}
+percent={
+  hasRegionStats && totalRegions
+    ? (capturedByClan / totalRegions) * 100
+    : 0
+}
+
             tone="emerald"
           />
         </section>
@@ -286,16 +313,20 @@ export const LockdownStudentView: React.FC<LockdownStudentViewProps> = ({
               <div className="rounded-3xl border border-slate-800/70 bg-slate-900/60 p-4 shadow-lg shadow-emerald-900/30">
                 <div className="flex items-center justify-between">
                   <div>
-                  <p className="text-[0.65rem] uppercase tracking-[0.3em] text-slate-500">Territory Scan</p>
-                  <p className="text-lg font-semibold text-white">Captured Zones</p>
-                  <p className="text-xs text-slate-400">Live map of clan control</p>
-                </div>
-                <div className="rounded-full bg-emerald-600/20 px-3 py-1 text-xs font-semibold text-emerald-200 border border-emerald-500/40">
-                  {hasRegionStats ? `${capturedByClan}/${totalRegions}` : "Mapping"}
-                </div>
-              </div>
-              <div className="mt-3 rounded-2xl border border-slate-800 bg-slate-950/60 p-2">
-                <LockdownMap regionStats={regionStats} className="h-64" />
+<p className="text-[0.65rem] uppercase tracking-[0.3em] text-slate-500">Territory Scan</p>
+<p className="text-lg font-semibold text-white">Captured Zones</p>
+<p className="text-xs text-slate-400">Live map of clan control</p>
+</div>
+
+<div className="rounded-full bg-emerald-600/20 px-3 py-1 text-xs font-semibold text-emerald-200 border border-emerald-500/40">
+  {hasRegionStats ? `${capturedByClan}/${totalRegions}` : "Mapping"}
+</div>
+</div>
+
+<div className="mt-3 rounded-2xl border border-slate-800 bg-slate-950/60 p-2">
+  <LockdownMap regionStats={regionStats} className="h-64" />
+</div>
+
                 </div>
               </div>
             </div>
