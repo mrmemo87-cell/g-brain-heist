@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { RegionStats } from "./lockdownTypes";
 // @ts-expect-error - Vite injects raw SVG strings for ?raw imports
-import lockdownMapSvgRaw from "./assets/lockdown_map.svg?raw";
+import territoryMapSvgRaw from "./assets/territory_map.svg?raw";
 
-// Placeholder SVG until lockdown_map.svg is supplied
+// Placeholder SVG until territory_map.svg is supplied
 const placeholderMap = `
 <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
   <rect width="800" height="600" fill="#0f172a"/>
@@ -23,7 +23,7 @@ const placeholderMap = `
   y="295" text-anchor="middle" fill="#94a3b8" font-size="14">Region 7</text></g>
   <g id="region_8"><rect x="560" y="220" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="635"
   y="295" text-anchor="middle" fill="#94a3b8" font-size="14">Region 8</text></g>
-  <text x="400" y="450" text-anchor="middle" fill="#64748b" font-size="16">Add your lockdown_map.svg to src/features/lockdown/assets/</text>
+  <text x="400" y="450" text-anchor="middle" fill="#64748b" font-size="16">Add your territory_map.svg to src/features/lockdown/assets/</text>
 </svg>
 `;
 
@@ -75,7 +75,7 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
   const lastRegionStyleKeyRef = useRef<Record<string, string>>({});
 
   const mapMarkup = useMemo(() => {
-    const rawSvg = lockdownMapSvgRaw || placeholderMap;
+    const rawSvg = territoryMapSvgRaw || placeholderMap;
     if (typeof DOMParser === "undefined") return rawSvg;
     return normalizeSvgMarkup(rawSvg);
   }, []);
