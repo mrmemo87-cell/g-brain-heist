@@ -13,6 +13,8 @@ body.light-mode .lite-mode-wrapper {
 
 /* Global light mode overrides */
 body.light-mode {
+  background: #f8fafc !important;
+  color: #0f172a !important;
   /* Disable all transitions and animations globally */
   *, *::before, *::after {
     transition: none !important;
@@ -197,6 +199,81 @@ body.light-mode [class*="spinner"],
 body.light-mode [class*="loading"] {
   animation: none !important;
   border: none !important;
+}
+
+/* Dashboard polish for light mode */
+body.light-mode .lite-mode-wrapper {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+body.light-mode .lite-mode-wrapper main {
+  color: inherit;
+}
+
+body.light-mode .dashboard-panel {
+  background: #ffffff !important;
+  border-color: #d9e2ec !important;
+  box-shadow: 0 6px 18px -8px rgba(15, 23, 42, 0.15);
+  backdrop-filter: none !important;
+}
+
+body.light-mode .dashboard-panel > span[aria-hidden="true"] {
+  display: none !important;
+}
+
+body.light-mode .dashboard-panel h2,
+body.light-mode .dashboard-panel p,
+body.light-mode .dashboard-panel span,
+body.light-mode .dashboard-panel div {
+  color: inherit !important;
+}
+
+body.light-mode .dashboard-panel img {
+  box-shadow: none !important;
+}
+
+body.light-mode .dashboard-panel .dashboard-action {
+  background: #f6f8fb !important;
+  border-color: #d7dde7 !important;
+  box-shadow: none !important;
+  transform: none !important;
+  color: #0f172a !important;
+}
+
+body.light-mode .dashboard-panel button {
+  background: #f6f8fb !important;
+  color: #0f172a !important;
+}
+
+body.light-mode .dashboard-panel .dashboard-action:hover {
+  background: #e6ebf5 !important;
+}
+
+body.light-mode .dashboard-panel .dashboard-action > span[aria-hidden="true"] {
+  display: none !important;
+}
+
+body.light-mode .dashboard-panel .dashboard-action__icon {
+  background: #e0e7f1 !important;
+  box-shadow: none !important;
+  color: #0f172a !important;
+}
+
+body.light-mode .dashboard-panel .dashboard-action__label {
+  color: #0f172a !important;
+}
+
+body.light-mode .dashboard-panel .dashboard-action__subtitle {
+  color: #334155 !important;
+}
+
+body.light-mode .dashboard-panel button,
+body.light-mode .dashboard-panel .rounded-full,
+body.light-mode .dashboard-panel .border,
+body.light-mode .dashboard-panel .shadow-inner {
+  border-color: #d7dde7 !important;
+  box-shadow: none !important;
 }
 
 /* Flat input fields */
