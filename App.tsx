@@ -885,45 +885,55 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             }
             
             // Student Dashboard - full gameplay experience
+            const pendingTasks = tasks.filter((task) => !task.claimed && task.progress < task.target).length;
+            const completedTasks = tasks.filter((task) => task.progress >= task.target).length;
+            const studyProgress = tasks.length ? Math.round((completedTasks / tasks.length) * 100) : 0;
+            const apReadyPercent = Math.min(100, Math.round((profile.ap_now / profile.ap_max) * 100));
+            const xpUsed = caps.daily_xp_cap ? Math.max(0, caps.daily_xp_cap - caps.xp_daily_remaining) : 0;
+            const xpUsedPercent = caps.daily_xp_cap ? Math.min(100, Math.round((xpUsed / caps.daily_xp_cap) * 100)) : 0;
+
             return (
-                 <main className="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-                    {/* Left Column */}
-                    <div className="lg:col-span-4 xl:col-span-3 space-y-6">
-                        <PlayerProfileCard profile={profile} />
-                        <SessionTracker sessionStatus={sessionStatus} />
-                        <CapTracker caps={caps} />
-                    </div>
+              <main className="mt-6 space-y-6">
 
-                    {/* Middle Column */}
-                    <div className="lg:col-span-5 xl:col-span-6 space-y-6">
-                        <MainActions
-                            onStartQuest={handleQuestAction}
-                            onStartPvp={() => setView('pvp')}
-                            onOpenRaid={!isStudent ? () => setView('raids') : undefined}
-                            onVisitShop={() => setView('shop')}
-                            onGoToClan={() => setView('clan')}
-                            onVisitInventory={() => setView('inventory')}
-                            onViewLeaderboard={() => setView('leaderboard')}
-                            onViewAchievements={() => setView('achievements')}
-                            onOpenRaidAdmin={isAdmin(profile) ? () => setView('raid_admin') : undefined}
-                            onOpenTournament={() => setView('tournament')}
-                            onOpenAdminPortal={isAdmin(profile) ? () => setView('admin') : undefined}
-                            onOpenTournamentAdmin={isAdmin(profile) ? () => setView('tournament_admin') : undefined}
-                            onOpenCompetitionPlay={!isStudent && profile?.grade && !profile?.is_banned ? () => setView('phase1_play') : undefined}
-                            onOpenCompetitionLeaderboard={() => setView('phase1_leaderboard')}
-                            onOpenCompetitionAdmin={profile?.is_admin ? () => setView('phase1_admin') : undefined}
-                            onOpenIeltsPrep={!isStudent ? () => setView('ielts') : undefined}
-                            onOpenLockdown={() => setView('lockdown')}
-                            hasPendingAssignment={Boolean(activeAssignment)}
-                        />
-                        <TaskList tasks={tasks} onTasksUpdate={fetchGameData} />
-                    </div>
+                <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+                  {/* Left Column */}
+                  <div className="space-y-6 lg:col-span-4 xl:col-span-3">
+                    <PlayerProfileCard profile={profile} />
+                    <SessionTracker sessionStatus={sessionStatus} />
+                    <CapTracker caps={caps} />
+                  </div>
 
-                    {/* Right Column */}
-          <div className="lg:col-span-3 xl:col-span-3 space-y-6">
-            <NewsFeed news={news} />
-          </div>
-                </main>
+                  {/* Middle Column */}
+                  <div className="space-y-6 lg:col-span-5 xl:col-span-6">
+                    <MainActions
+                      onStartQuest={handleQuestAction}
+                      onStartPvp={() => setView('pvp')}
+                      onOpenRaid={!isStudent ? () => setView('raids') : undefined}
+                      onVisitShop={() => setView('shop')}
+                      onGoToClan={() => setView('clan')}
+                      onVisitInventory={() => setView('inventory')}
+                      onViewLeaderboard={() => setView('leaderboard')}
+                      onViewAchievements={() => setView('achievements')}
+                      onOpenRaidAdmin={isAdmin(profile) ? () => setView('raid_admin') : undefined}
+                      onOpenTournament={() => setView('tournament')}
+                      onOpenAdminPortal={isAdmin(profile) ? () => setView('admin') : undefined}
+                      onOpenTournamentAdmin={isAdmin(profile) ? () => setView('tournament_admin') : undefined}
+                      onOpenCompetitionPlay={!isStudent && profile?.grade && !profile?.is_banned ? () => setView('phase1_play') : undefined}
+                      onOpenCompetitionLeaderboard={() => setView('phase1_leaderboard')}
+                      onOpenCompetitionAdmin={profile?.is_admin ? () => setView('phase1_admin') : undefined}
+                      onOpenIeltsPrep={!isStudent ? () => setView('ielts') : undefined}
+                      onOpenLockdown={() => setView('lockdown')}
+                      hasPendingAssignment={Boolean(activeAssignment)}
+                    />
+                    <TaskList tasks={tasks} onTasksUpdate={fetchGameData} />
+                  </div>
+
+                  {/* Right Column */}
+                  <div className="space-y-6 lg:col-span-3 xl:col-span-3">
+                    <NewsFeed news={news} />
+                  </div>
+                </section>
+              </main>
             );
     }
   }

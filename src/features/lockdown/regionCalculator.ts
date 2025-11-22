@@ -69,10 +69,12 @@ export const calculateRegionStats = (state: GameState): Record<string, RegionSta
 
       // Get clan name from first player
       const clanName = clanData.players[0]?.clanName || "Unknown";
+      const avatarUrl = clanData.players[0]?.clanAvatarUrl;
 
       clanStatsArray.push({
         clanId,
         clanName,
+        avatarUrl,
         correctAnswers: clanData.correct,
         totalAnswers: clanData.total,
         percentage,
