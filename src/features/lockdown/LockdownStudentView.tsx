@@ -10,6 +10,7 @@ import {
   SubmitAnswerAction,
 } from "./lockdownTypes";
 import { LockdownTransport, RoomId, PlayerId, createRoomClient, LockdownRoomClient } from "../../lib/lockdownTransport";
+import { LockdownMap } from "./LockdownMap";
 
 const entryRouteLabels: Record<EntryRoute, string> = {
   [EntryRoute.SAFE]: "Safe Access",
@@ -113,6 +114,17 @@ export const LockdownStudentView: React.FC<LockdownStudentViewProps> = ({
   const alarmThreshold = Math.max(1, gameState.roomSettings.alarmMax);
   const alarmGauge = Math.min(100, (alarmValue / alarmThreshold) * 100);
   const formattedPhase = gameState.phase.toString().replace(/_/g, " ");
+  const remainingSeconds = Math.max(0, Math.round(gameState.remainingTimeMs / 1000));
+  const totalDurationSeconds = Math.max(1, Math.round(gameState.roomSettings.durationMs / 1000));
+  const timePercent = Math.min(100, (remainingSeconds / totalDurationSeconds) * 100);
+  const coinGoal = Math.max(1, gameState.roomSettings.coinGoal);
+  const coinProgress = Math.min(100, (myPlayer.coins / coinGoal) * 100);
+  const regionStats = gameState.regionStats ?? {};
+  const totalRegions = Object.keys(regionStats).length;
+  const capturedByClan = myPlayer.clanId
+    ? Object.values(regionStats).filter((region) => region.topClan?.clanId === myPlayer.clanId).length
+    : 0;
+  const capturedLabel = myPlayer.clanName ? `${myPlayer.clanName} control` : "Captured";
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 px-4 py-6 text-white sm:px-6">
@@ -179,6 +191,30 @@ export const LockdownStudentView: React.FC<LockdownStudentViewProps> = ({
           </div>
         </section>
 
+        <section className="grid gap-4 sm:grid-cols-3">
+          <ProgressCard
+            title="Heist Timer"
+            highlight={`${remainingSeconds}s left`}
+            helper={`${formattedPhase}`}
+            percent={timePercent}
+            tone={remainingSeconds < 20 ? "alert" : "primary"}
+          />
+          <ProgressCard
+            title="Coin Goal"
+            highlight={`${myPlayer.coins} / ${coinGoal}`}
+            helper="Personal haul"
+            percent={coinProgress}
+            tone="gold"
+          />
+          <ProgressCard
+            title="Territory"
+            highlight={totalRegions ? `${capturedByClan}/${totalRegions}` : "Mapping"}
+            helper={`${capturedLabel} zones`}
+            percent={totalRegions ? (capturedByClan / totalRegions) * 100 : 0}
+            tone="emerald"
+          />
+        </section>
+
         {isLobby && (
           <div className="flex flex-1 flex-col justify-center gap-6 rounded-3xl border border-dashed border-emerald-600/40 bg-emerald-500/5 p-8 text-center">
             <div className="space-y-2">
@@ -208,31 +244,49 @@ export const LockdownStudentView: React.FC<LockdownStudentViewProps> = ({
 
         {isActive && (
           <div className="flex flex-1 flex-col gap-6">
-            <div className="rounded-3xl border border-slate-800/70 bg-slate-900/60 p-6 text-center shadow-xl shadow-slate-950/40">
-              <div className="space-y-2">
-                <h3 className="text-xs uppercase tracking-[0.32em] text-slate-500">Security Challenge</h3>
-                <p className="text-4xl font-black font-mono text-white sm:text-5xl">{currentQuestion?.q} = ?</p>
-                <p className="text-sm text-slate-400">Submit the correct bypass code to siphon coins without spiking the alarm.</p>
+            <div className="grid gap-4 lg:grid-cols-3">
+              <div className="lg:col-span-2 rounded-3xl border border-slate-800/70 bg-slate-900/60 p-6 text-center shadow-xl shadow-slate-950/40">
+                <div className="space-y-2">
+                  <h3 className="text-xs uppercase tracking-[0.32em] text-slate-500">Security Challenge</h3>
+                  <p className="text-4xl font-black font-mono text-white sm:text-5xl">{currentQuestion?.q} = ?</p>
+                  <p className="text-sm text-slate-400">Submit the correct bypass code to siphon coins without spiking the alarm.</p>
+                </div>
+                {currentQuestion && (
+                  <form onSubmit={handleSubmitAnswer} className="mt-6 flex w-full flex-col gap-3 sm:flex-row">
+                    <input
+                      type="text"
+                      value={answerInput}
+                      onChange={(e) => setAnswerInput(e.target.value)}
+                      className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-4 text-center text-2xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                      placeholder="?"
+                      autoFocus
+                      inputMode="numeric"
+                    />
+                    <button
+                      type="submit"
+                      className="w-full rounded-xl bg-emerald-600 px-6 py-4 text-base font-bold text-white transition hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60 sm:w-auto"
+                    >
+                      Hack Sequence
+                    </button>
+                  </form>
+                )}
               </div>
-              {currentQuestion && (
-                <form onSubmit={handleSubmitAnswer} className="mt-6 flex w-full flex-col gap-3 sm:flex-row">
-                  <input
-                    type="text"
-                    value={answerInput}
-                    onChange={(e) => setAnswerInput(e.target.value)}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-4 text-center text-2xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                    placeholder="?"
-                    autoFocus
-                    inputMode="numeric"
-                  />
-                  <button
-                    type="submit"
-                    className="w-full rounded-xl bg-emerald-600 px-6 py-4 text-base font-bold text-white transition hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60 sm:w-auto"
-                  >
-                    Hack Sequence
-                  </button>
-                </form>
-              )}
+
+              <div className="rounded-3xl border border-slate-800/70 bg-slate-900/60 p-4 shadow-lg shadow-emerald-900/30">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[0.65rem] uppercase tracking-[0.3em] text-slate-500">Territory Scan</p>
+                    <p className="text-lg font-semibold text-white">Captured Zones</p>
+                    <p className="text-xs text-slate-400">Live map of clan control</p>
+                  </div>
+                  <div className="rounded-full bg-emerald-600/20 px-3 py-1 text-xs font-semibold text-emerald-200 border border-emerald-500/40">
+                    {capturedByClan}/{totalRegions || 8}
+                  </div>
+                </div>
+                <div className="mt-3 rounded-2xl border border-slate-800 bg-slate-950/60 p-2">
+                  <LockdownMap regionStats={regionStats} className="h-64" />
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -256,6 +310,55 @@ export const LockdownStudentView: React.FC<LockdownStudentViewProps> = ({
             Need to bail? Use the exit button above to return to base.
           </footer>
         )}
+      </div>
+    </div>
+  );
+};
+
+type ProgressTone = "primary" | "emerald" | "gold" | "alert";
+
+interface ProgressCardProps {
+  title: string;
+  highlight: string;
+  helper: string;
+  percent: number;
+  tone?: ProgressTone;
+}
+
+const toneStyles: Record<ProgressTone, { track: string; fill: string; text: string }> = {
+  primary: {
+    track: "bg-slate-800",
+    fill: "bg-sky-500/80",
+    text: "text-sky-200",
+  },
+  emerald: {
+    track: "bg-slate-800",
+    fill: "bg-emerald-500/80",
+    text: "text-emerald-200",
+  },
+  gold: {
+    track: "bg-slate-800",
+    fill: "bg-amber-400/80",
+    text: "text-amber-200",
+  },
+  alert: {
+    track: "bg-slate-800",
+    fill: "bg-rose-500/80",
+    text: "text-rose-200",
+  },
+};
+
+const ProgressCard: React.FC<ProgressCardProps> = ({ title, highlight, helper, percent, tone = "primary" }) => {
+  const palette = toneStyles[tone];
+  return (
+    <div className="rounded-2xl border border-slate-800/60 bg-slate-900/60 p-5 shadow-lg shadow-slate-950/30">
+      <p className="text-[0.7rem] uppercase tracking-[0.32em] text-slate-500">{title}</p>
+      <div className="mt-2 flex items-baseline justify-between">
+        <span className={`text-2xl font-bold ${palette.text}`}>{highlight}</span>
+        <span className="text-xs text-slate-400">{helper}</span>
+      </div>
+      <div className={`mt-3 h-2 w-full overflow-hidden rounded-full ${palette.track}`}>
+        <div className={`h-full rounded-full transition-all ${palette.fill}`} style={{ width: `${Math.min(100, percent)}%` }} />
       </div>
     </div>
   );
