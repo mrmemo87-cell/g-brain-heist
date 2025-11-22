@@ -326,6 +326,9 @@ type QuestionViewProps = {
 };
 
 export const QuestionView: React.FC<QuestionViewProps> = ({ question, disabled, onAnswer }) => {
+  // Memoize options to prevent re-shuffling on each render
+  const stableOptions = React.useMemo(() => question.options, [question.id]);
+  
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 space-y-4">
       <div className="space-y-2">
@@ -333,7 +336,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({ question, disabled, 
         <p className="text-lg font-semibold leading-snug">{question.prompt}</p>
       </div>
       <AnswerOptions
-        options={question.options}
+        options={stableOptions}
         selectedOptionId={question.selectedOptionId}
         disabled={disabled || !!question.selectedOptionId}
         onSelect={onAnswer}
