@@ -1,29 +1,50 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { RegionStats } from "./lockdownTypes";
+// @ts-expect-error - Vite injects raw SVG strings for ?raw imports
+import lockdownMapSvgRaw from "./assets/lockdown_map.svg?raw";
 
-// TODO: Add your actual map SVG
-// 1. Save your Inkscape map as lockdown_map.svg
-// 2. Place it in src/features/lockdown/assets/lockdown_map.svg
-// 3. Uncomment the line below and remove the placeholder
-// import mapMarkup from "./assets/lockdown_map.svg?raw";
-
-// Placeholder SVG until you add your lockdown_map.svg to assets/ folder
+// Placeholder SVG until lockdown_map.svg is supplied
 const placeholderMap = `
 <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
   <rect width="800" height="600" fill="#0f172a"/>
-  <g id="region_1"><rect x="50" y="50" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="125" y="125" text-anchor="middle" fill="#94a3b8" font-size="14">Region 1</text></g>
-  <g id="region_2"><rect x="220" y="50" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="295" y="125" text-anchor="middle" fill="#94a3b8" font-size="14">Region 2</text></g>
-  <g id="region_3"><rect x="390" y="50" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="465" y="125" text-anchor="middle" fill="#94a3b8" font-size="14">Region 3</text></g>
-  <g id="region_4"><rect x="560" y="50" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="635" y="125" text-anchor="middle" fill="#94a3b8" font-size="14">Region 4</text></g>
-  <g id="region_5"><rect x="50" y="220" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="125" y="295" text-anchor="middle" fill="#94a3b8" font-size="14">Region 5</text></g>
-  <g id="region_6"><rect x="220" y="220" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="295" y="295" text-anchor="middle" fill="#94a3b8" font-size="14">Region 6</text></g>
-  <g id="region_7"><rect x="390" y="220" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="465" y="295" text-anchor="middle" fill="#94a3b8" font-size="14">Region 7</text></g>
-  <g id="region_8"><rect x="560" y="220" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="635" y="295" text-anchor="middle" fill="#94a3b8" font-size="14">Region 8</text></g>
+  <g id="region_1"><rect x="50" y="50" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="125"
+ y="125" text-anchor="middle" fill="#94a3b8" font-size="14">Region 1</text></g>
+  <g id="region_2"><rect x="220" y="50" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="295"
+  y="125" text-anchor="middle" fill="#94a3b8" font-size="14">Region 2</text></g>
+  <g id="region_3"><rect x="390" y="50" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="465"
+  y="125" text-anchor="middle" fill="#94a3b8" font-size="14">Region 3</text></g>
+  <g id="region_4"><rect x="560" y="50" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="635"
+  y="125" text-anchor="middle" fill="#94a3b8" font-size="14">Region 4</text></g>
+  <g id="region_5"><rect x="50" y="220" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="125"
+  y="295" text-anchor="middle" fill="#94a3b8" font-size="14">Region 5</text></g>
+  <g id="region_6"><rect x="220" y="220" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="295"
+  y="295" text-anchor="middle" fill="#94a3b8" font-size="14">Region 6</text></g>
+  <g id="region_7"><rect x="390" y="220" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="465"
+  y="295" text-anchor="middle" fill="#94a3b8" font-size="14">Region 7</text></g>
+  <g id="region_8"><rect x="560" y="220" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="635"
+  y="295" text-anchor="middle" fill="#94a3b8" font-size="14">Region 8</text></g>
   <text x="400" y="450" text-anchor="middle" fill="#64748b" font-size="16">Add your lockdown_map.svg to src/features/lockdown/assets/</text>
 </svg>
 `;
 
-let mapMarkup = placeholderMap;
+const normalizeSvgMarkup = (svgContent: string) => {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(svgContent, "image/svg+xml");
+  const svgElement = doc.querySelector("svg");
+
+  if (!svgElement) return svgContent;
+
+  svgElement.removeAttribute("width");
+  svgElement.removeAttribute("height");
+  svgElement.setAttribute("width", "100%");
+  svgElement.setAttribute("height", "100%");
+  svgElement.setAttribute("preserveAspectRatio", "xMidYMid meet");
+  svgElement.style.width = "100%";
+  svgElement.style.height = "100%";
+  svgElement.style.display = "block";
+
+  return svgElement.outerHTML;
+};
 
 interface LockdownMapProps {
   regionStats?: Record<string, RegionStats>;
@@ -52,6 +73,12 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
   const containerRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   const lastRegionStyleKeyRef = useRef<Record<string, string>>({});
+
+  const mapMarkup = useMemo(() => {
+    const rawSvg = lockdownMapSvgRaw || placeholderMap;
+    if (typeof DOMParser === "undefined") return rawSvg;
+    return normalizeSvgMarkup(rawSvg);
+  }, []);
 
   useEffect(() => {
     const styleId = "lockdown-map-region-style";
@@ -90,7 +117,7 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
     if (containerRef.current && mapMarkup) {
       setMounted(true);
     }
-  }, []);
+  }, [mapMarkup]);
 
   useEffect(() => {
     if (!mounted || !containerRef.current || !regionStats) return;
@@ -126,7 +153,7 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
       }
 
       // Set color based on top clan
-      const clanColor = getColorForClan(topClan.clanId);
+      const clanColor = topClan.color || getColorForClan(topClan.clanId);
       const opacity = Math.max(0.3, topClan.percentage / 100); // Scale opacity by percentage
 
       const styleKey = `${regionId}|${clanColor}|${opacity.toFixed(3)}|2`;
@@ -149,7 +176,7 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
       regionGroup.onmouseenter = null;
       regionGroup.onmouseleave = null;
     });
-  }, [mounted, regionStats]);
+  }, [mounted, regionStats, mapMarkup]);
 
   return (
     <div className={`relative ${className}`}>
@@ -172,7 +199,7 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
               >
                 <div
                   className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: getColorForClan(topClan.clanId) }}
+                  style={{ backgroundColor: topClan.color || getColorForClan(topClan.clanId) }}
                 />
                 <div className="flex-1">
                   <p className="text-white font-semibold">{regionId.replace(/_/g, " ")}</p>

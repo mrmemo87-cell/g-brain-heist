@@ -95,12 +95,15 @@ export type PlayerState = {
   disconnected?: boolean;
   clanId?: string;
   clanName?: string;
+  clanAvatarUrl?: string;
+  clanColor?: string;
   currentRegion?: string;
 };
 
 export type ClanStats = {
   clanId: string;
   clanName: string;
+  color?: string;
   avatarUrl?: string;
   correctAnswers: number;
   totalAnswers: number;
@@ -138,6 +141,10 @@ export type JoinGameAction = {
   type: "JOIN";
   playerId: string;
   name?: string;
+  clanId?: string;
+  clanName?: string;
+  clanAvatarUrl?: string;
+  clanColor?: string;
 };
 
 export type LeaveGameAction = {

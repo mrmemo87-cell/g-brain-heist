@@ -13,7 +13,11 @@ type PlayerAction = Extract<GameAction, { playerId: string }>;
 
 export interface LockdownTransport {
   createRoom(settings?: Partial<RoomSettings>): Promise<RoomId>;
-  joinRoom(roomId: RoomId, playerName: string): Promise<PlayerId>;
+  joinRoom(
+    roomId: RoomId,
+    playerName: string,
+    options?: { clanId?: string; clanName?: string; clanAvatarUrl?: string; clanColor?: string },
+  ): Promise<PlayerId>;
   onGameState(roomId: RoomId, callback: (state: GameState) => void): () => void;
   sendAction(roomId: RoomId, action: GameAction): Promise<void>;
   sendTeacherCommand(roomId: RoomId, command: TeacherCommand): Promise<void>;
@@ -54,7 +58,11 @@ export class InMemoryLockdownTransport implements LockdownTransport {
     return roomId;
   }
 
-  async joinRoom(roomId: RoomId, playerName: string): Promise<PlayerId> {
+  async joinRoom(
+    roomId: RoomId,
+    playerName: string,
+    options?: { clanId?: string; clanName?: string; clanAvatarUrl?: string; clanColor?: string },
+  ): Promise<PlayerId> {
     const room = this.rooms.get(roomId);
     if (!room) {
       throw new Error(`Room ${roomId} does not exist`);
@@ -66,6 +74,10 @@ export class InMemoryLockdownTransport implements LockdownTransport {
       type: "JOIN",
       playerId,
       name: playerName,
+      clanId: options?.clanId,
+      clanName: options?.clanName,
+      clanAvatarUrl: options?.clanAvatarUrl,
+      clanColor: options?.clanColor,
     });
     return playerId;
   }

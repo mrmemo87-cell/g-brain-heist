@@ -41,6 +41,13 @@ const alarmBadges: Record<AlarmLevel, string> = {
   [AlarmLevel.CRITICAL]: "bg-rose-600",
 };
 
+const SANDBOX_CLANS = [
+  { clanId: "clan-alpha", clanName: "Alpha Wolves", clanAvatarUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=alpha", clanColor: "#3b82f6" },
+  { clanId: "clan-bravo", clanName: "Bravo Syndicate", clanAvatarUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=bravo", clanColor: "#ef4444" },
+  { clanId: "clan-charlie", clanName: "Charlie Ops", clanAvatarUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=charlie", clanColor: "#f59e0b" },
+  { clanId: "clan-delta", clanName: "Delta Ghosts", clanAvatarUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=delta", clanColor: "#06b6d4" },
+];
+
 interface LocalPlayer {
   id: PlayerId;
   name: string;
@@ -84,7 +91,8 @@ const LockdownSandbox: React.FC<LockdownSandboxProps> = ({ onExit }) => {
   const handleAddPlayer = useCallback(async () => {
     if (!roomId) return;
     const label = newPlayerName.trim() || `Agent ${Object.keys(localPlayers).length + 1}`;
-    const playerId = await transportRef.current.joinRoom(roomId, label);
+    const clan = SANDBOX_CLANS[Object.keys(localPlayers).length % SANDBOX_CLANS.length];
+    const playerId = await transportRef.current.joinRoom(roomId, label, clan);
     const client = createRoomClient(transportRef.current, roomId, playerId);
     setLocalPlayers((prev) => ({ ...prev, [playerId]: { id: playerId, name: label, client } }));
     setNewPlayerName("");

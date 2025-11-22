@@ -7,6 +7,7 @@ import {
   GamePhase,
   GameState,
   HeistCondition,
+  JoinGameAction,
   PlayerState,
   QuestionRiskRoute,
   RoomSettings,
@@ -53,19 +54,23 @@ export const createInitialGameState = (roomSettings: RoomSettings): GameState =>
   };
 };
 
-const applyJoin = (state: GameState, playerId: string, name?: string): GameState => {
-  if (state.players[playerId]) {
+const applyJoin = (state: GameState, action: JoinGameAction): GameState => {
+  if (state.players[action.playerId]) {
     return state;
   }
   const player: PlayerState = {
-    id: playerId,
-    name,
+    id: action.playerId,
+    name: action.name,
     coins: 0,
     heat: 0,
     mostWanted: false,
     accuracy: { correct: 0, total: 0 },
+    clanId: action.clanId,
+    clanName: action.clanName,
+    clanAvatarUrl: action.clanAvatarUrl,
+    clanColor: action.clanColor,
   };
-  return { ...state, players: { ...state.players, [playerId]: player } };
+  return { ...state, players: { ...state.players, [action.playerId]: player } };
 };
 
 const applyLeave = (state: GameState, playerId: string): GameState => {
@@ -324,7 +329,7 @@ export const applyAction = (state: GameState, action: GameAction): GameState => 
   let updatedState: GameState = state;
   switch (action.type) {
     case "JOIN":
-      updatedState = applyJoin(state, action.playerId, action.name);
+      updatedState = applyJoin(state, action);
       break;
     case "LEAVE":
       updatedState = applyLeave(state, action.playerId);

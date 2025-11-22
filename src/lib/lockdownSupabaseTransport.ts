@@ -49,7 +49,11 @@ export class SupabaseLockdownTransport implements LockdownTransport {
     return roomId;
   }
 
-  async joinRoom(roomId: RoomId, playerName: string): Promise<PlayerId> {
+  async joinRoom(
+    roomId: RoomId,
+    playerName: string,
+    options?: { clanId?: string; clanName?: string; clanAvatarUrl?: string; clanColor?: string },
+  ): Promise<PlayerId> {
     this.isHost = false;
     // Generate a persistent ID for this session if possible, or random
     const playerId = `player-${Math.floor(Math.random() * 1000000)}` as PlayerId;
@@ -84,7 +88,11 @@ export class SupabaseLockdownTransport implements LockdownTransport {
             await this.sendAction(roomId, {
               type: "JOIN",
               playerId,
-              name: playerName
+              name: playerName,
+              clanId: options?.clanId,
+              clanName: options?.clanName,
+              clanAvatarUrl: options?.clanAvatarUrl,
+              clanColor: options?.clanColor,
             } as any);
           }
         });
