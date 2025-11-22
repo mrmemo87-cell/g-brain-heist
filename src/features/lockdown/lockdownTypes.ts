@@ -102,6 +102,7 @@ export type PlayerState = {
 export type ClanStats = {
   clanId: string;
   clanName: string;
+  color?: string;
   avatarUrl?: string;
   correctAnswers: number;
   totalAnswers: number;
