@@ -15,14 +15,13 @@ interface ClanTerritoryMapProps {
 }
 
 // Map zone IDs to region IDs in your SVG
-// Adjust these mappings to match your actual SVG group names
 const ZONE_TO_REGION: Record<ZoneId, string | string[]> = {
-  "zone-1": "region_5", // Server Room
-  "zone-2": "region_7", // Mainframe
-  "zone-3": "region_6", // Security Hub
-  "zone-4": "region_4", // Data Vault
-  "zone-5": "region_8", // Power Grid
-  "zone-6": "region_3", // Control Room
+  "zone-1": "region_5",
+  "zone-2": "region_7",
+  "zone-3": "region_6",
+  "zone-4": "region_4",
+  "zone-5": "region_8",
+  "zone-6": "region_3",
 };
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
@@ -123,51 +122,58 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({ zones, clans
     if (!svg) return;
 
     svg.style.pointerEvents = "none";
+
+    // Disable pointer events on non-region shapes
     svg.querySelectorAll("path").forEach((path) => {
       if (!path.id?.startsWith("region_")) {
-        const element = path as SVGElement;
-        element.style.pointerEvents = "none";
+        (path as SVGElement).style.pointerEvents = "none";
       }
     });
 
-    // Update each region based on zone control
+    // Paint all regions
     Object.entries(ZONE_TO_REGION).forEach(([zoneId, regionIds]) => {
       const ids = Array.isArray(regionIds) ? regionIds : [regionIds];
-      
-      ids.forEach(regionId => {
+
+      ids.forEach((regionId) => {
         const regionGroup = svg.querySelector(`#${regionId}`) as SVGGElement | null;
         if (!regionGroup) return;
 
+        const regionPaths = regionGroup.querySelectorAll("path");
+
+        // Region transitions
         regionGroup.style.pointerEvents = "none";
         regionGroup.style.cursor = "default";
-        regionGroup.style.transition = "fill 0.35s ease, stroke-width 0.3s ease, filter 0.4s ease, opacity 0.25s ease";
 
         const zoneState = zones[zoneId as ZoneId];
         const { clan, dominance, contested } = getZoneController(zoneState, clans);
 
         if (!clan) {
-          regionGroup.style.fill = NEUTRAL_TERRITORY_SHADE;
-          regionGroup.style.stroke = "#475569";
-          regionGroup.style.strokeWidth = "2";
-          regionGroup.style.strokeDasharray = "none";
-          regionGroup.style.opacity = "0.6";
+          // NEUTRAL REGION FIX — write to <path>, NEVER <g>
+          regionPaths.forEach((p) => {
+            p.setAttribute("fill", NEUTRAL_TERRITORY_SHADE);
+            p.setAttribute("stroke", "#475569");
+            p.setAttribute("stroke-width", "2");
+            p.setAttribute("stroke-dasharray", "none");
+            p.setAttribute("opacity", "0.6");
+          });
+
           regionGroup.style.filter = "none";
           return;
         }
 
-        // Claimed by a clan
+        // CLAIMED REGION — write clan color ONLY to <path>
         const baseOpacity = Math.max(0.45, dominance);
         const baseStrokeWidth = contested ? "4" : "3";
-        const hoverStrokeWidth = contested ? "5.5" : "4";
-        const hoverFill = blendHexColors(clan.color, "#ffffff", contested ? 0.3 : 0.18);
-        const baseFilter = `drop-shadow(0 0 ${contested ? 16 : 10}px ${clan.color})`;
-        const hoverFilter = `drop-shadow(0 0 22px ${clan.color})`;
 
-        regionGroup.style.fill = clan.color;
-        regionGroup.style.stroke = clan.color;
-        regionGroup.style.strokeWidth = baseStrokeWidth;
-        regionGroup.style.strokeDasharray = contested ? "8 4" : "none";
-        regionGroup.style.opacity = baseOpacity.toString();
+        regionPaths.forEach((p) => {
+          p.setAttribute("fill", clan.color);
+          p.setAttribute("stroke", clan.color);
+          p.setAttribute("stroke-width", baseStrokeWidth);
+          p.setAttribute("stroke-dasharray", contested ? "8 4" : "none");
+          p.setAttribute("opacity", baseOpacity.toString());
+        });
+
+        const baseFilter = `drop-shadow(0 0 ${contested ? 16 : 10}px ${clan.color})`;
         regionGroup.style.filter = baseFilter;
       });
     });
@@ -186,7 +192,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({ zones, clans
       <div className="mb-3">
         <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Territory Control</h3>
       </div>
-      
+
       <div
         ref={containerRef}
         className="w-full h-[340px] flex items-center justify-center overflow-hidden"
