@@ -1,10 +1,31 @@
 import { GameState, RegionStats, ClanStats, PlayerState } from "./lockdownTypes";
 
+const REGION_IDS = [
+  "region_1",
+  "region_2",
+  "region_3",
+  "region_4",
+  "region_5",
+  "region_6",
+  "region_7",
+  "region_8",
+] as const;
+
+const REGION_NAME_OVERRIDES: Partial<Record<typeof REGION_IDS[number], string>> = {
+  region_1: "Signal Chamber",
+  region_2: "Quantum Nexus",
+};
+
+export const REGION_NAMES: Record<string, string> = REGION_IDS.reduce(
+  (acc, regionId, index) => {
+    acc[regionId] = REGION_NAME_OVERRIDES[regionId] ?? `Region ${index + 1}`;
+    return acc;
+  },
+  {} as Record<string, string>
+);
+
 // Region mapping based on entry routes or questions
-const REGIONS = [
-  "region_1", "region_2", "region_3", "region_4", 
-  "region_5", "region_6", "region_7", "region_8"
-];
+const REGIONS = [...REGION_IDS];
 
 // Color palette for clans (consistent hashing)
 const CLAN_COLOR_PALETTE = [

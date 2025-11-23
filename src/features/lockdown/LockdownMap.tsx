@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { RegionStats } from "./lockdownTypes";
+import { REGION_NAMES } from "./regionCalculator";
 // @ts-expect-error - Vite injects raw SVG strings for ?raw imports
 import territoryMapSvgRaw from "./assets/territory_map.svg?raw";
 
@@ -8,9 +9,9 @@ const placeholderMap = `
 <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
   <rect width="800" height="600" fill="#0f172a"/>
   <g id="region_1"><rect x="50" y="50" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="125"
- y="125" text-anchor="middle" fill="#94a3b8" font-size="14">Region 1</text></g>
+ y="125" text-anchor="middle" fill="#94a3b8" font-size="14">Signal Chamber</text></g>
   <g id="region_2"><rect x="220" y="50" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="295"
-  y="125" text-anchor="middle" fill="#94a3b8" font-size="14">Region 2</text></g>
+  y="125" text-anchor="middle" fill="#94a3b8" font-size="14">Quantum Nexus</text></g>
   <g id="region_3"><rect x="390" y="50" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="465"
   y="125" text-anchor="middle" fill="#94a3b8" font-size="14">Region 3</text></g>
   <g id="region_4"><rect x="560" y="50" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="635"
@@ -211,6 +212,7 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
           {Object.entries(regionStats).map(([regionId, stats]) => {
             const topClan = stats.topClan;
             if (!topClan) return null;
+            const regionLabel = REGION_NAMES[regionId] ?? regionId.replace(/_/g, " ");
 
             return (
               <div
@@ -222,7 +224,7 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
                   style={{ backgroundColor: topClan.color || getColorForClan(topClan.clanId) }}
                 />
                 <div className="flex-1">
-                  <p className="text-white font-semibold">{regionId.replace(/_/g, " ")}</p>
+                  <p className="text-white font-semibold">{regionLabel}</p>
                   <p className="text-slate-400">
                     {topClan.clanName} - {topClan.percentage.toFixed(0)}%
                   </p>
