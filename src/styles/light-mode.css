@@ -328,7 +328,27 @@ body.light-mode .glitch-frame-avatar::before {
     ) !important;
 }
 
-body.light-mode .dashboard-panel .dashboard-action > span[aria-hidden="true"] {
+/* When both neon and glitch active in light mode, glitch takes priority */
+body.light-mode .neon-frame.glitch-frame {
+  background: linear-gradient(135deg, #ff00de 0%, #00ffff 50%, #ff00de 100%) !important;
+  box-shadow: 
+    0 0 15px rgba(255, 0, 222, 1),
+    0 0 30px rgba(0, 255, 255, 1),
+    0 0 45px rgba(255, 0, 222, 0.8),
+    inset 0 0 10px rgba(0, 255, 255, 0.7) !important;
+  border: 1px solid rgba(0, 255, 255, 1) !important;
+  animation: glitch-shift 3s infinite !important;
+}
+
+body.light-mode .neon-frame-avatar.glitch-frame-avatar {
+  border: 2px solid rgba(0, 255, 255, 1) !important;
+  box-shadow:
+    0 0 12px rgba(255, 0, 222, 1),
+    0 0 24px rgba(0, 255, 255, 1),
+    0 0 36px rgba(255, 0, 222, 0.8),
+    inset 0 0 6px rgba(0, 255, 255, 0.7) !important;
+  animation: glitch-rgb-shift 3s infinite !important;
+}body.light-mode .dashboard-panel .dashboard-action > span[aria-hidden="true"] {
   display: none !important;
 }
 
