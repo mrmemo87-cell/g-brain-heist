@@ -107,6 +107,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     >
   >({});
   const lastRegionStyleKeyRef = useRef<Record<string, string>>({});
+  const svgRef = useRef<SVGSVGElement | null>(null);
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -115,11 +116,6 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
   useEffect(() => {
     if (!mapMarkup || !containerRef.current) return;
-
-    const svg = containerRef.current.querySelector("svg");
-    if (!svg) return;
-
-    svg.style.pointerEvents = "none";
 
     const ensureInitialAttributes = (element: SVGPathElement) => {
       if (!element.getAttribute("data-initial-fill")) {
@@ -221,6 +217,18 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     };
 
     const updateRegions = () => {
+      const svg = containerRef.current?.querySelector("svg");
+      if (!svg) {
+        return;
+      }
+
+      if (svgRef.current !== svg) {
+        svgRef.current = svg;
+        svg.style.pointerEvents = "none";
+        defaultRegionStylesRef.current = {};
+        lastRegionStyleKeyRef.current = {};
+      }
+
       Object.entries(ZONE_TO_REGION).forEach(([zoneId, regionIds]) => {
         const ids = Array.isArray(regionIds) ? regionIds : [regionIds];
 
