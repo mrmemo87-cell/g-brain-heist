@@ -7,12 +7,14 @@ interface PlayerProfileCardProps {
 }
 
 const StatDisplay: React.FC<{ icon: React.ReactNode; label: string; value: string | number; color: string; subtitle?: string }> = ({ icon, label, value, color, subtitle }) => (
-  <div className="flex items-center space-x-3 bg-black/20 p-3 rounded-2xl">
-    <div className="w-8 h-8 flex-shrink-0" style={{ color }}>{icon}</div>
-    <div>
-      <div className="text-sm" style={{ color: 'var(--mist-400)' }}>{label}</div>
-      <div className="text-lg font-semibold font-heading">{value}</div>
-      {subtitle && <div className="text-xs" style={{ color: 'var(--mist-400)' }}>{subtitle}</div>}
+  <div className="flex items-center gap-3 rounded-xl border border-cyan-400/20 bg-slate-900/70 p-3 shadow-[0_10px_30px_rgba(0,0,0,0.45)]">
+    <div className="w-9 h-9 flex-shrink-0 rounded-lg bg-black/30 flex items-center justify-center" style={{ color }}>
+      {icon}
+    </div>
+    <div className="space-y-0.5">
+      <div className="text-xs uppercase tracking-wide" style={{ color: 'var(--mist-400)' }}>{label}</div>
+      <div className="text-lg font-semibold font-heading leading-tight">{value}</div>
+      {subtitle && <div className="text-[11px]" style={{ color: 'var(--mist-400)' }}>{subtitle}</div>}
     </div>
   </div>
 );
@@ -61,6 +63,7 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
   const defenseValue = profile.defense_power_effective ?? profile.defense_power;
   const attackSubtitle = clanBuffs.length ? `Base ${profile.attack_power}` : undefined;
   const defenseSubtitle = clanBuffs.length ? `Base ${profile.defense_power}` : undefined;
+  const hasNeonFrame = profile.active_cosmetic_frame === 'neon';
 
   const [apCountdown, setApCountdown] = useState<string>('');
   const [calculatedAP, setCalculatedAP] = useState<number>(profile.ap_now);
@@ -109,122 +112,143 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
   }, [profile.ap_now, profile.ap_max, profile.last_ap_update]);
 
   return (
-    <div className="card-glass glow-plasma p-5 animate-fade-in-up" style={{ borderColor: 'rgba(255, 45, 145, 0.3)' }}>
-      <div className="flex items-center space-x-4 mb-5">
-        <img src={profile.avatar_url} alt={profile.username} className="w-20 h-20 rounded-full border-4 animate-float" style={{ borderColor: 'var(--plasma-pink)' }}/>
-        <div>
-          <h2 className="text-2xl font-bold font-heading neon-text" style={{ color: 'var(--plasma-pink)' }}>{profile.username}</h2>
-          <p style={{ color: 'var(--mist-400)' }}>
-            {profile.batch ? `Batch ${profile.batch} | ` : ''}
-            {profile.role === 'teacher' ? '👨‍🏫 Teacher | ' : ''}
-            Level {profile.level}
-          </p>
+    <div className="animate-fade-in-up rounded-2xl border border-pink-500/30 bg-slate-950/90 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.55)]">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-xl border border-pink-500/25 bg-black/40 p-4 shadow-[0_10px_30px_rgba(255,45,145,0.15)]">
+          <div className="flex items-center gap-3">
+            <div className={`relative rounded-full ${hasNeonFrame ? 'p-[3px] bg-gradient-to-br from-fuchsia-500 via-cyan-400 to-purple-500 shadow-[0_0_28px_rgba(168,85,247,0.4)]' : ''}`}>
+              <img
+                src={profile.avatar_url}
+                alt={profile.username}
+                className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 animate-float ${hasNeonFrame ? 'border-transparent shadow-[0_0_22px_rgba(59,130,246,0.55)] ring-2 ring-white/70' : ''}`}
+                style={{ borderColor: hasNeonFrame ? undefined : 'var(--plasma-pink)' }}
+              />
+              {hasNeonFrame && (
+                <span
+                  className="pointer-events-none absolute inset-0 rounded-full animate-pulse"
+                  style={{ boxShadow: '0 0 18px rgba(59,130,246,0.55), 0 0 26px rgba(236,72,153,0.45)' }}
+                ></span>
+              )}
+            </div>
+            <div className="space-y-1">
+              <h2 className="text-xl sm:text-2xl font-bold font-heading" style={{ color: 'var(--plasma-pink)' }}>
+                {profile.username}
+              </h2>
+              <p className="text-sm" style={{ color: 'var(--mist-400)' }}>
+                {profile.batch ? `Batch ${profile.batch} | ` : ''}
+                {profile.role === 'teacher' ? '👨‍🏫 Teacher | ' : ''}
+                Level {profile.level}
+              </p>
+            </div>
+          </div>
+          <div className="w-full sm:w-1/2">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--ion-blue)' }}>XP</span>
+              <span className="text-[11px] font-mono" style={{ color: 'var(--mist-400)' }}>{profile.xp} / {xpForNextLevel}</span>
+            </div>
+            <div className="w-full h-3 rounded-full border border-sky-400/20 bg-slate-900/70 overflow-hidden">
+              <div
+                className="h-full rounded-full progress-bar-glow-ion shimmer-effect"
+                style={{ width: `${xpProgressPercent}%`, backgroundColor: 'var(--ion-blue)' }}
+              ></div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div>
-        <div className="flex justify-between items-end mb-1">
-          <span className="text-sm font-bold" style={{ color: 'var(--ion-blue)' }}>XP</span>
-          <span className="text-xs font-mono" style={{ color: 'var(--mist-400)' }}>{profile.xp} / {xpForNextLevel}</span>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <StatDisplay icon={<CoinIcon />} label="Coins" value={profile.coins.toLocaleString()} color={'var(--amber-warn)'} />
+          <StatDisplay icon={<GemIcon />} label="Gemstones" value={profile.gemstones.toLocaleString()} color={'var(--ion-blue)'} />
+          <StatDisplay icon={<StreakIcon />} label="Streak" value={`${profile.streak} days`} color={'var(--danger-red)'} />
+          <StatDisplay icon={<span>🏆</span>} label="Total Score" value={totalScore.toLocaleString()} color={'var(--amber-warn)'} subtitle="XP + PvP" />
+          <StatDisplay icon={<XPIcon />} label="Total XP" value={profile.xp.toLocaleString()} color={'var(--ion-blue)'} />
+          <StatDisplay icon={<span>🥊</span>} label="PvP Score" value={profile.pvp_score.toLocaleString()} color={'var(--danger-red)'} subtitle="3 pts per win" />
+          <StatDisplay
+            icon={<APIcon />}
+            label="Action Points"
+            value={`${calculatedAP}/${profile.ap_max}`}
+            color={'var(--success-teal)'}
+            subtitle={calculatedAP < profile.ap_max ? `+1 in ${apCountdown}` : undefined}
+          />
+          <StatDisplay icon={<span>⚔️</span>} label="Attack" value={attackValue || 10} color={'var(--danger-red)'} subtitle={attackSubtitle} />
+          <StatDisplay icon={<span>🛡️</span>} label="Defense" value={defenseValue || 10} color={'var(--ion-blue)'} subtitle={defenseSubtitle} />
         </div>
-        <div className="w-full bg-black/30 rounded-full h-2.5">
-          <div className="h-2.5 rounded-full progress-bar-glow-ion shimmer-effect" style={{ width: `${xpProgressPercent}%`, backgroundColor: 'var(--ion-blue)' }}></div>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-2 gap-4 mt-6">
-        <StatDisplay icon={<CoinIcon />} label="Coins" value={profile.coins.toLocaleString()} color={'var(--amber-warn)'} />
-        <StatDisplay icon={<GemIcon />} label="Gemstones" value={profile.gemstones.toLocaleString()} color={'var(--ion-blue)'} />
-        <StatDisplay icon={<StreakIcon />} label="Streak" value={`${profile.streak} days`} color={'var(--danger-red)'} />
-        <StatDisplay icon={<span>🏆</span>} label="Total Score" value={totalScore.toLocaleString()} color={'var(--amber-warn)'} subtitle="XP + PvP" />
-        <StatDisplay icon={<XPIcon />} label="Total XP" value={profile.xp.toLocaleString()} color={'var(--ion-blue)'} />
-        <StatDisplay icon={<span>🥊</span>} label="PvP Score" value={profile.pvp_score.toLocaleString()} color={'var(--danger-red)'} subtitle="3 pts per win" />
-        <StatDisplay 
-          icon={<APIcon />} 
-          label="Action Points" 
-          value={`${calculatedAP}/${profile.ap_max}`} 
-          color={'var(--success-teal)'} 
-          subtitle={calculatedAP < profile.ap_max ? `+1 in ${apCountdown}` : undefined}
-        />
-        <StatDisplay icon={<span>⚔️</span>} label="Attack" value={attackValue || 10} color={'var(--danger-red)'} subtitle={attackSubtitle} />
-        <StatDisplay icon={<span>🛡️</span>} label="Defense" value={defenseValue || 10} color={'var(--ion-blue)'} subtitle={defenseSubtitle} />
-      </div>
-
-      {profile.clan_name && (
-        <>
-          <div className="mt-6 bg-black/20 p-4 rounded-2xl border border-white/5">
-            <p className="text-xs uppercase tracking-wide text-gray-400">Clan</p>
-            <div className="flex items-center justify-between mt-1">
-              <div>
-                <p className="text-xl font-heading text-amber-300">{profile.clan_name}</p>
-                <p className="text-sm text-gray-400 capitalize">
-                  {profile.clan_role}
-                  {profile.clan_custom_title ? ` • ${profile.clan_custom_title}` : ''}
-                </p>
+        {profile.clan_name && (
+          <div className="grid gap-3">
+            <div className="rounded-xl border border-amber-400/25 bg-black/40 p-4 shadow-[0_10px_30px_rgba(255,183,77,0.12)]">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-amber-200/80">Clan</p>
+                  <p className="text-lg sm:text-xl font-heading text-amber-300">{profile.clan_name}</p>
+                  <p className="text-sm text-gray-400 capitalize">
+                    {profile.clan_role}
+                    {profile.clan_custom_title ? ` • ${profile.clan_custom_title}` : ''}
+                  </p>
+                </div>
+                {typeof profile.clan_total_score === 'number' && (
+                  <div className="text-right">
+                    <p className="font-semibold text-white">{profile.clan_total_score.toLocaleString()}</p>
+                    <p className="text-[11px] text-gray-400 uppercase tracking-wide">Clan Score</p>
+                  </div>
+                )}
               </div>
-              {typeof profile.clan_total_score === 'number' && (
-                <div className="text-right">
-                  <p className="font-semibold text-white">{profile.clan_total_score.toLocaleString()}</p>
-                  <p className="text-xs text-gray-400">Clan Score</p>
+            </div>
+
+            <div className="rounded-xl border border-sky-400/25 bg-slate-900/70 p-4 shadow-[0_10px_30px_rgba(14,165,233,0.15)] space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-heading text-lg text-amber-200">Active Clan Effects</h3>
+                <p className="text-[11px] uppercase tracking-wider text-gray-400">{clanBuffs.length} aligned</p>
+              </div>
+              {clanBuffs.length === 0 ? (
+                <p className="text-sm text-gray-400">No clan buffs are active right now.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {clanBuffs.map((buff, index) => (
+                    <div
+                      key={buff.id}
+                      className="relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/80 to-slate-950/90 p-3 shadow-[0_12px_30px_rgba(0,0,0,0.4)]"
+                      style={{
+                        backgroundImage: 'linear-gradient(145deg, rgba(9, 37, 68, 0.9), rgba(8, 17, 36, 0.95))',
+                        borderColor: 'rgba(255,255,255,0.08)'
+                      }}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-1">
+                          <p className="font-semibold text-white text-base">{buff.name}</p>
+                          <p className="text-xs text-gray-400 leading-snug">{describeClanBuffEffect(buff.effect)}</p>
+                        </div>
+                        <span className="text-[10px] font-semibold uppercase tracking-wide text-amber-300">
+                          {buff.template_code?.toUpperCase() ?? 'Buff'}
+                        </span>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between text-[11px] text-gray-400">
+                        <div className="space-y-0.5">
+                          <p>{formatBuffTimeRemaining(buff.expires_at)}</p>
+                          {buff.activated_by_name && <p>Activated by {buff.activated_by_name}</p>}
+                        </div>
+                        <div className="text-right text-gray-500">
+                          <p>
+                            {buff.activated_at
+                              ? `Since ${new Date(buff.activated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                              : 'Activation time unknown'}
+                          </p>
+                        </div>
+                      </div>
+                      <div
+                        className="pointer-events-none absolute inset-0 rounded-xl"
+                        style={{
+                          border: '1px solid rgba(96, 165, 250, 0.4)',
+                          boxShadow: '0 0 25px rgba(14, 165, 233, 0.35)'
+                        }}
+                      />
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
           </div>
-
-          <div className="mt-4 bg-black/20 p-4 rounded-3xl border border-white/5 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-heading text-xl text-amber-300">Active Clan Effects</h3>
-              <p className="text-xs uppercase tracking-wider text-gray-400">{clanBuffs.length} aligned</p>
-            </div>
-            {clanBuffs.length === 0 ? (
-              <p className="text-sm text-gray-400">No clan buffs are active right now.</p>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2">
-                {clanBuffs.map((buff, index) => (
-                  <div
-                    key={buff.id}
-                    className="relative card-glass p-4 rounded-2xl border border-white/10 shadow-[0_15px_35px_rgba(0,0,0,0.35)]"
-                    style={{
-                      backgroundImage: 'linear-gradient(145deg, rgba(9, 37, 68, 0.9), rgba(8, 17, 36, 0.95))',
-                      borderColor: 'rgba(255,255,255,0.08)'
-                    }}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="font-semibold text-white text-lg">{buff.name}</p>
-                        <p className="text-xs text-gray-400">{describeClanBuffEffect(buff.effect)}</p>
-                      </div>
-                      <span className="text-[11px] font-semibold uppercase tracking-wide text-amber-300">
-                        {buff.template_code?.toUpperCase() ?? 'Buff'}
-                      </span>
-                    </div>
-                    <div className="mt-3 flex justify-between items-center text-xs text-gray-400">
-                      <div>
-                        <p>{formatBuffTimeRemaining(buff.expires_at)}</p>
-                        {buff.activated_by_name && <p>Activated by {buff.activated_by_name}</p>}
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[11px] text-gray-500">
-                          {buff.activated_at
-                            ? `Since ${new Date(buff.activated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-                            : 'Activation time unknown'}
-                        </p>
-                      </div>
-                    </div>
-                    <div
-                      className="absolute inset-0 rounded-2xl pointer-events-none"
-                      style={{
-                        border: '1px solid rgba(96, 165, 250, 0.4)',
-                        boxShadow: '0 0 35px rgba(14, 165, 233, 0.4)'
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </>
-      )}
+        )}
+      </div>
     </div>
   );
 };
