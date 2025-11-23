@@ -127,6 +127,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [lastCompletedAssignment, setLastCompletedAssignment] = useState<StudentAssignmentTask | null>(null);
   const [assignmentStartTime, setAssignmentStartTime] = useState<number | null>(null);
   const [assignmentSubmissionState, setAssignmentSubmissionState] = useState<'idle' | 'submitting' | 'submitted'>('idle');
+  const [nextAction, setNextAction] = useState<(() => void) | null>(null);
+  const [nextActionLabel, setNextActionLabel] = useState<string>('');
   const [freeformAnswer, setFreeformAnswer] = useState('');
 
   const answerFeedbackRef = useRef<HTMLDivElement>(null);
@@ -340,6 +342,21 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   };
 
   const applyAssignmentState = (assignment: StudentAssignmentTask) => {
+    const isExpired = (() => {
+      if (!assignment.due_at) return false;
+      const dueTimestamp = new Date(assignment.due_at).getTime();
+      return Number.isFinite(dueTimestamp) && dueTimestamp < Date.now();
+    })();
+
+    if (isExpired) {
+      setActiveAssignment(null);
+      setLastCompletedAssignment(null);
+      setTeacherQuestions([]);
+      setStage('mode_selection');
+      setMode('practice');
+      return;
+    }
+
     const normalizedQuestions = (assignment.questions || []).map(normalizeAssignmentQuestion);
 
     setActiveAssignment({ ...assignment, questions: normalizedQuestions });
@@ -356,6 +373,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
     setSelectedOption(null);
     setAnswerResponse(null);
+    setNextAction(null);
+    setNextActionLabel('');
     setQuestionScores([]);
     setQuestionPerformances([]);
     setMissionSummary(null);
@@ -583,19 +602,24 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         }
       }, 80);
 
-      if (isLastQuestion) {
-        setTimeout(() => {
+      const proceed = () => {
+        setNextAction(null);
+        setNextActionLabel('');
+        if (isLastQuestion) {
           finalizeMission(updatedScores, updatedPerformances, branchId, topicId);
           audioService.play('tada');
           setStage('completed');
-        }, 1500);
-      } else {
-        setTimeout(() => {
+          setAnswerResponse(null);
+        } else {
           advanceFn();
           setSelectedOption(null);
           setAnswerResponse(null);
-        }, 1500);
-      }
+          setQuestionStartTime(Date.now());
+        }
+      };
+
+      setNextAction(() => proceed);
+      setNextActionLabel(isLastQuestion ? 'View results' : 'Next question');
     };
 
     if (mode === 'practice') {
@@ -610,8 +634,14 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         console.log('[Quest] Submitting answer for question:', currentQuestion.id);
         const response = await GameService.mcq_answer_submit(currentQuestion, option);
         console.log('[Quest] Answer submitted, response:', { correct: response.correct, deltas: response.deltas });
-        
+
         const telemetry = applyQuestionTelemetry(currentQuestion, response.correct, response);
+
+        const correctAnswerText = currentQuestion.correct_answer || '';
+        const explanation = response.correct
+          ? response.explanation || 'Correct!'
+          : response.explanation || (correctAnswerText ? `Incorrect. The correct answer was ${correctAnswerText}.` : 'Incorrect.');
+        response.explanation = explanation;
 
         setQuestionStartTime(null);
 
@@ -723,20 +753,20 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     if (!question && !teacherQuestion && !assignmentQuestion) return null;
 
     const getOptionClasses = (option: string, correctAnswer: string) => {
-        const baseClass = 'p-4 rounded-2xl border text-left transition-colors duration-300 disabled:cursor-not-allowed';
+        const baseClass = 'p-4 rounded-2xl border text-left transition-colors duration-300 disabled:cursor-not-allowed text-white shadow-sm';
         if (!answerResponse) {
-            return `${baseClass} bg-black/20 hover:bg-black/40 border-gray-600`;
+            return `${baseClass} bg-slate-800/70 hover:bg-slate-700/80 border-cyan-500/40`;
         }
         const isCorrectChoice = option === correctAnswer;
         const isUserSelection = option === selectedOption;
 
         if (isCorrectChoice) {
-            return `${baseClass} bg-green-500/20 border-green-400 animate-pulse`;
+            return `${baseClass} bg-green-500/30 border-green-300 text-white`;
         }
         if (isUserSelection && !answerResponse.correct) {
-            return `${baseClass} bg-red-500/20 border-red-400`;
+            return `${baseClass} bg-red-500/30 border-red-300 text-white`;
         }
-        return `${baseClass} bg-black/10 border-gray-700 opacity-50`;
+        return `${baseClass} bg-slate-800/60 border-slate-600 text-gray-300`;
     };
 
     const activeTeacherQuestion = mode === 'assignment' ? assignmentQuestion : teacherQuestion;
@@ -833,6 +863,14 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                     <h3 className="font-bold text-lg text-red-400">Incorrect!</h3>
                     <p className="text-gray-200">{answerResponse.explanation}</p>
                   </div>
+                )}
+                {nextAction && (
+                  <button
+                    onClick={nextAction}
+                    className="mt-4 px-6 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold shadow-lg hover:scale-105 transition-transform"
+                  >
+                    {nextActionLabel || 'Continue'}
+                  </button>
                 )}
             </div>
         )}
