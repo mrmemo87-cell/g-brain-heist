@@ -133,6 +133,36 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
   const winningClan = results?.winningClanId
     ? clanList.find((c) => c.id === results.winningClanId) ?? gameState.clans[results.winningClanId]
     : null;
+  const controlStats = React.useMemo(() => {
+    if (!results) return [] as { clan: ClanMetadata; count: number }[];
+    const tally: Record<string, number> = {};
+    Object.values(results.zoneControl).forEach((clanId) => {
+      if (!clanId) return;
+      tally[clanId] = (tally[clanId] || 0) + 1;
+    });
+    return Object.entries(tally)
+      .map(([clanId, count]) => ({
+        clan:
+          gameState.clans[clanId as ClanId] ||
+          clanList.find((c) => c.id === clanId) || {
+            id: clanId as ClanId,
+            name: clanId,
+            color: getClanColor(clanId),
+          },
+        count,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [results, gameState.clans, clanList]);
+  const topRewardLeaders = React.useMemo(() => {
+    if (!results) return [] as Array<{ reward: (typeof results.playerRewards)[number]; player?: PlayerStats }>;
+    return [...results.playerRewards]
+      .sort((a, b) => b.coins - a.coins || b.battleScore - a.battleScore)
+      .slice(0, 3)
+      .map((reward) => ({
+        reward,
+        player: gameState.players[reward.playerId],
+      }));
+  }, [results, gameState.players]);
 
   const [warfeed, setWarfeed] = React.useState<WarEvent[]>([]);
   const previousState = React.useRef<ClanTerritoryGameState | null>(null);
@@ -192,7 +222,7 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
   return (
     <div className="flex flex-col min-h-screen bg-slate-950 text-white p-4 gap-4 relative overflow-y-auto">
       {gameState.phase === "ENDED" && results && (
-        <div className="absolute inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-8 gap-6 text-center">
+        <div className="absolute inset-0 z-50 bg-black/95 flex flex-col items-center overflow-y-auto p-8 gap-6 text-center">
           <h2 className="text-5xl font-black tracking-widest text-yellow-300">BATTLE COMPLETE</h2>
           {winningClan ? (
             <div>
@@ -200,6 +230,20 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
               <p className="text-6xl font-black" style={{ color: winningClan.color }}>
                 {winningClan.name}
               </p>
+              <div className="mt-6 grid gap-4 md:grid-cols-3">
+                {controlStats.length > 0 ? (
+                  controlStats.map(({ clan, count }) => (
+                    <div key={clan.id} className="bg-slate-900/70 p-4 rounded-xl border border-slate-800">
+                      <p className="text-sm text-slate-400">{clan.name}</p>
+                      <p className="text-3xl font-black" style={{ color: clan.color }}>
+                        {count} <span className="text-base text-slate-400">zones</span>
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="md:col-span-3 text-slate-400">No territory was held at the final horn.</div>
+                )}
+              </div>
               <div className="mt-6 grid md:grid-cols-3 gap-4">
                 <div className="bg-slate-900/70 p-4 rounded-xl border border-slate-800">
                   <div className="text-sm text-slate-400">Total Loot</div>
@@ -220,6 +264,21 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
                   </div>
                 </div>
               </div>
+              {topRewardLeaders.length > 0 && (
+                <div className="mt-6 bg-slate-900/70 rounded-xl border border-slate-800 p-4">
+                  <h3 className="text-lg font-bold mb-3">MVP Agents</h3>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {topRewardLeaders.map(({ reward, player }) => (
+                      <div key={reward.playerId} className="bg-slate-950/60 border border-slate-800 rounded-lg p-4">
+                        <p className="text-sm text-slate-400">{reward.clanName}</p>
+                        <p className="text-xl font-bold">{player?.name ?? reward.playerId}</p>
+                        <p className="text-sm text-amber-300">{reward.coins} coins</p>
+                        <p className="text-xs text-slate-500">Battle score {reward.battleScore}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="mt-6 bg-slate-900/70 rounded-xl border border-slate-800 max-h-64 overflow-y-auto">
                 <table className="w-full text-left text-sm">
                   <thead className="text-slate-400 uppercase text-xs tracking-wider">

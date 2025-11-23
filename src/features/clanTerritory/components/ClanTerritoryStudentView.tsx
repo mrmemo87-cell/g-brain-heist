@@ -542,54 +542,103 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   const results = gameState.phase === "ENDED" ? calculateClanTerritoryResults(gameState) : null;
   const myReward = results?.playerRewards.find((r) => r.playerId === playerId);
   const wonRewards = myReward && (myReward.coins > 0 || myReward.xp > 0 || myReward.gems > 0);
+  const winningClan = results?.winningClanId
+    ? clanList.find((c) => c.id === results.winningClanId) ?? gameState.clans[results.winningClanId]
+    : null;
+  const accuracy = hydratedPlayer.questionsAnswered > 0
+    ? Math.round((hydratedPlayer.questionsCorrect / hydratedPlayer.questionsAnswered) * 100)
+    : 0;
+  const clanZoneCount = results
+    ? Object.values(results.zoneControl).filter((clanId) => clanId === hydratedPlayer.clanId).length
+    : 0;
 
   return (
-    <div className="flex flex-col items-center justify-center h-full bg-gray-900 text-white p-6 text-center gap-6">
-      <h1 className="text-4xl font-bold text-yellow-400">BATTLE ENDED</h1>
-      <div className="bg-gray-800 p-6 rounded-xl w-full max-w-sm">
-        <div className="text-gray-400 mb-2">Your Contribution</div>
-        <div className="text-5xl font-bold mb-4 text-blue-400">{hydratedPlayer.battleScore}</div>
-        <div className="grid grid-cols-2 gap-4 text-sm border-t border-gray-700 pt-4">
-          <div>
-            <span className="block text-gray-500">Correct</span>
-            <span className="font-bold text-green-400">{hydratedPlayer.questionsCorrect}</span>
+    <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-6">
+      <div className="w-full max-w-4xl space-y-8">
+        <div className="text-center space-y-3">
+          <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Operation Complete</p>
+          <h1 className="text-4xl font-black tracking-tight">Battle debrief</h1>
+          {winningClan ? (
+            <p className="text-lg text-slate-300">
+              {winningClan.id === hydratedPlayer.clanId
+                ? "Your clan secured the grid."
+                : `${winningClan.name} claimed the grid.`}
+            </p>
+          ) : (
+            <p className="text-lg text-slate-300">The grid remains contested.</p>
+          )}
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 text-center space-y-2">
+            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Battle Score</p>
+            <p className="text-5xl font-black text-amber-300">{hydratedPlayer.battleScore}</p>
+            <p className="text-sm text-slate-400">Accuracy {accuracy}% - Best streak x{hydratedPlayer.streak}</p>
           </div>
-          <div>
-            <span className="block text-gray-500">Streak Best</span>
-            <span className="font-bold text-orange-400">{hydratedPlayer.streak}</span>
+          <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 space-y-3">
+            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Zone Impact</p>
+            <div className="text-4xl font-black text-emerald-300">{clanZoneCount}/{ZONES.length}</div>
+            <p className="text-sm text-slate-400">Territories held by {hydratedPlayer.clanName}</p>
+            <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
+              <div
+                className="h-full bg-emerald-400"
+                style={{ width: `${(clanZoneCount / ZONES.length) * 100}%` }}
+              />
+            </div>
           </div>
+          <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 space-y-2">
+            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Intel</p>
+            <p className="text-sm text-slate-300">
+              {hydratedPlayer.questionsAnswered} Questions - {hydratedPlayer.fastAnswers} speed bonuses
+            </p>
+            <p className="text-sm text-slate-400">
+              Total answer time {Math.round(hydratedPlayer.totalAnswerTimeMs / 1000)}s
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          {wonRewards && myReward ? (
+            <div className="bg-gradient-to-br from-yellow-500/20 to-amber-500/10 border border-yellow-500/40 rounded-2xl p-6 space-y-4">
+              <h2 className="text-2xl font-bold text-yellow-200">Rewards delivered</h2>
+              <div className="grid grid-cols-3 gap-4 text-center text-sm">
+                <div>
+                  <p className="text-3xl font-black text-amber-300">{myReward.coins}</p>
+                  <p className="text-slate-400 uppercase tracking-widest text-[0.6rem]">Coins</p>
+                </div>
+                <div>
+                  <p className="text-3xl font-black text-purple-300">{myReward.xp}</p>
+                  <p className="text-slate-400 uppercase tracking-widest text-[0.6rem]">XP</p>
+                </div>
+                <div>
+                  <p className="text-3xl font-black text-cyan-300">{myReward.gems}</p>
+                  <p className="text-slate-400 uppercase tracking-widest text-[0.6rem]">Gems</p>
+                </div>
+              </div>
+              {claimingRewards && <p className="text-xs text-yellow-200">Processing rewards...</p>}
+              {rewardsClaimed && <p className="text-xs text-emerald-300">✓ Added to your vault</p>}
+            </div>
+          ) : (
+            <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 space-y-2 text-slate-400">
+              <h2 className="text-xl font-bold text-white">No payout this time</h2>
+              <p>Stay ready. Bonus loot drops once you break the leaderboard.</p>
+            </div>
+          )}
+
+          <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <h2 className="text-xl font-bold">Next Orders</h2>
+            <ul className="space-y-2 text-sm text-slate-300">
+              <li>- Review raid intel with your clan lead.</li>
+              <li>- Spend coins and gems before the next deployment.</li>
+              <li>- Stay logged in - teachers can redeploy instantly.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="text-center text-sm text-slate-500">
+          Awaiting next raid signal… keep the comms tab open.
         </div>
       </div>
-      {wonRewards && myReward && (
-        <div className="bg-gradient-to-br from-yellow-900/40 to-amber-900/40 border-2 border-yellow-500/50 p-6 rounded-xl w-full max-w-sm">
-          <h2 className="text-2xl font-bold text-yellow-300 mb-4">🎉 REWARDS CLAIMED</h2>
-          <div className="grid grid-cols-3 gap-4 text-center">
-            {myReward.coins > 0 && (
-              <div>
-                <div className="text-3xl font-bold text-amber-400">{myReward.coins}</div>
-                <div className="text-xs text-gray-400">Coins</div>
-              </div>
-            )}
-            {myReward.xp > 0 && (
-              <div>
-                <div className="text-3xl font-bold text-purple-400">{myReward.xp}</div>
-                <div className="text-xs text-gray-400">XP</div>
-              </div>
-            )}
-            {myReward.gems > 0 && (
-              <div>
-                <div className="text-3xl font-bold text-cyan-400">{myReward.gems}</div>
-                <div className="text-xs text-gray-400">Gems</div>
-              </div>
-            )}
-          </div>
-          {claimingRewards && <p className="text-xs text-yellow-400 mt-4">Processing rewards...</p>}
-          {rewardsClaimed && <p className="text-xs text-green-400 mt-4">✓ Added to your vault</p>}
-        </div>
-      )}
-      {!wonRewards && (
-        <p className="text-gray-400">Better luck next raid, agent.</p>
-      )}
     </div>
   );
 };

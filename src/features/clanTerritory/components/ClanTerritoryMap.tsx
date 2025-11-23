@@ -6,6 +6,7 @@ import {
   ClanMetadata,
   ZoneId,
   ZoneState,
+  getClanColor,
 } from "../clanTerritoryTypes";
 
 interface ClanTerritoryMapProps {
@@ -97,8 +98,16 @@ const getZoneController = (
     runnerUp &&
     Math.abs(leaderInf - runnerUp[1]) / Math.max(leaderInf, 1) <= 0.15;
 
+  const clanMeta =
+    clans?.[leaderId as ClanId] ??
+    ({
+      id: leaderId as ClanId,
+      name: leaderId,
+      color: getClanColor(leaderId),
+    } as ClanMetadata);
+
   return {
-    clan: clans?.[leaderId as ClanId] ?? null,
+    clan: clanMeta,
     dominance,
     contested: !!contested,
   };
@@ -122,6 +131,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       }
     >
   >({});
+  const rafRef = useRef<number | null>(null);
   const applyRegionVisuals = (
     element: SVGPathElement,
     {
@@ -138,97 +148,180 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       opacity: number;
     }
   ) => {
-    element.setAttribute("fill", fill);
-    element.setAttribute("stroke", stroke);
-    element.setAttribute("stroke-width", strokeWidth);
-    element.setAttribute("stroke-dasharray", dashArray);
-    element.setAttribute("opacity", opacity.toString());
+    useEffect(() => {
+      if (!mapMarkup || !containerRef.current) return;
 
-    element.style.fill = fill;
-    element.style.stroke = stroke;
-    element.style.strokeWidth = strokeWidth;
-    element.style.setProperty("stroke-dasharray", dashArray);
-    element.style.opacity = opacity.toString();
-  };
+      const svg = containerRef.current.querySelector("svg");
+      if (!svg) return;
 
-  useEffect(() => {
-    if (typeof territoryMapSvgRaw === "string" && territoryMapSvgRaw.trim()) {
-      setMapMarkup(normalizeSvgMarkup(territoryMapSvgRaw));
-    }
-  }, []);
+      svg.style.pointerEvents = "none";
 
-  useEffect(() => {
-    if (!mapMarkup) return;
-    if (!containerRef.current) return;
-
-    const svg = containerRef.current.querySelector("svg");
-    if (!svg) return;
-
-    const ensureInitialAttributes = (element: SVGPathElement) => {
-      if (!element.getAttribute("data-initial-fill")) {
-        const initialFill =
-          element.getAttribute("fill") ||
-          element.style.fill ||
-          NEUTRAL_TERRITORY_SHADE;
-        element.setAttribute("data-initial-fill", initialFill);
-      }
-      if (!element.getAttribute("data-initial-stroke")) {
-        const initialStroke =
-          element.getAttribute("stroke") ||
-          element.style.stroke ||
-          "#475569";
-        element.setAttribute("data-initial-stroke", initialStroke);
-      }
-      if (!element.getAttribute("data-initial-stroke-width")) {
-        const initialStrokeWidth =
-          element.getAttribute("stroke-width") ||
-          element.style.strokeWidth ||
-          "2";
-        element.setAttribute("data-initial-stroke-width", initialStrokeWidth);
-      }
-      if (!element.getAttribute("data-initial-dasharray")) {
-        const initialDash =
-          element.getAttribute("stroke-dasharray") ||
-          element.style.getPropertyValue("stroke-dasharray") ||
-          "none";
-        element.setAttribute("data-initial-dasharray", initialDash);
-      }
-      if (!element.getAttribute("data-initial-opacity")) {
-        const initialOpacity =
-          element.getAttribute("opacity") ||
-          element.style.opacity ||
-          "1";
-        element.setAttribute("data-initial-opacity", initialOpacity);
-      }
-    };
-
-    svg.style.pointerEvents = "none";
-
-    Object.entries(ZONE_TO_REGION).forEach(([zoneId, regionIds]) => {
-      const ids = Array.isArray(regionIds) ? regionIds : [regionIds];
-
-      ids.forEach((regionId) => {
-        const regionPath = svg.querySelector(
-          `#${regionId}`
-        ) as SVGPathElement | null;
-        if (!regionPath) return;
-
-        ensureInitialAttributes(regionPath);
-
-        if (!defaultRegionStylesRef.current[regionId]) {
-          const capturedFill =
-            regionPath.getAttribute("data-initial-fill") ||
-            regionPath.getAttribute("fill") ||
-            regionPath.style.fill ||
+      const ensureInitialAttributes = (element: SVGPathElement) => {
+        if (!element.getAttribute("data-initial-fill")) {
+          const initialFill =
+            element.getAttribute("fill") ||
+            element.style.fill ||
             NEUTRAL_TERRITORY_SHADE;
-          const capturedStroke =
-            regionPath.getAttribute("data-initial-stroke") ||
-            regionPath.getAttribute("stroke") ||
-            regionPath.style.stroke ||
+          element.setAttribute("data-initial-fill", initialFill);
+        }
+        if (!element.getAttribute("data-initial-stroke")) {
+          const initialStroke =
+            element.getAttribute("stroke") ||
+            element.style.stroke ||
             "#475569";
-          const capturedOpacity = Number(
-            regionPath.getAttribute("data-initial-opacity") ||
-              regionPath.getAttribute("opacity") ||
+          element.setAttribute("data-initial-stroke", initialStroke);
+        }
+        if (!element.getAttribute("data-initial-stroke-width")) {
+          const initialStrokeWidth =
+            element.getAttribute("stroke-width") ||
+            element.style.strokeWidth ||
+            "2";
+          element.setAttribute("data-initial-stroke-width", initialStrokeWidth);
+        }
+        if (!element.getAttribute("data-initial-dasharray")) {
+          const initialDash =
+            element.getAttribute("stroke-dasharray") ||
+            element.style.getPropertyValue("stroke-dasharray") ||
+            "none";
+          element.setAttribute("data-initial-dasharray", initialDash);
+        }
+        if (!element.getAttribute("data-initial-opacity")) {
+          const initialOpacity =
+            element.getAttribute("opacity") ||
+            element.style.opacity ||
+            "1";
+          element.setAttribute("data-initial-opacity", initialOpacity);
+        }
+      };
+
+      const buildKey = (
+        fill: string,
+        stroke: string,
+        strokeWidth: string,
+        dashArray: string,
+        opacity: number
+      ) => `${fill}|${stroke}|${strokeWidth}|${dashArray}|${opacity}`;
+
+      const updateRegions = () => {
+        Object.entries(ZONE_TO_REGION).forEach(([zoneId, regionIds]) => {
+          const ids = Array.isArray(regionIds) ? regionIds : [regionIds];
+
+          ids.forEach((regionId) => {
+            const regionPath = svg.querySelector(
+              `#${regionId}`
+            ) as SVGPathElement | null;
+            if (!regionPath) return;
+
+            ensureInitialAttributes(regionPath);
+
+            if (!defaultRegionStylesRef.current[regionId]) {
+              const capturedFill =
+                regionPath.getAttribute("data-initial-fill") ||
+                regionPath.getAttribute("fill") ||
+                regionPath.style.fill ||
+                NEUTRAL_TERRITORY_SHADE;
+              const capturedStroke =
+                regionPath.getAttribute("data-initial-stroke") ||
+                regionPath.getAttribute("stroke") ||
+                regionPath.style.stroke ||
+                "#475569";
+              const capturedOpacity = Number(
+                regionPath.getAttribute("data-initial-opacity") ||
+                  regionPath.getAttribute("opacity") ||
+                  regionPath.style.opacity ||
+                  1
+              );
+
+              defaultRegionStylesRef.current[regionId] = {
+                fill: capturedFill,
+                stroke: capturedStroke,
+                strokeWidth:
+                  regionPath.getAttribute("stroke-width") ||
+                  regionPath.style.strokeWidth ||
+                  "2",
+                dashArray:
+                  regionPath.getAttribute("stroke-dasharray") ||
+                  regionPath.style.getPropertyValue("stroke-dasharray") ||
+                  "none",
+                opacity: Number.isNaN(capturedOpacity) ? 1 : capturedOpacity,
+              };
+            }
+
+            const defaultStyle = defaultRegionStylesRef.current[regionId];
+            const defaultKey = buildKey(
+              defaultStyle.fill,
+              defaultStyle.stroke,
+              defaultStyle.strokeWidth,
+              defaultStyle.dashArray,
+              defaultStyle.opacity
+            );
+
+            const zoneState = zones[zoneId as ZoneId];
+            const { clan, dominance, contested } = getZoneController(
+              zoneState,
+              clans
+            );
+
+            if (!clan) {
+              if (lastRegionStyleKeyRef.current[regionId] !== defaultKey) {
+                lastRegionStyleKeyRef.current[regionId] = defaultKey;
+                applyRegionVisuals(regionPath, {
+                  fill: defaultStyle.fill,
+                  stroke: defaultStyle.stroke,
+                  strokeWidth: defaultStyle.strokeWidth,
+                  dashArray: defaultStyle.dashArray,
+                  opacity: defaultStyle.opacity,
+                });
+                regionPath.style.filter = "none";
+              }
+              return;
+            }
+
+            const dominanceStrength = clamp01(dominance);
+            const baseOpacity = dominanceStrength >= 0.75 ? 1 : 0.85;
+            const baseStrokeWidth = contested ? "4" : "3";
+            const styleKey = buildKey(
+              clan.color,
+              clan.color,
+              baseStrokeWidth,
+              contested ? "8 4" : "none",
+              baseOpacity
+            );
+
+            if (lastRegionStyleKeyRef.current[regionId] === styleKey) {
+              return;
+            }
+
+            lastRegionStyleKeyRef.current[regionId] = styleKey;
+
+            applyRegionVisuals(regionPath, {
+              fill: clan.color,
+              stroke: clan.color,
+              strokeWidth: baseStrokeWidth,
+              dashArray: contested ? "8 4" : "none",
+              opacity: baseOpacity,
+            });
+
+            regionPath.style.filter = `drop-shadow(0 0 ${
+              contested ? 16 : 10
+            }px ${clan.color})`;
+          });
+        });
+      };
+
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+
+      rafRef.current = requestAnimationFrame(updateRegions);
+
+      return () => {
+        if (rafRef.current) {
+          cancelAnimationFrame(rafRef.current);
+          rafRef.current = null;
+        }
+      };
+    }, [zones, clans, mapMarkup]);
               regionPath.style.opacity ||
               1
           );
