@@ -24,12 +24,13 @@ const getItemIcon = (kind: InventoryItem['kind']) => {
 
 const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: string) => void, isActivating: boolean, quantity: number }> = ({ item, onActivate, isActivating, quantity }) => {
     const isUsable = item.state === 'unused' && (
-        item.kind === 'booster' || 
-        item.kind === 'major_booster' || 
+        item.kind === 'booster' ||
+        item.kind === 'major_booster' ||
         item.kind === 'shield' ||
         item.kind === 'encryption_key' ||
         item.kind === 'exploit_kit' ||
-        item.kind === 'firewall'
+        item.kind === 'firewall' ||
+        item.kind === 'cosmetic'
     );
 
   const statePillClasses: Record<InventoryItem['state'], string> = {

@@ -2024,7 +2024,7 @@ const MOCK_SHOP_ITEMS: ShopItem[] = [
     { id: 'item_cracker', name: 'Cracker', kind: 'cracker', price: 200, rarity: 'common', daily_limit: 2, owned_today: 0, description: 'Bypasses an active enemy shield during a hack.', effect_summary: 'Negates 1 shield' },
     { id: 'item_booster', name: 'Booster', kind: 'booster', price: 250, rarity: 'common', daily_limit: 1, owned_today: 0, description: 'Grants 1.5x XP from all sources for 1 hour.', effect_summary: '1.5x XP (1h)' },
     { id: 'item_major_booster', name: 'Major Booster', kind: 'major_booster', price: 400, rarity: 'rare', gemstone_price: 6, daily_limit: 1, owned_today: 0, description: 'Grants a massive 2.0x XP from all sources for 1 hour.', effect_summary: '2.0x XP (1h)' },
-    { id: 'item_cosmetic_frame', name: 'Neon Frame', kind: 'cosmetic', price: 750, rarity: 'rare', gemstone_price: 3, daily_limit: 1, owned_today: 0, description: 'A flashy neon frame for your avatar. Show off your style!', effect_summary: 'Purely cosmetic' },
+    { id: 'item_cosmetic_frame', name: 'Neon Frame', kind: 'cosmetic', price: 10000, rarity: 'rare', gemstone_price: 50, daily_limit: 1, owned_today: 0, description: 'A flashy neon frame for your avatar. Show off your style!', effect_summary: 'Purely cosmetic' },
     { id: 'item_cosmetic_theme', name: 'Glitch Theme', kind: 'cosmetic', price: 1200, rarity: 'legendary', gemstone_price: 8, daily_limit: 1, owned_today: 0, description: 'Apply a glitchy, datamosh effect to your profile card.', effect_summary: 'Purely cosmetic' },
     { id: 'item_quantum_cloak', name: 'Quantum Cloak', kind: 'shield', price: 500, rarity: 'legendary', gemstone_price: 12, daily_limit: 1, owned_today: 0, description: 'Phase-shifted armor that nullifies three attacks before collapsing.', effect_summary: 'Blocks 3 attacks' },
 ];
@@ -2195,7 +2195,23 @@ export const inventory_activate = async (inv_id: string): Promise<{ state_after:
     
     const now = new Date();
     const expiry = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour for boosters
-    
+
+    if (item.kind === 'cosmetic') {
+        await supabase
+            .from('inventory')
+            .update({
+                state: 'active',
+                activated_at: now.toISOString(),
+                expires_at: null,
+            })
+            .eq('id', inv_id);
+
+        return mockApiCall({
+            state_after: 'active' as const,
+            effect_window: { start: now.toISOString(), end: 'Permanent' }
+        });
+    }
+
     // Handle different item types
     if (item.kind === 'encryption_key' || item.kind === 'exploit_kit') {
         // Permanent attack boost - add to user's attack_power
