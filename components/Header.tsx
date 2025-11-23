@@ -116,27 +116,6 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
     audioService.setAudioEnabled(newState);
   };
 
-    const handleAvatarSelect = async (avatarUrl: string) => {
-      if (uploadingAvatar) return;
-      setUploadingAvatar(true);
-      try {
-        await applyAvatarChange(avatarUrl);
-      } catch {
-        /* handled in applyAvatarChange */
-      } finally {
-        setUploadingAvatar(false);
-      }
-    };
-      setAvatarUploadError(null);
-      audioService.play('collect');
-    } catch (error) {
-      console.error('Failed to update avatar:', error);
-      setAvatarUploadError('Failed to update avatar. Please try again.');
-      audioService.play('wrong');
-      throw error;
-    }
-  };
-
   const handleAvatarSelect = async (avatarUrl: string) => {
     if (uploadingAvatar) return;
     setUploadingAvatar(true);
@@ -151,10 +130,19 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const input = event.target as HTMLInputElement;
-        setAvatarUploadError(error.message);
-      } else {
-        setAvatarUploadError('Failed to upload avatar. Please try again.');
-      }
+    if (!input.files?.length) return;
+
+    setUploadingAvatar(true);
+    setAvatarUploadError(null);
+    
+    try {
+      const file = input.files[0];
+      await upload_avatar_file(file);
+      await applyAvatarChange(file);
+      audioService.play('collect');
+    } catch (error: any) {
+      console.error('Failed to upload avatar:', error);
+      setAvatarUploadError(error.message || 'Failed to upload avatar. Please try again.');
       audioService.play('wrong');
     } finally {
       setUploadingAvatar(false);
