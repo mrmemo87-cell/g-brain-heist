@@ -4,6 +4,7 @@ import * as GameService from '../services/gameService';
 import { audioService } from '../services/audioService';
 import BackButton from './BackButton';
 import { ShieldIcon, CrackerIcon, BoosterIcon, CoinIcon, CosmeticIcon, GemIcon } from './icons';
+import ModalPortal from './ModalPortal';
 
 type ShopStage = 'loading' | 'idle' | 'purchasing';
 
@@ -164,79 +165,81 @@ const PurchaseModal: React.FC<{
     };
 
     return (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="card-glass w-full max-w-md m-4 p-6 border-2" style={{ borderColor: 'var(--success-teal)' }}>
-                <h2 className="font-heading text-2xl text-center mb-2" style={{ color: 'var(--success-teal)' }}>Authorize Purchase</h2>
-                <p className="font-mono text-center text-gray-400 mb-6">&gt; Confirm transaction details for: <span className="text-white">{item.name}</span></p>
+        <ModalPortal>
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+                <div className="card-glass w-full max-w-md m-4 p-6 border-2" style={{ borderColor: 'var(--success-teal)' }}>
+                    <h2 className="font-heading text-2xl text-center mb-2" style={{ color: 'var(--success-teal)' }}>Authorize Purchase</h2>
+                    <p className="font-mono text-center text-gray-400 mb-6">&gt; Confirm transaction details for: <span className="text-white">{item.name}</span></p>
 
-                <div className="bg-black/30 p-4 rounded-xl space-y-4">
-                    <div className="flex justify-between items-center">
-                        <span className="text-gray-300">Quantity:</span>
-                        <div className="flex items-center space-x-3">
-                            <button
-                                onClick={() => setQuantity(q => Math.max(minQuantity, q - 1))}
-                                className="w-8 h-8 rounded-md bg-gray-700 hover:bg-gray-600"
-                                disabled={quantity <= minQuantity}
-                            >
-                                -
-                            </button>
-                            <span className="text-xl font-mono w-10 text-center">{quantity}</span>
-                            <button
-                                onClick={() => setQuantity(q => Math.min(maxQuantity, q + 1))}
-                                className="w-8 h-8 rounded-md bg-gray-700 hover:bg-gray-600"
-                                disabled={quantity >= maxQuantity}
-                            >
-                                +
-                            </button>
-                        </div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                        <span className="text-gray-300">Total Coins:</span>
-                        <div className="flex items-center space-x-2">
-                            <span className={`text-xl font-mono ${insufficientCoins ? 'text-red-500' : 'text-amber-300'}`}>{totalCoinCost.toLocaleString()}</span>
-                            <div className="w-5 h-5 text-amber-400"><CoinIcon /></div>
-                        </div>
-                    </div>
-                    {item.gemstone_price ? (
+                    <div className="bg-black/30 p-4 rounded-xl space-y-4">
                         <div className="flex justify-between items-center">
-                            <span className="text-gray-300">Total Gemstones:</span>
-                            <div className="flex items-center space-x-2">
-                                <span className={`text-xl font-mono ${insufficientGemstones ? 'text-red-500' : 'text-cyan-200'}`}>{totalGemCost.toLocaleString()}</span>
-                                <div className="w-5 h-5 text-cyan-300"><GemIcon /></div>
+                            <span className="text-gray-300">Quantity:</span>
+                            <div className="flex items-center space-x-3">
+                                <button
+                                    onClick={() => setQuantity(q => Math.max(minQuantity, q - 1))}
+                                    className="w-8 h-8 rounded-md bg-gray-700 hover:bg-gray-600"
+                                    disabled={quantity <= minQuantity}
+                                >
+                                    -
+                                </button>
+                                <span className="text-xl font-mono w-10 text-center">{quantity}</span>
+                                <button
+                                    onClick={() => setQuantity(q => Math.min(maxQuantity, q + 1))}
+                                    className="w-8 h-8 rounded-md bg-gray-700 hover:bg-gray-600"
+                                    disabled={quantity >= maxQuantity}
+                                >
+                                    +
+                                </button>
                             </div>
                         </div>
-                    ) : null}
-                </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-gray-300">Total Coins:</span>
+                            <div className="flex items-center space-x-2">
+                                <span className={`text-xl font-mono ${insufficientCoins ? 'text-red-500' : 'text-amber-300'}`}>{totalCoinCost.toLocaleString()}</span>
+                                <div className="w-5 h-5 text-amber-400"><CoinIcon /></div>
+                            </div>
+                        </div>
+                        {item.gemstone_price ? (
+                            <div className="flex justify-between items-center">
+                                <span className="text-gray-300">Total Gemstones:</span>
+                                <div className="flex items-center space-x-2">
+                                    <span className={`text-xl font-mono ${insufficientGemstones ? 'text-red-500' : 'text-cyan-200'}`}>{totalGemCost.toLocaleString()}</span>
+                                    <div className="w-5 h-5 text-cyan-300"><GemIcon /></div>
+                                </div>
+                            </div>
+                        ) : null}
+                    </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-4 text-sm text-gray-300 bg-black/20 p-3 rounded-lg">
-                    <div className="flex items-center justify-between">
-                        <span>Coins Available</span>
-                        <div className="flex items-center gap-2">
-                            <span className="font-mono text-amber-200">{profile.coins.toLocaleString()}</span>
-                            <div className="w-4 h-4 text-amber-300"><CoinIcon /></div>
+                    <div className="mt-4 grid grid-cols-2 gap-4 text-sm text-gray-300 bg-black/20 p-3 rounded-lg">
+                        <div className="flex items-center justify-between">
+                            <span>Coins Available</span>
+                            <div className="flex items-center gap-2">
+                                <span className="font-mono text-amber-200">{profile.coins.toLocaleString()}</span>
+                                <div className="w-4 h-4 text-amber-300"><CoinIcon /></div>
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <span>Gemstones Available</span>
+                            <div className="flex items-center gap-2">
+                                <span className="font-mono text-cyan-200">{profile.gemstones.toLocaleString()}</span>
+                                <div className="w-4 h-4 text-cyan-300"><GemIcon /></div>
+                            </div>
                         </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                        <span>Gemstones Available</span>
-                        <div className="flex items-center gap-2">
-                            <span className="font-mono text-cyan-200">{profile.gemstones.toLocaleString()}</span>
-                            <div className="w-4 h-4 text-cyan-300"><GemIcon /></div>
-                        </div>
-                    </div>
-                </div>
 
-                <div className="flex space-x-4 mt-8">
-                    <button onClick={onCancel} disabled={isProcessing} className="w-full font-heading py-3 rounded-xl bg-gray-600/50 hover:bg-gray-500/50 border border-gray-500">Cancel</button>
-                    <button
-                        onClick={handleConfirm}
-                        disabled={isProcessing || quantity === 0 || insufficientCoins || insufficientGemstones}
-                        className="w-full font-heading py-3 rounded-xl bg-green-500/20 hover:bg-green-500/30 border border-green-400 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {isProcessing ? 'Processing...' : 'Confirm'}
-                    </button>
+                    <div className="flex space-x-4 mt-8">
+                        <button onClick={onCancel} disabled={isProcessing} className="w-full font-heading py-3 rounded-xl bg-gray-600/50 hover:bg-gray-500/50 border border-gray-500">Cancel</button>
+                        <button
+                            onClick={handleConfirm}
+                            disabled={isProcessing || quantity === 0 || insufficientCoins || insufficientGemstones}
+                            className="w-full font-heading py-3 rounded-xl bg-green-500/20 hover:bg-green-500/30 border border-green-400 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isProcessing ? 'Processing...' : 'Confirm'}
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
+        </ModalPortal>
     );
 };
 
