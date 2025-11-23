@@ -157,7 +157,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   const hasNeonFrame = profile.active_cosmetic_frame === 'neon';
   const hasGlitchTheme = profile.active_cosmetic_theme === 'glitch';
 
-  useEffect(() {
+  useEffect(() => {
     if (!mobileMenuOpen) {
       return;
     }
