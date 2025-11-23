@@ -13,6 +13,7 @@ export interface Profile {
   role?: UserRole; // User role - student by default
   avatar_url: string;
   active_cosmetic_frame?: 'neon' | null;
+  active_cosmetic_theme?: 'glitch' | null;
   bio?: string | null;
   level: number;
   xp: number;
@@ -258,6 +259,7 @@ export interface ClanMember {
   contribution: number;
   avatar_url: string;
   active_cosmetic_frame?: 'neon' | null;
+  active_cosmetic_theme?: 'glitch' | null;
   custom_title?: string | null;
   bio?: string | null;
   total_score?: number;
@@ -275,6 +277,7 @@ export interface ClanMemberWithScore {
     level: number;
     avatar_url: string;
   active_cosmetic_frame?: 'neon' | null;
+  active_cosmetic_theme?: 'glitch' | null;
   role: ClanRole;
     joined_at: string;
 }

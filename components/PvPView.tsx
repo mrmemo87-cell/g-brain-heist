@@ -7,7 +7,7 @@ import BackButton from './BackButton';
 import { ShieldIcon, HackIcon, CoinIcon, XPIcon, GemIcon } from './icons';
 import { createPortal } from 'react-dom';
 import AvatarWithFrame from './AvatarWithFrame';
-import { fetchNeonFrameOwners } from '../services/cosmeticService';
+import { fetchNeonFrameOwners, fetchGlitchThemeOwners } from '../services/cosmeticService';
 
 type PvPStage = 'loading' | 'targets' | 'cinematic' | 'result';
 
@@ -125,6 +125,7 @@ interface ClanMember {
   role: string;
   avatar_url?: string;
   active_cosmetic_frame?: 'neon' | null;
+  active_cosmetic_theme?: 'glitch' | null;
 }
 
 type TargetFilter = 'all' | 'nearby' | 'easy' | 'challenge' | 'rivals';
@@ -175,12 +176,14 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
       }));
 
       const neonOwners = await fetchNeonFrameOwners(members.map(member => member.user_id));
-      const membersWithFrames = members.map(member => ({
+      const glitchOwners = await fetchGlitchThemeOwners(members.map(member => member.user_id));
+      const membersWithCosmetics = members.map(member => ({
         ...member,
         active_cosmetic_frame: neonOwners.has(member.user_id) ? 'neon' : null,
+        active_cosmetic_theme: glitchOwners.has(member.user_id) ? 'glitch' : null,
       }));
 
-      setClanModal({ clanId, clanName, members: membersWithFrames, loading: false });
+      setClanModal({ clanId, clanName, members: membersWithCosmetics, loading: false });
     } catch (err) {
       console.error('Failed to load clan members:', err);
       setClanModal(null);
@@ -410,6 +413,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
                     alt={profile.username}
                     size="xl"
                     hasNeonFrame={profile.active_cosmetic_frame === 'neon'}
+                    hasGlitchTheme={profile.active_cosmetic_theme === 'glitch'}
                     className="shadow-[0_0_30px_rgba(34,211,238,0.6)]"
                     fallbackFrameClassName="border-4 border-cyan-500 shadow-[0_0_30px_rgba(34,211,238,0.6)]"
                     imgClassName="w-24 h-24 md:w-32 md:h-32"
@@ -436,6 +440,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
                     alt={selectedTarget.username}
                     size="xl"
                     hasNeonFrame={selectedTarget.active_cosmetic_frame === 'neon'}
+                    hasGlitchTheme={selectedTarget.active_cosmetic_theme === 'glitch'}
                     className="shadow-[0_0_30px_rgba(236,72,153,0.6)]"
                     fallbackFrameClassName="border-4 border-pink-500 shadow-[0_0_30px_rgba(236,72,153,0.6)]"
                     imgClassName="w-24 h-24 md:w-32 md:h-32"
@@ -607,6 +612,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
                         alt={member.username}
                         size="md"
                         hasNeonFrame={member.active_cosmetic_frame === 'neon'}
+                        hasGlitchTheme={member.active_cosmetic_theme === 'glitch'}
                         fallbackFrameClassName="border-2 border-gray-600"
                       />
                       <div className="flex-1">

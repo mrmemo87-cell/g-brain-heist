@@ -281,6 +281,38 @@ body.light-mode .neon-frame-avatar {
     0 0 20px rgba(34, 211, 238, 0.4) !important;
 }
 
+body.light-mode .glitch-frame {
+  background: linear-gradient(45deg, rgba(255, 0, 222, 0.6), rgba(0, 255, 255, 0.6)) !important;
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.4),
+    0 0 10px rgba(255, 0, 222, 0.7),
+    0 0 20px rgba(0, 255, 255, 0.5) !important;
+}
+
+body.light-mode .glitch-frame::before {
+  background: 
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 0, 222, 0.2) 0px,
+      rgba(255, 0, 222, 0.2) 2px,
+      transparent 2px,
+      transparent 4px
+    ) !important;
+}
+
+body.light-mode .glitch-frame::after {
+  background: radial-gradient(circle, rgba(0, 255, 255, 0.5), rgba(255, 0, 222, 0.4), transparent 70%) !important;
+  opacity: 0.8 !important;
+}
+
+body.light-mode .glitch-frame-avatar {
+  border-color: rgba(0, 255, 255, 0.9) !important;
+  box-shadow:
+    0 0 8px rgba(255, 0, 222, 0.7),
+    0 0 16px rgba(0, 255, 255, 0.6),
+    0 0 24px rgba(255, 0, 222, 0.5) !important;
+}
+
 body.light-mode .dashboard-panel .dashboard-action > span[aria-hidden="true"] {
   display: none !important;
 }

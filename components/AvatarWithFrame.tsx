@@ -24,6 +24,7 @@ interface AvatarWithFrameProps {
   alt?: string;
   size?: AvatarSize;
   hasNeonFrame?: boolean;
+  hasGlitchTheme?: boolean;
   className?: string;
   imgClassName?: string;
   fallbackFrameClassName?: string;
@@ -42,6 +43,7 @@ const AvatarWithFrame: React.FC<AvatarWithFrameProps> = ({
   alt = 'Player avatar',
   size = 'md',
   hasNeonFrame = false,
+  hasGlitchTheme = false,
   className,
   imgClassName,
   fallbackFrameClassName = 'border-2 border-slate-700',
@@ -52,9 +54,12 @@ const AvatarWithFrame: React.FC<AvatarWithFrameProps> = ({
   const resolvedSrc = src || fallbackSrc || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Agent';
   const sizeClasses = sizeClassMap[size];
   const neonPaddingClass = framePaddingMap[size];
+  
   const wrapperClass = combineClasses(
     'inline-flex rounded-full items-center justify-center transition-transform duration-150',
-    hasNeonFrame ? combineClasses('neon-frame', neonPaddingClass ?? undefined) : fallbackFrameClassName,
+    hasNeonFrame ? combineClasses('neon-frame', neonPaddingClass ?? undefined) : undefined,
+    hasGlitchTheme ? 'glitch-frame' : undefined,
+    !hasNeonFrame && !hasGlitchTheme ? fallbackFrameClassName : undefined,
     onClick ? 'cursor-pointer' : undefined,
     className,
   );
@@ -63,6 +68,7 @@ const AvatarWithFrame: React.FC<AvatarWithFrameProps> = ({
     'rounded-full object-cover',
     sizeClasses,
     hasNeonFrame ? 'neon-frame-avatar' : undefined,
+    hasGlitchTheme ? 'glitch-frame-avatar' : undefined,
     imgClassName,
   );
 

@@ -23,7 +23,7 @@ const getItemIcon = (kind: InventoryItem['kind']) => {
     }
 };
 
-const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: string) => void, isActivating: boolean, quantity: number, onDeactivateNeon?: () => void, isDeactivatingNeon?: boolean }> = ({ item, onActivate, isActivating, quantity, onDeactivateNeon, isDeactivatingNeon }) => {
+const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: string) => void, isActivating: boolean, quantity: number, onDeactivateNeon?: () => void, isDeactivatingNeon?: boolean, onDeactivateGlitch?: () => void, isDeactivatingGlitch?: boolean }> = ({ item, onActivate, isActivating, quantity, onDeactivateNeon, isDeactivatingNeon, onDeactivateGlitch, isDeactivatingGlitch }) => {
     const isUsable = item.state === 'unused' && (
         item.kind === 'booster' ||
         item.kind === 'major_booster' ||
@@ -113,6 +113,22 @@ const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: strin
             </button>
           </div>
         )}
+
+        {item.kind === 'cosmetic' && item.item_id === 'item_cosmetic_theme' && item.state === 'active' && onDeactivateGlitch && (
+          <div className="rounded-2xl border border-cyan-500/60 bg-cyan-500/10 p-3 text-left text-xs text-cyan-100">
+            <p className="font-semibold text-cyan-200 mb-1">Deactivate Glitch Theme</p>
+            <p className="text-[11px] leading-relaxed text-cyan-100/80">
+              This permanently removes the glitch effect. You will need a new glitch theme drop to turn it back on.
+            </p>
+            <button
+              onClick={onDeactivateGlitch}
+              disabled={isDeactivatingGlitch}
+              className="mt-3 w-full rounded-xl border border-cyan-400/70 bg-transparent px-3 py-2 font-heading text-[13px] font-semibold text-cyan-200 transition enabled:hover:bg-cyan-500/20 disabled:opacity-50"
+            >
+              {isDeactivatingGlitch ? 'Removing…' : 'Deactivate Forever'}
+            </button>
+          </div>
+        )}
             </div>
         </div>
     );
@@ -124,6 +140,7 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onN
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [activatingId, setActivatingId] = useState<string | null>(null);
   const [neonDeactivating, setNeonDeactivating] = useState(false);
+  const [glitchDeactivating, setGlitchDeactivating] = useState(false);
 
   const fetchInventory = async () => {
     // No need to setLoading(true) here as it's called from initial load or after an action
@@ -189,6 +206,36 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onN
       addToast(error.message || 'Failed to deactivate neon frame.', 'error');
     } finally {
       setNeonDeactivating(false);
+    }
+  };
+
+  const handleDeactivateGlitch = async () => {
+    if (glitchDeactivating) {
+      return;
+    }
+
+    const confirmed = window.confirm('This permanently removes the glitch theme effect. You will need another glitch drop to reactivate it. Continue?');
+    if (!confirmed) {
+      return;
+    }
+
+    setGlitchDeactivating(true);
+    try {
+      await GameService.deactivate_glitch_theme();
+      addToast('Glitch theme permanently disabled.', 'warning');
+      setLoading(true);
+      await fetchInventory();
+
+      try {
+        const refreshedProfile = await GameService.whoami();
+        onProfileUpdate?.(refreshedProfile);
+      } catch (profileError) {
+        console.warn('Failed to refresh profile after glitch deactivation:', profileError);
+      }
+    } catch (error: any) {
+      addToast(error.message || 'Failed to deactivate glitch theme.', 'error');
+    } finally {
+      setGlitchDeactivating(false);
     }
   };
   
@@ -290,6 +337,8 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onN
                       isActivating={activatingId === invId}
                       onDeactivateNeon={item.kind === 'cosmetic' && item.item_id === 'item_cosmetic_frame' && item.state === 'active' ? handleDeactivateNeon : undefined}
                       isDeactivatingNeon={neonDeactivating}
+                      onDeactivateGlitch={item.kind === 'cosmetic' && item.item_id === 'item_cosmetic_theme' && item.state === 'active' ? handleDeactivateGlitch : undefined}
+                      isDeactivatingGlitch={glitchDeactivating}
                     />
                   );
                 })}

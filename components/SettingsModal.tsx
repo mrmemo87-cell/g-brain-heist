@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLightMode } from '../src/contexts/LightModeContext';
 import { Profile } from '../types';
 import { isAdmin } from '../services/adminService';
-import { deactivate_neon_frame } from '../services/gameService';
+import { deactivate_neon_frame, deactivate_glitch_theme } from '../services/gameService';
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -14,6 +14,7 @@ interface SettingsModalProps {
   onAvatarSelect: (url: string) => Promise<void>;
   onAvatarUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onNeonFrameDeactivated?: () => void | Promise<void>;
+  onGlitchThemeDeactivated?: () => void | Promise<void>;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ 
@@ -25,17 +26,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   avatarUploadError,
   onAvatarSelect,
   onAvatarUpload,
-  onNeonFrameDeactivated
+  onNeonFrameDeactivated,
+  onGlitchThemeDeactivated
 }) => {
   const { isLightMode, toggleLightMode } = useLightMode();
   const [hasNeonFrame, setHasNeonFrame] = useState(profile.active_cosmetic_frame === 'neon');
+  const [hasGlitchTheme, setHasGlitchTheme] = useState(profile.active_cosmetic_theme === 'glitch');
   const [neonBusy, setNeonBusy] = useState(false);
+  const [glitchBusy, setGlitchBusy] = useState(false);
   const [neonError, setNeonError] = useState<string | null>(null);
+  const [glitchError, setGlitchError] = useState<string | null>(null);
   const [neonSuccess, setNeonSuccess] = useState<string | null>(null);
+  const [glitchSuccess, setGlitchSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     setHasNeonFrame(profile.active_cosmetic_frame === 'neon');
-  }, [profile.active_cosmetic_frame]);
+    setHasGlitchTheme(profile.active_cosmetic_theme === 'glitch');
+  }, [profile.active_cosmetic_frame, profile.active_cosmetic_theme]);
 
   const handleNeonDeactivate = async () => {
     if (!hasNeonFrame || neonBusy) {
@@ -61,6 +68,33 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
       setNeonError(error?.message || 'Failed to deactivate neon frame.');
     } finally {
       setNeonBusy(false);
+    }
+  };
+
+  const handleGlitchDeactivate = async () => {
+    if (!hasGlitchTheme || glitchBusy) {
+      return;
+    }
+
+    const confirmed = window.confirm('This permanently removes the glitch theme effect. You will need another glitch drop to enable it again. Proceed?');
+    if (!confirmed) {
+      return;
+    }
+
+    setGlitchBusy(true);
+    setGlitchError(null);
+    setGlitchSuccess(null);
+
+    try {
+      await deactivate_glitch_theme();
+      setHasGlitchTheme(false);
+      setGlitchSuccess('Glitch theme removed. This change is permanent.');
+      await onGlitchThemeDeactivated?.();
+    } catch (error: any) {
+      console.error('Failed to deactivate glitch theme:', error);
+      setGlitchError(error?.message || 'Failed to deactivate glitch theme.');
+    } finally {
+      setGlitchBusy(false);
     }
   };
 
@@ -189,6 +223,34 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
             ) : (
               <div className="rounded-2xl border border-gray-700 bg-black/30 p-4 text-sm text-gray-400">
                 <p>No neon frame is currently active on this account.</p>
+              </div>
+            )}
+
+            {/* Glitch Theme */}
+            {hasGlitchTheme ? (
+              <div className="mt-4 rounded-2xl border border-cyan-400/50 bg-cyan-500/10 p-4 space-y-3">
+                <div>
+                  <p className="font-semibold text-cyan-200">Glitch Theme Active</p>
+                  <p className="text-sm text-cyan-100/80">
+                    Your avatar has a glitchy, datamosh effect visible across PvP, clan, and leaderboards. Turning it off is permanent and consumes the glitch theme item.
+                  </p>
+                </div>
+                <button
+                  onClick={handleGlitchDeactivate}
+                  disabled={glitchBusy}
+                  className="w-full rounded-xl border border-cyan-300/70 px-4 py-2.5 font-heading text-sm font-semibold text-cyan-100 transition enabled:hover:bg-cyan-400/20 disabled:opacity-60"
+                >
+                  {glitchBusy ? 'Removing…' : 'Deactivate Glitch Theme Forever'}
+                </button>
+                <p className="text-xs text-cyan-100/70">
+                  ⚠️ Once disabled you must unlock another glitch theme drop to regain the effect.
+                </p>
+                {glitchError && <p className="text-xs text-red-300">{glitchError}</p>}
+                {glitchSuccess && <p className="text-xs text-green-300">{glitchSuccess}</p>}
+              </div>
+            ) : (
+              <div className="mt-4 rounded-2xl border border-gray-700 bg-black/30 p-4 text-sm text-gray-400">
+                <p>No glitch theme is currently active on this account.</p>
               </div>
             )}
           </div>
