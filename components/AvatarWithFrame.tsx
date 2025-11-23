@@ -51,6 +51,9 @@ const AvatarWithFrame: React.FC<AvatarWithFrameProps> = ({
   title,
   tabIndex,
 }) => {
+  if (hasGlitchTheme) {
+    console.log('[AvatarWithFrame] Glitch theme enabled for:', alt);
+  }
   const resolvedSrc = src || fallbackSrc || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Agent';
   const sizeClasses = sizeClassMap[size];
   const neonPaddingClass = framePaddingMap[size];

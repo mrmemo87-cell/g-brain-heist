@@ -58,6 +58,7 @@ export const fetchGlitchThemeOwners = async (userIds: string[]): Promise<Set<str
     }
 
     const result = new Set((data || []).map((row: { id: string }) => row.id));
+    console.log('[Cosmetic] Glitch theme owners fetched:', result);
     return result;
   } catch (e) {
     console.error('Error fetching glitch theme owners:', e);

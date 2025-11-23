@@ -56,6 +56,10 @@ const formatBuffTimeRemaining = (expiresAt?: string): string => {
 
 
 const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
+  console.log('[ProfileCard] Rendering with cosmetics:', { 
+    active_cosmetic_frame: profile.active_cosmetic_frame,
+    active_cosmetic_theme: profile.active_cosmetic_theme
+  });
   const xpForNextLevel = Math.ceil(100 * Math.pow(profile.level + 1, 1.5));
   const xpProgressPercent = (profile.xp / xpForNextLevel) * 100;
   const totalScore = profile.total_score ?? (profile.xp + (profile.pvp_score ?? 0) * 10);
