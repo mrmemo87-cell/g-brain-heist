@@ -175,6 +175,8 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
     setSelectedAvatar(profile.avatar_url || '');
   }, [profile.avatar_url]);
 
+  const hasNeonFrame = profile.active_cosmetic_frame === 'neon';
+
   useEffect(() => {
     if (!mobileMenuOpen) {
       return;
@@ -319,14 +321,20 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                     setShowSettingsModal(true);
                     setMobileMenuOpen(false);
                   }}
-                  className="overflow-hidden rounded-full border border-pink-500/70"
+                  className={`relative overflow-hidden rounded-full ${hasNeonFrame ? 'p-[3px] bg-gradient-to-br from-fuchsia-500 via-cyan-400 to-purple-500 shadow-[0_0_20px_rgba(59,130,246,0.45)]' : 'border border-pink-500/70'}`}
                   aria-label="Open settings"
                 >
                   <img
                     src={profile.avatar_url || avatarPresets[0]}
                     alt={profile.username || 'Player avatar'}
-                    className="h-10 w-10 rounded-full object-cover"
+                    className={`h-10 w-10 rounded-full object-cover ${hasNeonFrame ? 'shadow-[0_0_14px_rgba(236,72,153,0.65)] ring-2 ring-white/60' : ''}`}
                   />
+                  {hasNeonFrame && (
+                    <span
+                      className="pointer-events-none absolute inset-0 rounded-full animate-pulse"
+                      style={{ boxShadow: '0 0 12px rgba(59,130,246,0.45), 0 0 18px rgba(236,72,153,0.4)' }}
+                    ></span>
+                  )}
                 </button>
 
                 {mobileMenuOpen && (

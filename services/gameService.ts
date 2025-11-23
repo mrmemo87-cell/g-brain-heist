@@ -894,6 +894,24 @@ const getTotalDefensePower = (profile: Profile, inventory: InventoryItem[]): num
   return total;
 };
 
+const getActiveCosmeticFrame = async (userId: string): Promise<'neon' | null> => {
+  const { data, error } = await supabase
+    .from('inventory')
+    .select('item_id, kind, state')
+    .eq('user_id', userId)
+    .eq('state', 'active');
+
+  if (error) {
+    console.warn('Failed to load active cosmetics:', error.message);
+    return null;
+  }
+
+  const activeCosmetics = (data || []).filter(item => item.kind === 'cosmetic');
+  const hasNeonFrame = activeCosmetics.some(item => item.item_id === 'item_cosmetic_frame');
+
+  return hasNeonFrame ? 'neon' : null;
+};
+
 // Clean up expired items from inventory
 const cleanupExpiredItems = () => {
   const now = Date.now();
@@ -1175,6 +1193,13 @@ export const whoami = async (): Promise<Profile> => {
         profile.clan_name = null;
         profile.clan_total_score = null;
     }
+
+  try {
+    profile.active_cosmetic_frame = await getActiveCosmeticFrame(profile.id);
+  } catch (cosmeticError) {
+    console.warn('Failed to attach cosmetic frame to profile:', cosmeticError);
+    profile.active_cosmetic_frame = null;
+  }
 
     profile.total_score = calculateTotalScore(profile.xp ?? 0, profile.pvp_score ?? 0);
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { InventoryItem, ToastMessage } from '../types';
+import { InventoryItem, Profile, ToastMessage } from '../types';
 import * as GameService from '../services/gameService';
 import { audioService } from '../services/audioService';
 import BackButton from './BackButton';
@@ -9,6 +9,7 @@ interface InventoryViewProps {
   onComplete: () => void;
   addToast: (message: string, type: ToastMessage['type']) => void;
   onNavigateToShop?: () => void;
+  onProfileUpdate?: (profile: Profile) => void;
 }
 
 const getItemIcon = (kind: InventoryItem['kind']) => {
@@ -99,7 +100,7 @@ const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: strin
 };
 
 
-const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onNavigateToShop }) => {
+const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onNavigateToShop, onProfileUpdate }) => {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [activatingId, setActivatingId] = useState<string | null>(null);
@@ -127,6 +128,13 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onN
           audioService.play('activate');
           addToast("Item activated!", "success");
           fetchInventory(); // Refetch to show new state
+
+          try {
+            const refreshedProfile = await GameService.whoami();
+            onProfileUpdate?.(refreshedProfile);
+          } catch (profileError) {
+            console.warn('Failed to refresh profile after activation:', profileError);
+          }
       } catch (error: any) {
           addToast(error.message || "Failed to activate item.", "error");
       } finally {
