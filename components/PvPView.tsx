@@ -73,7 +73,7 @@ const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) 
           <ShieldIcon />
         </div>
       )}
-      <div className={`relative mb-3 ${hasGlitchTheme ? 'glitch-frame' : ''}`}>
+      <div className="relative mb-3">
         <AvatarWithFrame
           src={target.avatar_url}
           alt={target.username}
