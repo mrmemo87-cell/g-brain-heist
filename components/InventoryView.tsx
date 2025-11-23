@@ -23,7 +23,7 @@ const getItemIcon = (kind: InventoryItem['kind']) => {
     }
 };
 
-const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: string) => void, isActivating: boolean, quantity: number }> = ({ item, onActivate, isActivating, quantity }) => {
+const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: string) => void, isActivating: boolean, quantity: number, onDeactivateNeon?: () => void, isDeactivatingNeon?: boolean }> = ({ item, onActivate, isActivating, quantity, onDeactivateNeon, isDeactivatingNeon }) => {
     const isUsable = item.state === 'unused' && (
         item.kind === 'booster' ||
         item.kind === 'major_booster' ||
@@ -33,6 +33,9 @@ const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: strin
         item.kind === 'firewall' ||
         item.kind === 'cosmetic'
     );
+
+  const isNeonFrame = item.kind === 'cosmetic' && item.item_id === 'item_cosmetic_frame';
+  const isActiveNeonFrame = isNeonFrame && item.state === 'active';
 
   const statePillClasses: Record<InventoryItem['state'], string> = {
     active: 'bg-green-500/30 text-green-300 border-green-500/50',
@@ -58,7 +61,7 @@ const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: strin
             <p className="text-sm text-gray-400 flex-grow mt-1">{item.description}</p>
             <p className="text-xs text-gray-500 mt-2">{item.effect_summary}</p>
             
-            <div className="mt-4 h-12 flex items-center justify-center">
+            <div className="mt-4 flex flex-col gap-3">
          {isUsable ? (
            <button 
             onClick={() => onActivate(invId)}
@@ -68,7 +71,7 @@ const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: strin
             {isActivating ? 'Activating...' : 'Activate'}
           </button>
          ) : (
-                     <p className="text-xs text-gray-500 italic">
+                     <p className="text-xs text-gray-500 italic text-center">
             {(() => {
               if (item.state === 'active') {
                 if (item.kind === 'shield') {
@@ -94,6 +97,22 @@ const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: strin
             })()}
                     </p>
                  )}
+
+        {isActiveNeonFrame && onDeactivateNeon && (
+          <div className="rounded-2xl border border-amber-500/60 bg-amber-500/10 p-3 text-left text-xs text-amber-100">
+            <p className="font-semibold text-amber-200 mb-1">Deactivate Neon Frame</p>
+            <p className="text-[11px] leading-relaxed text-amber-100/80">
+              This permanently removes the neon glow. You will need a new neon frame drop to turn it back on.
+            </p>
+            <button
+              onClick={onDeactivateNeon}
+              disabled={isDeactivatingNeon}
+              className="mt-3 w-full rounded-xl border border-amber-400/70 bg-transparent px-3 py-2 font-heading text-[13px] font-semibold text-amber-200 transition enabled:hover:bg-amber-500/20 disabled:opacity-50"
+            >
+              {isDeactivatingNeon ? 'Removing…' : 'Deactivate Forever'}
+            </button>
+          </div>
+        )}
             </div>
         </div>
     );
@@ -104,6 +123,7 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onN
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [activatingId, setActivatingId] = useState<string | null>(null);
+  const [neonDeactivating, setNeonDeactivating] = useState(false);
 
   const fetchInventory = async () => {
     // No need to setLoading(true) here as it's called from initial load or after an action
@@ -140,6 +160,36 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onN
       } finally {
           setActivatingId(null);
       }
+  };
+
+  const handleDeactivateNeon = async () => {
+    if (neonDeactivating) {
+      return;
+    }
+
+    const confirmed = window.confirm('This permanently removes the neon frame glow. You will need another neon drop to reactivate it. Continue?');
+    if (!confirmed) {
+      return;
+    }
+
+    setNeonDeactivating(true);
+    try {
+      await GameService.deactivate_neon_frame();
+      addToast('Neon frame permanently disabled.', 'warning');
+      setLoading(true);
+      await fetchInventory();
+
+      try {
+        const refreshedProfile = await GameService.whoami();
+        onProfileUpdate?.(refreshedProfile);
+      } catch (profileError) {
+        console.warn('Failed to refresh profile after neon deactivation:', profileError);
+      }
+    } catch (error: any) {
+      addToast(error.message || 'Failed to deactivate neon frame.', 'error');
+    } finally {
+      setNeonDeactivating(false);
+    }
   };
   
   // Group items by item_id and state to show quantities
@@ -238,6 +288,8 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onN
                       quantity={count}
                       onActivate={handleActivate}
                       isActivating={activatingId === invId}
+                      onDeactivateNeon={item.kind === 'cosmetic' && item.item_id === 'item_cosmetic_frame' && item.state === 'active' ? handleDeactivateNeon : undefined}
+                      isDeactivatingNeon={neonDeactivating}
                     />
                   );
                 })}

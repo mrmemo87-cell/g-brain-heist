@@ -3,6 +3,7 @@ import { Clan, ClanChatMessage, Profile, ToastMessage, ClanSummary, ClanBuff, Cl
 import * as GameService from '../services/gameService';
 import BackButton from './BackButton';
 import { ClanIcon, CoinIcon, DemoteIcon, KickIcon, LeaveIcon, ManageIcon, PromoteIcon } from './icons';
+import AvatarWithFrame from './AvatarWithFrame';
 
 type ClanViewStage = 'loading' | 'no_clan' | 'in_clan' | 'creating' | 'joining';
 type ClanTab = 'home' | 'chat' | 'management' | 'browse';
@@ -706,7 +707,12 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                         {sortedMembers.map(member => (
                                             <li key={member.user_id} className="flex items-start justify-between bg-black/20 p-3 rounded-lg">
                                                 <div className="flex items-start space-x-3">
-                                                    <img src={member.avatar_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${member.username}`} className="w-10 h-10 rounded-full" />
+                                                    <AvatarWithFrame
+                                                        src={member.avatar_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${member.username}`}
+                                                        alt={member.username}
+                                                        size="md"
+                                                        hasNeonFrame={member.active_cosmetic_frame === 'neon'}
+                                                    />
                                                     <div>
                                                         <p className="font-semibold text-white flex items-center gap-2">
                                                             {member.username}
@@ -738,7 +744,12 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                     return (
                                     <li key={member.user_id} className="flex items-center justify-between bg-black/20 p-3 rounded-lg">
                                         <div className="flex items-center space-x-3">
-                                            <img src={member.avatar_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${member.username}`} className="w-10 h-10 rounded-full" />
+                                            <AvatarWithFrame
+                                                src={member.avatar_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${member.username}`}
+                                                alt={member.username}
+                                                size="md"
+                                                hasNeonFrame={member.active_cosmetic_frame === 'neon'}
+                                            />
                                             <div>
                                                 <p className="font-semibold text-white">{member.username}</p>
                                                 <p className="text-xs text-gray-400 capitalize">{member.role}</p>
@@ -819,7 +830,12 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                 {memberModalState.members.map(member => (
                                     <li key={member.user_id} className="flex items-start justify-between bg-black/20 p-3 rounded-lg">
                                         <div className="flex items-start space-x-3">
-                                            <img src={member.avatar_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${member.username}`} className="w-10 h-10 rounded-full" alt="Clan member avatar" />
+                                            <AvatarWithFrame
+                                                src={member.avatar_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${member.username}`}
+                                                alt={member.username}
+                                                size="md"
+                                                hasNeonFrame={member.active_cosmetic_frame === 'neon'}
+                                            />
                                             <div>
                                                 <p className="font-semibold text-white flex items-center gap-2">
                                                         {member.username}

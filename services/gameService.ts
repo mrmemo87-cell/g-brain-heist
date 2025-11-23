@@ -48,6 +48,7 @@ import {
 } from '../src/features/raids/raidTypes';
 import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount, canEarnQuestGemstone, recordQuestGemstoneAward, canEarnPvpGemstone, recordPvpGemstoneAward } from './storageService';
 import { supabase } from './supabaseClient';
+import { fetchNeonFrameOwners } from './cosmeticService';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage';
 import { notificationService } from './notificationService';
 import {
@@ -1157,6 +1158,7 @@ export const whoami = async (): Promise<Profile> => {
     gemstones: profile.gemstones,
     batch: profile.batch,
     avatar_url: profile.avatar_url,
+        active_cosmetic_frame: profile.active_cosmetic_frame,
     has_shield: false, // TODO: Check inventory for active shield
   });
 
@@ -1678,7 +1680,10 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
     if (error) throw error;
     
     // TODO: Check inventory for shields
-    const realTargets: RaidTarget[] = (players || []).map((p: any) => {
+    const playerList = players || [];
+    const neonOwners = await fetchNeonFrameOwners(playerList.map((p: any) => p.id));
+
+    const realTargets: RaidTarget[] = playerList.map((p: any) => {
         // Extract clan info if user is in a clan
         const clanName = p.clan_members?.[0]?.clans?.name || undefined;
         const clanId = p.clan_members?.[0]?.clan_id || undefined;
@@ -1696,6 +1701,7 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
             has_shield: false, // TODO: Check inventory
             est_win_rate: winRate,
             avatar_url: p.avatar_url || '',
+            active_cosmetic_frame: neonOwners.has(p.id) ? 'neon' : null,
             last_seen: p.last_seen,
             clan_name: clanName,
             clan_id: clanId,
@@ -2328,6 +2334,41 @@ export const inventory_activate = async (inv_id: string): Promise<{ state_after:
     return mockApiCall(result);
 };
 
+export const deactivate_neon_frame = async (): Promise<void> => {
+    const user = await getCurrentUser();
+
+    const { data: neonFrame, error } = await supabase
+        .from('inventory')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('kind', 'cosmetic')
+        .eq('item_id', 'item_cosmetic_frame')
+        .eq('state', 'active')
+        .order('activated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (error) {
+        throw new Error(error.message || 'Failed to check neon frame status.');
+    }
+
+    if (!neonFrame) {
+        throw new Error('Neon frame is already inactive.');
+    }
+
+    const { error: updateError } = await supabase
+        .from('inventory')
+        .update({
+            state: 'consumed',
+            expires_at: new Date().toISOString(),
+        })
+        .eq('id', neonFrame.id);
+
+    if (updateError) {
+        throw new Error(updateError.message || 'Failed to deactivate neon frame.');
+    }
+};
+
 export const clan_list = async (): Promise<ClanSummary[]> => {
     // Fetch clans with member XP sum
     const { data: clans, error } = await supabase
@@ -2384,12 +2425,15 @@ export const clan_get_members_by_id = async (clanId: string): Promise<ClanMember
         throw error;
     }
 
+    const neonOwners = await fetchNeonFrameOwners((data || []).map((member: any) => member.user_id));
+
     return (data || []).map((member: any) => ({
         user_id: member.user_id,
         username: member.username ?? 'Unknown agent',
         role: member.role || 'member',
         contribution: member.total_score || 0,
         avatar_url: member.avatar_url || '',
+        active_cosmetic_frame: neonOwners.has(member.user_id) ? 'neon' : null,
         custom_title: member.custom_title,
         bio: member.bio,
         total_score: member.total_score,
@@ -2483,12 +2527,15 @@ export const clan_details = async (): Promise<Clan | null> => {
         throw membersError;
     }
 
+    const neonOwners = await fetchNeonFrameOwners((membersData || []).map((m: any) => m.user_id));
+
     const members = (membersData || []).map((m: any) => ({
         user_id: m.user_id,
         username: m.username,
         role: m.role,
         contribution: m.total_score || 0,
         avatar_url: m.avatar_url,
+        active_cosmetic_frame: neonOwners.has(m.user_id) ? 'neon' : null,
         custom_title: m.custom_title,
         bio: m.bio,
         total_score: m.total_score,

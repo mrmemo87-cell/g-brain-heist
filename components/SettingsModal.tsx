@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLightMode } from '../src/contexts/LightModeContext';
 import { Profile } from '../types';
 import { isAdmin } from '../services/adminService';
+import { deactivate_neon_frame } from '../services/gameService';
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -12,6 +13,7 @@ interface SettingsModalProps {
   avatarUploadError: string;
   onAvatarSelect: (url: string) => Promise<void>;
   onAvatarUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onNeonFrameDeactivated?: () => void | Promise<void>;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ 
@@ -22,9 +24,45 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   uploadingAvatar,
   avatarUploadError,
   onAvatarSelect,
-  onAvatarUpload
+  onAvatarUpload,
+  onNeonFrameDeactivated
 }) => {
   const { isLightMode, toggleLightMode } = useLightMode();
+  const [hasNeonFrame, setHasNeonFrame] = useState(profile.active_cosmetic_frame === 'neon');
+  const [neonBusy, setNeonBusy] = useState(false);
+  const [neonError, setNeonError] = useState<string | null>(null);
+  const [neonSuccess, setNeonSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    setHasNeonFrame(profile.active_cosmetic_frame === 'neon');
+  }, [profile.active_cosmetic_frame]);
+
+  const handleNeonDeactivate = async () => {
+    if (!hasNeonFrame || neonBusy) {
+      return;
+    }
+
+    const confirmed = window.confirm('This permanently removes the neon frame glow. You will need another neon drop to enable it again. Proceed?');
+    if (!confirmed) {
+      return;
+    }
+
+    setNeonBusy(true);
+    setNeonError(null);
+    setNeonSuccess(null);
+
+    try {
+      await deactivate_neon_frame();
+      setHasNeonFrame(false);
+      setNeonSuccess('Neon frame removed. This change is permanent.');
+      await onNeonFrameDeactivated?.();
+    } catch (error: any) {
+      console.error('Failed to deactivate neon frame:', error);
+      setNeonError(error?.message || 'Failed to deactivate neon frame.');
+    } finally {
+      setNeonBusy(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
@@ -122,6 +160,37 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Cosmetics */}
+          <div>
+            <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--amber-warn)' }}>Cosmetics</h3>
+            {hasNeonFrame ? (
+              <div className="rounded-2xl border border-amber-400/50 bg-amber-500/10 p-4 space-y-3">
+                <div>
+                  <p className="font-semibold text-amber-200">Neon Frame Active</p>
+                  <p className="text-sm text-amber-100/80">
+                    Your avatar glows across PvP, clan, and leaderboards. Turning it off is permanent and consumes the neon frame item.
+                  </p>
+                </div>
+                <button
+                  onClick={handleNeonDeactivate}
+                  disabled={neonBusy}
+                  className="w-full rounded-xl border border-amber-300/70 px-4 py-2.5 font-heading text-sm font-semibold text-amber-100 transition enabled:hover:bg-amber-400/20 disabled:opacity-60"
+                >
+                  {neonBusy ? 'Removing…' : 'Deactivate Neon Frame Forever'}
+                </button>
+                <p className="text-xs text-amber-100/70">
+                  ⚠️ Once disabled you must unlock another neon frame drop to regain the effect.
+                </p>
+                {neonError && <p className="text-xs text-red-300">{neonError}</p>}
+                {neonSuccess && <p className="text-xs text-green-300">{neonSuccess}</p>}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-gray-700 bg-black/30 p-4 text-sm text-gray-400">
+                <p>No neon frame is currently active on this account.</p>
+              </div>
+            )}
           </div>
 
           {/* Light Mode Toggle */}

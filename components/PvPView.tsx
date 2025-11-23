@@ -6,6 +6,8 @@ import { audioService } from '../services/audioService';
 import BackButton from './BackButton';
 import { ShieldIcon, HackIcon, CoinIcon, XPIcon, GemIcon } from './icons';
 import { createPortal } from 'react-dom';
+import AvatarWithFrame from './AvatarWithFrame';
+import { fetchNeonFrameOwners } from '../services/cosmeticService';
 
 type PvPStage = 'loading' | 'targets' | 'cinematic' | 'result';
 
@@ -54,6 +56,7 @@ const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) 
   };
   
   const status = getOnlineStatus(target.last_seen);
+  const hasNeonFrame = target.active_cosmetic_frame === 'neon';
   
   return (
     <div className="card-glass p-4 flex flex-col items-center text-center relative overflow-hidden">
@@ -70,7 +73,13 @@ const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) 
         </div>
       )}
       <div className="relative mb-3">
-        <img src={target.avatar_url} alt={target.username} className="w-20 h-20 rounded-full border-2 border-gray-600" />
+        <AvatarWithFrame
+          src={target.avatar_url}
+          alt={target.username}
+          size="lg"
+          hasNeonFrame={hasNeonFrame}
+          fallbackFrameClassName="border-2 border-gray-600"
+        />
         <div 
           className={`absolute bottom-0 right-0 w-4 h-4 ${status.color} rounded-full border-2 border-gray-900`}
           title={status.label}
@@ -115,6 +124,7 @@ interface ClanMember {
   username: string;
   role: string;
   avatar_url?: string;
+  active_cosmetic_frame?: 'neon' | null;
 }
 
 type TargetFilter = 'all' | 'nearby' | 'easy' | 'challenge' | 'rivals';
@@ -164,7 +174,13 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
         avatar_url: m.users?.avatar_url,
       }));
 
-      setClanModal({ clanId, clanName, members, loading: false });
+      const neonOwners = await fetchNeonFrameOwners(members.map(member => member.user_id));
+      const membersWithFrames = members.map(member => ({
+        ...member,
+        active_cosmetic_frame: neonOwners.has(member.user_id) ? 'neon' : null,
+      }));
+
+      setClanModal({ clanId, clanName, members: membersWithFrames, loading: false });
     } catch (err) {
       console.error('Failed to load clan members:', err);
       setClanModal(null);
@@ -389,7 +405,15 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
         <div className="relative z-10 flex items-center justify-around w-full max-w-2xl mb-8">
             <div className="flex flex-col items-center animate-slideInLeft">
                 <div className="relative">
-                  <img src={profile.avatar_url} className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-cyan-500 shadow-[0_0_30px_rgba(34,211,238,0.6)]" />
+                  <AvatarWithFrame
+                    src={profile.avatar_url}
+                    alt={profile.username}
+                    size="xl"
+                    hasNeonFrame={profile.active_cosmetic_frame === 'neon'}
+                    className="shadow-[0_0_30px_rgba(34,211,238,0.6)]"
+                    fallbackFrameClassName="border-4 border-cyan-500 shadow-[0_0_30px_rgba(34,211,238,0.6)]"
+                    imgClassName="w-24 h-24 md:w-32 md:h-32"
+                  />
                   <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                     ⚔️ {profile.attack_power || 10}
                   </div>
@@ -407,7 +431,15 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
             
             <div className="flex flex-col items-center animate-slideInRight">
                 <div className="relative">
-                  <img src={selectedTarget.avatar_url} className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-pink-500 shadow-[0_0_30px_rgba(236,72,153,0.6)]" />
+                  <AvatarWithFrame
+                    src={selectedTarget.avatar_url}
+                    alt={selectedTarget.username}
+                    size="xl"
+                    hasNeonFrame={selectedTarget.active_cosmetic_frame === 'neon'}
+                    className="shadow-[0_0_30px_rgba(236,72,153,0.6)]"
+                    fallbackFrameClassName="border-4 border-pink-500 shadow-[0_0_30px_rgba(236,72,153,0.6)]"
+                    imgClassName="w-24 h-24 md:w-32 md:h-32"
+                  />
                   {selectedTarget.has_shield && (
                     <div className="absolute -top-2 -left-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse">
                       🛡️ +20
@@ -570,10 +602,12 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
                 <div className="space-y-2">
                   {clanModal.members.map((member) => (
                     <div key={member.user_id} className="flex items-center gap-3 p-3 bg-black/20 rounded-lg">
-                      <img
+                      <AvatarWithFrame
                         src={member.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${member.username}`}
                         alt={member.username}
-                        className="w-10 h-10 rounded-full border-2 border-gray-600"
+                        size="md"
+                        hasNeonFrame={member.active_cosmetic_frame === 'neon'}
+                        fallbackFrameClassName="border-2 border-gray-600"
                       />
                       <div className="flex-1">
                         <p className="font-semibold text-white">{member.username}</p>

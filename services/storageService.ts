@@ -74,7 +74,7 @@ export const importGameData = (jsonData: string): boolean => {
 };
 
 // Shared multiplayer functions
-export const addPlayerToSharedList = (profile: { id: string; username: string; level: number; coins: number; gemstones: number; batch: string; avatar_url: string; has_shield?: boolean }): void => {
+export const addPlayerToSharedList = (profile: { id: string; username: string; level: number; coins: number; gemstones: number; batch: string; avatar_url: string; active_cosmetic_frame?: 'neon' | null; has_shield?: boolean }): void => {
   try {
     const players = loadFromStorage<any[]>(STORAGE_KEYS.ALL_PLAYERS) || [];
     const existingIndex = players.findIndex(p => p.id === profile.id);

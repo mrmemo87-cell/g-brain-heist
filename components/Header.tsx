@@ -82,9 +82,10 @@ interface HeaderProps {
   liteMode?: boolean;
   onToggleLiteMode?: () => void;
   onProfileAvatarChange?: (avatarUrl: string) => void;
+  onProfileRefresh?: () => Promise<void>;
 }
 
-const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard, onShowHelp, onNavigate, liteMode, onToggleLiteMode, onProfileAvatarChange }) => {
+const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard, onShowHelp, onNavigate, liteMode, onToggleLiteMode, onProfileAvatarChange, onProfileRefresh }) => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -115,17 +116,17 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
     audioService.setAudioEnabled(newState);
   };
 
-  const handleBgMusicToggle = () => {
-    const newState = !bgMusicEnabled;
-    setBgMusicEnabled(newState);
-    audioService.setBgMusicEnabled(newState);
-  };
-
-  const applyAvatarChange = async (avatarUrl: string) => {
-    try {
-      await update_avatar(avatarUrl);
-      setSelectedAvatar(avatarUrl);
-      onProfileAvatarChange?.(avatarUrl);
+    const handleAvatarSelect = async (avatarUrl: string) => {
+      if (uploadingAvatar) return;
+      setUploadingAvatar(true);
+      try {
+        await applyAvatarChange(avatarUrl);
+      } catch {
+        /* handled in applyAvatarChange */
+      } finally {
+        setUploadingAvatar(false);
+      }
+    };
       setAvatarUploadError(null);
       audioService.play('collect');
     } catch (error) {
@@ -150,16 +151,6 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-
-    setUploadingAvatar(true);
-    setAvatarUploadError(null);
-    try {
-      const publicUrl = await upload_avatar_file(file);
-      await applyAvatarChange(publicUrl);
-    } catch (error) {
-      if (error instanceof Error) {
         setAvatarUploadError(error.message);
       } else {
         setAvatarUploadError('Failed to upload avatar. Please try again.');
@@ -671,6 +662,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
           avatarUploadError={avatarUploadError || ''}
           onAvatarSelect={handleAvatarSelect}
           onAvatarUpload={handleAvatarUpload}
+          onNeonFrameDeactivated={onProfileRefresh ? () => onProfileRefresh() : undefined}
         />
       )}
 

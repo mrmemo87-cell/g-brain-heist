@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Profile, ActiveClanBuff } from '../types';
 import { CoinIcon, StreakIcon, XPIcon, APIcon, GemIcon } from './icons';
+import AvatarWithFrame from './AvatarWithFrame';
 
 interface PlayerProfileCardProps {
   profile: Profile;
@@ -63,7 +64,6 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
   const defenseValue = profile.defense_power_effective ?? profile.defense_power;
   const attackSubtitle = clanBuffs.length ? `Base ${profile.attack_power}` : undefined;
   const defenseSubtitle = clanBuffs.length ? `Base ${profile.defense_power}` : undefined;
-  const hasNeonFrame = profile.active_cosmetic_frame === 'neon';
 
   const [apCountdown, setApCountdown] = useState<string>('');
   const [calculatedAP, setCalculatedAP] = useState<number>(profile.ap_now);
@@ -116,14 +116,14 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-xl border border-pink-500/25 bg-black/40 p-4 shadow-[0_10px_30px_rgba(255,45,145,0.15)]">
           <div className="flex items-center gap-3">
-            <div className={`relative rounded-full ${hasNeonFrame ? 'neon-frame neon-frame-xl' : ''}`}>
-              <img
-                src={profile.avatar_url}
-                alt={profile.username}
-                className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full animate-float object-cover ${hasNeonFrame ? 'neon-frame-avatar border-transparent' : 'border-4'}`}
-                style={{ borderColor: hasNeonFrame ? undefined : 'var(--plasma-pink)' }}
-              />
-            </div>
+            <AvatarWithFrame
+              src={profile.avatar_url}
+              alt={profile.username}
+              size="lg"
+              hasNeonFrame={profile.active_cosmetic_frame === 'neon'}
+              imgClassName="sm:w-20 sm:h-20 animate-float"
+              fallbackFrameClassName="border-4 border-pink-500/80"
+            />
             <div className="space-y-1">
               <h2 className="text-xl sm:text-2xl font-bold font-heading" style={{ color: 'var(--plasma-pink)' }}>
                 {profile.username}

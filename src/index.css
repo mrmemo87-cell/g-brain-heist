@@ -162,6 +162,10 @@ body.lite-mode [class*="border-gray-7"] {
   isolation: isolate;
 }
 
+.neon-frame-xs {
+  padding: 0.1rem;
+}
+
 .neon-frame::before {
   content: '';
   position: absolute;
@@ -175,6 +179,10 @@ body.lite-mode [class*="border-gray-7"] {
 
 .neon-frame-sm {
   padding: 0.15rem;
+}
+
+.neon-frame-md {
+  padding: 0.25rem;
 }
 
 .neon-frame-lg {

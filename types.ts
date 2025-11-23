@@ -194,6 +194,7 @@ export interface RaidTarget {
   has_shield: boolean;
   est_win_rate: number;
   avatar_url: string;
+  active_cosmetic_frame?: 'neon' | null;
   last_seen?: string;
   clan_name?: string;
   clan_id?: string;
@@ -256,6 +257,7 @@ export interface ClanMember {
   role: ClanRole;
   contribution: number;
   avatar_url: string;
+  active_cosmetic_frame?: 'neon' | null;
   custom_title?: string | null;
   bio?: string | null;
   total_score?: number;
@@ -272,6 +274,7 @@ export interface ClanMemberWithScore {
     pvp_score: number;
     level: number;
     avatar_url: string;
+  active_cosmetic_frame?: 'neon' | null;
   role: ClanRole;
     joined_at: string;
 }

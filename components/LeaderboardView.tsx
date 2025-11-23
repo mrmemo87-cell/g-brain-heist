@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 import BackButton from './BackButton';
 import { ClanMember } from '../types';
+import AvatarWithFrame from './AvatarWithFrame';
+import { fetchNeonFrameOwners } from '../services/cosmeticService';
 
 
 
@@ -14,6 +16,7 @@ type PlayerLeaderboardEntry = {
   is_self?: boolean;
   last_seen?: string;
   role?: string;
+  active_cosmetic_frame?: 'neon' | null;
 };
 
 type RankedPlayerEntry = PlayerLeaderboardEntry & { rank: number };
@@ -170,9 +173,21 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
         }));
       }
 
-      setScoreLeaderboard(rankPlayers(scoreEntries).slice(0, 50));
-      setXpLeaderboard(rankPlayers(xpEntries).slice(0, 50));
-      setPvpLeaderboard(rankPlayers(pvpEntries).slice(0, 50));
+      const uniquePlayerIds = Array.from(new Set([
+        ...scoreEntries.map(entry => entry.id),
+        ...xpEntries.map(entry => entry.id),
+        ...pvpEntries.map(entry => entry.id),
+      ]));
+      const neonOwners = await fetchNeonFrameOwners(uniquePlayerIds);
+
+      const decorateWithNeon = (entry: PlayerLeaderboardEntry): PlayerLeaderboardEntry => ({
+        ...entry,
+        active_cosmetic_frame: neonOwners.has(entry.id) ? 'neon' : null,
+      });
+
+      setScoreLeaderboard(rankPlayers(scoreEntries.map(decorateWithNeon)).slice(0, 50));
+      setXpLeaderboard(rankPlayers(xpEntries.map(decorateWithNeon)).slice(0, 50));
+      setPvpLeaderboard(rankPlayers(pvpEntries.map(decorateWithNeon)).slice(0, 50));
       setClanLeaderboard(rankClans(clansWithScores).slice(0, 20));
     } catch (error) {
       console.error('Failed to fetch leaderboards:', error);
@@ -202,7 +217,13 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
         custom_title: member.custom_title,
       }));
 
-      setClanMembersModal({ clan, members, loading: false, error: null });
+      const neonOwners = await fetchNeonFrameOwners(members.map(member => member.user_id));
+      const membersWithFrames = members.map(member => ({
+        ...member,
+        active_cosmetic_frame: neonOwners.has(member.user_id) ? 'neon' : null,
+      }));
+
+      setClanMembersModal({ clan, members: membersWithFrames, loading: false, error: null });
     } catch (err: any) {
       const message = err?.message || 'Failed to load clan members.';
       setClanMembersModal(prev => (prev ? { ...prev, loading: false, error: message } : prev));
@@ -249,10 +270,11 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
           {entry.rank <= 3 ? ['🥇', '🥈', '🥉'][entry.rank - 1] : `#${entry.rank}`}
         </div>
         <div className="relative">
-          <img
+          <AvatarWithFrame
             src={entry.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.username}`}
             alt={entry.username}
-            className="w-10 h-10 rounded-full border-2 border-gray-600"
+            size="md"
+            hasNeonFrame={entry.active_cosmetic_frame === 'neon'}
           />
           <div 
             className={`absolute bottom-0 right-0 w-3 h-3 ${status.color} rounded-full border-2 border-gray-900`}
@@ -415,10 +437,11 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
                   clanMembersModal.members.map(member => (
                     <li key={member.user_id} className="flex items-start justify-between bg-black/20 p-3 rounded-lg">
                       <div className="flex items-start gap-3">
-                        <img
+                        <AvatarWithFrame
                           src={member.avatar_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${member.username}`}
                           alt={member.username}
-                          className="w-10 h-10 rounded-full"
+                          size="md"
+                          hasNeonFrame={member.active_cosmetic_frame === 'neon'}
                         />
                         <div>
                           <p className="font-semibold text-white flex items-center gap-2">

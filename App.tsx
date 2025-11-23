@@ -80,6 +80,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [academicError, setAcademicError] = useState<string | null>(null);
   const [attackAlert, setAttackAlert] = useState(false);
   const attackAlertTimeoutRef = useRef<number | null>(null);
+  const lastRewardedLevelRef = useRef<number | null>(null);
   const { isLightMode: isLiteMode, toggleLightMode } = useLightMode();
   const academicClassOptions = useMemo(() => {
     if (pendingGrade === null) {
@@ -470,29 +471,39 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             return;
           }
           
+          const nextLevel = newProfile.level ?? 1;
+          const lastRewardedLevel = lastRewardedLevelRef.current;
+
           // Detect level up
-          if (previousLevel !== null && newProfile.level > previousLevel) {
+          if (
+            previousLevel !== null &&
+            nextLevel > previousLevel &&
+            (lastRewardedLevel === null || nextLevel > lastRewardedLevel)
+          ) {
+            lastRewardedLevelRef.current = nextLevel;
             // Call RPC to grant level-up rewards
-            supabase.rpc('rpc_grant_levelup_rewards', { p_new_level: newProfile.level })
+            supabase.rpc('rpc_grant_levelup_rewards', { p_new_level: nextLevel })
               .then(({ data, error }) => {
                 if (error) {
                   console.error('Failed to grant level-up rewards:', error);
                   return;
                 }
                 
-                const rewards = data || { coins: 100 * newProfile.level, ap_refill: true };
-                setLevelUpData({ newLevel: newProfile.level, rewards });
+                const rewards = data || { coins: 100 * nextLevel, ap_refill: true };
+                setLevelUpData({ newLevel: nextLevel, rewards });
                 setShowLevelUpModal(true);
                 
                 // Refresh profile to show updated rewards
                 GameService.whoami().then(updatedProfile => {
                   setProfile(updatedProfile);
                   setPreviousLevel(updatedProfile.level);
+                  lastRewardedLevelRef.current = updatedProfile.level;
                 });
               });
           } else {
             setProfile(newProfile);
-            setPreviousLevel(newProfile.level);
+            setPreviousLevel(nextLevel);
+            lastRewardedLevelRef.current = nextLevel;
           }
         }
       )
@@ -507,6 +518,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   useEffect(() => {
     if (profile && previousLevel === null) {
       setPreviousLevel(profile.level);
+      lastRewardedLevelRef.current = profile.level;
     }
   }, [profile, previousLevel]);
   
@@ -1035,6 +1047,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           liteMode={isLiteMode}
           onToggleLiteMode={toggleLightMode}
           onProfileAvatarChange={(avatarUrl) => setProfile((p) => p ? { ...p, avatar_url: avatarUrl } : p)}
+          onProfileRefresh={refreshProfile}
         />
 
         {/* Offline Banner */}
