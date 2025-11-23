@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLightMode } from '../src/contexts/LightModeContext';
 import { Profile } from '../types';
 import { isAdmin } from '../services/adminService';
-import { deactivate_neon_frame, deactivate_glitch_theme } from '../services/gameService';
+import { deactivate_neon_frame, deactivate_flicker_theme } from '../services/gameService';
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -14,7 +14,7 @@ interface SettingsModalProps {
   onAvatarSelect: (url: string) => Promise<void>;
   onAvatarUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onNeonFrameDeactivated?: () => void | Promise<void>;
-  onGlitchThemeDeactivated?: () => void | Promise<void>;
+  onFlickerThemeDeactivated?: () => void | Promise<void>;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ 
@@ -27,21 +27,21 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   onAvatarSelect,
   onAvatarUpload,
   onNeonFrameDeactivated,
-  onGlitchThemeDeactivated
+  onFlickerThemeDeactivated
 }) => {
   const { isLightMode, toggleLightMode } = useLightMode();
   const [hasNeonFrame, setHasNeonFrame] = useState(profile.active_cosmetic_frame === 'neon');
-  const [hasGlitchTheme, setHasGlitchTheme] = useState(profile.active_cosmetic_theme === 'glitch');
+  const [hasFlickerTheme, setHasFlickerTheme] = useState(profile.active_cosmetic_theme === 'flicker');
   const [neonBusy, setNeonBusy] = useState(false);
-  const [glitchBusy, setGlitchBusy] = useState(false);
+  const [flickerBusy, setFlickerBusy] = useState(false);
   const [neonError, setNeonError] = useState<string | null>(null);
-  const [glitchError, setGlitchError] = useState<string | null>(null);
+  const [flickerError, setFlickerError] = useState<string | null>(null);
   const [neonSuccess, setNeonSuccess] = useState<string | null>(null);
-  const [glitchSuccess, setGlitchSuccess] = useState<string | null>(null);
+  const [flickerSuccess, setFlickerSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     setHasNeonFrame(profile.active_cosmetic_frame === 'neon');
-    setHasGlitchTheme(profile.active_cosmetic_theme === 'glitch');
+    setHasFlickerTheme(profile.active_cosmetic_theme === 'flicker');
   }, [profile.active_cosmetic_frame, profile.active_cosmetic_theme]);
 
   const handleNeonDeactivate = async () => {
@@ -71,30 +71,30 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     }
   };
 
-  const handleGlitchDeactivate = async () => {
-    if (!hasGlitchTheme || glitchBusy) {
+  const handleFlickerDeactivate = async () => {
+    if (!hasFlickerTheme || flickerBusy) {
       return;
     }
 
-    const confirmed = window.confirm('This permanently removes the glitch theme effect. You will need another glitch drop to enable it again. Proceed?');
+    const confirmed = window.confirm('This permanently removes the flicker theme effect. You will need another flicker drop to enable it again. Proceed?');
     if (!confirmed) {
       return;
     }
 
-    setGlitchBusy(true);
-    setGlitchError(null);
-    setGlitchSuccess(null);
+    setFlickerBusy(true);
+    setFlickerError(null);
+    setFlickerSuccess(null);
 
     try {
-      await deactivate_glitch_theme();
-      setHasGlitchTheme(false);
-      setGlitchSuccess('Glitch theme removed. This change is permanent.');
-      await onGlitchThemeDeactivated?.();
+      await deactivate_flicker_theme();
+      setHasFlickerTheme(false);
+      setFlickerSuccess('Flicker theme removed. This change is permanent.');
+      await onFlickerThemeDeactivated?.();
     } catch (error: any) {
-      console.error('Failed to deactivate glitch theme:', error);
-      setGlitchError(error?.message || 'Failed to deactivate glitch theme.');
+      console.error('Failed to deactivate flicker theme:', error);
+      setFlickerError(error?.message || 'Failed to deactivate flicker theme.');
     } finally {
-      setGlitchBusy(false);
+      setFlickerBusy(false);
     }
   };
 
@@ -226,31 +226,31 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               </div>
             )}
 
-            {/* Glitch Theme */}
-            {hasGlitchTheme ? (
+            {/* Flicker Theme */}
+            {hasFlickerTheme ? (
               <div className="mt-4 rounded-2xl border border-cyan-400/50 bg-cyan-500/10 p-4 space-y-3">
                 <div>
-                  <p className="font-semibold text-cyan-200">Glitch Theme Active</p>
+                  <p className="font-semibold text-cyan-200">Flicker Theme Active</p>
                   <p className="text-sm text-cyan-100/80">
-                    Your avatar has a glitchy, datamosh effect visible across PvP, clan, and leaderboards. Turning it off is permanent and consumes the glitch theme item.
+                    Your avatar has a flickering, datamosh effect visible across PvP, clan, and leaderboards. Turning it off is permanent and consumes the flicker theme item.
                   </p>
                 </div>
                 <button
-                  onClick={handleGlitchDeactivate}
-                  disabled={glitchBusy}
+                  onClick={handleFlickerDeactivate}
+                  disabled={flickerBusy}
                   className="w-full rounded-xl border border-cyan-300/70 px-4 py-2.5 font-heading text-sm font-semibold text-cyan-100 transition enabled:hover:bg-cyan-400/20 disabled:opacity-60"
                 >
-                  {glitchBusy ? 'Removing…' : 'Deactivate Glitch Theme Forever'}
+                  {flickerBusy ? 'Removing…' : 'Deactivate Flicker Theme Forever'}
                 </button>
                 <p className="text-xs text-cyan-100/70">
-                  ⚠️ Once disabled you must unlock another glitch theme drop to regain the effect.
+                  ⚠️ Once disabled you must unlock another flicker theme drop to regain the effect.
                 </p>
-                {glitchError && <p className="text-xs text-red-300">{glitchError}</p>}
-                {glitchSuccess && <p className="text-xs text-green-300">{glitchSuccess}</p>}
+                {flickerError && <p className="text-xs text-red-300">{flickerError}</p>}
+                {flickerSuccess && <p className="text-xs text-green-300">{flickerSuccess}</p>}
               </div>
             ) : (
               <div className="mt-4 rounded-2xl border border-gray-700 bg-black/30 p-4 text-sm text-gray-400">
-                <p>No glitch theme is currently active on this account.</p>
+                <p>No flicker theme is currently active on this account.</p>
               </div>
             )}
           </div>

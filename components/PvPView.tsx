@@ -7,7 +7,7 @@ import BackButton from './BackButton';
 import { ShieldIcon, HackIcon, CoinIcon, XPIcon, GemIcon } from './icons';
 import { createPortal } from 'react-dom';
 import AvatarWithFrame from './AvatarWithFrame';
-import { fetchNeonFrameOwners, fetchGlitchThemeOwners } from '../services/cosmeticService';
+import { fetchNeonFrameOwners, fetchFlickerThemeOwners } from '../services/cosmeticService';
 
 type PvPStage = 'loading' | 'targets' | 'cinematic' | 'result';
 
@@ -57,7 +57,7 @@ const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) 
   
   const status = getOnlineStatus(target.last_seen);
   const hasNeonFrame = target.active_cosmetic_frame === 'neon';
-  const hasGlitchTheme = target.active_cosmetic_theme === 'glitch';
+  const hasGlitchTheme = target.active_cosmetic_theme === 'flicker';
   
   return (
     <div className="card-glass p-4 flex flex-col items-center text-center relative overflow-hidden">
@@ -178,11 +178,11 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
       }));
 
       const neonOwners = await fetchNeonFrameOwners(members.map(member => member.user_id));
-      const glitchOwners = await fetchGlitchThemeOwners(members.map(member => member.user_id));
+      const flickerOwners = await fetchFlickerThemeOwners(members.map(member => member.user_id));
       const membersWithCosmetics = members.map(member => ({
         ...member,
         active_cosmetic_frame: neonOwners.has(member.user_id) ? 'neon' : null,
-        active_cosmetic_theme: glitchOwners.has(member.user_id) ? 'glitch' : null,
+        active_cosmetic_theme: flickerOwners.has(member.user_id) ? 'flicker' : null,
       }));
 
       setClanModal({ clanId, clanName, members: membersWithCosmetics, loading: false });

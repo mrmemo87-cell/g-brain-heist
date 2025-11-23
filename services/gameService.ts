@@ -48,7 +48,7 @@ import {
 } from '../src/features/raids/raidTypes';
 import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount, canEarnQuestGemstone, recordQuestGemstoneAward, canEarnPvpGemstone, recordPvpGemstoneAward } from './storageService';
 import { supabase } from './supabaseClient';
-import { fetchNeonFrameOwners, fetchGlitchThemeOwners } from './cosmeticService';
+import { fetchNeonFrameOwners, fetchFlickerThemeOwners } from './cosmeticService';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage';
 import { notificationService } from './notificationService';
 import {
@@ -925,7 +925,7 @@ const getActiveCosmeticFrame = async (userId: string): Promise<'neon' | null> =>
   return frameValue;
 };
 
-const getActiveCosmeticTheme = async (userId: string): Promise<'glitch' | null> => {
+const getActiveCosmeticTheme = async (userId: string): Promise<'flicker' | null> => {
   const { data, error } = await supabase
     .from('inventory')
     .select('item_id, kind, state')
@@ -938,9 +938,9 @@ const getActiveCosmeticTheme = async (userId: string): Promise<'glitch' | null> 
   }
 
   const activeCosmetics = (data || []).filter(item => item.kind === 'cosmetic');
-  const hasGlitchTheme = activeCosmetics.some(item => item.item_id === 'item_cosmetic_theme');
+  const hasFlickerTheme = activeCosmetics.some(item => item.item_id === 'item_cosmetic_theme');
   
-  const themeValue = hasGlitchTheme ? 'glitch' : null;
+  const themeValue = hasFlickerTheme ? 'flicker' : null;
 
   // Sync to users table for better visibility across queries
   try {
@@ -1724,7 +1724,7 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
     // TODO: Check inventory for shields
     const playerList = players || [];
     const neonOwners = await fetchNeonFrameOwners(playerList.map((p: any) => p.id));
-    const glitchOwners = await fetchGlitchThemeOwners(playerList.map((p: any) => p.id));
+    const flickerOwners = await fetchFlickerThemeOwners(playerList.map((p: any) => p.id));
 
     const realTargets: RaidTarget[] = playerList.map((p: any) => {
         // Extract clan info if user is in a clan
@@ -1745,7 +1745,7 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
             est_win_rate: winRate,
             avatar_url: p.avatar_url || '',
             active_cosmetic_frame: neonOwners.has(p.id) ? 'neon' : null,
-            active_cosmetic_theme: glitchOwners.has(p.id) ? 'glitch' : null,
+            active_cosmetic_theme: flickerOwners.has(p.id) ? 'flicker' : null,
             last_seen: p.last_seen,
             clan_name: clanName,
             clan_id: clanId,
@@ -2100,7 +2100,7 @@ const MOCK_SHOP_ITEMS: ShopItem[] = [
     { id: 'item_booster', name: 'Booster', kind: 'booster', price: 250, rarity: 'common', daily_limit: 1, owned_today: 0, description: 'Grants 1.5x XP from all sources for 1 hour.', effect_summary: '1.5x XP (1h)' },
     { id: 'item_major_booster', name: 'Major Booster', kind: 'major_booster', price: 400, rarity: 'rare', gemstone_price: 6, daily_limit: 1, owned_today: 0, description: 'Grants a massive 2.0x XP from all sources for 1 hour.', effect_summary: '2.0x XP (1h)' },
     { id: 'item_cosmetic_frame', name: 'Neon Frame', kind: 'cosmetic', price: 10000, rarity: 'rare', gemstone_price: 50, daily_limit: 1, owned_today: 0, description: 'A flashy neon frame for your avatar. Show off your style!', effect_summary: 'Purely cosmetic' },
-    { id: 'item_cosmetic_theme', name: 'Glitch Theme', kind: 'cosmetic', price: 20000, rarity: 'legendary', gemstone_price: 100, daily_limit: 1, owned_today: 0, description: 'Apply a glitchy, datamosh effect to your profile card.', effect_summary: 'Purely cosmetic' },
+    { id: 'item_cosmetic_theme', name: 'Flicker Theme', kind: 'cosmetic', price: 20000, rarity: 'legendary', gemstone_price: 100, daily_limit: 1, owned_today: 0, description: 'Apply a flickering, datamosh effect to your profile card.', effect_summary: 'Purely cosmetic' },
     { id: 'item_quantum_cloak', name: 'Quantum Cloak', kind: 'shield', price: 500, rarity: 'legendary', gemstone_price: 12, daily_limit: 1, owned_today: 0, description: 'Phase-shifted armor that nullifies three attacks before collapsing.', effect_summary: 'Blocks 3 attacks' },
 ];
 
@@ -2288,7 +2288,7 @@ export const inventory_activate = async (inv_id: string): Promise<{ state_after:
             });
         } else if (item.item_id === 'item_cosmetic_theme') {
             await updateProfile(user.id, {
-                active_cosmetic_theme: 'glitch',
+                active_cosmetic_theme: 'flicker',
             });
         }
 
@@ -2429,7 +2429,7 @@ export const deactivate_neon_frame = async (): Promise<void> => {
     });
 };
 
-export const deactivate_glitch_theme = async (): Promise<void> => {
+export const deactivate_flicker_theme = async (): Promise<void> => {
     const user = await getCurrentUser();
 
     const { data: glitchTheme, error } = await supabase
@@ -2444,11 +2444,11 @@ export const deactivate_glitch_theme = async (): Promise<void> => {
         .maybeSingle();
 
     if (error) {
-        throw new Error(error.message || 'Failed to check glitch theme status.');
+        throw new Error(error.message || 'Failed to check flicker theme status.');
     }
 
     if (!glitchTheme) {
-        throw new Error('Glitch theme is already inactive.');
+        throw new Error('Flicker theme is already inactive.');
     }
 
     const { error: updateError } = await supabase
@@ -2460,7 +2460,7 @@ export const deactivate_glitch_theme = async (): Promise<void> => {
         .eq('id', glitchTheme.id);
 
     if (updateError) {
-        throw new Error(updateError.message || 'Failed to deactivate glitch theme.');
+        throw new Error(updateError.message || 'Failed to deactivate flicker theme.');
     }
 
     // Also clear from users table
@@ -2526,7 +2526,7 @@ export const clan_get_members_by_id = async (clanId: string): Promise<ClanMember
     }
 
     const neonOwners = await fetchNeonFrameOwners((data || []).map((member: any) => member.user_id));
-    const glitchOwners = await fetchGlitchThemeOwners((data || []).map((member: any) => member.user_id));
+    const flickerOwners = await fetchFlickerThemeOwners((data || []).map((member: any) => member.user_id));
 
     return (data || []).map((member: any) => ({
         user_id: member.user_id,
@@ -2535,7 +2535,7 @@ export const clan_get_members_by_id = async (clanId: string): Promise<ClanMember
         contribution: member.total_score || 0,
         avatar_url: member.avatar_url || '',
         active_cosmetic_frame: neonOwners.has(member.user_id) ? 'neon' : null,
-        active_cosmetic_theme: glitchOwners.has(member.user_id) ? 'glitch' : null,
+        active_cosmetic_theme: flickerOwners.has(member.user_id) ? 'flicker' : null,
         custom_title: member.custom_title,
         bio: member.bio,
         total_score: member.total_score,
@@ -2630,7 +2630,7 @@ export const clan_details = async (): Promise<Clan | null> => {
     }
 
     const neonOwners = await fetchNeonFrameOwners((membersData || []).map((m: any) => m.user_id));
-    const glitchOwners = await fetchGlitchThemeOwners((membersData || []).map((m: any) => m.user_id));
+    const flickerOwners = await fetchFlickerThemeOwners((membersData || []).map((m: any) => m.user_id));
 
     const members = (membersData || []).map((m: any) => ({
         user_id: m.user_id,
@@ -2639,7 +2639,7 @@ export const clan_details = async (): Promise<Clan | null> => {
         contribution: m.total_score || 0,
         avatar_url: m.avatar_url,
         active_cosmetic_frame: neonOwners.has(m.user_id) ? 'neon' : null,
-        active_cosmetic_theme: glitchOwners.has(m.user_id) ? 'glitch' : null,
+        active_cosmetic_theme: flickerOwners.has(m.user_id) ? 'flicker' : null,
         custom_title: m.custom_title,
         bio: m.bio,
         total_score: m.total_score,

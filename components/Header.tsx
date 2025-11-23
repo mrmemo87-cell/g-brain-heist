@@ -155,7 +155,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   }, [profile.avatar_url]);
 
   const hasNeonFrame = profile.active_cosmetic_frame === 'neon';
-  const hasGlitchTheme = profile.active_cosmetic_theme === 'glitch';
+  const hasFlickerTheme = profile.active_cosmetic_theme === 'flicker';
 
   useEffect(() => {
     if (!mobileMenuOpen) {
@@ -301,13 +301,13 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                     setShowSettingsModal(true);
                     setMobileMenuOpen(false);
                   }}
-                  className={`relative overflow-hidden rounded-full ${hasGlitchTheme ? 'glitch-frame glitch-frame-sm' : hasNeonFrame ? 'neon-frame neon-frame-sm' : 'border border-pink-500/70'}`}
+                  className={`relative overflow-hidden rounded-full ${hasFlickerTheme ? 'glitch-frame glitch-frame-sm' : hasNeonFrame ? 'neon-frame neon-frame-sm' : 'border border-pink-500/70'}`}
                   aria-label="Open settings"
                 >
                   <img
                     src={profile.avatar_url || avatarPresets[0]}
                     alt={profile.username || 'Player avatar'}
-                    className={`h-10 w-10 rounded-full object-cover ${hasGlitchTheme ? 'glitch-frame-avatar' : hasNeonFrame ? 'neon-frame-avatar' : ''}`}
+                    className={`h-10 w-10 rounded-full object-cover ${hasFlickerTheme ? 'glitch-frame-avatar' : hasNeonFrame ? 'neon-frame-avatar' : ''}`}
                   />
                 </button>
 
@@ -495,13 +495,13 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
               {/* Username badge */}
               <div className="flex items-center space-x-2 px-4 py-2 bg-black/40 rounded-full border border-cyan-500/30 backdrop-blur-sm">
                 <div
-                  className={`flex-shrink-0 rounded-full transition-transform duration-200 cursor-pointer hover:scale-110 ${hasGlitchTheme ? 'glitch-frame glitch-frame-sm' : hasNeonFrame ? 'neon-frame neon-frame-sm' : 'border-2 border-pink-500'}`}
+                  className={`flex-shrink-0 rounded-full transition-transform duration-200 cursor-pointer hover:scale-110 ${hasFlickerTheme ? 'glitch-frame glitch-frame-sm' : hasNeonFrame ? 'neon-frame neon-frame-sm' : 'border-2 border-pink-500'}`}
                   onClick={() => setShowSettingsModal(true)}
                 >
                   <img 
                     src={profile.avatar_url} 
                     alt={profile.username} 
-                    className={`w-8 h-8 rounded-full object-cover ${hasGlitchTheme ? 'glitch-frame-avatar' : hasNeonFrame ? 'neon-frame-avatar' : ''}`}
+                    className={`w-8 h-8 rounded-full object-cover ${hasFlickerTheme ? 'glitch-frame-avatar' : hasNeonFrame ? 'neon-frame-avatar' : ''}`}
                   />
                 </div>
                 <span className="font-bold text-white text-sm">{profile.username}</span>

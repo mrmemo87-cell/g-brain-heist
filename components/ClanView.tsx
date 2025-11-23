@@ -712,7 +712,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                                         alt={member.username}
                                                         size="md"
                                                         hasNeonFrame={member.active_cosmetic_frame === 'neon'}
-                                                        hasGlitchTheme={member.active_cosmetic_theme === 'glitch'}
+                                                        hasGlitchTheme={member.active_cosmetic_theme === 'flicker'}
                                                     />
                                                     <div>
                                                         <p className="font-semibold text-white flex items-center gap-2">
@@ -750,7 +750,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                                 alt={member.username}
                                                 size="md"
                                                 hasNeonFrame={member.active_cosmetic_frame === 'neon'}
-                                                hasGlitchTheme={member.active_cosmetic_theme === 'glitch'}
+                                                hasGlitchTheme={member.active_cosmetic_theme === 'flicker'}
                                             />
                                             <div>
                                                 <p className="font-semibold text-white">{member.username}</p>
@@ -837,7 +837,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                                 alt={member.username}
                                                 size="md"
                                                 hasNeonFrame={member.active_cosmetic_frame === 'neon'}
-                                                hasGlitchTheme={member.active_cosmetic_theme === 'glitch'}
+                                                hasGlitchTheme={member.active_cosmetic_theme === 'flicker'}
                                             />
                                             <div>
                                                 <p className="font-semibold text-white flex items-center gap-2">

@@ -1,7 +1,7 @@
 import { supabase } from './supabaseClient';
 
 const NEON_FRAME_ITEM_ID = 'item_cosmetic_frame';
-const GLITCH_THEME_ITEM_ID = 'item_cosmetic_theme';
+const FLICKER_THEME_ITEM_ID = 'item_cosmetic_theme';
 
 /**
  * Returns the set of user IDs that currently have the neon frame activated.
@@ -35,10 +35,10 @@ export const fetchNeonFrameOwners = async (userIds: string[]): Promise<Set<strin
 };
 
 /**
- * Returns the set of user IDs that currently have the glitch theme activated.
+ * Returns the set of user IDs that currently have the flicker theme activated.
  * Queries from the users table column instead of inventory to avoid RLS restrictions.
  */
-export const fetchGlitchThemeOwners = async (userIds: string[]): Promise<Set<string>> => {
+export const fetchFlickerThemeOwners = async (userIds: string[]): Promise<Set<string>> => {
   if (!userIds.length) {
     return new Set();
   }
@@ -52,13 +52,13 @@ export const fetchGlitchThemeOwners = async (userIds: string[]): Promise<Set<str
       .eq('active_cosmetic_theme', 'glitch');
 
     if (error) {
-      console.warn('Failed to fetch glitch theme owners from users table:', error.message);
+      console.warn('Failed to fetch flicker theme owners from users table:', error.message);
       // Fallback to inventory query
-      return await fetchGlitchThemeOwnersFromInventory(userIds);
+      return await fetchFlickerThemeOwnersFromInventory(userIds);
     }
 
     const result = new Set((data || []).map((row: { id: string }) => row.id));
-    console.log('[Cosmetic] Glitch theme owners fetched:', result);
+    console.log('[Cosmetic] Flicker theme owners fetched:', result);
     return result;
   } catch (e) {
     console.error('Error fetching glitch theme owners:', e);
@@ -96,9 +96,9 @@ export const fetchNeonFrameOwnersFromInventory = async (userIds: string[]): Prom
 };
 
 /**
- * Fallback: Query inventory table directly for active glitch theme cosmetics.
+ * Fallback: Query inventory table directly for active flicker cosmetics.
  */
-export const fetchGlitchThemeOwnersFromInventory = async (userIds: string[]): Promise<Set<string>> => {
+export const fetchFlickerThemeOwnersFromInventory = async (userIds: string[]): Promise<Set<string>> => {
   if (!userIds.length) {
     return new Set();
   }
@@ -113,7 +113,7 @@ export const fetchGlitchThemeOwnersFromInventory = async (userIds: string[]): Pr
       .eq('item_id', GLITCH_THEME_ITEM_ID);
 
     if (error) {
-      console.warn('Failed to fetch glitch theme owners from inventory:', error.message);
+      console.warn('Failed to fetch flicker cosmetics from inventory:', error.message);
       return new Set();
     }
 

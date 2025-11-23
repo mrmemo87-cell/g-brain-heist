@@ -13,7 +13,7 @@ export interface Profile {
   role?: UserRole; // User role - student by default
   avatar_url: string;
   active_cosmetic_frame?: 'neon' | null;
-  active_cosmetic_theme?: 'glitch' | null;
+  active_cosmetic_theme?: 'flicker' | null;
   bio?: string | null;
   level: number;
   xp: number;
@@ -196,7 +196,7 @@ export interface RaidTarget {
   est_win_rate: number;
   avatar_url: string;
   active_cosmetic_frame?: 'neon' | null;
-  active_cosmetic_theme?: 'glitch' | null;
+  active_cosmetic_theme?: 'flicker' | null;
   last_seen?: string;
   clan_name?: string;
   clan_id?: string;
@@ -260,7 +260,7 @@ export interface ClanMember {
   contribution: number;
   avatar_url: string;
   active_cosmetic_frame?: 'neon' | null;
-  active_cosmetic_theme?: 'glitch' | null;
+  active_cosmetic_theme?: 'flicker' | null;
   custom_title?: string | null;
   bio?: string | null;
   total_score?: number;
