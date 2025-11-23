@@ -110,6 +110,18 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mapMarkup, setMapMarkup] = useState("");
+  const defaultRegionStylesRef = useRef<
+    Record<
+      string,
+      {
+        fill: string;
+        stroke: string;
+        strokeWidth: string;
+        dashArray: string;
+        opacity: number;
+      }
+    >
+  >({});
   const applyRegionVisuals = (
     element: SVGPathElement,
     {
@@ -163,6 +175,41 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         ) as SVGPathElement | null;
         if (!regionPath) return;
 
+        if (!defaultRegionStylesRef.current[regionId]) {
+          const capturedFill =
+            regionPath.getAttribute("data-initial-fill") ||
+            regionPath.getAttribute("fill") ||
+            regionPath.style.fill ||
+            NEUTRAL_TERRITORY_SHADE;
+          const capturedStroke =
+            regionPath.getAttribute("data-initial-stroke") ||
+            regionPath.getAttribute("stroke") ||
+            regionPath.style.stroke ||
+            "#475569";
+          const capturedOpacity = Number(
+            regionPath.getAttribute("data-initial-opacity") ||
+              regionPath.getAttribute("opacity") ||
+              regionPath.style.opacity ||
+              1
+          );
+
+          defaultRegionStylesRef.current[regionId] = {
+            fill: capturedFill,
+            stroke: capturedStroke,
+            strokeWidth:
+              regionPath.getAttribute("stroke-width") ||
+              regionPath.style.strokeWidth ||
+              "2",
+            dashArray:
+              regionPath.getAttribute("stroke-dasharray") ||
+              regionPath.style.getPropertyValue("stroke-dasharray") ||
+              "none",
+            opacity: Number.isNaN(capturedOpacity) ? 1 : capturedOpacity,
+          };
+        }
+
+        const defaultStyle = defaultRegionStylesRef.current[regionId];
+
         const zoneState = zones[zoneId as ZoneId];
         const { clan, dominance, contested } = getZoneController(
           zoneState,
@@ -172,11 +219,11 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         // Neutral region
         if (!clan) {
           applyRegionVisuals(regionPath, {
-            fill: NEUTRAL_TERRITORY_SHADE,
-            stroke: "#475569",
-            strokeWidth: "2",
-            dashArray: "none",
-            opacity: 0.6,
+            fill: defaultStyle.fill,
+            stroke: defaultStyle.stroke,
+            strokeWidth: defaultStyle.strokeWidth,
+            dashArray: defaultStyle.dashArray,
+            opacity: defaultStyle.opacity,
           });
           regionPath.style.filter = "none";
           return;
