@@ -11,6 +11,7 @@ import {
 } from "./lockdownTypes";
 import { LockdownTransport, RoomId, PlayerId, createRoomClient, LockdownRoomClient } from "../../lib/lockdownTransport";
 import { LockdownMap } from "./LockdownMap";
+import { calculateRegionStats } from "./regionCalculator";
 
 const entryRouteLabels: Record<EntryRoute, string> = {
   [EntryRoute.SAFE]: "Safe Access",
@@ -134,10 +135,17 @@ const neutralRegionStats = useMemo(
   []
 );
 
-const hasRegionStats =
-  Boolean(gameState.regionStats && Object.keys(gameState.regionStats).length > 0);
+const derivedRegionStats = useMemo(() => {
+  if (!gameState) return null;
+  if (gameState.regionStats && Object.keys(gameState.regionStats).length > 0) {
+    return gameState.regionStats;
+  }
+  return calculateRegionStats(gameState);
+}, [gameState]);
 
-const regionStats = hasRegionStats ? gameState.regionStats! : neutralRegionStats;
+const hasRegionStats = Boolean(derivedRegionStats && Object.keys(derivedRegionStats).length > 0);
+
+const regionStats = hasRegionStats ? derivedRegionStats! : neutralRegionStats;
 
 const totalRegions = Object.keys(regionStats).length;
 

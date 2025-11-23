@@ -57,7 +57,10 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
   onKickPlayer,
 }) => {
   const clanList = React.useMemo(() => {
-    const knownClans = Object.values(gameState.clans);
+    const knownClans = Object.values(gameState.clans).map((clan) => ({
+      ...clan,
+      color: clan.color || getClanColor(clan.id),
+    }));
     if (knownClans.length > 0) {
       return [...knownClans].sort((a, b) => a.name.localeCompare(b.name));
     }
@@ -87,6 +90,14 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
 
     return [...derived.values()].sort((a, b) => a.name.localeCompare(b.name));
   }, [gameState.clans, gameState.players, gameState.zones]);
+
+  const clansWithColors = React.useMemo(() => {
+    const map: Record<ClanId, ClanMetadata> = {};
+    clanList.forEach((clan) => {
+      map[clan.id] = { ...clan, color: clan.color || getClanColor(clan.id) };
+    });
+    return map;
+  }, [clanList]);
 
   const totalInfluence = React.useCallback(
     (clanId: ClanId) => {
@@ -283,7 +294,7 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
 
       <div className="flex-1 grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 flex flex-col gap-4">
-          <ClanTerritoryMap zones={gameState.zones} clans={gameState.clans} />
+          <ClanTerritoryMap zones={gameState.zones} clans={clansWithColors} />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {ZONES.map((zone) => {
               const zoneState = gameState.zones[zone.id];

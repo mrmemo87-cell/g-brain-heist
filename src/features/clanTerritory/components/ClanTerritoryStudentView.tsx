@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   ClanId,
   ClanMetadata,
@@ -51,14 +51,19 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
       }
     : undefined;
   const [questionIndex, setQuestionIndex] = useState(0);
+  const [activeQuestionKey, setActiveQuestionKey] = useState<string | null>(null);
   const [shuffledAnswers, setShuffledAnswers] = useState<string[]>([]);
   const [answerStartTime, setAnswerStartTime] = useState<number>(Date.now());
   const [feedback, setFeedback] = useState<"correct" | "incorrect" | null>(null);
   const [rewardsClaimed, setRewardsClaimed] = useState(false);
   const [claimingRewards, setClaimingRewards] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const optionOrderRef = useRef<Record<string, string[]>>({});
   const clanList = React.useMemo(() => {
-    const known = Object.values(gameState.clans);
+    const known = Object.values(gameState.clans).map((clan) => ({
+      ...clan,
+      color: clan.color || getClanColor(clan.id),
+    }));
     if (known.length > 0) {
       return [...known].sort((a, b) => a.name.localeCompare(b.name));
     }
@@ -128,31 +133,45 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
       .slice(0, 3);
   }, [getZoneSnapshot, hydratedPlayer]);
 
-  // Shuffle answers when question changes
-  useEffect(() => {
-    if (gameState.questions.length > 0) {
-      const currentQ = gameState.questions[questionIndex % gameState.questions.length];
-      
-      // Handle both formats: options array OR correct_answer + wrong_answers
-      let allAnswers: string[];
-      if (currentQ.options && currentQ.options.length > 0) {
-        allAnswers = currentQ.options;
-      } else if (currentQ.wrong_answers) {
-        allAnswers = [currentQ.correct_answer, ...currentQ.wrong_answers];
-      } else {
-        // Fallback: just show correct answer
-        allAnswers = [currentQ.correct_answer];
-      }
-      
-      const shuffled = [...allAnswers].sort(() => Math.random() - 0.5);
-      setShuffledAnswers(shuffled);
-      setAnswerStartTime(Date.now());
-    }
-  }, [questionIndex, gameState.questions]);
-
   const currentQuestion = gameState.questions.length > 0
     ? gameState.questions[questionIndex % gameState.questions.length]
     : null;
+
+  const currentQuestionKey = currentQuestion
+    ? currentQuestion.id ?? `${questionIndex}-${currentQuestion.question_text}`
+    : null;
+
+  // Shuffle answers exactly once per question
+  useEffect(() => {
+    if (!currentQuestion || !currentQuestionKey) return;
+
+    let allAnswers: string[];
+    if (currentQuestion.options && currentQuestion.options.length > 0) {
+      allAnswers = currentQuestion.options;
+    } else if (currentQuestion.wrong_answers) {
+      allAnswers = [currentQuestion.correct_answer, ...currentQuestion.wrong_answers];
+    } else {
+      allAnswers = [currentQuestion.correct_answer];
+    }
+
+    if (!optionOrderRef.current[currentQuestionKey]) {
+      optionOrderRef.current[currentQuestionKey] = [...allAnswers].sort(() => Math.random() - 0.5);
+      setAnswerStartTime(Date.now());
+    } else if (activeQuestionKey !== currentQuestionKey) {
+      setAnswerStartTime(Date.now());
+    }
+
+    setShuffledAnswers(optionOrderRef.current[currentQuestionKey]);
+    setActiveQuestionKey(currentQuestionKey);
+  }, [currentQuestion, currentQuestionKey, activeQuestionKey]);
+
+  // Clear cached option order when leaving active play
+  useEffect(() => {
+    if (gameState.phase !== "ACTIVE") {
+      optionOrderRef.current = {};
+      setActiveQuestionKey(null);
+    }
+  }, [gameState.phase]);
 
   // Initialize first question when entering active phase
   useEffect(() => {
@@ -160,6 +179,14 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
       setQuestionIndex(0);
     }
   }, [gameState.phase, gameState.questions.length]);
+
+  const clansWithColors = React.useMemo(() => {
+    const map: Record<ClanId, ClanMetadata> = {};
+    clanList.forEach((c) => {
+      map[c.id] = { ...c, color: c.color || getClanColor(c.id) };
+    });
+    return map;
+  }, [clanList]);
 
   useEffect(() => {
     if (gameState.phase === "ENDED" && !rewardsClaimed && !claimingRewards && hydratedPlayer) {
@@ -236,7 +263,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           </p>
           <p className="text-slate-500 text-sm">Awaiting teacher to arm the arena...</p>
         </div>
-        <ClanTerritoryMap zones={gameState.zones} clans={gameState.clans} />
+        <ClanTerritoryMap zones={gameState.zones} clans={clansWithColors} />
         <div className="grid grid-cols-2 gap-4 text-center">
           <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4">
             <p className="text-xs uppercase text-slate-400">Agents Online</p>
@@ -315,7 +342,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           </div>
           <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 flex flex-col gap-4">
             <h3 className="text-lg font-bold text-center">Battle Map</h3>
-            <ClanTerritoryMap zones={gameState.zones} clans={gameState.clans} />
+            <ClanTerritoryMap zones={gameState.zones} clans={clansWithColors} />
             <div>
               <p className="text-xs uppercase text-slate-400 mb-2">Targets needing reinforcements</p>
               <div className="flex flex-col gap-2">
@@ -354,7 +381,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
               BACK TO COMBAT
             </button>
           </div>
-          <ClanTerritoryMap zones={gameState.zones} clans={gameState.clans} />
+          <ClanTerritoryMap zones={gameState.zones} clans={clansWithColors} />
           <div className="flex flex-col gap-2">
             {ZONES.map((z) => {
               const snapshot = getZoneSnapshot(z.id);
