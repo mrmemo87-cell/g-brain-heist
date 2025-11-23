@@ -12,6 +12,7 @@ export interface Profile {
   batch: Batch | null; // null for teachers
   role?: UserRole; // User role - student by default
   avatar_url: string;
+  active_cosmetic_frame?: 'neon' | null;
   bio?: string | null;
   level: number;
   xp: number;

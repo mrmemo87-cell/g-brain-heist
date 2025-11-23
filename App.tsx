@@ -765,7 +765,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         case 'clan':
             return <ClanView onComplete={handleViewComplete} profile={profile} onUpdateProfile={setProfile} addToast={addToast} />;
         case 'inventory':
-            return <InventoryView onComplete={handleViewComplete} addToast={addToast} onNavigateToShop={() => setView('shop')} />;
+            return <InventoryView onComplete={handleViewComplete} addToast={addToast} onNavigateToShop={() => setView('shop')} onProfileUpdate={setProfile} />;
         case 'leaderboard':
             return <LeaderboardView onComplete={handleViewComplete} currentUserId={profile.id} />;
         case 'achievements':
