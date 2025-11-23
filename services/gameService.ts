@@ -2526,6 +2526,7 @@ export const clan_get_members_by_id = async (clanId: string): Promise<ClanMember
     }
 
     const neonOwners = await fetchNeonFrameOwners((data || []).map((member: any) => member.user_id));
+    const glitchOwners = await fetchGlitchThemeOwners((data || []).map((member: any) => member.user_id));
 
     return (data || []).map((member: any) => ({
         user_id: member.user_id,
@@ -2534,6 +2535,7 @@ export const clan_get_members_by_id = async (clanId: string): Promise<ClanMember
         contribution: member.total_score || 0,
         avatar_url: member.avatar_url || '',
         active_cosmetic_frame: neonOwners.has(member.user_id) ? 'neon' : null,
+        active_cosmetic_theme: glitchOwners.has(member.user_id) ? 'glitch' : null,
         custom_title: member.custom_title,
         bio: member.bio,
         total_score: member.total_score,

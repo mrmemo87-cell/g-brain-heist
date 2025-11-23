@@ -17,6 +17,7 @@ type PlayerLeaderboardEntry = {
   last_seen?: string;
   role?: string;
   active_cosmetic_frame?: 'neon' | null;
+  active_cosmetic_theme?: 'glitch' | null;
 };
 
 type RankedPlayerEntry = PlayerLeaderboardEntry & { rank: number };
