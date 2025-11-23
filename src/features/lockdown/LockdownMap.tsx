@@ -73,6 +73,28 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
   const containerRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   const lastRegionStyleKeyRef = useRef<Record<string, string>>({});
+  const paintElement = (element: SVGElement, fill: string, stroke: string, opacity: string) => {
+    element.setAttribute("fill", fill);
+    element.setAttribute("stroke", stroke);
+    element.setAttribute("opacity", opacity);
+    element.style.fill = fill;
+    element.style.stroke = stroke;
+    element.style.opacity = opacity;
+  };
+  const applyRegionColors = (
+    regionElement: Element,
+    fill: string,
+    stroke: string,
+    opacity: string
+  ) => {
+    if (regionElement instanceof SVGElement) {
+      paintElement(regionElement, fill, stroke, opacity);
+    }
+    const childElements = regionElement.querySelectorAll<SVGElement>(
+      "path, rect, circle, ellipse, polygon, polyline"
+    );
+    childElements.forEach((child) => paintElement(child, fill, stroke, opacity));
+  };
 
   const mapMarkup = useMemo(() => {
     const rawSvg = territoryMapSvgRaw || placeholderMap;
@@ -152,14 +174,7 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
           return;
         }
         lastRegionStyleKeyRef.current[regionId] = neutralKey;
-        
-        // Apply actual color values directly to all child elements
-        const childElements = regionGroup.querySelectorAll<SVGElement>("path, rect, circle, ellipse, polygon, polyline");
-        childElements.forEach((child) => {
-          child.setAttribute("fill", "#1f2937");
-          child.setAttribute("opacity", "0.5");
-          child.setAttribute("stroke", "#475569");
-        });
+        applyRegionColors(regionGroup, "#1f2937", "#475569", "0.5");
         return;
       }
 
@@ -174,14 +189,12 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
       }
       lastRegionStyleKeyRef.current[regionId] = styleKey;
 
-      // Apply actual color values directly to all child elements
-      // With cleaned SVG (no inline styles), setAttribute works perfectly
-      const childElements = regionGroup.querySelectorAll<SVGElement>("path, rect, circle, ellipse, polygon, polyline");
-      childElements.forEach((child) => {
-        child.setAttribute("fill", clanColor);
-        child.setAttribute("opacity", opacity.toString());
-        child.setAttribute("stroke", clanColor);
-      });
+      applyRegionColors(
+        regionGroup,
+        clanColor,
+        clanColor,
+        opacity.toString()
+      );
     });
   }, [mounted, regionStats, mapMarkup]);
 

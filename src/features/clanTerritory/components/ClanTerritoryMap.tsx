@@ -110,6 +110,34 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mapMarkup, setMapMarkup] = useState("");
+  const applyRegionVisuals = (
+    element: SVGPathElement,
+    {
+      fill,
+      stroke,
+      strokeWidth,
+      dashArray,
+      opacity,
+    }: {
+      fill: string;
+      stroke: string;
+      strokeWidth: string;
+      dashArray: string;
+      opacity: number;
+    }
+  ) => {
+    element.setAttribute("fill", fill);
+    element.setAttribute("stroke", stroke);
+    element.setAttribute("stroke-width", strokeWidth);
+    element.setAttribute("stroke-dasharray", dashArray);
+    element.setAttribute("opacity", opacity.toString());
+
+    element.style.fill = fill;
+    element.style.stroke = stroke;
+    element.style.strokeWidth = strokeWidth;
+    element.style.setProperty("stroke-dasharray", dashArray);
+    element.style.opacity = opacity.toString();
+  };
 
   useEffect(() => {
     if (typeof territoryMapSvgRaw === "string" && territoryMapSvgRaw.trim()) {
@@ -143,27 +171,29 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
         // Neutral region
         if (!clan) {
-          regionPath.setAttribute("fill", NEUTRAL_TERRITORY_SHADE);
-          regionPath.setAttribute("stroke", "#475569");
-          regionPath.setAttribute("stroke-width", "2");
-          regionPath.setAttribute("stroke-dasharray", "none");
-          regionPath.setAttribute("opacity", "0.6");
+          applyRegionVisuals(regionPath, {
+            fill: NEUTRAL_TERRITORY_SHADE,
+            stroke: "#475569",
+            strokeWidth: "2",
+            dashArray: "none",
+            opacity: 0.6,
+          });
           regionPath.style.filter = "none";
           return;
         }
 
         // Clan-owned
-        const baseOpacity = Math.max(0.45, dominance);
+        const dominanceStrength = clamp01(dominance);
+        const baseOpacity = dominanceStrength >= 0.75 ? 1 : 0.85;
         const baseStrokeWidth = contested ? "4" : "3";
 
-        regionPath.setAttribute("fill", clan.color);
-        regionPath.setAttribute("stroke", clan.color);
-        regionPath.setAttribute("stroke-width", baseStrokeWidth);
-        regionPath.setAttribute(
-          "stroke-dasharray",
-          contested ? "8 4" : "none"
-        );
-        regionPath.setAttribute("opacity", baseOpacity.toString());
+        applyRegionVisuals(regionPath, {
+          fill: clan.color,
+          stroke: clan.color,
+          strokeWidth: baseStrokeWidth,
+          dashArray: contested ? "8 4" : "none",
+          opacity: baseOpacity,
+        });
 
         regionPath.style.filter = `drop-shadow(0 0 ${
           contested ? 16 : 10

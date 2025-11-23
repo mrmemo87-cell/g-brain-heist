@@ -11,6 +11,36 @@ import {
 import { ClanTerritoryMap } from "./ClanTerritoryMap";
 import { calculateClanTerritoryResults } from "../clanTerritoryRewards";
 
+const hashSeed = (value: string) => {
+  let hash = 1779033703 ^ value.length;
+  for (let i = 0; i < value.length; i += 1) {
+    hash = Math.imul(hash ^ value.charCodeAt(i), 3432918353);
+    hash = (hash << 13) | (hash >>> 19);
+  }
+  return hash >>> 0;
+};
+
+const createSeededRandom = (seedString: string) => {
+  let seed = hashSeed(seedString) || 1;
+  return () => {
+    seed += 0x6d2b79f5;
+    let t = seed;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+};
+
+const shuffleAnswersWithSeed = (answers: string[], seed: string) => {
+  const random = createSeededRandom(seed);
+  const result = [...answers];
+  for (let i = result.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+};
+
 interface ClanTerritoryStudentViewProps {
   gameState: ClanTerritoryGameState;
   playerId: string;
@@ -51,14 +81,12 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
       }
     : undefined;
   const [questionIndex, setQuestionIndex] = useState(0);
-  const [activeQuestionKey, setActiveQuestionKey] = useState<string | null>(null);
-  const [shuffledAnswers, setShuffledAnswers] = useState<string[]>([]);
   const [answerStartTime, setAnswerStartTime] = useState<number>(Date.now());
   const [feedback, setFeedback] = useState<"correct" | "incorrect" | null>(null);
   const [rewardsClaimed, setRewardsClaimed] = useState(false);
   const [claimingRewards, setClaimingRewards] = useState(false);
   const [showMap, setShowMap] = useState(false);
-  const optionOrderRef = useRef<Record<string, string[]>>({});
+  const lastQuestionKeyRef = useRef<string | null>(null);
   const clanList = React.useMemo(() => {
     const known = Object.values(gameState.clans).map((clan) => ({
       ...clan,
@@ -141,9 +169,8 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
     ? currentQuestion.id ?? `${questionIndex}-${currentQuestion.question_text}`
     : null;
 
-  // Shuffle answers exactly once per question
-  useEffect(() => {
-    if (!currentQuestion || !currentQuestionKey) return;
+  const shuffledAnswers = React.useMemo(() => {
+    if (!currentQuestion || !currentQuestionKey) return [];
 
     let allAnswers: string[];
     if (currentQuestion.options && currentQuestion.options.length > 0) {
@@ -154,22 +181,21 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
       allAnswers = [currentQuestion.correct_answer];
     }
 
-    if (!optionOrderRef.current[currentQuestionKey]) {
-      optionOrderRef.current[currentQuestionKey] = [...allAnswers].sort(() => Math.random() - 0.5);
+    return shuffleAnswersWithSeed(allAnswers, currentQuestionKey);
+  }, [currentQuestion, currentQuestionKey]);
+
+  useEffect(() => {
+    if (!currentQuestionKey) return;
+    if (lastQuestionKeyRef.current !== currentQuestionKey) {
+      lastQuestionKeyRef.current = currentQuestionKey;
       setAnswerStartTime(Date.now());
-    } else if (activeQuestionKey !== currentQuestionKey) {
-      setAnswerStartTime(Date.now());
+      setFeedback(null);
     }
+  }, [currentQuestionKey]);
 
-    setShuffledAnswers(optionOrderRef.current[currentQuestionKey]);
-    setActiveQuestionKey(currentQuestionKey);
-  }, [currentQuestion, currentQuestionKey, activeQuestionKey]);
-
-  // Clear cached option order when leaving active play
   useEffect(() => {
     if (gameState.phase !== "ACTIVE") {
-      optionOrderRef.current = {};
-      setActiveQuestionKey(null);
+      lastQuestionKeyRef.current = null;
     }
   }, [gameState.phase]);
 
