@@ -61,7 +61,8 @@ export const signup = async (
     username: string,
     role: 'student' | 'teacher',
     grade?: Grade,
-    batch?: Batch
+    batch?: Batch,
+    school?: string
 ): Promise<{ success: boolean }> => {
     console.log(`Attempting signup for ${email} as ${role}`);
     
@@ -75,6 +76,7 @@ export const signup = async (
                 username,
                 role,
                 batch: role === 'student' ? batch : undefined,
+                school,
             }
         }
     });
@@ -120,7 +122,7 @@ export const signup = async (
         if (role === 'teacher') {
             try {
                 const { error: teacherError } = await createTeacherProfile({
-                    school_name: null,
+                    school_name: school ?? null,
                     subject_specializations: [],
                     bio: null
                 });
