@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Clan, ClanChatMessage, Profile, ToastMessage, ClanSummary, ClanBuff, ClanMember, ActiveClanBuff } from '../types';
+import { Clan, ClanChatMessage, Profile, ToastMessage, ClanSummary, ClanBuff, ClanMember, ActiveClanBuff, ClanJoinRequest } from '../types';
 import * as GameService from '../services/gameService';
 import BackButton from './BackButton';
 import { ClanIcon, CoinIcon, DemoteIcon, KickIcon, LeaveIcon, ManageIcon, PromoteIcon } from './icons';
@@ -13,6 +13,7 @@ interface ClanViewProps {
   onComplete: () => void;
   onUpdateProfile: React.Dispatch<React.SetStateAction<Profile | null>>;
   addToast: (message: string, type: ToastMessage['type']) => void;
+  onPendingCountChange?: (count: number) => void;
 }
 
 const ConfirmationModal: React.FC<{ title: string, message: string, confirmText: string, onConfirm: () => void, onCancel: () => void }> = 
@@ -89,12 +90,16 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   const [depositAmount, setDepositAmount] = useState('');
   const [modal, setModal] = useState<ModalType>(null);
   const [memberToKick, setMemberToKick] = useState<ClanMember | null>(null);
-    const [memberModalState, setMemberModalState] = useState<{ clanId: string; clanName: string; members: ClanMember[] } | null>(null);
+    const [memberModalState, setMemberModalState] = useState<{ clanId: string; clanName: string; notice?: string; members: ClanMember[] } | null>(null);
     const [isMemberModalLoading, setIsMemberModalLoading] = useState(false);
     const [memberModalError, setMemberModalError] = useState<string | null>(null);
         const [noticeDraft, setNoticeDraft] = useState('');
         const [isEditingNotice, setIsEditingNotice] = useState(false);
         const [isSavingNotice, setIsSavingNotice] = useState(false);
+  const [pendingJoinRequest, setPendingJoinRequest] = useState<ClanJoinRequest | null>(null);
+  const [pendingApprovals, setPendingApprovals] = useState<ClanJoinRequest[]>([]);
+  const [isLoadingRequests, setIsLoadingRequests] = useState(false);
+  const [processingRequestId, setProcessingRequestId] = useState<string | null>(null);
   
   const myMemberInfo = clan?.members.find(m => m.user_id === profile.id);
     const isPrivileged = !!myMemberInfo && ['leader', 'officer', 'moderator'].includes(myMemberInfo.role);
@@ -102,12 +107,14 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   const fetchClanDetails = async () => {
     setStage('loading');
     try {
-        const [clanDetails, buffs] = await Promise.all([
+        const [clanDetails, buffs, pendingRequest] = await Promise.all([
             GameService.clan_details(),
-            GameService.clan_get_available_buffs()
+            GameService.clan_get_available_buffs(),
+            GameService.clan_get_my_pending_request(),
         ]);
         setClan(clanDetails);
         setAvailableBuffs(buffs);
+        setPendingJoinRequest(pendingRequest);
         setStage(clanDetails ? 'in_clan' : 'no_clan');
     } catch (error) {
         addToast("Failed to load clan details.", "error");
@@ -122,6 +129,12 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
     useEffect(() => {
             setNoticeDraft(clan?.notice || '');
     }, [clan?.notice]);
+
+    useEffect(() => {
+        if (activeTab === 'management') {
+            void loadPendingJoinRequests();
+        }
+    }, [activeTab, clan?.id, isPrivileged]);
   
   const handleDeposit = async () => {
     const amount = parseInt(depositAmount, 10);
@@ -213,7 +226,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
           addToast("Member promoted.", "success");
       } catch (e) { addToast("Failed to promote.", "error"); }
   };
-  
+
   const handleDemote = async (userId: string) => {
        try {
           const updatedClan = await GameService.clan_demote_member(userId);
@@ -222,16 +235,63 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
       } catch (e) { addToast("Failed to demote.", "error"); }
   };
 
-  const openMembersModal = async (clanId: string, clanName: string) => {
+  const loadPendingJoinRequests = async () => {
+      const canApprove = myMemberInfo && ['leader', 'moderator'].includes(myMemberInfo.role);
+      if (!canApprove) {
+          setPendingApprovals([]);
+          onPendingCountChange?.(0);
+          return;
+      }
+      setIsLoadingRequests(true);
+      try {
+          const requests = await GameService.clan_get_pending_join_requests();
+          setPendingApprovals(requests);
+          onPendingCountChange?.(requests.length);
+      } catch (error: any) {
+          setPendingApprovals([]);
+          addToast(error?.message || "Failed to load join requests.", "error");
+      } finally {
+          setIsLoadingRequests(false);
+      }
+  };
+
+  const handleApproveJoinRequest = async (requestId: string) => {
+      setProcessingRequestId(requestId);
+      try {
+          const updatedClan = await GameService.clan_approve_join_request(requestId);
+          setClan(updatedClan);
+          addToast("Join request approved.", "success");
+          await loadPendingJoinRequests();
+      } catch (error: any) {
+          addToast(error?.message || "Failed to approve request.", "error");
+      } finally {
+          setProcessingRequestId(null);
+      }
+  };
+
+  const handleRejectJoinRequest = async (requestId: string) => {
+      setProcessingRequestId(requestId);
+      try {
+          await GameService.clan_reject_join_request(requestId);
+          addToast("Join request rejected.", "info");
+          await loadPendingJoinRequests();
+      } catch (error: any) {
+          addToast(error?.message || "Failed to reject request.", "error");
+      } finally {
+          setProcessingRequestId(null);
+      }
+  };
+
+  const openMembersModal = async (clanId: string, clanName: string, clanNotice?: string) => {
       console.log('Opening members modal for:', clanName, clanId);
       setMemberModalError(null);
       setModal('view_members');
-      setMemberModalState({ clanId, clanName, members: [] });
+      setMemberModalState({ clanId, clanName, notice: clanNotice, members: [] });
       setIsMemberModalLoading(true);
       try {
           const members = await GameService.clan_get_members_by_id(clanId);
           console.log('Loaded members:', members);
-          setMemberModalState({ clanId, clanName, members });
+          setMemberModalState({ clanId, clanName, notice: clanNotice, members });
       } catch (error: any) {
           const message = error?.message || "Failed to load clan members.";
           console.error('Error loading members:', error);
@@ -249,7 +309,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
       setIsMemberModalLoading(false);
   };
   
-    const JoinClanView: React.FC<{ onJoined: (clan: Clan) => void; onViewMembers: (clan: ClanSummary) => void }> = ({ onJoined, onViewMembers }) => {
+    const JoinClanView: React.FC<{ onRequestSubmitted: (request: ClanJoinRequest | null, clanName: string) => void; onViewMembers: (clan: ClanSummary) => void; pendingRequest?: ClanJoinRequest | null }> = ({ onRequestSubmitted, onViewMembers, pendingRequest }) => {
     const [clanList, setClanList] = useState<ClanSummary[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isJoining, setIsJoining] = useState<string | null>(null);
@@ -270,16 +330,24 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
         fetchClans();
     }, []);
 
-    const handleJoin = async (clanId: string) => {
-        setIsJoining(clanId);
+    const handleJoin = async (clan: ClanSummary) => {
+        setIsJoining(clan.id);
         try {
-            const joinedClan = await GameService.clan_join(clanId);
-            addToast(`Successfully joined "${joinedClan.name}"!`, "success");
-            onJoined(joinedClan);
+            const result = await GameService.clan_join(clan.id);
+            if (result.status === 'pending') {
+                addToast(`Request sent to "${clan.name}" for approval.`, "info");
+                onRequestSubmitted(result.request ?? null, clan.name);
+                setStage('no_clan');
+            } else if (result.clan) {
+                addToast(`Successfully joined "${clan.name}"!`, "success");
+                onRequestSubmitted(null, clan.name);
+                setClan(result.clan);
+                setStage('in_clan');
+            }
         } catch (error: any) {
             addToast(error.message || "Failed to join clan.", "error");
-            setIsJoining(null);
         }
+        setIsJoining(null);
     };
 
     if (isLoading) {
@@ -290,7 +358,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
         <div className="text-center max-w-2xl mx-auto">
             <div className="flex items-center justify-between mb-6">
                 <h2 className="font-heading text-3xl text-amber-400">Join a Syndicate</h2>
-                <button 
+                <button
                     onClick={fetchClans}
                     disabled={isLoading}
                     className="px-4 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white rounded-lg font-heading transition-all disabled:opacity-50"
@@ -298,6 +366,12 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                     {isLoading ? 'Refreshing...' : '🔄 Refresh'}
                 </button>
             </div>
+            {pendingRequest && (
+                <div className="card-glass p-4 mb-4 text-left border border-amber-400/40">
+                    <p className="font-heading text-lg text-amber-300">Request Pending</p>
+                    <p className="text-sm text-gray-300">You have requested to join <span className="font-semibold text-white">{pendingRequest.clan_name || 'this clan'}</span>. A leader or moderator needs to approve.</p>
+                </div>
+            )}
             {clanList.length === 0 ? (
                 <div className="card-glass p-8 text-gray-400">
                     <p>No clans available yet. Be the first to create one!</p>
@@ -322,14 +396,15 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                 </button>
                                 <p className="text-xs text-gray-500">View members</p>
                                 <p className="text-sm text-gray-400">{clan.member_count} members | {clan.vault_metric.toLocaleString()} XP</p>
+                                {clan.notice && <p className="text-xs text-gray-400 mt-1 line-clamp-2">{clan.notice}</p>}
                             </div>
                         </div>
-                        <button 
-                            onClick={() => handleJoin(clan.id)}
-                            disabled={!!isJoining}
+                        <button
+                            onClick={() => handleJoin(clan)}
+                            disabled={!!isJoining || !!pendingRequest}
                             className="bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400 text-white font-semibold px-4 py-2 rounded-lg disabled:opacity-50"
                         >
-                            {isJoining === clan.id ? 'Joining...' : 'Join'}
+                            {isJoining === clan.id ? 'Joining...' : pendingRequest ? 'Pending' : 'Request to Join'}
                         </button>
                     </div>
                 ))}
@@ -345,6 +420,12 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
         <div className="w-24 h-24 mx-auto mb-4 text-amber-400/50"><ClanIcon /></div>
         <h2 className="font-heading text-4xl mb-4 text-amber-400">Join the Syndicate</h2>
         <p className="text-gray-400 mb-8">You are not currently part of a clan. Create your own syndicate or join an existing one to collaborate with other agents.</p>
+        {pendingJoinRequest && (
+            <div className="card-glass p-4 mb-4 border border-amber-400/40 text-left">
+                <p className="font-heading text-lg text-amber-300">Request Pending</p>
+                <p className="text-sm text-gray-300">Awaiting approval to join <span className="font-semibold text-white">{pendingJoinRequest.clan_name || 'a clan'}</span>. A leader or moderator will review your request soon.</p>
+            </div>
+        )}
         <div className="card-glass p-6 space-y-4">
              <button
                 onClick={() => setStage('creating')}
@@ -476,6 +557,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                     <p className="text-sm text-gray-400">
                                         {clanItem.member_count} members | {clanItem.vault_metric.toLocaleString()} Total XP
                                     </p>
+                                    {clanItem.notice && <p className="text-xs text-gray-400 mt-1 line-clamp-2">{clanItem.notice}</p>}
                                 </div>
                             </div>
                         </div>
@@ -550,7 +632,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
 
     const getRolePower = (role: ClanMember['role']) => {
         if (role === 'leader') return 2;
-        if (role === 'officer') return 1;
+        if (role === 'officer' || role === 'moderator') return 1;
         return 0;
     };
 
@@ -728,9 +810,60 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                         </div>
                     )}
                     {activeTab === 'chat' && <ClanChat />}
-                    {activeTab === 'browse' && <BrowseClansTab currentClanId={clan.id} addToast={addToast} onViewMembers={(clanItem) => openMembersModal(clanItem.id, clanItem.name)} />}
+                    {activeTab === 'browse' && <BrowseClansTab currentClanId={clan.id} addToast={addToast} onViewMembers={(clanItem) => openMembersModal(clanItem.id, clanItem.name, clanItem.notice)} />}
                     {activeTab === 'management' && isPrivileged && (
                          <div>
+                             {(myMemberInfo.role === 'leader' || myMemberInfo.role === 'moderator') && (
+                                 <div className="mb-6">
+                                     <div className="flex items-center justify-between mb-3">
+                                         <h3 className="font-heading text-xl text-amber-300">Join Requests</h3>
+                                         <button
+                                             onClick={loadPendingJoinRequests}
+                                             className="text-sm px-3 py-1 rounded-md border border-amber-400 text-amber-200 hover:bg-amber-500/10"
+                                             disabled={isLoadingRequests}
+                                         >
+                                             {isLoadingRequests ? 'Refreshing...' : 'Refresh'}
+                                         </button>
+                                     </div>
+                                     {isLoadingRequests ? (
+                                         <p className="text-gray-400">Loading requests...</p>
+                                     ) : pendingApprovals.length === 0 ? (
+                                         <p className="text-gray-500">No pending join requests.</p>
+                                     ) : (
+                                         <ul className="space-y-3">
+                                             {pendingApprovals.map(request => (
+                                                 <li key={request.id} className="flex items-center justify-between bg-black/20 p-3 rounded-lg">
+                                                     <div className="flex items-center space-x-3">
+                                                         <img src={request.avatar_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${request.username || request.user_id}`}
+                                                              className="w-10 h-10 rounded-full"
+                                                              alt="Requester avatar" />
+                                                         <div>
+                                                             <p className="font-semibold text-white">{request.username || 'Unknown agent'}</p>
+                                                             <p className="text-xs text-gray-400">Requested at {request.created_at ? new Date(request.created_at).toLocaleString() : 'unknown time'}</p>
+                                                         </div>
+                                                     </div>
+                                                     <div className="flex items-center space-x-2">
+                                                         <button
+                                                             onClick={() => handleApproveJoinRequest(request.id)}
+                                                             disabled={processingRequestId === request.id}
+                                                             className="px-3 py-1 rounded-md bg-green-500/20 border border-green-400 text-green-200 hover:bg-green-500/30 disabled:opacity-50"
+                                                         >
+                                                             {processingRequestId === request.id ? 'Approving...' : 'Approve'}
+                                                         </button>
+                                                         <button
+                                                             onClick={() => handleRejectJoinRequest(request.id)}
+                                                             disabled={processingRequestId === request.id}
+                                                             className="px-3 py-1 rounded-md bg-red-500/20 border border-red-400 text-red-200 hover:bg-red-500/30 disabled:opacity-50"
+                                                         >
+                                                             {processingRequestId === request.id ? 'Processing...' : 'Reject'}
+                                                         </button>
+                                                     </div>
+                                                 </li>
+                                             ))}
+                                         </ul>
+                                     )}
+                                 </div>
+                             )}
                              <h3 className="font-heading text-xl mb-3 text-amber-300">Member Management</h3>
                              <ul className="space-y-3">
                                 {clan.members.map(member => {
@@ -789,10 +922,9 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
       case 'loading': return <div className="font-heading text-2xl animate-pulse text-center mt-20" style={{color: 'var(--amber-warn)'}}>Accessing Clan Network...</div>;
       case 'no_clan': return renderNoClan();
       case 'creating': return <CreateClanForm onCreated={fetchClanDetails} />;
-      case 'joining': return <JoinClanView onJoined={(joinedClan) => {
-          setClan(joinedClan);
-          setStage('in_clan');
-      }} onViewMembers={(clanSummary) => openMembersModal(clanSummary.id, clanSummary.name)} />;
+      case 'joining': return <JoinClanView onRequestSubmitted={(request) => {
+          setPendingJoinRequest(request);
+      }} onViewMembers={(clanSummary) => openMembersModal(clanSummary.id, clanSummary.name, clanSummary.notice)} pendingRequest={pendingJoinRequest} />;
       case 'in_clan': return renderInClan();
       default: return null;
     }
@@ -808,6 +940,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="card-glass w-full max-w-lg m-4 p-6 border-2 border-amber-400">
             <h2 className="font-heading text-2xl text-center mb-2 text-amber-300">{`Members of ${memberModalState.clanName}`}</h2>
+            {memberModalState.notice && <p className="text-center text-gray-300 mb-3">{memberModalState.notice}</p>}
             {isMemberModalLoading ? (
               <p className="text-center text-gray-300 py-6">Loading roster...</p>
             ) : memberModalError ? (

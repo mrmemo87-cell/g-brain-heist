@@ -22,6 +22,7 @@ interface MainActionsProps {
   onOpenIeltsPrep?: () => void;
   onOpenLockdown?: () => void;
   hasPendingAssignment?: boolean;
+  clanBadgeCount?: number;
 }
 
 type ActionButtonProps = {
@@ -116,6 +117,7 @@ const MainActions: React.FC<MainActionsProps> = ({
   onOpenIeltsPrep,
   onOpenLockdown,
   hasPendingAssignment,
+  clanBadgeCount,
 }) => {
   return (
     <section className="dashboard-panel relative overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-950/60 p-4 shadow-2xl shadow-slate-950/50 backdrop-blur sm:p-6">
@@ -261,6 +263,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               label="Clan"
               color="255, 176, 32"
               glowClass="glow-warn"
+              badgeText={clanBadgeCount && clanBadgeCount > 0 ? String(Math.min(clanBadgeCount, 99)) : undefined}
             />
             <ActionButton
               onClick={onVisitInventory}

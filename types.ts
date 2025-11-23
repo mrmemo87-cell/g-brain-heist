@@ -332,6 +332,18 @@ export interface ClanSummary {
   notice?: string;
 }
 
+export interface ClanJoinRequest {
+  id: string;
+  clan_id: string;
+  user_id: string;
+  status: 'pending' | 'approved' | 'rejected';
+  created_at?: string;
+  clan_name?: string;
+  username?: string;
+  avatar_url?: string;
+  approver_id?: string | null;
+}
+
 // NEW: Competition-based clan score view
 export interface CompetitionClanScore {
     id: string;

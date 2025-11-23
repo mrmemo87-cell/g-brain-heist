@@ -81,6 +81,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [attackAlert, setAttackAlert] = useState(false);
   const attackAlertTimeoutRef = useRef<number | null>(null);
   const { isLightMode: isLiteMode, toggleLightMode } = useLightMode();
+  const [pendingClanRequests, setPendingClanRequests] = useState(0);
   const academicClassOptions = useMemo(() => {
     if (pendingGrade === null) {
       return [DEFAULT_BATCH];
@@ -134,6 +135,20 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       setActiveAssignment(assignment);
     } catch (error) {
       console.error('Failed to load assignment state:', error);
+    }
+  };
+
+  const refreshPendingJoinRequests = async () => {
+    if (!profile) {
+      setPendingClanRequests(0);
+      return;
+    }
+
+    try {
+      const count = await GameService.clan_get_pending_request_count();
+      setPendingClanRequests(count);
+    } catch (error) {
+      console.error('Failed to load clan join requests', error);
     }
   };
 
@@ -203,6 +218,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    void refreshPendingJoinRequests();
+  }, [profile?.id, view]);
 
   useEffect(() => {
     if (!profile || profile.role === 'teacher' || profile.role === 'admin') {
@@ -763,7 +782,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         case 'shop':
             return <ShopView onComplete={handleViewComplete} onPurchase={handleGrantReward} profile={profile} addToast={addToast} onNavigateToInventory={() => setView('inventory')} />;
         case 'clan':
-            return <ClanView onComplete={handleViewComplete} profile={profile} onUpdateProfile={setProfile} addToast={addToast} />;
+            return <ClanView onComplete={handleViewComplete} profile={profile} onUpdateProfile={setProfile} addToast={addToast} onPendingCountChange={setPendingClanRequests} />;
         case 'inventory':
             return <InventoryView onComplete={handleViewComplete} addToast={addToast} onNavigateToShop={() => setView('shop')} onProfileUpdate={setProfile} />;
         case 'leaderboard':
@@ -924,6 +943,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                       onOpenIeltsPrep={!isStudent ? () => setView('ielts') : undefined}
                       onOpenLockdown={() => setView('lockdown')}
                       hasPendingAssignment={Boolean(activeAssignment)}
+                      clanBadgeCount={pendingClanRequests}
                     />
                     <TaskList tasks={tasks} onTasksUpdate={fetchGameData} />
                   </div>
