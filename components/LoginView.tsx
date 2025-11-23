@@ -13,8 +13,9 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [username, setUsername] = useState('');
-    const [grade, setGrade] = useState<Grade>(8);
-    const [batch, setBatch] = useState<Batch>('N/A');
+    const [grade, setGrade] = useState<Grade | null>(null);
+    const [batch, setBatch] = useState<Batch | ''>('');
+    const [school, setSchool] = useState('');
     const [role, setRole] = useState<'student' | 'teacher'>('student');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -29,6 +30,13 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
         }
     }, []);
 
+    useEffect(() => {
+        if (role === 'teacher') {
+            setGrade(null);
+            setBatch('');
+        }
+    }, [role]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
@@ -41,14 +49,51 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 setSuccess('Password reset email sent! Check your inbox.');
                 setMode('login');
             } else if (mode === 'signup') {
-                const gradeForSignup = role === 'student' ? grade : undefined;
-                const batchForSignup = role === 'student' ? batch : undefined;
-                await AuthService.signup(email, password, username, role, gradeForSignup, batchForSignup);
+                if (!username.trim()) {
+                    setError('Pick a codename so other agents can recognize you.');
+                    return;
+                }
+
+                if (!email.trim()) {
+                    setError('Enter a valid email to receive mission updates.');
+                    return;
+                }
+
+                if (role === 'student') {
+                    if (!school.trim()) {
+                        setError('Select your school to keep your records organized.');
+                        return;
+                    }
+
+                    if (!grade) {
+                        setError('Choose your grade to unlock the right missions.');
+                        return;
+                    }
+
+                    if (!batch) {
+                        setError('Pick your batch so we can match you with your class.');
+                        return;
+                    }
+                }
+
+                const gradeForSignup = role === 'student' ? grade ?? undefined : undefined;
+                const batchForSignup = role === 'student' ? batch || undefined : undefined;
+                const schoolForSignup = school.trim() || undefined;
+
+                await AuthService.signup(
+                    email.trim(),
+                    password,
+                    username.trim(),
+                    role,
+                    gradeForSignup,
+                    batchForSignup,
+                    schoolForSignup
+                );
                 setSuccess('Account created! Please log in.');
                 setMode('login');
                 setPassword('');
             } else {
-                await onLogin(email, password);
+                await onLogin(email.trim(), password);
             }
         } catch (err: any) {
             setError(err.message || 'Operation failed. Please try again.');
@@ -71,18 +116,35 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
         }
     };
 
-    const gradeOptions: Record<Grade, Batch[]> = useMemo(() => ({
-        8: ['8A', '8B', '8C', 'N/A'],
-        9: ['9A', '9B', '9C', 'N/A'],
-    }), []);
+    const gradeOptions: Record<Grade, Batch[]> = useMemo(
+        () => ({
+            8: ['8A', '8B', '8C'],
+            9: ['9A', '9B', '9C'],
+        }),
+        []
+    );
 
-    const handleGradeChange = (value: Grade) => {
-        setGrade(value);
-        const availableBatches = gradeOptions[value];
-        if (!availableBatches.includes(batch)) {
+    const handleGradeChange = (value: string) => {
+        if (!value) {
+            setGrade(null);
+            setBatch('');
+            return;
+        }
+
+        const parsedGrade = Number(value) as Grade;
+        setGrade(parsedGrade);
+
+        const availableBatches = gradeOptions[parsedGrade];
+        if (!availableBatches.includes(batch as Batch)) {
             setBatch(availableBatches[0]);
         }
     };
+
+    const availableBatches = grade ? gradeOptions[grade] : [];
+
+    const isSignupIncomplete =
+        mode === 'signup' &&
+        ((role === 'student' && (!grade || !batch || !school.trim())) || !username.trim() || !email.trim() || !password);
 
     return (
         <>
@@ -192,19 +254,35 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                     </div>
                                 </div>
 
+                                <div>
+                                    <label htmlFor="school" className="block text-sm font-medium text-gray-300">School</label>
+                                    <input
+                                        id="school"
+                                        name="school"
+                                        type="text"
+                                        value={school}
+                                        onChange={(e) => setSchool(e.target.value)}
+                                        className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+                                        placeholder="North Ridge High"
+                                    />
+                                    <p className="mt-1 text-xs text-gray-400">We use your school to match you with the right grade and batch.</p>
+                                </div>
+
                                 {role === 'student' && (
                                     <>
                                         <div>
                                             <label htmlFor="grade" className="block text-sm font-medium text-gray-300">Grade</label>
                                             <select
                                                 id="grade"
-                                                value={grade}
-                                                onChange={(e) => handleGradeChange(Number(e.target.value) as Grade)}
+                                                value={grade ?? ''}
+                                                onChange={(e) => handleGradeChange(e.target.value)}
                                                 className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
                                             >
+                                                <option value="">Select your grade</option>
                                                 <option value={8}>Grade 8</option>
                                                 <option value={9}>Grade 9</option>
                                             </select>
+                                            <p className="mt-1 text-xs text-gray-400">Your missions will be tailored to this grade.</p>
                                         </div>
                                         <div>
                                             <label htmlFor="batch" className="block text-sm font-medium text-gray-300">Class</label>
@@ -212,12 +290,15 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                                 id="batch"
                                                 value={batch}
                                                 onChange={(e) => setBatch(e.target.value as Batch)}
-                                                className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+                                                disabled={!grade}
+                                                className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
-                                                {gradeOptions[grade].map((option) => (
+                                                <option value="">{grade ? 'Select your class' : 'Choose a grade first'}</option>
+                                                {availableBatches.map((option) => (
                                                     <option key={option} value={option}>{`Class ${option}`}</option>
                                                 ))}
                                             </select>
+                                            <p className="mt-1 text-xs text-gray-400">Pick the exact batch you attend in school.</p>
                                         </div>
                                     </>
                                 )}
@@ -274,7 +355,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                         <div>
                             <button
                                 type="submit"
-                                disabled={isLoading || isGoogleLoading}
+                                disabled={isLoading || isGoogleLoading || isSignupIncomplete}
                                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-bold text-ink-900 bg-ion-blue hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ion-blue disabled:opacity-50 disabled:cursor-wait transition-colors"
                                 style={{ textShadow: '0 1px 1px rgba(0,0,0,0.2)' }}
                             >
