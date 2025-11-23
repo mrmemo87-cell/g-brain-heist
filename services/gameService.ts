@@ -909,8 +909,20 @@ const getActiveCosmeticFrame = async (userId: string): Promise<'neon' | null> =>
 
   const activeCosmetics = (data || []).filter(item => item.kind === 'cosmetic');
   const hasNeonFrame = activeCosmetics.some(item => item.item_id === 'item_cosmetic_frame');
+  
+  const frameValue = hasNeonFrame ? 'neon' : null;
 
-  return hasNeonFrame ? 'neon' : null;
+  // Sync to users table for better visibility across queries
+  try {
+    await supabase
+      .from('users')
+      .update({ active_cosmetic_frame: frameValue })
+      .eq('id', userId);
+  } catch (syncError) {
+    console.warn('Failed to sync cosmetic frame to users table:', syncError);
+  }
+
+  return frameValue;
 };
 
 // Clean up expired items from inventory
@@ -2237,6 +2249,13 @@ export const inventory_activate = async (inv_id: string): Promise<{ state_after:
             })
             .eq('id', inv_id);
 
+        // Also update the users table to reflect active cosmetic
+        if (item.item_id === 'item_cosmetic_frame') {
+            await updateProfile(user.id, {
+                active_cosmetic_frame: 'neon',
+            });
+        }
+
         return mockApiCall({
             state_after: 'active' as const,
             effect_window: { start: now.toISOString(), end: 'Permanent' }
@@ -2367,6 +2386,11 @@ export const deactivate_neon_frame = async (): Promise<void> => {
     if (updateError) {
         throw new Error(updateError.message || 'Failed to deactivate neon frame.');
     }
+
+    // Also clear from users table
+    await updateProfile(user.id, {
+        active_cosmetic_frame: null,
+    });
 };
 
 export const clan_list = async (): Promise<ClanSummary[]> => {
