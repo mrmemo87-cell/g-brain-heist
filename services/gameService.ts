@@ -1724,6 +1724,7 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
     // TODO: Check inventory for shields
     const playerList = players || [];
     const neonOwners = await fetchNeonFrameOwners(playerList.map((p: any) => p.id));
+    const glitchOwners = await fetchGlitchThemeOwners(playerList.map((p: any) => p.id));
 
     const realTargets: RaidTarget[] = playerList.map((p: any) => {
         // Extract clan info if user is in a clan
@@ -1744,6 +1745,7 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
             est_win_rate: winRate,
             avatar_url: p.avatar_url || '',
             active_cosmetic_frame: neonOwners.has(p.id) ? 'neon' : null,
+            active_cosmetic_theme: glitchOwners.has(p.id) ? 'glitch' : null,
             last_seen: p.last_seen,
             clan_name: clanName,
             clan_id: clanId,

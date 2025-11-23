@@ -57,9 +57,14 @@ const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) 
   
   const status = getOnlineStatus(target.last_seen);
   const hasNeonFrame = target.active_cosmetic_frame === 'neon';
+  const hasGlitchTheme = target.active_cosmetic_theme === 'glitch';
+  
+  const cardClasses = hasGlitchTheme 
+    ? 'card-glass p-4 flex flex-col items-center text-center relative overflow-hidden glitch-frame'
+    : 'card-glass p-4 flex flex-col items-center text-center relative overflow-hidden';
   
   return (
-    <div className="card-glass p-4 flex flex-col items-center text-center relative overflow-hidden">
+    <div className={cardClasses}>
       {/* Cooldown Badge */}
       {isOnCooldown && (
         <div className="absolute top-2 left-2 bg-red-500/80 text-white text-xs px-2 py-0.5 rounded-full z-10" title="Recently attacked">
@@ -78,6 +83,7 @@ const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) 
           alt={target.username}
           size="lg"
           hasNeonFrame={hasNeonFrame}
+          hasGlitchTheme={hasGlitchTheme}
           fallbackFrameClassName="border-2 border-gray-600"
         />
         <div 

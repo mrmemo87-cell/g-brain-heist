@@ -196,6 +196,7 @@ export interface RaidTarget {
   est_win_rate: number;
   avatar_url: string;
   active_cosmetic_frame?: 'neon' | null;
+  active_cosmetic_theme?: 'glitch' | null;
   last_seen?: string;
   clan_name?: string;
   clan_id?: string;
