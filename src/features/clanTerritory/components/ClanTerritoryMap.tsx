@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { ReactNode, useEffect, useRef, useState } from "react";
 // @ts-expect-error - Vite injects raw SVG strings for ?raw imports
 import territoryMapSvgRaw from "../assets/territory_map.svg?raw";
 import {
@@ -12,6 +12,9 @@ import {
 interface ClanTerritoryMapProps {
   zones: Record<ZoneId, ZoneState>;
   clans: Record<ClanId, ClanMetadata>;
+  hideHeader?: boolean;
+  hideLegend?: boolean;
+  overlay?: ReactNode;
 }
 
 const ZONE_TO_REGION: Record<ZoneId, string | string[]> = {
@@ -85,6 +88,9 @@ const getZoneController = (
 export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   zones,
   clans,
+  hideHeader = false,
+  hideLegend = false,
+  overlay,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mapMarkup, setMapMarkup] = useState("");
@@ -180,18 +186,37 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       if (element.getAttribute("fill") !== fill) {
         element.setAttribute("fill", fill);
       }
+      if (element.style.fill !== fill) {
+        element.style.fill = fill;
+      }
+
       if (element.getAttribute("stroke") !== stroke) {
         element.setAttribute("stroke", stroke);
       }
+      if (element.style.stroke !== stroke) {
+        element.style.stroke = stroke;
+      }
+
       if (element.getAttribute("stroke-width") !== strokeWidth) {
         element.setAttribute("stroke-width", strokeWidth);
       }
+      if (element.style.strokeWidth !== strokeWidth) {
+        element.style.strokeWidth = strokeWidth;
+      }
+
       if (element.getAttribute("stroke-dasharray") !== dashArray) {
         element.setAttribute("stroke-dasharray", dashArray);
       }
+      if (element.style.getPropertyValue("stroke-dasharray") !== dashArray) {
+        element.style.setProperty("stroke-dasharray", dashArray);
+      }
+
       const opacityValue = opacity.toString();
       if (element.getAttribute("opacity") !== opacityValue) {
         element.setAttribute("opacity", opacityValue);
+      }
+      if (element.style.opacity !== opacityValue) {
+        element.style.opacity = opacityValue;
       }
     };
 
@@ -321,11 +346,13 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
   return (
     <div className="relative rounded-3xl border border-slate-800/70 bg-gradient-to-br from-slate-950 via-slate-900 to-black p-6 shadow-2xl max-h-[450px] overflow-hidden">
-      <div className="mb-3">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">
-          Territory Control
-        </h3>
-      </div>
+      {!hideHeader && (
+        <div className="mb-3">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">
+            Territory Control
+          </h3>
+        </div>
+      )}
 
       <div
         ref={containerRef}
@@ -333,20 +360,24 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         dangerouslySetInnerHTML={{ __html: mapMarkup }}
       />
 
-      <div className="absolute top-4 right-4 bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-3 space-y-2 max-h-72 overflow-y-auto z-10">
-        <h4 className="text-xs font-bold text-white uppercase tracking-wide">
-          Active Clans
-        </h4>
-        {Object.values(clans).map((clan) => (
-          <div key={clan.id} className="flex items-center gap-2 text-xs">
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: clan.color }}
-            />
-            <span className="text-white font-semibold">{clan.name}</span>
-          </div>
-        ))}
-      </div>
+      {!hideLegend && (
+        <div className="absolute top-4 right-4 bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-3 space-y-2 max-h-72 overflow-y-auto z-10">
+          <h4 className="text-xs font-bold text-white uppercase tracking-wide">
+            Active Clans
+          </h4>
+          {Object.values(clans).map((clan) => (
+            <div key={clan.id} className="flex items-center gap-2 text-xs">
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: clan.color }}
+              />
+              <span className="text-white font-semibold">{clan.name}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {overlay}
     </div>
   );
 };

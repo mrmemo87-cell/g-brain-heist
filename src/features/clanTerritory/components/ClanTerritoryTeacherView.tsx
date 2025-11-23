@@ -164,6 +164,82 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
       }));
   }, [results, gameState.players]);
 
+  const endgameOverlay =
+    gameState.phase === "ENDED" && results ? (
+      <div className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-between p-4 text-white">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.35em] text-slate-400">Territory Control</p>
+            <p
+              className="text-5xl font-black leading-tight"
+              style={{ color: winningClan?.color ?? "#f1f5f9" }}
+            >
+              {winningClan?.name ?? "Stalemate"}
+            </p>
+            <p className="text-sm text-slate-400">
+              {winningClan ? "Treasure secured" : "No clan held the grid"}
+            </p>
+          </div>
+          <div className="bg-slate-900/85 backdrop-blur rounded-2xl border border-slate-700 p-3 w-48">
+            <p className="text-[10px] uppercase tracking-[0.35em] text-slate-400 mb-2">Active Clans</p>
+            <div className="space-y-1 max-h-48 overflow-y-auto">
+              {clanList.map((clan) => (
+                <div key={clan.id} className="flex items-center justify-between text-xs font-semibold">
+                  <span className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: clan.color }} />
+                    {clan.name}
+                  </span>
+                  <span className="text-slate-500">
+                    {controlStats.find((stat) => stat.clan.id === clan.id)?.count ?? 0}z
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-3 max-w-2xl">
+          {controlStats.length > 0 ? (
+            controlStats.map(({ clan, count }) => (
+              <div
+                key={clan.id}
+                className="bg-slate-950/85 border border-slate-800 rounded-2xl px-4 py-2 min-w-[150px]"
+              >
+                <p className="text-xs uppercase tracking-wider text-slate-400">{clan.name}</p>
+                <p className="text-3xl font-black" style={{ color: clan.color }}>
+                  {count}
+                  <span className="text-sm text-slate-400 ml-1">zones</span>
+                </p>
+              </div>
+            ))
+          ) : (
+            <div className="text-slate-400 text-sm">No territory locked down.</div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl">
+          <div className="bg-slate-950/85 border border-slate-800 rounded-2xl p-3">
+            <p className="text-[11px] uppercase tracking-wide text-slate-400">Total Loot</p>
+            <p className="text-2xl font-mono text-amber-300">
+              {CONFIG.TOTAL_COIN_LOOT.toLocaleString()} Coins
+            </p>
+          </div>
+          <div className="bg-slate-950/85 border border-slate-800 rounded-2xl p-3">
+            <p className="text-[11px] uppercase tracking-wide text-slate-400">XP Pool</p>
+            <p className="text-2xl font-mono text-purple-300">
+              {CONFIG.TOTAL_XP_LOOT.toLocaleString()} XP
+            </p>
+          </div>
+          <div className="bg-slate-950/85 border border-slate-800 rounded-2xl p-3">
+            <p className="text-[11px] uppercase tracking-wide text-slate-400">Gem Winners</p>
+            <p className="text-2xl font-mono text-cyan-300">
+              {results.playerRewards.filter((reward) => reward.gems > 0).length}
+            </p>
+          </div>
+        </div>
+      </div>
+    ) : null;
+
   const [warfeed, setWarfeed] = React.useState<WarEvent[]>([]);
   const previousState = React.useRef<ClanTerritoryGameState | null>(null);
 
@@ -221,104 +297,6 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-950 text-white p-4 gap-4 relative overflow-y-auto">
-      {gameState.phase === "ENDED" && results && (
-        <div className="absolute inset-0 z-50 bg-black/95 flex flex-col items-center overflow-y-auto p-8 gap-6 text-center">
-          <h2 className="text-5xl font-black tracking-widest text-yellow-300">BATTLE COMPLETE</h2>
-          {winningClan ? (
-            <div>
-              <p className="text-gray-400 text-lg mb-2">Treasure secured by</p>
-              <p className="text-6xl font-black" style={{ color: winningClan.color }}>
-                {winningClan.name}
-              </p>
-              <div className="mt-6 grid gap-4 md:grid-cols-3">
-                {controlStats.length > 0 ? (
-                  controlStats.map(({ clan, count }) => (
-                    <div key={clan.id} className="bg-slate-900/70 p-4 rounded-xl border border-slate-800">
-                      <p className="text-sm text-slate-400">{clan.name}</p>
-                      <p className="text-3xl font-black" style={{ color: clan.color }}>
-                        {count} <span className="text-base text-slate-400">zones</span>
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <div className="md:col-span-3 text-slate-400">No territory was held at the final horn.</div>
-                )}
-              </div>
-              <div className="mt-6 grid md:grid-cols-3 gap-4">
-                <div className="bg-slate-900/70 p-4 rounded-xl border border-slate-800">
-                  <div className="text-sm text-slate-400">Total Loot</div>
-                  <div className="text-3xl font-mono text-amber-300">
-                    {CONFIG.TOTAL_COIN_LOOT.toLocaleString()} Coins
-                  </div>
-                </div>
-                <div className="bg-slate-900/70 p-4 rounded-xl border border-slate-800">
-                  <div className="text-sm text-slate-400">XP Pool</div>
-                  <div className="text-3xl font-mono text-purple-300">
-                    {CONFIG.TOTAL_XP_LOOT.toLocaleString()} XP
-                  </div>
-                </div>
-                <div className="bg-slate-900/70 p-4 rounded-xl border border-slate-800">
-                  <div className="text-sm text-slate-400">Gem Winners</div>
-                  <div className="text-3xl font-mono text-cyan-300">
-                    {results.playerRewards.filter((r) => r.gems > 0).length}
-                  </div>
-                </div>
-              </div>
-              {topRewardLeaders.length > 0 && (
-                <div className="mt-6 bg-slate-900/70 rounded-xl border border-slate-800 p-4">
-                  <h3 className="text-lg font-bold mb-3">MVP Agents</h3>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    {topRewardLeaders.map(({ reward, player }) => (
-                      <div key={reward.playerId} className="bg-slate-950/60 border border-slate-800 rounded-lg p-4">
-                        <p className="text-sm text-slate-400">{reward.clanName}</p>
-                        <p className="text-xl font-bold">{player?.name ?? reward.playerId}</p>
-                        <p className="text-sm text-amber-300">{reward.coins} coins</p>
-                        <p className="text-xs text-slate-500">Battle score {reward.battleScore}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              <div className="mt-6 bg-slate-900/70 rounded-xl border border-slate-800 max-h-64 overflow-y-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="text-slate-400 uppercase text-xs tracking-wider">
-                    <tr>
-                      <th className="px-4 py-2">Agent</th>
-                      <th className="px-4 py-2">Clan</th>
-                      <th className="px-4 py-2 text-right">Coins</th>
-                      <th className="px-4 py-2 text-right">XP</th>
-                      <th className="px-4 py-2 text-right">Gems</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[...results.playerRewards]
-                      .sort((a, b) => b.coins - a.coins)
-                      .map((reward) => (
-                        <tr key={reward.playerId} className="border-t border-slate-800">
-                          <td className="px-4 py-2 font-semibold">
-                            {gameState.players[reward.playerId]?.name ?? reward.playerId}
-                          </td>
-                          <td className="px-4 py-2 text-slate-400">{reward.clanName}</td>
-                          <td className="px-4 py-2 text-right text-amber-300">{reward.coins}</td>
-                          <td className="px-4 py-2 text-right text-purple-300">{reward.xp}</td>
-                          <td className="px-4 py-2 text-right text-cyan-300">{reward.gems}</td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ) : (
-            <div className="text-3xl text-gray-300">Stalemate. No clan held the grid.</div>
-          )}
-          <button
-            onClick={() => onStartGame(300)}
-            className="px-10 py-3 bg-white text-black font-black tracking-widest rounded-full hover:bg-gray-200"
-          >
-            Deploy New Battle
-          </button>
-        </div>
-      )}
 
       <div className="flex flex-wrap gap-4 items-center bg-slate-900/70 border border-slate-800 rounded-2xl p-4 shadow-lg">
         <div>
@@ -348,12 +326,26 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
               END EARLY
             </button>
           )}
+          {gameState.phase === "ENDED" && (
+            <button
+              onClick={() => onStartGame(300)}
+              className="px-6 py-2 bg-white text-black hover:bg-gray-200 rounded-lg font-bold tracking-wide"
+            >
+              DEPLOY AGAIN
+            </button>
+          )}
         </div>
       </div>
 
       <div className="flex-1 grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 flex flex-col gap-4">
-          <ClanTerritoryMap zones={gameState.zones} clans={clansWithColors} />
+          <ClanTerritoryMap
+            zones={gameState.zones}
+            clans={clansWithColors}
+            hideHeader={gameState.phase === "ENDED"}
+            hideLegend={gameState.phase === "ENDED"}
+            overlay={endgameOverlay}
+          />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {ZONES.map((zone) => {
               const zoneState = gameState.zones[zone.id];
@@ -417,6 +409,67 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
               );
             })}
           </div>
+
+          {gameState.phase === "ENDED" && results && (
+            <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 space-y-4">
+              {topRewardLeaders.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-bold mb-2">MVP Agents</h3>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {topRewardLeaders.map(({ reward, player }) => (
+                      <div key={reward.playerId} className="bg-slate-950/60 border border-slate-800 rounded-lg p-4">
+                        <p className="text-sm text-slate-400">{reward.clanName}</p>
+                        <p className="text-xl font-bold">{player?.name ?? reward.playerId}</p>
+                        <div className="text-sm text-amber-300">{reward.coins} coins</div>
+                        <div className="text-xs text-slate-500">Battle score {reward.battleScore}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <h3 className="text-lg font-bold mb-2">Reward Ledger</h3>
+                <div className="max-h-64 overflow-y-auto border border-slate-800 rounded-xl">
+                  <table className="w-full text-left text-sm">
+                    <thead className="text-slate-400 uppercase text-xs tracking-wider">
+                      <tr>
+                        <th className="px-4 py-2">Agent</th>
+                        <th className="px-4 py-2">Clan</th>
+                        <th className="px-4 py-2 text-right">Coins</th>
+                        <th className="px-4 py-2 text-right">XP</th>
+                        <th className="px-4 py-2 text-right">Gems</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...results.playerRewards]
+                        .sort((a, b) => b.coins - a.coins)
+                        .map((reward) => (
+                          <tr key={reward.playerId} className="border-t border-slate-800">
+                            <td className="px-4 py-2 font-semibold">
+                              {gameState.players[reward.playerId]?.name ?? reward.playerId}
+                            </td>
+                            <td className="px-4 py-2 text-slate-400">{reward.clanName}</td>
+                            <td className="px-4 py-2 text-right text-amber-300">{reward.coins}</td>
+                            <td className="px-4 py-2 text-right text-purple-300">{reward.xp}</td>
+                            <td className="px-4 py-2 text-right text-cyan-300">{reward.gems}</td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  onClick={() => onStartGame(300)}
+                  className="px-6 py-2 bg-white text-black rounded-full font-bold tracking-wide hover:bg-gray-200"
+                >
+                  Deploy New Battle
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col gap-4">
