@@ -231,13 +231,29 @@ CREATE TABLE IF NOT EXISTS clan_members (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     clan_id UUID REFERENCES clans(id) ON DELETE CASCADE,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    role TEXT DEFAULT 'member' CHECK (role IN ('leader', 'officer', 'member')),
+    role TEXT DEFAULT 'member' CHECK (role IN ('leader', 'officer', 'moderator', 'member')),
     joined_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(clan_id, user_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_clan_members_clan_id ON clan_members(clan_id);
 CREATE INDEX IF NOT EXISTS idx_clan_members_user_id ON clan_members(user_id);
+
+-- ============================================
+-- CLAN JOIN REQUESTS TABLE
+-- ============================================
+CREATE TABLE IF NOT EXISTS clan_join_requests (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    clan_id UUID REFERENCES clans(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    approved_by UUID REFERENCES users(id),
+    approved_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_clan_join_requests_clan_id ON clan_join_requests(clan_id);
+CREATE INDEX IF NOT EXISTS idx_clan_join_requests_pending ON clan_join_requests(clan_id, status);
 
 -- ============================================
 -- CLAN CHAT TABLE
