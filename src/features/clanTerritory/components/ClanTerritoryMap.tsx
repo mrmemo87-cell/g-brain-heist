@@ -322,11 +322,12 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       });
     };
 
-    if (rafRef.current) {
-      cancelAnimationFrame(rafRef.current);
-    }
+    const runLoop = () => {
+      updateRegions();
+      rafRef.current = requestAnimationFrame(runLoop);
+    };
 
-    rafRef.current = requestAnimationFrame(updateRegions);
+    runLoop();
 
     return () => {
       if (rafRef.current) {
