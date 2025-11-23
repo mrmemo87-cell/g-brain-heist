@@ -116,19 +116,13 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-xl border border-pink-500/25 bg-black/40 p-4 shadow-[0_10px_30px_rgba(255,45,145,0.15)]">
           <div className="flex items-center gap-3">
-            <div className={`relative rounded-full ${hasNeonFrame ? 'p-[3px] bg-gradient-to-br from-fuchsia-500 via-cyan-400 to-purple-500 shadow-[0_0_28px_rgba(168,85,247,0.4)]' : ''}`}>
+            <div className={`relative rounded-full ${hasNeonFrame ? 'neon-frame neon-frame-xl' : ''}`}>
               <img
                 src={profile.avatar_url}
                 alt={profile.username}
-                className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 animate-float ${hasNeonFrame ? 'border-transparent shadow-[0_0_22px_rgba(59,130,246,0.55)] ring-2 ring-white/70' : ''}`}
+                className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full animate-float object-cover ${hasNeonFrame ? 'neon-frame-avatar border-transparent' : 'border-4'}`}
                 style={{ borderColor: hasNeonFrame ? undefined : 'var(--plasma-pink)' }}
               />
-              {hasNeonFrame && (
-                <span
-                  className="pointer-events-none absolute inset-0 rounded-full animate-pulse"
-                  style={{ boxShadow: '0 0 18px rgba(59,130,246,0.55), 0 0 26px rgba(236,72,153,0.45)' }}
-                ></span>
-              )}
             </div>
             <div className="space-y-1">
               <h2 className="text-xl sm:text-2xl font-bold font-heading" style={{ color: 'var(--plasma-pink)' }}>

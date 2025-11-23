@@ -321,20 +321,14 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                     setShowSettingsModal(true);
                     setMobileMenuOpen(false);
                   }}
-                  className={`relative overflow-hidden rounded-full ${hasNeonFrame ? 'p-[3px] bg-gradient-to-br from-fuchsia-500 via-cyan-400 to-purple-500 shadow-[0_0_20px_rgba(59,130,246,0.45)]' : 'border border-pink-500/70'}`}
+                  className={`relative overflow-hidden rounded-full ${hasNeonFrame ? 'neon-frame neon-frame-sm' : 'border border-pink-500/70'}`}
                   aria-label="Open settings"
                 >
                   <img
                     src={profile.avatar_url || avatarPresets[0]}
                     alt={profile.username || 'Player avatar'}
-                    className={`h-10 w-10 rounded-full object-cover ${hasNeonFrame ? 'shadow-[0_0_14px_rgba(236,72,153,0.65)] ring-2 ring-white/60' : ''}`}
+                    className={`h-10 w-10 rounded-full object-cover ${hasNeonFrame ? 'neon-frame-avatar' : ''}`}
                   />
-                  {hasNeonFrame && (
-                    <span
-                      className="pointer-events-none absolute inset-0 rounded-full animate-pulse"
-                      style={{ boxShadow: '0 0 12px rgba(59,130,246,0.45), 0 0 18px rgba(236,72,153,0.4)' }}
-                    ></span>
-                  )}
                 </button>
 
                 {mobileMenuOpen && (
@@ -520,12 +514,16 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
               
               {/* Username badge */}
               <div className="flex items-center space-x-2 px-4 py-2 bg-black/40 rounded-full border border-cyan-500/30 backdrop-blur-sm">
-                <img 
-                  src={profile.avatar_url} 
-                  alt={profile.username} 
-                  className="w-8 h-8 rounded-full border-2 border-pink-500 cursor-pointer hover:scale-110 transition-transform"
+                <div
+                  className={`flex-shrink-0 rounded-full transition-transform duration-200 cursor-pointer hover:scale-110 ${hasNeonFrame ? 'neon-frame neon-frame-sm' : 'border-2 border-pink-500'}`}
                   onClick={() => setShowSettingsModal(true)}
-                />
+                >
+                  <img 
+                    src={profile.avatar_url} 
+                    alt={profile.username} 
+                    className={`w-8 h-8 rounded-full object-cover ${hasNeonFrame ? 'neon-frame-avatar' : ''}`}
+                  />
+                </div>
                 <span className="font-bold text-white text-sm">{profile.username}</span>
               </div>
             </div>
