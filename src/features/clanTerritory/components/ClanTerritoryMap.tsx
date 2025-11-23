@@ -164,6 +164,44 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     const svg = containerRef.current.querySelector("svg");
     if (!svg) return;
 
+    const ensureInitialAttributes = (element: SVGPathElement) => {
+      if (!element.getAttribute("data-initial-fill")) {
+        const initialFill =
+          element.getAttribute("fill") ||
+          element.style.fill ||
+          NEUTRAL_TERRITORY_SHADE;
+        element.setAttribute("data-initial-fill", initialFill);
+      }
+      if (!element.getAttribute("data-initial-stroke")) {
+        const initialStroke =
+          element.getAttribute("stroke") ||
+          element.style.stroke ||
+          "#475569";
+        element.setAttribute("data-initial-stroke", initialStroke);
+      }
+      if (!element.getAttribute("data-initial-stroke-width")) {
+        const initialStrokeWidth =
+          element.getAttribute("stroke-width") ||
+          element.style.strokeWidth ||
+          "2";
+        element.setAttribute("data-initial-stroke-width", initialStrokeWidth);
+      }
+      if (!element.getAttribute("data-initial-dasharray")) {
+        const initialDash =
+          element.getAttribute("stroke-dasharray") ||
+          element.style.getPropertyValue("stroke-dasharray") ||
+          "none";
+        element.setAttribute("data-initial-dasharray", initialDash);
+      }
+      if (!element.getAttribute("data-initial-opacity")) {
+        const initialOpacity =
+          element.getAttribute("opacity") ||
+          element.style.opacity ||
+          "1";
+        element.setAttribute("data-initial-opacity", initialOpacity);
+      }
+    };
+
     svg.style.pointerEvents = "none";
 
     Object.entries(ZONE_TO_REGION).forEach(([zoneId, regionIds]) => {
@@ -174,6 +212,8 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
           `#${regionId}`
         ) as SVGPathElement | null;
         if (!regionPath) return;
+
+        ensureInitialAttributes(regionPath);
 
         if (!defaultRegionStylesRef.current[regionId]) {
           const capturedFill =
