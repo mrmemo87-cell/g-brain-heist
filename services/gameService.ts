@@ -1207,6 +1207,11 @@ export const whoami = async (): Promise<Profile> => {
 
     applyClanBuffsToProfile(profile, []);
 
+    let resolvedClanId: string | null = profile.clan_id ?? null;
+    let resolvedClanRole: ClanRole | undefined = profile.clan_role;
+    let resolvedCustomTitle: string | null = profile.clan_custom_title ?? null;
+    let resolvedClanName: string | null = profile.clan_name ?? null;
+
     const { data: membership, error: membershipError } = await supabase
         .from('clan_members')
         .select('clan_id, role, custom_title, clans!inner(name)')
@@ -1218,17 +1223,37 @@ export const whoami = async (): Promise<Profile> => {
     }
 
     if (membership) {
-        profile.clan_id = membership.clan_id;
-        profile.clan_role = membership.role as ClanRole;
-        profile.clan_custom_title = membership.custom_title;
+        resolvedClanId = membership.clan_id;
+        resolvedClanRole = membership.role as ClanRole;
+        resolvedCustomTitle = membership.custom_title;
         const clanRecord = Array.isArray(membership.clans) ? membership.clans[0] : membership.clans;
-        profile.clan_name = clanRecord?.name ?? null;
+        resolvedClanName = clanRecord?.name ?? null;
+    }
+
+    if (resolvedClanId) {
+        if (!resolvedClanName) {
+            const { data: clanRow, error: clanError } = await supabase
+                .from('clans')
+                .select('name')
+                .eq('id', resolvedClanId)
+                .maybeSingle();
+
+            if (clanError && clanError.code !== 'PGRST116') {
+                console.warn('Failed to load clan name from clans table:', clanError.message);
+            }
+
+            resolvedClanName = clanRow?.name ?? resolvedClanName;
+        }
 
         const [clanScore, activeBuffs] = await Promise.all([
-            fetchClanScoreValue(membership.clan_id),
-            fetchClanActiveBuffs(membership.clan_id),
+            fetchClanScoreValue(resolvedClanId),
+            fetchClanActiveBuffs(resolvedClanId),
         ]);
 
+        profile.clan_id = resolvedClanId;
+        profile.clan_role = resolvedClanRole;
+        profile.clan_custom_title = resolvedCustomTitle;
+        profile.clan_name = resolvedClanName;
         profile.clan_total_score = clanScore;
         applyClanBuffsToProfile(profile, activeBuffs);
     } else {
