@@ -3,7 +3,16 @@ import { InventoryItem, Profile, ToastMessage } from '../types';
 import * as GameService from '../services/gameService';
 import { audioService } from '../services/audioService';
 import BackButton from './BackButton';
-import { ShieldIcon, CrackerIcon, BoosterIcon, InventoryIcon } from './icons';
+import {
+  BoosterIcon,
+  EncryptionKeyIcon,
+  ExploitIcon,
+  InventoryIcon,
+  MysteryIcon,
+  ShieldIcon,
+  CrackerIcon,
+  CosmeticIcon,
+} from './icons';
 
 interface InventoryViewProps {
   onComplete: () => void;
@@ -13,14 +22,27 @@ interface InventoryViewProps {
 }
 
 const getItemIcon = (kind: InventoryItem['kind']) => {
-    const style = { width: '100%', height: '100%'};
-    switch (kind) {
-        case 'shield': return <div style={{...style, color: 'var(--ion-blue)'}}><ShieldIcon /></div>;
-        case 'cracker': return <div style={{...style, color: 'var(--danger-red)'}}><CrackerIcon /></div>;
-        case 'booster':
-        case 'major_booster': return <div style={{...style, color: 'var(--amber-warn)'}}><BoosterIcon /></div>;
-        default: return <div style={{...style, color: 'var(--mist-400)'}}><InventoryIcon /></div>;
-    }
+  const style = { width: '100%', height: '100%' };
+  switch (kind) {
+    case 'shield':
+    case 'firewall':
+      return <div style={{ ...style, color: 'var(--ion-blue)' }}><ShieldIcon /></div>;
+    case 'encryption_key':
+      return <div style={{ ...style, color: 'var(--success-teal)' }}><EncryptionKeyIcon /></div>;
+    case 'exploit_kit':
+      return <div style={{ ...style, color: 'var(--danger-red)' }}><ExploitIcon /></div>;
+    case 'cracker':
+      return <div style={{ ...style, color: 'var(--danger-red)' }}><CrackerIcon /></div>;
+    case 'booster':
+    case 'major_booster':
+      return <div style={{ ...style, color: 'var(--amber-warn)' }}><BoosterIcon /></div>;
+    case 'cosmetic':
+      return <div style={{ ...style, color: 'var(--grid-purple)' }}><CosmeticIcon /></div>;
+    case 'mystery':
+      return <div style={{ ...style, color: 'var(--mist-400)' }}><MysteryIcon /></div>;
+    default:
+      return <div style={{ ...style, color: 'var(--mist-400)' }}><InventoryIcon /></div>;
+  }
 };
 
 const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: string) => void, isActivating: boolean, quantity: number, onDeactivateNeon?: () => void, isDeactivatingNeon?: boolean, onDeactivateFlicker?: () => void, isDeactivatingFlicker?: boolean }> = ({ item, onActivate, isActivating, quantity, onDeactivateNeon, isDeactivatingNeon, onDeactivateFlicker, isDeactivatingFlicker }) => {
@@ -47,31 +69,48 @@ const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: strin
 
   const invId = (item.inv_id || item.id);
   return (
-        <div className={`card-glass p-4 flex flex-col text-center relative glow-purple`} style={{borderColor: 'rgba(158, 93, 255, 0.2)'}}>
-            <div className={`absolute top-2 right-2 px-2 py-1 text-xs font-mono rounded-full border ${statePillClasses[item.state]} capitalize`}>
-                {item.state}
-            </div>
-            {quantity > 1 && (
-                <div className="absolute top-2 left-2 px-2 py-1 text-xs font-mono rounded-full border bg-purple-500/30 text-purple-200 border-purple-400">
-                    x{quantity}
-                </div>
-            )}
-            <div className="w-16 h-16 mx-auto my-2 p-2 bg-black/30 rounded-full">{getItemIcon(item.kind)}</div>
-            <h3 className="font-heading text-lg text-white">{item.name}</h3>
-            <p className="text-sm text-gray-400 flex-grow mt-1">{item.description}</p>
-            <p className="text-xs text-gray-500 mt-2">{item.effect_summary}</p>
-            
-            <div className="mt-4 flex flex-col gap-3">
-         {isUsable ? (
-           <button 
+    <div
+      className={`card-glass relative flex flex-col gap-3 p-4 sm:p-5 text-left glow-purple`}
+      style={{ borderColor: 'rgba(158, 93, 255, 0.2)' }}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div
+          className={`px-3 py-1 text-xs font-mono rounded-full border ${statePillClasses[item.state]} capitalize`}
+        >
+          {item.state}
+        </div>
+        {quantity > 1 && (
+          <div className="px-3 py-1 text-xs font-mono rounded-full border bg-purple-500/30 text-purple-200 border-purple-400">
+            x{quantity}
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center gap-3">
+        <div className="w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center rounded-xl bg-black/30 border border-white/5">
+          {getItemIcon(item.kind)}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-heading text-lg text-white truncate">{item.name}</h3>
+          <p className="text-sm text-gray-400 line-clamp-2">{item.description}</p>
+        </div>
+      </div>
+
+      <p className="text-xs text-gray-500 leading-relaxed bg-black/20 border border-white/5 rounded-lg p-2">
+        {item.effect_summary}
+      </p>
+
+      <div className="flex flex-col gap-3">
+        {isUsable ? (
+          <button
             onClick={() => onActivate(invId)}
             disabled={isActivating}
             className="w-full font-heading font-bold py-2.5 rounded-xl transition-all duration-200 border bg-purple-500/20 hover:bg-purple-500/30 border-purple-400 text-white disabled:opacity-50"
           >
             {isActivating ? 'Activating...' : 'Activate'}
           </button>
-         ) : (
-                     <p className="text-xs text-gray-500 italic text-center">
+        ) : (
+          <div className="text-xs text-gray-400 bg-black/10 border border-white/5 rounded-lg p-2 leading-relaxed">
             {(() => {
               if (item.state === 'active') {
                 if (item.kind === 'shield') {
@@ -95,8 +134,8 @@ const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: strin
 
               return 'Cannot be activated';
             })()}
-                    </p>
-                 )}
+          </div>
+        )}
 
         {isActiveNeonFrame && onDeactivateNeon && (
           <div className="rounded-2xl border border-amber-500/60 bg-amber-500/10 p-3 text-left text-xs text-amber-100">

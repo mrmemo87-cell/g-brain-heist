@@ -3,7 +3,18 @@ import { ShopItem, Profile, ToastMessage } from '../types';
 import * as GameService from '../services/gameService';
 import { audioService } from '../services/audioService';
 import BackButton from './BackButton';
-import { ShieldIcon, CrackerIcon, BoosterIcon, CoinIcon, CosmeticIcon, GemIcon } from './icons';
+import {
+  BoosterIcon,
+  CoinIcon,
+  CosmeticIcon,
+  CrackerIcon,
+  EncryptionKeyIcon,
+  ExploitIcon,
+  FirewallIcon,
+  GemIcon,
+  MysteryIcon,
+  ShieldIcon,
+} from './icons';
 import ModalPortal from './ModalPortal';
 
 type ShopStage = 'loading' | 'idle' | 'purchasing';
@@ -17,15 +28,27 @@ interface ShopViewProps {
 }
 
 const getItemIcon = (kind: ShopItem['kind']) => {
-    const style = { width: '100%', height: '100%'};
-    switch (kind) {
-        case 'shield': return <div style={{...style, color: 'var(--ion-blue)'}}><ShieldIcon /></div>;
-        case 'cracker': return <div style={{...style, color: 'var(--danger-red)'}}><CrackerIcon /></div>;
-        case 'booster':
-        case 'major_booster': return <div style={{...style, color: 'var(--amber-warn)'}}><BoosterIcon /></div>;
-        case 'cosmetic': return <div style={{...style, color: 'var(--grid-purple)'}}><CosmeticIcon /></div>;
-        default: return null;
-    }
+  const style = { width: '100%', height: '100%' };
+  switch (kind) {
+    case 'shield':
+    case 'firewall':
+      return <div style={{ ...style, color: 'var(--ion-blue)' }}><ShieldIcon /></div>;
+    case 'encryption_key':
+      return <div style={{ ...style, color: 'var(--success-teal)' }}><EncryptionKeyIcon /></div>;
+    case 'exploit_kit':
+      return <div style={{ ...style, color: 'var(--danger-red)' }}><ExploitIcon /></div>;
+    case 'cracker':
+      return <div style={{ ...style, color: 'var(--danger-red)' }}><CrackerIcon /></div>;
+    case 'booster':
+    case 'major_booster':
+      return <div style={{ ...style, color: 'var(--amber-warn)' }}><BoosterIcon /></div>;
+    case 'cosmetic':
+      return <div style={{ ...style, color: 'var(--grid-purple)' }}><CosmeticIcon /></div>;
+    case 'mystery':
+      return <div style={{ ...style, color: 'var(--mist-400)' }}><MysteryIcon /></div>;
+    default:
+      return <div style={{ ...style, color: 'var(--ion-blue)' }}><FirewallIcon /></div>;
+  }
 };
 
 const rarityStyles: Record<ShopItem['rarity'], { label: string; border: string; badge: string }> = {
@@ -77,53 +100,70 @@ const ItemCard: React.FC<{
     const rarity = rarityStyles[item.rarity];
 
     return (
-        <div className={`card-glass p-4 flex flex-col text-center relative ${currentStyle.glow}`} style={{ borderColor: rarity?.border || currentStyle.border }}>
-            {rarity && (
-                <div className={`absolute top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide ${rarity.badge}`}>
-                    {rarity.label}
-                </div>
-            )}
-            <div className="w-16 h-16 mx-auto my-2 p-2 bg-black/30 rounded-full">{getItemIcon(item.kind)}</div>
-            <h3 className="font-heading text-lg text-white mt-4">{item.name}</h3>
-            <p className="text-sm text-gray-400 flex-grow mt-1">{item.description}</p>
-            <p className="text-xs text-gray-500 mt-2">{item.effect_summary}</p>
-
-            <div className="my-4">
-                <div className="flex items-center justify-center gap-2">
-                    <div className="inline-flex items-center justify-center bg-black/30 px-4 py-2 rounded-full">
-                        <span className="font-heading text-2xl text-amber-300">{item.price}</span>
-                        <div className="w-6 h-6 ml-2 text-amber-400"><CoinIcon /></div>
-                    </div>
-                    {item.gemstone_price ? (
-                        <div className="inline-flex items-center justify-center bg-black/30 px-4 py-2 rounded-full border border-cyan-500/40">
-                            <span className="font-heading text-xl text-cyan-200">{item.gemstone_price}</span>
-                            <div className="w-5 h-5 ml-2 text-cyan-300"><GemIcon /></div>
-                        </div>
-                    ) : null}
-                </div>
+      <div
+        className={`card-glass relative flex flex-col gap-3 p-4 sm:p-5 text-left ${currentStyle.glow}`}
+        style={{ borderColor: rarity?.border || currentStyle.border }}
+      >
+        <div className="flex items-start justify-between gap-2">
+          {rarity && (
+            <div className={`px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide ${rarity.badge}`}>
+              {rarity.label}
             </div>
-
-            <button
-                onClick={() => onBuy(item)}
-                disabled={buttonDisabled}
-                className={`w-full font-heading font-bold py-2.5 rounded-xl transition-all duration-200 border ${
-                    buttonDisabled
-                        ? 'bg-gray-700/50 border-gray-600 text-gray-500 cursor-not-allowed'
-                        : 'bg-green-500/20 hover:bg-green-500/30 border-green-400 text-white'
-                }`}
-            >
-                {buttonLabel}
-            </button>
-            {!limitReached && shortageMessage && (
-                <p className="mt-2 text-xs text-red-400 font-mono">{shortageMessage}</p>
-            )}
-            {limitReached && (
-                <p className="mt-2 text-xs text-amber-300 font-mono">Restock after daily reset</p>
-            )}
-            {!limitReached && remainingToday < item.daily_limit && (
-                <p className="mt-2 text-[10px] text-gray-400 font-mono">Remaining today: {remainingToday}</p>
-            )}
+          )}
+          <div className="px-3 py-1 rounded-full bg-black/30 text-[11px] text-gray-300 border border-white/10 font-mono">
+            {remainingToday} left today
+          </div>
         </div>
+
+        <div className="flex items-center gap-3">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center rounded-xl bg-black/30 border border-white/5">
+            {getItemIcon(item.kind)}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-heading text-lg text-white truncate">{item.name}</h3>
+            <p className="text-sm text-gray-400 line-clamp-2">{item.description}</p>
+          </div>
+        </div>
+
+        <p className="text-xs text-gray-500 leading-relaxed bg-black/20 border border-white/5 rounded-lg p-2">
+          {item.effect_summary}
+        </p>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="inline-flex items-center justify-between bg-black/30 px-3 py-2 rounded-lg border border-amber-500/30">
+            <span className="font-heading text-lg text-amber-300">{item.price}</span>
+            <div className="w-5 h-5 text-amber-400"><CoinIcon /></div>
+          </div>
+          {item.gemstone_price ? (
+            <div className="inline-flex items-center justify-between bg-black/30 px-3 py-2 rounded-lg border border-cyan-500/40">
+              <span className="font-heading text-lg text-cyan-200">{item.gemstone_price}</span>
+              <div className="w-5 h-5 text-cyan-300"><GemIcon /></div>
+            </div>
+          ) : (
+            <div className="inline-flex items-center justify-center px-3 py-2 rounded-lg text-xs text-gray-500 bg-black/20 border border-white/5">
+              Coins only
+            </div>
+          )}
+        </div>
+
+        <button
+          onClick={() => onBuy(item)}
+          disabled={buttonDisabled}
+          className={`w-full font-heading font-bold py-2.5 rounded-xl transition-all duration-200 border ${
+            buttonDisabled
+              ? 'bg-gray-700/50 border-gray-600 text-gray-500 cursor-not-allowed'
+              : 'bg-green-500/20 hover:bg-green-500/30 border-green-400 text-white'
+          }`}
+        >
+          {buttonLabel}
+        </button>
+        {!limitReached && shortageMessage && (
+          <p className="text-xs text-red-400 font-mono">{shortageMessage}</p>
+        )}
+        {limitReached && (
+          <p className="text-xs text-amber-300 font-mono">Restock after daily reset</p>
+        )}
+      </div>
     );
 };
 

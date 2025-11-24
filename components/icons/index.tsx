@@ -82,6 +82,34 @@ export const BoosterIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
     </svg>
 );
 
+export const FirewallIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 4.5h15v6h-15z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5h15v6h-15z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 16.5h15V19.5H4.5z" />
+    </svg>
+);
+
+export const EncryptionKeyIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25A3.75 3.75 0 0 1 9 7.46v.79l-4.5 4.5L7.25 15l1-1L9.5 15l1.5-1.5 1.5 1.5L15 13.5l-1.5-1.5 1.56-1.56a3.75 3.75 0 0 0 .69-2.19Z" />
+    </svg>
+);
+
+export const ExploitIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 3.75 16.5 16.5M7.5 6.75l1.5 4.5 4.5 1.5 3-3m-3 9-1.5-4.5-4.5-1.5-3 3" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 3.75 12 6 8.25 3.75M12 6v3" />
+    </svg>
+);
+
+export const MysteryIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 7.5 12 3l7.5 4.5V16.5L12 21l-7.5-4.5z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75A2.25 2.25 0 0 1 14.25 9.75C14.25 11.25 12 12 12 13.5m0 2.25h.008v.008H12z" />
+    </svg>
+);
+
 export const CrackerIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M5.834 5.834 4.242 4.242M12 21.75V19.5m-5.834-.166 1.591-1.591M3.75 10.5H6M16.166 20.166l-1.591-1.591" />
