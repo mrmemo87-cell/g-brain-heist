@@ -2787,28 +2787,43 @@ export const clan_reject_join_request = async (requestId: string): Promise<boole
 
 export const clan_details = async (): Promise<Clan | null> => {
     const user = await getCurrentUser();
-    
+
     const { data: membership, error: membershipError } = await supabase
         .from('clan_members')
         .select('clan_id')
         .eq('user_id', user.id)
         .maybeSingle();
-    
+
+    let clanId: string | null = membership?.clan_id ?? null;
+
     if (membershipError && membershipError.code !== 'PGRST116') {
-        console.error('Failed to resolve clan membership:', membershipError);
-        throw membershipError;
+        console.error('Failed to resolve clan membership via clan_members:', membershipError);
     }
 
-    if (!membership) {
+    if (!clanId) {
+        const { data: profileRow, error: profileError } = await supabase
+            .from('users')
+            .select('clan_id')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        if (profileError && profileError.code !== 'PGRST116') {
+            console.error('Failed to resolve clan via users table:', profileError);
+        }
+
+        clanId = profileRow?.clan_id ?? null;
+    }
+
+    if (!clanId) {
         return mockApiCall(null);
     }
-    
+
     const { data: clan, error } = await supabase
         .from('clans')
         .select('*')
-        .eq('id', membership.clan_id)
+        .eq('id', clanId)
         .single();
-    
+
     if (error || !clan) {
         return mockApiCall(null);
     }
