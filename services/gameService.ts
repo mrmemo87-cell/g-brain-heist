@@ -2854,6 +2854,15 @@ export const clan_details = async (): Promise<Clan | null> => {
             console.error('Failed to resolve clan via users table:', profileError);
         }
 
+        // If both membershipError and profileError are real errors, throw
+        if (
+            membershipError && membershipError.code !== 'PGRST116' &&
+            profileError && profileError.code !== 'PGRST116'
+        ) {
+            throw new Error(
+                `Failed to resolve clan membership: clan_members error: ${JSON.stringify(membershipError)}, users error: ${JSON.stringify(profileError)}`
+            );
+        }
         clanId = profileRow?.clan_id ?? null;
     }
 
