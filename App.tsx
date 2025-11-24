@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { Suspense, useState, useEffect, useRef, useMemo } from 'react';
 import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage, Announcement, Grade, Batch, StudentAssignmentTask } from './types';
 import * as GameService from './services/gameService';
 import { supabase } from './services/supabaseClient';
@@ -10,37 +10,38 @@ import TaskList from './components/TaskList';
 import CapTracker from './components/CapTracker';
 import MainActions from './components/MainActions';
 import NewsFeed from './components/NewsFeed';
-import QuestView from './components/QuestView';
-import PvPView from './components/PvPView';
-import ShopView from './components/ShopView';
 import Toast from './components/Toast';
-import ClanView from './components/ClanView';
-import InventoryView from './components/InventoryView';
 import LevelUpModal from './components/LevelUpModal';
-import LeaderboardView from './components/LeaderboardView';
-import AchievementView from './components/AchievementView';
 import TutorialModal from './components/TutorialModal';
-import TeacherPortal from './components/TeacherPortal';
-import AdminPortal from './components/AdminPortal';
-import TournamentHub from './components/TournamentHub';
-import TournamentAdminDashboard from './components/TournamentAdminDashboard';
 import HelpModal from './components/HelpModal';
 import { ToastContainer } from './components/ToastNotification';
 import { isAdmin } from './services/adminService';
 import { audioService } from './services/audioService';
 import { aiHostService } from './services/aiHostService';
 import CinematicEffects from './components/CinematicEffects';
-import Phase1PlayView from './components/phase1/Phase1PlayView';
-import Phase1LeaderboardView from './components/phase1/Phase1LeaderboardView';
-import Phase1AdminDashboard from './components/phase1/Phase1AdminDashboard';
-import AnnouncementBanner from './components/phase1/AnnouncementBanner';
 import { fetchNextAnnouncement, markAnnouncementSeen } from './services/competitionService';
 import { notificationService } from './services/notificationService';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './services/banMessage';
-import RaidView from './src/features/raids/RaidView';
-import RaidAdminView from './src/features/raids/RaidAdminView';
-import IeltsHome from './src/pages/ielts/IeltsHome';
-import { ClanTerritoryManager } from './src/features/clanTerritory/ClanTerritoryManager';
+
+const QuestView = React.lazy(() => import('./components/QuestView'));
+const PvPView = React.lazy(() => import('./components/PvPView'));
+const ShopView = React.lazy(() => import('./components/ShopView'));
+const ClanView = React.lazy(() => import('./components/ClanView'));
+const InventoryView = React.lazy(() => import('./components/InventoryView'));
+const LeaderboardView = React.lazy(() => import('./components/LeaderboardView'));
+const AchievementView = React.lazy(() => import('./components/AchievementView'));
+const TeacherPortal = React.lazy(() => import('./components/TeacherPortal'));
+const AdminPortal = React.lazy(() => import('./components/AdminPortal'));
+const TournamentHub = React.lazy(() => import('./components/TournamentHub'));
+const TournamentAdminDashboard = React.lazy(() => import('./components/TournamentAdminDashboard'));
+const Phase1PlayView = React.lazy(() => import('./components/phase1/Phase1PlayView'));
+const Phase1LeaderboardView = React.lazy(() => import('./components/phase1/Phase1LeaderboardView'));
+const Phase1AdminDashboard = React.lazy(() => import('./components/phase1/Phase1AdminDashboard'));
+const AnnouncementBanner = React.lazy(() => import('./components/phase1/AnnouncementBanner'));
+const RaidView = React.lazy(() => import('./src/features/raids/RaidView'));
+const RaidAdminView = React.lazy(() => import('./src/features/raids/RaidAdminView'));
+const IeltsHome = React.lazy(() => import('./src/pages/ielts/IeltsHome'));
+const ClanTerritoryManager = React.lazy(() => import('./src/features/clanTerritory/ClanTerritoryManager').then(module => ({ default: module.ClanTerritoryManager })));
 
 const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
   8: ['8A', '8B', '8C', 'N/A'],
@@ -83,6 +84,18 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const lastRewardedLevelRef = useRef<number | null>(null);
   const { isLightMode: isLiteMode, toggleLightMode } = useLightMode();
   const [pendingClanRequests, setPendingClanRequests] = useState(0);
+
+  const renderLazy = (node: React.ReactNode) => (
+    <Suspense
+      fallback={(
+        <div className="p-8 text-center text-gray-300">
+          Loading view...
+        </div>
+      )}
+    >
+      {node}
+    </Suspense>
+  );
   const academicClassOptions = useMemo(() => {
     if (pendingGrade === null) {
       return [DEFAULT_BATCH];
@@ -781,7 +794,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const renderView = () => {
     switch(view) {
         case 'quest':
-            return (
+            return renderLazy(
               <QuestView
                 onComplete={handleViewComplete}
                 onGrantReward={handleGrantReward}
@@ -790,31 +803,54 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               />
             );
         case 'pvp':
-            return <PvPView onComplete={handleViewComplete} onGrantReward={handleGrantReward} profile={profile} />;
+            return renderLazy(<PvPView onComplete={handleViewComplete} onGrantReward={handleGrantReward} profile={profile} />);
         case 'shop':
-            return <ShopView onComplete={handleViewComplete} onPurchase={handleGrantReward} profile={profile} addToast={addToast} onNavigateToInventory={() => setView('inventory')} />;
+            return renderLazy(
+              <ShopView
+                onComplete={handleViewComplete}
+                onPurchase={handleGrantReward}
+                profile={profile}
+                addToast={addToast}
+                onNavigateToInventory={() => setView('inventory')}
+              />
+            );
         case 'clan':
-            return <ClanView onComplete={handleViewComplete} profile={profile} onUpdateProfile={setProfile} addToast={addToast} onPendingCountChange={setPendingClanRequests} />;
+            return renderLazy(
+              <ClanView
+                onComplete={handleViewComplete}
+                profile={profile}
+                onUpdateProfile={setProfile}
+                addToast={addToast}
+                onPendingCountChange={setPendingClanRequests}
+              />
+            );
         case 'inventory':
-            return <InventoryView onComplete={handleViewComplete} addToast={addToast} onNavigateToShop={() => setView('shop')} onProfileUpdate={setProfile} />;
+            return renderLazy(
+              <InventoryView
+                onComplete={handleViewComplete}
+                addToast={addToast}
+                onNavigateToShop={() => setView('shop')}
+                onProfileUpdate={setProfile}
+              />
+            );
         case 'leaderboard':
-            return <LeaderboardView onComplete={handleViewComplete} currentUserId={profile.id} />;
+            return renderLazy(<LeaderboardView onComplete={handleViewComplete} currentUserId={profile.id} />);
         case 'achievements':
-            return <AchievementView onComplete={handleViewComplete} addToast={addToast} />;
+            return renderLazy(<AchievementView onComplete={handleViewComplete} addToast={addToast} />);
         case 'raids':
-            return <RaidView profile={profile} onComplete={handleViewComplete} addToast={addToast} />;
+            return renderLazy(<RaidView profile={profile} onComplete={handleViewComplete} addToast={addToast} />);
         case 'raid_admin':
-            return <RaidAdminView profile={profile} onComplete={handleViewComplete} addToast={addToast} />;
+            return renderLazy(<RaidAdminView profile={profile} onComplete={handleViewComplete} addToast={addToast} />);
         case 'teacher':
-            return <TeacherPortal profile={profile} onComplete={handleViewComplete} />;
+            return renderLazy(<TeacherPortal profile={profile} onComplete={handleViewComplete} />);
         case 'admin':
-            return <AdminPortal profile={profile} onComplete={handleViewComplete} addToast={addToast} />;
+            return renderLazy(<AdminPortal profile={profile} onComplete={handleViewComplete} addToast={addToast} />);
         case 'tournament':
-            return <TournamentHub profile={profile} onClose={handleViewComplete} addToast={addToast} />;
+            return renderLazy(<TournamentHub profile={profile} onClose={handleViewComplete} addToast={addToast} />);
         case 'tournament_admin':
-            return <TournamentAdminDashboard profile={profile} onClose={handleViewComplete} addToast={addToast} />;
+            return renderLazy(<TournamentAdminDashboard profile={profile} onClose={handleViewComplete} addToast={addToast} />);
         case 'phase1_play':
-            return (
+            return renderLazy(
               <Phase1PlayView
                 profile={profile}
                 onExit={() => setView('dashboard')}
@@ -823,7 +859,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               />
             );
         case 'phase1_leaderboard':
-            return (
+            return renderLazy(
               <Phase1LeaderboardView
                 profile={profile}
                 onExit={() => setView('dashboard')}
@@ -831,7 +867,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               />
             );
         case 'phase1_admin':
-            return (
+            return renderLazy(
               <Phase1AdminDashboard
                 profile={profile}
                 onExit={() => setView('dashboard')}
@@ -839,23 +875,23 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               />
             );
         case 'ielts':
-            return (
-                <div className="relative">
-                    <button
-                        onClick={() => setView('dashboard')}
-                        className="mb-4 px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors flex items-center gap-2"
-                    >
-                        ← Back to Dashboard
-                    </button>
-                    <IeltsHome />
-                </div>
+            return renderLazy(
+              <div className="relative">
+                  <button
+                      onClick={() => setView('dashboard')}
+                      className="mb-4 px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors flex items-center gap-2"
+                  >
+                      ← Back to Dashboard
+                  </button>
+                  <IeltsHome />
+              </div>
             );
         case 'lockdown':
-          return (
-            <ClanTerritoryManager 
-              onExit={() => setView('dashboard')} 
-              isTeacher={profile?.role === 'teacher'} 
-              playerName={profile?.username || 'Agent'} 
+          return renderLazy(
+            <ClanTerritoryManager
+              onExit={() => setView('dashboard')}
+              isTeacher={profile?.role === 'teacher'}
+              playerName={profile?.username || 'Agent'}
               clanId={profile?.clan_id}
               clanName={profile?.clan_name}
             />
@@ -1080,10 +1116,12 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         )}
 
         {activeAnnouncement && (
-          <AnnouncementBanner
-            announcement={activeAnnouncement}
-            onDismiss={handleDismissAnnouncement}
-          />
+          <Suspense fallback={null}>
+            <AnnouncementBanner
+              announcement={activeAnnouncement}
+              onDismiss={handleDismissAnnouncement}
+            />
+          </Suspense>
         )}
 
         <div className={cinematicViewClass}>
