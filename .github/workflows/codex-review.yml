@@ -1,0 +1,35 @@
+name: Codex PR review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: codex-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    if: github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+          fetch-depth: 0
+      - name: Run Codex
+        id: codex
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt: |
+            Review ONLY the diff of this PR.
+            Flag correctness, security, performance, and test coverage gaps.
+            For each issue: include severity (High/Medium/Low), the changed file:line, why it matters, and a precise fix.
+            Prefer concrete code suggestions; avoid subjective style nits.
+            Propose focused tests to cover the change and regressions.
+

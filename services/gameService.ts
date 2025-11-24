@@ -3742,7 +3742,7 @@ export const get_teacher_profile = async (): Promise<Teacher | null> => {
         throw error;
     }
 
-    return data;
+    return data as Teacher;
 };
 
 /**
@@ -3944,7 +3944,7 @@ export const create_quest_template = async (
 
     if (error) throw error;
 
-    return data;
+    return data as QuestTemplate;
 };
 
 /**

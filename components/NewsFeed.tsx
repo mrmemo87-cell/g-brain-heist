@@ -13,6 +13,7 @@ const getEventIconAndColor = (kind: NewsEvent['kind']) => {
   case 'quest_cleared': return { icon: <div style={{...iconStyle, color: 'var(--ion-blue)'}}><QuestClearedIcon /></div>, color: 'var(--ion-blue)' };
   case 'clan_create': return { icon: <div style={{...iconStyle, color: 'var(--ion-blue)'}}><QuestClearedIcon /></div>, color: 'var(--ion-blue)' };
         case 'purchase': return { icon: <div style={{...iconStyle, color: 'var(--success-teal)'}}><PurchaseIcon /></div>, color: 'var(--success-teal)' };
+        case 'ai_host': return { icon: <div style={{...iconStyle}}><span role="img" aria-label="AI Host">🤖</span></div>, color: 'var(--plasma-pink)' };
         default: return { icon: null, color: 'var(--mist-400)'};
     }
 };
@@ -45,6 +46,9 @@ const formatEventText = (event: NewsEvent) => {
         case 'weekly_claim':
             return <><span style={{...actorStyle, color: 'var(--amber-warn)'}}>{event.actor}</span> claimed weekly rewards! 💰</>;
         
+        case 'ai_host':
+            return <><span style={{...actorStyle, color: 'var(--plasma-pink)'}}>{event.actor}</span> says: <span className="font-bold">{event.data.details || 'Stay tuned for the next highlight!'}</span></>;
+
         default:
             return <><span style={actorStyle}>{event.actor}</span> is up to something... 🤔</>;
     }
