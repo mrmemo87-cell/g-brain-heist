@@ -107,7 +107,6 @@ SELECT
 FROM users
 WHERE is_banned = FALSE
     AND COALESCE(is_admin, FALSE) = FALSE
-    AND COALESCE(role, 'student') = 'student'
 ORDER BY total_score DESC;
 
 -- STEP 5B: Member score helper view
@@ -128,8 +127,7 @@ SELECT
 FROM clan_members cm
 JOIN users u ON u.id = cm.user_id
 WHERE u.is_banned = FALSE
-    AND COALESCE(u.is_admin, FALSE) = FALSE
-    AND COALESCE(u.role, 'student') = 'student';
+    AND COALESCE(u.is_admin, FALSE) = FALSE;
 
 -- STEP 6: Create view for clan scores (max 5 members)
 CREATE OR REPLACE VIEW clan_scores AS
