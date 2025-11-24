@@ -1230,24 +1230,6 @@ export const whoami = async (): Promise<Profile> => {
         resolvedClanName = clanRecord?.name ?? null;
     }
 
-    if (!resolvedClanId) {
-        const { data: ownedClan, error: ownerClanError } = await supabase
-            .from('clans')
-            .select('id, name')
-            .eq('created_by', profile.id)
-            .maybeSingle();
-
-        if (ownerClanError && ownerClanError.code !== 'PGRST116') {
-            console.warn('Failed to fetch clan created by leader:', ownerClanError.message);
-        }
-
-        if (ownedClan) {
-            resolvedClanId = ownedClan.id;
-            resolvedClanRole = 'leader';
-            resolvedClanName = ownedClan.name;
-        }
-    }
-
     if (resolvedClanId) {
         if (!resolvedClanName) {
             const { data: clanRow, error: clanError } = await supabase
@@ -2854,15 +2836,6 @@ export const clan_details = async (): Promise<Clan | null> => {
             console.error('Failed to resolve clan via users table:', profileError);
         }
 
-        // If both membershipError and profileError are real errors, throw
-        if (
-            membershipError && membershipError.code !== 'PGRST116' &&
-            profileError && profileError.code !== 'PGRST116'
-        ) {
-            throw new Error(
-                `Failed to resolve clan membership: clan_members error: ${JSON.stringify(membershipError)}, users error: ${JSON.stringify(profileError)}`
-            );
-        }
         clanId = profileRow?.clan_id ?? null;
     }
 
