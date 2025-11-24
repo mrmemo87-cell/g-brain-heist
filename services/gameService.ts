@@ -2813,6 +2813,7 @@ export const clan_details = async (): Promise<Clan | null> => {
         return mockApiCall(null);
     }
     
+    let memberRows: any[] = [];
     const { data: membersData, error: membersError } = await supabase
         .from('clan_member_scores')
         .select('*')
@@ -2820,24 +2821,48 @@ export const clan_details = async (): Promise<Clan | null> => {
         .order('total_score', { ascending: false });
 
     if (membersError) {
-        console.error('Failed to fetch clan members:', membersError);
-        throw membersError;
+        console.error('Failed to fetch clan members from scores view, attempting fallback:', membersError);
+        const { data: fallbackMembers, error: fallbackError } = await supabase
+            .from('clan_members')
+            .select('user_id, role, joined_at, users(username, avatar_url, xp, pvp_score)')
+            .eq('clan_id', clan.id)
+            .order('joined_at', { ascending: true });
+
+        if (fallbackError) {
+            console.error('Fallback clan member fetch also failed:', fallbackError);
+            throw fallbackError;
+        }
+
+        memberRows = (fallbackMembers || []).map((member: any) => ({
+            user_id: member.user_id,
+            username: member.users?.username ?? 'Unknown Agent',
+            role: member.role,
+            contribution: 0,
+            avatar_url: member.users?.avatar_url,
+            custom_title: null,
+            bio: null,
+            total_score: calculateTotalScore(member.users?.xp ?? 0, member.users?.pvp_score ?? 0),
+            xp: member.users?.xp ?? 0,
+            pvp_score: member.users?.pvp_score ?? 0,
+        }));
+    } else {
+        memberRows = membersData || [];
     }
 
-    const neonOwners = await fetchNeonFrameOwners((membersData || []).map((m: any) => m.user_id));
-    const flickerOwners = await fetchFlickerThemeOwners((membersData || []).map((m: any) => m.user_id));
+    const neonOwners = await fetchNeonFrameOwners(memberRows.map((m: any) => m.user_id));
+    const flickerOwners = await fetchFlickerThemeOwners(memberRows.map((m: any) => m.user_id));
 
-    const members = (membersData || []).map((m: any) => ({
+    const members = memberRows.map((m: any) => ({
         user_id: m.user_id,
         username: m.username,
         role: m.role,
-        contribution: m.total_score || 0,
+        contribution: m.total_score || m.contribution || calculateTotalScore(m.xp ?? 0, m.pvp_score ?? 0),
         avatar_url: m.avatar_url,
         active_cosmetic_frame: neonOwners.has(m.user_id) ? 'neon' : null,
         active_cosmetic_theme: flickerOwners.has(m.user_id) ? 'flicker' : null,
         custom_title: m.custom_title,
         bio: m.bio,
-        total_score: m.total_score,
+        total_score: m.total_score ?? calculateTotalScore(m.xp ?? 0, m.pvp_score ?? 0),
         xp: m.xp,
         pvp_score: m.pvp_score,
     })) as ClanMember[];
