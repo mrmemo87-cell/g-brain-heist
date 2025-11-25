@@ -1,5 +1,5 @@
 import React from 'react';
-import { BattleIcon, TrophyIcon, TeamIcon } from './icons';
+import { BattleIcon, TrophyIcon, SyndicateRune } from './icons';
 
 const silkRoadLogoPath = '/schools/silk_road/silk_road_logo.jpg';
 
@@ -260,7 +260,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             )}
             <ActionButton
               onClick={onGoToClan}
-              icon={<TeamIcon className="w-8 h-8" aria-hidden />}
+              icon={<SyndicateRune className="w-8 h-8" aria-hidden />}
               label="Clan"
               color="255, 176, 32"
               glowClass="glow-warn"
