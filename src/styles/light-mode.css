@@ -13,8 +13,8 @@ body.light-mode .lite-mode-wrapper {
 
 /* Global light mode overrides */
 body.light-mode {
-  background: #f8fafc !important;
-  color: #0f172a !important;
+  background: #0b1224 !important;
+  color: #f8fafc !important;
   /* Disable all transitions and animations globally */
   *, *::before, *::after {
     transition: none !important;
@@ -26,10 +26,11 @@ body.light-mode {
 body.light-mode .card-glass,
 body.light-mode [class*="glass"],
 body.light-mode [class*="backdrop"] {
-  background: #1a1a1a !important;
+  background: #111827 !important;
+  color: #f8fafc !important;
   backdrop-filter: none !important;
   box-shadow: none !important;
-  border: 1px solid #333 !important;
+  border: 1px solid #1f2937 !important;
 }
 
 /* Remove all hover effects */
@@ -43,19 +44,21 @@ body.light-mode [class*="hover"]:hover {
 
 /* Simplify buttons */
 body.light-mode button {
-  background: #222 !important;
-  border: 1px solid #444 !important;
+  background: #1f2937 !important;
+  color: #f8fafc !important;
+  border: 1px solid #334155 !important;
   box-shadow: none !important;
-  border-radius: 4px !important;
+  border-radius: 8px !important;
 }
 
 body.light-mode button:active {
-  background: #333 !important;
+  background: #0f172a !important;
 }
 
 body.light-mode button:disabled {
-  opacity: 0.5 !important;
-  background: #111 !important;
+  opacity: 0.6 !important;
+  background: #111827 !important;
+  color: #94a3b8 !important;
 }
 
 /* Remove particle effects */
@@ -68,8 +71,9 @@ body.light-mode canvas {
 /* Simplify modals */
 body.light-mode [class*="modal"],
 body.light-mode [class*="dialog"] {
-  background: #1a1a1a !important;
-  border: 1px solid #333 !important;
+  background: #0f172a !important;
+  color: #f8fafc !important;
+  border: 1px solid #1f2937 !important;
   box-shadow: none !important;
 }
 
@@ -125,11 +129,11 @@ body.light-mode table {
 body.light-mode table th,
 body.light-mode table td {
   padding: 8px !important;
-  border: 1px solid #333 !important;
+  border: 1px solid #1f2937 !important;
 }
 
 body.light-mode table tr:hover {
-  background: #222 !important;
+  background: #111827 !important;
 }
 
 /* Remove all Lottie animations */
@@ -147,8 +151,9 @@ body.light-mode [class*="item"] img {
 
 /* Flat header */
 body.light-mode header {
-  background: #000 !important;
-  border-bottom: 1px solid #333 !important;
+  background: #0b1224 !important;
+  color: #f8fafc !important;
+  border-bottom: 1px solid #1f2937 !important;
   box-shadow: none !important;
 }
 
@@ -203,8 +208,8 @@ body.light-mode [class*="loading"] {
 
 /* Dashboard polish for light mode */
 body.light-mode .lite-mode-wrapper {
-  background: #f1f5f9;
-  color: #0f172a;
+  background: #0b1224;
+  color: #f8fafc;
 }
 
 body.light-mode .lite-mode-wrapper main {
@@ -212,10 +217,11 @@ body.light-mode .lite-mode-wrapper main {
 }
 
 body.light-mode .dashboard-panel {
-  background: #1a1a1a !important;
-  border-color: #333 !important;
+  background: #111827 !important;
+  border-color: #1f2937 !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
+  color: #f8fafc !important;
 }
 
 body.light-mode .dashboard-panel > span[aria-hidden="true"] {
@@ -223,19 +229,19 @@ body.light-mode .dashboard-panel > span[aria-hidden="true"] {
 }
 
 body.light-mode .dashboard-panel h2 {
-  color: #ffffff !important;
+  color: #f8fafc !important;
 }
 
 body.light-mode .dashboard-panel p {
-  color: #94a3b8 !important;
+  color: #cbd5e1 !important;
 }
 
 body.light-mode .dashboard-panel span {
-  color: #e2e8f0 !important;
+  color: #f8fafc !important;
 }
 
 body.light-mode .dashboard-panel div {
-  color: #e2e8f0 !important;
+  color: #f8fafc !important;
 }
 
 body.light-mode .dashboard-panel img {
@@ -243,20 +249,20 @@ body.light-mode .dashboard-panel img {
 }
 
 body.light-mode .dashboard-panel .dashboard-action {
-  background: #222 !important;
-  border-color: #444 !important;
+  background: #1f2937 !important;
+  border-color: #334155 !important;
   box-shadow: none !important;
   transform: none !important;
-  color: #ffffff !important;
+  color: #f8fafc !important;
 }
 
 body.light-mode .dashboard-panel button {
-  background: #222 !important;
-  color: #ffffff !important;
+  background: #1f2937 !important;
+  color: #f8fafc !important;
 }
 
 body.light-mode .dashboard-panel .dashboard-action:hover {
-  background: #333 !important;
+  background: #0f172a !important;
 }
 
 body.light-mode .neon-frame {
@@ -361,18 +367,20 @@ body.light-mode .neon-frame-avatar.glitch-frame-avatar {
     inset 0 0 5px rgba(255, 0, 222, 0.5) !important;
   animation: glitch-rgb-shift 2s infinite cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
   filter: contrast(1.25) saturate(1.5) !important;
-}body.light-mode .dashboard-panel .dashboard-action > span[aria-hidden="true"] {
+}
+
+body.light-mode .dashboard-panel .dashboard-action > span[aria-hidden="true"] {
   display: none !important;
 }
 
 body.light-mode .dashboard-panel .dashboard-action__icon {
-  background: #333 !important;
+  background: #1f2937 !important;
   box-shadow: none !important;
-  color: #ffffff !important;
+  color: #f8fafc !important;
 }
 
 body.light-mode .dashboard-panel .dashboard-action__label {
-  color: #ffffff !important;
+  color: #f8fafc !important;
 }
 
 body.light-mode .dashboard-panel .dashboard-action__subtitle {
@@ -383,7 +391,7 @@ body.light-mode .dashboard-panel button,
 body.light-mode .dashboard-panel .rounded-full,
 body.light-mode .dashboard-panel .border,
 body.light-mode .dashboard-panel .shadow-inner {
-  border-color: #d7dde7 !important;
+  border-color: #1f2937 !important;
   box-shadow: none !important;
 }
 
@@ -391,10 +399,11 @@ body.light-mode .dashboard-panel .shadow-inner {
 body.light-mode input,
 body.light-mode textarea,
 body.light-mode select {
-  background: #1a1a1a !important;
-  border: 1px solid #444 !important;
+  background: #111827 !important;
+  color: #f8fafc !important;
+  border: 1px solid #334155 !important;
   box-shadow: none !important;
-  border-radius: 2px !important;
+  border-radius: 6px !important;
 }
 
 body.light-mode input:focus,
@@ -447,20 +456,14 @@ body.light-mode svg * {
 /* Disable pointer events on decorative elements */
 body.light-mode [aria-hidden="true"] {
   pointer-events: none !important;
-  display: none !important;
 }
 
-/* BUT allow emojis/icons to show in dashboard panels */
-body.light-mode .dashboard-panel [aria-hidden="true"] {
-  display: inline !important;
-}
-
-body.light-mode .dashboard-panel .dashboard-action [aria-hidden="true"] {
-  display: inline !important;
-}
-
+/* Keep essential button icons visible in lite mode */
+body.light-mode button [aria-hidden="true"],
+body.light-mode .dashboard-panel [aria-hidden="true"],
+body.light-mode .dashboard-panel .dashboard-action [aria-hidden="true"],
 body.light-mode .dashboard-panel .dashboard-action__icon [aria-hidden="true"] {
-  display: inline !important;
+  display: inline-flex !important;
 }
 
 /* Minimal spacing */
@@ -480,8 +483,9 @@ body.light-mode * {
 /* Flat cards - no depth */
 body.light-mode [class*="card"] {
   box-shadow: none !important;
-  border: 1px solid #333 !important;
-  background: #1a1a1a !important;
+  border: 1px solid #1f2937 !important;
+  background: #111827 !important;
+  color: #f8fafc !important;
 }
 
 /* Disable all CSS animations */
@@ -492,12 +496,13 @@ body.light-mode {
   transition-delay: 0s !important;
 }
 
-/* Ensure login page has dark background */
+/* Ensure login page stays readable */
 body.light-mode .min-h-screen {
-  background: #0a0a0a !important;
+  background: #0b1224 !important;
+  color: #f8fafc !important;
 }
 
 body.light-mode .card-glass {
-  background: #1a1a1a !important;
-  color: #ffffff !important;
+  background: #111827 !important;
+  color: #f8fafc !important;
 }

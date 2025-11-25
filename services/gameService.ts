@@ -1207,6 +1207,11 @@ export const whoami = async (): Promise<Profile> => {
 
     applyClanBuffsToProfile(profile, []);
 
+    let resolvedClanId: string | null = profile.clan_id ?? null;
+    let resolvedClanRole: ClanRole | undefined = profile.clan_role;
+    let resolvedCustomTitle: string | null = profile.clan_custom_title ?? null;
+    let resolvedClanName: string | null = profile.clan_name ?? null;
+
     const { data: membership, error: membershipError } = await supabase
         .from('clan_members')
         .select('clan_id, role, custom_title, clans(name)')
@@ -1218,17 +1223,37 @@ export const whoami = async (): Promise<Profile> => {
     }
 
     if (membership && membership.clan_id) {
-        profile.clan_id = membership.clan_id;
-        profile.clan_role = membership.role as ClanRole;
-        profile.clan_custom_title = membership.custom_title;
+        resolvedClanId = membership.clan_id;
+        resolvedClanRole = membership.role as ClanRole;
+        resolvedCustomTitle = membership.custom_title;
         const clanRecord = Array.isArray(membership.clans) ? membership.clans[0] : membership.clans;
-        profile.clan_name = clanRecord?.name ?? null;
+        resolvedClanName = clanRecord?.name ?? null;
+    }
+
+    if (resolvedClanId) {
+        if (!resolvedClanName) {
+            const { data: clanRow, error: clanError } = await supabase
+                .from('clans')
+                .select('name')
+                .eq('id', resolvedClanId)
+                .maybeSingle();
+
+            if (clanError && clanError.code !== 'PGRST116') {
+                console.warn('Failed to load clan name from clans table:', clanError.message);
+            }
+
+            resolvedClanName = clanRow?.name ?? resolvedClanName;
+        }
 
         const [clanScore, activeBuffs] = await Promise.all([
-            fetchClanScoreValue(membership.clan_id),
-            fetchClanActiveBuffs(membership.clan_id),
+            fetchClanScoreValue(resolvedClanId),
+            fetchClanActiveBuffs(resolvedClanId),
         ]);
 
+        profile.clan_id = resolvedClanId;
+        profile.clan_role = resolvedClanRole;
+        profile.clan_custom_title = resolvedCustomTitle;
+        profile.clan_name = resolvedClanName;
         profile.clan_total_score = clanScore;
         applyClanBuffsToProfile(profile, activeBuffs);
     } else {
@@ -2809,32 +2834,48 @@ export const clan_reject_join_request = async (requestId: string): Promise<boole
 
 export const clan_details = async (): Promise<Clan | null> => {
     const user = await getCurrentUser();
-    
+
     const { data: membership, error: membershipError } = await supabase
         .from('clan_members')
         .select('clan_id')
         .eq('user_id', user.id)
         .maybeSingle();
-    
+
+    let clanId: string | null = membership?.clan_id ?? null;
+
     if (membershipError && membershipError.code !== 'PGRST116') {
-        console.error('Failed to resolve clan membership:', membershipError);
-        throw membershipError;
+        console.error('Failed to resolve clan membership via clan_members:', membershipError);
     }
 
-    if (!membership) {
+    if (!clanId) {
+        const { data: profileRow, error: profileError } = await supabase
+            .from('users')
+            .select('clan_id')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        if (profileError && profileError.code !== 'PGRST116') {
+            console.error('Failed to resolve clan via users table:', profileError);
+        }
+
+        clanId = profileRow?.clan_id ?? null;
+    }
+
+    if (!clanId) {
         return mockApiCall(null);
     }
-    
+
     const { data: clan, error } = await supabase
         .from('clans')
         .select('*')
-        .eq('id', membership.clan_id)
+        .eq('id', clanId)
         .single();
-    
+
     if (error || !clan) {
         return mockApiCall(null);
     }
     
+    let memberRows: any[] = [];
     const { data: membersData, error: membersError } = await supabase
         .from('clan_member_scores')
         .select('*')
@@ -2842,24 +2883,48 @@ export const clan_details = async (): Promise<Clan | null> => {
         .order('total_score', { ascending: false });
 
     if (membersError) {
-        console.error('Failed to fetch clan members:', membersError);
-        throw membersError;
+        console.error('Failed to fetch clan members from scores view, attempting fallback:', membersError);
+        const { data: fallbackMembers, error: fallbackError } = await supabase
+            .from('clan_members')
+            .select('user_id, role, joined_at, users(username, avatar_url, xp, pvp_score)')
+            .eq('clan_id', clan.id)
+            .order('joined_at', { ascending: true });
+
+        if (fallbackError) {
+            console.error('Fallback clan member fetch also failed:', fallbackError);
+            throw fallbackError;
+        }
+
+        memberRows = (fallbackMembers || []).map((member: any) => ({
+            user_id: member.user_id,
+            username: member.users?.username ?? 'Unknown Agent',
+            role: member.role,
+            contribution: 0,
+            avatar_url: member.users?.avatar_url,
+            custom_title: null,
+            bio: null,
+            total_score: calculateTotalScore(member.users?.xp ?? 0, member.users?.pvp_score ?? 0),
+            xp: member.users?.xp ?? 0,
+            pvp_score: member.users?.pvp_score ?? 0,
+        }));
+    } else {
+        memberRows = membersData || [];
     }
 
-    const neonOwners = await fetchNeonFrameOwners((membersData || []).map((m: any) => m.user_id));
-    const flickerOwners = await fetchFlickerThemeOwners((membersData || []).map((m: any) => m.user_id));
+    const neonOwners = await fetchNeonFrameOwners(memberRows.map((m: any) => m.user_id));
+    const flickerOwners = await fetchFlickerThemeOwners(memberRows.map((m: any) => m.user_id));
 
-    const members = (membersData || []).map((m: any) => ({
+    const members = memberRows.map((m: any) => ({
         user_id: m.user_id,
         username: m.username,
         role: m.role,
-        contribution: m.total_score || 0,
+        contribution: m.total_score || m.contribution || calculateTotalScore(m.xp ?? 0, m.pvp_score ?? 0),
         avatar_url: m.avatar_url,
         active_cosmetic_frame: neonOwners.has(m.user_id) ? 'neon' : null,
         active_cosmetic_theme: flickerOwners.has(m.user_id) ? 'flicker' : null,
         custom_title: m.custom_title,
         bio: m.bio,
-        total_score: m.total_score,
+        total_score: m.total_score ?? calculateTotalScore(m.xp ?? 0, m.pvp_score ?? 0),
         xp: m.xp,
         pvp_score: m.pvp_score,
     })) as ClanMember[];
