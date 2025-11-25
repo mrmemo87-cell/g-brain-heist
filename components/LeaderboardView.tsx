@@ -4,6 +4,7 @@ import BackButton from './BackButton';
 import { ClanMember } from '../types';
 import AvatarWithFrame from './AvatarWithFrame';
 import { fetchNeonFrameOwners, fetchFlickerThemeOwners } from '../services/cosmeticService';
+import { TrophyIcon } from './icons';
 
 
 
@@ -353,8 +354,9 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
   return (
     <div className="mt-6 max-w-4xl mx-auto">
       <BackButton onClick={onComplete} />
-      <h2 className="font-heading text-3xl text-center mb-6" style={{ color: 'var(--amber-warn)' }}>
-        🏆 Leaderboards
+      <h2 className="font-heading text-3xl text-center mb-6 flex items-center justify-center gap-3" style={{ color: 'var(--amber-warn)' }}>
+        <TrophyIcon className="w-8 h-8" />
+        Leaderboards
       </h2>
 
       {/* Tabs */}

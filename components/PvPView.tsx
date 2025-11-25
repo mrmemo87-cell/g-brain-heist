@@ -4,7 +4,7 @@ import * as GameService from '../services/gameService';
 import { supabase } from '../services/supabaseClient';
 import { audioService } from '../services/audioService';
 import BackButton from './BackButton';
-import { ShieldIcon, HackIcon, CoinIcon, XPIcon, GemIcon } from './icons';
+import { ShieldIcon, HackIcon, CoinIcon, XPIcon, GemIcon, BattleIcon, TrophyIcon } from './icons';
 import { createPortal } from 'react-dom';
 import AvatarWithFrame from './AvatarWithFrame';
 import { fetchNeonFrameOwners, fetchFlickerThemeOwners } from '../services/cosmeticService';
@@ -327,7 +327,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
 
   const renderTargets = () => (
     <div>
-      <h2 className="font-heading text-3xl text-center mb-4" style={{ color: 'var(--plasma-pink)' }}>⚔️ Choose Your Target</h2>
+      <h2 className="font-heading text-3xl text-center mb-4 flex items-center justify-center gap-2" style={{ color: 'var(--plasma-pink)' }}><BattleIcon className="w-8 h-8" /> Choose Your Target</h2>
       
       {/* Filter Tabs */}
       <div className="flex justify-center gap-2 mb-6 flex-wrap">

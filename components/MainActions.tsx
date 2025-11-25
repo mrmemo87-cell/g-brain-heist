@@ -1,4 +1,5 @@
 import React from 'react';
+import { BattleIcon, TrophyIcon } from './icons';
 
 const silkRoadLogoPath = '/schools/silk_road/silk_road_logo.jpg';
 
@@ -216,7 +217,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={onStartPvp}
-              icon={<span aria-hidden className="text-3xl">⚔️</span>}
+              icon={<BattleIcon className="w-8 h-8" aria-hidden />}
               label="Launch Attack"
               color="255, 45, 145"
               glowClass="glow-plasma animate-pulse-glow"
@@ -274,7 +275,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={onViewLeaderboard}
-              icon={<span aria-hidden className="text-3xl animate-float">🏆</span>}
+              icon={<TrophyIcon className="w-8 h-8 animate-float" aria-hidden />}
               label="Leaderboard"
               color="255, 215, 0"
               glowClass="glow-warn"

@@ -182,6 +182,25 @@ export const GoogleIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
     </svg>
 );
 
+export const TrophyIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v12h3.75a2.25 2.25 0 0 0 2.25-2.25v-8.25A2.25 2.25 0 0 0 20.25 6H16.5m-12 0H3.75a2.25 2.25 0 0 0-2.25 2.25v8.25A2.25 2.25 0 0 0 3.75 18h3.75m0-12v12m0 0h3m-3 0h3m0-12H9m0 0h1.5m-1.5 0H7.5" />
+    </svg>
+);
+
+export const BattleIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="m7.5 3.75 2.25 2.25m0 0-2.25 2.25m2.25-2.25L9.75 6m-6-1.5H4.5m.75 0a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5Zm0 0H6" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 3.75l-2.25 2.25m0 0 2.25 2.25m-2.25-2.25 2.25-2.25m6 1.5h-1.5m-.75 0a2.25 2.25 0 1 1 0-4.5 2.25 2.25 0 0 1 0 4.5Zm0 0h-1.5m0 10.5-2.25 2.25m0 0 2.25 2.25m-2.25-2.25 2.25-2.25m-6-1.5h1.5m.75 0a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Zm0 0h1.5" />
+    </svg>
+);
+
+export const TeamIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.657-1.338-3-2.986-3m0 0c-1.648 0-2.986 1.343-2.986 3m0 0v.006m0 0h.008v.006h-.008v-.006Zm0 0c1.648 0 2.986 1.343 2.986 3v.007h-2.986v-.007c0-1.657-1.338-3-2.986-3m0 0c-1.648 0-2.986 1.343-2.986 3m0 0v.006m0 0h.008v.006H6v-.006Zm0 0c1.648 0 2.986 1.343 2.986 3M9 15.75c1.338 0 2.986 1.343 2.986 3M3 12a9 9 0 0 1 15-6.951M6 12a6 6 0 1 0 12 0m0 0-9-3m9 3h.008v.006h-.008V12Z" />
+    </svg>
+);
+
 
 export const LevelUpIcon = StreakIcon;
 export const PvpWinIcon = HackIcon;

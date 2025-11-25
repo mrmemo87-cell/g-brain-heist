@@ -83,7 +83,7 @@ const formatExpiresIn = (expiresAt?: string | null): string => {
 };
 
 
-const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfile, addToast }) => {
+const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfile, addToast, onPendingCountChange }) => {
   const [stage, setStage] = useState<ClanViewStage>('loading');
   const [clan, setClan] = useState<Clan | null>(null);
   const [activeTab, setActiveTab] = useState<ClanTab>('home');

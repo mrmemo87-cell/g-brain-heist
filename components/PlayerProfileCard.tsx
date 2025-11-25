@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Profile, ActiveClanBuff } from '../types';
-import { CoinIcon, StreakIcon, XPIcon, APIcon, GemIcon } from './icons';
+import { CoinIcon, StreakIcon, XPIcon, APIcon, GemIcon, TrophyIcon, BattleIcon, ShieldIcon } from './icons';
 import AvatarWithFrame from './AvatarWithFrame';
 
 interface PlayerProfileCardProps {
@@ -158,9 +158,9 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
           <StatDisplay icon={<CoinIcon />} label="Coins" value={profile.coins.toLocaleString()} color={'var(--amber-warn)'} />
           <StatDisplay icon={<GemIcon />} label="Gemstones" value={profile.gemstones.toLocaleString()} color={'var(--ion-blue)'} />
           <StatDisplay icon={<StreakIcon />} label="Streak" value={`${profile.streak} days`} color={'var(--danger-red)'} />
-          <StatDisplay icon={<span>🏆</span>} label="Total Score" value={totalScore.toLocaleString()} color={'var(--amber-warn)'} subtitle="XP + PvP" />
+          <StatDisplay icon={<TrophyIcon className="w-4 h-4" />} label="Total Score" value={totalScore.toLocaleString()} color={'var(--amber-warn)'} subtitle="XP + PvP" />
           <StatDisplay icon={<XPIcon />} label="Total XP" value={profile.xp.toLocaleString()} color={'var(--ion-blue)'} />
-          <StatDisplay icon={<span>🥊</span>} label="PvP Score" value={profile.pvp_score.toLocaleString()} color={'var(--danger-red)'} subtitle="3 pts per win" />
+          <StatDisplay icon={<BattleIcon className="w-4 h-4" />} label="PvP Score" value={profile.pvp_score.toLocaleString()} color={'var(--danger-red)'} subtitle="3 pts per win" />
           <StatDisplay
             icon={<APIcon />}
             label="Action Points"
@@ -168,8 +168,8 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
             color={'var(--success-teal)'}
             subtitle={calculatedAP < profile.ap_max ? `+1 in ${apCountdown}` : undefined}
           />
-          <StatDisplay icon={<span>⚔️</span>} label="Attack" value={attackValue || 10} color={'var(--danger-red)'} subtitle={attackSubtitle} />
-          <StatDisplay icon={<span>🛡️</span>} label="Defense" value={defenseValue || 10} color={'var(--ion-blue)'} subtitle={defenseSubtitle} />
+          <StatDisplay icon={<BattleIcon className="w-4 h-4" />} label="Attack" value={attackValue || 10} color={'var(--danger-red)'} subtitle={attackSubtitle} />
+          <StatDisplay icon={<ShieldIcon className="w-4 h-4" />} label="Defense" value={defenseValue || 10} color={'var(--ion-blue)'} subtitle={defenseSubtitle} />
         </div>
 
         {profile.clan_name && (
