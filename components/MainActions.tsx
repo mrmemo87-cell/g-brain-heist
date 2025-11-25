@@ -72,7 +72,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
         }}
       />
       {badgeText && (
-        <span className="absolute -top-2 -right-2 rounded-full bg-amber-400 px-2 py-0.5 text-xs font-bold text-slate-950 shadow-lg shadow-amber-400/40">
+        <span className="absolute -top-3 -right-3 z-10 rounded-full bg-amber-400 px-2.5 py-1 text-xs font-bold text-slate-950 shadow-lg shadow-amber-400/60 ring-2 ring-slate-950 animate-pulse">
           {badgeText}
         </span>
       )}
@@ -260,7 +260,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             )}
             <ActionButton
               onClick={onGoToClan}
-              icon={<SyndicateRune className="w-8 h-8" aria-hidden />}
+              icon={<SyndicateRune className="w-8 h-8 text-amber-400" aria-hidden />}
               label="Clan"
               color="255, 176, 32"
               glowClass="glow-warn"

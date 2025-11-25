@@ -659,7 +659,14 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                     <button onClick={() => setActiveTab('home')} className={`px-4 py-2 font-heading ${activeTab === 'home' ? 'text-amber-300 border-b-2 border-amber-300' : 'text-gray-400'}`}>Home</button>
                     <button onClick={() => setActiveTab('chat')} className={`px-4 py-2 font-heading ${activeTab === 'chat' ? 'text-amber-300 border-b-2 border-amber-300' : 'text-gray-400'}`}>Chat</button>
                     <button onClick={() => setActiveTab('browse')} className={`px-4 py-2 font-heading ${activeTab === 'browse' ? 'text-amber-300 border-b-2 border-amber-300' : 'text-gray-400'}`}>Browse Clans</button>
-                    {isPrivileged && <button onClick={() => setActiveTab('management')} className={`px-4 py-2 font-heading ${activeTab === 'management' ? 'text-amber-300 border-b-2 border-amber-300' : 'text-gray-400'}`}>Management</button>}
+                    {isPrivileged && <button onClick={() => setActiveTab('management')} className={`relative px-4 py-2 font-heading ${activeTab === 'management' ? 'text-amber-300 border-b-2 border-amber-300' : 'text-gray-400'}`}>
+                      Management
+                      {pendingApprovals.length > 0 && (
+                        <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white shadow-lg animate-pulse">
+                          {Math.min(pendingApprovals.length, 9)}
+                        </span>
+                      )}
+                    </button>}
                 </div>
                 <div className="p-4">
                     {activeTab === 'home' && (

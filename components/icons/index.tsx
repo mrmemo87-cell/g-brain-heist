@@ -216,6 +216,7 @@ export const SyndicateRune: React.FC<React.SVGProps<SVGSVGElement>> = (props) =>
     stroke="currentColor"
     strokeWidth={8}
     strokeLinecap="round"
+    className="text-amber-400"
     {...props}
   >
     <line x1="50" y1="10" x2="50" y2="90" />
