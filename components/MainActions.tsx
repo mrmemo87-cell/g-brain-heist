@@ -217,7 +217,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={onStartPvp}
-              icon={<LaunchAttackAnimatedIcon className="w-10 h-10" aria-hidden />}
+              icon={<BattleIcon className="w-8 h-8" aria-hidden />}
               label="Launch Attack"
               color="255, 45, 145"
               glowClass="glow-plasma animate-pulse-glow"
@@ -244,7 +244,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             )}
             <ActionButton
               onClick={onVisitShop}
-              icon={<ShopAnimatedIcon className="w-10 h-10" aria-hidden />}
+              icon={<span aria-hidden className="text-3xl"></span>}
               label="Visit Shop"
               color="22, 226, 161"
               glowClass="glow-success"
@@ -275,7 +275,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={onViewLeaderboard}
-              icon={<LeaderboardAnimatedIcon className="w-10 h-10" aria-hidden />}
+              icon={<TrophyIcon className="w-8 h-8 animate-float" aria-hidden />}
               label="Leaderboard"
               color="255, 215, 0"
               glowClass="glow-warn"
