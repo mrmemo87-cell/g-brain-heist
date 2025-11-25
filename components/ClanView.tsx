@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Clan, ClanChatMessage, Profile, ToastMessage, ClanSummary, ClanBuff, ClanMember, ActiveClanBuff, ClanJoinRequest } from '../types';
 import * as GameService from '../services/gameService';
 import BackButton from './BackButton';
-import { ClanIcon, CoinIcon, DemoteIcon, KickIcon, LeaveIcon, ManageIcon, PromoteIcon } from './icons';
+import { TeamIcon, CoinIcon, DemoteIcon, KickIcon, LeaveIcon, ManageIcon, PromoteIcon } from './icons';
 import AvatarWithFrame from './AvatarWithFrame';
 
 type ClanViewStage = 'loading' | 'no_clan' | 'in_clan' | 'creating' | 'joining';
@@ -418,7 +418,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
 
   const renderNoClan = () => (
     <div className="text-center max-w-lg mx-auto">
-        <div className="w-24 h-24 mx-auto mb-4 text-amber-400/50"><ClanIcon /></div>
+        <div className="w-24 h-24 mx-auto mb-4 text-amber-400/50"><TeamIcon /></div>
         <h2 className="font-heading text-4xl mb-4 text-amber-400">Join the Syndicate</h2>
         <p className="text-gray-400 mb-8">You are not currently part of a clan. Create your own syndicate or join an existing one to collaborate with other agents.</p>
         {pendingJoinRequest && (
