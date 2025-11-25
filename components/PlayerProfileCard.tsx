@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Profile, ActiveClanBuff } from '../types';
-import { CoinIcon, StreakIcon, XPIcon, APIcon, GemIcon, TrophyIcon, BattleIcon, ShieldIcon, TeamIcon } from './icons';
+import { CoinIcon, StreakIcon, XPIcon, APIcon, GemIcon, TrophyIcon, BattleIcon, ShieldIcon, ClanIcon } from './icons';
 import AvatarWithFrame from './AvatarWithFrame';
 
 interface PlayerProfileCardProps {
@@ -177,7 +177,7 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
             <div className="rounded-xl border border-amber-400/25 bg-black/40 p-4 shadow-[0_10px_30px_rgba(255,183,77,0.12)]">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 text-amber-400 flex-shrink-0"><TeamIcon /></div>
+                  <div className="w-6 h-6 text-amber-400 flex-shrink-0"><ClanIcon /></div>
                   <div>
                     <p className="text-xs uppercase tracking-wide text-amber-200/80">Clan</p>
                     <p className="text-lg sm:text-xl font-heading text-amber-300">{profile.clan_name}</p>

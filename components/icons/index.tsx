@@ -118,9 +118,7 @@ export const CrackerIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
 
 export const ClanIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v18M3 6h18M5.25 9.75h13.5M3 13.5h18" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3.42 6.262 12 11.25l8.58-4.988" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M20.58 17.738 12 12.75l-8.58 4.988" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.657-1.338-3-2.986-3m0 0c-1.648 0-2.986 1.343-2.986 3m0 0v.006m0 0h.008v.006h-.008v-.006Zm0 0c1.648 0 2.986 1.343 2.986 3v.007h-2.986v-.007c0-1.657-1.338-3-2.986-3m0 0c-1.648 0-2.986 1.343-2.986 3m0 0v.006m0 0h.008v.006H6v-.006Zm0 0c1.648 0 2.986 1.343 2.986 3M9 15.75c1.338 0 2.986 1.343 2.986 3M3 12a9 9 0 0 1 15-6.951M6 12a6 6 0 1 0 12 0m0 0-9-3m9 3h.008v.006h-.008V12Z" />
     </svg>
 );
 
