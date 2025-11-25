@@ -1,0 +1,34 @@
+# QUICK FIX: Clan Join Requests 404 Error
+
+## The Error
+```
+404 (Not Found) on clan_join_requests table
+```
+
+## The Fix (2 Steps)
+
+### Step 1: Run SQL Migration
+```
+1. Go to Supabase Dashboard
+2. SQL Editor → New Query
+3. Copy & paste: FIX_CLAN_JOIN_REQUESTS_RLS.sql
+4. Click Run
+```
+
+### Step 2: Refresh Browser
+```
+Ctrl+Shift+R (or Cmd+Shift+R on Mac)
+```
+
+## Done! ✅
+
+Leaders/Moderators can now:
+- ✅ View pending join requests
+- ✅ Approve requests
+- ✅ Reject requests
+- ✅ See join requests in Clan Management tab
+
+---
+
+## Full Documentation
+See: CLAN_JOIN_REQUESTS_COMPLETE_FIX.md

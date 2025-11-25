@@ -1209,7 +1209,7 @@ export const whoami = async (): Promise<Profile> => {
 
     const { data: membership, error: membershipError } = await supabase
         .from('clan_members')
-        .select('clan_id, role, custom_title, clans!inner(name)')
+        .select('clan_id, role, custom_title, clans(name)')
         .eq('user_id', profile.id)
         .maybeSingle();
 
@@ -1217,7 +1217,7 @@ export const whoami = async (): Promise<Profile> => {
         console.warn('Failed to fetch clan membership:', membershipError.message);
     }
 
-    if (membership) {
+    if (membership && membership.clan_id) {
         profile.clan_id = membership.clan_id;
         profile.clan_role = membership.role as ClanRole;
         profile.clan_custom_title = membership.custom_title;
@@ -2678,21 +2678,32 @@ export const clan_get_pending_join_requests = async (): Promise<ClanJoinRequest[
         .maybeSingle();
 
     if (!membership || !['leader', 'moderator'].includes(membership.role)) {
+        console.log('User is not a leader/moderator of any clan');
         return mockApiCall([]);
     }
 
+    console.log('Fetching pending join requests for clan:', membership.clan_id);
+
     const { data, error } = await supabase
         .from('clan_join_requests')
-        .select('id, clan_id, user_id, status, created_at, users(username, avatar_url), clans(name)')
+        .select('id, clan_id, user_id, status, created_at, users!clan_join_requests_user_id_fkey(username, avatar_url), clans(name)')
         .eq('clan_id', membership.clan_id)
         .eq('status', 'pending')
         .order('created_at', { ascending: true });
 
     if (error) {
         console.error('Failed to fetch join requests:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        // If table doesn't exist (404), return empty array instead of throwing
+        if (error.code === 'PGRST116' || error.message?.includes('404') || error.message?.includes('not found')) {
+            console.warn('clan_join_requests table may not exist. Please run the migration SQL: FIX_CLAN_JOIN_REQUESTS_RLS.sql');
+            return mockApiCall([]);
+        }
         throw new Error('Unable to load join requests.');
     }
 
+    console.log('Successfully fetched join requests:', data?.length || 0);
     return mockApiCall((data || []).map(mapJoinRequest));
 };
 
@@ -2714,7 +2725,15 @@ export const clan_approve_join_request = async (requestId: string): Promise<Clan
         .eq('id', requestId)
         .single();
 
-    if (requestError || !request) {
+    if (requestError) {
+        console.error('Error fetching request:', requestError);
+        if (requestError.message?.includes('404') || requestError.code === 'PGRST116') {
+            throw new Error('clan_join_requests table not found. Please run the migration SQL.');
+        }
+        throw new Error('Join request not found.');
+    }
+
+    if (!request) {
         throw new Error('Join request not found.');
     }
 
@@ -2779,6 +2798,9 @@ export const clan_reject_join_request = async (requestId: string): Promise<boole
 
     if (error) {
         console.error('Failed to reject join request:', error);
+        if (error.message?.includes('404') || error.code === 'PGRST116') {
+            throw new Error('clan_join_requests table not found. Please run the migration SQL.');
+        }
         throw new Error('Failed to reject request.');
     }
 
