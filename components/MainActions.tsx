@@ -1,5 +1,5 @@
 import React from 'react';
-import { BattleIcon, TrophyIcon, SyndicateRune, LeaderboardAnimatedIcon, ShopAnimatedIcon, LaunchAttackAnimatedIcon } from './icons';
+import { BattleIcon, TrophyIcon, SyndicateRune } from './icons';
 
 const silkRoadLogoPath = '/schools/silk_road/silk_road_logo.jpg';
 
@@ -361,3 +361,4 @@ const MainActions: React.FC<MainActionsProps> = ({
   };
 
 export default MainActions;
+
