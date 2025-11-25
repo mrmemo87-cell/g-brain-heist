@@ -1,5 +1,5 @@
 import React from 'react';
-import { BattleIcon, TrophyIcon, SyndicateRune } from './icons';
+import { TrophyIcon, SyndicateRune } from './icons';
 
 const silkRoadLogoPath = '/schools/silk_road/silk_road_logo.jpg';
 
@@ -217,9 +217,16 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={onStartPvp}
-              icon={<BattleIcon className="w-8 h-8" aria-hidden />}
+              icon={
+                <span
+                  aria-hidden
+                  className="text-3xl text-rose-100 drop-shadow-[0_0_12px_rgba(255,60,90,0.9)]"
+                >
+                  ⚔️
+                </span>
+              }
               label="Launch Attack"
-              color="255, 45, 145"
+              color="255, 70, 90"
               glowClass="glow-plasma animate-pulse-glow"
             />
             {onOpenRaid && (
