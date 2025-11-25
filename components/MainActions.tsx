@@ -1,5 +1,5 @@
 import React from 'react';
-import { BattleIcon, TrophyIcon, SyndicateRune } from './icons';
+import { BattleIcon, TrophyIcon, SyndicateRune, LeaderboardAnimatedIcon, ShopAnimatedIcon, LaunchAttackAnimatedIcon } from './icons';
 
 const silkRoadLogoPath = '/schools/silk_road/silk_road_logo.jpg';
 
@@ -217,7 +217,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={onStartPvp}
-              icon={<BattleIcon className="w-8 h-8" aria-hidden />}
+              icon={<LaunchAttackAnimatedIcon className="w-10 h-10" aria-hidden />}
               label="Launch Attack"
               color="255, 45, 145"
               glowClass="glow-plasma animate-pulse-glow"
@@ -244,7 +244,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             )}
             <ActionButton
               onClick={onVisitShop}
-              icon={<span aria-hidden className="text-3xl">🛍️</span>}
+              icon={<ShopAnimatedIcon className="w-10 h-10" aria-hidden />}
               label="Visit Shop"
               color="22, 226, 161"
               glowClass="glow-success"
@@ -260,7 +260,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             )}
             <ActionButton
               onClick={onGoToClan}
-              icon={<SyndicateRune className="w-8 h-8 text-amber-400" aria-hidden />}
+              icon={<SyndicateRune className="w-10 h-10 text-amber-400" aria-hidden />}
               label="Clan"
               color="255, 176, 32"
               glowClass="glow-warn"
@@ -275,7 +275,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={onViewLeaderboard}
-              icon={<TrophyIcon className="w-8 h-8 animate-float" aria-hidden />}
+              icon={<LeaderboardAnimatedIcon className="w-10 h-10" aria-hidden />}
               label="Leaderboard"
               color="255, 215, 0"
               glowClass="glow-warn"
