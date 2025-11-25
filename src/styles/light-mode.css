@@ -1,8 +1,10 @@
 /* ========================================
    LIGHT MODE - ULTRA PERFORMANCE MODE
+   Optimized to visually match full mode
+   while disabling heavy rendering paths.
    ======================================== */
 
-/* Allow default scrolling behavior; avoid forcing custom overflow */
+/* Preserve layout sizing without forcing custom scrolling */
 body.light-mode,
 body.light-mode #root,
 body.light-mode .lite-mode-wrapper {
@@ -11,498 +13,107 @@ body.light-mode .lite-mode-wrapper {
   min-height: 100vh !important;
 }
 
-/* Global light mode overrides */
-body.light-mode {
-  background: #0b1224 !important;
-  color: #f8fafc !important;
-  /* Disable all transitions and animations globally */
-  *, *::before, *::after {
-    transition: none !important;
-    animation: none !important;
-  }
+/* Stop motion without stripping styling */
+body.light-mode *,
+body.light-mode *::before,
+body.light-mode *::after {
+  animation: none !important;
+  transition: none !important;
+  will-change: auto !important;
 }
 
-/* Disable all backdrop filters and shadows */
+/* Keep existing theme colors while preventing GPU-heavy filters */
 body.light-mode .card-glass,
 body.light-mode [class*="glass"],
 body.light-mode [class*="backdrop"] {
-  background: #111827 !important;
-  color: #f8fafc !important;
   backdrop-filter: none !important;
-  box-shadow: none !important;
-  border: 1px solid #1f2937 !important;
+  -webkit-backdrop-filter: none !important;
+  background-color: rgba(15, 23, 42, 0.85) !important;
 }
 
-/* Remove all hover effects */
-body.light-mode button:hover,
-body.light-mode a:hover,
-body.light-mode [class*="hover"]:hover {
-  transform: none !important;
-  scale: 1 !important;
-  box-shadow: none !important;
-}
-
-/* Simplify buttons */
-body.light-mode button {
-  background: #1f2937 !important;
-  color: #f8fafc !important;
-  border: 1px solid #334155 !important;
-  box-shadow: none !important;
-  border-radius: 8px !important;
-}
-
-body.light-mode button:active {
-  background: #0f172a !important;
-}
-
-body.light-mode button:disabled {
-  opacity: 0.6 !important;
-  background: #111827 !important;
-  color: #94a3b8 !important;
-}
-
-/* Remove particle effects */
+/* Disable particle and canvas driven effects */
 body.light-mode [class*="particle"],
 body.light-mode [class*="confetti"],
 body.light-mode canvas {
   display: none !important;
 }
 
-/* Simplify modals */
-body.light-mode [class*="modal"],
-body.light-mode [class*="dialog"] {
-  background: #0f172a !important;
-  color: #f8fafc !important;
-  border: 1px solid #1f2937 !important;
-  box-shadow: none !important;
-}
-
-/* Remove all blur effects */
-body.light-mode * {
-  filter: none !important;
-  backdrop-filter: none !important;
-}
-
-/* Simplify text shadows and glows */
-body.light-mode h1,
-body.light-mode h2,
-body.light-mode h3,
-body.light-mode h4,
-body.light-mode h5,
-body.light-mode h6 {
-  text-shadow: none !important;
-}
-
-/* Disable toast animations */
-body.light-mode [class*="toast"],
-body.light-mode [class*="notification"] {
-  animation: none !important;
-  margin: 4px 0 !important;
-}
-
-/* Simplify progress bars */
-body.light-mode [class*="progress"] {
-  background: #222 !important;
-  border: 1px solid #444 !important;
-  height: 8px !important;
-  border-radius: 2px !important;
-}
-
-body.light-mode [class*="progress-bar"],
-body.light-mode [class*="progress"] > div {
-  background: #0ea5e9 !important;
-  box-shadow: none !important;
-}
-
-/* Remove level-up modal animations */
-body.light-mode [class*="level-up"],
-body.light-mode [class*="achievement"] {
-  animation: none !important;
-  transform: none !important;
-}
-
-/* Simplify leaderboard */
-body.light-mode table {
-  border-collapse: collapse !important;
-}
-
-body.light-mode table th,
-body.light-mode table td {
-  padding: 8px !important;
-  border: 1px solid #1f2937 !important;
-}
-
-body.light-mode table tr:hover {
-  background: #111827 !important;
-}
-
-/* Remove all Lottie animations */
+/* Remove Lottie/hero animations entirely */
 body.light-mode [class*="lottie"],
-body.light-mode [class*="animation"] {
+body.light-mode [class*="animation-container"],
+body.light-mode [data-animation]
+{
   display: none !important;
 }
 
-/* Simplify inventory items */
-body.light-mode [class*="inventory"] img,
-body.light-mode [class*="item"] img {
-  filter: none !important;
+/* Simplify modal overlays without altering typography */
+body.light-mode [class*="modal"],
+body.light-mode [class*="dialog"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background-color: rgba(15, 23, 42, 0.9) !important;
+}
+
+/* Ensure hover/active states stay instant */
+body.light-mode button:hover,
+body.light-mode a:hover,
+body.light-mode [class*="hover"]:hover {
   transform: none !important;
 }
 
-/* Flat header */
-body.light-mode header {
-  background: #0b1224 !important;
-  color: #f8fafc !important;
-  border-bottom: 1px solid #1f2937 !important;
-  box-shadow: none !important;
-}
-
-/* Simplify stat displays */
-body.light-mode [class*="stat"],
-body.light-mode [class*="counter"] {
-  background: transparent !important;
-  border: none !important;
-  padding: 4px 8px !important;
-}
-
-/* Remove all keyframe animations */
-@media (prefers-reduced-motion: no-preference) {
-  body.light-mode * {
-    animation-play-state: paused !important;
-  }
-}
-
-/* Simplify scrollbars */
-body.light-mode ::-webkit-scrollbar {
-  width: 8px !important;
-  height: 8px !important;
-}
-
-body.light-mode ::-webkit-scrollbar-track {
-  background: #000 !important;
-}
-
-body.light-mode ::-webkit-scrollbar-thumb {
-  background: #444 !important;
-  border-radius: 0 !important;
-}
-
-/* Remove all opacity transitions */
-body.light-mode [class*="fade"],
-body.light-mode [class*="opacity"] {
-  opacity: 1 !important;
-}
-
-/* Simplify images - remove filters */
-body.light-mode img {
-  filter: none !important;
-  image-rendering: pixelated !important;
-}
-
-/* Remove loading spinners - show text instead */
+/* Disable level-up or toast animations while preserving layout */
+body.light-mode [class*="toast"],
+body.light-mode [class*="notification"],
+body.light-mode [class*="level-up"],
+body.light-mode [class*="achievement"],
 body.light-mode [class*="spinner"],
 body.light-mode [class*="loading"] {
   animation: none !important;
-  border: none !important;
 }
 
-/* Dashboard polish for light mode */
-body.light-mode .lite-mode-wrapper {
-  background: #0b1224;
-  color: #f8fafc;
-}
-
-body.light-mode .lite-mode-wrapper main {
-  color: inherit;
-}
-
-body.light-mode .dashboard-panel {
-  background: #111827 !important;
-  border-color: #1f2937 !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  color: #f8fafc !important;
-}
-
-body.light-mode .dashboard-panel > span[aria-hidden="true"] {
-  display: none !important;
-}
-
-body.light-mode .dashboard-panel h2 {
-  color: #f8fafc !important;
-}
-
-body.light-mode .dashboard-panel p {
-  color: #cbd5e1 !important;
-}
-
-body.light-mode .dashboard-panel span {
-  color: #f8fafc !important;
-}
-
-body.light-mode .dashboard-panel div {
-  color: #f8fafc !important;
-}
-
-body.light-mode .dashboard-panel img {
-  box-shadow: none !important;
-}
-
-body.light-mode .dashboard-panel .dashboard-action {
-  background: #1f2937 !important;
-  border-color: #334155 !important;
-  box-shadow: none !important;
-  transform: none !important;
-  color: #f8fafc !important;
-}
-
-body.light-mode .dashboard-panel button {
-  background: #1f2937 !important;
-  color: #f8fafc !important;
-}
-
-body.light-mode .dashboard-panel .dashboard-action:hover {
-  background: #0f172a !important;
-}
-
-body.light-mode .neon-frame {
-  background: conic-gradient(from 210deg, rgba(34, 211, 238, 0.95), rgba(236, 72, 153, 0.9), rgba(168, 85, 247, 0.9), rgba(34, 211, 238, 0.95)) !important;
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.3),
-    0 0 12px rgba(34, 211, 238, 0.6),
-    0 0 20px rgba(236, 72, 153, 0.5) !important;
-}
-
-body.light-mode .neon-frame::before {
-  background: radial-gradient(circle, rgba(34, 211, 238, 0.6), rgba(236, 72, 153, 0.3), transparent 70%) !important;
-  opacity: 0.8 !important;
-  filter: blur(10px) !important;
-}
-
-body.light-mode .neon-frame-avatar {
-  border-color: rgba(255, 255, 255, 0.9) !important;
-  box-shadow:
-    0 0 8px rgba(34, 211, 238, 0.6),
-    0 0 14px rgba(236, 72, 153, 0.5),
-    0 0 20px rgba(34, 211, 238, 0.4) !important;
-}
-
-body.light-mode .glitch-frame {
-  background: linear-gradient(135deg, #ff00de 0%, #00ffff 50%, #ff00de 100%) !important;
-  box-shadow: 
-    0 0 20px rgba(255, 0, 222, 1),
-    0 0 40px rgba(0, 255, 255, 0.95),
-    0 0 60px rgba(255, 0, 222, 0.85),
-    inset 0 0 15px rgba(0, 255, 255, 0.7),
-    inset 0 0 8px rgba(255, 0, 222, 0.5) !important;
-  border: 2px solid #00ffff !important;
-  animation: glitch-shift 2s infinite cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
-  filter: brightness(1.15) saturate(1.4) !important;
-}
-
-body.light-mode .glitch-frame::before {
-  background: radial-gradient(circle, rgba(0, 255, 255, 0.7), rgba(255, 0, 222, 0.5), transparent 70%) !important;
-  opacity: 1 !important;
-  filter: blur(12px) !important;
-}
-
-body.light-mode .glitch-frame::after {
-  background: 
-    repeating-linear-gradient(
-      0deg,
-      rgba(0, 255, 255, 0.2) 0px,
-      rgba(0, 255, 255, 0.2) 2px,
-      transparent 2px,
-      transparent 4px
-    ) !important;
-  animation: scan-lines 0.06s linear infinite !important;
-}
-
-body.light-mode .glitch-frame-avatar {
-  border: 3px solid #00ffff !important;
-  box-shadow:
-    0 0 20px rgba(255, 0, 222, 1),
-    0 0 40px rgba(0, 255, 255, 0.95),
-    0 0 60px rgba(255, 0, 222, 0.75),
-    inset 0 0 10px rgba(0, 255, 255, 0.7),
-    inset 0 0 5px rgba(255, 0, 222, 0.5) !important;
-  animation: glitch-rgb-shift 2s infinite cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
-  filter: contrast(1.25) saturate(1.5) !important;
-}
-
-body.light-mode .glitch-frame-avatar::before {
-  background: 
-    repeating-linear-gradient(
-      0deg,
-      rgba(0, 255, 255, 0.25) 0px,
-      rgba(0, 255, 255, 0.25) 2px,
-      transparent 2px,
-      transparent 4px
-    ) !important;
-  animation: scan-lines 0.06s linear infinite !important;
-  mix-blend-mode: screen !important;
-}
-
-/* When both neon and glitch active in light mode, glitch takes priority */
-body.light-mode .neon-frame.glitch-frame {
-  background: linear-gradient(135deg, #ff00de 0%, #00ffff 50%, #ff00de 100%) !important;
-  box-shadow: 
-    0 0 20px rgba(255, 0, 222, 1),
-    0 0 40px rgba(0, 255, 255, 0.95),
-    0 0 60px rgba(255, 0, 222, 0.85),
-    inset 0 0 15px rgba(0, 255, 255, 0.7),
-    inset 0 0 8px rgba(255, 0, 222, 0.5) !important;
-  border: 2px solid #00ffff !important;
-  animation: glitch-shift 2s infinite cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
-  filter: brightness(1.15) saturate(1.4) !important;
-}
-
-body.light-mode .neon-frame-avatar.glitch-frame-avatar {
-  border: 3px solid #00ffff !important;
-  box-shadow:
-    0 0 20px rgba(255, 0, 222, 1),
-    0 0 40px rgba(0, 255, 255, 0.95),
-    0 0 60px rgba(255, 0, 222, 0.75),
-    inset 0 0 10px rgba(0, 255, 255, 0.7),
-    inset 0 0 5px rgba(255, 0, 222, 0.5) !important;
-  animation: glitch-rgb-shift 2s infinite cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
-  filter: contrast(1.25) saturate(1.5) !important;
-}
-
-body.light-mode .dashboard-panel .dashboard-action > span[aria-hidden="true"] {
-  display: none !important;
-}
-
-body.light-mode .dashboard-panel .dashboard-action__icon {
-  background: #1f2937 !important;
-  box-shadow: none !important;
-  color: #f8fafc !important;
-}
-
-body.light-mode .dashboard-panel .dashboard-action__label {
-  color: #f8fafc !important;
-}
-
-body.light-mode .dashboard-panel .dashboard-action__subtitle {
-  color: #cbd5e1 !important;
-}
-
-body.light-mode .dashboard-panel button,
-body.light-mode .dashboard-panel .rounded-full,
-body.light-mode .dashboard-panel .border,
-body.light-mode .dashboard-panel .shadow-inner {
-  border-color: #1f2937 !important;
-  box-shadow: none !important;
-}
-
-/* Flat input fields */
+/* Keep tabs/cards/buttons looking the same but pause transitions */
+body.light-mode [class*="card"],
+body.light-mode [class*="tab"],
+body.light-mode button,
 body.light-mode input,
 body.light-mode textarea,
 body.light-mode select {
-  background: #111827 !important;
-  color: #f8fafc !important;
-  border: 1px solid #334155 !important;
-  box-shadow: none !important;
-  border-radius: 6px !important;
+  transition: none !important;
 }
 
-body.light-mode input:focus,
-body.light-mode textarea:focus,
-body.light-mode select:focus {
-  outline: 1px solid #0ea5e9 !important;
-  box-shadow: none !important;
+/* Maintain stat/leaderboard visuals but stop glow/filters */
+body.light-mode [class*="stat"],
+body.light-mode [class*="counter"],
+body.light-mode [class*="progress"],
+body.light-mode [class*="progress-bar"] {
+  filter: none !important;
+  backdrop-filter: none !important;
 }
 
-/* Remove badge animations */
-body.light-mode [class*="badge"],
-body.light-mode [class*="pill"] {
+/* Allow icons and imagery to render normally without motion */
+body.light-mode img,
+body.light-mode svg,
+body.light-mode svg * {
   animation: none !important;
-  transform: none !important;
+  filter: none !important;
 }
 
-/* Simplify grid layouts - reduce gaps */
-body.light-mode [class*="grid"] {
-  gap: 8px !important;
-}
-
-/* Remove all ::before and ::after decorative elements */
-body.light-mode *::before,
-body.light-mode *::after {
+/* Remove decorative canvases but keep structural pseudo-elements */
+body.light-mode [aria-hidden="true"][class*="effect"],
+body.light-mode [aria-hidden="true"][class*="decor"] {
   display: none !important;
 }
 
-/* Flat tabs */
-body.light-mode [role="tab"],
-body.light-mode [class*="tab"] {
-  background: transparent !important;
-  border: none !important;
-  border-bottom: 2px solid transparent !important;
+/* Provide stable scrollbars without custom styling */
+body.light-mode ::-webkit-scrollbar,
+body.light-mode ::-webkit-scrollbar-track,
+body.light-mode ::-webkit-scrollbar-thumb {
+  all: unset;
 }
 
-body.light-mode [role="tab"][aria-selected="true"],
-body.light-mode [class*="tab"].active {
-  border-bottom-color: #0ea5e9 !important;
-}
-
-/* Remove all SVG filters */
-body.light-mode svg {
-  filter: none !important;
-}
-
-body.light-mode svg * {
-  filter: none !important;
-}
-
-/* Disable pointer events on decorative elements */
-body.light-mode [aria-hidden="true"] {
-  pointer-events: none !important;
-}
-
-/* Keep essential button icons visible in lite mode */
-body.light-mode button [aria-hidden="true"],
-body.light-mode .dashboard-panel [aria-hidden="true"],
-body.light-mode .dashboard-panel .dashboard-action [aria-hidden="true"],
-body.light-mode .dashboard-panel .dashboard-action__icon [aria-hidden="true"] {
-  display: inline-flex !important;
-}
-
-/* Minimal spacing */
-body.light-mode [class*="space-y"] > * + * {
-  margin-top: 8px !important;
-}
-
-body.light-mode [class*="space-x"] > * + * {
-  margin-left: 8px !important;
-}
-
-/* Remove all transform origins */
-body.light-mode * {
-  transform-origin: center !important;
-}
-
-/* Flat cards - no depth */
-body.light-mode [class*="card"] {
-  box-shadow: none !important;
-  border: 1px solid #1f2937 !important;
-  background: #111827 !important;
-  color: #f8fafc !important;
-}
-
-/* Disable all CSS animations */
-body.light-mode {
-  animation-duration: 0s !important;
-  animation-delay: 0s !important;
-  transition-duration: 0s !important;
-  transition-delay: 0s !important;
-}
-
-/* Ensure login page stays readable */
-body.light-mode .min-h-screen {
-  background: #0b1224 !important;
-  color: #f8fafc !important;
-}
-
-body.light-mode .card-glass {
-  background: #111827 !important;
-  color: #f8fafc !important;
+/* Preserve login/dashboard readability */
+body.light-mode .min-h-screen,
+body.light-mode .lite-mode-wrapper {
+  color: inherit !important;
+  background: inherit !important;
 }
