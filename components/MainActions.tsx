@@ -72,7 +72,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
         }}
       />
       {badgeText && (
-        <span className="absolute -top-3 -right-3 z-10 rounded-full bg-amber-400 px-2.5 py-1 text-xs font-bold text-slate-950 shadow-lg shadow-amber-400/60 ring-2 ring-slate-950 animate-pulse">
+        <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white shadow-lg animate-pulse">
           {badgeText}
         </span>
       )}
