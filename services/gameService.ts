@@ -1222,11 +1222,31 @@ export const whoami = async (): Promise<Profile> => {
         console.warn('Failed to fetch clan membership:', membershipError.message);
     }
 
-    if (membership && membership.clan_id) {
-        resolvedClanId = membership.clan_id;
-        resolvedClanRole = membership.role as ClanRole;
-        resolvedCustomTitle = membership.custom_title;
-        const clanRecord = Array.isArray(membership.clans) ? membership.clans[0] : membership.clans;
+    let resolvedMembership = membership;
+
+    // Fallback: use clan_member_scores view if the direct table query fails (e.g., RLS
+    // restrictions or table issues). This keeps clan info visible on the dashboard.
+    if ((!resolvedMembership || !resolvedMembership.clan_id) && membershipError) {
+        const { data: membershipFromScores, error: membershipScoresError } = await supabase
+            .from('clan_member_scores')
+            .select('clan_id, role, custom_title')
+            .eq('user_id', profile.id)
+            .maybeSingle();
+
+        if (membershipScoresError && membershipScoresError.code !== 'PGRST116') {
+            console.warn('Fallback clan membership lookup failed:', membershipScoresError.message);
+        }
+
+        if (membershipFromScores?.clan_id) {
+            resolvedMembership = membershipFromScores as typeof membership;
+        }
+    }
+
+    if (resolvedMembership && resolvedMembership.clan_id) {
+        resolvedClanId = resolvedMembership.clan_id;
+        resolvedClanRole = resolvedMembership.role as ClanRole;
+        resolvedCustomTitle = resolvedMembership.custom_title;
+        const clanRecord = Array.isArray(resolvedMembership.clans) ? resolvedMembership.clans[0] : resolvedMembership.clans;
         resolvedClanName = clanRecord?.name ?? null;
     }
 
