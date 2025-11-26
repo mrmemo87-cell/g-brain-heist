@@ -124,7 +124,7 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
       .lockdown-map-region polygon,
       .lockdown-map-region polyline {
         transition: fill 0.25s linear, opacity 0.35s ease, stroke 0.3s ease;
-        pointer-events: none;
+        pointer-events: auto;
       }
       
       .lockdown-map-region:hover path,

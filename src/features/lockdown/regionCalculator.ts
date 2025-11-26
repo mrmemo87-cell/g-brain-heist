@@ -16,6 +16,9 @@ const REGION_NAME_OVERRIDES: Partial<Record<typeof REGION_IDS[number], string>> 
   region_2: "Quantum Nexus",
 };
 
+const isValidRegionId = (regionId?: string): regionId is (typeof REGION_IDS)[number] =>
+  Boolean(regionId && REGION_IDS.includes(regionId as (typeof REGION_IDS)[number]));
+
 export const REGION_NAMES: Record<string, string> = REGION_IDS.reduce(
   (acc, regionId, index) => {
     acc[regionId] = REGION_NAME_OVERRIDES[regionId] ?? `Region ${index + 1}`;
@@ -68,9 +71,10 @@ export const calculateRegionStats = (state: GameState): Record<string, RegionSta
   const regionClanData: Record<string, Record<string, { correct: number; total: number; players: PlayerState[] }>> = {};
 
   Object.values(state.players).forEach(player => {
-    // Assign region based on entry route or round-robin
-    const regionIndex = Math.abs(player.id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)) % REGIONS.length;
-    const regionId = REGIONS[regionIndex];
+    // Allow explicit region assignment for UX interactions; otherwise keep deterministic fallback
+    const regionId = isValidRegionId(player.currentRegion)
+      ? player.currentRegion
+      : REGIONS[Math.abs(player.id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)) % REGIONS.length];
 
     // Skip if no clan
     if (!player.clanId || !player.clanName) return;
@@ -96,18 +100,19 @@ export const calculateRegionStats = (state: GameState): Record<string, RegionSta
   // Calculate percentages for each region
   Object.entries(regionClanData).forEach(([regionId, clans]) => {
     const clanStatsArray: ClanStats[] = [];
-    let totalAnswers = 0;
+    let totalCorrectAnswers = 0;
 
-    // Calculate total answers in region
+    // Calculate total correct answers in region for fair control distribution
     Object.values(clans).forEach(clanData => {
-      totalAnswers += clanData.total;
+      totalCorrectAnswers += clanData.correct;
     });
 
     // Calculate percentages for each clan
     Object.entries(clans).forEach(([clanId, clanData]) => {
-      if (clanData.total === 0) return;
+      if (clanData.total === 0 || clanData.correct === 0) return;
 
-      const percentage = totalAnswers > 0 ? (clanData.total / totalAnswers) * 100 : 0;
+      // Control is based on contribution of correct answers, not just volume of attempts
+      const percentage = totalCorrectAnswers > 0 ? (clanData.correct / totalCorrectAnswers) * 100 : 0;
       const accuracy = (clanData.correct / clanData.total) * 100;
 
       // Get clan name from first player
@@ -126,8 +131,15 @@ export const calculateRegionStats = (state: GameState): Record<string, RegionSta
       });
     });
 
-    // Sort by percentage (descending)
-    clanStatsArray.sort((a, b) => b.percentage - a.percentage);
+    // Sort by percentage (descending) then accuracy to break ties consistently
+    clanStatsArray.sort((a, b) => {
+      if (b.percentage === a.percentage) {
+        const aAccuracy = a.totalAnswers === 0 ? 0 : (a.correctAnswers / a.totalAnswers) * 100;
+        const bAccuracy = b.totalAnswers === 0 ? 0 : (b.correctAnswers / b.totalAnswers) * 100;
+        return bAccuracy - aAccuracy;
+      }
+      return b.percentage - a.percentage;
+    });
 
     regionStats[regionId] = {
       regionId,
