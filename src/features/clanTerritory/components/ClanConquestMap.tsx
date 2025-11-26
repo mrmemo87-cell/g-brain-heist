@@ -26,6 +26,8 @@ const REGION_LAYOUT: RegionLayout[] = [
   { id: "zone-4", path: "M60 180 H230 V330 H60 Z", labelPosition: { x: 85, y: 250 } },
   { id: "zone-5", path: "M260 170 H400 V330 H260 Z", labelPosition: { x: 280, y: 250 } },
   { id: "zone-6", path: "M420 200 H580 V340 H420 Z", labelPosition: { x: 445, y: 280 } },
+  { id: "zone-7", path: "M40 360 H220 V480 H40 Z", labelPosition: { x: 80, y: 420 } },
+  { id: "zone-8", path: "M260 360 H580 V480 H260 Z", labelPosition: { x: 380, y: 420 } },
 ];
 
 const hexToRgba = (hex: string, alpha: number) => {

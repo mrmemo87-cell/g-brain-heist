@@ -41,6 +41,8 @@ export const ZONES: Zone[] = [
   { id: "zone-4", name: "Data Vault", baseValue: 200 },
   { id: "zone-5", name: "Power Grid", baseValue: 100 },
   { id: "zone-6", name: "Network Core", baseValue: 180 },
+  { id: "zone-7", name: "Quantum Nexus", baseValue: 220 },
+  { id: "zone-8", name: "Signal Chamber", baseValue: 190 },
 ];
 
 export const CONFIG = {

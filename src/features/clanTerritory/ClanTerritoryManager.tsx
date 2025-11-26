@@ -5,6 +5,7 @@ import { ClanTerritoryStudentView } from "./components/ClanTerritoryStudentView"
 import { QuestionSelectionModal } from "./components/QuestionSelectionModal";
 import { ClanTerritoryGameState, ClanId, getClanColor } from "./clanTerritoryTypes";
 import { INITIAL_STATE } from "./clanTerritoryEngine";
+import { supabase } from "../../../services/supabaseClient";
 
 interface ClanTerritoryManagerProps {
   onExit: () => void;
@@ -12,6 +13,8 @@ interface ClanTerritoryManagerProps {
   playerName?: string;
   clanId?: string | null;
   clanName?: string | null;
+  onRefreshProfile?: () => Promise<void>;
+  onGoToClan?: () => void;
 }
 
 export const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
@@ -20,6 +23,8 @@ export const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   playerName = "Agent",
   clanId,
   clanName,
+  onRefreshProfile,
+  onGoToClan,
 }) => {
   const [transport] = useState(() => new SupabaseClanTerritoryTransport());
   const [gameState, setGameState] = useState<ClanTerritoryGameState>(INITIAL_STATE);
@@ -37,11 +42,94 @@ export const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   } | null>(null);
   const [showQuestionSelection, setShowQuestionSelection] = useState(false);
   const [selectedQuestions, setSelectedQuestions] = useState<any[]>([]);
+  const [clanLoadTimeout, setClanLoadTimeout] = useState(false);
+  const [isRefreshingProfile, setIsRefreshingProfile] = useState(false);
+
+  const handleRefreshProfile = async () => {
+    setIsRefreshingProfile(true);
+    try {
+      // Try to fetch clan data directly first (fast)
+      await fetchClanDataDirectly();
+      
+      // Also refresh the full profile if callback is available
+      if (onRefreshProfile) {
+        await onRefreshProfile();
+      }
+      setClanLoadTimeout(false);
+    } catch (error) {
+      console.error("Failed to refresh profile:", error);
+    } finally {
+      setIsRefreshingProfile(false);
+    }
+  };
+
+  // Fetch clan data directly from database on mount and when refreshing
+  const fetchClanDataDirectly = async () => {
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) return;
+
+      // Fetch clan_id from clan_members table
+      const { data: membership, error: membershipError } = await supabase
+        .from('clan_members')
+        .select('clan_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (membershipError) {
+        console.error('Error fetching clan membership:', membershipError);
+        return;
+      }
+
+      if (!membership?.clan_id) {
+        // User is not in a clan
+        return;
+      }
+
+      // Fetch clan name and color from clans table
+      const { data: clan, error: clanError } = await supabase
+        .from('clans')
+        .select('id, name, color')
+        .eq('id', membership.clan_id)
+        .single();
+
+      if (clanError) {
+        console.error('Error fetching clan details:', clanError);
+        return;
+      }
+
+      if (clan?.id && clan?.name) {
+        setResolvedClanId(clan.id as ClanId);
+        setResolvedClanName(clan.name);
+        setClanLoadTimeout(false);
+      }
+    } catch (error) {
+      console.error('Failed to fetch clan data:', error);
+    }
+  };
+
+  // On mount, try to fetch clan data directly (don't wait for props)
+  useEffect(() => {
+    fetchClanDataDirectly();
+  }, []);
 
   useEffect(() => {
-    if (clanId) setResolvedClanId(clanId);
-    if (clanName) setResolvedClanName(clanName);
+    // Reactive update: whenever props change, update the resolved clan data
+    // This prevents students from getting stuck on "Waiting for profile clan assignment"
+    setResolvedClanId(clanId ?? null);
+    setResolvedClanName(clanName ?? null);
+    setClanLoadTimeout(false); // Reset timeout when clan data updates
   }, [clanId, clanName]);
+
+  // If student is waiting too long for clan assignment, show timeout message
+  useEffect(() => {
+    if (!isTeacher && discoveredRoom && !resolvedClanId && !resolvedClanName) {
+      const timer = setTimeout(() => {
+        setClanLoadTimeout(true);
+      }, 8000); // Show timeout after 8 seconds of waiting
+      return () => clearTimeout(timer);
+    }
+  }, [isTeacher, discoveredRoom, resolvedClanId, resolvedClanName]);
 
   // Discovery
   useEffect(() => {
@@ -85,7 +173,7 @@ export const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     if (!discoveredRoom) return;
     try {
       if (!resolvedClanId || !resolvedClanName) {
-        throw new Error("Missing clan metadata for this profile");
+        throw new Error("You must be in a clan to join the Arena. Go to the Clans section to join a clan first.");
       }
       const pid = await transport.joinRoom(
         discoveredRoom,
@@ -104,7 +192,7 @@ export const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       setMode("player");
     } catch (e) {
       console.error("Failed to join", e);
-      alert("Failed to join arena. Confirm your clan assignment or ask the teacher to reopen.");
+      alert("Failed to join arena: " + (e instanceof Error ? e.message : "Unknown error"));
     }
   };
 
@@ -239,9 +327,34 @@ export const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                     >
                       {resolvedClanName}
                     </div>
+                  ) : clanLoadTimeout ? (
+                    <div className="space-y-3">
+                      <div className="p-3 rounded border border-dashed border-red-700 bg-red-950/30 text-center text-red-400 text-sm">
+                        ⚠️ You must be in a clan to join the Arena. Go to the Clans section to join a clan first.
+                      </div>
+                      <div className="flex gap-2">
+                        {onGoToClan && (
+                          <button
+                            onClick={onGoToClan}
+                            className="flex-1 py-2 bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded text-sm transition-colors"
+                          >
+                            🥇 Go to Clans
+                          </button>
+                        )}
+                        {onRefreshProfile && (
+                          <button
+                            onClick={handleRefreshProfile}
+                            disabled={isRefreshingProfile}
+                            className="flex-1 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:cursor-not-allowed text-white font-semibold rounded text-sm transition-colors"
+                          >
+                            {isRefreshingProfile ? "Refreshing..." : "🔄 Retry"}
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   ) : (
-                    <div className="p-3 rounded border border-dashed border-slate-700 bg-slate-900/30 text-center text-slate-500">
-                      Waiting for profile clan assignment
+                    <div className="p-3 rounded border border-dashed border-slate-700 bg-slate-900/30 text-center text-slate-500 animate-pulse">
+                      ⏳ Loading clan assignment...
                     </div>
                   )}
                 </div>
