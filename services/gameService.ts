@@ -2821,7 +2821,18 @@ export const clan_approve_join_request = async (requestId: string): Promise<Clan
         throw new Error('Failed to finalize approval.');
     }
 
-    return await clan_details() as Clan;
+    try {
+        const updatedClan = await clan_details();
+        if (!updatedClan) {
+            console.warn('clan_details returned null after approval, creating minimal response');
+            return { id: request.clan_id } as Clan;
+        }
+        return updatedClan;
+    } catch (error) {
+        console.error('Error fetching updated clan after approval:', error);
+        // Return a minimal clan object if clan_details fails
+        return { id: request.clan_id } as Clan;
+    }
 };
 
 export const clan_reject_join_request = async (requestId: string): Promise<boolean> => {
@@ -2865,20 +2876,6 @@ export const clan_details = async (): Promise<Clan | null> => {
 
     if (membershipError && membershipError.code !== 'PGRST116') {
         console.error('Failed to resolve clan membership via clan_members:', membershipError);
-    }
-
-    if (!clanId) {
-        const { data: profileRow, error: profileError } = await supabase
-            .from('users')
-            .select('clan_id')
-            .eq('id', user.id)
-            .maybeSingle();
-
-        if (profileError && profileError.code !== 'PGRST116') {
-            console.error('Failed to resolve clan via users table:', profileError);
-        }
-
-        clanId = profileRow?.clan_id ?? null;
     }
 
     if (!clanId) {

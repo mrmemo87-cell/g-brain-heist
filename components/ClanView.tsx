@@ -136,6 +136,30 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
             void loadPendingJoinRequests();
         }
     }, [activeTab, clan?.id, isPrivileged]);
+
+    useEffect(() => {
+        if (!isPrivileged || !clan?.id) return;
+        
+        const checkPendingRequests = async () => {
+            try {
+                const requests = await GameService.clan_get_pending_join_requests();
+                setPendingApprovals(requests);
+                onPendingCountChange?.(requests.length);
+            } catch (error) {
+                // Silent fail - just don't update the badge
+            }
+        };
+
+        // Check immediately
+        void checkPendingRequests();
+
+        // Then poll every 5 seconds
+        const interval = setInterval(() => {
+            void checkPendingRequests();
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [isPrivileged, clan?.id, onPendingCountChange]);
   
   const handleDeposit = async () => {
     const amount = parseInt(depositAmount, 10);
@@ -262,8 +286,11 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
           const updatedClan = await GameService.clan_approve_join_request(requestId);
           setClan(updatedClan);
           addToast("Join request approved.", "success");
+          // Refresh pending requests immediately
+          await new Promise(resolve => setTimeout(resolve, 500));
           await loadPendingJoinRequests();
       } catch (error: any) {
+          console.error('Error approving request:', error);
           addToast(error?.message || "Failed to approve request.", "error");
       } finally {
           setProcessingRequestId(null);
