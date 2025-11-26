@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrophyIcon, SyndicateRune } from './icons';
+import { BattleIcon, ShopIcon, TrophyIcon, SyndicateRune } from './icons';
 
 const silkRoadLogoPath = '/schools/silk_road/silk_road_logo.jpg';
 
@@ -218,11 +218,15 @@ const MainActions: React.FC<MainActionsProps> = ({
             <ActionButton
               onClick={onStartPvp}
               icon={
-                <span
-                  aria-hidden
-                  className="text-3xl text-rose-100 drop-shadow-[0_0_12px_rgba(255,60,90,0.9)]"
-                >
-                  ⚔️
+                <span className="relative flex items-center justify-center">
+                  <span
+                    aria-hidden
+                    className="absolute inset-0 rounded-2xl bg-gradient-to-br from-rose-500/25 via-rose-600/20 to-transparent blur-md animate-pulse"
+                  />
+                  <BattleIcon
+                    aria-hidden
+                    className="relative h-9 w-9 text-rose-50 drop-shadow-[0_0_16px_rgba(255,70,90,0.95)]"
+                  />
                 </span>
               }
               label="Launch Attack"
@@ -251,7 +255,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             )}
             <ActionButton
               onClick={onVisitShop}
-              icon={<span aria-hidden className="text-3xl"></span>}
+              icon={<ShopIcon aria-hidden className="h-8 w-8 text-emerald-100 drop-shadow-[0_0_10px_rgba(22,226,161,0.65)]" />}
               label="Visit Shop"
               color="22, 226, 161"
               glowClass="glow-success"
