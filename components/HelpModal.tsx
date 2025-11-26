@@ -247,7 +247,8 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
           <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 sm:p-4">
             <h3 className="text-base sm:text-lg font-bold text-yellow-400 mb-2">🎯 What Are Achievements?</h3>
             <p>Special milestones and challenges that reward you for accomplishments!</p>
-            <p className="mt-2">Earn badges, XP, coins, and exclusive rewards.</p>
+            <p className="mt-2">Earn badges, XP, coins, and exclusive rewards for consistent play.</p>
+            <p className="mt-2">Newly earned achievements trigger an on-screen toast so you never miss a reward.</p>
           </div>
 
           <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3 sm:p-4">
@@ -264,10 +265,10 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
 
           <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-3 sm:p-4">
             <h3 className="text-base sm:text-lg font-bold text-cyan-400 mb-2">🎁 Rewards</h3>
-            <p>• Bonus XP and Coins</p>
-            <p>• Exclusive titles and badges</p>
-            <p>• Special items and bonuses</p>
-            <p>• Bragging rights!</p>
+            <p>• Bonus XP and coins to accelerate leveling</p>
+            <p>• Exclusive titles and badges for profile flair</p>
+            <p>• Special items, boosts, and unlockables</p>
+            <p>• Bragging rights backed by visible proof</p>
           </div>
 
           <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 sm:p-4">
@@ -277,6 +278,24 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
               <li>Which achievements you've unlocked</li>
               <li>Progress toward locked achievements</li>
               <li>Total achievement score</li>
+            </ul>
+          </div>
+
+          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-bold text-blue-400 mb-2">✅ How to Use</h3>
+            <ul className="list-disc list-inside space-y-1">
+              <li>Open the <strong>Achievements</strong> panel from the dashboard.</li>
+              <li>Let the system auto-check your latest progress—unlocks appear instantly.</li>
+              <li>Claim rewards by viewing newly earned achievements and keep playing to push the next milestone.</li>
+            </ul>
+          </div>
+
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-bold text-red-400 mb-2">💡 Pro Tips</h3>
+            <ul className="list-disc list-inside space-y-1">
+              <li>Mix questing and PvP to progress multiple achievement categories at once.</li>
+              <li>Check in daily to keep streak achievements alive and grab easy coin boosts.</li>
+              <li>Use earned rewards immediately on boosters or shields to snowball faster wins.</li>
             </ul>
           </div>
         </div>
