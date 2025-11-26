@@ -309,7 +309,16 @@ BEGIN
          COALESCE(u.coins, 0)::INT,
          COALESCE(u.streak, 0)::INT,
          u.batch,
-         COALESCE(u.grade::INT, 0)::INT
+         COALESCE(
+           CASE 
+             WHEN u.grade IS NULL THEN 0
+             WHEN u.grade = '' THEN 0
+             WHEN u.grade = 'NULL' THEN 0
+             WHEN u.grade ~ '^\d+$' THEN u.grade::INT
+             ELSE 0
+           END,
+           0
+         )
   FROM users u
   WHERE u.batch = p_batch
     AND COALESCE(u.is_banned, FALSE) = FALSE

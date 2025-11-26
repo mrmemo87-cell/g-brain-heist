@@ -455,7 +455,16 @@ BEGIN
          coalesce(u.coins, 0),
          coalesce(u.streak, 0),
          u.batch,
-         coalesce(u.grade::int, 0)::INT
+         coalesce(
+           CASE 
+             WHEN u.grade IS NULL THEN 0
+             WHEN u.grade = '' THEN 0
+             WHEN u.grade = 'NULL' THEN 0
+             WHEN u.grade ~ '^\d+$' THEN u.grade::int
+             ELSE 0
+           END,
+           0
+         )
   from users u
   where u.batch = p_batch
     and coalesce(u.is_banned, false) = false
@@ -880,52 +889,52 @@ begin
   get diagnostics v_bot_count = row_count;
 
   if to_regclass('public.activity_reactions') is not null then
-    delete from activity_reactions;
+    delete from activity_reactions where true;
     get diagnostics v_activity_reaction_count = row_count;
   end if;
 
   if to_regclass('public.activities') is not null then
-    delete from activities;
+    delete from activities where true;
     get diagnostics v_activity_count = row_count;
   end if;
 
   if to_regclass('public.inventory') is not null then
-    delete from inventory;
+    delete from inventory where true;
     get diagnostics v_inventory_count = row_count;
   end if;
 
   if to_regclass('public.clan_chat') is not null then
-    delete from clan_chat;
+    delete from clan_chat where true;
     get diagnostics v_clan_chat_count = row_count;
   end if;
 
   if to_regclass('public.clan_members') is not null then
-    delete from clan_members;
+    delete from clan_members where true;
     get diagnostics v_clan_member_count = row_count;
   end if;
 
   if to_regclass('public.clan_buffs') is not null then
-    delete from clan_buffs;
+    delete from clan_buffs where true;
     get diagnostics v_clan_buff_count = row_count;
   end if;
 
   if to_regclass('public.clans') is not null then
-    delete from clans;
+    delete from clans where true;
     get diagnostics v_clan_count = row_count;
   end if;
 
   if to_regclass('public.tasks') is not null then
-    delete from tasks;
+    delete from tasks where true;
     get diagnostics v_task_count = row_count;
   end if;
 
   if to_regclass('public.task_progress') is not null then
-    delete from task_progress;
+    delete from task_progress where true;
     get diagnostics v_task_progress_count = row_count;
   end if;
 
   if to_regclass('public.sessions') is not null then
-    delete from sessions;
+    delete from sessions where true;
     get diagnostics v_session_count = row_count;
   end if;
 
@@ -941,7 +950,7 @@ begin
   end if;
 
   if to_regclass('public.shop_purchases') is not null then
-    delete from shop_purchases;
+    delete from shop_purchases where true;
     get diagnostics v_shop_purchase_count = row_count;
   end if;
 
