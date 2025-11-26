@@ -101,6 +101,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   const [pendingApprovals, setPendingApprovals] = useState<ClanJoinRequest[]>([]);
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
   const [processingRequestId, setProcessingRequestId] = useState<string | null>(null);
+  const [isCancelingRequest, setIsCancelingRequest] = useState(false);
   
   const myMemberInfo = clan?.members.find(m => m.user_id === profile.id);
     const isPrivileged = !!myMemberInfo && ['leader', 'officer', 'moderator'].includes(myMemberInfo.role);
@@ -310,6 +311,20 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
       }
   };
 
+  const handleCancelJoinRequest = async () => {
+      if (!pendingJoinRequest) return;
+      setIsCancelingRequest(true);
+      try {
+          await GameService.clan_cancel_join_request(pendingJoinRequest.id);
+          setPendingJoinRequest(null);
+          addToast("Join request canceled.", "success");
+      } catch (error: any) {
+          addToast(error?.message || "Failed to cancel request.", "error");
+      } finally {
+          setIsCancelingRequest(false);
+      }
+  };
+
   const openMembersModal = async (clanId: string, clanName: string, clanNotice?: string) => {
       console.log('Opening members modal for:', clanName, clanId);
       setMemberModalError(null);
@@ -449,9 +464,21 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
         <h2 className="font-heading text-4xl mb-4 text-amber-400">Join the Syndicate</h2>
         <p className="text-gray-400 mb-8">You are not currently part of a clan. Create your own syndicate or join an existing one to collaborate with other agents.</p>
         {pendingJoinRequest && (
-            <div className="card-glass p-4 mb-4 border border-amber-400/40 text-left">
-                <p className="font-heading text-lg text-amber-300">Request Pending</p>
-                <p className="text-sm text-gray-300">Awaiting approval to join <span className="font-semibold text-white">{pendingJoinRequest.clan_name || 'a clan'}</span>. A leader or moderator will review your request soon.</p>
+            <div className="card-glass p-4 mb-4 border border-amber-400/40">
+                <div className="flex items-start justify-between gap-4">
+                    <div className="text-left">
+                        <p className="font-heading text-lg text-amber-300">Request Pending</p>
+                        <p className="text-sm text-gray-300">Awaiting approval to join <span className="font-semibold text-white">{pendingJoinRequest.clan_name || 'a clan'}</span>. A leader or moderator will review your request soon.</p>
+                    </div>
+                    <button
+                        onClick={handleCancelJoinRequest}
+                        disabled={isCancelingRequest}
+                        className="shrink-0 px-3 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-400 text-red-200 font-semibold rounded-lg transition-all disabled:opacity-50"
+                        title="Cancel your join request"
+                    >
+                        {isCancelingRequest ? '...' : '✕'}
+                    </button>
+                </div>
             </div>
         )}
         <div className="card-glass p-6 space-y-4">

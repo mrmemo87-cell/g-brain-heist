@@ -2863,6 +2863,45 @@ export const clan_reject_join_request = async (requestId: string): Promise<boole
     return mockApiCall(true);
 };
 
+export const clan_cancel_join_request = async (requestId: string): Promise<boolean> => {
+    const user = await getCurrentUser();
+    
+    const { data: request, error: fetchError } = await supabase
+        .from('clan_join_requests')
+        .select('user_id, status')
+        .eq('id', requestId)
+        .single();
+
+    if (fetchError) {
+        console.error('Error fetching request to cancel:', fetchError);
+        throw new Error('Join request not found.');
+    }
+
+    if (!request) {
+        throw new Error('Join request not found.');
+    }
+
+    if (request.user_id !== user.id) {
+        throw new Error('You can only cancel your own join requests.');
+    }
+
+    if (request.status !== 'pending') {
+        throw new Error('Only pending requests can be canceled.');
+    }
+
+    const { error: deleteError } = await supabase
+        .from('clan_join_requests')
+        .delete()
+        .eq('id', requestId);
+
+    if (deleteError) {
+        console.error('Failed to cancel join request:', deleteError);
+        throw new Error('Failed to cancel request.');
+    }
+
+    return mockApiCall(true);
+};
+
 export const clan_details = async (): Promise<Clan | null> => {
     const user = await getCurrentUser();
 
