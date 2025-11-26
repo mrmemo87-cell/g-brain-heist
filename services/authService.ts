@@ -75,6 +75,7 @@ export const signup = async (
             data: {
                 username,
                 role,
+                grade,
                 batch: role === 'student' ? batch : undefined,
                 school,
             }
@@ -97,11 +98,12 @@ export const signup = async (
             username,
             role,
             avatar_url: `https://picsum.photos/seed/${username}/100/100`,
+            school: school ?? null,
         };
-        
+
         // Only add batch for students
         if (role === 'student') {
-            profileData.grade = grade ?? 8;
+            profileData.grade = grade ?? 6;
             profileData.batch = batch;
         } else {
             profileData.grade = null;
@@ -203,8 +205,9 @@ export const createOAuthProfile = async (): Promise<void> => {
         email: user.email,
         username: username,
         role: 'student', // Default to student for OAuth users
-        grade: 8 as Grade,
-        batch: '8A' as Batch, // Default batch
+        grade: 6 as Grade,
+        batch: '6A' as Batch, // Default batch
+        school: user.user_metadata?.['school'] || 'Silk Road International School',
         avatar_url: user.user_metadata?.['avatar_url'] || `https://picsum.photos/seed/${username}/100/100`,
     };
 
