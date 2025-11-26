@@ -143,6 +143,9 @@ export const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   }, [isTeacher, mode, transport]);
 
   useEffect(() => {
+    // Set up state listener for all roles when roomId is available
+    // For hosts, this may run after handleQuestionsSelected already set it up,
+    // but calling onGameState again just re-syncs the callback (harmless)
     if (roomId) {
       const unsubscribe = transport.onGameState(roomId, setGameState);
       return () => unsubscribe();
@@ -165,6 +168,11 @@ export const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     setSelectedQuestions(questions);
     setShowQuestionSelection(false);
     const id = await transport.createRoom();
+    
+    // IMPORTANT: Set up state listener BEFORE sending any actions or setting roomId
+    // This prevents race conditions where JOIN actions are processed before the callback is set
+    transport.onGameState(id, setGameState);
+    
     // Send questions to game state
     transport.sendAction(id, { type: "SET_QUESTIONS", payload: { questions } });
     setRoomId(id);
