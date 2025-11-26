@@ -33,10 +33,15 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false);
   const [isResettingAll, setIsResettingAll] = useState(false);
 
-  const gradeOptions: Grade[] = [8, 9];
+  const gradeOptions: Grade[] = [6, 7, 8, 9, 10, 11, 12];
   const batchByGrade: Record<Grade, Batch[]> = {
+    6: ['6A', '6B', '6C', 'N/A'],
+    7: ['7A', '7B', '7C', 'N/A'],
     8: ['8A', '8B', '8C', 'N/A'],
     9: ['9A', '9B', '9C', 'N/A'],
+    10: ['10A', '10B', '10C', 'N/A'],
+    11: ['11A', '11B', '11C', 'N/A'],
+    12: ['12A', '12B', '12C', 'N/A'],
   };
 
   useEffect(() => {
@@ -607,7 +612,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                     }
                     if (typeof user.grade === 'string' && user.grade.trim() !== '') {
                       const parsed = parseInt(user.grade, 10);
-                      return (parsed === 8 || parsed === 9) ? (parsed as Grade) : null;
+                      return parsed >= 6 && parsed <= 12 ? (parsed as Grade) : null;
                     }
                     return null;
                   })();

@@ -44,8 +44,13 @@ const IeltsHome = React.lazy(() => import('./src/pages/ielts/IeltsHome'));
 const ClanTerritoryManager = React.lazy(() => import('./src/features/clanTerritory/ClanTerritoryManager').then(module => ({ default: module.ClanTerritoryManager })));
 
 const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
+  6: ['6A', '6B', '6C', 'N/A'],
+  7: ['7A', '7B', '7C', 'N/A'],
   8: ['8A', '8B', '8C', 'N/A'],
   9: ['9A', '9B', '9C', 'N/A'],
+  10: ['10A', '10B', '10C', 'N/A'],
+  11: ['11A', '11B', '11C', 'N/A'],
+  12: ['12A', '12B', '12C', 'N/A'],
 };
 const DEFAULT_BATCH: Batch = 'N/A';
 interface AppProps {
