@@ -7,6 +7,7 @@ import {
 } from "./lockdownTypes";
 import { LockdownTransport, RoomId } from "../../lib/lockdownTransport";
 import { LockdownMap } from "./LockdownMap";
+import { calculateRegionStats } from "./regionCalculator";
 
 const alarmBadges: Record<AlarmLevel, string> = {
   [AlarmLevel.LOW]: "bg-emerald-600",
@@ -41,6 +42,11 @@ export const LockdownTeacherView: React.FC<LockdownTeacherViewProps> = ({
   const totalCoins = useMemo(() => players.reduce((sum, player) => sum + player.coins, 0), [players]);
   const remainingSeconds = Math.ceil((gameState?.remainingTimeMs ?? 0) / 1000);
   const totalDurationSeconds = Math.max(1, Math.ceil((gameState?.roomSettings.durationMs ?? 0) / 1000));
+
+  const regionStats = useMemo(() => {
+    if (!gameState) return {};
+    return calculateRegionStats(gameState);
+  }, [gameState]);
 
   const renderPanicBadge = () => {
     if (!gameState) return null;
@@ -140,7 +146,7 @@ export const LockdownTeacherView: React.FC<LockdownTeacherViewProps> = ({
           <div className="flex flex-col gap-6 lg:col-span-2">
             <div className="rounded-3xl border border-slate-800/70 bg-slate-900/50 p-6 shadow-lg shadow-slate-950/40">
               <h2 className="text-lg font-bold tracking-tight sm:text-xl mb-4">Territory Map</h2>
-              <LockdownMap regionStats={gameState.regionStats} className="h-96" />
+              <LockdownMap regionStats={regionStats} className="h-96" />
             </div>
 
             <div className="rounded-3xl border border-slate-800/70 bg-slate-900/50 p-6 shadow-lg shadow-slate-950/40">

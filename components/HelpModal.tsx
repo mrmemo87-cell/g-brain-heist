@@ -9,6 +9,7 @@ type HelpSection =
   | 'quests'
   | 'pvp'
   | 'clans'
+  | 'lockdown'
   | 'shop'
   | 'achievements'
   | 'ap'
@@ -23,6 +24,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
     { id: 'quests', icon: '🧠', title: 'Quests & Questions' },
     { id: 'pvp', icon: '⚔️', title: 'PvP Raids' },
     { id: 'clans', icon: '🏰', title: 'Clans' },
+    { id: 'lockdown', icon: '🔒', title: 'Lockdown Mode' },
     { id: 'shop', icon: '🛒', title: 'Shop & Items' },
     { id: 'achievements', icon: '🏆', title: 'Achievements' },
     { id: 'ap', icon: '⚡', title: 'Action Points (AP)' },
@@ -183,6 +185,73 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
             <p>• Members can donate coins to clan vault</p>
             <p>• Used for future clan upgrades and bonuses</p>
             <p>• Shows clan's collective wealth</p>
+          </div>
+        </div>
+      </div>
+    ),
+
+    lockdown: (
+      <div className="space-y-3 sm:space-y-4">
+        <h2 className="text-xl sm:text-2xl font-bold text-red-400">🔒 Lockdown Mode</h2>
+        <div className="space-y-2 sm:space-y-3 text-sm sm:text-base text-gray-300">
+          
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-bold text-red-400 mb-2">🎮 What is Lockdown?</h3>
+            <p>A <strong>team-based heist game mode</strong> where you and your clanmates work together to complete objectives and win massive rewards!</p>
+            <p className="mt-2">• Answer math questions to collect coins</p>
+            <p>• Control territory on the map</p>
+            <p>• Manage alarm levels</p>
+            <p>• Compete against other clans to win</p>
+          </div>
+
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-bold text-amber-400 mb-2">🏆 The Rewards (If You Win)</h3>
+            <div className="space-y-2 text-sm">
+              <p><strong>Total Reward Pool per Clan:</strong></p>
+              <p className="ml-4">💰 <strong>100,000 coins</strong> to split among all winners</p>
+              <p className="ml-4">✨ <strong>5,000 XP</strong> to split among all winners</p>
+              <p className="ml-4">💎 <strong>5 gems</strong> to split (only top performers get them!)</p>
+            </div>
+          </div>
+
+          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-bold text-blue-400 mb-2">🎯 How Rewards Are Split</h3>
+            <p className="mb-2"><strong>Rule: Only winning clans get rewarded!</strong></p>
+            <p>Each player receives a share based on their:</p>
+            <p className="ml-4">📊 <strong>Battle Score</strong> - Points earned from answering questions</p>
+            <p className="ml-4">🎓 <strong>Accuracy</strong> - Need 50%+ accuracy for gems</p>
+            <p className="ml-4">💯 <strong>Participation</strong> - Must answer 5+ questions for gem eligibility</p>
+          </div>
+
+          <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-bold text-green-400 mb-2">📈 Example: 3 Players Win Together</h3>
+            <div className="space-y-1 text-xs sm:text-sm font-mono bg-black/20 p-3 rounded">
+              <p>Alice: 80% accuracy, 10 questions → <strong>20,000 coins, 1,000 XP, 1 gem</strong> ✅</p>
+              <p>Bob: 37% accuracy, 8 questions → <strong>20,000 coins, 833 XP, 0 gems</strong></p>
+              <p>Charlie: 50% accuracy, 2 questions → <strong>16,666 coins, 416 XP, 0 gems</strong></p>
+            </div>
+            <p className="mt-2 text-xs sm:text-sm">💡 <strong>Tip:</strong> Higher accuracy + more questions = better rewards!</p>
+          </div>
+
+          <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-bold text-purple-400 mb-2">⚠️ Important Rules</h3>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li>Only clans that control the most territory win</li>
+              <li>Ties = Nobody wins (everyone gets 0 rewards)</li>
+              <li>Minimum contribution required to receive rewards</li>
+              <li>Gems only for high-accuracy players (50%+ correct)</li>
+              <li>Max 20,000 coins & 1,000 XP per player (even if share is higher)</li>
+            </ul>
+          </div>
+
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-bold text-yellow-400 mb-2">🚀 Strategy Tips</h3>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li>Play with your full clan - more players = more territory control</li>
+              <li>Focus on accuracy over speed - quality beats quantity</li>
+              <li>Answer at least 5 questions for gem eligibility</li>
+              <li>Communicate with teammates to maximize team score</li>
+            </ul>
           </div>
         </div>
       </div>
