@@ -45,7 +45,7 @@ const getItemIcon = (kind: InventoryItem['kind']) => {
   }
 };
 
-const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: string) => void, isActivating: boolean, quantity: number, onDeactivateNeon?: () => void, isDeactivatingNeon?: boolean, onDeactivateFlicker?: () => void, isDeactivatingFlicker?: boolean }> = ({ item, onActivate, isActivating, quantity, onDeactivateNeon, isDeactivatingNeon, onDeactivateFlicker, isDeactivatingFlicker }) => {
+const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: string) => void, isActivating: boolean, quantity: number, onDeactivateNeon?: () => void, isDeactivatingNeon?: boolean, onDeactivateFlicker?: () => void, isDeactivatingFlicker?: boolean, onDeactivateGlitch?: () => void, isDeactivatingGlitch?: boolean }> = ({ item, onActivate, isActivating, quantity, onDeactivateNeon, isDeactivatingNeon, onDeactivateFlicker, isDeactivatingFlicker, onDeactivateGlitch, isDeactivatingGlitch }) => {
     const isUsable = item.state === 'unused' && (
         item.kind === 'booster' ||
         item.kind === 'major_booster' ||
@@ -168,6 +168,22 @@ const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: strin
             </button>
           </div>
         )}
+
+        {item.kind === 'cosmetic' && item.item_id === 'item_cosmetic_glitch' && item.state === 'active' && onDeactivateGlitch && (
+          <div className="rounded-2xl border border-green-500/60 bg-green-500/10 p-3 text-left text-xs text-green-100">
+            <p className="font-semibold text-green-200 mb-1">Deactivate Glitch Effect</p>
+            <p className="text-[11px] leading-relaxed text-green-100/80">
+              This permanently removes the digital glitch effect. You will need a new glitch effect purchase to turn it back on.
+            </p>
+            <button
+              onClick={onDeactivateGlitch}
+              disabled={isDeactivatingGlitch}
+              className="mt-3 w-full rounded-xl border border-green-400/70 bg-transparent px-3 py-2 font-heading text-[13px] font-semibold text-green-200 transition enabled:hover:bg-green-500/20 disabled:opacity-50"
+            >
+              {isDeactivatingGlitch ? 'Removing…' : 'Deactivate Forever'}
+            </button>
+          </div>
+        )}
             </div>
         </div>
     );
@@ -180,6 +196,7 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onN
   const [activatingId, setActivatingId] = useState<string | null>(null);
   const [neonDeactivating, setNeonDeactivating] = useState(false);
   const [flickerDeactivating, setFlickerDeactivating] = useState(false);
+  const [glitchDeactivating, setGlitchDeactivating] = useState(false);
 
   const fetchInventory = async () => {
     // No need to setLoading(true) here as it's called from initial load or after an action
@@ -275,6 +292,36 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onN
       addToast(error.message || 'Failed to deactivate flicker theme.', 'error');
     } finally {
       setFlickerDeactivating(false);
+    }
+  };
+
+  const handleDeactivateGlitch = async () => {
+    if (glitchDeactivating) {
+      return;
+    }
+
+    const confirmed = window.confirm('This permanently removes the glitch effect. You will need to purchase another glitch effect to reactivate it. Continue?');
+    if (!confirmed) {
+      return;
+    }
+
+    setGlitchDeactivating(true);
+    try {
+      await GameService.deactivate_glitch_effect();
+      addToast('Glitch effect permanently disabled.', 'warning');
+      setLoading(true);
+      await fetchInventory();
+
+      try {
+        const refreshedProfile = await GameService.whoami();
+        onProfileUpdate?.(refreshedProfile);
+      } catch (profileError) {
+        console.warn('Failed to refresh profile after glitch deactivation:', profileError);
+      }
+    } catch (error: any) {
+      addToast(error.message || 'Failed to deactivate glitch effect.', 'error');
+    } finally {
+      setGlitchDeactivating(false);
     }
   };
   
@@ -378,6 +425,8 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onN
                       isDeactivatingNeon={neonDeactivating}
                       onDeactivateFlicker={item.kind === 'cosmetic' && item.item_id === 'item_cosmetic_theme' && item.state === 'active' ? handleDeactivateFlicker : undefined}
                       isDeactivatingFlicker={flickerDeactivating}
+                      onDeactivateGlitch={item.kind === 'cosmetic' && item.item_id === 'item_cosmetic_glitch' && item.state === 'active' ? handleDeactivateGlitch : undefined}
+                      isDeactivatingGlitch={glitchDeactivating}
                     />
                   );
                 })}

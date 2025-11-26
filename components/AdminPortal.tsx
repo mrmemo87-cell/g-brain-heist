@@ -283,6 +283,22 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     }
   };
 
+  const resetUserAcademics = async (userId: string, username: string) => {
+    try {
+      const confirmReset = window.confirm(`Reset school, grade, and class for ${username}? They will need to re-select these when they next log in.`);
+      if (!confirmReset) {
+        return;
+      }
+
+      await CompetitionService.resetPlayerAcademics(userId);
+      addToast(`🏫 Reset school/grade/class for ${username}`, 'success');
+      setAllUsers(prev => prev.map(u => u.id === userId ? { ...u, school: null, grade: null, batch: null } : u));
+      setFilteredUsers(prev => prev.map(u => u.id === userId ? { ...u, school: null, grade: null, batch: null } : u));
+    } catch (error) {
+      addToast('Failed to reset academics', 'error');
+    }
+  };
+
   const sendAnnouncement = async () => {
     if (!announcementText.trim()) {
       addToast('Announcement text is empty', 'error');
@@ -728,6 +744,12 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                           className="bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(99,102,241,0.5)]"
                         >
                           ♻️ Reset Progress
+                        </button>
+                        <button
+                          onClick={() => resetUserAcademics(user.id, user.username)}
+                          className="bg-orange-600/30 hover:bg-orange-600/50 border border-orange-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(251,146,60,0.5)]"
+                        >
+                          🏫 Reset School/Grade/Class
                         </button>
                         <button
                           onClick={() => setUserBanState(user.id, user.username, !isBanned)}

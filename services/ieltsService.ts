@@ -1,105 +1,10 @@
 import { supabase } from './supabaseClient';
-
-export type IeltsModuleType = 'general' | 'academic';
-
-export interface IeltsSessionSummary {
-  id: string;
-  module: IeltsModuleType;
-  target_band: number | null;
-  created_at: string;
-  completed_at: string | null;
-  reference_code: string;
-  band_overall: number | null;
-  status: 'in_progress' | 'completed';
-}
-
-export interface IeltsSessionPayload {
-  id: string;
-  reference_code: string;
-  reading_block?: unknown;
-  listening_block?: unknown;
-  writing_task?: unknown;
-  target_band?: number | null;
-  module?: IeltsModuleType;
-  created_at?: string;
-  completed_at?: string | null;
-  band_overall?: number | null;
-}
-
-export interface IeltsQuestion {
-  id: string;
-  prompt: string;
-  type?: string;
-  options?: string[];
-}
-
-export interface IeltsReadingBlock {
-  title: string;
-  passage?: string;
-  questions: IeltsQuestion[];
-}
-
-export interface IeltsListeningBlock {
-  title: string;
-  audioScript?: string;
-  questions: IeltsQuestion[];
-}
-
-export interface IeltsWritingTask {
-  title?: string;
-  prompt: string;
-  bandTarget?: number | null;
-  wordLimit?: number | null;
-}
-
-export interface IeltsAnalyticsBreakdownRow {
-  questionId: string;
-  studentAnswer?: string | null;
-  correctAnswer?: string | null;
-  isCorrect: boolean;
-  explanation?: string | null;
-}
-
-export interface IeltsSectionAnalytics {
-  correct: number;
-  total: number;
-  breakdown: IeltsAnalyticsBreakdownRow[];
-}
-
-export interface IeltsWritingFeedback {
-  wordCount?: number | null;
-  strengths?: string[];
-  weaknesses?: string[];
-  suggestions?: string[];
-  originalAnswer?: string | null;
-  improvedAnswer?: string | null;
-}
-
-export interface IeltsAnalytics {
-  readingAnalytics?: IeltsSectionAnalytics;
-  listeningAnalytics?: IeltsSectionAnalytics;
-  writingFeedback?: IeltsWritingFeedback;
-  summaryText?: string | null;
-}
-
-export interface IeltsSessionRecord extends IeltsSessionSummary {
-  reading_block?: IeltsReadingBlock | null;
-  listening_block?: IeltsListeningBlock | null;
-  writing_task?: IeltsWritingTask | null;
-  reading_answers?: Record<string, string> | null;
-  listening_answers?: Record<string, string> | null;
-  writing_answer?: string | null;
-  analytics?: IeltsAnalytics | null;
-  band_reading?: number | null;
-  band_listening?: number | null;
-  band_writing?: number | null;
-}
 import type {
   IELTSUserProfile,
   IELTSReadingSet,
   IELTSReadingQuestion,
   IELTSListeningSet,
-  IELTSWritingTask,
+  IELTSWritingTask as IELTSWritingTaskType,
   IELTSSpeakingTask,
   IELTSMockTest,
   IELTSRecentAttempts,
@@ -110,95 +15,6 @@ import type {
   IELTSMockTestAttempt,
 } from '../types';
 
-export type IeltsModuleType = 'general' | 'academic';
-
-export interface IeltsSessionSummary {
-  id: string;
-  module: IeltsModuleType;
-  module_type?: IeltsModuleType | null;
-  created_at: string;
-  reference_code: string;
-  band_overall: number | null;
-  completed_at?: string | null;
-  status: 'in_progress' | 'completed';
-  reading?: unknown;
-  listening?: unknown;
-  writing?: unknown;
-}
-
-export interface IeltsQuestion {
-  id: string;
-  prompt: string;
-  type: 'mcq' | 'tfng' | string;
-  options?: string[];
-}
-
-export interface IeltsReadingBlock {
-  title: string;
-  passage?: string;
-  questions: IeltsQuestion[];
-}
-
-export interface IeltsListeningBlock {
-  title: string;
-  audioScript?: string;
-  questions: IeltsQuestion[];
-}
-
-export interface IeltsWritingTask {
-  title?: string;
-  prompt?: string;
-}
-
-export interface IeltsAnalyticsBreakdownRow {
-  questionId: string;
-  studentAnswer: string | null;
-  isCorrect: boolean;
-  correctAnswer: string | null;
-  explanation: string | null;
-}
-
-export interface IeltsReadingAnalytics {
-  correct: number;
-  total: number;
-  breakdown: IeltsAnalyticsBreakdownRow[];
-}
-
-export interface IeltsListeningAnalytics {
-  correct: number;
-  total: number;
-  breakdown: IeltsAnalyticsBreakdownRow[];
-}
-
-export interface IeltsWritingFeedback {
-  wordCount: number | null;
-  strengths?: string[];
-  weaknesses?: string[];
-  suggestions?: string[];
-  originalAnswer?: string;
-  improvedAnswer?: string;
-}
-
-export interface IeltsAnalytics {
-  readingAnalytics?: IeltsReadingAnalytics;
-  listeningAnalytics?: IeltsListeningAnalytics;
-  writingFeedback?: IeltsWritingFeedback;
-  summaryText?: string;
-}
-
-export interface IeltsSessionRecord extends IeltsSessionSummary {
-  reading_block?: IeltsReadingBlock | null;
-  listening_block?: IeltsListeningBlock | null;
-  writing_task?: IeltsWritingTask | null;
-  reading_answers?: Record<string, string> | null;
-  listening_answers?: Record<string, string> | null;
-  writing_answer?: string | null;
-  analytics?: IeltsAnalytics | null;
-  band_reading?: number | null;
-  band_listening?: number | null;
-  band_writing?: number | null;
-}
-
 interface EnsureProfileOptions {
   username?: string;
   fullName?: string | null;
@@ -206,7 +22,7 @@ interface EnsureProfileOptions {
 
 export type IeltsModuleType = 'general' | 'academic';
 
-export type IeltsSessionStatus = 'in-progress' | 'completed';
+export type IeltsSessionStatus = 'in_progress' | 'completed';
 
 export interface IeltsSessionSummary {
   id: string;
@@ -218,6 +34,9 @@ export interface IeltsSessionSummary {
   completed_at: string | null;
   band_overall: number | null;
   status: IeltsSessionStatus;
+  reading?: unknown;
+  listening?: unknown;
+  writing?: unknown;
 }
 
 export interface IeltsQuestion {
@@ -345,7 +164,7 @@ export const ensureIeltsProfile = async (
   }
 
   const normalizedEmail = user.email ? user.email.toLowerCase() : null;
-  const derivedFullName = options.fullName ?? user.user_metadata?.full_name ?? user.user_metadata?.name ?? null;
+  const derivedFullName = options.fullName ?? user.user_metadata?.['full_name'] ?? user.user_metadata?.['name'] ?? null;
 
   if (existing) {
     const updates: Partial<IELTSUserProfile> = {};
@@ -376,9 +195,9 @@ export const ensureIeltsProfile = async (
 
   const desiredUsername =
     options.username ||
-    user.user_metadata?.ielts_username ||
-    user.user_metadata?.username ||
-    user.user_metadata?.full_name ||
+    user.user_metadata?.['ielts_username'] ||
+    user.user_metadata?.['username'] ||
+    user.user_metadata?.['full_name'] ||
     (user.email ? user.email.split('@')[0] : '') ||
     'ieltsstudent';
 
@@ -422,6 +241,7 @@ const normalizeSessionSummary = (
     id: session?.id,
     module: moduleValue,
     module_type: session?.module_type ?? moduleValue,
+    target_band: session?.target_band ?? null,
     created_at: session?.created_at ?? new Date().toISOString(),
     reference_code: session?.reference_code,
     band_overall: session?.band_overall ?? null,
@@ -476,7 +296,7 @@ export const fetchActiveListeningSets = async (): Promise<IELTSListeningSet[]> =
   return (data ?? []) as IELTSListeningSet[];
 };
 
-export const fetchActiveWritingTasks = async (): Promise<IELTSWritingTask[]> => {
+export const fetchActiveWritingTasks = async (): Promise<IELTSWritingTaskType[]> => {
   const { data, error } = await supabase
     .from('ielts_writing_tasks')
     .select('id, slug, task_type, title, prompt, bands_target, sample_answer, created_by, created_at, is_active')
@@ -484,7 +304,7 @@ export const fetchActiveWritingTasks = async (): Promise<IELTSWritingTask[]> => 
     .order('created_at', { ascending: false });
 
   handleSelectError(error, 'writing tasks');
-  return (data ?? []) as IELTSWritingTask[];
+  return (data ?? []) as IELTSWritingTaskType[];
 };
 
 export const fetchActiveSpeakingTasks = async (): Promise<IELTSSpeakingTask[]> => {

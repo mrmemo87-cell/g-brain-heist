@@ -3,7 +3,7 @@ import { supabase } from '../services/supabaseClient';
 import BackButton from './BackButton';
 import { ClanMember } from '../types';
 import AvatarWithFrame from './AvatarWithFrame';
-import { fetchNeonFrameOwners, fetchFlickerThemeOwners } from '../services/cosmeticService';
+import { fetchNeonFrameOwners, fetchFlickerThemeOwners, fetchGlitchEffectOwners } from '../services/cosmeticService';
 import { TrophyIcon } from './icons';
 
 
@@ -19,6 +19,7 @@ type PlayerLeaderboardEntry = {
   role?: string;
   active_cosmetic_frame?: 'neon' | null;
   active_cosmetic_theme?: 'flicker' | null;
+  active_cosmetic_effect?: 'glitch' | null;
 };
 
 type RankedPlayerEntry = PlayerLeaderboardEntry & { rank: number };
@@ -180,15 +181,17 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
         ...xpEntries.map(entry => entry.id),
         ...pvpEntries.map(entry => entry.id),
       ]));
-      const [neonOwners, flickerOwners] = await Promise.all([
+      const [neonOwners, flickerOwners, glitchOwners] = await Promise.all([
         fetchNeonFrameOwners(uniquePlayerIds),
         fetchFlickerThemeOwners(uniquePlayerIds),
+        fetchGlitchEffectOwners(uniquePlayerIds),
       ]);
 
       const decorateWithCosmetics = (entry: PlayerLeaderboardEntry): PlayerLeaderboardEntry => ({
         ...entry,
         active_cosmetic_frame: neonOwners.has(entry.id) ? 'neon' : null,
         active_cosmetic_theme: flickerOwners.has(entry.id) ? 'flicker' : null,
+        active_cosmetic_effect: glitchOwners.has(entry.id) ? 'glitch' : null,
       });
 
       setScoreLeaderboard(rankPlayers(scoreEntries.map(decorateWithCosmetics)).slice(0, 50));
@@ -223,14 +226,16 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
         custom_title: member.custom_title,
       }));
 
-      const [neonOwners, flickerOwners] = await Promise.all([
+      const [neonOwners, flickerOwners, glitchOwners] = await Promise.all([
         fetchNeonFrameOwners(members.map(member => member.user_id)),
         fetchFlickerThemeOwners(members.map(member => member.user_id)),
+        fetchGlitchEffectOwners(members.map(member => member.user_id)),
       ]);
       const membersWithCosmetics = members.map(member => ({
         ...member,
         active_cosmetic_frame: neonOwners.has(member.user_id) ? 'neon' : null,
         active_cosmetic_theme: flickerOwners.has(member.user_id) ? 'flicker' : null,
+        active_cosmetic_effect: glitchOwners.has(member.user_id) ? 'glitch' : null,
       }));
 
       setClanMembersModal({ clan, members: membersWithCosmetics, loading: false, error: null });
@@ -286,6 +291,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
             size="md"
             hasNeonFrame={entry.active_cosmetic_frame === 'neon'}
             hasGlitchTheme={entry.active_cosmetic_theme === 'flicker'}
+            hasGlitchEffect={entry.active_cosmetic_effect === 'glitch'}
           />
           <div 
             className={`absolute bottom-0 right-0 w-3 h-3 ${status.color} rounded-full border-2 border-gray-900`}
@@ -455,6 +461,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
                           size="md"
                           hasNeonFrame={member.active_cosmetic_frame === 'neon'}
                           hasGlitchTheme={member.active_cosmetic_theme === 'flicker'}
+                          hasGlitchEffect={member.active_cosmetic_effect === 'glitch'}
                         />
                         <div>
                           <p className="font-semibold text-white flex items-center gap-2">

@@ -13,4 +13,7 @@ export interface ClanTerritoryTransport {
   ): Promise<PlayerId>;
   onGameState(roomId: RoomId, callback: (state: ClanTerritoryGameState) => void): () => void;
   sendAction(roomId: RoomId, action: GameAction): Promise<void>;
+  startDiscovery(onRoomFound: (roomId: RoomId) => void): void;
+  stopDiscovery(): void;
+  cleanup(): void;
 }

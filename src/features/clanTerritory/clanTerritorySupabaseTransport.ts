@@ -14,6 +14,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
   private channel: any;
   private discoveryChannel: any;
   private discoveryBroadcastInterval: any;
+  private tickInterval: any = null;
   private state: ClanTerritoryGameState = INITIAL_STATE;
   private isHost: boolean = false;
 
@@ -90,11 +91,17 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     // but Supabase realtime buffers messages usually.
     // However, for 'broadcast', we need to be connected.
     
-    // Hack: Wait for channel to subscribe
-    await new Promise<void>((resolve) => {
+    // Wait for channel to subscribe with timeout to prevent infinite hang
+    await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+            clearInterval(check);
+            reject(new Error('Connection timeout: Unable to join room. Please try again.'));
+        }, 10000); // 10 second timeout
+        
         const check = setInterval(() => {
             if (this.channel && this.channel.state === 'joined') {
                 clearInterval(check);
+                clearTimeout(timeout);
                 resolve();
             }
         }, 100);
@@ -119,9 +126,30 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
       void this.sendAction(roomId, { type: "REQUEST_STATE" });
     }
     return () => {
-      if (this.channel) supabase.removeChannel(this.channel);
-      if (this.isHost) this.stopBroadcastingDiscovery();
+      this.cleanup();
     };
+  }
+
+  /**
+   * Clean up all intervals and channels to prevent memory leaks
+   */
+  cleanup() {
+    // Clear tick interval
+    if (this.tickInterval) {
+      clearInterval(this.tickInterval);
+      this.tickInterval = null;
+    }
+    // Remove main channel
+    if (this.channel) {
+      supabase.removeChannel(this.channel);
+      this.channel = null;
+    }
+    // Stop discovery broadcasting
+    if (this.isHost) {
+      this.stopBroadcastingDiscovery();
+    }
+    // Reset state
+    this.onStateUpdate = null;
   }
 
   async sendAction(roomId: RoomId, action: GameAction): Promise<void> {
@@ -184,8 +212,14 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
       .subscribe((status: string) => {
         if (status === "SUBSCRIBED") {
             if (this.isHost) {
+                // Clear any existing tick interval to prevent duplicates
+                if (this.tickInterval) {
+                    clearInterval(this.tickInterval);
+                    this.tickInterval = null;
+                }
+                
                 // Start the game loop (tick)
-                setInterval(() => {
+                this.tickInterval = setInterval(() => {
                     if (this.state.phase === 'ACTIVE') {
                         const newState = clanTerritoryReducer(this.state, { type: 'TICK' });
                         if (newState !== this.state) {

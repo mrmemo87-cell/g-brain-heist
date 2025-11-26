@@ -49,7 +49,7 @@ import {
 } from '../src/features/raids/raidTypes';
 import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount, canEarnQuestGemstone, recordQuestGemstoneAward, canEarnPvpGemstone, recordPvpGemstoneAward } from './storageService';
 import { supabase } from './supabaseClient';
-import { fetchNeonFrameOwners, fetchFlickerThemeOwners } from './cosmeticService';
+import { fetchNeonFrameOwners, fetchFlickerThemeOwners, fetchGlitchEffectOwners } from './cosmeticService';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage';
 import { notificationService } from './notificationService';
 import {
@@ -956,6 +956,36 @@ const getActiveCosmeticTheme = async (userId: string): Promise<'flicker' | null>
   return themeValue;
 };
 
+const getActiveCosmeticEffect = async (userId: string): Promise<'glitch' | null> => {
+  const { data, error } = await supabase
+    .from('inventory')
+    .select('item_id, kind, state')
+    .eq('user_id', userId)
+    .eq('state', 'active');
+
+  if (error) {
+    console.warn('Failed to load active cosmetics:', error.message);
+    return null;
+  }
+
+  const activeCosmetics = (data || []).filter(item => item.kind === 'cosmetic');
+  const hasGlitchEffect = activeCosmetics.some(item => item.item_id === 'item_cosmetic_glitch');
+  
+  const effectValue = hasGlitchEffect ? 'glitch' : null;
+
+  // Sync to users table for better visibility across queries
+  try {
+    await supabase
+      .from('users')
+      .update({ active_cosmetic_effect: effectValue })
+      .eq('id', userId);
+  } catch (syncError) {
+    console.warn('Failed to sync cosmetic effect to users table:', syncError);
+  }
+
+  return effectValue;
+};
+
 // Clean up expired items from inventory
 const cleanupExpiredItems = () => {
   const now = Date.now();
@@ -1192,6 +1222,16 @@ export const whoami = async (): Promise<Profile> => {
     .update(updateData)
     .eq('id', user.id);
 
+  // Check inventory for active shields
+  const { data: activeShields } = await supabase
+    .from('inventory')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('kind', 'shield')
+    .eq('state', 'unused')
+    .limit(1);
+  const userHasShield = (activeShields?.length ?? 0) > 0;
+
   // Register in shared player list for multiplayer features
   addPlayerToSharedList({
     id: profile.id,
@@ -1202,7 +1242,7 @@ export const whoami = async (): Promise<Profile> => {
     batch: profile.batch,
     avatar_url: profile.avatar_url,
         active_cosmetic_frame: profile.active_cosmetic_frame,
-    has_shield: false, // TODO: Check inventory for active shield
+    has_shield: userHasShield,
   });
 
     applyClanBuffsToProfile(profile, []);
@@ -1238,7 +1278,7 @@ export const whoami = async (): Promise<Profile> => {
         }
 
         if (membershipFromScores?.clan_id) {
-            resolvedMembership = membershipFromScores as typeof membership;
+            resolvedMembership = membershipFromScores as unknown as typeof membership;
         }
     }
 
@@ -1289,6 +1329,20 @@ export const whoami = async (): Promise<Profile> => {
   } catch (cosmeticError) {
     console.warn('Failed to attach cosmetic frame to profile:', cosmeticError);
     profile.active_cosmetic_frame = null;
+  }
+
+  try {
+    profile.active_cosmetic_theme = await getActiveCosmeticTheme(profile.id);
+  } catch (cosmeticError) {
+    console.warn('Failed to attach cosmetic theme to profile:', cosmeticError);
+    profile.active_cosmetic_theme = null;
+  }
+
+  try {
+    profile.active_cosmetic_effect = await getActiveCosmeticEffect(profile.id);
+  } catch (cosmeticError) {
+    console.warn('Failed to attach cosmetic effect to profile:', cosmeticError);
+    profile.active_cosmetic_effect = null;
   }
 
     profile.total_score = calculateTotalScore(profile.xp ?? 0, profile.pvp_score ?? 0);
@@ -1405,9 +1459,27 @@ export const task_claim = async (task_id: string): Promise<{ xp: number; coins: 
   claimedTasks.push(task_id);
   localStorage.setItem(claimedKey, JSON.stringify(claimedTasks));
   
-  // TODO: Grant items if any (add to inventory)
+  // Grant items if any (add to inventory)
   if (task.reward.items && task.reward.items.length > 0) {
-    // Future: Add items to inventory
+    const inventoryItems = task.reward.items.map(itemId => {
+      // Map item IDs to inventory entries
+      const itemInfo = MOCK_SHOP_ITEMS.find(i => i.id === itemId) || {
+        id: itemId,
+        name: itemId.replace('item_', '').replace(/_/g, ' '),
+        kind: 'mystery' as const,
+      };
+      return {
+        user_id: user.id,
+        item_id: itemInfo.id,
+        name: itemInfo.name,
+        kind: itemInfo.kind,
+        state: 'unused' as const,
+      };
+    });
+    
+    if (inventoryItems.length > 0) {
+      await supabase.from('inventory').insert(inventoryItems);
+    }
   }
   
   return mockApiCall(task.reward);
@@ -1767,18 +1839,32 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
     
     if (error) throw error;
     
-    // TODO: Check inventory for shields
     const playerList = players || [];
-    const neonOwners = await fetchNeonFrameOwners(playerList.map((p: any) => p.id));
+    const playerIds = playerList.map((p: any) => p.id);
+    
+    // Check inventory for shields for all targets
+    const { data: shieldData } = await supabase
+      .from('inventory')
+      .select('user_id')
+      .in('user_id', playerIds)
+      .eq('kind', 'shield')
+      .eq('state', 'unused');
+    const playersWithShields = new Set((shieldData || []).map((s: any) => s.user_id));
+    
+    const neonOwners = await fetchNeonFrameOwners(playerIds);
     const flickerOwners = await fetchFlickerThemeOwners(playerList.map((p: any) => p.id));
+    const glitchOwners = await fetchGlitchEffectOwners(playerList.map((p: any) => p.id));
 
     const realTargets: RaidTarget[] = playerList.map((p: any) => {
         // Extract clan info if user is in a clan
         const clanName = p.clan_members?.[0]?.clans?.name || undefined;
         const clanId = p.clan_members?.[0]?.clan_id || undefined;
         
+        // Check if this player has an active shield
+        const targetHasShield = playersWithShields.has(p.id);
+        
         // Calculate win rate based on attack vs defense
-        const defenderPower = (p.defense_power || 10) + (p.has_shield ? 20 : 0);
+        const defenderPower = (p.defense_power || 10) + (targetHasShield ? 20 : 0);
         const winRate = Math.min(0.95, Math.max(0.05, userAttackPower / (userAttackPower + defenderPower)));
 
         return {
@@ -1787,11 +1873,12 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
             level: p.level,
             coins: p.coins,
             batch: p.batch as '8A' | '8B' | '8C',
-            has_shield: false, // TODO: Check inventory
+            has_shield: targetHasShield,
             est_win_rate: winRate,
             avatar_url: p.avatar_url || '',
             active_cosmetic_frame: neonOwners.has(p.id) ? 'neon' : null,
             active_cosmetic_theme: flickerOwners.has(p.id) ? 'flicker' : null,
+            active_cosmetic_effect: glitchOwners.has(p.id) ? 'glitch' : null,
             last_seen: p.last_seen,
             clan_name: clanName,
             clan_id: clanId,
@@ -2147,6 +2234,7 @@ const MOCK_SHOP_ITEMS: ShopItem[] = [
     { id: 'item_major_booster', name: 'Major Booster', kind: 'major_booster', price: 400, rarity: 'rare', gemstone_price: 6, daily_limit: 1, owned_today: 0, description: 'Grants a massive 2.0x XP from all sources for 1 hour.', effect_summary: '2.0x XP (1h)' },
     { id: 'item_cosmetic_frame', name: 'Neon Frame', kind: 'cosmetic', price: 10000, rarity: 'rare', gemstone_price: 50, daily_limit: 1, owned_today: 0, description: 'A flashy neon frame for your avatar. Show off your style!', effect_summary: 'Purely cosmetic' },
     { id: 'item_cosmetic_theme', name: 'Flicker Theme', kind: 'cosmetic', price: 20000, rarity: 'legendary', gemstone_price: 100, daily_limit: 1, owned_today: 0, description: 'Apply a flickering, datamosh effect to your profile card.', effect_summary: 'Purely cosmetic' },
+    { id: 'item_cosmetic_glitch', name: 'Glitch Effect', kind: 'cosmetic', price: 50000, rarity: 'legendary', gemstone_price: 150, daily_limit: 1, owned_today: 0, description: 'A mesmerizing glitch distortion effect that warps your avatar with digital artifacts. The ultimate flex.', effect_summary: 'Glitch distortion effect' },
     { id: 'item_quantum_cloak', name: 'Quantum Cloak', kind: 'shield', price: 500, rarity: 'legendary', gemstone_price: 12, daily_limit: 1, owned_today: 0, description: 'Phase-shifted armor that nullifies three attacks before collapsing.', effect_summary: 'Blocks 3 attacks' },
 ];
 
@@ -2336,6 +2424,10 @@ export const inventory_activate = async (inv_id: string): Promise<{ state_after:
             await updateProfile(user.id, {
                 active_cosmetic_theme: 'flicker',
             });
+        } else if (item.item_id === 'item_cosmetic_glitch') {
+            await updateProfile(user.id, {
+                active_cosmetic_effect: 'glitch',
+            });
         }
 
         return mockApiCall({
@@ -2515,6 +2607,46 @@ export const deactivate_flicker_theme = async (): Promise<void> => {
     });
 };
 
+export const deactivate_glitch_effect = async (): Promise<void> => {
+    const user = await getCurrentUser();
+
+    const { data: glitchEffect, error } = await supabase
+        .from('inventory')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('kind', 'cosmetic')
+        .eq('item_id', 'item_cosmetic_glitch')
+        .eq('state', 'active')
+        .order('activated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (error) {
+        throw new Error(error.message || 'Failed to check glitch effect status.');
+    }
+
+    if (!glitchEffect) {
+        throw new Error('Glitch effect is already inactive.');
+    }
+
+    const { error: updateError } = await supabase
+        .from('inventory')
+        .update({
+            state: 'consumed',
+            expires_at: new Date().toISOString(),
+        })
+        .eq('id', glitchEffect.id);
+
+    if (updateError) {
+        throw new Error(updateError.message || 'Failed to deactivate glitch effect.');
+    }
+
+    // Also clear from users table
+    await updateProfile(user.id, {
+        active_cosmetic_effect: null,
+    });
+};
+
 export const clan_list = async (): Promise<ClanSummary[]> => {
     // Fetch clans with member XP sum
     const { data: clans, error } = await supabase
@@ -2573,6 +2705,7 @@ export const clan_get_members_by_id = async (clanId: string): Promise<ClanMember
 
     const neonOwners = await fetchNeonFrameOwners((data || []).map((member: any) => member.user_id));
     const flickerOwners = await fetchFlickerThemeOwners((data || []).map((member: any) => member.user_id));
+    const glitchOwners = await fetchGlitchEffectOwners((data || []).map((member: any) => member.user_id));
 
     return (data || []).map((member: any) => ({
         user_id: member.user_id,
@@ -2582,6 +2715,7 @@ export const clan_get_members_by_id = async (clanId: string): Promise<ClanMember
         avatar_url: member.avatar_url || '',
         active_cosmetic_frame: neonOwners.has(member.user_id) ? 'neon' : null,
         active_cosmetic_theme: flickerOwners.has(member.user_id) ? 'flicker' : null,
+        active_cosmetic_effect: glitchOwners.has(member.user_id) ? 'glitch' : null,
         custom_title: member.custom_title,
         bio: member.bio,
         total_score: member.total_score,
@@ -2969,6 +3103,7 @@ export const clan_details = async (): Promise<Clan | null> => {
 
     const neonOwners = await fetchNeonFrameOwners(memberRows.map((m: any) => m.user_id));
     const flickerOwners = await fetchFlickerThemeOwners(memberRows.map((m: any) => m.user_id));
+    const glitchOwners = await fetchGlitchEffectOwners(memberRows.map((m: any) => m.user_id));
 
     const members = memberRows.map((m: any) => ({
         user_id: m.user_id,
@@ -2978,6 +3113,7 @@ export const clan_details = async (): Promise<Clan | null> => {
         avatar_url: m.avatar_url,
         active_cosmetic_frame: neonOwners.has(m.user_id) ? 'neon' : null,
         active_cosmetic_theme: flickerOwners.has(m.user_id) ? 'flicker' : null,
+        active_cosmetic_effect: glitchOwners.has(m.user_id) ? 'glitch' : null,
         custom_title: m.custom_title,
         bio: m.bio,
         total_score: m.total_score ?? calculateTotalScore(m.xp ?? 0, m.pvp_score ?? 0),
@@ -3435,8 +3571,8 @@ export const clan_kick_member = async (user_id: string): Promise<Clan> => {
         throw new Error('Not in a clan.');
     }
     
-    if (membership.role !== 'leader' && membership.role !== 'officer') {
-        throw new Error('Only leaders and officers can kick members.');
+    if (!['leader', 'officer', 'moderator'].includes(membership.role)) {
+        throw new Error('Only leaders, officers, and moderators can kick members.');
     }
     
     // Cannot kick the leader

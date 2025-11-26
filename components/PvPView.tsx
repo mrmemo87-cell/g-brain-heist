@@ -7,7 +7,7 @@ import BackButton from './BackButton';
 import { ShieldIcon, HackIcon, CoinIcon, XPIcon, GemIcon, BattleIcon, TrophyIcon } from './icons';
 import { createPortal } from 'react-dom';
 import AvatarWithFrame from './AvatarWithFrame';
-import { fetchNeonFrameOwners, fetchFlickerThemeOwners } from '../services/cosmeticService';
+import { fetchNeonFrameOwners, fetchFlickerThemeOwners, fetchGlitchEffectOwners } from '../services/cosmeticService';
 
 type PvPStage = 'loading' | 'targets' | 'cinematic' | 'result';
 
@@ -58,6 +58,7 @@ const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) 
   const status = getOnlineStatus(target.last_seen);
   const hasNeonFrame = target.active_cosmetic_frame === 'neon';
   const hasGlitchTheme = target.active_cosmetic_theme === 'flicker';
+  const hasGlitchEffect = target.active_cosmetic_effect === 'glitch';
   
   return (
     <div className="card-glass p-4 flex flex-col items-center text-center relative overflow-hidden">
@@ -80,6 +81,7 @@ const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) 
           size="lg"
           hasNeonFrame={hasNeonFrame}
           hasGlitchTheme={hasGlitchTheme}
+          hasGlitchEffect={hasGlitchEffect}
           fallbackFrameClassName="border-2 border-gray-600"
         />
         <div 
@@ -179,10 +181,12 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
 
       const neonOwners = await fetchNeonFrameOwners(members.map(member => member.user_id));
       const flickerOwners = await fetchFlickerThemeOwners(members.map(member => member.user_id));
+      const glitchOwners = await fetchGlitchEffectOwners(members.map(member => member.user_id));
       const membersWithCosmetics = members.map(member => ({
         ...member,
         active_cosmetic_frame: neonOwners.has(member.user_id) ? 'neon' : null,
         active_cosmetic_theme: flickerOwners.has(member.user_id) ? 'flicker' : null,
+        active_cosmetic_effect: glitchOwners.has(member.user_id) ? 'glitch' : null,
       }));
 
       setClanModal({ clanId, clanName, members: membersWithCosmetics, loading: false });
@@ -417,7 +421,8 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
                     alt={profile.username}
                     size="xl"
                     hasNeonFrame={profile.active_cosmetic_frame === 'neon'}
-                    hasGlitchTheme={profile.active_cosmetic_theme === 'glitch'}
+                    hasGlitchTheme={profile.active_cosmetic_theme === 'flicker'}
+                    hasGlitchEffect={profile.active_cosmetic_effect === 'glitch'}
                     className="shadow-[0_0_30px_rgba(34,211,238,0.6)]"
                     fallbackFrameClassName="border-4 border-cyan-500 shadow-[0_0_30px_rgba(34,211,238,0.6)]"
                     imgClassName="w-24 h-24 md:w-32 md:h-32"
@@ -444,7 +449,8 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
                     alt={selectedTarget.username}
                     size="xl"
                     hasNeonFrame={selectedTarget.active_cosmetic_frame === 'neon'}
-                    hasGlitchTheme={selectedTarget.active_cosmetic_theme === 'glitch'}
+                    hasGlitchTheme={selectedTarget.active_cosmetic_theme === 'flicker'}
+                    hasGlitchEffect={selectedTarget.active_cosmetic_effect === 'glitch'}
                     className="shadow-[0_0_30px_rgba(236,72,153,0.6)]"
                     fallbackFrameClassName="border-4 border-pink-500 shadow-[0_0_30px_rgba(236,72,153,0.6)]"
                     imgClassName="w-24 h-24 md:w-32 md:h-32"
@@ -620,7 +626,8 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
                         alt={member.username}
                         size="md"
                         hasNeonFrame={member.active_cosmetic_frame === 'neon'}
-                        hasGlitchTheme={member.active_cosmetic_theme === 'glitch'}
+                        hasGlitchTheme={member.active_cosmetic_theme === 'flicker'}
+                        hasGlitchEffect={member.active_cosmetic_effect === 'glitch'}
                         fallbackFrameClassName="border-2 border-gray-600"
                       />
                       <div className="flex-1">

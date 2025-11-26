@@ -126,6 +126,7 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
               size="lg"
               hasNeonFrame={profile.active_cosmetic_frame === 'neon'}
               hasGlitchTheme={profile.active_cosmetic_theme === 'flicker'}
+              hasGlitchEffect={profile.active_cosmetic_effect === 'glitch'}
               imgClassName="sm:w-20 sm:h-20 animate-float"
               fallbackFrameClassName="border-4 border-pink-500/80"
             />

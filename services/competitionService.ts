@@ -299,6 +299,16 @@ export const updatePlayerAcademics = async (
   }
 };
 
+export const resetPlayerAcademics = async (userId: string): Promise<void> => {
+  const { error } = await supabase.rpc('rpc_admin_reset_user_academics', {
+    p_user_id: userId,
+  });
+
+  if (error) {
+    throw new Error(error.message || 'Failed to reset user school/grade/class');
+  }
+};
+
 export const setPlayerBanned = async (userId: string, isBanned: boolean): Promise<boolean> => {
   const { data, error } = await supabase.rpc('rpc_admin_ban_user', {
     p_user_id: userId,

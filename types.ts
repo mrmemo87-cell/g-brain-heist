@@ -36,6 +36,7 @@ export interface Profile {
   avatar_url: string;
   active_cosmetic_frame?: 'neon' | null;
   active_cosmetic_theme?: 'flicker' | null;
+  active_cosmetic_effect?: 'glitch' | null;
   bio?: string | null;
   level: number;
   xp: number;
@@ -219,6 +220,7 @@ export interface RaidTarget {
   avatar_url: string;
   active_cosmetic_frame?: 'neon' | null;
   active_cosmetic_theme?: 'flicker' | null;
+  active_cosmetic_effect?: 'glitch' | null;
   last_seen?: string;
   clan_name?: string;
   clan_id?: string;
@@ -283,6 +285,7 @@ export interface ClanMember {
   avatar_url: string;
   active_cosmetic_frame?: 'neon' | null;
   active_cosmetic_theme?: 'flicker' | null;
+  active_cosmetic_effect?: 'glitch' | null;
   custom_title?: string | null;
   bio?: string | null;
   total_score?: number;
@@ -301,6 +304,7 @@ export interface ClanMemberWithScore {
     avatar_url: string;
   active_cosmetic_frame?: 'neon' | null;
   active_cosmetic_theme?: 'glitch' | null;
+  active_cosmetic_effect?: 'glitch' | null;
   role: ClanRole;
     joined_at: string;
 }
