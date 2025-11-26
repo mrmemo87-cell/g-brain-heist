@@ -1,5 +1,27 @@
-export type Grade = 8 | 9;
-export type Batch = '8A' | '8B' | '8C' | '9A' | '9B' | '9C' | 'N/A';
+export type Grade = 6 | 7 | 8 | 9 | 10 | 11 | 12;
+export type Batch =
+  | '6A'
+  | '6B'
+  | '6C'
+  | '7A'
+  | '7B'
+  | '7C'
+  | '8A'
+  | '8B'
+  | '8C'
+  | '9A'
+  | '9B'
+  | '9C'
+  | '10A'
+  | '10B'
+  | '10C'
+  | '11A'
+  | '11B'
+  | '11C'
+  | '12A'
+  | '12B'
+  | '12C'
+  | 'N/A';
 export type UserRole = 'student' | 'teacher' | 'admin';
 export type ClanRole = 'leader' | 'officer' | 'moderator' | 'member';
 export type SoloDifficulty = 'easy' | 'medium' | 'hard';
@@ -99,7 +121,7 @@ export interface SubjectData {
 }
 
 export type Subject = 'Maths' | 'Science' | 'English' | 'Russian Language' | 'Kyrgyz Language' | 'German Language' | 'Geography' | 'Global Perspective' | 'ICT';
-export type AssignmentBatch = '8A' | '8B' | '8C' | 'All';
+export type AssignmentBatch = Batch | 'All';
 
 export interface Question {
   id: string;

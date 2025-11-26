@@ -15,7 +15,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const [username, setUsername] = useState('');
     const [grade, setGrade] = useState<Grade | null>(null);
     const [batch, setBatch] = useState<Batch | ''>('');
-    const [school, setSchool] = useState('');
+    const [school, setSchool] = useState('Silk Road International School');
     const [role, setRole] = useState<'student' | 'teacher'>('student');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -116,13 +116,14 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
         }
     };
 
-    const gradeOptions: Record<Grade, Batch[]> = useMemo(
-        () => ({
-            8: ['8A', '8B', '8C'],
-            9: ['9A', '9B', '9C'],
-        }),
-        []
-    );
+    const gradeChoices = useMemo<Grade[]>(() => [6, 7, 8, 9, 10, 11, 12], []);
+    const gradeOptions: Record<Grade, Batch[]> = useMemo(() => {
+        const classLetters: Array<'A' | 'B' | 'C'> = ['A', 'B', 'C'];
+        return gradeChoices.reduce((acc, currentGrade) => {
+            acc[currentGrade] = classLetters.map((letter) => `${currentGrade}${letter}` as Batch);
+            return acc;
+        }, {} as Record<Grade, Batch[]>);
+    }, [gradeChoices]);
 
     const handleGradeChange = (value: string) => {
         if (!value) {
@@ -256,15 +257,15 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
 
                                 <div>
                                     <label htmlFor="school" className="block text-sm font-medium text-gray-300">School</label>
-                                    <input
+                                    <select
                                         id="school"
                                         name="school"
-                                        type="text"
                                         value={school}
                                         onChange={(e) => setSchool(e.target.value)}
-                                        className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
-                                        placeholder="North Ridge High"
-                                    />
+                                        className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+                                    >
+                                        <option value="Silk Road International School">Silk Road International School</option>
+                                    </select>
                                     <p className="mt-1 text-xs text-gray-400">We use your school to match you with the right grade and batch.</p>
                                 </div>
 
@@ -279,8 +280,9 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                                 className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
                                             >
                                                 <option value="">Select your grade</option>
-                                                <option value={8}>Grade 8</option>
-                                                <option value={9}>Grade 9</option>
+                                                {gradeChoices.map((option) => (
+                                                    <option key={option} value={option}>{`Grade ${option}`}</option>
+                                                ))}
                                             </select>
                                             <p className="mt-1 text-xs text-gray-400">Your missions will be tailored to this grade.</p>
                                         </div>
@@ -294,9 +296,12 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                                 className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 <option value="">{grade ? 'Select your class' : 'Choose a grade first'}</option>
-                                                {availableBatches.map((option) => (
-                                                    <option key={option} value={option}>{`Class ${option}`}</option>
-                                                ))}
+                                                {availableBatches.map((option) => {
+                                                    const classLetter = option.replace(String(grade ?? ''), '');
+                                                    return (
+                                                        <option key={option} value={option}>{`Class ${classLetter || option} (${option})`}</option>
+                                                    );
+                                                })}
                                             </select>
                                             <p className="mt-1 text-xs text-gray-400">Pick the exact batch you attend in school.</p>
                                         </div>
