@@ -326,76 +326,78 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
   };
 
   const renderTargets = () => (
-    <div>
-      <h2 className="font-heading text-3xl text-center mb-4 flex items-center justify-center gap-2" style={{ color: 'var(--plasma-pink)' }}><BattleIcon className="w-8 h-8" /> Choose Your Target</h2>
-      
-      {/* Filter Tabs */}
-      <div className="flex justify-center gap-2 mb-6 flex-wrap">
-        <button
-          onClick={() => setFilterTab('all')}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-            filterTab === 'all'
-              ? 'bg-pink-500/30 border-2 border-pink-400 text-white'
-              : 'bg-black/20 border border-gray-600 text-gray-400 hover:text-white'
-          }`}
-        >
-          All ({targets.length})
-        </button>
-        <button
-          onClick={() => setFilterTab('nearby')}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-            filterTab === 'nearby'
-              ? 'bg-pink-500/30 border-2 border-pink-400 text-white'
-              : 'bg-black/20 border border-gray-600 text-gray-400 hover:text-white'
-          }`}
-        >
-          ⚖️ Fair Fights ({targets.filter(t => Math.abs(t.level - profile.level) <= 2).length})
-        </button>
-        <button
-          onClick={() => setFilterTab('easy')}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-            filterTab === 'easy'
-              ? 'bg-pink-500/30 border-2 border-pink-400 text-white'
-              : 'bg-black/20 border border-gray-600 text-gray-400 hover:text-white'
-          }`}
-        >
-          ✅ Easy ({targets.filter(t => t.level < profile.level).length})
-        </button>
-        <button
-          onClick={() => setFilterTab('challenge')}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-            filterTab === 'challenge'
-              ? 'bg-pink-500/30 border-2 border-pink-400 text-white'
-              : 'bg-black/20 border border-gray-600 text-gray-400 hover:text-white'
-          }`}
-        >
-          💪 Challenges ({targets.filter(t => t.level > profile.level).length})
-        </button>
-        <button
-          onClick={() => setFilterTab('rivals')}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-            filterTab === 'rivals'
-              ? 'bg-pink-500/30 border-2 border-pink-400 text-white'
-              : 'bg-black/20 border border-gray-600 text-gray-400 hover:text-white'
-          }`}
-        >
-          ⚔️ Clan Rivals ({targets.filter(t => t.clan_name && t.clan_name !== profile.clan_name).length})
-        </button>
+    <div className="w-full px-4 sm:px-6 py-6">
+      <div className="max-w-full mx-auto">
+        <h2 className="font-heading text-3xl text-center mb-6 flex items-center justify-center gap-2" style={{ color: 'var(--plasma-pink)' }}><BattleIcon className="w-8 h-8" /> Choose Your Target</h2>
+        
+        {/* Filter Tabs */}
+        <div className="flex justify-center gap-2 mb-8 flex-wrap px-2">
+          <button
+            onClick={() => setFilterTab('all')}
+            className={`px-3 py-2 rounded-lg font-semibold transition-all text-sm sm:text-base ${
+              filterTab === 'all'
+                ? 'bg-pink-500/30 border-2 border-pink-400 text-white'
+                : 'bg-black/20 border border-gray-600 text-gray-400 hover:text-white'
+            }`}
+          >
+            All ({targets.length})
+          </button>
+          <button
+            onClick={() => setFilterTab('nearby')}
+            className={`px-3 py-2 rounded-lg font-semibold transition-all text-sm sm:text-base ${
+              filterTab === 'nearby'
+                ? 'bg-pink-500/30 border-2 border-pink-400 text-white'
+                : 'bg-black/20 border border-gray-600 text-gray-400 hover:text-white'
+            }`}
+          >
+            ⚖️ Fair Fights ({targets.filter(t => Math.abs(t.level - profile.level) <= 2).length})
+          </button>
+          <button
+            onClick={() => setFilterTab('easy')}
+            className={`px-3 py-2 rounded-lg font-semibold transition-all text-sm sm:text-base ${
+              filterTab === 'easy'
+                ? 'bg-pink-500/30 border-2 border-pink-400 text-white'
+                : 'bg-black/20 border border-gray-600 text-gray-400 hover:text-white'
+            }`}
+          >
+            ✅ Easy ({targets.filter(t => t.level < profile.level).length})
+          </button>
+          <button
+            onClick={() => setFilterTab('challenge')}
+            className={`px-3 py-2 rounded-lg font-semibold transition-all text-sm sm:text-base ${
+              filterTab === 'challenge'
+                ? 'bg-pink-500/30 border-2 border-pink-400 text-white'
+                : 'bg-black/20 border border-gray-600 text-gray-400 hover:text-white'
+            }`}
+          >
+            💪 Challenges ({targets.filter(t => t.level > profile.level).length})
+          </button>
+          <button
+            onClick={() => setFilterTab('rivals')}
+            className={`px-3 py-2 rounded-lg font-semibold transition-all text-sm sm:text-base ${
+              filterTab === 'rivals'
+                ? 'bg-pink-500/30 border-2 border-pink-400 text-white'
+                : 'bg-black/20 border border-gray-600 text-gray-400 hover:text-white'
+            }`}
+          >
+            ⚔️ Clan Rivals ({targets.filter(t => t.clan_name && t.clan_name !== profile.clan_name).length})
+          </button>
+        </div>
+        
+        {/* Targets Grid */}
+        {filteredTargets.length === 0 ? (
+          <div className="text-center text-gray-400 py-12">
+            <p className="text-xl">No targets in this category</p>
+            <p className="text-sm mt-2">Try a different filter</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+            {filteredTargets.map(target => (
+              <TargetCard key={target.user_id} target={target} onSelect={handleAttack} />
+            ))}
+          </div>
+        )}
       </div>
-      
-      {/* Targets Grid */}
-      {filteredTargets.length === 0 ? (
-        <div className="text-center text-gray-400 py-8">
-          <p className="text-xl">No targets in this category</p>
-          <p className="text-sm mt-2">Try a different filter</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 max-w-7xl mx-auto">
-          {filteredTargets.map(target => (
-            <TargetCard key={target.user_id} target={target} onSelect={handleAttack} />
-          ))}
-        </div>
-      )}
     </div>
   );
 
@@ -533,35 +535,37 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
     };
 
     return (
-        <div className="text-center max-w-lg mx-auto">
-            <div className="flex flex-col items-center mb-4">
-              {attackResult.result === 'win' && (
-                <div className="text-8xl mb-4 animate-bounce">🏆</div>
-              )}
-              {attackResult.result === 'blocked' && (
-                <div className="text-8xl mb-4 animate-pulse">🛡️</div>
-              )}
-              {attackResult.result === 'lose' && (
-                <div className="text-8xl mb-4 animate-ping">💥</div>
-              )}
-              <h2 className="font-heading text-4xl" style={{ color }}>{title}</h2>
-            </div>
-            <div className="card-glass p-8" style={{borderColor: `${color}80`}}>
-                 <p className="text-lg mb-6">{getResultMessage()}</p>
+        <div className="w-full px-4 sm:px-6 py-6">
+          <div className="text-center max-w-lg mx-auto">
+              <div className="flex flex-col items-center mb-6">
+                {attackResult.result === 'win' && (
+                  <div className="text-8xl mb-4 animate-bounce">🏆</div>
+                )}
+                {attackResult.result === 'blocked' && (
+                  <div className="text-8xl mb-4 animate-pulse">🛡️</div>
+                )}
+                {attackResult.result === 'lose' && (
+                  <div className="text-8xl mb-4 animate-ping">💥</div>
+                )}
+                <h2 className="font-heading text-4xl" style={{ color }}>{title}</h2>
+              </div>
+              <div className="card-glass p-6 sm:p-8" style={{borderColor: `${color}80`}}>
+                   <p className="text-lg mb-6">{getResultMessage()}</p>
 
-                <div className="text-2xl font-heading space-y-2 mb-6">
-                    <p>XP Delta: <span style={{color: attackResult.attacker_deltas.xp > 0 ? 'var(--ion-blue)' : 'var(--danger-red)'}}>{attackResult.attacker_deltas.xp >= 0 ? `+${attackResult.attacker_deltas.xp}` : attackResult.attacker_deltas.xp}</span></p>
-                    <p>Coins Delta: <span style={{color: 'var(--amber-warn)'}}>{attackResult.attacker_deltas.coins >= 0 ? `+${attackResult.attacker_deltas.coins}`: attackResult.attacker_deltas.coins}</span></p>
-                    <p className="flex items-center justify-center gap-2">Gemstones: <span className="inline-flex items-center gap-1" style={{color: 'var(--plasma-pink)'}}><GemIcon className="w-5 h-5" />{attackResult.attacker_deltas.gemstones && attackResult.attacker_deltas.gemstones >= 0 ? `+${attackResult.attacker_deltas.gemstones}` : attackResult.attacker_deltas.gemstones || 0}</span></p>
-                </div>
+                  <div className="text-lg sm:text-2xl font-heading space-y-3 mb-6">
+                      <p>XP Delta: <span style={{color: attackResult.attacker_deltas.xp > 0 ? 'var(--ion-blue)' : 'var(--danger-red)'}}>{attackResult.attacker_deltas.xp >= 0 ? `+${attackResult.attacker_deltas.xp}` : attackResult.attacker_deltas.xp}</span></p>
+                      <p>Coins Delta: <span style={{color: 'var(--amber-warn)'}}>{attackResult.attacker_deltas.coins >= 0 ? `+${attackResult.attacker_deltas.coins}`: attackResult.attacker_deltas.coins}</span></p>
+                      <p className="flex items-center justify-center gap-2">Gemstones: <span className="inline-flex items-center gap-1" style={{color: 'var(--plasma-pink)'}}><GemIcon className="w-5 h-5" />{attackResult.attacker_deltas.gemstones && attackResult.attacker_deltas.gemstones >= 0 ? `+${attackResult.attacker_deltas.gemstones}` : attackResult.attacker_deltas.gemstones || 0}</span></p>
+                  </div>
 
-                <button
-                    onClick={handleAttackAnother}
-                    className="w-full bg-plasma-pink/20 hover:bg-plasma-pink/30 border border-plasma-pink text-white shadow-lg shadow-plasma-pink/20 font-heading font-bold text-lg tracking-wider p-4 rounded-2xl transition-all duration-300 transform hover:scale-105"
-                >
-                    ⚔️ Battle Another Target
-                </button>
-            </div>
+                  <button
+                      onClick={handleAttackAnother}
+                      className="w-full bg-plasma-pink/20 hover:bg-plasma-pink/30 border border-plasma-pink text-white shadow-lg shadow-plasma-pink/20 font-heading font-bold text-lg tracking-wider p-4 rounded-2xl transition-all duration-300 transform hover:scale-105"
+                  >
+                      ⚔️ Battle Another Target
+                  </button>
+              </div>
+          </div>
         </div>
     );
   };
@@ -578,9 +582,11 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
   }
 
   return (
-    <div className="mt-6">
+    <div className="mt-6 mb-12">
       <BackButton onClick={onComplete} />
-      {renderContent()}
+      <div className="mt-4">
+        {renderContent()}
+      </div>
       
       {/* Clan Members Modal */}
       {clanModal && (
