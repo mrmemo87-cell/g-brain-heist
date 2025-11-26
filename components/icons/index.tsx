@@ -182,14 +182,35 @@ export const GoogleIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
 
 export const TrophyIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v12h3.75a2.25 2.25 0 0 0 2.25-2.25v-8.25A2.25 2.25 0 0 0 20.25 6H16.5m-12 0H3.75a2.25 2.25 0 0 0-2.25 2.25v8.25A2.25 2.25 0 0 0 3.75 18h3.75m0-12v12m0 0h3m-3 0h3m0-12H9m0 0h1.5m-1.5 0H7.5" />
+        {/* Podium base */}
+        <rect x="4" y="16" width="16" height="2" fill="currentColor" opacity="0.6" />
+        {/* Podium columns */}
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8 16V10m8 6v-8m-8 8v-6" />
+        {/* Medal positions - left (bronze) */}
+        <circle cx="8" cy="9" r="1.2" fill="currentColor" opacity="0.7" />
+        <circle cx="8" cy="9" r="1.8" fill="none" stroke="currentColor" strokeWidth="0.8" opacity="0.4" />
+        {/* Medal positions - center (gold) */}
+        <circle cx="12" cy="7" r="1.2" fill="currentColor" />
+        <circle cx="12" cy="7" r="2" fill="none" stroke="currentColor" strokeWidth="0.8" opacity="0.6" />
+        {/* Medal positions - right (silver) */}
+        <circle cx="16" cy="8" r="1.2" fill="currentColor" opacity="0.8" />
+        <circle cx="16" cy="8" r="1.8" fill="none" stroke="currentColor" strokeWidth="0.8" opacity="0.5" />
     </svg>
 );
 
 export const BattleIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="m7.5 3.75 2.25 2.25m0 0-2.25 2.25m2.25-2.25L9.75 6m-6-1.5H4.5m.75 0a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5Zm0 0H6" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 3.75l-2.25 2.25m0 0 2.25 2.25m-2.25-2.25 2.25-2.25m6 1.5h-1.5m-.75 0a2.25 2.25 0 1 1 0-4.5 2.25 2.25 0 0 1 0 4.5Zm0 0h-1.5m0 10.5-2.25 2.25m0 0 2.25 2.25m-2.25-2.25 2.25-2.25m-6-1.5h1.5m.75 0a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Zm0 0h1.5" />
+        {/* Left sword */}
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 3l8 8" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 2l1.5 1.5" />
+        <circle cx="3" cy="3" r="1" fill="currentColor" />
+        {/* Right sword (mirrored) */}
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-8-8" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M20 22l-1.5-1.5" />
+        <circle cx="21" cy="21" r="1" fill="currentColor" />
+        {/* Center impact - glow effect */}
+        <circle cx="12" cy="12" r="2" fill="currentColor" opacity="0.7" />
+        <circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" strokeWidth="0.75" opacity="0.4" />
     </svg>
 );
 
