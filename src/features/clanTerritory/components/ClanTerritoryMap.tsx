@@ -119,9 +119,23 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   const svgRef = useRef<SVGSVGElement | null>(null);
   const rafRef = useRef<number | null>(null);
   const resolveRegionElement = (svg: SVGSVGElement, targetId: string): SVGPathElement | null => {
-    const direct = svg.querySelector<SVGPathElement>(`#${targetId}`);
+    // Try direct ID query with multiple selector approaches
+    let direct = svg.querySelector<SVGPathElement>(`#${targetId}`);
     if (direct) return direct;
 
+    // Try without namespace issues
+    direct = svg.querySelector<SVGPathElement>(`[id="${targetId}"]`);
+    if (direct) return direct;
+
+    // Try querySelectorAll with exact ID match as fallback
+    const allElements = svg.querySelectorAll<SVGPathElement>("path, [id]");
+    for (const elem of allElements) {
+      if (elem.id === targetId) {
+        return elem as SVGPathElement;
+      }
+    }
+
+    // Try normalized alias matching
     const normalizedTargets = new Set([normalizeRegionKey(targetId)]);
     (REGION_ALIAS_MAP[targetId] ?? []).forEach((alias) => normalizedTargets.add(normalizeRegionKey(alias)));
 
@@ -147,38 +161,44 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
     const ensureInitialAttributes = (element: SVGPathElement) => {
       if (!element.getAttribute("data-initial-fill")) {
-        const initialFill =
-          element.getAttribute("fill") ||
-          element.style.fill ||
-          NEUTRAL_TERRITORY_SHADE;
+        // Prioritize inline style first, then computed, then fallback
+        let initialFill = element.style.fill;
+        if (!initialFill || initialFill === "") {
+          const computedStyle = window.getComputedStyle(element);
+          initialFill = computedStyle.fill || NEUTRAL_TERRITORY_SHADE;
+        }
         element.setAttribute("data-initial-fill", initialFill);
       }
       if (!element.getAttribute("data-initial-stroke")) {
-        const initialStroke =
-          element.getAttribute("stroke") ||
-          element.style.stroke ||
-          "#475569";
+        let initialStroke = element.style.stroke;
+        if (!initialStroke || initialStroke === "") {
+          const computedStyle = window.getComputedStyle(element);
+          initialStroke = computedStyle.stroke || "#475569";
+        }
         element.setAttribute("data-initial-stroke", initialStroke);
       }
       if (!element.getAttribute("data-initial-stroke-width")) {
-        const initialStrokeWidth =
-          element.getAttribute("stroke-width") ||
-          element.style.strokeWidth ||
-          "2";
+        let initialStrokeWidth = element.style.strokeWidth;
+        if (!initialStrokeWidth || initialStrokeWidth === "") {
+          const computedStyle = window.getComputedStyle(element);
+          initialStrokeWidth = computedStyle.strokeWidth || "2";
+        }
         element.setAttribute("data-initial-stroke-width", initialStrokeWidth);
       }
       if (!element.getAttribute("data-initial-dasharray")) {
-        const initialDash =
-          element.getAttribute("stroke-dasharray") ||
-          element.style.getPropertyValue("stroke-dasharray") ||
-          "none";
+        let initialDash = element.style.getPropertyValue("stroke-dasharray");
+        if (!initialDash || initialDash === "") {
+          const computedStyle = window.getComputedStyle(element);
+          initialDash = computedStyle.getPropertyValue("stroke-dasharray") || "none";
+        }
         element.setAttribute("data-initial-dasharray", initialDash);
       }
       if (!element.getAttribute("data-initial-opacity")) {
-        const initialOpacity =
-          element.getAttribute("opacity") ||
-          element.style.opacity ||
-          "1";
+        let initialOpacity = element.style.opacity;
+        if (!initialOpacity || initialOpacity === "") {
+          const computedStyle = window.getComputedStyle(element);
+          initialOpacity = computedStyle.opacity || "1";
+        }
         element.setAttribute("data-initial-opacity", initialOpacity);
       }
     };
@@ -207,41 +227,36 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         opacity: number;
       }
     ) => {
+      // Apply fill - set both attribute and style to ensure it overrides parent group styles
       if (element.getAttribute("fill") !== fill) {
         element.setAttribute("fill", fill);
       }
-      if (element.style.fill !== fill) {
-        element.style.fill = fill;
-      }
+      element.style.fill = fill;
 
+      // Apply stroke
       if (element.getAttribute("stroke") !== stroke) {
         element.setAttribute("stroke", stroke);
       }
-      if (element.style.stroke !== stroke) {
-        element.style.stroke = stroke;
-      }
+      element.style.stroke = stroke;
 
+      // Apply stroke width
       if (element.getAttribute("stroke-width") !== strokeWidth) {
         element.setAttribute("stroke-width", strokeWidth);
       }
-      if (element.style.strokeWidth !== strokeWidth) {
-        element.style.strokeWidth = strokeWidth;
-      }
+      element.style.strokeWidth = strokeWidth;
 
+      // Apply stroke dash array
       if (element.getAttribute("stroke-dasharray") !== dashArray) {
         element.setAttribute("stroke-dasharray", dashArray);
       }
-      if (element.style.getPropertyValue("stroke-dasharray") !== dashArray) {
-        element.style.setProperty("stroke-dasharray", dashArray);
-      }
+      element.style.setProperty("stroke-dasharray", dashArray);
 
+      // Apply opacity
       const opacityValue = opacity.toString();
       if (element.getAttribute("opacity") !== opacityValue) {
         element.setAttribute("opacity", opacityValue);
       }
-      if (element.style.opacity !== opacityValue) {
-        element.style.opacity = opacityValue;
-      }
+      element.style.opacity = opacityValue;
     };
 
     const updateRegions = () => {
