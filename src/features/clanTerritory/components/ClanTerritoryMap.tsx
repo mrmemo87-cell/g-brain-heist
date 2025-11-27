@@ -24,11 +24,20 @@ const ZONE_TO_REGION: Record<ZoneId, string | string[]> = {
   "zone-4": "region_4",
   "zone-5": "region_8",
   "zone-6": "region_3",
+  "zone-7": ["region_2", "regio_2"],
+  "zone-8": "region_1",
 };
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 const NEUTRAL_TERRITORY_SHADE = "#1e293b";
+
+const normalizeRegionKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+const REGION_ALIAS_MAP: Record<string, string[]> = {
+  region_1: ["signalchamber"],
+  region_2: ["quantumnexus", "regio_2"],
+};
 
 const normalizeSvgMarkup = (svgContent: string) => {
   const parser = new DOMParser();
@@ -109,6 +118,25 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   const lastRegionStyleKeyRef = useRef<Record<string, string>>({});
   const svgRef = useRef<SVGSVGElement | null>(null);
   const rafRef = useRef<number | null>(null);
+  const resolveRegionElement = (svg: SVGSVGElement, targetId: string): SVGPathElement | null => {
+    const direct = svg.querySelector<SVGPathElement>(`#${targetId}`);
+    if (direct) return direct;
+
+    const normalizedTargets = new Set([normalizeRegionKey(targetId)]);
+    (REGION_ALIAS_MAP[targetId] ?? []).forEach((alias) => normalizedTargets.add(normalizeRegionKey(alias)));
+
+    const candidates = svg.querySelectorAll<SVGPathElement>("[id]");
+    for (const candidate of candidates) {
+      if (normalizedTargets.has(normalizeRegionKey(candidate.id))) {
+        if (candidate.id !== targetId) {
+          candidate.id = targetId;
+        }
+        return candidate;
+      }
+    }
+
+    return null;
+  };
 
   useEffect(() => {
     setMapMarkup(normalizeSvgMarkup(territoryMapSvgRaw));
@@ -233,9 +261,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         const ids = Array.isArray(regionIds) ? regionIds : [regionIds];
 
         ids.forEach((regionId) => {
-          const regionPath = svg.querySelector(`#${regionId}`) as
-            | SVGPathElement
-            | null;
+          const regionPath = resolveRegionElement(svg, regionId);
           if (!regionPath) return;
 
           ensureInitialAttributes(regionPath);
