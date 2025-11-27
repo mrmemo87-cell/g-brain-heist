@@ -9,9 +9,9 @@ const placeholderMap = `
 <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
   <rect width="800" height="600" fill="#0f172a"/>
   <g id="region_1"><rect x="50" y="50" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="125"
- y="125" text-anchor="middle" fill="#94a3b8" font-size="14">Signal Chamber</text></g>
+ y="125" text-anchor="middle" fill="#94a3b8" font-size="14">Region 1</text></g>
   <g id="region_2"><rect x="220" y="50" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="295"
-  y="125" text-anchor="middle" fill="#94a3b8" font-size="14">Quantum Nexus</text></g>
+  y="125" text-anchor="middle" fill="#94a3b8" font-size="14">Region 2</text></g>
   <g id="region_3"><rect x="390" y="50" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="465"
   y="125" text-anchor="middle" fill="#94a3b8" font-size="14">Region 3</text></g>
   <g id="region_4"><rect x="560" y="50" width="150" height="150" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="635"
@@ -27,6 +27,13 @@ const placeholderMap = `
   <text x="400" y="450" text-anchor="middle" fill="#64748b" font-size="16">Add your territory_map.svg to src/features/lockdown/assets/</text>
 </svg>
 `;
+
+const normalizeRegionKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+const LEGACY_REGION_KEYS: Record<string, string[]> = {
+  region_1: ["signalchamber"],
+  region_2: ["quantumnexus"],
+};
 
 const normalizeSvgMarkup = (svgContent: string) => {
   const parser = new DOMParser();
@@ -74,6 +81,25 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
   const containerRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   const lastRegionStyleKeyRef = useRef<Record<string, string>>({});
+  const resolveRegionElement = (svg: SVGSVGElement, regionId: string): SVGGElement | null => {
+    const direct = svg.querySelector<SVGGElement>(`#${regionId}`);
+    if (direct) return direct;
+
+    const normalizedTargets = new Set<string>([normalizeRegionKey(regionId)]);
+    (LEGACY_REGION_KEYS[regionId] ?? []).forEach((key) => normalizedTargets.add(normalizeRegionKey(key)));
+
+    const candidates = svg.querySelectorAll<SVGGElement>("g[id]");
+    for (const group of candidates) {
+      if (normalizedTargets.has(normalizeRegionKey(group.id))) {
+        if (group.id !== regionId) {
+          group.id = regionId;
+        }
+        return group;
+      }
+    }
+
+    return null;
+  };
   const paintElement = (element: SVGElement, fill: string, stroke: string, opacity: string) => {
     element.setAttribute("fill", fill);
     element.setAttribute("stroke", stroke);
@@ -173,7 +199,7 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
     // Update each region based on clan statistics
     // Clean SVG with no inline styles means CSS variables work perfectly via inheritance
     Object.entries(regionStats).forEach(([regionId, stats]) => {
-      const regionGroup = svg.querySelector(`#${regionId}`) as SVGGElement | null;
+      const regionGroup = resolveRegionElement(svg, regionId);
       if (!regionGroup) {
         console.warn(`LockdownMap: Region element not found for ID: ${regionId}`);
         return;

@@ -45,6 +45,7 @@ export const LockdownStudentView: React.FC<LockdownStudentViewProps> = ({
   const [isMobile, setIsMobile] = useState(false);
   const [mobilePanel, setMobilePanel] = useState<"combat" | "map" | "intel">("combat");
   const [focusedZone, setFocusedZone] = useState<string | null>(null);
+  const [localRemainingMs, setLocalRemainingMs] = useState<number | null>(null);
 
   useEffect(() => {
     const c = createRoomClient(transport, roomId, playerId);
@@ -127,15 +128,56 @@ export const LockdownStudentView: React.FC<LockdownStudentViewProps> = ({
   const isFinished = gameState.phase === GamePhase.FINISHED;
   const isPaused = gameState.phase === GamePhase.PAUSED;
 
+  useEffect(() => {
+    if (!gameState || typeof window === "undefined") {
+      setLocalRemainingMs(null);
+      return;
+    }
+
+    if (gameState.phase !== GamePhase.ACTIVE_ROUNDS) {
+      setLocalRemainingMs(null);
+      return;
+    }
+
+    const raf = window.requestAnimationFrame ?? ((cb: FrameRequestCallback) => window.setTimeout(() => cb(Date.now()), 16) as number);
+    const cancelRaf = window.cancelAnimationFrame ?? ((id: number) => window.clearTimeout(id));
+
+    let animationFrameId: number;
+    const baseMs = gameState.remainingTimeMs;
+    let startTimestamp = typeof performance !== "undefined" ? performance.now() : Date.now();
+
+    setLocalRemainingMs(baseMs);
+
+    const tick = () => {
+      const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+      const elapsed = now - startTimestamp;
+      const nextValue = Math.max(0, baseMs - elapsed);
+      setLocalRemainingMs(nextValue);
+      if (nextValue > 0) {
+        animationFrameId = raf(tick);
+      }
+    };
+
+    animationFrameId = raf(tick);
+
+    return () => {
+      if (animationFrameId) {
+        cancelRaf(animationFrameId);
+      }
+    };
+  }, [gameState?.phase, gameState?.remainingTimeMs]);
+
   const roomCode = roomId.replace("room-", "");
   const heatPercent = Math.min(100, Math.max(0, myPlayer.heat));
   const alarmValue = Math.max(0, gameState.alarm);
   const alarmThreshold = Math.max(1, gameState.roomSettings.alarmMax);
   const alarmGauge = Math.min(100, (alarmValue / alarmThreshold) * 100);
   const formattedPhase = gameState.phase.toString().replace(/_/g, " ");
-  const remainingSeconds = Math.max(0, Math.round(gameState.remainingTimeMs / 1000));
-  const totalDurationSeconds = Math.max(1, Math.round(gameState.roomSettings.durationMs / 1000));
-  const timePercent = Math.min(100, (remainingSeconds / totalDurationSeconds) * 100);
+  const countdownMs = localRemainingMs ?? gameState.remainingTimeMs;
+  const durationMs = Math.max(1, gameState.roomSettings.durationMs);
+  const remainingSeconds = Math.max(0, Math.round(countdownMs / 1000));
+  const totalDurationSeconds = Math.max(1, Math.round(durationMs / 1000));
+  const timePercent = Math.min(100, (countdownMs / durationMs) * 100);
   const coinGoal = Math.max(1, gameState.roomSettings.coinGoal);
   const coinProgress = Math.min(100, (myPlayer.coins / coinGoal) * 100);
 // --- Territory / Region Stats (merged conflict) ---

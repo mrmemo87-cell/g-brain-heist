@@ -11,17 +11,12 @@ const REGION_IDS = [
   "region_8",
 ] as const;
 
-const REGION_NAME_OVERRIDES: Partial<Record<typeof REGION_IDS[number], string>> = {
-  region_1: "Signal Chamber",
-  region_2: "Quantum Nexus",
-};
-
 const isValidRegionId = (regionId?: string): regionId is (typeof REGION_IDS)[number] =>
   Boolean(regionId && REGION_IDS.includes(regionId as (typeof REGION_IDS)[number]));
 
 export const REGION_NAMES: Record<string, string> = REGION_IDS.reduce(
   (acc, regionId, index) => {
-    acc[regionId] = REGION_NAME_OVERRIDES[regionId] ?? `Region ${index + 1}`;
+    acc[regionId] = `Region ${index + 1}`;
     return acc;
   },
   {} as Record<string, string>
