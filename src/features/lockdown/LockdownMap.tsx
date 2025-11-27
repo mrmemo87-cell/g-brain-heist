@@ -92,9 +92,16 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
       paintElement(regionElement, fill, stroke, opacity);
     }
     const childElements = regionElement.querySelectorAll<SVGElement>(
-      "path, rect, circle, ellipse, polygon, polyline"
+      "path, rect, circle, ellipse, polygon, polyline, line"
     );
     childElements.forEach((child) => paintElement(child, fill, stroke, opacity));
+    
+    // Preserve text color but update opacity
+    const textElements = regionElement.querySelectorAll<SVGTextElement>("text");
+    textElements.forEach((text) => {
+      text.style.opacity = opacity;
+      text.setAttribute("opacity", opacity);
+    });
   };
 
   const mapMarkup = useMemo(() => {
@@ -122,8 +129,14 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
       .lockdown-map-region circle,
       .lockdown-map-region ellipse,
       .lockdown-map-region polygon,
-      .lockdown-map-region polyline {
+      .lockdown-map-region polyline,
+      .lockdown-map-region line {
         transition: fill 0.25s linear, opacity 0.35s ease, stroke 0.3s ease;
+        pointer-events: none;
+      }
+      
+      .lockdown-map-region text {
+        transition: opacity 0.35s ease;
         pointer-events: none;
       }
       
@@ -132,7 +145,8 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
       .lockdown-map-region:hover circle,
       .lockdown-map-region:hover ellipse,
       .lockdown-map-region:hover polygon,
-      .lockdown-map-region:hover polyline {
+      .lockdown-map-region:hover polyline,
+      .lockdown-map-region:hover line {
         opacity: 1 !important;
       }
     `;
@@ -160,7 +174,10 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
     // Clean SVG with no inline styles means CSS variables work perfectly via inheritance
     Object.entries(regionStats).forEach(([regionId, stats]) => {
       const regionGroup = svg.querySelector(`#${regionId}`) as SVGGElement | null;
-      if (!regionGroup) return;
+      if (!regionGroup) {
+        console.warn(`LockdownMap: Region element not found for ID: ${regionId}`);
+        return;
+      }
 
       // Add class for CSS inheritance
       if (!regionGroup.classList.contains("lockdown-map-region")) {

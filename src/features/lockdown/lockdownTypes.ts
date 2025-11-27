@@ -134,6 +134,8 @@ export type GameState = {
   round: number;
   finishReason?: FinishReason;
   regionStats?: Record<string, RegionStats>;
+  gameStartTimestamp?: number; // Server timestamp when game started
+  lastTickTimestamp?: number; // Last server tick timestamp
 };
 
 export type JoinGameAction = {

@@ -41,7 +41,7 @@ const AnnouncementBanner = React.lazy(() => import('./components/phase1/Announce
 const RaidView = React.lazy(() => import('./src/features/raids/RaidView'));
 const RaidAdminView = React.lazy(() => import('./src/features/raids/RaidAdminView'));
 const IeltsHome = React.lazy(() => import('./src/pages/ielts/IeltsHome'));
-const ClanTerritoryManager = React.lazy(() => import('./src/features/clanTerritory/ClanTerritoryManager').then(module => ({ default: module.ClanTerritoryManager })));
+const ClanTerritoryManager = React.lazy(() => import('./src/features/clanTerritory/ClanTerritoryManager'));
 
 const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
   6: ['6A', '6B', '6C', 'N/A'],

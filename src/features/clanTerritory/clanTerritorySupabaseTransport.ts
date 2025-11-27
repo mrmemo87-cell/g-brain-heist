@@ -15,6 +15,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
   private discoveryChannel: any;
   private discoveryBroadcastInterval: any;
   private tickInterval: any = null;
+  private visibilityListener: (() => void) | null = null;
   private state: ClanTerritoryGameState = INITIAL_STATE;
   private isHost: boolean = false;
 
@@ -32,16 +33,22 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
 
   // --- Discovery Logic ---
   private startBroadcastingDiscovery(roomId: RoomId) {
-    this.discoveryChannel = supabase.channel('clan-territory-discovery');
+    this.discoveryChannel = supabase.channel('clan-territory-discovery', {
+      config: {
+        broadcast: { ack: false },
+      },
+    });
     this.discoveryChannel.subscribe((status: string) => {
       if (status === 'SUBSCRIBED') {
         // Broadcast presence periodically
         this.discoveryBroadcastInterval = setInterval(() => {
-          this.discoveryChannel.send({
-            type: 'broadcast',
-            event: 'room_open',
-            payload: { roomId }
-          });
+          if (this.discoveryChannel && this.discoveryChannel.state === 'joined') {
+            this.discoveryChannel.send({
+              type: 'broadcast',
+              event: 'room_open',
+              payload: { roomId }
+            });
+          }
         }, 2000);
       }
     });
@@ -139,6 +146,11 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
       clearInterval(this.tickInterval);
       this.tickInterval = null;
     }
+    // Remove visibility listener
+    if (this.visibilityListener) {
+      document.removeEventListener('visibilitychange', this.visibilityListener);
+      this.visibilityListener = null;
+    }
     // Remove main channel
     if (this.channel) {
       supabase.removeChannel(this.channel);
@@ -153,7 +165,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
   }
 
   async sendAction(roomId: RoomId, action: GameAction): Promise<void> {
-    if (this.channel) {
+    if (this.channel && this.channel.state === 'joined') {
       await this.channel.send({
         type: "broadcast",
         event: "game_action",
@@ -218,8 +230,10 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
                     this.tickInterval = null;
                 }
                 
-                // Start the game loop (tick)
-                this.tickInterval = setInterval(() => {
+                // Start the game loop (tick) with visibility handling
+                let lastTickTime = Date.now();
+                
+                const tick = () => {
                     if (this.state.phase === 'ACTIVE') {
                         const newState = clanTerritoryReducer(this.state, { type: 'TICK' });
                         if (newState !== this.state) {
@@ -227,8 +241,25 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
                             this.broadcastState();
                             if (this.onStateUpdate) this.onStateUpdate(this.state);
                         }
+                        lastTickTime = Date.now();
                     }
-                }, 1000);
+                };
+                
+                this.tickInterval = setInterval(tick, 1000);
+                
+                // Handle visibility changes to keep timer accurate
+                const handleVisibilityChange = () => {
+                    if (!document.hidden && this.state.phase === 'ACTIVE') {
+                        const now = Date.now();
+                        const elapsed = now - lastTickTime;
+                        // If more than 2 seconds passed, catch up
+                        if (elapsed > 2000) {
+                            tick();
+                        }
+                    }
+                };
+                document.addEventListener('visibilitychange', handleVisibilityChange);
+                this.visibilityListener = handleVisibilityChange;
                 
                 // Broadcast initial state
                 this.broadcastState();
@@ -238,7 +269,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
   }
 
   private broadcastState() {
-    if (this.channel && this.isHost) {
+    if (this.channel && this.isHost && this.channel.state === 'joined') {
       this.channel.send({
         type: "broadcast",
         event: "game_state",

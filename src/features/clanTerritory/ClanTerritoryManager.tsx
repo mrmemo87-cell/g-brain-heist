@@ -18,7 +18,7 @@ interface ClanTerritoryManagerProps {
   onGoToClan?: () => void;
 }
 
-export const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
+const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   onExit,
   isTeacher = false,
   playerName = "Agent",
@@ -396,3 +396,5 @@ export const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     </>
   );
 };
+
+export default ClanTerritoryManager;

@@ -276,8 +276,17 @@ const applyChaos = (state: GameState, effect: ChaosEffect): GameState => {
 };
 
 const applyTick = (state: GameState, elapsedMs: number): GameState => {
-  const remainingTimeMs = Math.max(0, state.remainingTimeMs - elapsedMs);
-  const updatedState: GameState = { ...state, remainingTimeMs };
+  const now = Date.now();
+  const lastTick = state.lastTickTimestamp || now;
+  const actualElapsed = now - lastTick;
+  
+  // Use actual elapsed time to prevent drift from tab throttling
+  const remainingTimeMs = Math.max(0, state.remainingTimeMs - actualElapsed);
+  const updatedState: GameState = { 
+    ...state, 
+    remainingTimeMs,
+    lastTickTimestamp: now
+  };
   const panicChecked = applyPanicModeIfNeeded(updatedState);
   return panicChecked;
 };
@@ -361,7 +370,12 @@ export const applyAction = (state: GameState, action: GameAction): GameState => 
       updatedState = progressPhase(state);
       break;
     case "START_GAME":
-      updatedState = { ...state, phase: GamePhase.ACTIVE_ROUNDS };
+      updatedState = { 
+        ...state, 
+        phase: GamePhase.ACTIVE_ROUNDS,
+        gameStartTimestamp: Date.now(),
+        lastTickTimestamp: Date.now()
+      };
       break;
     case "TRIGGER_PANIC":
       updatedState = { ...state, panicModeActive: true };

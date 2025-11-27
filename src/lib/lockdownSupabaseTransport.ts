@@ -11,6 +11,7 @@ export class SupabaseLockdownTransport implements LockdownTransport {
   private state: GameState | null = null;
   private stateCallbacks: Set<(state: GameState) => void> = new Set();
   private tickInterval: any = null;
+  private visibilityListener: (() => void) | null = null;
 
   async createRoom(settings?: Partial<RoomSettings>): Promise<RoomId> {
     this.isHost = true;
@@ -39,12 +40,34 @@ export class SupabaseLockdownTransport implements LockdownTransport {
         }
       });
 
-    // Start game loop
-    this.tickInterval = setInterval(() => {
-        if (this.state && this.state.phase === "ACTIVE_ROUNDS") {
-            this.handleAction({ type: "TICK", elapsedMs: 1000 });
+    // Start game loop with Page Visibility API to handle tab switching
+    let lastTickTime = Date.now();
+    
+    const tick = () => {
+      if (this.state && this.state.phase === "ACTIVE_ROUNDS") {
+        const now = Date.now();
+        const elapsed = now - lastTickTime;
+        
+        // Only tick if enough time has passed (prevent excessive ticks)
+        if (elapsed >= 900) { // 900ms to account for slight drift
+          lastTickTime = now;
+          this.handleAction({ type: "TICK", elapsedMs: elapsed });
         }
-    }, 1000);
+      }
+    };
+    
+    this.tickInterval = setInterval(tick, 1000);
+    
+    // Also tick when page becomes visible again to catch up
+    const handleVisibilityChange = () => {
+      if (!document.hidden && this.state && this.state.phase === "ACTIVE_ROUNDS") {
+        tick();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Store cleanup function
+    this.visibilityListener = handleVisibilityChange;
 
     return roomId;
   }
@@ -142,7 +165,7 @@ export class SupabaseLockdownTransport implements LockdownTransport {
   }
 
   private broadcastState() {
-    if (this.channel && this.state) {
+    if (this.channel && this.state && this.channel.state === 'joined') {
       this.channel.send({
         type: "broadcast",
         event: "state",
@@ -163,6 +186,10 @@ export class SupabaseLockdownTransport implements LockdownTransport {
     if (this.tickInterval) {
         clearInterval(this.tickInterval);
         this.tickInterval = null;
+    }
+    if (this.visibilityListener) {
+        document.removeEventListener('visibilitychange', this.visibilityListener);
+        this.visibilityListener = null;
     }
     if (this.channel) {
         supabase.removeChannel(this.channel);
