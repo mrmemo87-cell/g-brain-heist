@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import {
   EntryRoute,
   GamePhase,
@@ -11,7 +11,7 @@ import {
 } from "./lockdownTypes";
 import { LockdownTransport, RoomId, PlayerId, createRoomClient, LockdownRoomClient } from "../../lib/lockdownTransport";
 import { LockdownMap } from "./LockdownMap";
-import { calculateRegionStats } from "./regionCalculator";
+import { calculateRegionStats, REGION_NAMES } from "./regionCalculator";
 
 const entryRouteLabels: Record<EntryRoute, string> = {
   [EntryRoute.SAFE]: "Safe Access",
@@ -42,6 +42,9 @@ export const LockdownStudentView: React.FC<LockdownStudentViewProps> = ({
   const [client, setClient] = useState<LockdownRoomClient | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<{q: string, a: number} | null>(null);
   const [answerInput, setAnswerInput] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobilePanel, setMobilePanel] = useState<"combat" | "map" | "intel">("combat");
+  const [focusedZone, setFocusedZone] = useState<string | null>(null);
 
   useEffect(() => {
     const c = createRoomClient(transport, roomId, playerId);
@@ -49,6 +52,21 @@ export const LockdownStudentView: React.FC<LockdownStudentViewProps> = ({
     const unsubscribe = transport.onGameState(roomId, setGameState);
     return () => unsubscribe();
   }, [transport, roomId, playerId]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia === "undefined") {
+      return;
+    }
+    const media = window.matchMedia("(max-width: 768px)");
+    const handleChange = () => setIsMobile(media.matches);
+    handleChange();
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", handleChange);
+      return () => media.removeEventListener("change", handleChange);
+    }
+    media.addListener(handleChange);
+    return () => media.removeListener(handleChange);
+  }, []);
 
   const myPlayer = useMemo(() => gameState?.players[playerId], [gameState, playerId]);
 
@@ -158,6 +176,238 @@ const capturedByClan =
 
 const capturedLabel =
   hasRegionStats && myPlayer.clanName ? `${myPlayer.clanName} control` : "Captured";
+
+const zonesForQuickSelect = useMemo(
+  () =>
+    Object.values(regionStats).map((region) => ({
+      id: region.regionId,
+      label: REGION_NAMES[region.regionId] ?? region.regionId.replace(/_/g, " "),
+      percentage: region.topClan?.percentage ?? 0,
+      clanName: region.topClan?.clanName ?? "Unclaimed",
+      clanColor: region.topClan?.color,
+    })),
+  [regionStats]
+);
+
+useEffect(() => {
+  if (!focusedZone && zonesForQuickSelect.length > 0) {
+    setFocusedZone(zonesForQuickSelect[0].id);
+  }
+}, [focusedZone, zonesForQuickSelect]);
+
+const focusedZoneDetails = useMemo(
+  () => zonesForQuickSelect.find((zone) => zone.id === focusedZone) ?? zonesForQuickSelect[0],
+  [focusedZone, zonesForQuickSelect]
+);
+
+const handleZoneFocus = useCallback((zoneId: string) => {
+  setFocusedZone(zoneId);
+}, []);
+
+const mobilePanelOptions = [
+  { id: "combat" as const, label: "Hack", helper: "Answer" },
+  { id: "map" as const, label: "Map", helper: "Territory" },
+  { id: "intel" as const, label: "Intel", helper: "Zones" },
+];
+
+type ZoneQuickData = {
+  id: string;
+  label: string;
+  percentage: number;
+  clanName: string;
+  clanColor?: string;
+};
+
+interface ZoneQuickListProps {
+  zones: ZoneQuickData[];
+  focusedZoneId: string | null;
+  onFocus: (zoneId: string) => void;
+  compact?: boolean;
+  variant?: "desktop" | "mobile";
+}
+
+const ZoneQuickList: React.FC<ZoneQuickListProps> = ({ zones, focusedZoneId, onFocus, compact = false, variant = "desktop" }) => {
+  if (!zones.length) {
+    return <p className="mt-4 text-sm text-slate-500">Intel en route...</p>;
+  }
+
+  const focused = zones.find((zone) => zone.id === focusedZoneId) ?? zones[0];
+
+  return (
+    <div className={`mt-4 ${compact ? "space-y-3" : "space-y-4"}`}>
+      <div className={`grid gap-2 ${compact ? "sm:grid-cols-2" : variant === "mobile" ? "grid-cols-1" : "grid-cols-2"}`}>
+        {zones.map((zone) => {
+          const isActive = zone.id === focusedZoneId;
+          return (
+            <button
+              key={zone.id}
+              type="button"
+              onClick={() => onFocus(zone.id)}
+              className={`rounded-2xl border px-3 py-3 text-left text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 ${
+                isActive ? "border-emerald-500/60 bg-emerald-500/10 text-white" : "border-slate-800/80 bg-slate-950/60 text-slate-200"
+              }`}
+              style={isActive && zone.clanColor ? { boxShadow: `0 0 15px ${zone.clanColor}33` } : undefined}
+            >
+              <p className="text-[0.6rem] uppercase tracking-[0.3em] text-slate-400">{zone.label}</p>
+              <p className="text-base font-semibold text-white">{zone.clanName}</p>
+              <p className="text-xs text-emerald-200">{zone.percentage}% control</p>
+            </button>
+          );
+        })}
+      </div>
+
+      {!compact && focused && (
+        <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/5 p-4 text-sm text-emerald-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[0.6rem] uppercase tracking-[0.3em] text-emerald-200">Focused Zone</p>
+              <p className="text-lg font-bold text-white">{focused.label}</p>
+            </div>
+            <span className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-xs font-semibold">
+              {focused.percentage}%
+            </span>
+          </div>
+          <p className="mt-2 text-xs text-emerald-200">Controlled by {focused.clanName}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const renderCombatPanel = (variant: "desktop" | "mobile" = "desktop") => (
+  <div
+    className={`rounded-3xl border border-slate-800/70 bg-slate-900/60 p-6 text-center shadow-xl shadow-slate-950/40 ${
+      variant === "mobile" ? "min-h-[360px]" : ""
+    }`}
+  >
+    <div className="space-y-2">
+      <h3 className="text-xs uppercase tracking-[0.32em] text-slate-500">Security Challenge</h3>
+      <p className="text-4xl font-black font-mono text-white sm:text-5xl">{currentQuestion?.q} = ?</p>
+      <p className="text-sm text-slate-400">Submit the correct bypass code to siphon coins without spiking the alarm.</p>
+    </div>
+    {currentQuestion && (
+      <form
+        onSubmit={handleSubmitAnswer}
+        className={`mt-6 flex w-full flex-col gap-3 ${variant === "desktop" ? "sm:flex-row" : ""}`}
+      >
+        <input
+          type="text"
+          value={answerInput}
+          onChange={(e) => setAnswerInput(e.target.value)}
+          className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-4 text-center text-2xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+          placeholder="?"
+          autoFocus={!isMobile}
+          inputMode="numeric"
+        />
+        <button
+          type="submit"
+          className="w-full rounded-xl bg-emerald-600 px-6 py-4 text-base font-bold text-white transition hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60 sm:w-auto"
+        >
+          Hack Sequence
+        </button>
+      </form>
+    )}
+  </div>
+);
+
+const renderMapPanel = (variant: "desktop" | "mobile" = "desktop") => (
+  <div className="rounded-3xl border border-slate-800/70 bg-slate-900/60 p-4 shadow-lg shadow-emerald-900/30">
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-[0.65rem] uppercase tracking-[0.3em] text-slate-500">Territory Scan</p>
+        <p className="text-lg font-semibold text-white">Captured Zones</p>
+        <p className="text-xs text-slate-400">Live map of clan control</p>
+      </div>
+
+      <div className="rounded-full bg-emerald-600/20 px-3 py-1 text-xs font-semibold text-emerald-200 border border-emerald-500/40">
+        {hasRegionStats ? `${capturedByClan}/${totalRegions}` : "Mapping"}
+      </div>
+    </div>
+
+    <div className="mt-3 rounded-2xl border border-slate-800 bg-slate-950/60 p-2">
+      <LockdownMap regionStats={regionStats} className={variant === "mobile" ? "h-72" : "h-64"} />
+    </div>
+
+    <ZoneQuickList
+      zones={zonesForQuickSelect}
+      focusedZoneId={focusedZoneDetails?.id ?? null}
+      onFocus={handleZoneFocus}
+      compact={variant === "desktop"}
+    />
+  </div>
+);
+
+const renderIntelPanel = (variant: "desktop" | "mobile" = "desktop") => (
+  <div className="rounded-3xl border border-slate-800/70 bg-slate-900/60 p-5 shadow-lg shadow-slate-950/30">
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-[0.65rem] uppercase tracking-[0.3em] text-slate-500">Zone Network</p>
+        <p className="text-lg font-semibold text-white">Mission Focus</p>
+        <p className="text-xs text-slate-400">Tap a zone to study its control stats.</p>
+      </div>
+      <div className="hidden text-right text-xs text-slate-400 sm:block">
+        Refocus often to plan faster routes.
+      </div>
+    </div>
+    <ZoneQuickList
+      zones={zonesForQuickSelect}
+      focusedZoneId={focusedZoneDetails?.id ?? null}
+      onFocus={handleZoneFocus}
+      compact={false}
+      variant={variant}
+    />
+  </div>
+);
+
+const renderActiveSection = () => {
+  if (isMobile) {
+    return (
+      <div className="space-y-4 pb-28">
+        {mobilePanel === "combat" && renderCombatPanel("mobile")}
+        {mobilePanel === "map" && renderMapPanel("mobile")}
+        {mobilePanel === "intel" && renderIntelPanel("mobile")}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-3">
+      <div className="lg:col-span-2">{renderCombatPanel("desktop")}</div>
+      <div className="space-y-4">
+        {renderMapPanel("desktop")}
+        {renderIntelPanel("desktop")}
+      </div>
+    </div>
+  );
+};
+
+const renderMobilePanelNav = () => (
+  <div className="pointer-events-none fixed inset-x-0 bottom-4 z-20 flex justify-center sm:hidden">
+    <div className="pointer-events-auto w-full max-w-sm px-4">
+      <div className="grid grid-cols-3 gap-2 rounded-3xl border border-slate-800/80 bg-slate-950/90 p-2 shadow-2xl shadow-black/60 backdrop-blur">
+        {mobilePanelOptions.map((option) => {
+          const active = mobilePanel === option.id;
+          return (
+            <button
+              key={option.id}
+              type="button"
+              onClick={() => setMobilePanel(option.id)}
+              className={`rounded-2xl border px-3 py-2 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 ${
+                active
+                  ? "border-emerald-400/60 bg-emerald-500/20 text-white"
+                  : "border-slate-800 bg-slate-900/60 text-slate-300"
+              }`}
+              aria-pressed={active}
+            >
+              <p className="text-[0.65rem] uppercase tracking-[0.28em] text-slate-400">{option.helper}</p>
+              <p className="text-lg font-semibold">{option.label}</p>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  </div>
+);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 px-4 py-6 text-white sm:px-6">
@@ -289,55 +539,9 @@ percent={
         )}
 
         {isActive && (
-          <div className="flex flex-1 flex-col gap-6">
-            <div className="grid gap-4 lg:grid-cols-3">
-              <div className="lg:col-span-2 rounded-3xl border border-slate-800/70 bg-slate-900/60 p-6 text-center shadow-xl shadow-slate-950/40">
-                <div className="space-y-2">
-                  <h3 className="text-xs uppercase tracking-[0.32em] text-slate-500">Security Challenge</h3>
-                  <p className="text-4xl font-black font-mono text-white sm:text-5xl">{currentQuestion?.q} = ?</p>
-                  <p className="text-sm text-slate-400">Submit the correct bypass code to siphon coins without spiking the alarm.</p>
-                </div>
-                {currentQuestion && (
-                  <form onSubmit={handleSubmitAnswer} className="mt-6 flex w-full flex-col gap-3 sm:flex-row">
-                    <input
-                      type="text"
-                      value={answerInput}
-                      onChange={(e) => setAnswerInput(e.target.value)}
-                      className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-4 text-center text-2xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                      placeholder="?"
-                      autoFocus
-                      inputMode="numeric"
-                    />
-                    <button
-                      type="submit"
-                      className="w-full rounded-xl bg-emerald-600 px-6 py-4 text-base font-bold text-white transition hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60 sm:w-auto"
-                    >
-                      Hack Sequence
-                    </button>
-                  </form>
-                )}
-              </div>
-
-              <div className="rounded-3xl border border-slate-800/70 bg-slate-900/60 p-4 shadow-lg shadow-emerald-900/30">
-                <div className="flex items-center justify-between">
-                  <div>
-<p className="text-[0.65rem] uppercase tracking-[0.3em] text-slate-500">Territory Scan</p>
-<p className="text-lg font-semibold text-white">Captured Zones</p>
-<p className="text-xs text-slate-400">Live map of clan control</p>
-</div>
-
-<div className="rounded-full bg-emerald-600/20 px-3 py-1 text-xs font-semibold text-emerald-200 border border-emerald-500/40">
-  {hasRegionStats ? `${capturedByClan}/${totalRegions}` : "Mapping"}
-</div>
-</div>
-
-<div className="mt-3 rounded-2xl border border-slate-800 bg-slate-950/60 p-2">
-  <LockdownMap regionStats={regionStats} className="h-64" />
-</div>
-
-                </div>
-              </div>
-            </div>
+          <div className="relative flex flex-1 flex-col gap-6">
+            {renderActiveSection()}
+            {isMobile && renderMobilePanelNav()}
           </div>
         )}
 
