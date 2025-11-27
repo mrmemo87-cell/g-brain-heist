@@ -114,9 +114,26 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
         }, 100);
     });
 
+    // Fetch clan color from database
+    let clanColor: string | undefined;
+    try {
+      const { data: clan, error } = await supabase
+        .from('clans')
+        .select('color')
+        .eq('id', clanId)
+        .single();
+
+      if (!error && clan?.color) {
+        clanColor = clan.color;
+      }
+    } catch (e) {
+      console.error('Failed to fetch clan color:', e);
+      // Continue without color - will use hash-based fallback
+    }
+
     await this.sendAction(roomId, {
       type: "JOIN",
-      payload: { player: { id: playerId, name: playerName, clanId, clanName } },
+      payload: { player: { id: playerId, name: playerName, clanId, clanName, clanColor } },
     });
 
     return playerId;

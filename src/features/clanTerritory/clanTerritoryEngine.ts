@@ -57,7 +57,7 @@ export function clanTerritoryReducer(
       const clanMeta = state.clans[player.clanId] ?? {
         id: player.clanId,
         name: player.clanName,
-        color: getClanColor(player.clanId),
+        color: player.clanColor || getClanColor(player.clanId),
       };
 
       return {

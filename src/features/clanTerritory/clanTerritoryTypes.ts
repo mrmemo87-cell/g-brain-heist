@@ -111,7 +111,7 @@ export type GameAction =
   | {
       type: "JOIN";
       payload: {
-        player: { id: string; name: string; clanId: ClanId; clanName: string };
+        player: { id: string; name: string; clanId: ClanId; clanName: string; clanColor?: string };
       };
     }
   | { type: "SET_QUESTIONS"; payload: { questions: BattleQuestion[] } }
