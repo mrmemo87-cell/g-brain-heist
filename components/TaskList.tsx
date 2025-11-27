@@ -3,6 +3,7 @@ import { Task } from '../types';
 import * as GameService from '../services/gameService';
 import { audioService } from '../services/audioService';
 import { CoinIcon, GemIcon, XPIcon } from './icons';
+import CoinAnimation from './CoinAnimation';
 
 interface TaskItemProps {
   task: Task;
@@ -32,7 +33,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onClaim, claiming }) => {
     task.reward?.coins
       ? {
           id: 'coins',
-          icon: <CoinIcon className="w-4 h-4" />, 
+          icon: <div style={{width: 16, height: 16}} className="flex items-center justify-center"><CoinAnimation width={16} height={16} /></div>, 
           color: 'var(--amber-warn)',
           text: `+${task.reward.coins} Coins`,
         }

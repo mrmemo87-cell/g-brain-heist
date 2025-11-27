@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Profile } from '../types';
 import { CoinIcon, XPIcon, APIcon, LogoutIcon, StreakIcon, GemIcon } from './icons';
+import CoinAnimation from './CoinAnimation';
 import { audioService } from '../services/audioService';
 import { NotificationCenter } from './NotificationCenter';
 import { notificationService } from '../services/notificationService';
@@ -386,8 +387,8 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
               <div className="mt-3 rounded-3xl border border-slate-800/60 bg-slate-950/60 p-3 shadow-inner shadow-slate-950/40">
                 <div className="grid grid-cols-2 gap-2">
                   <div className="flex items-center gap-2 rounded-2xl border border-yellow-500/40 bg-yellow-500/10 px-3 py-2">
-                    <div className="h-6 w-6 text-yellow-300">
-                      <CoinIcon />
+                    <div className="flex-shrink-0 text-yellow-300">
+                      <CoinAnimation width={24} height={24} />
                     </div>
                     <div className="flex flex-col">
                       <span className="text-[10px] font-semibold uppercase tracking-wide text-yellow-200/80">Coins</span>
@@ -516,8 +517,8 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
               <div className="flex items-center gap-3">
                 {/* Coins */}
                 <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-br from-yellow-600/20 to-orange-600/20 rounded-xl border-2 border-yellow-500/50 backdrop-blur-sm hover:scale-105 transition-transform min-w-[100px]">
-                  <div className="w-7 h-7 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]">
-                    <CoinIcon />
+                  <div className="flex-shrink-0 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]">
+                    <CoinAnimation width={28} height={28} />
                   </div>
                   <div className="flex flex-col">
                     <span className="text-xs text-yellow-300/80 font-semibold uppercase tracking-wide leading-none">Coins</span>

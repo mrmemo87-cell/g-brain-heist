@@ -70,43 +70,74 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) return;
 
-      // Fetch clan_id from clan_members table
-      const { data: membership, error: membershipError } = await supabase
-        .from('clan_members')
-        .select('clan_id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (membershipError) {
-        console.error('Error fetching clan membership:', membershipError);
+      const membership = await resolveClanMembership(user.id);
+      if (!membership?.clanId) {
         return;
       }
 
-      if (!membership?.clan_id) {
-        // User is not in a clan
-        return;
-      }
+      const clanName = membership.clanName ?? (await fetchClanName(membership.clanId));
 
-      // Fetch clan name and color from clans table
-      const { data: clan, error: clanError } = await supabase
-        .from('clans')
-        .select('id, name, color')
-        .eq('id', membership.clan_id)
-        .single();
-
-      if (clanError) {
-        console.error('Error fetching clan details:', clanError);
-        return;
-      }
-
-      if (clan?.id && clan?.name) {
-        setResolvedClanId(clan.id as ClanId);
-        setResolvedClanName(clan.name);
-        setClanLoadTimeout(false);
-      }
+      setResolvedClanId(membership.clanId);
+      setResolvedClanName(clanName);
+      setClanLoadTimeout(false);
     } catch (error) {
       console.error('Failed to fetch clan data:', error);
     }
+  };
+
+  const resolveClanMembership = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('clan_members')
+      .select('clan_id, clans(name)')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error && error.code !== 'PGRST116') {
+      console.warn('Failed to resolve clan membership via clan_members:', error.message ?? error);
+    }
+
+    if (data?.clan_id) {
+      const clanRecord = Array.isArray(data.clans) ? data.clans[0] : data.clans;
+      return {
+        clanId: data.clan_id as ClanId,
+        clanName: clanRecord?.name ?? null,
+      };
+    }
+
+    if (error) {
+      const { data: fallback, error: fallbackError } = await supabase
+        .from('clan_member_scores')
+        .select('clan_id')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (fallbackError && fallbackError.code !== 'PGRST116') {
+        console.warn('Fallback clan membership lookup failed:', fallbackError.message ?? fallbackError);
+      }
+
+      if (fallback?.clan_id) {
+        return {
+          clanId: fallback.clan_id as ClanId,
+          clanName: null,
+        };
+      }
+    }
+
+    return null;
+  };
+
+  const fetchClanName = async (clanId: string) => {
+    const { data, error } = await supabase
+      .from('clans')
+      .select('name')
+      .eq('id', clanId)
+      .maybeSingle();
+
+    if (error && error.code !== 'PGRST116') {
+      console.warn('Failed to load clan name from clans table:', error.message ?? error);
+    }
+
+    return data?.name ?? null;
   };
 
   // On mount, try to fetch clan data directly (don't wait for props)

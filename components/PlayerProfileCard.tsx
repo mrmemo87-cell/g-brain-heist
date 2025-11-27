@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Profile, ActiveClanBuff } from '../types';
 import { CoinIcon, StreakIcon, XPIcon, APIcon, GemIcon, TrophyIcon, BattleIcon, ShieldIcon, ClanIcon } from './icons';
+import CoinAnimation from './CoinAnimation';
 import AvatarWithFrame from './AvatarWithFrame';
 
 interface PlayerProfileCardProps {
@@ -156,7 +157,7 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <StatDisplay icon={<CoinIcon />} label="Coins" value={profile.coins.toLocaleString()} color={'var(--amber-warn)'} />
+          <StatDisplay icon={<div style={{width: 20, height: 20}} className="flex items-center justify-center"><CoinAnimation width={20} height={20} /></div>} label="Coins" value={profile.coins.toLocaleString()} color={'var(--amber-warn)'} />
           <StatDisplay icon={<GemIcon />} label="Gemstones" value={profile.gemstones.toLocaleString()} color={'var(--ion-blue)'} />
           <StatDisplay icon={<StreakIcon />} label="Streak" value={`${profile.streak} days`} color={'var(--danger-red)'} />
           <StatDisplay icon={<TrophyIcon className="w-4 h-4" />} label="Total Score" value={totalScore.toLocaleString()} color={'var(--amber-warn)'} subtitle="XP + PvP" />

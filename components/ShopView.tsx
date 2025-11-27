@@ -3,6 +3,7 @@ import { ShopItem, Profile, ToastMessage } from '../types';
 import * as GameService from '../services/gameService';
 import { audioService } from '../services/audioService';
 import BackButton from './BackButton';
+import CoinAnimation from './CoinAnimation';
 import {
   BoosterIcon,
   CoinIcon,
@@ -132,7 +133,7 @@ const ItemCard: React.FC<{
         <div className="grid grid-cols-2 gap-2">
           <div className="inline-flex items-center justify-between bg-black/30 px-3 py-2 rounded-lg border border-amber-500/30">
             <span className="font-heading text-lg text-amber-300">{item.price}</span>
-            <div className="w-5 h-5 text-amber-400"><CoinIcon /></div>
+            <CoinAnimation width={20} height={20} />
           </div>
           {item.gemstone_price ? (
             <div className="inline-flex items-center justify-between bg-black/30 px-3 py-2 rounded-lg border border-cyan-500/40">
@@ -236,7 +237,7 @@ const PurchaseModal: React.FC<{
                             <span className="text-gray-300">Total Coins:</span>
                             <div className="flex items-center space-x-2">
                                 <span className={`text-xl font-mono ${insufficientCoins ? 'text-red-500' : 'text-amber-300'}`}>{totalCoinCost.toLocaleString()}</span>
-                                <div className="w-5 h-5 text-amber-400"><CoinIcon /></div>
+                                <CoinAnimation width={20} height={20} />
                             </div>
                         </div>
                         {item.gemstone_price ? (
@@ -255,7 +256,7 @@ const PurchaseModal: React.FC<{
                             <span>Coins Available</span>
                             <div className="flex items-center gap-2">
                                 <span className="font-mono text-amber-200">{profile.coins.toLocaleString()}</span>
-                                <div className="w-4 h-4 text-amber-300"><CoinIcon /></div>
+                                <CoinAnimation width={16} height={16} />
                             </div>
                         </div>
                         <div className="flex items-center justify-between">
