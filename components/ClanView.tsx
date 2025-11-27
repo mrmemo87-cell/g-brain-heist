@@ -109,11 +109,27 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   const fetchClanDetails = async () => {
     setStage('loading');
     try {
-        const [clanDetails, buffs, pendingRequest] = await Promise.all([
+        const results = await Promise.allSettled([
             GameService.clan_details(),
             GameService.clan_get_available_buffs(),
             GameService.clan_get_my_pending_request(),
         ]);
+
+        // Extract values with fallbacks if any promise rejected
+        const clanDetails = results[0].status === 'fulfilled' ? results[0].value : null;
+        const buffs = results[1].status === 'fulfilled' ? results[1].value : [];
+        const pendingRequest = results[2].status === 'fulfilled' ? results[2].value : null;
+
+        if (results[0].status === 'rejected') {
+            console.error('Failed to load clan details:', results[0].reason);
+        }
+        if (results[1].status === 'rejected') {
+            console.error('Failed to load buffs:', results[1].reason);
+        }
+        if (results[2].status === 'rejected') {
+            console.error('Failed to load pending request:', results[2].reason);
+        }
+
         setClan(clanDetails);
         setAvailableBuffs(buffs);
         setPendingJoinRequest(pendingRequest);

@@ -1305,10 +1305,21 @@ export const whoami = async (): Promise<Profile> => {
             resolvedClanName = clanRow?.name ?? resolvedClanName;
         }
 
-        const [clanScore, activeBuffs] = await Promise.all([
-            fetchClanScoreValue(resolvedClanId),
-            fetchClanActiveBuffs(resolvedClanId),
-        ]);
+        let clanScore: number | null = null;
+        let activeBuffs: ActiveClanBuff[] = [];
+        
+        try {
+            const [score, buffs] = await Promise.all([
+                fetchClanScoreValue(resolvedClanId),
+                fetchClanActiveBuffs(resolvedClanId),
+            ]);
+            clanScore = score;
+            activeBuffs = buffs;
+        } catch (e) {
+            console.warn('Failed to fetch clan score or buffs for dashboard (using defaults):', e);
+            clanScore = null;
+            activeBuffs = [];
+        }
 
         profile.clan_id = resolvedClanId;
         profile.clan_role = resolvedClanRole;
@@ -2812,8 +2823,8 @@ export const clan_get_my_pending_request = async (): Promise<ClanJoinRequest | n
         .limit(1);
 
     if (error) {
-        console.error('Failed to load join request:', error);
-        throw new Error('Unable to check join request status.');
+        console.warn('Failed to load join request (non-fatal):', error.message);
+        return mockApiCall(null);
     }
 
     const requestRow = data?.[0];
@@ -3122,10 +3133,22 @@ export const clan_details = async (): Promise<Clan | null> => {
     })) as ClanMember[];
 
     const calculatedScore = members.reduce((sum, member) => sum + (member.total_score || 0), 0);
-    const [clanScore, activeBuffs] = await Promise.all([
-        fetchClanScoreValue(clan.id),
-        fetchClanActiveBuffs(clan.id),
-    ]);
+    
+    let clanScore: number | null = null;
+    let activeBuffs: ActiveClanBuff[] = [];
+    
+    try {
+        const [score, buffs] = await Promise.all([
+            fetchClanScoreValue(clan.id),
+            fetchClanActiveBuffs(clan.id),
+        ]);
+        clanScore = score;
+        activeBuffs = buffs;
+    } catch (e) {
+        console.warn('Failed to fetch clan score or buffs (using defaults):', e);
+        clanScore = null;
+        activeBuffs = [];
+    }
 
     const totalScore = clanScore ?? calculatedScore;
     const crestUrl = (clan as any).crest_url;
