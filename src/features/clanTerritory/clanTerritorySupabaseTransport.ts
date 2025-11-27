@@ -165,6 +165,25 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
   }
 
   async sendAction(roomId: RoomId, action: GameAction): Promise<void> {
+    // Wait for channel to be ready if it's not already
+    if (!this.channel || this.channel.state !== 'joined') {
+      // Wait for channel to be subscribed with timeout
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          clearInterval(check);
+          reject(new Error('Channel subscription timeout: Unable to send action'));
+        }, 5000); // 5 second timeout
+        
+        const check = setInterval(() => {
+          if (this.channel && this.channel.state === 'joined') {
+            clearInterval(check);
+            clearTimeout(timeout);
+            resolve();
+          }
+        }, 100);
+      });
+    }
+
     if (this.channel && this.channel.state === 'joined') {
       await this.channel.send({
         type: "broadcast",
