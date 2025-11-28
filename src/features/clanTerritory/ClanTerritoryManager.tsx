@@ -210,9 +210,10 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       // Set up state listener BEFORE sending any actions
       transport.onGameState(id, setGameState);
       
-      // Send questions and map configuration to game state
-      transport.sendAction(id, { type: "SET_QUESTIONS", payload: { questions } });
-      transport.sendAction(id, { type: "SET_MAP", payload: { mapId: selectedMap } });
+      // Send map configuration FIRST, then questions
+      // This ensures zones are created for the correct map before any other state changes
+      await transport.sendAction(id, { type: "SET_MAP", payload: { mapId: selectedMap } });
+      await transport.sendAction(id, { type: "SET_QUESTIONS", payload: { questions } });
       
       setRoomId(id);
       setMode("host");
@@ -227,7 +228,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     transport.onGameState(id, setGameState);
     
     // Send questions to game state
-    transport.sendAction(id, { type: "SET_QUESTIONS", payload: { questions } });
+    await transport.sendAction(id, { type: "SET_QUESTIONS", payload: { questions } });
     setRoomId(id);
     setMode("host");
   };

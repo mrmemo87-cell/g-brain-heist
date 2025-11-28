@@ -369,17 +369,16 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 flex flex-col gap-4">
             <h3 className="text-lg font-bold text-center">Battle Map</h3>
             <ClanTerritoryMap zones={gameState.zones} clans={clansWithColors} mapId={gameState.mapId} />
-              <div className="flex flex-col gap-2">
-                {priorityTargets.map(({ zone, snapshot, needsHelp }) => (
-                  <div key={zone.id} className={`p-3 rounded-xl border ${needsHelp ? "border-yellow-400" : "border-slate-800"} bg-slate-950/60`}>
-                    <p className="font-semibold">{zone.name}</p>
-                    <p className="text-xs text-slate-400">
-                      {snapshot.controller ? `${clanList.find((c) => c.id === snapshot.controller)?.name ?? "Unknown"}` : "Unclaimed"} · {Math.round(snapshot.percent * 100)}%
-                    </p>
-                    {needsHelp && <p className="text-xs text-yellow-400">Your clan needs this zone</p>}
-                  </div>
-                ))}
-              </div>
+            <div className="flex flex-col gap-2">
+              {priorityTargets.map(({ zone, snapshot, needsHelp }) => (
+                <div key={zone.id} className={`p-3 rounded-xl border ${needsHelp ? "border-yellow-400" : "border-slate-800"} bg-slate-950/60`}>
+                  <p className="font-semibold">{zone.name}</p>
+                  <p className="text-xs text-slate-400">
+                    {snapshot.controller ? `${clanList.find((c) => c.id === snapshot.controller)?.name ?? "Unknown"}` : "Unclaimed"} · {Math.round(snapshot.percent * 100)}%
+                  </p>
+                  {needsHelp && <p className="text-xs text-yellow-400">Your clan needs this zone</p>}
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -406,6 +405,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
             </button>
           </div>
           <ClanTerritoryMap zones={gameState.zones} clans={clansWithColors} mapId={gameState.mapId} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {ZONES.map((z) => {
               const snapshot = getZoneSnapshot(z.id);
               const holder = snapshot.controller ? clanList.find((c) => c.id === snapshot.controller) : null;
