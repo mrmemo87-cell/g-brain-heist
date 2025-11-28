@@ -305,6 +305,10 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         opacity: number;
       }
     ) => {
+      // Clear any existing inline style to ensure our styles take precedence
+      // This is necessary for SVGs with inline styles like city_map.svg
+      element.removeAttribute("style");
+      
       // Apply fill - set both attribute and style to ensure it overrides parent group styles
       if (element.getAttribute("fill") !== fill) {
         element.setAttribute("fill", fill);
