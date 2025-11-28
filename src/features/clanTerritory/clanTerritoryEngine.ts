@@ -8,19 +8,38 @@ import {
   getClanColor,
 } from "./clanTerritoryTypes";
 
+// Map zone count configuration
+const MAP_ZONE_COUNTS: Record<string, number> = {
+  default: 8,
+  city: 10,
+  fortress: 6,
+  islands: 12,
+};
+
+// Helper function to generate zones for a specific map
+const generateZonesForMap = (mapId: string = 'default'): Record<ZoneId, any> => {
+  const zoneCount = MAP_ZONE_COUNTS[mapId] || 8;
+  const zones: Record<ZoneId, any> = {};
+  
+  for (let i = 1; i <= zoneCount; i++) {
+    const zoneId = `zone-${i}` as ZoneId;
+    zones[zoneId] = {
+      id: zoneId,
+      influence: {},
+    };
+  }
+  
+  return zones;
+};
+
 export const INITIAL_STATE: ClanTerritoryGameState = {
   phase: "LOBBY",
   timer: 300, // 5 minutes default
-  zones: ZONES.reduce((acc, zone) => {
-    acc[zone.id] = {
-      id: zone.id,
-      influence: {},
-    };
-    return acc;
-  }, {} as Record<ZoneId, any>),
+  zones: generateZonesForMap('default'),
   players: {},
   clans: {},
   questions: [],
+  mapId: 'default',
 };
 
 export function clanTerritoryReducer(
@@ -36,9 +55,12 @@ export function clanTerritoryReducer(
     }
 
     case "SET_MAP": {
+      const newMapId = action.payload.mapId;
       return {
         ...state,
-        mapId: action.payload.mapId,
+        mapId: newMapId,
+        // Regenerate zones for the new map
+        zones: generateZonesForMap(newMapId),
       };
     }
 

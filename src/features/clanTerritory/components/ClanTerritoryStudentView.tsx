@@ -289,7 +289,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           </p>
           <p className="text-slate-500 text-sm">Awaiting teacher to arm the arena...</p>
         </div>
-        <ClanTerritoryMap zones={gameState.zones} clans={clansWithColors} />
+        <ClanTerritoryMap zones={gameState.zones} clans={clansWithColors} mapId={gameState.mapId} />
         <div className="grid grid-cols-2 gap-4 text-center">
           <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4">
             <p className="text-xs uppercase text-slate-400">Agents Online</p>
@@ -368,9 +368,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           </div>
           <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 flex flex-col gap-4">
             <h3 className="text-lg font-bold text-center">Battle Map</h3>
-            <ClanTerritoryMap zones={gameState.zones} clans={clansWithColors} />
-            <div>
-              <p className="text-xs uppercase text-slate-400 mb-2">Targets needing reinforcements</p>
+            <ClanTerritoryMap zones={gameState.zones} clans={clansWithColors} mapId={gameState.mapId} />
               <div className="flex flex-col gap-2">
                 {priorityTargets.map(({ zone, snapshot, needsHelp }) => (
                   <div key={zone.id} className={`p-3 rounded-xl border ${needsHelp ? "border-yellow-400" : "border-slate-800"} bg-slate-950/60`}>
@@ -407,8 +405,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
               BACK TO COMBAT
             </button>
           </div>
-          <ClanTerritoryMap zones={gameState.zones} clans={clansWithColors} />
-          <div className="flex flex-col gap-2">
+          <ClanTerritoryMap zones={gameState.zones} clans={clansWithColors} mapId={gameState.mapId} />
             {ZONES.map((z) => {
               const snapshot = getZoneSnapshot(z.id);
               const holder = snapshot.controller ? clanList.find((c) => c.id === snapshot.controller) : null;
