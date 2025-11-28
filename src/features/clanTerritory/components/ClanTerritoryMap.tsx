@@ -1,6 +1,14 @@
 import React, { ReactNode, useEffect, useRef, useState } from "react";
 // @ts-expect-error - Vite injects raw SVG strings for ?raw imports
 import territoryMapSvgRaw from "../assets/territory_map.svg?raw";
+// Import additional maps when available:
+// @ts-expect-error
+import cityMapSvgRaw from "../assets/city_map.svg?raw";
+// @ts-expect-error
+// import fortressMapSvgRaw from "../assets/fortress_map.svg?raw";
+// @ts-expect-error
+// import islandsMapSvgRaw from "../assets/islands_map.svg?raw";
+
 import {
   ClanId,
   ClanMetadata,
@@ -8,6 +16,85 @@ import {
   ZoneState,
   getClanColor,
 } from "../clanTerritoryTypes";
+
+// Map configurations for different map layouts
+type MapConfig = {
+  svg: string;
+  zoneToRegion: Record<ZoneId, string | string[]>;
+  regionAliases: Record<string, string[]>;
+  maxZones?: number; // Optional: specify how many zones this map has
+};
+
+const MAP_CONFIGS: Record<string, MapConfig> = {
+  default: {
+    svg: territoryMapSvgRaw,
+    zoneToRegion: {
+      "zone-1": "region_5",
+      "zone-2": "region_7",
+      "zone-3": "region_6",
+      "zone-4": "region_4",
+      "zone-5": "region_8",
+      "zone-6": "region_3",
+      "zone-7": ["region_2", "regio_2"],
+      "zone-8": "region_1",
+    },
+    regionAliases: {
+      region_1: ["signalchamber"],
+      region_2: ["quantumnexus", "regio_2"],
+    },
+  },
+  city: {
+    svg: cityMapSvgRaw,
+    maxZones: 10,
+    zoneToRegion: {
+      "zone-1": "district_1",
+      "zone-2": "district_2",
+      "zone-3": "district_3",
+      "zone-4": "district_4",
+      "zone-5": "district_5",
+      "zone-6": "district_6",
+      "zone-7": "district_7",
+      "zone-8": "district_8",
+      "zone-9": "district_9",
+      "zone-10": "district_10",
+    },
+    regionAliases: {},
+  },
+  fortress: {
+    svg: territoryMapSvgRaw, // Use default until fortress_map.svg is created
+    maxZones: 6,
+    zoneToRegion: {
+      "zone-1": "layer_1",
+      "zone-2": "layer_2",
+      "zone-3": "layer_3",
+      "zone-4": "layer_4",
+      "zone-5": "layer_5",
+      "zone-6": "layer_6",
+      "zone-7": "central_keep",
+      "zone-8": "outer_wall",
+    },
+    regionAliases: {},
+  },
+  islands: {
+    svg: territoryMapSvgRaw, // Use default until islands_map.svg is created
+    maxZones: 12,
+    zoneToRegion: {
+      "zone-1": "island_1",
+      "zone-2": "island_2",
+      "zone-3": "island_3",
+      "zone-4": "island_4",
+      "zone-5": "island_5",
+      "zone-6": "island_6",
+      "zone-7": "island_7",
+      "zone-8": "island_8",
+      "zone-9": "island_9",
+      "zone-10": "island_10",
+      "zone-11": "island_11",
+      "zone-12": "island_12",
+    },
+    regionAliases: {},
+  },
+};
 
 interface ClanTerritoryMapProps {
   zones: Record<ZoneId, ZoneState>;
@@ -18,27 +105,11 @@ interface ClanTerritoryMapProps {
   mapId?: string;
 }
 
-const ZONE_TO_REGION: Record<ZoneId, string | string[]> = {
-  "zone-1": "region_5",
-  "zone-2": "region_7",
-  "zone-3": "region_6",
-  "zone-4": "region_4",
-  "zone-5": "region_8",
-  "zone-6": "region_3",
-  "zone-7": ["region_2", "regio_2"],
-  "zone-8": "region_1",
-};
-
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 const NEUTRAL_TERRITORY_SHADE = "#1e293b";
 
 const normalizeRegionKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, "");
-
-const REGION_ALIAS_MAP: Record<string, string[]> = {
-  region_1: ["signalchamber"],
-  region_2: ["quantumnexus", "regio_2"],
-};
 
 const normalizeSvgMarkup = (svgContent: string) => {
   const parser = new DOMParser();
@@ -101,7 +172,13 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   hideHeader = false,
   hideLegend = false,
   overlay,
+  mapId = 'default',
 }) => {
+  // Get the appropriate map configuration based on mapId
+  const mapConfig = MAP_CONFIGS[mapId] || MAP_CONFIGS.default;
+  const ZONE_TO_REGION = mapConfig.zoneToRegion;
+  const REGION_ALIAS_MAP = mapConfig.regionAliases;
+  const mapSvg = mapConfig.svg;
   const containerRef = useRef<HTMLDivElement>(null);
   const [mapMarkup, setMapMarkup] = useState("");
   const defaultRegionStylesRef = useRef<
@@ -154,8 +231,8 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   };
 
   useEffect(() => {
-    setMapMarkup(normalizeSvgMarkup(territoryMapSvgRaw));
-  }, []);
+    setMapMarkup(normalizeSvgMarkup(mapSvg));
+  }, [mapSvg]);
 
   useEffect(() => {
     if (!mapMarkup || !containerRef.current) return;
