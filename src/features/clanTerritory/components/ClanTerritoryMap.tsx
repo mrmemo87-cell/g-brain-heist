@@ -45,7 +45,7 @@ const MAP_CONFIGS: Record<string, MapConfig> = {
   },
   city: {
     svg: cityMapSvgRaw,
-    maxZones: 8,
+    maxZones: 10,
     zoneToRegion: {
       "zone-1": "district_1",
       "zone-2": "district_2",
@@ -55,6 +55,8 @@ const MAP_CONFIGS: Record<string, MapConfig> = {
       "zone-6": "district_6",
       "zone-7": "district_7",
       "zone-8": "district_8",
+      "zone-9": "district_9",
+      "zone-10": "district_10",
     },
     regionAliases: {},
   },

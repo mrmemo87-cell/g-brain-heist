@@ -56,6 +56,8 @@ export const CITY_ZONES: Zone[] = [
   { id: "zone-6", name: "6th District", baseValue: 180 },
   { id: "zone-7", name: "7th District", baseValue: 220 },
   { id: "zone-8", name: "8th District", baseValue: 190 },
+  { id: "zone-9", name: "9th District", baseValue: 160 },
+  { id: "zone-10", name: "10th District", baseValue: 140 },
 ];
 
 // Map-specific zone configurations
