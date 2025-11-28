@@ -1245,6 +1245,16 @@ export const whoami = async (): Promise<Profile> => {
     has_shield: userHasShield,
   });
 
+    const existingClanInfo = {
+        id: profile.clan_id ?? null,
+        role: profile.clan_role,
+        customTitle: profile.clan_custom_title ?? null,
+        name: profile.clan_name ?? null,
+        score: profile.clan_total_score ?? null,
+        buffs: profile.active_clan_buffs ?? [],
+    };
+
+    // Clear transient buff effects before rehydrating clan data
     applyClanBuffsToProfile(profile, []);
 
     let resolvedClanId: string | null = profile.clan_id ?? null;
@@ -1327,6 +1337,14 @@ export const whoami = async (): Promise<Profile> => {
         profile.clan_name = resolvedClanName;
         profile.clan_total_score = clanScore;
         applyClanBuffsToProfile(profile, activeBuffs);
+    } else if (existingClanInfo.id || existingClanInfo.name) {
+        // Preserve already-known clan metadata when refresh lookups fail
+        profile.clan_id = existingClanInfo.id;
+        profile.clan_role = existingClanInfo.role;
+        profile.clan_custom_title = existingClanInfo.customTitle;
+        profile.clan_name = existingClanInfo.name;
+        profile.clan_total_score = existingClanInfo.score;
+        applyClanBuffsToProfile(profile, existingClanInfo.buffs);
     } else {
         profile.clan_id = null;
         profile.clan_role = undefined;
