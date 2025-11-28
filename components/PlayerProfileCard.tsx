@@ -8,8 +8,8 @@ interface PlayerProfileCardProps {
   profile: Profile;
 }
 
-const StatDisplay: React.FC<{ icon: React.ReactNode; label: string; value: string | number; color: string; subtitle?: string }> = ({ icon, label, value, color, subtitle }) => (
-  <div className="flex items-center gap-3 rounded-xl border border-cyan-400/20 bg-slate-900/70 p-3 shadow-[0_10px_30px_rgba(0,0,0,0.45)]">
+const StatDisplay: React.FC<{ icon: React.ReactNode; label: string; value: string | number; color: string; subtitle?: string; containerClassName?: string }> = ({ icon, label, value, color, subtitle, containerClassName }) => (
+  <div className={`flex items-center gap-3 rounded-xl border border-cyan-400/20 bg-slate-900/70 p-3 shadow-[0_10px_30px_rgba(0,0,0,0.45)] ${containerClassName ?? ''}`}>
     <div className="w-9 h-9 flex-shrink-0 rounded-lg bg-black/30 flex items-center justify-center" style={{ color }}>
       {icon}
     </div>
@@ -158,7 +158,13 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <StatDisplay icon={<div style={{width: 20, height: 20}} className="flex items-center justify-center"><CoinAnimation width={20} height={20} /></div>} label="Coins" value={profile.coins.toLocaleString()} color={'var(--amber-warn)'} />
-          <StatDisplay icon={<GemIcon />} label="Gemstones" value={profile.gemstones.toLocaleString()} color={'var(--ion-blue)'} />
+          <StatDisplay
+            icon={<GemIcon />}
+            label="Gemstones"
+            value={profile.gemstones.toLocaleString()}
+            color={'#fca5a5'}
+            containerClassName="border-rose-300/60 bg-rose-500/10 shadow-[0_12px_35px_rgba(248,113,113,0.35)]"
+          />
           <StatDisplay icon={<StreakIcon />} label="Streak" value={`${profile.streak} days`} color={'var(--danger-red)'} />
           <StatDisplay icon={<TrophyIcon className="w-4 h-4" />} label="Total Score" value={totalScore.toLocaleString()} color={'var(--amber-warn)'} subtitle="XP + PvP" />
           <StatDisplay icon={<XPIcon />} label="Total XP" value={profile.xp.toLocaleString()} color={'var(--ion-blue)'} />

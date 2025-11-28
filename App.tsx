@@ -5,9 +5,7 @@ import { supabase } from './services/supabaseClient';
 import Header from './components/Header';
 import { useLightMode } from './src/contexts/LightModeContext';
 import PlayerProfileCard from './components/PlayerProfileCard';
-import SessionTracker from './components/SessionTracker';
 import TaskList from './components/TaskList';
-import CapTracker from './components/CapTracker';
 import MainActions from './components/MainActions';
 import NewsFeed from './components/NewsFeed';
 import Toast from './components/Toast';
@@ -963,9 +961,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             const completedTasks = tasks.filter((task) => task.progress >= task.target).length;
             const studyProgress = tasks.length ? Math.round((completedTasks / tasks.length) * 100) : 0;
             const apReadyPercent = Math.min(100, Math.round((profile.ap_now / profile.ap_max) * 100));
-            const xpUsed = caps.daily_xp_cap ? Math.max(0, caps.daily_xp_cap - caps.xp_daily_remaining) : 0;
-            const xpUsedPercent = caps.daily_xp_cap ? Math.min(100, Math.round((xpUsed / caps.daily_xp_cap) * 100)) : 0;
-
             return (
               <main className="mt-6 space-y-6">
 
@@ -973,8 +968,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                   {/* Left Column */}
                   <div className="space-y-6 lg:col-span-4 xl:col-span-3">
                     <PlayerProfileCard profile={profile} />
-                    <SessionTracker sessionStatus={sessionStatus} />
-                    <CapTracker caps={caps} />
                   </div>
 
                   {/* Middle Column */}
