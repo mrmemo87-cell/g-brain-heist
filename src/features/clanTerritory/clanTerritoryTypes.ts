@@ -104,6 +104,7 @@ export interface ClanTerritoryGameState {
   zones: Record<ZoneId, ZoneState>;
   clans: Record<ClanId, ClanMetadata>;
   questions: BattleQuestion[];
+  mapId?: string;
 }
 
 // Actions
@@ -115,6 +116,7 @@ export type GameAction =
       };
     }
   | { type: "SET_QUESTIONS"; payload: { questions: BattleQuestion[] } }
+  | { type: "SET_MAP"; payload: { mapId: string } }
   | { type: "START_GAME"; payload: { duration: number } }
   | { type: "TICK" }
   | { type: "SELECT_ZONE"; payload: { playerId: string; zoneId: ZoneId } }

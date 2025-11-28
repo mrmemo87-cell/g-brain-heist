@@ -15,6 +15,7 @@ interface ClanTerritoryMapProps {
   hideHeader?: boolean;
   hideLegend?: boolean;
   overlay?: ReactNode;
+  mapId?: string;
 }
 
 const ZONE_TO_REGION: Record<ZoneId, string | string[]> = {

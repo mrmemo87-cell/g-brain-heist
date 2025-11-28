@@ -46,6 +46,7 @@ export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
   scrubHeatReduction: 20,
   greedCoinBonus: 25,
   greedHeatGain: 6,
+  mapId: 'default',
   entryRouteModifiers: cloneEntryRouteModifiers(),
 };
 

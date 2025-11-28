@@ -5,7 +5,7 @@ import { LockdownStudentView } from './LockdownStudentView';
 import { RoomId, PlayerId } from '../../lib/lockdownTransport';
 
 export const LockdownManager: React.FC<{ onExit: () => void; isTeacher?: boolean; playerName?: string; clanId?: string | null; clanName?: string | null; clanAvatarUrl?: string | null }> = ({ onExit, isTeacher = false, playerName: initialPlayerName = '', clanId = null, clanName = null, clanAvatarUrl = null }) => {
-  const [mode, setMode] = useState<'lobby' | 'host' | 'player'>('lobby');
+  const [mode, setMode] = useState<'lobby' | 'host' | 'player' | 'configure'>('lobby');
   const [transport] = useState(() => new SupabaseLockdownTransport());
   const [roomId, setRoomId] = useState<RoomId | null>(null);
   const [playerId, setPlayerId] = useState<PlayerId | null>(null);
@@ -13,6 +13,12 @@ export const LockdownManager: React.FC<{ onExit: () => void; isTeacher?: boolean
   const [roomCodeInput, setRoomCodeInput] = useState('');
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Game configuration settings
+  const [durationMinutes, setDurationMinutes] = useState(12);
+  const [selectedMap, setSelectedMap] = useState('default');
+  const [coinGoal, setCoinGoal] = useState(600);
+  const [alarmMax, setAlarmMax] = useState(100);
 
   React.useEffect(() => {
     return () => {
@@ -24,7 +30,12 @@ export const LockdownManager: React.FC<{ onExit: () => void; isTeacher?: boolean
     setIsConnecting(true);
     setError(null);
     try {
-      const id = await transport.createRoom();
+      const id = await transport.createRoom({
+        durationMs: durationMinutes * 60 * 1000,
+        coinGoal,
+        alarmMax,
+        mapId: selectedMap,
+      });
       setRoomId(id);
       setMode('host');
     } catch (e) {
@@ -56,6 +67,163 @@ export const LockdownManager: React.FC<{ onExit: () => void; isTeacher?: boolean
       setIsConnecting(false);
     }
   };
+
+  if (mode === 'configure') {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 py-10">
+        <div className="w-full max-w-2xl space-y-8">
+          <div className="space-y-3 text-center">
+            <button
+              onClick={() => setMode('lobby')}
+              className="text-sm text-gray-400 hover:text-gray-300 transition"
+            >
+              ← Back
+            </button>
+            <span className="inline-flex items-center justify-center rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-amber-300">
+              Configure Session
+            </span>
+            <h1 className="font-heading text-4xl text-white tracking-tight">Game Settings</h1>
+            <p className="text-sm text-gray-400">Customize the countdown timer, map, and objectives for your lockdown session.</p>
+          </div>
+
+          <div className="card-glass p-8 space-y-6">
+            {/* Duration Setting */}
+            <div className="space-y-3">
+              <label className="block text-sm font-bold text-white">Game Duration</label>
+              <div className="flex items-center gap-4">
+                <input
+                  type="range"
+                  min="3"
+                  max="30"
+                  step="1"
+                  value={durationMinutes}
+                  onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                  className="flex-1 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                />
+                <div className="min-w-[80px] text-center rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-2 font-mono text-lg font-bold text-amber-300">
+                  {durationMinutes}m
+                </div>
+              </div>
+              <p className="text-xs text-gray-400">How long agents have to complete the heist (3-30 minutes)</p>
+            </div>
+
+            {/* Map Selection */}
+            <div className="space-y-3">
+              <label className="block text-sm font-bold text-white">Territory Map</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setSelectedMap('default')}
+                  className={`p-4 rounded-xl border-2 transition ${
+                    selectedMap === 'default'
+                      ? 'border-cyan-400 bg-cyan-500/20'
+                      : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
+                  }`}
+                >
+                  <div className="text-left space-y-1">
+                    <p className="font-bold text-white">🗺️ Default</p>
+                    <p className="text-xs text-gray-400">Standard 8-region layout</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setSelectedMap('downtown')}
+                  className={`p-4 rounded-xl border-2 transition ${
+                    selectedMap === 'downtown'
+                      ? 'border-cyan-400 bg-cyan-500/20'
+                      : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
+                  }`}
+                >
+                  <div className="text-left space-y-1">
+                    <p className="font-bold text-white">🏙️ Downtown</p>
+                    <p className="text-xs text-gray-400">Urban grid with 12 sectors</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setSelectedMap('compound')}
+                  className={`p-4 rounded-xl border-2 transition ${
+                    selectedMap === 'compound'
+                      ? 'border-cyan-400 bg-cyan-500/20'
+                      : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
+                  }`}
+                >
+                  <div className="text-left space-y-1">
+                    <p className="font-bold text-white">🏢 Compound</p>
+                    <p className="text-xs text-gray-400">Facility with 6 zones</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setSelectedMap('vault')}
+                  className={`p-4 rounded-xl border-2 transition ${
+                    selectedMap === 'vault'
+                      ? 'border-cyan-400 bg-cyan-500/20'
+                      : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
+                  }`}
+                >
+                  <div className="text-left space-y-1">
+                    <p className="font-bold text-white">🔐 Vault</p>
+                    <p className="text-xs text-gray-400">High security, 4 chambers</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Coin Goal */}
+            <div className="space-y-3">
+              <label className="block text-sm font-bold text-white">Coin Goal</label>
+              <div className="flex items-center gap-4">
+                <input
+                  type="range"
+                  min="300"
+                  max="1500"
+                  step="50"
+                  value={coinGoal}
+                  onChange={(e) => setCoinGoal(Number(e.target.value))}
+                  className="flex-1 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                />
+                <div className="min-w-[100px] text-center rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-2 font-mono text-lg font-bold text-amber-300">
+                  {coinGoal}
+                </div>
+              </div>
+              <p className="text-xs text-gray-400">Target loot for team victory (300-1500 coins)</p>
+            </div>
+
+            {/* Alarm Threshold */}
+            <div className="space-y-3">
+              <label className="block text-sm font-bold text-white">Maximum Alarm Level</label>
+              <div className="flex items-center gap-4">
+                <input
+                  type="range"
+                  min="50"
+                  max="150"
+                  step="10"
+                  value={alarmMax}
+                  onChange={(e) => setAlarmMax(Number(e.target.value))}
+                  className="flex-1 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-rose-500"
+                />
+                <div className="min-w-[100px] text-center rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-2 font-mono text-lg font-bold text-rose-300">
+                  {alarmMax}%
+                </div>
+              </div>
+              <p className="text-xs text-gray-400">Game ends if alarm reaches this level (50-150%)</p>
+            </div>
+
+            {error && (
+              <div className="rounded-xl border border-red-400/60 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                {error}
+              </div>
+            )}
+
+            <button
+              onClick={handleHost}
+              disabled={isConnecting}
+              className="w-full font-heading font-bold rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400 py-4 text-lg text-white transition disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isConnecting ? "Creating Session..." : "Create Session"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (mode === 'host' && roomId) {
     return <LockdownTeacherView transport={transport} roomId={roomId} onExit={onExit} />;
@@ -133,7 +301,7 @@ export const LockdownManager: React.FC<{ onExit: () => void; isTeacher?: boolean
 
           {isTeacher ? (
             <button
-              onClick={handleHost}
+              onClick={() => setMode('configure')}
               disabled={isConnecting}
               className="w-full font-heading font-bold rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400 py-3 text-base text-white transition disabled:cursor-not-allowed disabled:opacity-50"
             >

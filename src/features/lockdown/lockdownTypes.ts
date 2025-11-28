@@ -70,6 +70,7 @@ export type RoomSettings = {
   scrubHeatReduction: number;
   greedCoinBonus: number;
   greedHeatGain: number;
+  mapId?: string;
   entryRouteModifiers: Record<EntryRoute, {
     coinMultiplier: number;
     heatMultiplier: number;

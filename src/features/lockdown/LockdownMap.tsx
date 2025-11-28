@@ -57,6 +57,7 @@ const normalizeSvgMarkup = (svgContent: string) => {
 interface LockdownMapProps {
   regionStats?: Record<string, RegionStats>;
   className?: string;
+  mapId?: string;
 }
 
 // Color palette for clans (can be extended)
@@ -77,7 +78,15 @@ const getColorForClan = (clanId: string): string => {
   return colors[hash % colors.length] || CLAN_COLORS.default;
 };
 
-export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className = "" }) => {
+// Map configurations
+const MAP_CONFIGS: Record<string, { label: string; description: string }> = {
+  default: { label: 'Default', description: 'Standard 8-region layout' },
+  downtown: { label: 'Downtown', description: 'Urban grid with 12 sectors' },
+  compound: { label: 'Compound', description: 'Facility with 6 zones' },
+  vault: { label: 'Vault', description: 'High security, 4 chambers' },
+};
+
+export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className = "", mapId = 'default' }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   const lastRegionStyleKeyRef = useRef<Record<string, string>>({});

@@ -35,6 +35,13 @@ export function clanTerritoryReducer(
       };
     }
 
+    case "SET_MAP": {
+      return {
+        ...state,
+        mapId: action.payload.mapId,
+      };
+    }
+
     case "JOIN": {
       const { player } = action.payload;
       if (state.players[player.id]) return state; // Already joined

@@ -31,7 +31,11 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const [gameState, setGameState] = useState<ClanTerritoryGameState>(INITIAL_STATE);
   const [roomId, setRoomId] = useState<string | null>(null);
   const [playerId, setPlayerId] = useState<string | null>(null);
-  const [mode, setMode] = useState<"menu" | "host" | "player">("menu");
+  const [mode, setMode] = useState<"menu" | "host" | "player" | "configure">("menu");
+  
+  // Game configuration settings
+  const [durationMinutes, setDurationMinutes] = useState(5);
+  const [selectedMap, setSelectedMap] = useState('default');
   const [discoveredRoom, setDiscoveredRoom] = useState<string | null>(null);
   const [resolvedClanId, setResolvedClanId] = useState<ClanId | null>(clanId ?? null);
   const [resolvedClanName, setResolvedClanName] = useState<string | null>(clanName ?? null);
@@ -192,12 +196,30 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   }, [transport]);
 
   const handleCreateRoom = () => {
-    setShowQuestionSelection(true);
+    setMode('configure');
   };
 
   const handleQuestionsSelected = async (questions: any[]) => {
     setSelectedQuestions(questions);
     setShowQuestionSelection(false);
+    
+    // If we're in configure mode, create room after questions selected
+    if (mode === 'configure') {
+      const id = await transport.createRoom();
+      
+      // Set up state listener BEFORE sending any actions
+      transport.onGameState(id, setGameState);
+      
+      // Send questions and map configuration to game state
+      transport.sendAction(id, { type: "SET_QUESTIONS", payload: { questions } });
+      transport.sendAction(id, { type: "SET_MAP", payload: { mapId: selectedMap } });
+      
+      setRoomId(id);
+      setMode("host");
+      return;
+    }
+    
+    // Otherwise proceed with room creation (legacy flow)
     const id = await transport.createRoom();
     
     // IMPORTANT: Set up state listener BEFORE sending any actions or setting roomId
@@ -237,8 +259,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     }
   };
 
-  const handleStartGame = (duration: number) => {
-    if (roomId) transport.sendAction(roomId, { type: "START_GAME", payload: { duration } });
+  const handleStartGame = () => {
+    if (roomId) transport.sendAction(roomId, { type: "START_GAME", payload: { duration: durationMinutes * 60 } });
   };
 
   const handleEndGame = () => {
@@ -251,14 +273,152 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
   // --- RENDER ---
 
+  if (mode === 'configure') {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 py-10">
+        <div className="w-full max-w-2xl space-y-8">
+          <div className="space-y-3 text-center">
+            <button
+              onClick={() => setMode('menu')}
+              className="text-sm text-gray-400 hover:text-gray-300 transition"
+            >
+              ← Back
+            </button>
+            <span className="inline-flex items-center justify-center rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-amber-300">
+              Configure Battle
+            </span>
+            <h1 className="font-heading text-4xl text-white tracking-tight">Game Settings</h1>
+            <p className="text-sm text-gray-400">Customize the battle duration, map, and objectives for your clan war.</p>
+          </div>
+
+          <div className="card-glass p-8 space-y-6">
+            {/* Duration Setting */}
+            <div className="space-y-3">
+              <label className="block text-sm font-bold text-white">Battle Duration</label>
+              <div className="flex items-center gap-4">
+                <input
+                  type="range"
+                  min="2"
+                  max="20"
+                  step="1"
+                  value={durationMinutes}
+                  onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                  className="flex-1 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                />
+                <div className="min-w-[80px] text-center rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-2 font-mono text-lg font-bold text-amber-300">
+                  {durationMinutes}m
+                </div>
+              </div>
+              <p className="text-xs text-gray-400">How long clans battle for territory control (2-20 minutes)</p>
+            </div>
+
+            {/* Map Selection */}
+            <div className="space-y-3">
+              <label className="block text-sm font-bold text-white">Territory Map</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setSelectedMap('default')}
+                  className={`p-4 rounded-xl border-2 transition ${
+                    selectedMap === 'default'
+                      ? 'border-cyan-400 bg-cyan-500/20'
+                      : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
+                  }`}
+                >
+                  <div className="text-left space-y-1">
+                    <p className="font-bold text-white">🗺️ Default</p>
+                    <p className="text-xs text-gray-400">Standard 8-zone battlefield</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setSelectedMap('city')}
+                  className={`p-4 rounded-xl border-2 transition ${
+                    selectedMap === 'city'
+                      ? 'border-cyan-400 bg-cyan-500/20'
+                      : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
+                  }`}
+                >
+                  <div className="text-left space-y-1">
+                    <p className="font-bold text-white">🏙️ City</p>
+                    <p className="text-xs text-gray-400">Urban warfare, 10 districts</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setSelectedMap('fortress')}
+                  className={`p-4 rounded-xl border-2 transition ${
+                    selectedMap === 'fortress'
+                      ? 'border-cyan-400 bg-cyan-500/20'
+                      : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
+                  }`}
+                >
+                  <div className="text-left space-y-1">
+                    <p className="font-bold text-white">🏰 Fortress</p>
+                    <p className="text-xs text-gray-400">Defensive stronghold, 6 layers</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setSelectedMap('islands')}
+                  className={`p-4 rounded-xl border-2 transition ${
+                    selectedMap === 'islands'
+                      ? 'border-cyan-400 bg-cyan-500/20'
+                      : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
+                  }`}
+                >
+                  <div className="text-left space-y-1">
+                    <p className="font-bold text-white">🏝️ Islands</p>
+                    <p className="text-xs text-gray-400">Archipelago, 12 territories</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-slate-700">
+              <h3 className="text-sm font-bold text-white mb-3">Battle Preview</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="bg-slate-800/50 rounded-lg p-3">
+                  <p className="text-gray-400 text-xs mb-1">Duration</p>
+                  <p className="text-white font-bold">{durationMinutes} minutes</p>
+                </div>
+                <div className="bg-slate-800/50 rounded-lg p-3">
+                  <p className="text-gray-400 text-xs mb-1">Map</p>
+                  <p className="text-white font-bold capitalize">{selectedMap}</p>
+                </div>
+                <div className="bg-slate-800/50 rounded-lg p-3">
+                  <p className="text-gray-400 text-xs mb-1">Questions</p>
+                  <p className="text-white font-bold">{selectedQuestions.length || 'To be selected'}</p>
+                </div>
+                <div className="bg-slate-800/50 rounded-lg p-3">
+                  <p className="text-gray-400 text-xs mb-1">Total Zones</p>
+                  <p className="text-white font-bold">8 territories</p>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowQuestionSelection(true)}
+              className="w-full font-heading font-bold rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400 py-4 text-lg text-white transition"
+            >
+              {selectedQuestions.length ? 'Change Questions & Create' : 'Select Questions & Create'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (mode === "host") {
     return (
       <ClanTerritoryErrorBoundary onExit={onExit} fallbackTitle="Teacher View Error">
         <div className="h-screen text-white flex flex-col">
           <div className="bg-black/40 backdrop-blur p-4 flex justify-between items-center border-b border-white/10 z-10">
-            <div>
-              <span className="text-gray-400 text-sm uppercase tracking-wider">Room Code</span>
-              <div className="text-4xl font-mono font-bold text-amber-400 tracking-widest">{roomId}</div>
+            <div className="flex items-center gap-6">
+              <div>
+                <span className="text-gray-400 text-sm uppercase tracking-wider">Room Code</span>
+                <div className="text-4xl font-mono font-bold text-amber-400 tracking-widest">{roomId}</div>
+              </div>
+              <div className="text-left">
+                <span className="text-gray-400 text-xs uppercase tracking-wider block">Map</span>
+                <div className="text-sm font-bold text-cyan-400 capitalize">{selectedMap}</div>
+              </div>
             </div>
             <button onClick={onExit} className="text-gray-400 hover:text-white font-heading">Exit</button>
           </div>

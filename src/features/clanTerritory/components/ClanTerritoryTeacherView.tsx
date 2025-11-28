@@ -14,7 +14,7 @@ import { ClanTerritoryMap } from "./ClanTerritoryMap";
 interface ClanTerritoryTeacherViewProps {
   gameState: ClanTerritoryGameState;
   selectedQuestions: any[];
-  onStartGame: (duration: number) => void;
+  onStartGame: () => void;
   onEndGame: () => void;
   onKickPlayer: (playerId: string) => void;
 }
@@ -312,7 +312,7 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
         <div className="flex gap-2">
           {gameState.phase === "LOBBY" && (
             <button
-              onClick={() => onStartGame(300)}
+              onClick={() => onStartGame()}
               className="px-6 py-2 bg-green-600 hover:bg-green-500 rounded-lg font-bold tracking-wide"
             >
               START BATTLE
@@ -345,6 +345,7 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
             hideHeader={gameState.phase === "ENDED"}
             hideLegend={gameState.phase === "ENDED"}
             overlay={endgameOverlay}
+            mapId={gameState.mapId}
           />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {ZONES.map((zone) => {
@@ -462,7 +463,7 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
 
               <div className="flex justify-end">
                 <button
-                  onClick={() => onStartGame(300)}
+                  onClick={() => onStartGame()}
                   className="px-6 py-2 bg-white text-black rounded-full font-bold tracking-wide hover:bg-gray-200"
                 >
                   Deploy New Battle

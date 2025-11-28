@@ -145,8 +145,15 @@ export const LockdownTeacherView: React.FC<LockdownTeacherViewProps> = ({
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="flex flex-col gap-6 lg:col-span-2">
             <div className="rounded-3xl border border-slate-800/70 bg-slate-900/50 p-6 shadow-lg shadow-slate-950/40">
-              <h2 className="text-lg font-bold tracking-tight sm:text-xl mb-4">Territory Map</h2>
-              <LockdownMap regionStats={regionStats} className="h-96" />
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold tracking-tight sm:text-xl">Territory Map</h2>
+                {gameState.roomSettings.mapId && (
+                  <span className="text-xs text-slate-400 uppercase tracking-wide">
+                    {gameState.roomSettings.mapId}
+                  </span>
+                )}
+              </div>
+              <LockdownMap regionStats={regionStats} mapId={gameState.roomSettings.mapId} className="h-96" />
             </div>
 
             <div className="rounded-3xl border border-slate-800/70 bg-slate-900/50 p-6 shadow-lg shadow-slate-950/40">
