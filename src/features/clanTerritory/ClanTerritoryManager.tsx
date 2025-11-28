@@ -275,8 +275,15 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
   if (mode === 'configure') {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4 py-10">
-        <div className="w-full max-w-2xl space-y-8">
+      <>
+        {showQuestionSelection && (
+          <QuestionSelectionModal
+            onConfirm={handleQuestionsSelected}
+            onCancel={() => setShowQuestionSelection(false)}
+          />
+        )}
+        <div className="min-h-screen flex items-center justify-center px-4 py-10">
+          <div className="w-full max-w-2xl space-y-8">
           <div className="space-y-3 text-center">
             <button
               onClick={() => setMode('menu')}
@@ -402,6 +409,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
           </div>
         </div>
       </div>
+      </>
     );
   }
 
