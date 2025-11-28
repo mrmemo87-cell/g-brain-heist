@@ -4,9 +4,9 @@ import {
   ClanMetadata,
   ClanTerritoryGameState,
   PlayerStats,
-  ZONES,
   getClanColor,
   CONFIG,
+  getZonesForMap,
 } from "../clanTerritoryTypes";
 import { calculateClanTerritoryResults } from "../clanTerritoryRewards";
 import { ClanTerritoryMap } from "./ClanTerritoryMap";
@@ -99,6 +99,11 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
     return map;
   }, [clanList]);
 
+  // Get the correct zones based on mapId
+  const activeZones = React.useMemo(() => {
+    return getZonesForMap(gameState.mapId);
+  }, [gameState.mapId]);
+
   const totalInfluence = React.useCallback(
     (clanId: ClanId) => {
       return Object.values(gameState.zones).reduce(
@@ -111,14 +116,14 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
 
   const zoneControl = React.useMemo(() => {
     const control: Record<ClanId, number> = {};
-    ZONES.forEach((zone) => {
+    activeZones.forEach((zone) => {
       const controller = getZoneController(zone.id, gameState);
       if (controller) {
         control[controller] = (control[controller] || 0) + 1;
       }
     });
     return control;
-  }, [gameState]);
+  }, [gameState, activeZones]);
 
   const topAgents = React.useMemo(() => {
     return clanList.map((clan) => {
@@ -252,7 +257,7 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
 
     const newEvents: WarEvent[] = [];
 
-    ZONES.forEach((zone) => {
+    activeZones.forEach((zone) => {
       const prevController = getZoneController(zone.id, prev);
       const currentController = getZoneController(zone.id, gameState);
       if (prevController !== currentController) {
@@ -348,7 +353,7 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
             mapId={gameState.mapId}
           />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {ZONES.map((zone) => {
+            {activeZones.map((zone) => {
               const zoneState = gameState.zones[zone.id];
               const influences = Object.entries(zoneState?.influence || {})
                 .filter(([, val]) => val > 0)

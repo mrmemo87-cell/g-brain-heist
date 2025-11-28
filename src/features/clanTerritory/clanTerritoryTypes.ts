@@ -34,6 +34,7 @@ export interface Zone {
   baseValue: number;
 }
 
+// Default zones for the default map
 export const ZONES: Zone[] = [
   { id: "zone-1", name: "Server Room", baseValue: 100 },
   { id: "zone-2", name: "Mainframe", baseValue: 150 },
@@ -44,6 +45,31 @@ export const ZONES: Zone[] = [
   { id: "zone-7", name: "Quantum Nexus", baseValue: 220 },
   { id: "zone-8", name: "Signal Chamber", baseValue: 190 },
 ];
+
+// City map districts
+export const CITY_ZONES: Zone[] = [
+  { id: "zone-1", name: "1st District", baseValue: 100 },
+  { id: "zone-2", name: "2nd District", baseValue: 150 },
+  { id: "zone-3", name: "3rd District", baseValue: 120 },
+  { id: "zone-4", name: "4th District", baseValue: 200 },
+  { id: "zone-5", name: "5th District", baseValue: 100 },
+  { id: "zone-6", name: "6th District", baseValue: 180 },
+  { id: "zone-7", name: "7th District", baseValue: 220 },
+  { id: "zone-8", name: "8th District", baseValue: 190 },
+];
+
+// Map-specific zone configurations
+export const MAP_ZONES: Record<string, Zone[]> = {
+  default: ZONES,
+  city: CITY_ZONES,
+  fortress: ZONES, // Use default for now
+  islands: ZONES, // Use default for now
+};
+
+// Helper to get zones for a specific map
+export const getZonesForMap = (mapId: string = 'default'): Zone[] => {
+  return MAP_ZONES[mapId] || ZONES;
+};
 
 export const CONFIG = {
   TOTAL_COIN_LOOT: 100000,

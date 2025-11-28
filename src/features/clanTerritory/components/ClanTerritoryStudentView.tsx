@@ -4,9 +4,9 @@ import {
   ClanMetadata,
   ClanTerritoryGameState,
   PlayerStats,
-  ZONES,
   ZoneId,
   getClanColor,
+  getZonesForMap,
 } from "../clanTerritoryTypes";
 import { ClanTerritoryMap } from "./ClanTerritoryMap";
 import { calculateClanTerritoryResults } from "../clanTerritoryRewards";
@@ -122,6 +122,11 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
     return [...derived.values()].sort((a, b) => a.name.localeCompare(b.name));
   }, [gameState.clans, gameState.players, gameState.zones]);
 
+  // Get the correct zones based on mapId
+  const activeZones = React.useMemo(() => {
+    return getZonesForMap(gameState.mapId);
+  }, [gameState.mapId]);
+
   const getZoneSnapshot = React.useCallback(
     (zoneId: ZoneId) => {
       const zoneState = gameState.zones[zoneId];
@@ -143,7 +148,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   );
 
   const priorityTargets = React.useMemo(() => {
-    return ZONES.map((zone) => {
+    return activeZones.map((zone) => {
       const snapshot = getZoneSnapshot(zone.id);
       const needsHelp = hydratedPlayer ? snapshot.controller !== hydratedPlayer.clanId : true;
       return {
@@ -159,7 +164,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
         return a.needsHelp ? -1 : 1;
       })
       .slice(0, 3);
-  }, [getZoneSnapshot, hydratedPlayer]);
+  }, [getZoneSnapshot, hydratedPlayer, activeZones]);
 
   const currentQuestion = gameState.questions.length > 0
     ? gameState.questions[questionIndex % gameState.questions.length]
@@ -314,7 +319,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
         <h2 className="text-3xl font-bold text-center text-yellow-300">Select a Zone to Reinforce</h2>
         <div className="grid lg:grid-cols-3 gap-4 flex-1 overflow-hidden">
           <div className="lg:col-span-2 overflow-y-auto pr-2 flex flex-col gap-4">
-            {ZONES.map((zone) => {
+            {activeZones.map((zone) => {
               const zoneState = gameState.zones[zone.id];
               const zoneTotal = zoneState ? Object.values(zoneState.influence).reduce((a, b) => a + b, 0) : 0;
               const snapshot = getZoneSnapshot(zone.id);
@@ -388,7 +393,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
 
   // 3. Active Phase - Combat (Answering Questions)
   if (gameState.phase === "ACTIVE" && hydratedPlayer.selectedZoneId) {
-    const zone = ZONES.find((z) => z.id === hydratedPlayer.selectedZoneId);
+    const zone = activeZones.find((z) => z.id === hydratedPlayer.selectedZoneId);
     const zoneState = gameState.zones[hydratedPlayer.selectedZoneId];
     const zoneTotal = zoneState ? Object.values(zoneState.influence).reduce((a, b) => a + b, 0) : 0;
 
@@ -406,7 +411,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           </div>
           <ClanTerritoryMap zones={gameState.zones} clans={clansWithColors} mapId={gameState.mapId} />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {ZONES.map((z) => {
+            {activeZones.map((z) => {
               const snapshot = getZoneSnapshot(z.id);
               const holder = snapshot.controller ? clanList.find((c) => c.id === snapshot.controller) : null;
               return (
@@ -574,12 +579,12 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           </div>
           <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Zone Impact</p>
-            <div className="text-4xl font-black text-emerald-300">{clanZoneCount}/{ZONES.length}</div>
+            <div className="text-4xl font-black text-emerald-300">{clanZoneCount}/{activeZones.length}</div>
             <p className="text-sm text-slate-400">Territories held by {hydratedPlayer.clanName}</p>
             <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
               <div
                 className="h-full bg-emerald-400"
-                style={{ width: `${(clanZoneCount / ZONES.length) * 100}%` }}
+                style={{ width: `${(clanZoneCount / activeZones.length) * 100}%` }}
               />
             </div>
           </div>
