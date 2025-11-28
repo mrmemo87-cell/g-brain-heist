@@ -305,40 +305,19 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         opacity: number;
       }
     ) => {
-      // Clear any existing inline style to ensure our styles take precedence
-      // This is necessary for SVGs with inline styles like city_map.svg
+      // Clear any existing inline style completely to ensure our styles take precedence
+      // This is necessary for SVGs with inline styles like city_map.svg that have opacity:0.1
       element.removeAttribute("style");
       
-      // Apply fill - set both attribute and style to ensure it overrides parent group styles
-      if (element.getAttribute("fill") !== fill) {
-        element.setAttribute("fill", fill);
-      }
-      element.style.fill = fill;
-
-      // Apply stroke
-      if (element.getAttribute("stroke") !== stroke) {
-        element.setAttribute("stroke", stroke);
-      }
-      element.style.stroke = stroke;
-
-      // Apply stroke width
-      if (element.getAttribute("stroke-width") !== strokeWidth) {
-        element.setAttribute("stroke-width", strokeWidth);
-      }
-      element.style.strokeWidth = strokeWidth;
-
-      // Apply stroke dash array
-      if (element.getAttribute("stroke-dasharray") !== dashArray) {
-        element.setAttribute("stroke-dasharray", dashArray);
-      }
-      element.style.setProperty("stroke-dasharray", dashArray);
-
-      // Apply opacity
-      const opacityValue = opacity.toString();
-      if (element.getAttribute("opacity") !== opacityValue) {
-        element.setAttribute("opacity", opacityValue);
-      }
-      element.style.opacity = opacityValue;
+      // Set ALL styles via direct attribute - this is more reliable for SVG
+      element.setAttribute("fill", fill);
+      element.setAttribute("stroke", stroke);
+      element.setAttribute("stroke-width", strokeWidth);
+      element.setAttribute("stroke-dasharray", dashArray);
+      element.setAttribute("opacity", opacity.toString());
+      
+      // Also set via style property for browsers that prefer it
+      element.style.cssText = `fill: ${fill} !important; stroke: ${stroke} !important; stroke-width: ${strokeWidth} !important; stroke-dasharray: ${dashArray}; opacity: ${opacity} !important;`;
     };
 
     const updateRegions = () => {
@@ -381,6 +360,9 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
                 1
             );
 
+            // Ensure minimum opacity of 0.7 for visibility (city_map.svg has 0.1 which is too low)
+            const normalizedOpacity = Math.max(capturedOpacity, 0.7);
+
             defaultRegionStylesRef.current[regionId] = {
               fill: capturedFill,
               stroke: capturedStroke,
@@ -392,7 +374,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
                 regionPath.getAttribute("stroke-dasharray") ||
                 regionPath.style.getPropertyValue("stroke-dasharray") ||
                 "none",
-              opacity: Number.isNaN(capturedOpacity) ? 1 : capturedOpacity,
+              opacity: Number.isNaN(normalizedOpacity) ? 1 : normalizedOpacity,
             };
           }
 
