@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Profile, ActiveClanBuff } from '../types';
 import { CoinIcon, StreakIcon, XPIcon, APIcon, GemIcon, TrophyIcon, BattleIcon, ShieldIcon, ClanIcon } from './icons';
 import CoinAnimation from './CoinAnimation';
@@ -8,8 +8,8 @@ interface PlayerProfileCardProps {
   profile: Profile;
 }
 
-const StatDisplay: React.FC<{ icon: React.ReactNode; label: string; value: string | number; color: string; subtitle?: string }> = ({ icon, label, value, color, subtitle }) => (
-  <div className="flex items-center gap-3 rounded-xl border border-cyan-400/20 bg-slate-900/70 p-3 shadow-[0_10px_30px_rgba(0,0,0,0.45)]">
+const StatDisplay: React.FC<{ icon: React.ReactNode; label: string; value: string | number; color: string; subtitle?: string; containerClassName?: string }> = ({ icon, label, value, color, subtitle, containerClassName }) => (
+  <div className={`flex items-center gap-3 rounded-xl border border-cyan-400/20 bg-slate-900/70 p-3 shadow-[0_10px_30px_rgba(0,0,0,0.45)] ${containerClassName ?? ''}`}>
     <div className="w-9 h-9 flex-shrink-0 rounded-lg bg-black/30 flex items-center justify-center" style={{ color }}>
       {icon}
     </div>
@@ -55,6 +55,28 @@ const formatBuffTimeRemaining = (expiresAt?: string): string => {
   return `${days}d ${hours % 24}h left`;
 };
 
+const groupActiveBuffs = (buffs: ActiveClanBuff[]) => Object.values(
+  buffs.reduce<Record<string, ActiveClanBuff & { stackCount: number }>>((acc, buff) => {
+    const key = buff.template_code || buff.id;
+
+    if (!acc[key]) {
+      acc[key] = { ...buff, stackCount: 1 };
+      return acc;
+    }
+
+    acc[key].stackCount += 1;
+
+    if (new Date(buff.expires_at).getTime() > new Date(acc[key].expires_at).getTime()) {
+      acc[key].expires_at = buff.expires_at;
+      acc[key].activated_at = buff.activated_at;
+      acc[key].activated_by = buff.activated_by;
+      acc[key].activated_by_name = buff.activated_by_name;
+    }
+
+    return acc;
+  }, {})
+);
+
 
 const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
   console.log('[ProfileCard] Rendering with cosmetics:', { 
@@ -65,10 +87,11 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
   const xpProgressPercent = (profile.xp / xpForNextLevel) * 100;
   const totalScore = profile.total_score ?? (profile.xp + (profile.pvp_score ?? 0) * 10);
   const clanBuffs = profile.active_clan_buffs ?? [];
+  const groupedClanBuffs = useMemo(() => groupActiveBuffs(clanBuffs), [clanBuffs]);
   const attackValue = profile.attack_power_effective ?? profile.attack_power;
   const defenseValue = profile.defense_power_effective ?? profile.defense_power;
-  const attackSubtitle = clanBuffs.length ? `Base ${profile.attack_power}` : undefined;
-  const defenseSubtitle = clanBuffs.length ? `Base ${profile.defense_power}` : undefined;
+  const attackSubtitle = groupedClanBuffs.length ? `Base ${profile.attack_power}` : undefined;
+  const defenseSubtitle = groupedClanBuffs.length ? `Base ${profile.defense_power}` : undefined;
 
   const [apCountdown, setApCountdown] = useState<string>('');
   const [calculatedAP, setCalculatedAP] = useState<number>(profile.ap_now);
@@ -158,7 +181,13 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <StatDisplay icon={<div style={{width: 20, height: 20}} className="flex items-center justify-center"><CoinAnimation width={20} height={20} /></div>} label="Coins" value={profile.coins.toLocaleString()} color={'var(--amber-warn)'} />
-          <StatDisplay icon={<GemIcon />} label="Gemstones" value={profile.gemstones.toLocaleString()} color={'var(--ion-blue)'} />
+          <StatDisplay
+            icon={<GemIcon />}
+            label="Gemstones"
+            value={profile.gemstones.toLocaleString()}
+            color={'#fca5a5'}
+            containerClassName="border-rose-300/60 bg-rose-500/10 shadow-[0_12px_35px_rgba(248,113,113,0.35)]"
+          />
           <StatDisplay icon={<StreakIcon />} label="Streak" value={`${profile.streak} days`} color={'var(--danger-red)'} />
           <StatDisplay icon={<TrophyIcon className="w-4 h-4" />} label="Total Score" value={totalScore.toLocaleString()} color={'var(--amber-warn)'} subtitle="XP + PvP" />
           <StatDisplay icon={<XPIcon />} label="Total XP" value={profile.xp.toLocaleString()} color={'var(--ion-blue)'} />
@@ -201,13 +230,13 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
             <div className="rounded-xl border border-sky-400/25 bg-slate-900/70 p-4 shadow-[0_10px_30px_rgba(14,165,233,0.15)] space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="font-heading text-lg text-amber-200">Active Clan Effects</h3>
-                <p className="text-[11px] uppercase tracking-wider text-gray-400">{clanBuffs.length} aligned</p>
+                <p className="text-[11px] uppercase tracking-wider text-gray-400">{groupedClanBuffs.length} aligned</p>
               </div>
-              {clanBuffs.length === 0 ? (
+              {groupedClanBuffs.length === 0 ? (
                 <p className="text-sm text-gray-400">No clan buffs are active right now.</p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {clanBuffs.map((buff, index) => (
+                  {groupedClanBuffs.map((buff, index) => (
                     <div
                       key={buff.id}
                       className="relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/80 to-slate-950/90 p-3 shadow-[0_12px_30px_rgba(0,0,0,0.4)]"
@@ -228,6 +257,7 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
                       <div className="mt-3 flex items-center justify-between text-[11px] text-gray-400">
                         <div className="space-y-0.5">
                           <p>{formatBuffTimeRemaining(buff.expires_at)}</p>
+                          {buff.stackCount > 1 && <p className="text-amber-300 font-semibold">Stacked x{buff.stackCount}</p>}
                           {buff.activated_by_name && <p>Activated by {buff.activated_by_name}</p>}
                         </div>
                         <div className="text-right text-gray-500">
