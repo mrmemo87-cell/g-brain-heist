@@ -5,6 +5,8 @@ import territoryMapSvgRaw from "../assets/territory_map.svg?raw";
 // @ts-expect-error
 import cityMapSvgRaw from "../assets/city_map.svg?raw";
 // @ts-expect-error
+import kyrgyzstanMapSvgRaw from "../assets/kyrgyzstanHigh.svg?raw";
+// @ts-expect-error
 // import fortressMapSvgRaw from "../assets/fortress_map.svg?raw";
 // @ts-expect-error
 // import islandsMapSvgRaw from "../assets/islands_map.svg?raw";
@@ -57,6 +59,20 @@ const MAP_CONFIGS: Record<string, MapConfig> = {
       "zone-8": "district_8",
       "zone-9": "district_9",
       "zone-10": "district_10",
+    },
+    regionAliases: {},
+  },
+  kyrgyzstan: {
+    svg: kyrgyzstanMapSvgRaw,
+    maxZones: 7,
+    zoneToRegion: {
+      "zone-1": "KG-B",  // Batken
+      "zone-2": "KG-C",  // Chü (Chuy)
+      "zone-3": "KG-J",  // Jalal-Abad
+      "zone-4": "KG-N",  // Naryn
+      "zone-5": "KG-O",  // Osh
+      "zone-6": "KG-T",  // Talas
+      "zone-7": "KG-Y",  // Ysyk-Köl
     },
     regionAliases: {},
   },
@@ -205,10 +221,23 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     direct = svg.querySelector<SVGPathElement>(`[id="${targetId}"]`);
     if (direct) return direct;
 
+    // Try by inkscape:label attribute (Inkscape SVGs often have this)
+    direct = svg.querySelector<SVGPathElement>(`[inkscape\\:label="${targetId}"]`);
+    if (direct) {
+      direct.id = targetId; // Set the id so future lookups are faster
+      return direct;
+    }
+
     // Try querySelectorAll with exact ID match as fallback
     const allElements = svg.querySelectorAll<SVGPathElement>("path, [id]");
     for (const elem of allElements) {
       if (elem.id === targetId) {
+        return elem as SVGPathElement;
+      }
+      // Also check inkscape:label attribute
+      const label = elem.getAttribute("inkscape:label");
+      if (label === targetId) {
+        elem.id = targetId;
         return elem as SVGPathElement;
       }
     }
@@ -317,12 +346,20 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       element.setAttribute("opacity", opacity.toString());
       
       // Also set via style property for browsers that prefer it
-      element.style.cssText = `fill: ${fill} !important; stroke: ${stroke} !important; stroke-width: ${strokeWidth} !important; stroke-dasharray: ${dashArray}; opacity: ${opacity} !important;`;
+      element.style.cssText = `fill: ${fill} !important; stroke: ${stroke} !important; stroke-width: ${strokeWidth} !important; stroke-dasharray: ${dashArray}; opacity: ${opacity} !important; pointer-events: all;`;
+      
+      // Move element to front of its parent (SVG uses painter's algorithm - last drawn is on top)
+      // This ensures the colored region appears above any background images
+      const parent = element.parentElement;
+      if (parent) {
+        parent.appendChild(element);
+      }
     };
 
     const updateRegions = () => {
       const svg = containerRef.current?.querySelector("svg");
       if (!svg) {
+        console.log("[ClanTerritoryMap] No SVG found");
         return;
       }
 
@@ -331,6 +368,11 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         svg.style.pointerEvents = "none";
         defaultRegionStylesRef.current = {};
         lastRegionStyleKeyRef.current = {};
+        console.log("[ClanTerritoryMap] New SVG detected, reset caches");
+        
+        // Debug: Log all available IDs in the SVG
+        const allIds = Array.from(svg.querySelectorAll("[id]")).map(el => el.id);
+        console.log("[ClanTerritoryMap] Available IDs in SVG:", allIds.filter(id => id.includes("district") || id.includes("region")));
       }
 
       Object.entries(ZONE_TO_REGION).forEach(([zoneId, regionIds]) => {
@@ -338,7 +380,10 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
         ids.forEach((regionId) => {
           const regionPath = resolveRegionElement(svg, regionId);
-          if (!regionPath) return;
+          if (!regionPath) {
+            console.log(`[ClanTerritoryMap] Could not find region: ${regionId} for zone: ${zoneId}`);
+            return;
+          }
 
           ensureInitialAttributes(regionPath);
 
@@ -402,6 +447,9 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
             return;
           }
 
+          // Log when a clan controls a zone
+          console.log(`[ClanTerritoryMap] Zone ${zoneId} (${regionId}) controlled by ${clan.name} with color ${clan.color}`);
+
           const dominanceStrength = clamp01(dominance);
           const baseOpacity = dominanceStrength >= 0.75 ? 1 : 0.85;
           const baseStrokeWidth = contested ? "4" : "3";
@@ -418,6 +466,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
             return;
           }
 
+          console.log(`[ClanTerritoryMap] Applying color ${clan.color} to ${regionId}`);
           lastRegionStyleKeyRef.current[regionId] = styleKey;
 
           applyRegionVisuals(regionPath, {

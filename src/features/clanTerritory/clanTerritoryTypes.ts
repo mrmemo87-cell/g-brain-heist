@@ -60,10 +60,22 @@ export const CITY_ZONES: Zone[] = [
   { id: "zone-10", name: "10th District", baseValue: 140 },
 ];
 
+// Kyrgyzstan map regions (oblasts)
+export const KYRGYZSTAN_ZONES: Zone[] = [
+  { id: "zone-1", name: "Batken", baseValue: 120 },
+  { id: "zone-2", name: "Chuy", baseValue: 200 },
+  { id: "zone-3", name: "Jalal-Abad", baseValue: 180 },
+  { id: "zone-4", name: "Naryn", baseValue: 150 },
+  { id: "zone-5", name: "Osh", baseValue: 190 },
+  { id: "zone-6", name: "Talas", baseValue: 130 },
+  { id: "zone-7", name: "Ysyk-Köl", baseValue: 160 },
+];
+
 // Map-specific zone configurations
 export const MAP_ZONES: Record<string, Zone[]> = {
   default: ZONES,
   city: CITY_ZONES,
+  kyrgyzstan: KYRGYZSTAN_ZONES,
   fortress: ZONES, // Use default for now
   islands: ZONES, // Use default for now
 };

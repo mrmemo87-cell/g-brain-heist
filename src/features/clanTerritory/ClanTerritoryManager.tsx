@@ -351,6 +351,19 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                   </div>
                 </button>
                 <button
+                  onClick={() => setSelectedMap('kyrgyzstan')}
+                  className={`p-4 rounded-xl border-2 transition ${
+                    selectedMap === 'kyrgyzstan'
+                      ? 'border-cyan-400 bg-cyan-500/20'
+                      : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
+                  }`}
+                >
+                  <div className="text-left space-y-1">
+                    <p className="font-bold text-white">🇰🇬 Kyrgyzstan</p>
+                    <p className="text-xs text-gray-400">Regional conquest, 7 oblasts</p>
+                  </div>
+                </button>
+                <button
                   onClick={() => setSelectedMap('fortress')}
                   className={`p-4 rounded-xl border-2 transition ${
                     selectedMap === 'fortress'
