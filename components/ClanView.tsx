@@ -713,6 +713,25 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
     const myScoreValue = myMemberInfo.total_score ?? profile.total_score ?? 0;
     const memberCount = clan.members?.length ?? 0;
     const activeBuffs = clan.active_buffs || [];
+    const groupedBuffs = Object.values(activeBuffs.reduce<Record<string, ActiveClanBuff & { stackCount: number }>>((acc, buff) => {
+        const key = buff.template_code || buff.id;
+
+        if (!acc[key]) {
+            acc[key] = { ...buff, stackCount: 1 };
+            return acc;
+        }
+
+        acc[key].stackCount += 1;
+
+        if (new Date(buff.expires_at).getTime() > new Date(acc[key].expires_at).getTime()) {
+            acc[key].expires_at = buff.expires_at;
+            acc[key].activated_at = buff.activated_at;
+            acc[key].activated_by = buff.activated_by;
+            acc[key].activated_by_name = buff.activated_by_name;
+        }
+
+        return acc;
+    }, {}));
 
     return (
         <div>
@@ -745,7 +764,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                 <StatCard label="Clan Score" value={clanScoreValue.toLocaleString()} subtitle="Sum of top operatives" />
                                 <StatCard label="Vault Coins" value={clan.vault_coins.toLocaleString()} subtitle="Shared funds" />
                                 <StatCard label="My Score" value={myScoreValue.toLocaleString()} subtitle="XP + PvP" />
-                                <StatCard label="Active Effects" value={activeBuffs.length} subtitle="Live clan buffs" />
+                                <StatCard label="Active Effects" value={groupedBuffs.length} subtitle="Live clan buffs" />
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -789,16 +808,19 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
 
                                 <div className="bg-black/20 p-4 rounded-lg border border-white/5">
                                     <h3 className="font-heading text-xl mb-3 text-amber-300">Active Clan Effects</h3>
-                                    {activeBuffs.length === 0 ? (
+                                    {groupedBuffs.length === 0 ? (
                                         <p className="text-gray-400 text-sm">No buffs active. Purchase one to empower the whole team.</p>
                                     ) : (
                                         <ul className="space-y-3 max-h-60 overflow-y-auto pr-1">
-                                            {activeBuffs.map((buff: ActiveClanBuff) => (
+                                            {groupedBuffs.map((buff) => (
                                                 <li key={buff.id} className="bg-black/30 p-3 rounded-lg border border-white/5">
                                                     <div className="flex items-start justify-between gap-3">
                                                         <div>
                                                             <p className="font-semibold text-white">{buff.name}</p>
                                                             <p className="text-xs text-gray-400">{describeBuffEffect(buff.effect)}</p>
+                                                            {buff.stackCount > 1 && (
+                                                                <p className="text-[11px] text-amber-300 font-semibold mt-1">Stacked x{buff.stackCount}</p>
+                                                            )}
                                                             {buff.activated_by_name && (
                                                                 <p className="text-[11px] text-gray-500 mt-1">Activated by {buff.activated_by_name}</p>
                                                             )}
