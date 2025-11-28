@@ -140,7 +140,10 @@ const normalizeSvgMarkup = (svgContent: string) => {
   svgEl.setAttribute("preserveAspectRatio", "xMidYMid meet");
   svgEl.style.width = "100%";
   svgEl.style.height = "100%";
+  svgEl.style.maxWidth = "100%";
+  svgEl.style.maxHeight = "100%";
   svgEl.style.display = "block";
+  svgEl.style.objectFit = "contain";
 
   return svgEl.outerHTML;
 };
@@ -258,6 +261,13 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
     return null;
   };
+
+  // Reset caches when map changes
+  useEffect(() => {
+    defaultRegionStylesRef.current = {};
+    lastRegionStyleKeyRef.current = {};
+    svgRef.current = null;
+  }, [mapId]);
 
   useEffect(() => {
     setMapMarkup(normalizeSvgMarkup(mapSvg));
@@ -508,7 +518,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   }
 
   return (
-    <div className="relative rounded-3xl border border-slate-800/70 bg-gradient-to-br from-slate-950 via-slate-900 to-black p-6 shadow-2xl max-h-[450px] overflow-hidden">
+    <div className="relative rounded-3xl border border-slate-800/70 bg-gradient-to-br from-slate-950 via-slate-900 to-black p-6 shadow-2xl overflow-hidden">
       {!hideHeader && (
         <div className="mb-3">
           <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">
@@ -519,7 +529,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
       <div
         ref={containerRef}
-        className="w-full h-[340px] flex items-center justify-center overflow-hidden"
+        className="w-full h-[340px] flex items-center justify-center overflow-hidden [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:w-auto [&>svg]:h-auto"
         dangerouslySetInnerHTML={{ __html: mapMarkup }}
       />
 
