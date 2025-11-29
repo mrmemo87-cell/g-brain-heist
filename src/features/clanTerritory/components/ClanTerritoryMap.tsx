@@ -215,48 +215,6 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   const lastRegionStyleKeyRef = useRef<Record<string, string>>({});
   const svgRef = useRef<SVGSVGElement | null>(null);
   const rafRef = useRef<number | null>(null);
-
-  const ensureResponsiveViewBox = (svg: SVGSVGElement) => {
-    if (svg.getAttribute("viewBox")) return;
-
-    const graphicElements = svg.querySelectorAll<SVGGraphicsElement>(
-      "path, polygon, rect, circle, ellipse, polyline"
-    );
-
-    let minX = Number.POSITIVE_INFINITY;
-    let minY = Number.POSITIVE_INFINITY;
-    let maxX = Number.NEGATIVE_INFINITY;
-    let maxY = Number.NEGATIVE_INFINITY;
-
-    graphicElements.forEach((element) => {
-      try {
-        const bbox = element.getBBox();
-        minX = Math.min(minX, bbox.x);
-        minY = Math.min(minY, bbox.y);
-        maxX = Math.max(maxX, bbox.x + bbox.width);
-        maxY = Math.max(maxY, bbox.y + bbox.height);
-      } catch (error) {
-        console.warn("[ClanTerritoryMap] Failed to measure SVG element", error);
-      }
-    });
-
-    if (!Number.isFinite(minX) || !Number.isFinite(minY) || !Number.isFinite(maxX) || !Number.isFinite(maxY)) {
-      return;
-    }
-
-    const padding = Math.max((maxX - minX + maxY - minY) * 0.02, 4);
-    const viewBox = [
-      minX - padding,
-      minY - padding,
-      maxX - minX + padding * 2,
-      maxY - minY + padding * 2,
-    ].join(" ");
-
-    svg.setAttribute("viewBox", viewBox);
-    svg.setAttribute("preserveAspectRatio", svg.getAttribute("preserveAspectRatio") ?? "xMidYMid meet");
-    svg.style.width = "100%";
-    svg.style.height = "100%";
-  };
   const resolveRegionElement = (svg: SVGSVGElement, targetId: string): SVGPathElement | null => {
     // Try direct ID query with multiple selector approaches
     let direct = svg.querySelector<SVGPathElement>(`#${targetId}`);
@@ -421,9 +379,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         defaultRegionStylesRef.current = {};
         lastRegionStyleKeyRef.current = {};
         console.log("[ClanTerritoryMap] New SVG detected, reset caches");
-
-        ensureResponsiveViewBox(svg);
-
+        
         // Debug: Log all available IDs in the SVG
         const allIds = Array.from(svg.querySelectorAll("[id]")).map(el => el.id);
         console.log("[ClanTerritoryMap] Available IDs in SVG:", allIds.filter(id => id.includes("district") || id.includes("region")));
