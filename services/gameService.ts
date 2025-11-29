@@ -1275,8 +1275,9 @@ export const whoami = async (): Promise<Profile> => {
     let resolvedMembership = membership;
 
     // Fallback: use clan_member_scores view if the direct table query fails (e.g., RLS
-    // restrictions or table issues). This keeps clan info visible on the dashboard.
-    if ((!resolvedMembership || !resolvedMembership.clan_id) && membershipError) {
+    // restrictions or table issues) OR if it returns no rows. This keeps clan info
+    // visible on the dashboard even when the primary table query is blocked.
+    if (!resolvedMembership || !resolvedMembership.clan_id) {
         const { data: membershipFromScores, error: membershipScoresError } = await supabase
             .from('clan_member_scores')
             .select('clan_id, role, custom_title')
