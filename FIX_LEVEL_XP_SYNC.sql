@@ -9,6 +9,16 @@
 -- ==============================================================================
 
 -- ============================================
+-- 0. FIX THE COSMETIC THEME CONSTRAINT FIRST
+-- ============================================
+-- The constraint only allows NULL or 'glitch', but 'flicker' is also used
+
+ALTER TABLE users DROP CONSTRAINT IF EXISTS check_active_cosmetic_theme;
+ALTER TABLE users ADD CONSTRAINT check_active_cosmetic_theme 
+  CHECK (active_cosmetic_theme IS NULL OR active_cosmetic_theme IN ('glitch', 'flicker'))
+  NOT VALID;
+
+-- ============================================
 -- 1. SYNC ALL USER LEVELS WITH THEIR XP (ONE-TIME FIX)
 -- ============================================
 
@@ -179,6 +189,9 @@ $$;
 -- ============================================
 
 -- Create the trigger function
+-- IMPORTANT: This trigger ONLY fires on XP column changes and 
+-- modifies NEW.level in-place before the update commits.
+-- It does NOT cause additional UPDATE statements.
 CREATE OR REPLACE FUNCTION sync_level_with_xp()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -187,10 +200,11 @@ DECLARE
   calculated_level INTEGER;
 BEGIN
   -- Calculate what level should be based on XP
-  calculated_level := GREATEST(1, FLOOR(NEW.xp / 100.0) + 1)::INTEGER;
+  calculated_level := GREATEST(1, FLOOR(COALESCE(NEW.xp, 0) / 100.0) + 1)::INTEGER;
   
-  -- Update level if it doesn't match
-  IF NEW.level != calculated_level THEN
+  -- Only modify NEW if level actually needs to change
+  -- This prevents unnecessary changes that could trigger subscriptions
+  IF COALESCE(NEW.level, 0) != calculated_level THEN
     NEW.level := calculated_level;
   END IF;
   
@@ -198,17 +212,19 @@ BEGIN
 END;
 $$;
 
--- Drop existing trigger if any
+-- Drop existing triggers
 DROP TRIGGER IF EXISTS trg_sync_level_with_xp ON users;
+DROP TRIGGER IF EXISTS trg_sync_level_on_insert ON users;
 
--- Create trigger to auto-sync level whenever XP changes
+-- Create trigger ONLY for XP column updates (not all updates)
+-- This prevents infinite loops from level updates triggering more updates
 CREATE TRIGGER trg_sync_level_with_xp
   BEFORE UPDATE OF xp ON users
   FOR EACH ROW
+  WHEN (OLD.xp IS DISTINCT FROM NEW.xp)
   EXECUTE FUNCTION sync_level_with_xp();
 
--- Also trigger on INSERT
-DROP TRIGGER IF EXISTS trg_sync_level_on_insert ON users;
+-- Trigger on INSERT to set initial level correctly
 CREATE TRIGGER trg_sync_level_on_insert
   BEFORE INSERT ON users
   FOR EACH ROW

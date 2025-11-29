@@ -480,8 +480,18 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     if (!profile?.id) return;
 
     let isSubscribed = true;
+    let lastUpdateTime = 0;
+    const UPDATE_THROTTLE_MS = 2000; // Minimum 2 seconds between updates
 
     const hydrateProfileFromServer = async (fallbackProfile?: Profile, levelHint?: number) => {
+      // Throttle updates to prevent infinite loops
+      const now = Date.now();
+      if (now - lastUpdateTime < UPDATE_THROTTLE_MS) {
+        console.log('Profile update throttled');
+        return;
+      }
+      lastUpdateTime = now;
+
       try {
         const hydratedProfile = await GameService.whoami();
         if (!isSubscribed) return;
@@ -517,6 +527,21 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           console.log('Profile updated!', payload);
           const newProfile = payload.new as Profile;
           const oldProfile = (payload.old as Profile) || null;
+
+          // Skip if only last_seen or last_ap_update changed (avoid infinite loops)
+          const significantChange = 
+            newProfile.xp !== oldProfile?.xp ||
+            newProfile.coins !== oldProfile?.coins ||
+            newProfile.level !== oldProfile?.level ||
+            newProfile.gemstones !== oldProfile?.gemstones ||
+            newProfile.ap_now !== oldProfile?.ap_now ||
+            newProfile.is_banned !== oldProfile?.is_banned ||
+            newProfile.streak !== oldProfile?.streak;
+          
+          if (!significantChange) {
+            console.log('Skipping non-significant profile update');
+            return;
+          }
 
           const isNowBanned = isBannedFlag(newProfile?.is_banned);
           const wasBanned = isBannedFlag(oldProfile?.is_banned);
