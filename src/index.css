@@ -75,6 +75,11 @@ body.lite-mode .card-glass {
   box-shadow: 0 0 15px rgba(158, 93, 255, 0.25);
 }
 
+.gem-glow {
+  color: #fda4af;
+  filter: drop-shadow(0 0 10px rgba(248, 113, 113, 0.55));
+}
+
 body.lite-mode .glow-ion,
 body.lite-mode .glow-plasma,
 body.lite-mode .glow-success,
