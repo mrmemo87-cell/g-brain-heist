@@ -11,8 +11,8 @@ import {
   PlayerState,
   QuestionRiskRoute,
   RoomSettings,
-} from "./lockdownTypes";
-import { calculateRegionStats } from "./regionCalculator";
+} from "./lockdownTypes.js";
+import { calculateRegionStats } from "./regionCalculator.js";
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 

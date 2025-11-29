@@ -1,4 +1,4 @@
-import { EntryRoute, RoomSettings } from "./lockdownTypes";
+import { EntryRoute, RoomSettings } from "./lockdownTypes.js";
 
 const cloneEntryRouteModifiers = (overrides?: Partial<RoomSettings["entryRouteModifiers"]>) => ({
   [EntryRoute.SAFE]: {

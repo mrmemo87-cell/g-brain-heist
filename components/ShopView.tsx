@@ -126,7 +126,7 @@ const ItemCard: React.FC<{
           </div>
         </div>
 
-        <p className="text-xs text-gray-500 leading-relaxed bg-black/20 border border-white/5 rounded-lg p-2">
+        <p className="text-xs text-gray-400 leading-relaxed bg-black/20 border border-white/5 rounded-lg p-2">
           {item.effect_summary}
         </p>
 
@@ -136,9 +136,11 @@ const ItemCard: React.FC<{
             <CoinAnimation width={20} height={20} />
           </div>
           {item.gemstone_price ? (
-            <div className="inline-flex items-center justify-between bg-black/30 px-3 py-2 rounded-lg border border-cyan-500/40">
-              <span className="font-heading text-lg text-cyan-200">{item.gemstone_price}</span>
-              <div className="w-5 h-5 text-cyan-300"><GemIcon /></div>
+            <div className="inline-flex items-center justify-between bg-black/30 px-3 py-2 rounded-lg border border-rose-500/50 shadow-[0_10px_24px_rgba(248,113,113,0.25)]">
+              <span className="font-heading text-lg text-rose-200">{item.gemstone_price}</span>
+              <div className="w-5 h-5">
+                <GemIcon />
+              </div>
             </div>
           ) : (
             <div className="inline-flex items-center justify-center px-3 py-2 rounded-lg text-xs text-gray-500 bg-black/20 border border-white/5">
@@ -244,8 +246,10 @@ const PurchaseModal: React.FC<{
                             <div className="flex justify-between items-center">
                                 <span className="text-gray-300">Total Gemstones:</span>
                                 <div className="flex items-center space-x-2">
-                                    <span className={`text-xl font-mono ${insufficientGemstones ? 'text-red-500' : 'text-cyan-200'}`}>{totalGemCost.toLocaleString()}</span>
-                                    <div className="w-5 h-5 text-cyan-300"><GemIcon /></div>
+                                    <span className={`text-xl font-mono ${insufficientGemstones ? 'text-red-500' : 'text-rose-200'}`}>{totalGemCost.toLocaleString()}</span>
+                                    <div className="w-5 h-5">
+                                        <GemIcon />
+                                    </div>
                                 </div>
                             </div>
                         ) : null}
@@ -262,8 +266,10 @@ const PurchaseModal: React.FC<{
                         <div className="flex items-center justify-between">
                             <span>Gemstones Available</span>
                             <div className="flex items-center gap-2">
-                                <span className="font-mono text-cyan-200">{profile.gemstones.toLocaleString()}</span>
-                                <div className="w-4 h-4 text-cyan-300"><GemIcon /></div>
+                                <span className="font-mono text-rose-200">{profile.gemstones.toLocaleString()}</span>
+                                <div className="w-4 h-4">
+                                    <GemIcon />
+                                </div>
                             </div>
                         </div>
                     </div>

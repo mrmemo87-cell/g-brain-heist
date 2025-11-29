@@ -478,7 +478,33 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   // Real-time subscription for profile updates
   useEffect(() => {
     if (!profile?.id) return;
-    
+
+    let isSubscribed = true;
+
+    const hydrateProfileFromServer = async (fallbackProfile?: Profile, levelHint?: number) => {
+      try {
+        const hydratedProfile = await GameService.whoami();
+        if (!isSubscribed) return;
+
+        const resolvedLevel = levelHint ?? hydratedProfile.level ?? null;
+        setProfile(hydratedProfile);
+        if (resolvedLevel !== null) {
+          setPreviousLevel(resolvedLevel);
+          lastRewardedLevelRef.current = resolvedLevel;
+        }
+      } catch (err) {
+        console.error('Failed to refresh profile after realtime update:', err);
+        if (!isSubscribed || !fallbackProfile) return;
+
+        const resolvedLevel = levelHint ?? fallbackProfile.level ?? null;
+        setProfile(fallbackProfile);
+        if (resolvedLevel !== null) {
+          setPreviousLevel(resolvedLevel);
+          lastRewardedLevelRef.current = resolvedLevel;
+        }
+      }
+    };
+
     const profileChannel = supabase
       .channel('profile_updates')
       .on('postgres_changes', {
@@ -523,28 +549,23 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                   console.error('Failed to grant level-up rewards:', error);
                   return;
                 }
-                
+
                 const rewards = data || { coins: 100 * nextLevel, ap_refill: true };
                 setLevelUpData({ newLevel: nextLevel, rewards });
                 setShowLevelUpModal(true);
-                
+
                 // Refresh profile to show updated rewards
-                GameService.whoami().then(updatedProfile => {
-                  setProfile(updatedProfile);
-                  setPreviousLevel(updatedProfile.level);
-                  lastRewardedLevelRef.current = updatedProfile.level;
-                });
+                hydrateProfileFromServer(undefined, nextLevel);
               });
           } else {
-            setProfile(newProfile);
-            setPreviousLevel(nextLevel);
-            lastRewardedLevelRef.current = nextLevel;
+            void hydrateProfileFromServer(newProfile, nextLevel);
           }
         }
       )
       .subscribe();
-    
+
     return () => {
+      isSubscribed = false;
       supabase.removeChannel(profileChannel);
     };
   }, [profile?.id, previousLevel]);
@@ -1050,8 +1071,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                   <option value="" disabled>
                     Select your grade
                   </option>
-                  <option value="8">Grade 8</option>
-                  <option value="9">Grade 9</option>
+                  {Object.keys(GRADE_TO_BATCH)
+                    .map((grade) => parseInt(grade, 10) as Grade)
+                    .sort((a, b) => a - b)
+                    .map((gradeOption) => (
+                      <option key={gradeOption} value={gradeOption}>
+                        Grade {gradeOption}
+                      </option>
+                    ))}
                 </select>
               </div>
 

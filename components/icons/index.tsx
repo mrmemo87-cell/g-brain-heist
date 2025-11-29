@@ -13,8 +13,16 @@ export const CoinIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   </svg>
 );
 
-export const GemIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+export const GemIcon: React.FC<React.SVGProps<SVGSVGElement>> = ({ className = '', ...props }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+    className={`gem-glow ${className}`}
+    {...props}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="m6.75 2.25 10.5.007L21 9l-9 12-9-12 3.75-6.743ZM3 9h18" />
   </svg>
 );

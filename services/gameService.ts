@@ -1091,7 +1091,12 @@ export const whoami = async (): Promise<Profile> => {
     const parsedGrade = typeof profile.grade === 'string'
       ? parseInt(profile.grade as unknown as string, 10)
       : profile.grade;
-        profile.grade = (parsedGrade === 8 || parsedGrade === 9) ? parsedGrade : null;
+
+    // Accept all valid grade levels (6-12). Older logic incorrectly nulled anything
+    // outside grades 8-9, which hid valid grades after OAuth signups.
+    profile.grade = (parsedGrade >= 6 && parsedGrade <= 12)
+      ? (parsedGrade as Grade)
+      : null;
   }
 
     profile.is_admin = typeof profile.is_admin === 'boolean'
