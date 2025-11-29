@@ -524,7 +524,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           filter: `id=eq.${profile.id}`
         },
         (payload) => {
-          console.log('Profile updated!', payload);
           const newProfile = payload.new as Profile;
           const oldProfile = (payload.old as Profile) || null;
 
@@ -539,9 +538,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             newProfile.streak !== oldProfile?.streak;
           
           if (!significantChange) {
-            console.log('Skipping non-significant profile update');
-            return;
+            return; // Silent skip for non-significant updates
           }
+
+          console.log('Profile updated! (significant change)', payload);
 
           const isNowBanned = isBannedFlag(newProfile?.is_banned);
           const wasBanned = isBannedFlag(oldProfile?.is_banned);
@@ -583,7 +583,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                 hydrateProfileFromServer(undefined, nextLevel);
               });
           } else {
-            void hydrateProfileFromServer(newProfile, nextLevel);
+            // Use the realtime payload directly instead of calling whoami()
+            // This avoids triggering another last_seen update
+            setProfile(prev => prev ? { ...prev, ...newProfile } : newProfile);
+            setPreviousLevel(nextLevel);
           }
         }
       )
