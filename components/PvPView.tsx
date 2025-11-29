@@ -561,7 +561,15 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
                   <div className="text-lg sm:text-2xl font-heading space-y-3 mb-6">
                       <p>XP Delta: <span style={{color: attackResult.attacker_deltas.xp > 0 ? 'var(--ion-blue)' : 'var(--danger-red)'}}>{attackResult.attacker_deltas.xp >= 0 ? `+${attackResult.attacker_deltas.xp}` : attackResult.attacker_deltas.xp}</span></p>
                       <p>Coins Delta: <span style={{color: 'var(--amber-warn)'}}>{attackResult.attacker_deltas.coins >= 0 ? `+${attackResult.attacker_deltas.coins}`: attackResult.attacker_deltas.coins}</span></p>
-                      <p className="flex items-center justify-center gap-2">Gemstones: <span className="inline-flex items-center gap-1" style={{color: 'var(--plasma-pink)'}}><GemIcon className="w-5 h-5" />{attackResult.attacker_deltas.gemstones && attackResult.attacker_deltas.gemstones >= 0 ? `+${attackResult.attacker_deltas.gemstones}` : attackResult.attacker_deltas.gemstones || 0}</span></p>
+                      <p className="flex items-center justify-center gap-2">
+                        Gemstones:
+                        <span className="inline-flex items-center gap-1 text-rose-200 gem-glow">
+                          <GemIcon className="w-5 h-5" />
+                          {attackResult.attacker_deltas.gemstones && attackResult.attacker_deltas.gemstones >= 0
+                            ? `+${attackResult.attacker_deltas.gemstones}`
+                            : attackResult.attacker_deltas.gemstones || 0}
+                        </span>
+                      </p>
                   </div>
 
                   <button

@@ -9,15 +9,26 @@ interface PlayerProfileCardProps {
   profile: Profile;
 }
 
-const StatDisplay: React.FC<{ icon: React.ReactNode; label: string; value: string | number; color: string; subtitle?: string; containerClassName?: string }> = ({ icon, label, value, color, subtitle, containerClassName }) => (
-  <div className={`flex items-center gap-3 rounded-xl border border-cyan-400/20 bg-slate-900/70 p-3 shadow-[0_10px_30px_rgba(0,0,0,0.45)] ${containerClassName ?? ''}`}>
-    <div className="w-9 h-9 flex-shrink-0 rounded-lg bg-black/30 flex items-center justify-center" style={{ color }}>
-      {icon}
-    </div>
+type StatDisplayProps = {
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+  accentClass: string;
+  subtitle?: string;
+  containerClassName?: string;
+};
+
+const StatDisplay: React.FC<StatDisplayProps> = ({ icon, label, value, accentClass, subtitle, containerClassName }) => (
+  <div
+    className={`flex items-center gap-3 rounded-xl border border-white/10 bg-slate-900/70 p-3 shadow-[0_10px_30px_rgba(0,0,0,0.45)] ${
+      containerClassName ?? ''
+    }`}
+  >
+    <div className={`w-10 h-10 flex-shrink-0 rounded-lg bg-black/30 flex items-center justify-center ${accentClass}`}>{icon}</div>
     <div className="space-y-0.5">
-      <div className="text-xs uppercase tracking-wide" style={{ color: 'var(--mist-400)' }}>{label}</div>
-      <div className="text-lg font-semibold font-heading leading-tight">{value}</div>
-      {subtitle && <div className="text-[11px]" style={{ color: 'var(--mist-400)' }}>{subtitle}</div>}
+      <div className="text-[11px] uppercase tracking-wider text-slate-300/80">{label}</div>
+      <div className="text-lg font-semibold font-heading leading-tight text-white">{value}</div>
+      {subtitle && <div className="text-[11px] text-slate-400">{subtitle}</div>}
     </div>
   </div>
 );
@@ -163,6 +174,79 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
     return () => clearInterval(interval);
   }, [profile.ap_now, profile.ap_max, profile.last_ap_update]);
 
+  const primaryStats: StatDisplayProps[] = [
+    {
+      icon: (
+        <div style={{ width: 20, height: 20 }} className="flex items-center justify-center">
+          <CoinAnimation width={20} height={20} />
+        </div>
+      ),
+      label: 'Coins',
+      value: profile.coins.toLocaleString(),
+      accentClass: 'text-amber-300 border border-amber-400/40 shadow-[0_12px_30px_rgba(251,191,36,0.25)]',
+      containerClassName: 'border-amber-400/25 bg-amber-500/5',
+    },
+    {
+      icon: <GemIcon className="w-5 h-5" />,
+      label: 'Gemstones',
+      value: profile.gemstones.toLocaleString(),
+      accentClass: 'gem-glow border border-rose-400/60 shadow-[0_12px_35px_rgba(248,113,113,0.35)]',
+      containerClassName: 'border-rose-400/40 bg-rose-500/10',
+    },
+    {
+      icon: <APIcon className="w-5 h-5" />,
+      label: 'Action Points',
+      value: `${calculatedAP}/${profile.ap_max}`,
+      subtitle: calculatedAP < profile.ap_max ? `+1 in ${apCountdown}` : 'Ready',
+      accentClass: 'text-emerald-200 border border-emerald-400/60 shadow-[0_12px_28px_rgba(16,185,129,0.28)]',
+      containerClassName: 'border-emerald-400/30 bg-emerald-500/10',
+    },
+    {
+      icon: <StreakIcon className="w-5 h-5" />,
+      label: 'Streak',
+      value: `${profile.streak} days`,
+      accentClass: 'text-orange-200 border border-orange-400/50 shadow-[0_12px_28px_rgba(251,146,60,0.3)]',
+      containerClassName: 'border-orange-400/40 bg-orange-500/10',
+    },
+  ];
+
+  const secondaryStats: StatDisplayProps[] = [
+    {
+      icon: <TrophyIcon className="w-4 h-4" />,
+      label: 'Total Score',
+      value: totalScore.toLocaleString(),
+      subtitle: 'XP + PvP',
+      accentClass: 'text-amber-200 border border-amber-300/40',
+    },
+    {
+      icon: <XPIcon className="w-4 h-4" />,
+      label: 'Total XP',
+      value: profile.xp.toLocaleString(),
+      accentClass: 'text-cyan-200 border border-cyan-300/40',
+    },
+    {
+      icon: <BattleIcon className="w-4 h-4" />,
+      label: 'PvP Score',
+      value: profile.pvp_score.toLocaleString(),
+      subtitle: '3 pts per win',
+      accentClass: 'text-rose-200 border border-rose-300/40',
+    },
+    {
+      icon: <BattleIcon className="w-4 h-4" />,
+      label: 'Attack',
+      value: attackValue || 10,
+      subtitle: attackSubtitle,
+      accentClass: 'text-rose-200 border border-rose-300/40',
+    },
+    {
+      icon: <ShieldIcon className="w-4 h-4" />,
+      label: 'Defense',
+      value: defenseValue || 10,
+      subtitle: defenseSubtitle,
+      accentClass: 'text-cyan-200 border border-cyan-300/40',
+    },
+  ];
+
   return (
     <div className="animate-fade-in-up rounded-2xl border border-pink-500/30 bg-slate-950/90 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.55)]">
       <div className="flex flex-col gap-4">
@@ -205,28 +289,28 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <StatDisplay icon={<div style={{width: 20, height: 20}} className="flex items-center justify-center"><CoinAnimation width={20} height={20} /></div>} label="Coins" value={profile.coins.toLocaleString()} color={'var(--amber-warn)'} />
-          <StatDisplay
-            icon={<GemIcon />}
-            label="Gemstones"
-            value={profile.gemstones.toLocaleString()}
-            color={'#fca5a5'}
-            containerClassName="border-rose-300/60 bg-rose-500/10 shadow-[0_12px_35px_rgba(248,113,113,0.35)]"
-          />
-          <StatDisplay icon={<StreakIcon />} label="Streak" value={`${profile.streak} days`} color={'var(--danger-red)'} />
-          <StatDisplay icon={<TrophyIcon className="w-4 h-4" />} label="Total Score" value={totalScore.toLocaleString()} color={'var(--amber-warn)'} subtitle="XP + PvP" />
-          <StatDisplay icon={<XPIcon />} label="Total XP" value={profile.xp.toLocaleString()} color={'var(--ion-blue)'} />
-          <StatDisplay icon={<BattleIcon className="w-4 h-4" />} label="PvP Score" value={profile.pvp_score.toLocaleString()} color={'var(--danger-red)'} subtitle="3 pts per win" />
-          <StatDisplay
-            icon={<APIcon />}
-            label="Action Points"
-            value={`${calculatedAP}/${profile.ap_max}`}
-            color={'var(--success-teal)'}
-            subtitle={calculatedAP < profile.ap_max ? `+1 in ${apCountdown}` : undefined}
-          />
-          <StatDisplay icon={<BattleIcon className="w-4 h-4" />} label="Attack" value={attackValue || 10} color={'var(--danger-red)'} subtitle={attackSubtitle} />
-          <StatDisplay icon={<ShieldIcon className="w-4 h-4" />} label="Defense" value={defenseValue || 10} color={'var(--ion-blue)'} subtitle={defenseSubtitle} />
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Primary Stats</p>
+            <span className="text-[11px] text-slate-400">Core resources</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+            {primaryStats.map((stat) => (
+              <StatDisplay key={stat.label} {...stat} />
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Secondary Stats</p>
+            <span className="text-[11px] text-slate-400">Performance & combat</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            {secondaryStats.map((stat) => (
+              <StatDisplay key={stat.label} {...stat} />
+            ))}
+          </div>
         </div>
 
         {profile.clan_name && (
