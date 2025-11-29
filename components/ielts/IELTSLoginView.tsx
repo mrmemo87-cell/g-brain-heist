@@ -90,6 +90,11 @@ const IELTSLoginView: React.FC<IELTSLoginViewProps> = ({ onAuthenticated }) => {
     <div className="ielts-auth-wrapper">
       <div className="ielts-auth-panel">
         <header className="ielts-auth-header">
+          <img 
+            src="/logo.png" 
+            alt="Brains Heist" 
+            className="w-16 h-16 mx-auto mb-4 opacity-80"
+          />
           <div className="ielts-auth-badge">IELTS Prep Hub</div>
           <h1 className="ielts-auth-title">Focused IELTS preparation starts here.</h1>
           <p className="ielts-auth-subtitle">

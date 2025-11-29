@@ -255,33 +255,41 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
           {/* Mobile Layout (< 768px) */}
           <div className="md:hidden">
             <div className="flex items-center justify-between">
-              <button
-                type="button"
-                onClick={handleBrandClick}
-                className="font-heading text-lg font-black tracking-wider select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70"
-                aria-label="Go to dashboard"
-              >
-                <span
-                  className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]"
-                  style={{
-                    backgroundImage: 'linear-gradient(90deg, #22d3ee 0%, #3b82f6 25%, #8b5cf6 50%, #3b82f6 75%, #22d3ee 100%)',
-                    animation: 'shimmer 3s linear infinite',
-                  }}
+              <div className="flex items-center gap-2">
+                <img 
+                  src="/logo.png" 
+                  alt="Brains Heist Logo" 
+                  className="w-8 h-8 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)] cursor-pointer"
+                  onClick={handleBrandClick}
+                />
+                <button
+                  type="button"
+                  onClick={handleBrandClick}
+                  className="font-heading text-lg font-black tracking-wider select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70"
+                  aria-label="Go to dashboard"
                 >
-                  BRAINS
-                </span>
-                {' '}
-                <span
-                  className="bg-gradient-to-r from-pink-500 via-red-500 to-orange-500 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]"
-                  style={{
-                    backgroundImage: 'linear-gradient(90deg, #ec4899 0%, #ef4444 25%, #f97316 50%, #ef4444 75%, #ec4899 100%)',
-                    animation: 'shimmer 3s linear infinite',
-                    animationDelay: '1.5s',
-                  }}
-                >
-                  HEIST
-                </span>
-              </button>
+                  <span
+                    className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]"
+                    style={{
+                      backgroundImage: 'linear-gradient(90deg, #22d3ee 0%, #3b82f6 25%, #8b5cf6 50%, #3b82f6 75%, #22d3ee 100%)',
+                      animation: 'shimmer 3s linear infinite',
+                    }}
+                  >
+                    BRAINS
+                  </span>
+                  {' '}
+                  <span
+                    className="bg-gradient-to-r from-pink-500 via-red-500 to-orange-500 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]"
+                    style={{
+                      backgroundImage: 'linear-gradient(90deg, #ec4899 0%, #ef4444 25%, #f97316 50%, #ef4444 75%, #ec4899 100%)',
+                      animation: 'shimmer 3s linear infinite',
+                      animationDelay: '1.5s',
+                    }}
+                  >
+                    HEIST
+                  </span>
+                </button>
+              </div>
               <div className="relative flex items-center gap-2" ref={mobileMenuRef}>
                 <button
                   type="button"
@@ -466,7 +474,13 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
             
             {/* Left: BRAIN HEIST Brand */}
             <div className="flex items-center space-x-4">
-              <div className="relative group">
+              <div className="relative group flex items-center gap-3">
+                <img 
+                  src="/logo.png" 
+                  alt="Brains Heist Logo" 
+                  className="w-10 h-10 lg:w-12 lg:h-12 drop-shadow-[0_0_10px_rgba(59,130,246,0.6)] cursor-pointer hover:scale-110 transition-transform"
+                  onClick={handleBrandClick}
+                />
                 <button
                   type="button"
                   onClick={handleBrandClick}

@@ -152,6 +152,11 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
         <div className="min-h-screen flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">
+                    <img 
+                        src="/logo.png" 
+                        alt="Brains Heist" 
+                        className="w-32 h-32 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]"
+                    />
                     <h1 className="font-heading text-5xl font-bold tracking-wider" style={{ color: 'var(--ion-blue)' }}>
                         Brains Heist
                     </h1>
