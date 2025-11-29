@@ -397,12 +397,12 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 rounded-2xl border border-cyan-500/40 bg-cyan-500/10 px-3 py-2">
-                    <div className="h-6 w-6 text-cyan-300">
+                  <div className="flex items-center gap-2 rounded-2xl border border-rose-500/50 bg-rose-500/10 px-3 py-2 shadow-[0_12px_24px_rgba(248,113,113,0.25)]">
+                    <div className="h-6 w-6">
                       <GemIcon />
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[10px] font-semibold uppercase tracking-wide text-cyan-200/80">Gemstones</span>
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-rose-200/80">Gemstones</span>
                       <span id="gem-hud" className="font-mono text-sm font-bold text-white">
                         {profile.gemstones.toLocaleString()}
                       </span>
@@ -527,12 +527,12 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                 </div>
 
                 {/* Gemstones */}
-                <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-br from-cyan-600/20 to-blue-600/20 rounded-xl border-2 border-cyan-500/50 backdrop-blur-sm hover:scale-105 transition-transform min-w-[100px]">
-                  <div className="w-7 h-7 text-cyan-300 drop-shadow-[0_0_8px_rgba(56,189,248,0.8)]">
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-br from-rose-700/25 via-rose-600/20 to-pink-600/20 rounded-xl border-2 border-rose-500/60 backdrop-blur-sm hover:scale-105 transition-transform min-w-[100px] shadow-[0_14px_28px_-16px_rgba(248,113,113,0.45)]">
+                  <div className="w-7 h-7">
                     <GemIcon />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-xs text-cyan-200/80 font-semibold uppercase tracking-wide leading-none">Gemstones</span>
+                    <span className="text-xs text-rose-200/90 font-semibold uppercase tracking-wide leading-none">Gemstones</span>
                     <span id="gem-hud" className="font-mono font-bold text-lg text-white leading-none mt-0.5">{profile.gemstones.toLocaleString()}</span>
                   </div>
                 </div>

@@ -41,8 +41,8 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onClaim, claiming }) => {
     task.reward?.gemstones
       ? {
           id: 'gemstones',
-          icon: <GemIcon className="w-4 h-4" />, 
-          color: 'var(--plasma-pink)',
+          icon: <GemIcon className="w-4 h-4" />,
+          color: '#fda4af',
           text: `+${task.reward.gemstones} Gem${task.reward.gemstones === 1 ? '' : 's'}`,
         }
       : null,
