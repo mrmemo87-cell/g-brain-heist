@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Profile, ActiveClanBuff } from '../types';
 import { CoinIcon, StreakIcon, XPIcon, APIcon, GemIcon, TrophyIcon, BattleIcon, ShieldIcon, ClanIcon } from './icons';
 import CoinAnimation from './CoinAnimation';
 import AvatarWithFrame from './AvatarWithFrame';
+import { getXpProgress } from '../src/lib/leveling';
 
 interface PlayerProfileCardProps {
   profile: Profile;
@@ -79,12 +80,35 @@ const groupActiveBuffs = (buffs: ActiveClanBuff[]) => Object.values(
 
 
 const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
-  console.log('[ProfileCard] Rendering with cosmetics:', { 
+  console.log('[ProfileCard] Rendering with cosmetics:', {
     active_cosmetic_frame: profile.active_cosmetic_frame,
     active_cosmetic_theme: profile.active_cosmetic_theme
   });
-  const xpForNextLevel = Math.ceil(100 * Math.pow(profile.level + 1, 1.5));
-  const xpProgressPercent = (profile.xp / xpForNextLevel) * 100;
+
+  const xpProgress = getXpProgress(profile.xp, profile.level);
+
+  useEffect(() => {
+    if (profile.level !== xpProgress.calculatedLevel) {
+      console.warn(
+        '[ProfileCard] Level/Xp mismatch detected',
+        { reportedLevel: profile.level, calculatedLevel: xpProgress.calculatedLevel, xp: profile.xp }
+      );
+    }
+  }, [profile.level, profile.xp, xpProgress.calculatedLevel]);
+
+  const lastLevelRef = useRef(xpProgress.effectiveLevel);
+  const [showLevelUp, setShowLevelUp] = useState(false);
+
+  useEffect(() => {
+    if (xpProgress.effectiveLevel > lastLevelRef.current) {
+      setShowLevelUp(true);
+      const timeout = setTimeout(() => setShowLevelUp(false), 2000);
+      lastLevelRef.current = xpProgress.effectiveLevel;
+      return () => clearTimeout(timeout);
+    }
+    lastLevelRef.current = xpProgress.effectiveLevel;
+  }, [xpProgress.effectiveLevel]);
+
   const totalScore = profile.total_score ?? (profile.xp + (profile.pvp_score ?? 0) * 10);
   const clanBuffs = profile.active_clan_buffs ?? [];
   const groupedClanBuffs = useMemo(() => groupActiveBuffs(clanBuffs), [clanBuffs]);
@@ -161,19 +185,21 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
               <p className="text-sm" style={{ color: 'var(--mist-400)' }}>
                 {profile.batch ? `Batch ${profile.batch} | ` : ''}
                 {profile.role === 'teacher' ? '👨‍🏫 Teacher | ' : ''}
-                Level {profile.level}
+                Level {xpProgress.effectiveLevel}
               </p>
             </div>
           </div>
           <div className="w-full sm:w-1/2">
             <div className="flex justify-between items-center mb-1">
               <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--ion-blue)' }}>XP</span>
-              <span className="text-[11px] font-mono" style={{ color: 'var(--mist-400)' }}>{profile.xp} / {xpForNextLevel}</span>
+              <span className="text-[11px] font-mono" style={{ color: 'var(--mist-400)' }}>
+                {xpProgress.xpIntoLevel.toLocaleString()} / {xpProgress.xpForNextLevel}
+              </span>
             </div>
             <div className="w-full h-3 rounded-full border border-sky-400/20 bg-slate-900/70 overflow-hidden">
               <div
-                className="h-full rounded-full progress-bar-glow-ion shimmer-effect"
-                style={{ width: `${xpProgressPercent}%`, backgroundColor: 'var(--ion-blue)' }}
+                className={`h-full rounded-full progress-bar-glow-ion shimmer-effect ${showLevelUp ? 'animate-pulse' : ''}`}
+                style={{ width: `${xpProgress.progress * 100}%`, backgroundColor: 'var(--ion-blue)' }}
               ></div>
             </div>
           </div>

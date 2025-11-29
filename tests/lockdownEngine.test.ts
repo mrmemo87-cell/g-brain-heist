@@ -8,14 +8,14 @@ import {
   evaluateEndCondition,
   getAlarmLevel,
   shouldEnterPanicMode,
-} from "../src/features/lockdown/lockdownEngine";
+} from "../src/features/lockdown/lockdownEngine.js";
 import {
   AlarmLevel,
   EntryRoute,
   FinishReason,
   QuestionRiskRoute,
-} from "../src/features/lockdown/lockdownTypes";
-import { buildRoomSettings } from "../src/features/lockdown/defaultRoomSettings";
+} from "../src/features/lockdown/lockdownTypes.js";
+import { buildRoomSettings } from "../src/features/lockdown/defaultRoomSettings.js";
 
 const buildState = () => createInitialGameState(buildRoomSettings());
 

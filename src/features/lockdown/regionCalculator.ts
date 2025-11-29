@@ -1,4 +1,4 @@
-import { GameState, RegionStats, ClanStats, PlayerState } from "./lockdownTypes";
+import { GameState, RegionStats, ClanStats, PlayerState } from "./lockdownTypes.js";
 
 const REGION_IDS = [
   "region_1",
