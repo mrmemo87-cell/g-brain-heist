@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Profile, ActiveClanBuff } from '../types';
 import { CoinIcon, StreakIcon, XPIcon, APIcon, GemIcon, TrophyIcon, BattleIcon, ShieldIcon, ClanIcon } from './icons';
 import CoinAnimation from './CoinAnimation';
 import AvatarWithFrame from './AvatarWithFrame';
+import { getXpProgress } from '../src/lib/leveling';
 
 interface PlayerProfileCardProps {
   profile: Profile;
@@ -90,12 +91,35 @@ const groupActiveBuffs = (buffs: ActiveClanBuff[]) => Object.values(
 
 
 const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
-  console.log('[ProfileCard] Rendering with cosmetics:', { 
+  console.log('[ProfileCard] Rendering with cosmetics:', {
     active_cosmetic_frame: profile.active_cosmetic_frame,
     active_cosmetic_theme: profile.active_cosmetic_theme
   });
-  const xpForNextLevel = Math.ceil(100 * Math.pow(profile.level + 1, 1.5));
-  const xpProgressPercent = (profile.xp / xpForNextLevel) * 100;
+
+  const xpProgress = getXpProgress(profile.xp, profile.level);
+
+  useEffect(() => {
+    if (profile.level !== xpProgress.calculatedLevel) {
+      console.warn(
+        '[ProfileCard] Level/Xp mismatch detected',
+        { reportedLevel: profile.level, calculatedLevel: xpProgress.calculatedLevel, xp: profile.xp }
+      );
+    }
+  }, [profile.level, profile.xp, xpProgress.calculatedLevel]);
+
+  const lastLevelRef = useRef(xpProgress.effectiveLevel);
+  const [showLevelUp, setShowLevelUp] = useState(false);
+
+  useEffect(() => {
+    if (xpProgress.effectiveLevel > lastLevelRef.current) {
+      setShowLevelUp(true);
+      const timeout = setTimeout(() => setShowLevelUp(false), 2000);
+      lastLevelRef.current = xpProgress.effectiveLevel;
+      return () => clearTimeout(timeout);
+    }
+    lastLevelRef.current = xpProgress.effectiveLevel;
+  }, [xpProgress.effectiveLevel]);
+
   const totalScore = profile.total_score ?? (profile.xp + (profile.pvp_score ?? 0) * 10);
   const clanBuffs = profile.active_clan_buffs ?? [];
   const groupedClanBuffs = useMemo(() => groupActiveBuffs(clanBuffs), [clanBuffs]);
@@ -225,50 +249,42 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
 
   return (
     <div className="animate-fade-in-up rounded-2xl border border-pink-500/30 bg-slate-950/90 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.55)]">
-      <div className="flex flex-col gap-5">
-        <div className="space-y-3 rounded-xl border border-pink-500/25 bg-black/40 p-4 shadow-[0_10px_30px_rgba(255,45,145,0.15)]">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-pink-200">Agent Summary</p>
-            <span className="text-[11px] text-slate-400">Level {profile.level}</span>
-          </div>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
-              <AvatarWithFrame
-                src={profile.avatar_url}
-                alt={profile.username}
-                size="lg"
-                hasNeonFrame={profile.active_cosmetic_frame === 'neon'}
-                hasGlitchTheme={profile.active_cosmetic_theme === 'flicker'}
-                hasGlitchEffect={profile.active_cosmetic_effect === 'glitch'}
-                imgClassName="sm:w-20 sm:h-20 animate-float"
-                fallbackFrameClassName="border-4 border-pink-500/80"
-              />
-              <div className="space-y-1">
-                <h2 className="text-xl sm:text-2xl font-bold font-heading" style={{ color: 'var(--plasma-pink)' }}>
-                  {profile.username}
-                </h2>
-                <p className="text-sm" style={{ color: 'var(--mist-400)' }}>
-                  {profile.batch ? `Batch ${profile.batch} | ` : ''}
-                  {profile.role === 'teacher' ? '👨‍🏫 Teacher | ' : ''}
-                  Level {profile.level}
-                </p>
-              </div>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-xl border border-pink-500/25 bg-black/40 p-4 shadow-[0_10px_30px_rgba(255,45,145,0.15)]">
+          <div className="flex items-center gap-3">
+            <AvatarWithFrame
+              src={profile.avatar_url}
+              alt={profile.username}
+              size="lg"
+              hasNeonFrame={profile.active_cosmetic_frame === 'neon'}
+              hasGlitchTheme={profile.active_cosmetic_theme === 'flicker'}
+              hasGlitchEffect={profile.active_cosmetic_effect === 'glitch'}
+              imgClassName="sm:w-20 sm:h-20 animate-float"
+              fallbackFrameClassName="border-4 border-pink-500/80"
+            />
+            <div className="space-y-1">
+              <h2 className="text-xl sm:text-2xl font-bold font-heading" style={{ color: 'var(--plasma-pink)' }}>
+                {profile.username}
+              </h2>
+              <p className="text-sm" style={{ color: 'var(--mist-400)' }}>
+                {profile.batch ? `Batch ${profile.batch} | ` : ''}
+                {profile.role === 'teacher' ? '👨‍🏫 Teacher | ' : ''}
+                Level {xpProgress.effectiveLevel}
+              </p>
             </div>
-            <div className="w-full sm:w-1/2">
-              <div className="mb-1 flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--ion-blue)' }}>
-                  XP Progress
-                </span>
-                <span className="text-[11px] font-mono" style={{ color: 'var(--mist-400)' }}>
-                  {profile.xp} / {xpForNextLevel}
-                </span>
-              </div>
-              <div className="w-full h-3 rounded-full border border-sky-400/20 bg-slate-900/70 overflow-hidden">
-                <div
-                  className="h-full rounded-full progress-bar-glow-ion shimmer-effect"
-                  style={{ width: `${xpProgressPercent}%`, backgroundColor: 'var(--ion-blue)' }}
-                ></div>
-              </div>
+          </div>
+          <div className="w-full sm:w-1/2">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--ion-blue)' }}>XP</span>
+              <span className="text-[11px] font-mono" style={{ color: 'var(--mist-400)' }}>
+                {xpProgress.xpIntoLevel.toLocaleString()} / {xpProgress.xpForNextLevel}
+              </span>
+            </div>
+            <div className="w-full h-3 rounded-full border border-sky-400/20 bg-slate-900/70 overflow-hidden">
+              <div
+                className={`h-full rounded-full progress-bar-glow-ion shimmer-effect ${showLevelUp ? 'animate-pulse' : ''}`}
+                style={{ width: `${xpProgress.progress * 100}%`, backgroundColor: 'var(--ion-blue)' }}
+              ></div>
             </div>
           </div>
         </div>

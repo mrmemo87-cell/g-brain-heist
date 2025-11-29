@@ -12,6 +12,7 @@
   "include": [
     "tests/**/*.ts",
     "src/features/lockdown/**/*.ts",
+    "src/lib/**/*.ts",
     "services/rpcGateway.ts",
     "services/supabaseClient.ts",
     "services/env.ts"
