@@ -4175,6 +4175,21 @@ export const create_question = async (questionData: CreateQuestionRequest): Prom
     const subjectId = resolveSubjectIdentifier(questionData.subject, questionData.subject_id);
     const topicName = normalizeTopicName(questionData.topic, questionData.topic_name);
 
+    // Calculate default points based on difficulty if not provided
+    const getDefaultPoints = (difficulty: string | undefined): number => {
+        switch (difficulty) {
+            case 'easy': return 10;
+            case 'medium': return 15;
+            case 'hard': return 20;
+            default: return 10;
+        }
+    };
+
+    // Max XP limit for teacher questions
+    const MAX_XP = 30;
+    const defaultPoints = getDefaultPoints(questionData.difficulty);
+    const finalPoints = Math.min(Math.max(questionData.points || defaultPoints, 1), MAX_XP);
+
     const { data, error } = await supabase
         .from('questions')
         .insert({
@@ -4192,7 +4207,7 @@ export const create_question = async (questionData: CreateQuestionRequest): Prom
             explanation: questionData.explanation,
             hints: questionData.hints,
             time_limit: questionData.time_limit || 30,
-            points: questionData.points || 10,
+            points: finalPoints,
             tags: questionData.tags,
             grade_level: questionData.grade_level,
             is_public: questionData.is_public || false
@@ -4250,10 +4265,18 @@ export const update_question = async (
         Object.prototype.hasOwnProperty.call(updates, 'topic') || Object.prototype.hasOwnProperty.call(updates, 'topic_name');
     const normalizedTopic = shouldNormalizeTopic ? normalizeTopicName(updates.topic, updates.topic_name) : undefined;
 
+    // Max XP limit for teacher questions
+    const MAX_XP = 30;
+
     const payload: Record<string, unknown> = {
         ...updates,
         updated_at: new Date().toISOString(),
     };
+
+    // Enforce max XP limit if points is being updated
+    if (updates.points !== undefined) {
+        payload['points'] = Math.min(Math.max(updates.points, 1), MAX_XP);
+    }
 
     if (resolvedSubjectId !== undefined) {
         payload['subject_id'] = resolvedSubjectId;

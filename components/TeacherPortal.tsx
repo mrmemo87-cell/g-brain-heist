@@ -10,6 +10,19 @@ interface TeacherPortalProps {
 
 type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail';
 
+// XP points based on difficulty: Easy=10, Medium=15, Hard=20
+const getDefaultPointsForDifficulty = (diff: QuestionDifficulty): number => {
+  switch (diff) {
+    case 'easy': return 10;
+    case 'medium': return 15;
+    case 'hard': return 20;
+    default: return 10;
+  }
+};
+
+// Maximum XP a teacher can assign to a question
+const MAX_QUESTION_XP = 30;
+
 const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) => {
   const [view, setView] = useState<PortalView>('dashboard');
   const [teacher, setTeacher] = useState<Teacher | null>(null);
@@ -792,13 +805,18 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               <label className="block text-sm font-semibold text-gray-300 mb-2">Difficulty</label>
               <select
                 value={difficulty}
-                onChange={(e) => setDifficulty(e.target.value as QuestionDifficulty)}
+                onChange={(e) => {
+                  const newDifficulty = e.target.value as QuestionDifficulty;
+                  setDifficulty(newDifficulty);
+                  // Auto-set points based on difficulty
+                  setPoints(getDefaultPointsForDifficulty(newDifficulty));
+                }}
                 className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
                 required
               >
-                <option value="easy">⭐ Easy</option>
-                <option value="medium">⭐⭐ Medium</option>
-                <option value="hard">⭐⭐⭐ Hard</option>
+                <option value="easy">⭐ Easy (10 XP)</option>
+                <option value="medium">⭐⭐ Medium (15 XP)</option>
+                <option value="hard">⭐⭐⭐ Hard (20 XP)</option>
               </select>
             </div>
           </div>
@@ -1108,16 +1126,24 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
           {/* Points */}
           <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">Points (XP Reward)</label>
+            <label className="block text-sm font-semibold text-gray-300 mb-2">
+              Points (XP Reward) <span className="text-gray-500 font-normal">— Max {MAX_QUESTION_XP} XP</span>
+            </label>
             <input
               type="number"
               value={points}
-              onChange={(e) => setPoints(parseInt(e.target.value))}
+              onChange={(e) => {
+                const val = parseInt(e.target.value) || 0;
+                setPoints(Math.min(Math.max(val, 1), MAX_QUESTION_XP));
+              }}
               className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
               min="1"
-              max="100"
+              max={MAX_QUESTION_XP}
               required
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Default: Easy=10, Medium=15, Hard=20. You can adjust up to {MAX_QUESTION_XP} XP.
+            </p>
           </div>
 
           {/* Submit Button */}
