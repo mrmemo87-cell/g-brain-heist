@@ -69,6 +69,38 @@ USING (
 -- Step 4: Add index for faster queries (optional)
 CREATE INDEX IF NOT EXISTS idx_questions_image_url ON questions(image_url) WHERE image_url IS NOT NULL;
 
+-- Step 5: Update assignment_question_details view to include image_url
+CREATE OR REPLACE VIEW assignment_question_details AS
+SELECT
+  aq.assignment_id,
+  aq.question_id,
+  aq.order_index,
+  q.teacher_id,
+  q.subject,
+  q.subject_id,
+  q.topic,
+  q.topic_name,
+  q.difficulty,
+  q.question_text,
+  q.image_url,
+  q.question_type,
+  q.options,
+  q.correct_answer,
+  q.explanation,
+  q.hints,
+  q.time_limit,
+  q.points,
+  q.tags,
+  q.grade_level,
+  q.is_public,
+  q.is_active,
+  q.times_answered,
+  q.times_correct,
+  q.created_at,
+  q.updated_at
+FROM assignment_questions aq
+JOIN questions q ON q.id = aq.question_id;
+
 -- Verification query - run this to check if migration was successful:
 -- SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'questions' AND column_name = 'image_url';
 -- SELECT * FROM storage.buckets WHERE id = 'question-images';

@@ -2,7 +2,10 @@
 -- View: assignment_question_details
 -- ============================================================
 
-CREATE OR REPLACE VIEW assignment_question_details AS
+-- Drop and recreate view to add image_url column
+DROP VIEW IF EXISTS assignment_question_details;
+
+CREATE VIEW assignment_question_details AS
 SELECT
   aq.assignment_id,
   aq.question_id,
@@ -14,6 +17,7 @@ SELECT
   q.topic_name,
   q.difficulty,
   q.question_text,
+  q.image_url,
   q.question_type,
   q.options,
   q.correct_answer,
@@ -359,6 +363,8 @@ $$;
 -- RPC: Teacher assignments summary
 -- ============================================================
 
+DROP FUNCTION IF EXISTS rpc_get_assignments_for_teacher(uuid);
+
 CREATE OR REPLACE FUNCTION rpc_get_assignments_for_teacher(p_teacher_id uuid)
 RETURNS TABLE (
   id uuid,
@@ -469,6 +475,7 @@ BEGIN
             'topic_name', q.topic_name,
             'difficulty', q.difficulty,
             'question_text', q.question_text,
+            'image_url', q.image_url,
             'question_type', q.question_type,
             'options', q.options,
             'correct_answer', q.correct_answer,

@@ -35,6 +35,7 @@ import {
     TeacherAssignmentReportRow,
     AssignmentResultInput,
     StudentForAssignment,
+    QuestionOption,
 } from '../types';
 import * as RaidFeatureService from '../src/features/raids/raidService';
 import {
@@ -110,25 +111,62 @@ const normalizeTopicName = (topic?: string | null, fallback?: string | null): st
 const coerceQuestionOptions = (
     rawOptions: unknown,
     questionType?: string | null
-): string[] => {
+): (string | QuestionOption)[] => {
     if (Array.isArray(rawOptions)) {
-        return rawOptions.map((value) => (value == null ? '' : String(value)));
+        return rawOptions.map((value) => {
+            if (value == null) return '';
+            // If it's already a QuestionOption object with text property, preserve it
+            if (typeof value === 'object' && value !== null && 'text' in value) {
+                return {
+                    text: String((value as any).text || ''),
+                    image_url: (value as any).image_url || undefined
+                } as QuestionOption;
+            }
+            // Otherwise convert to string
+            return String(value);
+        });
     }
 
     if (typeof rawOptions === 'string') {
         try {
             const parsed = JSON.parse(rawOptions);
             if (Array.isArray(parsed)) {
-                return parsed.map((value) => (value == null ? '' : String(value)));
+                return parsed.map((value) => {
+                    if (value == null) return '';
+                    // If it's a QuestionOption object, preserve it
+                    if (typeof value === 'object' && value !== null && 'text' in value) {
+                        return {
+                            text: String((value as any).text || ''),
+                            image_url: (value as any).image_url || undefined
+                        } as QuestionOption;
+                    }
+                    return String(value);
+                });
             }
         } catch (error) {
             // Ignore JSON parse failures and fall back to defaults
         }
     }
 
-    if (rawOptions && typeof rawOptions === 'object') {
+    if (rawOptions && typeof rawOptions === 'object' && !Array.isArray(rawOptions)) {
+        // Handle object with text/image_url at top level (single option scenario - unlikely but safe)
+        if ('text' in rawOptions) {
+            return [{
+                text: String((rawOptions as any).text || ''),
+                image_url: (rawOptions as any).image_url || undefined
+            }];
+        }
         const values = Object.values(rawOptions as Record<string, unknown>)
-            .map((value) => (value == null ? '' : String(value)));
+            .map((value) => {
+                if (value == null) return '';
+                if (typeof value === 'object' && value !== null && 'text' in value) {
+                    return {
+                        text: String((value as any).text || ''),
+                        image_url: (value as any).image_url || undefined
+                    } as QuestionOption;
+                }
+                return String(value);
+            });
         if (values.length) {
             return values;
         }

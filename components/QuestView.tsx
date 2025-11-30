@@ -306,16 +306,36 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
   const normalizeAssignmentQuestion = (question: TeacherQuestion): TeacherQuestion => {
     const rawOptions = (question as any).options;
-    const normalizeOptions = (): string[] => {
+    const normalizeOptions = (): (string | QuestionOption)[] => {
       if (Array.isArray(rawOptions)) {
-        return rawOptions.map((value) => (value == null ? '' : String(value)));
+        return rawOptions.map((value) => {
+          if (value == null) return '';
+          // Preserve QuestionOption objects with image_url
+          if (typeof value === 'object' && value !== null && 'text' in value) {
+            return {
+              text: String((value as any).text || ''),
+              image_url: (value as any).image_url || undefined
+            } as QuestionOption;
+          }
+          return String(value);
+        });
       }
 
       if (typeof rawOptions === 'string') {
         try {
           const parsed = JSON.parse(rawOptions);
           if (Array.isArray(parsed)) {
-            return parsed.map((value) => (value == null ? '' : String(value)));
+            return parsed.map((value) => {
+              if (value == null) return '';
+              // Preserve QuestionOption objects with image_url
+              if (typeof value === 'object' && value !== null && 'text' in value) {
+                return {
+                  text: String((value as any).text || ''),
+                  image_url: (value as any).image_url || undefined
+                } as QuestionOption;
+              }
+              return String(value);
+            });
           }
         } catch (error) {
           // Ignore JSON parse failures and fall back to defaults
@@ -324,7 +344,17 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
       if (rawOptions && typeof rawOptions === 'object') {
         const values = Object.values(rawOptions as Record<string, unknown>)
-          .map((value) => (value == null ? '' : String(value)));
+          .map((value) => {
+            if (value == null) return '';
+            // Preserve QuestionOption objects with image_url
+            if (typeof value === 'object' && value !== null && 'text' in value) {
+              return {
+                text: String((value as any).text || ''),
+                image_url: (value as any).image_url || undefined
+              } as QuestionOption;
+            }
+            return String(value);
+          });
         if (values.length) {
           return values;
         }
