@@ -3866,6 +3866,59 @@ export const update_avatar = async (avatar_url: string): Promise<Profile> => {
     return data as Profile;
 };
 
+/**
+ * Upload a question image to Supabase storage
+ */
+export const upload_question_image = async (file: File): Promise<string> => {
+    const user = await getCurrentUser();
+    
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+        throw new Error('Invalid file type. Please upload a JPEG, PNG, GIF, or WebP image.');
+    }
+    
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+        throw new Error('Image is too large. Maximum size is 5MB.');
+    }
+
+    const extension = file.name.split('.').pop() || 'png';
+    const uniqueSuffix = Math.random().toString(36).slice(2);
+    const filePath = `questions/${user.id}/${Date.now()}-${uniqueSuffix}.${extension}`;
+
+    const { data, error } = await supabase.storage
+        .from('question-images')
+        .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false,
+            contentType: file.type,
+        });
+
+    if (error) {
+        console.error('Question image upload failed:', error);
+        const rawMessage = (error.message || '').toLowerCase();
+        let message: string;
+
+        if (rawMessage.includes('payload too large')) {
+            message = 'Image is too large. Please try a smaller image (max 5MB).';
+        } else if (rawMessage.includes('bucket') && rawMessage.includes('not') && rawMessage.includes('found')) {
+            message = 'Question images storage bucket is missing. An administrator needs to create the "question-images" bucket in Supabase Storage.';
+        } else {
+            message = error.message || 'Failed to upload image. Please try again.';
+        }
+
+        throw new Error(message);
+    }
+
+    const {
+        data: { publicUrl },
+    } = supabase.storage.from('question-images').getPublicUrl(data.path);
+
+    return publicUrl;
+};
+
 // ============ ACHIEVEMENTS ============
 
 export interface Achievement {
@@ -4094,6 +4147,7 @@ export const create_question = async (questionData: CreateQuestionRequest): Prom
             topic_name: topicName,
             difficulty: questionData.difficulty,
             question_text: questionData.question_text,
+            image_url: questionData.image_url,
             question_type: questionData.question_type,
             options: questionData.options,
             correct_answer: questionData.correct_answer,

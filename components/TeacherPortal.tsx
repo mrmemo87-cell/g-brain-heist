@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, TeacherAssignmentSummary, TeacherAssignmentReportRow, AssignmentBatch, StudentForAssignment } from '../types';
+import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, TeacherAssignmentSummary, TeacherAssignmentReportRow, AssignmentBatch, StudentForAssignment, QuestionOption } from '../types';
 import * as GameService from '../services/gameService';
 import BackButton from './BackButton';
 
@@ -21,10 +21,19 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
 
   // Question form state
   const [questionText, setQuestionText] = useState('');
+  const [questionImage, setQuestionImage] = useState<File | null>(null);
+  const [questionImageUrl, setQuestionImageUrl] = useState<string>('');
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [subject, setSubject] = useState<Subject>('Maths');
   const [difficulty, setDifficulty] = useState<QuestionDifficulty>('easy');
   const [questionType, setQuestionType] = useState<'multiple_choice' | 'true_false' | 'short_answer'>('multiple_choice');
-  const [options, setOptions] = useState(['', '', '', '']);
+  const [options, setOptions] = useState<QuestionOption[]>([
+    { text: '', image_url: undefined },
+    { text: '', image_url: undefined },
+    { text: '', image_url: undefined },
+    { text: '', image_url: undefined }
+  ]);
+  const [optionImages, setOptionImages] = useState<(File | null)[]>([null, null, null, null]);
   const [correctAnswer, setCorrectAnswer] = useState('');
   const [explanation, setExplanation] = useState('');
   const [points, setPoints] = useState(10);
@@ -160,14 +169,58 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     }
 
     try {
+      setUploadingImage(true);
+      
+      // Upload question image if selected
+      let imageUrl = questionImageUrl;
+      if (questionImage) {
+        try {
+          imageUrl = await GameService.upload_question_image(questionImage);
+        } catch (uploadError) {
+          alert('❌ Failed to upload question image: ' + (uploadError as Error).message);
+          setUploadingImage(false);
+          return;
+        }
+      }
+
+      // Upload option images and build final options array
+      let finalOptions: QuestionOption[] | undefined = undefined;
+      if (questionType === 'multiple_choice') {
+        const processedOptions: QuestionOption[] = [];
+        for (let i = 0; i < options.length; i++) {
+          const opt = options[i];
+          if (opt.text.trim()) {
+            let optImageUrl = opt.image_url;
+            // Upload new option image if selected
+            if (optionImages[i]) {
+              try {
+                optImageUrl = await GameService.upload_question_image(optionImages[i]!);
+              } catch (uploadError) {
+                alert(`❌ Failed to upload image for Option ${String.fromCharCode(65 + i)}: ` + (uploadError as Error).message);
+                setUploadingImage(false);
+                return;
+              }
+            }
+            processedOptions.push({
+              text: opt.text,
+              image_url: optImageUrl
+            });
+          }
+        }
+        finalOptions = processedOptions;
+      }
+
+      setUploadingImage(false);
+
       const questionData = {
         subject,
         topic: questionTopicLabel,
         topic_name: questionTopicLabel,
         difficulty,
         question_text: questionText,
+        image_url: imageUrl || undefined,
         question_type: questionType,
-        options: questionType === 'multiple_choice' ? options.filter(o => o.trim()) : undefined,
+        options: finalOptions,
         correct_answer: correctAnswer,
         explanation,
         points,
@@ -186,7 +239,15 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
 
       // Reset form
       setQuestionText('');
-      setOptions(['', '', '', '']);
+      setQuestionImage(null);
+      setQuestionImageUrl('');
+      setOptions([
+        { text: '', image_url: undefined },
+        { text: '', image_url: undefined },
+        { text: '', image_url: undefined },
+        { text: '', image_url: undefined }
+      ]);
+      setOptionImages([null, null, null, null]);
       setCorrectAnswer('');
       setExplanation('');
       setTopicMode('general');
@@ -218,6 +279,29 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     }
   };
 
+  // Helper to convert options from various formats to QuestionOption[]
+  const normalizeOptions = (opts: (string | QuestionOption)[] | undefined): QuestionOption[] => {
+    if (!opts || opts.length === 0) {
+      return [
+        { text: '', image_url: undefined },
+        { text: '', image_url: undefined },
+        { text: '', image_url: undefined },
+        { text: '', image_url: undefined }
+      ];
+    }
+    const normalized = opts.map(opt => {
+      if (typeof opt === 'string') {
+        return { text: opt, image_url: undefined };
+      }
+      return { text: opt.text || '', image_url: opt.image_url };
+    });
+    // Ensure we have at least 4 options
+    while (normalized.length < 4) {
+      normalized.push({ text: '', image_url: undefined });
+    }
+    return normalized;
+  };
+
   const handleEditQuestion = (question: TeacherQuestion) => {
     // Set editing mode
     setEditingQuestion(question);
@@ -227,7 +311,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     setDifficulty(question.difficulty);
     setQuestionType(question.question_type);
     setQuestionText(question.question_text);
-    setOptions(question.options || ['', '', '', '']);
+    setQuestionImage(null);
+    setQuestionImageUrl(question.image_url || '');
+    setOptions(normalizeOptions(question.options));
+    setOptionImages([null, null, null, null]);
     setCorrectAnswer(question.correct_answer);
     setExplanation(question.explanation || '');
     setPoints(question.points);
@@ -253,7 +340,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     setDifficulty(question.difficulty);
     setQuestionType(question.question_type);
     setQuestionText(question.question_text + ' (Copy)');
-    setOptions(question.options || ['', '', '', '']);
+    setQuestionImage(null);
+    setQuestionImageUrl(question.image_url || '');
+    setOptions(normalizeOptions(question.options));
+    setOptionImages([null, null, null, null]);
     setCorrectAnswer(question.correct_answer);
     setExplanation(question.explanation || '');
     setPoints(question.points);
@@ -628,7 +718,13 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             onClick={() => {
               setQuestionType('short_answer');
               setQuestionText('');
-              setOptions([]);
+              setOptions([
+                { text: '', image_url: undefined },
+                { text: '', image_url: undefined },
+                { text: '', image_url: undefined },
+                { text: '', image_url: undefined }
+              ]);
+              setOptionImages([null, null, null, null]);
             }}
             className="p-3 bg-yellow-500/10 hover:bg-yellow-500/20 border border-yellow-500/30 rounded-lg transition-all text-sm"
           >
@@ -640,10 +736,18 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             type="button"
             onClick={() => {
               setQuestionText('');
+              setQuestionImage(null);
+              setQuestionImageUrl('');
               setSubject('Maths');
               setDifficulty('easy');
               setQuestionType('multiple_choice');
-              setOptions(['', '', '', '']);
+              setOptions([
+                { text: '', image_url: undefined },
+                { text: '', image_url: undefined },
+                { text: '', image_url: undefined },
+                { text: '', image_url: undefined }
+              ]);
+              setOptionImages([null, null, null, null]);
               setCorrectAnswer('');
               setExplanation('');
               setPoints(10);
@@ -752,25 +856,122 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             />
           </div>
 
+          {/* Question Image (Optional) */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-300 mb-2">Question Image (Optional)</label>
+            <div className="space-y-3">
+              {(questionImageUrl || questionImage) && (
+                <div className="relative inline-block">
+                  <img
+                    src={questionImage ? URL.createObjectURL(questionImage) : questionImageUrl}
+                    alt="Question preview"
+                    className="max-w-full max-h-48 rounded-lg border border-gray-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuestionImage(null);
+                      setQuestionImageUrl('');
+                    }}
+                    className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+              <div className="flex items-center gap-3">
+                <label className="cursor-pointer bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 rounded-lg px-4 py-2 text-purple-300 transition-all">
+                  📷 {questionImage || questionImageUrl ? 'Change Image' : 'Upload Image'}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setQuestionImage(file);
+                        setQuestionImageUrl('');
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </label>
+                <span className="text-xs text-gray-400">JPEG, PNG, GIF, or WebP (max 5MB)</span>
+              </div>
+              {uploadingImage && (
+                <div className="text-cyan-400 text-sm animate-pulse">⏳ Uploading image...</div>
+              )}
+            </div>
+          </div>
+
           {/* Multiple Choice Options */}
           {questionType === 'multiple_choice' && (
             <div>
               <label className="block text-sm font-semibold text-gray-300 mb-2">Answer Options</label>
-              <div className="space-y-2">
+              <div className="space-y-4">
                 {options.map((option, index) => (
-                  <input
-                    key={index}
-                    type="text"
-                    value={option}
-                    onChange={(e) => {
-                      const newOptions = [...options];
-                      newOptions[index] = e.target.value;
-                      setOptions(newOptions);
-                    }}
-                    className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
-                    placeholder={`Option ${String.fromCharCode(65 + index)}`}
-                    required
-                  />
+                  <div key={index} className="bg-black/20 border border-gray-700 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-cyan-400 font-bold">{String.fromCharCode(65 + index)}.</span>
+                      <input
+                        type="text"
+                        value={option.text}
+                        onChange={(e) => {
+                          const newOptions = [...options];
+                          newOptions[index] = { ...newOptions[index], text: e.target.value };
+                          setOptions(newOptions);
+                        }}
+                        className="flex-1 bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
+                        placeholder={`Option ${String.fromCharCode(65 + index)} text`}
+                        required
+                      />
+                    </div>
+                    {/* Option Image */}
+                    <div className="ml-6 flex items-center gap-3">
+                      {(option.image_url || optionImages[index]) && (
+                        <div className="relative inline-block">
+                          <img
+                            src={optionImages[index] ? URL.createObjectURL(optionImages[index]!) : option.image_url}
+                            alt={`Option ${String.fromCharCode(65 + index)} preview`}
+                            className="max-h-20 rounded border border-gray-600"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newOptions = [...options];
+                              newOptions[index] = { ...newOptions[index], image_url: undefined };
+                              setOptions(newOptions);
+                              const newImages = [...optionImages];
+                              newImages[index] = null;
+                              setOptionImages(newImages);
+                            }}
+                            className="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      )}
+                      <label className="cursor-pointer text-xs bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 rounded px-2 py-1 text-purple-300 transition-all">
+                        📷 {option.image_url || optionImages[index] ? 'Change' : 'Add Image'}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/gif,image/webp"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const newImages = [...optionImages];
+                              newImages[index] = file;
+                              setOptionImages(newImages);
+                              // Clear existing URL when new file is selected
+                              const newOptions = [...options];
+                              newOptions[index] = { ...newOptions[index], image_url: undefined };
+                              setOptions(newOptions);
+                            }
+                          }}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
@@ -779,14 +980,14 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           {/* Correct Answer */}
           <div>
             <label className="block text-sm font-semibold text-gray-300 mb-2">
-              Correct Answer {questionType === 'multiple_choice' && '(Enter A, B, C, or D)'}
+              Correct Answer {questionType === 'multiple_choice' && '(Type the exact correct answer)'}
             </label>
             <input
               type="text"
               value={correctAnswer}
               onChange={(e) => setCorrectAnswer(e.target.value)}
               className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
-              placeholder={questionType === 'multiple_choice' ? 'e.g., A' : 'Enter correct answer'}
+              placeholder={questionType === 'multiple_choice' ? 'Type the exact correct answer here' : 'Enter correct answer'}
               required
             />
           </div>

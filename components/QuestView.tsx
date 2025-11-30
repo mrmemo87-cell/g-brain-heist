@@ -10,6 +10,7 @@ import {
   SoloQuestionPerformance,
   TopicSummary,
   StudentAssignmentTask,
+  QuestionOption,
 } from '../types';
 import * as GameService from '../services/gameService';
 import { audioService } from '../services/audioService';
@@ -25,6 +26,18 @@ import {
 } from '../src/lib/brains_heist/scoring';
 import { getMilestoneReward } from '../src/lib/brains_heist/rewards';
 import { recordSoloQuestion, recordMissionSummary } from '../services/adaptiveService';
+
+// Helper to get option text (handles both string and QuestionOption formats)
+const getOptionText = (option: string | QuestionOption): string => {
+  if (typeof option === 'string') return option;
+  return option.text;
+};
+
+// Helper to get option image URL (handles both string and QuestionOption formats)
+const getOptionImageUrl = (option: string | QuestionOption): string | undefined => {
+  if (typeof option === 'string') return undefined;
+  return option.image_url;
+};
 
 type QuestStage = 'loading' | 'mode_selection' | 'subject_selection' | 'in_progress' | 'completed' | 'assignment_blocked';
 type QuestMode = 'practice' | 'teacher' | 'assignment';
@@ -771,7 +784,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
     const activeTeacherQuestion = mode === 'assignment' ? assignmentQuestion : teacherQuestion;
     const questionText = mode === 'practice' ? question!.body : activeTeacherQuestion!.question_text;
-    const options: string[] = mode === 'practice'
+    const rawOptions: (string | QuestionOption)[] = mode === 'practice'
       ? question?.options ?? []
       : activeTeacherQuestion?.options ?? [];
     const correctAnswer = mode === 'practice'
@@ -830,6 +843,16 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         </div>
         <div className="card-glass p-6 mb-6">
             <p className="text-xl text-gray-200">{questionText}</p>
+            {/* Display question image if available */}
+            {activeTeacherQuestion?.image_url && (
+              <div className="mt-4 flex justify-center">
+                <img
+                  src={activeTeacherQuestion.image_url}
+                  alt="Question"
+                  className="max-w-full max-h-64 rounded-lg border border-gray-600 object-contain"
+                />
+              </div>
+            )}
         </div>
         {mode === 'assignment' && assignmentDetails?.instructions && (
           <div className="card-glass p-4 mb-6 border border-purple-500/30 text-sm text-gray-200">
@@ -837,17 +860,32 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           </div>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {options.map((option, index) => (
-            <button
-              key={index}
-              disabled={!!answerResponse || isSubmitting}
-              onClick={() => handleAnswerSubmit(option)}
-              className={getOptionClasses(option, correctAnswer)}
-            >
-              <span className="font-bold mr-2">{String.fromCharCode(65 + index)}.</span>
-              {option}
-            </button>
-          ))}
+          {rawOptions.map((option, index) => {
+            const optionText = getOptionText(option);
+            const optionImageUrl = getOptionImageUrl(option);
+            return (
+              <button
+                key={index}
+                disabled={!!answerResponse || isSubmitting}
+                onClick={() => handleAnswerSubmit(optionText)}
+                className={getOptionClasses(optionText, correctAnswer)}
+              >
+                <div className="flex flex-col items-start w-full">
+                  <div className="flex items-start">
+                    <span className="font-bold mr-2">{String.fromCharCode(65 + index)}.</span>
+                    <span>{optionText}</span>
+                  </div>
+                  {optionImageUrl && (
+                    <img
+                      src={optionImageUrl}
+                      alt={`Option ${String.fromCharCode(65 + index)}`}
+                      className="mt-2 max-h-24 rounded border border-gray-600 object-contain"
+                    />
+                  )}
+                </div>
+              </button>
+            );
+          })}
         </div>
         {answerResponse && (
             <div ref={answerFeedbackRef} className={`mt-6 p-4 rounded-2xl text-center border ${answerResponse.correct ? 'bg-green-900/20 border-green-500/50' : 'bg-red-900/20 border-red-500/50'}`}>

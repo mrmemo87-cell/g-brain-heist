@@ -732,6 +732,12 @@ export interface Teacher {
 export type QuestionType = 'multiple_choice' | 'true_false' | 'short_answer';
 export type QuestionDifficulty = 'easy' | 'medium' | 'hard';
 
+// Option can be either a simple string or an object with text and optional image
+export interface QuestionOption {
+  text: string;
+  image_url?: string;
+}
+
 export interface TeacherQuestion {
   id: string;
   teacher_id: string;
@@ -743,10 +749,11 @@ export interface TeacherQuestion {
   topic_name?: string | null;
   difficulty: QuestionDifficulty;
   question_text: string;
+  image_url?: string | null; // Optional image for the question
   
   // Answer data
   question_type: QuestionType;
-  options?: string[]; // For multiple choice - matches database column name
+  options?: (string | QuestionOption)[]; // For multiple choice - can be strings or objects with images
   correct_answer: string;
   
   // Additional info
@@ -828,8 +835,9 @@ export interface CreateQuestionRequest {
   topic_name?: string;
   difficulty: QuestionDifficulty;
   question_text: string;
+  image_url?: string; // Optional image URL for the question
   question_type: QuestionType;
-  options?: string[]; // Matches database column name
+  options?: (string | QuestionOption)[]; // Can be strings or objects with images
   correct_answer: string;
   explanation?: string;
   hints?: string[];

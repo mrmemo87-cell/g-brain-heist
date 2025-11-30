@@ -125,16 +125,22 @@ export interface ZoneState {
   influence: Record<ClanId, number>; // ClanId -> Influence points
 }
 
+export interface BattleQuestionOption {
+  text: string;
+  image_url?: string;
+}
+
 export interface BattleQuestion {
   id: string;
   question_text: string;
   correct_answer: string;
-  options?: string[]; // For multiple choice questions
+  options?: (string | BattleQuestionOption)[]; // For multiple choice questions - can be strings or objects with images
   wrong_answers?: string[]; // Fallback for legacy format
   subject?: string;
   topic?: string;
   difficulty?: string;
   question_type?: string;
+  image_url?: string; // Optional question image
 }
 
 export interface ClanTerritoryGameState {

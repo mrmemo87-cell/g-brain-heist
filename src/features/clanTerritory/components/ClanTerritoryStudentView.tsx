@@ -7,9 +7,22 @@ import {
   ZoneId,
   getClanColor,
   getZonesForMap,
+  BattleQuestionOption,
 } from "../clanTerritoryTypes";
 import { ClanTerritoryMap } from "./ClanTerritoryMap";
 import { calculateClanTerritoryResults } from "../clanTerritoryRewards";
+
+// Helper to get option text (handles both string and BattleQuestionOption formats)
+const getOptionText = (option: string | BattleQuestionOption): string => {
+  if (typeof option === 'string') return option;
+  return option.text;
+};
+
+// Helper to get option image URL (handles both string and BattleQuestionOption formats)
+const getOptionImageUrl = (option: string | BattleQuestionOption): string | undefined => {
+  if (typeof option === 'string') return undefined;
+  return option.image_url;
+};
 
 const hashSeed = (value: string) => {
   let hash = 1779033703 ^ value.length;
@@ -31,7 +44,7 @@ const createSeededRandom = (seedString: string) => {
   };
 };
 
-const shuffleAnswersWithSeed = (answers: string[], seed: string) => {
+const shuffleAnswersWithSeed = <T,>(answers: T[], seed: string): T[] => {
   const random = createSeededRandom(seed);
   const result = [...answers];
   for (let i = result.length - 1; i > 0; i -= 1) {
@@ -177,7 +190,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   const shuffledAnswers = React.useMemo(() => {
     if (!currentQuestion || !currentQuestionKey) return [];
 
-    let allAnswers: string[];
+    let allAnswers: (string | BattleQuestionOption)[];
     if (currentQuestion.options && currentQuestion.options.length > 0) {
       allAnswers = currentQuestion.options;
     } else if (currentQuestion.wrong_answers) {
@@ -485,21 +498,34 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           </div>
           {currentQuestion ? (
             <>
-              <div className="text-3xl font-bold mb-8 text-center max-w-2xl">
+              <div className="text-3xl font-bold mb-4 text-center max-w-2xl">
                 {currentQuestion.question_text}
               </div>
               
+              {/* Display question image if available */}
+              {currentQuestion.image_url && (
+                <div className="mb-6 flex justify-center">
+                  <img
+                    src={currentQuestion.image_url}
+                    alt="Question"
+                    className="max-w-full max-h-48 rounded-lg border border-gray-600 object-contain"
+                  />
+                </div>
+              )}
+              
               <div className="w-full max-w-2xl grid gap-3">
                 {shuffledAnswers.map((answer, idx) => {
+                  const answerText = getOptionText(answer);
+                  const answerImageUrl = getOptionImageUrl(answer);
                   const isSelected = feedback !== null;
-                  const isCorrect = answer === currentQuestion.correct_answer;
+                  const isCorrect = answerText === currentQuestion.correct_answer;
                   const showResult = isSelected && isCorrect;
                   const showWrong = isSelected && !isCorrect && feedback === "incorrect";
                   
                   return (
                     <button
                       key={idx}
-                      onClick={() => handleAnswerClick(answer)}
+                      onClick={() => handleAnswerClick(answerText)}
                       disabled={feedback !== null}
                       className={`p-4 rounded-xl text-left text-lg font-semibold transition-all ${
                         showResult ? "bg-green-600 border-green-400" :
@@ -507,7 +533,16 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                         "bg-gray-800 border-gray-600 hover:bg-gray-700 hover:border-blue-500"
                       } border-2 disabled:cursor-not-allowed`}
                     >
-                      {answer}
+                      <div className="flex flex-col">
+                        <span>{answerText}</span>
+                        {answerImageUrl && (
+                          <img
+                            src={answerImageUrl}
+                            alt={`Option ${idx + 1}`}
+                            className="mt-2 max-h-20 rounded border border-gray-600 object-contain"
+                          />
+                        )}
+                      </div>
                     </button>
                   );
                 })}
