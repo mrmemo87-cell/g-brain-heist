@@ -2,13 +2,14 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, TeacherAssignmentSummary, TeacherAssignmentReportRow, AssignmentBatch, StudentForAssignment, QuestionOption } from '../types';
 import * as GameService from '../services/gameService';
 import BackButton from './BackButton';
+import DiagramBuilder from './geometry/DiagramBuilder';
 
 interface TeacherPortalProps {
   profile: Profile;
   onComplete: () => void;
 }
 
-type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail';
+type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'geometry-diagrams';
 
 // XP points based on difficulty: Easy=10, Medium=15, Hard=20
 const getDefaultPointsForDifficulty = (diff: QuestionDifficulty): number => {
@@ -670,6 +671,15 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           <div className="text-6xl mb-3">🗂️</div>
           <div className="font-heading text-2xl text-purple-300 font-bold">Assignments</div>
           <div className="text-sm text-gray-400 mt-2">Create and monitor mandatory quests</div>
+        </button>
+
+        <button
+          onClick={() => setView('geometry-diagrams')}
+          className="card-glass p-8 hover:scale-105 transition-transform border-2 border-orange-500/50 hover:border-orange-500"
+        >
+          <div className="text-6xl mb-3">📐</div>
+          <div className="font-heading text-2xl text-orange-400 font-bold">Geometry Diagrams</div>
+          <div className="text-sm text-gray-400 mt-2">Create interactive diagram questions</div>
         </button>
         <button
           onClick={() => setView('reports')}
@@ -1850,6 +1860,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         {view === 'create-assignment' && renderCreateAssignment()}
         {view === 'reports' && renderReports()}
         {view === 'report-detail' && renderReportDetail()}
+        {view === 'geometry-diagrams' && teacher && (
+          <DiagramBuilder
+            teacherId={teacher.id}
+            onComplete={() => setView('dashboard')}
+          />
+        )}
       </div>
     </div>
   );
