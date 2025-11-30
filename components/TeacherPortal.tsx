@@ -850,8 +850,24 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             <textarea
               value={questionText}
               onChange={(e) => setQuestionText(e.target.value)}
+              onPaste={(e) => {
+                // Handle image paste from clipboard for question image
+                const items = e.clipboardData?.items;
+                if (items) {
+                  for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                      const file = items[i].getAsFile();
+                      if (file) {
+                        setQuestionImage(file);
+                        setQuestionImageUrl('');
+                      }
+                      break;
+                    }
+                  }
+                }
+              }}
               className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-3 text-white focus:border-cyan-500 focus:outline-none min-h-[100px]"
-              placeholder="Enter your question here..."
+              placeholder="Enter your question here... (paste screenshot to add image)"
               required
             />
           </div>
@@ -859,7 +875,27 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           {/* Question Image (Optional) */}
           <div>
             <label className="block text-sm font-semibold text-gray-300 mb-2">Question Image (Optional)</label>
-            <div className="space-y-3">
+            <div 
+              className="space-y-3"
+              onPaste={(e) => {
+                // Handle image paste from clipboard
+                const items = e.clipboardData?.items;
+                if (items) {
+                  for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                      e.preventDefault();
+                      const file = items[i].getAsFile();
+                      if (file) {
+                        setQuestionImage(file);
+                        setQuestionImageUrl('');
+                      }
+                      break;
+                    }
+                  }
+                }
+              }}
+              tabIndex={0}
+            >
               {(questionImageUrl || questionImage) && (
                 <div className="relative inline-block">
                   <img
@@ -879,10 +915,23 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   </button>
                 </div>
               )}
+              {!questionImage && !questionImageUrl && (
+                <div 
+                  className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center cursor-pointer hover:border-purple-500 transition-all"
+                  onClick={() => document.getElementById('question-image-input')?.click()}
+                >
+                  <div className="text-gray-400">
+                    <span className="text-2xl">📷</span>
+                    <p className="mt-2">Click to upload or <span className="text-purple-400">paste screenshot</span> (Ctrl+V)</p>
+                    <p className="text-xs mt-1">JPEG, PNG, GIF, or WebP (max 5MB)</p>
+                  </div>
+                </div>
+              )}
               <div className="flex items-center gap-3">
                 <label className="cursor-pointer bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 rounded-lg px-4 py-2 text-purple-300 transition-all">
                   📷 {questionImage || questionImageUrl ? 'Change Image' : 'Upload Image'}
                   <input
+                    id="question-image-input"
                     type="file"
                     accept="image/jpeg,image/png,image/gif,image/webp"
                     onChange={(e) => {
@@ -895,7 +944,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                     className="hidden"
                   />
                 </label>
-                <span className="text-xs text-gray-400">JPEG, PNG, GIF, or WebP (max 5MB)</span>
+                <span className="text-xs text-gray-400">or paste screenshot (Ctrl+V)</span>
               </div>
               {uploadingImage && (
                 <div className="text-cyan-400 text-sm animate-pulse">⏳ Uploading image...</div>
@@ -906,27 +955,77 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           {/* Multiple Choice Options */}
           {questionType === 'multiple_choice' && (
             <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">Answer Options</label>
+              <label className="block text-sm font-semibold text-gray-300 mb-2">Answer Options (Check the correct answer)</label>
               <div className="space-y-4">
                 {options.map((option, index) => (
-                  <div key={index} className="bg-black/20 border border-gray-700 rounded-lg p-3">
+                  <div 
+                    key={index} 
+                    className={`bg-black/20 border rounded-lg p-3 transition-all ${
+                      correctAnswer === option.text && option.text.trim() 
+                        ? 'border-green-500 bg-green-500/10' 
+                        : 'border-gray-700'
+                    }`}
+                  >
                     <div className="flex items-center gap-2 mb-2">
+                      {/* Correct Answer Checkbox */}
+                      <input
+                        type="checkbox"
+                        checked={correctAnswer === option.text && option.text.trim() !== ''}
+                        onChange={(e) => {
+                          if (e.target.checked && option.text.trim()) {
+                            setCorrectAnswer(option.text);
+                          } else if (!e.target.checked && correctAnswer === option.text) {
+                            setCorrectAnswer('');
+                          }
+                        }}
+                        className="w-5 h-5 rounded border-gray-600 bg-black/40 text-green-500 focus:ring-green-500 focus:ring-offset-0 cursor-pointer"
+                        title="Mark as correct answer"
+                      />
                       <span className="text-cyan-400 font-bold">{String.fromCharCode(65 + index)}.</span>
                       <input
                         type="text"
                         value={option.text}
                         onChange={(e) => {
+                          const oldText = option.text;
                           const newOptions = [...options];
                           newOptions[index] = { ...newOptions[index], text: e.target.value };
                           setOptions(newOptions);
+                          // Update correct answer if this was the correct one
+                          if (correctAnswer === oldText) {
+                            setCorrectAnswer(e.target.value);
+                          }
+                        }}
+                        onPaste={(e) => {
+                          // Handle image paste from clipboard
+                          const items = e.clipboardData?.items;
+                          if (items) {
+                            for (let i = 0; i < items.length; i++) {
+                              if (items[i].type.indexOf('image') !== -1) {
+                                e.preventDefault();
+                                const file = items[i].getAsFile();
+                                if (file) {
+                                  const newImages = [...optionImages];
+                                  newImages[index] = file;
+                                  setOptionImages(newImages);
+                                  const newOptions = [...options];
+                                  newOptions[index] = { ...newOptions[index], image_url: undefined };
+                                  setOptions(newOptions);
+                                }
+                                break;
+                              }
+                            }
+                          }
                         }}
                         className="flex-1 bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
-                        placeholder={`Option ${String.fromCharCode(65 + index)} text`}
+                        placeholder={`Option ${String.fromCharCode(65 + index)} text (paste image here)`}
                         required
                       />
+                      {correctAnswer === option.text && option.text.trim() && (
+                        <span className="text-green-400 text-sm font-semibold">✓ Correct</span>
+                      )}
                     </div>
                     {/* Option Image */}
-                    <div className="ml-6 flex items-center gap-3">
+                    <div className="ml-12 flex items-center gap-3">
                       {(option.image_url || optionImages[index]) && (
                         <div className="relative inline-block">
                           <img
@@ -970,6 +1069,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                           className="hidden"
                         />
                       </label>
+                      <span className="text-xs text-gray-500">or paste screenshot</span>
                     </div>
                   </div>
                 ))}
@@ -977,20 +1077,22 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </div>
           )}
 
-          {/* Correct Answer */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">
-              Correct Answer {questionType === 'multiple_choice' && '(Type the exact correct answer)'}
-            </label>
-            <input
-              type="text"
-              value={correctAnswer}
-              onChange={(e) => setCorrectAnswer(e.target.value)}
-              className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
-              placeholder={questionType === 'multiple_choice' ? 'Type the exact correct answer here' : 'Enter correct answer'}
-              required
-            />
-          </div>
+          {/* Correct Answer - Hidden for MCQ since we use checkboxes now */}
+          {questionType !== 'multiple_choice' && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-300 mb-2">
+                Correct Answer
+              </label>
+              <input
+                type="text"
+                value={correctAnswer}
+                onChange={(e) => setCorrectAnswer(e.target.value)}
+                className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
+                placeholder="Enter correct answer"
+                required
+              />
+            </div>
+          )}
 
           {/* Explanation */}
           <div>
