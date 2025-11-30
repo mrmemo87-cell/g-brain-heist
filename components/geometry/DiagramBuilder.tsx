@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { DiagramTool, BlankField, GeometryQuestion } from './types';
 import DiagramToolbar from './DiagramToolbar';
 import KonvaCanvasEditor, { DiagramShape } from './KonvaCanvasEditor';
+import ShapesLibrary from './ShapesLibrary';
 import { 
   saveGeometryQuestion, 
   updateGeometryQuestion,
@@ -337,11 +338,16 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
     if (e.key === 'Escape') setEditingBlankId(null);
   };
 
+  // Add shapes from library
+  const handleAddShapesFromLibrary = (newShapes: DiagramShape[]) => {
+    setShapes([...shapes, ...newShapes]);
+  };
+
   // Render editor view
   const renderEditor = () => (
     <div className="flex gap-4">
       {/* Left Toolbar */}
-      <div className="w-40 flex-shrink-0">
+      <div className="w-44 flex-shrink-0 space-y-4">
         <DiagramToolbar
           activeTool={activeTool}
           onToolChange={setActiveTool}
@@ -351,6 +357,9 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
           canRedo={historyIndex < history.length - 1}
           onClear={handleClear}
         />
+        
+        {/* Shapes Library */}
+        <ShapesLibrary onAddShape={handleAddShapesFromLibrary} />
       </div>
 
       {/* Main Canvas Area */}
@@ -383,20 +392,24 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
           </div>
         </div>
 
-        {/* Canvas */}
-        <KonvaCanvasEditor
-          width={700}
-          height={450}
-          activeTool={activeTool}
-          shapes={shapes}
-          onShapesChange={setShapes}
-          blanks={blanks}
-          onBlanksChange={setBlanks}
-          selectedShapeId={selectedShapeId}
-          onSelectShape={setSelectedShapeId}
-          stageRef={stageRef}
-        />
-
+        {/* Canvas with instruction */}
+        <div className="relative">
+          <div className="absolute top-2 right-2 z-10 text-xs text-gray-400 bg-gray-800/80 px-2 py-1 rounded">
+            💡 Use tools on left OR click shapes from library below
+          </div>
+          <KonvaCanvasEditor
+            width={700}
+            height={450}
+            activeTool={activeTool}
+            shapes={shapes}
+            onShapesChange={setShapes}
+            blanks={blanks}
+            onBlanksChange={setBlanks}
+            selectedShapeId={selectedShapeId}
+            onSelectShape={setSelectedShapeId}
+            stageRef={stageRef}
+          />
+        </div>
         {/* Blanks Editor */}
         {blanks.length > 0 && (
           <div className="card-glass p-4 mt-4">

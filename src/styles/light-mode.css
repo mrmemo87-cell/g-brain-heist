@@ -31,11 +31,16 @@ body.light-mode [class*="backdrop"] {
   background-color: rgba(15, 23, 42, 0.85) !important;
 }
 
-/* Disable particle and canvas driven effects */
+/* Disable particle and canvas driven effects (except Konva diagram canvas) */
 body.light-mode [class*="particle"],
 body.light-mode [class*="confetti"],
-body.light-mode canvas {
+body.light-mode canvas:not(.konvajs-content canvas) {
   display: none !important;
+}
+
+/* Keep Konva canvas visible for geometry diagrams */
+body.light-mode .konvajs-content canvas {
+  display: block !important;
 }
 
 /* Remove Lottie/hero animations entirely */
