@@ -721,18 +721,32 @@ const getCurrentUser = async (maxRetries = 3) => {
   throw lastError || new Error('Not authenticated');
 };
 
-// Helper to update profile fields with retry logic
+// Helper to update profile fields with retry logic and verification
 const updateProfile = async (userId: string, updates: Partial<Profile>, maxRetries = 3) => {
   let lastError: Error | null = null;
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      const { error } = await supabase
+      // Use .select() to return updated rows - if RLS blocks, this will return empty
+      const { data, error, count } = await supabase
         .from('users')
         .update(updates)
-        .eq('id', userId);
+        .eq('id', userId)
+        .select('id')
+        .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error(`updateProfile attempt ${attempt} error:`, error);
+        throw error;
+      }
+      
+      // Verify the update actually affected a row
+      if (!data) {
+        console.error(`updateProfile attempt ${attempt}: No row returned - RLS may be blocking the update`);
+        throw new Error('Update returned no rows - possible RLS restriction');
+      }
+      
+      console.log(`updateProfile SUCCESS for user ${userId}:`, updates);
       return; // Success
     } catch (err) {
       lastError = err as Error;
@@ -4760,72 +4774,76 @@ const finalizeMcqAnswer = async ({
     let coinDelta = baseResponse.deltas.coins;
     let duplicateCorrect = false;
 
-    // NOTE: Duplicate detection now happens at database level via unique constraint
-    // If user submits from multiple tabs, the second submission will get a 23505 error
-    // which is caught in the attemptInsert handler below
+    // First, try to insert the question attempt
+    // This MUST complete before we calculate rewards to handle duplicates correctly
+    console.log(`[MCQ] Starting answer submission for user ${userId}, question ${question.id}, isCorrect=${isCorrect}`);
+    
+    const maxRetries = 3;
+    let lastInsertError: Error | null = null;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const { error } = await supabase.from('question_attempts').insert({
+                student_id: userId,
+                question_id: question.id,
+                answer_given: choice,
+                is_correct: isCorrect,
+                points_earned: isCorrect && xpReward > 0 ? xpReward : 0,
+            });
 
-    const attemptInsert = (async () => {
-        const maxRetries = 3;
-        let lastError: Error | null = null;
-        
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-            try {
-                const { error } = await supabase.from('question_attempts').insert({
-                    student_id: userId,
-                    question_id: question.id,
-                    answer_given: choice,
-                    is_correct: isCorrect,
-                    points_earned: isCorrect && xpReward > 0 ? xpReward : 0,
-                });
-
-                // Check for unique constraint violation (duplicate correct answer)
-                if (error) {
-                    if (error.code === '23505' && isCorrect) {
-                        // Unique constraint violation - user already has a correct answer for this question
-                        // This can happen with multi-tab submissions
-                        duplicateCorrect = true;
-                        xpReward = 0;
-                        coinDelta = 0;
-                        baseResponse.deltas.xp = 0;
-                        baseResponse.deltas.coins = 0;
-                        baseResponse.explanation = 'Correct, but rewards already claimed for this question.';
-                        console.warn(`Duplicate correct attempt blocked for user ${userId} on question ${question.id}`);
-                        return; // Don't throw - treat as valid but no reward
-                    }
-                    throw error;
+            if (error) {
+                if (error.code === '23505' && isCorrect) {
+                    // Unique constraint violation - user already has a correct answer for this question
+                    console.warn(`[MCQ] Duplicate correct attempt blocked for user ${userId} on question ${question.id}`);
+                    duplicateCorrect = true;
+                    xpReward = 0;
+                    coinDelta = 0;
+                    baseResponse.deltas.xp = 0;
+                    baseResponse.deltas.coins = 0;
+                    baseResponse.explanation = 'Correct, but rewards already claimed for this question.';
+                    break; // Don't retry - this is expected
                 }
-                return; // Success
-            } catch (err) {
-                lastError = err as Error;
-                // Don't retry unique constraint violations
-                if ((err as any)?.code === '23505') {
-                    throw err;
-                }
-                if (attempt < maxRetries) {
-                    await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
-                    console.warn(`attemptInsert attempt ${attempt} failed, retrying...`, err);
-                }
+                throw error;
+            }
+            console.log(`[MCQ] Question attempt inserted successfully`);
+            break; // Success
+        } catch (err) {
+            lastInsertError = err as Error;
+            if ((err as any)?.code === '23505') {
+                break; // Don't retry unique constraint violations
+            }
+            if (attempt < maxRetries) {
+                await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+                console.warn(`[MCQ] attemptInsert attempt ${attempt} failed, retrying...`, err);
             }
         }
-        throw lastError || new Error('Failed to insert question attempt');
-    })();
+    }
+    
+    // If insert failed (and wasn't a duplicate), throw the error
+    if (lastInsertError && !duplicateCorrect && (lastInsertError as any)?.code !== '23505') {
+        console.error('[MCQ] Failed to insert question attempt:', lastInsertError);
+        throw lastInsertError;
+    }
 
-    const questionStatsUpdate = question.id
-        ? (async () => {
-              const { error } = await supabase
-                  .from('questions')
-                  .update({
-                      times_answered: (question.times_answered || 0) + 1,
-                      times_correct: (question.times_correct || 0) + (isCorrect ? 1 : 0),
-                  })
-                  .eq('id', question.id);
-
-              if (error) throw error;
-          })()
-        : null;
+    // Update question stats (fire and forget - don't block on this)
+    if (question.id) {
+        supabase
+            .from('questions')
+            .update({
+                times_answered: (question.times_answered || 0) + 1,
+                times_correct: (question.times_correct || 0) + (isCorrect ? 1 : 0),
+            })
+            .eq('id', question.id)
+            .then(({ error }) => {
+                if (error) console.warn('[MCQ] Failed to update question stats:', error);
+            });
+    }
 
     const questOutcome = duplicateCorrect ? { gemstoneDelta: 0, notifications: [] } : applyQuestProgress(userId, isCorrect);
 
+    // Now fetch profile and calculate rewards AFTER we know if it's a duplicate
+    console.log(`[MCQ] Fetching profile for reward calculation. xpReward=${xpReward}, coinDelta=${coinDelta}`);
+    
     const { data: currentProfile, error: fetchError } = await supabase
         .from('users')
         .select('xp, coins, level, gemstones, username')
@@ -4833,8 +4851,11 @@ const finalizeMcqAnswer = async ({
         .single();
 
     if (fetchError || !currentProfile) {
+        console.error('[MCQ] Failed to fetch profile:', fetchError);
         throw new Error('Failed to fetch profile');
     }
+    
+    console.log(`[MCQ] Current profile: xp=${currentProfile.xp}, coins=${currentProfile.coins}`);
 
     const newXP = currentProfile.xp + xpReward;
     const newCoins = Math.max(0, currentProfile.coins + coinDelta);
@@ -4848,32 +4869,38 @@ const finalizeMcqAnswer = async ({
 
     const newGemstones = Math.max(0, (currentProfile.gemstones || 0) + gemstoneDelta);
 
-    const profileUpdate = updateProfile(userId, {
-        xp: newXP,
-        coins: newCoins,
-        level: newLevel,
-        gemstones: newGemstones,
-    });
+    console.log(`[MCQ] Calculated new values: xp=${newXP}, coins=${newCoins}, level=${newLevel}`);
 
-    const dataOperations: Promise<unknown>[] = [attemptInsert, profileUpdate];
-    if (questionStatsUpdate) {
-        dataOperations.push(questionStatsUpdate);
+    // Update profile with new values
+    if (xpReward !== 0 || coinDelta !== 0 || gemstoneDelta !== 0 || leveledUp) {
+        await updateProfile(userId, {
+            xp: newXP,
+            coins: newCoins,
+            level: newLevel,
+            gemstones: newGemstones,
+        });
+        console.log(`[MCQ] Profile updated successfully`);
+    } else {
+        console.log(`[MCQ] No profile update needed (no rewards to apply)`);
     }
 
+    // Handle notifications and secondary operations (don't block main flow)
     const notificationOperations: Promise<unknown>[] = [...questOutcome.notifications];
+    const secondaryOperations: Promise<unknown>[] = [];
 
     if (leveledUp) {
-        const activityInsert = (async () => {
-            const { error } = await supabase.from('activities').insert({
-                kind: 'level_up',
-                actor_id: userId,
-                actor_username: currentProfile.username || 'Unknown',
-                data: { details: String(newLevel) },
-            });
-
-            if (error) throw error;
-        })();
-        dataOperations.push(activityInsert);
+        // Level-up activity insert (secondary, don't block)
+        secondaryOperations.push(
+            (async () => {
+                const { error } = await supabase.from('activities').insert({
+                    kind: 'level_up',
+                    actor_id: userId,
+                    actor_username: currentProfile.username || 'Unknown',
+                    data: { details: String(newLevel) },
+                });
+                if (error) console.error('Failed to insert level-up activity:', error);
+            })()
+        );
 
         notificationOperations.push(
             notifyLevelUp(userId, newLevel, xpReward, coinDelta)
@@ -4904,30 +4931,11 @@ const finalizeMcqAnswer = async ({
         );
     }
 
-    // Execute data operations - profile update must succeed for rewards to count
-    const dataResults = await Promise.allSettled(dataOperations);
-
-    // Check if profile update succeeded (it's the second operation after attemptInsert)
-    const profileUpdateIndex = 1; // attemptInsert=0, profileUpdate=1
-    const profileUpdateResult = dataResults[profileUpdateIndex];
-
-    if (profileUpdateResult.status === 'rejected') {
-        console.error('CRITICAL: Failed to persist profile update for MCQ answer:', profileUpdateResult.reason);
-        throw new Error(`Failed to save profile rewards: ${profileUpdateResult.reason}`);
-    }
-
-    // Log any other data failures
-    dataResults.forEach((result, index) => {
-        if (result.status === 'rejected') {
-            console.error(`Failed to persist MCQ answer data (operation ${index}):`, result.reason);
-        }
-    });
-
-    // Handle notifications separately (don't block if they fail)
-    Promise.allSettled(notificationOperations).then(notificationResults => {
-        notificationResults.forEach(result => {
+    // Handle notifications and secondary ops separately (don't block main response)
+    Promise.allSettled([...notificationOperations, ...secondaryOperations]).then(results => {
+        results.forEach((result, index) => {
             if (result.status === 'rejected') {
-                console.error('Failed to deliver MCQ notification:', result.reason);
+                console.error(`Failed secondary operation (index ${index}):`, result.reason);
             }
         });
     });
