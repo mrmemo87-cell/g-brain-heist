@@ -676,7 +676,11 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       try {
         console.log('[Quest] Submitting answer for question:', currentQuestion.id);
         const response = await GameService.mcq_answer_submit(currentQuestion, option);
-        console.log('[Quest] Answer submitted, response:', { correct: response.correct, deltas: response.deltas });
+        console.log('[Quest] Answer response received:', { 
+          correct: response.correct, 
+          deltas: response.deltas,
+          finalProfileValues: response.finalProfileValues 
+        });
 
         const telemetry = applyQuestionTelemetry(currentQuestion, response.correct, response);
 

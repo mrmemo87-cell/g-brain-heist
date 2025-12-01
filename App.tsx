@@ -636,8 +636,25 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
     // If we have final values from the backend, use them directly for accurate sync
     if (finalValues) {
+      let xpGained = 0;
+      let coinsGained = 0;
+      let gemstonesGained = 0;
+      
       setProfile((prevProfile: Profile | null) => {
         if (!prevProfile) return null;
+        
+        // Calculate the delta for user visibility
+        xpGained = finalValues.xp - prevProfile.xp;
+        coinsGained = finalValues.coins - prevProfile.coins;
+        gemstonesGained = finalValues.gemstones - prevProfile.gemstones;
+        
+        console.log('[REWARD APPLIED] ✓', {
+          xpGained: xpGained > 0 ? `+${xpGained}` : xpGained,
+          coinsGained: coinsGained > 0 ? `+${coinsGained}` : coinsGained,
+          gemstonesGained: gemstonesGained > 0 ? `+${gemstonesGained}` : gemstonesGained,
+          newTotals: { xp: finalValues.xp, coins: finalValues.coins, gemstones: finalValues.gemstones }
+        });
+        
         return {
           ...prevProfile,
           xp: finalValues.xp,
@@ -646,6 +663,16 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           gemstones: finalValues.gemstones,
         };
       });
+      
+      // Show success toast to confirm rewards were saved
+      if (xpGained > 0 || coinsGained > 0 || gemstonesGained > 0) {
+        const rewardParts: string[] = [];
+        if (xpGained > 0) rewardParts.push(`+${xpGained} XP`);
+        if (coinsGained > 0) rewardParts.push(`+${coinsGained} coins`);
+        if (gemstonesGained > 0) rewardParts.push(`+${gemstonesGained} gems`);
+        addToast(`✓ Rewards saved: ${rewardParts.join(', ')}`, 'success');
+      }
+      
       console.log('[handleGrantReward] Profile synced with backend values:', finalValues);
       return; // No need for verification when we have exact values
     }
