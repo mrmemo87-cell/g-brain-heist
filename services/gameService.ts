@@ -4995,14 +4995,18 @@ const finalizeMcqAnswer = async ({
     });
 
     baseResponse.deltas.gemstones = gemstoneDelta;
+    // Include final profile values for verification
+    baseResponse.finalProfileValues = {
+        xp: newXP,
+        coins: newCoins,
+        level: newLevel,
+        gemstones: newGemstones
+    };
     return baseResponse;
 };
 
 export const mcq_answer_submit = async (question: Question, choice: string): Promise<AnswerResponse> => {
-    console.log(`[mcq_answer_submit] CALLED with question ${question?.id}, choice=${choice}`);
-    
     const user = await getCurrentUser();
-    console.log(`[mcq_answer_submit] User ID: ${user.id}`);
 
     if (!question?.id) {
         throw new Error('Question payload missing identifier');
@@ -5012,8 +5016,6 @@ export const mcq_answer_submit = async (question: Question, choice: string): Pro
     const rewardCoins = question.reward_coins ?? Math.floor(rewardXp * 1.5);
     const correctAnswer = question.correct_answer ?? '';
     const isCorrect = choice === correctAnswer;
-
-    console.log(`[mcq_answer_submit] isCorrect=${isCorrect}, rewardXp=${rewardXp}, rewardCoins=${rewardCoins}`);
 
     const response: AnswerResponse = {
         correct: isCorrect,
@@ -5027,16 +5029,13 @@ export const mcq_answer_submit = async (question: Question, choice: string): Pro
             : `Incorrect. ${question.explanation || 'The correct answer was: ' + correctAnswer}`,
     };
 
-    console.log(`[mcq_answer_submit] Calling finalizeMcqAnswer...`);
-    const result = await finalizeMcqAnswer({
+    return finalizeMcqAnswer({
         userId: user.id,
         question,
         choice,
         isCorrect,
         baseResponse: response,
     });
-    console.log(`[mcq_answer_submit] finalizeMcqAnswer returned:`, result.deltas);
-    return result;
 };
 
 // ============================================================

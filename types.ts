@@ -207,6 +207,8 @@ export interface AnswerResponse {
   };
   explanation?: string;
   score?: number;
+  finalProfileValues?: { xp: number; coins: number; level: number; gemstones: number };
+  pvpOutcome?: { won: boolean; opponentName: string; scoreChange: number };
 }
 
 export interface RaidTarget {

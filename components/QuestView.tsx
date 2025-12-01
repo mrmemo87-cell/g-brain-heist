@@ -106,7 +106,7 @@ const RewardParticle: React.FC<RewardParticleProps> = ({ id, type, startRect, on
 
 interface QuestViewProps {
   onComplete: () => void;
-  onGrantReward: (deltas: { xp: number; coins: number; gemstones?: number }) => void;
+  onGrantReward: (deltas: { xp: number; coins: number; gemstones?: number }, finalValues?: { xp: number; coins: number; level: number; gemstones: number }) => void;
   /**
    * Optional pre-fetched assignment supplied by the parent so we can avoid double loading.
    */
@@ -629,7 +629,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         audioService.play('wrong');
       }
 
-      onGrantReward(response.deltas);
+      onGrantReward(response.deltas, response.finalProfileValues);
       spawnParticles(response);
 
       setScore((prev) => ({

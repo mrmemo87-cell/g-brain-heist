@@ -631,11 +631,27 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     setView('quest');
   };
 
-  const handleGrantReward = (deltas: { xp?: number; coins?: number; gemstones?: number; ap?: number }) => {
+  const handleGrantReward = (deltas: { xp?: number; coins?: number; gemstones?: number; ap?: number }, finalValues?: { xp: number; coins: number; level: number; gemstones: number }) => {
     if (!profile) return;
 
-    // Optimistic update for smooth UI feedback
+    // If we have final values from the backend, use them directly for accurate sync
+    if (finalValues) {
       setProfile((prevProfile: Profile | null) => {
+        if (!prevProfile) return null;
+        return {
+          ...prevProfile,
+          xp: finalValues.xp,
+          coins: finalValues.coins,
+          level: finalValues.level,
+          gemstones: finalValues.gemstones,
+        };
+      });
+      console.log('[handleGrantReward] Profile synced with backend values:', finalValues);
+      return; // No need for verification when we have exact values
+    }
+
+    // Fallback: Optimistic update for smooth UI feedback (used for AP and other non-quest rewards)
+    setProfile((prevProfile: Profile | null) => {
       if (!prevProfile) return null;
 
       const nextXP = prevProfile.xp + (deltas.xp || 0);
@@ -658,22 +674,12 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       setTimeout(async () => {
         try {
           const currentProfile = await GameService.whoami();
-          const expectedXP = profile.xp + (deltas.xp || 0);
-          const expectedCoins = profile.coins + (deltas.coins || 0);
-          
-          // If the database values don't match expectations, something went wrong
-          if (currentProfile.xp < expectedXP || currentProfile.coins < expectedCoins) {
-            console.warn('[REWARD VERIFICATION] Mismatch detected:', {
-              expected: { xp: expectedXP, coins: expectedCoins },
-              actual: { xp: currentProfile.xp, coins: currentProfile.coins }
-            });
-            addToast('⚠️ Warning: Your rewards may not have been saved. Refreshing...', 'warning');
-            // Refresh the full profile to get accurate data
-            await refreshProfile();
-          } else {
-            // Sync local profile with database values to ensure consistency
-            setProfile(currentProfile);
-          }
+          // Sync local profile with database values to ensure consistency
+          setProfile(currentProfile);
+          console.log('[REWARD VERIFICATION] Profile synced with database:', {
+            xp: currentProfile.xp,
+            coins: currentProfile.coins
+          });
         } catch (error) {
           console.error('[REWARD VERIFICATION] Failed to verify rewards:', error);
           // On verification failure, try to refresh profile to get accurate data
@@ -683,7 +689,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             console.error('[REWARD VERIFICATION] Failed to refresh profile:', refreshError);
           }
         }
-      }, 3500); // Wait 3.5 seconds to account for retries (up to 3 attempts with backoff)
+      }, 2000); // Wait 2 seconds for DB to settle
     }
   };
 
