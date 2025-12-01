@@ -629,8 +629,20 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         audioService.play('wrong');
       }
 
+      // Check if this is a duplicate answer (no rewards given)
+      const isDuplicate = response.correct && response.deltas.xp === 0 && response.deltas.coins === 0;
+      
+      if (isDuplicate) {
+        // Show prominent duplicate warning
+        response.explanation = '✓ Correct! But you already earned rewards for this question.\n\n💡 Tip: Try a different subject or difficulty to earn more rewards!';
+      }
+
       onGrantReward(response.deltas, response.finalProfileValues);
-      spawnParticles(response);
+      
+      // Only spawn particles if rewards were actually given
+      if (!isDuplicate) {
+        spawnParticles(response);
+      }
 
       setScore((prev) => ({
         correct: prev.correct + (response.correct ? 1 : 0),
@@ -771,6 +783,30 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
   const renderSubjectSelection = () => (
     <div>
+      {/* Helpful tip banner */}
+      <div className="max-w-4xl mx-auto mb-6 p-5 rounded-2xl bg-gradient-to-r from-cyan-500/15 to-blue-500/15 border-2 border-cyan-400/40 shadow-lg">
+        <div className="flex items-start gap-4">
+          <div className="text-4xl">💡</div>
+          <div className="flex-1">
+            <h3 className="font-bold text-xl text-cyan-300 mb-2">Maximize Your Rewards!</h3>
+            <p className="text-gray-200 leading-relaxed mb-2">
+              You can only earn rewards <strong className="text-cyan-400">once per question</strong>. Choose questions you haven't answered before to earn XP and coins!
+            </p>
+            <div className="flex flex-wrap gap-2 mt-3">
+              <span className="px-3 py-1 bg-green-500/20 border border-green-400/40 rounded-full text-green-300 text-sm font-semibold">
+                ✓ Try different subjects
+              </span>
+              <span className="px-3 py-1 bg-blue-500/20 border border-blue-400/40 rounded-full text-blue-300 text-sm font-semibold">
+                ✓ Explore different difficulties
+              </span>
+              <span className="px-3 py-1 bg-purple-500/20 border border-purple-400/40 rounded-full text-purple-300 text-sm font-semibold">
+                ✓ Check teacher assignments
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <h2 className="font-heading text-3xl text-center mb-8 animate-fade-in-up" style={{color: 'var(--ion-blue)'}}>Select a Subject</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
         {subjects.map(subject => (
@@ -922,26 +958,61 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           })}
         </div>
         {answerResponse && (
-            <div ref={answerFeedbackRef} className={`mt-6 p-4 rounded-2xl text-center border ${answerResponse.correct ? 'bg-green-900/20 border-green-500/50' : 'bg-red-900/20 border-red-500/50'}`}>
+            <div ref={answerFeedbackRef} className={`mt-6 p-6 rounded-2xl text-center border-2 shadow-2xl ${
+              answerResponse.correct && answerResponse.deltas.xp > 0
+                ? 'bg-gradient-to-br from-green-900/30 to-emerald-900/20 border-green-400/60 shadow-green-500/20'
+                : answerResponse.correct && answerResponse.deltas.xp === 0
+                ? 'bg-gradient-to-br from-amber-900/30 to-yellow-900/20 border-amber-400/60 shadow-amber-500/20'
+                : 'bg-gradient-to-br from-red-900/30 to-rose-900/20 border-red-400/60 shadow-red-500/20'
+            }`}>
                 {answerResponse.correct ? (
                   <div className="flex flex-col items-center">
-                    <div className="text-6xl mb-2 animate-bounce">✓</div>
-                    <h3 className="font-bold text-lg text-green-400">Correct!</h3>
-                    <p className="text-gray-200">{answerResponse.explanation}</p>
+                    {answerResponse.deltas.xp > 0 ? (
+                      <>
+                        <div className="text-7xl mb-3 animate-bounce filter drop-shadow-[0_0_12px_rgba(34,197,94,0.6)]">✓</div>
+                        <h3 className="font-bold text-2xl text-green-300 mb-2 animate-pulse">Correct!</h3>
+                        <div className="flex gap-3 mb-3">
+                          <span className="px-4 py-2 bg-cyan-500/20 border border-cyan-400/50 rounded-full text-cyan-300 font-bold flex items-center gap-2">
+                            <XPIcon className="w-5 h-5" />
+                            +{answerResponse.deltas.xp} XP
+                          </span>
+                          <span className="px-4 py-2 bg-amber-500/20 border border-amber-400/50 rounded-full text-amber-300 font-bold flex items-center gap-2">
+                            <CoinIcon className="w-5 h-5" />
+                            +{answerResponse.deltas.coins} Coins
+                          </span>
+                        </div>
+                        <p className="text-gray-200 leading-relaxed">{answerResponse.explanation}</p>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-7xl mb-3 animate-pulse filter drop-shadow-[0_0_12px_rgba(251,191,36,0.6)]">⚠️</div>
+                        <h3 className="font-bold text-2xl text-amber-300 mb-2">Already Answered!</h3>
+                        <div className="bg-amber-500/10 border border-amber-400/30 rounded-xl p-4 mb-3">
+                          <p className="text-amber-200 font-semibold mb-2">✓ Your answer is correct, but no rewards given.</p>
+                          <p className="text-amber-100/80 text-sm">You've already earned rewards for this question before.</p>
+                        </div>
+                        <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-400/30 rounded-xl p-4">
+                          <p className="text-cyan-300 font-bold mb-2">💡 Want to earn more rewards?</p>
+                          <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-line">{answerResponse.explanation}</p>
+                        </div>
+                      </>
+                    )}
                   </div>
                 ) : (
                   <div className="flex flex-col items-center">
-                    <div className="text-6xl mb-2 animate-pulse">✗</div>
-                    <h3 className="font-bold text-lg text-red-400">Incorrect!</h3>
-                    <p className="text-gray-200">{answerResponse.explanation}</p>
+                    <div className="text-7xl mb-3 animate-pulse filter drop-shadow-[0_0_12px_rgba(239,68,68,0.6)]">✗</div>
+                    <h3 className="font-bold text-2xl text-red-300 mb-2">Incorrect</h3>
+                    <div className="bg-red-500/10 border border-red-400/30 rounded-xl p-4">
+                      <p className="text-gray-200 leading-relaxed">{answerResponse.explanation}</p>
+                    </div>
                   </div>
                 )}
                 {nextAction && (
                   <button
                     onClick={nextAction}
-                    className="mt-4 px-6 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold shadow-lg hover:scale-105 transition-transform"
+                    className="mt-6 px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-200 border border-cyan-400/30"
                   >
-                    {nextActionLabel || 'Continue'}
+                    {nextActionLabel || 'Continue'} →
                   </button>
                 )}
             </div>
