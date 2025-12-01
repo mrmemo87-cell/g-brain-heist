@@ -6,7 +6,7 @@ import { getTeacherGeometryQuestions } from './geometryService';
 
 interface DiagramPickerProps {
   teacherId: string;
-  onSelectDiagram: (diagramJson: string, imageDataUrl: string) => void;
+  onSelectDiagram: (selection: { diagramJson: string; imageDataUrl: string; title: string; id: string }) => void;
   onClose: () => void;
 }
 
@@ -295,7 +295,12 @@ const DiagramPicker: React.FC<DiagramPickerProps> = ({ teacherId, onSelectDiagra
     if (!selected) return;
 
     const imageDataUrl = await generateFullImage(selected);
-    onSelectDiagram(selected.diagram_json, imageDataUrl);
+    onSelectDiagram({
+      diagramJson: selected.diagram_json,
+      imageDataUrl,
+      title: selected.title,
+      id: selected.id,
+    });
   };
 
   return (
