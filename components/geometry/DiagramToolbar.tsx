@@ -10,6 +10,7 @@ interface ToolbarProps {
   canRedo: boolean;
   onClear: () => void;
   onDeleteSelected?: () => void;
+  onExportImage?: () => void;
   hasSelection?: boolean;
 }
 
@@ -34,6 +35,7 @@ const DiagramToolbar: React.FC<ToolbarProps> = ({
   canRedo,
   onClear,
   onDeleteSelected,
+  onExportImage,
   hasSelection = false
 }) => {
   return (
@@ -123,12 +125,28 @@ const DiagramToolbar: React.FC<ToolbarProps> = ({
           <p className="mb-1">💡 Tips:</p>
           <ul className="space-y-0.5 text-[10px]">
             <li>• Click & drag to draw</li>
-            <li>• Drag corners to resize</li>
+            <li>• Drag box to multi-select</li>
+            <li>• Shift+click to add more</li>
             <li>• Double-click text to edit</li>
-            <li>• Use Blank for answers</li>
           </ul>
         </div>
       </div>
+
+      {/* Export Image Button */}
+      {onExportImage && (
+        <div className="border-t border-gray-700 mt-2 pt-2">
+          <button
+            onClick={onExportImage}
+            className="w-full px-3 py-2 rounded-lg text-sm font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 hover:bg-emerald-500/30 transition-all"
+            title="Export diagram as PNG image"
+          >
+            📷 Export as Image
+          </button>
+          <p className="text-[10px] text-gray-500 mt-1 text-center">
+            Use in regular questions
+          </p>
+        </div>
+      )}
     </div>
   );
 };

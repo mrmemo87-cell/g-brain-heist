@@ -26,7 +26,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
   // Canvas state
   const [shapes, setShapes] = useState<DiagramShape[]>([]);
   const [blanks, setBlanks] = useState<BlankField[]>([]);
-  const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
+  const [selectedShapeIds, setSelectedShapeIds] = useState<string[]>([]);
   
   // History for undo/redo
   const [history, setHistory] = useState<{ shapes: DiagramShape[]; blanks: BlankField[] }[]>([]);
@@ -106,7 +106,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
     if (confirm('Clear all shapes? This cannot be undone.')) {
       setShapes([]);
       setBlanks([]);
-      setSelectedShapeId(null);
+      setSelectedShapeIds([]);
       setHistory([]);
       setHistoryIndex(-1);
     }
@@ -186,7 +186,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
   const handleNewDiagram = () => {
     setShapes([]);
     setBlanks([]);
-    setSelectedShapeId(null);
+    setSelectedShapeIds([]);
     setHistory([]);
     setHistoryIndex(-1);
     setTitle('');
@@ -385,24 +385,54 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
     setEditingTextValue('');
   };
 
-  // Delete selected shape or blank
+  // Delete selected shapes or blanks (supports multi-select)
   const handleDeleteSelected = () => {
-    if (!selectedShapeId) return;
+    if (selectedShapeIds.length === 0) return;
     
-    // Check if it's a shape
-    const shapeIndex = shapes.findIndex(s => s.id === selectedShapeId);
-    if (shapeIndex !== -1) {
-      setShapes(shapes.filter(s => s.id !== selectedShapeId));
-      setSelectedShapeId(null);
+    // Filter out selected shapes
+    setShapes(shapes.filter(s => !selectedShapeIds.includes(s.id)));
+    // Filter out selected blanks
+    setBlanks(blanks.filter(b => !selectedShapeIds.includes(b.id)));
+    // Clear selection
+    setSelectedShapeIds([]);
+  };
+
+  // Export diagram as PNG image (for use in regular questions)
+  const handleExportImage = () => {
+    const stage = stageRef.current as { toDataURL?: (config: { pixelRatio: number }) => string } | null;
+    if (!stage?.toDataURL) {
+      alert('Cannot export - canvas not ready');
       return;
     }
     
-    // Check if it's a blank
-    const blankIndex = blanks.findIndex(b => b.id === selectedShapeId);
-    if (blankIndex !== -1) {
-      setBlanks(blanks.filter(b => b.id !== selectedShapeId));
-      setSelectedShapeId(null);
-      return;
+    try {
+      const dataUrl = stage.toDataURL({ pixelRatio: 2 });
+      
+      // Create download link
+      const link = document.createElement('a');
+      link.download = `diagram-${title || 'untitled'}-${Date.now()}.png`;
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Also copy to clipboard if supported
+      if (navigator.clipboard) {
+        fetch(dataUrl)
+          .then(res => res.blob())
+          .then(blob => {
+            navigator.clipboard.write([
+              new ClipboardItem({ 'image/png': blob })
+            ]).then(() => {
+              alert('✅ Image downloaded AND copied to clipboard!\n\nYou can now paste this image directly into question creation.');
+            }).catch(() => {
+              // Clipboard failed, but download succeeded
+            });
+          });
+      }
+    } catch (e) {
+      console.error('Export failed:', e);
+      alert('Failed to export image');
     }
   };
 
@@ -420,7 +450,8 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
           canRedo={historyIndex < history.length - 1}
           onClear={handleClear}
           onDeleteSelected={handleDeleteSelected}
-          hasSelection={selectedShapeId !== null}
+          onExportImage={handleExportImage}
+          hasSelection={selectedShapeIds.length > 0}
         />
       </div>
 
@@ -462,7 +493,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
         {/* Canvas with instruction */}
         <div className="relative">
           <div className="absolute top-2 right-2 z-10 text-xs text-gray-400 bg-slate-900/90 px-2 py-1 rounded border border-slate-700">
-            💡 Use tools on left • Click shapes above • Double-click text to edit
+            💡 Drag to multi-select • Shift+click to add • Double-click text to edit
           </div>
           <KonvaCanvasEditor
             height={450}
@@ -471,8 +502,8 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
             onShapesChange={setShapes}
             blanks={blanks}
             onBlanksChange={setBlanks}
-            selectedShapeId={selectedShapeId}
-            onSelectShape={setSelectedShapeId}
+            selectedShapeIds={selectedShapeIds}
+            onSelectShapes={setSelectedShapeIds}
             stageRef={stageRef}
             onEditText={handleEditText}
           />

@@ -36,8 +36,8 @@ interface KonvaCanvasEditorProps {
   onShapesChange: (shapes: DiagramShape[]) => void;
   blanks: BlankField[];
   onBlanksChange: (blanks: BlankField[]) => void;
-  selectedShapeId: string | null;
-  onSelectShape: (id: string | null) => void;
+  selectedShapeIds: string[];
+  onSelectShapes: (ids: string[]) => void;
   stageRef: React.MutableRefObject<unknown>;
   readOnly?: boolean;
   onEditText?: (shapeId: string, currentText: string) => void;
@@ -46,6 +46,19 @@ interface KonvaCanvasEditorProps {
 
 const GRID_SIZE = 50;
 
+// Helper to check if two rectangles intersect
+const intersects = (
+  a: { x: number; y: number; width: number; height: number },
+  b: { x: number; y: number; width: number; height: number }
+): boolean => {
+  return !(
+    a.x + a.width < b.x ||
+    b.x + b.width < a.x ||
+    a.y + a.height < b.y ||
+    b.y + b.height < a.y
+  );
+};
+
 const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
   height: propHeight = 450,
   activeTool,
@@ -53,8 +66,8 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
   onShapesChange,
   blanks,
   onBlanksChange,
-  selectedShapeId,
-  onSelectShape,
+  selectedShapeIds,
+  onSelectShapes,
   stageRef,
   readOnly = false,
   onEditText,
@@ -64,6 +77,7 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
   const layerRef = useRef<Konva.Layer | null>(null);
   const gridLayerRef = useRef<Konva.Layer | null>(null);
   const transformerRef = useRef<Konva.Transformer | null>(null);
+  const selectionRectRef = useRef<Konva.Rect | null>(null);
   const isInitializedRef = useRef(false);
   const [canvasSize, setCanvasSize] = useState({ width: 800, height: propHeight });
   const [cursorStyle, setCursorStyle] = useState('default');
@@ -73,16 +87,23 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
     startPoint: { x: number; y: number } | null;
   }>({ isDrawing: false, startPoint: null });
 
+  // Selection rectangle state
+  const [selectionRect, setSelectionRect] = useState<{
+    isSelecting: boolean;
+    startPoint: { x: number; y: number } | null;
+    currentPoint: { x: number; y: number } | null;
+  }>({ isSelecting: false, startPoint: null, currentPoint: null });
+
   // Refs for current state
   const shapesRef = useRef<DiagramShape[]>(shapes);
   const blanksRef = useRef<BlankField[]>(blanks);
   const activeToolRef = useRef(activeTool);
-  const selectedShapeIdRef = useRef(selectedShapeId);
+  const selectedShapeIdsRef = useRef(selectedShapeIds);
 
   useEffect(() => { shapesRef.current = shapes; }, [shapes]);
   useEffect(() => { blanksRef.current = blanks; }, [blanks]);
   useEffect(() => { activeToolRef.current = activeTool; }, [activeTool]);
-  useEffect(() => { selectedShapeIdRef.current = selectedShapeId; }, [selectedShapeId]);
+  useEffect(() => { selectedShapeIdsRef.current = selectedShapeIds; }, [selectedShapeIds]);
 
   // Responsive width
   useEffect(() => {
@@ -250,18 +271,19 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
     const transformer = transformerRef.current;
     if (!layer) return;
 
-    // Clear shapes only, keep transformer
+    // Clear shapes only, keep transformer and selection rect
     const children = layer.children?.slice() || [];
     children.forEach(child => {
-      if (child !== transformer) child.destroy();
+      if (child !== transformer && child !== selectionRectRef.current) child.destroy();
     });
 
-    let selectedNode: Konva.Node | null = null;
+    const selectedNodes: Konva.Node[] = [];
     const canDrag = activeTool === 'select' && !readOnly;
+    const nodeMap = new Map<string, Konva.Node>();
 
     // Draw shapes
     shapes.forEach((shape) => {
-      const isSelected = selectedShapeId === shape.id;
+      const isSelected = selectedShapeIds.includes(shape.id);
       const strokeColor = isSelected ? '#f472b6' : (shape.stroke || '#06b6d4');
       const fillColor = isSelected ? '#f472b6' : (shape.fill || '#06b6d4');
 
@@ -277,6 +299,7 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
           lineJoin: 'round',
           draggable: canDrag,
           hitStrokeWidth: 20,
+          name: shape.id,
         });
         
         konvaShape.on('click tap', (e) => {
@@ -284,7 +307,17 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
           if (activeToolRef.current === 'delete' && shapesRef.current) {
             onShapesChange(shapesRef.current.filter(s => s.id !== shape.id));
           } else if (activeToolRef.current === 'select') {
-            onSelectShape(shape.id);
+            // Multi-select with Shift key
+            if (e.evt.shiftKey) {
+              const current = selectedShapeIdsRef.current || [];
+              if (current.includes(shape.id)) {
+                onSelectShapes(current.filter(id => id !== shape.id));
+              } else {
+                onSelectShapes([...current, shape.id]);
+              }
+            } else {
+              onSelectShapes([shape.id]);
+            }
           }
         });
         
@@ -359,7 +392,16 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
           if (activeToolRef.current === 'delete' && shapesRef.current) {
             onShapesChange(shapesRef.current.filter(s => s.id !== shape.id));
           } else if (activeToolRef.current === 'select') {
-            onSelectShape(shape.id);
+            if (e.evt.shiftKey) {
+              const current = selectedShapeIdsRef.current || [];
+              if (current.includes(shape.id)) {
+                onSelectShapes(current.filter(id => id !== shape.id));
+              } else {
+                onSelectShapes([...current, shape.id]);
+              }
+            } else {
+              onSelectShapes([shape.id]);
+            }
           }
         });
         
@@ -432,7 +474,16 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
           if (activeToolRef.current === 'delete' && shapesRef.current) {
             onShapesChange(shapesRef.current.filter(s => s.id !== shape.id));
           } else if (activeToolRef.current === 'select') {
-            onSelectShape(shape.id);
+            if (e.evt.shiftKey) {
+              const current = selectedShapeIdsRef.current || [];
+              if (current.includes(shape.id)) {
+                onSelectShapes(current.filter(id => id !== shape.id));
+              } else {
+                onSelectShapes([...current, shape.id]);
+              }
+            } else {
+              onSelectShapes([shape.id]);
+            }
           }
         });
         
@@ -480,7 +531,16 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
           if (activeToolRef.current === 'delete' && shapesRef.current) {
             onShapesChange(shapesRef.current.filter(s => s.id !== shape.id));
           } else if (activeToolRef.current === 'select') {
-            onSelectShape(shape.id);
+            if (e.evt.shiftKey) {
+              const current = selectedShapeIdsRef.current || [];
+              if (current.includes(shape.id)) {
+                onSelectShapes(current.filter(id => id !== shape.id));
+              } else {
+                onSelectShapes([...current, shape.id]);
+              }
+            } else {
+              onSelectShapes([shape.id]);
+            }
           }
         });
         
@@ -523,7 +583,16 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
           if (activeToolRef.current === 'delete' && shapesRef.current) {
             onShapesChange(shapesRef.current.filter(s => s.id !== shape.id));
           } else if (activeToolRef.current === 'select') {
-            onSelectShape(shape.id);
+            if (e.evt.shiftKey) {
+              const current = selectedShapeIdsRef.current || [];
+              if (current.includes(shape.id)) {
+                onSelectShapes(current.filter(id => id !== shape.id));
+              } else {
+                onSelectShapes([...current, shape.id]);
+              }
+            } else {
+              onSelectShapes([shape.id]);
+            }
           }
         });
         
@@ -619,7 +688,16 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
           if (activeToolRef.current === 'delete' && shapesRef.current) {
             onShapesChange(shapesRef.current.filter(s => s.id !== shape.id));
           } else if (activeToolRef.current === 'select') {
-            onSelectShape(shape.id);
+            if (e.evt.shiftKey) {
+              const current = selectedShapeIdsRef.current || [];
+              if (current.includes(shape.id)) {
+                onSelectShapes(current.filter(id => id !== shape.id));
+              } else {
+                onSelectShapes([...current, shape.id]);
+              }
+            } else {
+              onSelectShapes([shape.id]);
+            }
           }
         });
         
@@ -674,20 +752,23 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
       }
 
       if (konvaShape) {
+        (konvaShape as Konva.Node).setAttr('shapeId', shape.id);
         layer.add(konvaShape);
-        if (isSelected) selectedNode = konvaShape;
+        nodeMap.set(shape.id, konvaShape);
+        if (isSelected) selectedNodes.push(konvaShape);
       }
     });
 
     // Draw blanks (scalable - bake transforms into dimensions)
     blanks.forEach((blank) => {
-      const isSelected = selectedShapeId === blank.id;
+      const isSelected = selectedShapeIds.includes(blank.id);
       
       const group = new Konva.Group({
         x: blank.x,
         y: blank.y,
         draggable: canDrag,
         rotation: blank.rotation || 0,
+        name: blank.id,
       });
       
       group.add(new Konva.Rect({
@@ -714,7 +795,16 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
         if (activeToolRef.current === 'delete' && blanksRef.current) {
           onBlanksChange(blanksRef.current.filter(b => b.id !== blank.id));
         } else if (activeToolRef.current === 'select') {
-          onSelectShape(blank.id);
+          if (e.evt.shiftKey) {
+            const current = selectedShapeIdsRef.current || [];
+            if (current.includes(blank.id)) {
+              onSelectShapes(current.filter(id => id !== blank.id));
+            } else {
+              onSelectShapes([...current, blank.id]);
+            }
+          } else {
+            onSelectShapes([blank.id]);
+          }
         }
       });
       
@@ -745,14 +835,16 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
       group.on('mouseenter', () => canDrag && setCursorStyle('move'));
       group.on('mouseleave', () => setCursorStyle(activeToolRef.current === 'select' ? 'default' : 'crosshair'));
       
+      group.setAttr('shapeId', blank.id);
       layer.add(group);
-      if (isSelected) selectedNode = group;
+      nodeMap.set(blank.id, group);
+      if (isSelected) selectedNodes.push(group);
     });
 
-    // Update transformer
+    // Update transformer for multi-select
     if (transformer) {
-      if (selectedNode && activeTool === 'select') {
-        transformer.nodes([selectedNode]);
+      if (selectedNodes.length > 0 && activeTool === 'select') {
+        transformer.nodes(selectedNodes);
         transformer.moveToTop();
       } else {
         transformer.nodes([]);
@@ -760,7 +852,7 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
     }
 
     layer.batchDraw();
-  }, [shapes, blanks, selectedShapeId, activeTool, readOnly, onShapesChange, onBlanksChange, onSelectShape, onEditText, handleShapeDrag, handleBlankDrag, handleShapeTransform, handleBlankTransform]);
+  }, [shapes, blanks, selectedShapeIds, activeTool, readOnly, onShapesChange, onBlanksChange, onSelectShapes, onEditText, handleShapeDrag, handleBlankDrag, handleShapeTransform, handleBlankTransform]);
 
   // Initial grid draw
   useEffect(() => {
@@ -785,12 +877,14 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
       const pos = stage.getPointerPosition();
       if (!pos) return;
 
-      // Select tool - handle selection
+      // Select tool - handle selection and drag-to-select
       if (tool === 'select') {
         const target = e.target;
         const isBackground = target === stage || target.getLayer() === gridLayerRef.current;
         if (isBackground) {
-          onSelectShape(null);
+          // Start selection rectangle
+          setSelectionRect({ isSelecting: true, startPoint: pos, currentPoint: pos });
+          onSelectShapes([]);
         }
         return;
       }
@@ -847,10 +941,36 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
     };
 
     const handleMouseMove = () => {
-      if (!drawingState.isDrawing || !drawingState.startPoint) return;
-      
       const pos = stage.getPointerPosition();
       if (!pos) return;
+
+      // Handle selection rectangle
+      if (selectionRect.isSelecting && selectionRect.startPoint) {
+        setSelectionRect(prev => ({ ...prev, currentPoint: pos }));
+        
+        // Draw selection rectangle
+        const oldRect = layer.findOne('#selectionRect');
+        if (oldRect) oldRect.destroy();
+        
+        const start = selectionRect.startPoint;
+        const rect = new Konva.Rect({
+          id: 'selectionRect',
+          x: Math.min(start.x, pos.x),
+          y: Math.min(start.y, pos.y),
+          width: Math.abs(pos.x - start.x),
+          height: Math.abs(pos.y - start.y),
+          fill: 'rgba(6, 182, 212, 0.1)',
+          stroke: '#06b6d4',
+          strokeWidth: 1,
+          dash: [4, 4],
+          listening: false,
+        });
+        layer.add(rect);
+        layer.batchDraw();
+        return;
+      }
+
+      if (!drawingState.isDrawing || !drawingState.startPoint) return;
       
       const start = drawingState.startPoint;
       const tool = activeToolRef.current;
@@ -919,6 +1039,75 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
     };
 
     const handleMouseUp = () => {
+      // Handle selection rectangle completion
+      if (selectionRect.isSelecting && selectionRect.startPoint) {
+        const oldRect = layer.findOne('#selectionRect');
+        if (oldRect) oldRect.destroy();
+        
+        const pos = stage.getPointerPosition();
+        if (pos && selectionRect.startPoint) {
+          const start = selectionRect.startPoint;
+          const selBox = {
+            x: Math.min(start.x, pos.x),
+            y: Math.min(start.y, pos.y),
+            width: Math.abs(pos.x - start.x),
+            height: Math.abs(pos.y - start.y),
+          };
+          
+          // Only select if dragged a meaningful distance
+          if (selBox.width > 5 || selBox.height > 5) {
+            const selected: string[] = [];
+            
+            // Check shapes
+            shapesRef.current?.forEach(shape => {
+              let shapeBox: { x: number; y: number; width: number; height: number } | null = null;
+              
+              if (shape.points && shape.points.length >= 4) {
+                const xs = shape.points.filter((_, i) => i % 2 === 0);
+                const ys = shape.points.filter((_, i) => i % 2 === 1);
+                shapeBox = {
+                  x: Math.min(...xs),
+                  y: Math.min(...ys),
+                  width: Math.max(...xs) - Math.min(...xs),
+                  height: Math.max(...ys) - Math.min(...ys),
+                };
+              } else if (shape.x !== undefined && shape.y !== undefined) {
+                const r = shape.radius || 20;
+                shapeBox = {
+                  x: shape.x - r,
+                  y: shape.y - r,
+                  width: r * 2,
+                  height: r * 2,
+                };
+              }
+              
+              if (shapeBox && intersects(selBox, shapeBox)) {
+                selected.push(shape.id);
+              }
+            });
+            
+            // Check blanks
+            blanksRef.current?.forEach(blank => {
+              const blankBox = {
+                x: blank.x,
+                y: blank.y,
+                width: blank.width,
+                height: blank.height,
+              };
+              if (intersects(selBox, blankBox)) {
+                selected.push(blank.id);
+              }
+            });
+            
+            onSelectShapes(selected);
+          }
+        }
+        
+        setSelectionRect({ isSelecting: false, startPoint: null, currentPoint: null });
+        layer.batchDraw();
+        return;
+      }
+
       if (!drawingState.isDrawing || !drawingState.startPoint) return;
       
       const pos = stage.getPointerPosition();
@@ -991,7 +1180,7 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
       stage.off('mousemove touchmove');
       stage.off('mouseup touchend mouseleave');
     };
-  }, [readOnly, drawingState, onShapesChange, onBlanksChange, onSelectShape]);
+  }, [readOnly, drawingState, selectionRect, onShapesChange, onBlanksChange, onSelectShapes]);
 
   return (
     <div
