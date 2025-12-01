@@ -3,6 +3,7 @@ import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, Teacher
 import * as GameService from '../services/gameService';
 import BackButton from './BackButton';
 import DiagramBuilder from './geometry/DiagramBuilder';
+import DiagramPicker from './geometry/DiagramPicker';
 
 interface TeacherPortalProps {
   profile: Profile;
@@ -37,6 +38,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
   const [questionText, setQuestionText] = useState('');
   const [questionImage, setQuestionImage] = useState<File | null>(null);
   const [questionImageUrl, setQuestionImageUrl] = useState<string>('');
+  const [showDiagramPicker, setShowDiagramPicker] = useState(false);
+  const [diagramFromLibrary, setDiagramFromLibrary] = useState<{ title: string; id: string } | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [subject, setSubject] = useState<Subject>('Maths');
   const [difficulty, setDifficulty] = useState<QuestionDifficulty>('easy');
@@ -120,6 +123,26 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
         break;
       default:
         setView('dashboard');
+    }
+  };
+
+  const convertDataUrlToFile = async (dataUrl: string, filename: string) => {
+    const response = await fetch(dataUrl);
+    const blob = await response.blob();
+    return new File([blob], filename, { type: blob.type || 'image/png' });
+  };
+
+  const handleAttachDiagram = async (selection: { diagramJson: string; imageDataUrl: string; title: string; id: string }) => {
+    try {
+      const file = await convertDataUrlToFile(selection.imageDataUrl, `${selection.title || 'diagram'}.png`);
+      setQuestionImage(file);
+      setQuestionImageUrl('');
+      setDiagramFromLibrary({ title: selection.title, id: selection.id });
+    } catch (error) {
+      console.error('Failed to attach diagram image:', error);
+      alert('❌ Failed to attach the selected diagram.');
+    } finally {
+      setShowDiagramPicker(false);
     }
   };
 
@@ -266,6 +289,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
       setExplanation('');
       setTopicMode('general');
       setCustomTopicName('');
+      setDiagramFromLibrary(null);
       setEditingQuestion(null);
 
       // Reload questions
@@ -327,6 +351,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     setQuestionText(question.question_text);
     setQuestionImage(null);
     setQuestionImageUrl(question.image_url || '');
+    setDiagramFromLibrary(null);
     setOptions(normalizeOptions(question.options));
     setOptionImages([null, null, null, null]);
     setCorrectAnswer(question.correct_answer);
@@ -356,6 +381,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     setQuestionText(question.question_text + ' (Copy)');
     setQuestionImage(null);
     setQuestionImageUrl(question.image_url || '');
+    setDiagramFromLibrary(null);
     setOptions(normalizeOptions(question.options));
     setOptionImages([null, null, null, null]);
     setCorrectAnswer(question.correct_answer);
@@ -888,6 +914,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                       if (file) {
                         setQuestionImage(file);
                         setQuestionImageUrl('');
+                        setDiagramFromLibrary(null);
                       }
                       break;
                     }
@@ -916,6 +943,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                       if (file) {
                         setQuestionImage(file);
                         setQuestionImageUrl('');
+                        setDiagramFromLibrary(null);
                       }
                       break;
                     }
@@ -936,6 +964,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                     onClick={() => {
                       setQuestionImage(null);
                       setQuestionImageUrl('');
+                      setDiagramFromLibrary(null);
                     }}
                     className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold"
                   >
@@ -967,6 +996,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                       if (file) {
                         setQuestionImage(file);
                         setQuestionImageUrl('');
+                        setDiagramFromLibrary(null);
                       }
                     }}
                     className="hidden"
@@ -977,6 +1007,27 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               {uploadingImage && (
                 <div className="text-cyan-400 text-sm animate-pulse">⏳ Uploading image...</div>
               )}
+
+              <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-gray-800 mt-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!teacher) {
+                      alert('Create a teacher profile first to use saved diagrams.');
+                      return;
+                    }
+                    setShowDiagramPicker(true);
+                  }}
+                  className="px-4 py-2 bg-cyan-500/10 text-cyan-300 border border-cyan-500/40 rounded-lg hover:bg-cyan-500/20 transition-all text-sm"
+                >
+                  📐 Insert saved geometry diagram
+                </button>
+                {diagramFromLibrary && (
+                  <span className="text-xs text-cyan-200 bg-cyan-500/10 border border-cyan-500/30 rounded-full px-3 py-1">
+                    Using diagram: {diagramFromLibrary.title}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -1157,16 +1208,23 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </div>
 
           {/* Submit Button */}
-          <button
-            type="submit"
-            className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-heading font-bold text-lg py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg"
-          >
-            {editingQuestion ? '💾 Save Changes' : '✨ Create Question'}
-          </button>
-        </form>
-      </div>
+        <button
+          type="submit"
+          className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-heading font-bold text-lg py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg"
+        >
+          {editingQuestion ? '💾 Save Changes' : '✨ Create Question'}
+        </button>
+      </form>
+      {showDiagramPicker && teacher && (
+        <DiagramPicker
+          teacherId={teacher.id}
+          onSelectDiagram={handleAttachDiagram}
+          onClose={() => setShowDiagramPicker(false)}
+        />
+      )}
     </div>
-  );
+  </div>
+);
 
   // Render Question Bank
   const renderQuestionBank = () => (

@@ -15,6 +15,7 @@ interface ToolbarProps {
 
 const tools: { id: DiagramTool; icon: string; label: string }[] = [
   { id: 'select', icon: '👆', label: 'Select' },
+  { id: 'multi-select', icon: '🧠', label: 'Multi-select' },
   { id: 'line', icon: '📏', label: 'Line' },
   { id: 'arrow', icon: '➡️', label: 'Arrow' },
   { id: 'angle', icon: '📐', label: 'Angle' },

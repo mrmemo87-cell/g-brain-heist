@@ -26,7 +26,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
   // Canvas state
   const [shapes, setShapes] = useState<DiagramShape[]>([]);
   const [blanks, setBlanks] = useState<BlankField[]>([]);
-  const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
+  const [selectedShapeIds, setSelectedShapeIds] = useState<string[]>([]);
   
   // History for undo/redo
   const [history, setHistory] = useState<{ shapes: DiagramShape[]; blanks: BlankField[] }[]>([]);
@@ -106,7 +106,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
     if (confirm('Clear all shapes? This cannot be undone.')) {
       setShapes([]);
       setBlanks([]);
-      setSelectedShapeId(null);
+      setSelectedShapeIds([]);
       setHistory([]);
       setHistoryIndex(-1);
     }
@@ -119,8 +119,8 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
     }
 
     if (blanks.length === 0) {
-      alert('Please add at least one blank field for students to fill in.');
-      return;
+      const confirmDiagramOnly = confirm('Save as a reusable diagram without blanks?');
+      if (!confirmDiagramOnly) return;
     }
 
     // Check all blanks have answers
@@ -186,7 +186,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
   const handleNewDiagram = () => {
     setShapes([]);
     setBlanks([]);
-    setSelectedShapeId(null);
+    setSelectedShapeIds([]);
     setHistory([]);
     setHistoryIndex(-1);
     setTitle('');
@@ -196,6 +196,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
     setPoints(15);
     setTimeLimit(60);
     setEditingQuestionId(null);
+    setSelectedShapeIds([]);
     setView('editor');
   };
 
@@ -387,23 +388,12 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
 
   // Delete selected shape or blank
   const handleDeleteSelected = () => {
-    if (!selectedShapeId) return;
-    
-    // Check if it's a shape
-    const shapeIndex = shapes.findIndex(s => s.id === selectedShapeId);
-    if (shapeIndex !== -1) {
-      setShapes(shapes.filter(s => s.id !== selectedShapeId));
-      setSelectedShapeId(null);
-      return;
-    }
-    
-    // Check if it's a blank
-    const blankIndex = blanks.findIndex(b => b.id === selectedShapeId);
-    if (blankIndex !== -1) {
-      setBlanks(blanks.filter(b => b.id !== selectedShapeId));
-      setSelectedShapeId(null);
-      return;
-    }
+    if (selectedShapeIds.length === 0) return;
+
+    const selectedSet = new Set(selectedShapeIds);
+    setShapes(shapes.filter(s => !selectedSet.has(s.id)));
+    setBlanks(blanks.filter(b => !selectedSet.has(b.id)));
+    setSelectedShapeIds([]);
   };
 
   // Render editor view
@@ -420,7 +410,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
           canRedo={historyIndex < history.length - 1}
           onClear={handleClear}
           onDeleteSelected={handleDeleteSelected}
-          hasSelection={selectedShapeId !== null}
+          hasSelection={selectedShapeIds.length > 0}
         />
       </div>
 
@@ -471,8 +461,8 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
             onShapesChange={setShapes}
             blanks={blanks}
             onBlanksChange={setBlanks}
-            selectedShapeId={selectedShapeId}
-            onSelectShape={setSelectedShapeId}
+            selectedShapeIds={selectedShapeIds}
+            onSelectShapes={setSelectedShapeIds}
             stageRef={stageRef}
             onEditText={handleEditText}
           />

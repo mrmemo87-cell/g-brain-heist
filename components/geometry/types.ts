@@ -41,8 +41,9 @@ export interface GeometryAnswerResult {
   isFullyCorrect: boolean;
 }
 
-export type DiagramTool = 
+export type DiagramTool =
   | 'select'
+  | 'multi-select'
   | 'line'
   | 'arrow'
   | 'angle'
