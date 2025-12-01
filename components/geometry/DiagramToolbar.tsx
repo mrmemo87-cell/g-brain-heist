@@ -9,6 +9,8 @@ interface ToolbarProps {
   canUndo: boolean;
   canRedo: boolean;
   onClear: () => void;
+  onDeleteSelected?: () => void;
+  hasSelection?: boolean;
 }
 
 const tools: { id: DiagramTool; icon: string; label: string }[] = [
@@ -20,7 +22,7 @@ const tools: { id: DiagramTool; icon: string; label: string }[] = [
   { id: 'point', icon: '•', label: 'Point' },
   { id: 'text', icon: 'T', label: 'Text' },
   { id: 'blank', icon: '▢', label: 'Blank' },
-  { id: 'delete', icon: '🗑️', label: 'Delete' },
+  { id: 'delete', icon: '🗑️', label: 'Delete Mode' },
 ];
 
 const DiagramToolbar: React.FC<ToolbarProps> = ({
@@ -30,7 +32,9 @@ const DiagramToolbar: React.FC<ToolbarProps> = ({
   onRedo,
   canUndo,
   canRedo,
-  onClear
+  onClear,
+  onDeleteSelected,
+  hasSelection = false
 }) => {
   return (
     <div className="flex flex-col gap-2 p-3 bg-gray-900/80 border border-gray-700 rounded-xl">
@@ -56,6 +60,24 @@ const DiagramToolbar: React.FC<ToolbarProps> = ({
 
       <div className="border-t border-gray-700 my-2 pt-2">
         <div className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">Actions</div>
+        
+        {/* Delete Selected Button */}
+        {onDeleteSelected && (
+          <button
+            onClick={onDeleteSelected}
+            disabled={!hasSelection}
+            className={`
+              w-full mb-2 px-3 py-2 rounded-lg text-sm font-medium transition-all
+              ${hasSelection
+                ? 'bg-red-500/20 text-red-400 border border-red-500/50 hover:bg-red-500/30'
+                : 'bg-gray-800/30 text-gray-600 cursor-not-allowed border border-transparent'
+              }
+            `}
+            title={hasSelection ? 'Delete selected item' : 'Select an item first'}
+          >
+            🗑️ Delete Selected
+          </button>
+        )}
         
         <div className="flex gap-2">
           <button
@@ -101,8 +123,9 @@ const DiagramToolbar: React.FC<ToolbarProps> = ({
           <p className="mb-1">💡 Tips:</p>
           <ul className="space-y-0.5 text-[10px]">
             <li>• Click & drag to draw</li>
+            <li>• Drag corners to resize</li>
             <li>• Double-click text to edit</li>
-            <li>• Use Blank for answer fields</li>
+            <li>• Use Blank for answers</li>
           </ul>
         </div>
       </div>

@@ -385,6 +385,27 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
     setEditingTextValue('');
   };
 
+  // Delete selected shape or blank
+  const handleDeleteSelected = () => {
+    if (!selectedShapeId) return;
+    
+    // Check if it's a shape
+    const shapeIndex = shapes.findIndex(s => s.id === selectedShapeId);
+    if (shapeIndex !== -1) {
+      setShapes(shapes.filter(s => s.id !== selectedShapeId));
+      setSelectedShapeId(null);
+      return;
+    }
+    
+    // Check if it's a blank
+    const blankIndex = blanks.findIndex(b => b.id === selectedShapeId);
+    if (blankIndex !== -1) {
+      setBlanks(blanks.filter(b => b.id !== selectedShapeId));
+      setSelectedShapeId(null);
+      return;
+    }
+  };
+
   // Render editor view
   const renderEditor = () => (
     <div className="flex gap-4">
@@ -398,6 +419,8 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
           canUndo={historyIndex > 0}
           canRedo={historyIndex < history.length - 1}
           onClear={handleClear}
+          onDeleteSelected={handleDeleteSelected}
+          hasSelection={selectedShapeId !== null}
         />
       </div>
 

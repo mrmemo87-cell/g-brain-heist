@@ -6,6 +6,7 @@ export { default as GeometryPlay } from './GeometryPlay';
 export { default as DiagramToolbar } from './DiagramToolbar';
 export { default as KonvaCanvasEditor } from './KonvaCanvasEditor';
 export { default as ShapesLibrary } from './ShapesLibrary';
+export { default as DiagramPicker } from './DiagramPicker';
 
 export * from './types';
 export * from './geometryService';

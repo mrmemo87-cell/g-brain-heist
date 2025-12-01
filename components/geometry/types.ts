@@ -8,6 +8,9 @@ export interface BlankField {
   height: number;
   expectedAnswer: string;
   label?: string;
+  scaleX?: number;
+  scaleY?: number;
+  rotation?: number;
 }
 
 export interface GeometryQuestion {
