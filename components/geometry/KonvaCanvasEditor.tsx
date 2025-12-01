@@ -268,6 +268,7 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
       let konvaShape: Konva.Shape | Konva.Group | null = null;
 
       if (shape.type === 'line') {
+        // For lines - don't use scaleX/scaleY, apply transform to points directly
         konvaShape = new Konva.Line({
           points: shape.points || [],
           stroke: strokeColor,
@@ -276,9 +277,6 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
           lineJoin: 'round',
           draggable: canDrag,
           hitStrokeWidth: 20,
-          scaleX: shape.scaleX || 1,
-          scaleY: shape.scaleY || 1,
-          rotation: shape.rotation || 0,
         });
         
         konvaShape.on('click tap', (e) => {
@@ -302,17 +300,49 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
 
         konvaShape.on('transformend', function() {
           const line = this as Konva.Line;
-          handleShapeTransform(shape.id, {
-            scaleX: line.scaleX(),
-            scaleY: line.scaleY(),
-            rotation: line.rotation(),
-          });
+          // Bake transform into the actual points
+          const oldPoints = shape.points || [];
+          const scaleX = line.scaleX();
+          const scaleY = line.scaleY();
+          const rotation = line.rotation() * Math.PI / 180;
+          const cos = Math.cos(rotation);
+          const sin = Math.sin(rotation);
+          
+          // Find center for rotation
+          let cx = 0, cy = 0;
+          for (let i = 0; i < oldPoints.length; i += 2) {
+            cx += oldPoints[i];
+            cy += oldPoints[i + 1];
+          }
+          cx /= (oldPoints.length / 2);
+          cy /= (oldPoints.length / 2);
+          
+          const newPoints: number[] = [];
+          for (let i = 0; i < oldPoints.length; i += 2) {
+            // Scale relative to center
+            let x = (oldPoints[i] - cx) * scaleX;
+            let y = (oldPoints[i + 1] - cy) * scaleY;
+            // Rotate
+            const rx = x * cos - y * sin;
+            const ry = x * sin + y * cos;
+            // Add back center
+            newPoints.push(rx + cx, ry + cy);
+          }
+          
+          // Reset transform and update points
+          line.scaleX(1);
+          line.scaleY(1);
+          line.rotation(0);
+          line.position({ x: 0, y: 0 });
+          
+          handleShapeTransform(shape.id, { points: newPoints });
         });
 
         konvaShape.on('mouseenter', () => canDrag && setCursorStyle('move'));
         konvaShape.on('mouseleave', () => setCursorStyle(activeToolRef.current === 'select' ? 'default' : 'crosshair'));
       } 
       else if (shape.type === 'arrow') {
+        // For arrows - don't use scaleX/scaleY, apply transform to points directly
         konvaShape = new Konva.Arrow({
           points: shape.points || [],
           stroke: strokeColor,
@@ -322,9 +352,6 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
           pointerWidth: 8,
           draggable: canDrag,
           hitStrokeWidth: 20,
-          scaleX: shape.scaleX || 1,
-          scaleY: shape.scaleY || 1,
-          rotation: shape.rotation || 0,
         });
         
         konvaShape.on('click tap', (e) => {
@@ -348,17 +375,49 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
 
         konvaShape.on('transformend', function() {
           const arrow = this as Konva.Arrow;
-          handleShapeTransform(shape.id, {
-            scaleX: arrow.scaleX(),
-            scaleY: arrow.scaleY(),
-            rotation: arrow.rotation(),
-          });
+          // Bake transform into the actual points
+          const oldPoints = shape.points || [];
+          const scaleX = arrow.scaleX();
+          const scaleY = arrow.scaleY();
+          const rotation = arrow.rotation() * Math.PI / 180;
+          const cos = Math.cos(rotation);
+          const sin = Math.sin(rotation);
+          
+          // Find center for rotation
+          let cx = 0, cy = 0;
+          for (let i = 0; i < oldPoints.length; i += 2) {
+            cx += oldPoints[i];
+            cy += oldPoints[i + 1];
+          }
+          cx /= (oldPoints.length / 2);
+          cy /= (oldPoints.length / 2);
+          
+          const newPoints: number[] = [];
+          for (let i = 0; i < oldPoints.length; i += 2) {
+            // Scale relative to center
+            let x = (oldPoints[i] - cx) * scaleX;
+            let y = (oldPoints[i + 1] - cy) * scaleY;
+            // Rotate
+            const rx = x * cos - y * sin;
+            const ry = x * sin + y * cos;
+            // Add back center
+            newPoints.push(rx + cx, ry + cy);
+          }
+          
+          // Reset transform and update points
+          arrow.scaleX(1);
+          arrow.scaleY(1);
+          arrow.rotation(0);
+          arrow.position({ x: 0, y: 0 });
+          
+          handleShapeTransform(shape.id, { points: newPoints });
         });
 
         konvaShape.on('mouseenter', () => canDrag && setCursorStyle('move'));
         konvaShape.on('mouseleave', () => setCursorStyle(activeToolRef.current === 'select' ? 'default' : 'crosshair'));
       }
       else if (shape.type === 'circle') {
+        // For circles - bake scale into radius
         konvaShape = new Konva.Circle({
           x: shape.x || 0,
           y: shape.y || 0,
@@ -366,9 +425,6 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
           stroke: strokeColor,
           strokeWidth: shape.strokeWidth || 2,
           draggable: canDrag,
-          scaleX: shape.scaleX || 1,
-          scaleY: shape.scaleY || 1,
-          rotation: shape.rotation || 0,
         });
         
         konvaShape.on('click tap', (e) => {
@@ -387,12 +443,18 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
 
         konvaShape.on('transformend', function() {
           const circle = this as Konva.Circle;
+          // Bake scale into radius (use average of scaleX/scaleY)
+          const avgScale = (circle.scaleX() + circle.scaleY()) / 2;
+          const newRadius = (shape.radius || 50) * avgScale;
+          
+          circle.scaleX(1);
+          circle.scaleY(1);
+          circle.rotation(0);
+          
           handleShapeTransform(shape.id, {
             x: circle.x(),
             y: circle.y(),
-            scaleX: circle.scaleX(),
-            scaleY: circle.scaleY(),
-            rotation: circle.rotation(),
+            radius: Math.max(5, newRadius),
           });
         });
 
@@ -444,6 +506,7 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
         konvaShape.on('mouseleave', () => setCursorStyle(activeToolRef.current === 'select' ? 'default' : 'crosshair'));
       }
       else if (shape.type === 'text') {
+        // For text - bake scale into font size, keep rotation
         konvaShape = new Konva.Text({
           x: shape.x || 0,
           y: shape.y || 0,
@@ -452,8 +515,6 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
           fill: isSelected ? '#f472b6' : (shape.fill || '#e2e8f0'),
           fontFamily: 'Inter, system-ui, sans-serif',
           draggable: canDrag,
-          scaleX: shape.scaleX || 1,
-          scaleY: shape.scaleY || 1,
           rotation: shape.rotation || 0,
         });
         
@@ -478,9 +539,12 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
         konvaShape.on('transformend', function() {
           const text = this as Konva.Text;
           // Apply scale to font size
-          const newFontSize = Math.round((shape.fontSize || 18) * text.scaleX());
+          const avgScale = (text.scaleX() + text.scaleY()) / 2;
+          const newFontSize = Math.round((shape.fontSize || 18) * avgScale);
+          
           text.scaleX(1);
           text.scaleY(1);
+          
           handleShapeTransform(shape.id, {
             x: text.x(),
             y: text.y(),
@@ -516,9 +580,6 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
         
         const group = new Konva.Group({ 
           draggable: canDrag,
-          scaleX: shape.scaleX || 1,
-          scaleY: shape.scaleY || 1,
-          rotation: shape.rotation || 0,
         });
         
         // Line 1
@@ -573,11 +634,37 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
 
         group.on('transformend', function() {
           const g = this as Konva.Group;
-          handleShapeTransform(shape.id, {
-            scaleX: g.scaleX(),
-            scaleY: g.scaleY(),
-            rotation: g.rotation(),
-          });
+          // Bake transform into points
+          const scaleX = g.scaleX();
+          const scaleY = g.scaleY();
+          const rotation = g.rotation() * Math.PI / 180;
+          const cos = Math.cos(rotation);
+          const sin = Math.sin(rotation);
+          
+          // Find center
+          let cx = 0, cy = 0;
+          for (let i = 0; i < pts.length; i += 2) {
+            cx += pts[i];
+            cy += pts[i + 1];
+          }
+          cx /= (pts.length / 2);
+          cy /= (pts.length / 2);
+          
+          const newPoints: number[] = [];
+          for (let i = 0; i < pts.length; i += 2) {
+            let x = (pts[i] - cx) * scaleX;
+            let y = (pts[i + 1] - cy) * scaleY;
+            const rx = x * cos - y * sin;
+            const ry = x * sin + y * cos;
+            newPoints.push(rx + cx, ry + cy);
+          }
+          
+          g.scaleX(1);
+          g.scaleY(1);
+          g.rotation(0);
+          g.position({ x: 0, y: 0 });
+          
+          handleShapeTransform(shape.id, { points: newPoints });
         });
 
         group.on('mouseenter', () => canDrag && setCursorStyle('move'));
@@ -592,7 +679,7 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
       }
     });
 
-    // Draw blanks (now scalable)
+    // Draw blanks (scalable - bake transforms into dimensions)
     blanks.forEach((blank) => {
       const isSelected = selectedShapeId === blank.id;
       
@@ -600,8 +687,6 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
         x: blank.x,
         y: blank.y,
         draggable: canDrag,
-        scaleX: blank.scaleX || 1,
-        scaleY: blank.scaleY || 1,
         rotation: blank.rotation || 0,
       });
       
@@ -618,7 +703,7 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
         width: blank.width,
         height: blank.height,
         text: '?',
-        fontSize: 16,
+        fontSize: Math.min(16, blank.height * 0.6),
         fill: '#06b6d4',
         align: 'center',
         verticalAlign: 'middle',
@@ -640,11 +725,14 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
 
       group.on('transformend', function() {
         const g = this as Konva.Group;
-        // Apply scale to width/height
+        // Bake scale into width/height immediately
         const newWidth = blank.width * g.scaleX();
         const newHeight = blank.height * g.scaleY();
+        
+        // Reset scale
         g.scaleX(1);
         g.scaleY(1);
+        
         handleBlankTransform(blank.id, {
           x: g.x(),
           y: g.y(),
