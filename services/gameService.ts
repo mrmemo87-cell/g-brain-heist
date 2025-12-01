@@ -725,40 +725,88 @@ const getCurrentUser = async (maxRetries = 3) => {
 const updateProfile = async (userId: string, updates: Partial<Profile>, maxRetries = 3) => {
   let lastError: Error | null = null;
   
+  console.log(`[updateProfile] Starting update for user ${userId}:`, updates);
+  
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       // Use .select() to return updated rows - if RLS blocks, this will return empty
-      const { data, error, count } = await supabase
+      const { data, error } = await supabase
         .from('users')
         .update(updates)
         .eq('id', userId)
-        .select('id')
+        .select('id, xp, coins, level, gemstones')
         .single();
       
       if (error) {
-        console.error(`updateProfile attempt ${attempt} error:`, error);
+        console.error(`[updateProfile] Attempt ${attempt} error:`, error.message, error.code, error.details);
         throw error;
       }
       
       // Verify the update actually affected a row
       if (!data) {
-        console.error(`updateProfile attempt ${attempt}: No row returned - RLS may be blocking the update`);
+        console.error(`[updateProfile] Attempt ${attempt}: No row returned - RLS may be blocking the update`);
         throw new Error('Update returned no rows - possible RLS restriction');
       }
       
-      console.log(`updateProfile SUCCESS for user ${userId}:`, updates);
+      // CRITICAL: Verify the returned data matches what we tried to set
+      const mismatches: string[] = [];
+      if (updates.xp !== undefined && data.xp !== updates.xp) {
+        mismatches.push(`xp: expected ${updates.xp}, got ${data.xp}`);
+      }
+      if (updates.coins !== undefined && data.coins !== updates.coins) {
+        mismatches.push(`coins: expected ${updates.coins}, got ${data.coins}`);
+      }
+      if (updates.level !== undefined && data.level !== updates.level) {
+        mismatches.push(`level: expected ${updates.level}, got ${data.level}`);
+      }
+      
+      if (mismatches.length > 0) {
+        console.error(`[updateProfile] CRITICAL: Data mismatch after update!`, mismatches);
+        throw new Error(`Update succeeded but data mismatch: ${mismatches.join(', ')}`);
+      }
+      
+      console.log(`[updateProfile] SUCCESS for user ${userId}. Verified values: xp=${data.xp}, coins=${data.coins}`);
+      
+      // EXTRA VERIFICATION: Do a separate read to ensure persistence
+      // This catches any edge cases where update returns stale data
+      await new Promise(resolve => setTimeout(resolve, 100)); // Small delay
+      const { data: verifyData, error: verifyError } = await supabase
+        .from('users')
+        .select('xp, coins, level')
+        .eq('id', userId)
+        .single();
+      
+      if (verifyError) {
+        console.warn(`[updateProfile] Post-update verification read failed:`, verifyError);
+        // Don't throw - the update might have succeeded
+      } else if (verifyData) {
+        const verifyMismatches: string[] = [];
+        if (updates.xp !== undefined && verifyData.xp !== updates.xp) {
+          verifyMismatches.push(`xp: wrote ${updates.xp}, read back ${verifyData.xp}`);
+        }
+        if (updates.coins !== undefined && verifyData.coins !== updates.coins) {
+          verifyMismatches.push(`coins: wrote ${updates.coins}, read back ${verifyData.coins}`);
+        }
+        
+        if (verifyMismatches.length > 0) {
+          console.error(`[updateProfile] CRITICAL: Verification read shows data NOT persisted!`, verifyMismatches);
+          throw new Error(`Data not persisted: ${verifyMismatches.join(', ')}`);
+        }
+        console.log(`[updateProfile] Verification read confirmed: xp=${verifyData.xp}, coins=${verifyData.coins}`);
+      }
+      
       return; // Success
     } catch (err) {
       lastError = err as Error;
       if (attempt < maxRetries) {
         // Exponential backoff: 500ms, 1000ms, 2000ms
         await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
-        console.warn(`updateProfile attempt ${attempt} failed, retrying...`, err);
+        console.warn(`[updateProfile] Attempt ${attempt} failed, retrying...`, err);
       }
     }
   }
   
-  console.error('CRITICAL: All updateProfile attempts failed for user', userId, updates, lastError);
+  console.error('[updateProfile] CRITICAL: All attempts failed for user', userId, updates, lastError);
   throw lastError || new Error('Failed to update profile after multiple attempts');
 };
 
