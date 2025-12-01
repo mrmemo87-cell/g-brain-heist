@@ -671,6 +671,12 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         if (coinsGained > 0) rewardParts.push(`+${coinsGained} coins`);
         if (gemstonesGained > 0) rewardParts.push(`+${gemstonesGained} gems`);
         addToast(`✓ Rewards saved: ${rewardParts.join(', ')}`, 'success');
+      } else if (xpGained === 0 && coinsGained === 0 && gemstonesGained === 0) {
+        // Check if this is because of duplicate answer
+        const isDuplicate = deltas.xp === 0 && deltas.coins === 0;
+        if (isDuplicate) {
+          addToast('⚠️ Already answered - You already earned rewards for this question', 'warning');
+        }
       }
       
       console.log('[handleGrantReward] Profile synced with backend values:', finalValues);

@@ -4848,13 +4848,15 @@ const finalizeMcqAnswer = async ({
             if (error) {
                 if (error.code === '23505' && isCorrect) {
                     // Unique constraint violation - user already has a correct answer for this question
-                    console.warn(`[MCQ] Duplicate correct attempt blocked for user ${userId} on question ${question.id}`);
+                    console.warn(`[MCQ] ⚠️ DUPLICATE ANSWER DETECTED - No rewards given for question ${question.id}`);
+                    console.warn(`[MCQ] You've already answered this question correctly before.`);
+                    console.warn(`[MCQ] To earn rewards, answer NEW questions you haven't solved before!`);
                     duplicateCorrect = true;
                     xpReward = 0;
                     coinDelta = 0;
                     baseResponse.deltas.xp = 0;
                     baseResponse.deltas.coins = 0;
-                    baseResponse.explanation = 'Correct, but rewards already claimed for this question.';
+                    baseResponse.explanation = '✓ Correct! But you already earned rewards for this question. Try new questions to earn more!';
                     break; // Don't retry - this is expected
                 }
                 throw error;
@@ -4927,15 +4929,19 @@ const finalizeMcqAnswer = async ({
 
     // Update profile with new values
     if (xpReward !== 0 || coinDelta !== 0 || gemstoneDelta !== 0 || leveledUp) {
+        console.log(`[MCQ] 💾 Applying rewards: +${xpReward} XP, +${coinDelta} coins, +${gemstoneDelta} gems`);
         await updateProfile(userId, {
             xp: newXP,
             coins: newCoins,
             level: newLevel,
             gemstones: newGemstones,
         });
-        console.log(`[MCQ] Profile updated successfully`);
+        console.log(`[MCQ] ✅ Profile updated successfully - New totals: ${newXP} XP, ${newCoins} coins`);
     } else {
-        console.log(`[MCQ] No profile update needed (no rewards to apply)`);
+        console.warn(`[MCQ] ⚠️ NO REWARDS - xpReward=${xpReward}, coinDelta=${coinDelta}, gemstoneDelta=${gemstoneDelta}`);
+        if (duplicateCorrect) {
+            console.warn(`[MCQ] Reason: You already answered this question correctly before!`);
+        }
     }
 
     // Handle notifications and secondary operations (don't block main flow)
@@ -5016,6 +5022,8 @@ export const mcq_answer_submit = async (question: Question, choice: string): Pro
     const rewardCoins = question.reward_coins ?? Math.floor(rewardXp * 1.5);
     const correctAnswer = question.correct_answer ?? '';
     const isCorrect = choice === correctAnswer;
+    
+    console.log(`[mcq_answer_submit] 🎯 Question ${question.id}: isCorrect=${isCorrect}, will award ${isCorrect ? rewardXp : 0} XP, ${isCorrect ? rewardCoins : 0} coins`);
 
     const response: AnswerResponse = {
         correct: isCorrect,
