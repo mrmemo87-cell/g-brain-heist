@@ -36,6 +36,7 @@ import {
     AssignmentResultInput,
     StudentForAssignment,
     QuestionOption,
+    Grade,
 } from '../types';
 import * as RaidFeatureService from '../src/features/raids/raidService';
 import {
@@ -692,21 +693,59 @@ const buildKyrgyzBotLeaderboardSnapshot = (): KyrgyzBotLeaderboardSnapshot => {
     };
 };
 
-// Helper to get current authenticated user
-const getCurrentUser = async () => {
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) throw new Error('Not authenticated');
-  return user;
+// Helper to get current authenticated user with retry and session caching
+const getCurrentUser = async (maxRetries = 3) => {
+  // First try to get session from cache (no network request)
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.user) {
+    return session.user;
+  }
+
+  // Fall back to getUser with retry logic
+  let lastError: Error | null = null;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      if (!user) throw new Error('Not authenticated');
+      return user;
+    } catch (err) {
+      lastError = err as Error;
+      if (attempt < maxRetries) {
+        // Exponential backoff: 500ms, 1000ms, 2000ms
+        await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+        console.warn(`getCurrentUser attempt ${attempt} failed, retrying...`, err);
+      }
+    }
+  }
+  throw lastError || new Error('Not authenticated');
 };
 
-// Helper to update profile fields
-const updateProfile = async (userId: string, updates: Partial<Profile>) => {
-  const { error } = await supabase
-    .from('users')
-    .update(updates)
-    .eq('id', userId);
+// Helper to update profile fields with retry logic
+const updateProfile = async (userId: string, updates: Partial<Profile>, maxRetries = 3) => {
+  let lastError: Error | null = null;
   
-  if (error) throw error;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update(updates)
+        .eq('id', userId);
+      
+      if (error) throw error;
+      return; // Success
+    } catch (err) {
+      lastError = err as Error;
+      if (attempt < maxRetries) {
+        // Exponential backoff: 500ms, 1000ms, 2000ms
+        await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+        console.warn(`updateProfile attempt ${attempt} failed, retrying...`, err);
+      }
+    }
+  }
+  
+  console.error('CRITICAL: All updateProfile attempts failed for user', userId, updates, lastError);
+  throw lastError || new Error('Failed to update profile after multiple attempts');
 };
 
 // Helper to simulate API calls (keep for mock data)
@@ -1059,19 +1098,37 @@ export const resetGameData = (): void => {
 };
 
 export const whoami = async (): Promise<Profile> => {
-  // Get current authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
-    if (authError || !user) {
-    throw new Error('Not authenticated');
-  }
+  // Get current authenticated user with retry logic
+  const user = await getCurrentUser();
 
-  // Fetch profile from database
-  let { data: profile, error: profileError } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', user.id)
-    .single();
+  // Fetch profile from database with retry logic
+  let profile: any = null;
+  let profileError: any = null;
+  
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const result = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      profile = result.data;
+      profileError = result.error;
+      
+      if (!profileError) break; // Success
+      if (profileError.code === 'PGRST116') break; // Not found - don't retry
+      
+      throw profileError;
+    } catch (err) {
+      if (attempt < 3) {
+        await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+        console.warn(`whoami profile fetch attempt ${attempt} failed, retrying...`, err);
+      } else {
+        profileError = err;
+      }
+    }
+  }
 
   // If profile doesn't exist (OAuth user), create it
   if (profileError && profileError.code === 'PGRST116') {
@@ -1421,6 +1478,95 @@ export const whoami = async (): Promise<Profile> => {
     profile.total_score = calculateTotalScore(profile.xp ?? 0, profile.pvp_score ?? 0);
 
     return profile;
+};
+
+/**
+ * Fetch a public profile for any user by their user ID.
+ * This returns a subset of profile data that is safe to show to other players.
+ */
+export const getPublicProfile = async (userId: string): Promise<Profile | null> => {
+  // Retry logic for fetching profile
+  let profile: any = null;
+  let fetchError: any = null;
+  
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const result = await supabase
+        .from('users')
+        .select(`
+          id, username, avatar_url, level, xp, coins, gemstones, streak, pvp_score,
+          attack_power, defense_power, bio, batch, grade, role, last_seen,
+          ap_now, ap_max
+        `)
+        .eq('id', userId)
+        .single();
+      
+      profile = result.data;
+      fetchError = result.error;
+      
+      if (!fetchError && profile) break; // Success
+      if (fetchError) throw fetchError;
+    } catch (err) {
+      fetchError = err;
+      if (attempt < 3) {
+        await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+        console.warn(`getPublicProfile attempt ${attempt} failed, retrying...`, err);
+      }
+    }
+  }
+
+  if (fetchError || !profile) {
+    console.error('Failed to fetch public profile:', fetchError?.message);
+    return null;
+  }
+
+  // Fetch cosmetics for this user
+  let active_cosmetic_frame: 'neon' | null = null;
+  let active_cosmetic_theme: 'flicker' | null = null;
+  let active_cosmetic_effect: 'glitch' | null = null;
+
+  try {
+    const [neonOwners, flickerOwners, glitchOwners] = await Promise.all([
+      fetchNeonFrameOwners([userId]),
+      fetchFlickerThemeOwners([userId]),
+      fetchGlitchEffectOwners([userId]),
+    ]);
+    if (neonOwners.has(userId)) active_cosmetic_frame = 'neon';
+    if (flickerOwners.has(userId)) active_cosmetic_theme = 'flicker';
+    if (glitchOwners.has(userId)) active_cosmetic_effect = 'glitch';
+  } catch (err) {
+    console.warn('Failed to fetch cosmetics for public profile:', err);
+  }
+
+  // Fetch clan membership
+  let clan_name: string | null = null;
+  let clan_role: ClanRole | undefined = undefined;
+  let clan_custom_title: string | null = null;
+
+  const { data: membership } = await supabase
+    .from('clan_members')
+    .select('role, custom_title, clans(name)')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (membership && (membership as any).clans?.name) {
+    clan_name = (membership as any).clans.name;
+    clan_role = membership.role as ClanRole;
+    clan_custom_title = membership.custom_title ?? null;
+  }
+
+  const total_score = calculateTotalScore(profile.xp ?? 0, profile.pvp_score ?? 0);
+
+  return {
+    ...profile,
+    active_cosmetic_frame,
+    active_cosmetic_theme,
+    active_cosmetic_effect,
+    clan_name,
+    clan_role,
+    clan_custom_title,
+    total_score,
+  } as Profile;
 };
 
 export const tasks_list = (): Promise<Task[]> => {
@@ -4619,30 +4765,49 @@ const finalizeMcqAnswer = async ({
     // which is caught in the attemptInsert handler below
 
     const attemptInsert = (async () => {
-        const { error } = await supabase.from('question_attempts').insert({
-            student_id: userId,
-            question_id: question.id,
-            answer_given: choice,
-            is_correct: isCorrect,
-            points_earned: isCorrect && xpReward > 0 ? xpReward : 0,
-        });
+        const maxRetries = 3;
+        let lastError: Error | null = null;
+        
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                const { error } = await supabase.from('question_attempts').insert({
+                    student_id: userId,
+                    question_id: question.id,
+                    answer_given: choice,
+                    is_correct: isCorrect,
+                    points_earned: isCorrect && xpReward > 0 ? xpReward : 0,
+                });
 
-        // Check for unique constraint violation (duplicate correct answer)
-        if (error) {
-            if (error.code === '23505' && isCorrect) {
-                // Unique constraint violation - user already has a correct answer for this question
-                // This can happen with multi-tab submissions
-                duplicateCorrect = true;
-                xpReward = 0;
-                coinDelta = 0;
-                baseResponse.deltas.xp = 0;
-                baseResponse.deltas.coins = 0;
-                baseResponse.explanation = 'Correct, but rewards already claimed for this question.';
-                console.warn(`Duplicate correct attempt blocked for user ${userId} on question ${question.id}`);
-                return; // Don't throw - treat as valid but no reward
+                // Check for unique constraint violation (duplicate correct answer)
+                if (error) {
+                    if (error.code === '23505' && isCorrect) {
+                        // Unique constraint violation - user already has a correct answer for this question
+                        // This can happen with multi-tab submissions
+                        duplicateCorrect = true;
+                        xpReward = 0;
+                        coinDelta = 0;
+                        baseResponse.deltas.xp = 0;
+                        baseResponse.deltas.coins = 0;
+                        baseResponse.explanation = 'Correct, but rewards already claimed for this question.';
+                        console.warn(`Duplicate correct attempt blocked for user ${userId} on question ${question.id}`);
+                        return; // Don't throw - treat as valid but no reward
+                    }
+                    throw error;
+                }
+                return; // Success
+            } catch (err) {
+                lastError = err as Error;
+                // Don't retry unique constraint violations
+                if ((err as any)?.code === '23505') {
+                    throw err;
+                }
+                if (attempt < maxRetries) {
+                    await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+                    console.warn(`attemptInsert attempt ${attempt} failed, retrying...`, err);
+                }
             }
-            throw error;
         }
+        throw lastError || new Error('Failed to insert question attempt');
     })();
 
     const questionStatsUpdate = question.id

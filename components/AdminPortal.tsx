@@ -4,6 +4,7 @@ import BackButton from './BackButton';
 import * as GameService from '../services/gameService';
 import { supabase } from '../services/supabaseClient';
 import * as CompetitionService from '../services/competitionService';
+import ClickableUsername from './ClickableUsername';
 
 interface AdminPortalProps {
   profile: Profile;
@@ -651,7 +652,11 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                         <div className="flex items-center gap-3 flex-1">
                           <img src={user.avatar_url} alt={user.username} className="w-16 h-16 rounded-full border-2 border-purple-400" />
                           <div>
-                            <p className="font-bold text-white text-lg">{user.username}</p>
+                            <p className="font-bold text-white text-lg">
+                              <ClickableUsername userId={user.id} username={user.username}>
+                                {user.username}
+                              </ClickableUsername>
+                            </p>
                             <p className="text-sm text-gray-400">{user.email}</p>
                             <div className="flex gap-3 mt-1">
                               <span className="text-xs bg-cyan-600/30 text-cyan-300 px-2 py-1 rounded">Lvl {user.level}</span>

@@ -4,6 +4,7 @@ import * as GameService from '../services/gameService';
 import BackButton from './BackButton';
 import { SyndicateRune, CoinIcon, DemoteIcon, KickIcon, LeaveIcon, ManageIcon, PromoteIcon } from './icons';
 import AvatarWithFrame from './AvatarWithFrame';
+import ClickableUsername from './ClickableUsername';
 
 type ClanViewStage = 'loading' | 'no_clan' | 'in_clan' | 'creating' | 'joining';
 type ClanTab = 'home' | 'chat' | 'management' | 'browse';
@@ -898,7 +899,9 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                                     />
                                                     <div>
                                                         <p className="font-semibold text-white flex items-center gap-2">
-                                                            {member.username}
+                                                            <ClickableUsername userId={member.user_id} username={member.username}>
+                                                                {member.username}
+                                                            </ClickableUsername>
                                                             {member.custom_title && <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 text-amber-200">{member.custom_title}</span>}
                                                         </p>
                                                         <p className="text-xs text-gray-400 capitalize">{member.role}</p>
@@ -987,7 +990,11 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                                 hasGlitchEffect={member.active_cosmetic_effect === 'glitch'}
                                             />
                                             <div>
-                                                <p className="font-semibold text-white">{member.username}</p>
+                                                <p className="font-semibold text-white">
+                                                    <ClickableUsername userId={member.user_id} username={member.username}>
+                                                        {member.username}
+                                                    </ClickableUsername>
+                                                </p>
                                                 <p className="text-xs text-gray-400 capitalize">{member.role}</p>
                                                 {member.custom_title && <p className="text-[11px] text-gray-400">{member.custom_title}</p>}
                                             </div>
@@ -1076,7 +1083,9 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                             />
                                             <div>
                                                 <p className="font-semibold text-white flex items-center gap-2">
-                                                        {member.username}
+                                                        <ClickableUsername userId={member.user_id} username={member.username}>
+                                                            {member.username}
+                                                        </ClickableUsername>
                                                         {member.custom_title && <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 text-amber-200">{member.custom_title}</span>}
                                                 </p>
                                                 <p className="text-xs text-gray-400 capitalize">{member.role}</p>

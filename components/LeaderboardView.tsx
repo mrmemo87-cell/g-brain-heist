@@ -5,6 +5,7 @@ import { ClanMember } from '../types';
 import AvatarWithFrame from './AvatarWithFrame';
 import { fetchNeonFrameOwners, fetchFlickerThemeOwners, fetchGlitchEffectOwners } from '../services/cosmeticService';
 import { TrophyIcon } from './icons';
+import ClickableUsername from './ClickableUsername';
 
 
 
@@ -300,7 +301,10 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
         </div>
         <div className="flex-1">
           <p className="font-semibold text-white">
-            {entry.username} {entry.is_self && '(You)'}
+            <ClickableUsername userId={entry.id} username={entry.username}>
+              {entry.username}
+            </ClickableUsername>
+            {entry.is_self && ' (You)'}
           </p>
           <p className="text-xs text-gray-400">Batch {entry.batch}</p>
         </div>
@@ -465,7 +469,9 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
                         />
                         <div>
                           <p className="font-semibold text-white flex items-center gap-2">
-                            {member.username}
+                            <ClickableUsername userId={member.user_id} username={member.username}>
+                              {member.username}
+                            </ClickableUsername>
                             {member.custom_title && (
                               <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 text-amber-200">
                                 {member.custom_title}

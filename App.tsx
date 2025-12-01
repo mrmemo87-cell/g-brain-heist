@@ -670,11 +670,20 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             addToast('⚠️ Warning: Your rewards may not have been saved. Refreshing...', 'warning');
             // Refresh the full profile to get accurate data
             await refreshProfile();
+          } else {
+            // Sync local profile with database values to ensure consistency
+            setProfile(currentProfile);
           }
         } catch (error) {
           console.error('[REWARD VERIFICATION] Failed to verify rewards:', error);
+          // On verification failure, try to refresh profile to get accurate data
+          try {
+            await refreshProfile();
+          } catch (refreshError) {
+            console.error('[REWARD VERIFICATION] Failed to refresh profile:', refreshError);
+          }
         }
-      }, 2000); // Wait 2 seconds to let database transaction complete
+      }, 3500); // Wait 3.5 seconds to account for retries (up to 3 attempts with backoff)
     }
   };
 

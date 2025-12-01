@@ -8,6 +8,7 @@ import { ShieldIcon, HackIcon, CoinIcon, XPIcon, GemIcon, BattleIcon, TrophyIcon
 import { createPortal } from 'react-dom';
 import AvatarWithFrame from './AvatarWithFrame';
 import { fetchNeonFrameOwners, fetchFlickerThemeOwners, fetchGlitchEffectOwners } from '../services/cosmeticService';
+import ClickableUsername from './ClickableUsername';
 
 type PvPStage = 'loading' | 'targets' | 'cinematic' | 'result';
 
@@ -89,7 +90,11 @@ const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) 
           title={status.label}
         />
       </div>
-      <h3 className="font-heading text-lg" style={{ color: 'var(--plasma-pink)' }}>{target.username}</h3>
+      <h3 className="font-heading text-lg" style={{ color: 'var(--plasma-pink)' }}>
+        <ClickableUsername userId={target.id} username={target.username}>
+          {target.username}
+        </ClickableUsername>
+      </h3>
       <p className="text-sm text-gray-400">Lvl {target.level} | Batch {target.batch}</p>
       {target.clan_name && target.clan_id && (
         <button
@@ -639,7 +644,11 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
                         fallbackFrameClassName="border-2 border-gray-600"
                       />
                       <div className="flex-1">
-                        <p className="font-semibold text-white">{member.username}</p>
+                        <p className="font-semibold text-white">
+                          <ClickableUsername userId={member.user_id} username={member.username}>
+                            {member.username}
+                          </ClickableUsername>
+                        </p>
                         <p className="text-xs text-gray-400 capitalize">{member.role}</p>
                       </div>
                     </div>
