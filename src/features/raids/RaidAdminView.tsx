@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Profile } from '../../../types';
 import * as GameService from '../../../services/gameService';
 import { RaidFinalizationResult, RaidParticipantState, RaidStatus } from './raidTypes';
+import UserProfileModal from '../../../components/UserProfileModal';
 
 interface RaidAdminViewProps {
   profile: Profile;
@@ -15,6 +16,7 @@ const RaidAdminView: React.FC<RaidAdminViewProps> = ({ profile, onComplete, addT
   const [loading, setLoading] = useState(true);
   const [finalization, setFinalization] = useState<RaidFinalizationResult | null>(null);
   const [busy, setBusy] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   const loadRaid = async () => {
     setLoading(true);
@@ -75,7 +77,16 @@ const RaidAdminView: React.FC<RaidAdminViewProps> = ({ profile, onComplete, addT
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Raid Operations HQ</h2>
           <p className="text-sm text-slate-500">Coordinate live raids, energize competition, and track results in real time.</p>
-          <p className="text-xs text-slate-400">Signed in as {profile.username}</p>
+          <p className="text-xs text-slate-400">
+            Signed in as{' '}
+            <button
+              type="button"
+              className="font-semibold text-slate-200 underline decoration-dotted underline-offset-4"
+              onClick={() => setShowProfileModal(true)}
+            >
+              {profile.username}
+            </button>
+          </p>
         </div>
         <button className="rounded-md border border-slate-300 px-3 py-2 text-sm" onClick={onComplete}>
           Close
@@ -153,6 +164,7 @@ const RaidAdminView: React.FC<RaidAdminViewProps> = ({ profile, onComplete, addT
           </div>
         </div>
       )}
+      {showProfileModal && <UserProfileModal profile={profile} apValue={profile.ap_now} onClose={() => setShowProfileModal(false)} />}
     </div>
   );
 };

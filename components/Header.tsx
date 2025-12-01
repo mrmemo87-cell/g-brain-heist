@@ -8,6 +8,7 @@ import { notificationService } from '../services/notificationService';
 import { update_avatar, upload_avatar_file } from '../services/gameService';
 import { isAdmin } from '../services/adminService';
 import SettingsModal from './SettingsModal';
+import UserProfileModal from './UserProfileModal';
 
 // Custom hook for animating number changes
 const useAnimatedValue = (endValue: number, duration: number = 500) => {
@@ -98,6 +99,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   const [apRegenCountdown, setApRegenCountdown] = useState<string>('');
   const [calculatedAP, setCalculatedAP] = useState<number>(profile.ap_now);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
 
   const avatarPresets = [
@@ -508,18 +510,30 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
               </div>
               
               {/* Username badge */}
-              <div className="flex items-center space-x-2 px-4 py-2 bg-black/40 rounded-full border border-cyan-500/30 backdrop-blur-sm">
+              <div
+                className="flex items-center space-x-2 px-4 py-2 bg-black/40 rounded-full border border-cyan-500/30 backdrop-blur-sm cursor-pointer"
+                role="button"
+                tabIndex={0}
+                onClick={() => setShowProfileModal(true)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    setShowProfileModal(true);
+                  }
+                }}
+              >
                 <div
-                  className={`flex-shrink-0 rounded-full transition-transform duration-200 cursor-pointer hover:scale-110 ${hasFlickerTheme ? 'glitch-frame glitch-frame-sm' : hasNeonFrame ? 'neon-frame neon-frame-sm' : 'border-2 border-pink-500'}`}
-                  onClick={() => setShowSettingsModal(true)}
+                  className={`flex-shrink-0 rounded-full transition-transform duration-200 hover:scale-110 ${hasFlickerTheme ? 'glitch-frame glitch-frame-sm' : hasNeonFrame ? 'neon-frame neon-frame-sm' : 'border-2 border-pink-500'}`}
                 >
-                  <img 
-                    src={profile.avatar_url} 
-                    alt={profile.username} 
+                  <img
+                    src={profile.avatar_url}
+                    alt={profile.username}
                     className={`w-8 h-8 rounded-full object-cover ${hasFlickerTheme ? 'glitch-frame-avatar' : hasNeonFrame ? 'neon-frame-avatar' : ''}`}
                   />
                 </div>
-                <span className="font-bold text-white text-sm">{profile.username}</span>
+                <span className="font-bold text-white text-sm underline decoration-dotted decoration-cyan-400/70 underline-offset-4">
+                  {profile.username}
+                </span>
               </div>
             </div>
 
@@ -657,7 +671,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
 
       {/* Notification Center */}
       {showSettingsModal && (
-        <SettingsModal 
+        <SettingsModal
           onClose={() => setShowSettingsModal(false)}
           profile={profile}
           avatarPresets={avatarPresets}
@@ -670,9 +684,17 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
         />
       )}
 
-      <NotificationCenter 
-        isOpen={showNotifications} 
-        onClose={() => setShowNotifications(false)} 
+      {showProfileModal && (
+        <UserProfileModal
+          profile={profile}
+          apValue={calculatedAP}
+          onClose={() => setShowProfileModal(false)}
+        />
+      )}
+
+      <NotificationCenter
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
         onNavigate={onNavigate}
       />
     </>
