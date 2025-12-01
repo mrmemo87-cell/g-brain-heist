@@ -438,12 +438,11 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
 
         {/* Canvas with instruction */}
         <div className="relative">
-          <div className="absolute top-2 right-2 z-10 text-xs text-gray-400 bg-gray-800/80 px-2 py-1 rounded">
+          <div className="absolute top-2 right-2 z-10 text-xs text-gray-400 bg-slate-900/90 px-2 py-1 rounded border border-slate-700">
             💡 Use tools on left • Click shapes above • Double-click text to edit
           </div>
           <KonvaCanvasEditor
-            width={800}
-            height={500}
+            height={450}
             activeTool={activeTool}
             shapes={shapes}
             onShapesChange={setShapes}

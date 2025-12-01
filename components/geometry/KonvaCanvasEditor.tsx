@@ -29,8 +29,8 @@ export interface DiagramShape {
 }
 
 interface KonvaCanvasEditorProps {
-  width: number;
-  height: number;
+  width?: number;
+  height?: number;
   activeTool: DiagramTool;
   shapes: DiagramShape[];
   onShapesChange: (shapes: DiagramShape[]) => void;
@@ -43,13 +43,12 @@ interface KonvaCanvasEditorProps {
   onEditText?: (shapeId: string, currentText: string) => void;
 }
 
-// Smaller grid for smoother positioning
-const GRID_SIZE = 5;
-const MAJOR_GRID_SIZE = 50;
+// Minimal grid for performance
+const GRID_SIZE = 50;
 
 const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
-  width,
-  height,
+  width: propWidth,
+  height: propHeight = 450,
   activeTool,
   shapes,
   onShapesChange,
@@ -64,32 +63,52 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const stageObjRef = useRef<Konva.Stage | null>(null);
   const layerRef = useRef<Konva.Layer | null>(null);
+  const gridLayerRef = useRef<Konva.Layer | null>(null);
   const transformerRef = useRef<Konva.Transformer | null>(null);
   const isInitializedRef = useRef(false);
+  const [canvasSize, setCanvasSize] = useState({ width: propWidth || 800, height: propHeight });
+  const [cursorStyle, setCursorStyle] = useState('default');
   
   const [drawingState, setDrawingState] = useState<{
     isDrawing: boolean;
     startPoint: { x: number; y: number } | null;
   }>({ isDrawing: false, startPoint: null });
 
-  // Soft snap - only snap if very close to grid, otherwise use exact position
-  const softSnap = (v: number, threshold: number = 3) => {
-    const nearest = Math.round(v / GRID_SIZE) * GRID_SIZE;
-    return Math.abs(v - nearest) < threshold ? nearest : v;
-  };
-
-  // Refs for current state (to use in Konva event handlers)
-  const shapesRef = useRef(shapes);
-  const blanksRef = useRef(blanks);
+  // Refs for current state
+  const shapesRef = useRef<DiagramShape[]>(shapes);
+  const blanksRef = useRef<BlankField[]>(blanks);
   const activeToolRef = useRef(activeTool);
-  const selectedShapeIdRef = useRef(selectedShapeId);
 
   useEffect(() => { shapesRef.current = shapes; }, [shapes]);
   useEffect(() => { blanksRef.current = blanks; }, [blanks]);
   useEffect(() => { activeToolRef.current = activeTool; }, [activeTool]);
-  useEffect(() => { selectedShapeIdRef.current = selectedShapeId; }, [selectedShapeId]);
 
-  // Update shape after drag (no forced snap)
+  // Responsive width
+  useEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current?.parentElement) {
+        const parentWidth = containerRef.current.parentElement.clientWidth;
+        setCanvasSize({ width: parentWidth, height: propHeight });
+      }
+    };
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, [propHeight]);
+
+  // Update cursor based on tool
+  useEffect(() => {
+    if (readOnly) {
+      setCursorStyle('default');
+    } else if (activeTool === 'select') {
+      setCursorStyle('default');
+    } else if (activeTool === 'delete') {
+      setCursorStyle('not-allowed');
+    } else {
+      setCursorStyle('crosshair');
+    }
+  }, [activeTool, readOnly]);
+
   const handleShapeDrag = useCallback((shapeId: string, newX: number, newY: number, isLine: boolean, newPoints?: number[]) => {
     const currentShapes = shapesRef.current;
     if (!currentShapes) return;
@@ -104,7 +123,6 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
     }));
   }, [onShapesChange]);
 
-  // Update shape after transform (scale/rotate)
   const handleShapeTransform = useCallback((shapeId: string, attrs: Partial<DiagramShape>) => {
     const currentShapes = shapesRef.current;
     if (!currentShapes) return;
@@ -128,43 +146,40 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
 
     const stage = new Konva.Stage({
       container: containerRef.current,
-      width: width,
-      height: height,
+      width: canvasSize.width,
+      height: canvasSize.height,
     });
 
+    // Separate layer for static grid (performance)
+    const gridLayer = new Konva.Layer({ listening: false });
+    stage.add(gridLayer);
+    gridLayerRef.current = gridLayer;
+
+    // Main layer for shapes
     const layer = new Konva.Layer();
     stage.add(layer);
+    layerRef.current = layer;
 
-    // Create transformer for resizing shapes
+    // Lightweight transformer
     const transformer = new Konva.Transformer({
       rotateEnabled: true,
-      enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'middle-left', 'middle-right', 'top-center', 'bottom-center'],
-      boundBoxFunc: (oldBox, newBox) => {
-        if (newBox.width < 10 || newBox.height < 10) {
-          return oldBox;
-        }
-        return newBox;
-      },
-      anchorSize: 10,
-      anchorCornerRadius: 3,
-      anchorStroke: '#00ffff',
-      anchorFill: '#1a1a2e',
-      borderStroke: '#ff69b4',
-      borderDash: [4, 4],
+      rotateAnchorOffset: 20,
+      enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
+      anchorSize: 8,
+      anchorCornerRadius: 2,
+      anchorStroke: '#06b6d4',
+      anchorFill: '#0f172a',
+      anchorStrokeWidth: 1,
+      borderStroke: '#06b6d4',
+      borderStrokeWidth: 1,
+      borderDash: [3, 3],
+      padding: 2,
+      rotateAnchorCursor: 'grab',
     });
     layer.add(transformer);
     transformerRef.current = transformer;
 
-    // Force canvas visibility (fix for light-mode CSS)
-    const canvases = stage.content?.querySelectorAll('canvas');
-    if (canvases) {
-      canvases.forEach((canvas) => {
-        (canvas as HTMLCanvasElement).style.display = 'block';
-      });
-    }
-
     stageObjRef.current = stage;
-    layerRef.current = layer;
     
     if (stageRef) {
       (stageRef as React.MutableRefObject<Konva.Stage | null>).current = stage;
@@ -175,89 +190,83 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
 
   // Update stage size
   useEffect(() => {
-    if (stageObjRef.current) {
-      stageObjRef.current.width(width);
-      stageObjRef.current.height(height);
-    }
-  }, [width, height]);
-
-  // Main draw function
-  const drawCanvas = useCallback(() => {
-    const layer = layerRef.current;
     const stage = stageObjRef.current;
-    const transformer = transformerRef.current;
-    if (!layer || !stage) return;
+    if (stage) {
+      stage.width(canvasSize.width);
+      stage.height(canvasSize.height);
+      drawGrid();
+    }
+  }, [canvasSize]);
 
-    // Remove all except transformer
-    layer.children?.forEach(child => {
-      if (child !== transformer) {
-        child.destroy();
-      }
-    });
+  // Draw static grid once
+  const drawGrid = useCallback(() => {
+    const gridLayer = gridLayerRef.current;
+    if (!gridLayer) return;
+    
+    gridLayer.destroyChildren();
+    const { width, height } = canvasSize;
 
     // Background
-    layer.add(new Konva.Rect({
+    gridLayer.add(new Konva.Rect({
       x: 0, y: 0, width, height,
-      fill: '#1a1a2e',
-      name: 'background',
+      fill: '#0f172a',
     }));
 
-    // Grid - major lines only for cleaner look
-    for (let i = 0; i <= width; i += MAJOR_GRID_SIZE) {
-      layer.add(new Konva.Line({
+    // Subtle grid lines only
+    for (let i = 0; i <= width; i += GRID_SIZE) {
+      gridLayer.add(new Konva.Line({
         points: [i, 0, i, height],
-        stroke: '#2a3a5e',
+        stroke: '#1e293b',
         strokeWidth: 1,
-        listening: false,
       }));
     }
-    for (let i = 0; i <= height; i += MAJOR_GRID_SIZE) {
-      layer.add(new Konva.Line({
+    for (let i = 0; i <= height; i += GRID_SIZE) {
+      gridLayer.add(new Konva.Line({
         points: [0, i, width, i],
-        stroke: '#2a3a5e',
+        stroke: '#1e293b',
         strokeWidth: 1,
-        listening: false,
       }));
     }
 
-    // Minor grid dots for guidance
-    for (let x = 0; x <= width; x += GRID_SIZE * 2) {
-      for (let y = 0; y <= height; y += GRID_SIZE * 2) {
-        if (x % MAJOR_GRID_SIZE !== 0 || y % MAJOR_GRID_SIZE !== 0) {
-          layer.add(new Konva.Circle({
-            x, y,
-            radius: 0.5,
-            fill: '#3a4a6e',
-            listening: false,
-          }));
-        }
-      }
-    }
+    gridLayer.batchDraw();
+  }, [canvasSize]);
+
+  // Main draw function - optimized
+  const drawCanvas = useCallback(() => {
+    const layer = layerRef.current;
+    const transformer = transformerRef.current;
+    if (!layer) return;
+
+    // Clear shapes only, keep transformer
+    const children = layer.children?.slice() || [];
+    children.forEach(child => {
+      if (child !== transformer) child.destroy();
+    });
 
     let selectedNode: Konva.Node | null = null;
+    const canDrag = activeTool === 'select' && !readOnly;
 
-    // Draw shapes with interactivity
+    // Draw shapes
     shapes.forEach((shape) => {
       const isSelected = selectedShapeId === shape.id;
-      const strokeColor = isSelected ? '#ff69b4' : (shape.stroke || '#00ffff');
-      const fillColor = isSelected ? '#ff69b4' : (shape.fill || '#00ffff');
-      const canDrag = activeTool === 'select' && !readOnly;
+      const strokeColor = isSelected ? '#f472b6' : (shape.stroke || '#06b6d4');
+      const fillColor = isSelected ? '#f472b6' : (shape.fill || '#06b6d4');
 
       let konvaShape: Konva.Shape | Konva.Group | null = null;
 
       if (shape.type === 'line') {
-        const line = new Konva.Line({
+        konvaShape = new Konva.Line({
           points: shape.points || [],
           stroke: strokeColor,
-          strokeWidth: isSelected ? 4 : (shape.strokeWidth || 3),
+          strokeWidth: shape.strokeWidth || 2,
           lineCap: 'round',
           lineJoin: 'round',
           draggable: canDrag,
-          hitStrokeWidth: 20,
-          name: 'shape',
+          hitStrokeWidth: 15,
+          perfectDrawEnabled: false,
         });
         
-        line.on('click tap', () => {
+        konvaShape.on('click tap', () => {
           if (activeToolRef.current === 'delete' && shapesRef.current) {
             onShapesChange(shapesRef.current.filter(s => s.id !== shape.id));
           } else if (activeToolRef.current === 'select') {
@@ -265,32 +274,33 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
           }
         });
         
-        line.on('dragend', () => {
+        konvaShape.on('dragend', function() {
+          const line = this as Konva.Line;
           const oldPoints = shape.points || [];
           const dx = line.x();
           const dy = line.y();
-          const newPoints = oldPoints.map((p, i) => i % 2 === 0 ? softSnap(p + dx) : softSnap(p + dy));
+          const newPoints = oldPoints.map((p, i) => i % 2 === 0 ? p + dx : p + dy);
           line.position({ x: 0, y: 0 });
           handleShapeDrag(shape.id, 0, 0, true, newPoints);
         });
-        
-        konvaShape = line;
-        if (isSelected) selectedNode = line;
+
+        konvaShape.on('mouseenter', () => canDrag && setCursorStyle('move'));
+        konvaShape.on('mouseleave', () => canDrag && setCursorStyle('default'));
       } 
       else if (shape.type === 'arrow') {
-        const arrow = new Konva.Arrow({
+        konvaShape = new Konva.Arrow({
           points: shape.points || [],
           stroke: strokeColor,
           fill: fillColor,
-          strokeWidth: isSelected ? 4 : (shape.strokeWidth || 3),
-          pointerLength: shape.pointerLength || 12,
-          pointerWidth: shape.pointerWidth || 10,
+          strokeWidth: shape.strokeWidth || 2,
+          pointerLength: 10,
+          pointerWidth: 8,
           draggable: canDrag,
-          hitStrokeWidth: 20,
-          name: 'shape',
+          hitStrokeWidth: 15,
+          perfectDrawEnabled: false,
         });
         
-        arrow.on('click tap', () => {
+        konvaShape.on('click tap', () => {
           if (activeToolRef.current === 'delete' && shapesRef.current) {
             onShapesChange(shapesRef.current.filter(s => s.id !== shape.id));
           } else if (activeToolRef.current === 'select') {
@@ -298,33 +308,34 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
           }
         });
         
-        arrow.on('dragend', () => {
+        konvaShape.on('dragend', function() {
+          const arrow = this as Konva.Arrow;
           const oldPoints = shape.points || [];
           const dx = arrow.x();
           const dy = arrow.y();
-          const newPoints = oldPoints.map((p, i) => i % 2 === 0 ? softSnap(p + dx) : softSnap(p + dy));
+          const newPoints = oldPoints.map((p, i) => i % 2 === 0 ? p + dx : p + dy);
           arrow.position({ x: 0, y: 0 });
           handleShapeDrag(shape.id, 0, 0, true, newPoints);
         });
-        
-        konvaShape = arrow;
-        if (isSelected) selectedNode = arrow;
+
+        konvaShape.on('mouseenter', () => canDrag && setCursorStyle('move'));
+        konvaShape.on('mouseleave', () => canDrag && setCursorStyle('default'));
       }
       else if (shape.type === 'circle') {
-        const circle = new Konva.Circle({
+        konvaShape = new Konva.Circle({
           x: shape.x || 0,
           y: shape.y || 0,
           radius: shape.radius || 50,
           stroke: strokeColor,
-          strokeWidth: isSelected ? 4 : (shape.strokeWidth || 3),
-          fill: shape.fill === 'transparent' ? undefined : undefined,
+          strokeWidth: shape.strokeWidth || 2,
           draggable: canDrag,
           scaleX: shape.scaleX || 1,
           scaleY: shape.scaleY || 1,
-          name: 'shape',
+          rotation: shape.rotation || 0,
+          perfectDrawEnabled: false,
         });
         
-        circle.on('click tap', () => {
+        konvaShape.on('click tap', () => {
           if (activeToolRef.current === 'delete' && shapesRef.current) {
             onShapesChange(shapesRef.current.filter(s => s.id !== shape.id));
           } else if (activeToolRef.current === 'select') {
@@ -332,11 +343,13 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
           }
         });
         
-        circle.on('dragend', () => {
-          handleShapeDrag(shape.id, softSnap(circle.x()), softSnap(circle.y()), false);
+        konvaShape.on('dragend', function() {
+          const circle = this as Konva.Circle;
+          handleShapeDrag(shape.id, circle.x(), circle.y(), false);
         });
 
-        circle.on('transformend', () => {
+        konvaShape.on('transformend', function() {
+          const circle = this as Konva.Circle;
           handleShapeTransform(shape.id, {
             x: circle.x(),
             y: circle.y(),
@@ -345,23 +358,23 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
             rotation: circle.rotation(),
           });
         });
-        
-        konvaShape = circle;
-        if (isSelected) selectedNode = circle;
+
+        konvaShape.on('mouseenter', () => canDrag && setCursorStyle('move'));
+        konvaShape.on('mouseleave', () => canDrag && setCursorStyle('default'));
       }
       else if (shape.type === 'point') {
-        const point = new Konva.Circle({
+        konvaShape = new Konva.Circle({
           x: shape.x || 0,
           y: shape.y || 0,
-          radius: 6,
+          radius: 5,
           fill: fillColor,
           stroke: strokeColor,
-          strokeWidth: 2,
+          strokeWidth: 1,
           draggable: canDrag,
-          name: 'shape',
+          perfectDrawEnabled: false,
         });
         
-        point.on('click tap', () => {
+        konvaShape.on('click tap', () => {
           if (activeToolRef.current === 'delete' && shapesRef.current) {
             onShapesChange(shapesRef.current.filter(s => s.id !== shape.id));
           } else if (activeToolRef.current === 'select') {
@@ -369,28 +382,27 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
           }
         });
         
-        point.on('dragend', () => {
-          handleShapeDrag(shape.id, softSnap(point.x()), softSnap(point.y()), false);
+        konvaShape.on('dragend', function() {
+          const point = this as Konva.Circle;
+          handleShapeDrag(shape.id, point.x(), point.y(), false);
         });
-        
-        konvaShape = point;
-        if (isSelected) selectedNode = point;
+
+        konvaShape.on('mouseenter', () => canDrag && setCursorStyle('move'));
+        konvaShape.on('mouseleave', () => canDrag && setCursorStyle('default'));
       }
       else if (shape.type === 'text') {
-        const text = new Konva.Text({
+        konvaShape = new Konva.Text({
           x: shape.x || 0,
           y: shape.y || 0,
           text: shape.text || 'Text',
-          fontSize: shape.fontSize || 20,
-          fill: isSelected ? '#ff69b4' : (shape.fill || '#ffffff'),
-          fontFamily: (shape['fontFamily'] as string) || 'Arial',
+          fontSize: shape.fontSize || 18,
+          fill: isSelected ? '#f472b6' : (shape.fill || '#e2e8f0'),
+          fontFamily: 'Inter, system-ui, sans-serif',
           draggable: canDrag,
-          scaleX: shape.scaleX || 1,
-          scaleY: shape.scaleY || 1,
-          name: 'shape',
+          perfectDrawEnabled: false,
         });
         
-        text.on('click tap', () => {
+        konvaShape.on('click tap', () => {
           if (activeToolRef.current === 'delete' && shapesRef.current) {
             onShapesChange(shapesRef.current.filter(s => s.id !== shape.id));
           } else if (activeToolRef.current === 'select') {
@@ -398,59 +410,56 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
           }
         });
         
-        text.on('dblclick dbltap', () => {
-          if (onEditText) {
-            onEditText(shape.id, shape.text || 'Text');
-          }
+        konvaShape.on('dblclick dbltap', () => {
+          if (onEditText) onEditText(shape.id, shape.text || 'Text');
         });
         
-        text.on('dragend', () => {
+        konvaShape.on('dragend', function() {
+          const text = this as Konva.Text;
           handleShapeDrag(shape.id, text.x(), text.y(), false);
         });
 
-        text.on('transformend', () => {
-          const newFontSize = Math.round((shape.fontSize || 20) * text.scaleX());
+        konvaShape.on('transformend', function() {
+          const text = this as Konva.Text;
+          const newFontSize = Math.round((shape.fontSize || 18) * text.scaleX());
           text.scaleX(1);
           text.scaleY(1);
           handleShapeTransform(shape.id, {
             x: text.x(),
             y: text.y(),
-            fontSize: newFontSize,
+            fontSize: Math.max(10, newFontSize),
             rotation: text.rotation(),
           });
         });
-        
-        konvaShape = text;
-        if (isSelected) selectedNode = text;
+
+        konvaShape.on('mouseenter', () => canDrag && setCursorStyle('move'));
+        konvaShape.on('mouseleave', () => canDrag && setCursorStyle('default'));
       }
       else if (shape.type === 'angle') {
-        const pts = shape.points || [0, 0, 100, 0, 0, -100];
-        const group = new Konva.Group({ 
-          draggable: canDrag,
-          name: 'shape',
-        });
+        const pts = shape.points || [0, 0, 80, 0, 0, -80];
+        const group = new Konva.Group({ draggable: canDrag });
         
         group.add(new Konva.Line({
           points: [pts[0], pts[1], pts[2], pts[3]],
           stroke: strokeColor,
-          strokeWidth: isSelected ? 4 : 3,
+          strokeWidth: 2,
           lineCap: 'round',
         }));
         group.add(new Konva.Line({
           points: [pts[0], pts[1], pts[4], pts[5]],
           stroke: strokeColor,
-          strokeWidth: isSelected ? 4 : 3,
+          strokeWidth: 2,
           lineCap: 'round',
         }));
         group.add(new Konva.Arc({
           x: pts[0],
           y: pts[1],
-          innerRadius: 25,
-          outerRadius: 25,
+          innerRadius: 20,
+          outerRadius: 20,
           angle: 45,
           rotation: -45,
           stroke: strokeColor,
-          strokeWidth: 2,
+          strokeWidth: 1,
         }));
         
         group.on('click tap', () => {
@@ -461,50 +470,52 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
           }
         });
         
-        group.on('dragend', () => {
-          const dx = group.x();
-          const dy = group.y();
-          const newPoints = pts.map((p, i) => i % 2 === 0 ? softSnap(p + dx) : softSnap(p + dy));
-          group.position({ x: 0, y: 0 });
+        group.on('dragend', function() {
+          const g = this as Konva.Group;
+          const dx = g.x();
+          const dy = g.y();
+          const newPoints = pts.map((p, i) => i % 2 === 0 ? p + dx : p + dy);
+          g.position({ x: 0, y: 0 });
           handleShapeDrag(shape.id, 0, 0, true, newPoints);
         });
-        
+
+        group.on('mouseenter', () => canDrag && setCursorStyle('move'));
+        group.on('mouseleave', () => canDrag && setCursorStyle('default'));
+
         konvaShape = group;
-        if (isSelected) selectedNode = group;
       }
 
       if (konvaShape) {
         layer.add(konvaShape);
+        if (isSelected) selectedNode = konvaShape;
       }
     });
 
     // Draw blanks
     blanks.forEach((blank) => {
       const isSelected = selectedShapeId === blank.id;
-      const canDrag = activeTool === 'select' && !readOnly;
       
       const group = new Konva.Group({
         x: blank.x,
         y: blank.y,
         draggable: canDrag,
-        name: 'shape',
       });
       
       group.add(new Konva.Rect({
         width: blank.width,
         height: blank.height,
         fill: '#1e3a5f',
-        stroke: isSelected ? '#ff69b4' : '#00ffff',
-        strokeWidth: 3,
-        cornerRadius: 4,
+        stroke: isSelected ? '#f472b6' : '#06b6d4',
+        strokeWidth: 2,
+        cornerRadius: 3,
       }));
       
       group.add(new Konva.Text({
         width: blank.width,
         height: blank.height,
         text: '?',
-        fontSize: 20,
-        fill: '#00ffff',
+        fontSize: 16,
+        fill: '#06b6d4',
         align: 'center',
         verticalAlign: 'middle',
       }));
@@ -517,9 +528,13 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
         }
       });
       
-      group.on('dragend', () => {
-        handleBlankDrag(blank.id, group.x(), group.y());
+      group.on('dragend', function() {
+        const g = this as Konva.Group;
+        handleBlankDrag(blank.id, g.x(), g.y());
       });
+
+      group.on('mouseenter', () => canDrag && setCursorStyle('move'));
+      group.on('mouseleave', () => canDrag && setCursorStyle('default'));
       
       layer.add(group);
       if (isSelected) selectedNode = group;
@@ -536,9 +551,14 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
     }
 
     layer.batchDraw();
-  }, [shapes, blanks, selectedShapeId, activeTool, width, height, readOnly, onShapesChange, onBlanksChange, onSelectShape, onEditText, handleShapeDrag, handleBlankDrag, handleShapeTransform]);
+  }, [shapes, blanks, selectedShapeId, activeTool, readOnly, onShapesChange, onBlanksChange, onSelectShape, onEditText, handleShapeDrag, handleBlankDrag, handleShapeTransform]);
 
-  // Redraw when state changes
+  // Initial grid draw
+  useEffect(() => {
+    drawGrid();
+  }, [drawGrid]);
+
+  // Redraw shapes when state changes
   useEffect(() => {
     drawCanvas();
   }, [drawCanvas]);
@@ -552,63 +572,55 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
     const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
       if (readOnly) return;
       
-      // If clicking on an interactive shape (not background/grid), don't start drawing
       const target = e.target;
-      const targetName = target.name ? target.name() : '';
-      const isBackground = target === stage || targetName === 'background';
+      const isBackground = target === stage || target.getLayer() === gridLayerRef.current;
       if (!isBackground && activeToolRef.current !== 'select' && activeToolRef.current !== 'delete') return;
       
       const pos = stage.getPointerPosition();
       if (!pos) return;
       
-      // Use exact position for fluid drawing
       const tool = activeToolRef.current;
 
       if (tool === 'select') {
-        onSelectShape(null); // Deselect when clicking background
+        if (isBackground) onSelectShape(null);
         return;
       }
 
       if (tool === 'text') {
-        const newShape: DiagramShape = {
+        onShapesChange([...(shapesRef.current || []), {
           id: generateShapeId('text'),
           type: 'text',
           x: pos.x,
           y: pos.y,
           text: 'Text',
-          fontSize: 20,
-          fill: '#ffffff'
-        };
-        onShapesChange([...(shapesRef.current || []), newShape]);
+          fontSize: 18,
+          fill: '#e2e8f0'
+        }]);
         return;
       }
 
       if (tool === 'point') {
-        const newShape: DiagramShape = {
+        onShapesChange([...(shapesRef.current || []), {
           id: generateShapeId('point'),
           type: 'point',
           x: pos.x,
           y: pos.y,
-          radius: 6,
-          fill: '#00ffff',
-          stroke: '#00ffff',
-          strokeWidth: 2
-        };
-        onShapesChange([...(shapesRef.current || []), newShape]);
+          fill: '#06b6d4',
+          stroke: '#06b6d4',
+        }]);
         return;
       }
 
       if (tool === 'blank') {
-        const newBlank: BlankField = {
+        onBlanksChange([...(blanksRef.current || []), {
           id: generateShapeId('blank'),
           type: 'blank',
           x: pos.x,
           y: pos.y,
-          width: 60,
-          height: 30,
+          width: 50,
+          height: 28,
           expectedAnswer: ''
-        };
-        onBlanksChange([...(blanksRef.current || []), newBlank]);
+        }]);
         return;
       }
 
@@ -635,48 +647,47 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
         preview = new Konva.Line({
           id: 'preview',
           points: [start.x, start.y, pos.x, pos.y],
-          stroke: '#ffff00',
-          strokeWidth: 3,
-          dash: [8, 4],
+          stroke: '#fbbf24',
+          strokeWidth: 2,
+          dash: [6, 3],
           lineCap: 'round',
         });
       } else if (tool === 'arrow') {
         preview = new Konva.Arrow({
           id: 'preview',
           points: [start.x, start.y, pos.x, pos.y],
-          stroke: '#ffff00',
-          fill: '#ffff00',
-          strokeWidth: 3,
-          pointerLength: 12,
-          pointerWidth: 10,
-          dash: [8, 4],
+          stroke: '#fbbf24',
+          fill: '#fbbf24',
+          strokeWidth: 2,
+          pointerLength: 10,
+          pointerWidth: 8,
+          dash: [6, 3],
         });
       } else if (tool === 'circle') {
         const dx = pos.x - start.x;
         const dy = pos.y - start.y;
-        const radius = Math.sqrt(dx * dx + dy * dy);
         preview = new Konva.Circle({
           id: 'preview',
           x: start.x,
           y: start.y,
-          radius: radius,
-          stroke: '#ffff00',
-          strokeWidth: 3,
-          dash: [8, 4],
+          radius: Math.sqrt(dx * dx + dy * dy),
+          stroke: '#fbbf24',
+          strokeWidth: 2,
+          dash: [6, 3],
         });
       } else if (tool === 'angle') {
         const group = new Konva.Group({ id: 'preview' });
         group.add(new Konva.Line({
           points: [start.x, start.y, pos.x, pos.y],
-          stroke: '#ffff00',
-          strokeWidth: 3,
-          dash: [8, 4],
+          stroke: '#fbbf24',
+          strokeWidth: 2,
+          dash: [6, 3],
         }));
         group.add(new Konva.Line({
           points: [start.x, start.y, start.x + 80, start.y],
-          stroke: '#ffff00',
-          strokeWidth: 3,
-          dash: [8, 4],
+          stroke: '#fbbf24',
+          strokeWidth: 2,
+          dash: [6, 3],
         }));
         preview = group;
       }
@@ -698,58 +709,53 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
       if (oldPreview) oldPreview.destroy();
 
       if (pos) {
-        let newShape: DiagramShape | null = null;
-
-        // Minimum distance check to avoid accidental tiny shapes
         const dx = pos.x - start.x;
         const dy = pos.y - start.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
-        if (distance > 5) {
+        if (distance > 8) {
+          let newShape: DiagramShape | null = null;
+
           if (tool === 'line') {
             newShape = {
               id: generateShapeId('line'),
               type: 'line',
               points: [start.x, start.y, pos.x, pos.y],
-              stroke: '#00ffff',
-              strokeWidth: 3,
+              stroke: '#06b6d4',
+              strokeWidth: 2,
             };
           } else if (tool === 'arrow') {
             newShape = {
               id: generateShapeId('arrow'),
               type: 'arrow',
               points: [start.x, start.y, pos.x, pos.y],
-              stroke: '#00ffff',
-              fill: '#00ffff',
-              strokeWidth: 3,
-              pointerLength: 12,
-              pointerWidth: 10,
+              stroke: '#06b6d4',
+              fill: '#06b6d4',
+              strokeWidth: 2,
             };
           } else if (tool === 'circle') {
-            const radius = Math.sqrt(dx * dx + dy * dy);
             newShape = {
               id: generateShapeId('circle'),
               type: 'circle',
               x: start.x,
               y: start.y,
-              radius: radius,
-              stroke: '#00ffff',
-              strokeWidth: 3,
-              fill: 'transparent',
+              radius: distance,
+              stroke: '#06b6d4',
+              strokeWidth: 2,
             };
           } else if (tool === 'angle') {
             newShape = {
               id: generateShapeId('angle'),
               type: 'angle',
               points: [start.x, start.y, pos.x, pos.y, start.x + 80, start.y],
-              stroke: '#00ffff',
-              strokeWidth: 3,
+              stroke: '#06b6d4',
+              strokeWidth: 2,
             };
           }
-        }
 
-        if (newShape) {
-          onShapesChange([...(shapesRef.current || []), newShape]);
+          if (newShape) {
+            onShapesChange([...(shapesRef.current || []), newShape]);
+          }
         }
       }
 
@@ -767,23 +773,17 @@ const KonvaCanvasEditor: React.FC<KonvaCanvasEditorProps> = ({
     };
   }, [readOnly, drawingState, onShapesChange, onBlanksChange, onSelectShape]);
 
-  const getCursor = () => {
-    if (readOnly) return 'default';
-    if (activeTool === 'select') return 'move';
-    if (activeTool === 'delete') return 'not-allowed';
-    return 'crosshair';
-  };
-
   return (
     <div
       ref={containerRef}
       style={{
-        width: width,
-        height: height,
-        border: '3px solid #00ffff',
-        borderRadius: 8,
-        cursor: getCursor(),
+        width: '100%',
+        height: canvasSize.height,
+        border: '1px solid #334155',
+        borderRadius: 6,
+        cursor: cursorStyle,
         overflow: 'hidden',
+        background: '#0f172a',
       }}
     />
   );
