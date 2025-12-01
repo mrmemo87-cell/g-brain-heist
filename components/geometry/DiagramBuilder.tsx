@@ -44,6 +44,10 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
   const [editingBlankId, setEditingBlankId] = useState<string | null>(null);
   const [editingBlankAnswer, setEditingBlankAnswer] = useState('');
   
+  // Text editing state
+  const [editingTextId, setEditingTextId] = useState<string | null>(null);
+  const [editingTextValue, setEditingTextValue] = useState('');
+  
   // Saved questions
   const [savedQuestions, setSavedQuestions] = useState<GeometryQuestion[]>([]);
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
@@ -343,11 +347,49 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
     setShapes([...shapes, ...newShapes]);
   };
 
+  // Add math symbol as text shape
+  const handleAddSymbol = (symbol: string) => {
+    const newTextShape: DiagramShape = {
+      id: `symbol-${Date.now()}`,
+      type: 'text',
+      x: 100 + Math.random() * 200,
+      y: 100 + Math.random() * 200,
+      text: symbol,
+      fontSize: 28,
+      fill: '#00ffff',
+      fontFamily: 'serif',
+    };
+    setShapes([...shapes, newTextShape]);
+  };
+
+  // Handle text editing
+  const handleEditText = (shapeId: string, currentText: string) => {
+    setEditingTextId(shapeId);
+    setEditingTextValue(currentText);
+  };
+
+  const saveTextEdit = () => {
+    if (editingTextId) {
+      setShapes(shapes.map(s =>
+        s.id === editingTextId
+          ? { ...s, text: editingTextValue }
+          : s
+      ));
+      setEditingTextId(null);
+      setEditingTextValue('');
+    }
+  };
+
+  const cancelTextEdit = () => {
+    setEditingTextId(null);
+    setEditingTextValue('');
+  };
+
   // Render editor view
   const renderEditor = () => (
     <div className="flex gap-4">
       {/* Left Toolbar */}
-      <div className="w-44 flex-shrink-0 space-y-4">
+      <div className="w-40 flex-shrink-0">
         <DiagramToolbar
           activeTool={activeTool}
           onToolChange={setActiveTool}
@@ -357,9 +399,6 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
           canRedo={historyIndex < history.length - 1}
           onClear={handleClear}
         />
-        
-        {/* Shapes Library */}
-        <ShapesLibrary onAddShape={handleAddShapesFromLibrary} />
       </div>
 
       {/* Main Canvas Area */}
@@ -392,14 +431,19 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
           </div>
         </div>
 
+        {/* Shapes Library - Horizontal above canvas */}
+        <div className="mb-4">
+          <ShapesLibrary onAddShape={handleAddShapesFromLibrary} onAddSymbol={handleAddSymbol} />
+        </div>
+
         {/* Canvas with instruction */}
         <div className="relative">
           <div className="absolute top-2 right-2 z-10 text-xs text-gray-400 bg-gray-800/80 px-2 py-1 rounded">
-            💡 Use tools on left OR click shapes from library below
+            💡 Use tools on left • Click shapes above • Double-click text to edit
           </div>
           <KonvaCanvasEditor
-            width={700}
-            height={450}
+            width={800}
+            height={500}
             activeTool={activeTool}
             shapes={shapes}
             onShapesChange={setShapes}
@@ -408,7 +452,42 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
             selectedShapeId={selectedShapeId}
             onSelectShape={setSelectedShapeId}
             stageRef={stageRef}
+            onEditText={handleEditText}
           />
+          
+          {/* Text Editing Modal */}
+          {editingTextId && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
+              <div className="bg-gray-800 border border-cyan-500 rounded-lg p-4 shadow-xl">
+                <h3 className="text-sm font-semibold text-cyan-400 mb-3">✏️ Edit Text</h3>
+                <input
+                  type="text"
+                  value={editingTextValue}
+                  onChange={(e: { target: { value: string } }) => setEditingTextValue(e.target.value)}
+                  className="w-64 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-lg outline-none focus:border-cyan-500"
+                  autoFocus
+                  onKeyDown={(e: { key: string }) => {
+                    if (e.key === 'Enter') saveTextEdit();
+                    if (e.key === 'Escape') cancelTextEdit();
+                  }}
+                />
+                <div className="flex gap-2 mt-3">
+                  <button
+                    onClick={cancelTextEdit}
+                    className="flex-1 px-3 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-600 text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={saveTextEdit}
+                    className="flex-1 px-3 py-2 bg-cyan-500/20 text-cyan-400 border border-cyan-500 rounded hover:bg-cyan-500/30 text-sm"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         {/* Blanks Editor */}
         {blanks.length > 0 && (

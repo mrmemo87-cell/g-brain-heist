@@ -1,736 +1,401 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { DiagramShape } from './KonvaCanvasEditor';
 import { generateShapeId } from './geometryService';
 
 interface ShapesLibraryProps {
   onAddShape: (shapes: DiagramShape[]) => void;
+  onAddSymbol: (symbol: string) => void;
 }
 
-// Predefined geometric shape templates
+// Math symbols organized by category
+const MATH_SYMBOLS = {
+  greek: ['α', 'β', 'γ', 'δ', 'θ', 'λ', 'μ', 'π', 'σ', 'φ', 'ω', 'Δ', 'Σ', 'Ω'],
+  operators: ['+', '−', '×', '÷', '±', '∓', '·', '∘', '√', '∛', '∜'],
+  relations: ['=', '≠', '≈', '≡', '<', '>', '≤', '≥', '≪', '≫', '∝', '∼'],
+  geometry: ['∠', '∟', '⊥', '∥', '≅', '∼', '△', '□', '○', '⊙', '⌀', '∆'],
+  arrows: ['→', '←', '↔', '⇒', '⇐', '⇔', '↑', '↓', '↗', '↘'],
+  sets: ['∈', '∉', '⊂', '⊃', '⊆', '⊇', '∪', '∩', '∅', '∞'],
+  calculus: ['∫', '∬', '∮', '∂', '∇', 'ⁿ', '∑', '∏', 'lim', '∞'],
+  fractions: ['½', '⅓', '¼', '⅔', '¾', '⅛', '⅜', '⅝', '⅞'],
+  superscript: ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹', 'ⁿ', 'ˣ', 'ʸ'],
+  subscript: ['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉', 'ₙ', 'ₓ'],
+};
+
+const SYMBOL_CATEGORIES = [
+  { id: 'greek', name: 'Greek', icon: 'α' },
+  { id: 'geometry', name: 'Geometry', icon: '∠' },
+  { id: 'operators', name: 'Operators', icon: '±' },
+  { id: 'relations', name: 'Relations', icon: '≤' },
+  { id: 'arrows', name: 'Arrows', icon: '→' },
+  { id: 'superscript', name: 'Powers', icon: 'x²' },
+  { id: 'subscript', name: 'Subscript', icon: 'x₁' },
+  { id: 'fractions', name: 'Fractions', icon: '½' },
+  { id: 'calculus', name: 'Calculus', icon: '∫' },
+  { id: 'sets', name: 'Sets', icon: '∈' },
+];
+
+// Predefined shape templates
 const SHAPE_TEMPLATES = {
-  // Basic shapes
   triangle: {
-    name: '△ Triangle',
-    category: 'basic',
+    name: 'Triangle',
+    icon: '△',
+    category: 'shapes',
     create: (cx: number, cy: number): DiagramShape[] => {
-      const size = 100;
+      const size = 80;
       return [{
         id: generateShapeId('triangle'),
         type: 'line',
-        points: [
-          cx, cy - size/2,           // Top
-          cx - size/2, cy + size/2,  // Bottom left
-          cx + size/2, cy + size/2,  // Bottom right
-          cx, cy - size/2            // Back to top
-        ],
+        points: [cx, cy - size/2, cx - size/2, cy + size/2, cx + size/2, cy + size/2, cx, cy - size/2],
         stroke: '#22d3ee',
         strokeWidth: 3,
-        draggable: true,
-        shapeType: 'triangle'
       }];
     }
   },
   rightTriangle: {
-    name: '⌐ Right Triangle',
-    category: 'basic',
+    name: 'Right △',
+    icon: '⌐',
+    category: 'shapes',
     create: (cx: number, cy: number): DiagramShape[] => {
-      const size = 100;
+      const size = 80;
       return [
         {
-          id: generateShapeId('rtriangle'),
+          id: generateShapeId('rtri'),
           type: 'line',
-          points: [
-            cx - size/2, cy + size/2,  // Bottom left (right angle)
-            cx + size/2, cy + size/2,  // Bottom right
-            cx - size/2, cy - size/2,  // Top
-            cx - size/2, cy + size/2   // Back to start
-          ],
+          points: [cx - size/2, cy + size/2, cx + size/2, cy + size/2, cx - size/2, cy - size/2, cx - size/2, cy + size/2],
           stroke: '#22d3ee',
           strokeWidth: 3,
-          draggable: true,
-          shapeType: 'rightTriangle'
         },
-        // Right angle marker
         {
-          id: generateShapeId('rightangle'),
+          id: generateShapeId('mark'),
           type: 'line',
-          points: [
-            cx - size/2 + 15, cy + size/2,
-            cx - size/2 + 15, cy + size/2 - 15,
-            cx - size/2, cy + size/2 - 15
-          ],
+          points: [cx - size/2 + 12, cy + size/2, cx - size/2 + 12, cy + size/2 - 12, cx - size/2, cy + size/2 - 12],
           stroke: '#22d3ee',
           strokeWidth: 2,
-          draggable: true,
-          shapeType: 'marker'
         }
       ];
     }
   },
   square: {
-    name: '□ Square',
-    category: 'basic',
+    name: 'Square',
+    icon: '□',
+    category: 'shapes',
     create: (cx: number, cy: number): DiagramShape[] => {
-      const size = 80;
+      const s = 70;
       return [{
-        id: generateShapeId('square'),
+        id: generateShapeId('sq'),
         type: 'line',
-        points: [
-          cx - size/2, cy - size/2,
-          cx + size/2, cy - size/2,
-          cx + size/2, cy + size/2,
-          cx - size/2, cy + size/2,
-          cx - size/2, cy - size/2
-        ],
+        points: [cx-s/2, cy-s/2, cx+s/2, cy-s/2, cx+s/2, cy+s/2, cx-s/2, cy+s/2, cx-s/2, cy-s/2],
         stroke: '#22d3ee',
         strokeWidth: 3,
-        draggable: true,
-        shapeType: 'square'
       }];
     }
   },
   rectangle: {
-    name: '▭ Rectangle',
-    category: 'basic',
+    name: 'Rectangle',
+    icon: '▭',
+    category: 'shapes',
     create: (cx: number, cy: number): DiagramShape[] => {
-      const w = 120, h = 70;
+      const w = 100, h = 60;
       return [{
         id: generateShapeId('rect'),
         type: 'line',
-        points: [
-          cx - w/2, cy - h/2,
-          cx + w/2, cy - h/2,
-          cx + w/2, cy + h/2,
-          cx - w/2, cy + h/2,
-          cx - w/2, cy - h/2
-        ],
+        points: [cx-w/2, cy-h/2, cx+w/2, cy-h/2, cx+w/2, cy+h/2, cx-w/2, cy+h/2, cx-w/2, cy-h/2],
         stroke: '#22d3ee',
         strokeWidth: 3,
-        draggable: true,
-        shapeType: 'rectangle'
       }];
     }
   },
   parallelogram: {
-    name: '▱ Parallelogram',
-    category: 'basic',
+    name: 'Parallelogram',
+    icon: '▱',
+    category: 'shapes',
     create: (cx: number, cy: number): DiagramShape[] => {
-      const w = 120, h = 60, skew = 30;
+      const w = 100, h = 50, sk = 25;
       return [{
         id: generateShapeId('para'),
         type: 'line',
-        points: [
-          cx - w/2 + skew, cy - h/2,
-          cx + w/2 + skew, cy - h/2,
-          cx + w/2 - skew, cy + h/2,
-          cx - w/2 - skew, cy + h/2,
-          cx - w/2 + skew, cy - h/2
-        ],
+        points: [cx-w/2+sk, cy-h/2, cx+w/2+sk, cy-h/2, cx+w/2-sk, cy+h/2, cx-w/2-sk, cy+h/2, cx-w/2+sk, cy-h/2],
         stroke: '#22d3ee',
         strokeWidth: 3,
-        draggable: true,
-        shapeType: 'parallelogram'
-      }];
-    }
-  },
-  rhombus: {
-    name: '◇ Rhombus',
-    category: 'basic',
-    create: (cx: number, cy: number): DiagramShape[] => {
-      const w = 80, h = 100;
-      return [{
-        id: generateShapeId('rhombus'),
-        type: 'line',
-        points: [
-          cx, cy - h/2,
-          cx + w/2, cy,
-          cx, cy + h/2,
-          cx - w/2, cy,
-          cx, cy - h/2
-        ],
-        stroke: '#22d3ee',
-        strokeWidth: 3,
-        draggable: true,
-        shapeType: 'rhombus'
       }];
     }
   },
   trapezoid: {
-    name: '⏢ Trapezoid',
-    category: 'basic',
+    name: 'Trapezoid',
+    icon: '⏢',
+    category: 'shapes',
     create: (cx: number, cy: number): DiagramShape[] => {
-      const topW = 60, bottomW = 120, h = 70;
       return [{
         id: generateShapeId('trap'),
         type: 'line',
-        points: [
-          cx - topW/2, cy - h/2,
-          cx + topW/2, cy - h/2,
-          cx + bottomW/2, cy + h/2,
-          cx - bottomW/2, cy + h/2,
-          cx - topW/2, cy - h/2
-        ],
+        points: [cx-30, cy-35, cx+30, cy-35, cx+50, cy+35, cx-50, cy+35, cx-30, cy-35],
         stroke: '#22d3ee',
         strokeWidth: 3,
-        draggable: true,
-        shapeType: 'trapezoid'
+      }];
+    }
+  },
+  rhombus: {
+    name: 'Rhombus',
+    icon: '◇',
+    category: 'shapes',
+    create: (cx: number, cy: number): DiagramShape[] => {
+      return [{
+        id: generateShapeId('rhom'),
+        type: 'line',
+        points: [cx, cy-45, cx+35, cy, cx, cy+45, cx-35, cy, cx, cy-45],
+        stroke: '#22d3ee',
+        strokeWidth: 3,
       }];
     }
   },
   pentagon: {
-    name: '⬠ Pentagon',
-    category: 'basic',
+    name: 'Pentagon',
+    icon: '⬠',
+    category: 'shapes',
     create: (cx: number, cy: number): DiagramShape[] => {
-      const r = 60;
-      const points: number[] = [];
+      const r = 45, pts: number[] = [];
       for (let i = 0; i < 5; i++) {
-        const angle = (i * 72 - 90) * Math.PI / 180;
-        points.push(cx + r * Math.cos(angle), cy + r * Math.sin(angle));
+        const a = (i * 72 - 90) * Math.PI / 180;
+        pts.push(cx + r * Math.cos(a), cy + r * Math.sin(a));
       }
-      points.push(points[0], points[1]); // Close shape
-      return [{
-        id: generateShapeId('pentagon'),
-        type: 'line',
-        points,
-        stroke: '#22d3ee',
-        strokeWidth: 3,
-        draggable: true,
-        shapeType: 'pentagon'
-      }];
+      pts.push(pts[0], pts[1]);
+      return [{ id: generateShapeId('pent'), type: 'line', points: pts, stroke: '#22d3ee', strokeWidth: 3 }];
     }
   },
   hexagon: {
-    name: '⬡ Hexagon',
-    category: 'basic',
+    name: 'Hexagon',
+    icon: '⬡',
+    category: 'shapes',
     create: (cx: number, cy: number): DiagramShape[] => {
-      const r = 55;
-      const points: number[] = [];
+      const r = 40, pts: number[] = [];
       for (let i = 0; i < 6; i++) {
-        const angle = (i * 60 - 90) * Math.PI / 180;
-        points.push(cx + r * Math.cos(angle), cy + r * Math.sin(angle));
+        const a = (i * 60 - 90) * Math.PI / 180;
+        pts.push(cx + r * Math.cos(a), cy + r * Math.sin(a));
       }
-      points.push(points[0], points[1]);
-      return [{
-        id: generateShapeId('hexagon'),
-        type: 'line',
-        points,
-        stroke: '#22d3ee',
-        strokeWidth: 3,
-        draggable: true,
-        shapeType: 'hexagon'
-      }];
+      pts.push(pts[0], pts[1]);
+      return [{ id: generateShapeId('hex'), type: 'line', points: pts, stroke: '#22d3ee', strokeWidth: 3 }];
     }
   },
-  
-  // Angle configurations
+  // Angles
   angleAcute: {
-    name: '∠ Acute Angle',
+    name: '45°',
+    icon: '∠',
     category: 'angles',
     create: (cx: number, cy: number): DiagramShape[] => {
-      const len = 100;
+      const len = 80;
       return [
-        {
-          id: generateShapeId('angle1'),
-          type: 'line',
-          points: [cx, cy, cx + len, cy],
-          stroke: '#f472b6',
-          strokeWidth: 3,
-          draggable: true,
-          shapeType: 'angleLine'
-        },
-        {
-          id: generateShapeId('angle2'),
-          type: 'line',
-          points: [cx, cy, cx + len * Math.cos(45 * Math.PI/180), cy - len * Math.sin(45 * Math.PI/180)],
-          stroke: '#f472b6',
-          strokeWidth: 3,
-          draggable: true,
-          shapeType: 'angleLine'
-        },
-        {
-          id: generateShapeId('label'),
-          type: 'text',
-          x: cx + 25,
-          y: cy - 15,
-          text: '45°',
-          fontSize: 14,
-          fill: '#fbbf24',
-          draggable: true,
-          shapeType: 'text'
-        }
+        { id: generateShapeId('a1'), type: 'line', points: [cx, cy, cx + len, cy], stroke: '#f472b6', strokeWidth: 3 },
+        { id: generateShapeId('a2'), type: 'line', points: [cx, cy, cx + len * 0.707, cy - len * 0.707], stroke: '#f472b6', strokeWidth: 3 },
+        { id: generateShapeId('lbl'), type: 'text', x: cx + 20, y: cy - 15, text: '45°', fontSize: 14, fill: '#fbbf24' }
       ];
     }
   },
   angleRight: {
-    name: '∟ Right Angle',
+    name: '90°',
+    icon: '∟',
     category: 'angles',
     create: (cx: number, cy: number): DiagramShape[] => {
-      const len = 100;
+      const len = 80;
       return [
-        {
-          id: generateShapeId('rangle1'),
-          type: 'line',
-          points: [cx, cy, cx + len, cy],
-          stroke: '#f472b6',
-          strokeWidth: 3,
-          draggable: true,
-          shapeType: 'angleLine'
-        },
-        {
-          id: generateShapeId('rangle2'),
-          type: 'line',
-          points: [cx, cy, cx, cy - len],
-          stroke: '#f472b6',
-          strokeWidth: 3,
-          draggable: true,
-          shapeType: 'angleLine'
-        },
-        {
-          id: generateShapeId('rsquare'),
-          type: 'line',
-          points: [cx + 15, cy, cx + 15, cy - 15, cx, cy - 15],
-          stroke: '#f472b6',
-          strokeWidth: 2,
-          draggable: true,
-          shapeType: 'marker'
-        },
-        {
-          id: generateShapeId('label'),
-          type: 'text',
-          x: cx + 20,
-          y: cy - 25,
-          text: '90°',
-          fontSize: 14,
-          fill: '#fbbf24',
-          draggable: true,
-          shapeType: 'text'
-        }
+        { id: generateShapeId('r1'), type: 'line', points: [cx, cy, cx + len, cy], stroke: '#f472b6', strokeWidth: 3 },
+        { id: generateShapeId('r2'), type: 'line', points: [cx, cy, cx, cy - len], stroke: '#f472b6', strokeWidth: 3 },
+        { id: generateShapeId('sq'), type: 'line', points: [cx + 12, cy, cx + 12, cy - 12, cx, cy - 12], stroke: '#f472b6', strokeWidth: 2 },
+        { id: generateShapeId('lbl'), type: 'text', x: cx + 18, y: cy - 25, text: '90°', fontSize: 14, fill: '#fbbf24' }
       ];
     }
   },
   angleObtuse: {
-    name: '⦦ Obtuse Angle',
+    name: '120°',
+    icon: '⦦',
     category: 'angles',
     create: (cx: number, cy: number): DiagramShape[] => {
-      const len = 100;
-      const angle = 120;
+      const len = 80;
       return [
-        {
-          id: generateShapeId('oangle1'),
-          type: 'line',
-          points: [cx, cy, cx + len, cy],
-          stroke: '#f472b6',
-          strokeWidth: 3,
-          draggable: true,
-          shapeType: 'angleLine'
-        },
-        {
-          id: generateShapeId('oangle2'),
-          type: 'line',
-          points: [cx, cy, cx + len * Math.cos(angle * Math.PI/180), cy - len * Math.sin(angle * Math.PI/180)],
-          stroke: '#f472b6',
-          strokeWidth: 3,
-          draggable: true,
-          shapeType: 'angleLine'
-        },
-        {
-          id: generateShapeId('label'),
-          type: 'text',
-          x: cx + 15,
-          y: cy - 35,
-          text: '120°',
-          fontSize: 14,
-          fill: '#fbbf24',
-          draggable: true,
-          shapeType: 'text'
-        }
+        { id: generateShapeId('o1'), type: 'line', points: [cx, cy, cx + len, cy], stroke: '#f472b6', strokeWidth: 3 },
+        { id: generateShapeId('o2'), type: 'line', points: [cx, cy, cx - len * 0.5, cy - len * 0.866], stroke: '#f472b6', strokeWidth: 3 },
+        { id: generateShapeId('lbl'), type: 'text', x: cx + 10, y: cy - 30, text: '120°', fontSize: 14, fill: '#fbbf24' }
       ];
     }
   },
-  angleStraight: {
-    name: '— Straight Angle',
-    category: 'angles',
-    create: (cx: number, cy: number): DiagramShape[] => {
-      const len = 120;
-      return [
-        {
-          id: generateShapeId('sangle'),
-          type: 'line',
-          points: [cx - len, cy, cx + len, cy],
-          stroke: '#f472b6',
-          strokeWidth: 3,
-          draggable: true,
-          shapeType: 'straightAngle'
-        },
-        {
-          id: generateShapeId('spoint'),
-          type: 'circle',
-          x: cx,
-          y: cy,
-          radius: 5,
-          fill: '#fbbf24',
-          stroke: '#f472b6',
-          strokeWidth: 2,
-          draggable: true,
-          shapeType: 'point'
-        },
-        {
-          id: generateShapeId('label'),
-          type: 'text',
-          x: cx - 15,
-          y: cy - 25,
-          text: '180°',
-          fontSize: 14,
-          fill: '#fbbf24',
-          draggable: true,
-          shapeType: 'text'
-        }
-      ];
-    }
-  },
-  
-  // Lines and segments
-  parallelLines: {
-    name: '∥ Parallel Lines',
+  // Lines
+  parallel: {
+    name: 'Parallel',
+    icon: '∥',
     category: 'lines',
     create: (cx: number, cy: number): DiagramShape[] => {
-      const len = 150;
-      const gap = 50;
       return [
-        {
-          id: generateShapeId('pline1'),
-          type: 'line',
-          points: [cx - len/2, cy - gap/2, cx + len/2, cy - gap/2],
-          stroke: '#10b981',
-          strokeWidth: 3,
-          draggable: true,
-          shapeType: 'line'
-        },
-        {
-          id: generateShapeId('pline2'),
-          type: 'line',
-          points: [cx - len/2, cy + gap/2, cx + len/2, cy + gap/2],
-          stroke: '#10b981',
-          strokeWidth: 3,
-          draggable: true,
-          shapeType: 'line'
-        },
-        // Parallel markers
-        {
-          id: generateShapeId('pmark1'),
-          type: 'arrow',
-          points: [cx - 5, cy - gap/2 - 8, cx + 5, cy - gap/2 - 8],
-          stroke: '#10b981',
-          fill: '#10b981',
-          strokeWidth: 2,
-          pointerLength: 6,
-          pointerWidth: 6,
-          draggable: true,
-          shapeType: 'marker'
-        },
-        {
-          id: generateShapeId('pmark2'),
-          type: 'arrow',
-          points: [cx - 5, cy + gap/2 - 8, cx + 5, cy + gap/2 - 8],
-          stroke: '#10b981',
-          fill: '#10b981',
-          strokeWidth: 2,
-          pointerLength: 6,
-          pointerWidth: 6,
-          draggable: true,
-          shapeType: 'marker'
-        }
+        { id: generateShapeId('p1'), type: 'line', points: [cx - 60, cy - 20, cx + 60, cy - 20], stroke: '#10b981', strokeWidth: 3 },
+        { id: generateShapeId('p2'), type: 'line', points: [cx - 60, cy + 20, cx + 60, cy + 20], stroke: '#10b981', strokeWidth: 3 },
       ];
     }
   },
-  perpendicularLines: {
-    name: '⊥ Perpendicular',
+  perpendicular: {
+    name: 'Perpendicular',
+    icon: '⊥',
     category: 'lines',
     create: (cx: number, cy: number): DiagramShape[] => {
-      const len = 100;
       return [
-        {
-          id: generateShapeId('perpline1'),
-          type: 'line',
-          points: [cx - len, cy, cx + len, cy],
-          stroke: '#10b981',
-          strokeWidth: 3,
-          draggable: true,
-          shapeType: 'line'
-        },
-        {
-          id: generateShapeId('perpline2'),
-          type: 'line',
-          points: [cx, cy - len, cx, cy + len],
-          stroke: '#10b981',
-          strokeWidth: 3,
-          draggable: true,
-          shapeType: 'line'
-        },
-        // Right angle marker
-        {
-          id: generateShapeId('perpmark'),
-          type: 'line',
-          points: [cx + 12, cy, cx + 12, cy - 12, cx, cy - 12],
-          stroke: '#10b981',
-          strokeWidth: 2,
-          draggable: true,
-          shapeType: 'marker'
-        }
+        { id: generateShapeId('h'), type: 'line', points: [cx - 60, cy, cx + 60, cy], stroke: '#10b981', strokeWidth: 3 },
+        { id: generateShapeId('v'), type: 'line', points: [cx, cy - 60, cx, cy + 60], stroke: '#10b981', strokeWidth: 3 },
+        { id: generateShapeId('m'), type: 'line', points: [cx + 10, cy, cx + 10, cy - 10, cx, cy - 10], stroke: '#10b981', strokeWidth: 2 },
       ];
     }
   },
-  transversal: {
-    name: '⟋ Transversal',
-    category: 'lines',
-    create: (cx: number, cy: number): DiagramShape[] => {
-      const len = 140;
-      const gap = 60;
-      return [
-        // Two parallel lines
-        {
-          id: generateShapeId('tline1'),
-          type: 'line',
-          points: [cx - len/2, cy - gap/2, cx + len/2, cy - gap/2],
-          stroke: '#10b981',
-          strokeWidth: 3,
-          draggable: true,
-          shapeType: 'line'
-        },
-        {
-          id: generateShapeId('tline2'),
-          type: 'line',
-          points: [cx - len/2, cy + gap/2, cx + len/2, cy + gap/2],
-          stroke: '#10b981',
-          strokeWidth: 3,
-          draggable: true,
-          shapeType: 'line'
-        },
-        // Transversal line
-        {
-          id: generateShapeId('trans'),
-          type: 'line',
-          points: [cx - 40, cy - 80, cx + 40, cy + 80],
-          stroke: '#f472b6',
-          strokeWidth: 3,
-          draggable: true,
-          shapeType: 'transversal'
-        }
-      ];
-    }
-  },
-  
   // Circles
-  circleWithRadius: {
-    name: '⊙ Circle + Radius',
+  circleRadius: {
+    name: 'Circle+r',
+    icon: '⊙',
     category: 'circles',
     create: (cx: number, cy: number): DiagramShape[] => {
-      const r = 60;
+      const r = 50;
       return [
-        {
-          id: generateShapeId('circle'),
-          type: 'circle',
-          x: cx,
-          y: cy,
-          radius: r,
-          stroke: '#a855f7',
-          strokeWidth: 3,
-          fill: 'transparent',
-          draggable: true,
-          shapeType: 'circle'
-        },
-        // Center point
-        {
-          id: generateShapeId('center'),
-          type: 'circle',
-          x: cx,
-          y: cy,
-          radius: 4,
-          fill: '#a855f7',
-          stroke: '#a855f7',
-          strokeWidth: 2,
-          draggable: true,
-          shapeType: 'point'
-        },
-        // Radius line
-        {
-          id: generateShapeId('radius'),
-          type: 'line',
-          points: [cx, cy, cx + r, cy],
-          stroke: '#fbbf24',
-          strokeWidth: 2,
-          draggable: true,
-          shapeType: 'radius'
-        },
-        {
-          id: generateShapeId('rlabel'),
-          type: 'text',
-          x: cx + r/2 - 5,
-          y: cy - 18,
-          text: 'r',
-          fontSize: 16,
-          fill: '#fbbf24',
-          draggable: true,
-          shapeType: 'text'
-        }
+        { id: generateShapeId('c'), type: 'circle', x: cx, y: cy, radius: r, stroke: '#a855f7', strokeWidth: 3, fill: 'transparent' },
+        { id: generateShapeId('ctr'), type: 'point', x: cx, y: cy, radius: 4, fill: '#a855f7', stroke: '#a855f7' },
+        { id: generateShapeId('rad'), type: 'line', points: [cx, cy, cx + r, cy], stroke: '#fbbf24', strokeWidth: 2 },
+        { id: generateShapeId('rl'), type: 'text', x: cx + r/2 - 5, y: cy - 15, text: 'r', fontSize: 16, fill: '#fbbf24' }
       ];
     }
   },
-  circleWithDiameter: {
-    name: '⦵ Circle + Diameter',
+  circleDiameter: {
+    name: 'Circle+d',
+    icon: '⦵',
     category: 'circles',
     create: (cx: number, cy: number): DiagramShape[] => {
-      const r = 60;
+      const r = 50;
       return [
-        {
-          id: generateShapeId('circle'),
-          type: 'circle',
-          x: cx,
-          y: cy,
-          radius: r,
-          stroke: '#a855f7',
-          strokeWidth: 3,
-          fill: 'transparent',
-          draggable: true,
-          shapeType: 'circle'
-        },
-        // Center point
-        {
-          id: generateShapeId('center'),
-          type: 'circle',
-          x: cx,
-          y: cy,
-          radius: 4,
-          fill: '#a855f7',
-          stroke: '#a855f7',
-          strokeWidth: 2,
-          draggable: true,
-          shapeType: 'point'
-        },
-        // Diameter line
-        {
-          id: generateShapeId('diameter'),
-          type: 'line',
-          points: [cx - r, cy, cx + r, cy],
-          stroke: '#fbbf24',
-          strokeWidth: 2,
-          draggable: true,
-          shapeType: 'diameter'
-        },
-        {
-          id: generateShapeId('dlabel'),
-          type: 'text',
-          x: cx - 5,
-          y: cy - 18,
-          text: 'd',
-          fontSize: 16,
-          fill: '#fbbf24',
-          draggable: true,
-          shapeType: 'text'
-        }
+        { id: generateShapeId('c'), type: 'circle', x: cx, y: cy, radius: r, stroke: '#a855f7', strokeWidth: 3, fill: 'transparent' },
+        { id: generateShapeId('ctr'), type: 'point', x: cx, y: cy, radius: 4, fill: '#a855f7', stroke: '#a855f7' },
+        { id: generateShapeId('dia'), type: 'line', points: [cx - r, cy, cx + r, cy], stroke: '#fbbf24', strokeWidth: 2 },
+        { id: generateShapeId('dl'), type: 'text', x: cx - 5, y: cy - 15, text: 'd', fontSize: 16, fill: '#fbbf24' }
       ];
     }
   },
-  semicircle: {
-    name: '⌓ Semicircle',
-    category: 'circles',
-    create: (cx: number, cy: number): DiagramShape[] => {
-      const r = 60;
-      // Create semicircle using multiple points
-      const points: number[] = [];
-      for (let i = 0; i <= 180; i += 10) {
-        const angle = i * Math.PI / 180;
-        points.push(cx + r * Math.cos(angle), cy - r * Math.sin(angle));
-      }
-      return [
-        {
-          id: generateShapeId('semicircle'),
-          type: 'line',
-          points: [...points, cx - r, cy], // Close with diameter
-          stroke: '#a855f7',
-          strokeWidth: 3,
-          draggable: true,
-          shapeType: 'semicircle'
-        },
-        // Diameter line
-        {
-          id: generateShapeId('sdiameter'),
-          type: 'line',
-          points: [cx - r, cy, cx + r, cy],
-          stroke: '#a855f7',
-          strokeWidth: 3,
-          draggable: true,
-          shapeType: 'diameter'
-        }
-      ];
-    }
-  }
 };
 
-const CATEGORIES = [
-  { id: 'basic', name: '📐 Basic Shapes', color: 'cyan' },
-  { id: 'angles', name: '∠ Angles', color: 'pink' },
-  { id: 'lines', name: '═ Lines', color: 'green' },
-  { id: 'circles', name: '⭕ Circles', color: 'purple' }
+const SHAPE_CATEGORIES = [
+  { id: 'shapes', name: 'Shapes', icon: '△' },
+  { id: 'angles', name: 'Angles', icon: '∠' },
+  { id: 'lines', name: 'Lines', icon: '∥' },
+  { id: 'circles', name: 'Circles', icon: '○' },
 ];
 
-const ShapesLibrary: React.FC<ShapesLibraryProps> = ({ onAddShape }) => {
-  const [activeCategory, setActiveCategory] = React.useState('basic');
+const ShapesLibrary: React.FC<ShapesLibraryProps> = ({ onAddShape, onAddSymbol }) => {
+  const [activeTab, setActiveTab] = useState<'shapes' | 'symbols'>('shapes');
+  const [shapeCategory, setShapeCategory] = useState('shapes');
+  const [symbolCategory, setSymbolCategory] = useState('greek');
 
-  const handleAddShape = (templateKey: string) => {
-    const template = SHAPE_TEMPLATES[templateKey as keyof typeof SHAPE_TEMPLATES];
+  const handleAddShape = (key: string) => {
+    const template = SHAPE_TEMPLATES[key as keyof typeof SHAPE_TEMPLATES];
     if (template) {
-      // Place shape at center of canvas
-      const shapes = template.create(350, 225);
+      const shapes = template.create(350, 200);
       onAddShape(shapes);
     }
   };
 
-  const filteredTemplates = Object.entries(SHAPE_TEMPLATES)
-    .filter(([_, t]) => t.category === activeCategory);
+  const filteredShapes = Object.entries(SHAPE_TEMPLATES).filter(([_, t]) => t.category === shapeCategory);
+  const currentSymbols = MATH_SYMBOLS[symbolCategory as keyof typeof MATH_SYMBOLS] || [];
 
   return (
-    <div className="card-glass p-3">
-      <h3 className="text-sm font-semibold text-gray-300 mb-2">📚 Shapes Library</h3>
-      
-      {/* Category tabs */}
-      <div className="flex flex-wrap gap-1 mb-3">
-        {CATEGORIES.map(cat => (
-          <button
-            key={cat.id}
-            onClick={() => setActiveCategory(cat.id)}
-            className={`px-2 py-1 rounded text-xs transition-all ${
-              activeCategory === cat.id
-                ? 'bg-cyan-500/30 text-cyan-400 border border-cyan-500'
-                : 'bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500'
-            }`}
-          >
-            {cat.name}
-          </button>
-        ))}
+    <div className="bg-gray-900/80 border border-gray-700 rounded-lg p-2 mb-2">
+      {/* Main tabs */}
+      <div className="flex gap-1 mb-2">
+        <button
+          onClick={() => setActiveTab('shapes')}
+          className={`px-3 py-1 rounded text-sm font-medium transition-all ${
+            activeTab === 'shapes'
+              ? 'bg-cyan-500/30 text-cyan-400 border border-cyan-500'
+              : 'bg-gray-800/50 text-gray-400 hover:text-white'
+          }`}
+        >
+          📐 Shapes
+        </button>
+        <button
+          onClick={() => setActiveTab('symbols')}
+          className={`px-3 py-1 rounded text-sm font-medium transition-all ${
+            activeTab === 'symbols'
+              ? 'bg-purple-500/30 text-purple-400 border border-purple-500'
+              : 'bg-gray-800/50 text-gray-400 hover:text-white'
+          }`}
+        >
+          ∑ Math Symbols
+        </button>
       </div>
 
-      {/* Shape buttons */}
-      <div className="grid grid-cols-2 gap-2">
-        {filteredTemplates.map(([key, template]) => (
-          <button
-            key={key}
-            onClick={() => handleAddShape(key)}
-            className="flex items-center gap-2 px-3 py-2 bg-gray-800/50 hover:bg-gray-700/50 
-                       border border-gray-700 hover:border-cyan-500 rounded-lg text-left
-                       text-sm text-gray-300 hover:text-white transition-all group"
-          >
-            <span className="text-lg group-hover:scale-110 transition-transform">
-              {template.name.split(' ')[0]}
-            </span>
-            <span className="text-xs">{template.name.split(' ').slice(1).join(' ')}</span>
-          </button>
-        ))}
-      </div>
+      {activeTab === 'shapes' && (
+        <>
+          {/* Shape category tabs */}
+          <div className="flex gap-1 mb-2 flex-wrap">
+            {SHAPE_CATEGORIES.map(cat => (
+              <button
+                key={cat.id}
+                onClick={() => setShapeCategory(cat.id)}
+                className={`px-2 py-0.5 rounded text-xs transition-all ${
+                  shapeCategory === cat.id
+                    ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50'
+                    : 'bg-gray-800/30 text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                {cat.icon} {cat.name}
+              </button>
+            ))}
+          </div>
+          
+          {/* Shape buttons - horizontal scroll */}
+          <div className="flex gap-1 overflow-x-auto pb-1">
+            {filteredShapes.map(([key, template]) => (
+              <button
+                key={key}
+                onClick={() => handleAddShape(key)}
+                className="flex-shrink-0 flex items-center gap-1 px-2 py-1 bg-gray-800/50 hover:bg-cyan-500/20 
+                           border border-gray-700 hover:border-cyan-500 rounded text-xs text-gray-300 
+                           hover:text-white transition-all whitespace-nowrap"
+                title={template.name}
+              >
+                <span className="text-base">{template.icon}</span>
+                <span>{template.name}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
-      <p className="text-xs text-gray-500 mt-3">
-        Click to add shape to center of canvas
-      </p>
+      {activeTab === 'symbols' && (
+        <>
+          {/* Symbol category tabs */}
+          <div className="flex gap-1 mb-2 flex-wrap">
+            {SYMBOL_CATEGORIES.map(cat => (
+              <button
+                key={cat.id}
+                onClick={() => setSymbolCategory(cat.id)}
+                className={`px-2 py-0.5 rounded text-xs transition-all ${
+                  symbolCategory === cat.id
+                    ? 'bg-purple-500/20 text-purple-400 border border-purple-500/50'
+                    : 'bg-gray-800/30 text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                {cat.icon} {cat.name}
+              </button>
+            ))}
+          </div>
+          
+          {/* Symbol buttons - horizontal scroll */}
+          <div className="flex gap-1 overflow-x-auto pb-1">
+            {currentSymbols.map((symbol, i) => (
+              <button
+                key={i}
+                onClick={() => onAddSymbol(symbol)}
+                className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-gray-800/50 
+                           hover:bg-purple-500/20 border border-gray-700 hover:border-purple-500 
+                           rounded text-lg text-gray-300 hover:text-white transition-all"
+                title={`Insert ${symbol}`}
+              >
+                {symbol}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-gray-500 mt-1">Click to add symbol as text to canvas center</p>
+        </>
+      )}
     </div>
   );
 };
