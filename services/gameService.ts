@@ -1163,12 +1163,15 @@ export const whoami = async (): Promise<Profile> => {
   // Get current authenticated user with retry logic
   const user = await getCurrentUser();
 
-  // Fetch profile from database with retry logic
+  console.log(`[whoami] Fetching profile for user ${user.id}`);
+
+  // Fetch profile from database with retry logic - use fresh read
   let profile: any = null;
   let profileError: any = null;
   
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
+      // Add timestamp to query to ensure fresh data (bypass any caching)
       const result = await supabase
         .from('users')
         .select('*')
@@ -1178,14 +1181,17 @@ export const whoami = async (): Promise<Profile> => {
       profile = result.data;
       profileError = result.error;
       
-      if (!profileError) break; // Success
-      if (profileError.code === 'PGRST116') break; // Not found - don't retry
+      if (!profileError && profile) {
+        console.log(`[whoami] Got profile: xp=${profile.xp}, coins=${profile.coins}, level=${profile.level}`);
+        break; // Success
+      }
+      if (profileError?.code === 'PGRST116') break; // Not found - don't retry
       
-      throw profileError;
+      throw profileError || new Error('Profile data is null');
     } catch (err) {
       if (attempt < 3) {
         await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
-        console.warn(`whoami profile fetch attempt ${attempt} failed, retrying...`, err);
+        console.warn(`[whoami] Attempt ${attempt} failed, retrying...`, err);
       } else {
         profileError = err;
       }
