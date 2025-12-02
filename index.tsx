@@ -15,6 +15,8 @@ import IeltsHome from './src/pages/ielts/IeltsHome';
 import IeltsSession from './src/pages/ielts/IeltsSession';
 import ReadingPractice from './src/pages/ielts/ReadingPractice';
 import SpeakingPractice from './src/pages/ielts/SpeakingPractice';
+import ListeningPractice from './src/pages/ielts/ListeningPractice';
+import WritingPractice from './src/pages/ielts/WritingPractice';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient();
@@ -161,6 +163,14 @@ const router = createBrowserRouter([
   {
     path: '/ielts/reading/:setId',
     element: <ProtectedRoute element={<ReadingPractice />} />,
+  },
+  {
+    path: '/ielts/listening/:setId',
+    element: <ProtectedRoute element={<ListeningPractice />} />,
+  },
+  {
+    path: '/ielts/writing/:taskId',
+    element: <ProtectedRoute element={<WritingPractice />} />,
   },
   {
     path: '/ielts/speaking/:taskId',

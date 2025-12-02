@@ -133,7 +133,8 @@ const SpeakingPractice: React.FC = () => {
       setIsRecording(true);
       setRecordingTime(0);
 
-      const maxTime = task?.follow_ups?.speaking_time || task?.follow_ups?.time_limit || 180;
+      // Max recording time: 2 minutes (120 seconds) default, or task-specific time
+      const maxTime = task?.follow_ups?.speaking_time || task?.follow_ups?.time_limit || 120;
       recordingTimerRef.current = setInterval(() => {
         setRecordingTime(prev => {
           if (prev >= maxTime) {
