@@ -21,9 +21,12 @@ const DifficultyCard: React.FC<DifficultyCardProps> = ({
   subject
 }) => {
   const reward = getRewardPreview(level);
-  const hasNewQuestions = progress.newLeft > 0;
+  const newQuestionsLeft = Math.max(0, progress.total - progress.answeredWithRewards);
+  const hasNewQuestions = newQuestionsLeft > 0;
   const isPracticeOnly = !hasNewQuestions;
   const actuallyDisabled = disabled;
+  
+  const buttonText = hasNewQuestions ? 'Start (earn XP)' : 'Practice (no rewards)';
   
   // Soft guardrail for Hard difficulty
   const needsWarmup = level === 'hard' && !hasMinimumWarmup(subject);
@@ -79,46 +82,69 @@ const DifficultyCard: React.FC<DifficultyCardProps> = ({
         </div>
       </div>
 
-      {/* New Questions Status */}
+      {/* Questions Status */}
       <div className="mb-4">
-        <div className="flex justify-between text-sm mb-2">
-          <span className="text-gray-300">New questions left</span>
-          <span className={`font-bold ${hasNewQuestions ? textColors[level] : 'text-gray-500'}`}>
-            {progress.newLeft}
-          </span>
-        </div>
-        <div className="flex justify-between text-xs text-gray-400 mb-2">
-          <span>Already rewarded</span>
-          <span>{progress.answeredWithRewards} / {progress.total}</span>
-        </div>
-        <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-          <div
-            className={`h-full transition-all duration-500 ${
-              level === 'easy' ? 'bg-green-500' : level === 'medium' ? 'bg-amber-500' : 'bg-rose-500'
-            }`}
-            style={{ width: `${Math.min(100, (progress.answeredWithRewards / progress.total) * 100)}%` }}
-          />
-        </div>
+        {hasNewQuestions ? (
+          // Case A: New rewardable questions available
+          <>
+            <div className="mb-3">
+              <p className={`text-lg font-bold ${textColors[level]} mb-1`}>
+                New questions with rewards: {newQuestionsLeft}
+              </p>
+            </div>
+            <div className="flex justify-between text-sm text-gray-400 mb-2">
+              <span>Rewarded questions:</span>
+              <span className="font-medium">{progress.answeredWithRewards} / {progress.total}</span>
+            </div>
+            <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div
+                className={`h-full transition-all duration-500 ${
+                  level === 'easy' ? 'bg-green-500' : level === 'medium' ? 'bg-amber-500' : 'bg-rose-500'
+                }`}
+                style={{ width: `${Math.min(100, (progress.answeredWithRewards / progress.total) * 100)}%` }}
+              />
+            </div>
+          </>
+        ) : (
+          // Case B: All questions completed for rewards
+          <>
+            <div className="mb-3">
+              <p className={`text-lg font-bold text-gray-300 mb-1`}>
+                All {progress.total} questions completed for rewards ✅
+              </p>
+            </div>
+            <div className="flex justify-between text-sm text-gray-400 mb-2">
+              <span>Rewarded questions:</span>
+              <span className="font-medium">{progress.answeredWithRewards} / {progress.total}</span>
+            </div>
+            <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div
+                className={`h-full transition-all duration-500 ${
+                  level === 'easy' ? 'bg-green-500' : level === 'medium' ? 'bg-amber-500' : 'bg-rose-500'
+                }`}
+                style={{ width: "100%" }}
+              />
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Rewards or Practice Badge */}
-      {hasNewQuestions ? (
-        <div className="flex items-center justify-center gap-4 mb-3">
+      {/* Top Pill Badge */}
+      <div className="flex items-center justify-center mb-3">
+        {hasNewQuestions ? (
           <div className="px-3 py-1.5 bg-green-500/20 border border-green-400/50 rounded-full text-green-300 text-xs font-bold">
             💰 Earn XP & coins
           </div>
-        </div>
-      ) : (
-        <div className="flex items-center justify-center mb-3">
+        ) : (
           <div className="px-3 py-1.5 bg-slate-700/50 border border-slate-600 rounded-full text-slate-400 text-xs font-semibold">
-            🔄 Practice only (no rewards)
+            🔄 Practice Only
           </div>
-        </div>
-      )}
+        )}
+      </div>
       
-      {/* Reward Preview */}
+      {/* Reward Preview (only for new questions) */}
       {hasNewQuestions && (
-        <div className="flex items-center justify-center gap-4 text-sm text-gray-400">
+        <div className="flex items-center justify-center gap-4 text-sm text-gray-400 mb-3">
           <div className="flex items-center gap-1">
             <XPIcon className="w-4 h-4 text-cyan-400" />
             <span>~{reward.xp}</span>
@@ -130,8 +156,22 @@ const DifficultyCard: React.FC<DifficultyCardProps> = ({
         </div>
       )}
 
+      {/* Button Text */}
+      <div className={`text-center font-bold text-sm mb-2 ${
+        hasNewQuestions ? textColors[level] : 'text-gray-400'
+      }`}>
+        {buttonText}
+      </div>
+
+      {/* Hint for completed difficulty */}
+      {isPracticeOnly && (
+        <p className="text-xs text-gray-500 text-center">
+          For new XP, try another subject or difficulty.
+        </p>
+      )}
+
       {/* Warm-up Warning for Hard */}
-      {needsWarmup && !actuallyDisabled && (
+      {needsWarmup && hasNewQuestions && !actuallyDisabled && (
         <div className="mt-3 p-2 bg-amber-500/10 border border-amber-400/30 rounded-lg text-xs text-amber-200">
           <span className="mr-1">👀</span>
           You'll learn faster if you warm up with a few Easy questions first
