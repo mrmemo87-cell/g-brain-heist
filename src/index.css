@@ -953,6 +953,127 @@ button:active:not(:disabled) {
   background: linear-gradient(135deg, #ffb020 0%, #ffd700 100%);
 }
 
+.quest-play-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 66px;
+  padding: 0.85rem 1.6rem;
+  border-radius: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: linear-gradient(110deg, #ff79c3 0%, #ff4aa9 45%, #ff2d91 100%);
+  color: #fff;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  overflow: hidden;
+  box-shadow: 0 18px 30px rgba(255, 45, 145, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-position 0.4s ease;
+  background-size: 200% 100%;
+}
+
+.quest-play-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.35), transparent 50%);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.quest-play-button:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 24px 35px rgba(255, 45, 145, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  background-position: 100% 0;
+}
+
+.quest-play-button__copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.quest-play-button__text {
+  font-size: 1.25rem;
+  letter-spacing: 0.45em;
+}
+
+.quest-play-button__status {
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+}
+
+.quest-play-button__arrow {
+  position: relative;
+  z-index: 1;
+  font-size: 1.9rem;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 18px rgba(255, 255, 255, 0.4);
+  transition: transform 0.2s ease;
+}
+
+.quest-play-button:hover .quest-play-button__arrow {
+  transform: translateX(3px);
+}
+
+.quest-play-button__warning {
+  position: absolute;
+  bottom: 12px;
+  left: 1.6rem;
+  z-index: 1;
+  font-size: 0.55rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.25);
+  color: #ffe7d7;
+}
+
+.quest-play-button--locked::before {
+  background: radial-gradient(circle at 30% 20%, rgba(255, 202, 156, 0.45), transparent 55%);
+}
+
+.quest-play-button--locked .quest-play-button__status {
+  color: rgba(255, 244, 210, 0.95);
+}
+
+.quest-play-button--locked .quest-play-button__warning {
+  background: rgba(20, 14, 10, 0.4);
+  border-color: rgba(255, 176, 32, 0.6);
+  color: #fff1e2;
+}
+
+body.lite-mode .quest-play-button {
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 14px 24px rgba(255, 45, 145, 0.25), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  background: linear-gradient(110deg, #ff9ccc 0%, #ff69b4 50%, #ff3f97 100%);
+}
+
+body.lite-mode .quest-play-button__status,
+body.lite-mode .quest-play-button__warning {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+body.lite-mode .quest-play-button__arrow {
+  background: rgba(255, 255, 255, 0.35);
+}
+
 body::before {
   content: '';
   position: fixed;
