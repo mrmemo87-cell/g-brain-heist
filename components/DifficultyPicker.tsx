@@ -128,11 +128,7 @@ const DifficultyCard: React.FC<DifficultyCardProps> = ({
             <span>~{reward.coins}</span>
           </div>
         </div>
-      )} className="flex items-center gap-1">
-          <CoinIcon className="w-5 h-5 text-amber-400" />
-          <span className="text-amber-300 font-bold">+{reward.coins}</span>
-        </div>
-      </div>
+      )}
 
       {/* Warm-up Warning for Hard */}
       {needsWarmup && !actuallyDisabled && (
