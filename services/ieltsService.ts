@@ -540,13 +540,29 @@ export const submitReadingAttempt = async (
     throw new Error('Not authenticated');
   }
 
+  const userId = session.session.user.id;
+
+  // Ensure user exists in ielts_users table
+  const { error: upsertError } = await supabase
+    .from('ielts_users')
+    .upsert({
+      id: userId,
+      email: session.session.user.email,
+      tier: 'free',
+    }, { onConflict: 'id' });
+
+  if (upsertError) {
+    console.error('Error ensuring IELTS user:', upsertError);
+    // Continue anyway - user might already exist
+  }
+
   const { data, error } = await supabase
     .from('ielts_reading_attempts')
     .insert({
-      user_id: session.session.user.id,
+      user_id: userId,
       set_id: setId,
       answers,
-      time_spent: timeSpent,
+      time_spent_seconds: timeSpent,
       completed_at: new Date().toISOString(),
     })
     .select()
