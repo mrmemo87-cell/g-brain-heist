@@ -152,13 +152,37 @@ if (!rootElement) {
 
 const root = ReactDOM.createRoot(rootElement);
 
+// Create router with IELTS routes
+const router = createBrowserRouter([
+  {
+    path: '/ielts',
+    element: <ProtectedRoute element={<IeltsHome />} />,
+  },
+  {
+    path: '/ielts/reading/:setId',
+    element: <ProtectedRoute element={<ReadingPractice />} />,
+  },
+  {
+    path: '/ielts/speaking/:taskId',
+    element: <ProtectedRoute element={<SpeakingPractice />} />,
+  },
+  {
+    path: '/ielts/session/:sessionId',
+    element: <ProtectedRoute element={<IeltsSession />} />,
+  },
+  {
+    path: '*',
+    element: <Main />,
+  },
+]);
+
 // Render the main app with routing for all paths
 root.render(
   <React.StrictMode>
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <LightModeProvider>
-          <Main />
+          <RouterProvider router={router} />
         </LightModeProvider>
       </QueryClientProvider>
     </ErrorBoundary>

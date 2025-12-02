@@ -402,7 +402,8 @@ security definer
 set search_path = public
 as $$
 BEGIN
-  IF p_grade IS NULL OR p_grade NOT IN (8, 9) THEN
+  -- Accept grades 6-12
+  IF p_grade IS NULL OR p_grade < 6 OR p_grade > 12 THEN
     RAISE EXCEPTION 'invalid_grade';
   END IF;
 
@@ -443,7 +444,17 @@ security definer
 set search_path = public
 as $$
 BEGIN
-  IF p_batch IS NULL OR p_batch NOT IN ('8A','8B','8C','9A','9B','9C') THEN
+  -- Accept all batches 6A-12C plus N/A
+  IF p_batch IS NULL OR p_batch NOT IN (
+    '6A', '6B', '6C',
+    '7A', '7B', '7C',
+    '8A', '8B', '8C',
+    '9A', '9B', '9C',
+    '10A', '10B', '10C',
+    '11A', '11B', '11C',
+    '12A', '12B', '12C',
+    'N/A'
+  ) THEN
     RAISE EXCEPTION 'invalid_batch';
   END IF;
 
@@ -779,16 +790,28 @@ begin
     raise exception 'forbidden';
   end if;
 
-  if v_grade is not null and v_grade not in (8, 9) then
+  -- Accept grades 6-12
+  if v_grade is not null and (v_grade < 6 or v_grade > 12) then
     raise exception 'invalid_grade';
   end if;
 
-  if v_batch is not null and v_batch not in ('8A', '8B', '8C', '9A', '9B', '9C', 'N/A') then
+  -- Accept all batches 6A-12C plus N/A
+  if v_batch is not null and v_batch not in (
+    '6A', '6B', '6C',
+    '7A', '7B', '7C',
+    '8A', '8B', '8C',
+    '9A', '9B', '9C',
+    '10A', '10B', '10C',
+    '11A', '11B', '11C',
+    '12A', '12B', '12C',
+    'N/A'
+  ) then
     raise exception 'invalid_batch';
   end if;
 
+  -- Validate batch matches grade (handles both single and double digit grades)
   if v_batch is not null and v_batch <> 'N/A' and v_grade is not null then
-    if left(v_batch, 1) <> v_grade::text then
+    if (regexp_replace(v_batch, '[A-C]$', ''))::int <> v_grade then
       raise exception 'batch_grade_mismatch';
     end if;
   end if;
@@ -821,172 +844,111 @@ $$;
 -- ============================================
 -- Admin: Reset All Player Progress
 -- ============================================
+-- Note: Uses 'id IS NOT NULL' instead of 'WHERE TRUE' for Supabase RLS compatibility
 drop function if exists rpc_admin_reset_all() cascade;
-create or replace function rpc_admin_reset_all()
-returns table (
-  affected_rows int
-)
+create function rpc_admin_reset_all()
+returns int
 language plpgsql
 security definer
 set search_path = public
 as $$
 declare
   v_actor uuid := auth.uid();
-  v_player_count int;
-  v_bot_count int;
-  v_activity_count int := 0;
-  v_activity_reaction_count int := 0;
-  v_inventory_count int := 0;
-  v_clan_count int := 0;
-  v_clan_member_count int := 0;
-  v_clan_chat_count int := 0;
-  v_clan_buff_count int := 0;
-  v_task_count int := 0;
-  v_task_progress_count int := 0;
-  v_session_count int := 0;
-  v_caps_reset int := 0;
-  v_shop_purchase_count int := 0;
+  v_player_count int := 0;
+  v_bot_count int := 0;
 begin
-  if v_actor is null or not is_current_user_admin() then
+  -- Auth check
+  if v_actor is null or not exists (
+    select 1 from users u
+    where u.id = v_actor
+      and (u.is_admin = true or u.role = 'admin')
+  ) then
     raise exception 'forbidden';
   end if;
 
+  -- Reset all non-admin, non-banned player stats
   update users
-  set xp = 0,
-      coins = 0,
-      gemstones = 0,
-      streak = 0,
-      level = 1,
-      attack_power = 10,
-      defense_power = 10,
-      ap_now = ap_max,
-      last_ap_update = now(),
-      pvp_score = 0,
-      last_attacked_at = null,
-      updated_at = now()
-  where coalesce(is_admin, false) = false
-    and coalesce(is_banned, false) = false;
-
+  set xp = 0, coins = 0, gemstones = 0, streak = 0, level = 1,
+      attack_power = 10, defense_power = 10,
+      ap_now = ap_max, last_ap_update = now(),
+      pvp_score = 0, last_attacked_at = null, updated_at = now()
+  where is_admin is not true
+    and is_banned is not true;
   get diagnostics v_player_count = row_count;
 
+  -- Reset bots if table exists
   if to_regclass('public.bot_users') is not null then
     update bot_users
-    set xp = 0,
-        coins = 0,
-        gemstones = 0,
-        streak = 0,
-        level = 1,
-        attack_power = 10,
-        defense_power = 10,
-        ap_now = ap_max,
-        last_ap_update = now(),
-        total_questions_answered = 0,
-        achievement_points = 0,
-        last_attacked_at = null,
-        last_seen = now(),
-        updated_at = now()
-    where true;
-
+    set xp = 0, coins = 0, gemstones = 0, streak = 0, level = 1,
+        attack_power = 10, defense_power = 10, ap_now = ap_max,
+        last_ap_update = now(), total_questions_answered = 0,
+        achievement_points = 0, last_attacked_at = null,
+        last_seen = now(), updated_at = now()
+    where id is not null;
     get diagnostics v_bot_count = row_count;
-  else
-    v_bot_count := 0;
   end if;
 
-  if to_regclass('public.activity_reactions') is not null then
-    delete from activity_reactions where true;
-    get diagnostics v_activity_reaction_count = row_count;
-  end if;
-
+  -- Clear activities
   if to_regclass('public.activities') is not null then
-    delete from activities where true;
-    get diagnostics v_activity_count = row_count;
+    delete from activities where id is not null;
   end if;
 
+  -- Clear activity_reactions
+  if to_regclass('public.activity_reactions') is not null then
+    delete from activity_reactions where id is not null;
+  end if;
+
+  -- Clear inventory
   if to_regclass('public.inventory') is not null then
-    delete from inventory where true;
-    get diagnostics v_inventory_count = row_count;
+    delete from inventory where id is not null;
   end if;
 
+  -- Clear clan-related tables
   if to_regclass('public.clan_chat') is not null then
-    delete from clan_chat where true;
-    get diagnostics v_clan_chat_count = row_count;
+    delete from clan_chat where id is not null;
   end if;
-
   if to_regclass('public.clan_members') is not null then
-    delete from clan_members where true;
-    get diagnostics v_clan_member_count = row_count;
+    delete from clan_members where clan_id is not null;
   end if;
-
   if to_regclass('public.clan_buffs') is not null then
-    delete from clan_buffs where true;
-    get diagnostics v_clan_buff_count = row_count;
+    delete from clan_buffs where id is not null;
   end if;
-
   if to_regclass('public.clans') is not null then
-    delete from clans where true;
-    get diagnostics v_clan_count = row_count;
+    delete from clans where id is not null;
   end if;
 
+  -- Clear other tables
   if to_regclass('public.tasks') is not null then
-    delete from tasks where true;
-    get diagnostics v_task_count = row_count;
+    delete from tasks where id is not null;
   end if;
-
   if to_regclass('public.task_progress') is not null then
-    delete from task_progress where true;
-    get diagnostics v_task_progress_count = row_count;
+    delete from task_progress where id is not null;
   end if;
-
   if to_regclass('public.sessions') is not null then
-    delete from sessions where true;
-    get diagnostics v_session_count = row_count;
+    delete from sessions where id is not null;
+  end if;
+  if to_regclass('public.shop_purchases') is not null then
+    delete from shop_purchases where id is not null;
   end if;
 
+  -- Reset caps
   if to_regclass('public.caps') is not null then
     update caps
-    set xp_daily_earned = 0,
-        coins_daily_earned = 0,
-        xp_weekly_earned = 0,
-        coins_weekly_earned = 0,
-        daily_reset_at = current_date,
-        weekly_reset_at = current_date;
-    get diagnostics v_caps_reset = row_count;
+    set xp_daily_earned = 0, coins_daily_earned = 0,
+        xp_weekly_earned = 0, coins_weekly_earned = 0,
+        daily_reset_at = current_date, weekly_reset_at = current_date
+    where user_id is not null;
   end if;
 
-  if to_regclass('public.shop_purchases') is not null then
-    delete from shop_purchases where true;
-    get diagnostics v_shop_purchase_count = row_count;
-  end if;
+  -- Log the reset
+  begin
+    insert into rpc_event_log(function_name, log_level, message, user_id, context)
+    values ('rpc_admin_reset_all', 'info', 'global_reset', v_actor,
+            json_build_object('players', v_player_count, 'bots', v_bot_count));
+  exception when others then null;
+  end;
 
-  insert into rpc_event_log(function_name, log_level, message, user_id, context)
-  values (
-    'rpc_admin_reset_all',
-    'info',
-    'global_reset',
-    v_actor,
-    json_build_object(
-      'player_rows', coalesce(v_player_count, 0),
-      'bot_rows', coalesce(v_bot_count, 0),
-      'activities_cleared', coalesce(v_activity_count, 0),
-      'activity_reactions_cleared', coalesce(v_activity_reaction_count, 0),
-      'inventory_cleared', coalesce(v_inventory_count, 0),
-      'clans_deleted', coalesce(v_clan_count, 0),
-      'clan_members_deleted', coalesce(v_clan_member_count, 0),
-      'clan_chat_deleted', coalesce(v_clan_chat_count, 0),
-      'clan_buffs_deleted', coalesce(v_clan_buff_count, 0),
-      'tasks_deleted', coalesce(v_task_count, 0),
-      'task_progress_deleted', coalesce(v_task_progress_count, 0),
-      'sessions_deleted', coalesce(v_session_count, 0),
-      'caps_reset', coalesce(v_caps_reset, 0),
-      'shop_purchases_deleted', coalesce(v_shop_purchase_count, 0)
-    )
-  );
-
-  return query select (coalesce(v_player_count, 0) + coalesce(v_bot_count, 0))::int as affected_rows;
-exception when others then
-  insert into rpc_event_log(function_name, log_level, message, user_id, context)
-  values ('rpc_admin_reset_all', 'error', SQLERRM, v_actor, json_build_object());
-  raise;
+  return v_player_count + v_bot_count;
 end;
 $$;
 

@@ -1,6 +1,8 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const IeltsHome: React.FC = () => {
+  const navigate = useNavigate();
   // Sample data for display (will be replaced with real data after DB migration)
   const readingSets = [
     { id: 1, title: 'Working from Home', description: 'General training passage on remote work', level: 'Beginner', est_band_min: 4.5, est_band_max: 6.0 },
@@ -85,7 +87,7 @@ const IeltsHome: React.FC = () => {
                 {readingSets?.map((set) => (
                   <button
                     key={set.id}
-                    onClick={() => alert(`Practice: ${set.title}\n\nThis will open the reading practice interface. Feature coming soon!`)}
+                    onClick={() => navigate(`/ielts/reading/${set.id}`)}
                     style={{ 
                       backgroundColor: '#FFFFFF !important',
                       border: '2px solid #E5E7EB',
@@ -150,7 +152,7 @@ const IeltsHome: React.FC = () => {
                 {listeningSets?.map((set) => (
                   <button
                     key={set.id}
-                    onClick={() => alert(`Practice: ${set.title}\n\nThis will open the listening practice interface. Feature coming soon!`)}
+                    onClick={() => navigate(`/ielts/listening/${set.id}`)}
                     style={{ 
                       backgroundColor: '#FFFFFF !important',
                       border: '2px solid #E5E7EB',
@@ -215,7 +217,7 @@ const IeltsHome: React.FC = () => {
                 {writingTasks?.map((task) => (
                   <button
                     key={task.id}
-                    onClick={() => alert(`Practice: ${task.title}\n\nThis will open the writing practice interface. Feature coming soon!`)}
+                    onClick={() => navigate(`/ielts/writing/${task.id}`)}
                     style={{ 
                       backgroundColor: '#FFFFFF !important',
                       border: '2px solid #E5E7EB',
@@ -280,7 +282,7 @@ const IeltsHome: React.FC = () => {
                 {speakingTasks?.map((task) => (
                   <button
                     key={task.id}
-                    onClick={() => alert(`Practice: Part ${task.part} - ${task.prompt}\n\nThis will open the speaking practice interface. Feature coming soon!`)}
+                    onClick={() => navigate(`/ielts/speaking/${task.id}`)}
                     style={{ 
                       backgroundColor: '#FFFFFF !important',
                       border: '2px solid #E5E7EB',
