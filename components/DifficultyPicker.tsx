@@ -97,6 +97,10 @@ const DifficultyCard: React.FC<DifficultyCardProps> = ({
               level === 'easy' ? 'bg-green-500' : level === 'medium' ? 'bg-amber-500' : 'bg-rose-500'
             }`}
             style={{ width: `${Math.min(100, (progress.answeredWithRewards / progress.total) * 100)}%` }}
+          />
+        </div>
+      </div>
+
       {/* Rewards or Practice Badge */}
       {hasNewQuestions ? (
         <div className="flex items-center justify-center gap-4 mb-3">
