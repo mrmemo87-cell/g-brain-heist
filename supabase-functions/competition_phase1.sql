@@ -1,7 +1,6 @@
 -- ============================================
 -- Silk Road Competition Phase 1 RPCs
 -- ============================================
-set check_function_bodies = off;
 
 -- Ensure announcements tables are aligned with expected columns
 do $$
@@ -822,6 +821,7 @@ $$;
 -- ============================================
 -- Admin: Reset All Player Progress
 -- ============================================
+drop function if exists rpc_admin_reset_all() cascade;
 create or replace function rpc_admin_reset_all()
 returns table (
   affected_rows int
@@ -982,7 +982,7 @@ begin
     )
   );
 
-  return query select coalesce(v_player_count, 0) + coalesce(v_bot_count, 0);
+  return query select (coalesce(v_player_count, 0) + coalesce(v_bot_count, 0))::int as affected_rows;
 exception when others then
   insert into rpc_event_log(function_name, log_level, message, user_id, context)
   values ('rpc_admin_reset_all', 'error', SQLERRM, v_actor, json_build_object());

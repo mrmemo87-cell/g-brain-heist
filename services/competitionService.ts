@@ -245,14 +245,43 @@ export const resetPlayerProgress = async (userId: string): Promise<void> => {
 };
 
 export const resetAllPlayerProgress = async (): Promise<number> => {
-  const { data, error } = await supabase.rpc('rpc_admin_reset_all');
-
-  if (error) {
-    throw new Error(error.message || 'Failed to reset all players');
+  // Try direct fetch to bypass any client caching issues
+  const session = await supabase.auth.getSession();
+  const token = session.data.session?.access_token;
+  
+  if (!token) {
+    throw new Error('Not authenticated');
   }
 
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  
+  const response = await fetch(`${supabaseUrl}/rest/v1/rpc/rpc_admin_reset_all`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Prefer': 'return=representation'
+    },
+    body: '{}'
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('RPC Error:', response.status, errorText);
+    throw new Error(`Failed to reset all players: ${response.status} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  
+  // Handle INT return type (simple number)
+  if (typeof data === 'number') {
+    return data;
+  }
+
+  // Handle TABLE return type (array with affected_rows)
   if (Array.isArray(data) && data.length > 0) {
-    return Number(data[0]?.affected_rows ?? 0);
+    return Number(data[0]?.affected_rows ?? data[0] ?? 0);
   }
 
   if (typeof data === 'object' && data !== null && 'affected_rows' in data) {
