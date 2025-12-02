@@ -540,21 +540,15 @@ export const submitReadingAttempt = async (
     throw new Error('Not authenticated');
   }
 
-  const userId = session.session.user.id;
-
-  // Ensure user exists in ielts_users table
-  const { error: upsertError } = await supabase
-    .from('ielts_users')
-    .upsert({
-      id: userId,
-      email: session.session.user.email,
-      tier: 'free',
-    }, { onConflict: 'id' });
-
-  if (upsertError) {
-    console.error('Error ensuring IELTS user:', upsertError);
-    // Continue anyway - user might already exist
+  // Ensure user exists in ielts_users table using the proper function
+  try {
+    await ensureIeltsProfile();
+  } catch (profileError) {
+    console.error('Error ensuring IELTS profile:', profileError);
+    throw new Error('Failed to create IELTS user profile');
   }
+
+  const userId = session.session.user.id;
 
   const { data, error } = await supabase
     .from('ielts_reading_attempts')
