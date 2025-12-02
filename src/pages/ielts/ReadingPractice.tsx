@@ -73,9 +73,8 @@ const ReadingPractice: React.FC = () => {
     let correct = 0;
     questions.forEach((q: IELTSReadingQuestion) => {
       const userAnswer = answers[q.id];
-      const correctAnswer = typeof q.correct_answer === 'string' 
-        ? JSON.parse(q.correct_answer) 
-        : q.correct_answer;
+      // correct_answer is already parsed from JSONB, no need to JSON.parse
+      const correctAnswer = q.correct_answer;
       
       if (userAnswer === correctAnswer) {
         correct++;
@@ -147,9 +146,8 @@ const ReadingPractice: React.FC = () => {
             <h2 className="text-2xl font-bold text-white mb-4">Answer Review</h2>
             {questions.map((q: IELTSReadingQuestion, idx: number) => {
               const userAnswer = answers[q.id];
-              const correctAnswer = typeof q.correct_answer === 'string' 
-                ? JSON.parse(q.correct_answer) 
-                : q.correct_answer;
+              // correct_answer is already parsed from JSONB
+              const correctAnswer = q.correct_answer;
               const isCorrect = userAnswer === correctAnswer;
 
               return (
@@ -211,10 +209,11 @@ const ReadingPractice: React.FC = () => {
     );
   }
 
+  // options is already parsed from JSONB, no need to JSON.parse
   const parsedOptions = currentQuestion?.options 
-    ? (typeof currentQuestion.options === 'string' 
-        ? JSON.parse(currentQuestion.options) 
-        : currentQuestion.options)
+    ? (Array.isArray(currentQuestion.options) 
+        ? currentQuestion.options 
+        : [])
     : [];
 
   return (
