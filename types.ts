@@ -121,6 +121,12 @@ export interface SubjectData {
   difficulty: number;
 }
 
+// Shared interface for tracking question progress (used by both difficulties and quests)
+export interface QuestionProgress {
+  totalQuestions: number;
+  rewardedQuestions: number;
+}
+
 export interface DifficultyProgress {
   total: number;
   completed: number;
@@ -134,6 +140,16 @@ export interface SubjectProgress {
   easy: DifficultyProgress;
   medium: DifficultyProgress;
   hard: DifficultyProgress;
+}
+
+// Teacher quest progress for unified play page
+export interface QuestProgress {
+  questId: string;
+  title: string;
+  description?: string;
+  totalQuestions: number;
+  rewardedQuestions: number;
+  subjectId: string;
 }
 
 export type RecommendedDifficulty = 'easy' | 'medium' | 'hard' | 'done';

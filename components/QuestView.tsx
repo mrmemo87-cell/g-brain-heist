@@ -29,7 +29,9 @@ import {
 import { getMilestoneReward } from '../src/lib/brains_heist/rewards';
 import { recordSoloQuestion, recordMissionSummary } from '../services/adaptiveService';
 import DifficultyPicker from './DifficultyPicker';
+import UnifiedSubjectPlay from './UnifiedSubjectPlay';
 import { getRecommendedDifficulty, difficultyColorClasses, getRecommendedLabel } from '../src/utils/difficultyHelpers';
+import type { QuestProgress } from '../types';
 
 // Helper to get option text (handles both string and QuestionOption formats)
 const getOptionText = (option: string | QuestionOption): string => {
@@ -43,7 +45,7 @@ const getOptionImageUrl = (option: string | QuestionOption): string | undefined 
   return option.image_url;
 };
 
-type QuestStage = 'loading' | 'mode_selection' | 'subject_selection' | 'difficulty_selection' | 'in_progress' | 'completed' | 'assignment_blocked';
+type QuestStage = 'loading' | 'subject_selection' | 'unified_subject_play' | 'in_progress' | 'completed' | 'assignment_blocked';
 type QuestMode = 'practice' | 'teacher' | 'assignment';
 
 interface RewardParticleProps {
@@ -127,6 +129,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [subjects, setSubjects] = useState<SubjectData[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<SubjectData | null>(null);
   const [subjectProgress, setSubjectProgress] = useState<SubjectProgress[]>([]);
+  const [teacherQuests, setTeacherQuests] = useState<QuestProgress[]>([]);
   const [selectedDifficulty, setSelectedDifficulty] = useState<SoloDifficulty | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [teacherQuestions, setTeacherQuestions] = useState<TeacherQuestion[]>([]);
@@ -272,48 +275,50 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     };
   };
 
-  // Don't auto-load anymore - wait for mode selection
-  const handleModeSelect = (selectedMode: QuestMode) => {
+  // Load subjects and go directly to selection (unified flow)
+  const loadSubjects = async () => {
     if (activeAssignment) {
       setMode('assignment');
       setStage('assignment_blocked');
       return;
     }
 
-    setMode(selectedMode);
     setStage('loading');
     
-    if (selectedMode === 'practice') {
+    try {
       // Load regular practice subjects and progress
-      GameService.mcq_subjects_list().then(data => {
-        setSubjects(data);
-        
-        // Mock progress data - TODO: Replace with actual API call
-        const mockProgress: SubjectProgress[] = data.map(subject => ({
-          id: subject.id,
-          name: subject.name,
-          easy: { total: 50, completed: Math.floor(Math.random() * 50) },
-          medium: { total: 30, completed: Math.floor(Math.random() * 30) },
-          hard: { total: 20, completed: Math.floor(Math.random() * 20) }
-        }));
-        
-        setSubjectProgress(mockProgress);
-        setStage('subject_selection');
-      });
-    } else {
-      // Load teacher questions subjects
+      const data = await GameService.mcq_subjects_list();
+      setSubjects(data);
+      
+      // Mock progress data - TODO: Replace with actual API call
+      const mockProgress: SubjectProgress[] = data.map(subject => ({
+        id: subject.id,
+        name: subject.name,
+        easy: { 
+          total: 50, 
+          completed: Math.floor(Math.random() * 50),
+          answeredWithRewards: Math.floor(Math.random() * 50),
+          newLeft: Math.max(0, 50 - Math.floor(Math.random() * 50))
+        },
+        medium: { 
+          total: 30, 
+          completed: Math.floor(Math.random() * 30),
+          answeredWithRewards: Math.floor(Math.random() * 30),
+          newLeft: Math.max(0, 30 - Math.floor(Math.random() * 30))
+        },
+        hard: { 
+          total: 20, 
+          completed: Math.floor(Math.random() * 20),
+          answeredWithRewards: Math.floor(Math.random() * 20),
+          newLeft: Math.max(0, 20 - Math.floor(Math.random() * 20))
+        }
+      }));
+      
+      setSubjectProgress(mockProgress);
       setStage('subject_selection');
-      setSubjects([
-        { id: 'maths', name: 'Maths', difficulty: 1 },
-        { id: 'science', name: 'Science', difficulty: 1 },
-        { id: 'english', name: 'English', difficulty: 1 },
-        { id: 'russian_language', name: 'Russian Language', difficulty: 1 },
-        { id: 'kyrgyz_language', name: 'Kyrgyz Language', difficulty: 1 },
-        { id: 'german_language', name: 'German Language', difficulty: 1 },
-        { id: 'geography', name: 'Geography', difficulty: 1 },
-        { id: 'global_perspective', name: 'Global Perspective', difficulty: 1 },
-        { id: 'ict', name: 'ICT', difficulty: 1 }
-      ]);
+    } catch (error) {
+      console.error('Error loading subjects:', error);
+      setStage('subject_selection');
     }
   };
   
@@ -412,8 +417,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       setActiveAssignment(null);
       setLastCompletedAssignment(null);
       setTeacherQuestions([]);
-      setStage('mode_selection');
       setMode('practice');
+      loadSubjects();
       return;
     }
 
@@ -463,60 +468,86 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               if (mode === 'assignment') {
                   setMode('practice');
               }
-        setStage('mode_selection');
+        loadSubjects();
         await refreshAssignment?.();
           }
       } catch (error) {
           console.error('Error loading assignment:', error);
       if (showLoading || stage === 'loading') {
-        setStage('mode_selection');
+        loadSubjects();
       }
       }
   };
 
-  const handleSubjectSelect = (subject: SubjectData) => {
+  const handleSubjectSelect = async (subject: SubjectData) => {
     setSelectedSubject(subject);
+    setStage('loading');
     
-    if (mode === 'practice') {
-      // Show difficulty picker for practice mode
-      setStage('difficulty_selection');
-    } else {
-      // Teacher mode: load questions directly (no difficulty picker)
-      setStage('loading');
-      setQuestionScores([]);
-      setQuestionPerformances([]);
-      setSoloStreak(0);
-      setMissionSummary(null);
-      setTopicSummary(null);
-      setQuestionStartTime(null);
+    try {
+      // Load teacher quests for this subject
+      const teacherQuestionsData = await GameService.get_public_questions(subject.name as any);
       
-      GameService.get_public_questions(subject.name as any).then(data => {
-        if (data.length === 0) {
-          alert('No teacher questions available for this subject yet!');
-          setStage('subject_selection');
-          return;
+      // Mock teacher quest progress - TODO: Replace with actual API call
+      const mockQuests: QuestProgress[] = teacherQuestionsData.length > 0 ? [
+        {
+          questId: `quest-${subject.id}-1`,
+          title: `${subject.name} Fundamentals`,
+          description: 'Master the basics',
+          totalQuestions: Math.min(5, teacherQuestionsData.length),
+          rewardedQuestions: Math.floor(Math.random() * Math.min(5, teacherQuestionsData.length)),
+          subjectId: subject.id
         }
-        
-        // Take up to 5 random questions
-        const shuffled = data.sort(() => Math.random() - 0.5);
-        setTeacherQuestions(shuffled.slice(0, Math.min(5, shuffled.length)));
-        setCurrentQuestionIndex(0);
-        setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
-        setSelectedOption(null);
-        setAnswerResponse(null);
-        setStage('in_progress');
-        setQuestionStartTime(Date.now());
-      }).catch(err => {
-        console.error('Error loading teacher questions:', err);
-        alert('Failed to load teacher questions');
-        setStage('subject_selection');
-      });
+      ] : [];
+      
+      setTeacherQuests(mockQuests);
+      setStage('unified_subject_play');
+    } catch (err) {
+      console.error('Error loading teacher quests:', err);
+      setTeacherQuests([]);
+      setStage('unified_subject_play');
     }
   };
   
+  const handleQuestSelect = async (questId: string) => {
+    if (!selectedSubject) return;
+    
+    setMode('teacher');
+    setStage('loading');
+    setQuestionScores([]);
+    setQuestionPerformances([]);
+    setSoloStreak(0);
+    setMissionSummary(null);
+    setTopicSummary(null);
+    setQuestionStartTime(null);
+    
+    try {
+      const data = await GameService.get_public_questions(selectedSubject.name as any);
+      if (data.length === 0) {
+        alert('No teacher questions available for this quest yet!');
+        setStage('unified_subject_play');
+        return;
+      }
+      
+      // Take up to 5 random questions
+      const shuffled = data.sort(() => Math.random() - 0.5);
+      setTeacherQuestions(shuffled.slice(0, Math.min(5, shuffled.length)));
+      setCurrentQuestionIndex(0);
+      setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
+      setSelectedOption(null);
+      setAnswerResponse(null);
+      setStage('in_progress');
+      setQuestionStartTime(Date.now());
+    } catch (err) {
+      console.error('Error loading teacher questions:', err);
+      alert('Failed to load teacher questions');
+      setStage('unified_subject_play');
+    }
+  };
+
   const handleDifficultySelect = (difficulty: SoloDifficulty) => {
     if (!selectedSubject) return;
     
+    setMode('practice');
     setSelectedDifficulty(difficulty);
     setStage('loading');
     setQuestionScores([]);
@@ -1091,47 +1122,6 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     );
   };
   
-  const renderModeSelection = () => (
-    <div className="max-w-4xl mx-auto">
-      <h2 className="font-heading text-3xl text-center mb-4 animate-fade-in-up" style={{color: 'var(--ion-blue)'}}>Choose Your Path</h2>
-      <p className="text-center text-gray-300 mb-8">Select a quest mode to begin your journey</p>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Practice Mode */}
-        <button
-          onClick={() => handleModeSelect('practice')}
-          className="card-glass glow-ion p-8 text-center transform hover:scale-105 hover:border-cyan-400 transition-all duration-300 animate-fade-in-up group"
-          style={{ borderColor: 'rgba(0, 208, 232, 0.4)' }}
-        >
-          <div className="w-20 h-20 mx-auto mb-4 animate-float" style={{ color: 'var(--ion-blue)'}}>
-            <BrainIcon />
-          </div>
-          <h3 className="font-heading text-2xl mb-3">🎮 Practice Mode</h3>
-          <p className="text-gray-300 mb-4">Challenge yourself with randomized questions to sharpen your skills</p>
-          <div className="flex items-center justify-center gap-2 text-sm">
-            <span className="px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-400">Quick</span>
-            <span className="px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-400">Random</span>
-          </div>
-        </button>
-
-        {/* Teacher Quests */}
-        <button
-          onClick={() => handleModeSelect('teacher')}
-          className="card-glass glow-warn p-8 text-center transform hover:scale-105 hover:border-purple-400 transition-all duration-300 animate-fade-in-up group"
-          style={{ borderColor: 'rgba(168, 85, 247, 0.4)' }}
-        >
-          <div className="text-6xl mb-4 animate-bounce">👨‍🏫</div>
-          <h3 className="font-heading text-2xl mb-3" style={{color: 'var(--amber-warn)'}}>📚 Teacher Quests</h3>
-          <p className="text-gray-300 mb-4">Take on curated questions created by expert teachers</p>
-          <div className="flex items-center justify-center gap-2 text-sm">
-            <span className="px-3 py-1 rounded-full bg-purple-500/20 border border-purple-400">Curated</span>
-            <span className="px-3 py-1 rounded-full bg-purple-500/20 border border-purple-400">Expert</span>
-          </div>
-        </button>
-      </div>
-    </div>
-  );
-
   const renderAssignmentBlocker = () => {
     if (!activeAssignment) return null;
     return (
@@ -1274,7 +1264,6 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               onClick={() => {
                 if (mode === 'assignment' || assignmentContext) {
                   setMode('practice');
-                  setStage('mode_selection');
                   setSelectedSubject(null);
                   setQuestions([]);
                   setTeacherQuestions([]);
@@ -1287,6 +1276,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                   setTopicSummary(null);
                   setQuestionStartTime(null);
                   setAssignmentStartTime(null);
+                  loadSubjects();
                   setLastCompletedAssignment(null);
                   setAssignmentSubmissionState('idle');
                   hydrateAssignment({ showLoading: true });
@@ -1324,17 +1314,22 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const renderContent = () => {
     switch(stage) {
       case 'loading': return <div className="font-heading text-2xl animate-pulse text-center mt-20" style={{color: 'var(--ion-blue)'}}>Loading...</div>;
-      case 'mode_selection': return renderModeSelection();
       case 'subject_selection': return renderSubjectSelection();
-      case 'difficulty_selection': {
+      case 'unified_subject_play': {
         if (!selectedSubject) return null;
         const progress = subjectProgress.find(p => p.id === selectedSubject.id);
         if (!progress) return null;
         return (
-          <DifficultyPicker
+          <UnifiedSubjectPlay
             subject={progress}
+            teacherQuests={teacherQuests}
             onSelectDifficulty={handleDifficultySelect}
-            onBack={() => setStage('subject_selection')}
+            onSelectQuest={handleQuestSelect}
+            onBack={() => {
+              setSelectedSubject(null);
+              setTeacherQuests([]);
+              setStage('subject_selection');
+            }}
           />
         );
       }
