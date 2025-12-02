@@ -869,24 +869,28 @@ begin
 
   get diagnostics v_player_count = row_count;
 
-  update bot_users
-  set xp = 0,
-      coins = 0,
-      gemstones = 0,
-      streak = 0,
-      level = 1,
-      attack_power = 10,
-      defense_power = 10,
-      ap_now = ap_max,
-      last_ap_update = now(),
-      total_questions_answered = 0,
-      achievement_points = 0,
-      last_attacked_at = null,
-      last_seen = now(),
-      updated_at = now()
-  where true;
+  if to_regclass('public.bot_users') is not null then
+    update bot_users
+    set xp = 0,
+        coins = 0,
+        gemstones = 0,
+        streak = 0,
+        level = 1,
+        attack_power = 10,
+        defense_power = 10,
+        ap_now = ap_max,
+        last_ap_update = now(),
+        total_questions_answered = 0,
+        achievement_points = 0,
+        last_attacked_at = null,
+        last_seen = now(),
+        updated_at = now()
+    where true;
 
-  get diagnostics v_bot_count = row_count;
+    get diagnostics v_bot_count = row_count;
+  else
+    v_bot_count := 0;
+  end if;
 
   if to_regclass('public.activity_reactions') is not null then
     delete from activity_reactions where true;
