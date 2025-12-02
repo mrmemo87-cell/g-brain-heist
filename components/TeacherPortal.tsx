@@ -1834,8 +1834,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     { id: 'reports', label: 'Reports', icon: '📊' },
   ];
 
+  const containerSpacing = view === 'question-bank'
+    ? 'mt-6 pt-6 md:pt-10'
+    : 'mt-6';
+
   return (
-    <div className="mt-6">
+    <div className={containerSpacing}>
       <BackButton onClick={onComplete} />
 
       <div className="max-w-6xl mx-auto">
