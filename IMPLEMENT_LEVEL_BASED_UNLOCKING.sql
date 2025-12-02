@@ -332,6 +332,9 @@ $$ LANGUAGE plpgsql;
 -- 4. Have NOT been rewarded yet for this player
 -- ============================================
 
+-- Drop existing function first (needed when changing return type)
+DROP FUNCTION IF EXISTS get_unlocked_teacher_questions(TEXT, TEXT, INTEGER);
+
 CREATE OR REPLACE FUNCTION get_unlocked_teacher_questions(
   p_subject TEXT,
   p_difficulty TEXT,
@@ -343,8 +346,11 @@ RETURNS TABLE (
   topic TEXT,
   difficulty TEXT,
   question_text TEXT,
+  image_url TEXT,
   question_type TEXT,
   options JSONB,
+  correct_answer TEXT,
+  explanation TEXT,
   time_limit INTEGER,
   points INTEGER,
   tier_level INTEGER
@@ -409,8 +415,11 @@ BEGIN
     q.topic,
     q.difficulty,
     q.question_text,
+    q.image_url,
     q.question_type,
     q.options,
+    q.correct_answer,
+    q.explanation,
     q.time_limit,
     q.points,
     q.tier_level

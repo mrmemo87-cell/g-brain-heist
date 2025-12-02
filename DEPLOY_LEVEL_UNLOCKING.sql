@@ -22,8 +22,12 @@ BEGIN
   RAISE NOTICE '✅ All prerequisites met. Proceeding...';
 END $$;
 
--- Execute the main implementation
-\i IMPLEMENT_LEVEL_BASED_UNLOCKING.sql
+-- ============================================================
+-- INSTRUCTIONS:
+-- 1. First, copy and paste the contents of IMPLEMENT_LEVEL_BASED_UNLOCKING.sql
+--    into the Supabase SQL Editor and run it
+-- 2. Then, run the verification section below
+-- ============================================================
 
 -- Verification
 DO $$
