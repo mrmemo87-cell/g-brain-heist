@@ -46,7 +46,9 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
         try {
             if (mode === 'reset') {
                 await AuthService.sendPasswordResetEmail(email);
-                setSuccess('Password reset email sent! Check your inbox.');
+                setSuccess('Password reset email sent! ⚠️ Note: In development, check your Supabase dashboard Email Templates or configure SMTP for real emails.');
+                console.log('Password reset requested for:', email);
+                console.log('📧 IMPORTANT: Configure SMTP in Supabase Dashboard → Settings → Auth → SMTP Settings to receive actual emails');
                 setMode('login');
             } else if (mode === 'signup') {
                 if (!username.trim()) {

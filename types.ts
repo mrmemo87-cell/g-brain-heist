@@ -121,6 +121,23 @@ export interface SubjectData {
   difficulty: number;
 }
 
+export interface DifficultyProgress {
+  total: number;
+  completed: number;
+  answeredWithRewards: number; // Questions already rewarded
+  newLeft: number; // Questions that still give rewards (total - answeredWithRewards)
+}
+
+export interface SubjectProgress {
+  id: string;
+  name: string;
+  easy: DifficultyProgress;
+  medium: DifficultyProgress;
+  hard: DifficultyProgress;
+}
+
+export type RecommendedDifficulty = 'easy' | 'medium' | 'hard' | 'done';
+
 export type Subject = 'Maths' | 'Science' | 'English' | 'Russian Language' | 'Kyrgyz Language' | 'German Language' | 'Geography' | 'Global Perspective' | 'ICT';
 export type AssignmentBatch = Batch | 'All';
 

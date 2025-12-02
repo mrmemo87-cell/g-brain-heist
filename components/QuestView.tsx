@@ -11,6 +11,8 @@ import {
   TopicSummary,
   StudentAssignmentTask,
   QuestionOption,
+  SubjectProgress,
+  DifficultyProgress,
 } from '../types';
 import * as GameService from '../services/gameService';
 import { audioService } from '../services/audioService';
@@ -26,6 +28,8 @@ import {
 } from '../src/lib/brains_heist/scoring';
 import { getMilestoneReward } from '../src/lib/brains_heist/rewards';
 import { recordSoloQuestion, recordMissionSummary } from '../services/adaptiveService';
+import DifficultyPicker from './DifficultyPicker';
+import { getRecommendedDifficulty, difficultyColorClasses, getRecommendedLabel } from '../src/utils/difficultyHelpers';
 
 // Helper to get option text (handles both string and QuestionOption formats)
 const getOptionText = (option: string | QuestionOption): string => {
@@ -39,7 +43,7 @@ const getOptionImageUrl = (option: string | QuestionOption): string | undefined 
   return option.image_url;
 };
 
-type QuestStage = 'loading' | 'mode_selection' | 'subject_selection' | 'in_progress' | 'completed' | 'assignment_blocked';
+type QuestStage = 'loading' | 'mode_selection' | 'subject_selection' | 'difficulty_selection' | 'in_progress' | 'completed' | 'assignment_blocked';
 type QuestMode = 'practice' | 'teacher' | 'assignment';
 
 interface RewardParticleProps {
@@ -122,6 +126,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [mode, setMode] = useState<QuestMode>('practice');
   const [subjects, setSubjects] = useState<SubjectData[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<SubjectData | null>(null);
+  const [subjectProgress, setSubjectProgress] = useState<SubjectProgress[]>([]);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<SoloDifficulty | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [teacherQuestions, setTeacherQuestions] = useState<TeacherQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -278,9 +284,20 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     setStage('loading');
     
     if (selectedMode === 'practice') {
-      // Load regular practice subjects
+      // Load regular practice subjects and progress
       GameService.mcq_subjects_list().then(data => {
         setSubjects(data);
+        
+        // Mock progress data - TODO: Replace with actual API call
+        const mockProgress: SubjectProgress[] = data.map(subject => ({
+          id: subject.id,
+          name: subject.name,
+          easy: { total: 50, completed: Math.floor(Math.random() * 50) },
+          medium: { total: 30, completed: Math.floor(Math.random() * 30) },
+          hard: { total: 20, completed: Math.floor(Math.random() * 20) }
+        }));
+        
+        setSubjectProgress(mockProgress);
         setStage('subject_selection');
       });
     } else {
@@ -459,27 +476,20 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
   const handleSubjectSelect = (subject: SubjectData) => {
     setSelectedSubject(subject);
-    setStage('loading');
-    setQuestionScores([]);
-    setQuestionPerformances([]);
-    setSoloStreak(0);
-    setMissionSummary(null);
-    setTopicSummary(null);
-    setQuestionStartTime(null);
     
     if (mode === 'practice') {
-      // Load regular practice questions
-      GameService.mcq_questions_get(subject.id, 5).then(data => {
-        setQuestions(data);
-        setCurrentQuestionIndex(0);
-            setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
-        setSelectedOption(null);
-        setAnswerResponse(null);
-        setStage('in_progress');
-        setQuestionStartTime(Date.now());
-      });
+      // Show difficulty picker for practice mode
+      setStage('difficulty_selection');
     } else {
-      // Load teacher questions for this subject
+      // Teacher mode: load questions directly (no difficulty picker)
+      setStage('loading');
+      setQuestionScores([]);
+      setQuestionPerformances([]);
+      setSoloStreak(0);
+      setMissionSummary(null);
+      setTopicSummary(null);
+      setQuestionStartTime(null);
+      
       GameService.get_public_questions(subject.name as any).then(data => {
         if (data.length === 0) {
           alert('No teacher questions available for this subject yet!');
@@ -491,7 +501,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         const shuffled = data.sort(() => Math.random() - 0.5);
         setTeacherQuestions(shuffled.slice(0, Math.min(5, shuffled.length)));
         setCurrentQuestionIndex(0);
-            setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
+        setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
         setSelectedOption(null);
         setAnswerResponse(null);
         setStage('in_progress');
@@ -502,6 +512,33 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         setStage('subject_selection');
       });
     }
+  };
+  
+  const handleDifficultySelect = (difficulty: SoloDifficulty) => {
+    if (!selectedSubject) return;
+    
+    setSelectedDifficulty(difficulty);
+    setStage('loading');
+    setQuestionScores([]);
+    setQuestionPerformances([]);
+    setSoloStreak(0);
+    setMissionSummary(null);
+    setTopicSummary(null);
+    setQuestionStartTime(null);
+    
+    // Load questions filtered by difficulty
+    // TODO: Update API to accept difficulty parameter
+    GameService.mcq_questions_get(selectedSubject.id, 5).then(data => {
+      // Filter by difficulty if questions have difficulty property
+      const filteredQuestions = data.filter(q => q.difficulty === difficulty);
+      setQuestions(filteredQuestions.length > 0 ? filteredQuestions : data);
+      setCurrentQuestionIndex(0);
+      setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
+      setSelectedOption(null);
+      setAnswerResponse(null);
+      setStage('in_progress');
+      setQuestionStartTime(Date.now());
+    });
   };
 
   const handleAssignmentBegin = () => {
@@ -808,19 +845,52 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       </div>
 
       <h2 className="font-heading text-3xl text-center mb-8 animate-fade-in-up" style={{color: 'var(--ion-blue)'}}>Select a Subject</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-        {subjects.map(subject => (
-          <button 
-            key={subject.id} 
-            onClick={() => handleSubjectSelect(subject)}
-            className="card-glass glow-ion p-6 text-center transform hover:scale-105 hover:border-cyan-400 transition-all duration-300 animate-fade-in-up"
-            style={{ borderColor: 'rgba(0, 208, 232, 0.4)' }}
-          >
-            <div className="w-16 h-16 mx-auto mb-4 animate-float" style={{ color: 'var(--ion-blue)'}}><BrainIcon /></div>
-            <h3 className="font-heading text-xl mb-2">{subject.name}</h3>
-            <p style={{color: 'var(--mist-400)'}}>Difficulty: {'⭐'.repeat(subject.difficulty)}</p>
-          </button>
-        ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        {subjects.map(subject => {
+          const progress = subjectProgress.find(p => p.id === subject.id);
+          const recommended = progress ? getRecommendedDifficulty(progress) : 'easy';
+          const colorClass = difficultyColorClasses[recommended];
+          
+          return (
+            <button
+              key={subject.id} 
+              onClick={() => handleSubjectSelect(subject)}
+              className={`card-glass p-6 transform hover:scale-105 transition-all duration-300 animate-fade-in-up border-2 ${colorClass} text-left`}
+            >
+              <div className="flex items-center gap-4 mb-3">
+                <div className="w-14 h-14 flex-shrink-0 animate-float" style={{ color: 'var(--ion-blue)'}}><BrainIcon /></div>
+                <div className="flex-1">
+                  <h3 className="font-heading text-xl text-white">{subject.name}</h3>
+                  <p className="text-sm text-gray-400 mt-1">{getRecommendedLabel(recommended)}</p>
+                </div>
+              </div>
+              
+              {progress && recommended !== 'done' && (
+                <div className="mt-4 space-y-1">
+                  <div className="flex justify-between text-xs text-gray-400">
+                    <span>Overall Progress</span>
+                    <span>
+                      {progress.easy.completed + progress.medium.completed + progress.hard.completed} / 
+                      {progress.easy.total + progress.medium.total + progress.hard.total}
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-500 ${
+                        recommended === 'easy' ? 'bg-green-500' : 
+                        recommended === 'medium' ? 'bg-amber-500' : 'bg-rose-500'
+                      }`}
+                      style={{ 
+                        width: `${((progress.easy.completed + progress.medium.completed + progress.hard.completed) / 
+                                  (progress.easy.total + progress.medium.total + progress.hard.total) * 100)}%` 
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -1256,6 +1326,18 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       case 'loading': return <div className="font-heading text-2xl animate-pulse text-center mt-20" style={{color: 'var(--ion-blue)'}}>Loading...</div>;
       case 'mode_selection': return renderModeSelection();
       case 'subject_selection': return renderSubjectSelection();
+      case 'difficulty_selection': {
+        if (!selectedSubject) return null;
+        const progress = subjectProgress.find(p => p.id === selectedSubject.id);
+        if (!progress) return null;
+        return (
+          <DifficultyPicker
+            subject={progress}
+            onSelectDifficulty={handleDifficultySelect}
+            onBack={() => setStage('subject_selection')}
+          />
+        );
+      }
       case 'in_progress': return renderInProgress();
       case 'completed': return renderCompleted();
       case 'assignment_blocked': return renderAssignmentBlocker();
