@@ -1,10 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  fetchActiveListeningSets,
+  fetchActiveReadingSets,
+  fetchActiveSpeakingTasks,
+  fetchActiveWritingTasks,
+} from '../../../services/ieltsService';
+import type { IELTSListeningSet, IELTSReadingSet, IELTSSpeakingTask, IELTSWritingTask } from '../../../types';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 
 const IeltsHome: React.FC = () => {
   const navigate = useNavigate();
   const [musicEnabled, setMusicEnabled] = useState(false);
+  const [readingSets, setReadingSets] = useState<IELTSReadingSet[]>([]);
+  const [listeningSets, setListeningSets] = useState<IELTSListeningSet[]>([]);
+  const [writingTasks, setWritingTasks] = useState<IELTSWritingTask[]>([]);
+  const [speakingTasks, setSpeakingTasks] = useState<IELTSSpeakingTask[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Stop background music when entering IELTS section
   useEffect(() => {
@@ -26,30 +39,33 @@ const IeltsHome: React.FC = () => {
     }
   };
 
-  // Sample data for display
-  const readingSets = [
-    { id: 1, title: 'Working from Home', description: 'General training passage on remote work', level: 'Beginner', est_band_min: 4.5, est_band_max: 6.0 },
-    { id: 2, title: 'The History of Coffee', description: 'Academic passage on coffee origins', level: 'Intermediate', est_band_min: 5.5, est_band_max: 7.0 },
-    { id: 3, title: 'Climate Change & Coral Reefs', description: 'Advanced passage on environmental impact', level: 'Advanced', est_band_min: 6.5, est_band_max: 8.0 },
-  ];
+  useEffect(() => {
+    const loadTasks = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-  const listeningSets = [
-    { id: 1, title: 'Travel Agency Conversation', description: 'Customer-agent booking discussion', level: 'Beginner', est_band_min: 4.5, est_band_max: 6.0 },
-    { id: 2, title: 'University Orientation Talk', description: 'Campus orientation for new students', level: 'Intermediate', est_band_min: 5.5, est_band_max: 7.0 },
-    { id: 3, title: 'Environmental Science Lecture', description: 'Renewable energy academic lecture', level: 'Advanced', est_band_min: 6.5, est_band_max: 8.0 },
-  ];
+        const [reading, listening, writing, speaking] = await Promise.all([
+          fetchActiveReadingSets(),
+          fetchActiveListeningSets(),
+          fetchActiveWritingTasks(),
+          fetchActiveSpeakingTasks(),
+        ]);
 
-  const writingTasks = [
-    { id: 1, title: 'Population Changes Bar Chart', prompt: 'Describe population changes across three cities...', task_type: 'task1', bands_target: '5.0-7.0' },
-    { id: 2, title: 'Technology in Education', prompt: 'Discuss technology impact on learning...', task_type: 'task2', bands_target: '5.5-7.5' },
-    { id: 3, title: 'Environmental Responsibility', prompt: 'Discuss global vs individual environmental action...', task_type: 'task2', bands_target: '6.0-8.0' },
-  ];
+        setReadingSets(reading);
+        setListeningSets(listening);
+        setWritingTasks(writing);
+        setSpeakingTasks(speaking);
+      } catch (loadError) {
+        const message = loadError instanceof Error ? loadError.message : 'Failed to load IELTS tasks.';
+        setError(message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const speakingTasks = [
-    { id: 1, part: 1, prompt: 'Describe your hometown' },
-    { id: 2, part: 2, prompt: 'Describe a memorable journey' },
-    { id: 3, part: 3, prompt: 'Discuss travel and tourism' },
-  ];
+    loadTasks();
+  }, []);
 
   return (
     <div style={{ 
@@ -135,38 +151,59 @@ const IeltsHome: React.FC = () => {
             <span style={{ backgroundColor: '#fef3c7', padding: '0.375rem 0.75rem', borderRadius: '9999px', fontSize: '0.6875rem', color: '#92400e', fontWeight: '600' }}>✓ Proven Results</span>
           </div>
 
+          {/* Loading/Error States */}
+          {error && (
+            <div style={{
+              backgroundColor: '#fef2f2',
+              border: '1px solid #fecdd3',
+              color: '#b91c1c',
+              borderRadius: '0.75rem',
+              padding: '0.75rem',
+              marginBottom: '1rem',
+              fontSize: '0.875rem',
+            }}>
+              {error}
+            </div>
+          )}
+
           {/* Reading */}
           <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
               <span style={{ fontSize: '1.5rem' }}>📖</span>
               <h2 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>Reading</h2>
             </div>
-            {readingSets.map((set) => (
-              <button
-                key={set.id}
-                onClick={() => navigate(`/ielts/reading/${set.id}`)}
-                style={{ 
-                  width: '100%', 
-                  backgroundColor: '#ffffff', 
-                  border: '1px solid #e5e7eb', 
-                  borderRadius: '0.5rem', 
-                  padding: '0.75rem', 
-                  marginBottom: '0.5rem',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem' }}>{set.title}</p>
-                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.125rem 0 0' }}>{set.level}</p>
+            {isLoading && readingSets.length === 0 ? (
+              <p style={{ color: '#6b7280', fontSize: '0.8125rem', margin: 0 }}>Loading reading sets…</p>
+            ) : readingSets.length === 0 ? (
+              <p style={{ color: '#6b7280', fontSize: '0.8125rem', margin: 0 }}>No reading sets are published yet.</p>
+            ) : (
+              readingSets.map((set) => (
+                <button
+                  key={set.id}
+                  onClick={() => navigate(`/ielts/reading/${set.id}`)}
+                  style={{
+                    width: '100%',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '0.5rem',
+                    padding: '0.75rem',
+                    marginBottom: '0.5rem',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem' }}>{set.title}</p>
+                      <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.125rem 0 0' }}>{set.level}</p>
+                    </div>
+                    <span style={{ backgroundColor: '#0369a1', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px' }}>
+                      Band {set.est_band_min}-{set.est_band_max}
+                    </span>
                   </div>
-                  <span style={{ backgroundColor: '#0369a1', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px' }}>
-                    Band {set.est_band_min}-{set.est_band_max}
-                  </span>
-                </div>
-              </button>
-            ))}
+                </button>
+              ))
+            )}
           </div>
 
           {/* Listening */}
@@ -175,32 +212,38 @@ const IeltsHome: React.FC = () => {
               <span style={{ fontSize: '1.5rem' }}>🎧</span>
               <h2 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>Listening</h2>
             </div>
-            {listeningSets.map((set) => (
-              <button
-                key={set.id}
-                onClick={() => navigate(`/ielts/listening/${set.id}`)}
-                style={{ 
-                  width: '100%', 
-                  backgroundColor: '#ffffff', 
-                  border: '1px solid #e5e7eb', 
-                  borderRadius: '0.5rem', 
-                  padding: '0.75rem', 
-                  marginBottom: '0.5rem',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem' }}>{set.title}</p>
-                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.125rem 0 0' }}>{set.level}</p>
+            {isLoading && listeningSets.length === 0 ? (
+              <p style={{ color: '#6b7280', fontSize: '0.8125rem', margin: 0 }}>Loading listening sets…</p>
+            ) : listeningSets.length === 0 ? (
+              <p style={{ color: '#6b7280', fontSize: '0.8125rem', margin: 0 }}>No listening sets are published yet.</p>
+            ) : (
+              listeningSets.map((set) => (
+                <button
+                  key={set.id}
+                  onClick={() => navigate(`/ielts/listening/${set.id}`)}
+                  style={{
+                    width: '100%',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '0.5rem',
+                    padding: '0.75rem',
+                    marginBottom: '0.5rem',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem' }}>{set.title}</p>
+                      <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.125rem 0 0' }}>{set.level}</p>
+                    </div>
+                    <span style={{ backgroundColor: '#7c3aed', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px' }}>
+                      Band {set.est_band_min}-{set.est_band_max}
+                    </span>
                   </div>
-                  <span style={{ backgroundColor: '#7c3aed', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px' }}>
-                    Band {set.est_band_min}-{set.est_band_max}
-                  </span>
-                </div>
-              </button>
-            ))}
+                </button>
+              ))
+            )}
           </div>
 
           {/* Writing */}
@@ -209,32 +252,38 @@ const IeltsHome: React.FC = () => {
               <span style={{ fontSize: '1.5rem' }}>✍️</span>
               <h2 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>Writing</h2>
             </div>
-            {writingTasks.map((task) => (
-              <button
-                key={task.id}
-                onClick={() => navigate(`/ielts/writing/${task.id}`)}
-                style={{ 
-                  width: '100%', 
-                  backgroundColor: '#ffffff', 
-                  border: '1px solid #e5e7eb', 
-                  borderRadius: '0.5rem', 
-                  padding: '0.75rem', 
-                  marginBottom: '0.5rem',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem' }}>{task.title}</p>
-                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.125rem 0 0' }}>{task.task_type === 'task1' ? 'Task 1' : 'Task 2'}</p>
+            {isLoading && writingTasks.length === 0 ? (
+              <p style={{ color: '#6b7280', fontSize: '0.8125rem', margin: 0 }}>Loading writing tasks…</p>
+            ) : writingTasks.length === 0 ? (
+              <p style={{ color: '#6b7280', fontSize: '0.8125rem', margin: 0 }}>No writing tasks are published yet.</p>
+            ) : (
+              writingTasks.map((task) => (
+                <button
+                  key={task.id}
+                  onClick={() => navigate(`/ielts/writing/${task.id}`)}
+                  style={{
+                    width: '100%',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '0.5rem',
+                    padding: '0.75rem',
+                    marginBottom: '0.5rem',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem' }}>{task.title}</p>
+                      <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.125rem 0 0' }}>{task.task_type === 'task1' ? 'Task 1' : 'Task 2'}</p>
+                    </div>
+                    <span style={{ backgroundColor: '#059669', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px' }}>
+                      {task.bands_target}
+                    </span>
                   </div>
-                  <span style={{ backgroundColor: '#059669', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px' }}>
-                    {task.bands_target}
-                  </span>
-                </div>
-              </button>
-            ))}
+                </button>
+              ))
+            )}
           </div>
 
           {/* Speaking */}
@@ -243,32 +292,38 @@ const IeltsHome: React.FC = () => {
               <span style={{ fontSize: '1.5rem' }}>🎤</span>
               <h2 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>Speaking</h2>
             </div>
-            {speakingTasks.map((task) => (
-              <button
-                key={task.id}
-                onClick={() => navigate(`/ielts/speaking/${task.id}`)}
-                style={{ 
-                  width: '100%', 
-                  backgroundColor: '#ffffff', 
-                  border: '1px solid #e5e7eb', 
-                  borderRadius: '0.5rem', 
-                  padding: '0.75rem', 
-                  marginBottom: '0.5rem',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem' }}>Part {task.part}: {task.prompt}</p>
-                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.125rem 0 0' }}>Record & get feedback</p>
+            {isLoading && speakingTasks.length === 0 ? (
+              <p style={{ color: '#6b7280', fontSize: '0.8125rem', margin: 0 }}>Loading speaking tasks…</p>
+            ) : speakingTasks.length === 0 ? (
+              <p style={{ color: '#6b7280', fontSize: '0.8125rem', margin: 0 }}>No speaking tasks are published yet.</p>
+            ) : (
+              speakingTasks.map((task) => (
+                <button
+                  key={task.id}
+                  onClick={() => navigate(`/ielts/speaking/${task.id}`)}
+                  style={{
+                    width: '100%',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '0.5rem',
+                    padding: '0.75rem',
+                    marginBottom: '0.5rem',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem' }}>Part {task.part}: {task.prompt}</p>
+                      <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.125rem 0 0' }}>Record & get feedback</p>
+                    </div>
+                    <span style={{ backgroundColor: '#dc2626', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px' }}>
+                      Part {task.part}
+                    </span>
                   </div>
-                  <span style={{ backgroundColor: '#dc2626', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px' }}>
-                    Part {task.part}
-                  </span>
-                </div>
-              </button>
-            ))}
+                </button>
+              ))
+            )}
           </div>
 
           {/* Premium CTA */}
