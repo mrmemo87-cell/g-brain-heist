@@ -151,6 +151,66 @@ const IeltsHome: React.FC = () => {
             <span style={{ backgroundColor: '#fef3c7', padding: '0.375rem 0.75rem', borderRadius: '9999px', fontSize: '0.6875rem', color: '#92400e', fontWeight: '600' }}>✓ Proven Results</span>
           </div>
 
+          {/* Free Trial Test Banner */}
+          <div 
+            onClick={() => navigate('/ielts/trial-test')}
+            style={{ 
+              background: 'linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%)',
+              borderRadius: '1rem',
+              padding: 'clamp(1rem, 3vw, 1.5rem)',
+              marginBottom: '1rem',
+              cursor: 'pointer',
+              color: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              transition: 'transform 0.2s, box-shadow 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+            }}
+          >
+            <div style={{ fontSize: '2.5rem' }}>🎧</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ 
+                display: 'inline-block',
+                background: '#22c55e',
+                color: 'white',
+                padding: '0.125rem 0.5rem',
+                borderRadius: '0.25rem',
+                fontSize: '0.625rem',
+                fontWeight: 'bold',
+                marginBottom: '0.375rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}>
+                Free Trial
+              </div>
+              <h3 style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', fontWeight: 'bold', margin: '0 0 0.25rem 0' }}>
+                IELTS Listening Test 1
+              </h3>
+              <p style={{ fontSize: '0.75rem', color: '#94a3b8', margin: 0 }}>
+                40 questions • 4 sections • Get your band score instantly
+              </p>
+            </div>
+            <div style={{ 
+              background: '#3b82f6',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              fontWeight: 'bold',
+              fontSize: '0.875rem',
+              whiteSpace: 'nowrap',
+            }}>
+              Start →
+            </div>
+          </div>
+
           {/* Loading/Error States */}
           {error && (
             <div style={{
@@ -192,14 +252,14 @@ const IeltsHome: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem' }}>{set.title}</p>
-                      <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.125rem 0 0' }}>{set.level}</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem', flex: 1, minWidth: '150px' }}>{set.title}</p>
+                      <span style={{ backgroundColor: '#0369a1', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px', whiteSpace: 'nowrap' }}>
+                        Band {set.est_band_min}-{set.est_band_max}
+                      </span>
                     </div>
-                    <span style={{ backgroundColor: '#0369a1', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px' }}>
-                      Band {set.est_band_min}-{set.est_band_max}
-                    </span>
+                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Level: {set.level} • {set.duration_minutes || 20} min</p>
                   </div>
                 </button>
               ))
@@ -232,14 +292,14 @@ const IeltsHome: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem' }}>{set.title}</p>
-                      <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.125rem 0 0' }}>{set.level}</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem', flex: 1, minWidth: '150px' }}>{set.title}</p>
+                      <span style={{ backgroundColor: '#7c3aed', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px', whiteSpace: 'nowrap' }}>
+                        Band {set.est_band_min}-{set.est_band_max}
+                      </span>
                     </div>
-                    <span style={{ backgroundColor: '#7c3aed', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px' }}>
-                      Band {set.est_band_min}-{set.est_band_max}
-                    </span>
+                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Level: {set.level} • {set.duration_minutes} min</p>
                   </div>
                 </button>
               ))
@@ -272,14 +332,14 @@ const IeltsHome: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem' }}>{task.title}</p>
-                      <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.125rem 0 0' }}>{task.task_type === 'task1' ? 'Task 1' : 'Task 2'}</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem', flex: 1, minWidth: '150px' }}>{task.title}</p>
+                      <span style={{ backgroundColor: '#059669', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px', whiteSpace: 'nowrap' }}>
+                        Band {task.bands_target}
+                      </span>
                     </div>
-                    <span style={{ backgroundColor: '#059669', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px' }}>
-                      {task.bands_target}
-                    </span>
+                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>{task.task_type === 'task1' ? 'Task 1 - 20 min' : 'Task 2 - 40 min'}</p>
                   </div>
                 </button>
               ))
@@ -312,14 +372,14 @@ const IeltsHome: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem' }}>Part {task.part}: {task.prompt}</p>
-                      <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.125rem 0 0' }}>Record & get feedback</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <span style={{ backgroundColor: '#dc2626', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px', whiteSpace: 'nowrap' }}>
+                        Part {task.part}
+                      </span>
                     </div>
-                    <span style={{ backgroundColor: '#dc2626', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px' }}>
-                      Part {task.part}
-                    </span>
+                    <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem', lineHeight: 1.4 }}>{task.prompt}</p>
+                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Record & get expert feedback</p>
                   </div>
                 </button>
               ))

@@ -17,6 +17,7 @@ import ReadingPractice from './src/pages/ielts/ReadingPractice';
 import SpeakingPractice from './src/pages/ielts/SpeakingPractice';
 import ListeningPractice from './src/pages/ielts/ListeningPractice';
 import WritingPractice from './src/pages/ielts/WritingPractice';
+import TrialListeningTest from './src/pages/ielts/TrialListeningTest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient();
@@ -159,6 +160,10 @@ const router = createBrowserRouter([
   {
     path: '/ielts',
     element: <ProtectedRoute element={<IeltsHome />} />,
+  },
+  {
+    path: '/ielts/trial-test',
+    element: <ProtectedRoute element={<TrialListeningTest />} />,
   },
   {
     path: '/ielts/reading/:setId',

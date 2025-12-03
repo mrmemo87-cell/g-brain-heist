@@ -650,22 +650,43 @@ const ListeningPractice: React.FC = () => {
                 </div>
               </div>
 
-              <div style={{
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '0.75rem',
-                padding: '1rem',
-                marginBottom: '1rem'
-              }}>
-                <audio
-                  ref={audioRef}
-                  controls
-                  style={{ width: '100%' }}
-                >
-                  <source src={listeningSet.audio_url} type="audio/mpeg" />
-                  Your browser does not support the audio element.
-                </audio>
-              </div>
+              {/* Audio Player or Missing Audio Notice */}
+              {listeningSet.audio_url && !listeningSet.audio_url.startsWith('/audio/') ? (
+                <div style={{
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '0.75rem',
+                  padding: '1rem',
+                  marginBottom: '1rem'
+                }}>
+                  <audio
+                    ref={audioRef}
+                    controls
+                    style={{ width: '100%' }}
+                  >
+                    <source src={listeningSet.audio_url} type="audio/mpeg" />
+                    Your browser does not support the audio element.
+                  </audio>
+                </div>
+              ) : (
+                <div style={{
+                  background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+                  border: '1px solid #fca5a5',
+                  borderRadius: '0.75rem',
+                  padding: '1rem',
+                  marginBottom: '1rem',
+                  textAlign: 'center'
+                }}>
+                  <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🔇</div>
+                  <h3 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#b91c1c', marginBottom: '0.5rem' }}>
+                    Audio Not Available
+                  </h3>
+                  <p style={{ fontSize: '0.75rem', color: '#991b1b', margin: 0 }}>
+                    The audio file for this listening test has not been uploaded yet. 
+                    Please contact the administrator or try another test.
+                  </p>
+                </div>
+              )}
 
               <div style={{
                 background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
