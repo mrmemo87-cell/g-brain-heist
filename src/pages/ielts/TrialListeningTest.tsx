@@ -2,6 +2,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 
+// Supabase storage URL for audio files
+const SUPABASE_STORAGE_URL = 'https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/ielts-audio';
+
+// Audio URLs for each section
+const SECTION_AUDIO = {
+  1: `${SUPABASE_STORAGE_URL}/Test%201-Section%201.mp3`,
+  2: `${SUPABASE_STORAGE_URL}/Test%201-Section%202.mp3`,
+  3: `${SUPABASE_STORAGE_URL}/Test%201-Section%203.mp3`,
+  4: `${SUPABASE_STORAGE_URL}/Test%201-Section%204.mp3`,
+};
+
 // Trial Test 1 - All 4 Sections hardcoded
 const TRIAL_TEST_DATA = {
   title: "IELTS Listening Trial Test 1",
@@ -141,6 +152,14 @@ const TrialListeningTest: React.FC = () => {
   const [hasStarted, setHasStarted] = useState(false);
   const [timeElapsed, setTimeElapsed] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Audio state
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audioProgress, setAudioProgress] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(0);
+  const [audioLoading, setAudioLoading] = useState(false);
+  const [audioError, setAudioError] = useState<string | null>(null);
 
   // Stop background music
   useEffect(() => {
@@ -148,8 +167,88 @@ const TrialListeningTest: React.FC = () => {
     return () => {
       resumeBackgroundMusic();
       if (timerRef.current) clearInterval(timerRef.current);
+      // Cleanup audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
     };
   }, []);
+
+  // Initialize audio for current section
+  useEffect(() => {
+    if (hasStarted && !showResults) {
+      const sectionId = currentSection + 1;
+      const audioUrl = SECTION_AUDIO[sectionId as keyof typeof SECTION_AUDIO];
+      
+      // Cleanup previous audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      
+      setAudioLoading(true);
+      setAudioError(null);
+      setAudioProgress(0);
+      setIsPlaying(false);
+      
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+      
+      audio.addEventListener('loadedmetadata', () => {
+        setAudioDuration(audio.duration);
+        setAudioLoading(false);
+      });
+      
+      audio.addEventListener('timeupdate', () => {
+        setAudioProgress(audio.currentTime);
+      });
+      
+      audio.addEventListener('ended', () => {
+        setIsPlaying(false);
+      });
+      
+      audio.addEventListener('error', () => {
+        setAudioError('Failed to load audio. Please check your connection.');
+        setAudioLoading(false);
+      });
+      
+      audio.load();
+    }
+    
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+  }, [currentSection, hasStarted, showResults]);
+
+  const togglePlayPause = () => {
+    if (!audioRef.current) return;
+    
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play().catch(() => {
+        setAudioError('Could not play audio. Please try again.');
+      });
+      setIsPlaying(true);
+    }
+  };
+
+  const seekAudio = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!audioRef.current) return;
+    const time = parseFloat(e.target.value);
+    audioRef.current.currentTime = time;
+    setAudioProgress(time);
+  };
+
+  const formatAudioTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   // Timer
   useEffect(() => {
@@ -263,7 +362,7 @@ const TrialListeningTest: React.FC = () => {
                 <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Sections</div>
               </div>
               <div style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '0.75rem', padding: '1rem' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#f59e0b' }}>24</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#f59e0b' }}>40</div>
                 <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Questions</div>
               </div>
               <div style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '0.75rem', padding: '1rem' }}>
@@ -278,9 +377,26 @@ const TrialListeningTest: React.FC = () => {
 
             <div style={{ textAlign: 'left', fontSize: '0.875rem', color: '#cbd5e1' }}>
               <p style={{ marginBottom: '0.5rem' }}>📝 <strong>Section 1:</strong> Form completion (daily conversation)</p>
-              <p style={{ marginBottom: '0.5rem' }}>📝 <strong>Section 2:</strong> Notes completion (public information)</p>
-              <p style={{ marginBottom: '0.5rem' }}>📝 <strong>Section 3:</strong> Multiple choice (academic discussion)</p>
-              <p>📝 <strong>Section 4:</strong> Notes completion (lecture)</p>
+              <p style={{ marginBottom: '0.5rem' }}>📝 <strong>Section 2:</strong> Table completion + MCQ (conference)</p>
+              <p style={{ marginBottom: '0.5rem' }}>📝 <strong>Section 3:</strong> Multiple choice (course details)</p>
+              <p>📝 <strong>Section 4:</strong> Notes completion (flooring lecture)</p>
+            </div>
+          </div>
+
+          {/* Audio Tip */}
+          <div style={{
+            background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
+            borderRadius: '1rem',
+            padding: '1rem',
+            marginBottom: '1rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem'
+          }}>
+            <span style={{ fontSize: '2rem' }}>🎧</span>
+            <div style={{ textAlign: 'left', fontSize: '0.8rem' }}>
+              <p style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>Audio Included!</p>
+              <p style={{ color: '#bae6fd' }}>Each section has real IELTS listening audio. Use headphones for best experience.</p>
             </div>
           </div>
 
@@ -614,6 +730,90 @@ const TrialListeningTest: React.FC = () => {
               );
             })}
           </div>
+        </div>
+      </div>
+
+      {/* Audio Player - Sticky below header */}
+      <div style={{
+        position: 'sticky',
+        top: '80px',
+        background: 'linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%)',
+        padding: '0.75rem 1rem',
+        zIndex: 99,
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+      }}>
+        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+          {audioLoading ? (
+            <div style={{ textAlign: 'center', color: '#94a3b8', fontSize: '0.875rem', padding: '0.5rem' }}>
+              🔄 Loading audio...
+            </div>
+          ) : audioError ? (
+            <div style={{ textAlign: 'center', color: '#fca5a5', fontSize: '0.875rem', padding: '0.5rem' }}>
+              ⚠️ {audioError}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              {/* Play/Pause Button */}
+              <button
+                onClick={togglePlayPause}
+                style={{
+                  width: '3rem',
+                  height: '3rem',
+                  borderRadius: '50%',
+                  background: isPlaying ? '#ef4444' : '#22c55e',
+                  color: 'white',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '1.25rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  transition: 'transform 0.1s',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                }}
+              >
+                {isPlaying ? '⏸️' : '▶️'}
+              </button>
+              
+              {/* Progress Bar */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <input
+                  type="range"
+                  min="0"
+                  max={audioDuration || 100}
+                  value={audioProgress}
+                  onChange={seekAudio}
+                  style={{
+                    width: '100%',
+                    height: '6px',
+                    borderRadius: '3px',
+                    background: `linear-gradient(to right, #3b82f6 ${(audioProgress / (audioDuration || 1)) * 100}%, #475569 ${(audioProgress / (audioDuration || 1)) * 100}%)`,
+                    cursor: 'pointer',
+                    appearance: 'none',
+                    WebkitAppearance: 'none'
+                  }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#94a3b8' }}>
+                  <span>{formatAudioTime(audioProgress)}</span>
+                  <span>{formatAudioTime(audioDuration)}</span>
+                </div>
+              </div>
+              
+              {/* Section Label */}
+              <div style={{ 
+                background: '#3b82f6', 
+                color: 'white', 
+                padding: '0.25rem 0.5rem', 
+                borderRadius: '0.25rem',
+                fontSize: '0.7rem',
+                fontWeight: 'bold',
+                whiteSpace: 'nowrap'
+              }}>
+                🎧 S{currentSection + 1}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
