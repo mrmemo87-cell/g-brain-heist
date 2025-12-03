@@ -115,9 +115,25 @@ const SpeakingPractice: React.FC = () => {
     };
   }, [audioUrl]);
 
-  // Get times from task
-  const prepTime = task?.follow_ups?.preparation_time || 60; // Default 1 minute prep
-  const speakingTime = task?.follow_ups?.speaking_time || task?.follow_ups?.time_limit || 120; // Default 2 minutes
+  // Get times from task - with MINIMUM enforced values for realistic IELTS
+  // Part 1: 4-5 min total, Part 2: 1 min prep + 2 min speak, Part 3: 4-5 min
+  const getDefaultTimes = (part: number) => {
+    switch(part) {
+      case 1: return { prep: 0, speak: 120 }; // Part 1: No prep, 2 min speak
+      case 2: return { prep: 60, speak: 120 }; // Part 2: 1 min prep, 2 min speak
+      case 3: return { prep: 0, speak: 120 }; // Part 3: No prep, 2 min speak
+      default: return { prep: 60, speak: 120 };
+    }
+  };
+  
+  const defaults = getDefaultTimes(task?.part || 1);
+  
+  // Use database values only if they're reasonable (> 10 seconds), otherwise use defaults
+  const dbPrepTime = task?.follow_ups?.preparation_time;
+  const dbSpeakTime = task?.follow_ups?.speaking_time || task?.follow_ups?.time_limit;
+  
+  const prepTime = (dbPrepTime && dbPrepTime >= 10) ? dbPrepTime : defaults.prep;
+  const speakingTime = (dbSpeakTime && dbSpeakTime >= 30) ? dbSpeakTime : defaults.speak;
 
   // Start the entire flow (prep -> recording)
   const startPractice = async () => {
@@ -277,21 +293,21 @@ const SpeakingPractice: React.FC = () => {
       <div style={{ 
         minHeight: '100vh', 
         background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-        padding: '2rem'
+        padding: 'clamp(1rem, 3vw, 2rem)'
       }}>
         <div style={{
           maxWidth: '42rem',
           margin: '0 auto',
           background: 'white',
           borderRadius: '1rem',
-          padding: '2.5rem',
+          padding: 'clamp(1.5rem, 4vw, 2.5rem)',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
           textAlign: 'center'
         }}>
           {/* Success Icon */}
           <div style={{
-            width: '5rem',
-            height: '5rem',
+            width: 'clamp(3.5rem, 10vw, 5rem)',
+            height: 'clamp(3.5rem, 10vw, 5rem)',
             background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
             borderRadius: '50%',
             display: 'flex',
@@ -299,15 +315,15 @@ const SpeakingPractice: React.FC = () => {
             justifyContent: 'center',
             margin: '0 auto 1.5rem'
           }}>
-            <svg style={{ width: '2.5rem', height: '2.5rem', color: 'white' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg style={{ width: 'clamp(1.75rem, 5vw, 2.5rem)', height: 'clamp(1.75rem, 5vw, 2.5rem)', color: 'white' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
           
-          <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
+          <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
             Submission Received!
           </h1>
-          <p style={{ fontSize: '1.125rem', color: '#64748b', marginBottom: '2rem' }}>
+          <p style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.125rem)', color: '#64748b', marginBottom: '2rem' }}>
             Your speaking response has been successfully submitted.
           </p>
 
@@ -316,14 +332,14 @@ const SpeakingPractice: React.FC = () => {
             background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
             border: '1px solid #93c5fd',
             borderRadius: '0.75rem',
-            padding: '1.5rem',
+            padding: 'clamp(1rem, 3vw, 1.5rem)',
             marginBottom: '1.5rem',
             textAlign: 'left'
           }}>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1e40af', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <h3 style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.125rem)', fontWeight: '600', color: '#1e40af', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span>🎯</span> What Happens Next
             </h3>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#1e3a5f' }}>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#1e3a5f', fontSize: 'clamp(0.8rem, 2vw, 1rem)' }}>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
                 <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>1.</span>
                 <span>Your recording will be reviewed by a <strong>certified IELTS examiner</strong></span>
@@ -344,17 +360,17 @@ const SpeakingPractice: React.FC = () => {
             background: '#f8fafc',
             border: '1px solid #e2e8f0',
             borderRadius: '0.75rem',
-            padding: '1.5rem',
+            padding: 'clamp(1rem, 3vw, 1.5rem)',
             marginBottom: '1.5rem',
             textAlign: 'left'
           }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#334155', marginBottom: '1rem' }}>
+            <h3 style={{ fontSize: 'clamp(0.875rem, 2.5vw, 1rem)', fontWeight: '600', color: '#334155', marginBottom: '1rem' }}>
               📬 Notification Preferences
             </h3>
             
             {/* Alternate Email */}
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', fontSize: '0.875rem', color: '#64748b', marginBottom: '0.25rem' }}>
+              <label style={{ display: 'block', fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#64748b', marginBottom: '0.25rem' }}>
                 Alternate email (optional)
               </label>
               <input
@@ -367,7 +383,7 @@ const SpeakingPractice: React.FC = () => {
                   padding: '0.625rem 0.875rem',
                   border: '1px solid #d1d5db',
                   borderRadius: '0.5rem',
-                  fontSize: '0.875rem',
+                  fontSize: 'clamp(0.75rem, 2vw, 0.875rem)',
                   boxSizing: 'border-box'
                 }}
               />
@@ -375,7 +391,7 @@ const SpeakingPractice: React.FC = () => {
 
             {/* Phone Number */}
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', fontSize: '0.875rem', color: '#64748b', marginBottom: '0.25rem' }}>
+              <label style={{ display: 'block', fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#64748b', marginBottom: '0.25rem' }}>
                 Phone number for SMS updates (optional)
               </label>
               <input
@@ -388,7 +404,7 @@ const SpeakingPractice: React.FC = () => {
                   padding: '0.625rem 0.875rem',
                   border: '1px solid #d1d5db',
                   borderRadius: '0.5rem',
-                  fontSize: '0.875rem',
+                  fontSize: 'clamp(0.75rem, 2vw, 0.875rem)',
                   boxSizing: 'border-box'
                 }}
               />
@@ -477,8 +493,9 @@ const SpeakingPractice: React.FC = () => {
     );
   }
 
-  const displayPrepTime = task.follow_ups?.preparation_time || 60;
-  const displayMaxTime = task.follow_ups?.speaking_time || task.follow_ups?.time_limit || 120;
+  // Use the already calculated prepTime and speakingTime for display
+  const displayPrepTime = prepTime;
+  const displayMaxTime = speakingTime;
   const prepProgress = displayPrepTime > 0 ? ((displayPrepTime - preparationTimeLeft) / displayPrepTime) * 100 : 0;
   const recordProgress = displayMaxTime > 0 ? ((displayMaxTime - recordingTimeLeft) / displayMaxTime) * 100 : 0;
 
@@ -486,73 +503,73 @@ const SpeakingPractice: React.FC = () => {
     <div style={{ 
       minHeight: '100vh', 
       background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-      padding: '1rem'
+      padding: '0.75rem'
     }}>
       <div style={{ maxWidth: '56rem', margin: '0 auto' }}>
         {/* Header */}
         <div style={{
           background: 'white',
-          borderRadius: '1rem',
-          padding: '1.5rem',
-          marginBottom: '1.5rem',
+          borderRadius: '0.75rem',
+          padding: '1rem',
+          marginBottom: '1rem',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start'
         }}>
-          <div>
-            <div style={{ fontSize: '0.875rem', color: '#6366f1', marginBottom: '0.25rem' }}>
-              IELTS Speaking - Part {task.part}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+            <div>
+              <div style={{ fontSize: '0.75rem', color: '#6366f1', marginBottom: '0.125rem' }}>
+                IELTS Speaking - Part {task.part}
+              </div>
+              <h1 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1e293b', margin: 0 }}>
+                Speaking Practice
+              </h1>
             </div>
-            <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.25rem' }}>
-              Speaking Practice
-            </h1>
-            <p style={{ color: '#64748b' }}>Free sample for skill evaluation</p>
+            <button
+              onClick={() => navigate('/ielts')}
+              style={{
+                padding: '0.375rem 0.75rem',
+                background: '#f1f5f9',
+                color: '#475569',
+                border: '1px solid #e2e8f0',
+                borderRadius: '0.375rem',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+              }}
+            >
+              Exit
+            </button>
           </div>
-          <button
-            onClick={() => navigate('/ielts')}
-            style={{
-              padding: '0.5rem 1rem',
-              background: '#f1f5f9',
-              color: '#475569',
-              border: '1px solid #e2e8f0',
-              borderRadius: '0.5rem',
-              cursor: 'pointer'
-            }}
-          >
-            Exit
-          </button>
+          <p style={{ color: '#64748b', fontSize: '0.8125rem', margin: 0 }}>Free sample for skill evaluation</p>
         </div>
 
         {/* Task Card */}
         <div style={{
           background: 'white',
-          borderRadius: '1rem',
-          padding: '2rem',
-          marginBottom: '1.5rem',
+          borderRadius: '0.75rem',
+          padding: '1rem',
+          marginBottom: '1rem',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
         }}>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '1rem' }}>
+          <div style={{ marginBottom: '1rem' }}>
+            <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
               Task Prompt
             </h2>
-            <p style={{ fontSize: '1.125rem', color: '#334155', lineHeight: 1.75 }}>{task.prompt}</p>
+            <p style={{ fontSize: '0.9375rem', color: '#334155', lineHeight: 1.6 }}>{task.prompt}</p>
           </div>
 
           {task.follow_ups?.cue_card_points && (
             <div style={{
               background: '#f8fafc',
               border: '1px solid #e2e8f0',
-              borderRadius: '0.75rem',
-              padding: '1.5rem',
-              marginBottom: '1.5rem'
+              borderRadius: '0.5rem',
+              padding: '1rem',
+              marginBottom: '1rem'
             }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1e293b', marginBottom: '0.75rem' }}>
+              <h3 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1e293b', marginBottom: '0.5rem' }}>
                 You should say:
               </h3>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                 {task.follow_ups.cue_card_points.map((point, idx) => (
-                  <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', color: '#475569', marginBottom: '0.5rem' }}>
+                  <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', color: '#475569', marginBottom: '0.375rem', fontSize: '0.875rem' }}>
                     <span style={{ color: '#6366f1' }}>•</span>
                     <span>{point}</span>
                   </li>
@@ -565,16 +582,16 @@ const SpeakingPractice: React.FC = () => {
             <div style={{
               background: '#f8fafc',
               border: '1px solid #e2e8f0',
-              borderRadius: '0.75rem',
-              padding: '1.5rem',
-              marginBottom: '1.5rem'
+              borderRadius: '0.5rem',
+              padding: '1rem',
+              marginBottom: '1rem'
             }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1e293b', marginBottom: '0.75rem' }}>
+              <h3 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1e293b', marginBottom: '0.5rem' }}>
                 Discussion Questions:
               </h3>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                 {task.follow_ups.questions.map((question, idx) => (
-                  <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', color: '#475569', marginBottom: '0.5rem' }}>
+                  <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', color: '#475569', marginBottom: '0.375rem', fontSize: '0.875rem' }}>
                     <span style={{ color: '#6366f1' }}>{idx + 1}.</span>
                     <span>{question}</span>
                   </li>
@@ -584,26 +601,28 @@ const SpeakingPractice: React.FC = () => {
           )}
 
           {/* Timer Instructions */}
-          <div style={{ display: 'grid', gridTemplateColumns: displayPrepTime > 0 ? '1fr 1fr' : '1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: displayPrepTime > 0 ? '1fr 1fr' : '1fr', gap: '0.75rem', marginBottom: '1rem' }}>
             {displayPrepTime > 0 && (
               <div style={{
                 background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
                 border: '1px solid #93c5fd',
                 borderRadius: '0.5rem',
-                padding: '1rem'
+                padding: '0.75rem',
+                textAlign: 'center',
               }}>
-                <div style={{ fontSize: '0.875rem', color: '#3b82f6', marginBottom: '0.25rem' }}>Preparation Time</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1e40af' }}>{formatTime(displayPrepTime)}</div>
+                <div style={{ fontSize: '0.75rem', color: '#3b82f6', marginBottom: '0.125rem' }}>Prep Time</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1e40af' }}>{formatTime(displayPrepTime)}</div>
               </div>
             )}
             <div style={{
               background: 'linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)',
               border: '1px solid #c4b5fd',
               borderRadius: '0.5rem',
-              padding: '1rem'
+              padding: '0.75rem',
+              textAlign: 'center',
             }}>
-              <div style={{ fontSize: '0.875rem', color: '#7c3aed', marginBottom: '0.25rem' }}>Speaking Time</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#5b21b6' }}>{formatTime(displayMaxTime)}</div>
+              <div style={{ fontSize: '0.75rem', color: '#7c3aed', marginBottom: '0.125rem' }}>Speaking Time</div>
+              <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#5b21b6' }}>{formatTime(displayMaxTime)}</div>
             </div>
           </div>
 
@@ -613,34 +632,34 @@ const SpeakingPractice: React.FC = () => {
               onClick={startPractice}
               style={{
                 width: '100%',
-                padding: '1rem 1.5rem',
+                padding: '0.875rem 1rem',
                 background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '0.5rem',
                 cursor: 'pointer',
                 fontWeight: 'bold',
-                fontSize: '1.125rem',
+                fontSize: '1rem',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '0.75rem'
+                gap: '0.5rem'
               }}
             >
-              <svg style={{ width: '1.5rem', height: '1.5rem' }} fill="currentColor" viewBox="0 0 24 24">
+              <svg style={{ width: '1.25rem', height: '1.25rem' }} fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z"/>
               </svg>
-              Start Practice ({formatTime(displayPrepTime)} prep + {formatTime(displayMaxTime)} speaking)
+              Start Practice
             </button>
           )}
 
           {/* Preparation Phase - Countdown Display */}
           {isPreparing && (
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '0.875rem', color: '#3b82f6', marginBottom: '0.5rem', fontWeight: '600' }}>
+            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+              <div style={{ fontSize: 'clamp(0.75rem, 2.5vw, 0.875rem)', color: '#3b82f6', marginBottom: '0.5rem', fontWeight: '600' }}>
                 ⏱️ Preparation Time
               </div>
-              <div style={{ fontSize: '4rem', fontWeight: 'bold', color: '#3b82f6', marginBottom: '1rem' }}>
+              <div style={{ fontSize: 'clamp(1.75rem, 7vw, 3rem)', fontWeight: 'bold', color: '#3b82f6', marginBottom: '0.75rem' }}>
                 {formatTime(preparationTimeLeft)}
               </div>
               <div style={{ width: '100%', background: '#e2e8f0', borderRadius: '9999px', height: '0.5rem', marginBottom: '1rem' }}>
@@ -661,18 +680,18 @@ const SpeakingPractice: React.FC = () => {
           {/* Recording Phase - Countdown Display */}
           {isRecording && (
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '0.875rem', color: '#dc2626', marginBottom: '0.5rem', fontWeight: '600' }}>
+              <div style={{ fontSize: 'clamp(0.75rem, 2.5vw, 0.875rem)', color: '#dc2626', marginBottom: '0.5rem', fontWeight: '600' }}>
                 🎙️ Recording in Progress
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'clamp(0.5rem, 2vw, 1rem)', marginBottom: '1rem' }}>
                 <div style={{ 
-                  width: '1rem', 
-                  height: '1rem', 
+                  width: 'clamp(0.75rem, 2.5vw, 1rem)', 
+                  height: 'clamp(0.75rem, 2.5vw, 1rem)', 
                   background: '#ef4444', 
                   borderRadius: '50%',
                   animation: 'pulse 1s infinite'
                 }} />
-                <div style={{ fontSize: '4rem', fontWeight: 'bold', color: '#dc2626' }}>
+                <div style={{ fontSize: 'clamp(2rem, 8vw, 4rem)', fontWeight: 'bold', color: '#dc2626' }}>
                   {formatTime(recordingTimeLeft)}
                 </div>
               </div>
@@ -712,28 +731,29 @@ const SpeakingPractice: React.FC = () => {
                 background: '#f8fafc',
                 border: '1px solid #e2e8f0',
                 borderRadius: '0.75rem',
-                padding: '1.5rem',
+                padding: 'clamp(1rem, 3vw, 1.5rem)',
                 marginBottom: '1rem'
               }}>
-                <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1e293b', marginBottom: '1rem' }}>
+                <h3 style={{ fontSize: 'clamp(0.875rem, 2.5vw, 1rem)', fontWeight: '600', color: '#1e293b', marginBottom: '1rem' }}>
                   Your Recording
                 </h3>
                 <audio controls src={audioUrl} style={{ width: '100%', marginBottom: '0.5rem' }} />
-                <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#64748b' }}>
                   Duration: {formatTime(recordingDuration)}
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <button
                   onClick={restartPractice}
                   style={{
-                    flex: 1,
-                    padding: '0.75rem 1.5rem',
+                    width: '100%',
+                    padding: 'clamp(0.625rem, 2vw, 0.75rem) 1rem',
                     background: '#f1f5f9',
                     color: '#475569',
                     border: '1px solid #e2e8f0',
                     borderRadius: '0.5rem',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    fontSize: 'clamp(0.875rem, 2.5vw, 1rem)'
                   }}
                 >
                   Re-record
@@ -742,14 +762,15 @@ const SpeakingPractice: React.FC = () => {
                   onClick={handleSubmit}
                   disabled={submitMutation.isPending}
                   style={{
-                    flex: 1,
-                    padding: '0.75rem 1.5rem',
+                    width: '100%',
+                    padding: 'clamp(0.625rem, 2vw, 0.75rem) 1rem',
                     background: submitMutation.isPending ? '#9ca3af' : 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
                     color: 'white',
                     border: 'none',
                     borderRadius: '0.5rem',
                     cursor: submitMutation.isPending ? 'not-allowed' : 'pointer',
-                    fontWeight: 'bold'
+                    fontWeight: 'bold',
+                    fontSize: 'clamp(0.875rem, 2.5vw, 1rem)'
                   }}
                 >
                   {submitMutation.isPending ? 'Submitting...' : 'Submit for Review'}
@@ -764,12 +785,12 @@ const SpeakingPractice: React.FC = () => {
           background: 'white',
           border: '1px solid #bfdbfe',
           borderRadius: '0.75rem',
-          padding: '1.5rem'
+          padding: 'clamp(1rem, 3vw, 1.5rem)'
         }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1e40af', marginBottom: '0.75rem' }}>
+          <h3 style={{ fontSize: 'clamp(0.875rem, 2.5vw, 1rem)', fontWeight: '600', color: '#1e40af', marginBottom: '0.75rem' }}>
             💡 Tips for Success
           </h3>
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#475569', fontSize: '0.875rem' }}>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#475569', fontSize: 'clamp(0.75rem, 2vw, 0.875rem)' }}>
             <li style={{ marginBottom: '0.5rem' }}>• Speak clearly and at a natural pace</li>
             <li style={{ marginBottom: '0.5rem' }}>• Use a variety of vocabulary and grammatical structures</li>
             <li style={{ marginBottom: '0.5rem' }}>• Organize your ideas logically</li>

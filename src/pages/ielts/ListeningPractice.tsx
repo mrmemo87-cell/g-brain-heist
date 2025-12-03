@@ -274,21 +274,21 @@ const ListeningPractice: React.FC = () => {
       <div style={{ 
         minHeight: '100vh', 
         background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-        padding: '2rem'
+        padding: 'clamp(1rem, 3vw, 2rem)'
       }}>
         <div style={{
           maxWidth: '56rem',
           margin: '0 auto',
           background: 'white',
           borderRadius: '1rem',
-          padding: '2.5rem',
+          padding: 'clamp(1.5rem, 4vw, 2.5rem)',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
         }}>
           {/* Success Header */}
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <div style={{
-              width: '5rem',
-              height: '5rem',
+              width: 'clamp(3.5rem, 10vw, 5rem)',
+              height: 'clamp(3.5rem, 10vw, 5rem)',
               background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
               borderRadius: '50%',
               display: 'flex',
@@ -296,11 +296,11 @@ const ListeningPractice: React.FC = () => {
               justifyContent: 'center',
               margin: '0 auto 1.5rem'
             }}>
-              <svg style={{ width: '2.5rem', height: '2.5rem', color: 'white' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg style={{ width: 'clamp(1.75rem, 5vw, 2.5rem)', height: 'clamp(1.75rem, 5vw, 2.5rem)', color: 'white' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
+            <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
               Listening Test Complete!
             </h1>
           </div>
@@ -310,24 +310,24 @@ const ListeningPractice: React.FC = () => {
             background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
             border: '1px solid #93c5fd',
             borderRadius: '0.75rem',
-            padding: '1.5rem',
+            padding: 'clamp(1rem, 3vw, 1.5rem)',
             marginBottom: '1.5rem',
             textAlign: 'center'
           }}>
-            <div style={{ fontSize: '3.5rem', fontWeight: 'bold', color: '#1e40af', marginBottom: '0.5rem' }}>
+            <div style={{ fontSize: 'clamp(2rem, 8vw, 3.5rem)', fontWeight: 'bold', color: '#1e40af', marginBottom: '0.5rem' }}>
               {results.correct}/{results.total}
             </div>
-            <div style={{ fontSize: '1.25rem', color: '#3b82f6' }}>{results.percentage}% Correct</div>
+            <div style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', color: '#3b82f6' }}>{results.percentage}% Correct</div>
             
             <div style={{
               marginTop: '1.5rem',
-              padding: '1rem',
+              padding: 'clamp(0.75rem, 2vw, 1rem)',
               background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
               borderRadius: '0.5rem',
               display: 'inline-block'
             }}>
-              <div style={{ fontSize: '0.875rem', color: '#92400e', marginBottom: '0.25rem' }}>Estimated Band Score</div>
-              <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#b45309' }}>{bandScore}</div>
+              <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#92400e', marginBottom: '0.25rem' }}>Estimated Band Score</div>
+              <div style={{ fontSize: 'clamp(1.75rem, 6vw, 2.5rem)', fontWeight: 'bold', color: '#b45309' }}>{bandScore}</div>
             </div>
           </div>
 
@@ -336,14 +336,14 @@ const ListeningPractice: React.FC = () => {
             background: '#f8fafc',
             border: '1px solid #e2e8f0',
             borderRadius: '0.75rem',
-            padding: '1.5rem',
+            padding: 'clamp(1rem, 3vw, 1.5rem)',
             marginBottom: '1.5rem',
             textAlign: 'left'
           }}>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1e293b', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <h3 style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.125rem)', fontWeight: '600', color: '#1e293b', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span>🎯</span> Your Results Have Been Recorded
             </h3>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#475569' }}>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#475569', fontSize: 'clamp(0.8rem, 2vw, 1rem)' }}>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
                 <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>✓</span>
                 <span>Your answers have been automatically graded</span>
@@ -552,59 +552,62 @@ const ListeningPractice: React.FC = () => {
     <div style={{ 
       minHeight: '100vh', 
       background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-      padding: '1rem'
+      padding: 'clamp(0.75rem, 2vw, 1rem)'
     }}>
       <div style={{ maxWidth: '80rem', margin: '0 auto' }}>
         {/* Header */}
         <div style={{
           background: 'white',
           borderRadius: '1rem',
-          padding: '1.5rem',
-          marginBottom: '1.5rem',
+          padding: 'clamp(1rem, 3vw, 1.5rem)',
+          marginBottom: '1rem',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
           display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
+          flexDirection: 'column',
+          gap: '1rem'
         }}>
-          <div>
-            <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.25rem' }}>
-              {listeningSet.title}
-            </h1>
-            <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b' }}>
-              <span>Level: {listeningSet.level}</span>
-              <span>•</span>
-              <span>Duration: {listeningSet.duration_minutes} min</span>
-              <span>•</span>
-              <span>Band: {listeningSet.est_band_min} - {listeningSet.est_band_max}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <h1 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.875rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.25rem' }}>
+                {listeningSet.title}
+              </h1>
+              <div style={{ display: 'flex', gap: '0.5rem', fontSize: 'clamp(0.7rem, 2vw, 0.875rem)', color: '#64748b', flexWrap: 'wrap' }}>
+                <span>Level: {listeningSet.level}</span>
+                <span>•</span>
+                <span>{listeningSet.duration_minutes} min</span>
+                <span>•</span>
+                <span>Band: {listeningSet.est_band_min}-{listeningSet.est_band_max}</span>
+              </div>
             </div>
+            <button
+              onClick={() => navigate('/ielts')}
+              style={{
+                padding: '0.5rem 1rem',
+                background: '#f1f5f9',
+                color: '#475569',
+                border: '1px solid #e2e8f0',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+                fontSize: 'clamp(0.75rem, 2vw, 0.875rem)'
+              }}
+            >
+              Exit
+            </button>
           </div>
-          <button
-            onClick={() => navigate('/ielts')}
-            style={{
-              padding: '0.5rem 1rem',
-              background: '#f1f5f9',
-              color: '#475569',
-              border: '1px solid #e2e8f0',
-              borderRadius: '0.5rem',
-              cursor: 'pointer'
-            }}
-          >
-            Exit
-          </button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 'clamp(1rem, 2vw, 1.5rem)' }}>
           {/* Audio Player - Left Side */}
           <div>
             <div style={{
               background: 'white',
               borderRadius: '1rem',
-              padding: '1.5rem',
+              padding: 'clamp(1rem, 3vw, 1.5rem)',
               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
               position: 'sticky',
-              top: '1.5rem'
+              top: '1rem'
             }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <h2 style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 🎧 Audio Player
               </h2>
               
@@ -613,15 +616,15 @@ const ListeningPractice: React.FC = () => {
                 background: isAudioPlaying ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : '#f8fafc',
                 border: `1px solid ${isAudioPlaying ? '#f59e0b' : '#e2e8f0'}`,
                 borderRadius: '0.75rem',
-                padding: '1rem',
+                padding: 'clamp(0.75rem, 2vw, 1rem)',
                 marginBottom: '1rem',
                 textAlign: 'center'
               }}>
-                <div style={{ fontSize: '0.75rem', color: isAudioPlaying ? '#92400e' : '#64748b', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <div style={{ fontSize: 'clamp(0.625rem, 1.5vw, 0.75rem)', color: isAudioPlaying ? '#92400e' : '#64748b', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   {isAudioPlaying ? '🔴 Recording Time' : 'Audio Time'}
                 </div>
                 <div style={{ 
-                  fontSize: '2.5rem', 
+                  fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', 
                   fontWeight: 'bold', 
                   color: isAudioPlaying ? '#b45309' : '#1e293b',
                   fontFamily: 'monospace'

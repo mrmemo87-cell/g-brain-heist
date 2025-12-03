@@ -181,21 +181,21 @@ const WritingPractice: React.FC = () => {
       <div style={{ 
         minHeight: '100vh', 
         background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-        padding: '2rem'
+        padding: 'clamp(1rem, 3vw, 2rem)'
       }}>
         <div style={{
           maxWidth: '56rem',
           margin: '0 auto',
           background: 'white',
           borderRadius: '1rem',
-          padding: '2.5rem',
+          padding: 'clamp(1.5rem, 4vw, 2.5rem)',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
         }}>
           {/* Success Header */}
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <div style={{
-              width: '5rem',
-              height: '5rem',
+              width: 'clamp(3.5rem, 10vw, 5rem)',
+              height: 'clamp(3.5rem, 10vw, 5rem)',
               background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
               borderRadius: '50%',
               display: 'flex',
@@ -203,14 +203,14 @@ const WritingPractice: React.FC = () => {
               justifyContent: 'center',
               margin: '0 auto 1.5rem'
             }}>
-              <svg style={{ width: '2.5rem', height: '2.5rem', color: 'white' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg style={{ width: 'clamp(1.75rem, 5vw, 2.5rem)', height: 'clamp(1.75rem, 5vw, 2.5rem)', color: 'white' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
+            <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
               Essay Submitted Successfully!
             </h1>
-            <p style={{ fontSize: '1.125rem', color: '#64748b' }}>
+            <p style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.125rem)', color: '#64748b' }}>
               Your writing has been received and is queued for expert review.
             </p>
           </div>
@@ -220,22 +220,22 @@ const WritingPractice: React.FC = () => {
             background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
             border: '1px solid #6ee7b7',
             borderRadius: '0.75rem',
-            padding: '1.5rem',
+            padding: 'clamp(1rem, 3vw, 1.5rem)',
             marginBottom: '1.5rem'
           }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#065f46', marginBottom: '1rem' }}>📊 Submission Summary</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div style={{ background: 'white', borderRadius: '0.5rem', padding: '1rem' }}>
-                <div style={{ fontSize: '0.875rem', color: '#64748b' }}>Word Count</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: wordCount >= getMinWords() ? '#16a34a' : '#f59e0b' }}>
+            <h3 style={{ fontSize: 'clamp(0.875rem, 2.5vw, 1rem)', fontWeight: '600', color: '#065f46', marginBottom: '1rem' }}>📊 Submission Summary</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
+              <div style={{ background: 'white', borderRadius: '0.5rem', padding: 'clamp(0.75rem, 2vw, 1rem)' }}>
+                <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#64748b' }}>Word Count</div>
+                <div style={{ fontSize: 'clamp(1.25rem, 4vw, 1.5rem)', fontWeight: 'bold', color: wordCount >= getMinWords() ? '#16a34a' : '#f59e0b' }}>
                   {wordCount}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Minimum: {getMinWords()}</div>
+                <div style={{ fontSize: 'clamp(0.625rem, 1.5vw, 0.75rem)', color: '#94a3b8' }}>Minimum: {getMinWords()}</div>
               </div>
-              <div style={{ background: 'white', borderRadius: '0.5rem', padding: '1rem' }}>
-                <div style={{ fontSize: '0.875rem', color: '#64748b' }}>Time Spent</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10b981' }}>{formatTime(timeElapsed)}</div>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Recommended: 20-40 min</div>
+              <div style={{ background: 'white', borderRadius: '0.5rem', padding: 'clamp(0.75rem, 2vw, 1rem)' }}>
+                <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#64748b' }}>Time Spent</div>
+                <div style={{ fontSize: 'clamp(1.25rem, 4vw, 1.5rem)', fontWeight: 'bold', color: '#10b981' }}>{formatTime(timeElapsed)}</div>
+                <div style={{ fontSize: 'clamp(0.625rem, 1.5vw, 0.75rem)', color: '#94a3b8' }}>Recommended: 20-40 min</div>
               </div>
             </div>
           </div>
@@ -245,14 +245,14 @@ const WritingPractice: React.FC = () => {
             background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
             border: '1px solid #93c5fd',
             borderRadius: '0.75rem',
-            padding: '1.5rem',
+            padding: 'clamp(1rem, 3vw, 1.5rem)',
             marginBottom: '1.5rem',
             textAlign: 'left'
           }}>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1e40af', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <h3 style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.125rem)', fontWeight: '600', color: '#1e40af', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span>🎯</span> What Happens Next
             </h3>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#1e3a5f' }}>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#1e3a5f', fontSize: 'clamp(0.8rem, 2vw, 1rem)' }}>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
                 <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>1.</span>
                 <span>Your essay will be reviewed by a <strong>certified IELTS examiner</strong></span>
@@ -418,66 +418,69 @@ const WritingPractice: React.FC = () => {
     <div style={{ 
       minHeight: '100vh', 
       background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-      padding: '1rem'
+      padding: 'clamp(0.75rem, 2vw, 1rem)'
     }}>
       <div style={{ maxWidth: '80rem', margin: '0 auto' }}>
         {/* Header */}
         <div style={{
           background: 'white',
           borderRadius: '1rem',
-          padding: '1.5rem',
-          marginBottom: '1.5rem',
+          padding: 'clamp(1rem, 3vw, 1.5rem)',
+          marginBottom: '1rem',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
           display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
+          flexDirection: 'column',
+          gap: '1rem'
         }}>
-          <div>
-            <div style={{ fontSize: '0.875rem', color: '#10b981', marginBottom: '0.25rem' }}>
-              IELTS Writing - {task.task_type === 'task1' ? 'Task 1' : 'Task 2'}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#10b981', marginBottom: '0.25rem' }}>
+                IELTS Writing - {task.task_type === 'task1' ? 'Task 1' : 'Task 2'}
+              </div>
+              <h1 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.875rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.25rem' }}>
+                {task.title || 'Writing Practice'}
+              </h1>
+              <div style={{ display: 'flex', gap: '0.5rem', fontSize: 'clamp(0.7rem, 2vw, 0.875rem)', color: '#64748b', flexWrap: 'wrap' }}>
+                <span>Target: {task.bands_target}</span>
+                <span>•</span>
+                <span>Min words: {getMinWords()}</span>
+              </div>
             </div>
-            <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.25rem' }}>
-              {task.title || 'Writing Practice'}
-            </h1>
-            <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b' }}>
-              <span>Target: {task.bands_target}</span>
-              <span>•</span>
-              <span>Min words: {getMinWords()}</span>
-            </div>
+            <button
+              onClick={() => navigate('/ielts')}
+              style={{
+                padding: '0.5rem 1rem',
+                background: '#f1f5f9',
+                color: '#475569',
+                border: '1px solid #e2e8f0',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+                fontSize: 'clamp(0.75rem, 2vw, 0.875rem)'
+              }}
+            >
+              Exit
+            </button>
           </div>
-          <button
-            onClick={() => navigate('/ielts')}
-            style={{
-              padding: '0.5rem 1rem',
-              background: '#f1f5f9',
-              color: '#475569',
-              border: '1px solid #e2e8f0',
-              borderRadius: '0.5rem',
-              cursor: 'pointer'
-            }}
-          >
-            Exit
-          </button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 'clamp(1rem, 2vw, 1.5rem)' }}>
           {/* Task Prompt - Left Side */}
           <div>
             <div style={{
               background: 'white',
               borderRadius: '1rem',
-              padding: '1.5rem',
+              padding: 'clamp(1rem, 3vw, 1.5rem)',
               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
               position: 'sticky',
-              top: '1.5rem'
+              top: '1rem'
             }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '1rem' }}>📋 Task</h2>
+              <h2 style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '1rem' }}>📋 Task</h2>
               
               <div style={{
                 background: '#f8fafc',
                 border: '1px solid #e2e8f0',
                 borderRadius: '0.75rem',
-                padding: '1.25rem',
+                padding: 'clamp(0.75rem, 2vw, 1.25rem)',
                 marginBottom: '1.5rem',
                 overflowX: 'auto'
               }}>
@@ -486,7 +489,7 @@ const WritingPractice: React.FC = () => {
                   lineHeight: 1.75, 
                   whiteSpace: 'pre-wrap', 
                   fontFamily: 'ui-monospace, SFMono-Regular, monospace', 
-                  fontSize: '0.875rem',
+                  fontSize: 'clamp(0.75rem, 2vw, 0.875rem)',
                   margin: 0
                 }}>{task.prompt}</pre>
               </div>
@@ -497,11 +500,11 @@ const WritingPractice: React.FC = () => {
                   background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
                   border: '1px solid #6ee7b7',
                   borderRadius: '0.5rem',
-                  padding: '1rem'
+                  padding: 'clamp(0.75rem, 2vw, 1rem)'
                 }}>
-                  <div style={{ fontSize: '0.875rem', color: '#065f46', marginBottom: '0.25rem' }}>Time Elapsed</div>
-                  <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#059669' }}>{formatTime(timeElapsed)}</div>
-                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                  <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#065f46', marginBottom: '0.25rem' }}>Time Elapsed</div>
+                  <div style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 'bold', color: '#059669' }}>{formatTime(timeElapsed)}</div>
+                  <div style={{ fontSize: 'clamp(0.625rem, 1.5vw, 0.75rem)', color: '#6b7280', marginTop: '0.25rem' }}>
                     Recommended: {task.task_type === 'task1' ? '20 minutes' : '40 minutes'}
                   </div>
                 </div>
@@ -510,9 +513,9 @@ const WritingPractice: React.FC = () => {
                   background: wordCount >= getMinWords() ? 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)' : 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
                   border: `1px solid ${wordCount >= getMinWords() ? '#6ee7b7' : '#f59e0b'}`,
                   borderRadius: '0.5rem',
-                  padding: '1rem'
+                  padding: 'clamp(0.75rem, 2vw, 1rem)'
                 }}>
-                  <div style={{ fontSize: '0.875rem', color: wordCount >= getMinWords() ? '#065f46' : '#92400e', marginBottom: '0.25rem' }}>
+                  <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: wordCount >= getMinWords() ? '#065f46' : '#92400e', marginBottom: '0.25rem' }}>
                     Word Count
                   </div>
                   <div style={{ fontSize: '2rem', fontWeight: 'bold', color: wordCount >= getMinWords() ? '#059669' : '#b45309' }}>

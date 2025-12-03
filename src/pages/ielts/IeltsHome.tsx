@@ -1,20 +1,32 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 
 const IeltsHome: React.FC = () => {
   const navigate = useNavigate();
+  const [musicEnabled, setMusicEnabled] = useState(false);
 
   // Stop background music when entering IELTS section
   useEffect(() => {
     stopBackgroundMusic();
     return () => {
-      // Resume music when leaving IELTS section
-      resumeBackgroundMusic();
+      if (musicEnabled) {
+        resumeBackgroundMusic();
+      }
     };
   }, []);
 
-  // Sample data for display (will be replaced with real data after DB migration)
+  const toggleMusic = () => {
+    if (musicEnabled) {
+      stopBackgroundMusic();
+      setMusicEnabled(false);
+    } else {
+      resumeBackgroundMusic();
+      setMusicEnabled(true);
+    }
+  };
+
+  // Sample data for display
   const readingSets = [
     { id: 1, title: 'Working from Home', description: 'General training passage on remote work', level: 'Beginner', est_band_min: 4.5, est_band_max: 6.0 },
     { id: 2, title: 'The History of Coffee', description: 'Academic passage on coffee origins', level: 'Intermediate', est_band_min: 5.5, est_band_max: 7.0 },
@@ -39,343 +51,270 @@ const IeltsHome: React.FC = () => {
     { id: 3, part: 3, prompt: 'Discuss travel and tourism' },
   ];
 
-  const getLevelColor = (level: string) => {
-    switch(level) {
-      case 'Beginner': return 'bg-emerald-100 text-emerald-700 border-emerald-300';
-      case 'Intermediate': return 'bg-blue-100 text-blue-700 border-blue-300';
-      case 'Advanced': return 'bg-amber-100 text-amber-700 border-amber-300';
-      default: return 'bg-slate-100 text-slate-700';
-    }
-  };
-
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#FFFFFF' }}>
-      {/* Header - Clean, Professional */}
-      <div className="border-b" style={{ borderColor: '#E5E7EB', backgroundColor: '#FFFFFF' }}>
-        <div className="max-w-7xl mx-auto px-8 py-10">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-14 h-14 rounded-lg flex items-center justify-center text-3xl" style={{ backgroundColor: '#F0F9FF' }}>
+    <div style={{ 
+      minHeight: '100vh', 
+      backgroundColor: '#ffffff',
+      color: '#1f2937',
+      position: 'relative',
+    }}>
+      {/* Music Toggle - Fixed position */}
+      <button
+        onClick={toggleMusic}
+        style={{
+          position: 'fixed',
+          bottom: '1.5rem',
+          right: '1.5rem',
+          width: '3.5rem',
+          height: '3.5rem',
+          borderRadius: '50%',
+          backgroundColor: musicEnabled ? '#3b82f6' : '#6b7280',
+          color: '#ffffff',
+          border: 'none',
+          cursor: 'pointer',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '1.5rem',
+          zIndex: 1000,
+          transition: 'all 0.2s',
+        }}
+        title={musicEnabled ? 'Turn off music' : 'Turn on music'}
+      >
+        {musicEnabled ? '🔊' : '🔇'}
+      </button>
+      {/* Header */}
+      <div style={{ 
+        backgroundColor: '#ffffff', 
+        borderBottom: '1px solid #e5e7eb',
+        padding: '1rem',
+      }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+            <div style={{
+              width: '2.5rem',
+              height: '2.5rem',
+              borderRadius: '0.5rem',
+              backgroundColor: '#eff6ff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.25rem',
+            }}>
               📚
             </div>
             <div>
-              <p className="text-xs font-bold tracking-wider" style={{ color: '#6B7280' }}>IELTS EXAM PREPARATION</p>
-              <h1 className="text-4xl font-bold" style={{ color: '#111827' }}>IELTS Prep Center</h1>
+              <p style={{ fontSize: '0.625rem', fontWeight: 'bold', color: '#6b7280', letterSpacing: '0.05em', margin: 0 }}>
+                IELTS EXAM PREPARATION
+              </p>
+              <h1 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>
+                IELTS Prep Center
+              </h1>
             </div>
           </div>
-          <p className="text-lg" style={{ color: '#374151' }}>Master all four skills with structured practice, expert feedback, and proven strategies. Start free or upgrade to Prime for full mock tests.</p>
+          <p style={{ color: '#4b5563', fontSize: '0.8125rem', lineHeight: 1.5, margin: 0 }}>
+            Master all four skills with structured practice and expert feedback.
+          </p>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-8 py-16">
-        {/* Section Introduction */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold mb-3" style={{ color: '#111827' }}>Practice by Skill</h2>
-          <p className="text-lg mb-6" style={{ color: '#6B7280' }}>Choose your skill focus and start practicing today. Each section includes free sample questions to help you prepare.</p>
-          <div className="flex gap-3 flex-wrap">
-            <div className="px-4 py-2 rounded-full text-sm font-semibold" style={{ backgroundColor: '#DBEAFE', color: '#1E40AF' }}>✓ Free to Start</div>
-            <div className="px-4 py-2 rounded-full text-sm font-semibold" style={{ backgroundColor: '#CCFBF1', color: '#0D9488' }}>✓ Expert Content</div>
-            <div className="px-4 py-2 rounded-full text-sm font-semibold" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>✓ Proven Results</div>
+      <div style={{ backgroundColor: '#f9fafb', padding: '1rem', minHeight: 'calc(100vh - 120px)' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          
+          {/* Quick Stats */}
+          <div style={{ 
+            display: 'flex', 
+            gap: '0.5rem', 
+            marginBottom: '1rem',
+            flexWrap: 'wrap',
+          }}>
+            <span style={{ backgroundColor: '#dbeafe', padding: '0.375rem 0.75rem', borderRadius: '9999px', fontSize: '0.6875rem', color: '#1e40af', fontWeight: '600' }}>✓ Free to Start</span>
+            <span style={{ backgroundColor: '#d1fae5', padding: '0.375rem 0.75rem', borderRadius: '9999px', fontSize: '0.6875rem', color: '#065f46', fontWeight: '600' }}>✓ Expert Content</span>
+            <span style={{ backgroundColor: '#fef3c7', padding: '0.375rem 0.75rem', borderRadius: '9999px', fontSize: '0.6875rem', color: '#92400e', fontWeight: '600' }}>✓ Proven Results</span>
           </div>
-        </div>
 
-        {/* Skills Grid */}
-        <div className="grid gap-12">
           {/* Reading */}
-          <div>
-            <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-              <div className="flex items-start gap-6 mb-8">
-                <div className="w-16 h-16 rounded-lg flex items-center justify-center text-4xl flex-shrink-0" style={{ backgroundColor: '#EFF6FF' }}>
-                  📚
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold mb-2" style={{ color: '#111827' }}>Reading</h3>
-                  <p style={{ color: '#6B7280' }}>Three passages with comprehension questions. Build speed and accuracy in extracting key information.</p>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {readingSets?.map((set) => (
-                  <button
-                    key={set.id}
-                    onClick={() => navigate(`/ielts/reading/${set.id}`)}
-                    style={{ 
-                      backgroundColor: '#FFFFFF !important',
-                      border: '2px solid #E5E7EB',
-                      borderRadius: '12px',
-                      padding: '20px',
-                      width: '100%',
-                      textAlign: 'left',
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      color: '#111827 !important',
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-                      cursor: 'pointer',
-                      transform: 'translateY(0)',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = '#3B82F6';
-                      e.currentTarget.style.backgroundColor = '#F0F9FF !important';
-                      e.currentTarget.style.boxShadow = '0 12px 24px rgba(59, 130, 246, 0.15)';
-                      e.currentTarget.style.transform = 'translateY(-4px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = '#E5E7EB';
-                      e.currentTarget.style.backgroundColor = '#FFFFFF !important';
-                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }}
-                  >
-                    <div className="flex flex-col h-full">
-                      <div className="mb-3 text-3xl">📖</div>
-                      <div className="flex-grow">
-                        <p className="font-bold text-lg" style={{ color: '#000000 !important' }}>{set.title}</p>
-                        <p className="text-sm mt-2" style={{ color: '#374151 !important' }}>{set.description}</p>
-                      </div>
-                      <div className="mt-4 pt-4 border-t" style={{ borderColor: '#E5E7EB' }}>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold px-3 py-1 rounded-full" style={{ backgroundColor: '#0369A1', color: '#FFFFFF !important' }}>
-                            Band {set.est_band_min}-{set.est_band_max}
-                          </span>
-                          <span className="text-xs font-bold" style={{ color: '#0369A1 !important' }}>{set.level}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+              <span style={{ fontSize: '1.5rem' }}>📖</span>
+              <h2 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>Reading</h2>
             </div>
+            {readingSets.map((set) => (
+              <button
+                key={set.id}
+                onClick={() => navigate(`/ielts/reading/${set.id}`)}
+                style={{ 
+                  width: '100%', 
+                  backgroundColor: '#ffffff', 
+                  border: '1px solid #e5e7eb', 
+                  borderRadius: '0.5rem', 
+                  padding: '0.75rem', 
+                  marginBottom: '0.5rem',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem' }}>{set.title}</p>
+                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.125rem 0 0' }}>{set.level}</p>
+                  </div>
+                  <span style={{ backgroundColor: '#0369a1', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px' }}>
+                    Band {set.est_band_min}-{set.est_band_max}
+                  </span>
+                </div>
+              </button>
+            ))}
           </div>
 
           {/* Listening */}
-          <div>
-            <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-              <div className="flex items-start gap-6 mb-8">
-                <div className="w-16 h-16 rounded-lg flex items-center justify-center text-4xl flex-shrink-0" style={{ backgroundColor: '#F3E8FF' }}>
-                  🎧
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold mb-2" style={{ color: '#111827' }}>Listening</h3>
-                  <p style={{ color: '#6B7280' }}>Four sections with real-world audio. Develop note-taking skills and improve concentration.</p>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {listeningSets?.map((set) => (
-                  <button
-                    key={set.id}
-                    onClick={() => navigate(`/ielts/listening/${set.id}`)}
-                    style={{ 
-                      backgroundColor: '#FFFFFF !important',
-                      border: '2px solid #E5E7EB',
-                      borderRadius: '12px',
-                      padding: '20px',
-                      width: '100%',
-                      textAlign: 'left',
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      color: '#111827 !important',
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-                      cursor: 'pointer',
-                      transform: 'translateY(0)',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = '#A855F7';
-                      e.currentTarget.style.backgroundColor = '#FAF5FF !important';
-                      e.currentTarget.style.boxShadow = '0 12px 24px rgba(168, 85, 247, 0.15)';
-                      e.currentTarget.style.transform = 'translateY(-4px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = '#E5E7EB';
-                      e.currentTarget.style.backgroundColor = '#FFFFFF !important';
-                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }}
-                  >
-                    <div className="flex flex-col h-full">
-                      <div className="mb-3 text-3xl">🎧</div>
-                      <div className="flex-grow">
-                        <p className="font-bold text-lg" style={{ color: '#000000 !important' }}>{set.title}</p>
-                        <p className="text-sm mt-2" style={{ color: '#374151 !important' }}>{set.description}</p>
-                      </div>
-                      <div className="mt-4 pt-4 border-t" style={{ borderColor: '#E5E7EB' }}>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold px-3 py-1 rounded-full" style={{ backgroundColor: '#9333EA', color: '#FFFFFF !important' }}>
-                            Band {set.est_band_min}-{set.est_band_max}
-                          </span>
-                          <span className="text-xs font-bold" style={{ color: '#7E22CE !important' }}>{set.level}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+              <span style={{ fontSize: '1.5rem' }}>🎧</span>
+              <h2 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>Listening</h2>
             </div>
+            {listeningSets.map((set) => (
+              <button
+                key={set.id}
+                onClick={() => navigate(`/ielts/listening/${set.id}`)}
+                style={{ 
+                  width: '100%', 
+                  backgroundColor: '#ffffff', 
+                  border: '1px solid #e5e7eb', 
+                  borderRadius: '0.5rem', 
+                  padding: '0.75rem', 
+                  marginBottom: '0.5rem',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem' }}>{set.title}</p>
+                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.125rem 0 0' }}>{set.level}</p>
+                  </div>
+                  <span style={{ backgroundColor: '#7c3aed', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px' }}>
+                    Band {set.est_band_min}-{set.est_band_max}
+                  </span>
+                </div>
+              </button>
+            ))}
           </div>
 
           {/* Writing */}
-          <div>
-            <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-              <div className="flex items-start gap-6 mb-8">
-                <div className="w-16 h-16 rounded-lg flex items-center justify-center text-4xl flex-shrink-0" style={{ backgroundColor: '#F0FDF4' }}>
-                  ✍️
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold mb-2" style={{ color: '#111827' }}>Writing</h3>
-                  <p style={{ color: '#6B7280' }}>Task 1 (graphs) and Task 2 (essays) with detailed feedback on grammar, vocabulary, and structure.</p>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {writingTasks?.map((task) => (
-                  <button
-                    key={task.id}
-                    onClick={() => navigate(`/ielts/writing/${task.id}`)}
-                    style={{ 
-                      backgroundColor: '#FFFFFF !important',
-                      border: '2px solid #E5E7EB',
-                      borderRadius: '12px',
-                      padding: '20px',
-                      width: '100%',
-                      textAlign: 'left',
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      color: '#111827 !important',
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-                      cursor: 'pointer',
-                      transform: 'translateY(0)',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = '#10B981';
-                      e.currentTarget.style.backgroundColor = '#F0FDF4 !important';
-                      e.currentTarget.style.boxShadow = '0 12px 24px rgba(16, 185, 129, 0.15)';
-                      e.currentTarget.style.transform = 'translateY(-4px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = '#E5E7EB';
-                      e.currentTarget.style.backgroundColor = '#FFFFFF !important';
-                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }}
-                  >
-                    <div className="flex flex-col h-full">
-                      <div className="mb-3 text-3xl">✍️</div>
-                      <div className="flex-grow">
-                        <p className="font-bold text-lg" style={{ color: '#000000 !important' }}>{task.title}</p>
-                        <p className="text-sm mt-2" style={{ color: '#374151 !important' }}>{task.prompt.substring(0, 80)}...</p>
-                      </div>
-                      <div className="mt-4 pt-4 border-t" style={{ borderColor: '#E5E7EB' }}>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold px-3 py-1 rounded-full" style={{ backgroundColor: '#059669', color: '#FFFFFF !important' }}>
-                            Target: {task.bands_target}
-                          </span>
-                          <span className="text-xs font-bold" style={{ color: '#047857 !important' }}>{task.task_type === 'task1' ? 'Task 1' : 'Task 2'}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+              <span style={{ fontSize: '1.5rem' }}>✍️</span>
+              <h2 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>Writing</h2>
             </div>
+            {writingTasks.map((task) => (
+              <button
+                key={task.id}
+                onClick={() => navigate(`/ielts/writing/${task.id}`)}
+                style={{ 
+                  width: '100%', 
+                  backgroundColor: '#ffffff', 
+                  border: '1px solid #e5e7eb', 
+                  borderRadius: '0.5rem', 
+                  padding: '0.75rem', 
+                  marginBottom: '0.5rem',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem' }}>{task.title}</p>
+                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.125rem 0 0' }}>{task.task_type === 'task1' ? 'Task 1' : 'Task 2'}</p>
+                  </div>
+                  <span style={{ backgroundColor: '#059669', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px' }}>
+                    {task.bands_target}
+                  </span>
+                </div>
+              </button>
+            ))}
           </div>
 
           {/* Speaking */}
-          <div>
-            <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-              <div className="flex items-start gap-6 mb-8">
-                <div className="w-16 h-16 rounded-lg flex items-center justify-center text-4xl flex-shrink-0" style={{ backgroundColor: '#FEF2F2' }}>
-                  🎤
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold mb-2" style={{ color: '#111827' }}>Speaking</h3>
-                  <p style={{ color: '#6B7280' }}>3-part interview simulation with instant AI feedback on pronunciation, fluency, and coherence.</p>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {speakingTasks?.map((task) => (
-                  <button
-                    key={task.id}
-                    onClick={() => navigate(`/ielts/speaking/${task.id}`)}
-                    style={{ 
-                      backgroundColor: '#FFFFFF !important',
-                      border: '2px solid #E5E7EB',
-                      borderRadius: '12px',
-                      padding: '20px',
-                      width: '100%',
-                      textAlign: 'left',
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      color: '#111827 !important',
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-                      cursor: 'pointer',
-                      transform: 'translateY(0)',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = '#DC2626';
-                      e.currentTarget.style.backgroundColor = '#FEF2F2 !important';
-                      e.currentTarget.style.boxShadow = '0 12px 24px rgba(220, 38, 38, 0.15)';
-                      e.currentTarget.style.transform = 'translateY(-4px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = '#E5E7EB';
-                      e.currentTarget.style.backgroundColor = '#FFFFFF !important';
-                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }}
-                  >
-                    <div className="flex flex-col h-full">
-                      <div className="mb-3 text-3xl">🎤</div>
-                      <div className="flex-grow">
-                        <p className="font-bold text-lg" style={{ color: '#000000 !important' }}>Part {task.part}: {task.prompt}</p>
-                        <p className="text-sm mt-2" style={{ color: '#374151 !important' }}>Record and get instant AI-powered feedback</p>
-                      </div>
-                      <div className="mt-4 pt-4 border-t" style={{ borderColor: '#E5E7EB' }}>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold px-3 py-1 rounded-full" style={{ backgroundColor: '#DC2626', color: '#FFFFFF !important' }}>
-                            Part {task.part}
-                          </span>
-                          <span className="text-xs font-bold" style={{ color: '#B91C1C !important' }}>Interview</span>
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+              <span style={{ fontSize: '1.5rem' }}>🎤</span>
+              <h2 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>Speaking</h2>
             </div>
+            {speakingTasks.map((task) => (
+              <button
+                key={task.id}
+                onClick={() => navigate(`/ielts/speaking/${task.id}`)}
+                style={{ 
+                  width: '100%', 
+                  backgroundColor: '#ffffff', 
+                  border: '1px solid #e5e7eb', 
+                  borderRadius: '0.5rem', 
+                  padding: '0.75rem', 
+                  marginBottom: '0.5rem',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem' }}>Part {task.part}: {task.prompt}</p>
+                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.125rem 0 0' }}>Record & get feedback</p>
+                  </div>
+                  <span style={{ backgroundColor: '#dc2626', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px' }}>
+                    Part {task.part}
+                  </span>
+                </div>
+              </button>
+            ))}
           </div>
-        </div>
 
-        {/* Footer CTA - Premium */}
-        <div className="mt-20 p-12 rounded-2xl text-center" style={{ 
-          background: 'linear-gradient(135deg, #0369A1 0%, #0C4A6E 100%)',
-          boxShadow: '0 20px 60px rgba(3, 105, 161, 0.3)'
-        }}>
-          <h3 className="text-4xl font-bold mb-4" style={{ color: '#FFFFFF' }}>Unlock Your Full Potential</h3>
-          <p className="mb-8 text-lg" style={{ color: '#BAE6FD' }}>Upgrade to Prime and get unlimited mock tests, expert feedback, and official certificates. Limited spots available!</p>
-          
-          <button style={{ 
-            background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-            color: '#FFFFFF !important',
-            fontWeight: 'bold',
-            padding: '16px 48px',
-            borderRadius: '12px',
-            border: 'none',
-            fontSize: '18px',
-            cursor: 'pointer',
-            transition: 'all 0.3s',
-            boxShadow: '0 8px 25px rgba(5, 150, 105, 0.4)',
-            textTransform: 'uppercase',
-            letterSpacing: '1px'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-3px)';
-            e.currentTarget.style.boxShadow = '0 12px 35px rgba(5, 150, 105, 0.6)';
-            e.currentTarget.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 8px 25px rgba(5, 150, 105, 0.4)';
-            e.currentTarget.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
-          }}
+          {/* Premium CTA */}
+          <div style={{
+            background: 'linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%)',
+            borderRadius: '0.75rem',
+            padding: '1.25rem',
+            textAlign: 'center',
+            marginBottom: '1rem',
+          }}>
+            <h3 style={{ color: '#ffffff', fontSize: '1.125rem', fontWeight: 'bold', margin: '0 0 0.5rem' }}>⭐ Upgrade to Prime</h3>
+            <p style={{ color: '#bfdbfe', fontSize: '0.8125rem', margin: '0 0 0.75rem' }}>Unlimited tests, expert feedback & certificates</p>
+            <button
+              onClick={() => navigate('/ielts/apply-prime')}
+              style={{
+                backgroundColor: '#22c55e',
+                color: '#ffffff',
+                fontWeight: 'bold',
+                padding: '0.625rem 1.5rem',
+                borderRadius: '0.5rem',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+              }}
+            >
+              Explore Prime
+            </button>
+          </div>
+
+          {/* Back to Game */}
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              backgroundColor: '#f3f4f6',
+              color: '#374151',
+              border: '1px solid #d1d5db',
+              borderRadius: '0.5rem',
+              cursor: 'pointer',
+              fontWeight: '500',
+              fontSize: '0.875rem',
+              marginBottom: '4rem',
+            }}
           >
-            Explore Prime Membership
+            ← Back to Brain Heist Game
           </button>
         </div>
       </div>

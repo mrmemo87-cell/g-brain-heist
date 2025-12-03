@@ -165,21 +165,21 @@ const ReadingPractice: React.FC = () => {
       <div style={{ 
         minHeight: '100vh', 
         background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-        padding: '2rem'
+        padding: 'clamp(1rem, 3vw, 2rem)'
       }}>
         <div style={{
           maxWidth: '56rem',
           margin: '0 auto',
           background: 'white',
           borderRadius: '1rem',
-          padding: '2.5rem',
+          padding: 'clamp(1.5rem, 4vw, 2.5rem)',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
         }}>
           {/* Success Header */}
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <div style={{
-              width: '5rem',
-              height: '5rem',
+              width: 'clamp(3.5rem, 10vw, 5rem)',
+              height: 'clamp(3.5rem, 10vw, 5rem)',
               background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
               borderRadius: '50%',
               display: 'flex',
@@ -187,11 +187,11 @@ const ReadingPractice: React.FC = () => {
               justifyContent: 'center',
               margin: '0 auto 1.5rem'
             }}>
-              <svg style={{ width: '2.5rem', height: '2.5rem', color: 'white' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg style={{ width: 'clamp(1.75rem, 5vw, 2.5rem)', height: 'clamp(1.75rem, 5vw, 2.5rem)', color: 'white' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
+            <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
               Reading Test Complete!
             </h1>
           </div>
@@ -201,24 +201,24 @@ const ReadingPractice: React.FC = () => {
             background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
             border: '1px solid #93c5fd',
             borderRadius: '0.75rem',
-            padding: '1.5rem',
+            padding: 'clamp(1rem, 3vw, 1.5rem)',
             marginBottom: '1.5rem',
             textAlign: 'center'
           }}>
-            <div style={{ fontSize: '3.5rem', fontWeight: 'bold', color: '#1e40af', marginBottom: '0.5rem' }}>
+            <div style={{ fontSize: 'clamp(2rem, 8vw, 3.5rem)', fontWeight: 'bold', color: '#1e40af', marginBottom: '0.5rem' }}>
               {results.correct}/{results.total}
             </div>
-            <div style={{ fontSize: '1.25rem', color: '#3b82f6' }}>{results.percentage}% Correct</div>
+            <div style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', color: '#3b82f6' }}>{results.percentage}% Correct</div>
             
             <div style={{
               marginTop: '1.5rem',
-              padding: '1rem',
+              padding: 'clamp(0.75rem, 2vw, 1rem)',
               background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
               borderRadius: '0.5rem',
               display: 'inline-block'
             }}>
-              <div style={{ fontSize: '0.875rem', color: '#92400e', marginBottom: '0.25rem' }}>Estimated Band Score</div>
-              <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#b45309' }}>{bandScore}</div>
+              <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#92400e', marginBottom: '0.25rem' }}>Estimated Band Score</div>
+              <div style={{ fontSize: 'clamp(1.75rem, 6vw, 2.5rem)', fontWeight: 'bold', color: '#b45309' }}>{bandScore}</div>
             </div>
           </div>
 
@@ -227,11 +227,11 @@ const ReadingPractice: React.FC = () => {
             background: '#f8fafc',
             border: '1px solid #e2e8f0',
             borderRadius: '0.75rem',
-            padding: '1.5rem',
+            padding: 'clamp(1rem, 3vw, 1.5rem)',
             marginBottom: '1.5rem',
             textAlign: 'left'
           }}>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1e293b', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <h3 style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.125rem)', fontWeight: '600', color: '#1e293b', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span>🎯</span> Your Results Have Been Recorded
             </h3>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#475569' }}>
@@ -450,52 +450,54 @@ const ReadingPractice: React.FC = () => {
     <div style={{ 
       minHeight: '100vh', 
       background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-      padding: '1rem'
+      padding: 'clamp(0.75rem, 2vw, 1rem)'
     }}>
       <div style={{ maxWidth: '80rem', margin: '0 auto' }}>
         {/* Header */}
         <div style={{
           background: 'white',
           borderRadius: '1rem',
-          padding: '1.5rem',
-          marginBottom: '1.5rem',
+          padding: 'clamp(1rem, 3vw, 1.5rem)',
+          marginBottom: '1rem',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
           display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
+          flexDirection: 'column',
+          gap: '1rem'
         }}>
-          <div>
-            <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.25rem' }}>
-              {currentSet.title}
-            </h1>
-            <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b' }}>
-              <span>Level: {currentSet.level}</span>
-              <span>•</span>
-              <span>Duration: {currentSet.duration_minutes} min</span>
-              <span>•</span>
-              <span>Band: {currentSet.est_band_min} - {currentSet.est_band_max}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <h1 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.875rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.25rem' }}>
+                {currentSet.title}
+              </h1>
+              <div style={{ display: 'flex', gap: '0.5rem', fontSize: 'clamp(0.7rem, 2vw, 0.875rem)', color: '#64748b', flexWrap: 'wrap' }}>
+                <span>Level: {currentSet.level}</span>
+                <span>•</span>
+                <span>{currentSet.duration_minutes} min</span>
+                <span>•</span>
+                <span>Band: {currentSet.est_band_min}-{currentSet.est_band_max}</span>
+              </div>
             </div>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '0.875rem', color: '#64748b' }}>Progress</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#3b82f6' }}>
-              {currentQuestionIndex + 1} / {questions.length}
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 'clamp(0.7rem, 2vw, 0.875rem)', color: '#64748b' }}>Progress</div>
+              <div style={{ fontSize: 'clamp(1.125rem, 3vw, 1.5rem)', fontWeight: 'bold', color: '#3b82f6' }}>
+                {currentQuestionIndex + 1} / {questions.length}
+              </div>
             </div>
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 'clamp(1rem, 2vw, 1.5rem)' }}>
           {/* Passage */}
           <div style={{
             background: 'white',
             borderRadius: '1rem',
-            padding: '1.5rem',
+            padding: 'clamp(1rem, 3vw, 1.5rem)',
             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
             maxHeight: '70vh',
             overflowY: 'auto'
           }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '1rem' }}>Passage</h2>
-            <div style={{ color: '#334155', whiteSpace: 'pre-wrap', lineHeight: 1.75 }}>
+            <h2 style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '1rem' }}>Passage</h2>
+            <div style={{ color: '#334155', whiteSpace: 'pre-wrap', lineHeight: 1.75, fontSize: 'clamp(0.875rem, 2.5vw, 1rem)' }}>
               {currentSet.passage_text}
             </div>
           </div>
@@ -504,14 +506,14 @@ const ReadingPractice: React.FC = () => {
           <div style={{
             background: 'white',
             borderRadius: '1rem',
-            padding: '1.5rem',
+            padding: 'clamp(1rem, 3vw, 1.5rem)',
             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
           }}>
             <div style={{ marginBottom: '1.5rem' }}>
-              <div style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '0.5rem' }}>
+              <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#64748b', marginBottom: '0.5rem' }}>
                 Question {currentQuestionIndex + 1}
               </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 500, color: '#1e293b', marginBottom: '1.5rem' }}>
+              <h3 style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', fontWeight: 500, color: '#1e293b', marginBottom: '1.5rem' }}>
                 {currentQuestion.body}
               </h3>
 
@@ -523,12 +525,13 @@ const ReadingPractice: React.FC = () => {
                     style={{
                       width: '100%',
                       textAlign: 'left',
-                      padding: '1rem',
+                      padding: 'clamp(0.75rem, 2vw, 1rem)',
                       borderRadius: '0.5rem',
                       border: `1px solid ${answers[currentQuestion.id] === option ? '#3b82f6' : '#d1d5db'}`,
                       background: answers[currentQuestion.id] === option ? '#eff6ff' : 'white',
                       color: answers[currentQuestion.id] === option ? '#1e40af' : '#475569',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      fontSize: 'clamp(0.875rem, 2.5vw, 1rem)'
                     }}
                   >
                     {option}
@@ -538,17 +541,20 @@ const ReadingPractice: React.FC = () => {
             </div>
 
             {/* Navigation */}
-            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '2rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '2rem', flexWrap: 'wrap' }}>
               <button
                 onClick={handlePrevious}
                 disabled={currentQuestionIndex === 0}
                 style={{
-                  padding: '0.75rem 1.5rem',
+                  flex: 1,
+                  minWidth: '120px',
+                  padding: 'clamp(0.625rem, 2vw, 0.75rem) 1rem',
                   background: currentQuestionIndex === 0 ? '#e2e8f0' : '#f1f5f9',
                   color: currentQuestionIndex === 0 ? '#9ca3af' : '#475569',
                   border: '1px solid #e2e8f0',
                   borderRadius: '0.5rem',
-                  cursor: currentQuestionIndex === 0 ? 'not-allowed' : 'pointer'
+                  cursor: currentQuestionIndex === 0 ? 'not-allowed' : 'pointer',
+                  fontSize: 'clamp(0.875rem, 2.5vw, 1rem)'
                 }}
               >
                 Previous
@@ -559,13 +565,15 @@ const ReadingPractice: React.FC = () => {
                   onClick={handleNext}
                   style={{
                     flex: 1,
-                    padding: '0.75rem 1.5rem',
+                    minWidth: '120px',
+                    padding: 'clamp(0.625rem, 2vw, 0.75rem) 1rem',
                     background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
                     color: 'white',
                     border: 'none',
                     borderRadius: '0.5rem',
                     cursor: 'pointer',
-                    fontWeight: 500
+                    fontWeight: 500,
+                    fontSize: 'clamp(0.875rem, 2.5vw, 1rem)'
                   }}
                 >
                   Next
@@ -576,13 +584,15 @@ const ReadingPractice: React.FC = () => {
                   disabled={submitMutation.isPending}
                   style={{
                     flex: 1,
-                    padding: '0.75rem 1.5rem',
+                    minWidth: '120px',
+                    padding: 'clamp(0.625rem, 2vw, 0.75rem) 1rem',
                     background: submitMutation.isPending ? '#9ca3af' : 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
                     color: 'white',
                     border: 'none',
                     borderRadius: '0.5rem',
                     cursor: submitMutation.isPending ? 'not-allowed' : 'pointer',
-                    fontWeight: 600
+                    fontWeight: 600,
+                    fontSize: 'clamp(0.875rem, 2.5vw, 1rem)'
                   }}
                 >
                   {submitMutation.isPending ? 'Submitting...' : 'Submit'}
