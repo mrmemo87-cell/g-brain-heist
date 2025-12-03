@@ -135,3 +135,11 @@ class AudioManager {
 
 // Export singleton instance
 export const audioService = new AudioManager();
+
+// Expose methods for IELTS pages to control music
+export const stopBackgroundMusic = () => audioService.stopBackgroundMusic();
+export const resumeBackgroundMusic = () => {
+  if (audioService.isBgMusicEnabled() && audioService.isAudioEnabled()) {
+    audioService.playBackgroundMusic();
+  }
+};

@@ -1,8 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 
 const IeltsHome: React.FC = () => {
   const navigate = useNavigate();
+
+  // Stop background music when entering IELTS section
+  useEffect(() => {
+    stopBackgroundMusic();
+    return () => {
+      // Resume music when leaving IELTS section
+      resumeBackgroundMusic();
+    };
+  }, []);
+
   // Sample data for display (will be replaced with real data after DB migration)
   const readingSets = [
     { id: 1, title: 'Working from Home', description: 'General training passage on remote work', level: 'Beginner', est_band_min: 4.5, est_band_max: 6.0 },

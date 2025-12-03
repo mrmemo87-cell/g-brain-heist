@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '../../../services/supabaseClient';
 import { ensureIeltsProfile } from '../../../services/ieltsService';
+import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 
 interface WritingTask {
   id: number;
@@ -24,6 +25,19 @@ const WritingPractice: React.FC = () => {
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [showSample, setShowSample] = useState(false);
+  
+  // Success screen state
+  const [alternateEmail, setAlternateEmail] = useState('');
+  const [notifyByEmail, setNotifyByEmail] = useState(true);
+  const [notifyInApp, setNotifyInApp] = useState(true);
+
+  // Stop background music when entering IELTS Writing practice
+  useEffect(() => {
+    stopBackgroundMusic();
+    return () => {
+      resumeBackgroundMusic();
+    };
+  }, []);
 
   // Timer
   useEffect(() => {
@@ -118,20 +132,40 @@ const WritingPractice: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-emerald-900 to-slate-900">
-        <div className="text-white text-xl">Loading...</div>
+      <div style={{ 
+        minHeight: '100vh', 
+        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{ color: '#1e293b', fontSize: '1.25rem' }}>Loading...</div>
       </div>
     );
   }
 
   if (!task) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-emerald-900 to-slate-900">
-        <div className="text-white text-center">
-          <h2 className="text-2xl font-bold mb-4">Task not found</h2>
+      <div style={{ 
+        minHeight: '100vh', 
+        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{ textAlign: 'center', color: '#1e293b' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>Task not found</h2>
           <button
             onClick={() => navigate('/ielts')}
-            className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-lg transition"
+            style={{
+              padding: '0.5rem 1.5rem',
+              background: '#10b981',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.5rem',
+              cursor: 'pointer',
+              fontWeight: 500
+            }}
           >
             Back to Home
           </button>
@@ -142,74 +176,182 @@ const WritingPractice: React.FC = () => {
 
   if (hasSubmitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-emerald-900 to-slate-900 p-8">
-        <div className="max-w-4xl mx-auto bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 border border-emerald-500/30 text-center">
-          <div className="mb-6">
-            <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div style={{ 
+        minHeight: '100vh', 
+        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+        padding: '2rem'
+      }}>
+        <div style={{
+          maxWidth: '56rem',
+          margin: '0 auto',
+          background: 'white',
+          borderRadius: '1rem',
+          padding: '2.5rem',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+        }}>
+          {/* Success Header */}
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <div style={{
+              width: '5rem',
+              height: '5rem',
+              background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 1.5rem'
+            }}>
+              <svg style={{ width: '2.5rem', height: '2.5rem', color: 'white' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h1 className="text-4xl font-bold text-white mb-4">Essay Submitted!</h1>
-            <p className="text-xl text-gray-300 mb-6">
-              Your writing has been submitted for expert review.
+            <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
+              Essay Submitted Successfully!
+            </h1>
+            <p style={{ fontSize: '1.125rem', color: '#64748b' }}>
+              Your writing has been received and is queued for expert review.
             </p>
           </div>
 
-          {/* Summary */}
-          <div className="bg-slate-700/50 rounded-xl p-6 mb-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Submission Summary</h3>
-            <div className="grid grid-cols-2 gap-4 text-left">
-              <div className="bg-slate-600/50 rounded-lg p-4">
-                <div className="text-sm text-gray-400">Word Count</div>
-                <div className={`text-2xl font-bold ${getWordCountColor()}`}>{wordCount}</div>
-                <div className="text-xs text-gray-500">Minimum: {getMinWords()}</div>
+          {/* Submission Summary */}
+          <div style={{
+            background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+            border: '1px solid #6ee7b7',
+            borderRadius: '0.75rem',
+            padding: '1.5rem',
+            marginBottom: '1.5rem'
+          }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#065f46', marginBottom: '1rem' }}>📊 Submission Summary</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ background: 'white', borderRadius: '0.5rem', padding: '1rem' }}>
+                <div style={{ fontSize: '0.875rem', color: '#64748b' }}>Word Count</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: wordCount >= getMinWords() ? '#16a34a' : '#f59e0b' }}>
+                  {wordCount}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Minimum: {getMinWords()}</div>
               </div>
-              <div className="bg-slate-600/50 rounded-lg p-4">
-                <div className="text-sm text-gray-400">Time Spent</div>
-                <div className="text-2xl font-bold text-emerald-400">{formatTime(timeElapsed)}</div>
-                <div className="text-xs text-gray-500">Recommended: 20-40 min</div>
+              <div style={{ background: 'white', borderRadius: '0.5rem', padding: '1rem' }}>
+                <div style={{ fontSize: '0.875rem', color: '#64748b' }}>Time Spent</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10b981' }}>{formatTime(timeElapsed)}</div>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Recommended: 20-40 min</div>
               </div>
             </div>
           </div>
 
-          {/* What happens next */}
-          <div className="bg-slate-700/50 rounded-xl p-6 mb-6 text-left">
-            <h3 className="text-lg font-semibold text-white mb-3">What happens next?</h3>
-            <ul className="space-y-2 text-gray-300">
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 mt-1">•</span>
-                <span>An IELTS expert will review your essay</span>
+          {/* Expert Review Notice */}
+          <div style={{
+            background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+            border: '1px solid #93c5fd',
+            borderRadius: '0.75rem',
+            padding: '1.5rem',
+            marginBottom: '1.5rem',
+            textAlign: 'left'
+          }}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1e40af', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span>🎯</span> What Happens Next
+            </h3>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#1e3a5f' }}>
+              <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>1.</span>
+                <span>Your essay will be reviewed by a <strong>certified IELTS examiner</strong></span>
               </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 mt-1">•</span>
-                <span>You'll receive detailed feedback on Task Achievement, Coherence, Vocabulary, and Grammar</span>
+              <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>2.</span>
+                <span>You'll receive detailed feedback on Task Achievement, Coherence, Vocabulary & Grammar</span>
               </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 mt-1">•</span>
-                <span>An estimated band score will be provided</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 mt-1">•</span>
-                <span>Reviews typically complete within 24-48 hours</span>
+              <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>3.</span>
+                <span>Your estimated band score will be sent to your email within <strong>24 hours</strong></span>
               </li>
             </ul>
           </div>
 
+          {/* Notification Preferences */}
+          <div style={{
+            background: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '0.75rem',
+            padding: '1.5rem',
+            marginBottom: '1.5rem',
+            textAlign: 'left'
+          }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#334155', marginBottom: '1rem' }}>
+              📬 Notification Preferences
+            </h3>
+            
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', fontSize: '0.875rem', color: '#64748b', marginBottom: '0.25rem' }}>
+                Alternate email (optional)
+              </label>
+              <input
+                type="email"
+                value={alternateEmail}
+                onChange={(e) => setAlternateEmail(e.target.value)}
+                placeholder="Enter alternate email for results"
+                style={{
+                  width: '100%',
+                  padding: '0.625rem 0.875rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '0.5rem',
+                  fontSize: '0.875rem',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={notifyByEmail}
+                  onChange={(e) => setNotifyByEmail(e.target.checked)}
+                  style={{ width: '1rem', height: '1rem', accentColor: '#10b981' }}
+                />
+                <span style={{ fontSize: '0.875rem', color: '#475569' }}>Notify me by email when feedback is ready</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={notifyInApp}
+                  onChange={(e) => setNotifyInApp(e.target.checked)}
+                  style={{ width: '1rem', height: '1rem', accentColor: '#10b981' }}
+                />
+                <span style={{ fontSize: '0.875rem', color: '#475569' }}>Show in-app notification</span>
+              </label>
+            </div>
+          </div>
+
           {/* Sample Answer */}
           {task.sample_answer && (
-            <div className="mb-6">
+            <div style={{ marginBottom: '1.5rem' }}>
               <button
                 onClick={() => setShowSample(!showSample)}
-                className="w-full px-6 py-3 bg-amber-600/20 border border-amber-500/30 text-amber-400 rounded-lg transition hover:bg-amber-600/30"
+                style={{
+                  width: '100%',
+                  padding: '0.875rem 1.5rem',
+                  background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                  color: '#92400e',
+                  border: '1px solid #f59e0b',
+                  borderRadius: '0.5rem',
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}
               >
                 {showSample ? '🙈 Hide Sample Answer' : '📝 View Sample Answer'}
               </button>
               
               {showSample && (
-                <div className="mt-4 bg-amber-600/10 border border-amber-500/30 rounded-xl p-6 text-left">
-                  <h4 className="text-lg font-semibold text-amber-400 mb-3">Sample Band 8+ Answer</h4>
-                  <div className="text-gray-300 whitespace-pre-wrap leading-relaxed">
+                <div style={{
+                  marginTop: '1rem',
+                  background: '#fffbeb',
+                  border: '1px solid #fcd34d',
+                  borderRadius: '0.75rem',
+                  padding: '1.5rem'
+                }}>
+                  <h4 style={{ fontSize: '1rem', fontWeight: '600', color: '#92400e', marginBottom: '0.75rem' }}>
+                    Sample Band 8+ Answer
+                  </h4>
+                  <div style={{ color: '#78350f', whiteSpace: 'pre-wrap', lineHeight: 1.75 }}>
                     {task.sample_answer}
                   </div>
                 </div>
@@ -219,9 +361,19 @@ const WritingPractice: React.FC = () => {
 
           <button
             onClick={() => navigate('/ielts')}
-            className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition font-medium"
+            style={{
+              width: '100%',
+              padding: '0.875rem 2rem',
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.5rem',
+              cursor: 'pointer',
+              fontWeight: '600',
+              fontSize: '1rem'
+            }}
           >
-            Back to Home
+            Back to IELTS Home
           </button>
         </div>
       </div>
@@ -229,85 +381,155 @@ const WritingPractice: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-emerald-900 to-slate-900 p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
+    <div style={{ 
+      minHeight: '100vh', 
+      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+      padding: '1rem'
+    }}>
+      <div style={{ maxWidth: '80rem', margin: '0 auto' }}>
         {/* Header */}
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 mb-6 border border-emerald-500/30">
-          <div className="flex justify-between items-center">
-            <div>
-              <div className="text-sm text-emerald-400 mb-2">
-                IELTS Writing - {task.task_type === 'task1' ? 'Task 1' : 'Task 2'}
-              </div>
-              <h1 className="text-3xl font-bold text-white mb-2">{task.title || 'Writing Practice'}</h1>
-              <div className="flex gap-4 text-sm text-gray-400">
-                <span>Target: {task.bands_target}</span>
-                <span>•</span>
-                <span>Min words: {getMinWords()}</span>
-              </div>
+        <div style={{
+          background: 'white',
+          borderRadius: '1rem',
+          padding: '1.5rem',
+          marginBottom: '1.5rem',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div>
+            <div style={{ fontSize: '0.875rem', color: '#10b981', marginBottom: '0.25rem' }}>
+              IELTS Writing - {task.task_type === 'task1' ? 'Task 1' : 'Task 2'}
             </div>
-            <button
-              onClick={() => navigate('/ielts')}
-              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition"
-            >
-              Exit
-            </button>
+            <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.25rem' }}>
+              {task.title || 'Writing Practice'}
+            </h1>
+            <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b' }}>
+              <span>Target: {task.bands_target}</span>
+              <span>•</span>
+              <span>Min words: {getMinWords()}</span>
+            </div>
           </div>
+          <button
+            onClick={() => navigate('/ielts')}
+            style={{
+              padding: '0.5rem 1rem',
+              background: '#f1f5f9',
+              color: '#475569',
+              border: '1px solid #e2e8f0',
+              borderRadius: '0.5rem',
+              cursor: 'pointer'
+            }}
+          >
+            Exit
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem' }}>
           {/* Task Prompt - Left Side */}
-          <div className="lg:col-span-1">
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-emerald-500/30 sticky top-6">
-              <h2 className="text-xl font-bold text-white mb-4">📋 Task</h2>
+          <div>
+            <div style={{
+              background: 'white',
+              borderRadius: '1rem',
+              padding: '1.5rem',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+              position: 'sticky',
+              top: '1.5rem'
+            }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '1rem' }}>📋 Task</h2>
               
-              <div className="bg-slate-700/50 rounded-xl p-5 mb-6 overflow-x-auto">
-                <pre className="text-gray-200 leading-relaxed whitespace-pre-wrap font-mono text-sm">{task.prompt}</pre>
+              <div style={{
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '0.75rem',
+                padding: '1.25rem',
+                marginBottom: '1.5rem',
+                overflowX: 'auto'
+              }}>
+                <pre style={{ 
+                  color: '#334155', 
+                  lineHeight: 1.75, 
+                  whiteSpace: 'pre-wrap', 
+                  fontFamily: 'ui-monospace, SFMono-Regular, monospace', 
+                  fontSize: '0.875rem',
+                  margin: 0
+                }}>{task.prompt}</pre>
               </div>
 
               {/* Timer & Stats */}
-              <div className="space-y-4">
-                <div className="bg-slate-700/50 rounded-lg p-4">
-                  <div className="text-sm text-gray-400 mb-1">Time Elapsed</div>
-                  <div className="text-3xl font-bold text-emerald-400">{formatTime(timeElapsed)}</div>
-                  <div className="text-xs text-gray-500 mt-1">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{
+                  background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+                  border: '1px solid #6ee7b7',
+                  borderRadius: '0.5rem',
+                  padding: '1rem'
+                }}>
+                  <div style={{ fontSize: '0.875rem', color: '#065f46', marginBottom: '0.25rem' }}>Time Elapsed</div>
+                  <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#059669' }}>{formatTime(timeElapsed)}</div>
+                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
                     Recommended: {task.task_type === 'task1' ? '20 minutes' : '40 minutes'}
                   </div>
                 </div>
 
-                <div className="bg-slate-700/50 rounded-lg p-4">
-                  <div className="text-sm text-gray-400 mb-1">Word Count</div>
-                  <div className={`text-3xl font-bold ${getWordCountColor()}`}>{wordCount}</div>
-                  <div className="text-xs text-gray-500 mt-1">
+                <div style={{
+                  background: wordCount >= getMinWords() ? 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)' : 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                  border: `1px solid ${wordCount >= getMinWords() ? '#6ee7b7' : '#f59e0b'}`,
+                  borderRadius: '0.5rem',
+                  padding: '1rem'
+                }}>
+                  <div style={{ fontSize: '0.875rem', color: wordCount >= getMinWords() ? '#065f46' : '#92400e', marginBottom: '0.25rem' }}>
+                    Word Count
+                  </div>
+                  <div style={{ fontSize: '2rem', fontWeight: 'bold', color: wordCount >= getMinWords() ? '#059669' : '#b45309' }}>
+                    {wordCount}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
                     Minimum required: {getMinWords()} words
                   </div>
                   {/* Progress bar */}
-                  <div className="mt-2 w-full bg-slate-600 rounded-full h-2">
+                  <div style={{ 
+                    marginTop: '0.5rem', 
+                    width: '100%', 
+                    background: '#e2e8f0', 
+                    borderRadius: '9999px', 
+                    height: '0.5rem' 
+                  }}>
                     <div
-                      className={`h-2 rounded-full transition-all ${
-                        wordCount >= getMinWords() ? 'bg-green-500' : 'bg-emerald-500'
-                      }`}
-                      style={{ width: `${Math.min(100, (wordCount / getMinWords()) * 100)}%` }}
+                      style={{
+                        height: '0.5rem',
+                        borderRadius: '9999px',
+                        transition: 'width 0.3s',
+                        background: wordCount >= getMinWords() ? '#22c55e' : '#10b981',
+                        width: `${Math.min(100, (wordCount / getMinWords()) * 100)}%`
+                      }}
                     />
                   </div>
                 </div>
               </div>
 
               {/* Tips */}
-              <div className="mt-6 bg-blue-600/10 border border-blue-500/30 rounded-xl p-4">
-                <h3 className="text-sm font-semibold text-blue-400 mb-2">💡 Writing Tips</h3>
-                <ul className="text-xs text-gray-300 space-y-1">
+              <div style={{
+                marginTop: '1.5rem',
+                background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                border: '1px solid #93c5fd',
+                borderRadius: '0.75rem',
+                padding: '1rem'
+              }}>
+                <h3 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1e40af', marginBottom: '0.5rem' }}>💡 Writing Tips</h3>
+                <ul style={{ fontSize: '0.75rem', color: '#1e3a5f', listStyle: 'none', padding: 0, margin: 0 }}>
                   {task.task_type === 'task1' ? (
                     <>
-                      <li>• Summarize the main trends/features</li>
-                      <li>• Make comparisons where relevant</li>
-                      <li>• Include specific data/figures</li>
+                      <li style={{ marginBottom: '0.25rem' }}>• Summarize the main trends/features</li>
+                      <li style={{ marginBottom: '0.25rem' }}>• Make comparisons where relevant</li>
+                      <li style={{ marginBottom: '0.25rem' }}>• Include specific data/figures</li>
                       <li>• Don't give your opinion</li>
                     </>
                   ) : (
                     <>
-                      <li>• Plan your essay structure first</li>
-                      <li>• Include an introduction and conclusion</li>
-                      <li>• Support your points with examples</li>
+                      <li style={{ marginBottom: '0.25rem' }}>• Plan your essay structure first</li>
+                      <li style={{ marginBottom: '0.25rem' }}>• Include an introduction and conclusion</li>
+                      <li style={{ marginBottom: '0.25rem' }}>• Support your points with examples</li>
                       <li>• Use a range of vocabulary</li>
                     </>
                   )}
@@ -317,15 +539,24 @@ const WritingPractice: React.FC = () => {
           </div>
 
           {/* Writing Area - Right Side */}
-          <div className="lg:col-span-2">
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-emerald-500/30">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-white">✍️ Your Essay</h2>
-                <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  wordCount >= getMinWords() 
-                    ? 'bg-green-600/20 text-green-400 border border-green-500/30'
-                    : 'bg-amber-600/20 text-amber-400 border border-amber-500/30'
-                }`}>
+          <div>
+            <div style={{
+              background: 'white',
+              borderRadius: '1rem',
+              padding: '1.5rem',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1e293b' }}>✍️ Your Essay</h2>
+                <div style={{
+                  padding: '0.375rem 0.75rem',
+                  borderRadius: '9999px',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  background: wordCount >= getMinWords() ? '#dcfce7' : '#fef3c7',
+                  color: wordCount >= getMinWords() ? '#166534' : '#92400e',
+                  border: `1px solid ${wordCount >= getMinWords() ? '#86efac' : '#fcd34d'}`
+                }}>
                   {wordCount} / {getMinWords()} words
                 </div>
               </div>
@@ -340,29 +571,56 @@ Remember to:
 - Organize your ideas clearly
 - Use a range of vocabulary and grammar
 - Check your spelling and punctuation`}
-                className="w-full h-[500px] p-6 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none resize-none leading-relaxed"
-                style={{ fontSize: '16px' }}
+                style={{
+                  width: '100%',
+                  height: '500px',
+                  padding: '1.5rem',
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '0.75rem',
+                  color: '#1e293b',
+                  fontSize: '1rem',
+                  lineHeight: 1.75,
+                  resize: 'none',
+                  boxSizing: 'border-box'
+                }}
               />
 
               {/* Action Buttons */}
-              <div className="flex gap-4 mt-6">
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
                 <button
                   onClick={() => setAnswer('')}
-                  className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition"
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    background: '#f1f5f9',
+                    color: '#475569',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '0.5rem',
+                    cursor: 'pointer'
+                  }}
                 >
                   Clear
                 </button>
                 <button
                   onClick={handleSubmit}
                   disabled={submitMutation.isPending || wordCount < 50}
-                  className="flex-1 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition font-bold"
+                  style={{
+                    flex: 1,
+                    padding: '0.75rem 1.5rem',
+                    background: submitMutation.isPending || wordCount < 50 ? '#9ca3af' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '0.5rem',
+                    cursor: submitMutation.isPending || wordCount < 50 ? 'not-allowed' : 'pointer',
+                    fontWeight: 'bold'
+                  }}
                 >
                   {submitMutation.isPending ? 'Submitting...' : 'Submit for Review'}
                 </button>
               </div>
 
               {wordCount < 50 && (
-                <p className="mt-3 text-sm text-amber-400">
+                <p style={{ marginTop: '0.75rem', fontSize: '0.875rem', color: '#f59e0b' }}>
                   ⚠️ Please write at least 50 words before submitting.
                 </p>
               )}

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '../../../services/supabaseClient';
 import { ensureIeltsProfile } from '../../../services/ieltsService';
+import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 
 interface ListeningSet {
   id: number;
@@ -36,8 +37,69 @@ const ListeningPractice: React.FC = () => {
   const [startTime] = useState(Date.now());
   const [audioPlayed, setAudioPlayed] = useState(false);
   const [currentSection, setCurrentSection] = useState(0);
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+  const [audioCurrentTime, setAudioCurrentTime] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(0);
+  
+  // Success screen state
+  const [alternateEmail, setAlternateEmail] = useState('');
+  const [notifyByEmail, setNotifyByEmail] = useState(true);
+  const [notifyInApp, setNotifyInApp] = useState(true);
   
   const audioRef = useRef<HTMLAudioElement>(null);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Stop background music when entering IELTS Listening practice
+  useEffect(() => {
+    stopBackgroundMusic();
+    return () => {
+      resumeBackgroundMusic();
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+    };
+  }, []);
+
+  // Audio time tracking
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleTimeUpdate = () => {
+      setAudioCurrentTime(audio.currentTime);
+    };
+
+    const handleLoadedMetadata = () => {
+      setAudioDuration(audio.duration);
+    };
+
+    const handlePlay = () => {
+      setIsAudioPlaying(true);
+      setAudioPlayed(true);
+    };
+
+    const handlePause = () => {
+      setIsAudioPlaying(false);
+    };
+
+    const handleEnded = () => {
+      setIsAudioPlaying(false);
+    };
+
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('play', handlePlay);
+    audio.addEventListener('pause', handlePause);
+    audio.addEventListener('ended', handleEnded);
+
+    return () => {
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('play', handlePlay);
+      audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('ended', handleEnded);
+    };
+  }, []);
 
   // Fetch listening set
   const { data: listeningSet, isLoading: loadingSet } = useQuery({
@@ -160,20 +222,40 @@ const ListeningPractice: React.FC = () => {
 
   if (loadingSet || loadingQuestions) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900">
-        <div className="text-white text-xl">Loading...</div>
+      <div style={{ 
+        minHeight: '100vh', 
+        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{ color: '#1e293b', fontSize: '1.25rem' }}>Loading...</div>
       </div>
     );
   }
 
   if (!listeningSet || !questions || questions.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900">
-        <div className="text-white text-center">
-          <h2 className="text-2xl font-bold mb-4">No listening content available</h2>
+      <div style={{ 
+        minHeight: '100vh', 
+        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{ textAlign: 'center', color: '#1e293b' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>No listening content available</h2>
           <button
             onClick={() => navigate('/ielts')}
-            className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition"
+            style={{
+              padding: '0.5rem 1.5rem',
+              background: '#6366f1',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.5rem',
+              cursor: 'pointer',
+              fontWeight: 500
+            }}
           >
             Back to Home
           </button>
@@ -187,71 +269,225 @@ const ListeningPractice: React.FC = () => {
     const bandScore = estimateBandScore(results.percentage);
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 p-8">
-        <div className="max-w-4xl mx-auto bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 border border-indigo-500/30">
-          <h1 className="text-4xl font-bold text-white mb-6 text-center">Listening Results</h1>
-          
-          <div className="bg-slate-700/50 rounded-xl p-6 mb-6">
-            <div className="text-center mb-4">
-              <div className="text-6xl font-bold text-indigo-400 mb-2">{results.correct}/{results.total}</div>
-              <div className="text-2xl text-gray-300">{results.percentage}% Correct</div>
+      <div style={{ 
+        minHeight: '100vh', 
+        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+        padding: '2rem'
+      }}>
+        <div style={{
+          maxWidth: '56rem',
+          margin: '0 auto',
+          background: 'white',
+          borderRadius: '1rem',
+          padding: '2.5rem',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+        }}>
+          {/* Success Header */}
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <div style={{
+              width: '5rem',
+              height: '5rem',
+              background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 1.5rem'
+            }}>
+              <svg style={{ width: '2.5rem', height: '2.5rem', color: 'white' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
             </div>
+            <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
+              Listening Test Complete!
+            </h1>
+          </div>
+          
+          {/* Score Display */}
+          <div style={{
+            background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+            border: '1px solid #93c5fd',
+            borderRadius: '0.75rem',
+            padding: '1.5rem',
+            marginBottom: '1.5rem',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '3.5rem', fontWeight: 'bold', color: '#1e40af', marginBottom: '0.5rem' }}>
+              {results.correct}/{results.total}
+            </div>
+            <div style={{ fontSize: '1.25rem', color: '#3b82f6' }}>{results.percentage}% Correct</div>
             
-            <div className="text-center py-4 bg-indigo-600/20 rounded-lg border border-indigo-500/30">
-              <div className="text-sm text-gray-400 mb-1">Estimated Band Score</div>
-              <div className="text-5xl font-bold text-yellow-400">{bandScore}</div>
+            <div style={{
+              marginTop: '1.5rem',
+              padding: '1rem',
+              background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+              borderRadius: '0.5rem',
+              display: 'inline-block'
+            }}>
+              <div style={{ fontSize: '0.875rem', color: '#92400e', marginBottom: '0.25rem' }}>Estimated Band Score</div>
+              <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#b45309' }}>{bandScore}</div>
             </div>
           </div>
 
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-white mb-4">Answer Review</h2>
-            {questions.map((q: ListeningQuestion, idx: number) => {
-              const userAnswer = answers[q.id];
-              const correctAnswer = q.correct_answer;
-              const isCorrect = userAnswer?.toLowerCase().trim() === String(correctAnswer).toLowerCase().trim();
+          {/* Expert Review Notice */}
+          <div style={{
+            background: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '0.75rem',
+            padding: '1.5rem',
+            marginBottom: '1.5rem',
+            textAlign: 'left'
+          }}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1e293b', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span>🎯</span> Your Results Have Been Recorded
+            </h3>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#475569' }}>
+              <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>✓</span>
+                <span>Your answers have been automatically graded</span>
+              </li>
+              <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>✓</span>
+                <span>A detailed performance report will be sent to your email within <strong>24 hours</strong></span>
+              </li>
+              <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>✓</span>
+                <span>Review your answers below to see explanations</span>
+              </li>
+            </ul>
+          </div>
 
-              return (
-                <div key={q.id} className={`p-4 rounded-lg border ${
-                  isCorrect 
-                    ? 'bg-green-900/20 border-green-500/30' 
-                    : 'bg-red-900/20 border-red-500/30'
-                }`}>
-                  <div className="flex items-start gap-3">
-                    <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
-                      isCorrect ? 'bg-green-500' : 'bg-red-500'
-                    }`}>
-                      {isCorrect ? '✓' : '✗'}
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-white font-medium mb-2">Q{idx + 1}: {q.body}</div>
-                      <div className="space-y-1 text-sm">
-                        <div className="text-gray-300">
-                          Your answer: <span className={isCorrect ? 'text-green-400' : 'text-red-400'}>
-                            {userAnswer || 'Not answered'}
-                          </span>
+          {/* Notification Preferences */}
+          <div style={{
+            background: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '0.75rem',
+            padding: '1.5rem',
+            marginBottom: '1.5rem',
+            textAlign: 'left'
+          }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#334155', marginBottom: '1rem' }}>
+              📬 Notification Preferences
+            </h3>
+            
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', fontSize: '0.875rem', color: '#64748b', marginBottom: '0.25rem' }}>
+                Alternate email (optional)
+              </label>
+              <input
+                type="email"
+                value={alternateEmail}
+                onChange={(e) => setAlternateEmail(e.target.value)}
+                placeholder="Enter alternate email for results"
+                style={{
+                  width: '100%',
+                  padding: '0.625rem 0.875rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '0.5rem',
+                  fontSize: '0.875rem',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={notifyByEmail}
+                  onChange={(e) => setNotifyByEmail(e.target.checked)}
+                  style={{ width: '1rem', height: '1rem', accentColor: '#6366f1' }}
+                />
+                <span style={{ fontSize: '0.875rem', color: '#475569' }}>Notify me by email when detailed report is ready</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={notifyInApp}
+                  onChange={(e) => setNotifyInApp(e.target.checked)}
+                  style={{ width: '1rem', height: '1rem', accentColor: '#6366f1' }}
+                />
+                <span style={{ fontSize: '0.875rem', color: '#475569' }}>Show in-app notification</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Answer Review */}
+          <div style={{ marginBottom: '2rem' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '1rem' }}>Answer Review</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {questions.map((q: ListeningQuestion, idx: number) => {
+                const userAnswer = answers[q.id];
+                const correctAnswer = q.correct_answer;
+                const isCorrect = userAnswer?.toLowerCase().trim() === String(correctAnswer).toLowerCase().trim();
+
+                return (
+                  <div key={q.id} style={{
+                    padding: '1rem',
+                    borderRadius: '0.5rem',
+                    border: `1px solid ${isCorrect ? '#86efac' : '#fca5a5'}`,
+                    background: isCorrect ? '#f0fdf4' : '#fef2f2'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                      <div style={{
+                        flexShrink: 0,
+                        width: '1.5rem',
+                        height: '1.5rem',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: isCorrect ? '#22c55e' : '#ef4444',
+                        color: 'white',
+                        fontSize: '0.75rem'
+                      }}>
+                        {isCorrect ? '✓' : '✗'}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ color: '#1e293b', fontWeight: 500, marginBottom: '0.5rem' }}>
+                          Q{idx + 1}: {q.body}
                         </div>
-                        {!isCorrect && (
-                          <div className="text-gray-300">
-                            Correct answer: <span className="text-green-400">{correctAnswer}</span>
+                        <div style={{ fontSize: '0.875rem' }}>
+                          <div style={{ color: '#475569' }}>
+                            Your answer: <span style={{ color: isCorrect ? '#16a34a' : '#dc2626' }}>
+                              {userAnswer || 'Not answered'}
+                            </span>
                           </div>
-                        )}
-                        {q.explanation && (
-                          <div className="mt-2 text-gray-400 italic">{q.explanation}</div>
-                        )}
+                          {!isCorrect && (
+                            <div style={{ color: '#475569' }}>
+                              Correct answer: <span style={{ color: '#16a34a' }}>{correctAnswer}</span>
+                            </div>
+                          )}
+                          {q.explanation && (
+                            <div style={{ marginTop: '0.5rem', color: '#64748b', fontStyle: 'italic' }}>
+                              {q.explanation}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
 
-          <div className="flex gap-4 mt-8">
+          {/* Action Buttons */}
+          <div style={{ display: 'flex', gap: '1rem' }}>
             <button
               onClick={() => navigate('/ielts')}
-              className="flex-1 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition font-medium"
+              style={{
+                flex: 1,
+                padding: '0.875rem 1.5rem',
+                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+                fontWeight: 600
+              }}
             >
-              Back to Home
+              Back to IELTS Home
             </button>
             <button
               onClick={() => {
@@ -259,7 +495,16 @@ const ListeningPractice: React.FC = () => {
                 setShowResults(false);
                 setAudioPlayed(false);
               }}
-              className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition font-medium"
+              style={{
+                flex: 1,
+                padding: '0.875rem 1.5rem',
+                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+                fontWeight: 600
+              }}
             >
               Try Again
             </button>
@@ -270,74 +515,155 @@ const ListeningPractice: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
+    <div style={{ 
+      minHeight: '100vh', 
+      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+      padding: '1rem'
+    }}>
+      <div style={{ maxWidth: '80rem', margin: '0 auto' }}>
         {/* Header */}
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 mb-6 border border-indigo-500/30">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">{listeningSet.title}</h1>
-              <div className="flex gap-4 text-sm text-gray-400">
-                <span>Level: {listeningSet.level}</span>
-                <span>•</span>
-                <span>Duration: {listeningSet.duration_minutes} min</span>
-                <span>•</span>
-                <span>Band: {listeningSet.est_band_min} - {listeningSet.est_band_max}</span>
-              </div>
+        <div style={{
+          background: 'white',
+          borderRadius: '1rem',
+          padding: '1.5rem',
+          marginBottom: '1.5rem',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div>
+            <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.25rem' }}>
+              {listeningSet.title}
+            </h1>
+            <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b' }}>
+              <span>Level: {listeningSet.level}</span>
+              <span>•</span>
+              <span>Duration: {listeningSet.duration_minutes} min</span>
+              <span>•</span>
+              <span>Band: {listeningSet.est_band_min} - {listeningSet.est_band_max}</span>
             </div>
-            <button
-              onClick={() => navigate('/ielts')}
-              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition"
-            >
-              Exit
-            </button>
           </div>
+          <button
+            onClick={() => navigate('/ielts')}
+            style={{
+              padding: '0.5rem 1rem',
+              background: '#f1f5f9',
+              color: '#475569',
+              border: '1px solid #e2e8f0',
+              borderRadius: '0.5rem',
+              cursor: 'pointer'
+            }}
+          >
+            Exit
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem' }}>
           {/* Audio Player - Left Side */}
-          <div className="lg:col-span-1">
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-indigo-500/30 sticky top-6">
-              <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <div>
+            <div style={{
+              background: 'white',
+              borderRadius: '1rem',
+              padding: '1.5rem',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+              position: 'sticky',
+              top: '1.5rem'
+            }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 🎧 Audio Player
               </h2>
               
-              <div className="bg-slate-700/50 rounded-xl p-4 mb-4">
+              {/* Enhanced Timer Display */}
+              <div style={{
+                background: isAudioPlaying ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : '#f8fafc',
+                border: `1px solid ${isAudioPlaying ? '#f59e0b' : '#e2e8f0'}`,
+                borderRadius: '0.75rem',
+                padding: '1rem',
+                marginBottom: '1rem',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '0.75rem', color: isAudioPlaying ? '#92400e' : '#64748b', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  {isAudioPlaying ? '🔴 Recording Time' : 'Audio Time'}
+                </div>
+                <div style={{ 
+                  fontSize: '2.5rem', 
+                  fontWeight: 'bold', 
+                  color: isAudioPlaying ? '#b45309' : '#1e293b',
+                  fontFamily: 'monospace'
+                }}>
+                  {formatTime(Math.floor(audioCurrentTime))} / {formatTime(Math.floor(audioDuration))}
+                </div>
+                {/* Progress Bar */}
+                <div style={{ 
+                  width: '100%', 
+                  height: '0.5rem', 
+                  background: '#e2e8f0', 
+                  borderRadius: '9999px', 
+                  marginTop: '0.75rem',
+                  overflow: 'hidden'
+                }}>
+                  <div style={{
+                    height: '100%',
+                    width: audioDuration > 0 ? `${(audioCurrentTime / audioDuration) * 100}%` : '0%',
+                    background: isAudioPlaying ? 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)' : '#6366f1',
+                    borderRadius: '9999px',
+                    transition: 'width 0.1s linear'
+                  }} />
+                </div>
+              </div>
+
+              <div style={{
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '0.75rem',
+                padding: '1rem',
+                marginBottom: '1rem'
+              }}>
                 <audio
                   ref={audioRef}
                   controls
-                  className="w-full"
-                  onPlay={() => setAudioPlayed(true)}
+                  style={{ width: '100%' }}
                 >
                   <source src={listeningSet.audio_url} type="audio/mpeg" />
                   Your browser does not support the audio element.
                 </audio>
               </div>
 
-              <div className="bg-amber-600/20 border border-amber-500/30 rounded-lg p-4 mb-4">
-                <h3 className="text-sm font-semibold text-amber-400 mb-2">⚠️ IELTS Listening Rules</h3>
-                <ul className="text-xs text-gray-300 space-y-1">
-                  <li>• You will hear the audio ONCE only</li>
-                  <li>• Answer as you listen</li>
-                  <li>• Check your answers at the end</li>
+              <div style={{
+                background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                border: '1px solid #f59e0b',
+                borderRadius: '0.5rem',
+                padding: '1rem',
+                marginBottom: '1rem'
+              }}>
+                <h3 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#92400e', marginBottom: '0.5rem' }}>⚠️ IELTS Listening Rules</h3>
+                <ul style={{ fontSize: '0.75rem', color: '#78350f', listStyle: 'none', padding: 0, margin: 0 }}>
+                  <li style={{ marginBottom: '0.25rem' }}>• You will hear the audio ONCE only</li>
+                  <li style={{ marginBottom: '0.25rem' }}>• Answer as you listen</li>
+                  <li style={{ marginBottom: '0.25rem' }}>• Check your answers at the end</li>
                   <li>• Pay attention to spelling</li>
                 </ul>
               </div>
 
               {/* Section Navigation */}
               {groupedQuestions.length > 1 && (
-                <div className="mb-4">
-                  <h3 className="text-sm text-gray-400 mb-2">Sections</h3>
-                  <div className="flex flex-wrap gap-2">
+                <div style={{ marginBottom: '1rem' }}>
+                  <h3 style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '0.5rem' }}>Sections</h3>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                     {groupedQuestions.map((_: ListeningQuestion[], idx: number) => (
                       <button
                         key={idx}
                         onClick={() => setCurrentSection(idx)}
-                        className={`px-3 py-1 rounded-lg text-sm transition ${
-                          currentSection === idx
-                            ? 'bg-indigo-600 text-white'
-                            : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
-                        }`}
+                        style={{
+                          padding: '0.375rem 0.75rem',
+                          borderRadius: '0.5rem',
+                          fontSize: '0.875rem',
+                          border: 'none',
+                          cursor: 'pointer',
+                          background: currentSection === idx ? '#6366f1' : '#f1f5f9',
+                          color: currentSection === idx ? 'white' : '#475569'
+                        }}
                       >
                         Section {idx + 1}
                       </button>
@@ -347,9 +673,9 @@ const ListeningPractice: React.FC = () => {
               )}
 
               {/* Progress */}
-              <div className="text-center">
-                <div className="text-sm text-gray-400 mb-1">Questions Answered</div>
-                <div className="text-2xl font-bold text-indigo-400">
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '0.25rem' }}>Questions Answered</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#6366f1' }}>
                   {Object.keys(answers).length} / {questions.length}
                 </div>
               </div>
@@ -357,45 +683,72 @@ const ListeningPractice: React.FC = () => {
           </div>
 
           {/* Questions - Right Side */}
-          <div className="lg:col-span-2">
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-indigo-500/30">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white">
+          <div>
+            <div style={{
+              background: 'white',
+              borderRadius: '1rem',
+              padding: '1.5rem',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1e293b' }}>
                   Section {currentSection + 1} Questions
                 </h2>
-                <span className="text-sm text-gray-400">
+                <span style={{ fontSize: '0.875rem', color: '#64748b' }}>
                   Questions {currentSection * 10 + 1} - {Math.min((currentSection + 1) * 10, questions.length)}
                 </span>
               </div>
 
-              <div className="space-y-6">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 {groupedQuestions[currentSection]?.map((q: ListeningQuestion, idx: number) => {
                   const questionNumber = currentSection * 10 + idx + 1;
                   const options: string[] = q.options ? (Array.isArray(q.options) ? q.options : []) : [];
 
                   return (
-                    <div key={q.id} className="bg-slate-700/30 rounded-xl p-5 border border-slate-600/50">
-                      <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
+                    <div key={q.id} style={{
+                      background: '#f8fafc',
+                      borderRadius: '0.75rem',
+                      padding: '1.25rem',
+                      border: '1px solid #e2e8f0'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                        <div style={{
+                          flexShrink: 0,
+                          width: '2rem',
+                          height: '2rem',
+                          background: '#6366f1',
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'white',
+                          fontWeight: 'bold',
+                          fontSize: '0.875rem'
+                        }}>
                           {questionNumber}
                         </div>
-                        <div className="flex-1">
-                          <p className="text-white font-medium mb-4">{q.body}</p>
+                        <div style={{ flex: 1 }}>
+                          <p style={{ color: '#1e293b', fontWeight: 500, marginBottom: '1rem' }}>{q.body}</p>
                           
                           {/* Multiple Choice */}
                           {options.length > 0 ? (
-                            <div className="space-y-2">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                               {options.map((option: string, optIdx: number) => (
                                 <button
                                   key={optIdx}
                                   onClick={() => handleAnswer(q.id, option)}
-                                  className={`w-full text-left p-3 rounded-lg border transition ${
-                                    answers[q.id] === option
-                                      ? 'bg-indigo-600 border-indigo-500 text-white'
-                                      : 'bg-slate-700/50 border-slate-600 text-gray-300 hover:border-indigo-500/50'
-                                  }`}
+                                  style={{
+                                    width: '100%',
+                                    textAlign: 'left',
+                                    padding: '0.75rem',
+                                    borderRadius: '0.5rem',
+                                    border: `1px solid ${answers[q.id] === option ? '#6366f1' : '#d1d5db'}`,
+                                    background: answers[q.id] === option ? '#eff6ff' : 'white',
+                                    color: answers[q.id] === option ? '#4f46e5' : '#475569',
+                                    cursor: 'pointer'
+                                  }}
                                 >
-                                  <span className="font-medium mr-2">
+                                  <span style={{ fontWeight: 500, marginRight: '0.5rem' }}>
                                     {String.fromCharCode(65 + optIdx)}.
                                   </span>
                                   {option}
@@ -409,7 +762,15 @@ const ListeningPractice: React.FC = () => {
                               value={answers[q.id] || ''}
                               onChange={(e) => handleAnswer(q.id, e.target.value)}
                               placeholder="Type your answer..."
-                              className="w-full p-3 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none"
+                              style={{
+                                width: '100%',
+                                padding: '0.75rem',
+                                background: 'white',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '0.5rem',
+                                color: '#1e293b',
+                                boxSizing: 'border-box'
+                              }}
                             />
                           )}
                         </div>
@@ -420,11 +781,18 @@ const ListeningPractice: React.FC = () => {
               </div>
 
               {/* Navigation */}
-              <div className="flex gap-4 mt-8">
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
                 {currentSection > 0 && (
                   <button
                     onClick={() => setCurrentSection(prev => prev - 1)}
-                    className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition"
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      background: '#f1f5f9',
+                      color: '#475569',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '0.5rem',
+                      cursor: 'pointer'
+                    }}
                   >
                     ← Previous Section
                   </button>
@@ -433,7 +801,16 @@ const ListeningPractice: React.FC = () => {
                 {currentSection < groupedQuestions.length - 1 ? (
                   <button
                     onClick={() => setCurrentSection(prev => prev + 1)}
-                    className="flex-1 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition"
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem 1.5rem',
+                      background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      cursor: 'pointer',
+                      fontWeight: 500
+                    }}
                   >
                     Next Section →
                   </button>
@@ -441,7 +818,16 @@ const ListeningPractice: React.FC = () => {
                   <button
                     onClick={handleSubmit}
                     disabled={submitMutation.isPending}
-                    className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-lg transition font-bold"
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem 1.5rem',
+                      background: submitMutation.isPending ? '#9ca3af' : 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      cursor: submitMutation.isPending ? 'not-allowed' : 'pointer',
+                      fontWeight: 'bold'
+                    }}
                   >
                     {submitMutation.isPending ? 'Submitting...' : 'Submit Answers'}
                   </button>
