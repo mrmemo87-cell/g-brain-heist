@@ -28,7 +28,9 @@ const WritingPractice: React.FC = () => {
   
   // Success screen state
   const [alternateEmail, setAlternateEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [notifyByEmail, setNotifyByEmail] = useState(true);
+  const [notifyBySms, setNotifyBySms] = useState(false);
   const [notifyInApp, setNotifyInApp] = useState(true);
 
   // Stop background music when entering IELTS Writing practice
@@ -279,6 +281,7 @@ const WritingPractice: React.FC = () => {
               📬 Notification Preferences
             </h3>
             
+            {/* Alternate Email */}
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', fontSize: '0.875rem', color: '#64748b', marginBottom: '0.25rem' }}>
                 Alternate email (optional)
@@ -299,6 +302,28 @@ const WritingPractice: React.FC = () => {
               />
             </div>
 
+            {/* Phone Number */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', fontSize: '0.875rem', color: '#64748b', marginBottom: '0.25rem' }}>
+                Phone number for SMS updates (optional)
+              </label>
+              <input
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="+1 234 567 8900"
+                style={{
+                  width: '100%',
+                  padding: '0.625rem 0.875rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '0.5rem',
+                  fontSize: '0.875rem',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            {/* Checkboxes */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
                 <input
@@ -308,6 +333,15 @@ const WritingPractice: React.FC = () => {
                   style={{ width: '1rem', height: '1rem', accentColor: '#10b981' }}
                 />
                 <span style={{ fontSize: '0.875rem', color: '#475569' }}>Notify me by email when feedback is ready</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={notifyBySms}
+                  onChange={(e) => setNotifyBySms(e.target.checked)}
+                  style={{ width: '1rem', height: '1rem', accentColor: '#10b981' }}
+                />
+                <span style={{ fontSize: '0.875rem', color: '#475569' }}>Send SMS notification when feedback is ready</span>
               </label>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
                 <input

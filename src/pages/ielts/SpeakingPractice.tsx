@@ -22,23 +22,28 @@ const SpeakingPractice: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
   
-  const [preparationTime, setPreparationTime] = useState<number>(0);
-  const [recordingTime, setRecordingTime] = useState<number>(0);
+  const [preparationTimeLeft, setPreparationTimeLeft] = useState<number>(0);
+  const [recordingTimeLeft, setRecordingTimeLeft] = useState<number>(0);
   const [isRecording, setIsRecording] = useState(false);
   const [isPreparing, setIsPreparing] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [recordingDuration, setRecordingDuration] = useState<number>(0);
   
   // Success screen state
   const [alternateEmail, setAlternateEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [notifyByEmail, setNotifyByEmail] = useState(true);
+  const [notifyBySms, setNotifyBySms] = useState(false);
   const [notifyInApp, setNotifyInApp] = useState(true);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const preparationTimerRef = useRef<NodeJS.Timeout | null>(null);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   // Stop background music when entering IELTS Speaking practice
   useEffect(() => {
@@ -83,7 +88,7 @@ const SpeakingPractice: React.FC = () => {
           user_id: session.session.user.id,
           task_id: task?.id,
           recording_url: fileName,
-          duration: recordingTime,
+          duration: recordingDuration,
           status: 'pending_review',
           submitted_at: new Date().toISOString(),
         })
@@ -98,70 +103,96 @@ const SpeakingPractice: React.FC = () => {
     },
   });
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (preparationTimerRef.current) clearInterval(preparationTimerRef.current);
       if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
       if (audioUrl) URL.revokeObjectURL(audioUrl);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
     };
   }, [audioUrl]);
 
-  const startPreparation = () => {
-    setIsPreparing(true);
-    setPreparationTime(0);
+  // Get times from task
+  const prepTime = task?.follow_ups?.preparation_time || 60; // Default 1 minute prep
+  const speakingTime = task?.follow_ups?.speaking_time || task?.follow_ups?.time_limit || 120; // Default 2 minutes
+
+  // Start the entire flow (prep -> recording)
+  const startPractice = async () => {
+    setHasStarted(true);
     
-    const prepTime = task?.follow_ups?.preparation_time || 60;
+    // Request microphone permission early
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+    } catch (error) {
+      console.error('Error accessing microphone:', error);
+      alert('Unable to access microphone. Please check your permissions and try again.');
+      setHasStarted(false);
+      return;
+    }
+    
+    // Start preparation countdown
+    setIsPreparing(true);
+    setPreparationTimeLeft(prepTime);
+    
     preparationTimerRef.current = setInterval(() => {
-      setPreparationTime(prev => {
-        if (prev >= prepTime) {
+      setPreparationTimeLeft(prev => {
+        if (prev <= 1) {
           if (preparationTimerRef.current) clearInterval(preparationTimerRef.current);
           setIsPreparing(false);
-          return prev;
+          // Auto-start recording when prep ends
+          startRecordingInternal();
+          return 0;
         }
-        return prev + 1;
+        return prev - 1;
       });
     }, 1000);
   };
 
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      chunksRef.current = [];
+  // Internal recording start (called automatically after prep)
+  const startRecordingInternal = () => {
+    if (!streamRef.current) return;
+    
+    const mediaRecorder = new MediaRecorder(streamRef.current);
+    mediaRecorderRef.current = mediaRecorder;
+    chunksRef.current = [];
 
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          chunksRef.current.push(e.data);
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) {
+        chunksRef.current.push(e.data);
+      }
+    };
+
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+      setAudioBlob(blob);
+      setAudioUrl(URL.createObjectURL(blob));
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+    };
+
+    mediaRecorder.start();
+    setIsRecording(true);
+    setRecordingTimeLeft(speakingTime);
+    setRecordingDuration(0);
+
+    // Countdown timer for recording
+    recordingTimerRef.current = setInterval(() => {
+      setRecordingTimeLeft(prev => {
+        setRecordingDuration(d => d + 1);
+        if (prev <= 1) {
+          // Auto-stop when time runs out
+          stopRecording();
+          return 0;
         }
-      };
-
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        setAudioBlob(blob);
-        setAudioUrl(URL.createObjectURL(blob));
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      mediaRecorder.start();
-      setIsRecording(true);
-      setRecordingTime(0);
-
-      // Max recording time: 2 minutes (120 seconds) default, or task-specific time
-      const maxTime = task?.follow_ups?.speaking_time || task?.follow_ups?.time_limit || 120;
-      recordingTimerRef.current = setInterval(() => {
-        setRecordingTime(prev => {
-          if (prev >= maxTime) {
-            stopRecording();
-            return prev;
-          }
-          return prev + 1;
-        });
-      }, 1000);
-    } catch (error) {
-      console.error('Error accessing microphone:', error);
-      alert('Unable to access microphone. Please check your permissions.');
-    }
+        return prev - 1;
+      });
+    }, 1000);
   };
 
   const stopRecording = () => {
@@ -178,6 +209,17 @@ const SpeakingPractice: React.FC = () => {
     if (audioBlob) {
       submitMutation.mutate(audioBlob);
     }
+  };
+
+  const restartPractice = () => {
+    setHasStarted(false);
+    setIsPreparing(false);
+    setIsRecording(false);
+    setAudioBlob(null);
+    setAudioUrl(null);
+    setPreparationTimeLeft(0);
+    setRecordingTimeLeft(0);
+    setRecordingDuration(0);
   };
 
   const formatTime = (seconds: number) => {
@@ -331,6 +373,27 @@ const SpeakingPractice: React.FC = () => {
               />
             </div>
 
+            {/* Phone Number */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', fontSize: '0.875rem', color: '#64748b', marginBottom: '0.25rem' }}>
+                Phone number for SMS updates (optional)
+              </label>
+              <input
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="+1 234 567 8900"
+                style={{
+                  width: '100%',
+                  padding: '0.625rem 0.875rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '0.5rem',
+                  fontSize: '0.875rem',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
             {/* Checkboxes */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
@@ -341,6 +404,15 @@ const SpeakingPractice: React.FC = () => {
                   style={{ width: '1rem', height: '1rem', accentColor: '#6366f1' }}
                 />
                 <span style={{ fontSize: '0.875rem', color: '#475569' }}>Notify me by email when results are ready</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={notifyBySms}
+                  onChange={(e) => setNotifyBySms(e.target.checked)}
+                  style={{ width: '1rem', height: '1rem', accentColor: '#6366f1' }}
+                />
+                <span style={{ fontSize: '0.875rem', color: '#475569' }}>Send SMS notification when results are ready</span>
               </label>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
                 <input
@@ -405,10 +477,10 @@ const SpeakingPractice: React.FC = () => {
     );
   }
 
-  const prepTime = task.follow_ups?.preparation_time || 0;
-  const maxTime = task.follow_ups?.speaking_time || task.follow_ups?.time_limit || 180;
-  const prepProgress = prepTime > 0 ? (preparationTime / prepTime) * 100 : 0;
-  const recordProgress = (recordingTime / maxTime) * 100;
+  const displayPrepTime = task.follow_ups?.preparation_time || 60;
+  const displayMaxTime = task.follow_ups?.speaking_time || task.follow_ups?.time_limit || 120;
+  const prepProgress = displayPrepTime > 0 ? ((displayPrepTime - preparationTimeLeft) / displayPrepTime) * 100 : 0;
+  const recordProgress = displayMaxTime > 0 ? ((displayMaxTime - recordingTimeLeft) / displayMaxTime) * 100 : 0;
 
   return (
     <div style={{ 
@@ -512,8 +584,8 @@ const SpeakingPractice: React.FC = () => {
           )}
 
           {/* Timer Instructions */}
-          <div style={{ display: 'grid', gridTemplateColumns: prepTime > 0 ? '1fr 1fr' : '1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-            {prepTime > 0 && (
+          <div style={{ display: 'grid', gridTemplateColumns: displayPrepTime > 0 ? '1fr 1fr' : '1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+            {displayPrepTime > 0 && (
               <div style={{
                 background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
                 border: '1px solid #93c5fd',
@@ -521,7 +593,7 @@ const SpeakingPractice: React.FC = () => {
                 padding: '1rem'
               }}>
                 <div style={{ fontSize: '0.875rem', color: '#3b82f6', marginBottom: '0.25rem' }}>Preparation Time</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1e40af' }}>{formatTime(prepTime)}</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1e40af' }}>{formatTime(displayPrepTime)}</div>
               </div>
             )}
             <div style={{
@@ -531,58 +603,18 @@ const SpeakingPractice: React.FC = () => {
               padding: '1rem'
             }}>
               <div style={{ fontSize: '0.875rem', color: '#7c3aed', marginBottom: '0.25rem' }}>Speaking Time</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#5b21b6' }}>{formatTime(maxTime)}</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#5b21b6' }}>{formatTime(displayMaxTime)}</div>
             </div>
           </div>
 
-          {/* Preparation Phase */}
-          {prepTime > 0 && !isPreparing && !isRecording && !audioBlob && (
+          {/* Start Practice Button - Only shown before practice begins */}
+          {!hasStarted && !isPreparing && !isRecording && !audioBlob && (
             <button
-              onClick={startPreparation}
+              onClick={startPractice}
               style={{
                 width: '100%',
                 padding: '1rem 1.5rem',
-                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.5rem',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                fontSize: '1.125rem'
-              }}
-            >
-              Start Preparation ({formatTime(prepTime)})
-            </button>
-          )}
-
-          {isPreparing && (
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '4rem', fontWeight: 'bold', color: '#3b82f6', marginBottom: '1rem' }}>
-                {formatTime(prepTime - preparationTime)}
-              </div>
-              <div style={{ width: '100%', background: '#e2e8f0', borderRadius: '9999px', height: '0.5rem', marginBottom: '1rem' }}>
-                <div
-                  style={{ 
-                    background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)', 
-                    height: '0.5rem', 
-                    borderRadius: '9999px', 
-                    transition: 'width 0.3s',
-                    width: `${prepProgress}%` 
-                  }}
-                />
-              </div>
-              <p style={{ color: '#64748b' }}>Prepare your thoughts...</p>
-            </div>
-          )}
-
-          {/* Recording Phase */}
-          {!isPreparing && !isRecording && !audioBlob && (prepTime === 0 || preparationTime >= prepTime) && (
-            <button
-              onClick={startRecording}
-              style={{
-                width: '100%',
-                padding: '1rem 1.5rem',
-                background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '0.5rem',
@@ -596,14 +628,42 @@ const SpeakingPractice: React.FC = () => {
               }}
             >
               <svg style={{ width: '1.5rem', height: '1.5rem' }} fill="currentColor" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="8" />
+                <path d="M8 5v14l11-7z"/>
               </svg>
-              Start Recording
+              Start Practice ({formatTime(displayPrepTime)} prep + {formatTime(displayMaxTime)} speaking)
             </button>
           )}
 
+          {/* Preparation Phase - Countdown Display */}
+          {isPreparing && (
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '0.875rem', color: '#3b82f6', marginBottom: '0.5rem', fontWeight: '600' }}>
+                ⏱️ Preparation Time
+              </div>
+              <div style={{ fontSize: '4rem', fontWeight: 'bold', color: '#3b82f6', marginBottom: '1rem' }}>
+                {formatTime(preparationTimeLeft)}
+              </div>
+              <div style={{ width: '100%', background: '#e2e8f0', borderRadius: '9999px', height: '0.5rem', marginBottom: '1rem' }}>
+                <div
+                  style={{ 
+                    background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)', 
+                    height: '0.5rem', 
+                    borderRadius: '9999px', 
+                    transition: 'width 0.3s',
+                    width: `${prepProgress}%` 
+                  }}
+                />
+              </div>
+              <p style={{ color: '#64748b' }}>Prepare your thoughts... Recording will start automatically.</p>
+            </div>
+          )}
+
+          {/* Recording Phase - Countdown Display */}
           {isRecording && (
             <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '0.875rem', color: '#dc2626', marginBottom: '0.5rem', fontWeight: '600' }}>
+                🎙️ Recording in Progress
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '1rem' }}>
                 <div style={{ 
                   width: '1rem', 
@@ -613,7 +673,7 @@ const SpeakingPractice: React.FC = () => {
                   animation: 'pulse 1s infinite'
                 }} />
                 <div style={{ fontSize: '4rem', fontWeight: 'bold', color: '#dc2626' }}>
-                  {formatTime(recordingTime)}
+                  {formatTime(recordingTimeLeft)}
                 </div>
               </div>
               <div style={{ width: '100%', background: '#e2e8f0', borderRadius: '9999px', height: '0.5rem', marginBottom: '1rem' }}>
@@ -627,6 +687,7 @@ const SpeakingPractice: React.FC = () => {
                   }}
                 />
               </div>
+              <p style={{ color: '#64748b', marginBottom: '1rem' }}>Speak now! Recording will stop automatically when time runs out.</p>
               <button
                 onClick={stopRecording}
                 style={{
@@ -639,7 +700,7 @@ const SpeakingPractice: React.FC = () => {
                   fontWeight: 500
                 }}
               >
-                Stop Recording
+                Stop Recording Early
               </button>
             </div>
           )}
@@ -659,16 +720,12 @@ const SpeakingPractice: React.FC = () => {
                 </h3>
                 <audio controls src={audioUrl} style={{ width: '100%', marginBottom: '0.5rem' }} />
                 <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                  Duration: {formatTime(recordingTime)}
+                  Duration: {formatTime(recordingDuration)}
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <button
-                  onClick={() => {
-                    setAudioBlob(null);
-                    setAudioUrl(null);
-                    setRecordingTime(0);
-                  }}
+                  onClick={restartPractice}
                   style={{
                     flex: 1,
                     padding: '0.75rem 1.5rem',
