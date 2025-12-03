@@ -20,108 +20,117 @@ VALUES (
 )
 ON CONFLICT (slug) DO NOTHING;
 
--- Get the ID of the reading set we just inserted
+-- Get the ID of the reading set and insert questions (skip if exist)
 DO $$
 DECLARE
   reading_set_id bigint;
 BEGIN
   SELECT id INTO reading_set_id FROM ielts_reading_sets WHERE slug = 'climate-change-impacts';
   
-  -- Question 1: Multiple Choice
-  INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
-  VALUES (
-    reading_set_id,
-    1,
-    'multiple_choice',
-    'According to the passage, what is the primary cause of coral bleaching?',
-    '["Increased ocean acidity", "Rising water temperatures", "Pollution from coastal cities", "Overfishing in reef areas"]',
-    '"Rising water temperatures"',
-    'The passage states that "elevated sea temperatures cause corals to expel the symbiotic algae living in their tissues, resulting in coral bleaching."'
-  );
+  -- Only insert if questions don't exist for this set
+  IF NOT EXISTS (SELECT 1 FROM ielts_reading_questions WHERE set_id = reading_set_id AND question_order = 1) THEN
+    INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES (
+      reading_set_id,
+      1,
+      'multiple_choice',
+      'According to the passage, what is the primary cause of coral bleaching?',
+      '["Increased ocean acidity", "Rising water temperatures", "Pollution from coastal cities", "Overfishing in reef areas"]',
+      '"Rising water temperatures"',
+      'The passage states that "elevated sea temperatures cause corals to expel the symbiotic algae living in their tissues, resulting in coral bleaching."'
+    );
+  END IF;
   
-  -- Question 2: Multiple Choice
-  INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
-  VALUES (
-    reading_set_id,
-    2,
-    'multiple_choice',
-    'The author suggests that polar bears are particularly vulnerable because:',
-    '["They cannot adapt to warmer climates", "Their hunting grounds are disappearing", "They are being hunted by humans", "They cannot find mates"]',
-    '"Their hunting grounds are disappearing"',
-    'The passage explains that "as sea ice diminishes, polar bears lose critical hunting platforms they depend on to catch seals."'
-  );
+  IF NOT EXISTS (SELECT 1 FROM ielts_reading_questions WHERE set_id = reading_set_id AND question_order = 2) THEN
+    INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES (
+      reading_set_id,
+      2,
+      'multiple_choice',
+      'The author suggests that polar bears are particularly vulnerable because:',
+      '["They cannot adapt to warmer climates", "Their hunting grounds are disappearing", "They are being hunted by humans", "They cannot find mates"]',
+      '"Their hunting grounds are disappearing"',
+      'The passage explains that "as sea ice diminishes, polar bears lose critical hunting platforms they depend on to catch seals."'
+    );
+  END IF;
   
-  -- Question 3: True/False/Not Given
-  INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
-  VALUES (
-    reading_set_id,
-    3,
-    'true_false_ng',
-    'The Amazon rainforest has already lost more than half of its original coverage.',
-    '["True", "False", "Not Given"]',
-    '"Not Given"',
-    'The passage discusses deforestation concerns but does not provide specific percentages of forest loss.'
-  );
+  IF NOT EXISTS (SELECT 1 FROM ielts_reading_questions WHERE set_id = reading_set_id AND question_order = 3) THEN
+    INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES (
+      reading_set_id,
+      3,
+      'true_false_ng',
+      'The Amazon rainforest has already lost more than half of its original coverage.',
+      '["True", "False", "Not Given"]',
+      '"Not Given"',
+      'The passage discusses deforestation concerns but does not provide specific percentages of forest loss.'
+    );
+  END IF;
   
-  -- Question 4: True/False/Not Given
-  INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
-  VALUES (
-    reading_set_id,
-    4,
-    'true_false_ng',
-    'Scientists predict that some coral species may adapt to warmer temperatures over time.',
-    '["True", "False", "Not Given"]',
-    '"True"',
-    'The passage mentions that "researchers have identified heat-resistant coral varieties that may survive in warming oceans."'
-  );
+  IF NOT EXISTS (SELECT 1 FROM ielts_reading_questions WHERE set_id = reading_set_id AND question_order = 4) THEN
+    INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES (
+      reading_set_id,
+      4,
+      'true_false_ng',
+      'Scientists predict that some coral species may adapt to warmer temperatures over time.',
+      '["True", "False", "Not Given"]',
+      '"True"',
+      'The passage mentions that "researchers have identified heat-resistant coral varieties that may survive in warming oceans."'
+    );
+  END IF;
   
-  -- Question 5: Fill in the blank
-  INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
-  VALUES (
-    reading_set_id,
-    5,
-    'fill_blank',
-    'The migration patterns of many bird species have shifted by an average of _____ kilometers northward.',
-    null,
-    '"150"',
-    'The passage states: "Studies show that migratory birds have shifted their routes an average of 150 kilometers northward."'
-  );
+  IF NOT EXISTS (SELECT 1 FROM ielts_reading_questions WHERE set_id = reading_set_id AND question_order = 5) THEN
+    INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES (
+      reading_set_id,
+      5,
+      'fill_blank',
+      'The migration patterns of many bird species have shifted by an average of _____ kilometers northward.',
+      null,
+      '"150"',
+      'The passage states: "Studies show that migratory birds have shifted their routes an average of 150 kilometers northward."'
+    );
+  END IF;
   
-  -- Question 6: Multiple Choice
-  INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
-  VALUES (
-    reading_set_id,
-    6,
-    'multiple_choice',
-    'What solution does the author propose for protecting vulnerable ecosystems?',
-    '["Complete ban on fossil fuels", "Creating marine protected areas", "Relocating endangered species", "Reducing global temperatures by 5 degrees"]',
-    '"Creating marine protected areas"',
-    'The passage advocates for "expanding marine protected areas to give ecosystems time to recover and adapt."'
-  );
+  IF NOT EXISTS (SELECT 1 FROM ielts_reading_questions WHERE set_id = reading_set_id AND question_order = 6) THEN
+    INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES (
+      reading_set_id,
+      6,
+      'multiple_choice',
+      'What solution does the author propose for protecting vulnerable ecosystems?',
+      '["Complete ban on fossil fuels", "Creating marine protected areas", "Relocating endangered species", "Reducing global temperatures by 5 degrees"]',
+      '"Creating marine protected areas"',
+      'The passage advocates for "expanding marine protected areas to give ecosystems time to recover and adapt."'
+    );
+  END IF;
   
-  -- Question 7: Matching Headings
-  INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
-  VALUES (
-    reading_set_id,
-    7,
-    'multiple_choice',
-    'Which paragraph discusses the economic impact of ecosystem destruction?',
-    '["Paragraph A", "Paragraph B", "Paragraph C", "Paragraph D"]',
-    '"Paragraph C"',
-    'Paragraph C discusses how "the loss of coral reefs alone could cost the global economy $1 trillion by 2050."'
-  );
+  IF NOT EXISTS (SELECT 1 FROM ielts_reading_questions WHERE set_id = reading_set_id AND question_order = 7) THEN
+    INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES (
+      reading_set_id,
+      7,
+      'multiple_choice',
+      'Which paragraph discusses the economic impact of ecosystem destruction?',
+      '["Paragraph A", "Paragraph B", "Paragraph C", "Paragraph D"]',
+      '"Paragraph C"',
+      'Paragraph C discusses how "the loss of coral reefs alone could cost the global economy $1 trillion by 2050."'
+    );
+  END IF;
   
-  -- Question 8: Multiple Choice
-  INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
-  VALUES (
-    reading_set_id,
-    8,
-    'multiple_choice',
-    'The tone of the passage can best be described as:',
-    '["Optimistic and hopeful", "Alarmed but informative", "Pessimistic and fatalistic", "Neutral and detached"]',
-    '"Alarmed but informative"',
-    'While presenting concerning data, the author maintains an educational approach and offers potential solutions.'
-  );
+  IF NOT EXISTS (SELECT 1 FROM ielts_reading_questions WHERE set_id = reading_set_id AND question_order = 8) THEN
+    INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES (
+      reading_set_id,
+      8,
+      'multiple_choice',
+      'The tone of the passage can best be described as:',
+      '["Optimistic and hopeful", "Alarmed but informative", "Pessimistic and fatalistic", "Neutral and detached"]',
+      '"Alarmed but informative"',
+      'While presenting concerning data, the author maintains an educational approach and offers potential solutions.'
+    );
+  END IF;
 END $$;
 
 -- ============================================
@@ -146,43 +155,65 @@ DECLARE
 BEGIN
   SELECT id INTO reading_set_id FROM ielts_reading_sets WHERE slug = 'ai-future-work';
   
-  INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
-  VALUES 
-  (reading_set_id, 1, 'multiple_choice', 
-   'According to the passage, which sector is most likely to be affected by AI automation?',
-   '["Healthcare", "Manufacturing", "Education", "Agriculture"]',
-   '"Manufacturing"',
-   'The passage indicates that "manufacturing jobs face the highest risk of automation, with up to 47% of positions potentially replaceable."'),
+  IF NOT EXISTS (SELECT 1 FROM ielts_reading_questions WHERE set_id = reading_set_id AND question_order = 1) THEN
+    INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES 
+    (reading_set_id, 1, 'multiple_choice', 
+     'According to the passage, which sector is most likely to be affected by AI automation?',
+     '["Healthcare", "Manufacturing", "Education", "Agriculture"]',
+     '"Manufacturing"',
+     'The passage indicates that "manufacturing jobs face the highest risk of automation, with up to 47% of positions potentially replaceable."');
+  END IF;
   
-  (reading_set_id, 2, 'multiple_choice',
-   'The author''s attitude toward AI in the workplace is:',
-   '["Entirely negative", "Cautiously optimistic", "Completely positive", "Indifferent"]',
-   '"Cautiously optimistic"',
-   'The author acknowledges risks but also highlights opportunities for new job creation.'),
+  IF NOT EXISTS (SELECT 1 FROM ielts_reading_questions WHERE set_id = reading_set_id AND question_order = 2) THEN
+    INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES 
+    (reading_set_id, 2, 'multiple_choice',
+     'The author''s attitude toward AI in the workplace is:',
+     '["Entirely negative", "Cautiously optimistic", "Completely positive", "Indifferent"]',
+     '"Cautiously optimistic"',
+     'The author acknowledges risks but also highlights opportunities for new job creation.');
+  END IF;
   
-  (reading_set_id, 3, 'true_false_ng',
-   'All jobs requiring creativity are safe from automation.',
-   '["True", "False", "Not Given"]',
-   '"False"',
-   'The passage notes that "even creative fields like graphic design and music composition are seeing AI tools emerge."'),
+  IF NOT EXISTS (SELECT 1 FROM ielts_reading_questions WHERE set_id = reading_set_id AND question_order = 3) THEN
+    INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES 
+    (reading_set_id, 3, 'true_false_ng',
+     'All jobs requiring creativity are safe from automation.',
+     '["True", "False", "Not Given"]',
+     '"False"',
+     'The passage notes that "even creative fields like graphic design and music composition are seeing AI tools emerge."');
+  END IF;
   
-  (reading_set_id, 4, 'true_false_ng',
-   'The majority of workers support the introduction of AI in their workplaces.',
-   '["True", "False", "Not Given"]',
-   '"Not Given"',
-   'The passage does not provide survey data on worker opinions about AI.'),
+  IF NOT EXISTS (SELECT 1 FROM ielts_reading_questions WHERE set_id = reading_set_id AND question_order = 4) THEN
+    INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES 
+    (reading_set_id, 4, 'true_false_ng',
+     'The majority of workers support the introduction of AI in their workplaces.',
+     '["True", "False", "Not Given"]',
+     '"Not Given"',
+     'The passage does not provide survey data on worker opinions about AI.');
+  END IF;
   
-  (reading_set_id, 5, 'fill_blank',
-   'The passage suggests that workers should focus on developing _____ skills that complement AI capabilities.',
-   null,
-   '"soft"',
-   'The passage emphasizes "soft skills like emotional intelligence, critical thinking, and interpersonal communication."'),
+  IF NOT EXISTS (SELECT 1 FROM ielts_reading_questions WHERE set_id = reading_set_id AND question_order = 5) THEN
+    INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES 
+    (reading_set_id, 5, 'fill_blank',
+     'The passage suggests that workers should focus on developing _____ skills that complement AI capabilities.',
+     null,
+     '"soft"',
+     'The passage emphasizes "soft skills like emotional intelligence, critical thinking, and interpersonal communication."');
+  END IF;
   
-  (reading_set_id, 6, 'multiple_choice',
-   'What does the author recommend governments do to prepare for AI disruption?',
-   '["Ban AI development", "Invest in retraining programs", "Increase minimum wages", "Reduce working hours"]',
-   '"Invest in retraining programs"',
-   'The author advocates for "robust retraining and upskilling programs to help displaced workers transition."');
+  IF NOT EXISTS (SELECT 1 FROM ielts_reading_questions WHERE set_id = reading_set_id AND question_order = 6) THEN
+    INSERT INTO ielts_reading_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES 
+    (reading_set_id, 6, 'multiple_choice',
+     'What does the author recommend governments do to prepare for AI disruption?',
+     '["Ban AI development", "Invest in retraining programs", "Increase minimum wages", "Reduce working hours"]',
+     '"Invest in retraining programs"',
+     'The author advocates for "robust retraining and upskilling programs to help displaced workers transition."');
+  END IF;
 END $$;
 
 -- ============================================
@@ -208,55 +239,77 @@ DECLARE
 BEGIN
   SELECT id INTO listening_set_id FROM ielts_listening_sets WHERE slug = 'university-orientation';
   
-  INSERT INTO ielts_listening_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
-  VALUES 
-  (listening_set_id, 1, 'multiple_choice',
-   'What time does the library open on weekdays?',
-   '["7:00 AM", "8:00 AM", "9:00 AM", "10:00 AM"]',
-   '"8:00 AM"',
-   'The speaker says "The main library opens at 8 AM on weekdays."'),
+  IF NOT EXISTS (SELECT 1 FROM ielts_listening_questions WHERE set_id = listening_set_id AND question_order = 1) THEN
+    INSERT INTO ielts_listening_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES (listening_set_id, 1, 'multiple_choice',
+     'What time does the library open on weekdays?',
+     '["7:00 AM", "8:00 AM", "9:00 AM", "10:00 AM"]',
+     '"8:00 AM"',
+     'The speaker says "The main library opens at 8 AM on weekdays."');
+  END IF;
   
-  (listening_set_id, 2, 'multiple_choice',
-   'Where is the student health center located?',
-   '["Building A", "Building C", "Building E", "Building G"]',
-   '"Building C"',
-   'The speaker mentions "You can find the health center in Building C, next to the cafeteria."'),
+  IF NOT EXISTS (SELECT 1 FROM ielts_listening_questions WHERE set_id = listening_set_id AND question_order = 2) THEN
+    INSERT INTO ielts_listening_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES (listening_set_id, 2, 'multiple_choice',
+     'Where is the student health center located?',
+     '["Building A", "Building C", "Building E", "Building G"]',
+     '"Building C"',
+     'The speaker mentions "You can find the health center in Building C, next to the cafeteria."');
+  END IF;
   
-  (listening_set_id, 3, 'fill_blank',
-   'Students must complete registration by the _____ of September.',
-   null,
-   '"15th"',
-   'The deadline mentioned is "September 15th for all course registrations."'),
+  IF NOT EXISTS (SELECT 1 FROM ielts_listening_questions WHERE set_id = listening_set_id AND question_order = 3) THEN
+    INSERT INTO ielts_listening_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES (listening_set_id, 3, 'fill_blank',
+     'Students must complete registration by the _____ of September.',
+     null,
+     '"15th"',
+     'The deadline mentioned is "September 15th for all course registrations."');
+  END IF;
   
-  (listening_set_id, 4, 'fill_blank',
-   'The campus shuttle runs every _____ minutes during peak hours.',
-   null,
-   '"10"',
-   'The speaker states "Shuttles run every 10 minutes between 8 AM and 6 PM."'),
+  IF NOT EXISTS (SELECT 1 FROM ielts_listening_questions WHERE set_id = listening_set_id AND question_order = 4) THEN
+    INSERT INTO ielts_listening_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES (listening_set_id, 4, 'fill_blank',
+     'The campus shuttle runs every _____ minutes during peak hours.',
+     null,
+     '"10"',
+     'The speaker states "Shuttles run every 10 minutes between 8 AM and 6 PM."');
+  END IF;
   
-  (listening_set_id, 5, 'multiple_choice',
-   'What document is required to get a student ID card?',
-   '["Passport only", "Enrollment letter and photo", "Driver''s license", "Birth certificate"]',
-   '"Enrollment letter and photo"',
-   'The requirements are "your enrollment confirmation letter and a passport-sized photo."'),
+  IF NOT EXISTS (SELECT 1 FROM ielts_listening_questions WHERE set_id = listening_set_id AND question_order = 5) THEN
+    INSERT INTO ielts_listening_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES (listening_set_id, 5, 'multiple_choice',
+     'What document is required to get a student ID card?',
+     '["Passport only", "Enrollment letter and photo", "Driver''s license", "Birth certificate"]',
+     '"Enrollment letter and photo"',
+     'The requirements are "your enrollment confirmation letter and a passport-sized photo."');
+  END IF;
   
-  (listening_set_id, 6, 'multiple_choice',
-   'How many meals per week are included in the basic meal plan?',
-   '["10", "14", "21", "Unlimited"]',
-   '"14"',
-   'The basic plan includes "14 meals per week, which works out to two per day."'),
+  IF NOT EXISTS (SELECT 1 FROM ielts_listening_questions WHERE set_id = listening_set_id AND question_order = 6) THEN
+    INSERT INTO ielts_listening_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES (listening_set_id, 6, 'multiple_choice',
+     'How many meals per week are included in the basic meal plan?',
+     '["10", "14", "21", "Unlimited"]',
+     '"14"',
+     'The basic plan includes "14 meals per week, which works out to two per day."');
+  END IF;
   
-  (listening_set_id, 7, 'fill_blank',
-   'International students should contact the _____ office for visa questions.',
-   null,
-   '"International Student Services"',
-   'The speaker directs students to "the International Student Services office for any visa or immigration queries."'),
+  IF NOT EXISTS (SELECT 1 FROM ielts_listening_questions WHERE set_id = listening_set_id AND question_order = 7) THEN
+    INSERT INTO ielts_listening_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES (listening_set_id, 7, 'fill_blank',
+     'International students should contact the _____ office for visa questions.',
+     null,
+     '"International Student Services"',
+     'The speaker directs students to "the International Student Services office for any visa or immigration queries."');
+  END IF;
   
-  (listening_set_id, 8, 'multiple_choice',
-   'What is the maximum number of books students can borrow at once?',
-   '["5", "8", "10", "15"]',
-   '"10"',
-   'Library policy allows "up to 10 books at a time for undergraduate students."');
+  IF NOT EXISTS (SELECT 1 FROM ielts_listening_questions WHERE set_id = listening_set_id AND question_order = 8) THEN
+    INSERT INTO ielts_listening_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES (listening_set_id, 8, 'multiple_choice',
+     'What is the maximum number of books students can borrow at once?',
+     '["5", "8", "10", "15"]',
+     '"10"',
+     'Library policy allows "up to 10 books at a time for undergraduate students."');
+  END IF;
 END $$;
 
 -- ============================================
@@ -282,43 +335,59 @@ DECLARE
 BEGIN
   SELECT id INTO listening_set_id FROM ielts_listening_sets WHERE slug = 'job-interview-workshop';
   
-  INSERT INTO ielts_listening_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
-  VALUES 
-  (listening_set_id, 1, 'multiple_choice',
-   'According to the speaker, what should you research before an interview?',
-   '["The interviewer''s personal life", "The company''s history and values", "Competitor salaries", "Office parking options"]',
-   '"The company''s history and values"',
-   'The speaker emphasizes "researching the company thoroughly, including its mission, values, and recent news."'),
+  IF NOT EXISTS (SELECT 1 FROM ielts_listening_questions WHERE set_id = listening_set_id AND question_order = 1) THEN
+    INSERT INTO ielts_listening_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES (listening_set_id, 1, 'multiple_choice',
+     'According to the speaker, what should you research before an interview?',
+     '["The interviewer''s personal life", "The company''s history and values", "Competitor salaries", "Office parking options"]',
+     '"The company''s history and values"',
+     'The speaker emphasizes "researching the company thoroughly, including its mission, values, and recent news."');
+  END IF;
   
-  (listening_set_id, 2, 'fill_blank',
-   'Candidates should arrive _____ minutes before the scheduled interview time.',
-   null,
-   '"10-15"',
-   'The advice given is to "arrive 10-15 minutes early to compose yourself."'),
+  IF NOT EXISTS (SELECT 1 FROM ielts_listening_questions WHERE set_id = listening_set_id AND question_order = 2) THEN
+    INSERT INTO ielts_listening_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES (listening_set_id, 2, 'fill_blank',
+     'Candidates should arrive _____ minutes before the scheduled interview time.',
+     null,
+     '"10-15"',
+     'The advice given is to "arrive 10-15 minutes early to compose yourself."');
+  END IF;
   
-  (listening_set_id, 3, 'multiple_choice',
-   'What does the speaker say about asking questions at the end of an interview?',
-   '["It''s not recommended", "It shows genuine interest", "Only ask about salary", "Keep it very brief"]',
-   '"It shows genuine interest"',
-   'The speaker says "Asking thoughtful questions demonstrates genuine interest in the role."'),
+  IF NOT EXISTS (SELECT 1 FROM ielts_listening_questions WHERE set_id = listening_set_id AND question_order = 3) THEN
+    INSERT INTO ielts_listening_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES (listening_set_id, 3, 'multiple_choice',
+     'What does the speaker say about asking questions at the end of an interview?',
+     '["It''s not recommended", "It shows genuine interest", "Only ask about salary", "Keep it very brief"]',
+     '"It shows genuine interest"',
+     'The speaker says "Asking thoughtful questions demonstrates genuine interest in the role."');
+  END IF;
   
-  (listening_set_id, 4, 'multiple_choice',
-   'When answering behavioral questions, what method does the speaker recommend?',
-   '["The STAR method", "The SWOT analysis", "The 5 Whys", "The Elevator Pitch"]',
-   '"The STAR method"',
-   'The speaker recommends "using the STAR method: Situation, Task, Action, Result."'),
+  IF NOT EXISTS (SELECT 1 FROM ielts_listening_questions WHERE set_id = listening_set_id AND question_order = 4) THEN
+    INSERT INTO ielts_listening_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES (listening_set_id, 4, 'multiple_choice',
+     'When answering behavioral questions, what method does the speaker recommend?',
+     '["The STAR method", "The SWOT analysis", "The 5 Whys", "The Elevator Pitch"]',
+     '"The STAR method"',
+     'The speaker recommends "using the STAR method: Situation, Task, Action, Result."');
+  END IF;
   
-  (listening_set_id, 5, 'fill_blank',
-   'You should send a thank-you email within _____ hours after the interview.',
-   null,
-   '"24"',
-   'The speaker advises "sending a thank-you note within 24 hours of your interview."'),
+  IF NOT EXISTS (SELECT 1 FROM ielts_listening_questions WHERE set_id = listening_set_id AND question_order = 5) THEN
+    INSERT INTO ielts_listening_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES (listening_set_id, 5, 'fill_blank',
+     'You should send a thank-you email within _____ hours after the interview.',
+     null,
+     '"24"',
+     'The speaker advises "sending a thank-you note within 24 hours of your interview."');
+  END IF;
   
-  (listening_set_id, 6, 'multiple_choice',
-   'What should you avoid discussing in a first interview?',
-   '["Your qualifications", "Salary expectations", "Why you want the job", "Your relevant experience"]',
-   '"Salary expectations"',
-   'The speaker warns against "bringing up salary or benefits in the first interview unless the interviewer does."');
+  IF NOT EXISTS (SELECT 1 FROM ielts_listening_questions WHERE set_id = listening_set_id AND question_order = 6) THEN
+    INSERT INTO ielts_listening_questions (set_id, question_order, question_type, body, options, correct_answer, explanation)
+    VALUES (listening_set_id, 6, 'multiple_choice',
+     'What should you avoid discussing in a first interview?',
+     '["Your qualifications", "Salary expectations", "Why you want the job", "Your relevant experience"]',
+     '"Salary expectations"',
+     'The speaker warns against "bringing up salary or benefits in the first interview unless the interviewer does."');
+  END IF;
 END $$;
 
 -- ============================================
@@ -335,9 +404,20 @@ Summarize the information by selecting and reporting the main features, and make
 
 Write at least 150 words.
 
-[Chart Description:
-2010 data: 18-24 (75%), 25-34 (68%), 35-44 (52%), 45-54 (38%), 55+ (22%)
-2020 data: 18-24 (98%), 25-34 (95%), 35-44 (88%), 45-54 (79%), 55+ (61%)]',
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DAILY INTERNET USAGE BY AGE GROUP (%)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Age Group    │  2010   │  2020
+─────────────┼─────────┼─────────
+18-24        │   75%   │   98%
+25-34        │   68%   │   95%
+35-44        │   52%   │   88%
+45-54        │   38%   │   79%
+55+          │   22%   │   61%
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+■ 2010 (darker)  □ 2020 (lighter)',
   '7.0',
   'The bar chart illustrates the proportion of adults using the internet on a daily basis across five age categories in 2010 and 2020.
 
@@ -348,6 +428,60 @@ In 2010, the 18-24 age group had the highest daily internet usage at 75%, follow
 By 2020, all categories experienced substantial growth. The youngest group reached near-universal adoption at 98%, while the 25-34 demographic rose to 95%. Notably, the older age groups showed the most dramatic improvements: the 55+ category nearly tripled their usage to 61%, and the 45-54 group more than doubled to 79%. The 35-44 age bracket also increased considerably to 88%.
 
 The data reveals that while the digital divide between age groups persisted, it narrowed considerably over the ten-year period.',
+  true
+)
+ON CONFLICT (slug) DO NOTHING;
+
+-- ============================================
+-- WRITING TASK 1b: Academic (Population Chart)
+-- ============================================
+INSERT INTO ielts_writing_tasks (slug, task_type, title, prompt, bands_target, sample_answer, is_active)
+VALUES (
+  'population-changes-cities',
+  'Task 1 Academic',
+  'Population Changes in Three Cities',
+  'The bar chart below shows population changes in three cities between 2000 and 2020.
+
+Summarize the information by selecting and reporting the main features, and make comparisons where relevant.
+
+Write at least 150 words.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+POPULATION OF THREE CITIES (in millions)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+City          │  2000   │  2010   │  2020
+──────────────┼─────────┼─────────┼─────────
+Metro City    │   2.1   │   3.4   │   5.2
+Riverside     │   1.8   │   2.0   │   1.9
+Oldtown       │   3.5   │   3.2   │   2.8
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Bar Chart Visualization:
+
+Metro City:  2000 ████████████ 2.1M
+             2010 ████████████████████ 3.4M
+             2020 ██████████████████████████████ 5.2M
+
+Riverside:   2000 ██████████ 1.8M
+             2010 ███████████ 2.0M
+             2020 ██████████ 1.9M
+
+Oldtown:     2000 ████████████████████ 3.5M
+             2010 ██████████████████ 3.2M
+             2020 ████████████████ 2.8M',
+  '7.0',
+  'The bar chart illustrates population trends in three cities—Metro City, Riverside, and Oldtown—over a twenty-year period from 2000 to 2020.
+
+Overall, while Metro City experienced substantial population growth, Oldtown showed a consistent decline, and Riverside remained relatively stable throughout the period.
+
+In 2000, Oldtown had the largest population at 3.5 million, followed by Metro City with 2.1 million and Riverside with 1.8 million. However, this ranking changed dramatically over the following two decades.
+
+Metro City demonstrated the most remarkable growth, more than doubling its population from 2.1 million to 5.2 million by 2020. This represents an increase of approximately 148%. In contrast, Oldtown experienced steady decline, falling from 3.5 million to 2.8 million, a decrease of 20%.
+
+Riverside showed minimal change, with its population fluctuating slightly between 1.8 and 2.0 million throughout the period, ending at 1.9 million in 2020.
+
+By 2020, Metro City had become the most populous of the three cities, overtaking Oldtown which had held that position in 2000.',
   true
 )
 ON CONFLICT (slug) DO NOTHING;

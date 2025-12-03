@@ -260,8 +260,8 @@ const WritingPractice: React.FC = () => {
             <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-emerald-500/30 sticky top-6">
               <h2 className="text-xl font-bold text-white mb-4">📋 Task</h2>
               
-              <div className="bg-slate-700/50 rounded-xl p-5 mb-6">
-                <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">{task.prompt}</p>
+              <div className="bg-slate-700/50 rounded-xl p-5 mb-6 overflow-x-auto">
+                <pre className="text-gray-200 leading-relaxed whitespace-pre-wrap font-mono text-sm">{task.prompt}</pre>
               </div>
 
               {/* Timer & Stats */}
