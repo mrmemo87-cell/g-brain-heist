@@ -81,15 +81,13 @@ const SpeakingPractice: React.FC = () => {
 
       if (uploadError) throw uploadError;
 
-      // Save attempt record
+      // Save attempt record - use audio_url (the standard column name in the DB)
       const { data, error } = await supabase
         .from('ielts_speaking_attempts')
         .insert({
           user_id: session.session.user.id,
           task_id: task?.id,
-          recording_url: fileName,
-          duration: recordingDuration,
-          status: 'pending_review',
+          audio_url: fileName,
           submitted_at: new Date().toISOString(),
         })
         .select()
