@@ -12,12 +12,16 @@ const LightModeContext = createContext<LightModeContextType | undefined>(undefin
 export const LightModeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isLightMode, setIsLightMode] = useState<boolean>(() => {
     if (typeof window === 'undefined') {
-      return false;
+      return true;
     }
     try {
-      return window.localStorage.getItem(STORAGE_KEY) === 'true';
+      const storedValue = window.localStorage.getItem(STORAGE_KEY);
+      if (storedValue === null) {
+        return true;
+      }
+      return storedValue === 'true';
     } catch {
-      return false;
+      return true;
     }
   });
 
