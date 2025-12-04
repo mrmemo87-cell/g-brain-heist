@@ -26,7 +26,8 @@ class AudioManager {
     this.audioEnabled = savedAudioState !== 'false'; // Default to true
     
     const savedBgMusicState = localStorage.getItem('gbh_bg_music_enabled');
-    this.bgMusicEnabled = savedBgMusicState !== 'false'; // Default to true
+    // Default to false so pages never start with background music automatically
+    this.bgMusicEnabled = savedBgMusicState === 'true';
     
     this.preloadSounds();
     this.setupUserInteractionListener();
@@ -36,9 +37,6 @@ class AudioManager {
     const handleInteraction = () => {
       if (!this.hasUserInteracted) {
         this.hasUserInteracted = true;
-        if (this.bgMusicEnabled && this.audioEnabled) {
-          this.playBackgroundMusic();
-        }
         // Remove listeners after first interaction
         document.removeEventListener('click', handleInteraction);
         document.removeEventListener('touchstart', handleInteraction);
@@ -68,9 +66,6 @@ class AudioManager {
     this.bgMusic.loop = true;
     this.bgMusic.volume = 0.3; // Lower volume for background music
     
-    if (this.bgMusicEnabled) {
-      this.playBackgroundMusic();
-    }
   }
 
   play(sound: SoundEffect) {
