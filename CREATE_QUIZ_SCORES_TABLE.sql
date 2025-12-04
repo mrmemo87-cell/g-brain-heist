@@ -54,3 +54,4 @@ SELECT
 FROM quiz_scores
 GROUP BY student_class, quiz_name
 ORDER BY student_class, quiz_name;
+

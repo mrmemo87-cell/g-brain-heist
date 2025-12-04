@@ -1,6 +1,6 @@
 import React from 'react';
-import { BattleIcon, ShopIcon, TrophyIcon, SyndicateRune } from './icons';
-
+import { BattleIcon, TrophyIcon, SyndicateRune } from './icons';
+// Force reload trigger
 const silkRoadLogoPath = '/schools/silk_road/silk_road_logo.jpg';
 
 interface MainActionsProps {
@@ -22,6 +22,7 @@ interface MainActionsProps {
   onOpenCompetitionAdmin?: () => void;
   onOpenIeltsPrep?: () => void;
   onOpenLockdown?: () => void;
+  onOpenCambridgeTests?: () => void;
   hasPendingAssignment?: boolean;
   clanBadgeCount?: number;
 }
@@ -98,6 +99,39 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   );
 };
 
+type QuestPlayButtonProps = {
+  onClick: () => void;
+  hasPendingAssignment?: boolean;
+  className?: string;
+};
+
+const QuestPlayButton: React.FC<QuestPlayButtonProps> = ({
+  onClick,
+  hasPendingAssignment,
+  className = '',
+}) => {
+  const classes = ['quest-play-button', hasPendingAssignment ? 'quest-play-button--locked' : '', className]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <button type="button" onClick={onClick} className={classes}>
+      <div className="quest-play-button__copy">
+        <span className="quest-play-button__text">PLAY</span>
+        <span className="quest-play-button__status">
+          {hasPendingAssignment ? 'Complete your assignment first' : 'Launch a new quest'}
+        </span>
+      </div>
+      <span className="quest-play-button__arrow" aria-hidden>
+        ▶
+      </span>
+      {hasPendingAssignment && (
+        <span className="quest-play-button__warning">Assignment Required</span>
+      )}
+    </button>
+  );
+};
+
 const MainActions: React.FC<MainActionsProps> = ({
   onStartQuest,
   onStartPvp,
@@ -117,9 +151,11 @@ const MainActions: React.FC<MainActionsProps> = ({
   onOpenCompetitionAdmin,
   onOpenIeltsPrep,
   onOpenLockdown,
+  onOpenCambridgeTests,
   hasPendingAssignment,
   clanBadgeCount,
 }) => {
+  console.log('MainActions render - onOpenCambridgeTests:', !!onOpenCambridgeTests);
   return (
     <section className="dashboard-panel relative overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-950/60 p-4 shadow-2xl shadow-slate-950/50 backdrop-blur sm:p-6">
       <span
@@ -153,7 +189,7 @@ const MainActions: React.FC<MainActionsProps> = ({
               className="h-8 w-8 rounded-full object-cover"
             />
             <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-100">
-              <span aria-hidden>🏺✨</span>
+              <span aria-hidden>✨</span>
               <span>Silk Road School</span>
             </div>
           </div>
@@ -205,32 +241,16 @@ const MainActions: React.FC<MainActionsProps> = ({
                 className={onOpenCompetitionPlay ? 'col-span-2' : ''}
               />
             )}
-            <ActionButton
+            <QuestPlayButton
               onClick={onStartQuest}
-              icon={<span aria-hidden className="text-3xl">📜</span>}
-              label={hasPendingAssignment ? 'Assignment Required ⚠️' : 'Start Quest'}
-              subtitle={hasPendingAssignment ? 'Complete your assignment first' : undefined}
-              badgeText={hasPendingAssignment ? '!' : undefined}
-              color="0, 208, 232"
-              glowClass={hasPendingAssignment ? 'glow-warn animate-pulse-glow' : 'glow-ion animate-pulse-glow'}
-              className={hasPendingAssignment ? 'ring-2 ring-amber-300 shadow-lg shadow-amber-300/40' : ''}
+              hasPendingAssignment={hasPendingAssignment}
+              className="col-span-2 sm:col-span-3"
             />
             <ActionButton
               onClick={onStartPvp}
-              icon={
-                <span className="relative flex items-center justify-center">
-                  <span
-                    aria-hidden
-                    className="absolute inset-0 rounded-2xl bg-gradient-to-br from-rose-500/25 via-rose-600/20 to-transparent blur-md animate-pulse"
-                  />
-                  <BattleIcon
-                    aria-hidden
-                    className="relative h-9 w-9 text-rose-50 drop-shadow-[0_0_16px_rgba(255,70,90,0.95)]"
-                  />
-                </span>
-              }
+              icon={<span aria-hidden className="text-3xl">⚔️</span>}
               label="Launch Attack"
-              color="255, 70, 90"
+              color="255, 45, 145"
               glowClass="glow-plasma animate-pulse-glow"
             />
             {onOpenRaid && (
@@ -255,7 +275,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             )}
             <ActionButton
               onClick={onVisitShop}
-              icon={<ShopIcon aria-hidden className="h-8 w-8 text-emerald-100 drop-shadow-[0_0_10px_rgba(22,226,161,0.65)]" />}
+              icon={<span aria-hidden className="text-3xl">🛍️</span>}
               label="Visit Shop"
               color="22, 226, 161"
               glowClass="glow-success"
@@ -271,7 +291,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             )}
             <ActionButton
               onClick={onGoToClan}
-              icon={<SyndicateRune className="w-10 h-10 text-amber-400" aria-hidden />}
+              icon={<SyndicateRune className="w-8 h-8 text-amber-400" aria-hidden />}
               label="Clan"
               color="255, 176, 32"
               glowClass="glow-warn"
@@ -304,6 +324,17 @@ const MainActions: React.FC<MainActionsProps> = ({
                 icon={<span aria-hidden className="text-3xl">🎯</span>}
                 label="IELTS Prep"
                 color="0, 191, 255"
+                glowClass="glow-ion"
+                className="col-span-2"
+              />
+            )}
+            {onOpenCambridgeTests && (
+              <ActionButton
+                onClick={onOpenCambridgeTests}
+                icon={<span aria-hidden className="text-3xl">📚</span>}
+                label="Cambridge Tests"
+                subtitle="Practice reading & grammar"
+                color="102, 126, 234"
                 glowClass="glow-ion"
                 className="col-span-2"
               />
@@ -372,4 +403,3 @@ const MainActions: React.FC<MainActionsProps> = ({
   };
 
 export default MainActions;
-
