@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cambridge Reading 25 — Answer Form</title>
+
+<!-- Supabase JS Library -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    padding-bottom: 50px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+  }
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+  h1 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+  }
+  .section {
+    margin-bottom: 25px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-left: 4px solid #0078ff;
+  }
+  .section h2 {
+    color: #0078ff;
+    margin-top: 0;
+    font-size: 18px;
+  }
+  .questions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+  }
+  .qrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+  .qrow label {
+    font-weight: bold;
+    color: #555;
+    min-width: 35px;
+  }
+  .qrow input {
+    padding: 8px 12px;
+    width: 100%;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+  }
+  .qrow input:focus {
+    outline: none;
+    border-color: #0078ff;
+  }
+  .qrow input.correct {
+    border-color: #28a745;
+    background-color: #d4edda;
+  }
+  .qrow input.incorrect {
+    border-color: #dc3545;
+    background-color: #f8d7da;
+  }
+  .btn-container {
+    text-align: center;
+    margin-top: 30px;
+  }
+  button {
+    padding: 15px 40px;
+    background: linear-gradient(135deg, #0078ff 0%, #00c6ff 100%);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 5px 20px rgba(0,120,255,0.4);
+  }
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,120,255,0.5);
+  }
+  button:active {
+    transform: translateY(0);
+  }
+  #resetBtn {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    box-shadow: 0 5px 20px rgba(108,117,125,0.4);
+    margin-left: 15px;
+  }
+  #resetBtn:hover {
+    box-shadow: 0 8px 25px rgba(108,117,125,0.5);
+  }
+  #score {
+    margin-top: 30px;
+    padding: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 10px;
+    display: none;
+  }
+  #score.show {
+    display: block;
+    animation: fadeIn 0.5s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .score-excellent {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+  }
+  .score-good {
+    background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+    color: white;
+  }
+  .score-average {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+    color: #333;
+  }
+  .score-needs-work {
+    background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
+    color: white;
+  }
+  .student-info {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+  }
+  .student-info input {
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    flex: 1;
+    min-width: 200px;
+  }
+  .student-info input:focus {
+    outline: none;
+    border-color: #0078ff;
+  }
+  .correction {
+    font-size: 12px;
+    color: #dc3545;
+    margin-top: 3px;
+  }
+  .submit-status {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: center;
+  }
+  .submit-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+  .submit-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+  .submit-loading {
+    background: #cce5ff;
+    color: #004085;
+    border: 1px solid #b8daff;
+  }
+  #submitBtn {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    box-shadow: 0 5px 20px rgba(40,167,69,0.4);
+    margin-left: 15px;
+  }
+  #submitBtn:hover {
+    box-shadow: 0 8px 25px rgba(40,167,69,0.5);
+  }
+  #submitBtn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  .required-field {
+    border-color: #dc3545 !important;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>📚 Cambridge Reading 25</h1>
+  <p class="subtitle">Answer Form — Questions 1–42</p>
+
+  <div class="student-info">
+    <input type="text" id="studentName" placeholder="Enter your name *" required />
+    <input type="text" id="studentClass" placeholder="Enter your class *" required />
+  </div>
+
+  <div id="questions"></div>
+
+  <div class="btn-container">
+    <button onclick="checkScore()">✓ Check Score</button>
+    <button id="submitBtn" onclick="submitScore()">📤 Submit Score</button>
+    <button id="resetBtn" onclick="resetForm()">↺ Reset</button>
+  </div>
+
+  <div id="score"></div>
+  <div id="submitStatus"></div>
+</div>
+
+<script>
+  // Supabase Configuration
+  const SUPABASE_URL = 'https://sozodkxwhubespiedgxm.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvem9ka3h3aHViZXNwaWVkZ3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTUxNjYsImV4cCI6MjA3NzQ3MTE2Nn0.DBfFFWvVjpqXTga0uZcH5qR4ej6VOFBUm-CiCTgGLVA';
+  
+  // Initialize Supabase client
+  const { createClient } = supabase;
+  const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Track if score has been calculated
+  let currentScore = null;
+  let currentPercentage = null;
+  let hasSubmitted = false;
+
+  // Total questions
+  const total = 42;
+
+  // Correct Answers (1–42)
+  const correct = {
+    1:"common", 2:"typically", 3:"access", 4:"stay", 5:"hunt", 6:"defend", 7:"escape", 8:"number",
+    9:"B", 10:"A", 11:"A", 12:"C", 13:"A",
+    14:"G", 15:"D", 16:"F", 17:"A", 18:"C",
+    19:"nothing", 20:"be", 21:"for", 22:"can", 23:"the", 24:"if", 25:"would", 26:"to",
+    27:"C", 28:"A", 29:"B", 30:"C", 31:"A", 32:"D", 33:"C", 34:"A", 35:"B", 36:"C",
+    37:"C", 38:"B", 39:"D", 40:"A", 41:"B", 42:"C"
+  };
+
+  // Section definitions
+  const sections = [
+    { title: "Section 1 — Questions 1-8 (Gap Fill)", start: 1, end: 8 },
+    { title: "Section 1 — Questions 9-13 (Multiple Choice)", start: 9, end: 13 },
+    { title: "Section 2 — Questions 14-18 (Matching)", start: 14, end: 18 },
+    { title: "Section 2 — Questions 19-26 (Gap Fill)", start: 19, end: 26 },
+    { title: "Section 3 — Questions 27-36 (Multiple Choice)", start: 27, end: 36 },
+    { title: "Section 3 — Questions 37-42 (Multiple Choice)", start: 37, end: 42 }
+  ];
+
+  // Build inputs dynamically
+  const container = document.getElementById("questions");
+  
+  sections.forEach(section => {
+    const sectionDiv = document.createElement("div");
+    sectionDiv.className = "section";
+    
+    const heading = document.createElement("h2");
+    heading.textContent = section.title;
+    sectionDiv.appendChild(heading);
+    
+    const grid = document.createElement("div");
+    grid.className = "questions-grid";
+    
+    for (let i = section.start; i <= section.end; i++) {
+      const div = document.createElement("div");
+      div.className = "qrow";
+      div.id = "qrow" + i;
+      div.innerHTML = `<label>Q${i}:</label><input id="q${i}" autocomplete="off" />`;
+      grid.appendChild(div);
+    }
+    
+    sectionDiv.appendChild(grid);
+    container.appendChild(sectionDiv);
+  });
+
+  // Score function
+  function checkScore() {
+    let score = 0;
+    const studentName = document.getElementById("studentName").value.trim() || "Student";
+
+    for (let i = 1; i <= total; i++) {
+      const input = document.getElementById("q" + i);
+      const qrow = document.getElementById("qrow" + i);
+      const userAns = input.value.trim().toLowerCase();
+      const correctAns = correct[i].toLowerCase();
+      
+      // Remove previous correction if any
+      const existingCorrection = qrow.querySelector('.correction');
+      if (existingCorrection) existingCorrection.remove();
+      
+      if (userAns === correctAns) {
+        score++;
+        input.className = "correct";
+      } else {
+        input.className = "incorrect";
+        // Show correct answer
+        const correction = document.createElement("div");
+        correction.className = "correction";
+        correction.textContent = `✗ ${correct[i]}`;
+        qrow.appendChild(correction);
+      }
+    }
+
+    const percentage = Math.round((score / total) * 100);
+    
+    // Store for submission
+    currentScore = score;
+    currentPercentage = percentage;
+    
+    let scoreClass = "";
+    let emoji = "";
+    
+    if (percentage >= 90) {
+      scoreClass = "score-excellent";
+      emoji = "🏆";
+    } else if (percentage >= 70) {
+      scoreClass = "score-good";
+      emoji = "👍";
+    } else if (percentage >= 50) {
+      scoreClass = "score-average";
+      emoji = "📈";
+    } else {
+      scoreClass = "score-needs-work";
+      emoji = "💪";
+    }
+
+    const scoreDiv = document.getElementById("score");
+    scoreDiv.className = "show " + scoreClass;
+    scoreDiv.innerHTML = `
+      ${emoji} ${studentName}'s Score: <b>${score} / ${total}</b> (${percentage}%)
+      <br><span style="font-size: 16px; font-weight: normal;">
+        ${percentage >= 90 ? "Excellent work!" : 
+          percentage >= 70 ? "Good job! Keep practicing!" : 
+          percentage >= 50 ? "Getting there! Review your mistakes." : 
+          "Keep studying! You can improve!"}
+      </span>
+      ${!hasSubmitted ? '<br><span style="font-size: 14px; font-weight: normal; color: #666;">Click "Submit Score" to save your result.</span>' : ''}
+    `;
+    
+    // Scroll to score
+    scoreDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // Submit score to Supabase
+  async function submitScore() {
+    const studentName = document.getElementById("studentName").value.trim();
+    const studentClass = document.getElementById("studentClass").value.trim();
+    const statusDiv = document.getElementById("submitStatus");
+    const submitBtn = document.getElementById("submitBtn");
+    
+    // Validation
+    if (!studentName) {
+      document.getElementById("studentName").classList.add("required-field");
+      statusDiv.className = "submit-status submit-error";
+      statusDiv.textContent = "⚠️ Please enter your name before submitting.";
+      return;
+    }
+    document.getElementById("studentName").classList.remove("required-field");
+    
+    if (!studentClass) {
+      document.getElementById("studentClass").classList.add("required-field");
+      statusDiv.className = "submit-status submit-error";
+      statusDiv.textContent = "⚠️ Please enter your class before submitting.";
+      return;
+    }
+    document.getElementById("studentClass").classList.remove("required-field");
+    
+    // Calculate score if not done yet
+    if (currentScore === null) {
+      checkScore();
+    }
+    
+    // Check if already submitted
+    if (hasSubmitted) {
+      statusDiv.className = "submit-status submit-error";
+      statusDiv.textContent = "⚠️ You have already submitted your score. Reset to try again.";
+      return;
+    }
+    
+    // Collect all answers
+    const answers = {};
+    for (let i = 1; i <= total; i++) {
+      answers[i] = document.getElementById("q" + i).value.trim();
+    }
+    
+    // Show loading
+    submitBtn.disabled = true;
+    statusDiv.className = "submit-status submit-loading";
+    statusDiv.textContent = "📤 Submitting your score...";
+    
+    try {
+      const { data, error } = await supabaseClient
+        .from('quiz_scores')
+        .insert([{
+          student_name: studentName,
+          student_class: studentClass,
+          quiz_name: 'Cambridge Reading 25',
+          score: currentScore,
+          total_questions: total,
+          percentage: currentPercentage,
+          answers: answers
+        }]);
+      
+      if (error) throw error;
+      
+      hasSubmitted = true;
+      statusDiv.className = "submit-status submit-success";
+      statusDiv.textContent = "✅ Score submitted successfully! Your teacher can now see your result.";
+      submitBtn.textContent = "✓ Submitted";
+      
+    } catch (error) {
+      console.error('Submit error:', error);
+      statusDiv.className = "submit-status submit-error";
+      statusDiv.textContent = `❌ Failed to submit: ${error.message}. Please try again.`;
+      submitBtn.disabled = false;
+    }
+  }
+
+  // Reset function
+  function resetForm() {
+    for (let i = 1; i <= total; i++) {
+      const input = document.getElementById("q" + i);
+      const qrow = document.getElementById("qrow" + i);
+      input.value = "";
+      input.className = "";
+      
+      const correction = qrow.querySelector('.correction');
+      if (correction) correction.remove();
+    }
+    
+    const scoreDiv = document.getElementById("score");
+    scoreDiv.className = "";
+    scoreDiv.innerHTML = "";
+    
+    const statusDiv = document.getElementById("submitStatus");
+    statusDiv.className = "";
+    statusDiv.textContent = "";
+    
+    const submitBtn = document.getElementById("submitBtn");
+    submitBtn.disabled = false;
+    submitBtn.textContent = "📤 Submit Score";
+    
+    // Reset tracking variables
+    currentScore = null;
+    currentPercentage = null;
+    hasSubmitted = false;
+    
+    // Clear required field styling
+    document.getElementById("studentName").classList.remove("required-field");
+    document.getElementById("studentClass").classList.remove("required-field");
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Allow Enter key to move to next input
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      const inputs = Array.from(document.querySelectorAll('.qrow input'));
+      const currentIndex = inputs.indexOf(document.activeElement);
+      if (currentIndex > -1 && currentIndex < inputs.length - 1) {
+        inputs[currentIndex + 1].focus();
+        e.preventDefault();
+      }
+    }
+  });
+</script>
+
+</body>
+</html>
