@@ -33,6 +33,16 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     category: 'Reading',
     url: 'cambridge_reading_25_answer_form.html',
   },
+  {
+    id: 'cambridge-listening-1',
+    name: 'Cambridge Listening Test 1',
+    description: 'Complete listening test with 5 parts: picture selection, multiple choice, fill-in-the-blanks, interview, and matching exercises.',
+    duration: '30 min',
+    totalQuestions: 25,
+    difficulty: 'Intermediate',
+    category: 'Listening',
+    url: 'cambridge_listening_test_1.html',
+  },
   // Add more tests here as they become available
   // {
   //   id: 'cambridge-reading-26',
