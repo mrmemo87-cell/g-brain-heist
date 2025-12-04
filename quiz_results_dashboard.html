@@ -283,10 +283,137 @@
     background: #6c757d;
     margin-left: auto;
   }
+  
+  /* Personalized Report Styles */
+  .report-section {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .report-section h3 {
+    margin-top: 0;
+    color: #1e3c72;
+    border-bottom: 2px solid #1e3c72;
+    padding-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .skill-bar-container {
+    margin: 10px 0;
+  }
+  .skill-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 14px;
+  }
+  .skill-bar {
+    height: 20px;
+    background: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .skill-bar-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease;
+  }
+  .skill-excellent { background: linear-gradient(90deg, #28a745, #20c997); }
+  .skill-good { background: linear-gradient(90deg, #17a2b8, #6f42c1); }
+  .skill-average { background: linear-gradient(90deg, #ffc107, #fd7e14); }
+  .skill-poor { background: linear-gradient(90deg, #dc3545, #e83e8c); }
+  
+  .tip-card {
+    background: white;
+    border-left: 4px solid #ffc107;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  .tip-card.priority-high {
+    border-left-color: #dc3545;
+  }
+  .tip-card.priority-medium {
+    border-left-color: #ffc107;
+  }
+  .tip-card.priority-low {
+    border-left-color: #28a745;
+  }
+  .tip-card h4 {
+    margin: 0 0 8px 0;
+    color: #333;
+    font-size: 14px;
+  }
+  .tip-card p {
+    margin: 0;
+    color: #666;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .tip-card .mistakes {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #dc3545;
+  }
+  
+  .grade-badge {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    margin: 10px 0;
+  }
+  .grade-A { background: #28a745; color: white; }
+  .grade-B { background: #17a2b8; color: white; }
+  .grade-C { background: #ffc107; color: #333; }
+  .grade-D { background: #fd7e14; color: white; }
+  .grade-F { background: #dc3545; color: white; }
+  
+  .encouragement {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    margin-top: 20px;
+  }
+  .encouragement h3 {
+    margin: 0 0 10px 0;
+    border: none;
+    color: white;
+  }
+  .encouragement p {
+    margin: 0;
+    opacity: 0.9;
+  }
+  
+  .print-report-btn {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    margin-top: 15px;
+  }
+  .print-report-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40,167,69,0.4);
+  }
+  
   @media print {
     body { background: white; }
-    .filters, .stats-grid, .modal-overlay { display: none; }
+    .filters, .stats-grid { display: none; }
     .results-table { box-shadow: none; }
+    .modal { max-height: none; overflow: visible; }
+    .modal-overlay { position: static; background: none; display: block !important; }
+    .close-btn, .print-report-btn { display: none; }
   }
 </style>
 </head>
@@ -387,6 +514,111 @@
     19:"nothing", 20:"be", 21:"for", 22:"can", 23:"the", 24:"if", 25:"would", 26:"to",
     27:"C", 28:"A", 29:"B", 30:"C", 31:"A", 32:"D", 33:"C", 34:"A", 35:"B", 36:"C",
     37:"C", 38:"B", 39:"D", 40:"A", 41:"B", 42:"C"
+  };
+
+  // Question categories and skills
+  const questionSkills = {
+    // Section 1: Gap Fill (1-8) - Vocabulary & Context
+    1: { skill: "Vocabulary", type: "Gap Fill", section: 1 },
+    2: { skill: "Vocabulary", type: "Gap Fill", section: 1 },
+    3: { skill: "Vocabulary", type: "Gap Fill", section: 1 },
+    4: { skill: "Vocabulary", type: "Gap Fill", section: 1 },
+    5: { skill: "Vocabulary", type: "Gap Fill", section: 1 },
+    6: { skill: "Vocabulary", type: "Gap Fill", section: 1 },
+    7: { skill: "Vocabulary", type: "Gap Fill", section: 1 },
+    8: { skill: "Vocabulary", type: "Gap Fill", section: 1 },
+    // Section 1: Multiple Choice (9-13) - Reading Comprehension
+    9: { skill: "Reading Comprehension", type: "Multiple Choice", section: 1 },
+    10: { skill: "Reading Comprehension", type: "Multiple Choice", section: 1 },
+    11: { skill: "Reading Comprehension", type: "Multiple Choice", section: 1 },
+    12: { skill: "Reading Comprehension", type: "Multiple Choice", section: 1 },
+    13: { skill: "Reading Comprehension", type: "Multiple Choice", section: 1 },
+    // Section 2: Matching (14-18) - Scanning & Matching
+    14: { skill: "Scanning & Matching", type: "Matching", section: 2 },
+    15: { skill: "Scanning & Matching", type: "Matching", section: 2 },
+    16: { skill: "Scanning & Matching", type: "Matching", section: 2 },
+    17: { skill: "Scanning & Matching", type: "Matching", section: 2 },
+    18: { skill: "Scanning & Matching", type: "Matching", section: 2 },
+    // Section 2: Gap Fill (19-26) - Grammar & Structure
+    19: { skill: "Grammar & Structure", type: "Gap Fill", section: 2 },
+    20: { skill: "Grammar & Structure", type: "Gap Fill", section: 2 },
+    21: { skill: "Grammar & Structure", type: "Gap Fill", section: 2 },
+    22: { skill: "Grammar & Structure", type: "Gap Fill", section: 2 },
+    23: { skill: "Grammar & Structure", type: "Gap Fill", section: 2 },
+    24: { skill: "Grammar & Structure", type: "Gap Fill", section: 2 },
+    25: { skill: "Grammar & Structure", type: "Gap Fill", section: 2 },
+    26: { skill: "Grammar & Structure", type: "Gap Fill", section: 2 },
+    // Section 3: Multiple Choice (27-42) - Detailed Comprehension
+    27: { skill: "Detailed Comprehension", type: "Multiple Choice", section: 3 },
+    28: { skill: "Detailed Comprehension", type: "Multiple Choice", section: 3 },
+    29: { skill: "Detailed Comprehension", type: "Multiple Choice", section: 3 },
+    30: { skill: "Detailed Comprehension", type: "Multiple Choice", section: 3 },
+    31: { skill: "Detailed Comprehension", type: "Multiple Choice", section: 3 },
+    32: { skill: "Detailed Comprehension", type: "Multiple Choice", section: 3 },
+    33: { skill: "Detailed Comprehension", type: "Multiple Choice", section: 3 },
+    34: { skill: "Detailed Comprehension", type: "Multiple Choice", section: 3 },
+    35: { skill: "Detailed Comprehension", type: "Multiple Choice", section: 3 },
+    36: { skill: "Detailed Comprehension", type: "Multiple Choice", section: 3 },
+    37: { skill: "Detailed Comprehension", type: "Multiple Choice", section: 3 },
+    38: { skill: "Detailed Comprehension", type: "Multiple Choice", section: 3 },
+    39: { skill: "Detailed Comprehension", type: "Multiple Choice", section: 3 },
+    40: { skill: "Detailed Comprehension", type: "Multiple Choice", section: 3 },
+    41: { skill: "Detailed Comprehension", type: "Multiple Choice", section: 3 },
+    42: { skill: "Detailed Comprehension", type: "Multiple Choice", section: 3 }
+  };
+
+  // Improvement tips based on skills
+  const skillTips = {
+    "Vocabulary": {
+      tips: [
+        "Read more English texts daily (news articles, short stories)",
+        "Keep a vocabulary notebook and review new words regularly",
+        "Use context clues to guess word meanings before looking them up",
+        "Practice using new words in sentences",
+        "Study word families (verb, noun, adjective forms)"
+      ],
+      resources: "Try apps like Quizlet or Anki for vocabulary flashcards"
+    },
+    "Reading Comprehension": {
+      tips: [
+        "Read the questions before reading the passage",
+        "Underline key words in questions",
+        "Look for paraphrased information in the text",
+        "Don't spend too long on one question - move on and return later",
+        "Practice skimming for main ideas first"
+      ],
+      resources: "Practice with Cambridge Reading sample tests"
+    },
+    "Scanning & Matching": {
+      tips: [
+        "Scan for names, dates, and specific keywords",
+        "Read headings/subheadings carefully before matching",
+        "Look for synonyms - the answer won't use exact same words",
+        "Eliminate options as you match them",
+        "Pay attention to paragraph structure and topic sentences"
+      ],
+      resources: "Practice timed scanning exercises"
+    },
+    "Grammar & Structure": {
+      tips: [
+        "Review common prepositions and their uses",
+        "Study modal verbs (can, would, should, etc.)",
+        "Practice articles (a, an, the) rules",
+        "Learn common collocations and fixed expressions",
+        "Read the sentence before AND after the gap"
+      ],
+      resources: "Use grammar practice books like Murphy's English Grammar in Use"
+    },
+    "Detailed Comprehension": {
+      tips: [
+        "Read the passage carefully - details matter",
+        "Watch for words like 'however', 'although', 'despite' that signal contrasts",
+        "Be careful with 'all', 'never', 'always' - these are often wrong",
+        "The answer is IN the text - don't use outside knowledge",
+        "Pay attention to the author's tone and purpose"
+      ],
+      resources: "Practice reading academic texts and answering detailed questions"
+    }
   };
 
   let allResults = [];
@@ -551,15 +783,39 @@
     let correctCount = 0;
     let incorrectCount = 0;
     
-    // Build answers grid
+    // Track mistakes by skill
+    const skillPerformance = {};
+    const mistakesBySkill = {};
+    
+    // Initialize skill tracking
+    Object.values(questionSkills).forEach(q => {
+      if (!skillPerformance[q.skill]) {
+        skillPerformance[q.skill] = { correct: 0, total: 0 };
+        mistakesBySkill[q.skill] = [];
+      }
+    });
+    
+    // Build answers grid and analyze performance
     let answersHtml = '';
     for (let i = 1; i <= 42; i++) {
       const studentAns = (answers[i] || '').trim();
       const correctAns = correct[i];
       const isCorrect = studentAns.toLowerCase() === correctAns.toLowerCase();
+      const skill = questionSkills[i].skill;
       
-      if (isCorrect) correctCount++;
-      else incorrectCount++;
+      skillPerformance[skill].total++;
+      
+      if (isCorrect) {
+        correctCount++;
+        skillPerformance[skill].correct++;
+      } else {
+        incorrectCount++;
+        mistakesBySkill[skill].push({
+          question: i,
+          studentAnswer: studentAns || '(blank)',
+          correctAnswer: correctAns
+        });
+      }
       
       answersHtml += `
         <div class="answer-item ${isCorrect ? 'answer-correct' : 'answer-incorrect'}">
@@ -569,6 +825,87 @@
         </div>
       `;
     }
+    
+    // Calculate skill percentages and generate analysis
+    const skillAnalysis = Object.entries(skillPerformance).map(([skill, data]) => ({
+      skill,
+      correct: data.correct,
+      total: data.total,
+      percentage: Math.round((data.correct / data.total) * 100),
+      mistakes: mistakesBySkill[skill]
+    })).sort((a, b) => a.percentage - b.percentage); // Sort by worst first
+    
+    // Generate skill bars HTML
+    const skillBarsHtml = skillAnalysis.map(s => {
+      const barClass = s.percentage >= 90 ? 'skill-excellent' : 
+                       s.percentage >= 70 ? 'skill-good' : 
+                       s.percentage >= 50 ? 'skill-average' : 'skill-poor';
+      return `
+        <div class="skill-bar-container">
+          <div class="skill-label">
+            <span>${s.skill}</span>
+            <span>${s.correct}/${s.total} (${s.percentage}%)</span>
+          </div>
+          <div class="skill-bar">
+            <div class="skill-bar-fill ${barClass}" style="width: ${s.percentage}%"></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    // Generate improvement tips for weak areas
+    const weakAreas = skillAnalysis.filter(s => s.percentage < 80);
+    let tipsHtml = '';
+    
+    if (weakAreas.length > 0) {
+      tipsHtml = weakAreas.map(area => {
+        const tips = skillTips[area.skill];
+        const priority = area.percentage < 50 ? 'high' : area.percentage < 70 ? 'medium' : 'low';
+        const mistakesList = area.mistakes.slice(0, 3).map(m => 
+          `Q${m.question}: wrote "${m.studentAnswer}" → correct: "${m.correctAnswer}"`
+        ).join(', ');
+        
+        return `
+          <div class="tip-card priority-${priority}">
+            <h4>📌 ${area.skill} (${area.percentage}%)</h4>
+            <p><strong>Tips to improve:</strong></p>
+            <ul style="margin: 8px 0; padding-left: 20px; font-size: 13px; color: #555;">
+              ${tips.tips.slice(0, 3).map(t => `<li>${t}</li>`).join('')}
+            </ul>
+            <p style="font-size: 12px; color: #17a2b8;"><strong>📚 Resource:</strong> ${tips.resources}</p>
+            ${area.mistakes.length > 0 ? `<div class="mistakes"><strong>Mistakes:</strong> ${mistakesList}</div>` : ''}
+          </div>
+        `;
+      }).join('');
+    } else {
+      tipsHtml = `
+        <div class="tip-card priority-low">
+          <h4>🌟 Excellent Performance!</h4>
+          <p>All skills are above 80%. Keep up the great work! To maintain this level:</p>
+          <ul style="margin: 8px 0; padding-left: 20px; font-size: 13px; color: #555;">
+            <li>Continue practicing with timed tests</li>
+            <li>Challenge yourself with harder texts</li>
+            <li>Help classmates who are struggling</li>
+          </ul>
+        </div>
+      `;
+    }
+    
+    // Calculate letter grade
+    const grade = result.percentage >= 90 ? 'A' : 
+                  result.percentage >= 80 ? 'B' : 
+                  result.percentage >= 70 ? 'C' : 
+                  result.percentage >= 60 ? 'D' : 'F';
+    
+    // Encouragement message based on performance
+    const encouragementMessages = {
+      'A': { emoji: '🏆', title: 'Outstanding!', message: 'You have excellent reading skills. Keep challenging yourself with advanced materials!' },
+      'B': { emoji: '⭐', title: 'Great Job!', message: 'You\'re performing well. Focus on the few areas below to reach the top!' },
+      'C': { emoji: '👍', title: 'Good Effort!', message: 'You\'re on the right track. With focused practice on weak areas, you\'ll improve quickly!' },
+      'D': { emoji: '💪', title: 'Keep Going!', message: 'Don\'t give up! Focus on the tips below and practice regularly. You can do this!' },
+      'F': { emoji: '📚', title: 'Time to Focus', message: 'This quiz shows areas that need work. Follow the tips below and ask your teacher for help. Improvement is possible!' }
+    };
+    const encouragement = encouragementMessages[grade];
 
     body.innerHTML = `
       <div class="student-info-card">
@@ -589,35 +926,51 @@
           <div class="value">${result.percentage}%</div>
         </div>
         <div class="info-item">
+          <label>Grade</label>
+          <div class="value"><span class="grade-badge grade-${grade}">${grade}</span></div>
+        </div>
+        <div class="info-item">
           <label>Time Taken</label>
           <div class="value">${formatTime(result.time_taken_seconds)}</div>
         </div>
-        <div class="info-item">
-          <label>Submitted</label>
-          <div class="value">${formatDate(result.submitted_at)}</div>
-        </div>
       </div>
 
-      <div class="student-info-card" style="grid-template-columns: 1fr 1fr;">
-        <div class="info-item">
-          <label>Correct Answers</label>
-          <div class="value" style="color: #28a745;">${correctCount} ✓</div>
-        </div>
-        <div class="info-item">
-          <label>Incorrect Answers</label>
-          <div class="value" style="color: #dc3545;">${incorrectCount} ✗</div>
-        </div>
+      <div class="encouragement">
+        <h3>${encouragement.emoji} ${encouragement.title}</h3>
+        <p>${encouragement.message}</p>
       </div>
 
-      <div class="answers-section">
+      <div class="report-section">
+        <h3>📊 Skills Analysis</h3>
+        ${skillBarsHtml}
+      </div>
+
+      <div class="report-section">
+        <h3>💡 Personalized Improvement Tips</h3>
+        ${tipsHtml}
+      </div>
+
+      <div class="report-section">
         <h3>📝 Answer Details</h3>
+        <p style="margin-bottom: 15px; color: #666;">
+          <span style="color: #28a745;">✓ ${correctCount} Correct</span> &nbsp;|&nbsp; 
+          <span style="color: #dc3545;">✗ ${incorrectCount} Incorrect</span>
+        </p>
         <div class="answers-grid">
           ${answersHtml}
         </div>
       </div>
+
+      <div style="text-align: center;">
+        <button class="print-report-btn" onclick="printReport()">🖨️ Print This Report</button>
+      </div>
     `;
 
     modal.classList.add('show');
+  }
+
+  function printReport() {
+    window.print();
   }
 
   function closeModal() {

@@ -28,10 +28,10 @@ CREATE POLICY "Anyone can submit quiz scores" ON quiz_scores
   FOR INSERT
   WITH CHECK (true);
 
--- Policy: Only authenticated users (teachers/admins) can view all scores
-CREATE POLICY "Authenticated users can view scores" ON quiz_scores
+-- Policy: Anyone can view scores (for dashboard to work without login)
+CREATE POLICY "Anyone can view scores" ON quiz_scores
   FOR SELECT
-  USING (auth.role() = 'authenticated');
+  USING (true);
 
 -- Alternative: If you want anyone to view scores (for leaderboards), use this instead:
 -- CREATE POLICY "Anyone can view scores" ON quiz_scores
