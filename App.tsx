@@ -40,6 +40,7 @@ const RaidView = React.lazy(() => import('./src/features/raids/RaidView'));
 const RaidAdminView = React.lazy(() => import('./src/features/raids/RaidAdminView'));
 const IeltsHome = React.lazy(() => import('./src/pages/ielts/IeltsHome'));
 const ClanTerritoryManager = React.lazy(() => import('./src/features/clanTerritory/ClanTerritoryManager'));
+const CambridgeTestsHub = React.lazy(() => import('./components/CambridgeTestsHub'));
 
 const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
   6: ['6A', '6B', '6C', 'N/A'],
@@ -63,7 +64,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [news, setNews] = useState<NewsEvent[]>([]);
   const [activeAssignment, setActiveAssignment] = useState<StudentAssignmentTask | null>(null);
   const [loading, setLoading] = useState(true);
-    const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'lockdown'>('dashboard');
+    const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'lockdown' | 'cambridge'>('dashboard');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [levelUpData, setLevelUpData] = useState<{ newLevel: number; rewards: any } | null>(null);
@@ -998,6 +999,13 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               onGoToClan={() => setView('clan')}
             />
           );
+        case 'cambridge':
+          return renderLazy(
+            <CambridgeTestsHub
+              profile={profile}
+              onExit={() => setView('dashboard')}
+            />
+          );
         case 'dashboard':
         default:
             // Teacher Dashboard - simplified view focused on teaching
@@ -1086,6 +1094,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                       onOpenCompetitionLeaderboard={() => setView('phase1_leaderboard')}
                       onOpenCompetitionAdmin={profile?.is_admin ? () => setView('phase1_admin') : undefined}
                       onOpenIeltsPrep={!isStudent ? () => setView('ielts') : undefined}
+                      onOpenCambridgeTests={() => setView('cambridge')}
                       onOpenLockdown={() => setView('lockdown')}
                       hasPendingAssignment={Boolean(activeAssignment)}
                       clanBadgeCount={pendingClanRequests}

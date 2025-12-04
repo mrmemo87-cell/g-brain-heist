@@ -315,6 +315,42 @@
   // Total questions
   const total = 42;
 
+  // Auto-populate student info from game (if available)
+  function loadStudentInfoFromGame() {
+    try {
+      const gameUser = localStorage.getItem('cambridge_test_user');
+      if (gameUser) {
+        const user = JSON.parse(gameUser);
+        const nameInput = document.getElementById('studentName');
+        const classInput = document.getElementById('studentClass');
+        
+        if (user.name && nameInput) {
+          nameInput.value = user.name;
+          nameInput.readOnly = true;
+          nameInput.style.backgroundColor = '#e8f5e9';
+          nameInput.style.borderColor = '#4caf50';
+        }
+        if (user.class && classInput) {
+          classInput.value = user.class;
+          classInput.readOnly = true;
+          classInput.style.backgroundColor = '#e8f5e9';
+          classInput.style.borderColor = '#4caf50';
+        }
+        
+        // Add indicator that info is from game
+        const infoDiv = document.querySelector('.student-info');
+        if (infoDiv && user.name) {
+          const badge = document.createElement('div');
+          badge.style.cssText = 'width: 100%; text-align: center; color: #4caf50; font-size: 12px; margin-top: -10px; margin-bottom: 10px;';
+          badge.innerHTML = '✅ Logged in as <strong>' + user.name + '</strong> from Brains Heist';
+          infoDiv.parentNode.insertBefore(badge, infoDiv.nextSibling);
+        }
+      }
+    } catch (e) {
+      console.log('No game user info found');
+    }
+  }
+
   // Correct Answers (1–42) - Checked ONLY after submission
   const correct = {
     1:"common", 2:"typically", 3:"access", 4:"stay", 5:"hunt", 6:"defend", 7:"escape", 8:"number",
@@ -529,6 +565,21 @@
       statusDiv.textContent = "✅ Submitted successfully! Your teacher can now see your result.";
       submitBtn.textContent = "✓ Submitted";
       
+      // Notify parent window (if in iframe) that test is complete
+      try {
+        if (window.parent !== window) {
+          window.parent.postMessage({
+            type: 'CAMBRIDGE_TEST_COMPLETE',
+            quizId: QUIZ_ID,
+            score: score,
+            total: total,
+            percentage: percentage
+          }, '*');
+        }
+      } catch (e) {
+        console.log('Parent notification not available');
+      }
+      
       // Show score
       showFinalScore(studentName, score, percentage, timeTaken);
       
@@ -613,6 +664,9 @@
 
   // Check for previous submission on load
   checkPreviousSubmission();
+  
+  // Load student info from game if available
+  loadStudentInfoFromGame();
 </script>
 
 </body>
