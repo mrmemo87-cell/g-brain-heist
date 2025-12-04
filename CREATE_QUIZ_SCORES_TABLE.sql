@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS quiz_scores (
   total_questions INTEGER NOT NULL DEFAULT 42,
   percentage INTEGER NOT NULL,
   answers JSONB, -- Store individual answers for review
+  time_taken_seconds INTEGER, -- How long the student took to complete
   submitted_at TIMESTAMPTZ DEFAULT NOW(),
   ip_address TEXT
 );

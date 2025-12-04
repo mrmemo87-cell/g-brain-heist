@@ -36,7 +36,37 @@
   .subtitle {
     text-align: center;
     color: #666;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
+  }
+  .warning-box {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 25px;
+    text-align: center;
+  }
+  .warning-box h3 {
+    color: #856404;
+    margin: 0 0 10px 0;
+    font-size: 16px;
+  }
+  .warning-box ul {
+    text-align: left;
+    margin: 0;
+    padding-left: 20px;
+    color: #856404;
+    font-size: 14px;
+  }
+  .timer-box {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: bold;
   }
   .section {
     margin-bottom: 25px;
@@ -63,6 +93,7 @@
     padding: 8px 12px;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    flex-wrap: wrap;
   }
   .qrow label {
     font-weight: bold;
@@ -76,6 +107,8 @@
     border-radius: 6px;
     font-size: 14px;
     transition: border-color 0.3s;
+    flex: 1;
+    min-width: 80px;
   }
   .qrow input:focus {
     outline: none;
@@ -89,13 +122,17 @@
     border-color: #dc3545;
     background-color: #f8d7da;
   }
+  .qrow input:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+  }
   .btn-container {
     text-align: center;
     margin-top: 30px;
   }
   button {
     padding: 15px 40px;
-    background: linear-gradient(135deg, #0078ff 0%, #00c6ff 100%);
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
     color: white;
     border: none;
     border-radius: 30px;
@@ -103,22 +140,20 @@
     font-size: 18px;
     font-weight: bold;
     transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 5px 20px rgba(0,120,255,0.4);
+    box-shadow: 0 5px 20px rgba(40,167,69,0.4);
   }
   button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,120,255,0.5);
+    box-shadow: 0 8px 25px rgba(40,167,69,0.5);
   }
   button:active {
     transform: translateY(0);
   }
-  #resetBtn {
-    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-    box-shadow: 0 5px 20px rgba(108,117,125,0.4);
-    margin-left: 15px;
-  }
-  #resetBtn:hover {
-    box-shadow: 0 8px 25px rgba(108,117,125,0.5);
+  button:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
   }
   #score {
     margin-top: 30px;
@@ -171,9 +206,14 @@
     outline: none;
     border-color: #0078ff;
   }
+  .student-info input:disabled {
+    background-color: #e9ecef;
+  }
   .correction {
-    font-size: 12px;
-    color: #dc3545;
+    font-size: 11px;
+    color: #28a745;
+    font-weight: bold;
+    width: 100%;
     margin-top: 3px;
   }
   .submit-status {
@@ -198,21 +238,20 @@
     color: #004085;
     border: 1px solid #b8daff;
   }
-  #submitBtn {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-    box-shadow: 0 5px 20px rgba(40,167,69,0.4);
-    margin-left: 15px;
-  }
-  #submitBtn:hover {
-    box-shadow: 0 8px 25px rgba(40,167,69,0.5);
-  }
-  #submitBtn:disabled {
-    background: #6c757d;
-    cursor: not-allowed;
-    box-shadow: none;
-  }
   .required-field {
     border-color: #dc3545 !important;
+  }
+  .already-submitted {
+    background: #d4edda;
+    border: 2px solid #28a745;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .already-submitted h3 {
+    color: #155724;
+    margin: 0;
   }
 </style>
 </head>
@@ -222,17 +261,34 @@
   <h1>📚 Cambridge Reading 25</h1>
   <p class="subtitle">Answer Form — Questions 1–42</p>
 
+  <div class="warning-box">
+    <h3>⚠️ Important Rules</h3>
+    <ul>
+      <li>You can only submit <b>ONCE</b> — answers cannot be changed after submission</li>
+      <li>Correct answers will only be shown <b>AFTER</b> you submit</li>
+      <li>Your submission time is recorded</li>
+      <li>Do NOT refresh the page after submitting</li>
+    </ul>
+  </div>
+
+  <div id="timerBox" class="timer-box" style="display: none;">
+    ⏱️ Time: <span id="timer">00:00</span>
+  </div>
+
+  <div id="alreadySubmitted" class="already-submitted" style="display: none;">
+    <h3>✅ You have already submitted this quiz</h3>
+    <p>Your score has been recorded. Contact your teacher if you need to retake.</p>
+  </div>
+
   <div class="student-info">
-    <input type="text" id="studentName" placeholder="Enter your name *" required />
-    <input type="text" id="studentClass" placeholder="Enter your class *" required />
+    <input type="text" id="studentName" placeholder="Enter your full name *" required />
+    <input type="text" id="studentClass" placeholder="Enter your class (e.g., 10A) *" required />
   </div>
 
   <div id="questions"></div>
 
   <div class="btn-container">
-    <button onclick="checkScore()">✓ Check Score</button>
-    <button id="submitBtn" onclick="submitScore()">📤 Submit Score</button>
-    <button id="resetBtn" onclick="resetForm()">↺ Reset</button>
+    <button id="submitBtn" onclick="submitScore()">📤 Submit Answers</button>
   </div>
 
   <div id="score"></div>
@@ -248,15 +304,18 @@
   const { createClient } = supabase;
   const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Track if score has been calculated
-  let currentScore = null;
-  let currentPercentage = null;
+  // Quiz ID for tracking
+  const QUIZ_ID = 'cambridge_reading_25';
+  
+  // Track submission state
   let hasSubmitted = false;
+  let startTime = null;
+  let timerInterval = null;
 
   // Total questions
   const total = 42;
 
-  // Correct Answers (1–42)
+  // Correct Answers (1–42) - Checked ONLY after submission
   const correct = {
     1:"common", 2:"typically", 3:"access", 4:"stay", 5:"hunt", 6:"defend", 7:"escape", 8:"number",
     9:"B", 10:"A", 11:"A", 12:"C", 13:"A",
@@ -276,6 +335,49 @@
     { title: "Section 3 — Questions 37-42 (Multiple Choice)", start: 37, end: 42 }
   ];
 
+  // Check if already submitted (using localStorage)
+  function checkPreviousSubmission() {
+    const submitted = localStorage.getItem(`quiz_submitted_${QUIZ_ID}`);
+    if (submitted) {
+      const data = JSON.parse(submitted);
+      showLockedState(data.score, data.total, data.studentName);
+      return true;
+    }
+    return false;
+  }
+
+  // Show locked state
+  function showLockedState(score, totalQ, studentName) {
+    hasSubmitted = true;
+    document.getElementById("alreadySubmitted").style.display = "block";
+    
+    // Disable all inputs
+    document.querySelectorAll('input').forEach(input => {
+      input.disabled = true;
+    });
+    document.getElementById("submitBtn").disabled = true;
+    document.getElementById("submitBtn").textContent = "✓ Already Submitted";
+    
+    // Show their previous score
+    const percentage = Math.round((score / totalQ) * 100);
+    showFinalScore(studentName, score, percentage, 0);
+  }
+
+  // Start timer when student starts typing
+  function startTimer() {
+    if (startTime) return; // Already started
+    
+    startTime = new Date();
+    document.getElementById("timerBox").style.display = "block";
+    
+    timerInterval = setInterval(() => {
+      const elapsed = Math.floor((new Date() - startTime) / 1000);
+      const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+      const seconds = (elapsed % 60).toString().padStart(2, '0');
+      document.getElementById("timer").textContent = `${minutes}:${seconds}`;
+    }, 1000);
+  }
+
   // Build inputs dynamically
   const container = document.getElementById("questions");
   
@@ -294,7 +396,7 @@
       const div = document.createElement("div");
       div.className = "qrow";
       div.id = "qrow" + i;
-      div.innerHTML = `<label>Q${i}:</label><input id="q${i}" autocomplete="off" />`;
+      div.innerHTML = `<label>Q${i}:</label><input id="q${i}" autocomplete="off" oninput="startTimer()" />`;
       grid.appendChild(div);
     }
     
@@ -302,10 +404,9 @@
     container.appendChild(sectionDiv);
   });
 
-  // Score function
-  function checkScore() {
+  // Calculate score (only called after submission)
+  function calculateScore() {
     let score = 0;
-    const studentName = document.getElementById("studentName").value.trim() || "Student";
 
     for (let i = 1; i <= total; i++) {
       const input = document.getElementById("q" + i);
@@ -313,29 +414,137 @@
       const userAns = input.value.trim().toLowerCase();
       const correctAns = correct[i].toLowerCase();
       
-      // Remove previous correction if any
-      const existingCorrection = qrow.querySelector('.correction');
-      if (existingCorrection) existingCorrection.remove();
-      
       if (userAns === correctAns) {
         score++;
         input.className = "correct";
       } else {
         input.className = "incorrect";
-        // Show correct answer
+        // Show correct answer ONLY after submission
         const correction = document.createElement("div");
         correction.className = "correction";
-        correction.textContent = `✗ ${correct[i]}`;
+        correction.textContent = `✓ ${correct[i]}`;
         qrow.appendChild(correction);
       }
+      
+      // Disable input after submission
+      input.disabled = true;
     }
 
+    return score;
+  }
+
+  // Submit score to Supabase
+  async function submitScore() {
+    const studentName = document.getElementById("studentName").value.trim();
+    const studentClass = document.getElementById("studentClass").value.trim();
+    const statusDiv = document.getElementById("submitStatus");
+    const submitBtn = document.getElementById("submitBtn");
+    
+    // Check if already submitted
+    if (hasSubmitted) {
+      statusDiv.className = "submit-status submit-error";
+      statusDiv.textContent = "⚠️ You have already submitted. Contact your teacher to retake.";
+      return;
+    }
+    
+    // Validation
+    if (!studentName || studentName.length < 2) {
+      document.getElementById("studentName").classList.add("required-field");
+      statusDiv.className = "submit-status submit-error";
+      statusDiv.textContent = "⚠️ Please enter your full name (at least 2 characters).";
+      return;
+    }
+    document.getElementById("studentName").classList.remove("required-field");
+    
+    if (!studentClass || studentClass.length < 1) {
+      document.getElementById("studentClass").classList.add("required-field");
+      statusDiv.className = "submit-status submit-error";
+      statusDiv.textContent = "⚠️ Please enter your class.";
+      return;
+    }
+    document.getElementById("studentClass").classList.remove("required-field");
+    
+    // Confirm submission
+    const confirmSubmit = confirm(
+      "⚠️ ARE YOU SURE?\n\n" +
+      "• You can only submit ONCE\n" +
+      "• Your answers CANNOT be changed after this\n" +
+      "• Your score will be sent to your teacher\n\n" +
+      "Click OK to submit, or Cancel to review your answers."
+    );
+    
+    if (!confirmSubmit) return;
+    
+    // Collect all answers BEFORE calculating score
+    const answers = {};
+    for (let i = 1; i <= total; i++) {
+      answers[i] = document.getElementById("q" + i).value.trim();
+    }
+    
+    // Calculate time taken
+    const timeTaken = startTime ? Math.floor((new Date() - startTime) / 1000) : 0;
+    
+    // Now calculate score (this also shows corrections)
+    const score = calculateScore();
     const percentage = Math.round((score / total) * 100);
     
-    // Store for submission
-    currentScore = score;
-    currentPercentage = percentage;
+    // Stop timer
+    if (timerInterval) clearInterval(timerInterval);
     
+    // Disable name/class fields
+    document.getElementById("studentName").disabled = true;
+    document.getElementById("studentClass").disabled = true;
+    
+    // Show loading
+    submitBtn.disabled = true;
+    statusDiv.className = "submit-status submit-loading";
+    statusDiv.textContent = "📤 Submitting your answers...";
+    
+    try {
+      const { data, error } = await supabaseClient
+        .from('quiz_scores')
+        .insert([{
+          student_name: studentName,
+          student_class: studentClass,
+          quiz_name: 'Cambridge Reading 25',
+          score: score,
+          total_questions: total,
+          percentage: percentage,
+          answers: answers,
+          time_taken_seconds: timeTaken
+        }]);
+      
+      if (error) throw error;
+      
+      // Mark as submitted in localStorage to prevent re-submission
+      hasSubmitted = true;
+      localStorage.setItem(`quiz_submitted_${QUIZ_ID}`, JSON.stringify({
+        score: score,
+        total: total,
+        studentName: studentName,
+        submittedAt: new Date().toISOString()
+      }));
+      
+      statusDiv.className = "submit-status submit-success";
+      statusDiv.textContent = "✅ Submitted successfully! Your teacher can now see your result.";
+      submitBtn.textContent = "✓ Submitted";
+      
+      // Show score
+      showFinalScore(studentName, score, percentage, timeTaken);
+      
+    } catch (error) {
+      console.error('Submit error:', error);
+      statusDiv.className = "submit-status submit-error";
+      statusDiv.textContent = `❌ Failed to submit: ${error.message}. Please try again.`;
+      submitBtn.disabled = false;
+      
+      // Re-enable inputs on error
+      document.querySelectorAll('input').forEach(input => input.disabled = false);
+    }
+  }
+
+  // Show final score
+  function showFinalScore(studentName, score, percentage, timeTaken) {
     let scoreClass = "";
     let emoji = "";
     
@@ -353,138 +562,47 @@
       emoji = "💪";
     }
 
+    const minutes = Math.floor(timeTaken / 60);
+    const seconds = timeTaken % 60;
+    const timeStr = timeTaken > 0 ? `${minutes}m ${seconds}s` : '';
+
     const scoreDiv = document.getElementById("score");
     scoreDiv.className = "show " + scoreClass;
     scoreDiv.innerHTML = `
       ${emoji} ${studentName}'s Score: <b>${score} / ${total}</b> (${percentage}%)
+      ${timeStr ? `<br><span style="font-size: 14px; font-weight: normal;">Time: ${timeStr}</span>` : ''}
       <br><span style="font-size: 16px; font-weight: normal;">
         ${percentage >= 90 ? "Excellent work!" : 
           percentage >= 70 ? "Good job! Keep practicing!" : 
-          percentage >= 50 ? "Getting there! Review your mistakes." : 
-          "Keep studying! You can improve!"}
+          percentage >= 50 ? "Getting there! Review your mistakes above." : 
+          "Keep studying! Review the correct answers shown above."}
       </span>
-      ${!hasSubmitted ? '<br><span style="font-size: 14px; font-weight: normal; color: #666;">Click "Submit Score" to save your result.</span>' : ''}
     `;
     
-    // Scroll to score
     scoreDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
-  // Submit score to Supabase
-  async function submitScore() {
-    const studentName = document.getElementById("studentName").value.trim();
-    const studentClass = document.getElementById("studentClass").value.trim();
-    const statusDiv = document.getElementById("submitStatus");
-    const submitBtn = document.getElementById("submitBtn");
-    
-    // Validation
-    if (!studentName) {
-      document.getElementById("studentName").classList.add("required-field");
-      statusDiv.className = "submit-status submit-error";
-      statusDiv.textContent = "⚠️ Please enter your name before submitting.";
-      return;
+  // Prevent copy-paste of questions (anti-ChatGPT measure)
+  document.addEventListener('copy', function(e) {
+    const selection = window.getSelection().toString();
+    if (selection.length > 50) {
+      e.preventDefault();
+      alert("⚠️ Copying large amounts of text is disabled during the quiz.");
     }
-    document.getElementById("studentName").classList.remove("required-field");
-    
-    if (!studentClass) {
-      document.getElementById("studentClass").classList.add("required-field");
-      statusDiv.className = "submit-status submit-error";
-      statusDiv.textContent = "⚠️ Please enter your class before submitting.";
-      return;
-    }
-    document.getElementById("studentClass").classList.remove("required-field");
-    
-    // Calculate score if not done yet
-    if (currentScore === null) {
-      checkScore();
-    }
-    
-    // Check if already submitted
-    if (hasSubmitted) {
-      statusDiv.className = "submit-status submit-error";
-      statusDiv.textContent = "⚠️ You have already submitted your score. Reset to try again.";
-      return;
-    }
-    
-    // Collect all answers
-    const answers = {};
-    for (let i = 1; i <= total; i++) {
-      answers[i] = document.getElementById("q" + i).value.trim();
-    }
-    
-    // Show loading
-    submitBtn.disabled = true;
-    statusDiv.className = "submit-status submit-loading";
-    statusDiv.textContent = "📤 Submitting your score...";
-    
-    try {
-      const { data, error } = await supabaseClient
-        .from('quiz_scores')
-        .insert([{
-          student_name: studentName,
-          student_class: studentClass,
-          quiz_name: 'Cambridge Reading 25',
-          score: currentScore,
-          total_questions: total,
-          percentage: currentPercentage,
-          answers: answers
-        }]);
-      
-      if (error) throw error;
-      
-      hasSubmitted = true;
-      statusDiv.className = "submit-status submit-success";
-      statusDiv.textContent = "✅ Score submitted successfully! Your teacher can now see your result.";
-      submitBtn.textContent = "✓ Submitted";
-      
-    } catch (error) {
-      console.error('Submit error:', error);
-      statusDiv.className = "submit-status submit-error";
-      statusDiv.textContent = `❌ Failed to submit: ${error.message}. Please try again.`;
-      submitBtn.disabled = false;
-    }
-  }
+  });
 
-  // Reset function
-  function resetForm() {
-    for (let i = 1; i <= total; i++) {
-      const input = document.getElementById("q" + i);
-      const qrow = document.getElementById("qrow" + i);
-      input.value = "";
-      input.className = "";
-      
-      const correction = qrow.querySelector('.correction');
-      if (correction) correction.remove();
+  // Warn before leaving page
+  window.addEventListener('beforeunload', function(e) {
+    if (startTime && !hasSubmitted) {
+      e.preventDefault();
+      e.returnValue = 'You have unsaved answers. Are you sure you want to leave?';
     }
-    
-    const scoreDiv = document.getElementById("score");
-    scoreDiv.className = "";
-    scoreDiv.innerHTML = "";
-    
-    const statusDiv = document.getElementById("submitStatus");
-    statusDiv.className = "";
-    statusDiv.textContent = "";
-    
-    const submitBtn = document.getElementById("submitBtn");
-    submitBtn.disabled = false;
-    submitBtn.textContent = "📤 Submit Score";
-    
-    // Reset tracking variables
-    currentScore = null;
-    currentPercentage = null;
-    hasSubmitted = false;
-    
-    // Clear required field styling
-    document.getElementById("studentName").classList.remove("required-field");
-    document.getElementById("studentClass").classList.remove("required-field");
-    
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
+  });
 
   // Allow Enter key to move to next input
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
-      const inputs = Array.from(document.querySelectorAll('.qrow input'));
+      const inputs = Array.from(document.querySelectorAll('.qrow input:not(:disabled)'));
       const currentIndex = inputs.indexOf(document.activeElement);
       if (currentIndex > -1 && currentIndex < inputs.length - 1) {
         inputs[currentIndex + 1].focus();
@@ -492,6 +610,9 @@
       }
     }
   });
+
+  // Check for previous submission on load
+  checkPreviousSubmission();
 </script>
 
 </body>
