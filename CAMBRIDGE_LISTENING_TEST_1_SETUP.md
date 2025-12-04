@@ -48,7 +48,7 @@ The Cambridge Listening Test 1 has been added to your game with all 25 questions
 ### Option 1: Place Audio in Project Folder (Recommended)
 
 1. **Rename your audio file** to: `cambridge_listening_test_1.mp3`
-2. **Copy the file** to: `c:\Users\reigh\OneDrive\Documents\GitHub\g-brain-heist\`
+2. **Copy the file** to: `c:\Users\reigh\OneDrive\Documents\GitHub\g-brain-heist\public\cambridge\listening-test-1\`
 3. The test will automatically find it when students click on the test
 
 ### Option 2: Upload to Supabase Storage
