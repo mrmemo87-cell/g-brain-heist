@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Quiz Results Dashboard — Teacher View</title>
+
+<!-- Supabase JS Library -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    min-height: 100vh;
+  }
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  h1 {
+    color: white;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  .subtitle {
+    text-align: center;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 30px;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+  .stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+  }
+  .stat-card h3 {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+    text-transform: uppercase;
+  }
+  .stat-card .value {
+    font-size: 36px;
+    font-weight: bold;
+    color: #1e3c72;
+    margin: 10px 0;
+  }
+  .filters {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filters label {
+    font-weight: bold;
+    color: #333;
+  }
+  .filters select, .filters input {
+    padding: 10px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+  .filters button {
+    padding: 10px 20px;
+    background: #1e3c72;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .filters button:hover {
+    background: #2a5298;
+  }
+  .results-table {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th {
+    background: #1e3c72;
+    color: white;
+    padding: 15px 10px;
+    text-align: left;
+    font-size: 14px;
+  }
+  td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #eee;
+  }
+  tr:hover {
+    background: #f8f9fa;
+  }
+  tr:last-child td {
+    border-bottom: none;
+  }
+  .score-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 13px;
+  }
+  .score-excellent { background: #d4edda; color: #155724; }
+  .score-good { background: #cce5ff; color: #004085; }
+  .score-average { background: #fff3cd; color: #856404; }
+  .score-poor { background: #f8d7da; color: #721c24; }
+  .view-btn {
+    padding: 6px 12px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .view-btn:hover {
+    background: #218838;
+  }
+  .export-btn {
+    padding: 6px 12px;
+    background: #17a2b8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-left: 5px;
+  }
+  .no-data {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+  }
+  
+  /* Modal for detailed view */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  .modal-overlay.show {
+    display: flex;
+  }
+  .modal {
+    background: white;
+    border-radius: 15px;
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  }
+  .modal-header {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+  }
+  .modal-header h2 {
+    margin: 0;
+  }
+  .close-btn {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px 15px;
+    border-radius: 5px;
+  }
+  .close-btn:hover {
+    background: rgba(255,255,255,0.3);
+  }
+  .modal-body {
+    padding: 20px;
+  }
+  .student-info-card {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+  }
+  .info-item {
+    text-align: center;
+  }
+  .info-item label {
+    display: block;
+    color: #666;
+    font-size: 12px;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+  .info-item .value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+  }
+  .answers-section h3 {
+    margin-bottom: 15px;
+    color: #333;
+    border-bottom: 2px solid #1e3c72;
+    padding-bottom: 10px;
+  }
+  .answers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+  }
+  .answer-item {
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 13px;
+  }
+  .answer-correct {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+  }
+  .answer-incorrect {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+  }
+  .answer-item .q-num {
+    font-weight: bold;
+    color: #333;
+  }
+  .answer-item .student-ans {
+    margin: 5px 0;
+    font-size: 14px;
+  }
+  .answer-item .correct-ans {
+    font-size: 11px;
+    color: #28a745;
+  }
+  .loading {
+    text-align: center;
+    padding: 40px;
+    color: white;
+  }
+  .refresh-btn {
+    background: #ffc107;
+    color: #333;
+  }
+  .print-btn {
+    background: #6c757d;
+    margin-left: auto;
+  }
+  @media print {
+    body { background: white; }
+    .filters, .stats-grid, .modal-overlay { display: none; }
+    .results-table { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>📊 Quiz Results Dashboard</h1>
+  <p class="subtitle">Teacher View — Cambridge Reading 25</p>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h3>Total Submissions</h3>
+      <div class="value" id="totalSubmissions">-</div>
+    </div>
+    <div class="stat-card">
+      <h3>Average Score</h3>
+      <div class="value" id="avgScore">-</div>
+    </div>
+    <div class="stat-card">
+      <h3>Highest Score</h3>
+      <div class="value" id="highestScore">-</div>
+    </div>
+    <div class="stat-card">
+      <h3>Lowest Score</h3>
+      <div class="value" id="lowestScore">-</div>
+    </div>
+  </div>
+
+  <div class="filters">
+    <label>Class:</label>
+    <select id="classFilter">
+      <option value="">All Classes</option>
+    </select>
+    
+    <label>Sort by:</label>
+    <select id="sortBy">
+      <option value="submitted_at">Date (Newest)</option>
+      <option value="submitted_at_asc">Date (Oldest)</option>
+      <option value="percentage_desc">Score (Highest)</option>
+      <option value="percentage_asc">Score (Lowest)</option>
+      <option value="student_name">Name (A-Z)</option>
+      <option value="time_taken">Time (Fastest)</option>
+    </select>
+    
+    <button onclick="loadResults()" class="refresh-btn">🔄 Refresh</button>
+    <button onclick="exportCSV()" class="export-btn">📥 Export CSV</button>
+    <button onclick="window.print()" class="print-btn">🖨️ Print</button>
+  </div>
+
+  <div class="results-table">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Student Name</th>
+          <th>Class</th>
+          <th>Score</th>
+          <th>Time</th>
+          <th>Submitted</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="resultsBody">
+        <tr>
+          <td colspan="7" class="loading">Loading results...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>📋 Detailed Report</h2>
+      <button class="close-btn" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <!-- Content loaded dynamically -->
+    </div>
+  </div>
+</div>
+
+<script>
+  // Supabase Configuration
+  const SUPABASE_URL = 'https://sozodkxwhubespiedgxm.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvem9ka3h3aHViZXNwaWVkZ3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTUxNjYsImV4cCI6MjA3NzQ3MTE2Nn0.DBfFFWvVjpqXTga0uZcH5qR4ej6VOFBUm-CiCTgGLVA';
+  
+  const { createClient } = supabase;
+  const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Correct answers for comparison
+  const correct = {
+    1:"common", 2:"typically", 3:"access", 4:"stay", 5:"hunt", 6:"defend", 7:"escape", 8:"number",
+    9:"B", 10:"A", 11:"A", 12:"C", 13:"A",
+    14:"G", 15:"D", 16:"F", 17:"A", 18:"C",
+    19:"nothing", 20:"be", 21:"for", 22:"can", 23:"the", 24:"if", 25:"would", 26:"to",
+    27:"C", 28:"A", 29:"B", 30:"C", 31:"A", 32:"D", 33:"C", 34:"A", 35:"B", 36:"C",
+    37:"C", 38:"B", 39:"D", 40:"A", 41:"B", 42:"C"
+  };
+
+  let allResults = [];
+
+  // Load results on page load
+  document.addEventListener('DOMContentLoaded', loadResults);
+
+  async function loadResults() {
+    const tbody = document.getElementById('resultsBody');
+    tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading...</td></tr>';
+
+    try {
+      const { data, error } = await supabaseClient
+        .from('quiz_scores')
+        .select('*')
+        .eq('quiz_name', 'Cambridge Reading 25')
+        .order('submitted_at', { ascending: false });
+
+      if (error) throw error;
+
+      allResults = data || [];
+      
+      // Update stats
+      updateStats(allResults);
+      
+      // Populate class filter
+      populateClassFilter(allResults);
+      
+      // Display results
+      displayResults(allResults);
+
+    } catch (error) {
+      console.error('Error loading results:', error);
+      tbody.innerHTML = `<tr><td colspan="7" class="no-data">❌ Error loading results: ${error.message}</td></tr>`;
+    }
+  }
+
+  function updateStats(results) {
+    document.getElementById('totalSubmissions').textContent = results.length;
+    
+    if (results.length > 0) {
+      const avg = results.reduce((sum, r) => sum + r.percentage, 0) / results.length;
+      const highest = Math.max(...results.map(r => r.percentage));
+      const lowest = Math.min(...results.map(r => r.percentage));
+      
+      document.getElementById('avgScore').textContent = avg.toFixed(1) + '%';
+      document.getElementById('highestScore').textContent = highest + '%';
+      document.getElementById('lowestScore').textContent = lowest + '%';
+    } else {
+      document.getElementById('avgScore').textContent = '-';
+      document.getElementById('highestScore').textContent = '-';
+      document.getElementById('lowestScore').textContent = '-';
+    }
+  }
+
+  function populateClassFilter(results) {
+    const classFilter = document.getElementById('classFilter');
+    const classes = [...new Set(results.map(r => r.student_class).filter(c => c))];
+    
+    // Keep first option
+    classFilter.innerHTML = '<option value="">All Classes</option>';
+    classes.sort().forEach(c => {
+      classFilter.innerHTML += `<option value="${c}">${c}</option>`;
+    });
+  }
+
+  function displayResults(results) {
+    const tbody = document.getElementById('resultsBody');
+    const classFilter = document.getElementById('classFilter').value;
+    const sortBy = document.getElementById('sortBy').value;
+
+    // Filter by class
+    let filtered = classFilter 
+      ? results.filter(r => r.student_class === classFilter)
+      : results;
+
+    // Sort
+    filtered = sortResults(filtered, sortBy);
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="no-data">No submissions found</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = filtered.map((r, index) => `
+      <tr>
+        <td>${index + 1}</td>
+        <td><strong>${escapeHtml(r.student_name)}</strong></td>
+        <td>${escapeHtml(r.student_class || '-')}</td>
+        <td>
+          <span class="score-badge ${getScoreClass(r.percentage)}">
+            ${r.score}/${r.total_questions} (${r.percentage}%)
+          </span>
+        </td>
+        <td>${formatTime(r.time_taken_seconds)}</td>
+        <td>${formatDate(r.submitted_at)}</td>
+        <td>
+          <button class="view-btn" onclick='viewDetails(${JSON.stringify(r).replace(/'/g, "\\'")})'>
+            👁️ View
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function sortResults(results, sortBy) {
+    const sorted = [...results];
+    switch(sortBy) {
+      case 'submitted_at':
+        return sorted.sort((a, b) => new Date(b.submitted_at) - new Date(a.submitted_at));
+      case 'submitted_at_asc':
+        return sorted.sort((a, b) => new Date(a.submitted_at) - new Date(b.submitted_at));
+      case 'percentage_desc':
+        return sorted.sort((a, b) => b.percentage - a.percentage);
+      case 'percentage_asc':
+        return sorted.sort((a, b) => a.percentage - b.percentage);
+      case 'student_name':
+        return sorted.sort((a, b) => a.student_name.localeCompare(b.student_name));
+      case 'time_taken':
+        return sorted.sort((a, b) => (a.time_taken_seconds || 9999) - (b.time_taken_seconds || 9999));
+      default:
+        return sorted;
+    }
+  }
+
+  function getScoreClass(percentage) {
+    if (percentage >= 90) return 'score-excellent';
+    if (percentage >= 70) return 'score-good';
+    if (percentage >= 50) return 'score-average';
+    return 'score-poor';
+  }
+
+  function formatTime(seconds) {
+    if (!seconds) return '-';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}m ${secs}s`;
+  }
+
+  function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function viewDetails(result) {
+    const modal = document.getElementById('modalOverlay');
+    const body = document.getElementById('modalBody');
+    
+    const answers = result.answers || {};
+    let correctCount = 0;
+    let incorrectCount = 0;
+    
+    // Build answers grid
+    let answersHtml = '';
+    for (let i = 1; i <= 42; i++) {
+      const studentAns = (answers[i] || '').trim();
+      const correctAns = correct[i];
+      const isCorrect = studentAns.toLowerCase() === correctAns.toLowerCase();
+      
+      if (isCorrect) correctCount++;
+      else incorrectCount++;
+      
+      answersHtml += `
+        <div class="answer-item ${isCorrect ? 'answer-correct' : 'answer-incorrect'}">
+          <div class="q-num">Q${i}</div>
+          <div class="student-ans">${escapeHtml(studentAns) || '<em>blank</em>'}</div>
+          ${!isCorrect ? `<div class="correct-ans">✓ ${correctAns}</div>` : ''}
+        </div>
+      `;
+    }
+
+    body.innerHTML = `
+      <div class="student-info-card">
+        <div class="info-item">
+          <label>Student Name</label>
+          <div class="value">${escapeHtml(result.student_name)}</div>
+        </div>
+        <div class="info-item">
+          <label>Class</label>
+          <div class="value">${escapeHtml(result.student_class || '-')}</div>
+        </div>
+        <div class="info-item">
+          <label>Score</label>
+          <div class="value">${result.score} / ${result.total_questions}</div>
+        </div>
+        <div class="info-item">
+          <label>Percentage</label>
+          <div class="value">${result.percentage}%</div>
+        </div>
+        <div class="info-item">
+          <label>Time Taken</label>
+          <div class="value">${formatTime(result.time_taken_seconds)}</div>
+        </div>
+        <div class="info-item">
+          <label>Submitted</label>
+          <div class="value">${formatDate(result.submitted_at)}</div>
+        </div>
+      </div>
+
+      <div class="student-info-card" style="grid-template-columns: 1fr 1fr;">
+        <div class="info-item">
+          <label>Correct Answers</label>
+          <div class="value" style="color: #28a745;">${correctCount} ✓</div>
+        </div>
+        <div class="info-item">
+          <label>Incorrect Answers</label>
+          <div class="value" style="color: #dc3545;">${incorrectCount} ✗</div>
+        </div>
+      </div>
+
+      <div class="answers-section">
+        <h3>📝 Answer Details</h3>
+        <div class="answers-grid">
+          ${answersHtml}
+        </div>
+      </div>
+    `;
+
+    modal.classList.add('show');
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('show');
+  }
+
+  // Close modal on overlay click
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  // Close modal on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // Filter change handlers
+  document.getElementById('classFilter').addEventListener('change', () => displayResults(allResults));
+  document.getElementById('sortBy').addEventListener('change', () => displayResults(allResults));
+
+  // Export to CSV
+  function exportCSV() {
+    if (allResults.length === 0) {
+      alert('No data to export');
+      return;
+    }
+
+    const headers = ['Name', 'Class', 'Score', 'Total', 'Percentage', 'Time (seconds)', 'Submitted'];
+    const rows = allResults.map(r => [
+      r.student_name,
+      r.student_class || '',
+      r.score,
+      r.total_questions,
+      r.percentage,
+      r.time_taken_seconds || '',
+      r.submitted_at
+    ]);
+
+    // Add question answers
+    for (let i = 1; i <= 42; i++) {
+      headers.push(`Q${i}`);
+    }
+    rows.forEach((row, idx) => {
+      const answers = allResults[idx].answers || {};
+      for (let i = 1; i <= 42; i++) {
+        row.push(answers[i] || '');
+      }
+    });
+
+    const csv = [headers.join(','), ...rows.map(r => r.map(cell => `"${cell}"`).join(','))].join('\n');
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `quiz_results_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+</script>
+
+</body>
+</html>
