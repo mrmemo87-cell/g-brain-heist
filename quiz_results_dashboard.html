@@ -476,6 +476,295 @@
     color: white;
   }
   
+  /* Answer Details Button */
+  .answers-btn {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .answers-btn:hover {
+    transform: scale(1.05);
+  }
+
+  /* Answer Reflection Modal */
+  .reflection-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    z-index: 1000;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .reflection-modal.show {
+    display: flex;
+  }
+  .reflection-report {
+    background: white;
+    width: 210mm;
+    min-height: auto;
+    padding: 25mm 20mm;
+    margin: 20px auto;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #333;
+  }
+  .reflection-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 3px solid #667eea;
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+  }
+  .reflection-header .report-logo h1 {
+    color: #667eea;
+  }
+  .reflection-title {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .reflection-title h2 {
+    margin: 0;
+    font-size: 20px;
+  }
+  .reflection-title .score-summary {
+    text-align: right;
+  }
+  .reflection-title .score-summary .big {
+    font-size: 28px;
+    font-weight: bold;
+  }
+  .reflection-title .score-summary .small {
+    font-size: 12px;
+    opacity: 0.9;
+  }
+  
+  /* Answer Grid */
+  .section-header {
+    background: #f0f4ff;
+    padding: 12px 18px;
+    border-left: 4px solid #667eea;
+    margin: 25px 0 15px 0;
+    font-weight: 600;
+    color: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .section-header .section-score {
+    font-size: 14px;
+    color: #667eea;
+  }
+  .answer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .answer-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 2px solid;
+  }
+  .answer-item.correct {
+    background: #d4edda;
+    border-color: #28a745;
+  }
+  .answer-item.wrong {
+    background: #f8d7da;
+    border-color: #dc3545;
+  }
+  .answer-item.unanswered {
+    background: #fff3cd;
+    border-color: #ffc107;
+  }
+  .q-number {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+  .answer-item.correct .q-number {
+    background: #28a745;
+    color: white;
+  }
+  .answer-item.wrong .q-number {
+    background: #dc3545;
+    color: white;
+  }
+  .answer-item.unanswered .q-number {
+    background: #ffc107;
+    color: #333;
+  }
+  .answer-details {
+    flex: 1;
+    font-size: 13px;
+  }
+  .answer-details .your-answer {
+    margin-bottom: 3px;
+  }
+  .answer-details .your-answer strong {
+    color: #333;
+  }
+  .answer-details .correct-answer {
+    color: #28a745;
+    font-weight: 600;
+  }
+  .answer-status {
+    font-size: 20px;
+    margin-left: 10px;
+  }
+
+  /* Reflection Summary */
+  .reflection-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin: 25px 0;
+  }
+  .summary-stat {
+    text-align: center;
+    padding: 20px;
+    border-radius: 10px;
+  }
+  .summary-stat.correct-stat {
+    background: #d4edda;
+  }
+  .summary-stat.wrong-stat {
+    background: #f8d7da;
+  }
+  .summary-stat.unanswered-stat {
+    background: #fff3cd;
+  }
+  .summary-stat .stat-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+  .summary-stat .stat-value {
+    font-size: 32px;
+    font-weight: bold;
+  }
+  .summary-stat .stat-label {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+  }
+
+  /* Mistakes to Learn Section */
+  .mistakes-section {
+    background: #fff5f5;
+    border: 2px solid #dc3545;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 25px 0;
+  }
+  .mistakes-section h3 {
+    margin: 0 0 15px 0;
+    color: #dc3545;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mistake-item {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+    border-left: 4px solid #dc3545;
+  }
+  .mistake-item .q-info {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #333;
+  }
+  .mistake-item .comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    font-size: 13px;
+  }
+  .mistake-item .wrong-box {
+    background: #f8d7da;
+    padding: 10px;
+    border-radius: 5px;
+  }
+  .mistake-item .right-box {
+    background: #d4edda;
+    padding: 10px;
+    border-radius: 5px;
+  }
+
+  .reflection-footer {
+    margin-top: 30px;
+    padding-top: 15px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #999;
+  }
+
+  .close-reflection-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1001;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  }
+  .reflection-actions {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 1001;
+  }
+  .reflection-actions button {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .print-reflection-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+  }
+
   @media print {
     body {
       background: white !important;
@@ -496,11 +785,26 @@
       padding: 15mm !important;
       width: 100% !important;
     }
-    .close-modal-btn, .print-actions {
+    .close-modal-btn, .print-actions, .close-reflection-btn, .reflection-actions {
       display: none !important;
     }
-    .action-plan {
+    .action-plan, .mistakes-section {
       page-break-inside: avoid;
+    }
+    .reflection-modal.show {
+      display: block !important;
+      position: static !important;
+      background: none !important;
+      padding: 0 !important;
+    }
+    .reflection-report {
+      box-shadow: none !important;
+      margin: 0 !important;
+      padding: 15mm !important;
+      width: 100% !important;
+    }
+    .answer-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
     }
   }
 </style>
@@ -561,15 +865,27 @@
           <th>Score</th>
           <th>Time</th>
           <th>Date</th>
+          <th>Answers</th>
           <th>Report</th>
         </tr>
       </thead>
       <tbody id="resultsBody">
         <tr>
-          <td colspan="7" class="loading">Loading results...</td>
+          <td colspan="8" class="loading">Loading results...</td>
         </tr>
       </tbody>
     </table>
+  </div>
+</div>
+
+<!-- Answer Details / Test Reflection Modal -->
+<div class="reflection-modal" id="reflectionModal">
+  <button class="close-reflection-btn" onclick="closeReflection()">×</button>
+  <div class="reflection-report" id="reflectionReport">
+    <!-- Reflection content loaded dynamically -->
+  </div>
+  <div class="reflection-actions">
+    <button class="print-reflection-btn" onclick="printReflection()">🖨️ Print Answer Sheet</button>
   </div>
 </div>
 
@@ -661,7 +977,7 @@
 
   async function loadResults() {
     const tbody = document.getElementById('resultsBody');
-    tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="loading">Loading...</td></tr>';
 
     try {
       const { data, error } = await supabaseClient
@@ -707,7 +1023,7 @@
     filtered = sortResults(filtered, sortBy);
 
     if (filtered.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" class="no-data">No submissions found</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="no-data">No submissions found</td></tr>';
       return;
     }
 
@@ -719,6 +1035,7 @@
         <td><span class="score-badge ${getScoreClass(r.percentage)}">${r.score}/${r.total_questions} (${r.percentage}%)</span></td>
         <td>${formatTime(r.time_taken_seconds)}</td>
         <td>${formatDate(r.submitted_at)}</td>
+        <td><button class="answers-btn" onclick='showAnswerDetails(${JSON.stringify(r).replace(/'/g, "\\'")})'>📝 Details</button></td>
         <td><button class="view-btn" onclick='generateReport(${JSON.stringify(r).replace(/'/g, "\\'")})'>📄 Report</button></td>
       </tr>
     `).join('');
@@ -908,11 +1225,197 @@
   });
 
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeModal();
+    if (e.key === 'Escape') {
+      closeModal();
+      closeReflection();
+    }
   });
 
   document.getElementById('classFilter').addEventListener('change', () => displayResults(allResults));
   document.getElementById('sortBy').addEventListener('change', () => displayResults(allResults));
+
+  // Section definitions for answer details
+  const sections = [
+    { name: "Part 1: Vocabulary & Context", icon: "📚", questions: [1,2,3,4,5,6,7,8] },
+    { name: "Part 2: Reading Comprehension", icon: "📖", questions: [9,10,11,12,13] },
+    { name: "Part 3: Matching Paragraphs", icon: "🔍", questions: [14,15,16,17,18] },
+    { name: "Part 4: Grammar & Gap Fill", icon: "✍️", questions: [19,20,21,22,23,24,25,26] },
+    { name: "Part 5: Detailed Comprehension", icon: "🎯", questions: [27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42] }
+  ];
+
+  function showAnswerDetails(result) {
+    const answers = result.answers || {};
+    
+    // Count correct, wrong, unanswered
+    let correctCount = 0, wrongCount = 0, unansweredCount = 0;
+    const mistakes = [];
+    
+    Object.keys(correct).forEach(q => {
+      const studentAns = (answers[q] || '').trim();
+      const correctAns = correct[q];
+      
+      if (!studentAns) {
+        unansweredCount++;
+        mistakes.push({ q, studentAns: '(No answer)', correctAns, unanswered: true });
+      } else if (studentAns.toLowerCase() === correctAns.toLowerCase()) {
+        correctCount++;
+      } else {
+        wrongCount++;
+        mistakes.push({ q, studentAns, correctAns, unanswered: false });
+      }
+    });
+
+    // Build sections HTML
+    let sectionsHtml = '';
+    sections.forEach(section => {
+      let sectionCorrect = 0;
+      let answersHtml = '';
+      
+      section.questions.forEach(q => {
+        const studentAns = (answers[q] || '').trim();
+        const correctAns = correct[q];
+        let status, statusIcon, statusClass;
+        
+        if (!studentAns) {
+          status = 'unanswered';
+          statusIcon = '⚠️';
+          statusClass = 'unanswered';
+        } else if (studentAns.toLowerCase() === correctAns.toLowerCase()) {
+          status = 'correct';
+          statusIcon = '✓';
+          statusClass = 'correct';
+          sectionCorrect++;
+        } else {
+          status = 'wrong';
+          statusIcon = '✗';
+          statusClass = 'wrong';
+        }
+        
+        answersHtml += `
+          <div class="answer-item ${statusClass}">
+            <div class="q-number">Q${q}</div>
+            <div class="answer-details">
+              <div class="your-answer"><strong>Your answer:</strong> ${studentAns || '<em>blank</em>'}</div>
+              ${status !== 'correct' ? `<div class="correct-answer">✓ Correct: ${correctAns}</div>` : ''}
+            </div>
+            <span class="answer-status">${statusIcon}</span>
+          </div>
+        `;
+      });
+      
+      sectionsHtml += `
+        <div class="section-header">
+          <span>${section.icon} ${section.name}</span>
+          <span class="section-score">${sectionCorrect}/${section.questions.length} correct</span>
+        </div>
+        <div class="answer-grid">
+          ${answersHtml}
+        </div>
+      `;
+    });
+
+    // Build mistakes to learn section (limit to 10 most important)
+    const mistakesToShow = mistakes.slice(0, 10);
+    let mistakesHtml = '';
+    if (mistakesToShow.length > 0) {
+      mistakesHtml = `
+        <div class="mistakes-section">
+          <h3>📝 Key Mistakes to Learn From</h3>
+          ${mistakesToShow.map(m => `
+            <div class="mistake-item">
+              <div class="q-info">Question ${m.q}</div>
+              <div class="comparison">
+                <div class="wrong-box">
+                  <strong>${m.unanswered ? '⚠️ Unanswered' : '✗ Your Answer:'}</strong><br>
+                  ${m.unanswered ? 'No response given' : m.studentAns}
+                </div>
+                <div class="right-box">
+                  <strong>✓ Correct Answer:</strong><br>
+                  ${m.correctAns}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+          ${mistakes.length > 10 ? `<p style="text-align:center;color:#666;margin-top:15px;">+ ${mistakes.length - 10} more mistakes (see full details above)</p>` : ''}
+        </div>
+      `;
+    }
+
+    // Render the reflection report
+    document.getElementById('reflectionReport').innerHTML = `
+      <div class="reflection-header">
+        <div class="report-logo">
+          <img src="public/logo.png" alt="Logo" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🧠</text></svg>'">
+          <div>
+            <h1>Brains Heist</h1>
+            <span>Test Reflection & Answer Review</span>
+          </div>
+        </div>
+        <div class="report-title">
+          <h2>Cambridge Reading Test 25</h2>
+          <p>Answer Details</p>
+        </div>
+      </div>
+
+      <div class="reflection-title">
+        <div>
+          <h2>${escapeHtml(result.student_name)}</h2>
+          <span style="font-size:14px;opacity:0.9;">Class: ${escapeHtml(result.student_class || 'N/A')} | ${formatDate(result.submitted_at)}</span>
+        </div>
+        <div class="score-summary">
+          <div class="big">${result.score}/${result.total_questions}</div>
+          <div class="small">${result.percentage}% Score</div>
+        </div>
+      </div>
+
+      <div class="reflection-summary">
+        <div class="summary-stat correct-stat">
+          <div class="stat-icon">✓</div>
+          <div class="stat-value">${correctCount}</div>
+          <div class="stat-label">Correct Answers</div>
+        </div>
+        <div class="summary-stat wrong-stat">
+          <div class="stat-icon">✗</div>
+          <div class="stat-value">${wrongCount}</div>
+          <div class="stat-label">Wrong Answers</div>
+        </div>
+        <div class="summary-stat unanswered-stat">
+          <div class="stat-icon">⚠️</div>
+          <div class="stat-value">${unansweredCount}</div>
+          <div class="stat-label">Unanswered</div>
+        </div>
+      </div>
+
+      ${sectionsHtml}
+
+      ${mistakesHtml}
+
+      <div class="reflection-footer">
+        <span>Brains Heist Learning Platform</span>
+        <span>Use this sheet to review your mistakes and improve!</span>
+        <span>${formatDate(result.submitted_at)}</span>
+      </div>
+    `;
+
+    // Hide report modal if open, show reflection modal
+    document.getElementById('modalOverlay').classList.remove('show');
+    document.getElementById('reflectionModal').classList.add('show');
+  }
+
+  function closeReflection() {
+    document.getElementById('reflectionModal').classList.remove('show');
+  }
+
+  function printReflection() {
+    // Temporarily hide the report modal for printing
+    document.getElementById('modalOverlay').classList.remove('show');
+    window.print();
+  }
+
+  // Close reflection modal on click outside
+  document.getElementById('reflectionModal').addEventListener('click', function(e) {
+    if (e.target === this) closeReflection();
+  });
 
   function exportCSV() {
     if (allResults.length === 0) return alert('No data');
