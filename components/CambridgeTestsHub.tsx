@@ -41,7 +41,8 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     totalQuestions: 25,
     difficulty: 'Intermediate',
     category: 'Listening',
-    url: '/cambridge/listening-test-1/cambridge_listening_test_1.html',
+    // Use a relative path so the iframe loads the static HTML instead of the app shell
+    url: 'cambridge/listening-test-1/cambridge_listening_test_1.html',
   },
   // Add more tests here as they become available
   // {
