@@ -41,8 +41,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     totalQuestions: 25,
     difficulty: 'Intermediate',
     category: 'Listening',
-    // Use a relative path so the iframe loads the static HTML instead of the app shell
-    url: 'cambridge/listening-test-1/cambridge_listening_test_1.html',
+    url: 'cambridge_listening_test_1.html',
   },
   // Add more tests here as they become available
   // {
@@ -228,7 +227,9 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           style={{
             flex: 1,
             width: '100%',
+            height: '100%',
             border: 'none',
+            minHeight: 'calc(100vh - 70px)',
           }}
           title={activeTest.name}
         />

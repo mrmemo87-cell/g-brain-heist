@@ -12,7 +12,7 @@ interface AdminPortalProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
 }
 
-type AdminTab = 'dashboard' | 'users' | 'game' | 'clans' | 'analytics' | 'system';
+type AdminTab = 'dashboard' | 'users' | 'game' | 'clans' | 'analytics' | 'cambridge' | 'system';
 
 const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
@@ -33,6 +33,29 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   const [announcementText, setAnnouncementText] = useState('');
   const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false);
   const [isResettingAll, setIsResettingAll] = useState(false);
+  
+  // Cambridge Tests Reports State
+  const [quizScores, setQuizScores] = useState<any[]>([]);
+  const [quizScoresLoading, setQuizScoresLoading] = useState(false);
+  const [quizFilter, setQuizFilter] = useState<string>('all');
+  const [classFilter, setClassFilter] = useState<string>('all');
+  const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showAnswerReflection, setShowAnswerReflection] = useState(false);
+  const [reportStudent, setReportStudent] = useState<any | null>(null);
+  const [quizStats, setQuizStats] = useState<{
+    totalSubmissions: number;
+    avgPercentage: number;
+    highestScore: { name: string; percentage: number } | null;
+    lowestScore: { name: string; percentage: number } | null;
+    classStats: Record<string, { count: number; avg: number }>;
+  }>({
+    totalSubmissions: 0,
+    avgPercentage: 0,
+    highestScore: null,
+    lowestScore: null,
+    classStats: {}
+  });
 
   const gradeOptions: Grade[] = [6, 7, 8, 9, 10, 11, 12];
   const batchByGrade: Record<Grade, Batch[]> = {
@@ -48,6 +71,280 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  // Fetch Cambridge Quiz Scores
+  const fetchQuizScores = async () => {
+    setQuizScoresLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('quiz_scores')
+        .select('*')
+        .order('submitted_at', { ascending: false });
+
+      if (error) throw error;
+
+      const scores = data || [];
+      setQuizScores(scores);
+
+      // Calculate stats
+      if (scores.length > 0) {
+        const avgPercentage = Math.round(scores.reduce((sum, s) => sum + (s.percentage || 0), 0) / scores.length);
+        const sorted = [...scores].sort((a, b) => b.percentage - a.percentage);
+        const highestScore = sorted[0] ? { name: sorted[0].student_name, percentage: sorted[0].percentage } : null;
+        const lowestScore = sorted[sorted.length - 1] ? { name: sorted[sorted.length - 1].student_name, percentage: sorted[sorted.length - 1].percentage } : null;
+        
+        // Class stats
+        const classStats: Record<string, { count: number; avg: number; total: number }> = {};
+        scores.forEach(s => {
+          const cls = s.student_class || 'Unknown';
+          if (!classStats[cls]) classStats[cls] = { count: 0, avg: 0, total: 0 };
+          classStats[cls].count++;
+          classStats[cls].total += s.percentage || 0;
+        });
+        Object.keys(classStats).forEach(cls => {
+          classStats[cls].avg = Math.round(classStats[cls].total / classStats[cls].count);
+        });
+
+        setQuizStats({
+          totalSubmissions: scores.length,
+          avgPercentage,
+          highestScore,
+          lowestScore,
+          classStats
+        });
+      } else {
+        setQuizStats({
+          totalSubmissions: 0,
+          avgPercentage: 0,
+          highestScore: null,
+          lowestScore: null,
+          classStats: {}
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch quiz scores:', error);
+      addToast('Failed to fetch Cambridge test scores', 'error');
+    } finally {
+      setQuizScoresLoading(false);
+    }
+  };
+
+  // Get unique quiz names and classes for filters
+  const uniqueQuizNames = [...new Set(quizScores.map(s => s.quiz_name))];
+  const uniqueClasses = [...new Set(quizScores.map(s => s.student_class || 'Unknown'))].sort();
+
+  // Filter quiz scores
+  const filteredQuizScores = quizScores.filter(s => {
+    if (quizFilter !== 'all' && s.quiz_name !== quizFilter) return false;
+    if (classFilter !== 'all' && (s.student_class || 'Unknown') !== classFilter) return false;
+    return true;
+  });
+
+  // Format time taken
+  const formatTime = (seconds: number) => {
+    if (!seconds) return '-';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}m ${secs}s`;
+  };
+
+  // Delete a quiz score entry
+  const deleteQuizScore = async (id: string, studentName: string) => {
+    if (!window.confirm(`Delete submission from ${studentName}? This will allow them to retake the test.`)) return;
+    try {
+      const { error } = await supabase.from('quiz_scores').delete().eq('id', id);
+      if (error) throw error;
+      addToast(`🗑️ Deleted submission from ${studentName}`, 'success');
+      fetchQuizScores();
+    } catch (error) {
+      addToast('Failed to delete submission', 'error');
+    }
+  };
+
+  // Correct answers for different tests
+  const correctAnswers: Record<string, Record<number, string>> = {
+    'Cambridge Reading 25': {
+      1:"common", 2:"typically", 3:"access", 4:"stay", 5:"hunt", 6:"defend", 7:"escape", 8:"number",
+      9:"B", 10:"A", 11:"A", 12:"C", 13:"A",
+      14:"G", 15:"D", 16:"F", 17:"A", 18:"C",
+      19:"nothing", 20:"be", 21:"for", 22:"can", 23:"the", 24:"if", 25:"would", 26:"to",
+      27:"C", 28:"A", 29:"B", 30:"C", 31:"A", 32:"D", 33:"C", 34:"A", 35:"B", 36:"C",
+      37:"C", 38:"B", 39:"D", 40:"A", 41:"B", 42:"C"
+    },
+    'Cambridge Listening Test 1': {
+      1:"C", 2:"A", 3:"B", 4:"B", 5:"C",
+      6:"B", 7:"B", 8:"A", 9:"C", 10:"A",
+      11:"Thursdays", 12:"flute", 13:"dance studio", 14:"restaurant", 15:"DRASTLE",
+      16:"B", 17:"C", 18:"C", 19:"A", 20:"A",
+      21:"H", 22:"E", 23:"D", 24:"C", 25:"B"
+    }
+  };
+
+  // Skill categories for analysis
+  const skillCategories: Record<string, Record<string, { questions: number[]; icon: string }>> = {
+    'Cambridge Reading 25': {
+      "Vocabulary & Context": { questions: [1,2,3,4,5,6,7,8], icon: "📚" },
+      "Reading Comprehension": { questions: [9,10,11,12,13], icon: "📖" },
+      "Scanning & Matching": { questions: [14,15,16,17,18], icon: "🔍" },
+      "Grammar & Structure": { questions: [19,20,21,22,23,24,25,26], icon: "✍️" },
+      "Detailed Analysis": { questions: [27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42], icon: "🎯" }
+    },
+    'Cambridge Listening Test 1': {
+      "Picture Selection": { questions: [1,2,3,4,5], icon: "🖼️" },
+      "Multiple Choice": { questions: [6,7,8,9,10], icon: "📝" },
+      "Form Completion": { questions: [11,12,13,14,15], icon: "📋" },
+      "Interview Comprehension": { questions: [16,17,18,19,20], icon: "🎤" },
+      "Speaker Matching": { questions: [21,22,23,24,25], icon: "🔊" }
+    }
+  };
+
+  // Section definitions for answer details
+  const testSections: Record<string, Array<{ name: string; icon: string; questions: number[] }>> = {
+    'Cambridge Reading 25': [
+      { name: "Part 1: Vocabulary & Context", icon: "📚", questions: [1,2,3,4,5,6,7,8] },
+      { name: "Part 2: Reading Comprehension", icon: "📖", questions: [9,10,11,12,13] },
+      { name: "Part 3: Matching Paragraphs", icon: "🔍", questions: [14,15,16,17,18] },
+      { name: "Part 4: Grammar & Gap Fill", icon: "✍️", questions: [19,20,21,22,23,24,25,26] },
+      { name: "Part 5: Detailed Comprehension", icon: "🎯", questions: [27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42] }
+    ],
+    'Cambridge Listening Test 1': [
+      { name: "Part 1: Picture Selection", icon: "🖼️", questions: [1,2,3,4,5] },
+      { name: "Part 2: Multiple Choice", icon: "📝", questions: [6,7,8,9,10] },
+      { name: "Part 3: Form Completion", icon: "📋", questions: [11,12,13,14,15] },
+      { name: "Part 4: Interview", icon: "🎤", questions: [16,17,18,19,20] },
+      { name: "Part 5: Speaker Matching", icon: "🔊", questions: [21,22,23,24,25] }
+    ]
+  };
+
+  // Action plans for improvement
+  const actionPlans: Record<string, { title: string; tips: string[] }> = {
+    "Vocabulary & Context": {
+      title: "Build Your Vocabulary",
+      tips: ["Read for 15-20 minutes daily", "Create flashcards for new words", "Use new words in your own writing"]
+    },
+    "Reading Comprehension": {
+      title: "Strengthen Reading Skills",
+      tips: ["Read questions first before the passage", "Underline keywords in questions", "Practice summarizing paragraphs"]
+    },
+    "Scanning & Matching": {
+      title: "Improve Scanning Technique",
+      tips: ["Practice finding specific names and dates", "Identify topic sentences", "Look for synonyms"]
+    },
+    "Grammar & Structure": {
+      title: "Master Grammar Patterns",
+      tips: ["Review preposition rules", "Study common collocations", "Read the complete sentence before answering"]
+    },
+    "Detailed Analysis": {
+      title: "Develop Analytical Reading",
+      tips: ["Pay attention to contrast words", "Be skeptical of extreme answers", "Find evidence in the text"]
+    },
+    "Picture Selection": {
+      title: "Improve Visual Listening",
+      tips: ["Study all pictures before audio plays", "Note key differences between options", "Listen for specific details"]
+    },
+    "Multiple Choice": {
+      title: "Master MCQ Listening",
+      tips: ["Read all options before listening", "Eliminate obviously wrong answers", "Listen for synonyms"]
+    },
+    "Form Completion": {
+      title: "Improve Note-Taking",
+      tips: ["Predict what type of answer is needed", "Write exactly what you hear", "Check spelling carefully"]
+    },
+    "Interview Comprehension": {
+      title: "Understand Conversations",
+      tips: ["Focus on speaker attitudes", "Listen for tone changes", "Note who says what"]
+    },
+    "Speaker Matching": {
+      title: "Identify Speakers",
+      tips: ["Listen for different voices", "Focus on main ideas per speaker", "Match opinions to statements"]
+    }
+  };
+
+  // Analyze skill performance
+  const analyzeSkillPerformance = (result: any) => {
+    const quizName = result.quiz_name;
+    const answers = result.answers || {};
+    const correct = correctAnswers[quizName] || {};
+    const categories = skillCategories[quizName] || {};
+
+    const skillPerformance: Record<string, { correct: number; total: number; percentage: number; icon: string }> = {};
+    
+    Object.entries(categories).forEach(([skill, data]) => {
+      let correctCount = 0;
+      data.questions.forEach(q => {
+        const studentAns = (answers[q] || '').toString().trim().toLowerCase();
+        const correctAns = (correct[q] || '').toString().toLowerCase();
+        if (studentAns === correctAns) correctCount++;
+      });
+      skillPerformance[skill] = {
+        correct: correctCount,
+        total: data.questions.length,
+        percentage: Math.round((correctCount / data.questions.length) * 100),
+        icon: data.icon
+      };
+    });
+
+    return skillPerformance;
+  };
+
+  // Get grade from percentage
+  const getGrade = (percentage: number) => {
+    if (percentage >= 90) return 'A';
+    if (percentage >= 80) return 'B';
+    if (percentage >= 70) return 'C';
+    if (percentage >= 60) return 'D';
+    return 'F';
+  };
+
+  // Get encouragement message
+  const getEncouragement = (grade: string) => {
+    const messages: Record<string, { title: string; message: string }> = {
+      'A': { title: "Outstanding Achievement! 🏆", message: "You've demonstrated excellent skills. Challenge yourself with more advanced material!" },
+      'B': { title: "Great Work! ⭐", message: "You're performing above average. Focus on weak areas to reach the top!" },
+      'C': { title: "Good Progress! 👍", message: "You're building solid foundations. Targeted practice will help you improve!" },
+      'D': { title: "Keep Pushing! 💪", message: "Every expert was once a beginner. Follow the action plan and practice consistently!" },
+      'F': { title: "Time for a Fresh Start 📚", message: "This is a learning opportunity. Work through the action plan step by step." }
+    };
+    return messages[grade] || messages['C'];
+  };
+
+  // Open report modal
+  const openReport = (student: any) => {
+    setReportStudent(student);
+    setShowReportModal(true);
+  };
+
+  // Open answer reflection modal
+  const openAnswerReflection = (student: any) => {
+    setReportStudent(student);
+    setShowAnswerReflection(true);
+  };
+
+  // Export to CSV
+  const exportCSV = () => {
+    if (filteredQuizScores.length === 0) {
+      addToast('No data to export', 'error');
+      return;
+    }
+    const headers = ['Name', 'Class', 'Quiz', 'Score', 'Total', 'Percentage', 'Time (seconds)', 'Date'];
+    const rows = filteredQuizScores.map(r => [
+      r.student_name,
+      r.student_class || '',
+      r.quiz_name,
+      r.score,
+      r.total_questions,
+      r.percentage,
+      r.time_taken_seconds || '',
+      r.submitted_at
+    ]);
+    const csv = [headers.join(','), ...rows.map(r => r.map(c => `"${c}"`).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `cambridge_test_results_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    addToast('📥 CSV exported successfully', 'success');
+  };
 
   const updateUserInState = (userId: string, patch: Record<string, unknown>) => {
     setAllUsers(prev => prev.map(user => user.id === userId ? { ...user, ...patch } : user));
@@ -432,7 +729,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         {/* Tab Navigation - Epic Style */}
         <div className="max-w-6xl mx-auto mb-6">
           <div className="flex flex-wrap gap-2 justify-center">
-            {(['dashboard', 'users', 'game', 'clans', 'analytics', 'system'] as AdminTab[]).map((tab) => (
+            {(['dashboard', 'users', 'game', 'clans', 'analytics', 'cambridge', 'system'] as AdminTab[]).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -865,6 +1162,173 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
             </div>
           )}
 
+          {activeTab === 'cambridge' && (
+            <div className="card-glass p-6 border-2 border-teal-400/50">
+              <h3 className="text-3xl font-heading font-bold text-teal-300 mb-6">📚 Cambridge Test Reports</h3>
+              
+              {/* Action Buttons */}
+              <div className="flex flex-wrap gap-3 mb-6">
+                <button
+                  onClick={fetchQuizScores}
+                  disabled={quizScoresLoading}
+                  className="bg-teal-600/30 hover:bg-teal-600/50 border border-teal-400 text-white font-semibold px-6 py-3 rounded-lg transition-all hover:shadow-[0_0_20px_rgba(20,184,166,0.6)]"
+                >
+                  {quizScoresLoading ? '⏳ Loading...' : '🔄 Load/Refresh Reports'}
+                </button>
+                {quizScores.length > 0 && (
+                  <button
+                    onClick={exportCSV}
+                    className="bg-green-600/30 hover:bg-green-600/50 border border-green-400 text-white font-semibold px-6 py-3 rounded-lg transition-all hover:shadow-[0_0_20px_rgba(34,197,94,0.6)]"
+                  >
+                    📥 Export CSV
+                  </button>
+                )}
+              </div>
+
+              {quizScores.length > 0 && (
+                <>
+                  {/* Stats Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div className="bg-gradient-to-br from-teal-600/20 to-teal-900/20 border-2 border-teal-400 p-4 rounded-xl">
+                      <p className="text-sm text-gray-300">Total Submissions</p>
+                      <p className="text-3xl font-bold text-teal-300">{quizStats.totalSubmissions}</p>
+                    </div>
+                    <div className="bg-gradient-to-br from-blue-600/20 to-blue-900/20 border-2 border-blue-400 p-4 rounded-xl">
+                      <p className="text-sm text-gray-300">Average Score</p>
+                      <p className="text-3xl font-bold text-blue-300">{quizStats.avgPercentage}%</p>
+                    </div>
+                    <div className="bg-gradient-to-br from-green-600/20 to-green-900/20 border-2 border-green-400 p-4 rounded-xl">
+                      <p className="text-sm text-gray-300">Highest Score</p>
+                      <p className="text-xl font-bold text-green-300">{quizStats.highestScore?.name || '-'}</p>
+                      <p className="text-sm text-gray-400">{quizStats.highestScore ? `${quizStats.highestScore.percentage}%` : ''}</p>
+                    </div>
+                    <div className="bg-gradient-to-br from-red-600/20 to-red-900/20 border-2 border-red-400 p-4 rounded-xl">
+                      <p className="text-sm text-gray-300">Lowest Score</p>
+                      <p className="text-xl font-bold text-red-300">{quizStats.lowestScore?.name || '-'}</p>
+                      <p className="text-sm text-gray-400">{quizStats.lowestScore ? `${quizStats.lowestScore.percentage}%` : ''}</p>
+                    </div>
+                  </div>
+
+                  {/* Class Performance Summary */}
+                  <div className="bg-black/30 border border-teal-400/50 rounded-xl p-4 mb-6">
+                    <h4 className="text-lg font-bold text-teal-300 mb-3">📊 Class Performance</h4>
+                    <div className="flex flex-wrap gap-3">
+                      {Object.entries(quizStats.classStats).sort((a, b) => b[1].avg - a[1].avg).map(([cls, stats]) => (
+                        <div key={cls} className="bg-black/40 border border-gray-600 rounded-lg px-4 py-2">
+                          <p className="font-bold text-white">{cls}</p>
+                          <p className="text-sm text-gray-400">{stats.count} students • Avg: <span className={stats.avg >= 70 ? 'text-green-400' : stats.avg >= 50 ? 'text-yellow-400' : 'text-red-400'}>{stats.avg}%</span></p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Filters */}
+                  <div className="flex flex-wrap gap-4 mb-6">
+                    <div>
+                      <label className="text-sm text-gray-400 block mb-1">Filter by Test</label>
+                      <select
+                        value={quizFilter}
+                        onChange={(e) => setQuizFilter(e.target.value)}
+                        className="bg-black/40 border border-teal-400/50 rounded-lg px-4 py-2 text-white min-w-[200px]"
+                      >
+                        <option value="all">All Tests</option>
+                        {uniqueQuizNames.map(name => (
+                          <option key={name} value={name}>{name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-400 block mb-1">Filter by Class</label>
+                      <select
+                        value={classFilter}
+                        onChange={(e) => setClassFilter(e.target.value)}
+                        className="bg-black/40 border border-teal-400/50 rounded-lg px-4 py-2 text-white min-w-[150px]"
+                      >
+                        <option value="all">All Classes</option>
+                        {uniqueClasses.map(cls => (
+                          <option key={cls} value={cls}>{cls}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex items-end">
+                      <p className="text-gray-400">Showing {filteredQuizScores.length} of {quizScores.length} results</p>
+                    </div>
+                  </div>
+
+                  {/* Results Table */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="border-b border-teal-400/50">
+                          <th className="px-4 py-3 text-teal-300">Student</th>
+                          <th className="px-4 py-3 text-teal-300">Class</th>
+                          <th className="px-4 py-3 text-teal-300">Test</th>
+                          <th className="px-4 py-3 text-teal-300">Score</th>
+                          <th className="px-4 py-3 text-teal-300">%</th>
+                          <th className="px-4 py-3 text-teal-300">Time</th>
+                          <th className="px-4 py-3 text-teal-300">Submitted</th>
+                          <th className="px-4 py-3 text-teal-300">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredQuizScores.map((score) => (
+                          <tr key={score.id} className="border-b border-gray-700 hover:bg-black/30">
+                            <td className="px-4 py-3 text-white font-semibold">{score.student_name}</td>
+                            <td className="px-4 py-3 text-gray-300">{score.student_class || '-'}</td>
+                            <td className="px-4 py-3 text-gray-300 text-sm">{score.quiz_name}</td>
+                            <td className="px-4 py-3">
+                              <span className="font-mono text-white">{score.score}/{score.total_questions}</span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className={`font-bold ${
+                                score.percentage >= 70 ? 'text-green-400' :
+                                score.percentage >= 50 ? 'text-yellow-400' : 'text-red-400'
+                              }`}>{score.percentage}%</span>
+                            </td>
+                            <td className="px-4 py-3 text-gray-400 text-sm">{formatTime(score.time_taken_seconds)}</td>
+                            <td className="px-4 py-3 text-gray-400 text-sm">
+                              {new Date(score.submitted_at).toLocaleDateString()} {new Date(score.submitted_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex gap-2 flex-wrap">
+                                <button
+                                  onClick={() => openAnswerReflection(score)}
+                                  className="bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400 text-white text-xs px-3 py-1 rounded"
+                                >
+                                  📝 Answers
+                                </button>
+                                <button
+                                  onClick={() => openReport(score)}
+                                  className="bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400 text-white text-xs px-3 py-1 rounded"
+                                >
+                                  📄 Report
+                                </button>
+                                <button
+                                  onClick={() => deleteQuizScore(score.id, score.student_name)}
+                                  className="bg-red-600/30 hover:bg-red-600/50 border border-red-400 text-white text-xs px-3 py-1 rounded"
+                                >
+                                  🗑️
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+
+              {quizScores.length === 0 && !quizScoresLoading && (
+                <div className="text-center py-12 text-gray-400">
+                  <p className="text-6xl mb-4">📭</p>
+                  <p className="text-xl">No test submissions yet</p>
+                  <p className="text-sm mt-2">Click "Load/Refresh Reports" to check for submissions</p>
+                </div>
+              )}
+            </div>
+          )}
+
           {activeTab === 'system' && (
             <div className="card-glass p-6 border-2 border-red-400/50">
               <h3 className="text-3xl font-heading font-bold text-red-300 mb-6">⚙️ System Control</h3>
@@ -942,6 +1406,282 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
           75% { background-position: 0% 100%; }
         }
       `}</style>
+
+      {/* Performance Report Modal */}
+      {showReportModal && reportStudent && (() => {
+        const skillPerf = analyzeSkillPerformance(reportStudent);
+        const sortedSkills = Object.entries(skillPerf).sort((a, b) => a[1].percentage - b[1].percentage);
+        const weakAreas = sortedSkills.filter(([_, data]) => data.percentage < 70);
+        const grade = getGrade(reportStudent.percentage);
+        const encouragement = getEncouragement(grade);
+        
+        return (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4 overflow-y-auto">
+            <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[95vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
+              {/* Report Header */}
+              <div className="p-6 border-b-4 border-purple-600">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-3">
+                    <span className="text-4xl">🧠</span>
+                    <div>
+                      <h1 className="text-2xl font-bold text-purple-800">Brains Heist</h1>
+                      <p className="text-sm text-gray-500">Student Performance Report</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <h2 className="text-lg font-semibold text-purple-800">{reportStudent.quiz_name}</h2>
+                    <p className="text-sm text-gray-500">Generated: {new Date().toLocaleDateString()}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Student Banner */}
+              <div className="bg-gradient-to-r from-purple-800 to-indigo-900 text-white p-6 flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold">{reportStudent.student_name}</h2>
+                  <p className="opacity-80">Class: {reportStudent.student_class || 'N/A'} | Completed: {new Date(reportStudent.submitted_at).toLocaleDateString()} | Time: {formatTime(reportStudent.time_taken_seconds)}</p>
+                </div>
+                <div className="w-20 h-20 rounded-full bg-white flex flex-col items-center justify-center">
+                  <span className="text-3xl font-bold text-purple-800">{grade}</span>
+                  <span className="text-xs text-gray-600">{reportStudent.percentage}%</span>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Skills Performance */}
+                <div>
+                  <h3 className="text-lg font-semibold text-purple-800 border-b-2 border-gray-200 pb-2 mb-4">📊 Skills Performance Analysis</h3>
+                  <div className="space-y-3">
+                    {sortedSkills.map(([skill, data]) => (
+                      <div key={skill} className="flex items-center gap-3">
+                        <span className="w-40 text-sm text-gray-600">{data.icon} {skill}</span>
+                        <div className="flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full rounded-full transition-all ${data.percentage >= 80 ? 'bg-green-500' : data.percentage >= 65 ? 'bg-blue-500' : data.percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                            style={{ width: `${data.percentage}%` }}
+                          />
+                        </div>
+                        <span className="w-12 text-sm font-semibold text-right">{data.percentage}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Focus Areas */}
+                {weakAreas.length > 0 && (
+                  <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
+                    <h4 className="font-semibold text-amber-800 mb-2">⚠️ Priority Focus Areas</h4>
+                    <ul className="text-sm text-gray-700 space-y-1">
+                      {weakAreas.map(([skill, data]) => (
+                        <li key={skill}>• <strong>{skill}</strong> — You scored {data.percentage}% ({data.correct}/{data.total} correct)</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Action Plan */}
+                <div className="border-2 border-purple-600 rounded-xl p-5">
+                  <h3 className="text-lg font-semibold text-purple-800 mb-4">📋 Personalized Action Plan</h3>
+                  {weakAreas.length > 0 ? weakAreas.slice(0, 3).map(([skill, data], idx) => {
+                    const plan = actionPlans[skill];
+                    return plan ? (
+                      <div key={skill} className="flex gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
+                        <div className="w-8 h-8 bg-purple-800 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">{idx + 1}</div>
+                        <div>
+                          <h4 className="font-semibold text-gray-800">{plan.title} (Currently {data.percentage}%)</h4>
+                          <p className="text-sm text-gray-600">{plan.tips.join(' • ')}</p>
+                        </div>
+                      </div>
+                    ) : null;
+                  }) : (
+                    <div className="flex gap-4 p-4 bg-green-50 rounded-lg">
+                      <div className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">✓</div>
+                      <div>
+                        <h4 className="font-semibold text-gray-800">Maintain Your Excellence</h4>
+                        <p className="text-sm text-gray-600">Continue challenging yourself • Read diverse texts daily • Help classmates who are struggling</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Encouragement */}
+                <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-xl text-center">
+                  <h3 className="text-xl font-bold mb-2">{encouragement.title}</h3>
+                  <p className="opacity-90">{encouragement.message}</p>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 border-t flex justify-between items-center text-xs text-gray-400">
+                <span>Brains Heist Learning Platform</span>
+                <span>Report ID: {reportStudent.id?.substring(0, 8) || 'N/A'}</span>
+                <div className="flex gap-3">
+                  <button onClick={() => window.print()} className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">🖨️ Print</button>
+                  <button onClick={() => setShowReportModal(false)} className="px-4 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Answer Reflection Modal */}
+      {showAnswerReflection && reportStudent && (() => {
+        const answers = reportStudent.answers || {};
+        const quizName = reportStudent.quiz_name;
+        const correct = correctAnswers[quizName] || {};
+        const sections = testSections[quizName] || [];
+        
+        let correctCount = 0, wrongCount = 0, unansweredCount = 0;
+        const mistakes: Array<{ q: number; studentAns: string; correctAns: string; unanswered: boolean }> = [];
+        
+        Object.keys(correct).forEach(qStr => {
+          const q = parseInt(qStr);
+          const studentAns = (answers[q] || '').toString().trim();
+          const correctAns = correct[q] || '';
+          
+          if (!studentAns) {
+            unansweredCount++;
+            mistakes.push({ q, studentAns: '(No answer)', correctAns, unanswered: true });
+          } else if (studentAns.toLowerCase() === correctAns.toLowerCase()) {
+            correctCount++;
+          } else {
+            wrongCount++;
+            mistakes.push({ q, studentAns, correctAns, unanswered: false });
+          }
+        });
+        
+        return (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4 overflow-y-auto">
+            <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[95vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
+              {/* Header */}
+              <div className="p-6 border-b-4 border-blue-600">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-3">
+                    <span className="text-4xl">🧠</span>
+                    <div>
+                      <h1 className="text-2xl font-bold text-blue-800">Brains Heist</h1>
+                      <p className="text-sm text-gray-500">Test Reflection & Answer Review</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <h2 className="text-lg font-semibold text-blue-800">{reportStudent.quiz_name}</h2>
+                    <p className="text-sm text-gray-500">Answer Details</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Student Info Banner */}
+              <div className="bg-gradient-to-r from-blue-700 to-purple-800 text-white p-5 flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-bold">{reportStudent.student_name}</h2>
+                  <p className="text-sm opacity-80">Class: {reportStudent.student_class || 'N/A'} | {new Date(reportStudent.submitted_at).toLocaleDateString()}</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold">{reportStudent.score}/{reportStudent.total_questions}</div>
+                  <div className="text-sm opacity-80">{reportStudent.percentage}% Score</div>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Summary Stats */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-green-100 p-4 rounded-xl text-center">
+                    <div className="text-3xl">✓</div>
+                    <div className="text-3xl font-bold text-green-700">{correctCount}</div>
+                    <div className="text-sm text-gray-600">Correct</div>
+                  </div>
+                  <div className="bg-red-100 p-4 rounded-xl text-center">
+                    <div className="text-3xl">✗</div>
+                    <div className="text-3xl font-bold text-red-700">{wrongCount}</div>
+                    <div className="text-sm text-gray-600">Wrong</div>
+                  </div>
+                  <div className="bg-amber-100 p-4 rounded-xl text-center">
+                    <div className="text-3xl">⚠️</div>
+                    <div className="text-3xl font-bold text-amber-700">{unansweredCount}</div>
+                    <div className="text-sm text-gray-600">Unanswered</div>
+                  </div>
+                </div>
+
+                {/* Sections with Answers */}
+                {sections.map(section => {
+                  let sectionCorrect = 0;
+                  return (
+                    <div key={section.name}>
+                      <div className="bg-blue-50 p-3 border-l-4 border-blue-600 mb-3 flex justify-between items-center">
+                        <span className="font-semibold text-gray-800">{section.icon} {section.name}</span>
+                        <span className="text-blue-600 text-sm">
+                          {section.questions.filter(q => {
+                            const studentAns = (answers[q] || '').toString().trim().toLowerCase();
+                            const correctAns = (correct[q] || '').toLowerCase();
+                            const isCorrect = studentAns === correctAns;
+                            if (isCorrect) sectionCorrect++;
+                            return isCorrect;
+                          }).length}/{section.questions.length} correct
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+                        {section.questions.map(q => {
+                          const studentAns = (answers[q] || '').toString().trim();
+                          const correctAns = correct[q] || '';
+                          const isCorrect = studentAns.toLowerCase() === correctAns.toLowerCase();
+                          const isUnanswered = !studentAns;
+                          
+                          return (
+                            <div key={q} className={`p-3 rounded-lg border-2 flex items-center gap-3 ${isCorrect ? 'bg-green-50 border-green-400' : isUnanswered ? 'bg-amber-50 border-amber-400' : 'bg-red-50 border-red-400'}`}>
+                              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm ${isCorrect ? 'bg-green-500' : isUnanswered ? 'bg-amber-500' : 'bg-red-500'}`}>Q{q}</div>
+                              <div className="flex-1 text-sm">
+                                <div><strong>Your answer:</strong> {studentAns || <em className="text-gray-400">blank</em>}</div>
+                                {!isCorrect && <div className="text-green-600 font-semibold">✓ Correct: {correctAns}</div>}
+                              </div>
+                              <span className="text-xl">{isCorrect ? '✓' : isUnanswered ? '⚠️' : '✗'}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Key Mistakes Section */}
+                {mistakes.length > 0 && (
+                  <div className="bg-red-50 border-2 border-red-400 rounded-xl p-5">
+                    <h3 className="text-lg font-semibold text-red-700 mb-4">📝 Key Mistakes to Learn From</h3>
+                    <div className="space-y-3">
+                      {mistakes.slice(0, 8).map(m => (
+                        <div key={m.q} className="bg-white rounded-lg p-4 border-l-4 border-red-400">
+                          <div className="font-semibold text-gray-800 mb-2">Question {m.q}</div>
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div className="bg-red-100 p-3 rounded">
+                              <strong>{m.unanswered ? '⚠️ Unanswered' : '✗ Your Answer:'}</strong><br/>
+                              {m.unanswered ? 'No response given' : m.studentAns}
+                            </div>
+                            <div className="bg-green-100 p-3 rounded">
+                              <strong>✓ Correct Answer:</strong><br/>
+                              {m.correctAns}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {mistakes.length > 8 && <p className="text-center text-gray-500">+ {mistakes.length - 8} more mistakes (see full details above)</p>}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 border-t flex justify-between items-center text-xs text-gray-400">
+                <span>Brains Heist Learning Platform</span>
+                <span>Use this sheet to review mistakes and improve!</span>
+                <div className="flex gap-3">
+                  <button onClick={() => window.print()} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700">🖨️ Print</button>
+                  <button onClick={() => setShowAnswerReflection(false)} className="px-4 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {showAnnouncementComposer && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4">
