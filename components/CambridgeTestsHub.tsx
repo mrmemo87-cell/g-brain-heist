@@ -113,6 +113,12 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
     }
   };
 
+  // Detect iOS
+  const isIOS = () => {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  };
+
   const handleStartTest = (test: CambridgeTest) => {
     // Store user info for the test form to use
     localStorage.setItem('cambridge_test_user', JSON.stringify({
@@ -120,6 +126,14 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       class: profile.batch || 'N/A',
       grade: profile.grade,
     }));
+    
+    // On iOS, open in same window for better scrolling support
+    if (isIOS()) {
+      // Save current state so we can return
+      sessionStorage.setItem('cambridge_return_to_hub', 'true');
+      window.location.href = test.url;
+      return;
+    }
     
     setActiveTest(test);
   };
@@ -172,6 +186,10 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
+        // iOS specific - ensure full height
+        height: '100%',
+        width: '100%',
+        WebkitOverflowScrolling: 'touch',
       }}>
         {/* Minimal Test Header Bar - non-sticky, part of layout */}
         <div style={{
@@ -212,22 +230,29 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           </button>
         </div>
         
-        {/* Test iframe - takes remaining space */}
-        <iframe
-          src={activeTest.url}
-          style={{
-            flex: 1,
-            width: '100%',
-            border: 'none',
-            display: 'block',
-            // iOS Safari specific fixes
-            WebkitOverflowScrolling: 'touch',
-            overflow: 'auto',
-          }}
-          title={activeTest.name}
-          // Allow scrolling within iframe
-          scrolling="yes"
-        />
+        {/* Test iframe container - necessary for iOS */}
+        <div style={{
+          flex: 1,
+          width: '100%',
+          overflow: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          position: 'relative',
+        }}>
+          <iframe
+            src={activeTest.url}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              border: 'none',
+              display: 'block',
+            }}
+            title={activeTest.name}
+            scrolling="yes"
+          />
+        </div>
       </div>
     );
   }

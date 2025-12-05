@@ -318,6 +318,20 @@
 <body>
 
 <div class="container">
+  <!-- Back to Game button for iOS users -->
+  <div id="backToGameBtn" style="display: none; margin-bottom: 15px;">
+    <button onclick="goBackToGame()" style="
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #302b63 0%, #24243e 100%);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+    ">← Back to Game</button>
+  </div>
+  
   <h1>📚 Cambridge Reading 25</h1>
   <p class="subtitle">Answer Form — Questions 1–42</p>
 
@@ -361,6 +375,27 @@
 </div>
 
 <script>
+  // iOS detection and back button
+  function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+  
+  function goBackToGame() {
+    // Try to go back, or navigate to root
+    if (document.referrer && document.referrer.includes(window.location.hostname)) {
+      window.history.back();
+    } else {
+      window.location.href = '/';
+    }
+  }
+  
+  // Show back button on iOS (when opened directly, not in iframe)
+  if (isIOS() && window.parent === window) {
+    const backBtn = document.getElementById('backToGameBtn');
+    if (backBtn) backBtn.style.display = 'block';
+  }
+
   // Supabase Configuration
   const SUPABASE_URL = 'https://sozodkxwhubespiedgxm.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvem9ka3h3aHViZXNwaWVkZ3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTUxNjYsImV4cCI6MjA3NzQ3MTE2Nn0.DBfFFWvVjpqXTga0uZcH5qR4ej6VOFBUm-CiCTgGLVA';
