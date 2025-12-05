@@ -113,12 +113,6 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
     }
   };
 
-  // Detect iOS
-  const isIOS = () => {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  };
-
   const handleStartTest = (test: CambridgeTest) => {
     // Store user info for the test form to use
     localStorage.setItem('cambridge_test_user', JSON.stringify({
@@ -127,15 +121,9 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       grade: profile.grade,
     }));
     
-    // On iOS, open in same window for better scrolling support
-    if (isIOS()) {
-      // Save current state so we can return
-      sessionStorage.setItem('cambridge_return_to_hub', 'true');
-      window.location.href = test.url;
-      return;
-    }
-    
-    setActiveTest(test);
+    // Always open in same window - most reliable across all devices
+    // The test has a "Back to Game" button to return
+    window.location.href = test.url;
   };
 
   const handleTestComplete = () => {

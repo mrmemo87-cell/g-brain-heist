@@ -514,8 +514,8 @@
     }
   }
   
-  // Show back button on mobile (when opened directly, not in iframe)
-  if (isMobile() && window.parent === window) {
+  // Always show back button (when opened directly, not in iframe)
+  if (window.parent === window) {
     const backBtn = document.getElementById('backToGameBtn');
     if (backBtn) backBtn.style.display = 'block';
   }
