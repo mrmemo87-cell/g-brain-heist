@@ -31,7 +31,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     totalQuestions: 42,
     difficulty: 'Intermediate',
     category: 'Reading',
-    url: 'cambridge_reading_25_answer_form.html',
+    url: '/cambridge_reading_25_answer_form.html',
   },
   {
     id: 'cambridge-listening-1',
@@ -41,7 +41,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     totalQuestions: 25,
     difficulty: 'Intermediate',
     category: 'Listening',
-    url: 'cambridge_listening_test_1.html',
+    url: '/cambridge_listening_test_1.html',
   },
   // Add more tests here as they become available
   // {
