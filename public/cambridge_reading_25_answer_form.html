@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
+<meta name="format-detection" content="telephone=no" />
 <title>Cambridge Reading 25 — Answer Form</title>
 
 <!-- Supabase JS Library -->
@@ -305,10 +306,15 @@
     }
   }
   
+  /* Mobile fixes for iOS and Android */
   @supports (-webkit-touch-callout: none) {
     body {
       min-height: -webkit-fill-available;
     }
+  }
+  
+  /* Safe area for notched devices */
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
     .floating-submit {
       padding-bottom: max(20px, env(safe-area-inset-bottom));
     }
@@ -375,7 +381,12 @@
 </div>
 
 <script>
-  // iOS detection and back button
+  // Mobile detection (iOS and Android)
+  function isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+  
   function isIOS() {
     return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -390,11 +401,18 @@
     }
   }
   
-  // Show back button on iOS (when opened directly, not in iframe)
-  if (isIOS() && window.parent === window) {
+  // Show back button on mobile (when opened directly, not in iframe)
+  if (isMobile() && window.parent === window) {
     const backBtn = document.getElementById('backToGameBtn');
     if (backBtn) backBtn.style.display = 'block';
   }
+  
+  // Debug: Log device info to console
+  console.log('Device info:', {
+    userAgent: navigator.userAgent,
+    isMobile: isMobile(),
+    isIOS: isIOS()
+  });
 
   // Supabase Configuration
   const SUPABASE_URL = 'https://sozodkxwhubespiedgxm.supabase.co';

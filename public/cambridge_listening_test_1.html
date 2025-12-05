@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
+<meta name="format-detection" content="telephone=no" />
 <title>Cambridge Listening Test 1 — Answer Form</title>
 
 <!-- Supabase JS Library -->
@@ -381,11 +382,15 @@
     }
   }
   
-  /* iOS specific fixes */
+  /* Mobile fixes for iOS and Android */
   @supports (-webkit-touch-callout: none) {
     body {
       min-height: -webkit-fill-available;
     }
+  }
+  
+  /* Safe area for notched devices */
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
     .floating-submit {
       padding-bottom: max(20px, env(safe-area-inset-bottom));
     }
@@ -433,11 +438,11 @@
     <h3>🎧 Listening Test Audio</h3>
     <p>⚠️ Press play to start. The audio will play <b>once only</b> and cannot be paused or rewound.</p>
     
-    <!-- Hidden actual audio element -->
-    <audio id="testAudio" preload="auto" playsinline webkit-playsinline>
-      <!-- Try local file first, then Supabase storage -->
-      <source src="cambridge_listening_test_1.mp3" type="audio/mpeg">
+    <!-- Hidden actual audio element - works on iOS and Android -->
+    <audio id="testAudio" preload="metadata" playsinline>
+      <!-- Try Supabase storage first (more reliable), then local file -->
       <source src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/cambridge-audio/cambridge_listening_test_1.mp3" type="audio/mpeg">
+      <source src="cambridge_listening_test_1.mp3" type="audio/mpeg">
       Your browser does not support the audio element.
     </audio>
     
@@ -486,10 +491,19 @@
 </div>
 
 <script>
-  // iOS detection and back button
+  // Mobile detection (iOS and Android)
+  function isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+  
   function isIOS() {
     return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+  
+  function isAndroid() {
+    return /Android/i.test(navigator.userAgent);
   }
   
   function goBackToGame() {
@@ -501,11 +515,19 @@
     }
   }
   
-  // Show back button on iOS (when opened directly, not in iframe)
-  if (isIOS() && window.parent === window) {
+  // Show back button on mobile (when opened directly, not in iframe)
+  if (isMobile() && window.parent === window) {
     const backBtn = document.getElementById('backToGameBtn');
     if (backBtn) backBtn.style.display = 'block';
   }
+  
+  // Debug: Log device info to console
+  console.log('Device info:', {
+    userAgent: navigator.userAgent,
+    isMobile: isMobile(),
+    isIOS: isIOS(),
+    isAndroid: isAndroid()
+  });
 
   // Supabase Configuration
   const SUPABASE_URL = 'https://sozodkxwhubespiedgxm.supabase.co';
@@ -578,24 +600,32 @@
     audioStatus.textContent = 'Loading audio...';
     playBtn.disabled = true;
     
-    // For mobile: need user interaction to play
-    // First try to load the audio
-    audio.load();
+    // For Android: We need to set src directly sometimes
+    if (isAndroid() && audio.readyState < 2) {
+      // Force load the audio
+      audio.src = 'https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/cambridge-audio/cambridge_listening_test_1.mp3';
+    }
     
-    audio.play().then(() => {
-      audioStarted = true;
-      playBtn.innerHTML = '🔊';
-      playBtn.classList.add('playing');
-      playBtn.disabled = true; // Can't pause
-      audioStatus.textContent = 'Playing... Listen carefully!';
-      
-      // Start the quiz timer
-      startTimer();
-    }).catch(err => {
-      console.error('Audio play failed:', err);
-      playBtn.disabled = false;
-      audioStatus.textContent = '❌ Error loading audio. Tap to try again.';
-    });
+    // Load and play
+    const playPromise = audio.play();
+    
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        audioStarted = true;
+        playBtn.innerHTML = '🔊';
+        playBtn.classList.add('playing');
+        playBtn.disabled = true; // Can't pause
+        audioStatus.textContent = 'Playing... Listen carefully!';
+        
+        // Start the quiz timer
+        startTimer();
+      }).catch(err => {
+        console.error('Audio play failed:', err);
+        playBtn.disabled = false;
+        playBtn.innerHTML = '▶';
+        audioStatus.textContent = '❌ Tap again to play. Error: ' + err.message;
+      });
+    }
   }
 
   // Audio error handling
