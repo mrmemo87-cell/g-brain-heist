@@ -121,9 +121,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       grade: profile.grade,
     }));
     
-    // Always open in same window - most reliable across all devices
-    // The test has a "Back to Game" button to return
-    window.location.href = test.url;
+    setActiveTest(test);
   };
 
   const handleTestComplete = () => {
