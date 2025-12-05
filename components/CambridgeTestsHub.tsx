@@ -165,28 +165,25 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
         position: 'fixed',
         top: 0,
         left: 0,
-        right: 0,
-        bottom: 0,
+        width: '100vw',
+        height: '100vh',
         backgroundColor: '#fff',
-        zIndex: 9999, // Higher z-index to cover everything
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        // iOS specific - ensure full height
-        height: '100%',
-        width: '100%',
-        WebkitOverflowScrolling: 'touch',
+        zIndex: 9999,
       }}>
-        {/* Minimal Test Header Bar - non-sticky, part of layout */}
+        {/* Minimal Test Header Bar */}
         <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '50px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '8px 15px',
           background: 'linear-gradient(135deg, #302b63 0%, #24243e 100%)',
           borderBottom: '2px solid #00f5ff',
-          flexShrink: 0,
-          minHeight: '50px',
+          zIndex: 10,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '24px' }}>🎧</span>
@@ -216,16 +213,16 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           </button>
         </div>
         
-        {/* Test iframe - simplified for better compatibility */}
+        {/* Test iframe - absolute positioning for reliable sizing */}
         <iframe
           src={activeTest.url}
           style={{
-            flex: 1,
+            position: 'absolute',
+            top: '52px',
+            left: 0,
             width: '100%',
-            height: 'calc(100% - 50px)', // Full height minus header
+            height: 'calc(100vh - 52px)',
             border: 'none',
-            display: 'block',
-            backgroundColor: '#fff',
           }}
           title={activeTest.name}
           allow="autoplay"
