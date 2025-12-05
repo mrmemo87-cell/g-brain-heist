@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, TeacherAssignmentSummary, TeacherAssignmentReportRow, AssignmentBatch, StudentForAssignment, QuestionOption } from '../types';
 import * as GameService from '../services/gameService';
+import { supabase } from '../services/supabaseClient';
 import BackButton from './BackButton';
 import DiagramBuilder from './geometry/DiagramBuilder';
 
@@ -9,7 +10,7 @@ interface TeacherPortalProps {
   onComplete: () => void;
 }
 
-type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'geometry-diagrams';
+type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'geometry-diagrams' | 'cambridge-reports';
 
 // XP points based on difficulty: Easy=10, Medium=15, Hard=20
 const getDefaultPointsForDifficulty = (diff: QuestionDifficulty): number => {
@@ -75,6 +76,28 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
   const [studentSearchTerm, setStudentSearchTerm] = useState('');
 
+  // Cambridge Test Reports State
+  const [cambridgeScores, setCambridgeScores] = useState<any[]>([]);
+  const [cambridgeLoading, setCambridgeLoading] = useState(false);
+  const [cambridgeQuizFilter, setCambridgeQuizFilter] = useState<string>('all');
+  const [cambridgeClassFilter, setCambridgeClassFilter] = useState<string>('all');
+  const [showCambridgeReport, setShowCambridgeReport] = useState(false);
+  const [showCambridgeAnswers, setShowCambridgeAnswers] = useState(false);
+  const [selectedCambridgeStudent, setSelectedCambridgeStudent] = useState<any | null>(null);
+  const [cambridgeStats, setCambridgeStats] = useState<{
+    totalSubmissions: number;
+    avgPercentage: number;
+    highestScore: { name: string; percentage: number } | null;
+    lowestScore: { name: string; percentage: number } | null;
+    classStats: Record<string, { count: number; avg: number; total: number }>;
+  }>({
+    totalSubmissions: 0,
+    avgPercentage: 0,
+    highestScore: null,
+    lowestScore: null,
+    classStats: {}
+  });
+
   const questionTopicLabel = useMemo(() => (
     topicMode === 'general' ? 'General' : (customTopicName.trim() || 'Custom Topic')
   ), [topicMode, customTopicName]);
@@ -94,14 +117,15 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
       s.batch?.toLowerCase().includes(search)
     );
   }, [availableStudents, studentSearchTerm]);
-  const primarySection = useMemo<'dashboard' | 'questions' | 'assignments' | 'reports'>(() => {
+  const primarySection = useMemo<'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge'>(() => {
     if (view === 'dashboard') return 'dashboard';
     if (view === 'question-bank' || view === 'create-question' || view === 'csv-upload') return 'questions';
     if (view === 'assignments' || view === 'create-assignment') return 'assignments';
+    if (view === 'cambridge-reports') return 'cambridge';
     return 'reports';
   }, [view]);
 
-  const changeSection = (section: 'dashboard' | 'questions' | 'assignments' | 'reports') => {
+  const changeSection = (section: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge') => {
     switch (section) {
       case 'dashboard':
         setView('dashboard');
@@ -117,6 +141,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
         setSelectedReportAssignment(null);
         setAssignmentReport([]);
         setView('reports');
+        break;
+      case 'cambridge':
+        setView('cambridge-reports');
+        loadCambridgeScores();
         break;
       default:
         setView('dashboard');
@@ -138,6 +166,277 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     } catch (error) {
       console.error('Error loading assignments:', error);
     }
+  };
+
+  // Correct answers for Cambridge tests
+  const correctAnswers: Record<string, Record<number, string>> = {
+    'Cambridge Reading 25': {
+      1:"common", 2:"typically", 3:"access", 4:"stay", 5:"hunt", 6:"defend", 7:"escape", 8:"number",
+      9:"B", 10:"A", 11:"A", 12:"C", 13:"A",
+      14:"G", 15:"D", 16:"F", 17:"A", 18:"C",
+      19:"nothing", 20:"be", 21:"for", 22:"can", 23:"the", 24:"if", 25:"would", 26:"to",
+      27:"C", 28:"A", 29:"B", 30:"C", 31:"A", 32:"D", 33:"C", 34:"A", 35:"B", 36:"C",
+      37:"C", 38:"B", 39:"D", 40:"A", 41:"B", 42:"C"
+    },
+    'Cambridge Listening Test 1': {
+      1:"C", 2:"A", 3:"B", 4:"B", 5:"C",
+      6:"B", 7:"B", 8:"A", 9:"C", 10:"A",
+      11:"Thursdays", 12:"flute", 13:"dance studio", 14:"restaurant", 15:"DRASTLE",
+      16:"B", 17:"C", 18:"C", 19:"A", 20:"A",
+      21:"H", 22:"E", 23:"D", 24:"C", 25:"B"
+    }
+  };
+
+  // Skill categories for analysis
+  const skillCategories: Record<string, Record<string, { questions: number[]; icon: string }>> = {
+    'Cambridge Reading 25': {
+      "Vocabulary & Context": { questions: [1,2,3,4,5,6,7,8], icon: "📚" },
+      "Reading Comprehension": { questions: [9,10,11,12,13], icon: "📖" },
+      "Scanning & Matching": { questions: [14,15,16,17,18], icon: "🔍" },
+      "Grammar & Structure": { questions: [19,20,21,22,23,24,25,26], icon: "✍️" },
+      "Detailed Analysis": { questions: [27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42], icon: "🎯" }
+    },
+    'Cambridge Listening Test 1': {
+      "Picture Selection": { questions: [1,2,3,4,5], icon: "🖼️" },
+      "Multiple Choice": { questions: [6,7,8,9,10], icon: "📝" },
+      "Form Completion": { questions: [11,12,13,14,15], icon: "📋" },
+      "Interview Comprehension": { questions: [16,17,18,19,20], icon: "🎤" },
+      "Speaker Matching": { questions: [21,22,23,24,25], icon: "🔊" }
+    }
+  };
+
+  // Section definitions for answer details
+  const testSections: Record<string, Array<{ name: string; icon: string; questions: number[] }>> = {
+    'Cambridge Reading 25': [
+      { name: "Part 1: Vocabulary & Context", icon: "📚", questions: [1,2,3,4,5,6,7,8] },
+      { name: "Part 2: Reading Comprehension", icon: "📖", questions: [9,10,11,12,13] },
+      { name: "Part 3: Matching Paragraphs", icon: "🔍", questions: [14,15,16,17,18] },
+      { name: "Part 4: Grammar & Gap Fill", icon: "✍️", questions: [19,20,21,22,23,24,25,26] },
+      { name: "Part 5: Detailed Comprehension", icon: "🎯", questions: [27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42] }
+    ],
+    'Cambridge Listening Test 1': [
+      { name: "Part 1: Picture Selection", icon: "🖼️", questions: [1,2,3,4,5] },
+      { name: "Part 2: Multiple Choice", icon: "📝", questions: [6,7,8,9,10] },
+      { name: "Part 3: Form Completion", icon: "📋", questions: [11,12,13,14,15] },
+      { name: "Part 4: Interview", icon: "🎤", questions: [16,17,18,19,20] },
+      { name: "Part 5: Speaker Matching", icon: "🔊", questions: [21,22,23,24,25] }
+    ]
+  };
+
+  // Action plans for improvement
+  const actionPlans: Record<string, { title: string; tips: string[] }> = {
+    "Vocabulary & Context": {
+      title: "Build Your Vocabulary",
+      tips: ["Read for 15-20 minutes daily", "Create flashcards for new words", "Use new words in your own writing"]
+    },
+    "Reading Comprehension": {
+      title: "Strengthen Reading Skills",
+      tips: ["Read questions first before the passage", "Underline keywords in questions", "Practice summarizing paragraphs"]
+    },
+    "Scanning & Matching": {
+      title: "Improve Scanning Technique",
+      tips: ["Practice finding specific names and dates", "Identify topic sentences", "Look for synonyms"]
+    },
+    "Grammar & Structure": {
+      title: "Master Grammar Patterns",
+      tips: ["Review preposition rules", "Study common collocations", "Read the complete sentence before answering"]
+    },
+    "Detailed Analysis": {
+      title: "Develop Analytical Reading",
+      tips: ["Pay attention to contrast words", "Be skeptical of extreme answers", "Find evidence in the text"]
+    },
+    "Picture Selection": {
+      title: "Improve Visual Listening",
+      tips: ["Study all pictures before audio plays", "Note key differences between options", "Listen for specific details"]
+    },
+    "Multiple Choice": {
+      title: "Master MCQ Listening",
+      tips: ["Read all options before listening", "Eliminate obviously wrong answers", "Listen for synonyms"]
+    },
+    "Form Completion": {
+      title: "Improve Note-Taking",
+      tips: ["Predict what type of word is needed", "Pay attention to spelling", "Listen for numbers and names"]
+    },
+    "Interview Comprehension": {
+      title: "Understand Conversations",
+      tips: ["Focus on the speaker's main point", "Listen for opinion words", "Note changes in tone"]
+    },
+    "Speaker Matching": {
+      title: "Match Speakers Accurately",
+      tips: ["Listen for key phrases", "Match feelings/opinions to speakers", "Don't be confused by similar content"]
+    }
+  };
+
+  // Load Cambridge test scores for teacher's classes
+  const loadCambridgeScores = async () => {
+    setCambridgeLoading(true);
+    try {
+      // Get the teacher's batch/class from profile (teachers see students in their assigned classes)
+      // For now, load all scores and filter by class if needed
+      const { data, error } = await supabase
+        .from('quiz_scores')
+        .select('*')
+        .order('submitted_at', { ascending: false });
+
+      if (error) throw error;
+
+      const scores = data || [];
+      
+      // Filter by teacher's classes if profile.batch is set
+      // Teachers can see all classes they teach
+      const teacherBatch = profile.batch;
+      let filteredScores = scores;
+      
+      // If teacher has a specific batch assigned, filter to only show those students
+      // But most teachers should see all students, so we'll show all by default
+      // This can be enhanced later with a teacher_classes table
+      
+      setCambridgeScores(filteredScores);
+
+      // Calculate stats
+      if (filteredScores.length > 0) {
+        const avgPercentage = Math.round(filteredScores.reduce((sum, s) => sum + (s.percentage || 0), 0) / filteredScores.length);
+        const sorted = [...filteredScores].sort((a, b) => b.percentage - a.percentage);
+        const highestScore = sorted[0] ? { name: sorted[0].student_name, percentage: sorted[0].percentage } : null;
+        const lowestScore = sorted[sorted.length - 1] ? { name: sorted[sorted.length - 1].student_name, percentage: sorted[sorted.length - 1].percentage } : null;
+        
+        // Class stats
+        const classStats: Record<string, { count: number; avg: number; total: number }> = {};
+        filteredScores.forEach(s => {
+          const cls = s.student_class || 'Unknown';
+          if (!classStats[cls]) classStats[cls] = { count: 0, avg: 0, total: 0 };
+          classStats[cls].count++;
+          classStats[cls].total += s.percentage || 0;
+        });
+        Object.keys(classStats).forEach(cls => {
+          classStats[cls].avg = Math.round(classStats[cls].total / classStats[cls].count);
+        });
+
+        setCambridgeStats({
+          totalSubmissions: filteredScores.length,
+          avgPercentage,
+          highestScore,
+          lowestScore,
+          classStats
+        });
+      } else {
+        setCambridgeStats({
+          totalSubmissions: 0,
+          avgPercentage: 0,
+          highestScore: null,
+          lowestScore: null,
+          classStats: {}
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch Cambridge scores:', error);
+    } finally {
+      setCambridgeLoading(false);
+    }
+  };
+
+  // Get unique quiz names and classes for filters
+  const uniqueCambridgeQuizNames = [...new Set(cambridgeScores.map(s => s.quiz_name))];
+  const uniqueCambridgeClasses = [...new Set(cambridgeScores.map(s => s.student_class || 'Unknown'))].sort();
+
+  // Filter Cambridge scores
+  const filteredCambridgeScores = cambridgeScores.filter(s => {
+    if (cambridgeQuizFilter !== 'all' && s.quiz_name !== cambridgeQuizFilter) return false;
+    if (cambridgeClassFilter !== 'all' && (s.student_class || 'Unknown') !== cambridgeClassFilter) return false;
+    return true;
+  });
+
+  // Format time taken
+  const formatCambridgeTime = (seconds: number) => {
+    if (!seconds) return '-';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}m ${secs}s`;
+  };
+
+  // Analyze skill performance for a student
+  const analyzeSkillPerformance = (student: any) => {
+    const quizName = student.quiz_name;
+    const answers = student.answers || {};
+    const correct = correctAnswers[quizName] || {};
+    const skills = skillCategories[quizName] || {};
+    
+    const result: Record<string, { correct: number; total: number; percentage: number; icon: string }> = {};
+    
+    Object.entries(skills).forEach(([skill, data]) => {
+      let skillCorrect = 0;
+      data.questions.forEach(q => {
+        const studentAns = (answers[q] || '').toString().trim().toLowerCase();
+        const correctAns = (correct[q] || '').toString().toLowerCase();
+        if (studentAns === correctAns) skillCorrect++;
+      });
+      result[skill] = {
+        correct: skillCorrect,
+        total: data.questions.length,
+        percentage: Math.round((skillCorrect / data.questions.length) * 100),
+        icon: data.icon
+      };
+    });
+    
+    return result;
+  };
+
+  // Get grade based on percentage
+  const getGrade = (percentage: number) => {
+    if (percentage >= 90) return 'A+';
+    if (percentage >= 80) return 'A';
+    if (percentage >= 70) return 'B';
+    if (percentage >= 60) return 'C';
+    if (percentage >= 50) return 'D';
+    return 'F';
+  };
+
+  // Get encouragement based on grade
+  const getEncouragement = (grade: string) => {
+    switch (grade) {
+      case 'A+': return { title: "🌟 Outstanding Achievement!", message: "You've mastered this material! Keep challenging yourself with advanced content." };
+      case 'A': return { title: "🎯 Excellent Work!", message: "You're performing at a high level. Focus on the few areas that need polish." };
+      case 'B': return { title: "👍 Good Progress!", message: "You have a solid foundation. Target your weak areas for improvement." };
+      case 'C': return { title: "📈 Room to Grow", message: "You're on the right track. More practice will boost your scores." };
+      case 'D': return { title: "💪 Keep Pushing!", message: "Don't give up! Focus on understanding core concepts." };
+      default: return { title: "🚀 Start Your Journey", message: "Every expert was once a beginner. Let's work on building your skills." };
+    }
+  };
+
+  // Open report modal
+  const openCambridgeReport = (student: any) => {
+    setSelectedCambridgeStudent(student);
+    setShowCambridgeReport(true);
+  };
+
+  // Open answers modal
+  const openCambridgeAnswers = (student: any) => {
+    setSelectedCambridgeStudent(student);
+    setShowCambridgeAnswers(true);
+  };
+
+  // Export Cambridge results to CSV
+  const exportCambridgeCSV = () => {
+    if (filteredCambridgeScores.length === 0) return;
+    
+    const headers = ['Student Name', 'Class', 'Test', 'Score', 'Total', 'Percentage', 'Time (seconds)', 'Submitted At'];
+    const rows = filteredCambridgeScores.map(r => [
+      r.student_name,
+      r.student_class || '',
+      r.quiz_name,
+      r.score,
+      r.total_questions,
+      r.percentage,
+      r.time_taken_seconds || '',
+      r.submitted_at
+    ]);
+    
+    const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `cambridge_results_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
   };
 
   const loadTeacherData = async () => {
@@ -688,6 +987,18 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           <div className="text-6xl mb-3">📊</div>
           <div className="font-heading text-2xl text-blue-300 font-bold">Reports</div>
           <div className="text-sm text-gray-400 mt-2">Track accuracy and completion</div>
+        </button>
+
+        <button
+          onClick={() => {
+            setView('cambridge-reports');
+            loadCambridgeScores();
+          }}
+          className="card-glass p-8 hover:scale-105 transition-transform border-2 border-teal-500/50 hover:border-teal-500"
+        >
+          <div className="text-6xl mb-3">📝</div>
+          <div className="font-heading text-2xl text-teal-400 font-bold">Cambridge Tests</div>
+          <div className="text-sm text-gray-400 mt-2">View student test results & detailed answers</div>
         </button>
       </div>
     </div>
@@ -1819,6 +2130,445 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     </div>
   );
 
+  // Render Cambridge Reports View
+  const renderCambridgeReports = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="font-heading text-3xl text-teal-400 font-bold">📝 Cambridge Test Reports</h2>
+          <p className="text-gray-400 mt-1">View detailed student answers and performance reports</p>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={loadCambridgeScores}
+            disabled={cambridgeLoading}
+            className="bg-teal-600/30 hover:bg-teal-600/50 border border-teal-400 text-white font-semibold px-5 py-2 rounded-lg transition-all"
+          >
+            {cambridgeLoading ? '⏳ Loading...' : '🔄 Refresh'}
+          </button>
+          {cambridgeScores.length > 0 && (
+            <button
+              onClick={exportCambridgeCSV}
+              className="bg-green-600/30 hover:bg-green-600/50 border border-green-400 text-white font-semibold px-5 py-2 rounded-lg transition-all"
+            >
+              📥 Export CSV
+            </button>
+          )}
+        </div>
+      </div>
+
+      {cambridgeScores.length > 0 && (
+        <>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="card-glass p-4 border-l-4 border-teal-500">
+              <p className="text-sm text-gray-400">Total Submissions</p>
+              <p className="text-3xl font-bold text-teal-400">{cambridgeStats.totalSubmissions}</p>
+            </div>
+            <div className="card-glass p-4 border-l-4 border-blue-500">
+              <p className="text-sm text-gray-400">Average Score</p>
+              <p className="text-3xl font-bold text-blue-400">{cambridgeStats.avgPercentage}%</p>
+            </div>
+            <div className="card-glass p-4 border-l-4 border-green-500">
+              <p className="text-sm text-gray-400">Highest Score</p>
+              <p className="text-xl font-bold text-green-400">{cambridgeStats.highestScore?.name || '-'}</p>
+              <p className="text-sm text-gray-500">{cambridgeStats.highestScore ? `${cambridgeStats.highestScore.percentage}%` : ''}</p>
+            </div>
+            <div className="card-glass p-4 border-l-4 border-red-500">
+              <p className="text-sm text-gray-400">Lowest Score</p>
+              <p className="text-xl font-bold text-red-400">{cambridgeStats.lowestScore?.name || '-'}</p>
+              <p className="text-sm text-gray-500">{cambridgeStats.lowestScore ? `${cambridgeStats.lowestScore.percentage}%` : ''}</p>
+            </div>
+          </div>
+
+          {/* Class Performance Summary */}
+          <div className="card-glass p-4">
+            <h4 className="text-lg font-bold text-teal-300 mb-3">📊 Class Performance</h4>
+            <div className="flex flex-wrap gap-3">
+              {Object.entries(cambridgeStats.classStats).sort((a, b) => b[1].avg - a[1].avg).map(([cls, stats]) => (
+                <div key={cls} className="bg-black/40 border border-gray-600 rounded-lg px-4 py-2">
+                  <p className="font-bold text-white">{cls}</p>
+                  <p className="text-sm text-gray-400">
+                    {stats.count} students • Avg: <span className={stats.avg >= 70 ? 'text-green-400' : stats.avg >= 50 ? 'text-yellow-400' : 'text-red-400'}>{stats.avg}%</span>
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-wrap gap-4">
+            <div>
+              <label className="text-sm text-gray-400 block mb-1">Filter by Test</label>
+              <select
+                value={cambridgeQuizFilter}
+                onChange={(e) => setCambridgeQuizFilter(e.target.value)}
+                className="bg-black/40 border border-teal-400/50 rounded-lg px-4 py-2 text-white min-w-[200px]"
+              >
+                <option value="all">All Tests</option>
+                {uniqueCambridgeQuizNames.map(name => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-sm text-gray-400 block mb-1">Filter by Class</label>
+              <select
+                value={cambridgeClassFilter}
+                onChange={(e) => setCambridgeClassFilter(e.target.value)}
+                className="bg-black/40 border border-teal-400/50 rounded-lg px-4 py-2 text-white min-w-[150px]"
+              >
+                <option value="all">All Classes</option>
+                {uniqueCambridgeClasses.map(cls => (
+                  <option key={cls} value={cls}>{cls}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-end">
+              <p className="text-gray-400">Showing {filteredCambridgeScores.length} of {cambridgeScores.length} results</p>
+            </div>
+          </div>
+
+          {/* Results Table */}
+          <div className="card-glass p-4 overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-teal-400/50">
+                  <th className="px-4 py-3 text-teal-300">Student</th>
+                  <th className="px-4 py-3 text-teal-300">Class</th>
+                  <th className="px-4 py-3 text-teal-300">Test</th>
+                  <th className="px-4 py-3 text-teal-300">Score</th>
+                  <th className="px-4 py-3 text-teal-300">%</th>
+                  <th className="px-4 py-3 text-teal-300">Time</th>
+                  <th className="px-4 py-3 text-teal-300">Submitted</th>
+                  <th className="px-4 py-3 text-teal-300">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCambridgeScores.map((score) => (
+                  <tr key={score.id} className="border-b border-gray-700 hover:bg-black/30">
+                    <td className="px-4 py-3 text-white font-semibold">{score.student_name}</td>
+                    <td className="px-4 py-3 text-gray-300">{score.student_class || '-'}</td>
+                    <td className="px-4 py-3 text-gray-300 text-sm">{score.quiz_name}</td>
+                    <td className="px-4 py-3">
+                      <span className="font-mono text-white">{score.score}/{score.total_questions}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`font-bold ${
+                        score.percentage >= 70 ? 'text-green-400' :
+                        score.percentage >= 50 ? 'text-yellow-400' : 'text-red-400'
+                      }`}>{score.percentage}%</span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-400 text-sm">{formatCambridgeTime(score.time_taken_seconds)}</td>
+                    <td className="px-4 py-3 text-gray-400 text-sm">
+                      {new Date(score.submitted_at).toLocaleDateString()} {new Date(score.submitted_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2 flex-wrap">
+                        <button
+                          onClick={() => openCambridgeAnswers(score)}
+                          className="bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400 text-white text-xs px-3 py-1 rounded"
+                        >
+                          📝 Answers
+                        </button>
+                        <button
+                          onClick={() => openCambridgeReport(score)}
+                          className="bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400 text-white text-xs px-3 py-1 rounded"
+                        >
+                          📄 Report
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      {cambridgeScores.length === 0 && !cambridgeLoading && (
+        <div className="card-glass p-12 text-center">
+          <div className="text-6xl mb-4">📭</div>
+          <p className="text-xl text-gray-400">No test submissions yet</p>
+          <p className="text-sm text-gray-500 mt-2">Click "Refresh" to check for new submissions</p>
+        </div>
+      )}
+
+      {/* Performance Report Modal */}
+      {showCambridgeReport && selectedCambridgeStudent && (() => {
+        const skillPerf = analyzeSkillPerformance(selectedCambridgeStudent);
+        const sortedSkills = Object.entries(skillPerf).sort((a, b) => a[1].percentage - b[1].percentage);
+        const weakAreas = sortedSkills.filter(([_, data]) => data.percentage < 70);
+        const grade = getGrade(selectedCambridgeStudent.percentage);
+        const encouragement = getEncouragement(grade);
+        
+        return (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4 overflow-y-auto">
+            <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[95vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
+              {/* Report Header */}
+              <div className="p-6 border-b-4 border-purple-600">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-3">
+                    <span className="text-4xl">🧠</span>
+                    <div>
+                      <h1 className="text-2xl font-bold text-purple-800">Brains Heist</h1>
+                      <p className="text-sm text-gray-500">Student Performance Report</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <h2 className="text-lg font-semibold text-purple-800">{selectedCambridgeStudent.quiz_name}</h2>
+                    <p className="text-sm text-gray-500">Generated: {new Date().toLocaleDateString()}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Student Banner */}
+              <div className="bg-gradient-to-r from-purple-800 to-indigo-900 text-white p-6 flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold">{selectedCambridgeStudent.student_name}</h2>
+                  <p className="opacity-80">Class: {selectedCambridgeStudent.student_class || 'N/A'} | Completed: {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString()} | Time: {formatCambridgeTime(selectedCambridgeStudent.time_taken_seconds)}</p>
+                </div>
+                <div className="w-20 h-20 rounded-full bg-white flex flex-col items-center justify-center">
+                  <span className="text-3xl font-bold text-purple-800">{grade}</span>
+                  <span className="text-xs text-gray-600">{selectedCambridgeStudent.percentage}%</span>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Skills Performance */}
+                <div>
+                  <h3 className="text-lg font-semibold text-purple-800 border-b-2 border-gray-200 pb-2 mb-4">📊 Skills Performance Analysis</h3>
+                  <div className="space-y-3">
+                    {sortedSkills.map(([skill, data]) => (
+                      <div key={skill} className="flex items-center gap-3">
+                        <span className="w-48 text-sm text-gray-600">{data.icon} {skill}</span>
+                        <div className="flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full rounded-full transition-all ${data.percentage >= 80 ? 'bg-green-500' : data.percentage >= 65 ? 'bg-blue-500' : data.percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                            style={{ width: `${data.percentage}%` }}
+                          />
+                        </div>
+                        <span className="w-20 text-sm font-semibold text-right">{data.correct}/{data.total} ({data.percentage}%)</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Focus Areas */}
+                {weakAreas.length > 0 && (
+                  <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
+                    <h4 className="font-semibold text-amber-800 mb-2">⚠️ Priority Focus Areas</h4>
+                    <ul className="text-sm text-gray-700 space-y-1">
+                      {weakAreas.map(([skill, data]) => (
+                        <li key={skill}>• <strong>{skill}</strong> — {data.percentage}% ({data.correct}/{data.total} correct)</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Action Plan */}
+                <div className="border-2 border-purple-600 rounded-xl p-5">
+                  <h3 className="text-lg font-semibold text-purple-800 mb-4">📋 Personalized Action Plan</h3>
+                  {weakAreas.length > 0 ? weakAreas.slice(0, 3).map(([skill, data], idx) => {
+                    const plan = actionPlans[skill];
+                    return plan ? (
+                      <div key={skill} className="flex gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
+                        <div className="w-8 h-8 bg-purple-800 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">{idx + 1}</div>
+                        <div>
+                          <h4 className="font-semibold text-gray-800">{plan.title} (Currently {data.percentage}%)</h4>
+                          <p className="text-sm text-gray-600">{plan.tips.join(' • ')}</p>
+                        </div>
+                      </div>
+                    ) : null;
+                  }) : (
+                    <div className="flex gap-4 p-4 bg-green-50 rounded-lg">
+                      <div className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">✓</div>
+                      <div>
+                        <h4 className="font-semibold text-gray-800">Maintain Your Excellence</h4>
+                        <p className="text-sm text-gray-600">Continue challenging yourself • Read diverse texts daily • Help classmates who are struggling</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Encouragement */}
+                <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-xl text-center">
+                  <h3 className="text-xl font-bold mb-2">{encouragement.title}</h3>
+                  <p className="opacity-90">{encouragement.message}</p>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 border-t flex justify-between items-center text-xs text-gray-400">
+                <span>Brains Heist Learning Platform</span>
+                <span>Report ID: {selectedCambridgeStudent.id?.substring(0, 8) || 'N/A'}</span>
+                <div className="flex gap-3">
+                  <button onClick={() => window.print()} className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">🖨️ Print</button>
+                  <button onClick={() => setShowCambridgeReport(false)} className="px-4 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Answer Reflection Modal */}
+      {showCambridgeAnswers && selectedCambridgeStudent && (() => {
+        const answers = selectedCambridgeStudent.answers || {};
+        const quizName = selectedCambridgeStudent.quiz_name;
+        const correct = correctAnswers[quizName] || {};
+        const sections = testSections[quizName] || [];
+        
+        let correctCount = 0, wrongCount = 0, unansweredCount = 0;
+        const mistakes: Array<{ q: number; studentAns: string; correctAns: string; unanswered: boolean }> = [];
+        
+        Object.keys(correct).forEach(qStr => {
+          const q = parseInt(qStr);
+          const studentAns = (answers[q] || '').toString().trim();
+          const correctAns = correct[q] || '';
+          
+          if (!studentAns) {
+            unansweredCount++;
+            mistakes.push({ q, studentAns: '(No answer)', correctAns, unanswered: true });
+          } else if (studentAns.toLowerCase() === correctAns.toLowerCase()) {
+            correctCount++;
+          } else {
+            wrongCount++;
+            mistakes.push({ q, studentAns, correctAns, unanswered: false });
+          }
+        });
+        
+        return (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4 overflow-y-auto">
+            <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[95vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
+              {/* Header */}
+              <div className="p-6 border-b-4 border-blue-600">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-3">
+                    <span className="text-4xl">🧠</span>
+                    <div>
+                      <h1 className="text-2xl font-bold text-blue-800">Brains Heist</h1>
+                      <p className="text-sm text-gray-500">Test Reflection & Answer Review</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <h2 className="text-lg font-semibold text-blue-800">{selectedCambridgeStudent.quiz_name}</h2>
+                    <p className="text-sm text-gray-500">Answer Details</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Student Info Banner */}
+              <div className="bg-gradient-to-r from-blue-700 to-purple-800 text-white p-5 flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-bold">{selectedCambridgeStudent.student_name}</h2>
+                  <p className="text-sm opacity-80">Class: {selectedCambridgeStudent.student_class || 'N/A'} | {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString()}</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold">{selectedCambridgeStudent.score}/{selectedCambridgeStudent.total_questions}</div>
+                  <div className="text-sm opacity-80">{selectedCambridgeStudent.percentage}% Score</div>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Summary Stats */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-green-100 p-4 rounded-xl text-center">
+                    <div className="text-3xl">✓</div>
+                    <div className="text-3xl font-bold text-green-700">{correctCount}</div>
+                    <div className="text-sm text-gray-600">Correct</div>
+                  </div>
+                  <div className="bg-red-100 p-4 rounded-xl text-center">
+                    <div className="text-3xl">✗</div>
+                    <div className="text-3xl font-bold text-red-700">{wrongCount}</div>
+                    <div className="text-sm text-gray-600">Wrong</div>
+                  </div>
+                  <div className="bg-amber-100 p-4 rounded-xl text-center">
+                    <div className="text-3xl">⚠️</div>
+                    <div className="text-3xl font-bold text-amber-700">{unansweredCount}</div>
+                    <div className="text-sm text-gray-600">Unanswered</div>
+                  </div>
+                </div>
+
+                {/* Mistakes Summary */}
+                {mistakes.length > 0 && (
+                  <div className="border-2 border-red-400 rounded-xl p-4">
+                    <h4 className="font-semibold text-red-800 mb-3">❌ Questions to Review ({mistakes.length})</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[200px] overflow-y-auto">
+                      {mistakes.map((m) => (
+                        <div key={m.q} className={`p-2 rounded-lg text-sm ${m.unanswered ? 'bg-amber-50 border border-amber-300' : 'bg-red-50 border border-red-300'}`}>
+                          <span className="font-bold text-gray-700">Q{m.q}:</span>
+                          <span className={`ml-2 ${m.unanswered ? 'text-amber-600' : 'text-red-600'}`}>{m.studentAns}</span>
+                          <span className="text-gray-400 mx-1">→</span>
+                          <span className="text-green-600 font-semibold">{m.correctAns}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Detailed Answers by Section */}
+                {sections.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-blue-800 mb-3">📋 Detailed Answers by Section</h4>
+                    {sections.map((section) => (
+                      <div key={section.name} className="mb-4 border border-gray-200 rounded-xl overflow-hidden">
+                        <div className="bg-gray-100 px-4 py-2 font-semibold text-gray-700">
+                          {section.icon} {section.name}
+                        </div>
+                        <div className="p-4">
+                          <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
+                            {section.questions.map((q) => {
+                              const studentAns = (answers[q] || '').toString().trim();
+                              const correctAns = correct[q] || '';
+                              const isCorrect = studentAns.toLowerCase() === correctAns.toLowerCase();
+                              const isEmpty = !studentAns;
+                              
+                              return (
+                                <div
+                                  key={q}
+                                  className={`p-2 rounded-lg text-center text-xs ${
+                                    isEmpty ? 'bg-amber-100 border border-amber-300' :
+                                    isCorrect ? 'bg-green-100 border border-green-300' :
+                                    'bg-red-100 border border-red-300'
+                                  }`}
+                                  title={`Q${q}: Student: "${studentAns || '(empty)'}" | Correct: "${correctAns}"`}
+                                >
+                                  <div className="font-bold text-gray-700">Q{q}</div>
+                                  <div className={`font-semibold ${isEmpty ? 'text-amber-600' : isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                                    {isEmpty ? '—' : studentAns}
+                                  </div>
+                                  {!isCorrect && !isEmpty && (
+                                    <div className="text-green-600 text-xs mt-1">✓ {correctAns}</div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 border-t flex justify-between items-center text-xs text-gray-400">
+                <span>Report ID: {selectedCambridgeStudent.id?.substring(0, 8) || 'N/A'}</span>
+                <span>Confidential — For Student & Teacher Use Only</span>
+                <div className="flex gap-3">
+                  <button onClick={() => window.print()} className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">🖨️ Print</button>
+                  <button onClick={() => setShowCambridgeAnswers(false)} className="px-4 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -1827,11 +2577,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     );
   }
 
-  const navTabs: Array<{ id: 'dashboard' | 'questions' | 'assignments' | 'reports'; label: string; icon: string }> = [
+  const navTabs: Array<{ id: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge'; label: string; icon: string }> = [
     { id: 'dashboard', label: 'Overview', icon: '🏠' },
     { id: 'questions', label: 'Questions', icon: '📚' },
     { id: 'assignments', label: 'Assignments', icon: '🗂️' },
     { id: 'reports', label: 'Reports', icon: '📊' },
+    { id: 'cambridge', label: 'Cambridge Tests', icon: '📝' },
   ];
 
   const containerSpacing = view === 'question-bank'
@@ -1864,6 +2615,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         {view === 'create-assignment' && renderCreateAssignment()}
         {view === 'reports' && renderReports()}
         {view === 'report-detail' && renderReportDetail()}
+        {view === 'cambridge-reports' && renderCambridgeReports()}
         {view === 'geometry-diagrams' && teacher && (
           <DiagramBuilder
             teacherId={teacher.id}
