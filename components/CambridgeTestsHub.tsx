@@ -230,29 +230,20 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           </button>
         </div>
         
-        {/* Test iframe container - necessary for iOS */}
-        <div style={{
-          flex: 1,
-          width: '100%',
-          overflow: 'auto',
-          WebkitOverflowScrolling: 'touch',
-          position: 'relative',
-        }}>
-          <iframe
-            src={activeTest.url}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              border: 'none',
-              display: 'block',
-            }}
-            title={activeTest.name}
-            scrolling="yes"
-          />
-        </div>
+        {/* Test iframe - simplified for better compatibility */}
+        <iframe
+          src={activeTest.url}
+          style={{
+            flex: 1,
+            width: '100%',
+            height: 'calc(100% - 50px)', // Full height minus header
+            border: 'none',
+            display: 'block',
+            backgroundColor: '#fff',
+          }}
+          title={activeTest.name}
+          allow="autoplay"
+        />
       </div>
     );
   }
