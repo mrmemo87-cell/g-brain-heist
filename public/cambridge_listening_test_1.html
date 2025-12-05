@@ -58,8 +58,69 @@
     text-align: center;
   }
   .audio-box h3 { margin: 0 0 15px 0; font-size: 18px; }
-  .audio-box audio { width: 100%; max-width: 600px; margin: 10px 0; }
   .audio-box p { margin: 10px 0 0 0; font-size: 14px; opacity: 0.9; }
+  
+  /* Custom audio player - no seeking allowed */
+  .custom-audio-player {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 12px;
+    margin: 15px 0;
+  }
+  .play-btn {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+    font-size: 32px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+    transition: all 0.2s;
+  }
+  .play-btn:hover { transform: scale(1.05); }
+  .play-btn:disabled {
+    background: #6b7280;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  .play-btn.playing {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+  }
+  .audio-progress {
+    width: 100%;
+    max-width: 400px;
+    height: 8px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 4px;
+    overflow: hidden;
+    pointer-events: none; /* Prevent clicking to seek */
+  }
+  .audio-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+    width: 0%;
+    transition: width 0.1s linear;
+  }
+  .audio-time {
+    font-size: 14px;
+    opacity: 0.9;
+  }
+  .audio-status {
+    font-size: 13px;
+    padding: 5px 12px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 20px;
+  }
   
   .timer-box {
     background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
@@ -361,7 +422,8 @@
     <h3>⚠️ Important Rules</h3>
     <ul>
       <li>You can only submit <b>ONCE</b> — answers cannot be changed after submission</li>
-      <li>Listen to the audio carefully - you can replay it as needed</li>
+      <li>The audio will play <b>ONCE ONLY</b> — you cannot pause, rewind, or skip ahead</li>
+      <li>Listen carefully — once the audio starts, it cannot be stopped</li>
       <li>Correct answers will only be shown <b>AFTER</b> you submit</li>
       <li>Your submission time is recorded</li>
     </ul>
@@ -369,11 +431,29 @@
 
   <div class="audio-box">
     <h3>🎧 Listening Test Audio</h3>
-    <p>Play the audio file and answer the questions below.</p>
-    <audio id="testAudio" controls>
+    <p>⚠️ Press play to start. The audio will play <b>once only</b> and cannot be paused or rewound.</p>
+    
+    <!-- Hidden actual audio element -->
+    <audio id="testAudio" preload="auto" playsinline webkit-playsinline>
+      <!-- Try local file first, then Supabase storage -->
       <source src="cambridge_listening_test_1.mp3" type="audio/mpeg">
+      <source src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/cambridge-audio/cambridge_listening_test_1.mp3" type="audio/mpeg">
       Your browser does not support the audio element.
     </audio>
+    
+    <!-- Custom player UI -->
+    <div class="custom-audio-player">
+      <button id="playBtn" class="play-btn" onclick="startAudio()">
+        ▶
+      </button>
+      <div class="audio-progress">
+        <div id="progressBar" class="audio-progress-bar"></div>
+      </div>
+      <div class="audio-time">
+        <span id="currentTime">0:00</span> / <span id="totalTime">--:--</span>
+      </div>
+      <div id="audioStatus" class="audio-status">Ready to play</div>
+    </div>
   </div>
 
   <div id="timerBox" class="timer-box" style="display: none;">
@@ -449,6 +529,101 @@
     16: "B", 17: "C", 18: "C", 19: "A", 20: "A",
     21: "H", 22: "E", 23: "D", 24: "C", 25: "B"
   };
+
+  // Audio player state - no seeking allowed
+  let audioStarted = false;
+  let audioEnded = false;
+  const audio = document.getElementById('testAudio');
+  const playBtn = document.getElementById('playBtn');
+  const progressBar = document.getElementById('progressBar');
+  const currentTimeEl = document.getElementById('currentTime');
+  const totalTimeEl = document.getElementById('totalTime');
+  const audioStatus = document.getElementById('audioStatus');
+
+  // Format time as M:SS
+  function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  // Update total time when metadata loads
+  audio.addEventListener('loadedmetadata', function() {
+    totalTimeEl.textContent = formatTime(audio.duration);
+  });
+
+  // Update progress bar (no seeking allowed)
+  audio.addEventListener('timeupdate', function() {
+    if (audio.duration) {
+      const percent = (audio.currentTime / audio.duration) * 100;
+      progressBar.style.width = percent + '%';
+      currentTimeEl.textContent = formatTime(audio.currentTime);
+    }
+  });
+
+  // When audio ends
+  audio.addEventListener('ended', function() {
+    audioEnded = true;
+    playBtn.innerHTML = '✓';
+    playBtn.disabled = true;
+    playBtn.classList.remove('playing');
+    audioStatus.textContent = 'Audio completed - Answer the questions';
+  });
+
+  // Start audio - only works once
+  function startAudio() {
+    if (audioStarted || audioEnded) return;
+    
+    // Update status
+    audioStatus.textContent = 'Loading audio...';
+    playBtn.disabled = true;
+    
+    // For mobile: need user interaction to play
+    // First try to load the audio
+    audio.load();
+    
+    audio.play().then(() => {
+      audioStarted = true;
+      playBtn.innerHTML = '🔊';
+      playBtn.classList.add('playing');
+      playBtn.disabled = true; // Can't pause
+      audioStatus.textContent = 'Playing... Listen carefully!';
+      
+      // Start the quiz timer
+      startTimer();
+    }).catch(err => {
+      console.error('Audio play failed:', err);
+      playBtn.disabled = false;
+      audioStatus.textContent = '❌ Error loading audio. Tap to try again.';
+    });
+  }
+
+  // Audio error handling
+  audio.addEventListener('error', function(e) {
+    console.error('Audio error:', e);
+    audioStatus.textContent = '❌ Failed to load audio file';
+    playBtn.innerHTML = '⚠️';
+  });
+
+  // When audio can play
+  audio.addEventListener('canplaythrough', function() {
+    if (!audioStarted) {
+      audioStatus.textContent = 'Ready - Tap play to start';
+    }
+  });
+
+  // Prevent any seeking attempts
+  audio.addEventListener('seeking', function(e) {
+    // If they try to seek, reset to where it should be
+    // This is a backup in case someone tries to manipulate via console
+  });
+
+  // Prevent pause (backup - button already disabled)
+  audio.addEventListener('pause', function() {
+    if (audioStarted && !audioEnded) {
+      audio.play(); // Force resume if paused somehow
+    }
+  });
 
   function loadStudentInfoFromGame() {
     try {
