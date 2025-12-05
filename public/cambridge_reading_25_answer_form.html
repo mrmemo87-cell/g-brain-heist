@@ -8,8 +8,7 @@
 <meta name="format-detection" content="telephone=no" />
 <title>Cambridge Reading 25 — Answer Form</title>
 
-<!-- Supabase JS Library -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- No external Supabase library needed - using fetch API directly -->
 
 <style>
   * {
@@ -414,13 +413,38 @@
     isIOS: isIOS()
   });
 
-  // Supabase Configuration
+  // Supabase Configuration - using REST API directly (CSP-safe, no eval needed)
   const SUPABASE_URL = 'https://sozodkxwhubespiedgxm.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvem9ka3h3aHViZXNwaWVkZ3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTUxNjYsImV4cCI6MjA3NzQ3MTE2Nn0.DBfFFWvVjpqXTga0uZcH5qR4ej6VOFBUm-CiCTgGLVA';
   
-  // Initialize Supabase client
-  const { createClient } = supabase;
-  const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // Simple Supabase REST API wrapper (CSP-safe, no eval needed)
+  const supabaseClient = {
+    from: function(table) {
+      return {
+        insert: async function(data) {
+          try {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Prefer': 'return=minimal'
+              },
+              body: JSON.stringify(Array.isArray(data) ? data : [data])
+            });
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(errorText || response.statusText);
+            }
+            return { data: null, error: null };
+          } catch (err) {
+            return { data: null, error: err };
+          }
+        }
+      };
+    }
+  };
 
   // Quiz ID for tracking
   const QUIZ_ID = 'cambridge_reading_25';
