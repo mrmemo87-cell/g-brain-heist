@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
 <title>Cambridge Reading 25 — Answer Form</title>
 
 <!-- Supabase JS Library -->
@@ -12,13 +14,20 @@
   * {
     box-sizing: border-box;
   }
+  html {
+    height: 100%;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+  }
   body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 20px;
-    padding-bottom: 50px;
+    padding-bottom: 150px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
+    min-height: 100%;
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
   }
   .container {
     max-width: 800px;
@@ -253,6 +262,57 @@
     color: #155724;
     margin: 0;
   }
+  
+  /* Floating Submit Button for Mobile */
+  .floating-submit {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    padding: 15px 20px;
+    padding-bottom: max(15px, env(safe-area-inset-bottom));
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.3);
+    z-index: 9999;
+    display: none;
+  }
+  .floating-submit button {
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
+    border-radius: 12px;
+    margin: 0;
+  }
+  .floating-submit.show {
+    display: block;
+  }
+  .floating-submit.submitted {
+    background: #6c757d;
+  }
+  .floating-submit.submitted button {
+    background: #6c757d;
+  }
+  
+  @media (max-width: 768px) {
+    .btn-container {
+      display: none;
+    }
+    .floating-submit {
+      display: block;
+    }
+    body {
+      padding-bottom: 120px;
+    }
+  }
+  
+  @supports (-webkit-touch-callout: none) {
+    body {
+      min-height: -webkit-fill-available;
+    }
+    .floating-submit {
+      padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+  }
 </style>
 </head>
 <body>
@@ -293,6 +353,11 @@
 
   <div id="score"></div>
   <div id="submitStatus"></div>
+</div>
+
+<!-- Floating Submit Button for Mobile -->
+<div class="floating-submit show" id="floatingSubmit">
+  <button id="floatingSubmitBtn" onclick="submitScore()">📤 Submit Answers</button>
 </div>
 
 <script>
@@ -393,6 +458,13 @@
     });
     document.getElementById("submitBtn").disabled = true;
     document.getElementById("submitBtn").textContent = "✓ Already Submitted";
+    
+    // Disable floating button too
+    const floatingBtn = document.getElementById("floatingSubmit");
+    if (floatingBtn) {
+      floatingBtn.disabled = true;
+      floatingBtn.textContent = "✓ Submitted";
+    }
     
     // Show their previous score
     const percentage = Math.round((score / totalQ) * 100);
@@ -565,6 +637,13 @@
       statusDiv.textContent = "✅ Submitted successfully! Your teacher can now see your result.";
       submitBtn.textContent = "✓ Submitted";
       
+      // Disable floating button too
+      const floatingBtn = document.getElementById("floatingSubmit");
+      if (floatingBtn) {
+        floatingBtn.disabled = true;
+        floatingBtn.textContent = "✓ Submitted";
+      }
+      
       // Notify parent window (if in iframe) that test is complete
       try {
         if (window.parent !== window) {
@@ -588,6 +667,13 @@
       statusDiv.className = "submit-status submit-error";
       statusDiv.textContent = `❌ Failed to submit: ${error.message}. Please try again.`;
       submitBtn.disabled = false;
+      
+      // Re-enable floating button on error
+      const floatingBtn = document.getElementById("floatingSubmit");
+      if (floatingBtn) {
+        floatingBtn.disabled = false;
+        floatingBtn.textContent = "📤 Submit Test";
+      }
       
       // Re-enable inputs on error
       document.querySelectorAll('input').forEach(input => input.disabled = false);

@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
 <title>Cambridge Listening Test 1 — Answer Form</title>
 
 <!-- Supabase JS Library -->
@@ -10,13 +12,21 @@
 
 <style>
   * { box-sizing: border-box; }
+  html {
+    height: 100%;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+  }
   body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 20px;
-    padding-bottom: 50px;
+    padding-bottom: 150px; /* Extra space for floating button */
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
+    min-height: 100%;
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+    position: relative;
   }
   .container {
     max-width: 900px;
@@ -266,6 +276,65 @@
     text-align: center;
     display: none;
   }
+  
+  /* Floating Submit Button for Mobile */
+  .floating-submit {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    padding: 15px 20px;
+    padding-bottom: max(15px, env(safe-area-inset-bottom));
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.3);
+    z-index: 9999;
+    display: none;
+  }
+  .floating-submit button {
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
+    border-radius: 12px;
+    margin: 0;
+  }
+  .floating-submit.show {
+    display: block;
+  }
+  .floating-submit.submitted {
+    background: #6c757d;
+  }
+  .floating-submit.submitted button {
+    background: #6c757d;
+  }
+  
+  /* Hide regular submit on mobile when floating is shown */
+  @media (max-width: 768px) {
+    .btn-container {
+      display: none;
+    }
+    .floating-submit {
+      display: block;
+    }
+    body {
+      padding-bottom: 120px;
+    }
+  }
+  
+  /* iOS specific fixes */
+  @supports (-webkit-touch-callout: none) {
+    body {
+      min-height: -webkit-fill-available;
+    }
+    .floating-submit {
+      padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+  }
+  
+  /* Ensure content is scrollable */
+  .container {
+    position: relative;
+    z-index: 1;
+  }
 </style>
 </head>
 <body>
@@ -315,6 +384,11 @@
 
   <div id="score"></div>
   <div id="submitStatus"></div>
+</div>
+
+<!-- Floating Submit Button for Mobile -->
+<div class="floating-submit show" id="floatingSubmit">
+  <button id="floatingSubmitBtn" onclick="submitScore()">📤 Submit Answers</button>
 </div>
 
 <script>
@@ -371,6 +445,18 @@
       document.querySelectorAll('input').forEach(input => input.disabled = true);
       document.getElementById("submitBtn").disabled = true;
       document.getElementById("submitBtn").textContent = "✓ Already Submitted";
+      
+      // Disable floating button too
+      const floatingBtn = document.getElementById("floatingSubmitBtn");
+      const floatingDiv = document.getElementById("floatingSubmit");
+      if (floatingBtn) {
+        floatingBtn.disabled = true;
+        floatingBtn.textContent = "✓ Already Submitted";
+      }
+      if (floatingDiv) {
+        floatingDiv.classList.add("submitted");
+      }
+      
       showFinalScore(data.studentName, data.score, Math.round((data.score / data.total) * 100), 0);
       return true;
     }
@@ -799,6 +885,13 @@
     statusDiv.className = "submit-status submit-loading";
     statusDiv.textContent = "📤 Submitting...";
     
+    // Update floating button too
+    const floatingBtn = document.getElementById("floatingSubmitBtn");
+    if (floatingBtn) {
+      floatingBtn.disabled = true;
+      floatingBtn.textContent = "📤 Submitting...";
+    }
+    
     try {
       await supabaseClient.from('quiz_scores').insert([{
         student_name: studentName,
@@ -820,6 +913,17 @@
       statusDiv.textContent = "✅ Submitted successfully!";
       submitBtn.textContent = "✓ Submitted";
       
+      // Update floating button
+      const floatingBtn = document.getElementById("floatingSubmitBtn");
+      const floatingDiv = document.getElementById("floatingSubmit");
+      if (floatingBtn) {
+        floatingBtn.textContent = "✓ Submitted";
+        floatingBtn.disabled = true;
+      }
+      if (floatingDiv) {
+        floatingDiv.classList.add("submitted");
+      }
+      
       if (window.parent !== window) {
         window.parent.postMessage({ type: 'CAMBRIDGE_TEST_COMPLETE', quizId: QUIZ_ID, score, total, percentage }, '*');
       }
@@ -829,6 +933,13 @@
       statusDiv.className = "submit-status submit-error";
       statusDiv.textContent = `❌ Failed: ${error.message}`;
       submitBtn.disabled = false;
+      
+      // Re-enable floating button on error
+      const floatingBtn = document.getElementById("floatingSubmitBtn");
+      if (floatingBtn) {
+        floatingBtn.disabled = false;
+        floatingBtn.textContent = "📤 Submit Answers";
+      }
     }
   }
 

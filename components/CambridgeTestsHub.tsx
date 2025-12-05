@@ -168,70 +168,65 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
         right: 0,
         bottom: 0,
         backgroundColor: '#fff',
-        zIndex: 1000,
+        zIndex: 9999, // Higher z-index to cover everything
         display: 'flex',
         flexDirection: 'column',
+        overflow: 'hidden',
       }}>
-        {/* Test Header Bar */}
+        {/* Minimal Test Header Bar - non-sticky, part of layout */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '12px 20px',
+          padding: '8px 15px',
           background: 'linear-gradient(135deg, #302b63 0%, #24243e 100%)',
           borderBottom: '2px solid #00f5ff',
+          flexShrink: 0,
+          minHeight: '50px',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <img 
-              src="/logo.png" 
-              alt="Logo" 
-              style={{ width: '36px', height: '36px' }}
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-            />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '24px' }}>🎧</span>
             <div>
-              <h2 style={{ margin: 0, color: '#fff', fontSize: '16px', fontWeight: 600 }}>
+              <h2 style={{ margin: 0, color: '#fff', fontSize: '14px', fontWeight: 600 }}>
                 {activeTest.name}
               </h2>
-              <p style={{ margin: 0, color: 'rgba(255,255,255,0.7)', fontSize: '12px' }}>
-                {activeTest.totalQuestions} questions • {activeTest.duration}
+              <p style={{ margin: 0, color: 'rgba(255,255,255,0.7)', fontSize: '11px' }}>
+                {activeTest.totalQuestions} questions
               </p>
             </div>
           </div>
           <button
             onClick={handleTestComplete}
             style={{
-              padding: '8px 20px',
-              backgroundColor: 'rgba(255,255,255,0.1)',
+              padding: '6px 16px',
+              backgroundColor: 'rgba(255,255,255,0.15)',
               color: '#fff',
               border: '1px solid rgba(255,255,255,0.3)',
-              borderRadius: '20px',
+              borderRadius: '16px',
               cursor: 'pointer',
-              fontSize: '14px',
+              fontSize: '13px',
               fontWeight: 600,
-              transition: 'all 0.2s',
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)';
             }}
           >
-            ← Back to Tests
+            ✕ Exit
           </button>
         </div>
         
-        {/* Test iframe */}
+        {/* Test iframe - takes remaining space */}
         <iframe
           src={activeTest.url}
           style={{
             flex: 1,
             width: '100%',
-            height: '100%',
             border: 'none',
-            minHeight: 'calc(100vh - 70px)',
+            display: 'block',
+            // iOS Safari specific fixes
+            WebkitOverflowScrolling: 'touch',
+            overflow: 'auto',
           }}
           title={activeTest.name}
+          // Allow scrolling within iframe
+          scrolling="yes"
         />
       </div>
     );
