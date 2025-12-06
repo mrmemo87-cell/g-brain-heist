@@ -450,6 +450,66 @@ const WritingPractice: React.FC = () => {
             </div>
           )}
 
+          {/* Personalized Writing Tips */}
+          <div style={{
+            background: 'linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%)',
+            border: '1px solid #e879f9',
+            borderRadius: '0.75rem',
+            padding: '1.5rem',
+            marginBottom: '1.5rem'
+          }}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#86198f', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              📊 Personalized Writing Tips
+            </h3>
+            
+            <div style={{ marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                <span style={{ fontSize: '1.5rem' }}>✍️</span>
+                <span style={{ fontWeight: 600, color: '#7c3aed' }}>How to Improve Your Writing</span>
+              </div>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#475569' }}>
+                <li style={{ marginBottom: '0.5rem' }}>📖 <strong>Task Response:</strong> Always address all parts of the question</li>
+                <li style={{ marginBottom: '0.5rem' }}>🔗 <strong>Coherence:</strong> Use linking words (However, Furthermore, Moreover)</li>
+                <li style={{ marginBottom: '0.5rem' }}>📝 <strong>Vocabulary:</strong> Use topic-specific vocabulary and synonyms</li>
+                <li style={{ marginBottom: '0.5rem' }}>✅ <strong>Grammar:</strong> Use a variety of complex sentence structures</li>
+                <li>⏱️ <strong>Time Management:</strong> Spend 5 mins planning, 30 mins writing, 5 mins reviewing</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Upgrade to Prime CTA */}
+          <div style={{
+            background: 'linear-gradient(135deg, #1e40af 0%, #7c3aed 100%)',
+            borderRadius: '0.75rem',
+            padding: '1.5rem',
+            marginBottom: '1.5rem',
+            textAlign: 'center',
+            color: 'white'
+          }}>
+            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⭐</div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+              Upgrade to Prime
+            </h3>
+            <p style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '1rem' }}>
+              Get AI-powered essay scoring, detailed band breakdown, and expert feedback on your writing
+            </p>
+            <button
+              onClick={() => navigate('/ielts/pricing')}
+              style={{
+                padding: '0.75rem 2rem',
+                background: 'white',
+                color: '#1e40af',
+                border: 'none',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+                fontWeight: 700,
+                fontSize: '0.875rem'
+              }}
+            >
+              🚀 Get Expert Feedback
+            </button>
+          </div>
+
           <button
             onClick={() => navigate('/ielts')}
             style={{

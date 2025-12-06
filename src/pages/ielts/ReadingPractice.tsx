@@ -452,6 +452,93 @@ const ReadingPractice: React.FC = () => {
             </div>
           </div>
 
+          {/* Personalized Improvement Tips */}
+          <div style={{
+            background: 'linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%)',
+            border: '1px solid #e879f9',
+            borderRadius: '0.75rem',
+            padding: '1.5rem',
+            marginBottom: '1.5rem'
+          }}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#86198f', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              📊 Personalized Improvement Plan
+            </h3>
+            
+            {results.percentage >= 80 ? (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '1.5rem' }}>🏆</span>
+                  <span style={{ fontWeight: 600, color: '#166534' }}>Excellent Performance!</span>
+                </div>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#475569' }}>
+                  <li style={{ marginBottom: '0.5rem' }}>✓ You demonstrate strong reading comprehension skills</li>
+                  <li style={{ marginBottom: '0.5rem' }}>✓ Continue challenging yourself with timed practice tests</li>
+                  <li>✓ Focus on maintaining speed while keeping accuracy high</li>
+                </ul>
+              </div>
+            ) : results.percentage >= 60 ? (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '1.5rem' }}>📈</span>
+                  <span style={{ fontWeight: 600, color: '#ca8a04' }}>Good Progress - Room to Grow!</span>
+                </div>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#475569' }}>
+                  <li style={{ marginBottom: '0.5rem' }}>📖 <strong>Vocabulary:</strong> Read more English articles daily to expand vocabulary</li>
+                  <li style={{ marginBottom: '0.5rem' }}>⏱️ <strong>Time Management:</strong> Practice skimming and scanning techniques</li>
+                  <li style={{ marginBottom: '0.5rem' }}>🔍 <strong>Detail Focus:</strong> Pay closer attention to keywords and synonyms</li>
+                  <li>📝 <strong>Strategy:</strong> Read questions first, then find answers in the passage</li>
+                </ul>
+              </div>
+            ) : (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '1.5rem' }}>💪</span>
+                  <span style={{ fontWeight: 600, color: '#dc2626' }}>Keep Practicing - You'll Get There!</span>
+                </div>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#475569' }}>
+                  <li style={{ marginBottom: '0.5rem' }}>📚 <strong>Build Vocabulary:</strong> Learn 10 new words daily with context</li>
+                  <li style={{ marginBottom: '0.5rem' }}>🎯 <strong>Question Types:</strong> Practice each question type separately</li>
+                  <li style={{ marginBottom: '0.5rem' }}>📖 <strong>Reading Speed:</strong> Start with easier texts and gradually increase difficulty</li>
+                  <li style={{ marginBottom: '0.5rem' }}>✍️ <strong>Active Reading:</strong> Underline key information as you read</li>
+                  <li>🔄 <strong>Review Mistakes:</strong> Analyze why you got answers wrong</li>
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* Upgrade to Prime CTA */}
+          <div style={{
+            background: 'linear-gradient(135deg, #1e40af 0%, #7c3aed 100%)',
+            borderRadius: '0.75rem',
+            padding: '1.5rem',
+            marginBottom: '1.5rem',
+            textAlign: 'center',
+            color: 'white'
+          }}>
+            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⭐</div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+              Upgrade to Prime
+            </h3>
+            <p style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '1rem' }}>
+              Get unlimited practice tests, AI-powered essay feedback, speaking evaluations, and personalized study plans
+            </p>
+            <button
+              onClick={() => navigate('/ielts/pricing')}
+              style={{
+                padding: '0.75rem 2rem',
+                background: 'white',
+                color: '#1e40af',
+                border: 'none',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+                fontWeight: 700,
+                fontSize: '0.875rem'
+              }}
+            >
+              🚀 Unlock Full Access
+            </button>
+          </div>
+
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button

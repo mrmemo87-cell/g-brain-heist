@@ -251,6 +251,32 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
               </div>
             </div>
           </div>
+
+          {/* Trial Test Info */}
+          <div className="bg-black/40 rounded-xl p-6 border border-teal-500/50">
+            <h3 className="text-xl font-bold text-teal-400 mb-4">🎯 Free Trial Listening Test</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-teal-900/20 rounded-lg p-4 border border-teal-500/30">
+                <h4 className="font-semibold text-white mb-2">Test Details</h4>
+                <ul className="text-gray-300 text-sm space-y-1">
+                  <li>• <span className="text-teal-400 font-medium">40 questions</span> across 4 sections</li>
+                  <li>• Section 1: Moving Company (Fill-in + Matching)</li>
+                  <li>• Section 2: Conference Schedule (Table + MCQ)</li>
+                  <li>• Section 3: Course Details (MCQ + Multi-select)</li>
+                  <li>• Section 4: Astronomy Lecture (Sentence completion)</li>
+                </ul>
+              </div>
+              <div className="bg-teal-900/20 rounded-lg p-4 border border-teal-500/30">
+                <h4 className="font-semibold text-white mb-2">Access Information</h4>
+                <ul className="text-gray-300 text-sm space-y-1">
+                  <li>• Route: <code className="bg-black/40 px-2 py-0.5 rounded text-teal-300">/ielts/trial-test</code></li>
+                  <li>• Status: <span className="text-green-400 font-medium">✅ Always Active</span></li>
+                  <li>• Audio Source: Supabase Storage (ielts-audio bucket)</li>
+                  <li>• Note: Results are shown locally (not saved to database)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

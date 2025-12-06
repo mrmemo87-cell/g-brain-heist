@@ -496,34 +496,63 @@ const SpeakingPractice: React.FC = () => {
             </button>
           </div>
 
-          {/* Prime Upgrade */}
+          {/* Personalized Speaking Tips */}
           <div style={{
-            background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-            border: '1px solid #f59e0b',
+            background: 'linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%)',
+            border: '1px solid #e879f9',
             borderRadius: '0.75rem',
-            padding: '1.25rem',
+            padding: '1.5rem',
             marginBottom: '1.5rem'
           }}>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#92400e', marginBottom: '0.5rem' }}>
-              ⭐ Upgrade to Prime
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#86198f', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              📊 Personalized Speaking Tips
             </h3>
-            <p style={{ color: '#78350f', fontSize: '0.875rem', marginBottom: '0.75rem' }}>
-              Get unlimited attempts + personalized feedback on every submission!
+            
+            <div style={{ marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                <span style={{ fontSize: '1.5rem' }}>🎤</span>
+                <span style={{ fontWeight: 600, color: '#7c3aed' }}>How to Improve Your Speaking</span>
+              </div>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#475569' }}>
+                <li style={{ marginBottom: '0.5rem' }}>🗣️ <strong>Fluency:</strong> Speak naturally without long pauses - use fillers like "well", "let me think"</li>
+                <li style={{ marginBottom: '0.5rem' }}>📚 <strong>Vocabulary:</strong> Use varied vocabulary and idiomatic expressions</li>
+                <li style={{ marginBottom: '0.5rem' }}>✅ <strong>Grammar:</strong> Mix simple and complex sentence structures</li>
+                <li style={{ marginBottom: '0.5rem' }}>🎵 <strong>Pronunciation:</strong> Focus on word stress and intonation patterns</li>
+                <li>💡 <strong>Content:</strong> Extend your answers with examples and explanations</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Prime Upgrade */}
+          <div style={{
+            background: 'linear-gradient(135deg, #1e40af 0%, #7c3aed 100%)',
+            borderRadius: '0.75rem',
+            padding: '1.5rem',
+            marginBottom: '1.5rem',
+            textAlign: 'center',
+            color: 'white'
+          }}>
+            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⭐</div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+              Upgrade to Prime
+            </h3>
+            <p style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '1rem' }}>
+              Get AI-powered pronunciation feedback, fluency analysis, and expert evaluations
             </p>
             <button
-              onClick={() => navigate('/ielts/apply-prime')}
+              onClick={() => navigate('/ielts/pricing')}
               style={{
-                padding: '0.5rem 1.25rem',
-                background: '#f59e0b',
-                color: '#78350f',
+                padding: '0.75rem 2rem',
+                background: 'white',
+                color: '#1e40af',
                 border: 'none',
                 borderRadius: '0.5rem',
                 cursor: 'pointer',
-                fontWeight: 'bold',
+                fontWeight: 700,
                 fontSize: '0.875rem'
               }}
             >
-              Apply for Prime Access
+              🚀 Get Expert Feedback
             </button>
           </div>
 

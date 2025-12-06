@@ -561,6 +561,93 @@ const ListeningPractice: React.FC = () => {
             </div>
           </div>
 
+          {/* Personalized Improvement Tips */}
+          <div style={{
+            background: 'linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%)',
+            border: '1px solid #e879f9',
+            borderRadius: '0.75rem',
+            padding: '1.5rem',
+            marginBottom: '1.5rem'
+          }}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#86198f', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              📊 Personalized Improvement Plan
+            </h3>
+            
+            {results.percentage >= 80 ? (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '1.5rem' }}>🏆</span>
+                  <span style={{ fontWeight: 600, color: '#166534' }}>Excellent Listening Skills!</span>
+                </div>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#475569' }}>
+                  <li style={{ marginBottom: '0.5rem' }}>✓ You have strong listening comprehension abilities</li>
+                  <li style={{ marginBottom: '0.5rem' }}>✓ Practice with faster audio speeds for extra challenge</li>
+                  <li>✓ Try listening to different accents (British, Australian, American)</li>
+                </ul>
+              </div>
+            ) : results.percentage >= 60 ? (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '1.5rem' }}>📈</span>
+                  <span style={{ fontWeight: 600, color: '#ca8a04' }}>Good Progress - Keep Improving!</span>
+                </div>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#475569' }}>
+                  <li style={{ marginBottom: '0.5rem' }}>🎧 <strong>Active Listening:</strong> Listen to English podcasts daily</li>
+                  <li style={{ marginBottom: '0.5rem' }}>📝 <strong>Note-Taking:</strong> Practice writing while listening</li>
+                  <li style={{ marginBottom: '0.5rem' }}>🔤 <strong>Spelling:</strong> Pay attention to exact spelling of words</li>
+                  <li>⏱️ <strong>Prediction:</strong> Read questions first and predict answers</li>
+                </ul>
+              </div>
+            ) : (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '1.5rem' }}>💪</span>
+                  <span style={{ fontWeight: 600, color: '#dc2626' }}>Focus on These Areas!</span>
+                </div>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#475569' }}>
+                  <li style={{ marginBottom: '0.5rem' }}>🎬 <strong>Immersion:</strong> Watch English movies with subtitles</li>
+                  <li style={{ marginBottom: '0.5rem' }}>🔄 <strong>Repetition:</strong> Listen to the same audio multiple times</li>
+                  <li style={{ marginBottom: '0.5rem' }}>📖 <strong>Transcripts:</strong> Read along while listening</li>
+                  <li style={{ marginBottom: '0.5rem' }}>🎯 <strong>Focus:</strong> Identify keywords and signal words</li>
+                  <li>🗣️ <strong>Accents:</strong> Familiarize yourself with different English accents</li>
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* Upgrade to Prime CTA */}
+          <div style={{
+            background: 'linear-gradient(135deg, #1e40af 0%, #7c3aed 100%)',
+            borderRadius: '0.75rem',
+            padding: '1.5rem',
+            marginBottom: '1.5rem',
+            textAlign: 'center',
+            color: 'white'
+          }}>
+            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⭐</div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+              Upgrade to Prime
+            </h3>
+            <p style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '1rem' }}>
+              Get unlimited practice tests, AI-powered feedback, and personalized study plans
+            </p>
+            <button
+              onClick={() => navigate('/ielts/pricing')}
+              style={{
+                padding: '0.75rem 2rem',
+                background: 'white',
+                color: '#1e40af',
+                border: 'none',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+                fontWeight: 700,
+                fontSize: '0.875rem'
+              }}
+            >
+              🚀 Unlock Full Access
+            </button>
+          </div>
+
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button
