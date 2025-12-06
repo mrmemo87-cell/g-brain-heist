@@ -597,7 +597,7 @@ export const getUserTier = async () => {
 
 export interface NotificationPreferences {
   attemptType: 'reading' | 'listening' | 'writing' | 'speaking' | 'mock';
-  attemptId: number;
+  attemptId: string;  // UUID
   alternateEmail?: string;
   phoneNumber?: string;
   notifyByEmail?: boolean;

@@ -135,7 +135,7 @@ const ListeningPractice: React.FC = () => {
     enabled: !!setId,
   });
 
-  const [lastAttemptId, setLastAttemptId] = useState<number | null>(null);
+  const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
 
   // Submit mutation
   const submitMutation = useMutation({

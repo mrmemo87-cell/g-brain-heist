@@ -45,7 +45,7 @@ const ReadingPractice: React.FC = () => {
     enabled: !!setId,
   });
 
-  const [lastAttemptId, setLastAttemptId] = useState<number | null>(null);
+  const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
 
   const submitMutation = useMutation({
     mutationFn: (data: { setId: number; answers: Record<number, string>; timeSpent: number }) =>

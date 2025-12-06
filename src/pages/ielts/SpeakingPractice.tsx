@@ -103,7 +103,7 @@ const SpeakingPractice: React.FC = () => {
     },
   });
 
-  const [lastAttemptId, setLastAttemptId] = useState<number | null>(null);
+  const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
 
   // Save notification preferences when user updates them
   const savePreferencesMutation = useMutation({

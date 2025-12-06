@@ -74,7 +74,7 @@ const WritingPractice: React.FC = () => {
     enabled: !!taskId,
   });
 
-  const [lastAttemptId, setLastAttemptId] = useState<number | null>(null);
+  const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
 
   // Submit mutation
   const submitMutation = useMutation({

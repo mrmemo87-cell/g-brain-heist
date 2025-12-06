@@ -11,11 +11,14 @@
 -- STEP 1: NOTIFICATION PREFERENCES TABLE
 -- ============================================================
 
-CREATE TABLE IF NOT EXISTS ielts_notification_preferences (
+-- Drop existing table if it has wrong column types
+DROP TABLE IF EXISTS ielts_notification_preferences CASCADE;
+
+CREATE TABLE ielts_notification_preferences (
   id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   attempt_type TEXT NOT NULL CHECK (attempt_type IN ('reading', 'listening', 'writing', 'speaking', 'mock')),
-  attempt_id BIGINT NOT NULL,
+  attempt_id UUID NOT NULL,
   
   -- Contact Info
   alternate_email TEXT,
