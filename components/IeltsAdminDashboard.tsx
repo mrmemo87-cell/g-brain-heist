@@ -45,7 +45,7 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
           .select('*')
           .order('created_at', { ascending: false })
           .limit(50);
-        notifData = notifResult.data || [];
+        notifData = notifResult.error ? [] : (notifResult.data || []);
       } catch {
         notifData = [];
       }
@@ -57,8 +57,10 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
           .from('ielts_prime_applications')
           .select('*')
           .order('created_at', { ascending: false });
-        appsData = appsResult.data || [];
-      } catch {
+        appsData = appsResult.error ? [] : (appsResult.data || []);
+        console.log('Prime applications loaded:', appsData.length, appsResult.error);
+      } catch (e) {
+        console.error('Error loading prime applications:', e);
         appsData = [];
       }
 

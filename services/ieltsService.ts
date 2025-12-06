@@ -696,18 +696,28 @@ export const fetchAllIeltsUsers = async () => {
 };
 
 export const fetchIeltsContent = async () => {
+  // Fetch each with error handling - some tables may not exist yet
+  const fetchWithFallback = async (query: Promise<any>) => {
+    try {
+      const result = await query;
+      return result.data || [];
+    } catch {
+      return [];
+    }
+  };
+
   const [reading, listening, writing, speaking] = await Promise.all([
-    supabase.from('ielts_reading_sets').select('id, title, difficulty, is_active').order('id'),
-    supabase.from('ielts_listening_sets').select('id, title, difficulty, is_active, audio_url').order('id'),
-    supabase.from('ielts_writing_tasks').select('id, title, task_type, is_active').order('id'),
-    supabase.from('ielts_speaking_tasks').select('id, part, prompt, is_active').order('part'),
+    fetchWithFallback(supabase.from('ielts_reading_sets').select('id, title, difficulty, is_active').order('id')),
+    fetchWithFallback(supabase.from('ielts_listening_sets').select('id, title, difficulty, is_active').order('id')),
+    fetchWithFallback(supabase.from('ielts_writing_tasks').select('id, title, task_type, is_active').order('id')),
+    fetchWithFallback(supabase.from('ielts_speaking_tasks').select('id, part, prompt, is_active').order('part')),
   ]);
 
   return {
-    readingSets: reading.data || [],
-    listeningSets: listening.data || [],
-    writingTasks: writing.data || [],
-    speakingTasks: speaking.data || [],
+    readingSets: reading,
+    listeningSets: listening,
+    writingTasks: writing,
+    speakingTasks: speaking,
   };
 };
 
