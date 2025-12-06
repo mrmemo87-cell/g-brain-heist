@@ -144,6 +144,11 @@ BEGIN
   LIMIT 1;
   
   IF v_set_id IS NOT NULL THEN
+    -- Delete any existing questions without options (fill-blank type) for this set
+    DELETE FROM ielts_reading_questions 
+    WHERE set_id = v_set_id 
+    AND (options IS NULL OR options = '[]'::jsonb OR options = 'null'::jsonb);
+    
     SELECT COUNT(*) INTO v_question_count FROM ielts_reading_questions WHERE set_id = v_set_id;
     
     IF v_question_count = 0 THEN

@@ -517,27 +517,53 @@ const ReadingPractice: React.FC = () => {
                 {currentQuestion.body}
               </h3>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {parsedOptions.map((option: string, idx: number) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleAnswer(option)}
+              {/* Multiple Choice Questions */}
+              {parsedOptions.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {parsedOptions.map((option: string, idx: number) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleAnswer(option)}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: 'clamp(0.75rem, 2vw, 1rem)',
+                        borderRadius: '0.5rem',
+                        border: `1px solid ${answers[currentQuestion.id] === option ? '#3b82f6' : '#d1d5db'}`,
+                        background: answers[currentQuestion.id] === option ? '#eff6ff' : 'white',
+                        color: answers[currentQuestion.id] === option ? '#1e40af' : '#475569',
+                        cursor: 'pointer',
+                        fontSize: 'clamp(0.875rem, 2.5vw, 1rem)'
+                      }}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                /* Fill-in-the-blank / Short Answer Questions */
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <input
+                    type="text"
+                    value={answers[currentQuestion.id] || ''}
+                    onChange={(e) => handleAnswer(e.target.value)}
+                    placeholder="Type your answer here..."
                     style={{
                       width: '100%',
-                      textAlign: 'left',
                       padding: 'clamp(0.75rem, 2vw, 1rem)',
                       borderRadius: '0.5rem',
-                      border: `1px solid ${answers[currentQuestion.id] === option ? '#3b82f6' : '#d1d5db'}`,
-                      background: answers[currentQuestion.id] === option ? '#eff6ff' : 'white',
-                      color: answers[currentQuestion.id] === option ? '#1e40af' : '#475569',
-                      cursor: 'pointer',
-                      fontSize: 'clamp(0.875rem, 2.5vw, 1rem)'
+                      border: '1px solid #d1d5db',
+                      fontSize: 'clamp(0.875rem, 2.5vw, 1rem)',
+                      outline: 'none',
                     }}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
+                    onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                  />
+                  <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0 }}>
+                    💡 Type your answer in the box above
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Navigation */}
