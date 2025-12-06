@@ -11,7 +11,7 @@ interface IeltsAdminProps {
   addToast: (message: string, type: 'success' | 'error' | 'info') => void;
 }
 
-type IeltsSubTab = 'overview' | 'attempts' | 'users' | 'content' | 'notifications';
+type IeltsSubTab = 'overview' | 'applications' | 'attempts' | 'users' | 'content' | 'notifications';
 
 const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
   const [activeSubTab, setActiveSubTab] = useState<IeltsSubTab>('overview');
@@ -23,6 +23,7 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
   const [users, setUsers] = useState<any[]>([]);
   const [content, setContent] = useState<any>(null);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [primeApplications, setPrimeApplications] = useState<any[]>([]);
   
   // Filters
   const [skillFilter, setSkillFilter] = useState<string>('all');
@@ -49,6 +50,18 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
         notifData = [];
       }
 
+      // Load prime applications
+      let appsData: any[] = [];
+      try {
+        const appsResult = await supabase
+          .from('ielts_prime_applications')
+          .select('*')
+          .order('created_at', { ascending: false });
+        appsData = appsResult.data || [];
+      } catch {
+        appsData = [];
+      }
+
       // Load stats, attempts, users, and content in parallel
       const [statsData, attemptsData, usersData, contentData] = await Promise.all([
         fetchIeltsAdminStats().catch(() => null),
@@ -62,6 +75,7 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
       setUsers(usersData);
       setContent(contentData);
       setNotifications(notifData);
+      setPrimeApplications(appsData);
     } catch (error) {
       console.error('Error loading IELTS admin data:', error);
       addToast('Failed to load IELTS data', 'error');
@@ -172,7 +186,7 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
     <div className="space-y-6">
       {/* Sub-tabs */}
       <div className="flex flex-wrap gap-2 justify-center mb-6">
-        {(['overview', 'attempts', 'users', 'content', 'notifications'] as IeltsSubTab[]).map(tab => (
+        {(['overview', 'applications', 'attempts', 'users', 'content', 'notifications'] as IeltsSubTab[]).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveSubTab(tab)}
@@ -183,6 +197,7 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
             }`}
           >
             {tab === 'overview' && '📊 Overview'}
+            {tab === 'applications' && `⭐ Applications (${primeApplications.length})`}
             {tab === 'attempts' && '📝 Attempts'}
             {tab === 'users' && '👥 Users'}
             {tab === 'content' && '📚 Content'}
@@ -277,6 +292,136 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Prime Applications Tab */}
+      {activeSubTab === 'applications' && (
+        <div className="space-y-4">
+          {/* Header with stats */}
+          <div className="bg-gradient-to-r from-yellow-900/30 to-amber-900/30 rounded-xl p-6 border border-yellow-500/50">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-yellow-400">⭐ Prime Applications</h3>
+                <p className="text-gray-400 text-sm">Review and approve upgrade requests</p>
+              </div>
+              <div className="flex gap-4 text-center">
+                <div className="bg-black/40 rounded-lg px-4 py-2">
+                  <div className="text-2xl font-bold text-yellow-400">{primeApplications.filter(a => a.status === 'pending').length}</div>
+                  <div className="text-xs text-gray-400">Pending</div>
+                </div>
+                <div className="bg-black/40 rounded-lg px-4 py-2">
+                  <div className="text-2xl font-bold text-green-400">{primeApplications.filter(a => a.status === 'approved').length}</div>
+                  <div className="text-xs text-gray-400">Approved</div>
+                </div>
+                <div className="bg-black/40 rounded-lg px-4 py-2">
+                  <div className="text-2xl font-bold text-red-400">{primeApplications.filter(a => a.status === 'rejected').length}</div>
+                  <div className="text-xs text-gray-400">Rejected</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Applications Table */}
+          {primeApplications.length === 0 ? (
+            <div className="bg-black/40 rounded-xl p-12 text-center border border-gray-700">
+              <div className="text-6xl mb-4">📭</div>
+              <h4 className="text-xl font-bold text-white mb-2">No Applications Yet</h4>
+              <p className="text-gray-400">Prime applications will appear here when users submit them.</p>
+            </div>
+          ) : (
+            <div className="bg-black/40 rounded-xl border border-gray-700 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-800">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-gray-400 text-sm font-semibold">Status</th>
+                      <th className="px-4 py-3 text-left text-gray-400 text-sm font-semibold">Name</th>
+                      <th className="px-4 py-3 text-left text-gray-400 text-sm font-semibold">Email</th>
+                      <th className="px-4 py-3 text-left text-gray-400 text-sm font-semibold">Phone</th>
+                      <th className="px-4 py-3 text-left text-gray-400 text-sm font-semibold">Target Band</th>
+                      <th className="px-4 py-3 text-left text-gray-400 text-sm font-semibold">Level</th>
+                      <th className="px-4 py-3 text-left text-gray-400 text-sm font-semibold">Plan</th>
+                      <th className="px-4 py-3 text-left text-gray-400 text-sm font-semibold">Date</th>
+                      <th className="px-4 py-3 text-left text-gray-400 text-sm font-semibold">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {primeApplications.map((app, idx) => (
+                      <tr key={app.id || idx} className="border-t border-gray-700/50 hover:bg-gray-800/50">
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                            app.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
+                            app.status === 'approved' ? 'bg-green-500/20 text-green-400' :
+                            'bg-red-500/20 text-red-400'
+                          }`}>
+                            {app.status?.toUpperCase() || 'PENDING'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="font-medium text-white">{app.full_name || 'Unknown'}</div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <a href={`mailto:${app.email}`} className="text-cyan-400 hover:underline text-sm">{app.email}</a>
+                        </td>
+                        <td className="px-4 py-3">
+                          {app.phone ? (
+                            <a href={`tel:${app.phone}`} className="text-green-400 hover:underline text-sm">{app.phone}</a>
+                          ) : (
+                            <span className="text-gray-500 text-sm">-</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="text-yellow-400 font-bold">{app.target_band_score || '-'}</span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-300">{app.current_level || '-'}</td>
+                        <td className="px-4 py-3">
+                          <span className="capitalize text-purple-400 text-sm">{app.payment_method || 'monthly'}</span>
+                        </td>
+                        <td className="px-4 py-3 text-xs text-gray-400">{formatDate(app.created_at)}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex gap-2">
+                            {app.status === 'pending' && (
+                              <>
+                                <button
+                                  onClick={async () => {
+                                    await supabase.from('ielts_prime_applications').update({ status: 'approved' }).eq('id', app.id);
+                                    loadData();
+                                    addToast('✅ Application approved!', 'success');
+                                  }}
+                                  className="px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded transition-colors"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    await supabase.from('ielts_prime_applications').update({ status: 'rejected' }).eq('id', app.id);
+                                    loadData();
+                                    addToast('❌ Application rejected', 'info');
+                                  }}
+                                  className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors"
+                                >
+                                  Reject
+                                </button>
+                              </>
+                            )}
+                            {app.goals && (
+                              <button
+                                onClick={() => alert(`Goals: ${app.goals}`)}
+                                className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors"
+                              >
+                                View Goals
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
