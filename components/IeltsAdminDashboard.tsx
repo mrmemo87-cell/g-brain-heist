@@ -29,6 +29,11 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
   const [skillFilter, setSkillFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFilter, setDateFilter] = useState<string>('all');
+  
+  // Modal states for Answers and Reports
+  const [selectedAttempt, setSelectedAttempt] = useState<any>(null);
+  const [showAnswerModal, setShowAnswerModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -186,6 +191,28 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
 
   return (
     <div className="space-y-6">
+      {/* Print styles for modals */}
+      <style>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          .print-content, .print-content * {
+            visibility: visible;
+          }
+          .print-content {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            background: white !important;
+          }
+          .print-content button {
+            display: none !important;
+          }
+        }
+      `}</style>
+
       {/* Sub-tabs */}
       <div className="flex flex-wrap gap-2 justify-center mb-6">
         {(['overview', 'applications', 'attempts', 'users', 'content', 'notifications'] as IeltsSubTab[]).map(tab => (
@@ -492,7 +519,7 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
                     <th className="px-4 py-3 text-center text-gray-400 font-semibold">Band</th>
                     <th className="px-4 py-3 text-center text-gray-400 font-semibold">Time</th>
                     <th className="px-4 py-3 text-center text-gray-400 font-semibold">Date</th>
-                    <th className="px-4 py-3 text-center text-gray-400 font-semibold">Notif</th>
+                    <th className="px-4 py-3 text-center text-gray-400 font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -521,17 +548,20 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
                         </td>
                         <td className="px-4 py-3 text-center text-gray-400">{formatTime(attempt.time_spent_seconds)}</td>
                         <td className="px-4 py-3 text-center text-gray-400 text-sm">{formatDate(attempt.attempt_date)}</td>
-                        <td className="px-4 py-3 text-center">
-                          <div className="flex justify-center gap-1">
-                            {attempt.notify_by_email && (
-                              <span className="text-lg" title={`Email: ${attempt.alternate_email || 'Default'}`}>📧</span>
-                            )}
-                            {attempt.notify_by_sms && (
-                              <span className="text-lg" title={`Phone: ${attempt.phone_number}`}>📱</span>
-                            )}
-                            {!attempt.notify_by_email && !attempt.notify_by_sms && (
-                              <span className="text-gray-600">-</span>
-                            )}
+                        <td className="px-4 py-3">
+                          <div className="flex justify-center gap-2">
+                            <button
+                              onClick={() => { setSelectedAttempt(attempt); setShowAnswerModal(true); }}
+                              className="bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400 text-white text-xs px-3 py-1 rounded transition-colors"
+                            >
+                              📝 Answers
+                            </button>
+                            <button
+                              onClick={() => { setSelectedAttempt(attempt); setShowReportModal(true); }}
+                              className="bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400 text-white text-xs px-3 py-1 rounded transition-colors"
+                            >
+                              📄 Report
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -749,6 +779,240 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
               To send SMS notifications, you need to integrate with an SMS provider like Twilio.
               Create a Supabase Edge Function to handle sending SMS messages when results are ready.
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* IELTS Answer Modal */}
+      {showAnswerModal && selectedAttempt && (
+        <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/90 p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-4xl w-full my-8 print-content" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
+            {/* Header */}
+            <div className="p-6 border-b-4 border-blue-600">
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-3">
+                  <img src="/logo.png" alt="Brains Heist" style={{ width: '48px', height: '48px' }} />
+                  <div>
+                    <h1 className="text-2xl font-bold text-blue-800">Brains Heist - IELTS</h1>
+                    <p className="text-sm text-gray-500">Answer Review - {selectedAttempt.skill?.toUpperCase()}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <h2 className="text-lg font-semibold text-blue-800">{selectedAttempt.content_title || selectedAttempt.skill}</h2>
+                  <p className="text-sm text-gray-500">{formatDate(selectedAttempt.attempt_date)}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Student Banner */}
+            <div className="bg-gradient-to-r from-blue-700 to-purple-800 text-white p-5 flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold text-white">{selectedAttempt.user_name || 'Student'}</h2>
+                <p className="text-sm opacity-80">Skill: {selectedAttempt.skill} | Band: {selectedAttempt.est_band || 'N/A'}</p>
+              </div>
+              <div className="text-right">
+                <div className="text-3xl font-bold text-white">{selectedAttempt.raw_score}/{selectedAttempt.total_questions}</div>
+                <div className="text-sm opacity-80">{selectedAttempt.percent}% Score</div>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Summary Stats */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-green-100 p-4 rounded-xl text-center">
+                  <div className="text-3xl">✓</div>
+                  <div className="text-3xl font-bold text-green-700">{selectedAttempt.raw_score || 0}</div>
+                  <div className="text-sm text-gray-600">Correct</div>
+                </div>
+                <div className="bg-red-100 p-4 rounded-xl text-center">
+                  <div className="text-3xl">✗</div>
+                  <div className="text-3xl font-bold text-red-700">{(selectedAttempt.total_questions || 0) - (selectedAttempt.raw_score || 0)}</div>
+                  <div className="text-sm text-gray-600">Wrong</div>
+                </div>
+                <div className="bg-amber-100 p-4 rounded-xl text-center">
+                  <div className="text-3xl">⏱️</div>
+                  <div className="text-3xl font-bold text-amber-700">{formatTime(selectedAttempt.time_spent_seconds)}</div>
+                  <div className="text-sm text-gray-600">Time Taken</div>
+                </div>
+              </div>
+
+              {/* Band Score Display */}
+              <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-400 rounded-xl p-6 text-center">
+                <p className="text-sm text-amber-800 mb-1">Estimated IELTS Band Score</p>
+                <div className="text-5xl font-bold text-amber-600">{selectedAttempt.est_band || 'N/A'}</div>
+                <p className="text-xs text-gray-500 mt-2">Based on {selectedAttempt.percent}% accuracy</p>
+              </div>
+
+              {/* Performance Note */}
+              <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                <p className="text-sm text-gray-700">
+                  <strong className="text-blue-800">Note:</strong> Detailed question-by-question answers are available in the student's practice session. 
+                  This summary shows overall performance metrics for {selectedAttempt.skill} practice.
+                </p>
+              </div>
+
+              {/* Skill Tips */}
+              <div className="bg-gray-50 rounded-xl p-5">
+                <h4 className="font-semibold text-gray-800 mb-3">📚 Tips for {selectedAttempt.skill?.charAt(0).toUpperCase() + selectedAttempt.skill?.slice(1)}</h4>
+                <ul className="text-sm text-gray-700 space-y-2">
+                  {selectedAttempt.skill === 'listening' && (
+                    <>
+                      <li>• Practice with different English accents (British, Australian, American)</li>
+                      <li>• Read questions before listening to predict answers</li>
+                      <li>• Pay attention to signal words and transitions</li>
+                    </>
+                  )}
+                  {selectedAttempt.skill === 'reading' && (
+                    <>
+                      <li>• Skim the passage first to understand the main idea</li>
+                      <li>• Practice identifying keywords in questions</li>
+                      <li>• Manage your time - 20 minutes per passage</li>
+                    </>
+                  )}
+                  {selectedAttempt.skill === 'writing' && (
+                    <>
+                      <li>• Plan your essay structure before writing</li>
+                      <li>• Use a variety of sentence structures</li>
+                      <li>• Leave time to review and edit</li>
+                    </>
+                  )}
+                  {selectedAttempt.skill === 'speaking' && (
+                    <>
+                      <li>• Practice speaking English daily</li>
+                      <li>• Record yourself and listen back</li>
+                      <li>• Expand your vocabulary on common topics</li>
+                    </>
+                  )}
+                </ul>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t flex justify-between items-center text-xs text-gray-400">
+              <span>Brains Heist IELTS Preparation</span>
+              <div className="flex gap-3">
+                <button onClick={() => window.print()} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700">🖨️ Print</button>
+                <button onClick={() => setShowAnswerModal(false)} className="px-4 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* IELTS Report Modal */}
+      {showReportModal && selectedAttempt && (
+        <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/90 p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-4xl w-full my-8 print-content" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
+            {/* Report Header */}
+            <div className="p-6 border-b-4 border-purple-600">
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-3">
+                  <img src="/logo.png" alt="Brains Heist" style={{ width: '48px', height: '48px' }} />
+                  <div>
+                    <h1 className="text-2xl font-bold text-purple-800">Brains Heist - IELTS</h1>
+                    <p className="text-sm text-gray-500">Performance Report</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <h2 className="text-lg font-semibold text-purple-800">{selectedAttempt.skill?.toUpperCase()} Practice</h2>
+                  <p className="text-sm text-gray-500">Generated: {new Date().toLocaleDateString()}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Student Banner */}
+            <div className="bg-gradient-to-r from-purple-800 to-indigo-900 text-white p-6 flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold text-white">{selectedAttempt.user_name || 'Student'}</h2>
+                <p className="opacity-80">Skill: {selectedAttempt.skill?.toUpperCase()} | Completed: {formatDate(selectedAttempt.attempt_date)} | Time: {formatTime(selectedAttempt.time_spent_seconds)}</p>
+              </div>
+              <div className="w-20 h-20 rounded-full bg-white flex flex-col items-center justify-center">
+                <span className="text-3xl font-bold text-purple-800">{selectedAttempt.est_band || 'N/A'}</span>
+                <span className="text-xs text-gray-600">Band</span>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Score Breakdown */}
+              <div>
+                <h3 className="text-lg font-semibold text-purple-800 border-b-2 border-gray-200 pb-2 mb-4">📊 Score Analysis</h3>
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="bg-blue-50 rounded-xl p-4 text-center">
+                    <div className="text-4xl font-bold text-blue-700">{selectedAttempt.raw_score}/{selectedAttempt.total_questions}</div>
+                    <p className="text-sm text-gray-600">Raw Score</p>
+                  </div>
+                  <div className="bg-green-50 rounded-xl p-4 text-center">
+                    <div className="text-4xl font-bold text-green-700">{selectedAttempt.percent}%</div>
+                    <p className="text-sm text-gray-600">Accuracy</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Band Progression */}
+              <div>
+                <h3 className="text-lg font-semibold text-purple-800 border-b-2 border-gray-200 pb-2 mb-4">📈 Band Score Progress</h3>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-600 w-16">Current:</span>
+                  <div className="flex-1 h-6 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full transition-all ${
+                        (selectedAttempt.est_band || 0) >= 7 ? 'bg-green-500' : 
+                        (selectedAttempt.est_band || 0) >= 6 ? 'bg-blue-500' : 
+                        (selectedAttempt.est_band || 0) >= 5 ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}
+                      style={{ width: `${((selectedAttempt.est_band || 0) / 9) * 100}%` }}
+                    />
+                  </div>
+                  <span className="font-bold text-lg text-purple-700">{selectedAttempt.est_band || 'N/A'}</span>
+                </div>
+              </div>
+
+              {/* Recommendations */}
+              <div className="border-2 border-purple-600 rounded-xl p-5">
+                <h3 className="text-lg font-semibold text-purple-800 mb-4">📋 Personalized Recommendations</h3>
+                {(selectedAttempt.percent || 0) >= 80 ? (
+                  <div className="flex gap-4 p-4 bg-green-50 rounded-lg">
+                    <div className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">✓</div>
+                    <div>
+                      <h4 className="font-semibold text-gray-800">Excellent Performance!</h4>
+                      <p className="text-sm text-gray-600">Continue practicing with more challenging materials. Focus on time management and accuracy.</p>
+                    </div>
+                  </div>
+                ) : (selectedAttempt.percent || 0) >= 60 ? (
+                  <div className="flex gap-4 p-4 bg-yellow-50 rounded-lg">
+                    <div className="w-8 h-8 bg-yellow-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">📈</div>
+                    <div>
+                      <h4 className="font-semibold text-gray-800">Good Progress - Room for Improvement</h4>
+                      <p className="text-sm text-gray-600">Practice more {selectedAttempt.skill} exercises. Review the questions you missed and understand the patterns.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex gap-4 p-4 bg-red-50 rounded-lg">
+                    <div className="w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">💪</div>
+                    <div>
+                      <h4 className="font-semibold text-gray-800">Focus on Fundamentals</h4>
+                      <p className="text-sm text-gray-600">Consider more practice with basic {selectedAttempt.skill} exercises. Review strategies and techniques for this skill.</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Encouragement */}
+              <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-xl text-center">
+                <h3 className="text-xl font-bold mb-2">Keep Practicing! 🚀</h3>
+                <p className="opacity-90">Every practice session brings you closer to your target band score. Stay consistent!</p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t flex justify-between items-center text-xs text-gray-400">
+              <span>Brains Heist IELTS Preparation</span>
+              <span>Report ID: {selectedAttempt.id?.toString().substring(0, 8) || 'N/A'}</span>
+              <div className="flex gap-3">
+                <button onClick={() => window.print()} className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">🖨️ Print</button>
+                <button onClick={() => setShowReportModal(false)} className="px-4 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700">Close</button>
+              </div>
+            </div>
           </div>
         </div>
       )}
