@@ -109,6 +109,7 @@ const IeltsPrime: React.FC = () => {
           test_date: formData.examDate || null,
           current_level: formData.currentLevel,
           goals: formData.goals,
+          motivation: formData.goals || 'Apply for Prime membership', // Required field
           payment_method: formData.paymentMethod,
           status: 'pending'
         });
