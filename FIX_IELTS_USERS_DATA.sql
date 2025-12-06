@@ -2,16 +2,26 @@
 -- FIX IELTS USERS DATA
 -- ============================================================
 -- This script:
--- 1. Adds phone column to ielts_users table
+-- 1. Adds missing columns to ielts_users table
 -- 2. Creates a view to get email from auth.users
--- 3. Updates the admin stats view
+-- 3. Syncs users from auth.users
 -- ============================================================
 
 -- ============================================================
--- STEP 1: ADD PHONE COLUMN TO IELTS_USERS
+-- STEP 1: ADD MISSING COLUMNS TO IELTS_USERS
 -- ============================================================
 
+-- Add phone column
 ALTER TABLE ielts_users ADD COLUMN IF NOT EXISTS phone TEXT;
+
+-- Add tier column (free, premium, etc.)
+ALTER TABLE ielts_users ADD COLUMN IF NOT EXISTS tier TEXT DEFAULT 'free';
+
+-- Add target_band column (user's target IELTS band score)
+ALTER TABLE ielts_users ADD COLUMN IF NOT EXISTS target_band NUMERIC(2,1);
+
+-- Add test_date column (when user plans to take IELTS)
+ALTER TABLE ielts_users ADD COLUMN IF NOT EXISTS test_date DATE;
 
 -- ============================================================
 -- STEP 2: CREATE ADMIN VIEW FOR IELTS USERS WITH AUTH EMAIL
