@@ -98,25 +98,46 @@ DROP TRIGGER IF EXISTS on_auth_user_created_ielts ON auth.users;
 -- ============================================================
 
 -- Function to sync all auth users to ielts_users (run manually if needed)
+-- Uses unique username by appending random suffix if duplicate exists
 CREATE OR REPLACE FUNCTION sync_auth_users_to_ielts()
 RETURNS INTEGER AS $$
 DECLARE
+  auth_user RECORD;
   sync_count INTEGER := 0;
+  new_username TEXT;
 BEGIN
-  INSERT INTO ielts_users (id, username, full_name, email, tier)
-  SELECT 
-    au.id,
-    COALESCE(au.raw_user_meta_data->>'username', SPLIT_PART(au.email, '@', 1)),
-    COALESCE(au.raw_user_meta_data->>'full_name', au.raw_user_meta_data->>'name', ''),
-    au.email,
-    'free'
-  FROM auth.users au
-  WHERE NOT EXISTS (SELECT 1 FROM ielts_users iu WHERE iu.id = au.id)
-  ON CONFLICT (id) DO UPDATE SET
-    email = EXCLUDED.email,
-    updated_at = now();
+  FOR auth_user IN 
+    SELECT au.id, au.email, au.raw_user_meta_data
+    FROM auth.users au
+    WHERE NOT EXISTS (SELECT 1 FROM ielts_users iu WHERE iu.id = au.id)
+  LOOP
+    -- Generate base username
+    new_username := COALESCE(
+      auth_user.raw_user_meta_data->>'username', 
+      SPLIT_PART(auth_user.email, '@', 1)
+    );
+    
+    -- If username exists, append random suffix
+    IF EXISTS (SELECT 1 FROM ielts_users WHERE username = new_username) THEN
+      new_username := new_username || '_' || SUBSTRING(auth_user.id::text, 1, 6);
+    END IF;
+    
+    -- Insert the user
+    INSERT INTO ielts_users (id, username, full_name, email, tier)
+    VALUES (
+      auth_user.id,
+      new_username,
+      COALESCE(auth_user.raw_user_meta_data->>'full_name', auth_user.raw_user_meta_data->>'name', ''),
+      auth_user.email,
+      'free'
+    )
+    ON CONFLICT (id) DO UPDATE SET
+      email = EXCLUDED.email,
+      updated_at = now();
+    
+    sync_count := sync_count + 1;
+  END LOOP;
   
-  GET DIAGNOSTICS sync_count = ROW_COUNT;
   RETURN sync_count;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
