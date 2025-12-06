@@ -1413,6 +1413,29 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
           50% { background-position: 100% 100%; }
           75% { background-position: 0% 100%; }
         }
+
+        /* Print styles - only print the modal content */
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          .print-content, .print-content * {
+            visibility: visible;
+          }
+          .print-content {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            background: white !important;
+          }
+          .no-print {
+            display: none !important;
+          }
+          .print-content button {
+            display: none !important;
+          }
+        }
       `}</style>
 
       {/* Performance Report Modal */}
@@ -1424,13 +1447,13 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         const encouragement = getEncouragement(grade);
         
         return (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4 overflow-y-auto">
-            <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[95vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
+          <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/90 p-4 overflow-y-auto no-print">
+            <div className="bg-white rounded-2xl max-w-4xl w-full my-8 print-content" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
               {/* Report Header */}
-              <div className="p-6 border-b-4 border-purple-600">
+              <div className="p-6 border-b-4 border-purple-600 no-print-hide">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
-                    <span className="text-4xl">🧠</span>
+                    <img src="/logo.png" alt="Brains Heist" style={{ width: '48px', height: '48px' }} />
                     <div>
                       <h1 className="text-2xl font-bold text-purple-800">Brains Heist</h1>
                       <p className="text-sm text-gray-500">Student Performance Report</p>
@@ -1560,13 +1583,13 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         });
         
         return (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4 overflow-y-auto">
-            <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[95vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
+          <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/90 p-4 overflow-y-auto no-print">
+            <div className="bg-white rounded-2xl max-w-5xl w-full my-8 print-content" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
               {/* Header */}
-              <div className="p-6 border-b-4 border-blue-600">
+              <div className="p-6 border-b-4 border-blue-600 no-print-hide">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
-                    <span className="text-4xl">🧠</span>
+                    <img src="/logo.png" alt="Brains Heist" style={{ width: '48px', height: '48px' }} />
                     <div>
                       <h1 className="text-2xl font-bold text-blue-800">Brains Heist</h1>
                       <p className="text-sm text-gray-500">Test Reflection & Answer Review</p>
@@ -1660,18 +1683,18 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                         <div key={m.q} className="bg-white rounded-lg p-4 border-l-4 border-red-400">
                           <div className="font-semibold text-gray-800 mb-2">Question {m.q}</div>
                           <div className="grid grid-cols-2 gap-3 text-sm">
-                            <div className="bg-red-100 p-3 rounded">
-                              <strong>{m.unanswered ? '⚠️ Unanswered' : '✗ Your Answer:'}</strong><br/>
-                              {m.unanswered ? 'No response given' : m.studentAns}
+                            <div className="bg-red-100 p-3 rounded text-gray-800">
+                              <strong className="text-red-700">{m.unanswered ? '⚠️ Unanswered' : '✗ Your Answer:'}</strong><br/>
+                              <span className="text-gray-900 font-medium">{m.unanswered ? 'No response given' : m.studentAns}</span>
                             </div>
-                            <div className="bg-green-100 p-3 rounded">
-                              <strong>✓ Correct Answer:</strong><br/>
-                              {m.correctAns}
+                            <div className="bg-green-100 p-3 rounded text-gray-800">
+                              <strong className="text-green-700">✓ Correct Answer:</strong><br/>
+                              <span className="text-gray-900 font-medium">{m.correctAns}</span>
                             </div>
                           </div>
                         </div>
                       ))}
-                      {mistakes.length > 8 && <p className="text-center text-gray-500">+ {mistakes.length - 8} more mistakes (see full details above)</p>}
+                      {mistakes.length > 8 && <p className="text-center text-gray-600">+ {mistakes.length - 8} more mistakes (see full details above)</p>}
                     </div>
                   </div>
                 )}
