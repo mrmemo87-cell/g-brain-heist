@@ -700,17 +700,22 @@ export const fetchIeltsContent = async () => {
   const fetchWithFallback = async (query: Promise<any>) => {
     try {
       const result = await query;
+      if (result.error) {
+        console.warn('Query error:', result.error);
+        return [];
+      }
       return result.data || [];
-    } catch {
+    } catch (e) {
+      console.warn('Fetch error:', e);
       return [];
     }
   };
 
   const [reading, listening, writing, speaking] = await Promise.all([
-    fetchWithFallback(supabase.from('ielts_reading_sets').select('id, title, difficulty, is_active').order('id')),
-    fetchWithFallback(supabase.from('ielts_listening_sets').select('id, title, difficulty, is_active').order('id')),
+    fetchWithFallback(supabase.from('ielts_reading_sets').select('id, title, level, is_active').order('id')),
+    fetchWithFallback(supabase.from('ielts_listening_sets').select('id, title, level, is_active').order('id')),
     fetchWithFallback(supabase.from('ielts_writing_tasks').select('id, title, task_type, is_active').order('id')),
-    fetchWithFallback(supabase.from('ielts_speaking_tasks').select('id, part, prompt, is_active').order('part')),
+    fetchWithFallback(supabase.from('ielts_speaking_tasks').select('id, slug, prompt, is_active').order('id')),
   ]);
 
   return {

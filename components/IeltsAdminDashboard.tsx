@@ -615,11 +615,11 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
           <ContentCard
             title="📖 Reading Sets"
             items={content.readingSets}
-            columns={['Title', 'Difficulty', 'Active']}
+            columns={['Title', 'Level', 'Active']}
             renderRow={(item: any) => (
               <>
                 <td className="px-3 py-2 text-white">{item.title}</td>
-                <td className="px-3 py-2 text-gray-400 capitalize">{item.difficulty}</td>
+                <td className="px-3 py-2 text-gray-400 capitalize">{item.level}</td>
                 <td className="px-3 py-2 text-center">
                   {item.is_active ? '✅' : '❌'}
                 </td>
@@ -631,13 +631,11 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
           <ContentCard
             title="🎧 Listening Sets"
             items={content.listeningSets}
-            columns={['Title', 'Audio', 'Active']}
+            columns={['Title', 'Level', 'Active']}
             renderRow={(item: any) => (
               <>
                 <td className="px-3 py-2 text-white">{item.title}</td>
-                <td className="px-3 py-2 text-gray-400">
-                  {item.audio_url ? '🔊 Yes' : '❌ No'}
-                </td>
+                <td className="px-3 py-2 text-gray-400 capitalize">{item.level}</td>
                 <td className="px-3 py-2 text-center">
                   {item.is_active ? '✅' : '❌'}
                 </td>
