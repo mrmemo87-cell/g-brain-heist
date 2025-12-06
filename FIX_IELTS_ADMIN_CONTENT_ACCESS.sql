@@ -13,6 +13,7 @@
 DROP POLICY IF EXISTS "Reading sets selectable when active" ON ielts_reading_sets;
 DROP POLICY IF EXISTS "Allow read active reading sets" ON ielts_reading_sets;
 DROP POLICY IF EXISTS "Anyone can view active reading sets" ON ielts_reading_sets;
+DROP POLICY IF EXISTS "Reading sets viewable by authenticated users" ON ielts_reading_sets;
 
 -- Allow authenticated users to see all reading sets (for admin dashboard)
 CREATE POLICY "Reading sets viewable by authenticated users" ON ielts_reading_sets
@@ -25,6 +26,7 @@ USING (auth.uid() IS NOT NULL);
 DROP POLICY IF EXISTS "Listening sets selectable when active" ON ielts_listening_sets;
 DROP POLICY IF EXISTS "Allow read active listening sets" ON ielts_listening_sets;
 DROP POLICY IF EXISTS "Anyone can view active listening sets" ON ielts_listening_sets;
+DROP POLICY IF EXISTS "Listening sets viewable by authenticated users" ON ielts_listening_sets;
 
 -- Allow authenticated users to see all listening sets
 CREATE POLICY "Listening sets viewable by authenticated users" ON ielts_listening_sets
@@ -37,6 +39,7 @@ USING (auth.uid() IS NOT NULL);
 DROP POLICY IF EXISTS "Writing tasks selectable when active" ON ielts_writing_tasks;
 DROP POLICY IF EXISTS "Allow read active writing tasks" ON ielts_writing_tasks;
 DROP POLICY IF EXISTS "Anyone can view active writing tasks" ON ielts_writing_tasks;
+DROP POLICY IF EXISTS "Writing tasks viewable by authenticated users" ON ielts_writing_tasks;
 
 -- Allow authenticated users to see all writing tasks
 CREATE POLICY "Writing tasks viewable by authenticated users" ON ielts_writing_tasks
@@ -49,6 +52,7 @@ USING (auth.uid() IS NOT NULL);
 DROP POLICY IF EXISTS "Speaking tasks selectable when active" ON ielts_speaking_tasks;
 DROP POLICY IF EXISTS "Allow read active speaking tasks" ON ielts_speaking_tasks;
 DROP POLICY IF EXISTS "Anyone can view active speaking tasks" ON ielts_speaking_tasks;
+DROP POLICY IF EXISTS "Speaking tasks viewable by authenticated users" ON ielts_speaking_tasks;
 
 -- Allow authenticated users to see all speaking tasks
 CREATE POLICY "Speaking tasks viewable by authenticated users" ON ielts_speaking_tasks
