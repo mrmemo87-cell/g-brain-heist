@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { fetchActiveReadingSets, fetchReadingQuestions, submitReadingAttempt } from '../../../services/ieltsService';
+import { fetchActiveReadingSets, fetchReadingQuestions, submitReadingAttempt, saveNotificationPreferences } from '../../../services/ieltsService';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 import type { IELTSReadingQuestion } from '../../../types';
 
@@ -45,13 +45,42 @@ const ReadingPractice: React.FC = () => {
     enabled: !!setId,
   });
 
+  const [lastAttemptId, setLastAttemptId] = useState<number | null>(null);
+
   const submitMutation = useMutation({
     mutationFn: (data: { setId: number; answers: Record<number, string>; timeSpent: number }) =>
       submitReadingAttempt(data.setId, data.answers, data.timeSpent),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setLastAttemptId(data?.id);
       setShowResults(true);
     },
   });
+
+  // Save notification preferences when user updates them
+  const savePreferencesMutation = useMutation({
+    mutationFn: () => {
+      if (!lastAttemptId) throw new Error('No attempt ID');
+      return saveNotificationPreferences({
+        attemptType: 'reading',
+        attemptId: lastAttemptId,
+        alternateEmail,
+        phoneNumber,
+        notifyByEmail,
+        notifyBySms,
+        showInApp: notifyInApp,
+      });
+    },
+  });
+
+  // Auto-save preferences when they change (after submission)
+  useEffect(() => {
+    if (lastAttemptId && showResults) {
+      const timer = setTimeout(() => {
+        savePreferencesMutation.mutate();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [alternateEmail, phoneNumber, notifyByEmail, notifyBySms, notifyInApp, lastAttemptId, showResults]);
 
   const currentSet = readingSets?.find((set: any) => set.id === Number(setId));
   const currentQuestion = questions?.[currentQuestionIndex];

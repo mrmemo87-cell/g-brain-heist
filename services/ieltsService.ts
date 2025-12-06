@@ -591,3 +591,134 @@ export const getUserTier = async () => {
   return data?.tier || 'free';
 };
 
+// ============================================================
+// NOTIFICATION PREFERENCES
+// ============================================================
+
+export interface NotificationPreferences {
+  attemptType: 'reading' | 'listening' | 'writing' | 'speaking' | 'mock';
+  attemptId: number;
+  alternateEmail?: string;
+  phoneNumber?: string;
+  notifyByEmail?: boolean;
+  notifyBySms?: boolean;
+  showInApp?: boolean;
+}
+
+export const saveNotificationPreferences = async (prefs: NotificationPreferences) => {
+  const { data: session } = await supabase.auth.getSession();
+  if (!session?.session?.user) {
+    throw new Error('Not authenticated');
+  }
+
+  const userId = session.session.user.id;
+
+  const { data, error } = await supabase
+    .from('ielts_notification_preferences')
+    .upsert({
+      user_id: userId,
+      attempt_type: prefs.attemptType,
+      attempt_id: prefs.attemptId,
+      alternate_email: prefs.alternateEmail || null,
+      phone_number: prefs.phoneNumber || null,
+      notify_by_email: prefs.notifyByEmail ?? true,
+      notify_by_sms: prefs.notifyBySms ?? false,
+      show_in_app: prefs.showInApp ?? true,
+    }, {
+      onConflict: 'user_id,attempt_type,attempt_id'
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error saving notification preferences:', error);
+    throw new Error('Failed to save notification preferences');
+  }
+
+  return data;
+};
+
+// ============================================================
+// ADMIN FUNCTIONS
+// ============================================================
+
+export const fetchIeltsAdminStats = async () => {
+  const { data, error } = await supabase
+    .from('ielts_admin_stats')
+    .select('*')
+    .single();
+
+  if (error) {
+    console.error('Error fetching IELTS admin stats:', error);
+    throw new Error('Failed to fetch IELTS admin stats');
+  }
+
+  return data;
+};
+
+export const fetchIeltsRecentAttempts = async (limit = 50) => {
+  const { data, error } = await supabase
+    .from('ielts_admin_recent_attempts')
+    .select('*')
+    .limit(limit);
+
+  if (error) {
+    console.error('Error fetching recent attempts:', error);
+    throw new Error('Failed to fetch recent attempts');
+  }
+
+  return data || [];
+};
+
+export const fetchAllIeltsUsers = async () => {
+  const { data, error } = await supabase
+    .from('ielts_users')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching IELTS users:', error);
+    throw new Error('Failed to fetch IELTS users');
+  }
+
+  return data || [];
+};
+
+export const fetchIeltsContent = async () => {
+  const [reading, listening, writing, speaking] = await Promise.all([
+    supabase.from('ielts_reading_sets').select('id, title, difficulty, is_active').order('id'),
+    supabase.from('ielts_listening_sets').select('id, title, difficulty, is_active, audio_url').order('id'),
+    supabase.from('ielts_writing_tasks').select('id, title, task_type, is_active').order('id'),
+    supabase.from('ielts_speaking_tasks').select('id, part, prompt, is_active').order('part'),
+  ]);
+
+  return {
+    readingSets: reading.data || [],
+    listeningSets: listening.data || [],
+    writingTasks: writing.data || [],
+    speakingTasks: speaking.data || [],
+  };
+};
+
+export const markNotificationSent = async (
+  attemptType: string, 
+  attemptId: number, 
+  notificationType: 'email' | 'sms' | 'in_app'
+) => {
+  const columnMap = {
+    email: 'email_sent_at',
+    sms: 'sms_sent_at',
+    in_app: 'in_app_shown_at',
+  };
+
+  const { error } = await supabase
+    .from('ielts_notification_preferences')
+    .update({ [columnMap[notificationType]]: new Date().toISOString() })
+    .eq('attempt_type', attemptType)
+    .eq('attempt_id', attemptId);
+
+  if (error) {
+    console.error('Error marking notification sent:', error);
+  }
+};
+

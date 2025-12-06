@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '../../../services/supabaseClient';
+import { saveNotificationPreferences } from '../../../services/ieltsService';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 
 interface SpeakingTask {
@@ -96,10 +97,39 @@ const SpeakingPractice: React.FC = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setLastAttemptId(data?.id);
       setHasSubmitted(true);
     },
   });
+
+  const [lastAttemptId, setLastAttemptId] = useState<number | null>(null);
+
+  // Save notification preferences when user updates them
+  const savePreferencesMutation = useMutation({
+    mutationFn: () => {
+      if (!lastAttemptId) throw new Error('No attempt ID');
+      return saveNotificationPreferences({
+        attemptType: 'speaking',
+        attemptId: lastAttemptId,
+        alternateEmail,
+        phoneNumber,
+        notifyByEmail,
+        notifyBySms,
+        showInApp: notifyInApp,
+      });
+    },
+  });
+
+  // Auto-save preferences when they change (after submission)
+  useEffect(() => {
+    if (lastAttemptId && hasSubmitted) {
+      const timer = setTimeout(() => {
+        savePreferencesMutation.mutate();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [alternateEmail, phoneNumber, notifyByEmail, notifyBySms, notifyInApp, lastAttemptId, hasSubmitted]);
 
   // Cleanup on unmount
   useEffect(() => {

@@ -5,6 +5,7 @@ import * as GameService from '../services/gameService';
 import { supabase } from '../services/supabaseClient';
 import * as CompetitionService from '../services/competitionService';
 import ClickableUsername from './ClickableUsername';
+import IeltsAdminDashboard from './IeltsAdminDashboard';
 
 interface AdminPortalProps {
   profile: Profile;
@@ -12,7 +13,7 @@ interface AdminPortalProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
 }
 
-type AdminTab = 'dashboard' | 'users' | 'game' | 'clans' | 'analytics' | 'cambridge' | 'system';
+type AdminTab = 'dashboard' | 'users' | 'game' | 'clans' | 'analytics' | 'cambridge' | 'ielts' | 'system';
 
 const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
@@ -729,7 +730,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         {/* Tab Navigation - Epic Style */}
         <div className="max-w-6xl mx-auto mb-6">
           <div className="flex flex-wrap gap-2 justify-center">
-            {(['dashboard', 'users', 'game', 'clans', 'analytics', 'cambridge', 'system'] as AdminTab[]).map((tab) => (
+            {(['dashboard', 'users', 'game', 'clans', 'analytics', 'cambridge', 'ielts', 'system'] as AdminTab[]).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -1326,6 +1327,13 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                   <p className="text-sm mt-2">Click "Load/Refresh Reports" to check for submissions</p>
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === 'ielts' && (
+            <div className="card-glass p-6 border-2 border-emerald-400/50">
+              <h3 className="text-3xl font-heading font-bold text-emerald-300 mb-6">🎯 IELTS Prep Dashboard</h3>
+              <IeltsAdminDashboard addToast={addToast} />
             </div>
           )}
 

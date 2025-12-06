@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '../../../services/supabaseClient';
-import { ensureIeltsProfile } from '../../../services/ieltsService';
+import { ensureIeltsProfile, saveNotificationPreferences } from '../../../services/ieltsService';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 
 interface WritingTask {
@@ -74,6 +74,8 @@ const WritingPractice: React.FC = () => {
     enabled: !!taskId,
   });
 
+  const [lastAttemptId, setLastAttemptId] = useState<number | null>(null);
+
   // Submit mutation
   const submitMutation = useMutation({
     mutationFn: async (data: { taskId: number; answer: string; wordCount: number; timeSpent: number }) => {
@@ -98,10 +100,37 @@ const WritingPractice: React.FC = () => {
       if (error) throw error;
       return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setLastAttemptId(data?.id);
       setHasSubmitted(true);
     },
   });
+
+  // Save notification preferences when user updates them
+  const savePreferencesMutation = useMutation({
+    mutationFn: () => {
+      if (!lastAttemptId) throw new Error('No attempt ID');
+      return saveNotificationPreferences({
+        attemptType: 'writing',
+        attemptId: lastAttemptId,
+        alternateEmail,
+        phoneNumber,
+        notifyByEmail,
+        notifyBySms,
+        showInApp: notifyInApp,
+      });
+    },
+  });
+
+  // Auto-save preferences when they change (after submission)
+  useEffect(() => {
+    if (lastAttemptId && hasSubmitted) {
+      const timer = setTimeout(() => {
+        savePreferencesMutation.mutate();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [alternateEmail, phoneNumber, notifyByEmail, notifyBySms, notifyInApp, lastAttemptId, hasSubmitted]);
 
   const handleSubmit = () => {
     if (!taskId || !answer.trim()) return;
