@@ -70,30 +70,19 @@ SET is_active = false
 WHERE id IN (SELECT id FROM numbered WHERE rn > 1);
 
 -- ============================================================
--- STEP 3: FIX LISTENING SETS - Add proper audio URLs
+-- STEP 3: FIX LISTENING SETS - Mark as inactive until audio is uploaded
 -- ============================================================
 
--- Update listening sets with placeholder audio or mark as inactive if no audio
--- For now, let's use the Supabase storage URL pattern
+-- Since audio files don't exist yet, mark these listening sets as inactive
+-- The Trial Listening Test (/ielts/trial-test) will still work - it has its own audio
+UPDATE ielts_listening_sets 
+SET is_active = false 
+WHERE slug IN ('travel-conversation', 'university-orientation', 'environmental-lecture');
 
--- Option 1: If you have audio files in ielts-audio bucket:
-UPDATE ielts_listening_sets
-SET audio_url = 'https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/ielts-audio/travel-conversation.mp3'
-WHERE slug = 'travel-conversation';
-
-UPDATE ielts_listening_sets
-SET audio_url = 'https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/ielts-audio/university-orientation.mp3'
-WHERE slug = 'university-orientation';
-
-UPDATE ielts_listening_sets
-SET audio_url = 'https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/ielts-audio/environmental-lecture.mp3'
-WHERE slug = 'environmental-lecture';
-
--- If audio files don't exist, mark these as inactive until audio is uploaded
--- Uncomment if you want to hide listening sets without audio:
--- UPDATE ielts_listening_sets 
--- SET is_active = false 
--- WHERE audio_url LIKE '/audio/%' OR audio_url IS NULL;
+-- When you upload audio files to Supabase Storage (ielts-audio bucket), run these:
+-- UPDATE ielts_listening_sets SET is_active = true, audio_url = 'https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/ielts-audio/travel-conversation.mp3' WHERE slug = 'travel-conversation';
+-- UPDATE ielts_listening_sets SET is_active = true, audio_url = 'https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/ielts-audio/university-orientation.mp3' WHERE slug = 'university-orientation';
+-- UPDATE ielts_listening_sets SET is_active = true, audio_url = 'https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/ielts-audio/environmental-lecture.mp3' WHERE slug = 'environmental-lecture';
 
 -- ============================================================
 -- STEP 4: ADD QUESTIONS FOR READING SETS THAT HAVE NONE
