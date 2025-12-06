@@ -41,14 +41,16 @@ const WritingPractice: React.FC = () => {
     };
   }, []);
 
-  // Timer
+  // Timer - stop when submitted
   useEffect(() => {
+    if (hasSubmitted) return; // Don't run timer after submission
+    
     const timer = setInterval(() => {
       setTimeElapsed(Math.floor((Date.now() - startTime) / 1000));
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [startTime]);
+  }, [startTime, hasSubmitted]);
 
   // Word count
   useEffect(() => {

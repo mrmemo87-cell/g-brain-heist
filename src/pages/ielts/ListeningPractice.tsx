@@ -621,7 +621,7 @@ const ListeningPractice: React.FC = () => {
                 textAlign: 'center'
               }}>
                 <div style={{ fontSize: 'clamp(0.625rem, 1.5vw, 0.75rem)', color: isAudioPlaying ? '#92400e' : '#64748b', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  {isAudioPlaying ? '🔴 Recording Time' : 'Audio Time'}
+                  {isAudioPlaying ? '🔊 Now Playing' : 'Audio Time'}
                 </div>
                 <div style={{ 
                   fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', 
