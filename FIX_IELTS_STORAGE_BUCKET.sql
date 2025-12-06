@@ -12,6 +12,7 @@ DROP POLICY IF EXISTS "Users can view their own recordings" ON storage.objects;
 DROP POLICY IF EXISTS "Users can delete their own recordings" ON storage.objects;
 DROP POLICY IF EXISTS "IELTS users upload recordings" ON storage.objects;
 DROP POLICY IF EXISTS "IELTS users view recordings" ON storage.objects;
+DROP POLICY IF EXISTS "IELTS users update recordings" ON storage.objects;
 DROP POLICY IF EXISTS "IELTS users delete recordings" ON storage.objects;
 
 -- Create policy to allow authenticated users to upload to their own folder
