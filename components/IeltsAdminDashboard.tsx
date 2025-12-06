@@ -403,7 +403,7 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
           <div className="flex items-center gap-4 bg-black/40 rounded-xl p-4 border border-gray-700">
             <input
               type="text"
-              placeholder="🔍 Search users..."
+              placeholder="🔍 Search by name or email..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="flex-1 px-4 py-2 bg-black/50 border border-gray-600 rounded-lg text-white focus:border-cyan-400 focus:outline-none"
@@ -417,18 +417,30 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
                 <thead>
                   <tr className="bg-gray-800/50">
                     <th className="px-4 py-3 text-left text-gray-400 font-semibold">Name</th>
+                    <th className="px-4 py-3 text-left text-gray-400 font-semibold">Email</th>
+                    <th className="px-4 py-3 text-left text-gray-400 font-semibold">Phone</th>
                     <th className="px-4 py-3 text-center text-gray-400 font-semibold">Tier</th>
                     <th className="px-4 py-3 text-center text-gray-400 font-semibold">Target Band</th>
-                    <th className="px-4 py-3 text-center text-gray-400 font-semibold">Test Date</th>
                     <th className="px-4 py-3 text-center text-gray-400 font-semibold">Joined</th>
                   </tr>
                 </thead>
                 <tbody>
                   {users
-                    .filter(u => !searchQuery || u.full_name?.toLowerCase().includes(searchQuery.toLowerCase()))
+                    .filter(u => !searchQuery || 
+                      u.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      u.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      u.username?.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
                     .map(user => (
                       <tr key={user.id} className="border-t border-gray-700/50 hover:bg-gray-800/30">
-                        <td className="px-4 py-3 text-white font-medium">{user.full_name || 'Unknown'}</td>
+                        <td className="px-4 py-3">
+                          <div className="text-white font-medium">{user.full_name || user.username || 'Unknown'}</div>
+                          {user.username && user.full_name && (
+                            <div className="text-gray-500 text-xs">@{user.username}</div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-cyan-400">{user.email || '-'}</td>
+                        <td className="px-4 py-3 text-gray-400">{user.phone || '-'}</td>
                         <td className="px-4 py-3 text-center">
                           <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                             user.tier === 'premium' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-gray-500/20 text-gray-400'
@@ -437,9 +449,6 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-center text-cyan-400 font-bold">{user.target_band || '-'}</td>
-                        <td className="px-4 py-3 text-center text-gray-400">
-                          {user.test_date ? new Date(user.test_date).toLocaleDateString() : '-'}
-                        </td>
                         <td className="px-4 py-3 text-center text-gray-400 text-sm">
                           {user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}
                         </td>

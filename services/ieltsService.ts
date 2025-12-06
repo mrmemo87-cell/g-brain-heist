@@ -671,6 +671,17 @@ export const fetchIeltsRecentAttempts = async (limit = 50) => {
 };
 
 export const fetchAllIeltsUsers = async () => {
+  // Try to use the admin view first (has email from auth.users)
+  const { data: viewData, error: viewError } = await supabase
+    .from('ielts_users_admin')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (!viewError && viewData) {
+    return viewData;
+  }
+
+  // Fall back to regular ielts_users table
   const { data, error } = await supabase
     .from('ielts_users')
     .select('*')
