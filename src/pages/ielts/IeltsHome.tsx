@@ -5,6 +5,8 @@ import {
   fetchActiveReadingSets,
   fetchActiveSpeakingTasks,
   fetchActiveWritingTasks,
+  fetchUserCompletedTasks,
+  UserCompletedTasks,
 } from '../../../services/ieltsService';
 import type { IELTSListeningSet, IELTSReadingSet, IELTSSpeakingTask, IELTSWritingTask } from '../../../types';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
@@ -16,6 +18,7 @@ const IeltsHome: React.FC = () => {
   const [listeningSets, setListeningSets] = useState<IELTSListeningSet[]>([]);
   const [writingTasks, setWritingTasks] = useState<IELTSWritingTask[]>([]);
   const [speakingTasks, setSpeakingTasks] = useState<IELTSSpeakingTask[]>([]);
+  const [completedTasks, setCompletedTasks] = useState<UserCompletedTasks>({ reading: [], listening: [], writing: [], speaking: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,17 +48,19 @@ const IeltsHome: React.FC = () => {
         setIsLoading(true);
         setError(null);
 
-        const [reading, listening, writing, speaking] = await Promise.all([
+        const [reading, listening, writing, speaking, completed] = await Promise.all([
           fetchActiveReadingSets(),
           fetchActiveListeningSets(),
           fetchActiveWritingTasks(),
           fetchActiveSpeakingTasks(),
+          fetchUserCompletedTasks(),
         ]);
 
         setReadingSets(reading);
         setListeningSets(listening);
         setWritingTasks(writing);
         setSpeakingTasks(speaking);
+        setCompletedTasks(completed);
       } catch (loadError) {
         const message = loadError instanceof Error ? loadError.message : 'Failed to load IELTS tasks.';
         setError(message);
@@ -237,14 +242,17 @@ const IeltsHome: React.FC = () => {
             ) : readingSets.length === 0 ? (
               <p style={{ color: '#6b7280', fontSize: '0.8125rem', margin: 0 }}>No reading sets are published yet.</p>
             ) : (
-              readingSets.map((set) => (
+              readingSets.map((set) => {
+                const isCompleted = completedTasks.reading.includes(set.id);
+                return (
                 <button
                   key={set.id}
                   onClick={() => navigate(`/ielts/reading/${set.id}`)}
                   style={{
                     width: '100%',
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #e5e7eb',
+                    backgroundColor: isCompleted ? '#f0fdf4' : '#ffffff',
+                    border: isCompleted ? '1px solid #22c55e' : '1px solid #e5e7eb',
+                    borderLeft: isCompleted ? '4px solid #22c55e' : '1px solid #e5e7eb',
                     borderRadius: '0.5rem',
                     padding: '0.75rem',
                     marginBottom: '0.5rem',
@@ -255,14 +263,21 @@ const IeltsHome: React.FC = () => {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
                       <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem', flex: 1, minWidth: '150px' }}>{set.title}</p>
-                      <span style={{ backgroundColor: '#0369a1', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px', whiteSpace: 'nowrap' }}>
-                        Band {set.est_band_min}-{set.est_band_max}
-                      </span>
+                      <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                        {isCompleted && (
+                          <span style={{ backgroundColor: '#22c55e', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px', whiteSpace: 'nowrap' }}>
+                            ✓ DONE
+                          </span>
+                        )}
+                        <span style={{ backgroundColor: '#0369a1', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px', whiteSpace: 'nowrap' }}>
+                          Band {set.est_band_min}-{set.est_band_max}
+                        </span>
+                      </div>
                     </div>
                     <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Level: {set.level} • {set.duration_minutes || 20} min</p>
                   </div>
                 </button>
-              ))
+              );})
             )}
           </div>
 
@@ -277,14 +292,17 @@ const IeltsHome: React.FC = () => {
             ) : listeningSets.length === 0 ? (
               <p style={{ color: '#6b7280', fontSize: '0.8125rem', margin: 0 }}>No listening sets are published yet.</p>
             ) : (
-              listeningSets.map((set) => (
+              listeningSets.map((set) => {
+                const isCompleted = completedTasks.listening.includes(set.id);
+                return (
                 <button
                   key={set.id}
                   onClick={() => navigate(`/ielts/listening/${set.id}`)}
                   style={{
                     width: '100%',
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #e5e7eb',
+                    backgroundColor: isCompleted ? '#f0fdf4' : '#ffffff',
+                    border: isCompleted ? '1px solid #22c55e' : '1px solid #e5e7eb',
+                    borderLeft: isCompleted ? '4px solid #22c55e' : '1px solid #e5e7eb',
                     borderRadius: '0.5rem',
                     padding: '0.75rem',
                     marginBottom: '0.5rem',
@@ -295,14 +313,21 @@ const IeltsHome: React.FC = () => {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
                       <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem', flex: 1, minWidth: '150px' }}>{set.title}</p>
-                      <span style={{ backgroundColor: '#7c3aed', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px', whiteSpace: 'nowrap' }}>
-                        Band {set.est_band_min}-{set.est_band_max}
-                      </span>
+                      <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                        {isCompleted && (
+                          <span style={{ backgroundColor: '#22c55e', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px', whiteSpace: 'nowrap' }}>
+                            ✓ DONE
+                          </span>
+                        )}
+                        <span style={{ backgroundColor: '#7c3aed', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px', whiteSpace: 'nowrap' }}>
+                          Band {set.est_band_min}-{set.est_band_max}
+                        </span>
+                      </div>
                     </div>
                     <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Level: {set.level} • {set.duration_minutes} min</p>
                   </div>
                 </button>
-              ))
+              );})
             )}
           </div>
 
@@ -317,14 +342,17 @@ const IeltsHome: React.FC = () => {
             ) : writingTasks.length === 0 ? (
               <p style={{ color: '#6b7280', fontSize: '0.8125rem', margin: 0 }}>No writing tasks are published yet.</p>
             ) : (
-              writingTasks.map((task) => (
+              writingTasks.map((task) => {
+                const isCompleted = completedTasks.writing.includes(task.id);
+                return (
                 <button
                   key={task.id}
                   onClick={() => navigate(`/ielts/writing/${task.id}`)}
                   style={{
                     width: '100%',
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #e5e7eb',
+                    backgroundColor: isCompleted ? '#f0fdf4' : '#ffffff',
+                    border: isCompleted ? '1px solid #22c55e' : '1px solid #e5e7eb',
+                    borderLeft: isCompleted ? '4px solid #22c55e' : '1px solid #e5e7eb',
                     borderRadius: '0.5rem',
                     padding: '0.75rem',
                     marginBottom: '0.5rem',
@@ -335,14 +363,21 @@ const IeltsHome: React.FC = () => {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
                       <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem', flex: 1, minWidth: '150px' }}>{task.title}</p>
-                      <span style={{ backgroundColor: '#059669', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px', whiteSpace: 'nowrap' }}>
-                        Band {task.bands_target}
-                      </span>
+                      <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                        {isCompleted && (
+                          <span style={{ backgroundColor: '#22c55e', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px', whiteSpace: 'nowrap' }}>
+                            ✓ DONE
+                          </span>
+                        )}
+                        <span style={{ backgroundColor: '#059669', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px', whiteSpace: 'nowrap' }}>
+                          Band {task.bands_target}
+                        </span>
+                      </div>
                     </div>
                     <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>{task.task_type === 'task1' ? 'Task 1 - 20 min' : 'Task 2 - 40 min'}</p>
                   </div>
                 </button>
-              ))
+              );})
             )}
           </div>
 
@@ -357,14 +392,17 @@ const IeltsHome: React.FC = () => {
             ) : speakingTasks.length === 0 ? (
               <p style={{ color: '#6b7280', fontSize: '0.8125rem', margin: 0 }}>No speaking tasks are published yet.</p>
             ) : (
-              speakingTasks.map((task) => (
+              speakingTasks.map((task) => {
+                const isCompleted = completedTasks.speaking.includes(task.id);
+                return (
                 <button
                   key={task.id}
                   onClick={() => navigate(`/ielts/speaking/${task.id}`)}
                   style={{
                     width: '100%',
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #e5e7eb',
+                    backgroundColor: isCompleted ? '#f0fdf4' : '#ffffff',
+                    border: isCompleted ? '1px solid #22c55e' : '1px solid #e5e7eb',
+                    borderLeft: isCompleted ? '4px solid #22c55e' : '1px solid #e5e7eb',
                     borderRadius: '0.5rem',
                     padding: '0.75rem',
                     marginBottom: '0.5rem',
@@ -374,15 +412,22 @@ const IeltsHome: React.FC = () => {
                 >
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
-                      <span style={{ backgroundColor: '#dc2626', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px', whiteSpace: 'nowrap' }}>
-                        Part {task.part}
-                      </span>
+                      <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                        {isCompleted && (
+                          <span style={{ backgroundColor: '#22c55e', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px', whiteSpace: 'nowrap' }}>
+                            ✓ DONE
+                          </span>
+                        )}
+                        <span style={{ backgroundColor: '#dc2626', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px', whiteSpace: 'nowrap' }}>
+                          Part {task.part}
+                        </span>
+                      </div>
                     </div>
                     <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem', lineHeight: 1.4 }}>{task.prompt}</p>
                     <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Record & get expert feedback</p>
                   </div>
                 </button>
-              ))
+              );})
             )}
           </div>
 

@@ -722,3 +722,48 @@ export const markNotificationSent = async (
   }
 };
 
+// ============================================================
+// USER COMPLETION TRACKING
+// ============================================================
+
+export interface UserCompletedTasks {
+  reading: number[];   // Array of completed set IDs
+  listening: number[]; // Array of completed set IDs
+  writing: number[];   // Array of completed task IDs
+  speaking: number[];  // Array of completed task IDs
+}
+
+export const fetchUserCompletedTasks = async (): Promise<UserCompletedTasks> => {
+  const { data: session } = await supabase.auth.getSession();
+  if (!session?.session?.user) {
+    return { reading: [], listening: [], writing: [], speaking: [] };
+  }
+
+  const userId = session.session.user.id;
+
+  const [reading, listening, writing, speaking] = await Promise.all([
+    supabase
+      .from('ielts_reading_attempts')
+      .select('set_id')
+      .eq('user_id', userId),
+    supabase
+      .from('ielts_listening_attempts')
+      .select('set_id')
+      .eq('user_id', userId),
+    supabase
+      .from('ielts_writing_attempts')
+      .select('task_id')
+      .eq('user_id', userId),
+    supabase
+      .from('ielts_speaking_attempts')
+      .select('task_id')
+      .eq('user_id', userId),
+  ]);
+
+  return {
+    reading: [...new Set((reading.data || []).map(r => r.set_id))],
+    listening: [...new Set((listening.data || []).map(l => l.set_id))],
+    writing: [...new Set((writing.data || []).map(w => w.task_id))],
+    speaking: [...new Set((speaking.data || []).map(s => s.task_id))],
+  };
+};

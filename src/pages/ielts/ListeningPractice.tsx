@@ -473,6 +473,32 @@ const ListeningPractice: React.FC = () => {
                 <span style={{ fontSize: '0.875rem', color: '#475569' }}>Show in-app notification</span>
               </label>
             </div>
+
+            {/* Save Preferences Button */}
+            <button
+              onClick={() => savePreferencesMutation.mutate()}
+              disabled={savePreferencesMutation.isPending}
+              style={{
+                width: '100%',
+                marginTop: '1rem',
+                padding: '0.75rem 1rem',
+                background: savePreferencesMutation.isSuccess 
+                  ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                  : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '0.5rem',
+                cursor: savePreferencesMutation.isPending ? 'not-allowed' : 'pointer',
+                fontWeight: 600,
+                fontSize: '0.875rem',
+                opacity: savePreferencesMutation.isPending ? 0.7 : 1,
+                transition: 'all 0.2s',
+              }}
+            >
+              {savePreferencesMutation.isPending ? '⏳ Saving...' : 
+               savePreferencesMutation.isSuccess ? '✓ Preferences Saved!' : 
+               '💾 Save Notification Preferences'}
+            </button>
           </div>
 
           {/* Answer Review */}
@@ -550,26 +576,7 @@ const ListeningPractice: React.FC = () => {
                 fontWeight: 600
               }}
             >
-              Back to IELTS Home
-            </button>
-            <button
-              onClick={() => {
-                setAnswers({});
-                setShowResults(false);
-                setAudioPlayed(false);
-              }}
-              style={{
-                flex: 1,
-                padding: '0.875rem 1.5rem',
-                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.5rem',
-                cursor: 'pointer',
-                fontWeight: 600
-              }}
-            >
-              Try Again
+              ← Back to IELTS Home
             </button>
           </div>
         </div>
