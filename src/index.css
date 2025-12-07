@@ -1139,3 +1139,134 @@ button {
   min-height: 40px;
   padding: 0.5rem 1rem;
 }
+
+/* ========================================
+   TEACHER PORTAL - PROFESSIONAL LIGHT THEME
+   Clean, readable interface for teachers
+   ======================================== */
+
+.teacher-portal-light {
+  background-color: #f8fafc !important;
+  color: #1e293b !important;
+  min-height: 100vh;
+}
+
+.teacher-portal-light .card-glass {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #1e293b !important;
+  backdrop-filter: none !important;
+}
+
+.teacher-portal-light input,
+.teacher-portal-light select,
+.teacher-portal-light textarea {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #1e293b !important;
+}
+
+.teacher-portal-light input::placeholder,
+.teacher-portal-light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+.teacher-portal-light input:focus,
+.teacher-portal-light select:focus,
+.teacher-portal-light textarea:focus {
+  border-color: #3b82f6 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+.teacher-portal-light label {
+  color: #374151 !important;
+  font-weight: 500;
+}
+
+.teacher-portal-light h1,
+.teacher-portal-light h2,
+.teacher-portal-light h3,
+.teacher-portal-light h4 {
+  color: #1e293b !important;
+}
+
+.teacher-portal-light p,
+.teacher-portal-light span,
+.teacher-portal-light div {
+  color: inherit;
+}
+
+.teacher-portal-light .text-gray-400,
+.teacher-portal-light .text-gray-500 {
+  color: #64748b !important;
+}
+
+.teacher-portal-light .text-gray-300 {
+  color: #475569 !important;
+}
+
+.teacher-portal-light table {
+  color: #1e293b !important;
+}
+
+.teacher-portal-light th {
+  background-color: #f1f5f9 !important;
+  color: #374151 !important;
+  font-weight: 600;
+}
+
+.teacher-portal-light td {
+  color: #1e293b !important;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.teacher-portal-light tr:hover {
+  background-color: #f8fafc !important;
+}
+
+/* Professional buttons */
+.teacher-portal-light .btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.teacher-portal-light .btn-success {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.teacher-portal-light .btn-danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  color: white !important;
+  border: none !important;
+}
+
+/* Status badges */
+.teacher-portal-light .badge-success {
+  background-color: #dcfce7 !important;
+  color: #166534 !important;
+}
+
+.teacher-portal-light .badge-warning {
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+}
+
+.teacher-portal-light .badge-danger {
+  background-color: #fee2e2 !important;
+  color: #991b1b !important;
+}
+
+/* Modal styling for teacher portal */
+.teacher-portal-light .modal-overlay {
+  background-color: rgba(15, 23, 42, 0.6) !important;
+}
+
+.teacher-portal-light .modal-content {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+}
+

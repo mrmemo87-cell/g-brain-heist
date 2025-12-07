@@ -1510,113 +1510,200 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
   // Render Dashboard
   const renderDashboard = () => (
-    <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h1 className="font-heading text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-500 mb-2">
-          👨‍🏫 Teacher Portal
-        </h1>
-        <p className="text-gray-400">Welcome back, {profile.username}!</p>
+    <div className="space-y-8">
+      {/* Welcome Section */}
+      <div className="text-center pb-6 border-b border-slate-200">
+        <h2 className="text-3xl font-bold text-slate-800 mb-2">
+          📊 Dashboard Overview
+        </h2>
+        <p className="text-slate-600">Manage your classes, questions, and track student progress</p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card-glass p-6 text-center border-l-4 border-cyan-500">
-          <div className="text-4xl font-bold text-cyan-400">{questions.length}</div>
-          <div className="text-sm text-gray-400 mt-1">Questions Created</div>
+      {/* Stats Cards - Professional Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 border border-cyan-200 rounded-xl p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-cyan-700">Questions Created</p>
+              <p className="text-3xl font-bold text-cyan-900 mt-1">{questions.length}</p>
+            </div>
+            <div className="text-4xl opacity-80">📝</div>
+          </div>
         </div>
         
-        <div className="card-glass p-6 text-center border-l-4 border-green-500">
-          <div className="text-4xl font-bold text-green-400">
-            {questions.reduce((sum, q) => sum + q.times_answered, 0)}
+        <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-green-700">Total Responses</p>
+              <p className="text-3xl font-bold text-green-900 mt-1">
+                {questions.reduce((sum, q) => sum + q.times_answered, 0)}
+              </p>
+            </div>
+            <div className="text-4xl opacity-80">✅</div>
           </div>
-          <div className="text-sm text-gray-400 mt-1">Total Answers</div>
         </div>
         
-        <div className="card-glass p-6 text-center border-l-4 border-yellow-500">
-          <div className="text-4xl font-bold text-yellow-400">
-            {questions.length > 0
-              ? Math.round((questions.reduce((sum, q) => sum + q.times_correct, 0) /
-                  Math.max(questions.reduce((sum, q) => sum + q.times_answered, 0), 1)) * 100)
-              : 0}%
+        <div className="bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 rounded-xl p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-amber-700">Success Rate</p>
+              <p className="text-3xl font-bold text-amber-900 mt-1">
+                {questions.length > 0
+                  ? Math.round((questions.reduce((sum, q) => sum + q.times_correct, 0) /
+                      Math.max(questions.reduce((sum, q) => sum + q.times_answered, 0), 1)) * 100)
+                  : 0}%
+              </p>
+            </div>
+            <div className="text-4xl opacity-80">📈</div>
           </div>
-          <div className="text-sm text-gray-400 mt-1">Average Success Rate</div>
         </div>
-        <div className="card-glass p-6 text-center border-l-4 border-purple-500">
-          <div className="text-4xl font-bold text-purple-400">{assignments.length}</div>
-          <div className="text-sm text-gray-400 mt-1">Assignments Scheduled</div>
-          <div className="text-xs text-gray-500 mt-2">
-            {assignments.filter((a) => a.completed_count < a.student_count).length} active ·{' '}
-            {assignments.reduce((sum, a) => sum + a.completed_count, 0)} completions
+        
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-purple-700">Active Assignments</p>
+              <p className="text-3xl font-bold text-purple-900 mt-1">{assignments.length}</p>
+              <p className="text-xs text-purple-600 mt-1">
+                {assignments.filter((a) => a.completed_count < a.student_count).length} pending
+              </p>
+            </div>
+            <div className="text-4xl opacity-80">📋</div>
           </div>
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <button
-          onClick={() => setView('create-question')}
-          className="card-glass p-8 hover:scale-105 transition-transform border-2 border-pink-500/50 hover:border-pink-500"
-        >
-          <div className="text-6xl mb-3">➕</div>
-          <div className="font-heading text-2xl text-pink-400 font-bold">Create Question</div>
-          <div className="text-sm text-gray-400 mt-2">Add a new question to your library</div>
-        </button>
+      {/* Quick Actions Section */}
+      <div>
+        <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+          ⚡ Quick Actions
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <button
+            onClick={() => setView('create-question')}
+            className="group bg-white border-2 border-slate-200 hover:border-pink-400 rounded-xl p-6 text-left transition-all hover:shadow-lg"
+          >
+            <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">➕</div>
+            <h4 className="font-bold text-slate-800 text-lg">Create Question</h4>
+            <p className="text-sm text-slate-500 mt-1">Add a new question to your library</p>
+          </button>
 
-        <button
-          onClick={() => setView('question-bank')}
-          className="card-glass p-8 hover:scale-105 transition-transform border-2 border-cyan-500/50 hover:border-cyan-500"
-        >
-          <div className="text-6xl mb-3">📚</div>
-          <div className="font-heading text-2xl text-cyan-400 font-bold">Question Bank</div>
-          <div className="text-sm text-gray-400 mt-2">View and manage all your questions</div>
-        </button>
+          <button
+            onClick={() => setView('question-bank')}
+            className="group bg-white border-2 border-slate-200 hover:border-cyan-400 rounded-xl p-6 text-left transition-all hover:shadow-lg"
+          >
+            <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">📚</div>
+            <h4 className="font-bold text-slate-800 text-lg">Question Bank</h4>
+            <p className="text-sm text-slate-500 mt-1">View and manage all questions</p>
+          </button>
 
-        <button
-          onClick={() => setView('csv-upload')}
-          className="card-glass p-8 hover:scale-105 transition-transform border-2 border-green-500/50 hover:border-green-500"
-        >
-          <div className="text-6xl mb-3">📤</div>
-          <div className="font-heading text-2xl text-green-400 font-bold">Bulk Upload CSV</div>
-          <div className="text-sm text-gray-400 mt-2">Import multiple questions at once</div>
-        </button>
-        <button
-          onClick={() => setView('assignments')}
-          className="card-glass p-8 hover:scale-105 transition-transform border-2 border-purple-500/50 hover:border-purple-500"
-        >
-          <div className="text-6xl mb-3">🗂️</div>
-          <div className="font-heading text-2xl text-purple-300 font-bold">Assignments</div>
-          <div className="text-sm text-gray-400 mt-2">Create and monitor mandatory quests</div>
-        </button>
+          <button
+            onClick={() => setView('csv-upload')}
+            className="group bg-white border-2 border-slate-200 hover:border-green-400 rounded-xl p-6 text-left transition-all hover:shadow-lg"
+          >
+            <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">📤</div>
+            <h4 className="font-bold text-slate-800 text-lg">Bulk Upload</h4>
+            <p className="text-sm text-slate-500 mt-1">Import questions via CSV</p>
+          </button>
 
-        <button
-          onClick={() => setView('geometry-diagrams')}
-          className="card-glass p-8 hover:scale-105 transition-transform border-2 border-orange-500/50 hover:border-orange-500"
-        >
-          <div className="text-6xl mb-3">📐</div>
-          <div className="font-heading text-2xl text-orange-400 font-bold">Geometry Diagrams</div>
-          <div className="text-sm text-gray-400 mt-2">Create interactive diagram questions</div>
-        </button>
-        <button
-          onClick={() => setView('reports')}
-          className="card-glass p-8 hover:scale-105 transition-transform border-2 border-blue-500/50 hover:border-blue-500"
-        >
-          <div className="text-6xl mb-3">📊</div>
-          <div className="font-heading text-2xl text-blue-300 font-bold">Reports</div>
-          <div className="text-sm text-gray-400 mt-2">Track accuracy and completion</div>
-        </button>
-
-        <button
-          onClick={() => {
-            setView('cambridge-reports');
-            loadCambridgeScores();
-          }}
-          className="card-glass p-8 hover:scale-105 transition-transform border-2 border-teal-500/50 hover:border-teal-500"
-        >
-          <div className="text-6xl mb-3">📝</div>
-          <div className="font-heading text-2xl text-teal-400 font-bold">Cambridge Tests</div>
-          <div className="text-sm text-gray-400 mt-2">View student test results & detailed answers</div>
-        </button>
+          <button
+            onClick={() => setView('create-assignment')}
+            className="group bg-white border-2 border-slate-200 hover:border-purple-400 rounded-xl p-6 text-left transition-all hover:shadow-lg"
+          >
+            <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">📋</div>
+            <h4 className="font-bold text-slate-800 text-lg">New Assignment</h4>
+            <p className="text-sm text-slate-500 mt-1">Assign work to students</p>
+          </button>
+        </div>
       </div>
+
+      {/* Tools Section */}
+      <div>
+        <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+          🛠️ Teaching Tools
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <button
+            onClick={() => setView('geometry-diagrams')}
+            className="group bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 hover:border-orange-400 rounded-xl p-5 text-left transition-all hover:shadow-md"
+          >
+            <div className="flex items-center gap-4">
+              <div className="text-4xl">📐</div>
+              <div>
+                <h4 className="font-bold text-slate-800">Geometry Builder</h4>
+                <p className="text-sm text-slate-600">Create interactive diagram questions</p>
+              </div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setView('reports')}
+            className="group bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 hover:border-blue-400 rounded-xl p-5 text-left transition-all hover:shadow-md"
+          >
+            <div className="flex items-center gap-4">
+              <div className="text-4xl">📊</div>
+              <div>
+                <h4 className="font-bold text-slate-800">Performance Reports</h4>
+                <p className="text-sm text-slate-600">Track student accuracy & completion</p>
+              </div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => {
+              setView('cambridge-reports');
+              loadCambridgeScores();
+            }}
+            className="group bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200 hover:border-teal-400 rounded-xl p-5 text-left transition-all hover:shadow-md"
+          >
+            <div className="flex items-center gap-4">
+              <div className="text-4xl">✍️</div>
+              <div>
+                <h4 className="font-bold text-slate-800">Cambridge Tests</h4>
+                <p className="text-sm text-slate-600">Mark writing tests & view results</p>
+              </div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* Recent Activity Section */}
+      {assignments.length > 0 && (
+        <div>
+          <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+            📅 Recent Assignments
+          </h3>
+          <div className="bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-slate-100 border-b border-slate-200">
+                <tr>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Title</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Subject</th>
+                  <th className="text-center py-3 px-4 text-sm font-semibold text-slate-700">Completed</th>
+                  <th className="text-center py-3 px-4 text-sm font-semibold text-slate-700">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {assignments.slice(0, 5).map((a, i) => (
+                  <tr key={a.id} className={i % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                    <td className="py-3 px-4 text-slate-800 font-medium">{a.title}</td>
+                    <td className="py-3 px-4 text-slate-600">{a.subject}</td>
+                    <td className="py-3 px-4 text-center text-slate-700">{a.completed_count}/{a.student_count}</td>
+                    <td className="py-3 px-4 text-center">
+                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                        a.completed_count >= a.student_count 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-amber-100 text-amber-700'
+                      }`}>
+                        {a.completed_count >= a.student_count ? '✅ Complete' : '⏳ In Progress'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -1628,14 +1715,18 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           setEditingQuestion(null);
           setView('question-bank');
         }}
-        className="mb-4 text-cyan-400 hover:text-cyan-300 flex items-center gap-2"
+        className="mb-4 text-slate-600 hover:text-slate-800 flex items-center gap-2 font-medium"
       >
         <span>←</span> Back to Questions
       </button>
 
+      <h2 className="text-2xl font-bold text-slate-800 mb-6">
+        {editingQuestion ? '✏️ Edit Question' : '➕ Create New Question'}
+      </h2>
+
       {/* Quick Templates */}
-      <div className="card-glass p-4 mb-6">
-        <h3 className="text-sm font-semibold text-gray-300 mb-3">⚡ Quick Templates</h3>
+      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
+        <h3 className="text-sm font-semibold text-slate-700 mb-3">⚡ Quick Templates</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           <button
             type="button"
@@ -1644,10 +1735,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               setQuestionText('');
               setOptions(['', '', '', '']);
             }}
-            className="p-3 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-lg transition-all text-sm"
+            className="p-3 bg-white hover:bg-cyan-50 border border-slate-200 hover:border-cyan-400 rounded-lg transition-all text-sm"
           >
             <div className="text-2xl mb-1">📝</div>
-            <div className="text-cyan-400 font-semibold">Multiple Choice</div>
+            <div className="text-slate-700 font-semibold">Multiple Choice</div>
           </button>
           
           <button
@@ -1657,10 +1748,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               setQuestionText('');
               setOptions(['True', 'False']);
             }}
-            className="p-3 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 rounded-lg transition-all text-sm"
+            className="p-3 bg-white hover:bg-green-50 border border-slate-200 hover:border-green-400 rounded-lg transition-all text-sm"
           >
             <div className="text-2xl mb-1">✓✗</div>
-            <div className="text-green-400 font-semibold">True/False</div>
+            <div className="text-slate-700 font-semibold">True/False</div>
           </button>
           
           <button
@@ -3761,57 +3852,98 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-2xl text-cyan-400 animate-pulse">Loading Teacher Portal...</div>
+      <div className="flex items-center justify-center min-h-[400px] bg-white">
+        <div className="text-2xl text-slate-600 animate-pulse">Loading Teacher Portal...</div>
       </div>
     );
   }
 
-  const navTabs: Array<{ id: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge'; label: string; icon: string }> = [
-    { id: 'dashboard', label: 'Overview', icon: '🏠' },
-    { id: 'questions', label: 'Questions', icon: '📚' },
-    { id: 'assignments', label: 'Assignments', icon: '🗂️' },
-    { id: 'reports', label: 'Reports', icon: '📊' },
-    { id: 'cambridge', label: 'Cambridge Tests', icon: '📝' },
+  const navTabs: Array<{ id: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge'; label: string; icon: string; description: string }> = [
+    { id: 'dashboard', label: 'Dashboard', icon: '🏠', description: 'Overview & Quick Actions' },
+    { id: 'questions', label: 'Question Bank', icon: '📚', description: 'Create & Manage Questions' },
+    { id: 'assignments', label: 'Assignments', icon: '📋', description: 'Assign Work to Students' },
+    { id: 'reports', label: 'Reports', icon: '📊', description: 'Student Performance' },
+    { id: 'cambridge', label: 'Cambridge Tests', icon: '✍️', description: 'Writing & Test Results' },
   ];
 
   const containerSpacing = view === 'question-bank'
-    ? 'mt-6 pt-6 md:pt-10'
-    : 'mt-6';
+    ? 'pt-6 md:pt-10'
+    : 'pt-6';
 
   return (
-    <div className={containerSpacing}>
+    <div className={`${containerSpacing} teacher-portal-light min-h-screen`}>
       <BackButton onClick={onComplete} />
 
-      <div className="max-w-6xl mx-auto">
-        <div className="flex flex-wrap gap-3 mb-6">
-          {navTabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => changeSection(tab.id)}
-              className={`px-4 py-2 rounded-full border transition-all ${primarySection === tab.id ? 'border-cyan-400 text-white bg-cyan-500/20' : 'border-gray-700 text-gray-400 hover:border-cyan-400 hover:text-white'}`}
-            >
-              <span className="mr-2">{tab.icon}</span>
-              {tab.label}
-            </button>
-          ))}
+      <div className="max-w-7xl mx-auto px-4 pb-10">
+        {/* Professional Header */}
+        <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl p-6 mb-6 shadow-lg">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+                👨‍🏫 Teacher Portal
+              </h1>
+              <p className="text-slate-300 mt-1">Welcome back, <span className="text-cyan-400 font-semibold">{profile.username}</span></p>
+            </div>
+            <div className="hidden md:flex items-center gap-4 text-white">
+              <div className="text-center px-4 border-r border-slate-600">
+                <div className="text-2xl font-bold text-cyan-400">{questions.length}</div>
+                <div className="text-xs text-slate-400">Questions</div>
+              </div>
+              <div className="text-center px-4 border-r border-slate-600">
+                <div className="text-2xl font-bold text-green-400">{assignments.length}</div>
+                <div className="text-xs text-slate-400">Assignments</div>
+              </div>
+              <div className="text-center px-4">
+                <div className="text-2xl font-bold text-purple-400">
+                  {questions.reduce((sum, q) => sum + q.times_answered, 0)}
+                </div>
+                <div className="text-xs text-slate-400">Responses</div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {view === 'dashboard' && renderDashboard()}
-        {view === 'create-question' && renderCreateQuestion()}
-        {view === 'question-bank' && renderQuestionBank()}
-        {view === 'csv-upload' && renderCSVUpload()}
-        {view === 'assignments' && renderAssignments()}
-        {view === 'create-assignment' && renderCreateAssignment()}
-        {view === 'reports' && renderReports()}
-        {view === 'report-detail' && renderReportDetail()}
-        {view === 'cambridge-reports' && renderCambridgeReports()}
-        {view === 'geometry-diagrams' && teacher && (
-          <DiagramBuilder
-            teacherId={teacher.id}
-            onComplete={() => setView('dashboard')}
-          />
-        )}
+        {/* Professional Navigation Tabs */}
+        <div className="bg-slate-100 rounded-xl p-2 mb-6 shadow-sm">
+          <div className="flex flex-wrap gap-2">
+            {navTabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => changeSection(tab.id)}
+                className={`flex-1 min-w-[140px] px-4 py-3 rounded-lg transition-all flex items-center gap-2 ${
+                  primarySection === tab.id 
+                    ? 'bg-white text-slate-900 shadow-md font-semibold' 
+                    : 'text-slate-600 hover:bg-white/50 hover:text-slate-900'
+                }`}
+              >
+                <span className="text-xl">{tab.icon}</span>
+                <div className="text-left">
+                  <div className="font-medium">{tab.label}</div>
+                  <div className="text-xs text-slate-500 hidden lg:block">{tab.description}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Main Content Area with White Background */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          {view === 'dashboard' && renderDashboard()}
+          {view === 'create-question' && renderCreateQuestion()}
+          {view === 'question-bank' && renderQuestionBank()}
+          {view === 'csv-upload' && renderCSVUpload()}
+          {view === 'assignments' && renderAssignments()}
+          {view === 'create-assignment' && renderCreateAssignment()}
+          {view === 'reports' && renderReports()}
+          {view === 'report-detail' && renderReportDetail()}
+          {view === 'cambridge-reports' && renderCambridgeReports()}
+          {view === 'geometry-diagrams' && teacher && (
+            <DiagramBuilder
+              teacherId={teacher.id}
+              onComplete={() => setView('dashboard')}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
