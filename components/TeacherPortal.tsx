@@ -81,6 +81,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
   const [cambridgeLoading, setCambridgeLoading] = useState(false);
   const [cambridgeQuizFilter, setCambridgeQuizFilter] = useState<string>('all');
   const [cambridgeClassFilter, setCambridgeClassFilter] = useState<string>('all');
+  const [cambridgeActiveTab, setCambridgeActiveTab] = useState<string>('all'); // Tab for test types
   const [showCambridgeReport, setShowCambridgeReport] = useState(false);
   const [showCambridgeAnswers, setShowCambridgeAnswers] = useState(false);
   const [selectedCambridgeStudent, setSelectedCambridgeStudent] = useState<any | null>(null);
@@ -1686,7 +1687,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 {assignments.slice(0, 5).map((a, i) => (
                   <tr key={a.id} className={i % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
                     <td className="py-3 px-4 text-slate-800 font-medium">{a.title}</td>
-                    <td className="py-3 px-4 text-slate-600">{a.subject}</td>
+                    <td className="py-3 px-4 text-slate-600">{a.subject_name}</td>
                     <td className="py-3 px-4 text-center text-slate-700">{a.completed_count}/{a.student_count}</td>
                     <td className="py-3 px-4 text-center">
                       <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
@@ -2841,235 +2842,249 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     </div>
   );
 
-  // Render Cambridge Reports View
-  const renderCambridgeReports = () => (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4 pb-4 border-b border-slate-200">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-            ✍️ Cambridge Test Reports
-          </h2>
-          <p className="text-slate-500 mt-1">View detailed student answers and performance reports</p>
-        </div>
-        <div className="flex gap-3">
+  // Render Cambridge Reports View - Compact with Tabs
+  const renderCambridgeReports = () => {
+    // Get scores for active tab
+    const getTabScores = () => {
+      let scores = cambridgeScores;
+      if (cambridgeActiveTab !== 'all') {
+        scores = scores.filter(s => s.quiz_name === cambridgeActiveTab);
+      }
+      if (cambridgeClassFilter !== 'all') {
+        scores = scores.filter(s => s.student_class === cambridgeClassFilter);
+      }
+      return scores;
+    };
+    const tabScores = getTabScores();
+    const pendingWriting = cambridgeScores.filter(s => s.quiz_name === 'Cambridge Writing Test 1' && s.answers?.requires_marking).length;
+
+    return (
+    <div className="space-y-4">
+      {/* Compact Header Row */}
+      <div className="flex items-center justify-between flex-wrap gap-3 bg-white border-b border-gray-200 pb-4">
+        <h2 className="text-xl font-bold text-gray-900">📝 Cambridge Test Results</h2>
+        <div className="flex items-center gap-2">
+          {pendingWriting > 0 && (
+            <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm font-medium">
+              ⚠️ {pendingWriting} needs marking
+            </span>
+          )}
           <button
             onClick={loadCambridgeScores}
             disabled={cambridgeLoading}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-lg transition-all flex items-center gap-2"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
           >
-            {cambridgeLoading ? '⏳ Loading...' : '🔄 Refresh'}
+            {cambridgeLoading ? '⏳' : '🔄'} Refresh
           </button>
           {cambridgeScores.length > 0 && (
-            <button
-              onClick={exportCambridgeCSV}
-              className="bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-2 rounded-lg transition-all flex items-center gap-2"
-            >
-              📥 Export CSV
+            <button onClick={exportCambridgeCSV} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+              📥 CSV
             </button>
           )}
         </div>
       </div>
 
-      {cambridgeScores.length > 0 && (
+      {cambridgeScores.length > 0 ? (
         <>
-          {/* Stats Cards - Light Theme */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-200 rounded-xl p-4 shadow-sm">
-              <p className="text-sm font-medium text-teal-700">Total Submissions</p>
-              <p className="text-3xl font-bold text-teal-900 mt-1">{cambridgeStats.totalSubmissions}</p>
+          {/* Compact Stats Row */}
+          <div className="grid grid-cols-4 gap-3">
+            <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
+              <p className="text-2xl font-bold text-gray-900">{cambridgeStats.totalSubmissions}</p>
+              <p className="text-xs text-gray-500">Total</p>
             </div>
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-4 shadow-sm">
-              <p className="text-sm font-medium text-blue-700">Average Score</p>
-              <p className="text-3xl font-bold text-blue-900 mt-1">{cambridgeStats.avgPercentage}%</p>
+            <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
+              <p className="text-2xl font-bold text-blue-600">{cambridgeStats.avgPercentage}%</p>
+              <p className="text-xs text-gray-500">Average</p>
             </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl p-4 shadow-sm">
-              <p className="text-sm font-medium text-green-700">Highest Score</p>
-              <p className="text-xl font-bold text-green-900 mt-1">{cambridgeStats.highestScore?.name || '-'}</p>
-              <p className="text-sm text-green-600">{cambridgeStats.highestScore ? `${cambridgeStats.highestScore.percentage}%` : ''}</p>
+            <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
+              <p className="text-lg font-bold text-green-600 truncate">{cambridgeStats.highestScore?.name || '-'}</p>
+              <p className="text-xs text-gray-500">Best: {cambridgeStats.highestScore?.percentage || 0}%</p>
             </div>
-            <div className="bg-gradient-to-br from-red-50 to-red-100 border border-red-200 rounded-xl p-4 shadow-sm">
-              <p className="text-sm font-medium text-red-700">Lowest Score</p>
-              <p className="text-xl font-bold text-red-900 mt-1">{cambridgeStats.lowestScore?.name || '-'}</p>
-              <p className="text-sm text-red-600">{cambridgeStats.lowestScore ? `${cambridgeStats.lowestScore.percentage}%` : ''}</p>
+            <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
+              <p className="text-lg font-bold text-red-600 truncate">{cambridgeStats.lowestScore?.name || '-'}</p>
+              <p className="text-xs text-gray-500">Lowest: {cambridgeStats.lowestScore?.percentage || 0}%</p>
             </div>
           </div>
 
-          {/* Class Performance Summary */}
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-            <h4 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">📊 Class Performance</h4>
-            <div className="flex flex-wrap gap-3">
+          {/* TEST TABS - Main Feature */}
+          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+            {/* Tab Navigation */}
+            <div className="flex border-b border-gray-200 bg-gray-50 overflow-x-auto">
+              <button
+                onClick={() => setCambridgeActiveTab('all')}
+                className={`px-5 py-3 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
+                  cambridgeActiveTab === 'all' 
+                    ? 'border-blue-600 text-blue-600 bg-white' 
+                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                📊 All Tests ({cambridgeScores.length})
+              </button>
+              {uniqueCambridgeQuizNames.map(name => {
+                const count = cambridgeScores.filter(s => s.quiz_name === name).length;
+                const isWriting = name === 'Cambridge Writing Test 1';
+                const needsMarking = isWriting ? cambridgeScores.filter(s => s.quiz_name === name && s.answers?.requires_marking).length : 0;
+                return (
+                  <button
+                    key={name}
+                    onClick={() => setCambridgeActiveTab(name)}
+                    className={`px-5 py-3 font-medium text-sm whitespace-nowrap border-b-2 transition-colors flex items-center gap-2 ${
+                      cambridgeActiveTab === name 
+                        ? `border-${isWriting ? 'purple' : 'blue'}-600 text-${isWriting ? 'purple' : 'blue'}-600 bg-white` 
+                        : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    {isWriting ? '✍️' : '📝'} {name.replace('Cambridge ', '')} ({count})
+                    {needsMarking > 0 && (
+                      <span className="bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full">{needsMarking}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Filter Bar inside tabs */}
+            <div className="flex items-center gap-4 p-3 bg-gray-50 border-b border-gray-200">
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-600">Class:</label>
+                <select
+                  value={cambridgeClassFilter}
+                  onChange={(e) => setCambridgeClassFilter(e.target.value)}
+                  className="bg-white border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-800"
+                >
+                  <option value="all">All Classes</option>
+                  {uniqueCambridgeClasses.map(cls => (
+                    <option key={cls} value={cls}>{cls}</option>
+                  ))}
+                </select>
+              </div>
+              <span className="text-sm text-gray-500">
+                Showing <strong className="text-gray-800">{tabScores.length}</strong> results
+              </span>
+            </div>
+
+            {/* Results Table - Compact */}
+            <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-100 sticky top-0">
+                  <tr>
+                    <th className="px-4 py-2.5 text-left text-gray-700 font-semibold">Student</th>
+                    <th className="px-4 py-2.5 text-left text-gray-700 font-semibold">Class</th>
+                    {cambridgeActiveTab === 'all' && <th className="px-4 py-2.5 text-left text-gray-700 font-semibold">Test</th>}
+                    <th className="px-4 py-2.5 text-center text-gray-700 font-semibold">Score</th>
+                    <th className="px-4 py-2.5 text-center text-gray-700 font-semibold">%</th>
+                    <th className="px-4 py-2.5 text-center text-gray-700 font-semibold">Time</th>
+                    <th className="px-4 py-2.5 text-right text-gray-700 font-semibold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {tabScores.map((score) => {
+                    const isWritingTest = score.quiz_name === 'Cambridge Writing Test 1';
+                    const needsMarking = isWritingTest && score.answers?.requires_marking;
+                    return (
+                      <tr key={score.id} className={`hover:bg-gray-50 ${needsMarking ? 'bg-amber-50' : ''}`}>
+                        <td className="px-4 py-2.5 text-gray-900 font-medium">{score.student_name}</td>
+                        <td className="px-4 py-2.5 text-gray-600">{score.student_class || '-'}</td>
+                        {cambridgeActiveTab === 'all' && (
+                          <td className="px-4 py-2.5">
+                            <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
+                              isWritingTest ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                            }`}>
+                              {score.quiz_name.replace('Cambridge ', '')}
+                            </span>
+                          </td>
+                        )}
+                        <td className="px-4 py-2.5 text-center">
+                          {needsMarking ? (
+                            <span className="inline-block px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-medium">Pending</span>
+                          ) : (
+                            <span className="font-mono text-gray-800">{score.score}/{score.total_questions}</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-2.5 text-center">
+                          {needsMarking ? (
+                            <span className="text-amber-600">—</span>
+                          ) : (
+                            <span className={`font-bold ${
+                              score.percentage >= 70 ? 'text-green-600' :
+                              score.percentage >= 50 ? 'text-amber-600' : 'text-red-600'
+                            }`}>{score.percentage}%</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-2.5 text-center text-gray-500 text-xs">{formatCambridgeTime(score.time_taken_seconds)}</td>
+                        <td className="px-4 py-2.5 text-right">
+                          <div className="flex justify-end gap-1">
+                            {isWritingTest ? (
+                              <>
+                                <button
+                                  onClick={() => openWritingMarking(score)}
+                                  className={`px-2.5 py-1 rounded text-xs font-medium ${
+                                    needsMarking 
+                                      ? 'bg-amber-500 hover:bg-amber-600 text-white' 
+                                      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                                  }`}
+                                >
+                                  {needsMarking ? '✏️ Mark' : '👁️ View'}
+                                </button>
+                                <button
+                                  onClick={() => openCambridgeAnswers(score)}
+                                  className="px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded text-xs font-medium"
+                                >
+                                  📝
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => openCambridgeAnswers(score)}
+                                  className="px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded text-xs font-medium"
+                                >
+                                  📝 Answers
+                                </button>
+                                <button
+                                  onClick={() => openCambridgeReport(score)}
+                                  className="px-2.5 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded text-xs font-medium"
+                                >
+                                  📄 Report
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Collapsible Class Performance */}
+          <details className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <summary className="px-4 py-3 cursor-pointer bg-gray-50 hover:bg-gray-100 font-medium text-gray-800 flex items-center gap-2">
+              📊 Class Performance Summary
+            </summary>
+            <div className="p-4 flex flex-wrap gap-2">
               {Object.entries(cambridgeStats.classStats).sort((a, b) => b[1].avg - a[1].avg).map(([cls, stats]) => (
-                <div key={cls} className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 hover:shadow-md transition-shadow">
-                  <p className="font-bold text-slate-800">{cls}</p>
-                  <p className="text-sm text-slate-600">
-                    {stats.count} students • Avg: <span className={`font-bold ${stats.avg >= 70 ? 'text-green-600' : stats.avg >= 50 ? 'text-amber-600' : 'text-red-600'}`}>{stats.avg}%</span>
+                <div key={cls} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                  <p className="font-semibold text-gray-800">{cls}</p>
+                  <p className="text-xs text-gray-600">
+                    {stats.count} students • <span className={`font-bold ${stats.avg >= 70 ? 'text-green-600' : stats.avg >= 50 ? 'text-amber-600' : 'text-red-600'}`}>{stats.avg}%</span>
                   </p>
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* Filters */}
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-wrap gap-4 items-end">
-            <div>
-              <label className="text-sm font-medium text-slate-700 block mb-1">Filter by Test</label>
-              <select
-                value={cambridgeQuizFilter}
-                onChange={(e) => setCambridgeQuizFilter(e.target.value)}
-                className="bg-white border border-slate-300 rounded-lg px-4 py-2 text-slate-800 min-w-[200px] focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="all">All Tests</option>
-                {uniqueCambridgeQuizNames.map(name => (
-                  <option key={name} value={name}>{name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-slate-700 block mb-1">Filter by Class</label>
-              <select
-                value={cambridgeClassFilter}
-                onChange={(e) => setCambridgeClassFilter(e.target.value)}
-                className="bg-white border border-slate-300 rounded-lg px-4 py-2 text-slate-800 min-w-[150px] focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="all">All Classes</option>
-                {uniqueCambridgeClasses.map(cls => (
-                  <option key={cls} value={cls}>{cls}</option>
-                ))}
-              </select>
-            </div>
-            <div className="flex items-center">
-              <p className="text-slate-600">Showing <span className="font-bold text-slate-800">{filteredCambridgeScores.length}</span> of {cambridgeScores.length} results</p>
-            </div>
-          </div>
-
-          {/* Results Table - Grouped by Test */}
-          <div className="space-y-6">
-            {uniqueCambridgeQuizNames
-              .filter(name => cambridgeQuizFilter === 'all' || cambridgeQuizFilter === name)
-              .map(quizName => {
-                const quizScores = filteredCambridgeScores.filter(s => s.quiz_name === quizName);
-                if (quizScores.length === 0) return null;
-                
-                const isWritingTest = quizName === 'Cambridge Writing Test 1';
-                const avgScore = Math.round(quizScores.reduce((sum, s) => sum + s.percentage, 0) / quizScores.length);
-                
-                return (
-                  <div key={quizName} className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-                    {/* Test Header */}
-                    <div className={`p-4 border-b-2 ${isWritingTest ? 'bg-purple-50 border-purple-300' : 'bg-blue-50 border-blue-300'}`}>
-                      <div className="flex items-center justify-between flex-wrap gap-2">
-                        <h3 className={`text-lg font-bold ${isWritingTest ? 'text-purple-800' : 'text-blue-800'}`}>
-                          {isWritingTest ? '✍️' : '📝'} {quizName}
-                        </h3>
-                        <div className="flex items-center gap-4 text-sm">
-                          <span className="bg-white px-3 py-1 rounded-full border text-slate-700">
-                            <strong>{quizScores.length}</strong> submissions
-                          </span>
-                          <span className={`px-3 py-1 rounded-full font-bold ${avgScore >= 70 ? 'bg-green-100 text-green-700' : avgScore >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
-                            Avg: {avgScore}%
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Test Table */}
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left">
-                        <thead className="bg-slate-100 border-b border-slate-200">
-                          <tr>
-                            <th className="px-4 py-3 text-slate-700 font-semibold">Student</th>
-                            <th className="px-4 py-3 text-slate-700 font-semibold">Class</th>
-                            <th className="px-4 py-3 text-slate-700 font-semibold">Score</th>
-                            <th className="px-4 py-3 text-slate-700 font-semibold">%</th>
-                            <th className="px-4 py-3 text-slate-700 font-semibold">Time</th>
-                            <th className="px-4 py-3 text-slate-700 font-semibold">Submitted</th>
-                            <th className="px-4 py-3 text-slate-700 font-semibold">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {quizScores.map((score, i) => (
-                            <tr key={score.id} className={`border-b border-slate-100 hover:bg-slate-50 ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
-                              <td className="px-4 py-3 text-slate-800 font-medium">{score.student_name}</td>
-                              <td className="px-4 py-3 text-slate-600">{score.student_class || '-'}</td>
-                              <td className="px-4 py-3">
-                                {isWritingTest && score.answers?.requires_marking ? (
-                                  <span className="inline-flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 rounded-full text-sm font-medium">
-                                    ⏳ Pending
-                                  </span>
-                                ) : (
-                                  <span className="font-mono text-slate-800">{score.score}/{score.total_questions}</span>
-                                )}
-                              </td>
-                              <td className="px-4 py-3">
-                                {isWritingTest && score.answers?.requires_marking ? (
-                                  <span className="text-amber-600 font-bold">—</span>
-                                ) : (
-                                  <span className={`font-bold ${
-                                    score.percentage >= 70 ? 'text-green-600' :
-                                    score.percentage >= 50 ? 'text-amber-600' : 'text-red-600'
-                                  }`}>{score.percentage}%</span>
-                                )}
-                              </td>
-                              <td className="px-4 py-3 text-slate-500 text-sm">{formatCambridgeTime(score.time_taken_seconds)}</td>
-                              <td className="px-4 py-3 text-slate-500 text-sm">
-                                {new Date(score.submitted_at).toLocaleDateString()} {new Date(score.submitted_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </td>
-                              <td className="px-4 py-3">
-                                <div className="flex gap-2 flex-wrap">
-                                  {isWritingTest ? (
-                                    <>
-                                      <button
-                                        onClick={() => openWritingMarking(score)}
-                                        className={`${score.answers?.requires_marking 
-                                          ? 'bg-amber-500 hover:bg-amber-600' 
-                                          : 'bg-green-600 hover:bg-green-700'
-                                        } text-white text-xs px-3 py-1.5 rounded-lg font-medium transition-colors`}
-                                      >
-                                        {score.answers?.requires_marking ? '✏️ Mark' : '✓ View'}
-                                      </button>
-                                      <button
-                                        onClick={() => openCambridgeAnswers(score)}
-                                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition-colors"
-                                      >
-                                        📝 Read
-                                      </button>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <button
-                                        onClick={() => openCambridgeAnswers(score)}
-                                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition-colors"
-                                      >
-                                        📝 Answers
-                                      </button>
-                                      <button
-                                        onClick={() => openCambridgeReport(score)}
-                                        className="bg-purple-600 hover:bg-purple-700 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition-colors"
-                                      >
-                                        📄 Report
-                                      </button>
-                                    </>
-                                  )}
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                );
-              })}
-          </div>
+          </details>
         </>
-      )}
-
-      {cambridgeScores.length === 0 && !cambridgeLoading && (
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-12 text-center">
-          <div className="text-6xl mb-4">📭</div>
-          <p className="text-xl text-slate-600 font-medium">No test submissions yet</p>
-          <p className="text-sm text-slate-500 mt-2">Click "Refresh" to check for new submissions</p>
+      ) : !cambridgeLoading ? (
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center">
+          <div className="text-4xl mb-2">📭</div>
+          <p className="text-gray-600 font-medium">No test submissions yet</p>
+          <p className="text-sm text-gray-500">Click Refresh to check for new submissions</p>
+        </div>
+      ) : (
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center">
+          <p className="text-gray-600">⏳ Loading submissions...</p>
         </div>
       )}
 
@@ -3890,6 +3905,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       })()}
     </div>
   );
+  };
 
   if (loading) {
     return (
@@ -3980,7 +3996,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           {view === 'cambridge-reports' && renderCambridgeReports()}
           {view === 'geometry-diagrams' && teacher && (
             <DiagramBuilder
-              teacherId={teacher.id}
+              teacherId={teacher!.id}
               onComplete={() => setView('dashboard')}
             />
           )}
