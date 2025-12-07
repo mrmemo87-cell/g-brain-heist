@@ -771,10 +771,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     }, 300);
   };
 
-  // Export Cambridge results to CSV;
-    }
-  };
-
   // Export Cambridge results to CSV
   const exportCambridgeCSV = () => {
     if (filteredCambridgeScores.length === 0) return;
