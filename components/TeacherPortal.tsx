@@ -84,6 +84,14 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
   const [showCambridgeReport, setShowCambridgeReport] = useState(false);
   const [showCambridgeAnswers, setShowCambridgeAnswers] = useState(false);
   const [selectedCambridgeStudent, setSelectedCambridgeStudent] = useState<any | null>(null);
+  const [showWritingMarkingModal, setShowWritingMarkingModal] = useState(false);
+  const [writingMarks, setWritingMarks] = useState<{
+    part1: { content: number; organisation: number; language: number };
+    part2: { content: number; communicativeAchievement: number; organisation: number; language: number };
+  }>({
+    part1: { content: 0, organisation: 0, language: 0 },
+    part2: { content: 0, communicativeAchievement: 0, organisation: 0, language: 0 },
+  });
   const [cambridgeStats, setCambridgeStats] = useState<{
     totalSubmissions: number;
     avgPercentage: number;
@@ -413,6 +421,59 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
   const openCambridgeAnswers = (student: any) => {
     setSelectedCambridgeStudent(student);
     setShowCambridgeAnswers(true);
+  };
+
+  // Open writing marking modal
+  const openWritingMarking = (student: any) => {
+    setSelectedCambridgeStudent(student);
+    // Reset marks or load existing marks if already marked
+    if (student.percentage > 0 && student.answers?.marks) {
+      setWritingMarks(student.answers.marks);
+    } else {
+      setWritingMarks({
+        part1: { content: 0, organisation: 0, language: 0 },
+        part2: { content: 0, communicativeAchievement: 0, organisation: 0, language: 0 },
+      });
+    }
+    setShowWritingMarkingModal(true);
+  };
+
+  // Submit writing marks
+  const submitWritingMarks = async () => {
+    if (!selectedCambridgeStudent) return;
+    
+    const part1Total = writingMarks.part1.content + writingMarks.part1.organisation + writingMarks.part1.language;
+    const part2Total = writingMarks.part2.content + writingMarks.part2.communicativeAchievement + 
+                       writingMarks.part2.organisation + writingMarks.part2.language;
+    const totalScore = part1Total + part2Total;
+    const maxScore = 35; // 15 for Part 1 + 20 for Part 2
+    const percentage = Math.round((totalScore / maxScore) * 100);
+    
+    try {
+      const { error } = await supabase
+        .from('quiz_scores')
+        .update({
+          score: totalScore,
+          percentage: percentage,
+          answers: {
+            ...selectedCambridgeStudent.answers,
+            marks: writingMarks,
+            marked_by: profile.username,
+            marked_at: new Date().toISOString(),
+            requires_marking: false
+          }
+        })
+        .eq('id', selectedCambridgeStudent.id);
+      
+      if (error) throw error;
+      
+      alert('✅ Writing marked successfully!');
+      setShowWritingMarkingModal(false);
+      loadCambridgeScores(); // Refresh the list
+    } catch (error) {
+      console.error('Failed to submit marks:', error);
+      alert('❌ Failed to submit marks');
+    }
   };
 
   // Export Cambridge results to CSV
@@ -2251,13 +2312,21 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                     <td className="px-4 py-3 text-gray-300">{score.student_class || '-'}</td>
                     <td className="px-4 py-3 text-gray-300 text-sm">{score.quiz_name}</td>
                     <td className="px-4 py-3">
-                      <span className="font-mono text-white">{score.score}/{score.total_questions}</span>
+                      {score.quiz_name === 'Cambridge Writing Test 1' && score.answers?.requires_marking ? (
+                        <span className="text-yellow-400 font-semibold">⏳ Pending</span>
+                      ) : (
+                        <span className="font-mono text-white">{score.score}/{score.total_questions}</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`font-bold ${
-                        score.percentage >= 70 ? 'text-green-400' :
-                        score.percentage >= 50 ? 'text-yellow-400' : 'text-red-400'
-                      }`}>{score.percentage}%</span>
+                      {score.quiz_name === 'Cambridge Writing Test 1' && score.answers?.requires_marking ? (
+                        <span className="text-yellow-400 font-bold">Awaiting</span>
+                      ) : (
+                        <span className={`font-bold ${
+                          score.percentage >= 70 ? 'text-green-400' :
+                          score.percentage >= 50 ? 'text-yellow-400' : 'text-red-400'
+                        }`}>{score.percentage}%</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-gray-400 text-sm">{formatCambridgeTime(score.time_taken_seconds)}</td>
                     <td className="px-4 py-3 text-gray-400 text-sm">
@@ -2265,18 +2334,40 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2 flex-wrap">
-                        <button
-                          onClick={() => openCambridgeAnswers(score)}
-                          className="bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400 text-white text-xs px-3 py-1 rounded"
-                        >
-                          📝 Answers
-                        </button>
-                        <button
-                          onClick={() => openCambridgeReport(score)}
-                          className="bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400 text-white text-xs px-3 py-1 rounded"
-                        >
-                          📄 Report
-                        </button>
+                        {score.quiz_name === 'Cambridge Writing Test 1' ? (
+                          <>
+                            <button
+                              onClick={() => openWritingMarking(score)}
+                              className={`${score.answers?.requires_marking 
+                                ? 'bg-yellow-600/30 hover:bg-yellow-600/50 border-yellow-400 animate-pulse' 
+                                : 'bg-green-600/30 hover:bg-green-600/50 border-green-400'
+                              } border text-white text-xs px-3 py-1 rounded`}
+                            >
+                              {score.answers?.requires_marking ? '✏️ Mark Writing' : '✓ View Marks'}
+                            </button>
+                            <button
+                              onClick={() => openCambridgeAnswers(score)}
+                              className="bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400 text-white text-xs px-3 py-1 rounded"
+                            >
+                              📝 Read
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => openCambridgeAnswers(score)}
+                              className="bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400 text-white text-xs px-3 py-1 rounded"
+                            >
+                              📝 Answers
+                            </button>
+                            <button
+                              onClick={() => openCambridgeReport(score)}
+                              className="bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400 text-white text-xs px-3 py-1 rounded"
+                            >
+                              📄 Report
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -2417,6 +2508,140 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       {showCambridgeAnswers && selectedCambridgeStudent && (() => {
         const answers = selectedCambridgeStudent.answers || {};
         const quizName = selectedCambridgeStudent.quiz_name;
+        
+        // Special handling for Writing Test
+        if (quizName === 'Cambridge Writing Test 1') {
+          return (
+            <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4 overflow-y-auto">
+              <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[95vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
+                {/* Header */}
+                <div className="p-6 border-b-4 border-blue-600">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3">
+                      <span className="text-4xl">✏️</span>
+                      <div>
+                        <h1 className="text-2xl font-bold text-blue-800">Writing Test Submission</h1>
+                        <p className="text-sm text-gray-500">Student's Written Responses</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowCambridgeAnswers(false)}
+                      className="p-2 hover:bg-gray-200 rounded-full text-xl"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+
+                {/* Student Info */}
+                <div className="bg-gradient-to-r from-blue-700 to-purple-800 text-white p-5 flex justify-between items-center">
+                  <div>
+                    <h2 className="text-xl font-bold">{selectedCambridgeStudent.student_name}</h2>
+                    <p className="text-sm opacity-80">Class: {selectedCambridgeStudent.student_class || 'N/A'} | {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString()}</p>
+                  </div>
+                  <div className="text-right">
+                    {answers.requires_marking ? (
+                      <div className="text-yellow-300 font-bold">⏳ Awaiting Marking</div>
+                    ) : (
+                      <>
+                        <div className="text-3xl font-bold">{selectedCambridgeStudent.score}/35</div>
+                        <div className="text-sm opacity-80">{selectedCambridgeStudent.percentage}% Score</div>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="p-6 space-y-6">
+                  {/* Part 1 */}
+                  <div className="border-2 border-blue-200 rounded-xl overflow-hidden">
+                    <div className="bg-blue-100 p-4">
+                      <h3 className="text-lg font-bold text-blue-800">📝 Part 1: Message</h3>
+                      <p className="text-sm text-blue-600">Photography lessons • Word count: {answers.part1_words || 0} (Target: 45-55)</p>
+                    </div>
+                    <div className="p-4">
+                      <div className="bg-gray-50 p-4 rounded-lg border text-gray-800 whitespace-pre-wrap leading-relaxed min-h-[100px]">
+                        {answers.part1 || 'No response submitted'}
+                      </div>
+                      {answers.marks?.part1 && (
+                        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                          <div className="bg-green-100 p-2 rounded-lg">
+                            <div className="text-xs text-gray-500">Content</div>
+                            <div className="text-lg font-bold text-green-700">{answers.marks.part1.content}/5</div>
+                          </div>
+                          <div className="bg-blue-100 p-2 rounded-lg">
+                            <div className="text-xs text-gray-500">Organisation</div>
+                            <div className="text-lg font-bold text-blue-700">{answers.marks.part1.organisation}/5</div>
+                          </div>
+                          <div className="bg-purple-100 p-2 rounded-lg">
+                            <div className="text-xs text-gray-500">Language</div>
+                            <div className="text-lg font-bold text-purple-700">{answers.marks.part1.language}/5</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Part 2 */}
+                  <div className="border-2 border-indigo-200 rounded-xl overflow-hidden">
+                    <div className="bg-indigo-100 p-4">
+                      <h3 className="text-lg font-bold text-indigo-800">📝 Part 2: Essay</h3>
+                      <p className="text-sm text-indigo-600">Online vs shop shopping • Word count: {answers.part2_words || 0} (Target: 110-130)</p>
+                    </div>
+                    <div className="p-4">
+                      <div className="bg-gray-50 p-4 rounded-lg border text-gray-800 whitespace-pre-wrap leading-relaxed min-h-[150px]">
+                        {answers.part2 || 'No response submitted'}
+                      </div>
+                      {answers.marks?.part2 && (
+                        <div className="mt-4 grid grid-cols-4 gap-2 text-center">
+                          <div className="bg-green-100 p-2 rounded-lg">
+                            <div className="text-xs text-gray-500">Content</div>
+                            <div className="text-lg font-bold text-green-700">{answers.marks.part2.content}/5</div>
+                          </div>
+                          <div className="bg-yellow-100 p-2 rounded-lg">
+                            <div className="text-xs text-gray-500">Comm. Ach.</div>
+                            <div className="text-lg font-bold text-yellow-700">{answers.marks.part2.communicativeAchievement}/5</div>
+                          </div>
+                          <div className="bg-blue-100 p-2 rounded-lg">
+                            <div className="text-xs text-gray-500">Organisation</div>
+                            <div className="text-lg font-bold text-blue-700">{answers.marks.part2.organisation}/5</div>
+                          </div>
+                          <div className="bg-purple-100 p-2 rounded-lg">
+                            <div className="text-xs text-gray-500">Language</div>
+                            <div className="text-lg font-bold text-purple-700">{answers.marks.part2.language}/5</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {answers.marked_by && (
+                    <div className="text-center text-sm text-gray-500">
+                      Marked by {answers.marked_by} on {new Date(answers.marked_at).toLocaleDateString()}
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer */}
+                <div className="p-4 border-t flex justify-between items-center">
+                  <span className="text-xs text-gray-400">Report ID: {selectedCambridgeStudent.id?.substring(0, 8) || 'N/A'}</span>
+                  <div className="flex gap-3">
+                    {answers.requires_marking && (
+                      <button 
+                        onClick={() => { setShowCambridgeAnswers(false); openWritingMarking(selectedCambridgeStudent); }} 
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
+                      >
+                        ✏️ Mark This
+                      </button>
+                    )}
+                    <button onClick={() => setShowCambridgeAnswers(false)} className="px-4 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        }
+        
+        // Regular test handling
         const correct = correctAnswers[quizName] || {};
         const sections = testSections[quizName] || [];
         
@@ -2560,6 +2785,253 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 <div className="flex gap-3">
                   <button onClick={() => window.print()} className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">🖨️ Print</button>
                   <button onClick={() => setShowCambridgeAnswers(false)} className="px-4 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Writing Marking Modal */}
+      {showWritingMarkingModal && selectedCambridgeStudent && (() => {
+        const answers = selectedCambridgeStudent.answers || {};
+        const part1Total = writingMarks.part1.content + writingMarks.part1.organisation + writingMarks.part1.language;
+        const part2Total = writingMarks.part2.content + writingMarks.part2.communicativeAchievement + 
+                          writingMarks.part2.organisation + writingMarks.part2.language;
+        const totalScore = part1Total + part2Total;
+        const percentage = Math.round((totalScore / 35) * 100);
+        
+        return (
+          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/90 p-4 overflow-y-auto">
+            <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[95vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
+              {/* Header */}
+              <div className="p-6 border-b-4 border-purple-600 bg-gradient-to-r from-purple-50 to-indigo-50">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-3">
+                    <span className="text-4xl">✏️</span>
+                    <div>
+                      <h1 className="text-2xl font-bold text-purple-800">Writing Test Marking</h1>
+                      <p className="text-sm text-gray-500">E2L Stage 9 Paper 3 — Marking Scheme</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowWritingMarkingModal(false)}
+                    className="p-2 hover:bg-gray-200 rounded-full"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              {/* Student Info */}
+              <div className="bg-gradient-to-r from-purple-700 to-indigo-800 text-white p-5 flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-bold">{selectedCambridgeStudent.student_name}</h2>
+                  <p className="text-sm opacity-80">Class: {selectedCambridgeStudent.student_class || 'N/A'} | Submitted: {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString()}</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold">{totalScore}/35</div>
+                  <div className={`text-lg font-semibold ${percentage >= 70 ? 'text-green-300' : percentage >= 50 ? 'text-yellow-300' : 'text-red-300'}`}>
+                    {percentage}%
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-8">
+                {/* Part 1 */}
+                <div className="border-2 border-blue-200 rounded-xl overflow-hidden">
+                  <div className="bg-blue-100 p-4">
+                    <h3 className="text-lg font-bold text-blue-800">📝 Part 1: Message (15 marks)</h3>
+                    <p className="text-sm text-blue-600">Photography lessons message • Target: 45-55 words • Actual: {answers.part1_words || 0} words</p>
+                  </div>
+                  
+                  {/* Student's Answer */}
+                  <div className="p-4 bg-gray-50 border-b">
+                    <label className="text-sm font-semibold text-gray-600 block mb-2">Student's Response:</label>
+                    <div className="bg-white p-4 rounded-lg border text-gray-800 whitespace-pre-wrap leading-relaxed">
+                      {answers.part1 || 'No response submitted'}
+                    </div>
+                  </div>
+                  
+                  {/* Marking Grid */}
+                  <div className="p-4">
+                    <div className="grid grid-cols-3 gap-4">
+                      {/* Content */}
+                      <div className="bg-green-50 p-4 rounded-xl border border-green-200">
+                        <label className="text-sm font-bold text-green-800 block mb-2">Content (0-5)</label>
+                        <select
+                          value={writingMarks.part1.content}
+                          onChange={(e) => setWritingMarks(prev => ({
+                            ...prev,
+                            part1: { ...prev.part1, content: parseInt(e.target.value) }
+                          }))}
+                          className="w-full p-2 border-2 border-green-300 rounded-lg text-lg font-bold text-center"
+                        >
+                          {[0,1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                        </select>
+                        <p className="text-xs text-gray-500 mt-2">5: All 3 content points fully covered</p>
+                      </div>
+                      
+                      {/* Organisation */}
+                      <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
+                        <label className="text-sm font-bold text-blue-800 block mb-2">Organisation (0-5)</label>
+                        <select
+                          value={writingMarks.part1.organisation}
+                          onChange={(e) => setWritingMarks(prev => ({
+                            ...prev,
+                            part1: { ...prev.part1, organisation: parseInt(e.target.value) }
+                          }))}
+                          className="w-full p-2 border-2 border-blue-300 rounded-lg text-lg font-bold text-center"
+                        >
+                          {[0,1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                        </select>
+                        <p className="text-xs text-gray-500 mt-2">5: Well organised, coherent, appropriate linking</p>
+                      </div>
+                      
+                      {/* Language */}
+                      <div className="bg-purple-50 p-4 rounded-xl border border-purple-200">
+                        <label className="text-sm font-bold text-purple-800 block mb-2">Language (0-5)</label>
+                        <select
+                          value={writingMarks.part1.language}
+                          onChange={(e) => setWritingMarks(prev => ({
+                            ...prev,
+                            part1: { ...prev.part1, language: parseInt(e.target.value) }
+                          }))}
+                          className="w-full p-2 border-2 border-purple-300 rounded-lg text-lg font-bold text-center"
+                        >
+                          {[0,1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                        </select>
+                        <p className="text-xs text-gray-500 mt-2">5: Sufficiently accurate, message clear</p>
+                      </div>
+                    </div>
+                    <div className="mt-4 text-right">
+                      <span className="text-lg font-bold text-blue-800">Part 1 Total: {part1Total}/15</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Part 2 */}
+                <div className="border-2 border-indigo-200 rounded-xl overflow-hidden">
+                  <div className="bg-indigo-100 p-4">
+                    <h3 className="text-lg font-bold text-indigo-800">📝 Part 2: Essay (20 marks)</h3>
+                    <p className="text-sm text-indigo-600">Online vs shop shopping essay • Target: 110-130 words • Actual: {answers.part2_words || 0} words</p>
+                  </div>
+                  
+                  {/* Student's Answer */}
+                  <div className="p-4 bg-gray-50 border-b">
+                    <label className="text-sm font-semibold text-gray-600 block mb-2">Student's Response:</label>
+                    <div className="bg-white p-4 rounded-lg border text-gray-800 whitespace-pre-wrap leading-relaxed min-h-[150px]">
+                      {answers.part2 || 'No response submitted'}
+                    </div>
+                  </div>
+                  
+                  {/* Marking Grid */}
+                  <div className="p-4">
+                    <div className="grid grid-cols-4 gap-3">
+                      {/* Content */}
+                      <div className="bg-green-50 p-3 rounded-xl border border-green-200">
+                        <label className="text-sm font-bold text-green-800 block mb-2">Content (0-5)</label>
+                        <select
+                          value={writingMarks.part2.content}
+                          onChange={(e) => setWritingMarks(prev => ({
+                            ...prev,
+                            part2: { ...prev.part2, content: parseInt(e.target.value) }
+                          }))}
+                          className="w-full p-2 border-2 border-green-300 rounded-lg text-lg font-bold text-center"
+                        >
+                          {[0,1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                        </select>
+                        <p className="text-xs text-gray-500 mt-2">5: All relevant, reader fully informed</p>
+                      </div>
+                      
+                      {/* Communicative Achievement */}
+                      <div className="bg-yellow-50 p-3 rounded-xl border border-yellow-200">
+                        <label className="text-sm font-bold text-yellow-800 block mb-2">Comm. Ach. (0-5)</label>
+                        <select
+                          value={writingMarks.part2.communicativeAchievement}
+                          onChange={(e) => setWritingMarks(prev => ({
+                            ...prev,
+                            part2: { ...prev.part2, communicativeAchievement: parseInt(e.target.value) }
+                          }))}
+                          className="w-full p-2 border-2 border-yellow-300 rounded-lg text-lg font-bold text-center"
+                        >
+                          {[0,1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                        </select>
+                        <p className="text-xs text-gray-500 mt-2">5: Clear, appropriate style</p>
+                      </div>
+                      
+                      {/* Organisation */}
+                      <div className="bg-blue-50 p-3 rounded-xl border border-blue-200">
+                        <label className="text-sm font-bold text-blue-800 block mb-2">Organisation (0-5)</label>
+                        <select
+                          value={writingMarks.part2.organisation}
+                          onChange={(e) => setWritingMarks(prev => ({
+                            ...prev,
+                            part2: { ...prev.part2, organisation: parseInt(e.target.value) }
+                          }))}
+                          className="w-full p-2 border-2 border-blue-300 rounded-lg text-lg font-bold text-center"
+                        >
+                          {[0,1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                        </select>
+                        <p className="text-xs text-gray-500 mt-2">5: Well organised, coherent</p>
+                      </div>
+                      
+                      {/* Language */}
+                      <div className="bg-purple-50 p-3 rounded-xl border border-purple-200">
+                        <label className="text-sm font-bold text-purple-800 block mb-2">Language (0-5)</label>
+                        <select
+                          value={writingMarks.part2.language}
+                          onChange={(e) => setWritingMarks(prev => ({
+                            ...prev,
+                            part2: { ...prev.part2, language: parseInt(e.target.value) }
+                          }))}
+                          className="w-full p-2 border-2 border-purple-300 rounded-lg text-lg font-bold text-center"
+                        >
+                          {[0,1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                        </select>
+                        <p className="text-xs text-gray-500 mt-2">5: Range of vocab, good control</p>
+                      </div>
+                    </div>
+                    <div className="mt-4 text-right">
+                      <span className="text-lg font-bold text-indigo-800">Part 2 Total: {part2Total}/20</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Total Score Summary */}
+                <div className={`p-6 rounded-xl text-center ${
+                  percentage >= 70 ? 'bg-green-100 border-2 border-green-400' :
+                  percentage >= 50 ? 'bg-yellow-100 border-2 border-yellow-400' :
+                  'bg-red-100 border-2 border-red-400'
+                }`}>
+                  <h3 className="text-2xl font-bold mb-2">Total Score: {totalScore}/35 ({percentage}%)</h3>
+                  <p className="text-gray-600">
+                    {percentage >= 80 ? '🏆 Excellent work!' :
+                     percentage >= 70 ? '👍 Good effort!' :
+                     percentage >= 50 ? '📈 Room for improvement' :
+                     '💪 Needs more practice'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 border-t flex justify-between items-center bg-gray-50">
+                <span className="text-xs text-gray-400">
+                  {answers.marked_by ? `Previously marked by ${answers.marked_by}` : 'Not yet marked'}
+                </span>
+                <div className="flex gap-3">
+                  <button 
+                    onClick={() => setShowWritingMarkingModal(false)} 
+                    className="px-4 py-2 bg-gray-500 text-white rounded-lg font-semibold hover:bg-gray-600"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={submitWritingMarks} 
+                    className="px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
+                  >
+                    ✓ Save Marks
+                  </button>
                 </div>
               </div>
             </div>

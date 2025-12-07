@@ -9,11 +9,12 @@ interface CambridgeTest {
   duration: string;
   totalQuestions: number;
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
-  category: 'Reading' | 'Listening' | 'Grammar' | 'Vocabulary';
+  category: 'Reading' | 'Listening' | 'Grammar' | 'Vocabulary' | 'Writing';
   url: string;
   isCompleted?: boolean;
   score?: number;
   completedAt?: string;
+  requiresMarking?: boolean;
 }
 
 interface CambridgeTestsHubProps {
@@ -43,12 +44,18 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     category: 'Listening',
     url: '/cambridge_listening_test_1.html',
   },
+  {
+    id: 'cambridge-writing-1',
+    name: 'Cambridge Writing Test 1',
+    description: 'E2L Stage 9 Paper 3 writing test with 2 parts: a short message (45-55 words) and an opinion essay (110-130 words). Teacher-marked.',
+    duration: '45 min',
+    totalQuestions: 2,
+    difficulty: 'Intermediate',
+    category: 'Writing',
+    url: '/cambridge_writing_test_1.html',
+    requiresMarking: true,
+  },
   // Add more tests here as they become available
-  // {
-  //   id: 'cambridge-reading-26',
-  //   name: 'Cambridge Reading Test 26',
-  //   ...
-  // },
 ];
 
 const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }) => {
@@ -154,6 +161,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       case 'Listening': return '🎧';
       case 'Grammar': return '✍️';
       case 'Vocabulary': return '📚';
+      case 'Writing': return '✏️';
       default: return '📝';
     }
   };
@@ -484,29 +492,35 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                     color: 'rgba(255,255,255,0.6)',
                   }}>
                     <span>⏱️ {test.duration}</span>
-                    <span>📝 {test.totalQuestions} questions</span>
+                    <span>📝 {test.category === 'Writing' ? '2 parts' : `${test.totalQuestions} questions`}</span>
                   </div>
 
                   {test.isCompleted && test.score !== undefined && (
                     <div style={{
-                      background: 'rgba(34,197,94,0.1)',
+                      background: test.requiresMarking && test.score === 0 
+                        ? 'rgba(245,158,11,0.1)' 
+                        : 'rgba(34,197,94,0.1)',
                       borderRadius: '10px',
                       padding: '12px',
                       marginBottom: '15px',
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>Your Score:</span>
+                        <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
+                          {test.requiresMarking && test.score === 0 ? 'Status:' : 'Your Score:'}
+                        </span>
                         <span style={{
-                          fontSize: '20px',
+                          fontSize: test.requiresMarking && test.score === 0 ? '14px' : '20px',
                           fontWeight: 'bold',
-                          color: test.score >= 70 ? '#22c55e' : test.score >= 50 ? '#f59e0b' : '#ef4444',
+                          color: test.requiresMarking && test.score === 0 
+                            ? '#f59e0b' 
+                            : (test.score >= 70 ? '#22c55e' : test.score >= 50 ? '#f59e0b' : '#ef4444'),
                         }}>
-                          {test.score}%
+                          {test.requiresMarking && test.score === 0 ? '⏳ Awaiting Marking' : `${test.score}%`}
                         </span>
                       </div>
                       {test.completedAt && (
                         <p style={{ margin: '8px 0 0', fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>
-                          Completed: {new Date(test.completedAt).toLocaleDateString('en-GB', {
+                          {test.requiresMarking && test.score === 0 ? 'Submitted:' : 'Completed:'} {new Date(test.completedAt).toLocaleDateString('en-GB', {
                             day: '2-digit',
                             month: 'short',
                             year: 'numeric',
