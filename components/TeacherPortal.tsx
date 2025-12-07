@@ -507,8 +507,189 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     }
   };
 
-  // Auto-proofread writing using AI
-  const autoProofreadWriting = async () => {
+  // Client-side proofreading function
+  const proofreadText = (text: string, wordTarget: string, isPart1: boolean): {
+    feedback: string;
+    correctedVersion: string;
+    suggestedMarks: Record<string, number>;
+  } => {
+    const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+    const wordCount = words.length;
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    
+    const issues: string[] = [];
+    const suggestions: string[] = [];
+    
+    // Check word count
+    const targetMatch = wordTarget.match(/(\d+)-(\d+)/);
+    if (targetMatch) {
+      const [, min, max] = targetMatch;
+      if (wordCount < parseInt(min)) {
+        issues.push(`⚠️ Word count (${wordCount}) is below the target (${wordTarget}). Add more detail.`);
+      } else if (wordCount > parseInt(max)) {
+        issues.push(`⚠️ Word count (${wordCount}) exceeds the target (${wordTarget}). Try to be more concise.`);
+      } else {
+        suggestions.push(`✓ Word count (${wordCount}) is within the target range.`);
+      }
+    }
+    
+    // Check for common errors
+    const commonErrors: [RegExp, string][] = [
+      [/\bi\b(?![''])/g, "Capitalize 'I' when referring to yourself"],
+      [/\s+,/g, "Remove space before comma"],
+      [/,(?!\s)/g, "Add space after comma"],
+      [/\s+\./g, "Remove space before period"],
+      [/\.(?!\s|$)/g, "Add space after period"],
+      [/\s{2,}/g, "Remove extra spaces"],
+      [/becouse|beacuse|becuase/gi, "Spelling: 'because'"],
+      [/definately|defintely/gi, "Spelling: 'definitely'"],
+      [/intresting|intersting/gi, "Spelling: 'interesting'"],
+      [/realy|reallly/gi, "Spelling: 'really'"],
+      [/beautifull|beatiful/gi, "Spelling: 'beautiful'"],
+      [/alot\b/gi, "Should be 'a lot' (two words)"],
+      [/dont\b/gi, "Should be 'don't'"],
+      [/cant\b/gi, "Should be 'can't'"],
+      [/wont\b/gi, "Should be 'won't'"],
+      [/didnt\b/gi, "Should be 'didn't'"],
+      [/isnt\b/gi, "Should be 'isn't'"],
+      [/arent\b/gi, "Should be 'aren't'"],
+      [/wasnt\b/gi, "Should be 'wasn't'"],
+      [/werent\b/gi, "Should be 'weren't'"],
+      [/hasnt\b/gi, "Should be 'hasn't'"],
+      [/havent\b/gi, "Should be 'haven't'"],
+      [/youre\b/gi, "Should be 'you're'"],
+      [/theyre\b/gi, "Should be 'they're'"],
+      [/thier\b/gi, "Spelling: 'their'"],
+      [/recieve\b/gi, "Spelling: 'receive'"],
+      [/wierd\b/gi, "Spelling: 'weird'"],
+      [/untill\b/gi, "Spelling: 'until'"],
+      [/occured\b/gi, "Spelling: 'occurred'"],
+      [/seperate\b/gi, "Spelling: 'separate'"],
+      [/neccessary|necesary/gi, "Spelling: 'necessary'"],
+      [/accomodate\b/gi, "Spelling: 'accommodate'"],
+      [/your\s+(going|doing|making|coming|leaving)/gi, "Should be 'you're' (you are)"],
+      [/there\s+(going|doing|making|coming|leaving)/gi, "Should be 'they're' (they are)"],
+      [/its\s+(a\s+)?(good|great|nice|bad|important)/gi, "Should be 'it's' (it is)"],
+      [/could of\b/gi, "Should be 'could have'"],
+      [/would of\b/gi, "Should be 'would have'"],
+      [/should of\b/gi, "Should be 'should have'"],
+    ];
+    
+    const foundErrors: string[] = [];
+    commonErrors.forEach(([pattern, message]) => {
+      if (pattern.test(text)) {
+        foundErrors.push(`• ${message}`);
+      }
+    });
+    
+    if (foundErrors.length > 0) {
+      issues.push('🔴 Grammar/Spelling issues found:\n' + foundErrors.join('\n'));
+    }
+    
+    // Check sentence structure
+    if (sentences.length < 2) {
+      issues.push('⚠️ Try to write more complete sentences.');
+    }
+    
+    // Check for paragraph structure (Part 2 only)
+    if (!isPart1 && !text.includes('\n') && wordCount > 50) {
+      suggestions.push('💡 Consider breaking your essay into paragraphs for better organisation.');
+    }
+    
+    // Check if starts with capital
+    if (text.length > 0 && text[0] !== text[0].toUpperCase()) {
+      issues.push('⚠️ Start your writing with a capital letter.');
+    }
+    
+    // Generate corrected version (basic fixes)
+    let corrected = text
+      .replace(/\bi\b(?![''])/g, 'I')
+      .replace(/\s+,/g, ',')
+      .replace(/,(?!\s)/g, ', ')
+      .replace(/\s+\./g, '.')
+      .replace(/\.(?!\s|$)/g, '. ')
+      .replace(/\s{2,}/g, ' ')
+      .replace(/becouse|beacuse|becuase/gi, 'because')
+      .replace(/definately|defintely/gi, 'definitely')
+      .replace(/intresting|intersting/gi, 'interesting')
+      .replace(/realy|reallly/gi, 'really')
+      .replace(/beautifull|beatiful/gi, 'beautiful')
+      .replace(/alot\b/gi, 'a lot')
+      .replace(/dont\b/gi, "don't")
+      .replace(/cant\b/gi, "can't")
+      .replace(/wont\b/gi, "won't")
+      .replace(/didnt\b/gi, "didn't")
+      .replace(/isnt\b/gi, "isn't")
+      .replace(/arent\b/gi, "aren't")
+      .replace(/wasnt\b/gi, "wasn't")
+      .replace(/werent\b/gi, "weren't")
+      .replace(/hasnt\b/gi, "hasn't")
+      .replace(/havent\b/gi, "haven't")
+      .replace(/youre\b/gi, "you're")
+      .replace(/theyre\b/gi, "they're")
+      .replace(/thier\b/gi, 'their')
+      .replace(/recieve\b/gi, 'receive')
+      .replace(/wierd\b/gi, 'weird')
+      .replace(/untill\b/gi, 'until')
+      .replace(/occured\b/gi, 'occurred')
+      .replace(/seperate\b/gi, 'separate')
+      .replace(/neccessary|necesary/gi, 'necessary')
+      .replace(/accomodate\b/gi, 'accommodate')
+      .replace(/could of\b/gi, 'could have')
+      .replace(/would of\b/gi, 'would have')
+      .replace(/should of\b/gi, 'should have')
+      .trim();
+    
+    // Capitalize first letter
+    if (corrected.length > 0) {
+      corrected = corrected[0].toUpperCase() + corrected.slice(1);
+    }
+    
+    // Calculate suggested marks based on issues
+    let contentScore = 4;
+    let organisationScore = 4;
+    let languageScore = 4;
+    
+    // Reduce scores based on issues
+    if (wordCount < (isPart1 ? 30 : 80)) {
+      contentScore = Math.max(1, contentScore - 2);
+    } else if (wordCount < (isPart1 ? 40 : 100)) {
+      contentScore = Math.max(2, contentScore - 1);
+    }
+    
+    if (foundErrors.length > 5) {
+      languageScore = Math.max(1, languageScore - 2);
+    } else if (foundErrors.length > 2) {
+      languageScore = Math.max(2, languageScore - 1);
+    }
+    
+    if (sentences.length < 3) {
+      organisationScore = Math.max(2, organisationScore - 1);
+    }
+    
+    const feedback = [
+      ...issues,
+      '',
+      '💡 Suggestions:',
+      ...suggestions,
+      suggestions.length === 0 ? '• Keep practising to improve your writing!' : '',
+      '',
+      '📝 Note: This is automated feedback. Please review and adjust as needed.'
+    ].filter(Boolean).join('\n');
+    
+    const marks: Record<string, number> = isPart1
+      ? { content: contentScore, organisation: organisationScore, language: languageScore }
+      : { content: contentScore, communicativeAchievement: organisationScore, organisation: organisationScore, language: languageScore };
+    
+    return {
+      feedback,
+      correctedVersion: corrected !== text ? corrected : text,
+      suggestedMarks: marks,
+    };
+  };
+
+  // Auto-proofread writing (client-side)
+  const autoProofreadWriting = () => {
     if (!selectedCambridgeStudent) return;
     
     const answers = selectedCambridgeStudent.answers || {};
@@ -522,94 +703,78 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     
     setAutoProofreadLoading(true);
     
-    try {
-      // Call the AI proofreading endpoint
-      const response = await fetch('/api/proofread-writing', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          part1: {
-            text: part1Text,
-            task: 'Write a message to your friend about photography lessons (45-55 words). Include: when and where lessons are, why you want to do them, ask if friend wants to join.',
-            wordTarget: '45-55 words',
-          },
-          part2: {
-            text: part2Text,
-            task: 'Write an essay about whether online shopping is better than going to shops (110-130 words). Give your opinion with reasons.',
-            wordTarget: '110-130 words',
-          },
-          markingCriteria: {
-            part1: ['Content (all 3 points covered)', 'Organisation (coherent, well-linked)', 'Language (accurate, clear)'],
-            part2: ['Content (relevant, informative)', 'Communicative Achievement (clear style)', 'Organisation (well-structured)', 'Language (good vocab, control)'],
-          }
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to get AI feedback');
-      }
-      
-      const result = await response.json();
-      
-      // Update feedback with AI suggestions
-      if (result.part1) {
-        setWritingFeedback(prev => ({
-          ...prev,
-          part1: {
-            feedback: result.part1.feedback || prev.part1.feedback,
-            correctedVersion: result.part1.correctedVersion || prev.part1.correctedVersion,
-          }
-        }));
-        // Set suggested marks if provided
-        if (result.part1.suggestedMarks) {
+    // Small delay to show loading state
+    setTimeout(() => {
+      try {
+        // Process Part 1
+        if (part1Text.trim()) {
+          const result1 = proofreadText(part1Text, '45-55', true);
+          setWritingFeedback(prev => ({
+            ...prev,
+            part1: {
+              feedback: result1.feedback,
+              correctedVersion: result1.correctedVersion,
+            }
+          }));
           setWritingMarks(prev => ({
             ...prev,
             part1: {
-              content: result.part1.suggestedMarks.content ?? prev.part1.content,
-              organisation: result.part1.suggestedMarks.organisation ?? prev.part1.organisation,
-              language: result.part1.suggestedMarks.language ?? prev.part1.language,
+              content: result1.suggestedMarks.content ?? prev.part1.content,
+              organisation: result1.suggestedMarks.organisation ?? prev.part1.organisation,
+              language: result1.suggestedMarks.language ?? prev.part1.language,
             }
           }));
         }
-      }
-      
-      if (result.part2) {
-        setWritingFeedback(prev => ({
-          ...prev,
-          part2: {
-            feedback: result.part2.feedback || prev.part2.feedback,
-            correctedVersion: result.part2.correctedVersion || prev.part2.correctedVersion,
-          }
-        }));
-        // Set suggested marks if provided
-        if (result.part2.suggestedMarks) {
+        
+        // Process Part 2
+        if (part2Text.trim()) {
+          const result2 = proofreadText(part2Text, '110-130', false);
+          setWritingFeedback(prev => ({
+            ...prev,
+            part2: {
+              feedback: result2.feedback,
+              correctedVersion: result2.correctedVersion,
+            }
+          }));
           setWritingMarks(prev => ({
             ...prev,
             part2: {
-              content: result.part2.suggestedMarks.content ?? prev.part2.content,
-              communicativeAchievement: result.part2.suggestedMarks.communicativeAchievement ?? prev.part2.communicativeAchievement,
-              organisation: result.part2.suggestedMarks.organisation ?? prev.part2.organisation,
-              language: result.part2.suggestedMarks.language ?? prev.part2.language,
+              content: result2.suggestedMarks.content ?? prev.part2.content,
+              communicativeAchievement: result2.suggestedMarks.communicativeAchievement ?? prev.part2.communicativeAchievement,
+              organisation: result2.suggestedMarks.organisation ?? prev.part2.organisation,
+              language: result2.suggestedMarks.language ?? prev.part2.language,
             }
           }));
         }
-      }
-      
-      if (result.overallComments) {
+        
+        // Generate overall comments
+        const p1Words = part1Text.trim().split(/\s+/).filter((w: string) => w.length > 0).length;
+        const p2Words = part2Text.trim().split(/\s+/).filter((w: string) => w.length > 0).length;
+        const totalWords = p1Words + p2Words;
+        
+        let overallMessage = '';
+        if (totalWords > 150) {
+          overallMessage = '👍 Good job on meeting the word count requirements! Review the specific feedback for each part.';
+        } else if (totalWords > 100) {
+          overallMessage = '📈 You\'re making progress! Consider adding more detail to reach the target word counts.';
+        } else {
+          overallMessage = '💪 Keep practising! Try to write more to meet the word count targets for each part.';
+        }
+        
         setWritingFeedback(prev => ({
           ...prev,
-          overallComments: result.overallComments
+          overallComments: overallMessage
         }));
+        
+        alert('✅ Auto-proofread complete! Review the suggested feedback and marks, then adjust as needed.');
+        
+      } catch (error) {
+        console.error('Auto-proofread failed:', error);
+        alert('❌ Auto-proofread failed. Please try again or enter feedback manually.');
+      } finally {
+        setAutoProofreadLoading(false);
       }
-      
-      alert('✅ AI proofreading complete! Review the suggested feedback and marks, then adjust as needed.');
-      
-    } catch (error) {
-      console.error('Auto-proofread failed:', error);
-      alert('❌ Auto-proofread failed. Please try again or enter feedback manually.');
-    } finally {
-      setAutoProofreadLoading(false);
-    }
+    }, 500);
   };
 
   // Export Cambridge results to CSV
