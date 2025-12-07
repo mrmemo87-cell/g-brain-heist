@@ -688,8 +688,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     };
   };
 
-  // Auto-proofread writing (client-side)
-  const autoProofreadWriting = () => {
+  // Auto-proofread writing using AI API with client-side fallback
+  const autoProofreadWriting = async () => {
     if (!selectedCambridgeStudent) return;
     
     const answers = selectedCambridgeStudent.answers || {};
@@ -703,78 +703,132 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     
     setAutoProofreadLoading(true);
     
-    // Small delay to show loading state
-    setTimeout(() => {
-      try {
-        // Process Part 1
-        if (part1Text.trim()) {
-          const result1 = proofreadText(part1Text, '45-55', true);
-          setWritingFeedback(prev => ({
-            ...prev,
-            part1: {
-              feedback: result1.feedback,
-              correctedVersion: result1.correctedVersion,
-            }
-          }));
-          setWritingMarks(prev => ({
-            ...prev,
-            part1: {
-              content: result1.suggestedMarks.content ?? prev.part1.content,
-              organisation: result1.suggestedMarks.organisation ?? prev.part1.organisation,
-              language: result1.suggestedMarks.language ?? prev.part1.language,
-            }
-          }));
-        }
-        
-        // Process Part 2
-        if (part2Text.trim()) {
-          const result2 = proofreadText(part2Text, '110-130', false);
-          setWritingFeedback(prev => ({
-            ...prev,
-            part2: {
-              feedback: result2.feedback,
-              correctedVersion: result2.correctedVersion,
-            }
-          }));
-          setWritingMarks(prev => ({
-            ...prev,
-            part2: {
-              content: result2.suggestedMarks.content ?? prev.part2.content,
-              communicativeAchievement: result2.suggestedMarks.communicativeAchievement ?? prev.part2.communicativeAchievement,
-              organisation: result2.suggestedMarks.organisation ?? prev.part2.organisation,
-              language: result2.suggestedMarks.language ?? prev.part2.language,
-            }
-          }));
-        }
-        
-        // Generate overall comments
-        const p1Words = part1Text.trim().split(/\s+/).filter((w: string) => w.length > 0).length;
-        const p2Words = part2Text.trim().split(/\s+/).filter((w: string) => w.length > 0).length;
-        const totalWords = p1Words + p2Words;
-        
-        let overallMessage = '';
-        if (totalWords > 150) {
-          overallMessage = '👍 Good job on meeting the word count requirements! Review the specific feedback for each part.';
-        } else if (totalWords > 100) {
-          overallMessage = '📈 You\'re making progress! Consider adding more detail to reach the target word counts.';
-        } else {
-          overallMessage = '💪 Keep practising! Try to write more to meet the word count targets for each part.';
-        }
-        
+    try {
+      // Try API first
+      const response = await fetch('/api/proofread-writing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          part1: {
+            text: part1Text,
+            task: 'Write a message to your friend about photography lessons (45-55 words). Include: when and where lessons are, why you want to do them, ask if friend wants to join.',
+            wordTarget: '45-55 words',
+          },
+          part2: {
+            text: part2Text,
+            task: 'Write an essay about whether online shopping is better than going to shops (110-130 words). Give your opinion with reasons.',
+            wordTarget: '110-130 words',
+          },
+          markingCriteria: {
+            part1: ['Content (all 3 points covered)', 'Organisation (coherent, well-linked)', 'Language (accurate, clear)'],
+            part2: ['Content (relevant, informative)', 'Communicative Achievement (clear style)', 'Organisation (well-structured)', 'Language (good vocab, control)'],
+          }
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('API unavailable');
+      }
+      
+      const result = await response.json();
+      
+      // Update with API results
+      if (result.part1) {
         setWritingFeedback(prev => ({
           ...prev,
-          overallComments: overallMessage
+          part1: {
+            feedback: result.part1.feedback || prev.part1.feedback,
+            correctedVersion: result.part1.correctedVersion || prev.part1.correctedVersion,
+          }
         }));
-        
-        alert('✅ Auto-proofread complete! Review the suggested feedback and marks, then adjust as needed.');
-        
-      } catch (error) {
-        console.error('Auto-proofread failed:', error);
-        alert('❌ Auto-proofread failed. Please try again or enter feedback manually.');
-      } finally {
-        setAutoProofreadLoading(false);
+        if (result.part1.suggestedMarks) {
+          setWritingMarks(prev => ({
+            ...prev,
+            part1: {
+              content: result.part1.suggestedMarks.content ?? prev.part1.content,
+              organisation: result.part1.suggestedMarks.organisation ?? prev.part1.organisation,
+              language: result.part1.suggestedMarks.language ?? prev.part1.language,
+            }
+          }));
+        }
       }
-    }, 500);
+      
+      if (result.part2) {
+        setWritingFeedback(prev => ({
+          ...prev,
+          part2: {
+            feedback: result.part2.feedback || prev.part2.feedback,
+            correctedVersion: result.part2.correctedVersion || prev.part2.correctedVersion,
+          }
+        }));
+        if (result.part2.suggestedMarks) {
+          setWritingMarks(prev => ({
+            ...prev,
+            part2: {
+              content: result.part2.suggestedMarks.content ?? prev.part2.content,
+              communicativeAchievement: result.part2.suggestedMarks.communicativeAchievement ?? prev.part2.communicativeAchievement,
+              organisation: result.part2.suggestedMarks.organisation ?? prev.part2.organisation,
+              language: result.part2.suggestedMarks.language ?? prev.part2.language,
+            }
+          }));
+        }
+      }
+      
+      if (result.overallComments) {
+        setWritingFeedback(prev => ({
+          ...prev,
+          overallComments: result.overallComments
+        }));
+      }
+      
+      alert('✅ AI proofreading complete! Review the suggested feedback and marks.');
+      
+    } catch (error) {
+      console.log('API unavailable, using client-side proofreading');
+      
+      // Fallback to client-side proofreading
+      if (part1Text.trim()) {
+        const result1 = proofreadText(part1Text, '45-55', true);
+        setWritingFeedback(prev => ({
+          ...prev,
+          part1: { feedback: result1.feedback, correctedVersion: result1.correctedVersion }
+        }));
+        setWritingMarks(prev => ({
+          ...prev,
+          part1: {
+            content: result1.suggestedMarks.content ?? prev.part1.content,
+            organisation: result1.suggestedMarks.organisation ?? prev.part1.organisation,
+            language: result1.suggestedMarks.language ?? prev.part1.language,
+          }
+        }));
+      }
+      
+      if (part2Text.trim()) {
+        const result2 = proofreadText(part2Text, '110-130', false);
+        setWritingFeedback(prev => ({
+          ...prev,
+          part2: { feedback: result2.feedback, correctedVersion: result2.correctedVersion }
+        }));
+        setWritingMarks(prev => ({
+          ...prev,
+          part2: {
+            content: result2.suggestedMarks.content ?? prev.part2.content,
+            communicativeAchievement: result2.suggestedMarks.communicativeAchievement ?? prev.part2.communicativeAchievement,
+            organisation: result2.suggestedMarks.organisation ?? prev.part2.organisation,
+            language: result2.suggestedMarks.language ?? prev.part2.language,
+          }
+        }));
+      }
+      
+      setWritingFeedback(prev => ({
+        ...prev,
+        overallComments: '📝 Basic proofreading complete. Review and adjust as needed.'
+      }));
+      
+      alert('✅ Proofreading complete! (Using basic mode)');
+    } finally {
+      setAutoProofreadLoading(false);
+    }
   };
 
   // Export Cambridge results to CSV
