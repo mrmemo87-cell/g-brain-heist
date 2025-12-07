@@ -85,6 +85,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
   const [showCambridgeAnswers, setShowCambridgeAnswers] = useState(false);
   const [selectedCambridgeStudent, setSelectedCambridgeStudent] = useState<any | null>(null);
   const [showWritingMarkingModal, setShowWritingMarkingModal] = useState(false);
+  const [autoProofreadLoading, setAutoProofreadLoading] = useState(false);
   const [writingMarks, setWritingMarks] = useState<{
     part1: { content: number; organisation: number; language: number };
     part2: { content: number; communicativeAchievement: number; organisation: number; language: number };
@@ -503,6 +504,111 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     } catch (error) {
       console.error('Failed to submit marks:', error);
       alert('❌ Failed to submit marks');
+    }
+  };
+
+  // Auto-proofread writing using AI
+  const autoProofreadWriting = async () => {
+    if (!selectedCambridgeStudent) return;
+    
+    const answers = selectedCambridgeStudent.answers || {};
+    const part1Text = answers.part1 || '';
+    const part2Text = answers.part2 || '';
+    
+    if (!part1Text && !part2Text) {
+      alert('No student writing to proofread!');
+      return;
+    }
+    
+    setAutoProofreadLoading(true);
+    
+    try {
+      // Call the AI proofreading endpoint
+      const response = await fetch('/api/proofread-writing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          part1: {
+            text: part1Text,
+            task: 'Write a message to your friend about photography lessons (45-55 words). Include: when and where lessons are, why you want to do them, ask if friend wants to join.',
+            wordTarget: '45-55 words',
+          },
+          part2: {
+            text: part2Text,
+            task: 'Write an essay about whether online shopping is better than going to shops (110-130 words). Give your opinion with reasons.',
+            wordTarget: '110-130 words',
+          },
+          markingCriteria: {
+            part1: ['Content (all 3 points covered)', 'Organisation (coherent, well-linked)', 'Language (accurate, clear)'],
+            part2: ['Content (relevant, informative)', 'Communicative Achievement (clear style)', 'Organisation (well-structured)', 'Language (good vocab, control)'],
+          }
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to get AI feedback');
+      }
+      
+      const result = await response.json();
+      
+      // Update feedback with AI suggestions
+      if (result.part1) {
+        setWritingFeedback(prev => ({
+          ...prev,
+          part1: {
+            feedback: result.part1.feedback || prev.part1.feedback,
+            correctedVersion: result.part1.correctedVersion || prev.part1.correctedVersion,
+          }
+        }));
+        // Set suggested marks if provided
+        if (result.part1.suggestedMarks) {
+          setWritingMarks(prev => ({
+            ...prev,
+            part1: {
+              content: result.part1.suggestedMarks.content ?? prev.part1.content,
+              organisation: result.part1.suggestedMarks.organisation ?? prev.part1.organisation,
+              language: result.part1.suggestedMarks.language ?? prev.part1.language,
+            }
+          }));
+        }
+      }
+      
+      if (result.part2) {
+        setWritingFeedback(prev => ({
+          ...prev,
+          part2: {
+            feedback: result.part2.feedback || prev.part2.feedback,
+            correctedVersion: result.part2.correctedVersion || prev.part2.correctedVersion,
+          }
+        }));
+        // Set suggested marks if provided
+        if (result.part2.suggestedMarks) {
+          setWritingMarks(prev => ({
+            ...prev,
+            part2: {
+              content: result.part2.suggestedMarks.content ?? prev.part2.content,
+              communicativeAchievement: result.part2.suggestedMarks.communicativeAchievement ?? prev.part2.communicativeAchievement,
+              organisation: result.part2.suggestedMarks.organisation ?? prev.part2.organisation,
+              language: result.part2.suggestedMarks.language ?? prev.part2.language,
+            }
+          }));
+        }
+      }
+      
+      if (result.overallComments) {
+        setWritingFeedback(prev => ({
+          ...prev,
+          overallComments: result.overallComments
+        }));
+      }
+      
+      alert('✅ AI proofreading complete! Review the suggested feedback and marks, then adjust as needed.');
+      
+    } catch (error) {
+      console.error('Auto-proofread failed:', error);
+      alert('❌ Auto-proofread failed. Please try again or enter feedback manually.');
+    } finally {
+      setAutoProofreadLoading(false);
     }
   };
 
@@ -2906,6 +3012,30 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   <h2 className="text-xl font-bold">{selectedCambridgeStudent.student_name}</h2>
                   <p className="text-sm opacity-80">Class: {selectedCambridgeStudent.student_class || 'N/A'} | Submitted: {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString()}</p>
                 </div>
+                
+                {/* Auto-Proofread Button */}
+                <button
+                  onClick={autoProofreadWriting}
+                  disabled={autoProofreadLoading}
+                  className={`px-5 py-3 rounded-xl font-bold flex items-center gap-2 transition-all ${
+                    autoProofreadLoading 
+                      ? 'bg-gray-400 cursor-wait' 
+                      : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-lg hover:shadow-xl'
+                  }`}
+                >
+                  {autoProofreadLoading ? (
+                    <>
+                      <span className="animate-spin">⏳</span>
+                      AI Checking...
+                    </>
+                  ) : (
+                    <>
+                      <span>🤖</span>
+                      Auto-Proofread
+                    </>
+                  )}
+                </button>
+                
                 <div className="text-right">
                   <div className="text-3xl font-bold">{totalScore}/35</div>
                   <div className={`text-lg font-semibold ${percentage >= 70 ? 'text-green-300' : percentage >= 50 ? 'text-yellow-300' : 'text-red-300'}`}>
