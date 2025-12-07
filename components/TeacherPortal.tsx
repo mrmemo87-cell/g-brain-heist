@@ -507,183 +507,304 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     }
   };
 
-  // Client-side proofreading function
+  // Detailed teacher-style proofreading function
   const proofreadText = (text: string, wordTarget: string, isPart1: boolean): {
     feedback: string;
     correctedVersion: string;
     suggestedMarks: Record<string, number>;
   } => {
+    const originalText = text;
     const words = text.trim().split(/\s+/).filter(w => w.length > 0);
     const wordCount = words.length;
     const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
     
-    const issues: string[] = [];
-    const suggestions: string[] = [];
-    
-    // Check word count
-    const targetMatch = wordTarget.match(/(\d+)-(\d+)/);
-    if (targetMatch) {
-      const [, min, max] = targetMatch;
-      if (wordCount < parseInt(min)) {
-        issues.push(`⚠️ Word count (${wordCount}) is below the target (${wordTarget}). Add more detail.`);
-      } else if (wordCount > parseInt(max)) {
-        issues.push(`⚠️ Word count (${wordCount}) exceeds the target (${wordTarget}). Try to be more concise.`);
-      } else {
-        suggestions.push(`✓ Word count (${wordCount}) is within the target range.`);
-      }
-    }
-    
-    // Check for common errors
-    const commonErrors: [RegExp, string][] = [
-      [/\bi\b(?![''])/g, "Capitalize 'I' when referring to yourself"],
-      [/\s+,/g, "Remove space before comma"],
-      [/,(?!\s)/g, "Add space after comma"],
-      [/\s+\./g, "Remove space before period"],
-      [/\.(?!\s|$)/g, "Add space after period"],
-      [/\s{2,}/g, "Remove extra spaces"],
-      [/becouse|beacuse|becuase/gi, "Spelling: 'because'"],
-      [/definately|defintely/gi, "Spelling: 'definitely'"],
-      [/intresting|intersting/gi, "Spelling: 'interesting'"],
-      [/realy|reallly/gi, "Spelling: 'really'"],
-      [/beautifull|beatiful/gi, "Spelling: 'beautiful'"],
-      [/alot\b/gi, "Should be 'a lot' (two words)"],
-      [/dont\b/gi, "Should be 'don't'"],
-      [/cant\b/gi, "Should be 'can't'"],
-      [/wont\b/gi, "Should be 'won't'"],
-      [/didnt\b/gi, "Should be 'didn't'"],
-      [/isnt\b/gi, "Should be 'isn't'"],
-      [/arent\b/gi, "Should be 'aren't'"],
-      [/wasnt\b/gi, "Should be 'wasn't'"],
-      [/werent\b/gi, "Should be 'weren't'"],
-      [/hasnt\b/gi, "Should be 'hasn't'"],
-      [/havent\b/gi, "Should be 'haven't'"],
-      [/youre\b/gi, "Should be 'you're'"],
-      [/theyre\b/gi, "Should be 'they're'"],
-      [/thier\b/gi, "Spelling: 'their'"],
-      [/recieve\b/gi, "Spelling: 'receive'"],
-      [/wierd\b/gi, "Spelling: 'weird'"],
-      [/untill\b/gi, "Spelling: 'until'"],
-      [/occured\b/gi, "Spelling: 'occurred'"],
-      [/seperate\b/gi, "Spelling: 'separate'"],
-      [/neccessary|necesary/gi, "Spelling: 'necessary'"],
-      [/accomodate\b/gi, "Spelling: 'accommodate'"],
-      [/your\s+(going|doing|making|coming|leaving)/gi, "Should be 'you're' (you are)"],
-      [/there\s+(going|doing|making|coming|leaving)/gi, "Should be 'they're' (they are)"],
-      [/its\s+(a\s+)?(good|great|nice|bad|important)/gi, "Should be 'it's' (it is)"],
-      [/could of\b/gi, "Should be 'could have'"],
-      [/would of\b/gi, "Should be 'would have'"],
-      [/should of\b/gi, "Should be 'should have'"],
+    // Spelling corrections dictionary with explanations
+    const spellingFixes: { pattern: RegExp; correct: string; why: string }[] = [
+      { pattern: /\bhelo\b/gi, correct: 'hello', why: 'Missing an "l"' },
+      { pattern: /\bhelllo\b/gi, correct: 'hello', why: 'Extra "l"' },
+      { pattern: /\bteh\b/gi, correct: 'the', why: 'Letters in wrong order' },
+      { pattern: /\bwiht\b/gi, correct: 'with', why: 'Letters in wrong order' },
+      { pattern: /\bfreind\b/gi, correct: 'friend', why: '"i" before "e" except after "c"' },
+      { pattern: /\brecieve\b/gi, correct: 'receive', why: '"i" before "e" except after "c"' },
+      { pattern: /\bbecouse\b/gi, correct: 'because', why: 'Incorrect spelling' },
+      { pattern: /\bbeacuse\b/gi, correct: 'because', why: 'Letters in wrong order' },
+      { pattern: /\bbecuase\b/gi, correct: 'because', why: 'Letters in wrong order' },
+      { pattern: /\bdefinately\b/gi, correct: 'definitely', why: 'Common misspelling - remember "finite"' },
+      { pattern: /\bdefintely\b/gi, correct: 'definitely', why: 'Missing letters' },
+      { pattern: /\bintresting\b/gi, correct: 'interesting', why: 'Missing "e"' },
+      { pattern: /\bintersting\b/gi, correct: 'interesting', why: 'Missing "e"' },
+      { pattern: /\brealy\b/gi, correct: 'really', why: 'Missing "l"' },
+      { pattern: /\breallly\b/gi, correct: 'really', why: 'Extra "l"' },
+      { pattern: /\bbeautifull\b/gi, correct: 'beautiful', why: 'Only one "l" at the end' },
+      { pattern: /\bbeatiful\b/gi, correct: 'beautiful', why: 'Missing "u"' },
+      { pattern: /\balot\b/gi, correct: 'a lot', why: 'Should be two words' },
+      { pattern: /\bthier\b/gi, correct: 'their', why: '"e" before "i"' },
+      { pattern: /\bwierd\b/gi, correct: 'weird', why: '"e" before "i" (exception to rule)' },
+      { pattern: /\buntill\b/gi, correct: 'until', why: 'Only one "l"' },
+      { pattern: /\boccured\b/gi, correct: 'occurred', why: 'Double "r"' },
+      { pattern: /\bseperate\b/gi, correct: 'separate', why: '"a" not "e" in the middle' },
+      { pattern: /\bneccessary\b/gi, correct: 'necessary', why: 'One "c", double "s"' },
+      { pattern: /\bnecesary\b/gi, correct: 'necessary', why: 'Double "s"' },
+      { pattern: /\baccomodate\b/gi, correct: 'accommodate', why: 'Double "c" and double "m"' },
+      { pattern: /\btommorow\b/gi, correct: 'tomorrow', why: 'One "m", double "r"' },
+      { pattern: /\btomorow\b/gi, correct: 'tomorrow', why: 'Double "r"' },
+      { pattern: /\bwich\b/gi, correct: 'which', why: 'Missing "h"' },
+      { pattern: /\bwher\b/gi, correct: 'where', why: 'Missing "e"' },
+      { pattern: /\bnex\b/gi, correct: 'next', why: 'Missing "t"' },
+      { pattern: /\bmatch\b(?=\s+(cost|money|it))/gi, correct: 'much', why: '"match" ≠ "much"' },
+      { pattern: /\bpictshars\b/gi, correct: 'pictures', why: 'Incorrect spelling' },
+      { pattern: /\bpicters\b/gi, correct: 'pictures', why: 'Missing "u"' },
+      { pattern: /\bphotograpy\b/gi, correct: 'photography', why: 'Missing "h"' },
+      { pattern: /\bohotography\b/gi, correct: 'photography', why: 'Letters in wrong order' },
+      { pattern: /\btakeing\b/gi, correct: 'taking', why: 'Remove the "e" before "-ing"' },
+      { pattern: /\bcomeing\b/gi, correct: 'coming', why: 'Remove the "e" before "-ing"' },
+      { pattern: /\bwriteing\b/gi, correct: 'writing', why: 'Remove the "e" before "-ing"' },
+      { pattern: /\bhaveing\b/gi, correct: 'having', why: 'Remove the "e" before "-ing"' },
+      { pattern: /\bloveing\b/gi, correct: 'loving', why: 'Remove the "e" before "-ing"' },
+      { pattern: /\bdint\b/gi, correct: "didn't / don't", why: '"dint" is not a word' },
+      { pattern: /\bwanna\b/gi, correct: 'want to', why: 'Informal - use "want to" in formal writing' },
+      { pattern: /\bgonna\b/gi, correct: 'going to', why: 'Informal - use "going to" in formal writing' },
+      { pattern: /\bgotta\b/gi, correct: 'got to / have to', why: 'Informal - use "have to" in formal writing' },
+      { pattern: /\bppl\b/gi, correct: 'people', why: 'Avoid abbreviations in formal writing' },
+      { pattern: /\bu\b/gi, correct: 'you', why: 'Avoid text-speak in formal writing' },
+      { pattern: /\bur\b/gi, correct: 'your / you\'re', why: 'Avoid text-speak in formal writing' },
+      { pattern: /\br\b(?=\s)/gi, correct: 'are', why: 'Avoid text-speak in formal writing' },
+      { pattern: /\bshoping\b/gi, correct: 'shopping', why: 'Double "p"' },
+      { pattern: /\bexperiance\b/gi, correct: 'experience', why: '"e" not "a"' },
+      { pattern: /\bexpirence\b/gi, correct: 'experience', why: 'Incorrect spelling' },
     ];
     
-    const foundErrors: string[] = [];
-    commonErrors.forEach(([pattern, message]) => {
-      if (pattern.test(text)) {
-        foundErrors.push(`• ${message}`);
+    // Grammar fixes with contractions
+    const grammarFixes: { pattern: RegExp; correct: string; why: string }[] = [
+      { pattern: /\bdont\b/gi, correct: "don't", why: 'Missing apostrophe' },
+      { pattern: /\bcant\b/gi, correct: "can't", why: 'Missing apostrophe' },
+      { pattern: /\bwont\b/gi, correct: "won't", why: 'Missing apostrophe' },
+      { pattern: /\bdidnt\b/gi, correct: "didn't", why: 'Missing apostrophe' },
+      { pattern: /\bisnt\b/gi, correct: "isn't", why: 'Missing apostrophe' },
+      { pattern: /\barent\b/gi, correct: "aren't", why: 'Missing apostrophe' },
+      { pattern: /\bwasnt\b/gi, correct: "wasn't", why: 'Missing apostrophe' },
+      { pattern: /\bwerent\b/gi, correct: "weren't", why: 'Missing apostrophe' },
+      { pattern: /\bhasnt\b/gi, correct: "hasn't", why: 'Missing apostrophe' },
+      { pattern: /\bhavent\b/gi, correct: "haven't", why: 'Missing apostrophe' },
+      { pattern: /\bwouldnt\b/gi, correct: "wouldn't", why: 'Missing apostrophe' },
+      { pattern: /\bcouldnt\b/gi, correct: "couldn't", why: 'Missing apostrophe' },
+      { pattern: /\bshouldnt\b/gi, correct: "shouldn't", why: 'Missing apostrophe' },
+      { pattern: /\bits\b(?=\s+(a\s+)?(good|great|nice|bad|important|better|worse|easy|hard|difficult))/gi, correct: "it's", why: '"it\'s" = "it is"' },
+      { pattern: /\byoure\b/gi, correct: "you're", why: '"you\'re" = "you are"' },
+      { pattern: /\btheyre\b/gi, correct: "they're", why: '"they\'re" = "they are"' },
+      { pattern: /\bwere\b(?=\s+(going|coming|doing|making|leaving|taking))/gi, correct: "we're", why: '"we\'re" = "we are"' },
+      { pattern: /\bcould of\b/gi, correct: 'could have', why: '"of" sounds like "have" but is incorrect' },
+      { pattern: /\bwould of\b/gi, correct: 'would have', why: '"of" sounds like "have" but is incorrect' },
+      { pattern: /\bshould of\b/gi, correct: 'should have', why: '"of" sounds like "have" but is incorrect' },
+    ];
+    
+    // Find spelling mistakes
+    const spellingMistakes: { wrong: string; correct: string; why: string }[] = [];
+    let correctedText = text;
+    
+    spellingFixes.forEach(({ pattern, correct, why }) => {
+      const matches = text.match(pattern);
+      if (matches) {
+        matches.forEach(match => {
+          if (!spellingMistakes.find(m => m.wrong.toLowerCase() === match.toLowerCase())) {
+            spellingMistakes.push({ wrong: match, correct, why });
+          }
+        });
+        correctedText = correctedText.replace(pattern, correct);
       }
     });
     
-    if (foundErrors.length > 0) {
-      issues.push('🔴 Grammar/Spelling issues found:\n' + foundErrors.join('\n'));
+    // Find grammar mistakes
+    const grammarMistakes: { wrong: string; correct: string; why: string }[] = [];
+    
+    grammarFixes.forEach(({ pattern, correct, why }) => {
+      const matches = text.match(pattern);
+      if (matches) {
+        matches.forEach(match => {
+          if (!grammarMistakes.find(m => m.wrong.toLowerCase() === match.toLowerCase())) {
+            grammarMistakes.push({ wrong: match, correct, why });
+          }
+        });
+        correctedText = correctedText.replace(pattern, correct);
+      }
+    });
+    
+    // Check for lowercase "i"
+    const lowercaseI = text.match(/\bi\b(?![''])/g);
+    if (lowercaseI) {
+      grammarMistakes.push({ wrong: 'i', correct: 'I', why: 'Pronoun "I" is always capitalized' });
+      correctedText = correctedText.replace(/\bi\b(?![''])/g, 'I');
     }
     
-    // Check sentence structure
-    if (sentences.length < 2) {
-      issues.push('⚠️ Try to write more complete sentences.');
-    }
+    // Check for uncapitalized city/country names
+    const commonPlaces = ['paris', 'london', 'tokyo', 'england', 'france', 'america', 'china', 'spain', 'italy', 'germany'];
+    commonPlaces.forEach(place => {
+      const regex = new RegExp(`\\b${place}\\b`, 'g');
+      if (regex.test(text)) {
+        const capitalized = place.charAt(0).toUpperCase() + place.slice(1);
+        spellingMistakes.push({ wrong: place, correct: capitalized, why: 'Capitalize city/country names' });
+        correctedText = correctedText.replace(regex, capitalized);
+      }
+    });
     
-    // Check for paragraph structure (Part 2 only)
-    if (!isPart1 && !text.includes('\n') && wordCount > 50) {
-      suggestions.push('💡 Consider breaking your essay into paragraphs for better organisation.');
-    }
-    
-    // Check if starts with capital
-    if (text.length > 0 && text[0] !== text[0].toUpperCase()) {
-      issues.push('⚠️ Start your writing with a capital letter.');
-    }
-    
-    // Generate corrected version (basic fixes)
-    let corrected = text
-      .replace(/\bi\b(?![''])/g, 'I')
+    // Fix punctuation
+    correctedText = correctedText
       .replace(/\s+,/g, ',')
       .replace(/,(?!\s)/g, ', ')
       .replace(/\s+\./g, '.')
       .replace(/\.(?!\s|$)/g, '. ')
       .replace(/\s{2,}/g, ' ')
-      .replace(/becouse|beacuse|becuase/gi, 'because')
-      .replace(/definately|defintely/gi, 'definitely')
-      .replace(/intresting|intersting/gi, 'interesting')
-      .replace(/realy|reallly/gi, 'really')
-      .replace(/beautifull|beatiful/gi, 'beautiful')
-      .replace(/alot\b/gi, 'a lot')
-      .replace(/dont\b/gi, "don't")
-      .replace(/cant\b/gi, "can't")
-      .replace(/wont\b/gi, "won't")
-      .replace(/didnt\b/gi, "didn't")
-      .replace(/isnt\b/gi, "isn't")
-      .replace(/arent\b/gi, "aren't")
-      .replace(/wasnt\b/gi, "wasn't")
-      .replace(/werent\b/gi, "weren't")
-      .replace(/hasnt\b/gi, "hasn't")
-      .replace(/havent\b/gi, "haven't")
-      .replace(/youre\b/gi, "you're")
-      .replace(/theyre\b/gi, "they're")
-      .replace(/thier\b/gi, 'their')
-      .replace(/recieve\b/gi, 'receive')
-      .replace(/wierd\b/gi, 'weird')
-      .replace(/untill\b/gi, 'until')
-      .replace(/occured\b/gi, 'occurred')
-      .replace(/seperate\b/gi, 'separate')
-      .replace(/neccessary|necesary/gi, 'necessary')
-      .replace(/accomodate\b/gi, 'accommodate')
-      .replace(/could of\b/gi, 'could have')
-      .replace(/would of\b/gi, 'would have')
-      .replace(/should of\b/gi, 'should have')
       .trim();
     
     // Capitalize first letter
-    if (corrected.length > 0) {
-      corrected = corrected[0].toUpperCase() + corrected.slice(1);
+    if (correctedText.length > 0) {
+      correctedText = correctedText[0].toUpperCase() + correctedText.slice(1);
     }
     
-    // Calculate suggested marks based on issues
+    // Build detailed feedback
+    const feedbackParts: string[] = [];
+    
+    // Header
+    feedbackParts.push('📚 DETAILED WRITING FEEDBACK');
+    feedbackParts.push('═'.repeat(40));
+    feedbackParts.push('');
+    
+    // Word count check
+    const targetMatch = wordTarget.match(/(\d+)-(\d+)/);
+    if (targetMatch) {
+      const [, min, max] = targetMatch;
+      feedbackParts.push(`📊 WORD COUNT: ${wordCount} words (Target: ${wordTarget})`);
+      if (wordCount < parseInt(min)) {
+        feedbackParts.push(`⚠️ Below target! Add ${parseInt(min) - wordCount} more words.`);
+      } else if (wordCount > parseInt(max)) {
+        feedbackParts.push(`⚠️ Over target! Remove ${wordCount - parseInt(max)} words.`);
+      } else {
+        feedbackParts.push('✅ Word count is within range!');
+      }
+      feedbackParts.push('');
+    }
+    
+    // Spelling mistakes section
+    if (spellingMistakes.length > 0) {
+      feedbackParts.push('🔎 SPELLING MISTAKES & CORRECTIONS');
+      feedbackParts.push('─'.repeat(40));
+      spellingMistakes.forEach(({ wrong, correct, why }) => {
+        feedbackParts.push(`❌ "${wrong}" → ✅ "${correct}"`);
+        feedbackParts.push(`   💡 ${why}`);
+      });
+      feedbackParts.push('');
+    } else {
+      feedbackParts.push('✅ SPELLING: No major spelling errors found!');
+      feedbackParts.push('');
+    }
+    
+    // Grammar mistakes section
+    if (grammarMistakes.length > 0) {
+      feedbackParts.push('🔧 GRAMMAR & PUNCTUATION ISSUES');
+      feedbackParts.push('─'.repeat(40));
+      grammarMistakes.forEach(({ wrong, correct, why }) => {
+        feedbackParts.push(`❌ "${wrong}" → ✅ "${correct}"`);
+        feedbackParts.push(`   💡 ${why}`);
+      });
+      feedbackParts.push('');
+    }
+    
+    // Structure issues
+    const structureIssues: string[] = [];
+    
+    if (sentences.length < 2) {
+      structureIssues.push('• Write more than one sentence to develop your ideas.');
+    }
+    
+    if (text.length > 100 && !text.includes('.')) {
+      structureIssues.push('• Your text is a run-on sentence. Break it into smaller sentences with periods.');
+    }
+    
+    if (!isPart1 && !text.includes('\n') && wordCount > 80) {
+      structureIssues.push('• Consider breaking your essay into paragraphs for better organisation.');
+    }
+    
+    if (text.length > 0 && text[0] !== text[0].toUpperCase()) {
+      structureIssues.push('• Always start your writing with a capital letter.');
+    }
+    
+    if (!text.match(/[.!?]$/)) {
+      structureIssues.push('• End your writing with proper punctuation (. ! or ?)');
+    }
+    
+    if (structureIssues.length > 0) {
+      feedbackParts.push('📝 STRUCTURE & ORGANISATION TIPS');
+      feedbackParts.push('─'.repeat(40));
+      structureIssues.forEach(issue => feedbackParts.push(issue));
+      feedbackParts.push('');
+    }
+    
+    // Teacher notes
+    feedbackParts.push('✨ TEACHER NOTES FOR YOU');
+    feedbackParts.push('─'.repeat(40));
+    
+    const totalErrors = spellingMistakes.length + grammarMistakes.length;
+    if (totalErrors === 0) {
+      feedbackParts.push('🌟 Excellent work! Your writing is clear and accurate.');
+      feedbackParts.push('Keep up the great effort!');
+    } else if (totalErrors <= 3) {
+      feedbackParts.push('👍 Good job! You expressed your ideas clearly.');
+      feedbackParts.push('Just a few small corrections needed.');
+    } else if (totalErrors <= 6) {
+      feedbackParts.push('📈 You\'re making progress! Focus on:');
+      if (spellingMistakes.length > 0) feedbackParts.push('⭐ Practice the spelling corrections above.');
+      if (grammarMistakes.length > 0) feedbackParts.push('⭐ Review apostrophe rules for contractions.');
+    } else {
+      feedbackParts.push('💪 Keep practising! Focus on these key areas:');
+      feedbackParts.push('⭐ 1. Spelling - learn the correct forms listed above.');
+      feedbackParts.push('⭐ 2. Capitalization - always capitalize "I", names, and places.');
+      feedbackParts.push('⭐ 3. Punctuation - use periods to separate sentences.');
+    }
+    
+    // Calculate scores
     let contentScore = 4;
     let organisationScore = 4;
     let languageScore = 4;
     
-    // Reduce scores based on issues
-    if (wordCount < (isPart1 ? 30 : 80)) {
-      contentScore = Math.max(1, contentScore - 2);
-    } else if (wordCount < (isPart1 ? 40 : 100)) {
-      contentScore = Math.max(2, contentScore - 1);
+    // Adjust based on word count
+    if (targetMatch) {
+      const [, min] = targetMatch;
+      if (wordCount < parseInt(min) * 0.5) {
+        contentScore = 1;
+      } else if (wordCount < parseInt(min) * 0.75) {
+        contentScore = 2;
+      } else if (wordCount < parseInt(min)) {
+        contentScore = 3;
+      }
     }
     
-    if (foundErrors.length > 5) {
-      languageScore = Math.max(1, languageScore - 2);
-    } else if (foundErrors.length > 2) {
-      languageScore = Math.max(2, languageScore - 1);
+    // Adjust based on errors
+    if (totalErrors > 8) {
+      languageScore = 1;
+    } else if (totalErrors > 5) {
+      languageScore = 2;
+    } else if (totalErrors > 2) {
+      languageScore = 3;
+    } else if (totalErrors === 0) {
+      languageScore = 5;
     }
     
-    if (sentences.length < 3) {
-      organisationScore = Math.max(2, organisationScore - 1);
+    // Adjust organisation based on structure
+    if (structureIssues.length > 2) {
+      organisationScore = 2;
+    } else if (structureIssues.length > 0) {
+      organisationScore = 3;
+    } else if (sentences.length >= 3) {
+      organisationScore = 5;
     }
-    
-    const feedback = [
-      ...issues,
-      '',
-      '💡 Suggestions:',
-      ...suggestions,
-      suggestions.length === 0 ? '• Keep practising to improve your writing!' : '',
-      '',
-      '📝 Note: This is automated feedback. Please review and adjust as needed.'
-    ].filter(Boolean).join('\n');
     
     const marks: Record<string, number> = isPart1
       ? { content: contentScore, organisation: organisationScore, language: languageScore }
       : { content: contentScore, communicativeAchievement: organisationScore, organisation: organisationScore, language: languageScore };
     
     return {
-      feedback,
-      correctedVersion: corrected !== text ? corrected : text,
+      feedback: feedbackParts.join('\n'),
+      correctedVersion: correctedText,
       suggestedMarks: marks,
     };
   };
