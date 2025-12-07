@@ -661,104 +661,243 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
       correctedText = correctedText[0].toUpperCase() + correctedText.slice(1);
     }
     
-    // Build detailed feedback
+    // Build detailed feedback with 6 structured sections
     const feedbackParts: string[] = [];
-    
-    // Header
-    feedbackParts.push('📚 DETAILED WRITING FEEDBACK');
-    feedbackParts.push('═'.repeat(40));
-    feedbackParts.push('');
-    
-    // Word count check
     const targetMatch = wordTarget.match(/(\d+)-(\d+)/);
+    
+    // ═══════════════════════════════════════════════════════════
+    // SECTION 1: ORIGINAL STUDENT TEXT
+    // ═══════════════════════════════════════════════════════════
+    feedbackParts.push('📝 SECTION 1: ORIGINAL STUDENT TEXT');
+    feedbackParts.push('═'.repeat(45));
+    feedbackParts.push('');
+    feedbackParts.push(`"${originalText}"`);
+    feedbackParts.push('');
     if (targetMatch) {
       const [, min, max] = targetMatch;
-      feedbackParts.push(`📊 WORD COUNT: ${wordCount} words (Target: ${wordTarget})`);
+      feedbackParts.push(`📊 Word Count: ${wordCount} words (Target: ${wordTarget})`);
       if (wordCount < parseInt(min)) {
-        feedbackParts.push(`⚠️ Below target! Add ${parseInt(min) - wordCount} more words.`);
+        feedbackParts.push(`⚠️ Your text is ${parseInt(min) - wordCount} words below the minimum.`);
       } else if (wordCount > parseInt(max)) {
-        feedbackParts.push(`⚠️ Over target! Remove ${wordCount - parseInt(max)} words.`);
+        feedbackParts.push(`⚠️ Your text is ${wordCount - parseInt(max)} words above the maximum.`);
       } else {
-        feedbackParts.push('✅ Word count is within range!');
+        feedbackParts.push('✅ Great! Word count is within the target range.');
       }
-      feedbackParts.push('');
     }
+    feedbackParts.push('');
     
-    // Spelling mistakes section
+    // ═══════════════════════════════════════════════════════════
+    // SECTION 2: SPELLING MISTAKES & CORRECTIONS
+    // ═══════════════════════════════════════════════════════════
+    feedbackParts.push('🔤 SECTION 2: SPELLING MISTAKES & CORRECTIONS');
+    feedbackParts.push('═'.repeat(45));
+    feedbackParts.push('');
+    
     if (spellingMistakes.length > 0) {
-      feedbackParts.push('🔎 SPELLING MISTAKES & CORRECTIONS');
-      feedbackParts.push('─'.repeat(40));
+      feedbackParts.push('| ❌ Wrong | ✅ Correct | 💡 Why? |');
+      feedbackParts.push('|---------|-----------|---------|');
       spellingMistakes.forEach(({ wrong, correct, why }) => {
-        feedbackParts.push(`❌ "${wrong}" → ✅ "${correct}"`);
-        feedbackParts.push(`   💡 ${why}`);
+        feedbackParts.push(`| ${wrong} | ${correct} | ${why} |`);
       });
       feedbackParts.push('');
+      feedbackParts.push(`📌 Total spelling errors found: ${spellingMistakes.length}`);
     } else {
-      feedbackParts.push('✅ SPELLING: No major spelling errors found!');
-      feedbackParts.push('');
+      feedbackParts.push('✅ Excellent! No spelling mistakes detected.');
+      feedbackParts.push('Your spelling is accurate — well done!');
     }
+    feedbackParts.push('');
     
-    // Grammar mistakes section
+    // ═══════════════════════════════════════════════════════════
+    // SECTION 3: GRAMMAR & STRUCTURE ISSUES
+    // ═══════════════════════════════════════════════════════════
+    feedbackParts.push('🔧 SECTION 3: GRAMMAR & STRUCTURE ISSUES');
+    feedbackParts.push('═'.repeat(45));
+    feedbackParts.push('');
+    
+    let issueNumber = 1;
+    
     if (grammarMistakes.length > 0) {
-      feedbackParts.push('🔧 GRAMMAR & PUNCTUATION ISSUES');
-      feedbackParts.push('─'.repeat(40));
       grammarMistakes.forEach(({ wrong, correct, why }) => {
-        feedbackParts.push(`❌ "${wrong}" → ✅ "${correct}"`);
-        feedbackParts.push(`   💡 ${why}`);
+        feedbackParts.push(`${issueNumber}. ❌ You wrote: "${wrong}"`);
+        feedbackParts.push(`   ✅ Correct: "${correct}"`);
+        feedbackParts.push(`   💡 Explanation: ${why}`);
+        feedbackParts.push('');
+        issueNumber++;
       });
-      feedbackParts.push('');
     }
     
     // Structure issues
     const structureIssues: string[] = [];
     
     if (sentences.length < 2) {
-      structureIssues.push('• Write more than one sentence to develop your ideas.');
+      structureIssues.push('Your response has only one sentence. Try developing your ideas with 2-3 sentences for better clarity.');
     }
     
     if (text.length > 100 && !text.includes('.')) {
-      structureIssues.push('• Your text is a run-on sentence. Break it into smaller sentences with periods.');
+      structureIssues.push('This is a run-on sentence! Long sentences without periods are hard to read. Break your ideas into shorter sentences.');
     }
     
     if (!isPart1 && !text.includes('\n') && wordCount > 80) {
-      structureIssues.push('• Consider breaking your essay into paragraphs for better organisation.');
+      structureIssues.push('Your essay is one big block of text. Use paragraphs to organize your ideas (introduction, main point, conclusion).');
     }
     
     if (text.length > 0 && text[0] !== text[0].toUpperCase()) {
-      structureIssues.push('• Always start your writing with a capital letter.');
+      structureIssues.push('Always start your writing with a capital letter.');
     }
     
     if (!text.match(/[.!?]$/)) {
-      structureIssues.push('• End your writing with proper punctuation (. ! or ?)');
+      structureIssues.push('Your text doesn\'t end with proper punctuation. Always finish with a period (.), question mark (?), or exclamation mark (!).');
+    }
+    
+    // Check for very short sentences
+    const shortSentences = sentences.filter(s => s.trim().split(/\s+/).length < 3);
+    if (shortSentences.length > 0) {
+      structureIssues.push('Some of your sentences are very short. Try combining ideas or adding more detail.');
+    }
+    
+    // Check for repetitive sentence starts
+    const sentenceStarts = sentences.map(s => s.trim().split(/\s+/)[0]?.toLowerCase());
+    const repeatedStarts = sentenceStarts.filter((start, i) => sentenceStarts.indexOf(start) !== i);
+    if (repeatedStarts.length > 0) {
+      structureIssues.push(`You start multiple sentences with "${repeatedStarts[0]}". Vary your sentence beginnings for better flow.`);
     }
     
     if (structureIssues.length > 0) {
-      feedbackParts.push('📝 STRUCTURE & ORGANISATION TIPS');
-      feedbackParts.push('─'.repeat(40));
-      structureIssues.forEach(issue => feedbackParts.push(issue));
-      feedbackParts.push('');
+      structureIssues.forEach(issue => {
+        feedbackParts.push(`${issueNumber}. 📝 ${issue}`);
+        issueNumber++;
+      });
     }
     
-    // Teacher notes
-    feedbackParts.push('✨ TEACHER NOTES FOR YOU');
-    feedbackParts.push('─'.repeat(40));
+    if (grammarMistakes.length === 0 && structureIssues.length === 0) {
+      feedbackParts.push('✅ Good job! No major grammar or structure issues found.');
+    }
+    feedbackParts.push('');
     
-    const totalErrors = spellingMistakes.length + grammarMistakes.length;
-    if (totalErrors === 0) {
-      feedbackParts.push('🌟 Excellent work! Your writing is clear and accurate.');
-      feedbackParts.push('Keep up the great effort!');
-    } else if (totalErrors <= 3) {
-      feedbackParts.push('👍 Good job! You expressed your ideas clearly.');
-      feedbackParts.push('Just a few small corrections needed.');
-    } else if (totalErrors <= 6) {
-      feedbackParts.push('📈 You\'re making progress! Focus on:');
-      if (spellingMistakes.length > 0) feedbackParts.push('⭐ Practice the spelling corrections above.');
-      if (grammarMistakes.length > 0) feedbackParts.push('⭐ Review apostrophe rules for contractions.');
+    // ═══════════════════════════════════════════════════════════
+    // SECTION 4: ORGANIZATION & CLARITY
+    // ═══════════════════════════════════════════════════════════
+    feedbackParts.push('📋 SECTION 4: ORGANIZATION & CLARITY');
+    feedbackParts.push('═'.repeat(45));
+    feedbackParts.push('');
+    
+    const clarityPoints: string[] = [];
+    
+    // Check cohesion - linking words
+    const linkingWords = ['however', 'therefore', 'moreover', 'furthermore', 'also', 'in addition', 'firstly', 'secondly', 'finally', 'because', 'although', 'while'];
+    const usedLinkingWords = linkingWords.filter(word => text.toLowerCase().includes(word));
+    
+    if (usedLinkingWords.length > 0) {
+      clarityPoints.push(`✅ Good use of linking words: ${usedLinkingWords.join(', ')}`);
+    } else if (sentences.length > 2) {
+      clarityPoints.push('💡 Tip: Use linking words (however, also, because, therefore) to connect your ideas.');
+    }
+    
+    // Check for clear topic
+    if (isPart1) {
+      if (text.toLowerCase().includes('photography') || text.toLowerCase().includes('photo') || text.toLowerCase().includes('picture')) {
+        clarityPoints.push('✅ You addressed the topic (photography) clearly.');
+      } else {
+        clarityPoints.push('⚠️ Make sure you address the main topic in your response.');
+      }
     } else {
-      feedbackParts.push('💪 Keep practising! Focus on these key areas:');
-      feedbackParts.push('⭐ 1. Spelling - learn the correct forms listed above.');
-      feedbackParts.push('⭐ 2. Capitalization - always capitalize "I", names, and places.');
-      feedbackParts.push('⭐ 3. Punctuation - use periods to separate sentences.');
+      if (text.toLowerCase().includes('shop') || text.toLowerCase().includes('buy') || text.toLowerCase().includes('store') || text.toLowerCase().includes('online')) {
+        clarityPoints.push('✅ You addressed the topic (shopping) in your essay.');
+      }
+    }
+    
+    // Flow check
+    if (sentences.length >= 3) {
+      clarityPoints.push('✅ Good length — you developed your ideas well.');
+    } else if (sentences.length === 2) {
+      clarityPoints.push('💡 Try adding one more sentence to fully develop your point.');
+    }
+    
+    clarityPoints.forEach(point => feedbackParts.push(point));
+    feedbackParts.push('');
+    
+    // ═══════════════════════════════════════════════════════════
+    // SECTION 5: IMPROVED VERSION
+    // ═══════════════════════════════════════════════════════════
+    feedbackParts.push('✨ SECTION 5: IMPROVED VERSION');
+    feedbackParts.push('═'.repeat(45));
+    feedbackParts.push('');
+    feedbackParts.push('Here is your text with all corrections applied:');
+    feedbackParts.push('');
+    feedbackParts.push(`"${correctedText}"`);
+    feedbackParts.push('');
+    feedbackParts.push('📌 Compare this with your original to see the improvements!');
+    feedbackParts.push('');
+    
+    // ═══════════════════════════════════════════════════════════
+    // SECTION 6: TEACHER FEEDBACK FOR THE STUDENT
+    // ═══════════════════════════════════════════════════════════
+    feedbackParts.push('💬 SECTION 6: TEACHER FEEDBACK FOR YOU');
+    feedbackParts.push('═'.repeat(45));
+    feedbackParts.push('');
+    
+    const totalErrors = spellingMistakes.length + grammarMistakes.length + structureIssues.length;
+    
+    if (totalErrors === 0) {
+      feedbackParts.push('🌟 Outstanding work! Your writing is clear, accurate, and well-organized.');
+      feedbackParts.push('');
+      feedbackParts.push('You\'ve shown excellent control of spelling, grammar, and sentence structure.');
+      feedbackParts.push('Keep reading and writing regularly to maintain this high standard!');
+      feedbackParts.push('');
+      feedbackParts.push('⭐ Next challenge: Try using more advanced vocabulary or complex sentences.');
+    } else if (totalErrors <= 3) {
+      feedbackParts.push('👏 Well done! You communicated your ideas clearly with just a few small errors.');
+      feedbackParts.push('');
+      feedbackParts.push('What you did well:');
+      feedbackParts.push('• You expressed your thoughts clearly');
+      feedbackParts.push('• Your message was easy to understand');
+      feedbackParts.push('');
+      feedbackParts.push('To improve:');
+      if (spellingMistakes.length > 0) {
+        feedbackParts.push(`• Review these spellings: ${spellingMistakes.map(m => m.correct).join(', ')}`);
+      }
+      if (grammarMistakes.length > 0) {
+        feedbackParts.push('• Practice using apostrophes in contractions (don\'t, can\'t, it\'s)');
+      }
+      feedbackParts.push('');
+      feedbackParts.push('⭐ Keep practising — you\'re doing great!');
+    } else if (totalErrors <= 6) {
+      feedbackParts.push('📈 Good effort! You\'re making progress, and I can see you\'re trying.');
+      feedbackParts.push('');
+      feedbackParts.push('Focus areas for improvement:');
+      if (spellingMistakes.length > 2) {
+        feedbackParts.push('⭐ Spelling: Keep a vocabulary notebook and write each word 3 times.');
+      }
+      if (grammarMistakes.length > 1) {
+        feedbackParts.push('⭐ Grammar: Read your work aloud — you\'ll catch more mistakes!');
+      }
+      if (structureIssues.length > 1) {
+        feedbackParts.push('⭐ Structure: Plan your writing before you start (beginning, middle, end).');
+      }
+      feedbackParts.push('');
+      feedbackParts.push('💪 You\'re improving! Keep working on the areas above.');
+    } else {
+      feedbackParts.push('💪 Don\'t give up! Every mistake is a chance to learn.');
+      feedbackParts.push('');
+      feedbackParts.push('I noticed you need extra practice with:');
+      feedbackParts.push('');
+      feedbackParts.push('1️⃣ SPELLING');
+      feedbackParts.push('   • Write new words in a notebook');
+      feedbackParts.push('   • Practice each word 5 times');
+      feedbackParts.push('   • Use them in your own sentences');
+      feedbackParts.push('');
+      feedbackParts.push('2️⃣ CAPITALIZATION');
+      feedbackParts.push('   • Always capitalize "I"');
+      feedbackParts.push('   • Capitalize names of people and places');
+      feedbackParts.push('   • Start every sentence with a capital letter');
+      feedbackParts.push('');
+      feedbackParts.push('3️⃣ PUNCTUATION');
+      feedbackParts.push('   • End every sentence with . ? or !');
+      feedbackParts.push('   • Use apostrophes: don\'t, can\'t, I\'m');
+      feedbackParts.push('');
+      feedbackParts.push('⭐ Tip: Read your writing slowly before submitting. You\'ll catch many errors!');
+      feedbackParts.push('');
+      feedbackParts.push('I believe in you! 📚');
     }
     
     // Calculate scores
