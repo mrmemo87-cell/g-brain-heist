@@ -92,6 +92,17 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     part1: { content: 0, organisation: 0, language: 0 },
     part2: { content: 0, communicativeAchievement: 0, organisation: 0, language: 0 },
   });
+  const [writingFeedback, setWritingFeedback] = useState<{
+    part1: { feedback: string; correctedVersion: string };
+    part2: { feedback: string; correctedVersion: string };
+    overallComments: string;
+    releasedToStudent: boolean;
+  }>({
+    part1: { feedback: '', correctedVersion: '' },
+    part2: { feedback: '', correctedVersion: '' },
+    overallComments: '',
+    releasedToStudent: false,
+  });
   const [cambridgeStats, setCambridgeStats] = useState<{
     totalSubmissions: number;
     avgPercentage: number;
@@ -435,11 +446,22 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
         part2: { content: 0, communicativeAchievement: 0, organisation: 0, language: 0 },
       });
     }
+    // Load existing feedback if available
+    if (student.answers?.feedback) {
+      setWritingFeedback(student.answers.feedback);
+    } else {
+      setWritingFeedback({
+        part1: { feedback: '', correctedVersion: '' },
+        part2: { feedback: '', correctedVersion: '' },
+        overallComments: '',
+        releasedToStudent: false,
+      });
+    }
     setShowWritingMarkingModal(true);
   };
 
   // Submit writing marks
-  const submitWritingMarks = async () => {
+  const submitWritingMarks = async (releaseToStudent: boolean = false) => {
     if (!selectedCambridgeStudent) return;
     
     const part1Total = writingMarks.part1.content + writingMarks.part1.organisation + writingMarks.part1.language;
@@ -448,6 +470,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     const totalScore = part1Total + part2Total;
     const maxScore = 35; // 15 for Part 1 + 20 for Part 2
     const percentage = Math.round((totalScore / maxScore) * 100);
+    
+    const updatedFeedback = {
+      ...writingFeedback,
+      releasedToStudent: releaseToStudent,
+    };
     
     try {
       const { error } = await supabase
@@ -458,6 +485,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
           answers: {
             ...selectedCambridgeStudent.answers,
             marks: writingMarks,
+            feedback: updatedFeedback,
             marked_by: profile.username,
             marked_at: new Date().toISOString(),
             requires_marking: false
@@ -467,7 +495,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
       
       if (error) throw error;
       
-      alert('✅ Writing marked successfully!');
+      alert(releaseToStudent 
+        ? '✅ Marked and released to student!' 
+        : '✅ Writing marked successfully! (Not yet visible to student)');
       setShowWritingMarkingModal(false);
       loadCambridgeScores(); // Refresh the list
     } catch (error) {
@@ -2511,17 +2541,19 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         
         // Special handling for Writing Test
         if (quizName === 'Cambridge Writing Test 1') {
+          const feedback = answers.feedback || {};
+          
           return (
             <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4 overflow-y-auto">
-              <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[95vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
+              <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[95vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
                 {/* Header */}
                 <div className="p-6 border-b-4 border-blue-600">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
                       <span className="text-4xl">✏️</span>
                       <div>
-                        <h1 className="text-2xl font-bold text-blue-800">Writing Test Submission</h1>
-                        <p className="text-sm text-gray-500">Student's Written Responses</p>
+                        <h1 className="text-2xl font-bold text-blue-800">Writing Test Submission & Feedback</h1>
+                        <p className="text-sm text-gray-500">Student's Written Responses with Teacher Feedback</p>
                       </div>
                     </div>
                     <button
@@ -2546,6 +2578,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                       <>
                         <div className="text-3xl font-bold">{selectedCambridgeStudent.score}/35</div>
                         <div className="text-sm opacity-80">{selectedCambridgeStudent.percentage}% Score</div>
+                        {feedback.releasedToStudent && <div className="text-green-300 text-xs mt-1">✓ Released to student</div>}
                       </>
                     )}
                   </div>
@@ -2559,6 +2592,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                       <p className="text-sm text-blue-600">Photography lessons • Word count: {answers.part1_words || 0} (Target: 45-55)</p>
                     </div>
                     <div className="p-4">
+                      <label className="text-sm font-semibold text-gray-600 block mb-2">Student's Original Response:</label>
                       <div className="bg-gray-50 p-4 rounded-lg border text-gray-800 whitespace-pre-wrap leading-relaxed min-h-[100px]">
                         {answers.part1 || 'No response submitted'}
                       </div>
@@ -2578,6 +2612,21 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                           </div>
                         </div>
                       )}
+                      
+                      {/* Teacher Feedback for Part 1 */}
+                      {feedback.part1?.feedback && (
+                        <div className="mt-4 bg-orange-50 border-2 border-orange-200 rounded-lg p-4">
+                          <h4 className="text-sm font-bold text-orange-800 mb-2">🔴 Teacher's Comments:</h4>
+                          <p className="text-gray-700 whitespace-pre-wrap">{feedback.part1.feedback}</p>
+                        </div>
+                      )}
+                      
+                      {feedback.part1?.correctedVersion && (
+                        <div className="mt-4 bg-green-50 border-2 border-green-200 rounded-lg p-4">
+                          <h4 className="text-sm font-bold text-green-800 mb-2">✅ Corrected/Model Version:</h4>
+                          <p className="text-gray-700 whitespace-pre-wrap">{feedback.part1.correctedVersion}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -2588,6 +2637,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                       <p className="text-sm text-indigo-600">Online vs shop shopping • Word count: {answers.part2_words || 0} (Target: 110-130)</p>
                     </div>
                     <div className="p-4">
+                      <label className="text-sm font-semibold text-gray-600 block mb-2">Student's Original Response:</label>
                       <div className="bg-gray-50 p-4 rounded-lg border text-gray-800 whitespace-pre-wrap leading-relaxed min-h-[150px]">
                         {answers.part2 || 'No response submitted'}
                       </div>
@@ -2611,8 +2661,35 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                           </div>
                         </div>
                       )}
+                      
+                      {/* Teacher Feedback for Part 2 */}
+                      {feedback.part2?.feedback && (
+                        <div className="mt-4 bg-orange-50 border-2 border-orange-200 rounded-lg p-4">
+                          <h4 className="text-sm font-bold text-orange-800 mb-2">🔴 Teacher's Comments:</h4>
+                          <p className="text-gray-700 whitespace-pre-wrap">{feedback.part2.feedback}</p>
+                        </div>
+                      )}
+                      
+                      {feedback.part2?.correctedVersion && (
+                        <div className="mt-4 bg-green-50 border-2 border-green-200 rounded-lg p-4">
+                          <h4 className="text-sm font-bold text-green-800 mb-2">✅ Corrected/Model Version:</h4>
+                          <p className="text-gray-700 whitespace-pre-wrap">{feedback.part2.correctedVersion}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
+
+                  {/* Overall Comments */}
+                  {feedback.overallComments && (
+                    <div className="border-2 border-gray-300 rounded-xl overflow-hidden">
+                      <div className="bg-gray-100 p-4">
+                        <h3 className="text-lg font-bold text-gray-800">💬 Overall Teacher Comments</h3>
+                      </div>
+                      <div className="p-4">
+                        <p className="text-gray-700 whitespace-pre-wrap">{feedback.overallComments}</p>
+                      </div>
+                    </div>
+                  )}
 
                   {answers.marked_by && (
                     <div className="text-center text-sm text-gray-500">
@@ -2625,12 +2702,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 <div className="p-4 border-t flex justify-between items-center">
                   <span className="text-xs text-gray-400">Report ID: {selectedCambridgeStudent.id?.substring(0, 8) || 'N/A'}</span>
                   <div className="flex gap-3">
-                    {answers.requires_marking && (
+                    {(answers.requires_marking || !feedback.releasedToStudent) && (
                       <button 
                         onClick={() => { setShowCambridgeAnswers(false); openWritingMarking(selectedCambridgeStudent); }} 
                         className="px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
                       >
-                        ✏️ Mark This
+                        ✏️ {answers.requires_marking ? 'Mark This' : 'Edit Feedback'}
                       </button>
                     )}
                     <button onClick={() => setShowCambridgeAnswers(false)} className="px-4 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700">Close</button>
@@ -2803,20 +2880,20 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         
         return (
           <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/90 p-4 overflow-y-auto">
-            <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[95vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
+            <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[95vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
               {/* Header */}
               <div className="p-6 border-b-4 border-purple-600 bg-gradient-to-r from-purple-50 to-indigo-50">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
                     <span className="text-4xl">✏️</span>
                     <div>
-                      <h1 className="text-2xl font-bold text-purple-800">Writing Test Marking</h1>
-                      <p className="text-sm text-gray-500">E2L Stage 9 Paper 3 — Marking Scheme</p>
+                      <h1 className="text-2xl font-bold text-purple-800">Writing Test Marking & Feedback</h1>
+                      <p className="text-sm text-gray-500">E2L Stage 9 Paper 3 — Provide marks and detailed feedback</p>
                     </div>
                   </div>
                   <button
                     onClick={() => setShowWritingMarkingModal(false)}
-                    className="p-2 hover:bg-gray-200 rounded-full"
+                    className="p-2 hover:bg-gray-200 rounded-full text-xl"
                   >
                     ✕
                   </button>
@@ -2847,16 +2924,15 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   
                   {/* Student's Answer */}
                   <div className="p-4 bg-gray-50 border-b">
-                    <label className="text-sm font-semibold text-gray-600 block mb-2">Student's Response:</label>
+                    <label className="text-sm font-semibold text-gray-600 block mb-2">Student's Original Response:</label>
                     <div className="bg-white p-4 rounded-lg border text-gray-800 whitespace-pre-wrap leading-relaxed">
                       {answers.part1 || 'No response submitted'}
                     </div>
                   </div>
                   
                   {/* Marking Grid */}
-                  <div className="p-4">
+                  <div className="p-4 border-b">
                     <div className="grid grid-cols-3 gap-4">
-                      {/* Content */}
                       <div className="bg-green-50 p-4 rounded-xl border border-green-200">
                         <label className="text-sm font-bold text-green-800 block mb-2">Content (0-5)</label>
                         <select
@@ -2871,8 +2947,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                         </select>
                         <p className="text-xs text-gray-500 mt-2">5: All 3 content points fully covered</p>
                       </div>
-                      
-                      {/* Organisation */}
                       <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
                         <label className="text-sm font-bold text-blue-800 block mb-2">Organisation (0-5)</label>
                         <select
@@ -2887,8 +2961,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                         </select>
                         <p className="text-xs text-gray-500 mt-2">5: Well organised, coherent, appropriate linking</p>
                       </div>
-                      
-                      {/* Language */}
                       <div className="bg-purple-50 p-4 rounded-xl border border-purple-200">
                         <label className="text-sm font-bold text-purple-800 block mb-2">Language (0-5)</label>
                         <select
@@ -2908,6 +2980,41 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                       <span className="text-lg font-bold text-blue-800">Part 1 Total: {part1Total}/15</span>
                     </div>
                   </div>
+                  
+                  {/* Feedback Section for Part 1 */}
+                  <div className="p-4 bg-orange-50">
+                    <h4 className="text-md font-bold text-orange-800 mb-3">📋 Feedback for Part 1 (visible to student when released)</h4>
+                    
+                    <div className="mb-4">
+                      <label className="text-sm font-semibold text-gray-700 block mb-2">
+                        🔴 Teacher's Comments & Corrections:
+                      </label>
+                      <textarea
+                        value={writingFeedback.part1.feedback}
+                        onChange={(e) => setWritingFeedback(prev => ({
+                          ...prev,
+                          part1: { ...prev.part1, feedback: e.target.value }
+                        }))}
+                        placeholder="Point out spelling errors, grammar mistakes, missing content points, etc. Be specific about what the student did wrong and how to improve..."
+                        className="w-full p-3 border-2 border-orange-300 rounded-lg min-h-[100px] text-sm"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-semibold text-gray-700 block mb-2">
+                        ✅ Corrected/Model Version (show student how it should be written):
+                      </label>
+                      <textarea
+                        value={writingFeedback.part1.correctedVersion}
+                        onChange={(e) => setWritingFeedback(prev => ({
+                          ...prev,
+                          part1: { ...prev.part1, correctedVersion: e.target.value }
+                        }))}
+                        placeholder="Write a corrected version of the student's response, or provide a model answer they can learn from..."
+                        className="w-full p-3 border-2 border-green-300 rounded-lg min-h-[100px] text-sm bg-green-50"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Part 2 */}
@@ -2919,16 +3026,15 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   
                   {/* Student's Answer */}
                   <div className="p-4 bg-gray-50 border-b">
-                    <label className="text-sm font-semibold text-gray-600 block mb-2">Student's Response:</label>
+                    <label className="text-sm font-semibold text-gray-600 block mb-2">Student's Original Response:</label>
                     <div className="bg-white p-4 rounded-lg border text-gray-800 whitespace-pre-wrap leading-relaxed min-h-[150px]">
                       {answers.part2 || 'No response submitted'}
                     </div>
                   </div>
                   
                   {/* Marking Grid */}
-                  <div className="p-4">
+                  <div className="p-4 border-b">
                     <div className="grid grid-cols-4 gap-3">
-                      {/* Content */}
                       <div className="bg-green-50 p-3 rounded-xl border border-green-200">
                         <label className="text-sm font-bold text-green-800 block mb-2">Content (0-5)</label>
                         <select
@@ -2943,8 +3049,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                         </select>
                         <p className="text-xs text-gray-500 mt-2">5: All relevant, reader fully informed</p>
                       </div>
-                      
-                      {/* Communicative Achievement */}
                       <div className="bg-yellow-50 p-3 rounded-xl border border-yellow-200">
                         <label className="text-sm font-bold text-yellow-800 block mb-2">Comm. Ach. (0-5)</label>
                         <select
@@ -2959,8 +3063,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                         </select>
                         <p className="text-xs text-gray-500 mt-2">5: Clear, appropriate style</p>
                       </div>
-                      
-                      {/* Organisation */}
                       <div className="bg-blue-50 p-3 rounded-xl border border-blue-200">
                         <label className="text-sm font-bold text-blue-800 block mb-2">Organisation (0-5)</label>
                         <select
@@ -2975,8 +3077,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                         </select>
                         <p className="text-xs text-gray-500 mt-2">5: Well organised, coherent</p>
                       </div>
-                      
-                      {/* Language */}
                       <div className="bg-purple-50 p-3 rounded-xl border border-purple-200">
                         <label className="text-sm font-bold text-purple-800 block mb-2">Language (0-5)</label>
                         <select
@@ -2996,6 +3096,59 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                       <span className="text-lg font-bold text-indigo-800">Part 2 Total: {part2Total}/20</span>
                     </div>
                   </div>
+                  
+                  {/* Feedback Section for Part 2 */}
+                  <div className="p-4 bg-orange-50">
+                    <h4 className="text-md font-bold text-orange-800 mb-3">📋 Feedback for Part 2 (visible to student when released)</h4>
+                    
+                    <div className="mb-4">
+                      <label className="text-sm font-semibold text-gray-700 block mb-2">
+                        🔴 Teacher's Comments & Corrections:
+                      </label>
+                      <textarea
+                        value={writingFeedback.part2.feedback}
+                        onChange={(e) => setWritingFeedback(prev => ({
+                          ...prev,
+                          part2: { ...prev.part2, feedback: e.target.value }
+                        }))}
+                        placeholder="Point out spelling errors, grammar mistakes, weak arguments, organisation issues, etc. Be specific about what the student did wrong and how to improve..."
+                        className="w-full p-3 border-2 border-orange-300 rounded-lg min-h-[120px] text-sm"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-semibold text-gray-700 block mb-2">
+                        ✅ Corrected/Model Version (show student how it should be written):
+                      </label>
+                      <textarea
+                        value={writingFeedback.part2.correctedVersion}
+                        onChange={(e) => setWritingFeedback(prev => ({
+                          ...prev,
+                          part2: { ...prev.part2, correctedVersion: e.target.value }
+                        }))}
+                        placeholder="Write a corrected version of the student's essay, or provide a model answer they can learn from..."
+                        className="w-full p-3 border-2 border-green-300 rounded-lg min-h-[150px] text-sm bg-green-50"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Overall Comments */}
+                <div className="border-2 border-gray-300 rounded-xl overflow-hidden">
+                  <div className="bg-gray-100 p-4">
+                    <h3 className="text-lg font-bold text-gray-800">💬 Overall Comments & Tips</h3>
+                  </div>
+                  <div className="p-4">
+                    <textarea
+                      value={writingFeedback.overallComments}
+                      onChange={(e) => setWritingFeedback(prev => ({
+                        ...prev,
+                        overallComments: e.target.value
+                      }))}
+                      placeholder="Add any overall comments, encouragement, or specific tips for this student to improve their writing skills..."
+                      className="w-full p-3 border-2 border-gray-300 rounded-lg min-h-[100px] text-sm"
+                    />
+                  </div>
                 </div>
 
                 {/* Total Score Summary */}
@@ -3014,25 +3167,41 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 </div>
               </div>
 
-              {/* Footer */}
-              <div className="p-4 border-t flex justify-between items-center bg-gray-50">
-                <span className="text-xs text-gray-400">
-                  {answers.marked_by ? `Previously marked by ${answers.marked_by}` : 'Not yet marked'}
-                </span>
-                <div className="flex gap-3">
-                  <button 
-                    onClick={() => setShowWritingMarkingModal(false)} 
-                    className="px-4 py-2 bg-gray-500 text-white rounded-lg font-semibold hover:bg-gray-600"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    onClick={submitWritingMarks} 
-                    className="px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
-                  >
-                    ✓ Save Marks
-                  </button>
+              {/* Footer with Release Options */}
+              <div className="p-4 border-t bg-gray-50">
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-gray-500">
+                    {answers.marked_by ? (
+                      <span>
+                        Previously marked by <strong>{answers.marked_by}</strong>
+                        {answers.feedback?.releasedToStudent && <span className="ml-2 text-green-600">✓ Released to student</span>}
+                      </span>
+                    ) : 'Not yet marked'}
+                  </div>
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={() => setShowWritingMarkingModal(false)} 
+                      className="px-4 py-2 bg-gray-500 text-white rounded-lg font-semibold hover:bg-gray-600"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      onClick={() => submitWritingMarks(false)} 
+                      className="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+                    >
+                      💾 Save (Draft)
+                    </button>
+                    <button 
+                      onClick={() => submitWritingMarks(true)} 
+                      className="px-5 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700"
+                    >
+                      ✅ Save & Release to Student
+                    </button>
+                  </div>
                 </div>
+                <p className="text-xs text-gray-400 mt-2 text-center">
+                  💡 "Save (Draft)" keeps feedback hidden. "Save & Release" makes marks and feedback visible to the student.
+                </p>
               </div>
             </div>
           </div>

@@ -58,11 +58,38 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
   // Add more tests here as they become available
 ];
 
+interface WritingFeedbackView {
+  testName: string;
+  score: number;
+  percentage: number;
+  part1: {
+    original: string;
+    feedback: string;
+    corrected: string;
+    content: number;
+    organisation: number;
+    language: number;
+  };
+  part2: {
+    original: string;
+    feedback: string;
+    corrected: string;
+    content: number;
+    communicativeAchievement: number;
+    organisation: number;
+    language: number;
+  };
+}
+
 const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }) => {
   const [tests, setTests] = useState<CambridgeTest[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTest, setActiveTest] = useState<CambridgeTest | null>(null);
   const [filter, setFilter] = useState<'all' | 'completed' | 'pending'>('all');
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedbackData, setFeedbackData] = useState<WritingFeedbackView | null>(null);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [activeFeedbackPart, setActiveFeedbackPart] = useState<'part1' | 'part2'>('part1');
 
   useEffect(() => {
     loadTestProgress();
@@ -134,6 +161,67 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
   const handleTestComplete = () => {
     setActiveTest(null);
     loadTestProgress(); // Refresh completion status
+  };
+
+  // Function to view writing test feedback
+  const viewWritingFeedback = async (test: CambridgeTest) => {
+    setFeedbackLoading(true);
+    setShowFeedbackModal(true);
+    
+    try {
+      // Fetch the submission with feedback
+      const { data, error } = await supabase
+        .from('quiz_scores')
+        .select('*')
+        .eq('student_name', profile.username)
+        .ilike('quiz_name', '%writing%')
+        .order('submitted_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) throw error;
+
+      if (data && data.answers) {
+        const answers = typeof data.answers === 'string' ? JSON.parse(data.answers) : data.answers;
+        const marks = data.teacher_marks ? (typeof data.teacher_marks === 'string' ? JSON.parse(data.teacher_marks) : data.teacher_marks) : null;
+        const feedback = data.teacher_feedback ? (typeof data.teacher_feedback === 'string' ? JSON.parse(data.teacher_feedback) : data.teacher_feedback) : null;
+
+        // Check if feedback has been released
+        if (!feedback?.releaseToStudent) {
+          setFeedbackData(null);
+          return;
+        }
+
+        setFeedbackData({
+          testName: data.quiz_name,
+          score: data.score,
+          percentage: data.percentage,
+          part1: {
+            original: answers.part1 || '',
+            feedback: feedback?.part1Feedback || '',
+            corrected: feedback?.part1Corrected || '',
+            content: marks?.part1?.content || 0,
+            organisation: marks?.part1?.organisation || 0,
+            language: marks?.part1?.language || 0,
+          },
+          part2: {
+            original: answers.part2 || '',
+            feedback: feedback?.part2Feedback || '',
+            corrected: feedback?.part2Corrected || '',
+            content: marks?.part2?.content || 0,
+            communicativeAchievement: marks?.part2?.communicativeAchievement || 0,
+            organisation: marks?.part2?.organisation || 0,
+            language: marks?.part2?.language || 0,
+          },
+        });
+        setActiveFeedbackPart('part1');
+      }
+    } catch (err) {
+      console.error('Error fetching writing feedback:', err);
+      setFeedbackData(null);
+    } finally {
+      setFeedbackLoading(false);
+    }
   };
 
   const filteredTests = tests.filter(test => {
@@ -527,6 +615,31 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                           })}
                         </p>
                       )}
+                      
+                      {/* View Feedback button for marked writing tests */}
+                      {test.requiresMarking && test.score !== undefined && test.score > 0 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            viewWritingFeedback(test);
+                          }}
+                          style={{
+                            marginTop: '10px',
+                            width: '100%',
+                            padding: '8px',
+                            borderRadius: '8px',
+                            border: '1px solid #00f5ff',
+                            background: 'transparent',
+                            color: '#00f5ff',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                          }}
+                        >
+                          📝 View Teacher Feedback
+                        </button>
+                      )}
                     </div>
                   )}
 
@@ -571,6 +684,265 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           </p>
         </div>
       </div>
+
+      {/* Writing Feedback Modal */}
+      {showFeedbackModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.9)',
+          zIndex: 1000,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '20px',
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #1a1a2e, #16213e)',
+            borderRadius: '20px',
+            width: '100%',
+            maxWidth: '800px',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            border: '1px solid rgba(0,245,255,0.3)',
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              padding: '20px',
+              borderBottom: '1px solid rgba(255,255,255,0.1)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+              <h3 style={{ margin: 0, color: '#fff', fontSize: '18px' }}>
+                📝 Writing Test Feedback
+              </h3>
+              <button
+                onClick={() => {
+                  setShowFeedbackModal(false);
+                  setFeedbackData(null);
+                }}
+                style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '36px',
+                  height: '36px',
+                  color: '#fff',
+                  fontSize: '18px',
+                  cursor: 'pointer',
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div style={{ padding: '20px' }}>
+              {feedbackLoading ? (
+                <div style={{ textAlign: 'center', padding: '40px' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '15px' }}>⏳</div>
+                  <p style={{ color: 'rgba(255,255,255,0.7)' }}>Loading feedback...</p>
+                </div>
+              ) : !feedbackData ? (
+                <div style={{ textAlign: 'center', padding: '40px' }}>
+                  <div style={{ fontSize: '48px', marginBottom: '15px' }}>📋</div>
+                  <h4 style={{ color: '#fff', marginBottom: '10px' }}>Feedback Not Yet Available</h4>
+                  <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px' }}>
+                    Your teacher has marked your work but hasn't released the detailed feedback yet.
+                    Check back later!
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* Score Summary */}
+                  <div style={{
+                    background: 'rgba(0,245,255,0.1)',
+                    borderRadius: '12px',
+                    padding: '15px',
+                    marginBottom: '20px',
+                    textAlign: 'center',
+                  }}>
+                    <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#00f5ff' }}>
+                      {feedbackData.score}/35
+                    </div>
+                    <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px' }}>
+                      Total Score ({feedbackData.percentage}%)
+                    </div>
+                  </div>
+
+                  {/* Part Selector Tabs */}
+                  <div style={{
+                    display: 'flex',
+                    gap: '10px',
+                    marginBottom: '20px',
+                  }}>
+                    <button
+                      onClick={() => setActiveFeedbackPart('part1')}
+                      style={{
+                        flex: 1,
+                        padding: '12px',
+                        borderRadius: '10px',
+                        border: activeFeedbackPart === 'part1' ? '2px solid #00f5ff' : '1px solid rgba(255,255,255,0.2)',
+                        background: activeFeedbackPart === 'part1' ? 'rgba(0,245,255,0.1)' : 'transparent',
+                        color: '#fff',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Part 1: Message
+                      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginTop: '4px' }}>
+                        {feedbackData.part1.content + feedbackData.part1.organisation + feedbackData.part1.language}/15
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => setActiveFeedbackPart('part2')}
+                      style={{
+                        flex: 1,
+                        padding: '12px',
+                        borderRadius: '10px',
+                        border: activeFeedbackPart === 'part2' ? '2px solid #00f5ff' : '1px solid rgba(255,255,255,0.2)',
+                        background: activeFeedbackPart === 'part2' ? 'rgba(0,245,255,0.1)' : 'transparent',
+                        color: '#fff',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Part 2: Essay
+                      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginTop: '4px' }}>
+                        {feedbackData.part2.content + feedbackData.part2.communicativeAchievement + feedbackData.part2.organisation + feedbackData.part2.language}/20
+                      </div>
+                    </button>
+                  </div>
+
+                  {/* Scores Breakdown */}
+                  <div style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    borderRadius: '12px',
+                    padding: '15px',
+                    marginBottom: '20px',
+                  }}>
+                    <h5 style={{ margin: '0 0 12px', color: '#fff', fontSize: '14px' }}>📊 Score Breakdown</h5>
+                    {activeFeedbackPart === 'part1' ? (
+                      <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                        <div style={{ flex: 1, minWidth: '80px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#22c55e' }}>{feedbackData.part1.content}/5</div>
+                          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)' }}>Content</div>
+                        </div>
+                        <div style={{ flex: 1, minWidth: '80px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#f59e0b' }}>{feedbackData.part1.organisation}/5</div>
+                          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)' }}>Organisation</div>
+                        </div>
+                        <div style={{ flex: 1, minWidth: '80px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#00f5ff' }}>{feedbackData.part1.language}/5</div>
+                          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)' }}>Language</div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                        <div style={{ flex: 1, minWidth: '60px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#22c55e' }}>{feedbackData.part2.content}/5</div>
+                          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)' }}>Content</div>
+                        </div>
+                        <div style={{ flex: 1, minWidth: '60px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#8b5cf6' }}>{feedbackData.part2.communicativeAchievement}/5</div>
+                          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)' }}>Comm. Ach.</div>
+                        </div>
+                        <div style={{ flex: 1, minWidth: '60px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#f59e0b' }}>{feedbackData.part2.organisation}/5</div>
+                          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)' }}>Organisation</div>
+                        </div>
+                        <div style={{ flex: 1, minWidth: '60px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#00f5ff' }}>{feedbackData.part2.language}/5</div>
+                          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)' }}>Language</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Your Original Writing */}
+                  <div style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    borderRadius: '12px',
+                    padding: '15px',
+                    marginBottom: '15px',
+                  }}>
+                    <h5 style={{ margin: '0 0 10px', color: '#fff', fontSize: '14px' }}>✏️ Your Original Writing</h5>
+                    <div style={{
+                      background: 'rgba(0,0,0,0.3)',
+                      borderRadius: '8px',
+                      padding: '12px',
+                      fontSize: '13px',
+                      lineHeight: 1.6,
+                      color: 'rgba(255,255,255,0.8)',
+                      whiteSpace: 'pre-wrap',
+                    }}>
+                      {activeFeedbackPart === 'part1' ? feedbackData.part1.original : feedbackData.part2.original}
+                    </div>
+                  </div>
+
+                  {/* Teacher Feedback */}
+                  {(activeFeedbackPart === 'part1' ? feedbackData.part1.feedback : feedbackData.part2.feedback) && (
+                    <div style={{
+                      background: 'rgba(245,158,11,0.1)',
+                      borderRadius: '12px',
+                      padding: '15px',
+                      marginBottom: '15px',
+                      border: '1px solid rgba(245,158,11,0.3)',
+                    }}>
+                      <h5 style={{ margin: '0 0 10px', color: '#f59e0b', fontSize: '14px' }}>💬 Teacher's Comments</h5>
+                      <div style={{
+                        fontSize: '13px',
+                        lineHeight: 1.6,
+                        color: 'rgba(255,255,255,0.9)',
+                        whiteSpace: 'pre-wrap',
+                      }}>
+                        {activeFeedbackPart === 'part1' ? feedbackData.part1.feedback : feedbackData.part2.feedback}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Corrected Version */}
+                  {(activeFeedbackPart === 'part1' ? feedbackData.part1.corrected : feedbackData.part2.corrected) && (
+                    <div style={{
+                      background: 'rgba(34,197,94,0.1)',
+                      borderRadius: '12px',
+                      padding: '15px',
+                      border: '1px solid rgba(34,197,94,0.3)',
+                    }}>
+                      <h5 style={{ margin: '0 0 10px', color: '#22c55e', fontSize: '14px' }}>✨ Improved Version</h5>
+                      <div style={{
+                        background: 'rgba(0,0,0,0.2)',
+                        borderRadius: '8px',
+                        padding: '12px',
+                        fontSize: '13px',
+                        lineHeight: 1.6,
+                        color: 'rgba(255,255,255,0.9)',
+                        whiteSpace: 'pre-wrap',
+                      }}>
+                        {activeFeedbackPart === 'part1' ? feedbackData.part1.corrected : feedbackData.part2.corrected}
+                      </div>
+                      <p style={{
+                        margin: '10px 0 0',
+                        fontSize: '11px',
+                        color: 'rgba(255,255,255,0.5)',
+                        fontStyle: 'italic',
+                      }}>
+                        💡 Compare this with your original to see how you can improve your writing!
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
