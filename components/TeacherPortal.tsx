@@ -3261,7 +3261,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         </div>
       )}
 
-      {/* Performance Report Modal */}
+      {/* Performance Report Modal - Professional Landscape Certificate */}
       {showCambridgeReport && selectedCambridgeStudent && (() => {
         const skillPerf = analyzeSkillPerformance(selectedCambridgeStudent);
         const sortedSkills = Object.entries(skillPerf).sort((a, b) => a[1].percentage - b[1].percentage);
@@ -3269,109 +3269,243 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         const grade = getGrade(selectedCambridgeStudent.percentage);
         const encouragement = getEncouragement(grade);
         
+        const handlePrint = () => {
+          window.print();
+        };
+
+        const handleExportPDF = () => {
+          // Trigger print which allows Save as PDF
+          window.print();
+        };
+        
         return (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4 overflow-y-auto">
-            <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[95vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
-              {/* Report Header */}
-              <div className="p-6 border-b-4 border-purple-600">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-3">
-                    <img src="/logo.png" alt="Brains Heist" className="w-12 h-12 object-contain" />
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4 overflow-y-auto print:p-0 print:bg-white print:overflow-visible">
+            {/* Print Styles */}
+            <style>{`
+              @media print {
+                @page {
+                  size: A4 landscape;
+                  margin: 0.5cm;
+                }
+                
+                body * {
+                  visibility: hidden;
+                }
+                
+                .print-certificate,
+                .print-certificate * {
+                  visibility: visible !important;
+                }
+                
+                .print-certificate {
+                  position: absolute;
+                  left: 0;
+                  top: 0;
+                  width: 100%;
+                  height: 100%;
+                  background: white !important;
+                  -webkit-print-color-adjust: exact !important;
+                  print-color-adjust: exact !important;
+                  color-adjust: exact !important;
+                }
+                
+                .no-print {
+                  display: none !important;
+                }
+                
+                .print-certificate .print-header {
+                  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%) !important;
+                  -webkit-print-color-adjust: exact !important;
+                  print-color-adjust: exact !important;
+                }
+                
+                .print-certificate .print-student-banner {
+                  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%) !important;
+                  -webkit-print-color-adjust: exact !important;
+                  print-color-adjust: exact !important;
+                }
+                
+                .print-certificate .skill-bar-fill {
+                  -webkit-print-color-adjust: exact !important;
+                  print-color-adjust: exact !important;
+                }
+              }
+            `}</style>
+
+            <div className="print-certificate bg-white rounded-2xl max-w-6xl w-full shadow-2xl print:rounded-none print:shadow-none print:max-w-none" style={{ fontFamily: "'Segoe UI', 'Arial', sans-serif" }}>
+              {/* Elegant Header with Gradient */}
+              <div className="print-header bg-gradient-to-r from-purple-700 via-purple-600 to-indigo-600 text-white p-5 print:p-4">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-white rounded-xl p-2 shadow-lg print:w-12 print:h-12">
+                      <img src="/logo.png" alt="Brains Heist" className="w-full h-full object-contain" />
+                    </div>
                     <div>
-                      <h1 className="text-2xl font-bold text-purple-800">Brains Heist</h1>
-                      <p className="text-sm text-gray-500">Student Performance Report</p>
+                      <h1 className="text-2xl font-bold tracking-wide print:text-xl">BRAINS HEIST</h1>
+                      <p className="text-purple-200 text-sm font-medium">Student Performance Certificate</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <h2 className="text-lg font-semibold text-purple-800">{selectedCambridgeStudent.quiz_name}</h2>
-                    <p className="text-sm text-gray-500">Generated: {new Date().toLocaleDateString()}</p>
+                    <h2 className="text-lg font-semibold print:text-base">{selectedCambridgeStudent.quiz_name}</h2>
+                    <p className="text-purple-200 text-sm">Generated: {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Student Banner */}
-              <div className="bg-gray-100 text-black p-6 flex justify-between items-center">
+              {/* Student Info Banner */}
+              <div className="print-student-banner bg-gradient-to-r from-indigo-900 to-purple-900 text-white px-6 py-4 flex justify-between items-center print:px-4 print:py-3">
                 <div>
-                  <h2 className="text-2xl font-bold">{selectedCambridgeStudent.student_name}</h2>
-                  <p className="opacity-80">Class: {selectedCambridgeStudent.student_class || 'N/A'} | Completed: {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString()} | Time: {formatCambridgeTime(selectedCambridgeStudent.time_taken_seconds)}</p>
+                  <h2 className="text-2xl font-bold print:text-xl">{selectedCambridgeStudent.student_name}</h2>
+                  <p className="text-indigo-200 text-sm">
+                    Class: <span className="font-semibold text-white">{selectedCambridgeStudent.student_class || 'N/A'}</span>
+                    <span className="mx-2">•</span>
+                    Completed: <span className="font-semibold text-white">{new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString('en-GB')}</span>
+                    <span className="mx-2">•</span>
+                    Duration: <span className="font-semibold text-white">{formatCambridgeTime(selectedCambridgeStudent.time_taken_seconds)}</span>
+                  </p>
                 </div>
-                <div className="w-20 h-20 rounded-full bg-white flex flex-col items-center justify-center text-black">
-                  <span className="text-3xl font-bold">{grade}</span>
-                  <span className="text-xs">{selectedCambridgeStudent.percentage}%</span>
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <p className="text-indigo-200 text-xs uppercase tracking-wider">Score</p>
+                    <p className="text-2xl font-bold print:text-xl">{selectedCambridgeStudent.score}/{selectedCambridgeStudent.total_questions}</p>
+                  </div>
+                  <div className={`w-20 h-20 rounded-2xl flex flex-col items-center justify-center shadow-lg print:w-16 print:h-16 ${
+                    selectedCambridgeStudent.percentage >= 85 ? 'bg-gradient-to-br from-green-400 to-emerald-500' :
+                    selectedCambridgeStudent.percentage >= 70 ? 'bg-gradient-to-br from-blue-400 to-cyan-500' :
+                    selectedCambridgeStudent.percentage >= 55 ? 'bg-gradient-to-br from-yellow-400 to-amber-500' :
+                    'bg-gradient-to-br from-red-400 to-rose-500'
+                  }`}>
+                    <span className="text-3xl font-black text-white drop-shadow print:text-2xl">{grade}</span>
+                    <span className="text-xs text-white/90 font-semibold">{selectedCambridgeStudent.percentage}%</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="p-6 space-y-6">
-                {/* Skills Performance */}
-                <div>
-                  <h3 className="text-lg font-semibold text-purple-800 border-b-2 border-gray-200 pb-2 mb-4">📊 Skills Performance Analysis</h3>
-                  <div className="space-y-3">
-                    {sortedSkills.map(([skill, data]) => (
-                      <div key={skill} className="flex items-center gap-3">
-                        <span className="w-48 text-sm text-gray-600">{data.icon} {skill}</span>
-                        <div className="flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full transition-all ${data.percentage >= 80 ? 'bg-green-500' : data.percentage >= 65 ? 'bg-blue-500' : data.percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                            style={{ width: `${data.percentage}%` }}
-                          />
+              {/* Main Content - Two Column Layout for Landscape */}
+              <div className="p-5 grid grid-cols-1 lg:grid-cols-2 gap-5 print:p-4 print:gap-4 print:grid-cols-2">
+                {/* Left Column - Skills Performance */}
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <h3 className="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
+                      <span className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-white text-xs">📊</span>
+                      Skills Performance Analysis
+                    </h3>
+                    <div className="space-y-2.5">
+                      {sortedSkills.map(([skill, data]) => (
+                        <div key={skill} className="flex items-center gap-2">
+                          <span className="w-40 text-xs font-medium text-gray-600 truncate print:w-32">{data.icon} {skill}</span>
+                          <div className="flex-1 h-5 bg-gray-200 rounded-full overflow-hidden shadow-inner">
+                            <div 
+                              className={`skill-bar-fill h-full rounded-full transition-all flex items-center justify-end pr-2 ${
+                                data.percentage >= 80 ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 
+                                data.percentage >= 65 ? 'bg-gradient-to-r from-blue-400 to-cyan-500' : 
+                                data.percentage >= 50 ? 'bg-gradient-to-r from-yellow-400 to-amber-500' : 
+                                'bg-gradient-to-r from-red-400 to-rose-500'
+                              }`}
+                              style={{ width: `${Math.max(data.percentage, 15)}%` }}
+                            >
+                              {data.percentage >= 30 && (
+                                <span className="text-[10px] font-bold text-white drop-shadow">{data.percentage}%</span>
+                              )}
+                            </div>
+                          </div>
+                          <span className="w-14 text-xs font-bold text-gray-700 text-right">{data.correct}/{data.total}</span>
                         </div>
-                        <span className="w-20 text-sm font-semibold text-right">{data.correct}/{data.total} ({data.percentage}%)</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Focus Areas */}
-                {weakAreas.length > 0 && (
-                  <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
-                    <h4 className="font-semibold text-amber-800 mb-2">⚠️ Priority Focus Areas</h4>
-                    <ul className="text-sm text-gray-700 space-y-1">
-                      {weakAreas.map(([skill, data]) => (
-                        <li key={skill}>• <strong>{skill}</strong> — {data.percentage}% ({data.correct}/{data.total} correct)</li>
                       ))}
-                    </ul>
+                    </div>
                   </div>
-                )}
 
-                {/* Action Plan */}
-                <div className="border-2 border-purple-600 rounded-xl p-5">
-                  <h3 className="text-lg font-semibold text-purple-800 mb-4">📋 Personalized Action Plan</h3>
-                  {weakAreas.length > 0 ? weakAreas.slice(0, 3).map(([skill, data], idx) => {
-                    const plan = actionPlans[skill];
-                    return plan ? (
-                      <div key={skill} className="flex gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
-                        <div className="w-8 h-8 bg-purple-800 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">{idx + 1}</div>
-                        <div>
-                          <h4 className="font-semibold text-gray-800">{plan.title} (Currently {data.percentage}%)</h4>
-                          <p className="text-sm text-gray-600">{plan.tips.join(' • ')}</p>
-                        </div>
-                      </div>
-                    ) : null;
-                  }) : (
-                    <div className="flex gap-4 p-4 bg-green-50 rounded-lg">
-                      <div className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">✓</div>
-                      <div>
-                        <h4 className="font-semibold text-gray-800">Maintain Your Excellence</h4>
-                        <p className="text-sm text-gray-600">Continue challenging yourself • Read diverse texts daily • Help classmates who are struggling</p>
-                      </div>
+                  {/* Focus Areas */}
+                  {weakAreas.length > 0 && (
+                    <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4">
+                      <h4 className="font-bold text-amber-800 mb-2 flex items-center gap-2 text-sm">
+                        <span className="w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center text-white text-xs">⚠</span>
+                        Priority Focus Areas
+                      </h4>
+                      <ul className="text-xs text-amber-900 space-y-1">
+                        {weakAreas.map(([skill, data]) => (
+                          <li key={skill} className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
+                            <strong>{skill}</strong> — {data.percentage}% ({data.correct}/{data.total} correct)
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   )}
                 </div>
 
-                {/* Encouragement */}
-                <div className="bg-gray-100 text-black p-6 rounded-xl text-center">
-                  <h3 className="text-xl font-bold mb-2">{encouragement.title}</h3>
-                  <p className="opacity-90">{encouragement.message}</p>
+                {/* Right Column - Action Plan */}
+                <div className="space-y-4">
+                  <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4">
+                    <h3 className="text-base font-bold text-purple-800 mb-3 flex items-center gap-2">
+                      <span className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-white text-xs">📋</span>
+                      Personalized Action Plan
+                    </h3>
+                    {weakAreas.length > 0 ? (
+                      <div className="space-y-3">
+                        {weakAreas.slice(0, 3).map(([skill, data], idx) => {
+                          const plan = actionPlans[skill];
+                          return plan ? (
+                            <div key={skill} className="flex gap-3 p-3 bg-white rounded-lg border border-purple-100 shadow-sm">
+                              <div className="w-7 h-7 bg-gradient-to-br from-purple-600 to-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">{idx + 1}</div>
+                              <div className="min-w-0">
+                                <h4 className="font-semibold text-gray-800 text-sm">{plan.title} <span className="text-purple-600">({data.percentage}%)</span></h4>
+                                <p className="text-xs text-gray-600 mt-0.5 leading-relaxed">{plan.tips.join(' • ')}</p>
+                              </div>
+                            </div>
+                          ) : null;
+                        })}
+                      </div>
+                    ) : (
+                      <div className="flex gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                        <div className="w-7 h-7 bg-gradient-to-br from-green-500 to-emerald-500 text-white rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">✓</div>
+                        <div>
+                          <h4 className="font-semibold text-gray-800 text-sm">Excellent Performance!</h4>
+                          <p className="text-xs text-gray-600 mt-0.5">Continue challenging yourself • Read diverse texts daily • Help classmates who are struggling</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Encouragement Box */}
+                  <div className={`rounded-xl p-4 text-center ${
+                    selectedCambridgeStudent.percentage >= 85 ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
+                    selectedCambridgeStudent.percentage >= 70 ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
+                    selectedCambridgeStudent.percentage >= 55 ? 'bg-gradient-to-r from-amber-500 to-yellow-500' :
+                    'bg-gradient-to-r from-purple-500 to-indigo-500'
+                  } text-white shadow-lg`}>
+                    <h3 className="text-lg font-bold mb-1 print:text-base">{encouragement.title}</h3>
+                    <p className="text-sm opacity-95 print:text-xs">{encouragement.message}</p>
+                  </div>
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="p-4 border-t flex justify-between items-center text-xs text-gray-400">
-                <span>Brains Heist Learning Platform</span>
-                <span>Report ID: {selectedCambridgeStudent.id?.substring(0, 8) || 'N/A'}</span>
-                <div className="flex gap-3">
-                  <button onClick={() => window.print()} className="px-4 py-2 bg-green-100 text-black rounded-lg font-semibold hover:bg-green-200">🖨️ Print</button>
-                  <button onClick={() => setShowCambridgeReport(false)} className="px-4 py-2 bg-gray-200 text-black rounded-lg font-semibold hover:bg-gray-300">Close</button>
+              <div className="px-5 py-3 border-t border-gray-200 flex justify-between items-center bg-gray-50 print:py-2">
+                <div className="flex items-center gap-4 text-xs text-gray-500">
+                  <span className="font-medium">Brains Heist Learning Platform</span>
+                  <span>•</span>
+                  <span>Report ID: {selectedCambridgeStudent.id?.substring(0, 8).toUpperCase() || 'N/A'}</span>
+                </div>
+                <div className="flex gap-2 no-print">
+                  <button 
+                    onClick={handleExportPDF} 
+                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-semibold text-sm hover:from-purple-700 hover:to-indigo-700 transition-all shadow-md flex items-center gap-2"
+                  >
+                    📄 Export PDF
+                  </button>
+                  <button 
+                    onClick={handlePrint} 
+                    className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-semibold text-sm hover:from-green-600 hover:to-emerald-600 transition-all shadow-md flex items-center gap-2"
+                  >
+                    🖨️ Print
+                  </button>
+                  <button 
+                    onClick={() => setShowCambridgeReport(false)} 
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold text-sm hover:bg-gray-300 transition-colors"
+                  >
+                    Close
+                  </button>
                 </div>
               </div>
             </div>
