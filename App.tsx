@@ -88,6 +88,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const lastRewardedLevelRef = useRef<number | null>(null);
   const { isLightMode: isLiteMode, toggleLightMode } = useLightMode();
   const [pendingClanRequests, setPendingClanRequests] = useState(0);
+  const isCambridgeView = view === 'cambridge';
 
   const renderLazy = (node: React.ReactNode) => (
     <Suspense
@@ -1205,18 +1206,20 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         </div>
       )}
       <div className="relative z-10">
-        <Header
-          profile={profile}
-          onLogout={onLogout}
-          currentView={view}
-          onBackToDashboard={() => setView('dashboard')}
-          onShowHelp={() => setShowHelp(true)}
-          onNavigate={(targetView) => setView(targetView)}
-          liteMode={isLiteMode}
-          onToggleLiteMode={toggleLightMode}
-          onProfileAvatarChange={(avatarUrl) => setProfile((p) => p ? { ...p, avatar_url: avatarUrl } : p)}
-          onProfileRefresh={refreshProfile}
-        />
+        {!isCambridgeView && (
+          <Header
+            profile={profile}
+            onLogout={onLogout}
+            currentView={view}
+            onBackToDashboard={() => setView('dashboard')}
+            onShowHelp={() => setShowHelp(true)}
+            onNavigate={(targetView) => setView(targetView)}
+            liteMode={isLiteMode}
+            onToggleLiteMode={toggleLightMode}
+            onProfileAvatarChange={(avatarUrl) => setProfile((p) => p ? { ...p, avatar_url: avatarUrl } : p)}
+            onProfileRefresh={refreshProfile}
+          />
+        )}
 
         {/* Offline Banner */}
         {!isOnline && (
