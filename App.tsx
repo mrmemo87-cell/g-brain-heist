@@ -16,7 +16,6 @@ import { ToastContainer } from './components/ToastNotification';
 import { isAdmin } from './services/adminService';
 import { audioService } from './services/audioService';
 import { aiHostService } from './services/aiHostService';
-import CinematicEffects from './components/CinematicEffects';
 import { fetchNextAnnouncement, markAnnouncementSeen } from './services/competitionService';
 import { notificationService } from './services/notificationService';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './services/banMessage';
@@ -74,7 +73,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [tutorialChecked, setTutorialChecked] = useState(false); // Track if we've checked tutorial status
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [effectsIntensity, setEffectsIntensity] = useState<'calm' | 'active' | 'alert'>('calm');
   const [activeAnnouncement, setActiveAnnouncement] = useState<Announcement | null>(null);
   const previousViewRef = useRef(view);
   const previousSessionActiveRef = useRef<boolean | null>(null);
@@ -381,18 +379,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       previousSessionActiveRef.current = sessionStatus.active;
     }
   }, [sessionStatus]);
-
-  useEffect(() => {
-    if (!sessionStatus) return;
-
-    if (sessionStatus.active) {
-      setEffectsIntensity('alert');
-    } else if (view !== 'dashboard') {
-      setEffectsIntensity('active');
-    } else {
-      setEffectsIntensity('calm');
-    }
-  }, [sessionStatus, view]);
 
   const cinematicViewClass = useMemo(() => {
     if (sessionStatus?.active) {
@@ -1121,7 +1107,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           : 'relative min-h-screen overflow-hidden p-4 md:p-6 lg:p-8 max-w-screen-2xl mx-auto'
       }
     >
-      {!isLiteMode && <CinematicEffects intensity={effectsIntensity} />}
       {attackAlert && (
         <div className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center">
           <div className="absolute inset-0 bg-red-700/40 backdrop-blur-sm transition-opacity duration-300 animate-pulse" />
