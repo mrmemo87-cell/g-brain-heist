@@ -822,44 +822,45 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
 
                   {/* Scores Breakdown */}
                   <div style={{
-                    background: 'rgba(255,255,255,0.05)',
+                    background: '#f5f5f5',
                     borderRadius: '12px',
                     padding: '15px',
                     marginBottom: '20px',
+                    color: '#000',
                   }}>
-                    <h5 style={{ margin: '0 0 12px', color: '#fff', fontSize: '14px' }}>📊 Score Breakdown</h5>
+                    <h5 style={{ margin: '0 0 12px', color: '#000', fontSize: '14px' }}>📊 Score Breakdown</h5>
                     {activeFeedbackPart === 'part1' ? (
                       <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
                         <div style={{ flex: 1, minWidth: '80px', textAlign: 'center' }}>
-                          <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#22c55e' }}>{feedbackData.part1.content}/5</div>
-                          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)' }}>Content</div>
+                          <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#000' }}>{feedbackData.part1.content}/5</div>
+                          <div style={{ fontSize: '11px', color: '#000' }}>Content</div>
                         </div>
                         <div style={{ flex: 1, minWidth: '80px', textAlign: 'center' }}>
-                          <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#f59e0b' }}>{feedbackData.part1.organisation}/5</div>
-                          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)' }}>Organisation</div>
+                          <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#000' }}>{feedbackData.part1.organisation}/5</div>
+                          <div style={{ fontSize: '11px', color: '#000' }}>Organisation</div>
                         </div>
                         <div style={{ flex: 1, minWidth: '80px', textAlign: 'center' }}>
-                          <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#00f5ff' }}>{feedbackData.part1.language}/5</div>
-                          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)' }}>Language</div>
+                          <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#000' }}>{feedbackData.part1.language}/5</div>
+                          <div style={{ fontSize: '11px', color: '#000' }}>Language</div>
                         </div>
                       </div>
                     ) : (
                       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                         <div style={{ flex: 1, minWidth: '60px', textAlign: 'center' }}>
-                          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#22c55e' }}>{feedbackData.part2.content}/5</div>
-                          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)' }}>Content</div>
+                          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#000' }}>{feedbackData.part2.content}/5</div>
+                          <div style={{ fontSize: '10px', color: '#000' }}>Content</div>
                         </div>
                         <div style={{ flex: 1, minWidth: '60px', textAlign: 'center' }}>
-                          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#8b5cf6' }}>{feedbackData.part2.communicativeAchievement}/5</div>
-                          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)' }}>Comm. Ach.</div>
+                          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#000' }}>{feedbackData.part2.communicativeAchievement}/5</div>
+                          <div style={{ fontSize: '10px', color: '#000' }}>Comm. Ach.</div>
                         </div>
                         <div style={{ flex: 1, minWidth: '60px', textAlign: 'center' }}>
-                          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#f59e0b' }}>{feedbackData.part2.organisation}/5</div>
-                          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)' }}>Organisation</div>
+                          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#000' }}>{feedbackData.part2.organisation}/5</div>
+                          <div style={{ fontSize: '10px', color: '#000' }}>Organisation</div>
                         </div>
                         <div style={{ flex: 1, minWidth: '60px', textAlign: 'center' }}>
-                          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#00f5ff' }}>{feedbackData.part2.language}/5</div>
-                          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)' }}>Language</div>
+                          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#000' }}>{feedbackData.part2.language}/5</div>
+                          <div style={{ fontSize: '10px', color: '#000' }}>Language</div>
                         </div>
                       </div>
                     )}
@@ -867,19 +868,20 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
 
                   {/* Your Original Writing */}
                   <div style={{
-                    background: 'rgba(255,255,255,0.05)',
+                    background: '#f9fafb',
                     borderRadius: '12px',
                     padding: '15px',
                     marginBottom: '15px',
+                    color: '#000',
                   }}>
-                    <h5 style={{ margin: '0 0 10px', color: '#fff', fontSize: '14px' }}>✏️ Your Original Writing</h5>
+                    <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>✏️ Your Original Writing</h5>
                     <div style={{
-                      background: 'rgba(0,0,0,0.3)',
+                      background: '#fff',
                       borderRadius: '8px',
                       padding: '12px',
                       fontSize: '13px',
                       lineHeight: 1.6,
-                      color: 'rgba(255,255,255,0.8)',
+                      color: '#000',
                       whiteSpace: 'pre-wrap',
                     }}>
                       {activeFeedbackPart === 'part1' ? feedbackData.part1.original : feedbackData.part2.original}
@@ -889,17 +891,18 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                   {/* Teacher Feedback */}
                   {(activeFeedbackPart === 'part1' ? feedbackData.part1.feedback : feedbackData.part2.feedback) && (
                     <div style={{
-                      background: 'rgba(245,158,11,0.1)',
+                      background: '#fff7ed',
                       borderRadius: '12px',
                       padding: '15px',
                       marginBottom: '15px',
-                      border: '1px solid rgba(245,158,11,0.3)',
+                      border: '1px solid #fed7aa',
+                      color: '#000',
                     }}>
-                      <h5 style={{ margin: '0 0 10px', color: '#f59e0b', fontSize: '14px' }}>💬 Teacher's Comments</h5>
+                      <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>💬 Teacher's Comments</h5>
                       <div style={{
                         fontSize: '13px',
                         lineHeight: 1.6,
-                        color: 'rgba(255,255,255,0.9)',
+                        color: '#000',
                         whiteSpace: 'pre-wrap',
                       }}>
                         {activeFeedbackPart === 'part1' ? feedbackData.part1.feedback : feedbackData.part2.feedback}
@@ -910,19 +913,20 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                   {/* Corrected Version */}
                   {(activeFeedbackPart === 'part1' ? feedbackData.part1.corrected : feedbackData.part2.corrected) && (
                     <div style={{
-                      background: 'rgba(34,197,94,0.1)',
+                      background: '#ecfdf3',
                       borderRadius: '12px',
                       padding: '15px',
-                      border: '1px solid rgba(34,197,94,0.3)',
+                      border: '1px solid #bbf7d0',
+                      color: '#000',
                     }}>
-                      <h5 style={{ margin: '0 0 10px', color: '#22c55e', fontSize: '14px' }}>✨ Improved Version</h5>
+                      <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>✨ Improved Version</h5>
                       <div style={{
-                        background: 'rgba(0,0,0,0.2)',
+                        background: '#fff',
                         borderRadius: '8px',
                         padding: '12px',
                         fontSize: '13px',
                         lineHeight: 1.6,
-                        color: 'rgba(255,255,255,0.9)',
+                        color: '#000',
                         whiteSpace: 'pre-wrap',
                       }}>
                         {activeFeedbackPart === 'part1' ? feedbackData.part1.corrected : feedbackData.part2.corrected}
@@ -930,7 +934,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       <p style={{
                         margin: '10px 0 0',
                         fontSize: '11px',
-                        color: 'rgba(255,255,255,0.5)',
+                        color: '#000',
                         fontStyle: 'italic',
                       }}>
                         💡 Compare this with your original to see how you can improve your writing!
