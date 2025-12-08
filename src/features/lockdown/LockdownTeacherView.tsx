@@ -197,7 +197,7 @@ export const LockdownTeacherView: React.FC<LockdownTeacherViewProps> = ({
           </div>
 
           <aside className="flex flex-col gap-4">
-            <div className="sticky top-6 rounded-3xl border border-slate-800/70 bg-slate-900/50 p-6 shadow-lg shadow-slate-950/40">
+            <div className="rounded-3xl border border-slate-800/70 bg-slate-900/50 p-6 shadow-lg shadow-slate-950/40">
               <h2 className="text-lg font-bold tracking-tight sm:text-xl">Controls</h2>
               <p className="mt-1 text-xs text-slate-400">Deploy commands instantly. Actions broadcast to every connected agent.</p>
               <div className="mt-4 grid gap-3">

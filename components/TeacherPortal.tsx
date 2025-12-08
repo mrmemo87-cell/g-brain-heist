@@ -2859,25 +2859,25 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     const pendingWriting = cambridgeScores.filter(s => s.quiz_name === 'Cambridge Writing Test 1' && s.answers?.requires_marking).length;
 
     return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-black">
       {/* Compact Header Row */}
       <div className="flex items-center justify-between flex-wrap gap-3 bg-white border-b border-gray-200 pb-4">
-        <h2 className="text-xl font-bold text-gray-900">📝 Cambridge Test Results</h2>
+        <h2 className="text-xl font-bold">📝 Cambridge Test Results</h2>
         <div className="flex items-center gap-2">
           {pendingWriting > 0 && (
-            <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm font-medium">
+            <span className="bg-amber-100 text-black px-3 py-1 rounded-full text-sm font-medium">
               ⚠️ {pendingWriting} needs marking
             </span>
           )}
           <button
             onClick={loadCambridgeScores}
             disabled={cambridgeLoading}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+            className="bg-blue-100 hover:bg-blue-200 text-black px-4 py-2 rounded-lg text-sm font-medium"
           >
             {cambridgeLoading ? '⏳' : '🔄'} Refresh
           </button>
           {cambridgeScores.length > 0 && (
-            <button onClick={exportCambridgeCSV} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+            <button onClick={exportCambridgeCSV} className="bg-green-100 hover:bg-green-200 text-black px-4 py-2 rounded-lg text-sm font-medium">
               📥 CSV
             </button>
           )}
@@ -2889,20 +2889,20 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           {/* Compact Stats Row */}
           <div className="grid grid-cols-4 gap-3">
             <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-gray-900">{cambridgeStats.totalSubmissions}</p>
-              <p className="text-xs text-gray-500">Total</p>
+              <p className="text-2xl font-bold">{cambridgeStats.totalSubmissions}</p>
+              <p className="text-xs">Total</p>
             </div>
             <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-blue-600">{cambridgeStats.avgPercentage}%</p>
-              <p className="text-xs text-gray-500">Average</p>
+              <p className="text-2xl font-bold">{cambridgeStats.avgPercentage}%</p>
+              <p className="text-xs">Average</p>
             </div>
             <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-              <p className="text-lg font-bold text-green-600 truncate">{cambridgeStats.highestScore?.name || '-'}</p>
-              <p className="text-xs text-gray-500">Best: {cambridgeStats.highestScore?.percentage || 0}%</p>
+              <p className="text-lg font-bold truncate">{cambridgeStats.highestScore?.name || '-'}</p>
+              <p className="text-xs">Best: {cambridgeStats.highestScore?.percentage || 0}%</p>
             </div>
             <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-              <p className="text-lg font-bold text-red-600 truncate">{cambridgeStats.lowestScore?.name || '-'}</p>
-              <p className="text-xs text-gray-500">Lowest: {cambridgeStats.lowestScore?.percentage || 0}%</p>
+              <p className="text-lg font-bold truncate">{cambridgeStats.lowestScore?.name || '-'}</p>
+              <p className="text-xs">Lowest: {cambridgeStats.lowestScore?.percentage || 0}%</p>
             </div>
           </div>
 
@@ -2966,7 +2966,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             {/* Results Table - Compact */}
             <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-100 sticky top-0">
+                <thead className="bg-gray-100">
                   <tr>
                     <th className="px-4 py-2.5 text-left text-gray-700 font-semibold">Student</th>
                     <th className="px-4 py-2.5 text-left text-gray-700 font-semibold">Class</th>
@@ -3117,14 +3117,14 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               </div>
 
               {/* Student Banner */}
-              <div className="bg-gradient-to-r from-purple-800 to-indigo-900 text-white p-6 flex justify-between items-center">
+              <div className="bg-gray-100 text-black p-6 flex justify-between items-center">
                 <div>
                   <h2 className="text-2xl font-bold">{selectedCambridgeStudent.student_name}</h2>
                   <p className="opacity-80">Class: {selectedCambridgeStudent.student_class || 'N/A'} | Completed: {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString()} | Time: {formatCambridgeTime(selectedCambridgeStudent.time_taken_seconds)}</p>
                 </div>
-                <div className="w-20 h-20 rounded-full bg-white flex flex-col items-center justify-center">
-                  <span className="text-3xl font-bold text-purple-800">{grade}</span>
-                  <span className="text-xs text-gray-600">{selectedCambridgeStudent.percentage}%</span>
+                <div className="w-20 h-20 rounded-full bg-white flex flex-col items-center justify-center text-black">
+                  <span className="text-3xl font-bold">{grade}</span>
+                  <span className="text-xs">{selectedCambridgeStudent.percentage}%</span>
                 </div>
               </div>
 
@@ -3186,7 +3186,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 </div>
 
                 {/* Encouragement */}
-                <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-xl text-center">
+                <div className="bg-gray-100 text-black p-6 rounded-xl text-center">
                   <h3 className="text-xl font-bold mb-2">{encouragement.title}</h3>
                   <p className="opacity-90">{encouragement.message}</p>
                 </div>
@@ -3197,8 +3197,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 <span>Brains Heist Learning Platform</span>
                 <span>Report ID: {selectedCambridgeStudent.id?.substring(0, 8) || 'N/A'}</span>
                 <div className="flex gap-3">
-                  <button onClick={() => window.print()} className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">🖨️ Print</button>
-                  <button onClick={() => setShowCambridgeReport(false)} className="px-4 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700">Close</button>
+                  <button onClick={() => window.print()} className="px-4 py-2 bg-green-100 text-black rounded-lg font-semibold hover:bg-green-200">🖨️ Print</button>
+                  <button onClick={() => setShowCambridgeReport(false)} className="px-4 py-2 bg-gray-200 text-black rounded-lg font-semibold hover:bg-gray-300">Close</button>
                 </div>
               </div>
             </div>
@@ -3375,14 +3375,14 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   <span className="text-xs text-gray-400">Report ID: {selectedCambridgeStudent.id?.substring(0, 8) || 'N/A'}</span>
                   <div className="flex gap-3">
                     {(answers.requires_marking || !feedback.releasedToStudent) && (
-                      <button 
-                        onClick={() => { setShowCambridgeAnswers(false); openWritingMarking(selectedCambridgeStudent); }} 
-                        className="px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
+                      <button
+                        onClick={() => { setShowCambridgeAnswers(false); openWritingMarking(selectedCambridgeStudent); }}
+                        className="px-4 py-2 bg-purple-100 text-black rounded-lg font-semibold hover:bg-purple-200"
                       >
                         ✏️ {answers.requires_marking ? 'Mark This' : 'Edit Feedback'}
                       </button>
                     )}
-                    <button onClick={() => setShowCambridgeAnswers(false)} className="px-4 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700">Close</button>
+                    <button onClick={() => setShowCambridgeAnswers(false)} className="px-4 py-2 bg-gray-200 text-black rounded-lg font-semibold hover:bg-gray-300">Close</button>
                   </div>
                 </div>
               </div>
@@ -3532,8 +3532,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 <span>Report ID: {selectedCambridgeStudent.id?.substring(0, 8) || 'N/A'}</span>
                 <span>Confidential — For Student & Teacher Use Only</span>
                 <div className="flex gap-3">
-                  <button onClick={() => window.print()} className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">🖨️ Print</button>
-                  <button onClick={() => setShowCambridgeAnswers(false)} className="px-4 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700">Close</button>
+                  <button onClick={() => window.print()} className="px-4 py-2 bg-green-100 text-black rounded-lg font-semibold hover:bg-green-200">🖨️ Print</button>
+                  <button onClick={() => setShowCambridgeAnswers(false)} className="px-4 py-2 bg-gray-200 text-black rounded-lg font-semibold hover:bg-gray-300">Close</button>
                 </div>
               </div>
             </div>
@@ -3573,7 +3573,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               </div>
 
               {/* Student Info */}
-              <div className="bg-gradient-to-r from-purple-700 to-indigo-800 text-white p-5 flex justify-between items-center">
+              <div className="bg-gray-100 text-black p-5 flex justify-between items-center">
                 <div>
                   <h2 className="text-xl font-bold">{selectedCambridgeStudent.student_name}</h2>
                   <p className="text-sm opacity-80">Class: {selectedCambridgeStudent.student_class || 'N/A'} | Submitted: {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString()}</p>
@@ -3584,9 +3584,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   onClick={autoProofreadWriting}
                   disabled={autoProofreadLoading}
                   className={`px-5 py-3 rounded-xl font-bold flex items-center gap-2 transition-all ${
-                    autoProofreadLoading 
-                      ? 'bg-gray-400 cursor-wait' 
-                      : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-lg hover:shadow-xl'
+                    autoProofreadLoading
+                      ? 'bg-gray-200 cursor-wait text-black'
+                      : 'bg-blue-100 hover:bg-blue-200 shadow-lg hover:shadow-xl text-black'
                   }`}
                 >
                   {autoProofreadLoading ? (
@@ -3602,11 +3602,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   )}
                 </button>
                 
-                <div className="text-right">
+                <div className="text-right text-black">
                   <div className="text-3xl font-bold">{totalScore}/35</div>
-                  <div className={`text-lg font-semibold ${percentage >= 70 ? 'text-green-300' : percentage >= 50 ? 'text-yellow-300' : 'text-red-300'}`}>
-                    {percentage}%
-                  </div>
+                  <div className="text-lg font-semibold">{percentage}%</div>
                 </div>
               </div>
 

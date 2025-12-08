@@ -588,8 +588,6 @@ const WritingPractice: React.FC = () => {
               borderRadius: '1rem',
               padding: 'clamp(1rem, 3vw, 1.5rem)',
               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-              position: 'sticky',
-              top: '1rem'
             }}>
               <h2 style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '1rem' }}>📋 Task</h2>
               
