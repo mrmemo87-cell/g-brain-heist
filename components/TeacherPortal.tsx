@@ -25,6 +25,8 @@ const getDefaultPointsForDifficulty = (diff: QuestionDifficulty): number => {
 // Maximum XP a teacher can assign to a question
 const MAX_QUESTION_XP = 30;
 
+const getQuestionTopicLabel = (question: TeacherQuestion) => question.topic_name || question.topic || 'General';
+
 const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) => {
   const [view, setView] = useState<PortalView>('dashboard');
   const [teacher, setTeacher] = useState<Teacher | null>(null);
@@ -33,6 +35,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
   const [editingQuestion, setEditingQuestion] = useState<TeacherQuestion | null>(null);
+  const [questionSearchTerm, setQuestionSearchTerm] = useState('');
+  const [questionSubjectFilter, setQuestionSubjectFilter] = useState<'all' | Subject>('all');
+  const [questionTopicFilter, setQuestionTopicFilter] = useState<string>('all');
+  const [questionDifficultyFilter, setQuestionDifficultyFilter] = useState<'all' | QuestionDifficulty>('all');
+  const [questionTypeFilter, setQuestionTypeFilter] = useState<'all' | 'multiple_choice' | 'true_false' | 'short_answer'>('all');
 
   // Question form state
   const [questionText, setQuestionText] = useState('');
@@ -122,6 +129,52 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
   const questionTopicLabel = useMemo(() => (
     topicMode === 'general' ? 'General' : (customTopicName.trim() || 'Custom Topic')
   ), [topicMode, customTopicName]);
+
+  const subjectFilterOptions = useMemo(() => {
+    const subjects = new Set<Subject>();
+    questions.forEach((q) => subjects.add(q.subject));
+    return Array.from(subjects).sort();
+  }, [questions]);
+
+  const topicFilterOptions = useMemo(() => {
+    const topics = new Set<string>();
+    questions
+      .filter((q) => questionSubjectFilter === 'all' || q.subject === questionSubjectFilter)
+      .forEach((q) => topics.add(getQuestionTopicLabel(q)));
+    return Array.from(topics).sort();
+  }, [questions, questionSubjectFilter]);
+
+  const filteredQuestions = useMemo(() => {
+    const search = questionSearchTerm.trim().toLowerCase();
+
+    return questions.filter((question) => {
+      const subjectMatches = questionSubjectFilter === 'all' || question.subject === questionSubjectFilter;
+      const topicMatches = questionTopicFilter === 'all' || getQuestionTopicLabel(question) === questionTopicFilter;
+      const difficultyMatches = questionDifficultyFilter === 'all' || question.difficulty === questionDifficultyFilter;
+      const typeMatches = questionTypeFilter === 'all' || question.question_type === questionTypeFilter;
+      const searchMatches = !search ||
+        question.question_text.toLowerCase().includes(search) ||
+        getQuestionTopicLabel(question).toLowerCase().includes(search) ||
+        question.subject.toLowerCase().includes(search);
+
+      return subjectMatches && topicMatches && difficultyMatches && typeMatches && searchMatches;
+    });
+  }, [questions, questionSearchTerm, questionSubjectFilter, questionTopicFilter, questionDifficultyFilter, questionTypeFilter]);
+
+  const groupedQuestions = useMemo(() => {
+    const groups: Record<string, Record<string, TeacherQuestion[]>> = {};
+
+    filteredQuestions.forEach((question) => {
+      const subjectKey = question.subject || 'Uncategorized';
+      const topicKey = getQuestionTopicLabel(question);
+
+      if (!groups[subjectKey]) groups[subjectKey] = {};
+      if (!groups[subjectKey][topicKey]) groups[subjectKey][topicKey] = [];
+      groups[subjectKey][topicKey].push(question);
+    });
+
+    return groups;
+  }, [filteredQuestions]);
 
   const assignmentTopicLabel = useMemo(() => (
     assignmentTopicMode === 'general' ? 'General' : (assignmentTopicName.trim() || 'Custom Topic')
@@ -2203,6 +2256,96 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         </button>
       </div>
 
+      <div className="card-glass p-4 mb-6 border border-cyan-500/30">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="flex flex-col">
+            <label className="text-xs uppercase tracking-wide text-gray-400 mb-2">Search</label>
+            <input
+              type="text"
+              placeholder="Search questions, subjects, or topics..."
+              value={questionSearchTerm}
+              onChange={(e) => setQuestionSearchTerm(e.target.value)}
+              className="bg-black/40 border border-cyan-500/30 rounded-lg px-3 py-2 text-white focus:border-cyan-400 focus:outline-none"
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="text-xs uppercase tracking-wide text-gray-400 mb-2">Subject</label>
+            <select
+              value={questionSubjectFilter}
+              onChange={(e) => setQuestionSubjectFilter(e.target.value as Subject | 'all')}
+              className="bg-black/40 border border-cyan-500/30 rounded-lg px-3 py-2 text-white focus:border-cyan-400 focus:outline-none"
+            >
+              <option value="all">All Subjects</option>
+              {subjectFilterOptions.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col">
+            <label className="text-xs uppercase tracking-wide text-gray-400 mb-2">Topic</label>
+            <select
+              value={questionTopicFilter}
+              onChange={(e) => setQuestionTopicFilter(e.target.value)}
+              className="bg-black/40 border border-cyan-500/30 rounded-lg px-3 py-2 text-white focus:border-cyan-400 focus:outline-none"
+            >
+              <option value="all">All Topics</option>
+              {topicFilterOptions.map((topic) => (
+                <option key={topic} value={topic}>{topic}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col">
+            <label className="text-xs uppercase tracking-wide text-gray-400 mb-2">Difficulty</label>
+            <select
+              value={questionDifficultyFilter}
+              onChange={(e) => setQuestionDifficultyFilter(e.target.value as QuestionDifficulty | 'all')}
+              className="bg-black/40 border border-cyan-500/30 rounded-lg px-3 py-2 text-white focus:border-cyan-400 focus:outline-none"
+            >
+              <option value="all">All Levels</option>
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col">
+            <label className="text-xs uppercase tracking-wide text-gray-400 mb-2">Question Type</label>
+            <select
+              value={questionTypeFilter}
+              onChange={(e) => setQuestionTypeFilter(e.target.value as 'all' | 'multiple_choice' | 'true_false' | 'short_answer')}
+              className="bg-black/40 border border-cyan-500/30 rounded-lg px-3 py-2 text-white focus:border-cyan-400 focus:outline-none"
+            >
+              <option value="all">All Types</option>
+              <option value="multiple_choice">Multiple Choice</option>
+              <option value="true_false">True/False</option>
+              <option value="short_answer">Short Answer</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col justify-end">
+            <button
+              onClick={() => {
+                setQuestionSearchTerm('');
+                setQuestionSubjectFilter('all');
+                setQuestionTopicFilter('all');
+                setQuestionDifficultyFilter('all');
+                setQuestionTypeFilter('all');
+              }}
+              className="w-full bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30 rounded-lg px-3 py-2 font-semibold transition-all"
+            >
+              Reset Filters
+            </button>
+          </div>
+        </div>
+
+        <div className="text-xs text-gray-400 mt-3">
+          Showing {filteredQuestions.length} of {questions.length} questions
+        </div>
+      </div>
+
       {questions.length === 0 ? (
         <div className="card-glass p-12 text-center">
           <div className="text-6xl mb-4">📝</div>
@@ -2214,70 +2357,100 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             Create Your First Question
           </button>
         </div>
+      ) : filteredQuestions.length === 0 ? (
+        <div className="card-glass p-8 text-center border border-cyan-500/30">
+          <p className="text-lg text-gray-300">No questions match your filters.</p>
+          <p className="text-sm text-gray-500">Try adjusting the subject, topic, or search keywords.</p>
+        </div>
       ) : (
-        <div className="space-y-4">
-          {questions.map((q) => (
-            <div key={q.id} className="card-glass p-6 hover:border-cyan-500/50 transition-all">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      q.difficulty === 'easy' ? 'bg-green-500/20 text-green-400' :
-                      q.difficulty === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                      'bg-red-500/20 text-red-400'
-                    }`}>
-                      {q.difficulty.toUpperCase()}
-                    </span>
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-400">
-                      {q.subject}
-                    </span>
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/20 text-blue-300">
-                      {q.topic_name || q.topic || 'General'}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {q.question_type.replace('_', ' ').toUpperCase()}
-                    </span>
+        <div className="space-y-6">
+          {Object.entries(groupedQuestions).sort(([a], [b]) => a.localeCompare(b)).map(([subjectName, topics]) => (
+            <div key={subjectName} className="card-glass p-5 border border-cyan-500/20">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-full bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-bold text-lg">
+                    {subjectName[0]}
                   </div>
-                  
-                  <p className="text-lg text-white mb-3">{q.question_text}</p>
-                  
-                  <div className="flex items-center gap-6 text-sm text-gray-400">
-                    <span>✅ {q.times_correct} correct</span>
-                    <span>📊 {q.times_answered} total answers</span>
-                    <span>⭐ {q.points} XP</span>
-                    {q.times_answered > 0 && (
-                      <span className={`font-bold ${
-                        (q.times_correct / q.times_answered * 100) >= 70 ? 'text-green-400' : 'text-red-400'
-                      }`}>
-                        {Math.round((q.times_correct / q.times_answered) * 100)}% success
-                      </span>
-                    )}
+                  <div>
+                    <h3 className="font-heading text-2xl text-white">{subjectName}</h3>
+                    <p className="text-xs text-gray-400">{Object.values(topics).reduce((sum, list) => sum + list.length, 0)} questions</p>
                   </div>
                 </div>
+              </div>
 
-                <div className="ml-4 flex gap-2">
-                  <button
-                    onClick={() => handleEditQuestion(q)}
-                    className="text-yellow-400 hover:text-yellow-300 p-2 hover:bg-yellow-500/10 rounded-lg transition-all"
-                    title="Edit question"
-                  >
-                    ✏️
-                  </button>
-                  <button
-                    onClick={() => handleDuplicateQuestion(q)}
-                    className="text-cyan-400 hover:text-cyan-300 p-2 hover:bg-cyan-500/10 rounded-lg transition-all"
-                    title="Duplicate question"
-                  >
-                    📋
-                  </button>
-                  <button
-                    onClick={() => handleDeleteQuestion(q.id)}
-                    className="text-red-400 hover:text-red-300 p-2 hover:bg-red-500/10 rounded-lg transition-all"
-                    title="Delete question"
-                  >
-                    🗑️
-                  </button>
-                </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {Object.entries(topics).sort(([a], [b]) => a.localeCompare(b)).map(([topicName, topicQuestions]) => (
+                  <div key={topicName} className="bg-black/30 border border-cyan-500/10 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h4 className="text-lg text-cyan-200 font-semibold">{topicName}</h4>
+                        <p className="text-xs text-gray-500">{topicQuestions.length} question{topicQuestions.length !== 1 ? 's' : ''}</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      {topicQuestions.map((q) => (
+                        <div key={q.id} className="card-glass p-4 border border-cyan-500/10 hover:border-cyan-500/40 transition-all">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                  q.difficulty === 'easy' ? 'bg-green-500/20 text-green-400' :
+                                  q.difficulty === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                                  'bg-red-500/20 text-red-400'
+                                }`}>
+                                  {q.difficulty.toUpperCase()}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {q.question_type.replace('_', ' ').toUpperCase()}
+                                </span>
+                                <span className="text-xs text-gray-500">⭐ {q.points} XP</span>
+                              </div>
+
+                              <p className="text-lg text-white mb-3">{q.question_text}</p>
+
+                              <div className="flex items-center gap-6 text-sm text-gray-400">
+                                <span>✅ {q.times_correct} correct</span>
+                                <span>📊 {q.times_answered} total answers</span>
+                                {q.times_answered > 0 && (
+                                  <span className={`font-bold ${
+                                    (q.times_correct / q.times_answered * 100) >= 70 ? 'text-green-400' : 'text-red-400'
+                                  }`}>
+                                    {Math.round((q.times_correct / q.times_answered) * 100)}% success
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="ml-4 flex gap-2">
+                              <button
+                                onClick={() => handleEditQuestion(q)}
+                                className="text-yellow-400 hover:text-yellow-300 p-2 hover:bg-yellow-500/10 rounded-lg transition-all"
+                                title="Edit question"
+                              >
+                                ✏️
+                              </button>
+                              <button
+                                onClick={() => handleDuplicateQuestion(q)}
+                                className="text-cyan-400 hover:text-cyan-300 p-2 hover:bg-cyan-500/10 rounded-lg transition-all"
+                                title="Duplicate question"
+                              >
+                                📋
+                              </button>
+                              <button
+                                onClick={() => handleDeleteQuestion(q.id)}
+                                className="text-red-400 hover:text-red-300 p-2 hover:bg-red-500/10 rounded-lg transition-all"
+                                title="Delete question"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           ))}
