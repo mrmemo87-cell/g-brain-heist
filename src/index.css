@@ -1071,9 +1071,30 @@ button {
    ======================================== */
 
 .teacher-portal-light {
-  background-color: #f8fafc !important;
+  background: radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.08), transparent 32%),
+              radial-gradient(circle at 90% 10%, rgba(45, 212, 191, 0.08), transparent 30%),
+              linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%) !important;
   color: #1e293b !important;
   min-height: 100vh;
+}
+
+.teacher-portal-surface {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 40%, rgba(8, 47, 73, 0.05), transparent 40%),
+              radial-gradient(circle at 80% 60%, rgba(30, 64, 175, 0.05), transparent 40%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.teacher-portal-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120px at 20% 20%, rgba(59, 130, 246, 0.12), transparent 55%),
+              radial-gradient(140px at 80% 10%, rgba(168, 85, 247, 0.12), transparent 60%);
+  filter: blur(20px);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .teacher-portal-light .card-glass {
