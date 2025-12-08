@@ -3272,20 +3272,21 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         const handlePrint = () => {
           window.print();
         };
-
-        const handleExportPDF = () => {
-          // Trigger print which allows Save as PDF
-          window.print();
-        };
         
         return (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4 overflow-y-auto print:p-0 print:bg-white print:overflow-visible">
-            {/* Print Styles */}
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-2 overflow-y-auto print:p-0 print:bg-white print:overflow-visible print:block">
+            {/* Print Styles - Optimized for Single Landscape Page */}
             <style>{`
               @media print {
                 @page {
                   size: A4 landscape;
-                  margin: 0.5cm;
+                  margin: 8mm;
+                }
+                
+                html, body {
+                  margin: 0 !important;
+                  padding: 0 !important;
+                  overflow: visible !important;
                 }
                 
                 body * {
@@ -3298,12 +3299,18 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 }
                 
                 .print-certificate {
-                  position: absolute;
-                  left: 0;
-                  top: 0;
-                  width: 100%;
-                  height: 100%;
+                  position: fixed !important;
+                  left: 0 !important;
+                  top: 0 !important;
+                  width: 100% !important;
+                  height: auto !important;
+                  max-height: none !important;
+                  overflow: visible !important;
                   background: white !important;
+                  margin: 0 !important;
+                  padding: 0 !important;
+                  border-radius: 0 !important;
+                  box-shadow: none !important;
                   -webkit-print-color-adjust: exact !important;
                   print-color-adjust: exact !important;
                   color-adjust: exact !important;
@@ -3317,192 +3324,183 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%) !important;
                   -webkit-print-color-adjust: exact !important;
                   print-color-adjust: exact !important;
+                  padding: 8px 16px !important;
                 }
                 
                 .print-certificate .print-student-banner {
                   background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%) !important;
                   -webkit-print-color-adjust: exact !important;
                   print-color-adjust: exact !important;
+                  padding: 8px 16px !important;
                 }
                 
                 .print-certificate .skill-bar-fill {
                   -webkit-print-color-adjust: exact !important;
                   print-color-adjust: exact !important;
                 }
+
+                .print-certificate .print-content {
+                  padding: 10px 16px !important;
+                  gap: 12px !important;
+                }
+
+                .print-certificate .print-footer {
+                  padding: 6px 16px !important;
+                }
               }
             `}</style>
 
-            <div className="print-certificate bg-white rounded-2xl max-w-6xl w-full shadow-2xl print:rounded-none print:shadow-none print:max-w-none" style={{ fontFamily: "'Segoe UI', 'Arial', sans-serif" }}>
-              {/* Elegant Header with Gradient */}
-              <div className="print-header bg-gradient-to-r from-purple-700 via-purple-600 to-indigo-600 text-white p-5 print:p-4">
+            <div className="print-certificate bg-white rounded-xl max-w-5xl w-full shadow-2xl print:rounded-none print:shadow-none print:max-w-none" style={{ fontFamily: "'Segoe UI', 'Arial', sans-serif" }}>
+              {/* Compact Header */}
+              <div className="print-header bg-gradient-to-r from-purple-700 via-purple-600 to-indigo-600 text-white px-4 py-2">
                 <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-white rounded-xl p-2 shadow-lg print:w-12 print:h-12">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white rounded-lg p-1.5 shadow">
                       <img src="/logo.png" alt="Brains Heist" className="w-full h-full object-contain" />
                     </div>
                     <div>
-                      <h1 className="text-2xl font-bold tracking-wide print:text-xl">BRAINS HEIST</h1>
-                      <p className="text-purple-200 text-sm font-medium">Student Performance Certificate</p>
+                      <h1 className="text-lg font-bold tracking-wide">BRAINS HEIST</h1>
+                      <p className="text-purple-200 text-xs">Student Performance Certificate</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <h2 className="text-lg font-semibold print:text-base">{selectedCambridgeStudent.quiz_name}</h2>
-                    <p className="text-purple-200 text-sm">Generated: {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                    <h2 className="text-sm font-semibold">{selectedCambridgeStudent.quiz_name}</h2>
+                    <p className="text-purple-200 text-xs">{new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Student Info Banner */}
-              <div className="print-student-banner bg-gradient-to-r from-indigo-900 to-purple-900 text-white px-6 py-4 flex justify-between items-center print:px-4 print:py-3">
+              {/* Compact Student Banner */}
+              <div className="print-student-banner bg-gradient-to-r from-indigo-900 to-purple-900 text-white px-4 py-2 flex justify-between items-center">
                 <div>
-                  <h2 className="text-2xl font-bold print:text-xl">{selectedCambridgeStudent.student_name}</h2>
-                  <p className="text-indigo-200 text-sm">
+                  <h2 className="text-lg font-bold">{selectedCambridgeStudent.student_name}</h2>
+                  <p className="text-indigo-200 text-xs">
                     Class: <span className="font-semibold text-white">{selectedCambridgeStudent.student_class || 'N/A'}</span>
                     <span className="mx-2">•</span>
-                    Completed: <span className="font-semibold text-white">{new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString('en-GB')}</span>
+                    {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString('en-GB')}
                     <span className="mx-2">•</span>
-                    Duration: <span className="font-semibold text-white">{formatCambridgeTime(selectedCambridgeStudent.time_taken_seconds)}</span>
+                    {formatCambridgeTime(selectedCambridgeStudent.time_taken_seconds)}
                   </p>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <p className="text-indigo-200 text-xs uppercase tracking-wider">Score</p>
-                    <p className="text-2xl font-bold print:text-xl">{selectedCambridgeStudent.score}/{selectedCambridgeStudent.total_questions}</p>
+                    <p className="text-indigo-200 text-[10px] uppercase">Score</p>
+                    <p className="text-xl font-bold">{selectedCambridgeStudent.score}/{selectedCambridgeStudent.total_questions}</p>
                   </div>
-                  <div className={`w-20 h-20 rounded-2xl flex flex-col items-center justify-center shadow-lg print:w-16 print:h-16 ${
+                  <div className={`w-14 h-14 rounded-xl flex flex-col items-center justify-center shadow ${
                     selectedCambridgeStudent.percentage >= 85 ? 'bg-gradient-to-br from-green-400 to-emerald-500' :
                     selectedCambridgeStudent.percentage >= 70 ? 'bg-gradient-to-br from-blue-400 to-cyan-500' :
                     selectedCambridgeStudent.percentage >= 55 ? 'bg-gradient-to-br from-yellow-400 to-amber-500' :
                     'bg-gradient-to-br from-red-400 to-rose-500'
                   }`}>
-                    <span className="text-3xl font-black text-white drop-shadow print:text-2xl">{grade}</span>
-                    <span className="text-xs text-white/90 font-semibold">{selectedCambridgeStudent.percentage}%</span>
+                    <span className="text-xl font-black text-white drop-shadow">{grade}</span>
+                    <span className="text-[10px] text-white/90 font-semibold">{selectedCambridgeStudent.percentage}%</span>
                   </div>
                 </div>
               </div>
 
-              {/* Main Content - Two Column Layout for Landscape */}
-              <div className="p-5 grid grid-cols-1 lg:grid-cols-2 gap-5 print:p-4 print:gap-4 print:grid-cols-2">
-                {/* Left Column - Skills Performance */}
-                <div className="space-y-4">
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <h3 className="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
-                      <span className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-white text-xs">📊</span>
-                      Skills Performance Analysis
+              {/* Main Content - Compact Two Column Layout */}
+              <div className="print-content px-4 py-3 grid grid-cols-2 gap-3">
+                {/* Left Column - Skills */}
+                <div className="space-y-2">
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <h3 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-1">
+                      📊 Skills Performance
                     </h3>
-                    <div className="space-y-2.5">
+                    <div className="space-y-1.5">
                       {sortedSkills.map(([skill, data]) => (
-                        <div key={skill} className="flex items-center gap-2">
-                          <span className="w-40 text-xs font-medium text-gray-600 truncate print:w-32">{data.icon} {skill}</span>
-                          <div className="flex-1 h-5 bg-gray-200 rounded-full overflow-hidden shadow-inner">
+                        <div key={skill} className="flex items-center gap-1.5">
+                          <span className="w-28 text-[10px] font-medium text-gray-600 truncate">{data.icon} {skill}</span>
+                          <div className="flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
                             <div 
-                              className={`skill-bar-fill h-full rounded-full transition-all flex items-center justify-end pr-2 ${
+                              className={`skill-bar-fill h-full rounded-full flex items-center justify-end pr-1 ${
                                 data.percentage >= 80 ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 
                                 data.percentage >= 65 ? 'bg-gradient-to-r from-blue-400 to-cyan-500' : 
                                 data.percentage >= 50 ? 'bg-gradient-to-r from-yellow-400 to-amber-500' : 
                                 'bg-gradient-to-r from-red-400 to-rose-500'
                               }`}
-                              style={{ width: `${Math.max(data.percentage, 15)}%` }}
+                              style={{ width: `${Math.max(data.percentage, 20)}%` }}
                             >
-                              {data.percentage >= 30 && (
-                                <span className="text-[10px] font-bold text-white drop-shadow">{data.percentage}%</span>
-                              )}
+                              <span className="text-[9px] font-bold text-white drop-shadow">{data.percentage}%</span>
                             </div>
                           </div>
-                          <span className="w-14 text-xs font-bold text-gray-700 text-right">{data.correct}/{data.total}</span>
+                          <span className="w-8 text-[10px] font-bold text-gray-600 text-right">{data.correct}/{data.total}</span>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  {/* Focus Areas */}
+                  {/* Focus Areas - Compact */}
                   {weakAreas.length > 0 && (
-                    <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4">
-                      <h4 className="font-bold text-amber-800 mb-2 flex items-center gap-2 text-sm">
-                        <span className="w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center text-white text-xs">⚠</span>
-                        Priority Focus Areas
-                      </h4>
-                      <ul className="text-xs text-amber-900 space-y-1">
-                        {weakAreas.map(([skill, data]) => (
-                          <li key={skill} className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
-                            <strong>{skill}</strong> — {data.percentage}% ({data.correct}/{data.total} correct)
-                          </li>
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-2">
+                      <h4 className="font-bold text-amber-800 text-xs mb-1">⚠️ Focus Areas</h4>
+                      <ul className="text-[10px] text-amber-900 space-y-0.5">
+                        {weakAreas.slice(0, 3).map(([skill, data]) => (
+                          <li key={skill}>• <strong>{skill}</strong> — {data.percentage}%</li>
                         ))}
                       </ul>
                     </div>
                   )}
                 </div>
 
-                {/* Right Column - Action Plan */}
-                <div className="space-y-4">
-                  <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4">
-                    <h3 className="text-base font-bold text-purple-800 mb-3 flex items-center gap-2">
-                      <span className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-white text-xs">📋</span>
-                      Personalized Action Plan
-                    </h3>
+                {/* Right Column - Action Plan & Encouragement */}
+                <div className="space-y-2">
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                    <h3 className="text-sm font-bold text-purple-800 mb-2">📋 Action Plan</h3>
                     {weakAreas.length > 0 ? (
-                      <div className="space-y-3">
+                      <div className="space-y-1.5">
                         {weakAreas.slice(0, 3).map(([skill, data], idx) => {
                           const plan = actionPlans[skill];
                           return plan ? (
-                            <div key={skill} className="flex gap-3 p-3 bg-white rounded-lg border border-purple-100 shadow-sm">
-                              <div className="w-7 h-7 bg-gradient-to-br from-purple-600 to-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">{idx + 1}</div>
+                            <div key={skill} className="flex gap-2 p-2 bg-white rounded border border-purple-100">
+                              <div className="w-5 h-5 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-[10px] flex-shrink-0">{idx + 1}</div>
                               <div className="min-w-0">
-                                <h4 className="font-semibold text-gray-800 text-sm">{plan.title} <span className="text-purple-600">({data.percentage}%)</span></h4>
-                                <p className="text-xs text-gray-600 mt-0.5 leading-relaxed">{plan.tips.join(' • ')}</p>
+                                <h4 className="font-semibold text-gray-800 text-xs">{plan.title} ({data.percentage}%)</h4>
+                                <p className="text-[10px] text-gray-600 leading-tight">{plan.tips.slice(0, 2).join(' • ')}</p>
                               </div>
                             </div>
                           ) : null;
                         })}
                       </div>
                     ) : (
-                      <div className="flex gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
-                        <div className="w-7 h-7 bg-gradient-to-br from-green-500 to-emerald-500 text-white rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">✓</div>
+                      <div className="flex gap-2 p-2 bg-green-50 rounded border border-green-200">
+                        <div className="w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0">✓</div>
                         <div>
-                          <h4 className="font-semibold text-gray-800 text-sm">Excellent Performance!</h4>
-                          <p className="text-xs text-gray-600 mt-0.5">Continue challenging yourself • Read diverse texts daily • Help classmates who are struggling</p>
+                          <h4 className="font-semibold text-gray-800 text-xs">Excellent!</h4>
+                          <p className="text-[10px] text-gray-600">Keep up the great work!</p>
                         </div>
                       </div>
                     )}
                   </div>
 
-                  {/* Encouragement Box */}
-                  <div className={`rounded-xl p-4 text-center ${
+                  {/* Encouragement - Compact */}
+                  <div className={`rounded-lg p-3 text-center ${
                     selectedCambridgeStudent.percentage >= 85 ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
                     selectedCambridgeStudent.percentage >= 70 ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
                     selectedCambridgeStudent.percentage >= 55 ? 'bg-gradient-to-r from-amber-500 to-yellow-500' :
                     'bg-gradient-to-r from-purple-500 to-indigo-500'
-                  } text-white shadow-lg`}>
-                    <h3 className="text-lg font-bold mb-1 print:text-base">{encouragement.title}</h3>
-                    <p className="text-sm opacity-95 print:text-xs">{encouragement.message}</p>
+                  } text-white`}>
+                    <h3 className="text-sm font-bold">{encouragement.title}</h3>
+                    <p className="text-[11px] opacity-95">{encouragement.message}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Footer */}
-              <div className="px-5 py-3 border-t border-gray-200 flex justify-between items-center bg-gray-50 print:py-2">
-                <div className="flex items-center gap-4 text-xs text-gray-500">
-                  <span className="font-medium">Brains Heist Learning Platform</span>
-                  <span>•</span>
-                  <span>Report ID: {selectedCambridgeStudent.id?.substring(0, 8).toUpperCase() || 'N/A'}</span>
+              {/* Compact Footer */}
+              <div className="print-footer px-4 py-2 border-t border-gray-200 flex justify-between items-center bg-gray-50">
+                <div className="text-[10px] text-gray-500">
+                  <span className="font-medium">Brains Heist</span> • ID: {selectedCambridgeStudent.id?.substring(0, 8).toUpperCase() || 'N/A'}
                 </div>
                 <div className="flex gap-2 no-print">
                   <button 
-                    onClick={handleExportPDF} 
-                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-semibold text-sm hover:from-purple-700 hover:to-indigo-700 transition-all shadow-md flex items-center gap-2"
-                  >
-                    📄 Export PDF
-                  </button>
-                  <button 
                     onClick={handlePrint} 
-                    className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-semibold text-sm hover:from-green-600 hover:to-emerald-600 transition-all shadow-md flex items-center gap-2"
+                    className="px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-semibold text-xs hover:from-green-600 hover:to-emerald-600 transition-all shadow flex items-center gap-1"
                   >
-                    🖨️ Print
+                    🖨️ Print / PDF
                   </button>
                   <button 
                     onClick={() => setShowCambridgeReport(false)} 
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold text-sm hover:bg-gray-300 transition-colors"
+                    className="px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg font-semibold text-xs hover:bg-gray-300"
                   >
                     Close
                   </button>
