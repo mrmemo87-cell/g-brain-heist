@@ -4131,67 +4131,49 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         <BackButton onClick={onComplete} />
 
         {/* Professional Header */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 rounded-3xl p-8 mb-6 shadow-[0_30px_80px_-35px_rgba(15,23,42,0.7)] border border-white/10">
-          <div className="absolute inset-0 opacity-60 bg-[radial-gradient(circle_at_18%_20%,rgba(56,189,248,0.18),transparent_35%),radial-gradient(circle_at_82%_10%,rgba(147,197,253,0.16),transparent_38%),radial-gradient(circle_at_50%_120%,rgba(124,58,237,0.18),transparent_38%)]" aria-hidden />
-          <div className="absolute inset-0 opacity-25 mix-blend-screen bg-[linear-gradient(120deg,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[length:28px_28px]" aria-hidden />
-          <div className="relative flex flex-col gap-6">
-            <div className="flex flex-wrap items-start justify-between gap-6">
-              <div className="space-y-3 max-w-3xl">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <p className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-cyan-100 border border-white/15">
-                    Educator workspace
-                  </p>
-                  <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-semibold bg-white/5 text-white/80 border border-white/10">
-                    <span className="h-2 w-2 rounded-full bg-emerald-300 animate-pulse" />
-                    Calibrated for clarity
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 flex-wrap">
-                  <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-                    👨‍🏫 Teacher Portal
-                  </h1>
-                  <span className="px-3 py-1 rounded-full text-sm font-semibold bg-white/5 text-white/80 border border-white/10">
-                    Welcome back, {profile.username}
-                  </span>
-                </div>
-                <p className="text-slate-200/90 leading-relaxed">
-                  Review progress, craft assignments, and keep every question organised in a calmer, more readable workspace built for educators.
-                </p>
-              </div>
-              <div className="flex flex-1 justify-end gap-3 min-w-[320px]">
-                {statCards.map((stat) => (
-                  <div
-                    key={stat.label}
-                    className={`flex-1 rounded-2xl border border-white/10 bg-gradient-to-br ${stat.accent} backdrop-blur px-4 py-4 text-right shadow-lg shadow-cyan-500/5`}
-                  >
-                    <div className="flex items-center justify-between text-white/70 text-xs uppercase tracking-wide mb-1">
-                      <span>{stat.label}</span>
-                      <span className="text-lg">{stat.icon}</span>
-                    </div>
-                    <div className={`text-2xl font-bold leading-tight ${stat.text}`}>{stat.value}</div>
-                  </div>
-                ))}
-              </div>
+        <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-8 mb-6 shadow-2xl border border-white/10">
+          <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_top_left,#38bdf8,transparent_35%),radial-gradient(circle_at_bottom_right,#a855f7,transparent_35%)]" aria-hidden />
+          <div className="relative flex items-start justify-between flex-wrap gap-6">
+            <div className="space-y-2">
+              <p className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-cyan-200 border border-white/10">Educator workspace</p>
+              <h1 className="text-3xl font-bold text-white flex items-center gap-3 tracking-tight">
+                👨‍🏫 Teacher Portal
+              </h1>
+              <p className="text-slate-200 max-w-2xl leading-relaxed">
+                Welcome back, <span className="text-cyan-300 font-semibold">{profile.username}</span>. Review student progress, craft assignments, and keep your question bank organised — all in one calm, focused hub.
+              </p>
             </div>
-            <div className="flex flex-wrap gap-3 text-xs text-white/70">
-              <span className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10">
-                <span className="h-2 w-2 rounded-full bg-emerald-300" />
-                Live sync enabled
-              </span>
-              <span className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10">
-                <span className="h-2 w-2 rounded-full bg-sky-300" />
-                Calmer palette for reviews & marking
-              </span>
-              <span className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10">
-                <span className="h-2 w-2 rounded-full bg-amber-300" />
-                Transparent navigation highlights
-              </span>
+            <div className="flex flex-1 justify-end gap-3 min-w-[260px]">
+              {[{
+                label: 'Questions',
+                value: questions.length,
+                accent: 'from-cyan-400/20 to-cyan-500/10',
+                text: 'text-cyan-200'
+              }, {
+                label: 'Assignments',
+                value: assignments.length,
+                accent: 'from-emerald-400/20 to-emerald-500/10',
+                text: 'text-emerald-200'
+              }, {
+                label: 'Responses',
+                value: questions.reduce((sum, q) => sum + q.times_answered, 0),
+                accent: 'from-purple-400/20 to-purple-500/10',
+                text: 'text-purple-200'
+              }].map((stat) => (
+                <div
+                  key={stat.label}
+                  className={`flex-1 rounded-xl border border-white/10 bg-gradient-to-br ${stat.accent} backdrop-blur px-4 py-3 text-right shadow-lg`}
+                >
+                  <div className="text-xs uppercase tracking-wide text-white/70">{stat.label}</div>
+                  <div className={`text-2xl font-bold leading-tight ${stat.text}`}>{stat.value}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
         {/* Professional Navigation Tabs */}
-        <div className="bg-white/90 backdrop-blur-md rounded-2xl p-3 mb-6 shadow-[0_20px_50px_-25px_rgba(15,23,42,0.25)] border border-slate-200">
+        <div className="bg-white/80 backdrop-blur-md rounded-2xl p-3 mb-6 shadow-lg border border-slate-200">
           <div className="flex flex-wrap gap-3">
             {navTabs.map((tab) => (
               <button
@@ -4199,8 +4181,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 onClick={() => changeSection(tab.id)}
                 className={`flex-1 min-w-[160px] px-4 py-3 rounded-xl transition-all duration-200 flex items-center gap-3 border ${
                   primarySection === tab.id
-                    ? 'bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-white shadow-lg shadow-cyan-200/40 border-transparent ring-2 ring-cyan-200/60'
-                    : 'bg-white text-slate-700 hover:text-slate-900 hover:border-cyan-200 hover:shadow-md border-slate-200'
+                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md border-transparent'
+                    : 'bg-white text-slate-700 hover:text-slate-900 hover:border-cyan-200 border-slate-200'
                 }`}
               >
                 <span className="text-xl">{tab.icon}</span>
