@@ -3619,15 +3619,15 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   </div>
                   
                   {/* Student's Answer */}
-                  <div className="p-4 bg-gray-50 border-b">
-                    <label className="text-sm font-semibold text-gray-600 block mb-2">Student's Original Response:</label>
-                    <div className="bg-white p-4 rounded-lg border text-gray-800 whitespace-pre-wrap leading-relaxed">
+                  <div className="p-4 bg-white border-b">
+                    <label className="text-sm font-semibold text-gray-700 block mb-2">Student's Original Response:</label>
+                    <div className="bg-slate-50 p-4 rounded-lg border-2 border-slate-200 text-gray-900 whitespace-pre-wrap leading-relaxed">
                       {answers.part1 || 'No response submitted'}
                     </div>
                   </div>
                   
                   {/* Marking Grid */}
-                  <div className="p-4 border-b">
+                  <div className="p-4 border-b bg-white">
                     <div className="grid grid-cols-3 gap-4">
                       <div className="bg-green-50 p-4 rounded-xl border border-green-200">
                         <label className="text-sm font-bold text-green-800 block mb-2">Content (0-5)</label>
@@ -3637,11 +3637,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                             ...prev,
                             part1: { ...prev.part1, content: parseInt(e.target.value) }
                           }))}
-                          className="w-full p-2 border-2 border-green-300 rounded-lg text-lg font-bold text-center"
+                          className="w-full p-2 border-2 border-green-300 rounded-lg text-lg font-bold text-center bg-white text-gray-900"
                         >
                           {[0,1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
                         </select>
-                        <p className="text-xs text-gray-500 mt-2">5: All 3 content points fully covered</p>
+                        <p className="text-xs text-gray-600 mt-2">5: All 3 content points fully covered</p>
                       </div>
                       <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
                         <label className="text-sm font-bold text-blue-800 block mb-2">Organisation (0-5)</label>
@@ -3651,11 +3651,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                             ...prev,
                             part1: { ...prev.part1, organisation: parseInt(e.target.value) }
                           }))}
-                          className="w-full p-2 border-2 border-blue-300 rounded-lg text-lg font-bold text-center"
+                          className="w-full p-2 border-2 border-blue-300 rounded-lg text-lg font-bold text-center bg-white text-gray-900"
                         >
                           {[0,1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
                         </select>
-                        <p className="text-xs text-gray-500 mt-2">5: Well organised, coherent, appropriate linking</p>
+                        <p className="text-xs text-gray-600 mt-2">5: Well organised, coherent, appropriate linking</p>
                       </div>
                       <div className="bg-purple-50 p-4 rounded-xl border border-purple-200">
                         <label className="text-sm font-bold text-purple-800 block mb-2">Language (0-5)</label>
@@ -3665,11 +3665,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                             ...prev,
                             part1: { ...prev.part1, language: parseInt(e.target.value) }
                           }))}
-                          className="w-full p-2 border-2 border-purple-300 rounded-lg text-lg font-bold text-center"
+                          className="w-full p-2 border-2 border-purple-300 rounded-lg text-lg font-bold text-center bg-white text-gray-900"
                         >
                           {[0,1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
                         </select>
-                        <p className="text-xs text-gray-500 mt-2">5: Sufficiently accurate, message clear</p>
+                        <p className="text-xs text-gray-600 mt-2">5: Sufficiently accurate, message clear</p>
                       </div>
                     </div>
                     <div className="mt-4 text-right">
@@ -3721,15 +3721,15 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   </div>
                   
                   {/* Student's Answer */}
-                  <div className="p-4 bg-gray-50 border-b">
-                    <label className="text-sm font-semibold text-gray-600 block mb-2">Student's Original Response:</label>
-                    <div className="bg-white p-4 rounded-lg border text-gray-800 whitespace-pre-wrap leading-relaxed min-h-[150px]">
+                  <div className="p-4 bg-white border-b">
+                    <label className="text-sm font-semibold text-gray-700 block mb-2">Student's Original Response:</label>
+                    <div className="bg-slate-50 p-4 rounded-lg border-2 border-slate-200 text-gray-900 whitespace-pre-wrap leading-relaxed min-h-[150px]">
                       {answers.part2 || 'No response submitted'}
                     </div>
                   </div>
                   
                   {/* Marking Grid */}
-                  <div className="p-4 border-b">
+                  <div className="p-4 border-b bg-white">
                     <div className="grid grid-cols-4 gap-3">
                       <div className="bg-green-50 p-3 rounded-xl border border-green-200">
                         <label className="text-sm font-bold text-green-800 block mb-2">Content (0-5)</label>
@@ -3739,11 +3739,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                             ...prev,
                             part2: { ...prev.part2, content: parseInt(e.target.value) }
                           }))}
-                          className="w-full p-2 border-2 border-green-300 rounded-lg text-lg font-bold text-center"
+                          className="w-full p-2 border-2 border-green-300 rounded-lg text-lg font-bold text-center bg-white text-gray-900"
                         >
                           {[0,1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
                         </select>
-                        <p className="text-xs text-gray-500 mt-2">5: All relevant, reader fully informed</p>
+                        <p className="text-xs text-gray-600 mt-2">5: All relevant, reader fully informed</p>
                       </div>
                       <div className="bg-yellow-50 p-3 rounded-xl border border-yellow-200">
                         <label className="text-sm font-bold text-yellow-800 block mb-2">Comm. Ach. (0-5)</label>
@@ -3753,11 +3753,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                             ...prev,
                             part2: { ...prev.part2, communicativeAchievement: parseInt(e.target.value) }
                           }))}
-                          className="w-full p-2 border-2 border-yellow-300 rounded-lg text-lg font-bold text-center"
+                          className="w-full p-2 border-2 border-yellow-300 rounded-lg text-lg font-bold text-center bg-white text-gray-900"
                         >
                           {[0,1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
                         </select>
-                        <p className="text-xs text-gray-500 mt-2">5: Clear, appropriate style</p>
+                        <p className="text-xs text-gray-600 mt-2">5: Clear, appropriate style</p>
                       </div>
                       <div className="bg-blue-50 p-3 rounded-xl border border-blue-200">
                         <label className="text-sm font-bold text-blue-800 block mb-2">Organisation (0-5)</label>
@@ -3767,11 +3767,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                             ...prev,
                             part2: { ...prev.part2, organisation: parseInt(e.target.value) }
                           }))}
-                          className="w-full p-2 border-2 border-blue-300 rounded-lg text-lg font-bold text-center"
+                          className="w-full p-2 border-2 border-blue-300 rounded-lg text-lg font-bold text-center bg-white text-gray-900"
                         >
                           {[0,1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
                         </select>
-                        <p className="text-xs text-gray-500 mt-2">5: Well organised, coherent</p>
+                        <p className="text-xs text-gray-600 mt-2">5: Well organised, coherent</p>
                       </div>
                       <div className="bg-purple-50 p-3 rounded-xl border border-purple-200">
                         <label className="text-sm font-bold text-purple-800 block mb-2">Language (0-5)</label>
@@ -3781,11 +3781,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                             ...prev,
                             part2: { ...prev.part2, language: parseInt(e.target.value) }
                           }))}
-                          className="w-full p-2 border-2 border-purple-300 rounded-lg text-lg font-bold text-center"
+                          className="w-full p-2 border-2 border-purple-300 rounded-lg text-lg font-bold text-center bg-white text-gray-900"
                         >
                           {[0,1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
                         </select>
-                        <p className="text-xs text-gray-500 mt-2">5: Range of vocab, good control</p>
+                        <p className="text-xs text-gray-600 mt-2">5: Range of vocab, good control</p>
                       </div>
                     </div>
                     <div className="mt-4 text-right">
