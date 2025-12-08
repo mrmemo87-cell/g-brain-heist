@@ -1014,13 +1014,14 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         </div>
         <div className="card-glass p-6 mb-6">
             <p className="text-xl text-gray-200">{questionText}</p>
-            {/* Display question image if available */}
-            {activeTeacherQuestion?.image_url && (
+            {/* Display question image if available (for all question types) */}
+            {(mode === 'practice' ? question?.image_url : activeTeacherQuestion?.image_url) && (
               <div className="mt-4 flex justify-center">
                 <img
-                  src={activeTeacherQuestion.image_url}
+                  src={(mode === 'practice' ? question?.image_url : activeTeacherQuestion?.image_url) || ''}
                   alt="Question"
                   className="max-w-full max-h-64 rounded-lg border border-gray-600 object-contain"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
               </div>
             )}

@@ -2087,6 +2087,7 @@ export const mcq_questions_get = async (subject_id: string, limit: number = 5): 
         reward_xp: q.points || 20,
         reward_coins: Math.floor((q.points || 20) * 1.5),
         explanation: q.explanation,
+        image_url: q.image_url || null, // Include question image
         points: q.points,
         times_answered: q.times_answered,
         times_correct: q.times_correct,

@@ -160,11 +160,12 @@ export type AssignmentBatch = Batch | 'All';
 export interface Question {
   id: string;
   body: string;
-  options: string[];
+  options: (string | QuestionOption)[];
   correct_answer?: string; // Added for database questions
   reward_xp: number;
   reward_coins: number;
   explanation?: string;
+  image_url?: string | null; // Optional image for the question
   points?: number;
   times_answered?: number;
   times_correct?: number;

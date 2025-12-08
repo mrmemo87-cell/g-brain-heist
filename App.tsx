@@ -5,6 +5,7 @@ import { supabase } from './services/supabaseClient';
 import Header from './components/Header';
 import { useLightMode } from './src/contexts/LightModeContext';
 import PlayerProfileCard from './components/PlayerProfileCard';
+import LoadingScreen from './components/LoadingScreen';
 import TaskList from './components/TaskList';
 import MainActions from './components/MainActions';
 import NewsFeed from './components/NewsFeed';
@@ -736,20 +737,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="relative w-64 h-64 flex items-center justify-center">
-          <div className="absolute w-32 h-32 border-4 border-ion-blue border-t-transparent rounded-full animate-spin"></div>
-          <div className="absolute w-24 h-24 border-4 border-plasma-pink border-t-transparent rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
-        </div>
-        <div className="font-heading text-2xl animate-pulse mt-4" style={{color: 'var(--ion-blue)'}}>
-          Initializing Heist OS...
-        </div>
-        <div className="text-sm text-gray-400 mt-2">
-          Loading your profile and game data...
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   // Database not set up error screen
