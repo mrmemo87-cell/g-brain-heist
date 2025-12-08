@@ -4099,55 +4099,72 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     : 'pt-6';
 
   return (
-    <div className={`${containerSpacing} teacher-portal-light min-h-screen`}>
-      <BackButton onClick={onComplete} />
+    <div className={`${containerSpacing} teacher-portal-light min-h-screen relative overflow-hidden`}>
+      <div className="teacher-portal-surface" aria-hidden />
+      <div className="teacher-portal-glow" aria-hidden />
 
-      <div className="max-w-7xl mx-auto px-4 pb-10">
+      <div className="relative max-w-7xl mx-auto px-4 pb-12">
+        <BackButton onClick={onComplete} />
+
         {/* Professional Header */}
-        <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl p-6 mb-6 shadow-lg">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+        <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-8 mb-6 shadow-2xl border border-white/10">
+          <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_top_left,#38bdf8,transparent_35%),radial-gradient(circle_at_bottom_right,#a855f7,transparent_35%)]" aria-hidden />
+          <div className="relative flex items-start justify-between flex-wrap gap-6">
+            <div className="space-y-2">
+              <p className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-cyan-200 border border-white/10">Educator workspace</p>
+              <h1 className="text-3xl font-bold text-white flex items-center gap-3 tracking-tight">
                 👨‍🏫 Teacher Portal
               </h1>
-              <p className="text-slate-300 mt-1">Welcome back, <span className="text-cyan-400 font-semibold">{profile.username}</span></p>
+              <p className="text-slate-200 max-w-2xl leading-relaxed">
+                Welcome back, <span className="text-cyan-300 font-semibold">{profile.username}</span>. Review student progress, craft assignments, and keep your question bank organised — all in one calm, focused hub.
+              </p>
             </div>
-            <div className="hidden md:flex items-center gap-4 text-white">
-              <div className="text-center px-4 border-r border-slate-600">
-                <div className="text-2xl font-bold text-cyan-400">{questions.length}</div>
-                <div className="text-xs text-slate-400">Questions</div>
-              </div>
-              <div className="text-center px-4 border-r border-slate-600">
-                <div className="text-2xl font-bold text-green-400">{assignments.length}</div>
-                <div className="text-xs text-slate-400">Assignments</div>
-              </div>
-              <div className="text-center px-4">
-                <div className="text-2xl font-bold text-purple-400">
-                  {questions.reduce((sum, q) => sum + q.times_answered, 0)}
+            <div className="flex flex-1 justify-end gap-3 min-w-[260px]">
+              {[{
+                label: 'Questions',
+                value: questions.length,
+                accent: 'from-cyan-400/20 to-cyan-500/10',
+                text: 'text-cyan-200'
+              }, {
+                label: 'Assignments',
+                value: assignments.length,
+                accent: 'from-emerald-400/20 to-emerald-500/10',
+                text: 'text-emerald-200'
+              }, {
+                label: 'Responses',
+                value: questions.reduce((sum, q) => sum + q.times_answered, 0),
+                accent: 'from-purple-400/20 to-purple-500/10',
+                text: 'text-purple-200'
+              }].map((stat) => (
+                <div
+                  key={stat.label}
+                  className={`flex-1 rounded-xl border border-white/10 bg-gradient-to-br ${stat.accent} backdrop-blur px-4 py-3 text-right shadow-lg`}
+                >
+                  <div className="text-xs uppercase tracking-wide text-white/70">{stat.label}</div>
+                  <div className={`text-2xl font-bold leading-tight ${stat.text}`}>{stat.value}</div>
                 </div>
-                <div className="text-xs text-slate-400">Responses</div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
 
         {/* Professional Navigation Tabs */}
-        <div className="bg-slate-100 rounded-xl p-2 mb-6 shadow-sm">
-          <div className="flex flex-wrap gap-2">
+        <div className="bg-white/80 backdrop-blur-md rounded-2xl p-3 mb-6 shadow-lg border border-slate-200">
+          <div className="flex flex-wrap gap-3">
             {navTabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => changeSection(tab.id)}
-                className={`flex-1 min-w-[140px] px-4 py-3 rounded-lg transition-all flex items-center gap-2 ${
-                  primarySection === tab.id 
-                    ? 'bg-white text-slate-900 shadow-md font-semibold' 
-                    : 'text-slate-600 hover:bg-white/50 hover:text-slate-900'
+                className={`flex-1 min-w-[160px] px-4 py-3 rounded-xl transition-all duration-200 flex items-center gap-3 border ${
+                  primarySection === tab.id
+                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md border-transparent'
+                    : 'bg-white text-slate-700 hover:text-slate-900 hover:border-cyan-200 border-slate-200'
                 }`}
               >
                 <span className="text-xl">{tab.icon}</span>
                 <div className="text-left">
-                  <div className="font-medium">{tab.label}</div>
-                  <div className="text-xs text-slate-500 hidden lg:block">{tab.description}</div>
+                  <div className="font-semibold leading-5">{tab.label}</div>
+                  <div className={`text-xs ${primarySection === tab.id ? 'text-white/80' : 'text-slate-500'} hidden lg:block`}>{tab.description}</div>
                 </div>
               </button>
             ))}
@@ -4155,7 +4172,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         </div>
 
         {/* Main Content Area with White Background */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="bg-white/90 backdrop-blur rounded-2xl shadow-xl border border-slate-200 p-6">
           {view === 'dashboard' && renderDashboard()}
           {view === 'create-question' && renderCreateQuestion()}
           {view === 'question-bank' && renderQuestionBank()}
