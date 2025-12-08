@@ -4098,6 +4098,30 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     ? 'pt-6 md:pt-10'
     : 'pt-6';
 
+  const statCards = [
+    {
+      label: 'Questions',
+      value: questions.length,
+      accent: 'from-cyan-500/10 via-cyan-400/10 to-blue-400/10',
+      text: 'text-cyan-100',
+      icon: '🧠'
+    },
+    {
+      label: 'Assignments',
+      value: assignments.length,
+      accent: 'from-emerald-500/10 via-emerald-400/10 to-teal-400/10',
+      text: 'text-emerald-100',
+      icon: '🗂️'
+    },
+    {
+      label: 'Responses',
+      value: questions.reduce((sum, q) => sum + q.times_answered, 0),
+      accent: 'from-purple-500/10 via-indigo-400/10 to-violet-400/10',
+      text: 'text-purple-100',
+      icon: '📈'
+    }
+  ];
+
   return (
     <div className={`${containerSpacing} teacher-portal-light min-h-screen relative overflow-hidden`}>
       <div className="teacher-portal-surface" aria-hidden />
