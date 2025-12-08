@@ -244,8 +244,6 @@ const IeltsPrime: React.FC = () => {
         backdropFilter: 'blur(10px)',
         borderBottom: '1px solid rgba(255,255,255,0.1)',
         padding: '1rem',
-        position: 'sticky',
-        top: 0,
         zIndex: 100,
       }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
