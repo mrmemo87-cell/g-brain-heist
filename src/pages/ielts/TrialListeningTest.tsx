@@ -678,10 +678,8 @@ const TrialListeningTest: React.FC = () => {
       background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
       paddingBottom: '6rem' // Space for fixed bottom bar
     }}>
-      {/* Fixed Header */}
+      {/* Header */}
       <div style={{
-        position: 'sticky',
-        top: 0,
         background: 'white',
         borderBottom: '1px solid #e2e8f0',
         padding: 'clamp(0.75rem, 2vw, 1rem)',
@@ -733,10 +731,8 @@ const TrialListeningTest: React.FC = () => {
         </div>
       </div>
 
-      {/* Audio Player - Sticky below header */}
+      {/* Audio Player */}
       <div style={{
-        position: 'sticky',
-        top: '80px',
         background: 'linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%)',
         padding: '0.75rem 1rem',
         zIndex: 99,

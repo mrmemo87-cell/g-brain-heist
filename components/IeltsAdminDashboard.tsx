@@ -1055,7 +1055,7 @@ const ContentCard: React.FC<{
     </div>
     <div className="overflow-x-auto max-h-[300px]">
       <table className="w-full">
-        <thead className="sticky top-0 bg-gray-800">
+        <thead className="bg-gray-800">
           <tr>
             {columns.map(col => (
               <th key={col} className="px-3 py-2 text-left text-gray-400 text-sm">{col}</th>

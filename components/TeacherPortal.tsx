@@ -2966,7 +2966,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             {/* Results Table - Compact */}
             <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-100 sticky top-0">
+                <thead className="bg-gray-100">
                   <tr>
                     <th className="px-4 py-2.5 text-left text-gray-700 font-semibold">Student</th>
                     <th className="px-4 py-2.5 text-left text-gray-700 font-semibold">Class</th>
