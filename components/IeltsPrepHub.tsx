@@ -112,7 +112,7 @@ const IeltsPrepHub: React.FC<IeltsPrepHubProps> = ({ onBack }) => {
           <ul className="mt-4 space-y-3 text-gray-300 text-sm">
             <li>⚡ Daily streak rewards for IELTS-specific practice</li>
             <li>🎯 Personalized band targets with guidance</li>
-            <li>🧠 Deep dives for listening, reading, writing & speaking</li>
+            <li><img src="/logo.png" alt="" className="inline-block w-4 h-4" /> Deep dives for listening, reading, writing & speaking</li>
           </ul>
         </div>
       </div>

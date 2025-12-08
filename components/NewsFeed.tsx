@@ -37,7 +37,7 @@ const formatEventText = (event: NewsEvent) => {
       return <><span style={{...actorStyle, color: 'var(--ion-blue)'}}>{event.actor}</span> created a clan <span className="font-bold">{event.data.details}</span>. Welcome! 🛡️</>;
         
         case 'quest_cleared':
-            return <><span style={{...actorStyle, color: 'var(--ion-blue)'}}>{event.actor}</span> aced <span className="font-bold">"{event.data.details}"</span>! 🧠</>;
+            return <><span style={{...actorStyle, color: 'var(--ion-blue)'}}>{event.actor}</span> aced <span className="font-bold">"{event.data.details}"</span>! <img src="/logo.png" alt="" className="inline-block w-4 h-4" /></>;
         
         case 'purchase':
             return <><span style={{...actorStyle, color: 'var(--success-teal)'}}>{event.actor}</span> bought a <span className="font-bold">{event.data.item}</span> 🛒</>;

@@ -3103,7 +3103,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               <div className="p-6 border-b-4 border-purple-600">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
-                    <span className="text-4xl">🧠</span>
+                    <img src="/logo.png" alt="Brains Heist" className="w-12 h-12 object-contain" />
                     <div>
                       <h1 className="text-2xl font-bold text-purple-800">Brains Heist</h1>
                       <p className="text-sm text-gray-500">Student Performance Report</p>
@@ -3420,7 +3420,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               <div className="p-6 border-b-4 border-blue-600">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
-                    <span className="text-4xl">🧠</span>
+                    <img src="/logo.png" alt="Brains Heist" className="w-12 h-12 object-contain" />
                     <div>
                       <h1 className="text-2xl font-bold text-blue-800">Brains Heist</h1>
                       <p className="text-sm text-gray-500">Test Reflection & Answer Review</p>

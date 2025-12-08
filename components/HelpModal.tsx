@@ -21,7 +21,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
 
   const sections: { id: HelpSection; icon: string; title: string }[] = [
     { id: 'overview', icon: '📖', title: 'Game Overview' },
-    { id: 'quests', icon: '🧠', title: 'Quests & Questions' },
+    { id: 'quests', icon: '📚', title: 'Quests & Questions' },
     { id: 'pvp', icon: '⚔️', title: 'PvP Raids' },
     { id: 'clans', icon: '🏰', title: 'Clans' },
     { id: 'lockdown', icon: '🔒', title: 'Lockdown Mode' },
@@ -67,7 +67,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
 
     quests: (
       <div className="space-y-3 sm:space-y-4">
-        <h2 className="text-xl sm:text-2xl font-bold text-cyan-400">🧠 Quests & Questions</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-cyan-400"><img src="/logo.png" alt="" className="inline-block w-6 h-6 mr-1" /> Quests & Questions</h2>
         <div className="space-y-2 sm:space-y-3 text-sm sm:text-base text-gray-300">
           
           <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 sm:p-4">
@@ -323,7 +323,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
           <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3 sm:p-4">
             <h3 className="text-base sm:text-lg font-bold text-purple-400 mb-2">🌟 Achievement Categories</h3>
             <div className="space-y-2">
-              <p><strong>🧠 Scholar:</strong> Complete quests and answer questions</p>
+              <p><strong><img src="/logo.png" alt="" className="inline-block w-4 h-4" /> Scholar:</strong> Complete quests and answer questions</p>
               <p><strong>⚔️ Warrior:</strong> Win PvP raids and battles</p>
               <p><strong>🏰 Social:</strong> Join clans and interact with others</p>
               <p><strong>💰 Collector:</strong> Earn coins and buy items</p>
