@@ -116,31 +116,51 @@ ${isPart1 ? `PART 1 MARKING CRITERIA
 - Organisation (0-5): Is the text well-organised with clear paragraphing?
 - Language (0-5): Wide range of vocabulary and grammar with accuracy?`}
 
-LANGUAGE EXPECTATIONS
-- Use examiner-style academic phrasing.
-- Highlight grammar, punctuation, vocabulary, and structural weaknesses.
-- When correcting the text, preserve the student's intentions but fix all errors.
-- When producing model answers, aim for accuracy, cohesion, and a wide range of structures.
+CRITICAL REQUIREMENTS
+1. You MUST list EVERY spelling mistake found - do not skip any
+2. You MUST list EVERY grammar mistake found - do not skip any
+3. For each mistake, explain WHY it is wrong and HOW to avoid it
+4. Each mark justification must be detailed (2-3 sentences minimum)
+5. The model answer must be a complete, new text (not just advice)
 
 OUTPUT REQUIREMENT
 You MUST respond with valid JSON only in this exact format:
 {
-  "feedback": "Examiner's Commentary for the Candidate - formal, detailed, constructive feedback explaining strengths and weaknesses. No emojis. Academic tone.",
-  "correctedVersion": "Corrected Version - the student's text with all errors fixed while preserving their meaning and intentions.",
-  "spellingMistakes": [{"wrong": "misspelled word", "correct": "correct spelling", "explanation": "brief note on the error"}],
-  "grammarMistakes": [{"wrong": "incorrect phrase", "correct": "corrected phrase", "explanation": "grammar rule explanation"}],
+  "feedback": "Overall Examiner's Commentary (2-3 paragraphs): Paragraph 1 - Summarise what the candidate did well. Paragraph 2 - Explain the main weaknesses. Paragraph 3 - Specific advice for improvement.",
+  
+  "correctedVersion": "The student's EXACT text rewritten with ALL errors fixed. Preserve their ideas and structure but correct every spelling, grammar, and punctuation error.",
+  
+  "spellingMistakes": [
+    {"wrong": "writting", "correct": "writing", "explanation": "Common error: 'write' drops the 'e' and adds '-ing', not '-ting'. Remember: write → writing."},
+    {"wrong": "freind", "correct": "friend", "explanation": "The rule 'i before e except after c' applies here. Remember: fr-i-e-nd."}
+  ],
+  
+  "grammarMistakes": [
+    {"wrong": "I am enjoy", "correct": "I enjoy / I am enjoying", "explanation": "Verb form error: Use simple present 'enjoy' for habits, or present continuous 'am enjoying' for current actions. Do not mix 'am' with base verb."},
+    {"wrong": "She don't like", "correct": "She doesn't like", "explanation": "Subject-verb agreement: Third person singular (he/she/it) requires 'doesn't', not 'don't'."}
+  ],
+  
   "suggestedMarks": {
     "content": 3,
     "organisation": 3,
     "language": 3${isPart1 ? '' : ',\n    "communicativeAchievement": 3'}
   },
-  "overallComments": "High-Band Model Answer (${isPart1 ? '14-15/15, 45-55 words' : '18-20/20, 110-130 words'}) - Write a new model answer that demonstrates advanced language use, cohesion, and appropriate register.",
+  
   "markJustifications": {
-    "content": "Justification for content mark",
-    "organisation": "Justification for organisation mark",
-    "language": "Justification for language mark"${isPart1 ? '' : ',\n    "communicativeAchievement": "Justification for communicative achievement mark"'}
-  }
-}`;
+    "content": "Detailed justification (2-3 sentences): State what content points were addressed or missed. Explain how this affected the mark. Example: 'The candidate addressed 2 of 3 required points. The question about timing was omitted entirely. This results in a mark of 3 as the response is only partially complete.'",
+    "organisation": "Detailed justification (2-3 sentences): Comment on paragraphing, linking words, logical flow. Example: 'The text follows a logical sequence with an opening and closing. However, no linking words (firstly, also, finally) were used to connect ideas. A mark of 3 reflects adequate but basic organisation.'",
+    "language": "Detailed justification (2-3 sentences): Comment on vocabulary range, grammar accuracy, spelling. Example: 'The candidate uses basic vocabulary appropriately but lacks variety. There are 3 grammatical errors affecting clarity. The mark of 2 reflects limited range with noticeable errors.'"${isPart1 ? '' : ',\n    "communicativeAchievement": "Detailed justification (2-3 sentences): Comment on register, tone, and whether the text achieves its purpose for the intended reader."'}
+  },
+  
+  "overallComments": "OVERALL COMMENTS & TIPS (Personalised, positive tone): Start with genuine praise for specific strengths shown in THIS student's work. Then identify 2-3 specific areas for improvement based on their actual mistakes. End with encouraging advice and one clear next step. Example: 'You have shown good understanding of the task requirements and your message is clear. Your main areas for development are: (1) verb tense consistency - practise using past simple throughout narratives, (2) punctuation - remember to use commas after introductory phrases. Keep practising and focus on proofreading your work before submission. You are making good progress!'",
+  
+  "modelAnswer": "HIGH-BAND MODEL ANSWER (${isPart1 ? '14-15/15' : '18-20/20'}): Write a COMPLETE new answer to the same task in ${isPart1 ? '45-55' : '110-130'} words. This should demonstrate: varied vocabulary, accurate grammar, appropriate register, good organisation with linking words, and full task completion. This is NOT advice - it is a full model text the student can study."
+}
+
+IMPORTANT: 
+- spellingMistakes array must contain ALL spelling errors found (empty array [] only if no errors)
+- grammarMistakes array must contain ALL grammar/punctuation errors found (empty array [] only if no errors)
+- Each explanation must teach the student how to avoid the mistake in future`;
 
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
@@ -148,7 +168,7 @@ You MUST respond with valid JSON only in this exact format:
         temperature: 0.3,
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Analyse and mark this ${partInfo} submission:\n\n"${text}"` },
+          { role: "user", content: `Analyse and mark this ${partInfo} submission. List ALL spelling and grammar mistakes individually with explanations:\n\n"${text}"` },
         ],
       });
 
