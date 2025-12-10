@@ -91,70 +91,75 @@ serve(async (req) => {
 
       console.log(`Calling OpenAI for ${partInfo}, ${wordCount} words...`);
 
-      const systemPrompt = `You are a SENIOR Cambridge ESOL Writing Examiner. Analyse this ${isPart1 ? 'Part 1 (email)' : 'Part 2 (essay/article/review/story)'} submission.
+      const systemPrompt = `You are a Cambridge ESOL Senior Examiner marking a B2 First ${isPart1 ? 'Part 1 email' : 'Part 2 essay/article'}.
 
-WORD COUNT: Student wrote ${wordCount} words. Target: ${isPart1 ? '45-55' : '110-130'} words.
+TASK: Analyse the student text and return a JSON object with ALL of the following fields.
 
-MARKING CRITERIA (0-5 each):
-${isPart1 ? `- Content: All 3 bullet points answered?
-- Organisation: Opening, body, closing? Linking words?
-- Language: Vocabulary variety? Grammar accuracy?` : `- Content: Task fully addressed with developed ideas?
-- Communicative Achievement: Right tone/register for reader?
-- Organisation: Clear paragraphs? Cohesive devices?
-- Language: Range of vocabulary and grammar? Accuracy?`}
+===== FIELD 1: spellingMistakes =====
+An array where EACH spelling error is a SEPARATE object.
+GO THROUGH THE TEXT WORD BY WORD. For each misspelled word, add an entry.
+Format: {"wrong": "misspeled", "correct": "misspelled", "explanation": "Remember: mis-spell-ed (double l)"}
 
-YOU MUST RETURN JSON WITH THESE EXACT FIELDS:
+===== FIELD 2: grammarMistakes =====
+An array where EACH grammar/punctuation error is a SEPARATE object.
+Check for: capitalisation, punctuation, verb tenses, subject-verb agreement, articles, prepositions, word order.
+Format: {"wrong": "i want", "correct": "I want", "explanation": "The pronoun I is always capitalised in English"}
 
-1. "spellingMistakes" - ARRAY listing EACH spelling error separately:
-   Example: [
-     {"wrong": "helo", "correct": "hello", "explanation": "Double 'l' in hello"},
-     {"wrong": "pictshars", "correct": "pictures", "explanation": "pictures = pict-ures"},
-     {"wrong": "nex", "correct": "next", "explanation": "Missing 't' at the end"}
-   ]
-   List EVERY misspelled word. Do NOT summarise. Do NOT skip any.
+===== FIELD 3: suggestedMarks =====
+Object with marks 0-5 for each criterion:
+${isPart1 
+  ? '{"content": X, "organisation": X, "language": X}' 
+  : '{"content": X, "organisation": X, "language": X, "communicativeAchievement": X}'}
 
-2. "grammarMistakes" - ARRAY listing EACH grammar/punctuation error separately:
-   Example: [
-     {"wrong": "i want", "correct": "I want", "explanation": "Pronoun 'I' is always capitalised"},
-     {"wrong": "is takeing", "correct": "is taking", "explanation": "take → taking (drop 'e' before -ing)"},
-     {"wrong": "how match cost", "correct": "how much does it cost", "explanation": "Question structure: how much + does + subject + verb"}
-   ]
-   List EVERY error. Include: capitalisation, punctuation, verb forms, articles, prepositions.
+===== FIELD 4: markJustifications =====
+Object with 3-4 sentence justification for EACH mark. Quote specific errors from the text.
+${isPart1 
+  ? '{"content": "...", "organisation": "...", "language": "..."}' 
+  : '{"content": "...", "organisation": "...", "language": "...", "communicativeAchievement": "..."}'}
 
-3. "suggestedMarks" - Object with numerical marks:
-   {"content": 2, "organisation": 1, "language": 1${isPart1 ? '' : ', "communicativeAchievement": 2'}}
+===== FIELD 5: correctedVersion =====
+Rewrite the student's text fixing ALL errors but keeping their exact ideas and structure.
 
-4. "markJustifications" - Object with DETAILED explanations (3-4 sentences each):
-   {
-     "content": "The candidate attempted to address the task but only partially covered the required points. They asked about lesson location and cost but did not specify their availability or preferred schedule. The request lacks clarity. Mark: 2/5.",
-     "organisation": "There is no clear structure - no greeting, no sign-off, ideas are jumbled together. No linking words used. Mark: 1/5.",
-     "language": "Multiple spelling errors (helo, pictshars, nex, dint, wher, match). Grammar errors throughout (i instead of I, takeing, how match cost). Very limited vocabulary range. Mark: 1/5."${isPart1 ? '' : ',\n     "communicativeAchievement": "The register is too informal for the task. The purpose is partially achieved but the message is unclear due to errors. Mark: 2/5."'}
-   }
+===== FIELD 6: feedback =====
+2-3 paragraphs of examiner commentary on strengths and weaknesses.
 
-5. "correctedVersion" - The student's EXACT text with ALL errors fixed:
-   Keep their ideas, fix spelling, grammar, punctuation. Do NOT add content.
+===== FIELD 7: overallComments =====
+Personalised tips: praise something specific, then give 2-3 actionable improvement suggestions.
 
-6. "feedback" - 2-3 paragraph examiner commentary summarising strengths and weaknesses.
+===== FIELD 8: modelAnswer =====
+Write a BRAND NEW high-band response to the SAME task.
+CRITICAL REQUIREMENTS:
+- Word count MUST be ${isPart1 ? '45-55' : '110-130'} words (count them!)
+- ${isPart1 ? 'Structure: Greeting → Answer all 3 points → Polite closing → Sign off' : 'Structure: Hook introduction → 2-3 developed paragraphs with examples → Strong conclusion'}
+- Use sophisticated vocabulary and varied grammar
+- This is a MODEL ANSWER showing excellence, NOT just a correction
+- Score: ${isPart1 ? '14-15/15' : '18-20/20'}
 
-7. "overallComments" - Personalised encouragement with 2-3 specific improvement tips.
+Student word count: ${wordCount} words (target: ${isPart1 ? '45-55' : '110-130'})`;
 
-8. "modelAnswer" - A COMPLETELY NEW high-band answer (NOT just corrections):
-   - MUST be EXACTLY ${isPart1 ? '45-55' : '110-130'} words (count carefully!)
-   - Show sophisticated vocabulary, complex grammar, perfect accuracy
-   - ${isPart1 ? 'Include: greeting, 3 clear paragraphs addressing all points, polite closing, sign-off' : 'Include: introduction with thesis, 2-3 body paragraphs with examples, strong conclusion'}
-   - This should score ${isPart1 ? '14-15/15' : '18-20/20'}
-   - Write a FULL model text, not advice
+      const userMessage = `STUDENT'S TEXT:
+"""
+${text}
+"""
 
-CRITICAL: spellingMistakes and grammarMistakes must list EVERY error individually as separate array items. Do not combine or summarise them.`;
+INSTRUCTIONS:
+1. Read the text word by word
+2. List EVERY spelling error as a separate item in spellingMistakes array
+3. List EVERY grammar/punctuation error as a separate item in grammarMistakes array  
+4. Give marks 0-5 with detailed justifications quoting the student's errors
+5. Write correctedVersion fixing all errors
+6. Write modelAnswer as a NEW ${isPart1 ? '45-55' : '110-130'} word high-band response
+
+Return valid JSON only.`;
 
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4-turbo",
         response_format: { type: "json_object" },
-        temperature: 0.1,
-        max_tokens: 4000,
+        temperature: 0,
+        max_tokens: 4096,
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Student's ${partInfo} submission to analyse:\n\n"${text}"\n\nList every spelling mistake and every grammar mistake as separate array items. Then provide marks with justifications and write a ${isPart1 ? '45-55' : '110-130'} word model answer.` },
+          { role: "user", content: userMessage },
         ],
       });
 
