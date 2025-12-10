@@ -165,14 +165,18 @@ serve(async (req) => {
     return unauthorized();
   }
 
-  // Check if user is a teacher (optional - you may want teachers only)
+  // Check if user is a teacher or admin
   const { data: userData } = await supabase
     .from("users")
-    .select("is_admin")
+    .select("is_admin, role")
     .eq("id", user.id)
     .single();
 
-  if (!userData?.is_admin) {
+  const isTeacherOrAdmin = userData?.is_admin === true || 
+                           userData?.role === 'teacher' || 
+                           userData?.role === 'admin';
+
+  if (!isTeacherOrAdmin) {
     return jsonResponse(403, { error: "Only teachers can use auto-proofread" });
   }
 
