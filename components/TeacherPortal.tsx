@@ -1002,8 +1002,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     };
   };
 
-  // Auto-proofread writing (client-side)
-  const autoProofreadWriting = () => {
+  // Auto-proofread writing using GPT-4o-mini
+  const autoProofreadWriting = async () => {
     if (!selectedCambridgeStudent) return;
     
     const answers = selectedCambridgeStudent.answers || {};
@@ -1017,72 +1017,151 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     
     setAutoProofreadLoading(true);
     
-    // Use setTimeout to show loading state
-    setTimeout(() => {
-      try {
-        // Process Part 1
-        if (part1Text.trim()) {
-          const result1 = proofreadText(part1Text, '45-55', true);
-          setWritingFeedback(prev => ({
-            ...prev,
-            part1: { feedback: result1.feedback, correctedVersion: result1.correctedVersion }
-          }));
-          setWritingMarks(prev => ({
-            ...prev,
-            part1: {
-              content: result1.suggestedMarks.content ?? prev.part1.content,
-              organisation: result1.suggestedMarks.organisation ?? prev.part1.organisation,
-              language: result1.suggestedMarks.language ?? prev.part1.language,
-            }
-          }));
+    try {
+      // Call the GPT-powered Edge Function
+      const { data, error } = await supabase.functions.invoke('proofread_writing', {
+        body: {
+          part1Text: part1Text.trim() || undefined,
+          part2Text: part2Text.trim() || undefined,
+          testType: selectedCambridgeStudent.quiz_name || 'Cambridge B2 First Writing'
         }
-        
-        // Process Part 2
-        if (part2Text.trim()) {
-          const result2 = proofreadText(part2Text, '110-130', false);
-          setWritingFeedback(prev => ({
-            ...prev,
-            part2: { feedback: result2.feedback, correctedVersion: result2.correctedVersion }
-          }));
-          setWritingMarks(prev => ({
-            ...prev,
-            part2: {
-              content: result2.suggestedMarks.content ?? prev.part2.content,
-              communicativeAchievement: result2.suggestedMarks.communicativeAchievement ?? prev.part2.communicativeAchievement,
-              organisation: result2.suggestedMarks.organisation ?? prev.part2.organisation,
-              language: result2.suggestedMarks.language ?? prev.part2.language,
-            }
-          }));
-        }
-        
-        // Generate overall comments based on word counts
-        const p1Words = part1Text.trim().split(/\s+/).filter((w: string) => w.length > 0).length;
-        const p2Words = part2Text.trim().split(/\s+/).filter((w: string) => w.length > 0).length;
-        const totalWords = p1Words + p2Words;
-        
-        let overallMessage = '';
-        if (totalWords > 150) {
-          overallMessage = '👍 Good job on meeting the word count requirements! Review the specific feedback for each part.';
-        } else if (totalWords > 100) {
-          overallMessage = '📈 Making progress! Consider adding more detail to reach the target word counts.';
-        } else {
-          overallMessage = '💪 Keep practising! Try to write more to meet the word count targets.';
-        }
-        
+      });
+
+      if (error) {
+        console.error('Proofread API error:', error);
+        // Fall back to local proofreading
+        alert('⚠️ AI proofreading unavailable. Using basic proofread instead.');
+        fallbackLocalProofread(part1Text, part2Text);
+        return;
+      }
+
+      // Apply GPT feedback to Part 1
+      if (data?.part1) {
+        const p1 = data.part1;
         setWritingFeedback(prev => ({
           ...prev,
-          overallComments: overallMessage
+          part1: { 
+            feedback: p1.feedback, 
+            correctedVersion: p1.correctedVersion 
+          }
         }));
-        
-        alert('✅ Auto-proofread complete! Review the suggested feedback and marks, then adjust as needed.');
-        
-      } catch (error) {
-        console.error('Auto-proofread failed:', error);
-        alert('❌ Auto-proofread failed. Please try again.');
-      } finally {
-        setAutoProofreadLoading(false);
+        setWritingMarks(prev => ({
+          ...prev,
+          part1: {
+            content: p1.suggestedMarks?.content ?? prev.part1.content,
+            organisation: p1.suggestedMarks?.organisation ?? prev.part1.organisation,
+            language: p1.suggestedMarks?.language ?? prev.part1.language,
+          }
+        }));
       }
-    }, 300);
+
+      // Apply GPT feedback to Part 2
+      if (data?.part2) {
+        const p2 = data.part2;
+        setWritingFeedback(prev => ({
+          ...prev,
+          part2: { 
+            feedback: p2.feedback, 
+            correctedVersion: p2.correctedVersion 
+          }
+        }));
+        setWritingMarks(prev => ({
+          ...prev,
+          part2: {
+            content: p2.suggestedMarks?.content ?? prev.part2.content,
+            communicativeAchievement: p2.suggestedMarks?.communicativeAchievement ?? prev.part2.communicativeAchievement,
+            organisation: p2.suggestedMarks?.organisation ?? prev.part2.organisation,
+            language: p2.suggestedMarks?.language ?? prev.part2.language,
+          }
+        }));
+      }
+
+      // Set overall comments from GPT
+      const overallComments = [
+        data?.part1?.overallComments,
+        data?.part2?.overallComments
+      ].filter(Boolean).join('\n\n');
+
+      if (overallComments) {
+        setWritingFeedback(prev => ({
+          ...prev,
+          overallComments
+        }));
+      }
+
+      alert('✅ AI Proofread complete! Review the suggested feedback and marks, then adjust as needed.');
+
+    } catch (error) {
+      console.error('Auto-proofread failed:', error);
+      alert('❌ AI proofread failed. Falling back to basic proofreading.');
+      // Fall back to local proofreading
+      const answers = selectedCambridgeStudent.answers || {};
+      fallbackLocalProofread(answers.part1 || '', answers.part2 || '');
+    } finally {
+      setAutoProofreadLoading(false);
+    }
+  };
+
+  // Fallback to local regex-based proofreading if GPT fails
+  const fallbackLocalProofread = (part1Text: string, part2Text: string) => {
+    try {
+      if (part1Text.trim()) {
+        const result1 = proofreadText(part1Text, '45-55', true);
+        setWritingFeedback(prev => ({
+          ...prev,
+          part1: { feedback: result1.feedback, correctedVersion: result1.correctedVersion }
+        }));
+        setWritingMarks(prev => ({
+          ...prev,
+          part1: {
+            content: result1.suggestedMarks.content ?? prev.part1.content,
+            organisation: result1.suggestedMarks.organisation ?? prev.part1.organisation,
+            language: result1.suggestedMarks.language ?? prev.part1.language,
+          }
+        }));
+      }
+      
+      if (part2Text.trim()) {
+        const result2 = proofreadText(part2Text, '110-130', false);
+        setWritingFeedback(prev => ({
+          ...prev,
+          part2: { feedback: result2.feedback, correctedVersion: result2.correctedVersion }
+        }));
+        setWritingMarks(prev => ({
+          ...prev,
+          part2: {
+            content: result2.suggestedMarks.content ?? prev.part2.content,
+            communicativeAchievement: result2.suggestedMarks.communicativeAchievement ?? prev.part2.communicativeAchievement,
+            organisation: result2.suggestedMarks.organisation ?? prev.part2.organisation,
+            language: result2.suggestedMarks.language ?? prev.part2.language,
+          }
+        }));
+      }
+      
+      // Generate overall comments based on word counts
+      const p1Words = part1Text.trim().split(/\s+/).filter((w: string) => w.length > 0).length;
+      const p2Words = part2Text.trim().split(/\s+/).filter((w: string) => w.length > 0).length;
+      const totalWords = p1Words + p2Words;
+      
+      let overallMessage = '';
+      if (totalWords > 150) {
+        overallMessage = '👍 Good job on meeting the word count requirements! Review the specific feedback for each part.';
+      } else if (totalWords > 100) {
+        overallMessage = '📈 Making progress! Consider adding more detail to reach the target word counts.';
+      } else {
+        overallMessage = '💪 Keep practising! Try to write more to meet the word count targets.';
+      }
+      
+      setWritingFeedback(prev => ({
+        ...prev,
+        overallComments: overallMessage
+      }));
+      
+      alert('✅ Basic proofread complete! (AI was unavailable)');
+    } catch (error) {
+      console.error('Fallback proofread failed:', error);
+      alert('❌ Proofread failed. Please try again.');
+    }
   };
 
   // Export Cambridge results to CSV
@@ -3891,18 +3970,18 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   className={`px-5 py-3 rounded-xl font-bold flex items-center gap-2 transition-all ${
                     autoProofreadLoading
                       ? 'bg-gray-200 cursor-wait text-black'
-                      : 'bg-blue-100 hover:bg-blue-200 shadow-lg hover:shadow-xl text-black'
+                      : 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 shadow-lg hover:shadow-xl text-white'
                   }`}
                 >
                   {autoProofreadLoading ? (
                     <>
                       <span className="animate-spin">⏳</span>
-                      AI Checking...
+                      AI Analyzing...
                     </>
                   ) : (
                     <>
                       <span>🤖</span>
-                      Auto-Proofread
+                      AI Proofread (GPT)
                     </>
                   )}
                 </button>
