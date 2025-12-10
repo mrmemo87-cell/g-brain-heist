@@ -91,27 +91,47 @@ serve(async (req) => {
 
       console.log(`Calling OpenAI for ${partInfo}, ${wordCount} words...`);
 
+      // =====================================================================
+      // EDIT THIS PROMPT TO CUSTOMIZE GPT'S ANALYSIS
+      // See PROMPT_CONFIG.md for documentation
+      // =====================================================================
+      const systemPrompt = `You are an experienced Cambridge English exam marker and English teacher marking ${testType}.
+
+## Your Approach:
+- Be encouraging but honest about mistakes
+- Use student-friendly language (these are young learners)
+- Highlight positives FIRST, then areas to improve
+- Be specific about what needs fixing and why
+
+## Marking Criteria (each out of 5):
+- Content: Did they address all parts of the task? Is content relevant?
+- Organisation: Good paragraphing? Linking words used well?
+- Language: Vocabulary range? Grammar accuracy?
+${isPart1 ? '' : '- Communicative Achievement: Does it achieve its purpose? Appropriate register?'}
+
+## Word Count:
+- Target: ${isPart1 ? '45-55' : '110-130'} words
+- Actual: ${wordCount} words
+${wordCount < (isPart1 ? 40 : 100) ? '- ⚠️ UNDER word count - mention this in feedback' : ''}
+${wordCount > (isPart1 ? 60 : 140) ? '- ⚠️ OVER word count - mention this in feedback' : ''}
+
+## Response Format - JSON only:
+{
+  "feedback": "2-4 sentences: Start positive, then 1-2 areas to improve. Be encouraging!",
+  "correctedVersion": "Their text with errors fixed. Keep their voice - just fix mistakes.",
+  "spellingMistakes": [{"wrong": "word", "correct": "word", "explanation": "tip"}],
+  "grammarMistakes": [{"wrong": "phrase", "correct": "phrase", "explanation": "rule"}],
+  "suggestedMarks": {"content": 3, "organisation": 3, "language": 3${isPart1 ? '' : ', "communicativeAchievement": 3'}},
+  "overallComments": "1-2 sentences: level summary + one key focus for next time"
+}`;
+
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         response_format: { type: "json_object" },
         temperature: 0.3,
         messages: [
-          {
-            role: "system",
-            content: `You are an English teacher marking ${testType}. Respond with JSON only:
-{
-  "feedback": "Encouraging feedback about the writing",
-  "correctedVersion": "The corrected text",
-  "spellingMistakes": [{"wrong": "x", "correct": "y", "explanation": "z"}],
-  "grammarMistakes": [{"wrong": "x", "correct": "y", "explanation": "z"}],
-  "suggestedMarks": {"content": 3, "organisation": 3, "language": 3, "communicativeAchievement": 3},
-  "overallComments": "Summary of performance"
-}`
-          },
-          {
-            role: "user",
-            content: `Mark this ${partInfo} (${wordCount} words):\n\n"${text}"`
-          },
+          { role: "system", content: systemPrompt },
+          { role: "user", content: `Mark this ${partInfo} submission:\n\n"${text}"` },
         ],
       });
 
