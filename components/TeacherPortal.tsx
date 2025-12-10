@@ -1018,22 +1018,35 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     setAutoProofreadLoading(true);
     
     try {
-      // Call the GPT-powered Edge Function
-      const { data, error } = await supabase.functions.invoke('proofread_writing', {
-        body: {
+      // Get current session for auth token
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      
+      if (!accessToken) {
+        throw new Error('Not authenticated');
+      }
+
+      // Call Edge Function using direct fetch to avoid custom fetch wrapper issues
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${supabaseUrl}/functions/v1/proofread_writing`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
           part1Text: part1Text.trim() || undefined,
           part2Text: part2Text.trim() || undefined,
           testType: selectedCambridgeStudent.quiz_name || 'Cambridge B2 First Writing'
-        }
+        }),
       });
 
-      if (error) {
-        console.error('Proofread API error:', error);
-        // Fall back to local proofreading
-        alert('⚠️ AI proofreading unavailable. Using basic proofread instead.');
-        fallbackLocalProofread(part1Text, part2Text);
-        return;
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
       }
+
+      const data = await response.json();
 
       // Apply GPT feedback to Part 1
       if (data?.part1) {

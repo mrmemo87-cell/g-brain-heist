@@ -16,9 +16,12 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   global: {
     // Set fetch options for better connection handling
     fetch: (url, options) => {
-      // Add a timeout to prevent hanging requests
+      // Edge Functions need longer timeout (GPT calls can take 30-60s)
+      const isEdgeFunction = typeof url === 'string' && url.includes('/functions/v1/');
+      const timeoutMs = isEdgeFunction ? 120000 : 30000; // 2 min for functions, 30s for others
+      
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
       
       return fetch(url, {
         ...options,
