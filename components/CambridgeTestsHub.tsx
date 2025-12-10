@@ -79,6 +79,9 @@ interface WritingFeedbackView {
     organisation: number;
     language: number;
   };
+  markedBy?: string | null;
+  markedAt?: string | null;
+  overallComments?: string;
 }
 
 const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }) => {
@@ -183,11 +186,13 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
 
       if (data && data.answers) {
         const answers = typeof data.answers === 'string' ? JSON.parse(data.answers) : data.answers;
-        const marks = data.teacher_marks ? (typeof data.teacher_marks === 'string' ? JSON.parse(data.teacher_marks) : data.teacher_marks) : null;
-        const feedback = data.teacher_feedback ? (typeof data.teacher_feedback === 'string' ? JSON.parse(data.teacher_feedback) : data.teacher_feedback) : null;
+        
+        // Marks and feedback are stored INSIDE the answers JSONB column
+        const marks = answers.marks || null;
+        const feedback = answers.feedback || null;
 
         // Check if feedback has been released
-        if (!feedback?.releaseToStudent) {
+        if (!feedback?.releasedToStudent) {
           setFeedbackData(null);
           return;
         }
@@ -198,21 +203,24 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           percentage: data.percentage,
           part1: {
             original: answers.part1 || '',
-            feedback: feedback?.part1Feedback || '',
-            corrected: feedback?.part1Corrected || '',
+            feedback: feedback?.part1?.feedback || '',
+            corrected: feedback?.part1?.correctedVersion || '',
             content: marks?.part1?.content || 0,
             organisation: marks?.part1?.organisation || 0,
             language: marks?.part1?.language || 0,
           },
           part2: {
             original: answers.part2 || '',
-            feedback: feedback?.part2Feedback || '',
-            corrected: feedback?.part2Corrected || '',
+            feedback: feedback?.part2?.feedback || '',
+            corrected: feedback?.part2?.correctedVersion || '',
             content: marks?.part2?.content || 0,
             communicativeAchievement: marks?.part2?.communicativeAchievement || 0,
             organisation: marks?.part2?.organisation || 0,
             language: marks?.part2?.language || 0,
           },
+          markedBy: answers.marked_by || null,
+          markedAt: answers.marked_at || null,
+          overallComments: feedback?.overallComments || '',
         });
         setActiveFeedbackPart('part1');
       }
@@ -939,6 +947,52 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       }}>
                         💡 Compare this with your original to see how you can improve your writing!
                       </p>
+                    </div>
+                  )}
+
+                  {/* Overall Comments */}
+                  {feedbackData.overallComments && (
+                    <div style={{
+                      background: '#f0f9ff',
+                      borderRadius: '12px',
+                      padding: '15px',
+                      marginTop: '15px',
+                      border: '1px solid #bae6fd',
+                      color: '#000',
+                    }}>
+                      <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>📝 Overall Comments</h5>
+                      <div style={{
+                        fontSize: '13px',
+                        lineHeight: 1.6,
+                        color: '#000',
+                        whiteSpace: 'pre-wrap',
+                      }}>
+                        {feedbackData.overallComments}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Marked By Info */}
+                  {feedbackData.markedBy && (
+                    <div style={{
+                      marginTop: '15px',
+                      padding: '10px',
+                      background: '#f3f4f6',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      color: '#6b7280',
+                      textAlign: 'center',
+                    }}>
+                      Marked by <strong style={{ color: '#374151' }}>{feedbackData.markedBy}</strong>
+                      {feedbackData.markedAt && (
+                        <span> on {new Date(feedbackData.markedAt).toLocaleDateString('en-GB', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}</span>
+                      )}
                     </div>
                   )}
                 </>
