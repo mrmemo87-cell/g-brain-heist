@@ -83,14 +83,17 @@ async function proofreadWithGPT(text: string, isPart1: boolean, testType: string
   
   const wordCount = text.trim().split(/\s+/).filter(w => w.length > 0).length;
   
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    response_format: { type: "json_object" },
-    temperature: 0.3,
-    messages: [
-      {
-        role: "system",
-        content: `You are an experienced English teacher and Cambridge exam marker. Your task is to proofread and mark student writing for ${testType}. 
+  console.log(`Proofreading ${partInfo}, ${wordCount} words`);
+  
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      response_format: { type: "json_object" },
+      temperature: 0.3,
+      messages: [
+        {
+          role: "system",
+          content: `You are an experienced English teacher and Cambridge exam marker. Your task is to proofread and mark student writing for ${testType}. 
 
 Provide detailed, constructive feedback that helps students improve. Be encouraging but honest about mistakes.
 
@@ -116,10 +119,10 @@ Respond with strict JSON only in this exact format:
   },
   "overallComments": "Summary of overall performance and key improvement areas"
 }`
-      },
-      {
-        role: "user",
-        content: `Please proofread and mark this ${partInfo} writing submission.
+        },
+        {
+          role: "user",
+          content: `Please proofread and mark this ${partInfo} writing submission.
 
 Word count: ${wordCount} words
 
@@ -129,16 +132,22 @@ ${text}
 """
 
 Provide comprehensive feedback, corrections, and marks. Be thorough in identifying mistakes but also highlight what the student did well.`
-      },
-    ],
-  });
+        },
+      ],
+    });
 
-  const content = completion.choices?.[0]?.message?.content;
-  if (!content) {
-    throw new Error("OpenAI returned no content");
+    const content = completion.choices?.[0]?.message?.content;
+    console.log("OpenAI response received:", content?.substring(0, 100));
+    
+    if (!content) {
+      throw new Error("OpenAI returned no content");
+    }
+    
+    return JSON.parse(content) as PartFeedback;
+  } catch (error) {
+    console.error("OpenAI API error:", error);
+    throw error;
   }
-  
-  return JSON.parse(content) as PartFeedback;
 }
 
 serve(async (req) => {
