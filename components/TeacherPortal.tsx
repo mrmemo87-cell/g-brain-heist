@@ -102,8 +102,22 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     part2: { content: 0, communicativeAchievement: 0, organisation: 0, language: 0 },
   });
   const [writingFeedback, setWritingFeedback] = useState<{
-    part1: { feedback: string; correctedVersion: string };
-    part2: { feedback: string; correctedVersion: string };
+    part1: { 
+      feedback: string; 
+      correctedVersion: string;
+      spellingMistakes?: { wrong: string; correct: string; explanation: string }[];
+      grammarMistakes?: { wrong: string; correct: string; explanation: string }[];
+      markJustifications?: { content: string; organisation: string; language: string };
+      modelAnswer?: string;
+    };
+    part2: { 
+      feedback: string; 
+      correctedVersion: string;
+      spellingMistakes?: { wrong: string; correct: string; explanation: string }[];
+      grammarMistakes?: { wrong: string; correct: string; explanation: string }[];
+      markJustifications?: { content: string; organisation: string; language: string; communicativeAchievement?: string };
+      modelAnswer?: string;
+    };
     overallComments: string;
     releasedToStudent: boolean;
   }>({
@@ -1055,7 +1069,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
           ...prev,
           part1: { 
             feedback: p1.feedback, 
-            correctedVersion: p1.correctedVersion 
+            correctedVersion: p1.correctedVersion,
+            spellingMistakes: p1.spellingMistakes || [],
+            grammarMistakes: p1.grammarMistakes || [],
+            markJustifications: p1.markJustifications,
+            modelAnswer: p1.modelAnswer,
           }
         }));
         setWritingMarks(prev => ({
@@ -1075,7 +1093,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
           ...prev,
           part2: { 
             feedback: p2.feedback, 
-            correctedVersion: p2.correctedVersion 
+            correctedVersion: p2.correctedVersion,
+            spellingMistakes: p2.spellingMistakes || [],
+            grammarMistakes: p2.grammarMistakes || [],
+            markJustifications: p2.markJustifications,
+            modelAnswer: p2.modelAnswer,
           }
         }));
         setWritingMarks(prev => ({
@@ -4076,6 +4098,52 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   <div className="p-4 bg-orange-50">
                     <h4 className="text-md font-bold text-orange-800 mb-3">📋 Feedback for Part 1 (visible to student when released)</h4>
                     
+                    {/* Spelling Mistakes */}
+                    {writingFeedback.part1.spellingMistakes && writingFeedback.part1.spellingMistakes.length > 0 && (
+                      <div className="mb-4 bg-red-50 p-3 rounded-lg border border-red-200">
+                        <h5 className="text-sm font-bold text-red-800 mb-2">🔤 Spelling Mistakes ({writingFeedback.part1.spellingMistakes.length})</h5>
+                        <div className="space-y-2">
+                          {writingFeedback.part1.spellingMistakes.map((m, i) => (
+                            <div key={i} className="text-sm bg-white p-2 rounded border">
+                              <span className="text-red-600 line-through">{m.wrong}</span>
+                              <span className="mx-2">→</span>
+                              <span className="text-green-600 font-semibold">{m.correct}</span>
+                              <p className="text-gray-600 text-xs mt-1">{m.explanation}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Grammar Mistakes */}
+                    {writingFeedback.part1.grammarMistakes && writingFeedback.part1.grammarMistakes.length > 0 && (
+                      <div className="mb-4 bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                        <h5 className="text-sm font-bold text-yellow-800 mb-2">📝 Grammar Mistakes ({writingFeedback.part1.grammarMistakes.length})</h5>
+                        <div className="space-y-2">
+                          {writingFeedback.part1.grammarMistakes.map((m, i) => (
+                            <div key={i} className="text-sm bg-white p-2 rounded border">
+                              <span className="text-red-600 line-through">{m.wrong}</span>
+                              <span className="mx-2">→</span>
+                              <span className="text-green-600 font-semibold">{m.correct}</span>
+                              <p className="text-gray-600 text-xs mt-1">{m.explanation}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Mark Justifications */}
+                    {writingFeedback.part1.markJustifications && (
+                      <div className="mb-4 bg-blue-50 p-3 rounded-lg border border-blue-200">
+                        <h5 className="text-sm font-bold text-blue-800 mb-2">📊 Mark Justifications</h5>
+                        <div className="space-y-2 text-sm">
+                          <div><strong>Content:</strong> {writingFeedback.part1.markJustifications.content}</div>
+                          <div><strong>Organisation:</strong> {writingFeedback.part1.markJustifications.organisation}</div>
+                          <div><strong>Language:</strong> {writingFeedback.part1.markJustifications.language}</div>
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="mb-4">
                       <label className="text-sm font-semibold text-gray-700 block mb-2">
                         🔴 Teacher's Comments & Corrections:
@@ -4091,9 +4159,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                       />
                     </div>
                     
-                    <div>
+                    <div className="mb-4">
                       <label className="text-sm font-semibold text-gray-700 block mb-2">
-                        ✅ Corrected/Model Version (show student how it should be written):
+                        ✅ Corrected Version (student's text with errors fixed):
                       </label>
                       <textarea
                         value={writingFeedback.part1.correctedVersion}
@@ -4101,10 +4169,22 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                           ...prev,
                           part1: { ...prev.part1, correctedVersion: e.target.value }
                         }))}
-                        placeholder="Write a corrected version of the student's response, or provide a model answer they can learn from..."
+                        placeholder="Write a corrected version of the student's response..."
                         className="w-full p-3 border-2 border-green-300 rounded-lg min-h-[100px] text-sm bg-green-50"
                       />
                     </div>
+                    
+                    {/* Model Answer */}
+                    {writingFeedback.part1.modelAnswer && (
+                      <div>
+                        <label className="text-sm font-semibold text-gray-700 block mb-2">
+                          ⭐ Model Answer (high-band example):
+                        </label>
+                        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-4 rounded-lg border-2 border-purple-300 text-sm whitespace-pre-wrap">
+                          {writingFeedback.part1.modelAnswer}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -4192,6 +4272,53 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   <div className="p-4 bg-orange-50">
                     <h4 className="text-md font-bold text-orange-800 mb-3">📋 Feedback for Part 2 (visible to student when released)</h4>
                     
+                    {/* Spelling Mistakes */}
+                    {writingFeedback.part2.spellingMistakes && writingFeedback.part2.spellingMistakes.length > 0 && (
+                      <div className="mb-4 bg-red-50 p-3 rounded-lg border border-red-200">
+                        <h5 className="text-sm font-bold text-red-800 mb-2">🔤 Spelling Mistakes ({writingFeedback.part2.spellingMistakes.length})</h5>
+                        <div className="space-y-2">
+                          {writingFeedback.part2.spellingMistakes.map((m, i) => (
+                            <div key={i} className="text-sm bg-white p-2 rounded border">
+                              <span className="text-red-600 line-through">{m.wrong}</span>
+                              <span className="mx-2">→</span>
+                              <span className="text-green-600 font-semibold">{m.correct}</span>
+                              <p className="text-gray-600 text-xs mt-1">{m.explanation}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Grammar Mistakes */}
+                    {writingFeedback.part2.grammarMistakes && writingFeedback.part2.grammarMistakes.length > 0 && (
+                      <div className="mb-4 bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                        <h5 className="text-sm font-bold text-yellow-800 mb-2">📝 Grammar Mistakes ({writingFeedback.part2.grammarMistakes.length})</h5>
+                        <div className="space-y-2">
+                          {writingFeedback.part2.grammarMistakes.map((m, i) => (
+                            <div key={i} className="text-sm bg-white p-2 rounded border">
+                              <span className="text-red-600 line-through">{m.wrong}</span>
+                              <span className="mx-2">→</span>
+                              <span className="text-green-600 font-semibold">{m.correct}</span>
+                              <p className="text-gray-600 text-xs mt-1">{m.explanation}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Mark Justifications */}
+                    {writingFeedback.part2.markJustifications && (
+                      <div className="mb-4 bg-blue-50 p-3 rounded-lg border border-blue-200">
+                        <h5 className="text-sm font-bold text-blue-800 mb-2">📊 Mark Justifications</h5>
+                        <div className="space-y-2 text-sm">
+                          <div><strong>Content:</strong> {writingFeedback.part2.markJustifications.content}</div>
+                          <div><strong>Communicative Achievement:</strong> {writingFeedback.part2.markJustifications.communicativeAchievement}</div>
+                          <div><strong>Organisation:</strong> {writingFeedback.part2.markJustifications.organisation}</div>
+                          <div><strong>Language:</strong> {writingFeedback.part2.markJustifications.language}</div>
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="mb-4">
                       <label className="text-sm font-semibold text-gray-700 block mb-2">
                         🔴 Teacher's Comments & Corrections:
@@ -4207,9 +4334,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                       />
                     </div>
                     
-                    <div>
+                    <div className="mb-4">
                       <label className="text-sm font-semibold text-gray-700 block mb-2">
-                        ✅ Corrected/Model Version (show student how it should be written):
+                        ✅ Corrected Version (student's text with errors fixed):
                       </label>
                       <textarea
                         value={writingFeedback.part2.correctedVersion}
@@ -4217,10 +4344,22 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                           ...prev,
                           part2: { ...prev.part2, correctedVersion: e.target.value }
                         }))}
-                        placeholder="Write a corrected version of the student's essay, or provide a model answer they can learn from..."
+                        placeholder="Write a corrected version of the student's essay..."
                         className="w-full p-3 border-2 border-green-300 rounded-lg min-h-[150px] text-sm bg-green-50"
                       />
                     </div>
+                    
+                    {/* Model Answer */}
+                    {writingFeedback.part2.modelAnswer && (
+                      <div>
+                        <label className="text-sm font-semibold text-gray-700 block mb-2">
+                          ⭐ Model Answer (high-band example - 110-130 words):
+                        </label>
+                        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-4 rounded-lg border-2 border-purple-300 text-sm whitespace-pre-wrap">
+                          {writingFeedback.part2.modelAnswer}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
