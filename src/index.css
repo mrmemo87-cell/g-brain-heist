@@ -1097,6 +1097,89 @@ button {
   z-index: 0;
 }
 
+.teacher-nav-shell {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(241, 245, 249, 0.95));
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.06);
+  border-radius: 24px;
+  padding: 0.75rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.teacher-nav-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 50%, rgba(8, 47, 73, 0.08), transparent 40%),
+              radial-gradient(circle at 85% 20%, rgba(79, 70, 229, 0.08), transparent 40%);
+  pointer-events: none;
+}
+
+.teacher-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+  position: relative;
+  z-index: 1;
+}
+
+.teacher-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.95rem 1.1rem;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #1e293b;
+  box-shadow: 0 12px 28px rgba(148, 163, 184, 0.15);
+  transition: all 200ms ease;
+  text-align: left;
+}
+
+.teacher-nav-item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(59, 130, 246, 0.35);
+  box-shadow: 0 20px 40px rgba(59, 130, 246, 0.12);
+}
+
+.teacher-nav-item.is-active {
+  background: linear-gradient(135deg, #0ea5e9, #6366f1);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 20px 40px rgba(14, 165, 233, 0.25);
+}
+
+.teacher-nav-item.is-active .text-xs {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.teacher-panel {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(244, 244, 255, 0.95));
+  border-radius: 26px;
+  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.teacher-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.teacher-panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.08), transparent 45%),
+              radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.08), transparent 45%);
+  pointer-events: none;
+}
+
 .teacher-portal-light .card-glass {
   background: #ffffff !important;
   border: 1px solid #e2e8f0 !important;

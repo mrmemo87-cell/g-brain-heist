@@ -4820,17 +4820,13 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         </div>
 
         {/* Professional Navigation Tabs */}
-        <div className="bg-white/80 backdrop-blur-md rounded-2xl p-3 mb-6 shadow-lg border border-slate-200">
-          <div className="flex flex-wrap gap-3">
+        <div className="teacher-nav-shell">
+          <div className="teacher-nav">
             {navTabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => changeSection(tab.id)}
-                className={`flex-1 min-w-[160px] px-4 py-3 rounded-xl transition-all duration-200 flex items-center gap-3 border ${
-                  primarySection === tab.id
-                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md border-transparent'
-                    : 'bg-white text-slate-700 hover:text-slate-900 hover:border-cyan-200 border-slate-200'
-                }`}
+                className={`teacher-nav-item ${primarySection === tab.id ? 'is-active' : ''}`}
               >
                 <span className="text-xl">{tab.icon}</span>
                 <div className="text-left">
@@ -4843,7 +4839,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         </div>
 
         {/* Main Content Area with White Background */}
-        <div className="bg-white/90 backdrop-blur rounded-2xl shadow-xl border border-slate-200 p-6">
+        <div className="teacher-panel">
           {view === 'dashboard' && renderDashboard()}
           {view === 'create-question' && renderCreateQuestion()}
           {view === 'question-bank' && renderQuestionBank()}
