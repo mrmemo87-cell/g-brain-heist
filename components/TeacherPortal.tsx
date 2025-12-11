@@ -515,9 +515,29 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
         part2: { content: 0, communicativeAchievement: 0, organisation: 0, language: 0 },
       });
     }
-    // Load existing feedback if available
+    // Load existing feedback if available (including GPT fields)
     if (student.answers?.feedback) {
-      setWritingFeedback(student.answers.feedback);
+      const existingFeedback = student.answers.feedback;
+      setWritingFeedback({
+        part1: {
+          feedback: existingFeedback.part1?.feedback || '',
+          correctedVersion: existingFeedback.part1?.correctedVersion || '',
+          spellingMistakes: existingFeedback.part1?.spellingMistakes || [],
+          grammarMistakes: existingFeedback.part1?.grammarMistakes || [],
+          markJustifications: existingFeedback.part1?.markJustifications,
+          modelAnswer: existingFeedback.part1?.modelAnswer,
+        },
+        part2: {
+          feedback: existingFeedback.part2?.feedback || '',
+          correctedVersion: existingFeedback.part2?.correctedVersion || '',
+          spellingMistakes: existingFeedback.part2?.spellingMistakes || [],
+          grammarMistakes: existingFeedback.part2?.grammarMistakes || [],
+          markJustifications: existingFeedback.part2?.markJustifications,
+          modelAnswer: existingFeedback.part2?.modelAnswer,
+        },
+        overallComments: existingFeedback.overallComments || '',
+        releasedToStudent: existingFeedback.releasedToStudent || false,
+      });
     } else {
       setWritingFeedback({
         part1: { feedback: '', correctedVersion: '' },
@@ -531,7 +551,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
 
   // Submit writing marks
   const submitWritingMarks = async (releaseToStudent: boolean = false) => {
-    if (!selectedCambridgeStudent) return;
+    if (!selectedCambridgeStudent) {
+      alert('❌ No student selected');
+      return;
+    }
     
     const part1Total = writingMarks.part1.content + writingMarks.part1.organisation + writingMarks.part1.language;
     const part2Total = writingMarks.part2.content + writingMarks.part2.communicativeAchievement + 
@@ -544,25 +567,39 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
       ...writingFeedback,
       releasedToStudent: releaseToStudent,
     };
+
+    console.log('Saving marks for student ID:', selectedCambridgeStudent.id);
+    console.log('Total score:', totalScore, 'Percentage:', percentage);
+    console.log('Release to student:', releaseToStudent);
     
     try {
-      const { error } = await supabase
-        .from('quiz_scores')
-        .update({
-          score: totalScore,
-          percentage: percentage,
-          answers: {
-            ...selectedCambridgeStudent.answers,
-            marks: writingMarks,
-            feedback: updatedFeedback,
-            marked_by: profile.username,
-            marked_at: new Date().toISOString(),
-            requires_marking: false
-          }
-        })
-        .eq('id', selectedCambridgeStudent.id);
+      const updatePayload = {
+        score: totalScore,
+        percentage: percentage,
+        answers: {
+          ...selectedCambridgeStudent.answers,
+          marks: writingMarks,
+          feedback: updatedFeedback,
+          marked_by: profile.username,
+          marked_at: new Date().toISOString(),
+          requires_marking: false  // This is the key field that removes "Pending" status
+        }
+      };
       
-      if (error) throw error;
+      console.log('Update payload:', JSON.stringify(updatePayload, null, 2));
+      
+      const { data, error } = await supabase
+        .from('quiz_scores')
+        .update(updatePayload)
+        .eq('id', selectedCambridgeStudent.id)
+        .select();
+      
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      console.log('Update successful, returned data:', data);
       
       alert(releaseToStudent 
         ? '✅ Marked and released to student!' 
@@ -571,7 +608,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
       loadCambridgeScores(); // Refresh the list
     } catch (error) {
       console.error('Failed to submit marks:', error);
-      alert('❌ Failed to submit marks');
+      alert('❌ Failed to submit marks: ' + (error instanceof Error ? error.message : String(error)));
     }
   };
 
