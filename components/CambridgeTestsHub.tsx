@@ -15,6 +15,8 @@ interface CambridgeTest {
   score?: number;
   completedAt?: string;
   requiresMarking?: boolean;
+  isAwaitingMarking?: boolean; // True if submitted but not yet marked
+  feedbackReleased?: boolean; // True if teacher has released feedback
 }
 
 interface CambridgeTestsHubProps {
@@ -117,10 +119,10 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
   const loadTestProgress = async () => {
     setLoading(true);
     try {
-      // Fetch completed tests from quiz_scores table
+      // Fetch completed tests from quiz_scores table (include answers for marking status)
       const { data: completedTests, error } = await supabase
         .from('quiz_scores')
-        .select('quiz_name, score, total_questions, percentage, submitted_at')
+        .select('quiz_name, score, total_questions, percentage, submitted_at, answers')
         .eq('student_name', profile.username)
         .order('submitted_at', { ascending: false });
 
@@ -133,11 +135,18 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           || test.name.toLowerCase().includes(c.quiz_name.toLowerCase().replace('cambridge ', ''))
         );
         
+        // Check if this is a writing test awaiting marking
+        const answers = completion?.answers as { requires_marking?: boolean; feedback?: { releasedToStudent?: boolean } } | undefined;
+        const isAwaitingMarking = test.requiresMarking && answers?.requires_marking === true;
+        const feedbackReleased = answers?.feedback?.releasedToStudent === true;
+        
         return {
           ...test,
           isCompleted: !!completion,
           score: completion?.percentage,
           completedAt: completion?.submitted_at,
+          isAwaitingMarking,
+          feedbackReleased,
         };
       });
 
@@ -593,7 +602,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
 
                   {test.isCompleted && test.score !== undefined && (
                     <div style={{
-                      background: test.requiresMarking && test.score === 0 
+                      background: test.isAwaitingMarking 
                         ? 'rgba(245,158,11,0.1)' 
                         : 'rgba(34,197,94,0.1)',
                       borderRadius: '10px',
@@ -602,21 +611,21 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-                          {test.requiresMarking && test.score === 0 ? 'Status:' : 'Your Score:'}
+                          {test.isAwaitingMarking ? 'Status:' : 'Your Score:'}
                         </span>
                         <span style={{
-                          fontSize: test.requiresMarking && test.score === 0 ? '14px' : '20px',
+                          fontSize: test.isAwaitingMarking ? '14px' : '20px',
                           fontWeight: 'bold',
-                          color: test.requiresMarking && test.score === 0 
+                          color: test.isAwaitingMarking 
                             ? '#f59e0b' 
                             : (test.score >= 70 ? '#22c55e' : test.score >= 50 ? '#f59e0b' : '#ef4444'),
                         }}>
-                          {test.requiresMarking && test.score === 0 ? '⏳ Awaiting Marking' : `${test.score}%`}
+                          {test.isAwaitingMarking ? '⏳ Awaiting Marking' : `${test.score}%`}
                         </span>
                       </div>
                       {test.completedAt && (
                         <p style={{ margin: '8px 0 0', fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>
-                          {test.requiresMarking && test.score === 0 ? 'Submitted:' : 'Completed:'} {new Date(test.completedAt).toLocaleDateString('en-GB', {
+                          {test.isAwaitingMarking ? 'Submitted:' : 'Completed:'} {new Date(test.completedAt).toLocaleDateString('en-GB', {
                             day: '2-digit',
                             month: 'short',
                             year: 'numeric',
@@ -625,7 +634,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       )}
                       
                       {/* View Feedback button for marked writing tests */}
-                      {test.requiresMarking && test.score !== undefined && test.score > 0 && (
+                      {test.requiresMarking && !test.isAwaitingMarking && test.feedbackReleased && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
