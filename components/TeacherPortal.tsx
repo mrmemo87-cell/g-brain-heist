@@ -4,6 +4,7 @@ import * as GameService from '../services/gameService';
 import { supabase } from '../services/supabaseClient';
 import BackButton from './BackButton';
 import DiagramBuilder from './geometry/DiagramBuilder';
+import '../src/styles/teacher-theme.css';
 
 interface TeacherPortalProps {
   profile: Profile;
@@ -1909,139 +1910,131 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
   const renderDashboard = () => (
     <div className="space-y-8">
       {/* Welcome Section */}
-      <div className="text-center pb-6 border-b border-slate-200">
-        <h2 className="text-3xl font-bold text-slate-800 mb-2">
-          📊 Dashboard Overview
+      <div className="teacher-section-header">
+        <h2 className="teacher-section-title">
+          <span>📊</span> Dashboard Overview
         </h2>
-        <p className="text-slate-600">Manage your classes, questions, and track student progress</p>
+        <p className="teacher-section-subtitle">Manage your classes, questions, and track student progress</p>
       </div>
 
       {/* Stats Cards - Professional Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 border border-cyan-200 rounded-xl p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-cyan-700">Questions Created</p>
-              <p className="text-3xl font-bold text-cyan-900 mt-1">{questions.length}</p>
-            </div>
-            <div className="text-4xl opacity-80">📝</div>
+      <div className="teacher-stats-grid">
+        <div className="teacher-dashboard-stat cyan">
+          <div className="teacher-dashboard-stat-info">
+            <h4>Questions Created</h4>
+            <div className="teacher-dashboard-stat-value">{questions.length}</div>
           </div>
+          <div className="teacher-dashboard-stat-icon">📝</div>
         </div>
         
-        <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-green-700">Total Responses</p>
-              <p className="text-3xl font-bold text-green-900 mt-1">
-                {questions.reduce((sum, q) => sum + q.times_answered, 0)}
-              </p>
+        <div className="teacher-dashboard-stat green">
+          <div className="teacher-dashboard-stat-info">
+            <h4>Total Responses</h4>
+            <div className="teacher-dashboard-stat-value">
+              {questions.reduce((sum, q) => sum + q.times_answered, 0)}
             </div>
-            <div className="text-4xl opacity-80">✅</div>
           </div>
+          <div className="teacher-dashboard-stat-icon">✅</div>
         </div>
         
-        <div className="bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 rounded-xl p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-amber-700">Success Rate</p>
-              <p className="text-3xl font-bold text-amber-900 mt-1">
-                {questions.length > 0
-                  ? Math.round((questions.reduce((sum, q) => sum + q.times_correct, 0) /
-                      Math.max(questions.reduce((sum, q) => sum + q.times_answered, 0), 1)) * 100)
-                  : 0}%
-              </p>
+        <div className="teacher-dashboard-stat amber">
+          <div className="teacher-dashboard-stat-info">
+            <h4>Success Rate</h4>
+            <div className="teacher-dashboard-stat-value">
+              {questions.length > 0
+                ? Math.round((questions.reduce((sum, q) => sum + q.times_correct, 0) /
+                    Math.max(questions.reduce((sum, q) => sum + q.times_answered, 0), 1)) * 100)
+                : 0}%
             </div>
-            <div className="text-4xl opacity-80">📈</div>
           </div>
+          <div className="teacher-dashboard-stat-icon">📈</div>
         </div>
         
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-purple-700">Active Assignments</p>
-              <p className="text-3xl font-bold text-purple-900 mt-1">{assignments.length}</p>
-              <p className="text-xs text-purple-600 mt-1">
-                {assignments.filter((a) => a.completed_count < a.student_count).length} pending
-              </p>
-            </div>
-            <div className="text-4xl opacity-80">📋</div>
+        <div className="teacher-dashboard-stat purple">
+          <div className="teacher-dashboard-stat-info">
+            <h4>Active Assignments</h4>
+            <div className="teacher-dashboard-stat-value">{assignments.length}</div>
+            <p className="teacher-dashboard-stat-sub">
+              {assignments.filter((a) => a.completed_count < a.student_count).length} pending
+            </p>
           </div>
+          <div className="teacher-dashboard-stat-icon">📋</div>
         </div>
       </div>
 
       {/* Quick Actions Section */}
-      <div>
-        <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-          ⚡ Quick Actions
+      <div className="teacher-mb-8">
+        <h3 className="teacher-subsection-title">
+          <span>⚡</span> Quick Actions
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="teacher-actions-grid">
           <button
             onClick={() => setView('create-question')}
-            className="group bg-white border-2 border-slate-200 hover:border-pink-400 rounded-xl p-6 text-left transition-all hover:shadow-lg"
+            className="teacher-action-card"
+            data-color="pink"
           >
-            <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">➕</div>
-            <h4 className="font-bold text-slate-800 text-lg">Create Question</h4>
-            <p className="text-sm text-slate-500 mt-1">Add a new question to your library</p>
+            <div className="teacher-action-icon">➕</div>
+            <h4 className="teacher-action-title">Create Question</h4>
+            <p className="teacher-action-desc">Add a new question to your library</p>
           </button>
 
           <button
             onClick={() => setView('question-bank')}
-            className="group bg-white border-2 border-slate-200 hover:border-cyan-400 rounded-xl p-6 text-left transition-all hover:shadow-lg"
+            className="teacher-action-card"
+            data-color="cyan"
           >
-            <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">📚</div>
-            <h4 className="font-bold text-slate-800 text-lg">Question Bank</h4>
-            <p className="text-sm text-slate-500 mt-1">View and manage all questions</p>
+            <div className="teacher-action-icon">📚</div>
+            <h4 className="teacher-action-title">Question Bank</h4>
+            <p className="teacher-action-desc">View and manage all questions</p>
           </button>
 
           <button
             onClick={() => setView('csv-upload')}
-            className="group bg-white border-2 border-slate-200 hover:border-green-400 rounded-xl p-6 text-left transition-all hover:shadow-lg"
+            className="teacher-action-card"
+            data-color="green"
           >
-            <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">📤</div>
-            <h4 className="font-bold text-slate-800 text-lg">Bulk Upload</h4>
-            <p className="text-sm text-slate-500 mt-1">Import questions via CSV</p>
+            <div className="teacher-action-icon">📤</div>
+            <h4 className="teacher-action-title">Bulk Upload</h4>
+            <p className="teacher-action-desc">Import questions via CSV</p>
           </button>
 
           <button
             onClick={() => setView('create-assignment')}
-            className="group bg-white border-2 border-slate-200 hover:border-purple-400 rounded-xl p-6 text-left transition-all hover:shadow-lg"
+            className="teacher-action-card"
+            data-color="purple"
           >
-            <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">📋</div>
-            <h4 className="font-bold text-slate-800 text-lg">New Assignment</h4>
-            <p className="text-sm text-slate-500 mt-1">Assign work to students</p>
+            <div className="teacher-action-icon">📋</div>
+            <h4 className="teacher-action-title">New Assignment</h4>
+            <p className="teacher-action-desc">Assign work to students</p>
           </button>
         </div>
       </div>
 
       {/* Tools Section */}
-      <div>
-        <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-          🛠️ Teaching Tools
+      <div className="teacher-mb-8">
+        <h3 className="teacher-subsection-title">
+          <span>🛠️</span> Teaching Tools
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="teacher-tools-grid">
           <button
             onClick={() => setView('geometry-diagrams')}
-            className="group bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 hover:border-orange-400 rounded-xl p-5 text-left transition-all hover:shadow-md"
+            className="teacher-tool-card orange"
           >
-            <div className="flex items-center gap-4">
-              <div className="text-4xl">📐</div>
-              <div>
-                <h4 className="font-bold text-slate-800">Geometry Builder</h4>
-                <p className="text-sm text-slate-600">Create interactive diagram questions</p>
-              </div>
+            <div className="teacher-tool-icon">📐</div>
+            <div>
+              <h4 className="teacher-tool-title">Geometry Builder</h4>
+              <p className="teacher-tool-desc">Create interactive diagram questions</p>
             </div>
           </button>
 
           <button
             onClick={() => setView('reports')}
-            className="group bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 hover:border-blue-400 rounded-xl p-5 text-left transition-all hover:shadow-md"
+            className="teacher-tool-card blue"
           >
-            <div className="flex items-center gap-4">
-              <div className="text-4xl">📊</div>
-              <div>
-                <h4 className="font-bold text-slate-800">Performance Reports</h4>
-                <p className="text-sm text-slate-600">Track student accuracy & completion</p>
-              </div>
+            <div className="teacher-tool-icon">📊</div>
+            <div>
+              <h4 className="teacher-tool-title">Performance Reports</h4>
+              <p className="teacher-tool-desc">Track student accuracy & completion</p>
             </div>
           </button>
 
@@ -2050,14 +2043,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               setView('cambridge-reports');
               loadCambridgeScores();
             }}
-            className="group bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200 hover:border-teal-400 rounded-xl p-5 text-left transition-all hover:shadow-md"
+            className="teacher-tool-card teal"
           >
-            <div className="flex items-center gap-4">
-              <div className="text-4xl">✍️</div>
-              <div>
-                <h4 className="font-bold text-slate-800">Cambridge Tests</h4>
-                <p className="text-sm text-slate-600">Mark writing tests & view results</p>
-              </div>
+            <div className="teacher-tool-icon">✍️</div>
+            <div>
+              <h4 className="teacher-tool-title">Cambridge Tests</h4>
+              <p className="teacher-tool-desc">Mark writing tests & view results</p>
             </div>
           </button>
         </div>
@@ -2066,30 +2057,28 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       {/* Recent Activity Section */}
       {assignments.length > 0 && (
         <div>
-          <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-            📅 Recent Assignments
+          <h3 className="teacher-subsection-title">
+            <span>📅</span> Recent Assignments
           </h3>
-          <div className="bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-slate-100 border-b border-slate-200">
+          <div className="teacher-table-container">
+            <table className="teacher-table">
+              <thead>
                 <tr>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Title</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Subject</th>
-                  <th className="text-center py-3 px-4 text-sm font-semibold text-slate-700">Completed</th>
-                  <th className="text-center py-3 px-4 text-sm font-semibold text-slate-700">Status</th>
+                  <th>Title</th>
+                  <th>Subject</th>
+                  <th style={{ textAlign: 'center' }}>Completed</th>
+                  <th style={{ textAlign: 'center' }}>Status</th>
                 </tr>
               </thead>
               <tbody>
-                {assignments.slice(0, 5).map((a, i) => (
-                  <tr key={a.id} className={i % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                    <td className="py-3 px-4 text-slate-800 font-medium">{a.title}</td>
-                    <td className="py-3 px-4 text-slate-600">{a.subject_name}</td>
-                    <td className="py-3 px-4 text-center text-slate-700">{a.completed_count}/{a.student_count}</td>
-                    <td className="py-3 px-4 text-center">
-                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                        a.completed_count >= a.student_count 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-amber-100 text-amber-700'
+                {assignments.slice(0, 5).map((a) => (
+                  <tr key={a.id}>
+                    <td style={{ fontWeight: 500 }}>{a.title}</td>
+                    <td>{a.subject_name}</td>
+                    <td style={{ textAlign: 'center' }}>{a.completed_count}/{a.student_count}</td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span className={`teacher-badge ${
+                        a.completed_count >= a.student_count ? 'success' : 'warning'
                       }`}>
                         {a.completed_count >= a.student_count ? '✅ Complete' : '⏳ In Progress'}
                       </span>
@@ -2112,7 +2101,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           setEditingQuestion(null);
           setView('question-bank');
         }}
-        className="mb-4 text-slate-600 hover:text-slate-800 flex items-center gap-2 font-medium"
+        className="teacher-back-btn"
       >
         <span>←</span> Back to Questions
       </button>
@@ -2130,7 +2119,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             onClick={() => {
               setQuestionType('multiple_choice');
               setQuestionText('');
-              setOptions(['', '', '', '']);
+              setOptions([
+                { text: '', image_url: undefined },
+                { text: '', image_url: undefined },
+                { text: '', image_url: undefined },
+                { text: '', image_url: undefined }
+              ]);
             }}
             className="p-3 bg-white hover:bg-cyan-50 border border-slate-200 hover:border-cyan-400 rounded-lg transition-all text-sm"
           >
@@ -2143,7 +2137,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             onClick={() => {
               setQuestionType('true_false');
               setQuestionText('');
-              setOptions(['True', 'False']);
+              setOptions([
+                { text: 'True', image_url: undefined },
+                { text: 'False', image_url: undefined }
+              ]);
             }}
             className="p-3 bg-white hover:bg-green-50 border border-slate-200 hover:border-green-400 rounded-lg transition-all text-sm"
           >
@@ -2164,10 +2161,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               ]);
               setOptionImages([null, null, null, null]);
             }}
-            className="p-3 bg-yellow-500/10 hover:bg-yellow-500/20 border border-yellow-500/30 rounded-lg transition-all text-sm"
+            className="p-3 bg-white hover:bg-amber-50 border border-slate-200 hover:border-amber-400 rounded-lg transition-all text-sm"
           >
             <div className="text-2xl mb-1">✏️</div>
-            <div className="text-yellow-400 font-semibold">Short Answer</div>
+            <div className="text-amber-600 font-semibold">Short Answer</div>
           </button>
           
           <button
@@ -2190,28 +2187,28 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               setExplanation('');
               setPoints(10);
             }}
-            className="p-3 bg-gray-500/10 hover:bg-gray-500/20 border border-gray-500/30 rounded-lg transition-all text-sm"
+            className="p-3 bg-white hover:bg-slate-100 border border-slate-200 hover:border-slate-400 rounded-lg transition-all text-sm"
           >
             <div className="text-2xl mb-1">🔄</div>
-            <div className="text-gray-400 font-semibold">Reset Form</div>
+            <div className="text-slate-600 font-semibold">Reset Form</div>
           </button>
         </div>
       </div>
 
-      <div className="card-glass p-6">
-        <h2 className="font-heading text-3xl text-pink-400 font-bold mb-6">
+      <div className="teacher-card">
+        <h2 className="text-2xl font-bold text-slate-800 mb-6">
           {editingQuestion ? '✏️ Edit Question' : '✨ Create New Question'}
         </h2>
 
         <form onSubmit={handleCreateQuestion} className="space-y-6">
           {/* Subject & Difficulty */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">Subject</label>
+            <div className="teacher-form-group">
+              <label className="teacher-label">Subject</label>
               <select
                 value={subject}
                 onChange={(e) => setSubject(e.target.value as Subject)}
-                className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
+                className="teacher-select"
                 required
               >
                 <option value="Maths">Maths</option>
@@ -2226,8 +2223,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">Difficulty</label>
+            <div className="teacher-form-group">
+              <label className="teacher-label">Difficulty</label>
               <select
                 value={difficulty}
                 onChange={(e) => {
@@ -2236,7 +2233,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   // Auto-set points based on difficulty
                   setPoints(getDefaultPointsForDifficulty(newDifficulty));
                 }}
-                className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
+                className="teacher-select"
                 required
               >
                 <option value="easy">⭐ Easy (10 XP)</option>
@@ -2247,13 +2244,13 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </div>
 
           {/* Topic Selection */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">Topic</label>
+          <div className="teacher-form-group">
+            <label className="teacher-label">Topic</label>
             <div className="flex flex-col md:flex-row gap-4">
               <select
                 value={topicMode}
                 onChange={(e) => setTopicMode(e.target.value as 'general' | 'custom')}
-                className="bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
+                className="teacher-select"
               >
                 <option value="general">General</option>
                 <option value="custom">Custom</option>
@@ -2263,22 +2260,22 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   type="text"
                   value={customTopicName}
                   onChange={(e) => setCustomTopicName(e.target.value)}
-                  className="flex-1 bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
+                  className="teacher-input flex-1"
                   placeholder="Enter topic name"
                   required
                 />
               )}
             </div>
-            <p className="text-xs text-gray-400 mt-2">Topic helps group assignments and question reports.</p>
+            <p className="text-xs text-slate-500 mt-2">Topic helps group assignments and question reports.</p>
           </div>
 
           {/* Question Type */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">Question Type</label>
+          <div className="teacher-form-group">
+            <label className="teacher-label">Question Type</label>
             <select
               value={questionType}
               onChange={(e) => setQuestionType(e.target.value as any)}
-              className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
+              className="teacher-select"
               required
             >
               <option value="multiple_choice">Multiple Choice</option>
@@ -2288,8 +2285,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </div>
 
           {/* Question Text */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">Question</label>
+          <div className="teacher-form-group">
+            <label className="teacher-label">Question</label>
             <textarea
               value={questionText}
               onChange={(e) => setQuestionText(e.target.value)}
@@ -2309,15 +2306,15 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   }
                 }
               }}
-              className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-3 text-white focus:border-cyan-500 focus:outline-none min-h-[100px]"
+              className="teacher-textarea min-h-[100px]"
               placeholder="Enter your question here... (paste screenshot to add image)"
               required
             />
           </div>
 
           {/* Question Image (Optional) */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">Question Image (Optional)</label>
+          <div className="teacher-form-group">
+            <label className="teacher-label">Question Image (Optional)</label>
             <div 
               className="space-y-3"
               onPaste={(e) => {
@@ -2344,7 +2341,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   <img
                     src={questionImage ? URL.createObjectURL(questionImage) : questionImageUrl}
                     alt="Question preview"
-                    className="max-w-full max-h-48 rounded-lg border border-gray-600"
+                    className="max-w-full max-h-48 rounded-lg border border-slate-300"
                   />
                   <button
                     type="button"
@@ -2360,18 +2357,18 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               )}
               {!questionImage && !questionImageUrl && (
                 <div 
-                  className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center cursor-pointer hover:border-purple-500 transition-all"
+                  className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center cursor-pointer hover:border-cyan-500 transition-all bg-slate-50"
                   onClick={() => document.getElementById('question-image-input')?.click()}
                 >
-                  <div className="text-gray-400">
+                  <div className="text-slate-500">
                     <span className="text-2xl">📷</span>
-                    <p className="mt-2">Click to upload or <span className="text-purple-400">paste screenshot</span> (Ctrl+V)</p>
+                    <p className="mt-2">Click to upload or <span className="text-cyan-600 font-medium">paste screenshot</span> (Ctrl+V)</p>
                     <p className="text-xs mt-1">JPEG, PNG, GIF, or WebP (max 5MB)</p>
                   </div>
                 </div>
               )}
               <div className="flex items-center gap-3">
-                <label className="cursor-pointer bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 rounded-lg px-4 py-2 text-purple-300 transition-all">
+                <label className="cursor-pointer bg-purple-50 hover:bg-purple-100 border border-purple-300 rounded-lg px-4 py-2 text-purple-700 font-medium transition-all">
                   📷 {questionImage || questionImageUrl ? 'Change Image' : 'Upload Image'}
                   <input
                     id="question-image-input"
@@ -2387,26 +2384,26 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                     className="hidden"
                   />
                 </label>
-                <span className="text-xs text-gray-400">or paste screenshot (Ctrl+V)</span>
+                <span className="text-xs text-slate-500">or paste screenshot (Ctrl+V)</span>
               </div>
               {uploadingImage && (
-                <div className="text-cyan-400 text-sm animate-pulse">⏳ Uploading image...</div>
+                <div className="text-cyan-600 text-sm animate-pulse">⏳ Uploading image...</div>
               )}
             </div>
           </div>
 
           {/* Multiple Choice Options */}
           {questionType === 'multiple_choice' && (
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">Answer Options (Check the correct answer)</label>
+            <div className="teacher-form-group">
+              <label className="teacher-label">Answer Options (Check the correct answer)</label>
               <div className="space-y-4">
                 {options.map((option, index) => (
                   <div 
                     key={index} 
-                    className={`bg-black/20 border rounded-lg p-3 transition-all ${
+                    className={`bg-slate-50 border rounded-xl p-4 transition-all ${
                       correctAnswer === option.text && option.text.trim() 
-                        ? 'border-green-500 bg-green-500/10' 
-                        : 'border-gray-700'
+                        ? 'border-emerald-500 bg-emerald-50' 
+                        : 'border-slate-200'
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-2">
@@ -2421,10 +2418,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                             setCorrectAnswer('');
                           }
                         }}
-                        className="w-5 h-5 rounded border-gray-600 bg-black/40 text-green-500 focus:ring-green-500 focus:ring-offset-0 cursor-pointer"
+                        className="w-5 h-5 rounded border-slate-300 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer"
                         title="Mark as correct answer"
                       />
-                      <span className="text-cyan-400 font-bold">{String.fromCharCode(65 + index)}.</span>
+                      <span className="text-cyan-600 font-bold">{String.fromCharCode(65 + index)}.</span>
                       <input
                         type="text"
                         value={option.text}
@@ -2459,12 +2456,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                             }
                           }
                         }}
-                        className="flex-1 bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
+                        className="teacher-input flex-1"
                         placeholder={`Option ${String.fromCharCode(65 + index)} text (paste image here)`}
                         required
                       />
                       {correctAnswer === option.text && option.text.trim() && (
-                        <span className="text-green-400 text-sm font-semibold">✓ Correct</span>
+                        <span className="text-emerald-600 text-sm font-semibold">✓ Correct</span>
                       )}
                     </div>
                     {/* Option Image */}
@@ -2474,7 +2471,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                           <img
                             src={optionImages[index] ? URL.createObjectURL(optionImages[index]!) : option.image_url}
                             alt={`Option ${String.fromCharCode(65 + index)} preview`}
-                            className="max-h-20 rounded border border-gray-600"
+                            className="max-h-20 rounded border border-slate-300"
                           />
                           <button
                             type="button"
@@ -2492,7 +2489,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                           </button>
                         </div>
                       )}
-                      <label className="cursor-pointer text-xs bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 rounded px-2 py-1 text-purple-300 transition-all">
+                      <label className="cursor-pointer text-xs bg-purple-50 hover:bg-purple-100 border border-purple-300 rounded px-2 py-1 text-purple-700 font-medium transition-all">
                         📷 {option.image_url || optionImages[index] ? 'Change' : 'Add Image'}
                         <input
                           type="file"
@@ -2512,7 +2509,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                           className="hidden"
                         />
                       </label>
-                      <span className="text-xs text-gray-500">or paste screenshot</span>
+                      <span className="text-xs text-slate-500">or paste screenshot</span>
                     </div>
                   </div>
                 ))}
@@ -2522,15 +2519,15 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
           {/* Correct Answer - Hidden for MCQ since we use checkboxes now */}
           {questionType !== 'multiple_choice' && (
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">
+            <div className="teacher-form-group">
+              <label className="teacher-label">
                 Correct Answer
               </label>
               <input
                 type="text"
                 value={correctAnswer}
                 onChange={(e) => setCorrectAnswer(e.target.value)}
-                className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
+                className="teacher-input"
                 placeholder="Enter correct answer"
                 required
               />
@@ -2538,21 +2535,21 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           )}
 
           {/* Explanation */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">Explanation (Optional)</label>
+          <div className="teacher-form-group">
+            <label className="teacher-label">Explanation (Optional)</label>
             <textarea
               value={explanation}
               onChange={(e) => setExplanation(e.target.value)}
-              className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-3 text-white focus:border-cyan-500 focus:outline-none"
+              className="teacher-textarea"
               placeholder="Explain why this answer is correct..."
               rows={3}
             />
           </div>
 
           {/* Points */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">
-              Points (XP Reward) <span className="text-gray-500 font-normal">— Max {MAX_QUESTION_XP} XP</span>
+          <div className="teacher-form-group">
+            <label className="teacher-label">
+              Points (XP Reward) <span className="text-slate-500 font-normal">— Max {MAX_QUESTION_XP} XP</span>
             </label>
             <input
               type="number"
@@ -2561,12 +2558,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 const val = parseInt(e.target.value) || 0;
                 setPoints(Math.min(Math.max(val, 1), MAX_QUESTION_XP));
               }}
-              className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-500 focus:outline-none"
+              className="teacher-input"
               min="1"
               max={MAX_QUESTION_XP}
               required
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-slate-500 mt-1">
               Default: Easy=10, Medium=15, Hard=20. You can adjust up to {MAX_QUESTION_XP} XP.
             </p>
           </div>
@@ -2574,7 +2571,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-heading font-bold text-lg py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg"
+            className="teacher-btn teacher-btn-primary w-full py-4 text-lg"
           >
             {editingQuestion ? '💾 Save Changes' : '✨ Create Question'}
           </button>
@@ -2586,38 +2583,38 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
   // Render Question Bank
   const renderQuestionBank = () => (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="font-heading text-3xl text-cyan-400 font-bold">📚 Question Bank</h2>
+      <div className="teacher-section-header">
+        <h2>📚 Question Bank</h2>
         <button
           onClick={() => {
             setEditingQuestion(null);
             setView('create-question');
           }}
-          className="bg-pink-500/20 hover:bg-pink-500/30 border border-pink-400 text-pink-400 px-4 py-2 rounded-lg font-semibold transition-all"
+          className="teacher-btn teacher-btn-primary"
         >
           ➕ New Question
         </button>
       </div>
 
-      <div className="card-glass p-4 mb-6 border border-cyan-500/30">
+      <div className="teacher-card mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          <div className="flex flex-col">
-            <label className="text-xs uppercase tracking-wide text-gray-400 mb-2">Search</label>
+          <div className="teacher-form-group">
+            <label className="teacher-label">Search</label>
             <input
               type="text"
               placeholder="Search questions, subjects, or topics..."
               value={questionSearchTerm}
               onChange={(e) => setQuestionSearchTerm(e.target.value)}
-              className="bg-black/40 border border-cyan-500/30 rounded-lg px-3 py-2 text-white focus:border-cyan-400 focus:outline-none"
+              className="teacher-input"
             />
           </div>
 
-          <div className="flex flex-col">
-            <label className="text-xs uppercase tracking-wide text-gray-400 mb-2">Subject</label>
+          <div className="teacher-form-group">
+            <label className="teacher-label">Subject</label>
             <select
               value={questionSubjectFilter}
               onChange={(e) => setQuestionSubjectFilter(e.target.value as Subject | 'all')}
-              className="bg-black/40 border border-cyan-500/30 rounded-lg px-3 py-2 text-white focus:border-cyan-400 focus:outline-none"
+              className="teacher-select"
             >
               <option value="all">All Subjects</option>
               {subjectFilterOptions.map((s) => (
@@ -2626,12 +2623,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </select>
           </div>
 
-          <div className="flex flex-col">
-            <label className="text-xs uppercase tracking-wide text-gray-400 mb-2">Topic</label>
+          <div className="teacher-form-group">
+            <label className="teacher-label">Topic</label>
             <select
               value={questionTopicFilter}
               onChange={(e) => setQuestionTopicFilter(e.target.value)}
-              className="bg-black/40 border border-cyan-500/30 rounded-lg px-3 py-2 text-white focus:border-cyan-400 focus:outline-none"
+              className="teacher-select"
             >
               <option value="all">All Topics</option>
               {topicFilterOptions.map((topic) => (
@@ -2640,12 +2637,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </select>
           </div>
 
-          <div className="flex flex-col">
-            <label className="text-xs uppercase tracking-wide text-gray-400 mb-2">Difficulty</label>
+          <div className="teacher-form-group">
+            <label className="teacher-label">Difficulty</label>
             <select
               value={questionDifficultyFilter}
               onChange={(e) => setQuestionDifficultyFilter(e.target.value as QuestionDifficulty | 'all')}
-              className="bg-black/40 border border-cyan-500/30 rounded-lg px-3 py-2 text-white focus:border-cyan-400 focus:outline-none"
+              className="teacher-select"
             >
               <option value="all">All Levels</option>
               <option value="easy">Easy</option>
@@ -2654,12 +2651,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </select>
           </div>
 
-          <div className="flex flex-col">
-            <label className="text-xs uppercase tracking-wide text-gray-400 mb-2">Question Type</label>
+          <div className="teacher-form-group">
+            <label className="teacher-label">Question Type</label>
             <select
               value={questionTypeFilter}
               onChange={(e) => setQuestionTypeFilter(e.target.value as 'all' | 'multiple_choice' | 'true_false' | 'short_answer')}
-              className="bg-black/40 border border-cyan-500/30 rounded-lg px-3 py-2 text-white focus:border-cyan-400 focus:outline-none"
+              className="teacher-select"
             >
               <option value="all">All Types</option>
               <option value="multiple_choice">Multiple Choice</option>
@@ -2668,7 +2665,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </select>
           </div>
 
-          <div className="flex flex-col justify-end">
+          <div className="teacher-form-group justify-end">
             <button
               onClick={() => {
                 setQuestionSearchTerm('');
@@ -2677,87 +2674,87 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 setQuestionDifficultyFilter('all');
                 setQuestionTypeFilter('all');
               }}
-              className="w-full bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30 rounded-lg px-3 py-2 font-semibold transition-all"
+              className="teacher-btn teacher-btn-secondary w-full"
             >
               Reset Filters
             </button>
           </div>
         </div>
 
-        <div className="text-xs text-gray-400 mt-3">
+        <div className="text-sm text-slate-500 mt-4 pt-4 border-t border-slate-200">
           Showing {filteredQuestions.length} of {questions.length} questions
         </div>
       </div>
 
       {questions.length === 0 ? (
-        <div className="card-glass p-12 text-center">
+        <div className="teacher-card p-12 text-center">
           <div className="text-6xl mb-4">📝</div>
-          <p className="text-xl text-gray-400 mb-4">No questions yet!</p>
+          <p className="text-xl text-slate-500 mb-4">No questions yet!</p>
           <button
             onClick={() => setView('create-question')}
-            className="bg-pink-500/20 hover:bg-pink-500/30 border border-pink-400 text-pink-400 px-6 py-3 rounded-lg font-semibold"
+            className="teacher-btn teacher-btn-primary"
           >
             Create Your First Question
           </button>
         </div>
       ) : filteredQuestions.length === 0 ? (
-        <div className="card-glass p-8 text-center border border-cyan-500/30">
-          <p className="text-lg text-gray-300">No questions match your filters.</p>
-          <p className="text-sm text-gray-500">Try adjusting the subject, topic, or search keywords.</p>
+        <div className="teacher-card p-8 text-center">
+          <p className="text-lg text-slate-600">No questions match your filters.</p>
+          <p className="text-sm text-slate-500">Try adjusting the subject, topic, or search keywords.</p>
         </div>
       ) : (
         <div className="space-y-6">
           {Object.entries(groupedQuestions).sort(([a], [b]) => a.localeCompare(b)).map(([subjectName, topics]) => (
-            <div key={subjectName} className="card-glass p-5 border border-cyan-500/20">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 rounded-full bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-bold text-lg">
+            <div key={subjectName} className="teacher-card">
+              <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-200">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 text-white flex items-center justify-center font-bold text-xl shadow-lg">
                     {subjectName[0]}
                   </div>
                   <div>
-                    <h3 className="font-heading text-2xl text-white">{subjectName}</h3>
-                    <p className="text-xs text-gray-400">{Object.values(topics).reduce((sum, list) => sum + list.length, 0)} questions</p>
+                    <h3 className="text-xl font-bold text-slate-800">{subjectName}</h3>
+                    <p className="text-sm text-slate-500">{Object.values(topics).reduce((sum, list) => sum + list.length, 0)} questions</p>
                   </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {Object.entries(topics).sort(([a], [b]) => a.localeCompare(b)).map(([topicName, topicQuestions]) => (
-                  <div key={topicName} className="bg-black/30 border border-cyan-500/10 rounded-xl p-4">
+                  <div key={topicName} className="bg-slate-50 border border-slate-200 rounded-xl p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div>
-                        <h4 className="text-lg text-cyan-200 font-semibold">{topicName}</h4>
-                        <p className="text-xs text-gray-500">{topicQuestions.length} question{topicQuestions.length !== 1 ? 's' : ''}</p>
+                        <h4 className="text-lg font-semibold text-cyan-700">{topicName}</h4>
+                        <p className="text-xs text-slate-500">{topicQuestions.length} question{topicQuestions.length !== 1 ? 's' : ''}</p>
                       </div>
                     </div>
 
                     <div className="space-y-3">
                       {topicQuestions.map((q) => (
-                        <div key={q.id} className="card-glass p-4 border border-cyan-500/10 hover:border-cyan-500/40 transition-all">
+                        <div key={q.id} className="bg-white border border-slate-200 rounded-lg p-4 hover:border-cyan-300 hover:shadow-md transition-all">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-2">
-                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                                  q.difficulty === 'easy' ? 'bg-green-500/20 text-green-400' :
-                                  q.difficulty === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                                  'bg-red-500/20 text-red-400'
+                                <span className={`teacher-badge ${
+                                  q.difficulty === 'easy' ? 'teacher-badge-success' :
+                                  q.difficulty === 'medium' ? 'teacher-badge-warning' :
+                                  'teacher-badge-danger'
                                 }`}>
                                   {q.difficulty.toUpperCase()}
                                 </span>
-                                <span className="text-xs text-gray-500">
+                                <span className="text-xs text-slate-500">
                                   {q.question_type.replace('_', ' ').toUpperCase()}
                                 </span>
-                                <span className="text-xs text-gray-500">⭐ {q.points} XP</span>
+                                <span className="text-xs text-amber-600 font-medium">⭐ {q.points} XP</span>
                               </div>
 
-                              <p className="text-lg text-white mb-3">{q.question_text}</p>
+                              <p className="text-slate-800 mb-3">{q.question_text}</p>
 
-                              <div className="flex items-center gap-6 text-sm text-gray-400">
+                              <div className="flex items-center gap-4 text-sm text-slate-500">
                                 <span>✅ {q.times_correct} correct</span>
-                                <span>📊 {q.times_answered} total answers</span>
+                                <span>📊 {q.times_answered} total</span>
                                 {q.times_answered > 0 && (
                                   <span className={`font-bold ${
-                                    (q.times_correct / q.times_answered * 100) >= 70 ? 'text-green-400' : 'text-red-400'
+                                    (q.times_correct / q.times_answered * 100) >= 70 ? 'text-emerald-600' : 'text-red-500'
                                   }`}>
                                     {Math.round((q.times_correct / q.times_answered) * 100)}% success
                                   </span>
@@ -2765,24 +2762,24 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                               </div>
                             </div>
 
-                            <div className="ml-4 flex gap-2">
+                            <div className="ml-4 flex gap-1">
                               <button
                                 onClick={() => handleEditQuestion(q)}
-                                className="text-yellow-400 hover:text-yellow-300 p-2 hover:bg-yellow-500/10 rounded-lg transition-all"
+                                className="teacher-btn-icon text-amber-600 hover:bg-amber-50"
                                 title="Edit question"
                               >
                                 ✏️
                               </button>
                               <button
                                 onClick={() => handleDuplicateQuestion(q)}
-                                className="text-cyan-400 hover:text-cyan-300 p-2 hover:bg-cyan-500/10 rounded-lg transition-all"
+                                className="teacher-btn-icon text-cyan-600 hover:bg-cyan-50"
                                 title="Duplicate question"
                               >
                                 📋
                               </button>
                               <button
                                 onClick={() => handleDeleteQuestion(q.id)}
-                                className="text-red-400 hover:text-red-300 p-2 hover:bg-red-500/10 rounded-lg transition-all"
+                                className="teacher-btn-icon text-red-500 hover:bg-red-50"
                                 title="Delete question"
                               >
                                 🗑️
@@ -2807,20 +2804,22 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     <div className="max-w-3xl mx-auto">
       <button
         onClick={() => setView('question-bank')}
-        className="mb-4 text-cyan-400 hover:text-cyan-300 flex items-center gap-2"
+        className="teacher-back-link mb-4"
       >
         ← Back to Questions
       </button>
 
-      <div className="card-glass p-8">
-        <h2 className="font-heading text-3xl font-bold text-green-400 mb-6">📤 Bulk Upload Questions</h2>
+      <div className="teacher-card">
+        <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+          <span className="text-2xl">📤</span> Bulk Upload Questions
+        </h2>
 
         {/* Instructions */}
-        <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-6 mb-6">
-          <h3 className="font-bold text-cyan-400 mb-3 flex items-center gap-2">
+        <div className="bg-cyan-50 border border-cyan-200 rounded-xl p-6 mb-6">
+          <h3 className="font-bold text-cyan-700 mb-3 flex items-center gap-2">
             <span>📋</span> How to Use CSV Upload
           </h3>
-          <ol className="list-decimal list-inside space-y-2 text-sm text-gray-300">
+          <ol className="list-decimal list-inside space-y-2 text-sm text-slate-600">
             <li>Download the CSV template using the button below</li>
             <li>Fill in your questions following the template format</li>
             <li>Save your file as a CSV (comma-separated values)</li>
@@ -2830,19 +2829,19 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         </div>
 
         {/* CSV Format Guide */}
-        <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-6 mb-6">
-          <h3 className="font-bold text-purple-400 mb-3">📝 CSV Format</h3>
-          <div className="text-xs text-gray-400 mb-2">Columns (in order):</div>
+        <div className="bg-purple-50 border border-purple-200 rounded-xl p-6 mb-6">
+          <h3 className="font-bold text-purple-700 mb-3">📝 CSV Format</h3>
+          <div className="text-xs text-slate-500 mb-2">Columns (in order):</div>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <div className="text-gray-300">1. <code className="text-cyan-400">subject</code> - Maths, Science, English, Russian Language, Kyrgyz Language, German Language, Geography, Global Perspective, ICT</div>
-            <div className="text-gray-300">2. <code className="text-cyan-400">topic</code> - General or any custom topic name</div>
-            <div className="text-gray-300">3. <code className="text-cyan-400">difficulty</code> - easy, medium, hard</div>
-            <div className="text-gray-300">4. <code className="text-cyan-400">question_type</code> - multiple_choice, true_false, short_answer</div>
-            <div className="text-gray-300">5. <code className="text-cyan-400">question_text</code> - The question</div>
-            <div className="text-gray-300">6-9. <code className="text-cyan-400">option1-4</code> - Answer choices (for multiple choice)</div>
-            <div className="text-gray-300">10. <code className="text-cyan-400">correct_answer</code> - The correct answer</div>
-            <div className="text-gray-300">11. <code className="text-cyan-400">explanation</code> - Why it's correct</div>
-            <div className="text-gray-300">12. <code className="text-cyan-400">points</code> - Point value (10-50)</div>
+            <div className="text-slate-600">1. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">subject</code> - Maths, Science, English, etc.</div>
+            <div className="text-slate-600">2. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">topic</code> - General or any custom topic</div>
+            <div className="text-slate-600">3. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">difficulty</code> - easy, medium, hard</div>
+            <div className="text-slate-600">4. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">question_type</code> - multiple_choice, true_false, short_answer</div>
+            <div className="text-slate-600">5. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">question_text</code> - The question</div>
+            <div className="text-slate-600">6-9. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">option1-4</code> - Answer choices</div>
+            <div className="text-slate-600">10. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">correct_answer</code> - The correct answer</div>
+            <div className="text-slate-600">11. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">explanation</code> - Why it's correct</div>
+            <div className="text-slate-600">12. <code className="text-cyan-600 bg-cyan-50 px-1 rounded">points</code> - Point value (10-50)</div>
           </div>
         </div>
 
@@ -2850,7 +2849,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         <div className="mb-6">
           <button
             onClick={downloadCSVTemplate}
-            className="w-full py-4 px-6 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-lg font-bold text-white transition-all hover:scale-105 flex items-center justify-center gap-3"
+            className="teacher-btn teacher-btn-primary w-full py-4 text-lg"
           >
             <span className="text-2xl">📥</span>
             <span>Download CSV Template</span>
@@ -2858,7 +2857,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         </div>
 
         {/* Upload Section */}
-        <div className="border-2 border-dashed border-green-500/50 rounded-lg p-8 text-center">
+        <div className="border-2 border-dashed border-emerald-400 rounded-xl p-8 text-center bg-emerald-50/50">
           <input
             type="file"
             accept=".csv"
@@ -2872,10 +2871,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             className={`cursor-pointer inline-block ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <div className="text-6xl mb-4">📤</div>
-            <div className="font-bold text-xl text-green-400 mb-2">
+            <div className="font-bold text-xl text-emerald-600 mb-2">
               {uploading ? 'Uploading...' : 'Click to Upload CSV File'}
             </div>
-            <div className="text-sm text-gray-400">
+            <div className="text-sm text-slate-500">
               {uploading ? 'Please wait while we process your questions' : 'Select a .csv file from your computer'}
             </div>
           </label>
@@ -2884,12 +2883,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           {uploading && uploadProgress.total > 0 && (
             <div className="mt-6">
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-400">Processing questions...</span>
-                <span className="text-cyan-400">{uploadProgress.current} / {uploadProgress.total}</span>
+                <span className="text-slate-500">Processing questions...</span>
+                <span className="text-cyan-600 font-medium">{uploadProgress.current} / {uploadProgress.total}</span>
               </div>
-              <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+              <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-green-500 to-cyan-500 transition-all duration-300"
+                  className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500 transition-all duration-300"
                   style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
                 />
               </div>
@@ -2898,11 +2897,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         </div>
 
         {/* Tips */}
-        <div className="mt-6 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
-          <h4 className="font-bold text-yellow-400 mb-2 flex items-center gap-2">
+        <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4">
+          <h4 className="font-bold text-amber-700 mb-2 flex items-center gap-2">
             <span>💡</span> Tips for Success
           </h4>
-          <ul className="text-sm text-gray-300 space-y-1">
+          <ul className="text-sm text-slate-600 space-y-1">
             <li>• Use quotes around text with commas (e.g., "What is 2 + 2, exactly?")</li>
             <li>• For true/false questions, leave option1-4 empty</li>
             <li>• For short answer, leave option1-4 empty</li>
@@ -2916,50 +2915,50 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
   const renderAssignments = () => (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="font-heading text-3xl text-purple-300 font-bold">🗂️ Assignments</h2>
+      <div className="teacher-section-header">
+        <h2>🗂️ Assignments</h2>
         <button
           onClick={() => setView('create-assignment')}
-          className="bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400 text-purple-200 px-4 py-2 rounded-lg font-semibold transition-all"
+          className="teacher-btn teacher-btn-primary"
         >
           ➕ New Assignment
         </button>
       </div>
 
       {assignments.length === 0 ? (
-        <div className="card-glass p-12 text-center">
+        <div className="teacher-card p-12 text-center">
           <div className="text-6xl mb-4">🧭</div>
-          <p className="text-xl text-gray-400 mb-4">No assignments yet</p>
-          <p className="text-gray-500">Create a mission to block normal quests until students finish.</p>
+          <p className="text-xl text-slate-500 mb-4">No assignments yet</p>
+          <p className="text-slate-400">Create a mission to block normal quests until students finish.</p>
         </div>
       ) : (
         <div className="space-y-4">
           {assignments.map((assignment) => (
-            <div key={assignment.id} className="card-glass p-6 border border-purple-500/20">
+            <div key={assignment.id} className="teacher-card">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                  <h3 className="font-heading text-2xl text-white mb-1">{assignment.title || assignment.topic_name}</h3>
-                  <p className="text-sm text-gray-400">
+                  <h3 className="text-xl font-bold text-slate-800 mb-1">{assignment.title || assignment.topic_name}</h3>
+                  <p className="text-sm text-slate-600">
                     {assignment.subject_name} · Topic: {assignment.topic_name}
                   </p>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-slate-500">
                     {assignment.assignment_mode === 'custom' 
                       ? `Custom (${assignment.student_count} students)` 
                       : `Batch: ${assignment.batch}`
                     } · Assigned {new Date(assignment.assigned_at).toLocaleDateString()}
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-slate-400">
                     Due: {assignment.due_at ? new Date(assignment.due_at).toLocaleString() : 'No due date'}
                   </p>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-300">
+                  <div className="text-3xl font-bold text-purple-600">
                     {assignment.completed_count}/{assignment.student_count}
                   </div>
-                  <div className="text-xs text-gray-400">Students completed</div>
+                  <div className="text-xs text-slate-500">Students completed</div>
                   <button
                     onClick={() => handleOpenReport(assignment)}
-                    className="mt-3 px-4 py-2 rounded-lg bg-purple-500/20 border border-purple-400 text-purple-200 hover:bg-purple-500/30 transition-all"
+                    className="teacher-btn teacher-btn-secondary mt-3"
                   >
                     View Report
                   </button>
@@ -2976,25 +2975,25 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     <div className="max-w-4xl mx-auto">
       <button
         onClick={() => setView('assignments')}
-        className="mb-4 text-purple-300 hover:text-purple-200 flex items-center gap-2"
+        className="teacher-back-link mb-4"
       >
         <span>←</span> Back to Assignments
       </button>
 
-      <div className="card-glass p-6">
-        <h2 className="font-heading text-3xl text-purple-300 font-bold mb-6">Create Assignment</h2>
+      <div className="teacher-card">
+        <h2 className="text-2xl font-bold text-slate-800 mb-6">Create Assignment</h2>
         <form onSubmit={handleCreateAssignment} className="space-y-6">
           {/* Assignment Mode Selection */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">Assignment Mode</label>
+          <div className="teacher-form-group">
+            <label className="teacher-label">Assignment Mode</label>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setAssignmentMode('batch')}
-                className={`px-4 py-3 rounded-lg border transition-all ${
+                className={`px-4 py-3 rounded-xl border-2 transition-all font-medium ${
                   assignmentMode === 'batch'
-                    ? 'bg-purple-500/30 border-purple-400 text-purple-200'
-                    : 'bg-black/40 border-gray-600 text-gray-400 hover:border-gray-500'
+                    ? 'bg-purple-50 border-purple-500 text-purple-700'
+                    : 'bg-slate-50 border-slate-200 text-slate-500 hover:border-slate-300'
                 }`}
               >
                 📚 Assign to Batch
@@ -3002,10 +3001,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               <button
                 type="button"
                 onClick={() => setAssignmentMode('custom')}
-                className={`px-4 py-3 rounded-lg border transition-all ${
+                className={`px-4 py-3 rounded-xl border-2 transition-all font-medium ${
                   assignmentMode === 'custom'
-                    ? 'bg-purple-500/30 border-purple-400 text-purple-200'
-                    : 'bg-black/40 border-gray-600 text-gray-400 hover:border-gray-500'
+                    ? 'bg-purple-50 border-purple-500 text-purple-700'
+                    : 'bg-slate-50 border-slate-200 text-slate-500 hover:border-slate-300'
                 }`}
               >
                 👥 Select Students
@@ -3015,12 +3014,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
           {/* Batch Selection (only shown in batch mode) */}
           {assignmentMode === 'batch' && (
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">Batch</label>
+            <div className="teacher-form-group">
+              <label className="teacher-label">Batch</label>
               <select
                 value={assignmentBatch}
                 onChange={(e) => setAssignmentBatch(e.target.value as AssignmentBatch)}
-                className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                className="teacher-select"
               >
                 <option value="All">All</option>
                 <option value="8A">8A</option>
@@ -3032,23 +3031,23 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
           {/* Student Selection (only shown in custom mode) */}
           {assignmentMode === 'custom' && (
-            <div className="border border-gray-600 rounded-lg p-4 bg-black/20">
+            <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
               <div className="flex items-center justify-between mb-3">
-                <label className="block text-sm font-semibold text-gray-300">
+                <label className="teacher-label">
                   Select Students ({selectedStudentIds.length} selected)
                 </label>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={selectAllStudents}
-                    className="text-xs px-3 py-1 rounded bg-blue-500/20 border border-blue-400 text-blue-200 hover:bg-blue-500/30"
+                    className="teacher-btn teacher-btn-primary text-xs px-3 py-1"
                   >
                     Select All
                   </button>
                   <button
                     type="button"
                     onClick={deselectAllStudents}
-                    className="text-xs px-3 py-1 rounded bg-gray-500/20 border border-gray-500 text-gray-300 hover:bg-gray-500/30"
+                    className="teacher-btn teacher-btn-secondary text-xs px-3 py-1"
                   >
                     Clear
                   </button>
@@ -3060,27 +3059,27 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 placeholder="Search students..."
                 value={studentSearchTerm}
                 onChange={(e) => setStudentSearchTerm(e.target.value)}
-                className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white mb-3"
+                className="teacher-input mb-3"
               />
 
               <div className="max-h-64 overflow-y-auto space-y-2">
                 {filteredStudents.length === 0 ? (
-                  <p className="text-gray-500 text-sm text-center py-4">No students found</p>
+                  <p className="text-slate-500 text-sm text-center py-4">No students found</p>
                 ) : (
                   filteredStudents.map((student) => (
                     <label
                       key={student.id}
-                      className="flex items-center gap-3 p-3 rounded-lg bg-black/40 border border-gray-700 hover:border-gray-600 cursor-pointer transition-all"
+                      className="flex items-center gap-3 p-3 rounded-lg bg-white border border-slate-200 hover:border-cyan-300 cursor-pointer transition-all"
                     >
                       <input
                         type="checkbox"
                         checked={selectedStudentIds.includes(student.id)}
                         onChange={() => toggleStudentSelection(student.id)}
-                        className="w-4 h-4"
+                        className="w-4 h-4 text-cyan-600 rounded"
                       />
                       <div className="flex-1">
-                        <div className="text-white font-medium">{student.display_name}</div>
-                        <div className="text-xs text-gray-400">
+                        <div className="text-slate-800 font-medium">{student.display_name}</div>
+                        <div className="text-xs text-slate-500">
                           @{student.username} · Grade {student.grade} · {student.batch || 'No batch'}
                         </div>
                       </div>
@@ -3092,12 +3091,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">Subject</label>
+            <div className="teacher-form-group">
+              <label className="teacher-label">Subject</label>
               <select
                 value={assignmentSubject}
                 onChange={(e) => setAssignmentSubject(e.target.value as Subject)}
-                className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                className="teacher-select"
               >
                 <option value="Maths">Maths</option>
                 <option value="Science">Science</option>
@@ -3112,13 +3111,13 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">Topic</label>
+          <div className="teacher-form-group">
+            <label className="teacher-label">Topic</label>
             <div className="flex flex-col md:flex-row gap-4">
               <select
                 value={assignmentTopicMode}
                 onChange={(e) => setAssignmentTopicMode(e.target.value as 'general' | 'custom')}
-                className="bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                className="teacher-select"
               >
                 <option value="general">General</option>
                 <option value="custom">Custom</option>
@@ -3128,7 +3127,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   type="text"
                   value={assignmentTopicName}
                   onChange={(e) => setAssignmentTopicName(e.target.value)}
-                  className="flex-1 bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                  className="teacher-input flex-1"
                   placeholder="Enter topic name"
                   required
                 />
@@ -3137,22 +3136,22 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">Title (optional)</label>
+            <div className="teacher-form-group">
+              <label className="teacher-label">Title (optional)</label>
               <input
                 type="text"
                 value={assignmentTitle}
                 onChange={(e) => setAssignmentTitle(e.target.value)}
-                className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                className="teacher-input"
                 placeholder="Fractions drill"
               />
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">Difficulty</label>
+            <div className="teacher-form-group">
+              <label className="teacher-label">Difficulty</label>
               <select
                 value={assignmentDifficulty}
                 onChange={(e) => setAssignmentDifficulty(e.target.value as QuestionDifficulty)}
-                className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                className="teacher-select"
               >
                 <option value="easy">Easy</option>
                 <option value="medium">Medium</option>
@@ -3161,57 +3160,57 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">Instructions (optional)</label>
+          <div className="teacher-form-group">
+            <label className="teacher-label">Instructions (optional)</label>
             <textarea
               value={assignmentInstructions}
               onChange={(e) => setAssignmentInstructions(e.target.value)}
-              className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-3 text-white min-h-[80px]"
+              className="teacher-textarea"
               placeholder="Focus on word problems and show your work."
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">Assigned At</label>
+            <div className="teacher-form-group">
+              <label className="teacher-label">Assigned At</label>
               <input
                 type="datetime-local"
                 value={assignmentAssignedAt}
                 onChange={(e) => setAssignmentAssignedAt(e.target.value)}
-                className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                className="teacher-input"
               />
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">Due At</label>
+            <div className="teacher-form-group">
+              <label className="teacher-label">Due At</label>
               <input
                 type="datetime-local"
                 value={assignmentDueAt}
                 onChange={(e) => setAssignmentDueAt(e.target.value)}
-                className="w-full bg-black/40 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                className="teacher-input"
               />
             </div>
           </div>
 
-          <div>
+          <div className="teacher-form-group">
             <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-semibold text-gray-300">Questions ({assignmentQuestionIds.length} selected)</label>
-              <span className="text-xs text-gray-400">Only questions from {assignmentSubject} are shown</span>
+              <label className="teacher-label">Questions ({assignmentQuestionIds.length} selected)</label>
+              <span className="text-xs text-slate-500">Only questions from {assignmentSubject} are shown</span>
             </div>
-            <div className="max-h-64 overflow-y-auto border border-gray-700 rounded-lg divide-y divide-gray-800">
+            <div className="max-h-64 overflow-y-auto border border-slate-200 rounded-xl divide-y divide-slate-100">
               {assignmentQuestionPool.length === 0 ? (
-                <div className="p-4 text-sm text-gray-400">No questions for this subject. Create some first.</div>
+                <div className="p-4 text-sm text-slate-500">No questions for this subject. Create some first.</div>
               ) : (
                 assignmentQuestionPool.map((question) => (
-                  <label key={question.id} className="flex items-start gap-3 p-4 cursor-pointer hover:bg-white/5">
+                  <label key={question.id} className="flex items-start gap-3 p-4 cursor-pointer hover:bg-cyan-50 transition-colors">
                     <input
                       type="checkbox"
                       checked={assignmentQuestionIds.includes(question.id)}
                       onChange={() => toggleAssignmentQuestion(question.id)}
-                      className="mt-1"
+                      className="mt-1 text-cyan-600 rounded"
                     />
                     <div>
-                      <p className="text-white">{question.question_text}</p>
-                      <p className="text-xs text-gray-400">Topic: {question.topic_name || question.topic || 'General'}</p>
+                      <p className="text-slate-800">{question.question_text}</p>
+                      <p className="text-xs text-slate-500">Topic: {question.topic_name || question.topic || 'General'}</p>
                     </div>
                   </label>
                 ))
@@ -3222,7 +3221,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           <button
             type="submit"
             disabled={assignmentSubmitting}
-            className={`w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white font-heading font-bold text-lg py-4 rounded-xl transition-all ${assignmentSubmitting ? 'opacity-60 cursor-not-allowed' : 'hover:scale-105'}`}
+            className={`teacher-btn teacher-btn-primary w-full py-4 text-lg ${assignmentSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
             {assignmentSubmitting ? 'Creating...' : 'Create Assignment'}
           </button>
@@ -3233,41 +3232,45 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
   const renderReports = () => (
     <div>
-      <h2 className="font-heading text-3xl text-blue-300 font-bold mb-6">📊 Assignment Reports</h2>
+      <div className="teacher-section-header">
+        <h2>📊 Assignment Reports</h2>
+      </div>
       {assignments.length === 0 ? (
-        <div className="card-glass p-10 text-center">
+        <div className="teacher-card p-10 text-center">
           <div className="text-5xl mb-3">📄</div>
-          <p className="text-gray-400">Create an assignment to see progress here.</p>
+          <p className="text-slate-500">Create an assignment to see progress here.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto card-glass p-4">
-          <table className="min-w-full text-left text-sm">
+        <div className="teacher-card p-0 overflow-hidden">
+          <table className="teacher-table">
             <thead>
-              <tr className="text-gray-400">
-                <th className="py-2 px-3">Subject</th>
-                <th className="py-2 px-3">Topic</th>
-                <th className="py-2 px-3">Batch</th>
-                <th className="py-2 px-3">Due</th>
-                <th className="py-2 px-3">Completed</th>
-                <th className="py-2 px-3"></th>
+              <tr>
+                <th>Subject</th>
+                <th>Topic</th>
+                <th>Batch</th>
+                <th>Due</th>
+                <th>Completed</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               {assignments.map((assignment) => (
-                <tr key={assignment.id} className="border-t border-gray-800">
-                  <td className="py-3 px-3 text-white">{assignment.subject_name}</td>
-                  <td className="py-3 px-3 text-gray-300">{assignment.topic_name}</td>
-                  <td className="py-3 px-3 text-gray-300">{assignment.batch}</td>
-                  <td className="py-3 px-3 text-gray-300">
+                <tr key={assignment.id}>
+                  <td className="font-medium">{assignment.subject_name}</td>
+                  <td>{assignment.topic_name}</td>
+                  <td>{assignment.batch}</td>
+                  <td>
                     {assignment.due_at ? new Date(assignment.due_at).toLocaleDateString() : '—'}
                   </td>
-                  <td className="py-3 px-3 text-gray-300">
-                    {assignment.completed_count}/{assignment.student_count}
+                  <td>
+                    <span className="teacher-badge teacher-badge-primary">
+                      {assignment.completed_count}/{assignment.student_count}
+                    </span>
                   </td>
-                  <td className="py-3 px-3">
+                  <td>
                     <button
                       onClick={() => handleOpenReport(assignment)}
-                      className="px-4 py-2 rounded-lg bg-blue-500/20 border border-blue-400 text-blue-200 hover:bg-blue-500/30"
+                      className="teacher-btn teacher-btn-secondary text-sm"
                     >
                       View
                     </button>
@@ -3285,33 +3288,33 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     <div>
       <button
         onClick={() => setView('reports')}
-        className="mb-4 text-blue-300 hover:text-blue-200 flex items-center gap-2"
+        className="teacher-back-link mb-4"
       >
         <span>←</span> Back to Reports
       </button>
 
       {reportLoading ? (
-        <div className="card-glass p-12 text-center text-blue-300">Loading report...</div>
+        <div className="teacher-card p-12 text-center text-cyan-600">Loading report...</div>
       ) : !selectedReportAssignment ? (
-        <div className="card-glass p-12 text-center text-gray-400">Select an assignment to view details.</div>
+        <div className="teacher-card p-12 text-center text-slate-500">Select an assignment to view details.</div>
       ) : (
         <div className="space-y-6">
-          <div className="card-glass p-6">
-            <h2 className="font-heading text-3xl text-white mb-2">{selectedReportAssignment.title || selectedReportAssignment.topic_name}</h2>
-            <p className="text-gray-400">
+          <div className="teacher-card">
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">{selectedReportAssignment.title || selectedReportAssignment.topic_name}</h2>
+            <p className="text-slate-600">
               {selectedReportAssignment.subject_name} · Topic {selectedReportAssignment.topic_name} · Batch {selectedReportAssignment.batch}
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-slate-500">
               Due {selectedReportAssignment.due_at ? new Date(selectedReportAssignment.due_at).toLocaleString() : 'No deadline'}
             </p>
           </div>
 
           <div className="flex items-center justify-between">
-            <h3 className="text-xl text-white">Student Performance</h3>
+            <h3 className="text-xl font-bold text-slate-800">Student Performance</h3>
             <button
               onClick={handleExportReport}
               disabled={assignmentReport.length === 0}
-              className={`px-4 py-2 rounded-lg border ${assignmentReport.length === 0 ? 'border-gray-600 text-gray-500 cursor-not-allowed' : 'border-blue-400 text-blue-200 hover:bg-blue-500/20'}`}
+              className={`teacher-btn ${assignmentReport.length === 0 ? 'opacity-50 cursor-not-allowed' : 'teacher-btn-secondary'}`}
             >
               Export CSV
             </button>
@@ -4727,8 +4730,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px] bg-white">
-        <div className="text-2xl text-slate-600 animate-pulse">Loading Teacher Portal...</div>
+      <div className="teacher-loading">
+        <div className="teacher-loading-text">Loading Teacher Portal...</div>
       </div>
     );
   }
@@ -4741,105 +4744,63 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     { id: 'cambridge', label: 'Cambridge Tests', icon: '✍️', description: 'Writing & Test Results' },
   ];
 
-  const containerSpacing = view === 'question-bank'
-    ? 'pt-6 md:pt-10'
-    : 'pt-6';
-
-  const statCards = [
-    {
-      label: 'Questions',
-      value: questions.length,
-      accent: 'from-cyan-500/10 via-cyan-400/10 to-blue-400/10',
-      text: 'text-cyan-100',
-      icon: '🧠'
-    },
-    {
-      label: 'Assignments',
-      value: assignments.length,
-      accent: 'from-emerald-500/10 via-emerald-400/10 to-teal-400/10',
-      text: 'text-emerald-100',
-      icon: '🗂️'
-    },
-    {
-      label: 'Responses',
-      value: questions.reduce((sum, q) => sum + q.times_answered, 0),
-      accent: 'from-purple-500/10 via-indigo-400/10 to-violet-400/10',
-      text: 'text-purple-100',
-      icon: '📈'
-    }
-  ];
-
   return (
-    <div className={`${containerSpacing} teacher-portal-light min-h-screen relative overflow-hidden`}>
-      <div className="teacher-portal-surface" aria-hidden />
-      <div className="teacher-portal-glow" aria-hidden />
-
-      <div className="relative max-w-7xl mx-auto px-4 pb-12">
+    <div className="teacher-portal">
+      <div className="teacher-portal-container">
         <BackButton onClick={onComplete} />
 
         {/* Professional Header */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-8 mb-6 shadow-2xl border border-white/10">
-          <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_top_left,#38bdf8,transparent_35%),radial-gradient(circle_at_bottom_right,#a855f7,transparent_35%)]" aria-hidden />
-          <div className="relative flex items-start justify-between flex-wrap gap-6">
-            <div className="space-y-2">
-              <p className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-cyan-200 border border-white/10">Educator workspace</p>
-              <h1 className="text-3xl font-bold text-white flex items-center gap-3 tracking-tight">
-                👨‍🏫 Teacher Portal
+        <div className="teacher-header">
+          <div className="teacher-header-content">
+            <div className="teacher-header-info">
+              <div className="teacher-header-badge">
+                <span>🎓</span> Educator Workspace
+              </div>
+              <h1 className="teacher-header-title">
+                <span>🧠</span> Brains Heist Teacher Portal
               </h1>
-              <p className="text-slate-200 max-w-2xl leading-relaxed">
-                Welcome back, <span className="text-cyan-300 font-semibold">{profile.username}</span>. Review student progress, craft assignments, and keep your question bank organised — all in one calm, focused hub.
+              <p className="teacher-header-subtitle">
+                Welcome back, <strong>{profile.username}</strong>. Review student progress, craft assignments, and keep your question bank organised — all in one focused hub.
               </p>
             </div>
-            <div className="flex flex-1 justify-end gap-3 min-w-[260px]">
-              {[{
-                label: 'Questions',
-                value: questions.length,
-                accent: 'from-cyan-400/20 to-cyan-500/10',
-                text: 'text-cyan-200'
-              }, {
-                label: 'Assignments',
-                value: assignments.length,
-                accent: 'from-emerald-400/20 to-emerald-500/10',
-                text: 'text-emerald-200'
-              }, {
-                label: 'Responses',
-                value: questions.reduce((sum, q) => sum + q.times_answered, 0),
-                accent: 'from-purple-400/20 to-purple-500/10',
-                text: 'text-purple-200'
-              }].map((stat) => (
-                <div
-                  key={stat.label}
-                  className={`flex-1 rounded-xl border border-white/10 bg-gradient-to-br ${stat.accent} backdrop-blur px-4 py-3 text-right shadow-lg`}
-                >
-                  <div className="text-xs uppercase tracking-wide text-white/70">{stat.label}</div>
-                  <div className={`text-2xl font-bold leading-tight ${stat.text}`}>{stat.value}</div>
-                </div>
-              ))}
+            <div className="teacher-header-stats">
+              <div className="teacher-stat-card">
+                <div className="teacher-stat-label">Questions</div>
+                <div className="teacher-stat-value cyan">{questions.length}</div>
+              </div>
+              <div className="teacher-stat-card">
+                <div className="teacher-stat-label">Assignments</div>
+                <div className="teacher-stat-value emerald">{assignments.length}</div>
+              </div>
+              <div className="teacher-stat-card">
+                <div className="teacher-stat-label">Responses</div>
+                <div className="teacher-stat-value purple">{questions.reduce((sum, q) => sum + q.times_answered, 0)}</div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Professional Navigation Tabs */}
-        <div className="teacher-nav-shell">
-          <div className="teacher-nav">
+        {/* Navigation */}
+        <div className="teacher-nav-container">
+          <div className="teacher-nav-grid">
             {navTabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => changeSection(tab.id)}
-                className={`teacher-nav-item ${primarySection === tab.id ? 'is-active' : ''}`}
+                className={`teacher-nav-btn ${primarySection === tab.id ? 'active' : ''}`}
               >
-                <span className="text-xl">{tab.icon}</span>
-                <div className="text-left">
-                  <div className="font-semibold leading-5">{tab.label}</div>
-                  <div className={`text-xs ${primarySection === tab.id ? 'text-white/80' : 'text-slate-500'} hidden lg:block`}>{tab.description}</div>
+                <span className="teacher-nav-icon">{tab.icon}</span>
+                <div className="teacher-nav-text">
+                  <span className="teacher-nav-label">{tab.label}</span>
+                  <span className="teacher-nav-desc">{tab.description}</span>
                 </div>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Main Content Area with White Background */}
-        <div className="teacher-panel">
+        {/* Main Content Panel */}
+        <div className="teacher-main-panel">
           {view === 'dashboard' && renderDashboard()}
           {view === 'create-question' && renderCreateQuestion()}
           {view === 'question-bank' && renderQuestionBank()}
