@@ -94,6 +94,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
   const [selectedCambridgeStudent, setSelectedCambridgeStudent] = useState<any | null>(null);
   const [showWritingMarkingModal, setShowWritingMarkingModal] = useState(false);
   const [autoProofreadLoading, setAutoProofreadLoading] = useState(false);
+  const [savingMarks, setSavingMarks] = useState(false);
+  const [bulkProofreadLoading, setBulkProofreadLoading] = useState(false);
+  const [bulkProofreadProgress, setBulkProofreadProgress] = useState({ current: 0, total: 0, currentStudent: '' });
   const [writingMarks, setWritingMarks] = useState<{
     part1: { content: number; organisation: number; language: number };
     part2: { content: number; communicativeAchievement: number; organisation: number; language: number };
@@ -556,6 +559,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
       return;
     }
     
+    setSavingMarks(true);
+    
     const part1Total = writingMarks.part1.content + writingMarks.part1.organisation + writingMarks.part1.language;
     const part2Total = writingMarks.part2.content + writingMarks.part2.communicativeAchievement + 
                        writingMarks.part2.organisation + writingMarks.part2.language;
@@ -568,9 +573,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
       releasedToStudent: releaseToStudent,
     };
 
-    console.log('Saving marks for student ID:', selectedCambridgeStudent.id);
+    console.log('=== SAVE WRITING MARKS ===');
+    console.log('Student ID:', selectedCambridgeStudent.id);
+    console.log('Student Name:', selectedCambridgeStudent.student_name);
     console.log('Total score:', totalScore, 'Percentage:', percentage);
     console.log('Release to student:', releaseToStudent);
+    console.log('Writing feedback has spellingMistakes:', writingFeedback.part1?.spellingMistakes?.length || 0, 'for part1');
+    console.log('Writing feedback has grammarMistakes:', writingFeedback.part1?.grammarMistakes?.length || 0, 'for part1');
     
     try {
       const updatePayload = {
@@ -595,20 +604,37 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
         .select();
       
       if (error) {
-        console.error('Supabase error:', error);
+        console.error('Supabase UPDATE error:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        console.error('Error details:', error.details);
+        console.error('Error hint:', error.hint);
         throw error;
       }
       
-      console.log('Update successful, returned data:', data);
+      console.log('Update successful!');
+      console.log('Returned data:', data);
+      
+      if (!data || data.length === 0) {
+        console.warn('Update returned no data - this might indicate no rows were updated (RLS issue?)');
+      }
       
       alert(releaseToStudent 
         ? '✅ Marked and released to student!' 
         : '✅ Writing marked successfully! (Not yet visible to student)');
       setShowWritingMarkingModal(false);
       loadCambridgeScores(); // Refresh the list
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to submit marks:', error);
-      alert('❌ Failed to submit marks: ' + (error instanceof Error ? error.message : String(error)));
+      
+      // Check for RLS permission error
+      if (error?.code === '42501' || error?.message?.includes('permission') || error?.message?.includes('policy')) {
+        alert('❌ Permission denied. You need to run the ADD_QUIZ_SCORES_UPDATE_POLICY.sql migration in Supabase to allow teachers to update marks.');
+      } else {
+        alert('❌ Failed to submit marks: ' + (error instanceof Error ? error.message : String(error)));
+      }
+    } finally {
+      setSavingMarks(false);
     }
   };
 
@@ -1098,6 +1124,15 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
       }
 
       const data = await response.json();
+      
+      console.log('=== GPT PROOFREAD RESPONSE ===');
+      console.log('Full response:', JSON.stringify(data, null, 2));
+      console.log('Part 1 spellingMistakes:', data?.part1?.spellingMistakes);
+      console.log('Part 1 grammarMistakes:', data?.part1?.grammarMistakes);
+      console.log('Part 1 markJustifications:', data?.part1?.markJustifications);
+      console.log('Part 1 modelAnswer:', data?.part1?.modelAnswer?.substring(0, 100) + '...');
+      console.log('Part 2 spellingMistakes:', data?.part2?.spellingMistakes);
+      console.log('Part 2 grammarMistakes:', data?.part2?.grammarMistakes);
 
       // Apply GPT feedback to Part 1
       if (data?.part1) {
@@ -1172,6 +1207,163 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     } finally {
       setAutoProofreadLoading(false);
     }
+  };
+
+  // Bulk AI Proofread all pending writing submissions
+  const bulkProofreadWriting = async (releaseToStudent: boolean) => {
+    // Get all writing submissions that need marking
+    const writingSubmissions = cambridgeScores.filter(
+      s => s.quiz_name === 'Cambridge Writing Test 1' && s.answers?.requires_marking
+    );
+
+    if (writingSubmissions.length === 0) {
+      alert('No pending writing submissions to proofread!');
+      return;
+    }
+
+    const confirmMsg = releaseToStudent
+      ? `This will AI proofread ${writingSubmissions.length} submissions and RELEASE marks to students. Continue?`
+      : `This will AI proofread ${writingSubmissions.length} submissions and save as DRAFTS (not visible to students). Continue?`;
+
+    if (!confirm(confirmMsg)) return;
+
+    setBulkProofreadLoading(true);
+    setBulkProofreadProgress({ current: 0, total: writingSubmissions.length, currentStudent: '' });
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+
+    if (!accessToken) {
+      alert('Not authenticated');
+      setBulkProofreadLoading(false);
+      return;
+    }
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    let successCount = 0;
+    let failCount = 0;
+
+    for (let i = 0; i < writingSubmissions.length; i++) {
+      const student = writingSubmissions[i];
+      setBulkProofreadProgress({ 
+        current: i + 1, 
+        total: writingSubmissions.length, 
+        currentStudent: student.student_name 
+      });
+
+      try {
+        const answers = student.answers || {};
+        const part1Text = answers.part1 || '';
+        const part2Text = answers.part2 || '';
+
+        if (!part1Text && !part2Text) {
+          console.log(`Skipping ${student.student_name} - no text`);
+          continue;
+        }
+
+        // Call GPT API
+        const response = await fetch(`${supabaseUrl}/functions/v1/proofread_writing`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            part1Text: part1Text.trim() || undefined,
+            part2Text: part2Text.trim() || undefined,
+            testType: 'Cambridge B2 First Writing'
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log(`GPT response for ${student.student_name}:`, data);
+
+        // Calculate marks from GPT response
+        const part1Marks = {
+          content: data?.part1?.suggestedMarks?.content ?? 3,
+          organisation: data?.part1?.suggestedMarks?.organisation ?? 3,
+          language: data?.part1?.suggestedMarks?.language ?? 3,
+        };
+        const part2Marks = {
+          content: data?.part2?.suggestedMarks?.content ?? 3,
+          communicativeAchievement: data?.part2?.suggestedMarks?.communicativeAchievement ?? 3,
+          organisation: data?.part2?.suggestedMarks?.organisation ?? 3,
+          language: data?.part2?.suggestedMarks?.language ?? 3,
+        };
+
+        const part1Total = part1Marks.content + part1Marks.organisation + part1Marks.language;
+        const part2Total = part2Marks.content + part2Marks.communicativeAchievement + 
+                          part2Marks.organisation + part2Marks.language;
+        const totalScore = part1Total + part2Total;
+        const percentage = Math.round((totalScore / 35) * 100);
+
+        // Build feedback object
+        const feedback = {
+          part1: {
+            feedback: data?.part1?.feedback || '',
+            correctedVersion: data?.part1?.correctedVersion || '',
+            spellingMistakes: data?.part1?.spellingMistakes || [],
+            grammarMistakes: data?.part1?.grammarMistakes || [],
+            markJustifications: data?.part1?.markJustifications,
+            modelAnswer: data?.part1?.modelAnswer,
+          },
+          part2: {
+            feedback: data?.part2?.feedback || '',
+            correctedVersion: data?.part2?.correctedVersion || '',
+            spellingMistakes: data?.part2?.spellingMistakes || [],
+            grammarMistakes: data?.part2?.grammarMistakes || [],
+            markJustifications: data?.part2?.markJustifications,
+            modelAnswer: data?.part2?.modelAnswer,
+          },
+          overallComments: [data?.part1?.overallComments, data?.part2?.overallComments].filter(Boolean).join('\n\n'),
+          releasedToStudent: releaseToStudent,
+        };
+
+        // Save to database
+        const updatePayload = {
+          score: totalScore,
+          percentage: percentage,
+          answers: {
+            ...student.answers,
+            marks: { part1: part1Marks, part2: part2Marks },
+            feedback: feedback,
+            marked_by: profile.username + ' (AI)',
+            marked_at: new Date().toISOString(),
+            requires_marking: false,
+          }
+        };
+
+        const { error } = await supabase
+          .from('quiz_scores')
+          .update(updatePayload)
+          .eq('id', student.id);
+
+        if (error) {
+          console.error(`Failed to save ${student.student_name}:`, error);
+          failCount++;
+        } else {
+          successCount++;
+        }
+
+        // Small delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+      } catch (error) {
+        console.error(`Failed to proofread ${student.student_name}:`, error);
+        failCount++;
+      }
+    }
+
+    setBulkProofreadLoading(false);
+    setBulkProofreadProgress({ current: 0, total: 0, currentStudent: '' });
+    loadCambridgeScores(); // Refresh the list
+
+    const releaseText = releaseToStudent ? 'and released to students' : 'as drafts';
+    alert(`✅ Bulk AI Proofread complete!\n\n${successCount} marked ${releaseText}\n${failCount} failed`);
   };
 
   // Fallback to local regex-based proofreading if GPT fails
@@ -3268,7 +3460,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </div>
 
             {/* Filter Bar inside tabs */}
-            <div className="flex items-center gap-4 p-3 bg-gray-50 border-b border-gray-200">
+            <div className="flex flex-wrap items-center gap-4 p-3 bg-gray-50 border-b border-gray-200">
               <div className="flex items-center gap-2">
                 <label className="text-sm text-gray-600">Class:</label>
                 <select
@@ -3285,6 +3477,38 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               <span className="text-sm text-gray-500">
                 Showing <strong className="text-gray-800">{tabScores.length}</strong> results
               </span>
+              
+              {/* Bulk AI Proofread buttons - only for Writing Test tab */}
+              {cambridgeActiveTab === 'Cambridge Writing Test 1' && (() => {
+                const pendingCount = cambridgeScores.filter(s => s.quiz_name === 'Cambridge Writing Test 1' && s.answers?.requires_marking).length;
+                return pendingCount > 0 ? (
+                  <div className="flex items-center gap-2 ml-auto">
+                    {bulkProofreadLoading ? (
+                      <div className="flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-800 rounded-lg text-sm">
+                        <span className="animate-spin">⏳</span>
+                        <span>Processing {bulkProofreadProgress.current}/{bulkProofreadProgress.total}: {bulkProofreadProgress.currentStudent}</span>
+                      </div>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => bulkProofreadWriting(false)}
+                          className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-1"
+                          title="AI proofread all pending submissions and save as drafts"
+                        >
+                          🤖 AI Proofread All ({pendingCount}) - DRAFT
+                        </button>
+                        <button
+                          onClick={() => bulkProofreadWriting(true)}
+                          className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 flex items-center gap-1"
+                          title="AI proofread all pending submissions and release to students"
+                        >
+                          🤖 AI Proofread All ({pendingCount}) - RELEASE
+                        </button>
+                      </>
+                    )}
+                  </div>
+                ) : null;
+              })()}
             </div>
 
             {/* Results Table - Compact */}
@@ -4135,6 +4359,16 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   <div className="p-4 bg-orange-50">
                     <h4 className="text-md font-bold text-orange-800 mb-3">📋 Feedback for Part 1 (visible to student when released)</h4>
                     
+                    {/* Debug: Show if GPT data is present */}
+                    <div className="mb-3 p-2 bg-gray-100 rounded text-xs text-gray-600">
+                      <span className="font-mono">
+                        GPT Data: {writingFeedback.part1.spellingMistakes?.length || 0} spelling, {' '}
+                        {writingFeedback.part1.grammarMistakes?.length || 0} grammar, {' '}
+                        {writingFeedback.part1.markJustifications ? '✓' : '✗'} justifications, {' '}
+                        {writingFeedback.part1.modelAnswer ? '✓' : '✗'} model answer
+                      </span>
+                    </div>
+                    
                     {/* Spelling Mistakes */}
                     {writingFeedback.part1.spellingMistakes && writingFeedback.part1.spellingMistakes.length > 0 && (
                       <div className="mb-4 bg-red-50 p-3 rounded-lg border border-red-200">
@@ -4309,6 +4543,16 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   <div className="p-4 bg-orange-50">
                     <h4 className="text-md font-bold text-orange-800 mb-3">📋 Feedback for Part 2 (visible to student when released)</h4>
                     
+                    {/* Debug: Show if GPT data is present */}
+                    <div className="mb-3 p-2 bg-gray-100 rounded text-xs text-gray-600">
+                      <span className="font-mono">
+                        GPT Data: {writingFeedback.part2.spellingMistakes?.length || 0} spelling, {' '}
+                        {writingFeedback.part2.grammarMistakes?.length || 0} grammar, {' '}
+                        {writingFeedback.part2.markJustifications ? '✓' : '✗'} justifications, {' '}
+                        {writingFeedback.part2.modelAnswer ? '✓' : '✗'} model answer
+                      </span>
+                    </div>
+                    
                     {/* Spelling Mistakes */}
                     {writingFeedback.part2.spellingMistakes && writingFeedback.part2.spellingMistakes.length > 0 && (
                       <div className="mb-4 bg-red-50 p-3 rounded-lg border border-red-200">
@@ -4449,20 +4693,23 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                     <button 
                       onClick={() => setShowWritingMarkingModal(false)} 
                       className="px-4 py-2 bg-gray-500 text-white rounded-lg font-semibold hover:bg-gray-600"
+                      disabled={savingMarks}
                     >
                       Cancel
                     </button>
                     <button 
                       onClick={() => submitWritingMarks(false)} 
-                      className="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+                      className="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={savingMarks}
                     >
-                      💾 Save (Draft)
+                      {savingMarks ? '⏳ Saving...' : '💾 Save (Draft)'}
                     </button>
                     <button 
                       onClick={() => submitWritingMarks(true)} 
-                      className="px-5 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700"
+                      className="px-5 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={savingMarks}
                     >
-                      ✅ Save & Release to Student
+                      {savingMarks ? '⏳ Saving...' : '✅ Save & Release to Student'}
                     </button>
                   </div>
                 </div>
