@@ -3720,8 +3720,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                       <p className="text-sm text-blue-600">Photography lessons • Word count: {answers.part1_words || 0} (Target: 45-55)</p>
                     </div>
                     <div className="p-4">
-                      <label className="text-sm font-semibold text-gray-600 block mb-2">Student's Original Response:</label>
-                      <div className="bg-gray-50 p-4 rounded-lg border text-gray-800 whitespace-pre-wrap leading-relaxed min-h-[100px]">
+                      <label className="text-sm font-semibold text-gray-700 block mb-2">Student's Original Response:</label>
+                      <div className="rounded-xl border border-slate-200 bg-white/95 p-4 text-slate-900 shadow-sm shadow-slate-900/5 ring-1 ring-slate-100 whitespace-pre-wrap leading-relaxed min-h-[100px]">
                         {answers.part1 || 'No response submitted'}
                       </div>
                       {answers.marks?.part1 && (
@@ -3765,8 +3765,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                       <p className="text-sm text-indigo-600">Online vs shop shopping • Word count: {answers.part2_words || 0} (Target: 110-130)</p>
                     </div>
                     <div className="p-4">
-                      <label className="text-sm font-semibold text-gray-600 block mb-2">Student's Original Response:</label>
-                      <div className="bg-gray-50 p-4 rounded-lg border text-gray-800 whitespace-pre-wrap leading-relaxed min-h-[150px]">
+                      <label className="text-sm font-semibold text-gray-700 block mb-2">Student's Original Response:</label>
+                      <div className="rounded-xl border border-slate-200 bg-white/95 p-4 text-slate-900 shadow-sm shadow-slate-900/5 ring-1 ring-slate-100 whitespace-pre-wrap leading-relaxed min-h-[150px]">
                         {answers.part2 || 'No response submitted'}
                       </div>
                       {answers.marks?.part2 && (
@@ -4075,7 +4075,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   {/* Student's Answer */}
                   <div className="p-4 bg-white border-b">
                     <label className="text-sm font-semibold text-gray-700 block mb-2">Student's Original Response:</label>
-                    <div className="bg-slate-50 p-4 rounded-lg border-2 border-slate-200 text-gray-900 whitespace-pre-wrap leading-relaxed">
+                    <div className="rounded-xl border border-slate-200 bg-white/95 p-4 text-slate-900 shadow-sm shadow-slate-900/5 ring-1 ring-slate-100 whitespace-pre-wrap leading-relaxed">
                       {answers.part1 || 'No response submitted'}
                     </div>
                   </div>
@@ -4235,7 +4235,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   {/* Student's Answer */}
                   <div className="p-4 bg-white border-b">
                     <label className="text-sm font-semibold text-gray-700 block mb-2">Student's Original Response:</label>
-                    <div className="bg-slate-50 p-4 rounded-lg border-2 border-slate-200 text-gray-900 whitespace-pre-wrap leading-relaxed min-h-[150px]">
+                    <div className="rounded-xl border border-slate-200 bg-white/95 p-4 text-slate-900 shadow-sm shadow-slate-900/5 ring-1 ring-slate-100 whitespace-pre-wrap leading-relaxed min-h-[150px]">
                       {answers.part2 || 'No response submitted'}
                     </div>
                   </div>

@@ -323,72 +323,79 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                 </button>
 
                 {mobileMenuOpen && (
-                  <div className="absolute right-0 top-12 z-50 w-56 rounded-2xl border border-slate-800/70 bg-slate-950/95 p-2 shadow-2xl shadow-slate-950/60">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowNotifications(true);
-                        setMobileMenuOpen(false);
-                      }}
-                      className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm text-slate-200 transition hover:bg-slate-800/60"
-                    >
-                      <span className="flex items-center gap-2">
-                        <span className="text-lg">🔔</span>
-                        Notifications
-                      </span>
-                      {unreadCount > 0 && (
-                        <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                          {unreadCount > 9 ? '9+' : unreadCount}
+                  <>
+                    <div
+                      className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px]"
+                      onClick={() => setMobileMenuOpen(false)}
+                      aria-hidden
+                    />
+                    <div className="absolute right-0 top-12 z-50 w-56 rounded-2xl border border-slate-800/70 bg-slate-950/95 p-2 shadow-2xl shadow-slate-950/60">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowNotifications(true);
+                          setMobileMenuOpen(false);
+                        }}
+                        className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm text-slate-200 transition hover:bg-slate-800/60"
+                      >
+                        <span className="flex items-center gap-2">
+                          <span className="text-lg">🔔</span>
+                          Notifications
                         </span>
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        onShowHelp?.();
-                      }}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-200 transition hover:bg-slate-800/60"
-                    >
-                      <span className="text-lg">❓</span>
-                      Help & Guides
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowSettingsModal(true);
-                        setMobileMenuOpen(false);
-                      }}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-200 transition hover:bg-slate-800/60"
-                    >
-                      <span className="text-lg">⚙️</span>
-                      Settings
-                    </button>
-                    {isAdmin(profile) && (
+                        {unreadCount > 0 && (
+                          <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                            {unreadCount > 9 ? '9+' : unreadCount}
+                          </span>
+                        )}
+                      </button>
                       <button
                         type="button"
                         onClick={() => {
                           setMobileMenuOpen(false);
-                          onNavigate?.('admin');
+                          onShowHelp?.();
                         }}
-                        className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-amber-200 transition hover:bg-amber-500/20"
+                        className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-200 transition hover:bg-slate-800/60"
                       >
-                        <span className="text-lg">👑</span>
-                        Admin Portal
+                        <span className="text-lg">❓</span>
+                        Help & Guides
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        onLogout();
-                      }}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-rose-200 transition hover:bg-rose-500/20"
-                    >
-                      <LogoutIcon className="h-5 w-5" />
-                      Log Out
-                    </button>
-                  </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowSettingsModal(true);
+                          setMobileMenuOpen(false);
+                        }}
+                        className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-200 transition hover:bg-slate-800/60"
+                      >
+                        <span className="text-lg">⚙️</span>
+                        Settings
+                      </button>
+                      {isAdmin(profile) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            onNavigate?.('admin');
+                          }}
+                          className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-amber-200 transition hover:bg-amber-500/20"
+                        >
+                          <span className="text-lg">👑</span>
+                          Admin Portal
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          onLogout();
+                        }}
+                        className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-rose-200 transition hover:bg-rose-500/20"
+                      >
+                        <LogoutIcon className="h-5 w-5" />
+                        Log Out
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
             </div>
