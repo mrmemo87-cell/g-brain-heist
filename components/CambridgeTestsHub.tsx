@@ -17,6 +17,7 @@ interface CambridgeTest {
   requiresMarking?: boolean;
   isAwaitingMarking?: boolean; // True if submitted but not yet marked
   feedbackReleased?: boolean; // True if teacher has released feedback
+  isMarked?: boolean; // True if teacher has marked the test
 }
 
 interface CambridgeTestsHubProps {
@@ -164,6 +165,8 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
         }
         const isAwaitingMarking = test.requiresMarking && answers?.requires_marking === true;
         const feedbackReleased = answers?.feedback?.releasedToStudent === true;
+        // Test is marked if requires_marking is explicitly false (was true, now marked)
+        const isMarked = test.requiresMarking && answers?.requires_marking === false && answers?.marks !== undefined;
         
         // DEBUG: Log writing test status
         if (test.requiresMarking) {
@@ -187,6 +190,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           completedAt: completion?.submitted_at,
           isAwaitingMarking,
           feedbackReleased,
+          isMarked,
         };
       });
 
@@ -252,14 +256,17 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
         console.log('Extracted feedback:', feedback);
         console.log('feedback?.releasedToStudent:', feedback?.releasedToStudent);
 
-        // Check if feedback has been released
-        if (!feedback?.releasedToStudent) {
-          console.log('BLOCKING: feedback.releasedToStudent is not true!');
+        // Check if the test has been marked (requires_marking is false means it's been marked)
+        // Show feedback if marked, regardless of releasedToStudent flag
+        const isMarked = answers.requires_marking === false && (marks !== null || feedback !== null);
+        
+        if (!isMarked && answers.requires_marking === true) {
+          console.log('BLOCKING: Test is still awaiting marking');
           setFeedbackData(null);
           return;
         }
 
-        console.log('SUCCESS: Feedback is released, showing to student');
+        console.log('SUCCESS: Test is marked, showing feedback to student');
         setFeedbackData({
           testName: data.quiz_name,
           score: data.score,
@@ -694,7 +701,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       )}
                       
                       {/* View Feedback button for marked writing tests */}
-                      {test.requiresMarking && !test.isAwaitingMarking && test.feedbackReleased && (
+                      {test.requiresMarking && !test.isAwaitingMarking && test.isCompleted && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
