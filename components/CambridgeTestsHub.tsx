@@ -136,7 +136,13 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
         );
         
         // Check if this is a writing test awaiting marking
-        const answers = completion?.answers as { requires_marking?: boolean; feedback?: { releasedToStudent?: boolean } } | undefined;
+        // Parse answers if it's a string (Supabase sometimes returns JSONB as string)
+        let answers: { requires_marking?: boolean; feedback?: { releasedToStudent?: boolean } } | undefined;
+        if (completion?.answers) {
+          answers = typeof completion.answers === 'string' 
+            ? JSON.parse(completion.answers) 
+            : completion.answers;
+        }
         const isAwaitingMarking = test.requiresMarking && answers?.requires_marking === true;
         const feedbackReleased = answers?.feedback?.releasedToStudent === true;
         
@@ -145,7 +151,9 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           console.log('=== WRITING TEST STATUS ===');
           console.log('Test:', test.name);
           console.log('Found completion:', !!completion);
+          console.log('Raw answers type:', typeof completion?.answers);
           console.log('Raw answers:', completion?.answers);
+          console.log('Parsed answers:', answers);
           console.log('answers?.requires_marking:', answers?.requires_marking);
           console.log('answers?.feedback:', answers?.feedback);
           console.log('answers?.feedback?.releasedToStudent:', answers?.feedback?.releasedToStudent);
