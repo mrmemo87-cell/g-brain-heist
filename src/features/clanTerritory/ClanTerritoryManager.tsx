@@ -18,6 +18,10 @@ interface ClanTerritoryManagerProps {
   onGoToClan?: () => void;
 }
 
+const CLANLESS_CLAN_ID = "clanless-agents" as ClanId;
+const CLANLESS_CLAN_NAME = "Independent Agents";
+const CLANLESS_CLAN_COLOR = "#94a3b8";
+
 const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   onExit,
   isTeacher = false,
@@ -32,11 +36,11 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const [roomId, setRoomId] = useState<string | null>(null);
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [mode, setMode] = useState<"menu" | "host" | "player" | "configure">("menu");
-  
+
   // Game configuration settings
   const [durationMinutes, setDurationMinutes] = useState(5);
   const [selectedMap, setSelectedMap] = useState('default');
-  const [discoveredRoom, setDiscoveredRoom] = useState<string | null>(null);
+  const [discoveredRoom, setDiscoveredRoom] = useState<{ id: string; allowClanlessPlayers?: boolean } | null>(null);
   const [resolvedClanId, setResolvedClanId] = useState<ClanId | null>(clanId ?? null);
   const [resolvedClanName, setResolvedClanName] = useState<string | null>(clanName ?? null);
   const [playerFallback, setPlayerFallback] = useState<{
@@ -49,6 +53,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const [selectedQuestions, setSelectedQuestions] = useState<any[]>([]);
   const [clanLoadTimeout, setClanLoadTimeout] = useState(false);
   const [isRefreshingProfile, setIsRefreshingProfile] = useState(false);
+  const [allowClanlessPlayers, setAllowClanlessPlayers] = useState(false);
 
   const handleRefreshProfile = async () => {
     setIsRefreshingProfile(true);
@@ -159,19 +164,27 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
   // If student is waiting too long for clan assignment, show timeout message
   useEffect(() => {
-    if (!isTeacher && discoveredRoom && !resolvedClanId && !resolvedClanName) {
+    const allowIndependentAgents = allowClanlessPlayers || gameState.allowClanlessPlayers || discoveredRoom?.allowClanlessPlayers;
+    if (!isTeacher && discoveredRoom && !resolvedClanId && !resolvedClanName && !allowIndependentAgents) {
       const timer = setTimeout(() => {
         setClanLoadTimeout(true);
       }, 8000); // Show timeout after 8 seconds of waiting
       return () => clearTimeout(timer);
     }
-  }, [isTeacher, discoveredRoom, resolvedClanId, resolvedClanName]);
+  }, [
+    isTeacher,
+    discoveredRoom,
+    resolvedClanId,
+    resolvedClanName,
+    allowClanlessPlayers,
+    gameState.allowClanlessPlayers,
+  ]);
 
   // Discovery
   useEffect(() => {
     if (!isTeacher && mode === "menu") {
-      transport.startDiscovery((id) => {
-        setDiscoveredRoom(id);
+      transport.startDiscovery((id, metadata) => {
+        setDiscoveredRoom({ id, allowClanlessPlayers: metadata?.allowClanlessPlayers });
       });
       return () => transport.stopDiscovery();
     }
@@ -205,7 +218,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     
     // If we're in configure mode, create room after questions selected
     if (mode === 'configure') {
-      const id = await transport.createRoom();
+      const id = await transport.createRoom({ allowClanlessPlayers });
       
       // Set up state listener BEFORE sending any actions
       transport.onGameState(id, setGameState);
@@ -213,6 +226,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       // Send map configuration FIRST, then questions
       // This ensures zones are created for the correct map before any other state changes
       await transport.sendAction(id, { type: "SET_MAP", payload: { mapId: selectedMap } });
+      await transport.sendAction(id, { type: "SET_ALLOW_CLANLESS", payload: { allow: allowClanlessPlayers } });
       await transport.sendAction(id, { type: "SET_QUESTIONS", payload: { questions } });
       
       setRoomId(id);
@@ -221,13 +235,14 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     }
     
     // Otherwise proceed with room creation (legacy flow)
-    const id = await transport.createRoom();
+    const id = await transport.createRoom({ allowClanlessPlayers });
     
     // IMPORTANT: Set up state listener BEFORE sending any actions or setting roomId
     // This prevents race conditions where JOIN actions are processed before the callback is set
     transport.onGameState(id, setGameState);
     
     // Send questions to game state
+    await transport.sendAction(id, { type: "SET_ALLOW_CLANLESS", payload: { allow: allowClanlessPlayers } });
     await transport.sendAction(id, { type: "SET_QUESTIONS", payload: { questions } });
     setRoomId(id);
     setMode("host");
@@ -235,23 +250,28 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
   const handleJoinRoom = async () => {
     if (!discoveredRoom) return;
+    const allowClanless = discoveredRoom.allowClanlessPlayers || gameState.allowClanlessPlayers;
     try {
+      const clanlessAssigned = allowClanless && (!resolvedClanId || !resolvedClanName);
       if (!resolvedClanId || !resolvedClanName) {
-        throw new Error("You must be in a clan to join the Arena. Go to the Clans section to join a clan first.");
+        if (!clanlessAssigned) {
+          throw new Error("You must be in a clan to join the Arena. Go to the Clans section to join a clan first.");
+        }
       }
       const pid = await transport.joinRoom(
-        discoveredRoom,
+        discoveredRoom.id,
         playerName,
-        resolvedClanId,
-        resolvedClanName
+        clanlessAssigned ? CLANLESS_CLAN_ID : (resolvedClanId as ClanId),
+        clanlessAssigned ? CLANLESS_CLAN_NAME : (resolvedClanName as string),
+        clanlessAssigned ? { clanColor: CLANLESS_CLAN_COLOR } : undefined
       );
-      setRoomId(discoveredRoom);
+      setRoomId(discoveredRoom.id);
       setPlayerId(pid);
       setPlayerFallback({
         id: pid,
         name: playerName,
-        clanId: resolvedClanId,
-        clanName: resolvedClanName,
+        clanId: clanlessAssigned ? CLANLESS_CLAN_ID : (resolvedClanId as ClanId),
+        clanName: clanlessAssigned ? CLANLESS_CLAN_NAME : (resolvedClanName as string),
       });
       setMode("player");
     } catch (e) {
@@ -271,6 +291,9 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const handleKickPlayer = (pid: string) => {
     if (roomId) transport.sendAction(roomId, { type: "KICK_PLAYER", payload: { playerId: pid } });
   };
+
+  const allowClanlessEntry = allowClanlessPlayers || gameState.allowClanlessPlayers || discoveredRoom?.allowClanlessPlayers;
+  const missingClanAssignment = !resolvedClanId || !resolvedClanName;
 
   // --- RENDER ---
 
@@ -392,6 +415,25 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
               </div>
             </div>
 
+            {/* Clanless Participation */}
+            <div className="flex items-center justify-between rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3">
+              <div className="space-y-1">
+                <p className="text-sm font-bold text-white">Allow independent agents</p>
+                <p className="text-xs text-gray-400">
+                  Let students without a clan join this battle as "{CLANLESS_CLAN_NAME}"
+                </p>
+              </div>
+              <label className="inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={allowClanlessPlayers}
+                  onChange={(e) => setAllowClanlessPlayers(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="peer h-6 w-11 rounded-full bg-slate-600 after:absolute after:left-1 after:top-1 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition peer-checked:bg-emerald-500 peer-checked:after:translate-x-full"></div>
+              </label>
+            </div>
+
             <div className="pt-4 border-t border-slate-700">
               <h3 className="text-sm font-bold text-white mb-3">Battle Preview</h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
@@ -410,6 +452,12 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                 <div className="bg-slate-800/50 rounded-lg p-3">
                   <p className="text-gray-400 text-xs mb-1">Total Zones</p>
                   <p className="text-white font-bold">8 territories</p>
+                </div>
+                <div className="bg-slate-800/50 rounded-lg p-3">
+                  <p className="text-gray-400 text-xs mb-1">Access</p>
+                  <p className="text-white font-bold">
+                    {allowClanlessPlayers ? "Clans + Independent agents" : "Clan members only"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -557,6 +605,10 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                     >
                       {resolvedClanName}
                     </div>
+                  ) : allowClanlessEntry ? (
+                    <div className="p-3 rounded-xl border border-emerald-500/50 bg-emerald-500/10 text-center text-emerald-200 text-sm">
+                      Teacher enabled independent agents. You can join as {CLANLESS_CLAN_NAME} without a clan.
+                    </div>
                   ) : clanLoadTimeout ? (
                     <div className="space-y-3">
                       <div className="p-3 rounded-xl border border-dashed border-red-400/60 bg-red-500/10 text-center text-red-300 text-sm">
@@ -591,10 +643,10 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
                 <button
                   onClick={handleJoinRoom}
-                  disabled={!resolvedClanId || !resolvedClanName}
+                  disabled={!allowClanlessEntry && missingClanAssignment}
                   className="w-full font-heading font-bold py-3 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 disabled:bg-gray-600/30 disabled:border-gray-600 disabled:cursor-not-allowed text-white rounded-xl transition-colors mt-4"
                 >
-                  ENTER ARENA
+                  {allowClanlessEntry && missingClanAssignment ? "ENTER AS INDEPENDENT AGENT" : "ENTER ARENA"}
                 </button>
               </div>
             </div>
