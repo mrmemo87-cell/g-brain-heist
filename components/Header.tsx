@@ -395,7 +395,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                         Log Out
                       </button>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
