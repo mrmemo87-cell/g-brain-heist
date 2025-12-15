@@ -60,6 +60,19 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
   // Add more tests here as they become available
 ];
 
+interface MistakeItem {
+  wrong: string;
+  correct: string;
+  explanation: string;
+}
+
+interface MarkJustifications {
+  content: string;
+  organisation: string;
+  language: string;
+  communicativeAchievement?: string;
+}
+
 interface WritingFeedbackView {
   testName: string;
   score: number;
@@ -71,6 +84,9 @@ interface WritingFeedbackView {
     content: number;
     organisation: number;
     language: number;
+    spellingMistakes?: MistakeItem[];
+    grammarMistakes?: MistakeItem[];
+    markJustifications?: MarkJustifications;
   };
   part2: {
     original: string;
@@ -80,6 +96,9 @@ interface WritingFeedbackView {
     communicativeAchievement: number;
     organisation: number;
     language: number;
+    spellingMistakes?: MistakeItem[];
+    grammarMistakes?: MistakeItem[];
+    markJustifications?: MarkJustifications;
   };
   markedBy?: string | null;
   markedAt?: string | null;
@@ -252,6 +271,9 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
             content: marks?.part1?.content || 0,
             organisation: marks?.part1?.organisation || 0,
             language: marks?.part1?.language || 0,
+            spellingMistakes: feedback?.part1?.spellingMistakes || [],
+            grammarMistakes: feedback?.part1?.grammarMistakes || [],
+            markJustifications: feedback?.part1?.markJustifications || null,
           },
           part2: {
             original: answers.part2 || '',
@@ -261,6 +283,9 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
             communicativeAchievement: marks?.part2?.communicativeAchievement || 0,
             organisation: marks?.part2?.organisation || 0,
             language: marks?.part2?.language || 0,
+            spellingMistakes: feedback?.part2?.spellingMistakes || [],
+            grammarMistakes: feedback?.part2?.grammarMistakes || [],
+            markJustifications: feedback?.part2?.markJustifications || null,
           },
           markedBy: answers.marked_by || null,
           markedAt: answers.marked_at || null,
@@ -872,6 +897,113 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                     </button>
                   </div>
 
+                  {/* Spelling Mistakes */}
+                  {((activeFeedbackPart === 'part1' ? feedbackData.part1.spellingMistakes : feedbackData.part2.spellingMistakes) || []).length > 0 && (
+                    <div style={{
+                      background: '#fef2f2',
+                      borderRadius: '12px',
+                      padding: '15px',
+                      marginBottom: '15px',
+                      border: '1px solid #fecaca',
+                    }}>
+                      <h5 style={{ margin: '0 0 12px', color: '#991b1b', fontSize: '14px', fontWeight: 'bold' }}>
+                        🔤 Spelling Mistakes ({(activeFeedbackPart === 'part1' ? feedbackData.part1.spellingMistakes : feedbackData.part2.spellingMistakes)?.length || 0})
+                      </h5>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {(activeFeedbackPart === 'part1' ? feedbackData.part1.spellingMistakes : feedbackData.part2.spellingMistakes)?.map((m, i) => (
+                          <div key={i} style={{
+                            background: '#fff',
+                            padding: '10px 12px',
+                            borderRadius: '8px',
+                            border: '1px solid #e5e7eb',
+                          }}>
+                            <div style={{ marginBottom: '4px' }}>
+                              <span style={{ color: '#dc2626', textDecoration: 'line-through', fontWeight: 500 }}>{m.wrong}</span>
+                              <span style={{ margin: '0 8px', color: '#6b7280' }}>→</span>
+                              <span style={{ color: '#16a34a', fontWeight: 600 }}>{m.correct}</span>
+                            </div>
+                            <p style={{ margin: 0, fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>{m.explanation}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Grammar Mistakes */}
+                  {((activeFeedbackPart === 'part1' ? feedbackData.part1.grammarMistakes : feedbackData.part2.grammarMistakes) || []).length > 0 && (
+                    <div style={{
+                      background: '#fefce8',
+                      borderRadius: '12px',
+                      padding: '15px',
+                      marginBottom: '15px',
+                      border: '1px solid #fde047',
+                    }}>
+                      <h5 style={{ margin: '0 0 12px', color: '#854d0e', fontSize: '14px', fontWeight: 'bold' }}>
+                        📝 Grammar Mistakes ({(activeFeedbackPart === 'part1' ? feedbackData.part1.grammarMistakes : feedbackData.part2.grammarMistakes)?.length || 0})
+                      </h5>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {(activeFeedbackPart === 'part1' ? feedbackData.part1.grammarMistakes : feedbackData.part2.grammarMistakes)?.map((m, i) => (
+                          <div key={i} style={{
+                            background: '#fff',
+                            padding: '10px 12px',
+                            borderRadius: '8px',
+                            border: '1px solid #e5e7eb',
+                          }}>
+                            <div style={{ marginBottom: '4px' }}>
+                              <span style={{ color: '#dc2626', textDecoration: 'line-through', fontWeight: 500 }}>{m.wrong}</span>
+                              <span style={{ margin: '0 8px', color: '#6b7280' }}>→</span>
+                              <span style={{ color: '#16a34a', fontWeight: 600 }}>{m.correct}</span>
+                            </div>
+                            <p style={{ margin: 0, fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>{m.explanation}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Mark Justifications */}
+                  {(activeFeedbackPart === 'part1' ? feedbackData.part1.markJustifications : feedbackData.part2.markJustifications) && (
+                    <div style={{
+                      background: '#eff6ff',
+                      borderRadius: '12px',
+                      padding: '15px',
+                      marginBottom: '15px',
+                      border: '1px solid #bfdbfe',
+                    }}>
+                      <h5 style={{ margin: '0 0 12px', color: '#1e40af', fontSize: '14px', fontWeight: 'bold' }}>
+                        📊 Why You Received These Marks
+                      </h5>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+                        <div style={{ background: '#fff', padding: '10px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                          <strong style={{ color: '#374151' }}>Content:</strong>
+                          <p style={{ margin: '4px 0 0', color: '#4b5563' }}>
+                            {(activeFeedbackPart === 'part1' ? feedbackData.part1.markJustifications : feedbackData.part2.markJustifications)?.content}
+                          </p>
+                        </div>
+                        <div style={{ background: '#fff', padding: '10px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                          <strong style={{ color: '#374151' }}>Organisation:</strong>
+                          <p style={{ margin: '4px 0 0', color: '#4b5563' }}>
+                            {(activeFeedbackPart === 'part1' ? feedbackData.part1.markJustifications : feedbackData.part2.markJustifications)?.organisation}
+                          </p>
+                        </div>
+                        <div style={{ background: '#fff', padding: '10px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                          <strong style={{ color: '#374151' }}>Language:</strong>
+                          <p style={{ margin: '4px 0 0', color: '#4b5563' }}>
+                            {(activeFeedbackPart === 'part1' ? feedbackData.part1.markJustifications : feedbackData.part2.markJustifications)?.language}
+                          </p>
+                        </div>
+                        {activeFeedbackPart === 'part2' && feedbackData.part2.markJustifications?.communicativeAchievement && (
+                          <div style={{ background: '#fff', padding: '10px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                            <strong style={{ color: '#374151' }}>Communicative Achievement:</strong>
+                            <p style={{ margin: '4px 0 0', color: '#4b5563' }}>
+                              {feedbackData.part2.markJustifications.communicativeAchievement}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Scores Breakdown */}
                   <div style={{
                     background: '#f5f5f5',
@@ -880,7 +1012,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                     marginBottom: '20px',
                     color: '#000',
                   }}>
-                    <h5 style={{ margin: '0 0 12px', color: '#000', fontSize: '14px' }}>📊 Score Breakdown</h5>
+                    <h5 style={{ margin: '0 0 12px', color: '#000', fontSize: '14px' }}>📈 Score Breakdown</h5>
                     {activeFeedbackPart === 'part1' ? (
                       <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
                         <div style={{ flex: 1, minWidth: '80px', textAlign: 'center' }}>
