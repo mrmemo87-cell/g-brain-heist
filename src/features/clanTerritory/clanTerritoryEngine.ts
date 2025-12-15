@@ -41,6 +41,7 @@ export const INITIAL_STATE: ClanTerritoryGameState = {
   clans: {},
   questions: [],
   mapId: 'default',
+  allowClanlessPlayers: false,
 };
 
 export function clanTerritoryReducer(
@@ -63,6 +64,10 @@ export function clanTerritoryReducer(
         // Regenerate zones for the new map
         zones: generateZonesForMap(newMapId),
       };
+    }
+
+    case "SET_ALLOW_CLANLESS": {
+      return { ...state, allowClanlessPlayers: action.payload.allow };
     }
 
     case "JOIN": {
