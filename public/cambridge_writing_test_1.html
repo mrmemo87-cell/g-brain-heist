@@ -667,6 +667,15 @@
 
   // Check previous submission
   function checkPreviousSubmission() {
+    // Check if this is a retake (parent app cleared localStorage and set flag)
+    const isRetake = localStorage.getItem('cambridge_retake');
+    if (isRetake) {
+      localStorage.removeItem('cambridge_retake');
+      localStorage.removeItem(`quiz_submitted_${QUIZ_ID}`);
+      localStorage.removeItem(`quiz_draft_${QUIZ_ID}`);
+      return false; // Allow the test to proceed
+    }
+    
     const submitted = localStorage.getItem(`quiz_submitted_${QUIZ_ID}`);
     if (submitted) {
       const data = JSON.parse(submitted);

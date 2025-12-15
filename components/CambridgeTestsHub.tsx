@@ -211,6 +211,16 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       grade: profile.grade,
     }));
     
+    // If this is a retake, clear the previous submission lock from localStorage
+    if (test.isCompleted) {
+      // Clear the submission lock for writing tests
+      const quizId = test.id.replace(/-/g, '_');
+      localStorage.removeItem(`quiz_submitted_${quizId}`);
+      localStorage.removeItem(`quiz_draft_${quizId}`);
+      // Also set a flag indicating this is a retake
+      localStorage.setItem('cambridge_retake', 'true');
+    }
+    
     setActiveTest(test);
   };
 
