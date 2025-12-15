@@ -29,7 +29,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   onNeonFrameDeactivated,
   onFlickerThemeDeactivated
 }) => {
-  const { isLightMode, toggleLightMode } = useLightMode();
+  const { isLightMode, toggleLightMode, autoEnabledReason, clearAutoEnabledReason } = useLightMode();
   const [hasNeonFrame, setHasNeonFrame] = useState(profile.active_cosmetic_frame === 'neon');
   const [hasFlickerTheme, setHasFlickerTheme] = useState(profile.active_cosmetic_theme === 'flicker');
   const [neonBusy, setNeonBusy] = useState(false);
@@ -288,6 +288,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               {isLightMode && (
                 <div className="bg-green-900/20 border border-green-700/50 rounded p-3 text-sm text-green-300">
                   <strong>⚡ Performance mode active!</strong> All heavy effects disabled.
+                </div>
+              )}
+
+              {autoEnabledReason && (
+                <div className="bg-amber-900/30 border border-amber-600/50 rounded p-3 text-sm text-amber-100 space-y-2">
+                  <div className="font-semibold">We protected your device automatically</div>
+                  <p className="text-amber-100/80">{autoEnabledReason}</p>
+                  <button
+                    type="button"
+                    onClick={clearAutoEnabledReason}
+                    className="text-xs font-semibold text-amber-200 underline underline-offset-2 hover:text-amber-100"
+                  >
+                    Dismiss notice
+                  </button>
                 </div>
               )}
             </div>
