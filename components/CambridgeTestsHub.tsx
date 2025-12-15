@@ -140,6 +140,19 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
         const isAwaitingMarking = test.requiresMarking && answers?.requires_marking === true;
         const feedbackReleased = answers?.feedback?.releasedToStudent === true;
         
+        // DEBUG: Log writing test status
+        if (test.requiresMarking) {
+          console.log('=== WRITING TEST STATUS ===');
+          console.log('Test:', test.name);
+          console.log('Found completion:', !!completion);
+          console.log('Raw answers:', completion?.answers);
+          console.log('answers?.requires_marking:', answers?.requires_marking);
+          console.log('answers?.feedback:', answers?.feedback);
+          console.log('answers?.feedback?.releasedToStudent:', answers?.feedback?.releasedToStudent);
+          console.log('isAwaitingMarking:', isAwaitingMarking);
+          console.log('feedbackReleased:', feedbackReleased);
+        }
+        
         return {
           ...test,
           isCompleted: !!completion,
@@ -196,16 +209,30 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       if (data && data.answers) {
         const answers = typeof data.answers === 'string' ? JSON.parse(data.answers) : data.answers;
         
+        // DEBUG: Log what we received from the database
+        console.log('=== STUDENT FEEDBACK DEBUG ===');
+        console.log('Raw data.answers:', data.answers);
+        console.log('Parsed answers:', answers);
+        console.log('answers.feedback:', answers.feedback);
+        console.log('answers.feedback?.releasedToStudent:', answers.feedback?.releasedToStudent);
+        console.log('answers.requires_marking:', answers.requires_marking);
+        
         // Marks and feedback are stored INSIDE the answers JSONB column
         const marks = answers.marks || null;
         const feedback = answers.feedback || null;
 
+        console.log('Extracted marks:', marks);
+        console.log('Extracted feedback:', feedback);
+        console.log('feedback?.releasedToStudent:', feedback?.releasedToStudent);
+
         // Check if feedback has been released
         if (!feedback?.releasedToStudent) {
+          console.log('BLOCKING: feedback.releasedToStudent is not true!');
           setFeedbackData(null);
           return;
         }
 
+        console.log('SUCCESS: Feedback is released, showing to student');
         setFeedbackData({
           testName: data.quiz_name,
           score: data.score,
