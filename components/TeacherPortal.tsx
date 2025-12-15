@@ -1332,7 +1332,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
             ...student.answers,
             marks: { part1: part1Marks, part2: part2Marks },
             feedback: feedback,
-            marked_by: profile.username + ' (AI)',
+            marked_by: profile.username,
             marked_at: new Date().toISOString(),
             requires_marking: false,
           }
