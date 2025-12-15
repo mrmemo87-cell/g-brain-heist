@@ -323,13 +323,13 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                 </button>
 
                 {mobileMenuOpen && (
-                  <>
+                  <div className="fixed inset-0 z-50 flex items-start justify-end px-3 pt-16">
                     <div
-                      className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px]"
+                      className="absolute inset-0 bg-black/30 backdrop-blur-[1px]"
                       onClick={() => setMobileMenuOpen(false)}
                       aria-hidden
                     />
-                    <div className="absolute right-0 top-12 z-50 w-56 rounded-2xl border border-slate-800/70 bg-slate-950/95 p-2 shadow-2xl shadow-slate-950/60">
+                    <div className="relative w-64 max-w-full rounded-2xl border border-slate-800/70 bg-slate-950/95 p-2 shadow-2xl shadow-slate-950/60">
                       <button
                         type="button"
                         onClick={() => {
