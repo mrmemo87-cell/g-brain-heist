@@ -18,12 +18,14 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
   private visibilityListener: (() => void) | null = null;
   private state: ClanTerritoryGameState = INITIAL_STATE;
   private isHost: boolean = false;
+  private allowClanlessPlayers: boolean = false;
 
-  async createRoom(): Promise<RoomId> {
+  async createRoom(options?: { allowClanlessPlayers?: boolean }): Promise<RoomId> {
     const roomId = Math.floor(1000 + Math.random() * 9000).toString();
     this.isHost = true;
-    this.state = { ...INITIAL_STATE };
-    
+    this.allowClanlessPlayers = Boolean(options?.allowClanlessPlayers);
+    this.state = { ...INITIAL_STATE, allowClanlessPlayers: this.allowClanlessPlayers };
+
     // Start hosting logic immediately
     this.setupChannel(roomId);
     this.startBroadcastingDiscovery(roomId);
@@ -46,7 +48,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
             this.discoveryChannel.send({
               type: 'broadcast',
               event: 'room_open',
-              payload: { roomId }
+              payload: { roomId, allowClanlessPlayers: this.allowClanlessPlayers }
             });
           }
         }, 2000);
@@ -65,11 +67,11 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     }
   }
 
-  startDiscovery(onRoomFound: (roomId: RoomId) => void) {
+  startDiscovery(onRoomFound: (roomId: RoomId, metadata?: { allowClanlessPlayers?: boolean }) => void) {
     this.discoveryChannel = supabase.channel('clan-territory-discovery');
     this.discoveryChannel
       .on('broadcast', { event: 'room_open' }, (payload: any) => {
-        onRoomFound(payload.payload.roomId);
+        onRoomFound(payload.payload.roomId, { allowClanlessPlayers: payload.payload.allowClanlessPlayers });
       })
       .subscribe();
   }
@@ -86,7 +88,8 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     roomId: RoomId,
     playerName: string,
     clanId: string,
-    clanName: string
+    clanName: string,
+    options?: { clanColor?: string }
   ): Promise<PlayerId> {
     const playerId = crypto.randomUUID();
     this.isHost = false;
@@ -114,21 +117,23 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
         }, 100);
     });
 
-    // Fetch clan color from database
-    let clanColor: string | undefined;
-    try {
-      const { data: clan, error } = await supabase
-        .from('clans')
-        .select('color')
-        .eq('id', clanId)
-        .single();
+    // Fetch clan color from database if not provided
+    let clanColor: string | undefined = options?.clanColor;
+    if (!clanColor) {
+      try {
+        const { data: clan, error } = await supabase
+          .from('clans')
+          .select('color')
+          .eq('id', clanId)
+          .single();
 
-      if (!error && clan?.color) {
-        clanColor = clan.color;
+        if (!error && clan?.color) {
+          clanColor = clan.color;
+        }
+      } catch (e) {
+        console.error('Failed to fetch clan color:', e);
+        // Continue without color - will use hash-based fallback
       }
-    } catch (e) {
-      console.error('Failed to fetch clan color:', e);
-      // Continue without color - will use hash-based fallback
     }
 
     await this.sendAction(roomId, {
