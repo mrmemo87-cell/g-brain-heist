@@ -1159,7 +1159,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       color: '#6b7280',
                       textAlign: 'center',
                     }}>
-                      Marked by <strong style={{ color: '#374151' }}>{feedbackData.markedBy}</strong>
+                      Marked by <strong style={{ color: '#374151' }}>{feedbackData.markedBy.replace(/\s*\(AI\)\s*/gi, '')}</strong>
                       {feedbackData.markedAt && (
                         <span> on {new Date(feedbackData.markedAt).toLocaleDateString('en-GB', {
                           day: 'numeric',
