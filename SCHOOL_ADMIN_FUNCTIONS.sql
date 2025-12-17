@@ -1,8 +1,9 @@
 -- ============================================
 -- G-Brains Heist - School Admin Portal Functions
 -- ============================================
--- Run this AFTER MULTI_TENANT_MIGRATION.sql
--- Provides RPC functions for school administration
+-- Run this AFTER MULTI_TENANT_FINAL.sql
+-- Provides SECURITY DEFINER RPC functions for school administration.
+-- These are required by the in-app School Admin Portal UI.
 -- ============================================
 
 -- ============================================
@@ -21,11 +22,20 @@ DECLARE
     v_is_admin BOOLEAN;
     v_member_stats RECORD;
 BEGIN
+    IF v_user_id IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
+    END IF;
+
     -- Determine which school to fetch
     IF p_school_id IS NOT NULL THEN
         v_school_id := p_school_id;
     ELSE
-        SELECT school_id INTO v_school_id FROM users WHERE id = v_user_id;
+        SELECT sm.school_id
+        INTO v_school_id
+        FROM school_members sm
+        WHERE sm.user_id = v_user_id AND sm.status = 'active'
+        ORDER BY sm.joined_at ASC
+        LIMIT 1;
     END IF;
     
     IF v_school_id IS NULL THEN
@@ -38,9 +48,9 @@ BEGIN
         WHERE school_id = v_school_id 
         AND user_id = v_user_id 
         AND role_in_school = 'school_admin'
-    ) OR EXISTS (
-        SELECT 1 FROM users WHERE id = v_user_id AND role = 'admin'
-    ) INTO v_is_admin;
+        AND status = 'active'
+    ) OR is_superadmin(v_user_id)
+    INTO v_is_admin;
     
     IF NOT v_is_admin THEN
         RETURN jsonb_build_object('success', false, 'error', 'Access denied. School admin privileges required.');
@@ -110,11 +120,20 @@ DECLARE
     v_members JSONB;
     v_total INTEGER;
 BEGIN
+    IF v_user_id IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
+    END IF;
+
     -- Determine which school
     IF p_school_id IS NOT NULL THEN
         v_school_id := p_school_id;
     ELSE
-        SELECT school_id INTO v_school_id FROM users WHERE id = v_user_id;
+        SELECT sm.school_id
+        INTO v_school_id
+        FROM school_members sm
+        WHERE sm.user_id = v_user_id AND sm.status = 'active'
+        ORDER BY sm.joined_at ASC
+        LIMIT 1;
     END IF;
     
     -- Check admin access
@@ -123,9 +142,9 @@ BEGIN
         WHERE school_id = v_school_id 
         AND user_id = v_user_id 
         AND role_in_school = 'school_admin'
-    ) OR EXISTS (
-        SELECT 1 FROM users WHERE id = v_user_id AND role = 'admin'
-    ) INTO v_is_admin;
+        AND status = 'active'
+    ) OR is_superadmin(v_user_id)
+    INTO v_is_admin;
     
     IF NOT v_is_admin THEN
         RETURN jsonb_build_object('success', false, 'error', 'Access denied');
@@ -199,6 +218,10 @@ DECLARE
     v_school_id UUID;
     v_is_admin BOOLEAN;
 BEGIN
+    IF v_user_id IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
+    END IF;
+
     -- Validate role
     IF p_new_role NOT IN ('student', 'teacher', 'school_admin') THEN
         RETURN jsonb_build_object('success', false, 'error', 'Invalid role');
@@ -208,7 +231,12 @@ BEGIN
     IF p_school_id IS NOT NULL THEN
         v_school_id := p_school_id;
     ELSE
-        SELECT school_id INTO v_school_id FROM users WHERE id = v_user_id;
+        SELECT sm.school_id
+        INTO v_school_id
+        FROM school_members sm
+        WHERE sm.user_id = v_user_id AND sm.status = 'active'
+        ORDER BY sm.joined_at ASC
+        LIMIT 1;
     END IF;
     
     -- Check admin access
@@ -217,9 +245,9 @@ BEGIN
         WHERE school_id = v_school_id 
         AND user_id = v_user_id 
         AND role_in_school = 'school_admin'
-    ) OR EXISTS (
-        SELECT 1 FROM users WHERE id = v_user_id AND role = 'admin'
-    ) INTO v_is_admin;
+        AND status = 'active'
+    ) OR is_superadmin(v_user_id)
+    INTO v_is_admin;
     
     IF NOT v_is_admin THEN
         RETURN jsonb_build_object('success', false, 'error', 'Access denied');
@@ -265,6 +293,10 @@ DECLARE
     v_school_id UUID;
     v_is_admin BOOLEAN;
 BEGIN
+    IF v_user_id IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
+    END IF;
+
     -- Validate action
     IF p_action NOT IN ('suspend', 'activate', 'ban', 'unban') THEN
         RETURN jsonb_build_object('success', false, 'error', 'Invalid action');
@@ -274,7 +306,12 @@ BEGIN
     IF p_school_id IS NOT NULL THEN
         v_school_id := p_school_id;
     ELSE
-        SELECT school_id INTO v_school_id FROM users WHERE id = v_user_id;
+        SELECT sm.school_id
+        INTO v_school_id
+        FROM school_members sm
+        WHERE sm.user_id = v_user_id AND sm.status = 'active'
+        ORDER BY sm.joined_at ASC
+        LIMIT 1;
     END IF;
     
     -- Check admin access
@@ -283,9 +320,9 @@ BEGIN
         WHERE school_id = v_school_id 
         AND user_id = v_user_id 
         AND role_in_school = 'school_admin'
-    ) OR EXISTS (
-        SELECT 1 FROM users WHERE id = v_user_id AND role = 'admin'
-    ) INTO v_is_admin;
+        AND status = 'active'
+    ) OR is_superadmin(v_user_id)
+    INTO v_is_admin;
     
     IF NOT v_is_admin THEN
         RETURN jsonb_build_object('success', false, 'error', 'Access denied');
@@ -342,15 +379,19 @@ DECLARE
     v_is_admin BOOLEAN;
     v_current_settings JSONB;
 BEGIN
+    IF v_user_id IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
+    END IF;
+
     -- Check admin access
     SELECT EXISTS (
         SELECT 1 FROM school_members 
         WHERE school_id = p_school_id 
         AND user_id = v_user_id 
         AND role_in_school = 'school_admin'
-    ) OR EXISTS (
-        SELECT 1 FROM users WHERE id = v_user_id AND role = 'admin'
-    ) INTO v_is_admin;
+        AND status = 'active'
+    ) OR is_superadmin(v_user_id)
+    INTO v_is_admin;
     
     IF NOT v_is_admin THEN
         RETURN jsonb_build_object('success', false, 'error', 'Access denied');
@@ -389,15 +430,19 @@ DECLARE
     v_user_id UUID := auth.uid();
     v_is_admin BOOLEAN;
 BEGIN
+    IF v_user_id IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
+    END IF;
+
     -- Check admin access
     SELECT EXISTS (
         SELECT 1 FROM school_members 
         WHERE school_id = p_school_id 
         AND user_id = v_user_id 
         AND role_in_school = 'school_admin'
-    ) OR EXISTS (
-        SELECT 1 FROM users WHERE id = v_user_id AND role = 'admin'
-    ) INTO v_is_admin;
+        AND status = 'active'
+    ) OR is_superadmin(v_user_id)
+    INTO v_is_admin;
     
     IF NOT v_is_admin THEN
         RETURN jsonb_build_object('success', false, 'error', 'Access denied');
@@ -440,11 +485,20 @@ DECLARE
     v_new_members INTEGER;
     v_grade_distribution JSONB;
 BEGIN
+    IF v_user_id IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
+    END IF;
+
     -- Determine school
     IF p_school_id IS NOT NULL THEN
         v_school_id := p_school_id;
     ELSE
-        SELECT school_id INTO v_school_id FROM users WHERE id = v_user_id;
+        SELECT sm.school_id
+        INTO v_school_id
+        FROM school_members sm
+        WHERE sm.user_id = v_user_id AND sm.status = 'active'
+        ORDER BY sm.joined_at ASC
+        LIMIT 1;
     END IF;
     
     -- Check admin access
@@ -453,9 +507,9 @@ BEGIN
         WHERE school_id = v_school_id 
         AND user_id = v_user_id 
         AND role_in_school = 'school_admin'
-    ) OR EXISTS (
-        SELECT 1 FROM users WHERE id = v_user_id AND role = 'admin'
-    ) INTO v_is_admin;
+        AND status = 'active'
+    ) OR is_superadmin(v_user_id)
+    INTO v_is_admin;
     
     IF NOT v_is_admin THEN
         RETURN jsonb_build_object('success', false, 'error', 'Access denied');
@@ -543,9 +597,8 @@ BEGIN
         WHERE school_id = v_school_id 
         AND user_id = v_user_id 
         AND role_in_school = 'school_admin'
-    ) OR EXISTS (
-        SELECT 1 FROM users WHERE id = v_user_id AND role = 'admin'
-    ) INTO v_is_admin;
+    ) OR is_superadmin(v_user_id)
+    INTO v_is_admin;
     
     IF NOT v_is_admin THEN
         RETURN jsonb_build_object('success', false, 'error', 'Access denied');
@@ -602,9 +655,8 @@ BEGIN
         WHERE school_id = v_school_id 
         AND user_id = v_user_id 
         AND role_in_school = 'school_admin'
-    ) OR EXISTS (
-        SELECT 1 FROM users WHERE id = v_user_id AND role = 'admin'
-    ) INTO v_is_admin;
+    ) OR is_superadmin(v_user_id)
+    INTO v_is_admin;
     
     IF NOT v_is_admin THEN
         RETURN jsonb_build_object('success', false, 'error', 'Access denied');
@@ -673,9 +725,7 @@ BEGIN
         WHERE school_id = v_school_id 
         AND user_id = v_user_id 
         AND role_in_school = 'school_admin'
-    ) OR EXISTS (
-        SELECT 1 FROM users WHERE id = v_user_id AND role = 'admin'
-    );
+    ) OR is_superadmin(v_user_id);
 END;
 $$;
 

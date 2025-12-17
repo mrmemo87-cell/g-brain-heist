@@ -14,6 +14,56 @@
 -- ============================================
 
 -- ============================================
+
+-- Extensions used by these migrations
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+-- ============================================
+-- STEP 0: SUPERADMIN WHITELIST (platform admins)
+-- ============================================
+CREATE TABLE IF NOT EXISTS superadmins (
+    user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    added_at TIMESTAMPTZ DEFAULT NOW(),
+    added_by UUID REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE OR REPLACE FUNCTION is_superadmin(p_user_id UUID DEFAULT NULL)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_uid UUID := COALESCE(p_user_id, auth.uid());
+BEGIN
+    RETURN EXISTS (SELECT 1 FROM superadmins WHERE user_id = v_uid);
+END;
+$$;
+
+-- ============================================
+-- STEP 0.1: HELPER - Normalize school name
+-- ============================================
+CREATE OR REPLACE FUNCTION normalize_school_name(p_name TEXT)
+RETURNS TEXT
+LANGUAGE plpgsql
+IMMUTABLE
+AS $$
+BEGIN
+    RETURN LOWER(
+        REGEXP_REPLACE(
+            REGEXP_REPLACE(
+                TRIM(p_name),
+                '\\s+', ' ', 'g'
+            ),
+            '[^a-z0-9\\s]', '', 'gi'
+        )
+    );
+END;
+$$;
+
+-- ============================================
 -- STEP 1: SCHOOLS TABLE
 -- ============================================
 -- Schools are the primary tenant entity
@@ -42,6 +92,9 @@ CREATE INDEX IF NOT EXISTS idx_schools_slug ON schools(slug);
 CREATE INDEX IF NOT EXISTS idx_schools_invite_code ON schools(invite_code) WHERE invite_code IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_schools_status ON schools(status);
 
+-- Trigram index for school name suggestions
+CREATE INDEX IF NOT EXISTS idx_schools_name_trgm ON schools USING gin (name gin_trgm_ops);
+
 -- ============================================
 -- STEP 2: SCHOOL MEMBERS TABLE
 -- ============================================
@@ -62,6 +115,28 @@ CREATE TABLE IF NOT EXISTS school_members (
 CREATE INDEX IF NOT EXISTS idx_school_members_school ON school_members(school_id);
 CREATE INDEX IF NOT EXISTS idx_school_members_user ON school_members(user_id);
 CREATE INDEX IF NOT EXISTS idx_school_members_role ON school_members(role_in_school);
+
+-- ============================================
+-- STEP 2.1: SCHOOL REQUESTS TABLE
+-- ============================================
+CREATE TABLE IF NOT EXISTS school_requests (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    requested_name TEXT NOT NULL,
+    normalized_name TEXT NOT NULL,
+    requested_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    requester_email TEXT,
+    requester_role TEXT DEFAULT 'teacher' CHECK (requester_role IN ('student', 'teacher')),
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'duplicate')),
+    admin_notes TEXT,
+    approved_school_id UUID REFERENCES schools(id) ON DELETE SET NULL,
+    reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    reviewed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_school_requests_status ON school_requests(status);
+CREATE INDEX IF NOT EXISTS idx_school_requests_normalized ON school_requests(normalized_name);
+CREATE INDEX IF NOT EXISTS idx_school_requests_user ON school_requests(requested_by);
 
 -- ============================================
 -- STEP 3: ADD SCHOOL_ID TO USERS TABLE
@@ -147,7 +222,7 @@ END $$;
 CREATE OR REPLACE FUNCTION profile_bootstrap(
     p_school_id UUID,
     p_role TEXT,  -- 'student' or 'teacher'
-    p_grade INTEGER DEFAULT NULL,
+    p_grade SMALLINT DEFAULT NULL,
     p_batch TEXT DEFAULT NULL,
     p_username TEXT DEFAULT NULL
 )
@@ -288,8 +363,11 @@ BEGIN
 END;
 $$;
 
--- Grant execute to authenticated users
-GRANT EXECUTE ON FUNCTION profile_bootstrap(UUID, TEXT, INTEGER, TEXT, TEXT) TO authenticated;
+-- Drop legacy signature (INTEGER grade) if present
+DROP FUNCTION IF EXISTS profile_bootstrap(UUID, TEXT, INTEGER, TEXT, TEXT);
+
+-- Grant execute to authenticated users (current signature)
+GRANT EXECUTE ON FUNCTION profile_bootstrap(UUID, TEXT, SMALLINT, TEXT, TEXT) TO authenticated;
 
 -- ============================================
 -- STEP 6: GET SCHOOLS LIST RPC
@@ -427,29 +505,34 @@ DROP POLICY IF EXISTS "Anyone can view active schools" ON schools;
 DROP POLICY IF EXISTS "School admins can update their school" ON schools;
 DROP POLICY IF EXISTS "Super admins can manage all schools" ON schools;
 
+DROP POLICY IF EXISTS schools_select ON schools;
+DROP POLICY IF EXISTS schools_insert ON schools;
+DROP POLICY IF EXISTS schools_update ON schools;
+DROP POLICY IF EXISTS schools_delete ON schools;
+
 -- Anyone can see active schools (for signup dropdown)
-CREATE POLICY "Anyone can view active schools"
-    ON schools FOR SELECT
-    USING (status = 'active');
+-- Anyone can read active schools; members can read their own school even if not active
+CREATE POLICY schools_select ON schools FOR SELECT
+USING (
+    status = 'active'
+    OR EXISTS (
+        SELECT 1
+        FROM school_members sm
+        WHERE sm.school_id = schools.id
+          AND sm.user_id = auth.uid()
+          AND sm.status = 'active'
+    )
+);
 
--- School admins can update their own school
-CREATE POLICY "School admins can update their school"
-    ON schools FOR UPDATE
-    USING (
-        EXISTS (
-            SELECT 1 FROM school_members sm
-            WHERE sm.school_id = schools.id
-            AND sm.user_id = auth.uid()
-            AND sm.role_in_school = 'school_admin'
-        )
-    );
+-- RPC-only writes
+CREATE POLICY schools_insert ON schools FOR INSERT
+WITH CHECK (false);
 
--- Super admins (platform admins) can manage all schools
-CREATE POLICY "Super admins can manage all schools"
-    ON schools FOR ALL
-    USING (
-        EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin')
-    );
+CREATE POLICY schools_update ON schools FOR UPDATE
+USING (false);
+
+CREATE POLICY schools_delete ON schools FOR DELETE
+USING (false);
 
 -- ============================================
 -- STEP 11: RLS POLICIES FOR SCHOOL MEMBERS
@@ -459,37 +542,33 @@ DROP POLICY IF EXISTS "Users can view members of their schools" ON school_member
 DROP POLICY IF EXISTS "School admins can manage members" ON school_members;
 DROP POLICY IF EXISTS "Users can insert their own membership" ON school_members;
 
--- Users can view their own memberships
-CREATE POLICY "Users can view their school memberships"
-    ON school_members FOR SELECT
-    USING (user_id = auth.uid());
+DROP POLICY IF EXISTS school_members_select ON school_members;
+DROP POLICY IF EXISTS school_members_insert ON school_members;
+DROP POLICY IF EXISTS school_members_update ON school_members;
+DROP POLICY IF EXISTS school_members_delete ON school_members;
 
--- Users can view other members of schools they belong to
-CREATE POLICY "Users can view members of their schools"
-    ON school_members FOR SELECT
-    USING (
-        school_id IN (
-            SELECT sm.school_id FROM school_members sm WHERE sm.user_id = auth.uid()
-        )
-    );
+-- Read allowed within the same active school (or self)
+CREATE POLICY school_members_select ON school_members FOR SELECT
+USING (
+    user_id = auth.uid()
+    OR EXISTS (
+        SELECT 1
+        FROM school_members my_membership
+        WHERE my_membership.user_id = auth.uid()
+          AND my_membership.school_id = school_members.school_id
+          AND my_membership.status = 'active'
+    )
+);
 
--- School admins can manage members
-CREATE POLICY "School admins can manage members"
-    ON school_members FOR ALL
-    USING (
-        EXISTS (
-            SELECT 1 FROM school_members sm
-            WHERE sm.school_id = school_members.school_id
-            AND sm.user_id = auth.uid()
-            AND sm.role_in_school = 'school_admin'
-        )
-    );
+-- RPC-only writes
+CREATE POLICY school_members_insert ON school_members FOR INSERT
+WITH CHECK (false);
 
--- Allow profile_bootstrap to insert memberships (via SECURITY DEFINER)
--- Users can only insert their own membership through RPC
-CREATE POLICY "Users can insert their own membership"
-    ON school_members FOR INSERT
-    WITH CHECK (user_id = auth.uid());
+CREATE POLICY school_members_update ON school_members FOR UPDATE
+USING (false);
+
+CREATE POLICY school_members_delete ON school_members FOR DELETE
+USING (false);
 
 -- ============================================
 -- STEP 12: UPDATE EXISTING USER POLICIES FOR SCHOOL ISOLATION
@@ -512,7 +591,7 @@ CREATE POLICY "Users can view users in same school"
         )
         OR
         -- Platform admins can see everyone
-        EXISTS (SELECT 1 FROM users u WHERE u.id = auth.uid() AND u.role = 'admin')
+        is_superadmin(auth.uid())
     );
 
 -- ============================================
@@ -570,14 +649,17 @@ CREATE POLICY "Students view grade questions"
 CREATE POLICY "Teachers manage school questions"
     ON mcq_questions FOR ALL
     USING (
-        (SELECT role FROM users WHERE id = auth.uid()) IN ('teacher', 'admin')
+        (
+            (SELECT role FROM users WHERE id = auth.uid()) IN ('teacher', 'admin')
+            OR is_superadmin(auth.uid())
+        )
         AND (
             school_id IS NULL
             OR school_id = get_user_school_id()
         )
     )
     WITH CHECK (
-        (SELECT role FROM users WHERE id = auth.uid()) IN ('teacher', 'admin')
+        ((SELECT role FROM users WHERE id = auth.uid()) IN ('teacher', 'admin') OR is_superadmin(auth.uid()))
         AND school_id = get_user_school_id()
     );
 
@@ -600,9 +682,7 @@ BEGIN
         WHERE school_id = p_school_id 
         AND user_id = auth.uid() 
         AND role_in_school = 'school_admin'
-    ) AND NOT EXISTS (
-        SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin'
-    ) THEN
+    ) AND NOT is_superadmin(auth.uid()) THEN
         RAISE EXCEPTION 'Only school admins can generate invite codes';
     END IF;
     

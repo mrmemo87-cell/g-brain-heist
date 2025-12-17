@@ -1,0 +1,24 @@
+Multi-tenant deployment checklist (Supabase)
+
+Recommended path (safe + simplest):
+1) Run MULTI_TENANT_FINAL.sql
+2) Add your UID to superadmins (see bottom of MULTI_TENANT_FINAL.sql)
+3) Run MULTI_TENANT_SMOKE_TEST.sql
+
+Legacy path (only if you must keep split files):
+- Run MULTI_TENANT_MIGRATION.sql
+- Run SCHOOL_ADMIN_FUNCTIONS.sql
+- Run MULTI_TENANT_HARDENING.sql
+- Do NOT run SCHOOL_ONBOARDING_COMPLETE.sql (it is now a no-op/deprecated)
+
+Superadmin bootstrap (one-time):
+- Find your user row in public.users (or auth.users email -> id mapping).
+- Run:
+  INSERT INTO superadmins (user_id)
+  SELECT id FROM users WHERE email = 'your-email@example.com';
+
+Post-deploy sanity (manual app-level):
+- Create a teacher account and create a school (teacher_create_school)
+- Join a student account with invite code (join_school_by_code)
+- Verify School Admin portal loads members for that school
+- Verify leaderboard (get_school_leaderboard) returns only same-school users

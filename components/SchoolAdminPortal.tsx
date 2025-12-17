@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import BackButton from './BackButton';
 import { ToastMessage } from '../types';
 import * as SchoolAdminService from '../services/schoolAdminService';
-import type { SchoolStats, SchoolMember, InviteCode, SchoolInfo } from '../services/schoolAdminService';
+import type { SchoolStats, SchoolMember, SchoolInfo } from '../services/schoolAdminService';
 import type { SchoolRole } from '../types';
 
 interface SchoolAdminPortalProps {
@@ -19,23 +19,15 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
   const [stats, setStats] = useState<SchoolStats | null>(null);
   const [members, setMembers] = useState<SchoolMember[]>([]);
   const [membersTotal, setMembersTotal] = useState(0);
-  const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
   
   // Filters
   const [memberSearch, setMemberSearch] = useState('');
   const [memberRoleFilter, setMemberRoleFilter] = useState<SchoolRole | ''>('');
-  const [showExpiredInvites, setShowExpiredInvites] = useState(false);
   
   // Modals
-  const [showGenerateInviteModal, setShowGenerateInviteModal] = useState(false);
   const [showMemberActionModal, setShowMemberActionModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState<SchoolMember | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
-  
-  // Invite form state
-  const [newInviteRole, setNewInviteRole] = useState<SchoolRole>('student');
-  const [newInviteMaxUses, setNewInviteMaxUses] = useState<number | ''>('');
-  const [newInviteExpiresDays, setNewInviteExpiresDays] = useState<number>(30);
 
   // Settings state
   const [settingsName, setSettingsName] = useState('');
@@ -63,21 +55,27 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
       setSettingsAllowStudent(schoolData.school.allow_student_signup);
       setSettingsAllowTeacher(schoolData.school.allow_teacher_signup);
 
-      // Load stats
-      const statsData = await SchoolAdminService.getSchoolStats(schoolData.school.id);
-      setStats(statsData);
+      setStats(schoolData.stats);
 
       // Load members
       await loadMembers(schoolData.school.id);
-
-      // Load invite codes
-      await loadInviteCodes(schoolData.school.id);
     } catch (err) {
       console.error('Error loading school data:', err);
       addToast('Failed to load school data', 'error');
     } finally {
       setLoading(false);
     }
+  };
+
+  const refreshSchool = async (schoolId: string) => {
+    const details = await SchoolAdminService.getSchoolDetails(schoolId);
+    if (!details) return;
+
+    setSchool(details.school);
+    setStats(details.stats);
+    setSettingsName(details.school.name);
+    setSettingsAllowStudent(details.school.allow_student_signup);
+    setSettingsAllowTeacher(details.school.allow_teacher_signup);
   };
 
   const loadMembers = useCallback(async (schoolId: string) => {
@@ -90,24 +88,12 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
     setMembersTotal(total);
   }, [memberRoleFilter, memberSearch]);
 
-  const loadInviteCodes = useCallback(async (schoolId: string) => {
-    const codes = await SchoolAdminService.listInviteCodes(schoolId, showExpiredInvites);
-    setInviteCodes(codes);
-  }, [showExpiredInvites]);
-
   // Reload members when filters change
   useEffect(() => {
     if (school?.id) {
       loadMembers(school.id);
     }
   }, [school?.id, memberSearch, memberRoleFilter, loadMembers]);
-
-  // Reload invite codes when filter changes
-  useEffect(() => {
-    if (school?.id) {
-      loadInviteCodes(school.id);
-    }
-  }, [school?.id, showExpiredInvites, loadInviteCodes]);
 
   // Member actions
   const handleUpdateRole = async (newRole: SchoolRole) => {
@@ -144,8 +130,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
     if (result.success) {
       addToast(`Removed ${selectedMember.username} from the school`, 'success');
       await loadMembers(school.id);
-      const statsData = await SchoolAdminService.getSchoolStats(school.id);
-      setStats(statsData);
+      await refreshSchool(school.id);
       setShowMemberActionModal(false);
     } else {
       addToast(result.error || 'Failed to remove member', 'error');
@@ -164,8 +149,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
     if (result.success) {
       addToast(`Banned ${selectedMember.username}`, 'success');
       await loadMembers(school.id);
-      const statsData = await SchoolAdminService.getSchoolStats(school.id);
-      setStats(statsData);
+      await refreshSchool(school.id);
       setShowMemberActionModal(false);
     } else {
       addToast(result.error || 'Failed to ban member', 'error');
@@ -182,56 +166,28 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
     if (result.success) {
       addToast(`Unbanned ${selectedMember.username}`, 'success');
       await loadMembers(school.id);
-      const statsData = await SchoolAdminService.getSchoolStats(school.id);
-      setStats(statsData);
+      await refreshSchool(school.id);
       setShowMemberActionModal(false);
     } else {
       addToast(result.error || 'Failed to unban member', 'error');
     }
   };
 
-  // Invite code actions
-  const handleGenerateInvite = async () => {
+  // Invite code actions (single code per school)
+  const handleRotateInviteCode = async () => {
     if (!school) return;
 
+    if (!confirm('Rotate invite code? Old code will stop working immediately.')) return;
+
     setActionLoading(true);
-    const result = await SchoolAdminService.generateInviteCode(school.id, newInviteRole, {
-      maxUses: newInviteMaxUses || undefined,
-      expiresInDays: newInviteExpiresDays,
-    });
+    const result = await SchoolAdminService.rotateInviteCode(school.id);
     setActionLoading(false);
 
     if (result.success && result.code) {
-      addToast(`Generated invite code: ${result.code}`, 'success');
-      await loadInviteCodes(school.id);
-      const statsData = await SchoolAdminService.getSchoolStats(school.id);
-      setStats(statsData);
-      setShowGenerateInviteModal(false);
-      // Reset form
-      setNewInviteRole('student');
-      setNewInviteMaxUses('');
-      setNewInviteExpiresDays(30);
+      addToast(`New invite code: ${result.code}`, 'success');
+      await refreshSchool(school.id);
     } else {
-      addToast(result.error || 'Failed to generate invite code', 'error');
-    }
-  };
-
-  const handleRevokeInvite = async (invite: InviteCode) => {
-    if (!school) return;
-    
-    if (!confirm(`Are you sure you want to revoke invite code ${invite.code}?`)) {
-      return;
-    }
-
-    const result = await SchoolAdminService.revokeInviteCode(school.id, invite.id);
-
-    if (result.success) {
-      addToast('Invite code revoked', 'success');
-      await loadInviteCodes(school.id);
-      const statsData = await SchoolAdminService.getSchoolStats(school.id);
-      setStats(statsData);
-    } else {
-      addToast(result.error || 'Failed to revoke invite code', 'error');
+      addToast(result.error || 'Failed to rotate invite code', 'error');
     }
   };
 
@@ -254,12 +210,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
 
     if (result.success) {
       addToast('Settings saved successfully', 'success');
-      setSchool({
-        ...school,
-        name: settingsName,
-        allow_student_signup: settingsAllowStudent,
-        allow_teacher_signup: settingsAllowTeacher,
-      });
+      await refreshSchool(school.id);
     } else {
       addToast(result.error || 'Failed to save settings', 'error');
     }
@@ -355,7 +306,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
           >
             {tab === 'dashboard' && '📊 Dashboard'}
             {tab === 'members' && `👥 Members (${membersTotal})`}
-            {tab === 'invites' && `🔑 Invite Codes (${inviteCodes.length})`}
+            {tab === 'invites' && '🔑 Invite Code'}
             {tab === 'settings' && '⚙️ Settings'}
           </button>
         ))}
@@ -367,40 +318,20 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
           {/* Stats Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-              <div className="text-3xl font-bold text-cyan-400">{stats.total_students}</div>
+              <div className="text-3xl font-bold text-cyan-400">{stats.students}</div>
               <div className="text-gray-400 text-sm">Students</div>
             </div>
             <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-              <div className="text-3xl font-bold text-blue-400">{stats.total_teachers}</div>
+              <div className="text-3xl font-bold text-blue-400">{stats.teachers}</div>
               <div className="text-gray-400 text-sm">Teachers</div>
             </div>
             <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-              <div className="text-3xl font-bold text-purple-400">{stats.total_admins}</div>
+              <div className="text-3xl font-bold text-purple-400">{stats.admins}</div>
               <div className="text-gray-400 text-sm">Admins</div>
             </div>
             <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-              <div className="text-3xl font-bold text-green-400">{stats.active_users_7d}</div>
-              <div className="text-gray-400 text-sm">Active (7d)</div>
-            </div>
-          </div>
-
-          {/* Secondary Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-              <div className="text-2xl font-bold text-yellow-400">{stats.xp_earned_7d.toLocaleString()}</div>
-              <div className="text-gray-400 text-sm">XP Earned (7d)</div>
-            </div>
-            <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-              <div className="text-2xl font-bold text-orange-400">{stats.pending_invites}</div>
-              <div className="text-gray-400 text-sm">Pending Invites</div>
-            </div>
-            <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-              <div className="text-2xl font-bold text-green-400">{stats.used_invites}</div>
-              <div className="text-gray-400 text-sm">Used Invites</div>
-            </div>
-            <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-              <div className="text-2xl font-bold text-red-400">{stats.banned_members}</div>
-              <div className="text-gray-400 text-sm">Banned</div>
+              <div className="text-3xl font-bold text-green-400">{stats.total}</div>
+              <div className="text-gray-400 text-sm">Total Members</div>
             </div>
           </div>
 
@@ -409,10 +340,10 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
             <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
             <div className="flex flex-wrap gap-3">
               <button
-                onClick={() => { setActiveTab('invites'); setShowGenerateInviteModal(true); }}
+                onClick={() => setActiveTab('invites')}
                 className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors"
               >
-                🔑 Generate Invite Code
+                🔑 Invite Code
               </button>
               <button
                 onClick={() => setActiveTab('members')}
@@ -530,79 +461,32 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
       {/* Invites Tab */}
       {activeTab === 'invites' && (
         <div className="space-y-4">
-          {/* Actions Bar */}
-          <div className="flex flex-wrap justify-between items-center gap-4">
-            <button
-              onClick={() => setShowGenerateInviteModal(true)}
-              className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors font-medium"
-            >
-              + Generate New Code
-            </button>
-            <label className="flex items-center gap-2 text-gray-400 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={showExpiredInvites}
-                onChange={(e) => setShowExpiredInvites(e.target.checked)}
-                className="rounded border-gray-600 bg-gray-800 text-cyan-500 focus:ring-cyan-500"
-              />
-              Show expired/revoked
-            </label>
-          </div>
-
-          {/* Invite Codes List */}
-          <div className="space-y-3">
-            {inviteCodes.map((invite) => (
-              <div
-                key={invite.id}
-                className={`bg-gray-800 rounded-xl p-4 border ${
-                  invite.is_active ? 'border-gray-700' : 'border-red-500/30 opacity-60'
-                }`}
+          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <h3 className="text-lg font-semibold mb-4">Current Invite Code</h3>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div
+                  className="font-mono text-2xl font-bold text-cyan-400 cursor-pointer hover:text-cyan-300"
+                  onClick={() => copyToClipboard(school.invite_code || '')}
+                  title="Click to copy"
+                >
+                  {school.invite_code || 'No code'}
+                </div>
+                <div className="text-sm text-gray-400">
+                  Share this with teachers/students to join.
+                </div>
+              </div>
+              <button
+                onClick={handleRotateInviteCode}
+                disabled={actionLoading}
+                className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 rounded-lg transition-colors font-medium"
               >
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div
-                      className="font-mono text-lg font-bold text-cyan-400 cursor-pointer hover:text-cyan-300"
-                      onClick={() => copyToClipboard(invite.code)}
-                      title="Click to copy"
-                    >
-                      {invite.code}
-                    </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(invite.role_to_assign)}`}>
-                      {invite.role_to_assign.replace('_', ' ')}
-                    </span>
-                    {!invite.is_active && (
-                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-400">
-                        {new Date(invite.expires_at || '') < new Date() ? 'Expired' : 'Revoked'}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-sm text-gray-400">
-                      <span className="font-medium text-white">{invite.use_count}</span>
-                      {invite.max_uses ? ` / ${invite.max_uses}` : ''} uses
-                    </div>
-                    {invite.is_active && (
-                      <button
-                        onClick={() => handleRevokeInvite(invite)}
-                        className="text-red-400 hover:text-red-300 text-sm"
-                      >
-                        Revoke
-                      </button>
-                    )}
-                  </div>
-                </div>
-                <div className="mt-2 flex flex-wrap gap-4 text-xs text-gray-500">
-                  <span>Created: {formatDate(invite.created_at)}</span>
-                  <span>Expires: {invite.expires_at ? formatDate(invite.expires_at) : 'Never'}</span>
-                  {invite.creator_username && <span>By: {invite.creator_username}</span>}
-                </div>
-              </div>
-            ))}
-            {inviteCodes.length === 0 && (
-              <div className="bg-gray-800 rounded-xl p-8 text-center text-gray-500 border border-gray-700">
-                No invite codes found. Generate one to invite users to your school.
-              </div>
-            )}
+                {actionLoading ? 'Rotating...' : 'Rotate Code'}
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-3">
+              Rotating invalidates the old code immediately.
+            </p>
           </div>
         </div>
       )}
@@ -684,70 +568,6 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
             >
               Delete School (Coming Soon)
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* Generate Invite Modal */}
-      {showGenerateInviteModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-700">
-            <h3 className="text-xl font-bold mb-4">Generate Invite Code</h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Role to Assign</label>
-                <select
-                  value={newInviteRole}
-                  onChange={(e) => setNewInviteRole(e.target.value as SchoolRole)}
-                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
-                >
-                  <option value="student">Student</option>
-                  <option value="teacher">Teacher</option>
-                  <option value="school_admin">School Admin</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Max Uses (optional)</label>
-                <input
-                  type="number"
-                  min="1"
-                  placeholder="Unlimited"
-                  value={newInviteMaxUses}
-                  onChange={(e) => setNewInviteMaxUses(e.target.value ? parseInt(e.target.value) : '')}
-                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Expires In (days)</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="365"
-                  value={newInviteExpiresDays}
-                  onChange={(e) => setNewInviteExpiresDays(parseInt(e.target.value) || 30)}
-                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setShowGenerateInviteModal(false)}
-                className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleGenerateInvite}
-                disabled={actionLoading}
-                className="flex-1 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 rounded-lg transition-colors font-medium"
-              >
-                {actionLoading ? 'Generating...' : 'Generate'}
-              </button>
-            </div>
           </div>
         </div>
       )}
