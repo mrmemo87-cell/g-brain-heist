@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { GoogleIcon } from './icons';
 import * as AuthService from '../services/authService';
+import type { School } from '../services/authService';
 import type { Batch, Grade } from '../types';
 import { consumeBanMessage } from '../services/banMessage';
 
@@ -15,12 +16,54 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const [username, setUsername] = useState('');
     const [grade, setGrade] = useState<Grade | null>(null);
     const [batch, setBatch] = useState<Batch | ''>('');
-    const [school, setSchool] = useState('Silk Road International School');
     const [role, setRole] = useState<'student' | 'teacher'>('student');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+    
+    // Multi-tenant: Dynamic schools
+    const [schools, setSchools] = useState<School[]>([]);
+    const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
+    const [isLoadingSchools, setIsLoadingSchools] = useState(false);
+    const [inviteCode, setInviteCode] = useState('');
+    const [showInviteCode, setShowInviteCode] = useState(false);
+
+    // Fetch available schools when signup mode is active
+    useEffect(() => {
+        if (mode === 'signup' && schools.length === 0) {
+            const fetchSchools = async () => {
+                setIsLoadingSchools(true);
+                try {
+                    const schoolList = await AuthService.getAvailableSchools();
+                    setSchools(schoolList);
+                    
+                    // Auto-select first school if only one available
+                    if (schoolList.length === 1) {
+                        setSelectedSchool(schoolList[0]);
+                    } else if (schoolList.length > 0 && !selectedSchool) {
+                        // Select the first school by default
+                        setSelectedSchool(schoolList[0]);
+                    }
+                } catch (err) {
+                    console.error('Failed to load schools:', err);
+                    // Fallback: create a default school option
+                    const fallbackSchool: School = {
+                        id: 'default',
+                        name: 'Silk Road International School',
+                        slug: 'silk-road-international',
+                        logo_url: null,
+                        allow_student_signup: true,
+                        allow_teacher_signup: true,
+                    };
+                    setSchools([fallbackSchool]);
+                    setSelectedSchool(fallbackSchool);
+                }
+                setIsLoadingSchools(false);
+            };
+            fetchSchools();
+        }
+    }, [mode, schools.length, selectedSchool]);
 
     useEffect(() => {
         const persisted = consumeBanMessage();
@@ -36,6 +79,37 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
             setBatch('');
         }
     }, [role]);
+
+    // Handle invite code validation
+    const handleInviteCodeSubmit = async () => {
+        if (!inviteCode.trim()) return;
+        
+        setIsLoading(true);
+        setError(null);
+        
+        try {
+            const result = await AuthService.validateInviteCode(inviteCode.trim());
+            if (result.valid && result.school_id) {
+                const school = schools.find(s => s.id === result.school_id) || {
+                    id: result.school_id,
+                    name: result.school_name || 'School',
+                    slug: result.school_slug || '',
+                    logo_url: null,
+                    allow_student_signup: true,
+                    allow_teacher_signup: true,
+                };
+                setSelectedSchool(school);
+                setShowInviteCode(false);
+                setSuccess(`Joined ${result.school_name}!`);
+            } else {
+                setError(result.error || 'Invalid invite code');
+            }
+        } catch (err) {
+            setError('Failed to validate invite code');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -61,12 +135,22 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     return;
                 }
 
-                if (role === 'student') {
-                    if (!school.trim()) {
-                        setError('Select your school to keep your records organized.');
-                        return;
-                    }
+                if (!selectedSchool) {
+                    setError('Select your school to continue.');
+                    return;
+                }
 
+                // Check if school allows this role
+                if (role === 'student' && !selectedSchool.allow_student_signup) {
+                    setError('This school is not accepting student signups.');
+                    return;
+                }
+                if (role === 'teacher' && !selectedSchool.allow_teacher_signup) {
+                    setError('This school is not accepting teacher signups.');
+                    return;
+                }
+
+                if (role === 'student') {
                     if (!grade) {
                         setError('Choose your grade to unlock the right missions.');
                         return;
@@ -80,7 +164,9 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
 
                 const gradeForSignup = role === 'student' ? grade ?? undefined : undefined;
                 const batchForSignup = role === 'student' ? batch || undefined : undefined;
-                const schoolForSignup = school.trim() || undefined;
+                // Use school ID for multi-tenant, fallback to name if ID is 'default'
+                const schoolId = selectedSchool.id !== 'default' ? selectedSchool.id : undefined;
+                const schoolName = selectedSchool.name;
 
                 await AuthService.signup(
                     email.trim(),
@@ -89,7 +175,8 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     role,
                     gradeForSignup,
                     batchForSignup,
-                    schoolForSignup
+                    schoolName,  // Legacy school name
+                    schoolId     // New multi-tenant school ID
                 );
                 setSuccess('Account created! Please log in.');
                 setMode('login');
@@ -147,7 +234,13 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
 
     const isSignupIncomplete =
         mode === 'signup' &&
-        ((role === 'student' && (!grade || !batch || !school.trim())) || !username.trim() || !email.trim() || !password);
+        (
+            !selectedSchool || 
+            !username.trim() || 
+            !email.trim() || 
+            !password ||
+            (role === 'student' && (!grade || !batch))
+        );
 
     return (
         <>
@@ -262,18 +355,85 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                     </div>
                                 </div>
 
+                                {/* School Selection - Multi-Tenant */}
                                 <div>
                                     <label htmlFor="school" className="block text-sm font-medium text-gray-300">School</label>
-                                    <select
-                                        id="school"
-                                        name="school"
-                                        value={school}
-                                        onChange={(e) => setSchool(e.target.value)}
-                                        className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
-                                    >
-                                        <option value="Silk Road International School">Silk Road International School</option>
-                                    </select>
-                                    <p className="mt-1 text-xs text-gray-400">We use your school to match you with the right grade and batch.</p>
+                                    {isLoadingSchools ? (
+                                        <div className="mt-1 flex items-center gap-2 p-3 text-gray-400">
+                                            <div className="animate-spin h-4 w-4 border-2 border-cyan-400 border-t-transparent rounded-full" />
+                                            Loading schools...
+                                        </div>
+                                    ) : (
+                                        <select
+                                            id="school"
+                                            name="school"
+                                            value={selectedSchool?.id || ''}
+                                            onChange={(e) => {
+                                                const school = schools.find(s => s.id === e.target.value);
+                                                setSelectedSchool(school || null);
+                                            }}
+                                            className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+                                        >
+                                            <option value="">Select your school</option>
+                                            {schools.map((school) => (
+                                                <option key={school.id} value={school.id}>
+                                                    {school.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    )}
+                                    
+                                    {/* Invite Code Section */}
+                                    {!showInviteCode ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowInviteCode(true)}
+                                            className="mt-2 text-xs text-cyan-400 hover:text-cyan-300"
+                                        >
+                                            Have an invite code?
+                                        </button>
+                                    ) : (
+                                        <div className="mt-2 flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={inviteCode}
+                                                onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                                                placeholder="Enter code"
+                                                className="flex-1 bg-gray-800 border border-gray-600 rounded-md p-2 text-white text-sm uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                                                maxLength={8}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={handleInviteCodeSubmit}
+                                                disabled={isLoading || !inviteCode.trim()}
+                                                className="px-3 py-2 bg-cyan-400 text-gray-900 rounded-md text-sm font-semibold hover:bg-cyan-300 disabled:opacity-50"
+                                            >
+                                                Join
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setShowInviteCode(false);
+                                                    setInviteCode('');
+                                                }}
+                                                className="px-2 text-gray-500 hover:text-gray-400"
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                    )}
+                                    
+                                    {/* Show selected school signup restrictions */}
+                                    {selectedSchool && (
+                                        <p className="mt-1 text-xs text-gray-400">
+                                            {selectedSchool.allow_student_signup && selectedSchool.allow_teacher_signup 
+                                                ? 'Open for students and teachers'
+                                                : selectedSchool.allow_student_signup 
+                                                    ? 'Open for students only'
+                                                    : 'Open for teachers only'
+                                            }
+                                        </p>
+                                    )}
                                 </div>
 
                                 {role === 'student' && (

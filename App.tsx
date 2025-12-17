@@ -15,6 +15,7 @@ import TutorialModal from './components/TutorialModal';
 import HelpModal from './components/HelpModal';
 import { ToastContainer } from './components/ToastNotification';
 import { isAdmin } from './services/adminService';
+import { isSchoolAdmin } from './services/schoolAdminService';
 import { audioService } from './services/audioService';
 import { aiHostService } from './services/aiHostService';
 import { fetchNextAnnouncement, markAnnouncementSeen } from './services/competitionService';
@@ -41,6 +42,7 @@ const RaidAdminView = React.lazy(() => import('./src/features/raids/RaidAdminVie
 const IeltsHome = React.lazy(() => import('./src/pages/ielts/IeltsHome'));
 const ClanTerritoryManager = React.lazy(() => import('./src/features/clanTerritory/ClanTerritoryManager'));
 const CambridgeTestsHub = React.lazy(() => import('./components/CambridgeTestsHub'));
+const SchoolAdminPortal = React.lazy(() => import('./components/SchoolAdminPortal'));
 
 const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
   6: ['6A', '6B', '6C', 'N/A'],
@@ -64,7 +66,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [news, setNews] = useState<NewsEvent[]>([]);
   const [activeAssignment, setActiveAssignment] = useState<StudentAssignmentTask | null>(null);
   const [loading, setLoading] = useState(true);
-    const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'lockdown' | 'cambridge'>('dashboard');
+    const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'lockdown' | 'cambridge' | 'school_admin'>('dashboard');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [levelUpData, setLevelUpData] = useState<{ newLevel: number; rewards: any } | null>(null);
@@ -87,6 +89,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const lastRewardedLevelRef = useRef<number | null>(null);
   const { isLightMode: isLiteMode, toggleLightMode } = useLightMode();
   const [pendingClanRequests, setPendingClanRequests] = useState(0);
+  const [isUserSchoolAdmin, setIsUserSchoolAdmin] = useState(false);
   const isCambridgeView = view === 'cambridge';
 
   const renderLazy = (node: React.ReactNode) => (
@@ -288,6 +291,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       ]) as any;
 
       setProfile(profileData);
+      
+      // Check if user is a school admin
+      isSchoolAdmin().then(setIsUserSchoolAdmin).catch(() => setIsUserSchoolAdmin(false));
       
       // Admin users don't need tasks/sessions - set defaults
       if (profileData?.role === 'admin') {
@@ -981,6 +987,13 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               onExit={() => setView('dashboard')}
             />
           );
+        case 'school_admin':
+          return renderLazy(
+            <SchoolAdminPortal
+              onComplete={handleViewComplete}
+              addToast={addToast}
+            />
+          );
         case 'dashboard':
         default:
             // Teacher Dashboard - simplified view focused on teaching
@@ -1064,6 +1077,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                       onOpenRaidAdmin={isAdmin(profile) ? () => setView('raid_admin') : undefined}
                       onOpenTournament={() => setView('tournament')}
                       onOpenAdminPortal={isAdmin(profile) ? () => setView('admin') : undefined}
+                      onOpenSchoolAdmin={isUserSchoolAdmin ? () => setView('school_admin') : undefined}
                       onOpenTournamentAdmin={isAdmin(profile) ? () => setView('tournament_admin') : undefined}
                       onOpenCompetitionPlay={!isStudent && profile?.grade && !profile?.is_banned ? () => setView('phase1_play') : undefined}
                       onOpenCompetitionLeaderboard={() => setView('phase1_leaderboard')}

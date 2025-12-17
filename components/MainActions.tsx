@@ -15,6 +15,7 @@ interface MainActionsProps {
   onOpenRaidAdmin?: () => void;
   onOpenTeacherPortal?: () => void;
   onOpenAdminPortal?: () => void;
+  onOpenSchoolAdmin?: () => void;
   onOpenTournament?: () => void;
   onOpenTournamentAdmin?: () => void;
   onOpenCompetitionPlay?: () => void;
@@ -144,6 +145,7 @@ const MainActions: React.FC<MainActionsProps> = ({
   onOpenRaidAdmin,
   onOpenTeacherPortal,
   onOpenAdminPortal,
+  onOpenSchoolAdmin,
   onOpenTournament,
   onOpenTournamentAdmin,
   onOpenCompetitionPlay,
@@ -347,6 +349,17 @@ const MainActions: React.FC<MainActionsProps> = ({
                 color="255, 215, 0"
                 glowClass="glow-warn"
                 className="col-span-2 animate-pulse-glow"
+              />
+            )}
+            {onOpenSchoolAdmin && (
+              <ActionButton
+                onClick={onOpenSchoolAdmin}
+                icon={<span aria-hidden className="text-4xl">🏫</span>}
+                label="School Admin"
+                subtitle="Manage your school"
+                color="168, 85, 247"
+                glowClass="glow-ion"
+                className="col-span-2"
               />
             )}
             {onOpenRaidAdmin && (

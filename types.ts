@@ -27,12 +27,17 @@ export type ClanRole = 'leader' | 'officer' | 'moderator' | 'member';
 export type SoloDifficulty = 'easy' | 'medium' | 'hard';
 export type TopicStatus = 'CRUSHED' | 'AVERAGE' | 'STRUGGLED';
 
+// Multi-tenant: School role within a specific school
+export type SchoolRole = 'student' | 'teacher' | 'school_admin';
+
 export interface Profile {
   id: string;
   username: string;
   grade: Grade | null; // null for teachers or admins without grade assignment
   batch: Batch | null; // null for teachers
   role?: UserRole; // User role - student by default
+  school_id?: string | null; // Multi-tenant: primary school ID
+  needs_setup?: boolean; // Whether user needs to complete profile setup
   avatar_url: string;
   active_cosmetic_frame?: 'neon' | null;
   active_cosmetic_theme?: 'flicker' | null;

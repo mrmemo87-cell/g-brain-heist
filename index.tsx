@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import LoginView from './components/LoginView';
+import FinishSetupModal from './components/FinishSetupModal';
 import IELTSApp from './components/ielts/IELTSApp';
 import IELTSLoginView from './components/ielts/IELTSLoginView';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -56,34 +57,72 @@ const ProtectedRoute: React.FC<{ element: React.ReactElement }> = ({ element }) 
 const Main: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [needsSetup, setNeedsSetup] = useState(false);
+  const [setupUsername, setSetupUsername] = useState<string | undefined>();
+
+  // Check authentication and setup status
+  const checkAuthAndSetup = useCallback(async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session);
+      
+      if (session) {
+        // Check if user needs to complete profile setup
+        const status = await AuthService.checkUserSetupStatus();
+        setNeedsSetup(status.needs_setup);
+        if (status.has_username) {
+          setSetupUsername(status.username);
+        }
+      } else {
+        setNeedsSetup(false);
+      }
+    } catch (err) {
+      console.error('Auth check failed:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsAuthenticated(!!session);
-      setIsLoading(false);
-    });
+    checkAuthAndSetup();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setIsAuthenticated(!!session);
+      
+      if (session) {
+        // Check setup status on auth change
+        const status = await AuthService.checkUserSetupStatus();
+        setNeedsSetup(status.needs_setup);
+        if (status.has_username) {
+          setSetupUsername(status.username);
+        }
+      } else {
+        setNeedsSetup(false);
+      }
+      
       setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [checkAuthAndSetup]);
 
   const handleLogin = useCallback(async (email: string, pass: string) => {
     await AuthService.login(email, pass);
     // Force immediate state update and session check
-    const { data: { session } } = await supabase.auth.getSession();
-    setIsAuthenticated(!!session);
-  }, []);
+    await checkAuthAndSetup();
+  }, [checkAuthAndSetup]);
 
   const handleLogout = useCallback(async () => {
     await AuthService.logout();
     // Immediately set to false - the auth state change will confirm
     setIsAuthenticated(false);
+    setNeedsSetup(false);
+  }, []);
+
+  const handleSetupComplete = useCallback(() => {
+    setNeedsSetup(false);
   }, []);
 
   if (isLoading) {
@@ -98,6 +137,18 @@ const Main: React.FC = () => {
 
   if (!isAuthenticated) {
     return <LoginView onLogin={handleLogin} />;
+  }
+
+  // Show setup modal for OAuth users who haven't completed profile
+  if (needsSetup) {
+    return (
+      <FinishSetupModal 
+        onComplete={handleSetupComplete}
+        onLogout={handleLogout}
+        initialUsername={setupUsername}
+      />
+    );
+  }
   }
 
   return <App onLogout={handleLogout} />;

@@ -4,6 +4,47 @@ import { getAuthRedirectUrl } from './env';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage';
 import type { Batch, Grade } from '../types';
 
+// ============================================
+// Multi-Tenant Types
+// ============================================
+export interface School {
+    id: string;
+    name: string;
+    slug: string;
+    logo_url: string | null;
+    allow_student_signup: boolean;
+    allow_teacher_signup: boolean;
+}
+
+export interface UserSetupStatus {
+    authenticated: boolean;
+    needs_setup: boolean;
+    reason?: 'no_profile' | 'incomplete_profile';
+    has_username?: boolean;
+    has_role?: boolean;
+    user_id?: string;
+    username?: string;
+    role?: string;
+    school_id?: string;
+}
+
+export interface ProfileBootstrapResult {
+    success: boolean;
+    error?: string;
+    user_id?: string;
+    school_id?: string;
+    role?: string;
+    username?: string;
+}
+
+export interface InviteCodeResult {
+    valid: boolean;
+    error?: string;
+    school_id?: string;
+    school_name?: string;
+    school_slug?: string;
+}
+
 export const login = async (email: string, password: string): Promise<{ success: boolean }> => {
     console.log(`Attempting login for ${email}`);
     
@@ -62,7 +103,8 @@ export const signup = async (
     role: 'student' | 'teacher',
     grade?: Grade,
     batch?: Batch,
-    school?: string
+    school?: string,
+    schoolId?: string  // New: school UUID for multi-tenant
 ): Promise<{ success: boolean }> => {
     console.log(`Attempting signup for ${email} as ${role}`);
     
@@ -78,6 +120,7 @@ export const signup = async (
                 grade,
                 batch: role === 'student' ? batch : undefined,
                 school,
+                school_id: schoolId,
             }
         }
     });
@@ -91,14 +134,32 @@ export const signup = async (
         // Wait a moment for auth to propagate
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Create user profile in users table
-        const profileData: any = {
+        // If schoolId provided, use the profile_bootstrap RPC for proper multi-tenant setup
+        if (schoolId) {
+            const bootstrapResult = await bootstrapProfile(
+                schoolId,
+                role,
+                role === 'student' ? grade : undefined,
+                role === 'student' ? batch : undefined,
+                username
+            );
+            
+            if (!bootstrapResult.success) {
+                console.error('Profile bootstrap failed:', bootstrapResult.error);
+                throw new Error(bootstrapResult.error || 'Failed to create user profile');
+            }
+            
+            console.log('Signup successful with multi-tenant bootstrap:', data.user.email);
+            return { success: true };
+        }
+        
+        // Legacy fallback: Create user profile directly (for backwards compatibility)
+        const profileData: Record<string, unknown> = {
             id: data.user.id,
             email,
             username,
             role,
             avatar_url: `https://picsum.photos/seed/${username}/100/100`,
-            school: school ?? null,
         };
 
         // Only add batch for students
@@ -255,4 +316,150 @@ export const updatePassword = async (newPassword: string): Promise<void> => {
     }
     
     console.log('Password updated successfully');
+};
+
+// ============================================
+// Multi-Tenant Functions
+// ============================================
+
+/**
+ * Get list of available schools for signup
+ * This is the primary way to populate the school dropdown
+ */
+export const getAvailableSchools = async (): Promise<School[]> => {
+    console.log('Fetching available schools...');
+    
+    const { data, error } = await supabase.rpc('get_available_schools');
+    
+    if (error) {
+        console.error('Error fetching schools:', error.message);
+        // Return empty array instead of throwing - allows graceful fallback
+        return [];
+    }
+    
+    console.log(`Found ${data?.length ?? 0} schools`);
+    return data || [];
+};
+
+/**
+ * Check if current user needs to complete profile setup
+ * Used for OAuth users who authenticated but haven't picked school/role
+ */
+export const checkUserSetupStatus = async (): Promise<UserSetupStatus> => {
+    const { data, error } = await supabase.rpc('check_user_setup_status');
+    
+    if (error) {
+        console.error('Error checking setup status:', error.message);
+        return { authenticated: false, needs_setup: false };
+    }
+    
+    return data as UserSetupStatus;
+};
+
+/**
+ * Bootstrap user profile with school and role
+ * Called after OAuth login or when completing setup
+ */
+export const bootstrapProfile = async (
+    schoolId: string,
+    role: 'student' | 'teacher',
+    grade?: Grade,
+    batch?: Batch,
+    username?: string
+): Promise<ProfileBootstrapResult> => {
+    console.log(`Bootstrapping profile: school=${schoolId}, role=${role}`);
+    
+    const { data, error } = await supabase.rpc('profile_bootstrap', {
+        p_school_id: schoolId,
+        p_role: role,
+        p_grade: role === 'student' ? grade : null,
+        p_batch: role === 'student' ? batch : null,
+        p_username: username || null,
+    });
+    
+    if (error) {
+        console.error('Profile bootstrap RPC error:', error.message);
+        return { success: false, error: error.message };
+    }
+    
+    const result = data as ProfileBootstrapResult;
+    
+    if (result.success) {
+        console.log('Profile bootstrap successful:', result);
+    } else {
+        console.error('Profile bootstrap failed:', result.error);
+    }
+    
+    return result;
+};
+
+/**
+ * Validate an invite code and get school info
+ */
+export const validateInviteCode = async (code: string): Promise<InviteCodeResult> => {
+    const { data, error } = await supabase.rpc('validate_invite_code', {
+        p_code: code
+    });
+    
+    if (error) {
+        console.error('Error validating invite code:', error.message);
+        return { valid: false, error: 'Failed to validate invite code' };
+    }
+    
+    return data as InviteCodeResult;
+};
+
+/**
+ * Updated OAuth profile creation for multi-tenant
+ * Now marks user as needing setup instead of auto-assigning defaults
+ */
+export const createOAuthProfileMultiTenant = async (): Promise<{ needsSetup: boolean }> => {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+        throw new Error('Not authenticated');
+    }
+
+    // Check if profile already exists and is complete
+    const { data: existingProfile } = await supabase
+        .from('users')
+        .select('id, school_id, needs_setup')
+        .eq('id', user.id)
+        .single();
+
+    if (existingProfile && existingProfile.school_id && !existingProfile.needs_setup) {
+        return { needsSetup: false }; // Profile is complete
+    }
+
+    if (existingProfile) {
+        // Profile exists but incomplete - mark for setup
+        await supabase
+            .from('users')
+            .update({ needs_setup: true, updated_at: new Date().toISOString() })
+            .eq('id', user.id);
+        return { needsSetup: true };
+    }
+
+    // Create minimal profile marked for setup
+    const emailUsername = user.email?.split('@')[0] || 'user';
+    const displayName = user.user_metadata?.['full_name'] || user.user_metadata?.['name'];
+    const username = displayName || emailUsername;
+
+    const { error: profileError } = await supabase
+        .from('users')
+        .insert({
+            id: user.id,
+            email: user.email,
+            username: username,
+            needs_setup: true,  // Mark for setup
+            avatar_url: user.user_metadata?.['avatar_url'] || `https://picsum.photos/seed/${username}/100/100`,
+        });
+
+    if (profileError) {
+        console.error('OAuth profile creation error:', profileError);
+        throw new Error(`Failed to create user profile: ${profileError.message}`);
+    }
+
+    console.log('OAuth profile created (needs setup) for:', user.email);
+    return { needsSetup: true };
 };
