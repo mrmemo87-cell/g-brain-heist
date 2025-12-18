@@ -91,7 +91,7 @@ const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) 
         />
       </div>
       <h3 className="font-heading text-lg" style={{ color: 'var(--plasma-pink)' }}>
-        <ClickableUsername userId={target.id} username={target.username}>
+        <ClickableUsername userId={target.user_id} username={target.username}>
           {target.username}
         </ClickableUsername>
       </h3>
