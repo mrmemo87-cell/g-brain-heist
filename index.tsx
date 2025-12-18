@@ -24,6 +24,21 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient();
 
+const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> => {
+  let timeoutId: number | undefined;
+  const timeoutPromise = new Promise<never>((_resolve, reject) => {
+    timeoutId = window.setTimeout(() => reject(new Error(`${label} timed out after ${timeoutMs}ms`)), timeoutMs);
+  });
+
+  try {
+    return (await Promise.race([promise, timeoutPromise])) as T;
+  } finally {
+    if (timeoutId !== undefined) {
+      window.clearTimeout(timeoutId);
+    }
+  }
+};
+
 const ProtectedRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
@@ -59,16 +74,18 @@ const Main: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [needsSetup, setNeedsSetup] = useState(false);
   const [setupUsername, setSetupUsername] = useState<string | undefined>();
+  const [initError, setInitError] = useState<string | null>(null);
 
   // Check authentication and setup status
   const checkAuthAndSetup = useCallback(async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      setInitError(null);
+      const { data: { session } } = await withTimeout(supabase.auth.getSession(), 15000, 'supabase.auth.getSession');
       setIsAuthenticated(!!session);
       
       if (session) {
         // Check if user needs to complete profile setup
-        const status = await AuthService.checkUserSetupStatus();
+        const status = await withTimeout(AuthService.checkUserSetupStatus(), 15000, 'check_user_setup_status');
         setNeedsSetup(status.needs_setup);
         if (status.has_username) {
           setSetupUsername(status.username);
@@ -78,6 +95,7 @@ const Main: React.FC = () => {
       }
     } catch (err) {
       console.error('Auth check failed:', err);
+      setInitError(err instanceof Error ? err.message : String(err));
     } finally {
       setIsLoading(false);
     }
@@ -89,20 +107,26 @@ const Main: React.FC = () => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setIsAuthenticated(!!session);
-      
-      if (session) {
-        // Check setup status on auth change
-        const status = await AuthService.checkUserSetupStatus();
-        setNeedsSetup(status.needs_setup);
-        if (status.has_username) {
-          setSetupUsername(status.username);
+      try {
+        setInitError(null);
+        setIsAuthenticated(!!session);
+
+        if (session) {
+          // Check setup status on auth change
+          const status = await withTimeout(AuthService.checkUserSetupStatus(), 15000, 'check_user_setup_status');
+          setNeedsSetup(status.needs_setup);
+          if (status.has_username) {
+            setSetupUsername(status.username);
+          }
+        } else {
+          setNeedsSetup(false);
         }
-      } else {
-        setNeedsSetup(false);
+      } catch (err) {
+        console.error('Auth state change check failed:', err);
+        setInitError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -130,6 +154,36 @@ const Main: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="font-heading text-2xl animate-pulse" style={{ color: 'var(--ion-blue)' }}>
           Initializing Heist OS...
+        </div>
+      </div>
+    );
+  }
+
+  if (initError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6">
+        <div className="w-full max-w-xl rounded-2xl border border-red-500/40 bg-black/40 p-6 text-center">
+          <div className="font-heading text-2xl" style={{ color: 'var(--ion-blue)' }}>
+            Initialization failed
+          </div>
+          <div className="mt-2 text-sm text-gray-300 break-words">{initError}</div>
+          <div className="mt-5 flex items-center justify-center gap-3">
+            <button
+              className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+              onClick={() => {
+                setIsLoading(true);
+                void checkAuthAndSetup();
+              }}
+            >
+              Retry
+            </button>
+            <button
+              className="rounded-lg bg-gray-700 px-4 py-2 text-white hover:bg-gray-600"
+              onClick={() => void handleLogout()}
+            >
+              Sign out
+            </button>
+          </div>
         </div>
       </div>
     );
