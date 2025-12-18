@@ -48,18 +48,16 @@ BEGIN
       AND data_type IN ('text', 'character varying')
   ) THEN
     -- Convert empty / non-numeric grades to NULL, keep numeric values.
-    EXECUTE $$
-      ALTER TABLE public.users
-      ALTER COLUMN grade TYPE smallint
-      USING (
-        CASE
-          WHEN grade IS NULL THEN NULL
-          WHEN trim(grade) = '' THEN NULL
-          WHEN grade ~ '^\\d+$' THEN grade::int
-          ELSE NULL
-        END
-      );
-    $$;
+    EXECUTE 'ALTER TABLE public.users '
+      'ALTER COLUMN grade TYPE smallint '
+      'USING ('
+      '  CASE '
+      '    WHEN grade IS NULL THEN NULL '
+      '    WHEN trim(grade) = '''' THEN NULL '
+      '    WHEN grade ~ ''^[0-9]+$'' THEN grade::int '
+      '    ELSE NULL '
+      '  END'
+      ')';
   END IF;
 END $$;
 
