@@ -48,6 +48,8 @@ BEGIN
       AND data_type IN ('text', 'character varying')
   ) THEN
     -- Convert empty / non-numeric grades to NULL, keep numeric values.
+    -- Drop default first because text defaults cannot always be auto-cast.
+    EXECUTE 'ALTER TABLE public.users ALTER COLUMN grade DROP DEFAULT';
     EXECUTE 'ALTER TABLE public.users '
       'ALTER COLUMN grade TYPE smallint '
       'USING ('
