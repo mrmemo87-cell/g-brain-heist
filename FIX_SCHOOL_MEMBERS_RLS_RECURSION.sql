@@ -1,7 +1,8 @@
 -- Fix: "infinite recursion detected in policy for relation school_members (42P17)"
 --
 -- Safe to run in Supabase SQL Editor as database owner.
--- Idempotent: re-creates the helper and replaces ALL SELECT policies on school_members.
+-- Idempotent: re-creates the helper and replaces ALL SELECT/ALL policies on school_members.
+-- Also ensures `users` has a simple non-recursive self-select policy.
 
 BEGIN;
 
@@ -29,7 +30,7 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.get_my_active_school_id() TO authenticated;
 
--- Drop ALL existing SELECT policies on school_members (some may be recursive).
+-- Drop ALL existing SELECT/ALL policies on school_members (some may be recursive).
 DO $$
 DECLARE p RECORD;
 BEGIN
@@ -38,7 +39,7 @@ BEGIN
     FROM pg_policies
     WHERE schemaname = 'public'
       AND tablename = 'school_members'
-      AND cmd = 'SELECT'
+      AND cmd IN ('SELECT', 'ALL')
   LOOP
     EXECUTE format('DROP POLICY IF EXISTS %I ON public.school_members;', p.policyname);
   END LOOP;
@@ -53,5 +54,31 @@ USING (
   user_id = auth.uid()
   OR school_id = public.get_my_active_school_id()
 );
+
+-- ---- users ----
+-- Keep `users` readable for the signed-in user without any cross-table checks.
+-- This avoids `users` <-> `school_members` policy recursion patterns.
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.users NO FORCE ROW LEVEL SECURITY;
+
+DO $$
+DECLARE p RECORD;
+BEGIN
+  FOR p IN
+    SELECT policyname
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'users'
+      AND cmd IN ('SELECT', 'ALL')
+  LOOP
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.users;', p.policyname);
+  END LOOP;
+END $$;
+
+CREATE POLICY users_select_self
+ON public.users
+FOR SELECT
+TO authenticated
+USING (id = auth.uid());
 
 COMMIT;
