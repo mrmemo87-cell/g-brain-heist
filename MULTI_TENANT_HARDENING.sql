@@ -1045,17 +1045,33 @@ USING (false);  -- Only via RPCs
 
 -- School Members: Users can see their own school's members
 ALTER TABLE school_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE school_members NO FORCE ROW LEVEL SECURITY;
+
+-- Avoid infinite recursion in RLS policies by looking up the caller's active school
+-- via a SECURITY DEFINER function.
+CREATE OR REPLACE FUNCTION get_my_active_school_id()
+RETURNS UUID
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+SET row_security = off
+STABLE
+AS $$
+    SELECT sm.school_id
+    FROM public.school_members sm
+    WHERE sm.user_id = auth.uid()
+        AND sm.status = 'active'
+    ORDER BY sm.joined_at ASC
+    LIMIT 1;
+$$;
+
+GRANT EXECUTE ON FUNCTION get_my_active_school_id() TO authenticated;
 
 DROP POLICY IF EXISTS school_members_select ON school_members;
 CREATE POLICY school_members_select ON school_members FOR SELECT
 USING (
-    user_id = auth.uid() OR 
-    EXISTS (
-        SELECT 1 FROM school_members my_membership
-        WHERE my_membership.user_id = auth.uid()
-        AND my_membership.school_id = school_members.school_id
-        AND my_membership.status = 'active'
-    )
+        user_id = auth.uid()
+        OR school_id = public.get_my_active_school_id()
 );
 
 DROP POLICY IF EXISTS school_members_insert ON school_members;
