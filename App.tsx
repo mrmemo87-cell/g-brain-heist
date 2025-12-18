@@ -1087,6 +1087,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                       onOpenLockdown={() => setView('lockdown')}
                       hasPendingAssignment={Boolean(activeAssignment)}
                       clanBadgeCount={pendingClanRequests}
+                      schoolName={profile?.school_name}
+                      schoolLogoUrl={profile?.school_logo_url}
                     />
                     <TaskList tasks={tasks} onTasksUpdate={fetchGameData} />
                   </div>

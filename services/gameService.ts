@@ -1543,6 +1543,24 @@ export const whoami = async (): Promise<Profile> => {
     profile.active_cosmetic_effect = null;
   }
 
+  // Fetch school info for display (name and logo)
+  if (profile.school_id) {
+    try {
+      const { data: schoolData, error: schoolError } = await supabase
+        .from('schools')
+        .select('name, logo_url')
+        .eq('id', profile.school_id)
+        .single();
+      
+      if (!schoolError && schoolData) {
+        profile.school_name = schoolData.name;
+        profile.school_logo_url = schoolData.logo_url;
+      }
+    } catch (schoolErr) {
+      console.warn('Failed to fetch school info:', schoolErr);
+    }
+  }
+
     profile.total_score = calculateTotalScore(profile.xp ?? 0, profile.pvp_score ?? 0);
 
     return profile;

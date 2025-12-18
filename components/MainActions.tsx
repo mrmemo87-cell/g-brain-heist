@@ -1,7 +1,8 @@
 import React from 'react';
 import { BattleIcon, TrophyIcon, SyndicateRune } from './icons';
-// Force reload trigger
-const silkRoadLogoPath = '/schools/silk_road/silk_road_logo.jpg';
+
+// Default school icon as SVG data URL
+const defaultSchoolIcon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMjIgMTBWNkwxMiAyIDIgNnY0Yy4zNC0uMDguNjUtLjEgMS0uMWg1LjFsMi40NSAzLjA2YTEgMSAwIDAgMCAxLjU2IDBMMTQuNTUgOS45SDE5Ljljey4zNSAwIC42Ny4wMiAxIC4xWiIvPjxwYXRoIGQ9Ik0xMiAyMnYtNiIvPjxwYXRoIGQ9Ik00IDEwdjEwYzAgLjU1LjQ1IDEgMSAxaDE0Yy41NSAwIDEtLjQ1IDEtMVYxMCIvPjwvc3ZnPg==';
 
 interface MainActionsProps {
   onStartQuest: () => void;
@@ -26,6 +27,8 @@ interface MainActionsProps {
   onOpenCambridgeTests?: () => void;
   hasPendingAssignment?: boolean;
   clanBadgeCount?: number;
+  schoolName?: string | null;
+  schoolLogoUrl?: string | null;
 }
 
 type ActionButtonProps = {
@@ -156,7 +159,12 @@ const MainActions: React.FC<MainActionsProps> = ({
   onOpenCambridgeTests,
   hasPendingAssignment,
   clanBadgeCount,
+  schoolName,
+  schoolLogoUrl,
 }) => {
+  const displaySchoolName = schoolName || 'My School';
+  const displaySchoolLogo = schoolLogoUrl || defaultSchoolIcon;
+  
   console.log('MainActions render - onOpenCambridgeTests:', !!onOpenCambridgeTests);
   return (
     <section className="dashboard-panel relative overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-950/60 p-4 shadow-2xl shadow-slate-950/50 backdrop-blur sm:p-6">
@@ -186,13 +194,14 @@ const MainActions: React.FC<MainActionsProps> = ({
           </div>
           <div className="flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/70 px-3 py-1 shadow-inner shadow-slate-900/40">
             <img
-              src={silkRoadLogoPath}
-              alt="Silk Road school logo"
-              className="h-8 w-8 rounded-full object-cover"
+              src={displaySchoolLogo}
+              alt={`${displaySchoolName} logo`}
+              className="h-8 w-8 rounded-full object-cover bg-slate-800"
+              onError={(e) => { (e.target as HTMLImageElement).src = defaultSchoolIcon; }}
             />
             <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-100">
               <span aria-hidden>✨</span>
-              <span>Silk Road School</span>
+              <span>{displaySchoolName}</span>
             </div>
           </div>
           {hasPendingAssignment && (
@@ -209,15 +218,16 @@ const MainActions: React.FC<MainActionsProps> = ({
                 icon={
                   <div className="relative flex items-center justify-center">
                     <img
-                      src={silkRoadLogoPath}
-                      alt="Silk Road play"
-                      className="h-9 w-9 rounded-lg object-cover shadow-md shadow-slate-950/40"
+                      src={displaySchoolLogo}
+                      alt={`${displaySchoolName} play`}
+                      className="h-9 w-9 rounded-lg object-cover shadow-md shadow-slate-950/40 bg-slate-800"
+                      onError={(e) => { (e.target as HTMLImageElement).src = defaultSchoolIcon; }}
                     />
                     <span aria-hidden className="absolute -bottom-2 -right-2 text-xl">🎭</span>
                   </div>
                 }
-                label="Silk Road Play"
-                subtitle="Jump into Silk Road story missions"
+                label={`${displaySchoolName} Play`}
+                subtitle={`Jump into ${displaySchoolName} story missions`}
                 color="0, 255, 200"
                 glowClass="glow-success animate-pulse-glow"
                 className="col-span-2"
@@ -229,14 +239,15 @@ const MainActions: React.FC<MainActionsProps> = ({
                 icon={
                   <div className="relative flex items-center justify-center">
                     <img
-                      src={silkRoadLogoPath}
-                      alt="Silk Road rankings"
-                      className="h-9 w-9 rounded-lg object-cover shadow-md shadow-slate-950/40"
+                      src={displaySchoolLogo}
+                      alt={`${displaySchoolName} rankings`}
+                      className="h-9 w-9 rounded-lg object-cover shadow-md shadow-slate-950/40 bg-slate-800"
+                      onError={(e) => { (e.target as HTMLImageElement).src = defaultSchoolIcon; }}
                     />
                     <span aria-hidden className="absolute -bottom-2 -right-2 text-xl">🏁</span>
                   </div>
                 }
-                label="Silk Road Rankings"
+                label={`${displaySchoolName} Rankings`}
                 subtitle="Track your house on the leaderboard"
                 color="0, 160, 255"
                 glowClass="glow-ion"
@@ -377,14 +388,15 @@ const MainActions: React.FC<MainActionsProps> = ({
                 icon={
                   <div className="relative flex items-center justify-center">
                     <img
-                      src={silkRoadLogoPath}
-                      alt="Silk Road admin"
-                      className="h-9 w-9 rounded-lg object-cover shadow-md shadow-slate-950/40"
+                      src={displaySchoolLogo}
+                      alt={`${displaySchoolName} admin`}
+                      className="h-9 w-9 rounded-lg object-cover shadow-md shadow-slate-950/40 bg-slate-800"
+                      onError={(e) => { (e.target as HTMLImageElement).src = defaultSchoolIcon; }}
                     />
                     <span aria-hidden className="absolute -bottom-2 -right-2 text-xl">📊</span>
                   </div>
                 }
-                label="Silk Road Admin"
+                label={`${displaySchoolName} Admin`}
                 color="0, 191, 255"
                 glowClass="glow-ion"
                 className="col-span-2"

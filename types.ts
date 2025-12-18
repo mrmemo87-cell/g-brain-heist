@@ -37,6 +37,8 @@ export interface Profile {
   batch: Batch | null; // null for teachers
   role?: UserRole; // User role - student by default
   school_id?: string | null; // Multi-tenant: primary school ID
+  school_name?: string | null; // Multi-tenant: school name for display
+  school_logo_url?: string | null; // Multi-tenant: school logo URL
   needs_setup?: boolean; // Whether user needs to complete profile setup
   avatar_url: string;
   active_cosmetic_frame?: 'neon' | null;
