@@ -126,14 +126,6 @@ const Main: React.FC = () => {
     } catch (err) {
       console.error('Auth check failed:', err);
       const errorMsg = err instanceof Error ? err.message : String(err);
-        }
-      } else {
-        setNeedsSetup(false);
-      }
-      setRetryCount(0); // Reset on success
-    } catch (err) {
-      console.error('Auth check failed:', err);
-      const errorMsg = err instanceof Error ? err.message : String(err);
       
       // Auto-retry for timeout errors up to MAX_RETRIES
       if (errorMsg.includes('timed out') && retryCount < MAX_RETRIES) {
