@@ -106,6 +106,7 @@ DECLARE
     v_existing_user RECORD;
     v_final_username TEXT;
     v_existing_membership RECORD;
+    v_batch TEXT;
 BEGIN
     IF v_user_id IS NULL THEN
         RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
@@ -160,10 +161,14 @@ BEGIN
 
     -- Student-required fields
     IF p_role = 'student' THEN
+        v_batch := NULLIF(upper(trim(COALESCE(p_batch, ''))), '');
+        IF v_batch IS NOT NULL AND v_batch ~ '\\([0-9]{1,2}[ABC]\\)' THEN
+            v_batch := regexp_replace(v_batch, '^.*\\(([0-9]{1,2}[ABC])\\).*$','\\1');
+        END IF;
         IF p_grade IS NULL OR p_grade < 6 OR p_grade > 12 THEN
             RETURN jsonb_build_object('success', false, 'error', 'Students must select a valid grade (6-12)');
         END IF;
-        IF p_batch IS NULL OR p_batch NOT IN ('6A','6B','6C','7A','7B','7C','8A','8B','8C','9A','9B','9C','10A','10B','10C','11A','11B','11C','12A','12B','12C','N/A') THEN
+        IF v_batch IS NULL OR v_batch NOT IN ('6A','6B','6C','7A','7B','7C','8A','8B','8C','9A','9B','9C','10A','10B','10C','11A','11B','11C','12A','12B','12C','N/A') THEN
             RETURN jsonb_build_object('success', false, 'error', 'Students must select a valid class/batch');
         END IF;
     END IF;
@@ -190,7 +195,7 @@ BEGIN
             p_role,
             p_school_id,
             CASE WHEN p_role = 'student' THEN p_grade ELSE NULL END,
-            CASE WHEN p_role = 'student' THEN p_batch ELSE NULL END,
+            CASE WHEN p_role = 'student' THEN v_batch ELSE NULL END,
             false,
             'https://picsum.photos/seed/' || v_final_username || '/100/100',
             NOW(),
@@ -201,7 +206,7 @@ BEGIN
             role = p_role,
             school_id = p_school_id,
             grade = CASE WHEN p_role = 'student' THEN p_grade ELSE NULL END,
-            batch = CASE WHEN p_role = 'student' THEN p_batch ELSE NULL END,
+            batch = CASE WHEN p_role = 'student' THEN v_batch ELSE NULL END,
             needs_setup = false,
             username = COALESCE(NULLIF(v_final_username, ''), username),
             updated_at = NOW()
