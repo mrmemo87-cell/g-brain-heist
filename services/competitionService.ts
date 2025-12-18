@@ -132,9 +132,12 @@ export const fetchGradeLeaderboard = async (
   grade: Grade,
   limit = 10
 ): Promise<LeaderboardEntry[]> => {
-  // Ensure the grade is a number and within allowed values before calling RPC
+  // Ensure the grade is a number and within allowed values (6-12)
   const g = Number(grade);
-  if (![8, 9].includes(g)) throw new Error('Invalid grade parameter');
+  if (isNaN(g) || g < 6 || g > 12) {
+    console.warn(`Invalid grade parameter: ${grade}, returning empty leaderboard`);
+    return [];
+  }
 
   let rpcData: any, rpcError: any;
   try {
@@ -145,11 +148,13 @@ export const fetchGradeLeaderboard = async (
   rpcData = resp.data;
   rpcError = resp.error;
   } catch (e: any) {
-    throw new Error(`RPC rpc_leaderboard_grade failed: ${e?.message || String(e)}`);
+    console.warn(`RPC rpc_leaderboard_grade failed: ${e?.message || String(e)}`);
+    return [];
   }
 
   if (rpcError) {
-    throw new Error(rpcError.message || `Failed to load grade leaderboard (code: ${rpcError?.code ?? 'unknown'})`);
+    console.warn(`Grade leaderboard error: ${rpcError.message}`);
+    return [];
   }
 
   return mapLeaderboard(rpcData ?? []);
@@ -159,9 +164,11 @@ export const fetchBatchLeaderboard = async (
   batch: Batch,
   limit = 10
 ): Promise<LeaderboardEntry[]> => {
-  // Validate batch parameter
-  const validBatches: Batch[] = ['8A', '8B', '8C', '9A', '9B', '9C'];
-  if (!validBatches.includes(batch)) throw new Error('Invalid batch parameter');
+  // Accept any batch format (6A-12C, N/A)
+  if (!batch) {
+    console.warn('No batch parameter provided, returning empty leaderboard');
+    return [];
+  }
 
   let rpcData: any, rpcError: any;
   try {
@@ -172,10 +179,12 @@ export const fetchBatchLeaderboard = async (
     rpcData = resp.data;
     rpcError = resp.error;
   } catch (e: any) {
-    throw new Error(`RPC rpc_leaderboard_batch failed: ${e?.message || String(e)}`);
+    console.warn(`RPC rpc_leaderboard_batch failed: ${e?.message || String(e)}`);
+    return [];
   }
   if (rpcError) {
-    throw new Error(rpcError.message || `Failed to load class leaderboard (code: ${rpcError?.code ?? 'unknown'})`);
+    console.warn(`Batch leaderboard error: ${rpcError.message}`);
+    return [];
   }
 
   return mapLeaderboard(rpcData ?? []);
