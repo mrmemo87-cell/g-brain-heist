@@ -88,34 +88,17 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
   const fetchLeaderboards = async () => {
     setLoading(true);
     try {
-      const playerSelect = 'id, username, avatar_url, batch, total_score, xp, pvp_score, updated_at';
-
+      // Use school-scoped RPCs to enforce tenant isolation
       const [
         scoreResult,
         xpResult,
         pvpResult,
         clanResult,
       ] = await Promise.all([
-        supabase
-          .from('player_total_scores')
-          .select(playerSelect)
-          .order('total_score', { ascending: false })
-          .limit(100),
-        supabase
-          .from('player_total_scores')
-          .select(playerSelect)
-          .order('xp', { ascending: false })
-          .limit(100),
-        supabase
-          .from('player_total_scores')
-          .select(playerSelect)
-          .order('pvp_score', { ascending: false })
-          .limit(100),
-        supabase
-          .from('clan_scores')
-          .select('id, name, member_count, clan_total_score, avg_member_score, highest_member_score')
-          .order('clan_total_score', { ascending: false })
-          .limit(20),
+        supabase.rpc('get_school_leaderboard', { p_sort_by: 'total_score', p_limit: 100 }),
+        supabase.rpc('get_school_leaderboard', { p_sort_by: 'xp', p_limit: 100 }),
+        supabase.rpc('get_school_leaderboard', { p_sort_by: 'pvp_score', p_limit: 100 }),
+        supabase.rpc('get_school_clan_leaderboard', { p_limit: 20 }),
       ]);
 
       const { data: totalPlayers, error: totalError } = scoreResult;

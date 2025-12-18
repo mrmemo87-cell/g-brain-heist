@@ -1802,25 +1802,17 @@ export const news_feed = async (): Promise<NewsEvent[]> => {
     // Let bots generate background activity before fetching
     simulateKyrgyzBotBackgroundActivity();
 
-    // Fetch activities from database, excluding teacher activities
-    const { data: activities, error } = await supabase
-        .from('activities')
-        .select(`
-      *,
-      users!activities_actor_id_fkey (role)
-    `)
-        .order('created_at', { ascending: false })
-        .limit(30); // Fetch more to account for filtered teachers
+    // Use school-scoped RPC to enforce tenant isolation (only see activities from same school)
+    const { data: activities, error } = await supabase.rpc('get_school_activity_feed', { p_limit: 30 });
 
     if (error) {
         console.error('Error fetching activities:', error);
     }
 
-    const studentActivities = (activities || [])
-        .filter((a: any) => !a.users || a.users.role !== 'teacher')
-        .slice(0, 20);
+    // RPC already filters out teacher activities
+    const studentActivities = (activities || []).slice(0, 20);
 
-    const activityIds = studentActivities.map(a => a.id);
+    const activityIds = studentActivities.map((a: any) => a.id);
 
     const { data: reactionsData } = activityIds.length
         ? await supabase
@@ -1831,7 +1823,7 @@ export const news_feed = async (): Promise<NewsEvent[]> => {
 
     const reactionsByActivity: Record<string, { reactions: Record<string, number>; myReaction: string | null }> = {};
 
-    studentActivities.forEach(activity => {
+    studentActivities.forEach((activity: any) => {
         reactionsByActivity[activity.id] = {
             reactions: { '🔥': 0, '😮': 0, '😂': 0, '❤️': 0 },
             myReaction: null,
@@ -1851,7 +1843,7 @@ export const news_feed = async (): Promise<NewsEvent[]> => {
         }
     });
 
-    const dbEvents: TimedNewsEvent[] = studentActivities.map(activity => {
+    const dbEvents: TimedNewsEvent[] = studentActivities.map((activity: any) => {
         const createdAt = new Date(activity.created_at);
         const timeAgo = getTimeAgo(createdAt);
         const activityReactions = reactionsByActivity[activity.id];
@@ -2110,46 +2102,21 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
     const userBatch = profileData?.batch || '8B';
     const userAttackPower = profileData?.attack_power || 10;
     
-    // Fetch all users (no cooldown filter - will disable attack button instead)
-    const { data: players, error } = await supabase
-        .from('users')
-        .select(`
-            id, username, level, coins, batch, avatar_url, last_seen, attack_power, defense_power, last_attacked_at, xp,
-            clan_members!left (
-                clan_id,
-                clans!inner (name)
-            )
-        `)
-        .neq('id', user.id)
-        .neq('role', 'teacher')
-        .neq('role', 'admin')
-        .limit(100); // Increased limit to show more targets
+    // Use school-scoped RPC to get targets (enforces tenant isolation server-side)
+    const { data: players, error } = await supabase.rpc('get_attack_targets', { p_limit: 100 });
     
     if (error) throw error;
     
     const playerList = players || [];
     const playerIds = playerList.map((p: any) => p.id);
     
-    // Check inventory for shields for all targets
-    const { data: shieldData } = await supabase
-      .from('inventory')
-      .select('user_id')
-      .in('user_id', playerIds)
-      .eq('kind', 'shield')
-      .eq('state', 'unused');
-    const playersWithShields = new Set((shieldData || []).map((s: any) => s.user_id));
-    
     const neonOwners = await fetchNeonFrameOwners(playerIds);
     const flickerOwners = await fetchFlickerThemeOwners(playerList.map((p: any) => p.id));
     const glitchOwners = await fetchGlitchEffectOwners(playerList.map((p: any) => p.id));
 
     const realTargets: RaidTarget[] = playerList.map((p: any) => {
-        // Extract clan info if user is in a clan
-        const clanName = p.clan_members?.[0]?.clans?.name || undefined;
-        const clanId = p.clan_members?.[0]?.clan_id || undefined;
-        
-        // Check if this player has an active shield
-        const targetHasShield = playersWithShields.has(p.id);
+        // RPC already returns has_shield, clan_id, clan_name
+        const targetHasShield = p.has_shield || false;
         
         // Calculate win rate based on attack vs defense
         const defenderPower = (p.defense_power || 10) + (targetHasShield ? 20 : 0);
@@ -2168,8 +2135,8 @@ export const raid_targets = async (): Promise<RaidTarget[]> => {
             active_cosmetic_theme: flickerOwners.has(p.id) ? 'flicker' : null,
             active_cosmetic_effect: glitchOwners.has(p.id) ? 'glitch' : null,
             last_seen: p.last_seen,
-            clan_name: clanName,
-            clan_id: clanId,
+            clan_name: p.clan_name || undefined,
+            clan_id: p.clan_id || undefined,
             is_bot: false,
             attack_power: p.attack_power,
             defense_power: p.defense_power,

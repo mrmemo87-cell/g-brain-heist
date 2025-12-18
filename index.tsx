@@ -75,31 +75,51 @@ const Main: React.FC = () => {
   const [needsSetup, setNeedsSetup] = useState(false);
   const [setupUsername, setSetupUsername] = useState<string | undefined>();
   const [initError, setInitError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
 
-  // Check authentication and setup status
+  // Check authentication and setup status with faster timeout
   const checkAuthAndSetup = useCallback(async () => {
     try {
       setInitError(null);
-      const { data: { session } } = await withTimeout(supabase.auth.getSession(), 15000, 'supabase.auth.getSession');
+      // Faster timeout for getSession (should be instant from local storage)
+      const { data: { session } } = await withTimeout(supabase.auth.getSession(), 5000, 'supabase.auth.getSession');
       setIsAuthenticated(!!session);
       
       if (session) {
-        // Check if user needs to complete profile setup
-        const status = await withTimeout(AuthService.checkUserSetupStatus(), 15000, 'check_user_setup_status');
-        setNeedsSetup(status.needs_setup);
-        if (status.has_username) {
-          setSetupUsername(status.username);
+        // Check if user needs to complete profile setup - faster timeout
+        try {
+          const status = await withTimeout(AuthService.checkUserSetupStatus(), 8000, 'check_user_setup_status');
+          setNeedsSetup(status.needs_setup);
+          if (status.has_username) {
+            setSetupUsername(status.username);
+          }
+        } catch (setupErr) {
+          // If setup check fails, assume needs setup to avoid blocking
+          console.warn('Setup check timed out, assuming needs setup:', setupErr);
+          setNeedsSetup(true);
         }
       } else {
         setNeedsSetup(false);
       }
+      setRetryCount(0); // Reset on success
     } catch (err) {
       console.error('Auth check failed:', err);
-      setInitError(err instanceof Error ? err.message : String(err));
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      
+      // Auto-retry for timeout errors up to MAX_RETRIES
+      if (errorMsg.includes('timed out') && retryCount < MAX_RETRIES) {
+        setRetryCount(prev => prev + 1);
+        console.log(`Retrying auth check (${retryCount + 1}/${MAX_RETRIES})...`);
+        setTimeout(() => checkAuthAndSetup(), 1000);
+        return;
+      }
+      
+      setInitError(errorMsg);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [retryCount]);
 
   useEffect(() => {
     checkAuthAndSetup();
@@ -112,11 +132,16 @@ const Main: React.FC = () => {
         setIsAuthenticated(!!session);
 
         if (session) {
-          // Check setup status on auth change
-          const status = await withTimeout(AuthService.checkUserSetupStatus(), 15000, 'check_user_setup_status');
-          setNeedsSetup(status.needs_setup);
-          if (status.has_username) {
-            setSetupUsername(status.username);
+          // Check setup status on auth change - faster timeout
+          try {
+            const status = await withTimeout(AuthService.checkUserSetupStatus(), 8000, 'check_user_setup_status');
+            setNeedsSetup(status.needs_setup);
+            if (status.has_username) {
+              setSetupUsername(status.username);
+            }
+          } catch (setupErr) {
+            console.warn('Setup check timed out on auth change, assuming needs setup');
+            setNeedsSetup(true);
           }
         } else {
           setNeedsSetup(false);
