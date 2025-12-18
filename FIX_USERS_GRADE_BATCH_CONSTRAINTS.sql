@@ -35,6 +35,35 @@ WHERE batch IS NOT NULL
   AND batch !~ '^((6|7|8|9|10|11|12)[ABC])$';
 
 -- Normalize grade values
+-- Some environments store `grade` as TEXT; normalize safely and (if needed) convert to SMALLINT.
+DO $$
+BEGIN
+  -- If grade is text/varchar, convert it to SMALLINT safely.
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'users'
+      AND column_name = 'grade'
+      AND data_type IN ('text', 'character varying')
+  ) THEN
+    -- Convert empty / non-numeric grades to NULL, keep numeric values.
+    EXECUTE $$
+      ALTER TABLE public.users
+      ALTER COLUMN grade TYPE smallint
+      USING (
+        CASE
+          WHEN grade IS NULL THEN NULL
+          WHEN trim(grade) = '' THEN NULL
+          WHEN grade ~ '^\\d+$' THEN grade::int
+          ELSE NULL
+        END
+      );
+    $$;
+  END IF;
+END $$;
+
+-- Now grade is numeric (smallint) or already was; clamp invalid values to NULL.
 UPDATE public.users
 SET grade = NULL
 WHERE grade IS NOT NULL
