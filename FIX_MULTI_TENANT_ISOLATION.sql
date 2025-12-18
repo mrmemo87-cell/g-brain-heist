@@ -654,6 +654,78 @@ $$;
 GRANT EXECUTE ON FUNCTION get_school_batch_summaries() TO authenticated;
 
 -- ============================================
+-- STEP 12: GET AVAILABLE GRADES/BATCHES FOR SCHOOL
+-- ============================================
+
+-- Get all grades that have students in the caller's school
+CREATE OR REPLACE FUNCTION get_school_grades()
+RETURNS TABLE (
+  grade INT,
+  player_count BIGINT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_school_id UUID;
+BEGIN
+  v_school_id := get_caller_school_id();
+  
+  RETURN QUERY
+  SELECT 
+    u.grade::INT,
+    COUNT(*)::BIGINT AS player_count
+  FROM users u
+  WHERE u.grade IS NOT NULL
+    AND (v_school_id IS NULL OR u.school_id = v_school_id)
+    AND COALESCE(u.is_banned, FALSE) = FALSE
+    AND COALESCE(u.is_admin, FALSE) = FALSE
+    AND COALESCE(u.role, 'student') = 'student'
+  GROUP BY u.grade
+  ORDER BY u.grade;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION get_school_grades() TO authenticated;
+
+-- Get all batches that have students in the caller's school
+CREATE OR REPLACE FUNCTION get_school_batches()
+RETURNS TABLE (
+  batch TEXT,
+  grade INT,
+  player_count BIGINT,
+  total_xp BIGINT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_school_id UUID;
+BEGIN
+  v_school_id := get_caller_school_id();
+  
+  RETURN QUERY
+  SELECT 
+    u.batch,
+    u.grade::INT,
+    COUNT(*)::BIGINT AS player_count,
+    COALESCE(SUM(u.xp), 0)::BIGINT AS total_xp
+  FROM users u
+  WHERE u.batch IS NOT NULL
+    AND (v_school_id IS NULL OR u.school_id = v_school_id)
+    AND COALESCE(u.is_banned, FALSE) = FALSE
+    AND COALESCE(u.is_admin, FALSE) = FALSE
+    AND COALESCE(u.role, 'student') = 'student'
+  GROUP BY u.batch, u.grade
+  ORDER BY u.grade, u.batch;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION get_school_batches() TO authenticated;
+
+-- ============================================
 -- VERIFICATION QUERIES (RUN AFTER MIGRATION)
 -- ============================================
 -- Test: Check that leaderboard RPC exists

@@ -10,6 +10,51 @@ import type {
   AdminOverviewStats,
 } from '../types';
 
+// Types for dynamic school data
+export interface SchoolGradeInfo {
+  grade: number;
+  player_count: number;
+}
+
+export interface SchoolBatchInfo {
+  batch: string;
+  grade: number;
+  player_count: number;
+  total_xp: number;
+}
+
+// Fetch available grades for the current user's school
+export const fetchSchoolGrades = async (): Promise<SchoolGradeInfo[]> => {
+  const { data, error } = await supabase.rpc('get_school_grades');
+  
+  if (error) {
+    console.warn('get_school_grades RPC failed:', error.message);
+    return [];
+  }
+  
+  return (data ?? []).map((row: any) => ({
+    grade: Number(row.grade),
+    player_count: Number(row.player_count ?? 0),
+  }));
+};
+
+// Fetch available batches for the current user's school
+export const fetchSchoolBatches = async (): Promise<SchoolBatchInfo[]> => {
+  const { data, error } = await supabase.rpc('get_school_batches');
+  
+  if (error) {
+    console.warn('get_school_batches RPC failed:', error.message);
+    return [];
+  }
+  
+  return (data ?? []).map((row: any) => ({
+    batch: row.batch as string,
+    grade: Number(row.grade),
+    player_count: Number(row.player_count ?? 0),
+    total_xp: Number(row.total_xp ?? 0),
+  }));
+};
+
 const mapQuestionRow = (row: any): PhaseQuestion | null => {
   if (!row) return null;
   return {

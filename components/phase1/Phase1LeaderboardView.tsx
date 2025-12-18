@@ -1,12 +1,12 @@
-import React, { useEffect, useState, useRef } from 'react';
-import type { Batch, Grade, LeaderboardEntry, Profile } from '../../types';
+import React, { useEffect, useState } from 'react';
+import type { Batch, LeaderboardEntry, Profile } from '../../types';
 import {
   fetchBatchLeaderboard,
-  fetchBatchSummaries,
   fetchGradeLeaderboard,
-  subscribeToGradeLeaderboard,
-  subscribeToBatchLeaderboard,
-  mapRowToEntry,
+  fetchSchoolGrades,
+  fetchSchoolBatches,
+  type SchoolGradeInfo,
+  type SchoolBatchInfo,
 } from '../../services/competitionService';
 
 interface Phase1LeaderboardViewProps {
@@ -14,9 +14,6 @@ interface Phase1LeaderboardViewProps {
   onExit: () => void;
   addToast: (message: string, type?: 'success' | 'error' | 'info') => void;
 }
-
-const gradeTabs: Grade[] = [8, 9];
-const classTabs: Batch[] = ['8A', '8B', '8C', '9A', '9B', '9C'];
 
 const formatCsv = (rows: LeaderboardEntry[]): string => {
   const header = 'Rank,Username,XP,Coins,Streak,Batch,Grade';
@@ -47,155 +44,113 @@ const downloadCsv = (filename: string, content: string) => {
 
 const Phase1LeaderboardView: React.FC<Phase1LeaderboardViewProps> = ({ profile, onExit, addToast }) => {
   const displaySchoolName = profile.school_name || 'School';
-  const [gradeLeaderboards, setGradeLeaderboards] = useState<Record<Grade, LeaderboardEntry[]>>({ 8: [], 9: [] });
+  
+  // Dynamic grades and batches from the school
+  const [availableGrades, setAvailableGrades] = useState<SchoolGradeInfo[]>([]);
+  const [availableBatches, setAvailableBatches] = useState<SchoolBatchInfo[]>([]);
+  const [loadingStructure, setLoadingStructure] = useState(true);
+  
+  // Leaderboard data
+  const [gradeLeaderboard, setGradeLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [classLeaderboard, setClassLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [classSummaries, setClassSummaries] = useState<Record<Batch, { total_xp: number; player_count: number }>>({
-    '8A': { total_xp: 0, player_count: 0 },
-    '8B': { total_xp: 0, player_count: 0 },
-    '8C': { total_xp: 0, player_count: 0 },
-    '9A': { total_xp: 0, player_count: 0 },
-    '9B': { total_xp: 0, player_count: 0 },
-    '9C': { total_xp: 0, player_count: 0 },
-    'N/A': { total_xp: 0, player_count: 0 },
-  });
-  const [activeGrade, setActiveGrade] = useState<Grade>(profile.grade === 9 ? 9 : 8);
-  const [activeClass, setActiveClass] = useState<Batch>(
-    profile.batch ?? (profile.grade === 9 ? '9A' : '8A')
-  );
+  
+  // Active selections - will be set after loading structure
+  const [activeGrade, setActiveGrade] = useState<number | null>(null);
+  const [activeClass, setActiveClass] = useState<string | null>(null);
+  
+  // Loading states
   const [loadingGrade, setLoadingGrade] = useState(false);
   const [loadingClass, setLoadingClass] = useState(false);
 
-  // Refs to store unsubscribe functions for cleanup
-  const unsubscribeGrade8Ref = useRef<(() => void) | null>(null);
-  const unsubscribeGrade9Ref = useRef<(() => void) | null>(null);
-  const unsubscribeBatchRef = useRef<(() => void) | null>(null);
-
-  // Patch-mode update handler for grade leaderboards
-  const handleGradeUpdate = (grade: Grade, entry: LeaderboardEntry) => {
-    setGradeLeaderboards((prev) => {
-      const list = [...prev[grade]];
-      const existingIndex = list.findIndex((e) => e.user_id === entry.user_id);
-
-      if (existingIndex >= 0) {
-        list[existingIndex] = entry;
-      } else {
-        list.push(entry);
-      }
-
-      // Re-sort and slice to top 50
-      list.sort((a, b) => b.xp - a.xp);
-      const sliced = list.slice(0, 50);
-
-      return { ...prev, [grade]: sliced };
-    });
-  };
-
-  // Patch-mode update handler for class leaderboards
-  const handleBatchUpdate = (entry: LeaderboardEntry) => {
-    setClassLeaderboard((prev) => {
-      const list = [...prev];
-      const existingIndex = list.findIndex((e) => e.user_id === entry.user_id);
-
-      if (existingIndex >= 0) {
-        list[existingIndex] = entry;
-      } else {
-        list.push(entry);
-      }
-
-      // Re-sort and slice to top 50
-      list.sort((a, b) => b.xp - a.xp);
-      const sliced = list.slice(0, 50);
-
-      return sliced;
-    });
-  };
-
+  // Load school structure (grades and batches) on mount
   useEffect(() => {
-    const loadLeaderboards = async () => {
+    const loadSchoolStructure = async () => {
+      setLoadingStructure(true);
+      try {
+        const [grades, batches] = await Promise.all([
+          fetchSchoolGrades(),
+          fetchSchoolBatches(),
+        ]);
+        
+        setAvailableGrades(grades);
+        setAvailableBatches(batches);
+        
+        // Auto-select the user's grade/batch, or first available
+        if (grades.length > 0) {
+          const userGrade = grades.find(g => g.grade === profile.grade);
+          setActiveGrade(userGrade ? userGrade.grade : grades[0].grade);
+        }
+        
+        if (batches.length > 0) {
+          const userBatch = batches.find(b => b.batch === profile.batch);
+          setActiveClass(userBatch ? userBatch.batch : batches[0].batch);
+        }
+      } catch (err: any) {
+        console.error('Failed to load school structure:', err);
+        addToast('Failed to load school data', 'error');
+      } finally {
+        setLoadingStructure(false);
+      }
+    };
+
+    loadSchoolStructure();
+  }, [profile.grade, profile.batch, addToast]);
+
+  // Load grade leaderboard when activeGrade changes
+  useEffect(() => {
+    if (activeGrade === null) return;
+    
+    const loadGradeLeaderboard = async () => {
       setLoadingGrade(true);
       try {
-        const [grade8, grade9] = await Promise.all([
-          fetchGradeLeaderboard(8, 50),
-          fetchGradeLeaderboard(9, 50),
-        ]);
-        setGradeLeaderboards({ 8: grade8, 9: grade9 });
-
-        // Subscribe to grade 8 changes
-        unsubscribeGrade8Ref.current = subscribeToGradeLeaderboard(8, (entry) => {
-          handleGradeUpdate(8, entry);
-        });
-
-        // Subscribe to grade 9 changes
-        unsubscribeGrade9Ref.current = subscribeToGradeLeaderboard(9, (entry) => {
-          handleGradeUpdate(9, entry);
-        });
+        const rows = await fetchGradeLeaderboard(activeGrade as any, 50);
+        setGradeLeaderboard(rows);
       } catch (err: any) {
-        addToast(err?.message || 'Failed to load grade leaderboards', 'error');
+        console.error('Failed to load grade leaderboard:', err);
+        // Don't show toast for RPC errors - just show empty
+        setGradeLeaderboard([]);
       } finally {
         setLoadingGrade(false);
       }
     };
 
-    const loadSummaries = async () => {
-      try {
-        const summaries = await fetchBatchSummaries();
-        setClassSummaries((prev) => {
-          const next = { ...prev };
-          summaries.forEach((entry) => {
-            next[entry.batch] = {
-              total_xp: entry.total_xp,
-              player_count: entry.player_count,
-            };
-          });
-          return next;
-        });
-      } catch (err: any) {
-        addToast(err?.message || 'Failed to load class totals', 'error');
-      }
-    };
+    loadGradeLeaderboard();
+  }, [activeGrade]);
 
-    loadLeaderboards();
-    loadSummaries();
-
-    // Cleanup on unmount
-    return () => {
-      unsubscribeGrade8Ref.current?.();
-      unsubscribeGrade9Ref.current?.();
-      unsubscribeBatchRef.current?.();
-    };
-  }, [addToast]);
-
+  // Load class leaderboard when activeClass changes
   useEffect(() => {
+    if (activeClass === null) return;
+    
     const loadClassLeaderboard = async () => {
       setLoadingClass(true);
       try {
-        const rows = await fetchBatchLeaderboard(activeClass, 50);
+        const rows = await fetchBatchLeaderboard(activeClass as Batch, 50);
         setClassLeaderboard(rows);
-
-        // Subscribe to batch changes (with patch-mode updates)
-        unsubscribeBatchRef.current?.();
-        unsubscribeBatchRef.current = subscribeToBatchLeaderboard(activeClass, (entry) => {
-          handleBatchUpdate(entry);
-        });
       } catch (err: any) {
-        addToast(err?.message || 'Failed to load class leaderboard', 'error');
+        console.error('Failed to load class leaderboard:', err);
+        setClassLeaderboard([]);
       } finally {
         setLoadingClass(false);
       }
     };
 
     loadClassLeaderboard();
-
-    // Cleanup previous batch subscription when activeClass changes
-    return () => {
-      unsubscribeBatchRef.current?.();
-    };
-  }, [activeClass, addToast]);
+  }, [activeClass]);
 
   const highlightId = profile.id;
 
-  const renderLeaderboardRows = (rows: LeaderboardEntry[]) => (
-    rows.map((entry, index) => {
+  const renderLeaderboardRows = (rows: LeaderboardEntry[]) => {
+    if (rows.length === 0) {
+      return (
+        <tr>
+          <td colSpan={6} className="py-8 text-center text-gray-400">
+            No students found in this category
+          </td>
+        </tr>
+      );
+    }
+    
+    return rows.map((entry, index) => {
       const isSelf = entry.user_id === highlightId;
       return (
         <tr
@@ -210,8 +165,60 @@ const Phase1LeaderboardView: React.FC<Phase1LeaderboardViewProps> = ({ profile, 
           <td className="py-2 px-3 text-gray-400">{entry.batch ?? '—'}</td>
         </tr>
       );
-    })
-  );
+    });
+  };
+
+  // Show loading state while fetching school structure
+  if (loadingStructure) {
+    return (
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="font-heading text-3xl" style={{ color: 'var(--ion-blue)' }}>
+              {displaySchoolName} Leaderboards
+            </h2>
+            <p className="text-gray-400">Loading school data...</p>
+          </div>
+          <button
+            onClick={onExit}
+            className="px-4 py-2 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-800 transition"
+          >
+            Back
+          </button>
+        </div>
+        <div className="card-glass p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-400 mx-auto mb-4"></div>
+          <p className="text-gray-300">Loading leaderboard data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty state if no grades/batches found
+  if (availableGrades.length === 0 && availableBatches.length === 0) {
+    return (
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="font-heading text-3xl" style={{ color: 'var(--ion-blue)' }}>
+              {displaySchoolName} Leaderboards
+            </h2>
+            <p className="text-gray-400">Track class and grade rankings for the competition.</p>
+          </div>
+          <button
+            onClick={onExit}
+            className="px-4 py-2 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-800 transition"
+          >
+            Back
+          </button>
+        </div>
+        <div className="card-glass p-8 text-center">
+          <p className="text-gray-300 text-lg">No students found in your school yet.</p>
+          <p className="text-gray-500 mt-2">Students will appear here once they join and start playing.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -231,127 +238,154 @@ const Phase1LeaderboardView: React.FC<Phase1LeaderboardViewProps> = ({ profile, 
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Grade Leaderboards */}
         <div className="card-glass p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-heading text-2xl" style={{ color: 'var(--ion-blue)' }}>
               Grade Leaderboards
             </h3>
-            <button
-              onClick={() => downloadCsv(`grade-${activeGrade}-leaderboard.csv`, formatCsv(gradeLeaderboards[activeGrade]))}
-              className="px-3 py-2 text-sm border border-cyan-500 text-cyan-300 rounded-lg hover:bg-cyan-500/10"
-            >
-              Export CSV
-            </button>
-          </div>
-
-          <div className="flex gap-3 mb-4">
-            {gradeTabs.map((grade) => (
+            {activeGrade && gradeLeaderboard.length > 0 && (
               <button
-                key={grade}
-                onClick={() => setActiveGrade(grade)}
-                className={`px-4 py-2 rounded-lg border transition ${
-                  activeGrade === grade
-                    ? 'border-cyan-500 bg-cyan-500/10 text-cyan-300'
-                    : 'border-gray-700 text-gray-400 hover:border-cyan-400'
-                }`}
+                onClick={() => downloadCsv(`grade-${activeGrade}-leaderboard.csv`, formatCsv(gradeLeaderboard))}
+                className="px-3 py-2 text-sm border border-cyan-500 text-cyan-300 rounded-lg hover:bg-cyan-500/10"
               >
-                Grade {grade}
+                Export CSV
               </button>
-            ))}
+            )}
           </div>
 
-          {loadingGrade ? (
-            <div className="text-center py-6 text-gray-400">Loading grade leaderboard...</div>
+          {availableGrades.length > 0 ? (
+            <>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {availableGrades.map((gradeInfo) => (
+                  <button
+                    key={gradeInfo.grade}
+                    onClick={() => setActiveGrade(gradeInfo.grade)}
+                    className={`px-4 py-2 rounded-lg border transition ${
+                      activeGrade === gradeInfo.grade
+                        ? 'border-cyan-500 bg-cyan-500/10 text-cyan-300'
+                        : 'border-gray-700 text-gray-400 hover:border-cyan-400'
+                    }`}
+                  >
+                    Grade {gradeInfo.grade}
+                    <span className="ml-1 text-xs opacity-70">({gradeInfo.player_count})</span>
+                  </button>
+                ))}
+              </div>
+
+              {loadingGrade ? (
+                <div className="text-center py-6 text-gray-400">Loading grade leaderboard...</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="text-gray-400 text-sm uppercase">
+                        <th className="py-2 px-3">Rank</th>
+                        <th className="py-2 px-3">Agent</th>
+                        <th className="py-2 px-3">XP</th>
+                        <th className="py-2 px-3">Coins</th>
+                        <th className="py-2 px-3">Streak</th>
+                        <th className="py-2 px-3">Class</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {renderLeaderboardRows(gradeLeaderboard)}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="text-gray-400 text-sm uppercase">
-                    <th className="py-2 px-3">Rank</th>
-                    <th className="py-2 px-3">Agent</th>
-                    <th className="py-2 px-3">XP</th>
-                    <th className="py-2 px-3">Coins</th>
-                    <th className="py-2 px-3">Streak</th>
-                    <th className="py-2 px-3">Class</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {renderLeaderboardRows(gradeLeaderboards[activeGrade])}
-                </tbody>
-              </table>
-            </div>
+            <div className="text-center py-6 text-gray-400">No grades found in your school</div>
           )}
         </div>
 
+        {/* Class Leaderboards */}
         <div className="card-glass p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-heading text-2xl" style={{ color: 'var(--ion-blue)' }}>
               Class Leaderboards
             </h3>
-            <button
-              onClick={() => downloadCsv(`class-${activeClass}-leaderboard.csv`, formatCsv(classLeaderboard))}
-              className="px-3 py-2 text-sm border border-cyan-500 text-cyan-300 rounded-lg hover:bg-cyan-500/10"
-            >
-              Export CSV
-            </button>
-          </div>
-
-          <div className="flex flex-wrap gap-2 mb-4">
-            {classTabs.map((batch) => (
+            {activeClass && classLeaderboard.length > 0 && (
               <button
-                key={batch}
-                onClick={() => setActiveClass(batch)}
-                className={`px-3 py-2 rounded-lg border text-sm transition ${
-                  activeClass === batch
-                    ? 'border-cyan-500 bg-cyan-500/10 text-cyan-300'
-                    : 'border-gray-700 text-gray-400 hover:border-cyan-400'
-                }`}
+                onClick={() => downloadCsv(`class-${activeClass}-leaderboard.csv`, formatCsv(classLeaderboard))}
+                className="px-3 py-2 text-sm border border-cyan-500 text-cyan-300 rounded-lg hover:bg-cyan-500/10"
               >
-                {batch}
+                Export CSV
               </button>
-            ))}
+            )}
           </div>
 
-          {loadingClass ? (
-            <div className="text-center py-6 text-gray-400">Loading class leaderboard...</div>
+          {availableBatches.length > 0 ? (
+            <>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {availableBatches.map((batchInfo) => (
+                  <button
+                    key={batchInfo.batch}
+                    onClick={() => setActiveClass(batchInfo.batch)}
+                    className={`px-3 py-2 rounded-lg border text-sm transition ${
+                      activeClass === batchInfo.batch
+                        ? 'border-cyan-500 bg-cyan-500/10 text-cyan-300'
+                        : 'border-gray-700 text-gray-400 hover:border-cyan-400'
+                    }`}
+                  >
+                    {batchInfo.batch}
+                    <span className="ml-1 text-xs opacity-70">({batchInfo.player_count})</span>
+                  </button>
+                ))}
+              </div>
+
+              {loadingClass ? (
+                <div className="text-center py-6 text-gray-400">Loading class leaderboard...</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="text-gray-400 text-sm uppercase">
+                        <th className="py-2 px-3">Rank</th>
+                        <th className="py-2 px-3">Agent</th>
+                        <th className="py-2 px-3">XP</th>
+                        <th className="py-2 px-3">Coins</th>
+                        <th className="py-2 px-3">Streak</th>
+                        <th className="py-2 px-3">Class</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {renderLeaderboardRows(classLeaderboard)}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="text-gray-400 text-sm uppercase">
-                    <th className="py-2 px-3">Rank</th>
-                    <th className="py-2 px-3">Agent</th>
-                    <th className="py-2 px-3">XP</th>
-                    <th className="py-2 px-3">Coins</th>
-                    <th className="py-2 px-3">Streak</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {renderLeaderboardRows(classLeaderboard)}
-                </tbody>
-              </table>
-            </div>
+            <div className="text-center py-6 text-gray-400">No classes found in your school</div>
           )}
         </div>
       </div>
 
-      <div className="card-glass p-6">
-        <h3 className="font-heading text-2xl mb-4" style={{ color: 'var(--ion-blue)' }}>
-          Class Totals
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {classTabs.map((batch) => {
-            const summary = classSummaries[batch];
-            return (
-              <div key={batch} className="bg-black/30 border border-cyan-500/20 rounded-lg p-4">
-                <div className="text-gray-400 text-sm">{batch}</div>
-                <div className="text-2xl font-heading text-white">{summary.total_xp} XP</div>
-                <div className="text-sm text-gray-500">{summary.player_count} players</div>
+      {/* Class Totals */}
+      {availableBatches.length > 0 && (
+        <div className="card-glass p-6">
+          <h3 className="font-heading text-2xl mb-4" style={{ color: 'var(--ion-blue)' }}>
+            Class Totals
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {availableBatches.map((batchInfo) => (
+              <div 
+                key={batchInfo.batch} 
+                className={`bg-black/30 border rounded-lg p-4 cursor-pointer transition hover:bg-black/50 ${
+                  activeClass === batchInfo.batch ? 'border-cyan-500' : 'border-cyan-500/20'
+                }`}
+                onClick={() => setActiveClass(batchInfo.batch)}
+              >
+                <div className="text-gray-400 text-sm">{batchInfo.batch}</div>
+                <div className="text-2xl font-heading text-white">{batchInfo.total_xp.toLocaleString()} XP</div>
+                <div className="text-sm text-gray-500">{batchInfo.player_count} players</div>
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
