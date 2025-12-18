@@ -35,44 +35,54 @@ WHERE batch IS NOT NULL
   AND batch !~ '^((6|7|8|9|10|11|12)[ABC])$';
 
 -- Normalize grade values
--- Some environments store `grade` as TEXT; normalize safely and (if needed) convert to SMALLINT.
+-- Some environments store `grade` as TEXT and a view (`profiles`) depends on it.
+-- Avoid ALTER COLUMN TYPE; instead normalize data and add a type-appropriate constraint.
 DO $$
+DECLARE v_grade_type text;
 BEGIN
-  -- If grade is text/varchar, convert it to SMALLINT safely.
-  IF EXISTS (
-    SELECT 1
-    FROM information_schema.columns
-    WHERE table_schema = 'public'
-      AND table_name = 'users'
-      AND column_name = 'grade'
-      AND data_type IN ('text', 'character varying')
-  ) THEN
-    -- Convert empty / non-numeric grades to NULL, keep numeric values.
-    -- Drop default first because text defaults cannot always be auto-cast.
-    EXECUTE 'ALTER TABLE public.users ALTER COLUMN grade DROP DEFAULT';
+  SELECT data_type
+  INTO v_grade_type
+  FROM information_schema.columns
+  WHERE table_schema = 'public'
+    AND table_name = 'users'
+    AND column_name = 'grade'
+  LIMIT 1;
+
+  IF v_grade_type IN ('text', 'character varying') THEN
+    -- Normalize: empty/non-numeric/out-of-range -> NULL
+    UPDATE public.users
+    SET grade = NULLIF(trim(grade), '')
+    WHERE grade IS NOT NULL;
+
+    UPDATE public.users
+    SET grade = NULL
+    WHERE grade IS NOT NULL
+      AND grade !~ '^[0-9]+$';
+
+    UPDATE public.users
+    SET grade = NULL
+    WHERE grade IS NOT NULL
+      AND grade ~ '^[0-9]+$'
+      AND (grade::int < 6 OR grade::int > 12);
+
     EXECUTE 'ALTER TABLE public.users '
-      'ALTER COLUMN grade TYPE smallint '
-      'USING ('
-      '  CASE '
-      '    WHEN grade IS NULL THEN NULL '
-      '    WHEN trim(grade) = '''' THEN NULL '
-      '    WHEN grade ~ ''^[0-9]+$'' THEN grade::int '
-      '    ELSE NULL '
-      '  END'
+      'ADD CONSTRAINT users_grade_check '
+      'CHECK ('
+      '  grade IS NULL '
+      '  OR (CASE WHEN grade ~ ''^[0-9]+$'' THEN (grade::int BETWEEN 6 AND 12) ELSE FALSE END)'
       ')';
+  ELSE
+    -- Numeric grade type
+    UPDATE public.users
+    SET grade = NULL
+    WHERE grade IS NOT NULL
+      AND (grade < 6 OR grade > 12);
+
+    EXECUTE 'ALTER TABLE public.users '
+      'ADD CONSTRAINT users_grade_check '
+      'CHECK (grade IS NULL OR (grade >= 6 AND grade <= 12))';
   END IF;
 END $$;
-
--- Now grade is numeric (smallint) or already was; clamp invalid values to NULL.
-UPDATE public.users
-SET grade = NULL
-WHERE grade IS NOT NULL
-  AND (grade < 6 OR grade > 12);
-
--- Re-add constraints (accept 6-12 and N/A)
-ALTER TABLE public.users
-  ADD CONSTRAINT users_grade_check
-  CHECK (grade IS NULL OR (grade >= 6 AND grade <= 12));
 
 ALTER TABLE public.users
   ADD CONSTRAINT users_batch_check
