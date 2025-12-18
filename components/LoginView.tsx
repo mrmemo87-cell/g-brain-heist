@@ -50,8 +50,8 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     // Fallback: create a default school option
                     const fallbackSchool: School = {
                         id: 'default',
-                        name: 'Silk Road International School',
-                        slug: 'silk-road-international',
+                        name: 'Default School',
+                        slug: 'default-school',
                         logo_url: null,
                         allow_student_signup: true,
                         allow_teacher_signup: true,

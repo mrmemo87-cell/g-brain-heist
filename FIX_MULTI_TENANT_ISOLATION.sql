@@ -507,6 +507,153 @@ $$;
 GRANT EXECUTE ON FUNCTION rpc_get_clan_members(UUID) TO authenticated;
 
 -- ============================================
+-- STEP 11: SCHOOL-SCOPED COMPETITION LEADERBOARDS
+-- ============================================
+
+-- Grade leaderboard - school scoped
+DROP FUNCTION IF EXISTS rpc_leaderboard_grade(int, int) CASCADE;
+
+CREATE OR REPLACE FUNCTION rpc_leaderboard_grade(p_grade INT, p_limit INT)
+RETURNS TABLE (
+  user_id UUID,
+  username TEXT,
+  xp INT,
+  coins INT,
+  streak INT,
+  batch TEXT,
+  grade INT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_school_id UUID;
+BEGIN
+  v_school_id := get_caller_school_id();
+  
+  -- Accept grades 6-12
+  IF p_grade IS NULL OR p_grade < 6 OR p_grade > 12 THEN
+    RAISE EXCEPTION 'invalid_grade';
+  END IF;
+
+  RETURN QUERY
+  SELECT 
+    u.id,
+    u.username,
+    COALESCE(u.xp, 0)::INT,
+    COALESCE(u.coins, 0)::INT,
+    COALESCE(u.streak, 0)::INT,
+    u.batch,
+    COALESCE(u.grade::INT, p_grade::INT)
+  FROM users u
+  WHERE u.grade::TEXT = p_grade::TEXT
+    AND (v_school_id IS NULL OR u.school_id = v_school_id)  -- SCHOOL FILTER
+    AND COALESCE(u.is_banned, FALSE) = FALSE
+    AND COALESCE(u.is_admin, FALSE) = FALSE
+    AND COALESCE(u.role, 'student') = 'student'
+    AND COALESCE(u.admin_visible, TRUE) = TRUE
+  ORDER BY u.xp DESC, u.coins DESC
+  LIMIT GREATEST(p_limit, 1);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION rpc_leaderboard_grade(INT, INT) TO authenticated;
+
+-- Batch leaderboard - school scoped
+DROP FUNCTION IF EXISTS rpc_leaderboard_batch(text, int) CASCADE;
+
+CREATE OR REPLACE FUNCTION rpc_leaderboard_batch(p_batch TEXT, p_limit INT)
+RETURNS TABLE (
+  user_id UUID,
+  username TEXT,
+  xp INT,
+  coins INT,
+  streak INT,
+  batch TEXT,
+  grade INT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_school_id UUID;
+BEGIN
+  v_school_id := get_caller_school_id();
+  
+  -- Accept all batches 6A-12C plus N/A
+  IF p_batch IS NULL OR p_batch NOT IN (
+    '6A', '6B', '6C',
+    '7A', '7B', '7C',
+    '8A', '8B', '8C',
+    '9A', '9B', '9C',
+    '10A', '10B', '10C',
+    '11A', '11B', '11C',
+    '12A', '12B', '12C',
+    'N/A'
+  ) THEN
+    RAISE EXCEPTION 'invalid_batch';
+  END IF;
+
+  RETURN QUERY
+  SELECT 
+    u.id,
+    u.username,
+    COALESCE(u.xp, 0)::INT,
+    COALESCE(u.coins, 0)::INT,
+    COALESCE(u.streak, 0)::INT,
+    u.batch,
+    COALESCE(u.grade::INT, 8)
+  FROM users u
+  WHERE u.batch = p_batch
+    AND (v_school_id IS NULL OR u.school_id = v_school_id)  -- SCHOOL FILTER
+    AND COALESCE(u.is_banned, FALSE) = FALSE
+    AND COALESCE(u.is_admin, FALSE) = FALSE
+    AND COALESCE(u.role, 'student') = 'student'
+    AND COALESCE(u.admin_visible, TRUE) = TRUE
+  ORDER BY u.xp DESC, u.coins DESC
+  LIMIT GREATEST(p_limit, 1);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION rpc_leaderboard_batch(TEXT, INT) TO authenticated;
+
+-- Batch summaries - school scoped
+CREATE OR REPLACE FUNCTION get_school_batch_summaries()
+RETURNS TABLE (
+  batch TEXT,
+  total_xp BIGINT,
+  player_count BIGINT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_school_id UUID;
+BEGIN
+  v_school_id := get_caller_school_id();
+  
+  RETURN QUERY
+  SELECT 
+    u.batch,
+    COALESCE(SUM(u.xp), 0)::BIGINT AS total_xp,
+    COUNT(*)::BIGINT AS player_count
+  FROM users u
+  WHERE u.batch IS NOT NULL
+    AND (v_school_id IS NULL OR u.school_id = v_school_id)
+    AND COALESCE(u.is_banned, FALSE) = FALSE
+    AND COALESCE(u.is_admin, FALSE) = FALSE
+    AND COALESCE(u.role, 'student') = 'student'
+  GROUP BY u.batch
+  ORDER BY u.batch;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION get_school_batch_summaries() TO authenticated;
+
+-- ============================================
 -- VERIFICATION QUERIES (RUN AFTER MIGRATION)
 -- ============================================
 -- Test: Check that leaderboard RPC exists

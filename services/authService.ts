@@ -268,7 +268,7 @@ export const createOAuthProfile = async (): Promise<void> => {
         role: 'student', // Default to student for OAuth users
         grade: 6 as Grade,
         batch: '6A' as Batch, // Default batch
-        school: user.user_metadata?.['school'] || 'Silk Road International School',
+        school: user.user_metadata?.['school'] || null, // Will be set during setup
         avatar_url: user.user_metadata?.['avatar_url'] || `https://picsum.photos/seed/${username}/100/100`,
     };
 

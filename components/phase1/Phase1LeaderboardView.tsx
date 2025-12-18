@@ -46,6 +46,7 @@ const downloadCsv = (filename: string, content: string) => {
 };
 
 const Phase1LeaderboardView: React.FC<Phase1LeaderboardViewProps> = ({ profile, onExit, addToast }) => {
+  const displaySchoolName = profile.school_name || 'School';
   const [gradeLeaderboards, setGradeLeaderboards] = useState<Record<Grade, LeaderboardEntry[]>>({ 8: [], 9: [] });
   const [classLeaderboard, setClassLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [classSummaries, setClassSummaries] = useState<Record<Batch, { total_xp: number; player_count: number }>>({
@@ -217,7 +218,7 @@ const Phase1LeaderboardView: React.FC<Phase1LeaderboardViewProps> = ({ profile, 
       <div className="flex justify-between items-center">
         <div>
           <h2 className="font-heading text-3xl" style={{ color: 'var(--ion-blue)' }}>
-            Silk Road Leaderboards
+            {displaySchoolName} Leaderboards
           </h2>
           <p className="text-gray-400">Track class and grade rankings for the competition.</p>
         </div>

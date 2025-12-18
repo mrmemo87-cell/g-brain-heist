@@ -137,31 +137,45 @@ export const fetchBatchLeaderboard = async (
 };
 
 export const fetchBatchSummaries = async (): Promise<BatchLeaderboardSummary[]> => {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id, batch, xp, grade');
+  // Use school-scoped RPC instead of direct table query
+  const { data, error } = await supabase.rpc('get_school_batch_summaries');
 
   if (error) {
-    throw new Error(error.message || 'Failed to load profiles for summaries');
+    // Fallback to profiles view if RPC doesn't exist yet
+    console.warn('get_school_batch_summaries RPC not available, falling back to profiles:', error.message);
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, batch, xp, grade');
+
+    if (profileError) {
+      throw new Error(profileError.message || 'Failed to load profiles for summaries');
+    }
+
+    const summaries = new Map<Batch, { total: number; count: number }>();
+
+    (profileData ?? []).forEach((row) => {
+      const batch = row.batch as Batch | null;
+      if (!batch) return;
+      if (!summaries.has(batch)) {
+        summaries.set(batch, { total: 0, count: 0 });
+      }
+      const stat = summaries.get(batch)!;
+      stat.total += Number(row.xp ?? 0);
+      stat.count += 1;
+    });
+
+    return Array.from(summaries.entries()).map(([batch, values]) => ({
+      batch,
+      total_xp: values.total,
+      player_count: values.count,
+    }));
   }
 
-  const summaries = new Map<Batch, { total: number; count: number }>();
-
-  (data ?? []).forEach((row) => {
-    const batch = row.batch as Batch | null;
-    if (!batch) return;
-    if (!summaries.has(batch)) {
-      summaries.set(batch, { total: 0, count: 0 });
-    }
-    const stat = summaries.get(batch)!;
-    stat.total += Number(row.xp ?? 0);
-    stat.count += 1;
-  });
-
-  return Array.from(summaries.entries()).map(([batch, values]) => ({
-    batch,
-    total_xp: values.total,
-    player_count: values.count,
+  // Map RPC result
+  return (data ?? []).map((row: any) => ({
+    batch: row.batch as Batch,
+    total_xp: Number(row.total_xp ?? 0),
+    player_count: Number(row.player_count ?? 0),
   }));
 };
 

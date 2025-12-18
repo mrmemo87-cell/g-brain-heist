@@ -621,7 +621,7 @@ const Phase1AdminDashboard: React.FC<Phase1AdminDashboardProps> = ({ profile, on
       <div className="flex justify-between items-center">
         <div>
           <h2 className="font-heading text-3xl" style={{ color: 'var(--ion-blue)' }}>Admin Command Center</h2>
-          <p className="text-gray-400">Monitoring Silk Road competition for grades 8 & 9.</p>
+          <p className="text-gray-400">Monitoring school competition for grades 8 & 9.</p>
         </div>
         <button
           onClick={onExit}

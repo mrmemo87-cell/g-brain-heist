@@ -149,7 +149,7 @@ const Phase1PlayView: React.FC<Phase1PlayViewProps> = ({
       <div className="max-w-3xl mx-auto">
         <div className="card-glass p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-400 mx-auto mb-4"></div>
-          <p className="text-gray-300">Scanning the Silk Road archives for your next challenge...</p>
+          <p className="text-gray-300">Scanning the archives for your next challenge...</p>
         </div>
       </div>
     );
@@ -191,7 +191,7 @@ const Phase1PlayView: React.FC<Phase1PlayViewProps> = ({
         <div className="flex justify-between items-center mb-4">
           <div>
             <h2 className="font-heading text-3xl" style={{ color: 'var(--ion-blue)' }}>
-              Silk Road Challenge
+              {profile.school_name || 'School'} Challenge
             </h2>
             <p className="text-sm text-gray-400">Grade {grade} • Streak {profile.streak}</p>
           </div>
