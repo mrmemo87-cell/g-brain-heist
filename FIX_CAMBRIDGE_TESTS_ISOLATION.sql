@@ -3,7 +3,7 @@
 -- ============================================================================
 -- Problem: Teachers can see Cambridge test results from ALL schools
 -- Root cause: quiz_scores table has no school_id, RLS allows anyone to SELECT
--- Solution: Add school_id column, backfill via username→users→school_memberships,
+-- Solution: Add school_id column, backfill via username→users.school_id,
 --           create SECURITY DEFINER RPCs for school-scoped access
 -- ============================================================================
 
@@ -11,7 +11,7 @@
 -- STEP 1: Add school_id column to quiz_scores
 -- ============================================================================
 
-ALTER TABLE quiz_scores ADD COLUMN IF NOT EXISTS school_id UUID REFERENCES schools(id);
+ALTER TABLE quiz_scores ADD COLUMN IF NOT EXISTS school_id UUID;
 
 -- Create index for efficient school-based queries
 CREATE INDEX IF NOT EXISTS idx_quiz_scores_school_id ON quiz_scores(school_id);
@@ -19,18 +19,14 @@ CREATE INDEX IF NOT EXISTS idx_quiz_scores_school_id ON quiz_scores(school_id);
 -- ============================================================================
 -- STEP 2: Backfill school_id for existing records
 -- ============================================================================
--- Join via student_name → users.username → school_memberships.school_id
+-- Join via student_name → users.username → users.school_id
 
 UPDATE quiz_scores qs
-SET school_id = sm.school_id
+SET school_id = u.school_id
 FROM users u
-JOIN school_memberships sm ON sm.user_id = u.id AND sm.status = 'active'
 WHERE qs.student_name = u.username
-  AND qs.school_id IS NULL;
-
--- For records where student_name doesn't match a user, try to derive from student_class
--- (students in the same class likely belong to same school)
--- This is a fallback - most records should be matched above
+  AND qs.school_id IS NULL
+  AND u.school_id IS NOT NULL;
 
 -- ============================================================================
 -- STEP 3: Add trigger to auto-populate school_id on INSERT
@@ -39,11 +35,10 @@ WHERE qs.student_name = u.username
 CREATE OR REPLACE FUNCTION set_quiz_score_school_id()
 RETURNS TRIGGER AS $$
 BEGIN
-  -- If school_id not provided, derive from student_name → users → school_memberships
+  -- If school_id not provided, derive from student_name → users.school_id
   IF NEW.school_id IS NULL THEN
-    SELECT sm.school_id INTO NEW.school_id
+    SELECT u.school_id INTO NEW.school_id
     FROM users u
-    JOIN school_memberships sm ON sm.user_id = u.id AND sm.status = 'active'
     WHERE u.username = NEW.student_name
     LIMIT 1;
   END IF;
@@ -80,11 +75,9 @@ CREATE POLICY "Teachers view school scores" ON quiz_scores
   USING (
     EXISTS (
       SELECT 1 FROM users u
-      JOIN school_memberships sm ON sm.user_id = u.id
       WHERE u.id = auth.uid()
         AND u.role IN ('teacher', 'admin')
-        AND sm.status = 'active'
-        AND sm.school_id = quiz_scores.school_id
+        AND u.school_id = quiz_scores.school_id
     )
   );
 
@@ -101,11 +94,9 @@ CREATE POLICY "Teachers can update school scores" ON quiz_scores
   USING (
     EXISTS (
       SELECT 1 FROM users u
-      JOIN school_memberships sm ON sm.user_id = u.id
       WHERE u.id = auth.uid()
         AND u.role IN ('teacher', 'admin')
-        AND sm.status = 'active'
-        AND sm.school_id = quiz_scores.school_id
+        AND u.school_id = quiz_scores.school_id
     )
   );
 
@@ -132,12 +123,10 @@ DECLARE
   v_school_id UUID;
   v_role TEXT;
 BEGIN
-  -- Get caller's school and role
-  SELECT sm.school_id, u.role INTO v_school_id, v_role
+  -- Get caller's school and role directly from users table
+  SELECT u.school_id, u.role INTO v_school_id, v_role
   FROM users u
-  JOIN school_memberships sm ON sm.user_id = u.id AND sm.status = 'active'
-  WHERE u.id = auth.uid()
-  LIMIT 1;
+  WHERE u.id = auth.uid();
   
   -- Only teachers/admins can use this RPC
   IF v_role NOT IN ('teacher', 'admin') THEN
@@ -179,12 +168,10 @@ DECLARE
   v_role TEXT;
   v_result JSONB;
 BEGIN
-  -- Get caller's school and role
-  SELECT sm.school_id, u.role INTO v_school_id, v_role
+  -- Get caller's school and role directly from users table
+  SELECT u.school_id, u.role INTO v_school_id, v_role
   FROM users u
-  JOIN school_memberships sm ON sm.user_id = u.id AND sm.status = 'active'
-  WHERE u.id = auth.uid()
-  LIMIT 1;
+  WHERE u.id = auth.uid();
   
   -- Only teachers/admins can use this RPC
   IF v_role NOT IN ('teacher', 'admin') THEN
@@ -200,40 +187,40 @@ BEGIN
     'totalSubmissions', COUNT(*),
     'avgPercentage', COALESCE(ROUND(AVG(percentage)), 0),
     'highestScore', (
-      SELECT jsonb_build_object('name', student_name, 'percentage', percentage)
-      FROM quiz_scores
-      WHERE school_id = v_school_id
-      ORDER BY percentage DESC
+      SELECT jsonb_build_object('name', qs2.student_name, 'percentage', qs2.percentage)
+      FROM quiz_scores qs2
+      WHERE qs2.school_id = v_school_id
+      ORDER BY qs2.percentage DESC
       LIMIT 1
     ),
     'lowestScore', (
-      SELECT jsonb_build_object('name', student_name, 'percentage', percentage)
-      FROM quiz_scores
-      WHERE school_id = v_school_id
-      ORDER BY percentage ASC
+      SELECT jsonb_build_object('name', qs3.student_name, 'percentage', qs3.percentage)
+      FROM quiz_scores qs3
+      WHERE qs3.school_id = v_school_id
+      ORDER BY qs3.percentage ASC
       LIMIT 1
     ),
     'classStats', (
       SELECT COALESCE(jsonb_object_agg(
-        COALESCE(student_class, 'Unknown'),
+        COALESCE(class_data.student_class, 'Unknown'),
         jsonb_build_object(
-          'count', cnt,
-          'avg', avg_pct
+          'count', class_data.cnt,
+          'avg', class_data.avg_pct
         )
       ), '{}'::jsonb)
       FROM (
         SELECT 
-          student_class,
+          qs4.student_class,
           COUNT(*) as cnt,
-          ROUND(AVG(percentage)) as avg_pct
-        FROM quiz_scores
-        WHERE school_id = v_school_id
-        GROUP BY student_class
+          ROUND(AVG(qs4.percentage)) as avg_pct
+        FROM quiz_scores qs4
+        WHERE qs4.school_id = v_school_id
+        GROUP BY qs4.student_class
       ) class_data
     )
   ) INTO v_result
-  FROM quiz_scores
-  WHERE school_id = v_school_id;
+  FROM quiz_scores qs
+  WHERE qs.school_id = v_school_id;
   
   RETURN COALESCE(v_result, jsonb_build_object(
     'totalSubmissions', 0,
