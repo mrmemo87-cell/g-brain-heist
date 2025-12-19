@@ -1467,9 +1467,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
         setTeacher(teacherProfile);
       }
 
-      // Load questions and students
-      const myQuestions = await GameService.get_my_questions();
-      setQuestions(myQuestions);
+      // Load ALL questions from global bank (not just teacher's own)
+      // Content = shared: Teachers see all questions from all schools
+      const allQuestions = await GameService.get_all_questions();
+      setQuestions(allQuestions);
       
       try {
         const students = await GameService.get_students_for_assignment();
@@ -1582,9 +1583,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
       setCustomTopicName('');
       setEditingQuestion(null);
 
-      // Reload questions
-      const myQuestions = await GameService.get_my_questions();
-      setQuestions(myQuestions);
+      // Reload questions from global bank
+      const allQuestions = await GameService.get_all_questions();
+      setQuestions(allQuestions);
 
       setView('question-bank');
     } catch (error) {
@@ -1598,8 +1599,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
 
     try {
       await GameService.delete_question(questionId);
-      const myQuestions = await GameService.get_my_questions();
-      setQuestions(myQuestions);
+      const allQuestions = await GameService.get_all_questions();
+      setQuestions(allQuestions);
       alert('✅ Question deleted!');
     } catch (error) {
       console.error('Error deleting question:', error);
@@ -1887,9 +1888,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         }
       }
 
-      // Reload questions
-      const myQuestions = await GameService.get_my_questions();
-      setQuestions(myQuestions);
+      // Reload questions from global bank
+      const allQuestions = await GameService.get_all_questions();
+      setQuestions(allQuestions);
 
       // Show results
       const message = `✅ Upload Complete!\n\nSuccess: ${successCount} questions\nFailed: ${errorCount} questions${errors.length > 0 ? '\n\nErrors:\n' + errors.slice(0, 5).join('\n') + (errors.length > 5 ? `\n... and ${errors.length - 5} more` : '') : ''}`;

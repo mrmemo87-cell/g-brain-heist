@@ -4439,6 +4439,31 @@ export const get_my_questions = async (): Promise<TeacherQuestion[]> => {
 };
 
 /**
+ * Get ALL active questions from the global question bank
+ * Teachers can see questions created by any teacher across all schools.
+ * This is the global question bank - Content = shared.
+ */
+export const get_all_questions = async (filters?: {
+    subject?: string;
+    difficulty?: string;
+    teacherId?: string;
+    limit?: number;
+    offset?: number;
+}): Promise<(TeacherQuestion & { creator_name?: string; creator_school_id?: string; is_mine?: boolean })[]> => {
+    const { data, error } = await supabase.rpc('get_all_active_questions', {
+        p_subject: filters?.subject || null,
+        p_difficulty: filters?.difficulty || null,
+        p_teacher_id: filters?.teacherId || null,
+        p_limit: filters?.limit || 500,
+        p_offset: filters?.offset || 0
+    });
+
+    if (error) throw error;
+
+    return data || [];
+};
+
+/**
  * Get a single question by ID
  */
 export const get_question = async (questionId: string): Promise<TeacherQuestion> => {
