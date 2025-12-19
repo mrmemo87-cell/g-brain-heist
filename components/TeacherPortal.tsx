@@ -2771,114 +2771,121 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
   );
 
   const renderCreateAssignment = () => (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-3xl mx-auto">
       <button
         onClick={() => setView('assignments')}
-        className="teacher-back-link mb-4"
+        className="teacher-back-link mb-6"
       >
         <span>←</span> Back to Assignments
       </button>
 
-      <div className="teacher-card">
-        <h2 className="text-2xl font-bold text-slate-800 mb-6">Create Assignment</h2>
-        <form onSubmit={handleCreateAssignment} className="space-y-6">
+      <div className="teacher-assignment-form">
+        <div className="teacher-assignment-form-header">
+          <h2>Create Assignment</h2>
+          <p>Design engaging assignments for your students</p>
+        </div>
+        
+        <div className="teacher-assignment-form-body">
+        <form onSubmit={handleCreateAssignment}>
           {/* Assignment Mode Selection */}
-          <div className="teacher-form-group">
-            <label className="teacher-label">Assignment Mode</label>
-            <div className="grid grid-cols-2 gap-3">
+          <div className="teacher-form-group-premium">
+            <label className="teacher-label-premium">Assignment Mode</label>
+            <div className="teacher-mode-toggle">
               <button
                 type="button"
                 onClick={() => setAssignmentMode('batch')}
-                className={`px-4 py-3 rounded-xl border-2 transition-all font-medium ${
-                  assignmentMode === 'batch'
-                    ? 'bg-purple-50 border-purple-500 text-purple-700'
-                    : 'bg-slate-50 border-slate-200 text-slate-500 hover:border-slate-300'
-                }`}
+                className={`teacher-mode-btn ${assignmentMode === 'batch' ? 'active' : ''}`}
               >
-                📚 Assign to Batch
+                <div className="teacher-mode-btn-icon">📚</div>
+                <div className="teacher-mode-btn-text">
+                  <h4>Assign to Batch</h4>
+                  <p>Send to an entire class</p>
+                </div>
               </button>
               <button
                 type="button"
                 onClick={() => setAssignmentMode('custom')}
-                className={`px-4 py-3 rounded-xl border-2 transition-all font-medium ${
-                  assignmentMode === 'custom'
-                    ? 'bg-purple-50 border-purple-500 text-purple-700'
-                    : 'bg-slate-50 border-slate-200 text-slate-500 hover:border-slate-300'
-                }`}
+                className={`teacher-mode-btn ${assignmentMode === 'custom' ? 'active' : ''}`}
               >
-                👥 Select Students
+                <div className="teacher-mode-btn-icon">👥</div>
+                <div className="teacher-mode-btn-text">
+                  <h4>Select Students</h4>
+                  <p>Choose specific students</p>
+                </div>
               </button>
             </div>
           </div>
 
           {/* Batch Selection (only shown in batch mode) */}
           {assignmentMode === 'batch' && (
-            <div className="teacher-form-group">
-              <label className="teacher-label">Batch</label>
+            <div className="teacher-form-group-premium">
+              <label className="teacher-label-premium">Batch</label>
               <select
                 value={assignmentBatch}
                 onChange={(e) => setAssignmentBatch(e.target.value as AssignmentBatch)}
-                className="teacher-select"
+                className="teacher-select-premium"
               >
-                <option value="All">All</option>
-                <option value="8A">8A</option>
-                <option value="8B">8B</option>
-                <option value="8C">8C</option>
+                <option value="All">All Students</option>
+                <option value="8A">Class 8A</option>
+                <option value="8B">Class 8B</option>
+                <option value="8C">Class 8C</option>
               </select>
             </div>
           )}
 
           {/* Student Selection (only shown in custom mode) */}
           {assignmentMode === 'custom' && (
-            <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
-              <div className="flex items-center justify-between mb-3">
-                <label className="teacher-label">
-                  Select Students ({selectedStudentIds.length} selected)
-                </label>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={selectAllStudents}
-                    className="teacher-btn teacher-btn-primary text-xs px-3 py-1"
-                  >
-                    Select All
-                  </button>
-                  <button
-                    type="button"
-                    onClick={deselectAllStudents}
-                    className="teacher-btn teacher-btn-secondary text-xs px-3 py-1"
-                  >
+            <div className="teacher-form-group-premium">
+              <label className="teacher-label-premium">Select Students</label>
+              <div className="teacher-student-selector">
+                <div className="teacher-student-selector-header">
+                  <span className="teacher-student-selector-title">
+                    {selectedStudentIds.length} student{selectedStudentIds.length !== 1 ? 's' : ''} selected
+                  </span>
+                  <div className="teacher-student-selector-actions">
+                    <button
+                      type="button"
+                      onClick={selectAllStudents}
+                      className="teacher-student-select-all"
+                    >
+                      Select All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={deselectAllStudents}
+                      className="teacher-student-clear"
+                    >
                     Clear
                   </button>
                 </div>
               </div>
               
-              <input
-                type="text"
-                placeholder="Search students..."
-                value={studentSearchTerm}
-                onChange={(e) => setStudentSearchTerm(e.target.value)}
-                className="teacher-input mb-3"
-              />
+              <div className="teacher-student-search">
+                <input
+                  type="text"
+                  placeholder="Search students..."
+                  value={studentSearchTerm}
+                  onChange={(e) => setStudentSearchTerm(e.target.value)}
+                />
+              </div>
 
-              <div className="max-h-64 overflow-y-auto space-y-2">
+              <div className="teacher-student-list">
                 {filteredStudents.length === 0 ? (
-                  <p className="text-slate-500 text-sm text-center py-4">No students found</p>
+                  <div className="teacher-question-list-empty">No students found</div>
                 ) : (
                   filteredStudents.map((student) => (
                     <label
                       key={student.id}
-                      className="flex items-center gap-3 p-3 rounded-lg bg-white border border-slate-200 hover:border-cyan-300 cursor-pointer transition-all"
+                      className={`teacher-student-item ${selectedStudentIds.includes(student.id) ? 'selected' : ''}`}
                     >
                       <input
                         type="checkbox"
                         checked={selectedStudentIds.includes(student.id)}
                         onChange={() => toggleStudentSelection(student.id)}
-                        className="w-4 h-4 text-cyan-600 rounded"
                       />
-                      <div className="flex-1">
-                        <div className="text-slate-800 font-medium">{student.display_name}</div>
-                        <div className="text-xs text-slate-500">
+                      <div className="teacher-student-info">
+                        <div className="teacher-student-name">{student.display_name}</div>
+                        <div className="teacher-student-meta">
                           @{student.username} · Grade {student.grade} · {student.batch || 'No batch'}
                         </div>
                       </div>
@@ -2887,15 +2894,16 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 )}
               </div>
             </div>
+            </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="teacher-form-group">
-              <label className="teacher-label">Subject</label>
+          <div className="teacher-form-grid">
+            <div className="teacher-form-group-premium">
+              <label className="teacher-label-premium">Subject</label>
               <select
                 value={assignmentSubject}
                 onChange={(e) => setAssignmentSubject(e.target.value as Subject)}
-                className="teacher-select"
+                className="teacher-select-premium"
               >
                 <option value="Maths">Maths</option>
                 <option value="Science">Science</option>
@@ -2908,49 +2916,13 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 <option value="ICT">ICT</option>
               </select>
             </div>
-          </div>
 
-          <div className="teacher-form-group">
-            <label className="teacher-label">Topic</label>
-            <div className="flex flex-col md:flex-row gap-4">
-              <select
-                value={assignmentTopicMode}
-                onChange={(e) => setAssignmentTopicMode(e.target.value as 'general' | 'custom')}
-                className="teacher-select"
-              >
-                <option value="general">General</option>
-                <option value="custom">Custom</option>
-              </select>
-              {assignmentTopicMode === 'custom' && (
-                <input
-                  type="text"
-                  value={assignmentTopicName}
-                  onChange={(e) => setAssignmentTopicName(e.target.value)}
-                  className="teacher-input flex-1"
-                  placeholder="Enter topic name"
-                  required
-                />
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="teacher-form-group">
-              <label className="teacher-label">Title (optional)</label>
-              <input
-                type="text"
-                value={assignmentTitle}
-                onChange={(e) => setAssignmentTitle(e.target.value)}
-                className="teacher-input"
-                placeholder="Fractions drill"
-              />
-            </div>
-            <div className="teacher-form-group">
-              <label className="teacher-label">Difficulty</label>
+            <div className="teacher-form-group-premium">
+              <label className="teacher-label-premium">Difficulty</label>
               <select
                 value={assignmentDifficulty}
                 onChange={(e) => setAssignmentDifficulty(e.target.value as QuestionDifficulty)}
-                className="teacher-select"
+                className="teacher-select-premium"
               >
                 <option value="easy">Easy</option>
                 <option value="medium">Medium</option>
@@ -2959,72 +2931,117 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </div>
           </div>
 
-          <div className="teacher-form-group">
-            <label className="teacher-label">Instructions (optional)</label>
-            <textarea
-              value={assignmentInstructions}
-              onChange={(e) => setAssignmentInstructions(e.target.value)}
-              className="teacher-textarea"
-              placeholder="Focus on word problems and show your work."
-            />
+          <div className="teacher-form-group-premium">
+            <label className="teacher-label">Topic</label>
+            <div className="flex flex-col md:flex-row gap-4">
+              <select
+                value={assignmentTopicMode}
+                onChange={(e) => setAssignmentTopicMode(e.target.value as 'general' | 'custom')}
+                className="teacher-select-premium"
+              >
+                <option value="general">General</option>
+                <option value="custom">Custom Topic</option>
+              </select>
+              {assignmentTopicMode === 'custom' && (
+                <input
+                  type="text"
+                  value={assignmentTopicName}
+                  onChange={(e) => setAssignmentTopicName(e.target.value)}
+                  className="teacher-input-premium flex-1"
+                  placeholder="Enter topic name"
+                  required
+                />
+              )}
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="teacher-form-group">
-              <label className="teacher-label">Assigned At</label>
+          <div className="teacher-form-grid">
+            <div className="teacher-form-group-premium">
+              <label className="teacher-label-premium">Title (optional)</label>
+              <input
+                type="text"
+                value={assignmentTitle}
+                onChange={(e) => setAssignmentTitle(e.target.value)}
+                className="teacher-input-premium"
+                placeholder="e.g., Fractions Practice"
+              />
+            </div>
+            <div className="teacher-form-group-premium">
+              <label className="teacher-label-premium">Instructions</label>
+              <input
+                type="text"
+                value={assignmentInstructions}
+                onChange={(e) => setAssignmentInstructions(e.target.value)}
+                className="teacher-input-premium"
+                placeholder="e.g., Show your work"
+              />
+            </div>
+          </div>
+
+          <div className="teacher-form-grid">
+            <div className="teacher-form-group-premium">
+              <label className="teacher-label-premium">Assigned At</label>
               <input
                 type="datetime-local"
                 value={assignmentAssignedAt}
                 onChange={(e) => setAssignmentAssignedAt(e.target.value)}
-                className="teacher-input"
+                className="teacher-input-premium"
               />
             </div>
-            <div className="teacher-form-group">
-              <label className="teacher-label">Due At</label>
+            <div className="teacher-form-group-premium">
+              <label className="teacher-label-premium">Due At</label>
               <input
                 type="datetime-local"
                 value={assignmentDueAt}
                 onChange={(e) => setAssignmentDueAt(e.target.value)}
-                className="teacher-input"
+                className="teacher-input-premium"
               />
             </div>
           </div>
 
-          <div className="teacher-form-group">
-            <div className="flex items-center justify-between mb-2">
-              <label className="teacher-label">Questions ({assignmentQuestionIds.length} selected)</label>
-              <span className="text-xs text-slate-500">Only questions from {assignmentSubject} are shown</span>
-            </div>
-            <div className="max-h-64 overflow-y-auto border border-slate-200 rounded-xl divide-y divide-slate-100">
+          <div className="teacher-form-group-premium">
+            <label className="teacher-label-premium">Questions</label>
+            <div className="teacher-question-list-premium">
+              <div className="teacher-question-list-header">
+                <h4>{assignmentQuestionIds.length} question{assignmentQuestionIds.length !== 1 ? 's' : ''} selected</h4>
+                <span>Showing {assignmentSubject} questions</span>
+              </div>
+              <div className="teacher-question-list-body">
               {assignmentQuestionPool.length === 0 ? (
-                <div className="p-4 text-sm text-slate-500">No questions for this subject. Create some first.</div>
+                <div className="teacher-question-list-empty">No questions for this subject. Create some first.</div>
               ) : (
                 assignmentQuestionPool.map((question) => (
-                  <label key={question.id} className="flex items-start gap-3 p-4 cursor-pointer hover:bg-cyan-50 transition-colors">
+                  <label 
+                    key={question.id} 
+                    className={`teacher-question-list-item ${assignmentQuestionIds.includes(question.id) ? 'selected' : ''}`}
+                  >
                     <input
                       type="checkbox"
                       checked={assignmentQuestionIds.includes(question.id)}
                       onChange={() => toggleAssignmentQuestion(question.id)}
-                      className="mt-1 text-cyan-600 rounded"
                     />
-                    <div>
-                      <p className="text-slate-800">{question.question_text}</p>
-                      <p className="text-xs text-slate-500">Topic: {question.topic_name || question.topic || 'General'}</p>
+                    <div className="teacher-question-list-item-content">
+                      <p className="teacher-question-list-item-text">{question.question_text}</p>
+                      <div className="teacher-question-list-item-meta">
+                        <span className="teacher-question-list-item-topic">{question.topic_name || question.topic || 'General'}</span>
+                      </div>
                     </div>
                   </label>
                 ))
               )}
+            </div>
             </div>
           </div>
 
           <button
             type="submit"
             disabled={assignmentSubmitting}
-            className={`teacher-btn teacher-btn-primary w-full py-4 text-lg ${assignmentSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}
+            className="teacher-submit-premium"
           >
-            {assignmentSubmitting ? 'Creating...' : 'Create Assignment'}
+            {assignmentSubmitting ? 'Creating Assignment...' : 'Create Assignment'}
           </button>
         </form>
+        </div>
       </div>
     </div>
   );
