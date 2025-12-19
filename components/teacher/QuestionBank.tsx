@@ -28,7 +28,7 @@ type TabFilter = 'discover' | 'my-sets' | 'favorites';
 interface QuestionBankProps {
   questions: TeacherQuestion[];
   teacher: Teacher | null;
-  onUseSet: (questionIds: string[]) => void;
+  onUseSet: (questionIds: string[], subject: Subject, topic: string) => void;
   onEditQuestion?: (question: TeacherQuestion) => void;
   onDeleteQuestion?: (questionId: string) => void;
   onCreateQuestion?: () => void;
@@ -481,7 +481,7 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
 
   const handleUseSet = useCallback((set: QuestionSet) => {
     const allIds = set.questions.map(q => q.id);
-    onUseSet(allIds);
+    onUseSet(allIds, set.subject, set.topic);
   }, [onUseSet]);
 
   const handleToggleQuestion = useCallback((questionId: string) => {
@@ -507,9 +507,11 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
   }, []);
 
   const handleConfirmSelection = useCallback(() => {
-    onUseSet(Array.from(selectedQuestionIds));
+    if (previewSet) {
+      onUseSet(Array.from(selectedQuestionIds), previewSet.subject, previewSet.topic);
+    }
     setPreviewSet(null);
-  }, [selectedQuestionIds, onUseSet]);
+  }, [selectedQuestionIds, onUseSet, previewSet]);
 
   const handleClosePreview = useCallback(() => {
     setPreviewSet(null);

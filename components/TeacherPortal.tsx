@@ -207,6 +207,16 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
   const assignmentQuestionPool = useMemo(() => (
     questions.filter((q) => q.subject === assignmentSubject)
   ), [questions, assignmentSubject]);
+  
+  // Get unique batches from available students (dynamic, not hardcoded)
+  const availableBatches = useMemo(() => {
+    const batches = new Set<string>();
+    availableStudents.forEach(s => {
+      if (s.batch) batches.add(s.batch);
+    });
+    return Array.from(batches).sort();
+  }, [availableStudents]);
+  
   const filteredStudents = useMemo(() => {
     if (!studentSearchTerm.trim()) return availableStudents;
     const search = studentSearchTerm.toLowerCase();
@@ -1709,9 +1719,17 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
   };
 
   // Handle "Use Set" from the Blooket-style QuestionBank
-  const handleUseQuestionSet = useCallback((questionIds: string[]) => {
-    // Pre-select the questions and navigate to assignment creation
+  const handleUseQuestionSet = useCallback((questionIds: string[], subject: Subject, topic: string) => {
+    // Pre-select the questions and set subject/topic from the selected set
     setAssignmentQuestionIds(questionIds);
+    setAssignmentSubject(subject);
+    if (topic && topic !== 'General') {
+      setAssignmentTopicMode('custom');
+      setAssignmentTopicName(topic);
+    } else {
+      setAssignmentTopicMode('general');
+      setAssignmentTopicName('');
+    }
     setView('create-assignment');
   }, []);
 
@@ -2819,16 +2837,18 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           {/* Batch Selection (only shown in batch mode) */}
           {assignmentMode === 'batch' && (
             <div className="teacher-form-group-premium">
-              <label className="teacher-label-premium">Batch</label>
+              <label className="teacher-label-premium">Class / Batch</label>
               <select
                 value={assignmentBatch}
                 onChange={(e) => setAssignmentBatch(e.target.value as AssignmentBatch)}
                 className="teacher-select-premium"
               >
-                <option value="All">All Students</option>
-                <option value="8A">Class 8A</option>
-                <option value="8B">Class 8B</option>
-                <option value="8C">Class 8C</option>
+                <option value="All">All Students ({availableStudents.length})</option>
+                {availableBatches.map(batch => (
+                  <option key={batch} value={batch}>
+                    {batch} ({availableStudents.filter(s => s.batch === batch).length} students)
+                  </option>
+                ))}
               </select>
             </div>
           )}
@@ -2897,6 +2917,40 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </div>
           )}
 
+          {/* Questions Summary - Show pre-selected questions from Question Bank */}
+          {assignmentQuestionIds.length > 0 && (
+            <div className="teacher-form-group-premium">
+              <label className="teacher-label-premium">Selected Questions</label>
+              <div className="teacher-question-list-premium">
+                <div className="teacher-question-list-header">
+                  <h4>✓ {assignmentQuestionIds.length} question{assignmentQuestionIds.length !== 1 ? 's' : ''} from {assignmentSubject}</h4>
+                  <span>{assignmentTopicMode === 'custom' ? assignmentTopicName : 'General'}</span>
+                </div>
+                <div className="teacher-question-list-body" style={{ maxHeight: '200px' }}>
+                  {questions
+                    .filter(q => assignmentQuestionIds.includes(q.id))
+                    .map((question) => (
+                      <div 
+                        key={question.id} 
+                        className="teacher-question-list-item selected"
+                      >
+                        <div className="teacher-question-list-item-content">
+                          <p className="teacher-question-list-item-text">{question.question_text}</p>
+                          <div className="teacher-question-list-item-meta">
+                            <span className="teacher-question-list-item-topic">{question.topic_name || question.topic || 'General'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  }
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Subject/Topic selection - Only show when no questions are pre-selected */}
+          {assignmentQuestionIds.length === 0 && (
+            <>
           <div className="teacher-form-grid">
             <div className="teacher-form-group-premium">
               <label className="teacher-label-premium">Subject</label>
@@ -2932,7 +2986,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </div>
 
           <div className="teacher-form-group-premium">
-            <label className="teacher-label">Topic</label>
+            <label className="teacher-label-premium">Topic</label>
             <div className="flex flex-col md:flex-row gap-4">
               <select
                 value={assignmentTopicMode}
@@ -2954,6 +3008,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               )}
             </div>
           </div>
+            </>
+          )}
 
           <div className="teacher-form-grid">
             <div className="teacher-form-group-premium">
@@ -2999,11 +3055,13 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </div>
           </div>
 
+          {/* Question selector - Only show when no questions are pre-selected */}
+          {assignmentQuestionIds.length === 0 && (
           <div className="teacher-form-group-premium">
-            <label className="teacher-label-premium">Questions</label>
+            <label className="teacher-label-premium">Select Questions</label>
             <div className="teacher-question-list-premium">
               <div className="teacher-question-list-header">
-                <h4>{assignmentQuestionIds.length} question{assignmentQuestionIds.length !== 1 ? 's' : ''} selected</h4>
+                <h4>Choose questions for this assignment</h4>
                 <span>Showing {assignmentSubject} questions</span>
               </div>
               <div className="teacher-question-list-body">
@@ -3032,13 +3090,14 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </div>
             </div>
           </div>
+          )}
 
           <button
             type="submit"
-            disabled={assignmentSubmitting}
+            disabled={assignmentSubmitting || assignmentQuestionIds.length === 0}
             className="teacher-submit-premium"
           >
-            {assignmentSubmitting ? 'Creating Assignment...' : 'Create Assignment'}
+            {assignmentSubmitting ? 'Creating Assignment...' : `Create Assignment (${assignmentQuestionIds.length} questions)`}
           </button>
         </form>
         </div>
