@@ -7,18 +7,23 @@ import './QuestionBank.css';
 // ============================================================================
 
 export interface QuestionSet {
-  id: string; // Generated: subject_topic
+  id: string;
   title: string;
   subject: Subject;
   topic: string;
-  difficulty: QuestionDifficulty; // Most common difficulty in set
+  difficulty: QuestionDifficulty;
   questionCount: number;
   questions: TeacherQuestion[];
   source: 'system' | 'community' | 'mine';
   avgSuccessRate: number;
+  totalPlays: number;
+  authorName: string;
+  isVerified: boolean;
+  coverGradient: string;
+  coverEmoji: string;
 }
 
-type TabFilter = 'all' | 'mine' | 'community';
+type TabFilter = 'discover' | 'my-sets' | 'favorites';
 
 interface QuestionBankProps {
   questions: TeacherQuestion[];
@@ -33,40 +38,88 @@ interface QuestionBankProps {
 // HELPER FUNCTIONS
 // ============================================================================
 
-const getDifficultyColor = (difficulty: QuestionDifficulty): string => {
-  switch (difficulty) {
-    case 'easy': return '#22c55e';
-    case 'medium': return '#f59e0b';
-    case 'hard': return '#ef4444';
-    default: return '#6b7280';
-  }
-};
-
-const getDifficultyIcon = (difficulty: QuestionDifficulty): string => {
-  switch (difficulty) {
-    case 'easy': return '🟢';
-    case 'medium': return '🟡';
-    case 'hard': return '🔴';
-    default: return '⚪';
-  }
-};
-
-const getSubjectIcon = (subject: Subject): string => {
-  const icons: Record<string, string> = {
+const getSubjectEmoji = (subject: Subject): string => {
+  const emojis: Record<string, string> = {
     'Maths': '🔢',
-    'Mathematics': '🔢',
+    'Mathematics': '➕',
     'Science': '🔬',
     'English': '📚',
     'Russian Language': '🇷🇺',
     'Russian Literature': '📖',
-    'Kyrgyz Language': '🇰🇬',
+    'Kyrgyz Language': '🏔️',
     'Kyrgyz History': '🏛️',
     'German Language': '🇩🇪',
     'Geography': '🌍',
     'Global Perspective': '🌐',
     'ICT': '💻',
   };
-  return icons[subject] || '📝';
+  return emojis[subject] || '📝';
+};
+
+const getSubjectGradient = (subject: Subject): string => {
+  const gradients: Record<string, string> = {
+    'Maths': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    'Mathematics': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    'Science': 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+    'English': 'linear-gradient(135deg, #ee0979 0%, #ff6a00 100%)',
+    'Russian Language': 'linear-gradient(135deg, #0052D4 0%, #65C7F7 50%, #9CECFB 100%)',
+    'Russian Literature': 'linear-gradient(135deg, #834d9b 0%, #d04ed6 100%)',
+    'Kyrgyz Language': 'linear-gradient(135deg, #ED213A 0%, #93291E 100%)',
+    'Kyrgyz History': 'linear-gradient(135deg, #b92b27 0%, #1565C0 100%)',
+    'German Language': 'linear-gradient(135deg, #232526 0%, #414345 50%, #DD1818 100%)',
+    'Geography': 'linear-gradient(135deg, #56ab2f 0%, #a8e063 100%)',
+    'Global Perspective': 'linear-gradient(135deg, #4776E6 0%, #8E54E9 100%)',
+    'ICT': 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)',
+  };
+  return gradients[subject] || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+};
+
+const getTopicDecoEmoji = (topic: string, subject: Subject): string => {
+  const topicEmojis: Record<string, string> = {
+    'Algebra': '📐',
+    'Geometry': '📏',
+    'Fractions': '🍕',
+    'Decimals': '🔢',
+    'Percentages': '%',
+    'Statistics': '📊',
+    'Probability': '🎲',
+    'Trigonometry': '📐',
+    'Calculus': '∫',
+    'Animals': '🦊',
+    'Plants': '🌱',
+    'Human Body': '🫀',
+    'Chemistry': '⚗️',
+    'Physics': '⚡',
+    'Space': '🚀',
+    'Weather': '🌦️',
+    'Grammar': '✍️',
+    'Vocabulary': '📖',
+    'Reading': '📚',
+    'Writing': '✏️',
+    'Speaking': '🎤',
+    'Listening': '👂',
+    'History': '🏛️',
+    'Culture': '🎭',
+    'Maps': '🗺️',
+    'Countries': '🌍',
+    'Programming': '💻',
+    'Internet': '🌐',
+    'General': '📋',
+  };
+  
+  for (const [key, emoji] of Object.entries(topicEmojis)) {
+    if (topic.toLowerCase().includes(key.toLowerCase())) {
+      return emoji;
+    }
+  }
+  
+  return getSubjectEmoji(subject);
+};
+
+const formatPlayCount = (count: number): string => {
+  if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
+  if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
+  return count.toString();
 };
 
 const getMostCommonDifficulty = (questions: TeacherQuestion[]): QuestionDifficulty => {
@@ -76,7 +129,7 @@ const getMostCommonDifficulty = (questions: TeacherQuestion[]): QuestionDifficul
 };
 
 // ============================================================================
-// QUESTION SET CARD COMPONENT
+// QUESTION SET CARD COMPONENT (Blooket Style)
 // ============================================================================
 
 interface QuestionSetCardProps {
@@ -87,47 +140,60 @@ interface QuestionSetCardProps {
 
 const QuestionSetCard: React.FC<QuestionSetCardProps> = ({ set, onPreview, onUseSet }) => {
   return (
-    <div className="qb-set-card">
-      <div className="qb-set-card-header">
-        <span className="qb-set-icon">{getSubjectIcon(set.subject)}</span>
-        <div className="qb-set-meta">
-          <span className="qb-set-subject">{set.subject}</span>
-          <span 
-            className="qb-set-difficulty"
-            style={{ backgroundColor: getDifficultyColor(set.difficulty) + '20', color: getDifficultyColor(set.difficulty) }}
-          >
-            {getDifficultyIcon(set.difficulty)} {set.difficulty.charAt(0).toUpperCase() + set.difficulty.slice(1)}
+    <div className="blooket-card" onClick={onPreview}>
+      {/* Cover Image Area */}
+      <div 
+        className="blooket-card-cover"
+        style={{ background: set.coverGradient }}
+      >
+        {/* Verified Badge */}
+        {set.isVerified && (
+          <div className="blooket-verified-badge">
+            <span className="verified-check">✓</span>
+            <span>Teacher Verified</span>
+          </div>
+        )}
+        
+        {/* Decorative Elements */}
+        <div className="blooket-cover-deco">
+          <span className="deco-emoji main">{set.coverEmoji}</span>
+          <span className="deco-emoji secondary">{getSubjectEmoji(set.subject)}</span>
+        </div>
+        
+        {/* Question Count Badge */}
+        <div className="blooket-question-count">
+          {set.questionCount} Question{set.questionCount !== 1 ? 's' : ''}
+        </div>
+      </div>
+      
+      {/* Card Info */}
+      <div className="blooket-card-info">
+        <h3 className="blooket-card-title">{set.title}</h3>
+        <div className="blooket-card-meta">
+          <span className="blooket-plays">
+            <span className="play-icon">▶</span>
+            {formatPlayCount(set.totalPlays)}
+          </span>
+          <span className="blooket-author">
+            <span className="author-icon">👤</span>
+            {set.authorName}
           </span>
         </div>
       </div>
       
-      <h3 className="qb-set-title">{set.title}</h3>
-      
-      <div className="qb-set-stats">
-        <span className="qb-set-count">
-          <span className="qb-stat-icon">📋</span>
-          {set.questionCount} question{set.questionCount !== 1 ? 's' : ''}
-        </span>
-        {set.avgSuccessRate > 0 && (
-          <span className="qb-set-rate">
-            <span className="qb-stat-icon">✅</span>
-            {set.avgSuccessRate}% avg
-          </span>
-        )}
-      </div>
-      
-      <div className="qb-set-source">
-        {set.source === 'mine' && <span className="qb-source-badge mine">✨ My Set</span>}
-        {set.source === 'community' && <span className="qb-source-badge community">👥 Community</span>}
-        {set.source === 'system' && <span className="qb-source-badge system">📚 System</span>}
-      </div>
-      
-      <div className="qb-set-actions">
-        <button className="qb-btn-preview" onClick={onPreview}>
+      {/* Hover Actions */}
+      <div className="blooket-card-actions">
+        <button 
+          className="blooket-action-btn preview"
+          onClick={(e) => { e.stopPropagation(); onPreview(); }}
+        >
           👁️ Preview
         </button>
-        <button className="qb-btn-use" onClick={onUseSet}>
-          ✅ Use Set
+        <button 
+          className="blooket-action-btn use"
+          onClick={(e) => { e.stopPropagation(); onUseSet(); }}
+        >
+          ▶ Host
         </button>
       </div>
     </div>
@@ -167,10 +233,14 @@ const SetPreviewModal: React.FC<SetPreviewModalProps> = ({
 
   return (
     <div className="qb-modal-overlay" onClick={onClose}>
-      <div className="qb-modal" onClick={e => e.stopPropagation()}>
-        <div className="qb-modal-header">
+      <div className="qb-modal blooket-modal" onClick={e => e.stopPropagation()}>
+        {/* Modal Header with Cover */}
+        <div 
+          className="qb-modal-header blooket-modal-header"
+          style={{ background: set.coverGradient }}
+        >
           <div className="qb-modal-title-row">
-            <span className="qb-modal-icon">{getSubjectIcon(set.subject)}</span>
+            <span className="qb-modal-icon">{set.coverEmoji}</span>
             <div>
               <h2 className="qb-modal-title">{set.title}</h2>
               <p className="qb-modal-subtitle">{set.subject} • {set.questionCount} questions</p>
@@ -180,7 +250,7 @@ const SetPreviewModal: React.FC<SetPreviewModalProps> = ({
         </div>
 
         <div className="qb-modal-toolbar">
-          <span className="qb-selected-count">{selectedCount} selected</span>
+          <span className="qb-selected-count">{selectedCount} of {set.questionCount} selected</span>
           <div className="qb-toolbar-actions">
             <button className="qb-toolbar-btn" onClick={onSelectAll}>Select All</button>
             <button className="qb-toolbar-btn" onClick={onDeselectAll}>Deselect All</button>
@@ -201,19 +271,12 @@ const SetPreviewModal: React.FC<SetPreviewModalProps> = ({
                   className="qb-question-header"
                   onClick={() => handleToggleExpand(question.id)}
                 >
-                  <div className="qb-question-left">
-                    <span className="qb-question-number">Q{index + 1}</span>
-                    <span 
-                      className="qb-question-diff"
-                      style={{ color: getDifficultyColor(question.difficulty) }}
-                    >
-                      {getDifficultyIcon(question.difficulty)}
-                    </span>
-                    <span className="qb-question-preview">
-                      {question.question_text.slice(0, 60)}{question.question_text.length > 60 ? '...' : ''}
-                    </span>
+                  <div className="qb-question-number">{index + 1}</div>
+                  <div className="qb-question-preview">
+                    {question.question_text.substring(0, 80)}
+                    {question.question_text.length > 80 ? '...' : ''}
                   </div>
-                  <div className="qb-question-right">
+                  <div className="qb-question-controls">
                     <label 
                       className="qb-toggle"
                       onClick={e => e.stopPropagation()}
@@ -280,14 +343,6 @@ const SetPreviewModal: React.FC<SetPreviewModalProps> = ({
                         <strong>💡 Explanation:</strong> {question.explanation}
                       </div>
                     )}
-
-                    <div className="qb-question-meta">
-                      <span>⏱️ {question.time_limit}s</span>
-                      <span>⭐ {question.points} XP</span>
-                      {question.times_answered > 0 && (
-                        <span>📊 {Math.round((question.times_correct / question.times_answered) * 100)}% success</span>
-                      )}
-                    </div>
                   </div>
                 )}
               </div>
@@ -298,11 +353,11 @@ const SetPreviewModal: React.FC<SetPreviewModalProps> = ({
         <div className="qb-modal-footer">
           <button className="qb-btn-cancel" onClick={onClose}>Cancel</button>
           <button 
-            className="qb-btn-confirm"
+            className="qb-btn-confirm" 
             onClick={onConfirm}
             disabled={selectedCount === 0}
           >
-            ✅ Use {selectedCount} Question{selectedCount !== 1 ? 's' : ''}
+            ▶ Host with {selectedCount} Question{selectedCount !== 1 ? 's' : ''}
           </button>
         </div>
       </div>
@@ -311,7 +366,7 @@ const SetPreviewModal: React.FC<SetPreviewModalProps> = ({
 };
 
 // ============================================================================
-// MAIN QUESTION BANK COMPONENT
+// MAIN QUESTION BANK COMPONENT (Blooket Layout)
 // ============================================================================
 
 const QuestionBank: React.FC<QuestionBankProps> = ({
@@ -323,28 +378,18 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
   onCreateQuestion,
 }) => {
   // State
-  const [activeTab, setActiveTab] = useState<TabFilter>('all');
+  const [activeTab, setActiveTab] = useState<TabFilter>('discover');
   const [searchTerm, setSearchTerm] = useState('');
   const [subjectFilter, setSubjectFilter] = useState<'all' | Subject>('all');
-  const [difficultyFilter, setDifficultyFilter] = useState<'all' | QuestionDifficulty>('all');
-  const [gradeFilter, setGradeFilter] = useState<string>('all');
   const [previewSet, setPreviewSet] = useState<QuestionSet | null>(null);
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(new Set());
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
   // Get unique subjects for filter
   const subjects = useMemo(() => {
     const subjectSet = new Set<Subject>();
     questions.forEach(q => subjectSet.add(q.subject));
     return Array.from(subjectSet).sort();
-  }, [questions]);
-
-  // Get unique grades for filter
-  const grades = useMemo(() => {
-    const gradeSet = new Set<string>();
-    questions.forEach(q => {
-      if (q.grade_level) gradeSet.add(q.grade_level);
-    });
-    return Array.from(gradeSet).sort();
   }, [questions]);
 
   // Group questions into virtual sets
@@ -366,6 +411,11 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
           questions: [],
           source: 'community',
           avgSuccessRate: 0,
+          totalPlays: 0,
+          authorName: 'Community',
+          isVerified: false,
+          coverGradient: getSubjectGradient(question.subject),
+          coverEmoji: getTopicDecoEmoji(topic, question.subject),
         });
       }
 
@@ -378,19 +428,24 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
     setMap.forEach(set => {
       set.difficulty = getMostCommonDifficulty(set.questions);
       
-      // Calculate average success rate
       const totalAnswered = set.questions.reduce((sum, q) => sum + (q.times_answered || 0), 0);
       const totalCorrect = set.questions.reduce((sum, q) => sum + (q.times_correct || 0), 0);
       set.avgSuccessRate = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
+      set.totalPlays = totalAnswered;
 
-      // Determine source
       const myQuestions = set.questions.filter(q => teacher && q.teacher_id === teacher.id);
-      if (myQuestions.length === set.questions.length) {
+      if (myQuestions.length === set.questions.length && teacher) {
         set.source = 'mine';
-      } else if (myQuestions.length > 0) {
-        set.source = 'community'; // Mixed
+        set.authorName = 'Me';
+        set.isVerified = true;
+      } else if (myQuestions.length > 0 && teacher) {
+        set.source = 'community';
+        set.authorName = `${myQuestions.length}/${set.questionCount} by you`;
+        set.isVerified = true;
       } else {
         set.source = 'community';
+        set.authorName = 'Community';
+        set.isVerified = set.questionCount >= 5;
       }
     });
 
@@ -400,41 +455,23 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
   // Filter sets based on active filters
   const filteredSets = useMemo(() => {
     return questionSets.filter(set => {
-      // Tab filter
-      if (activeTab === 'mine' && set.source !== 'mine') return false;
-      if (activeTab === 'community' && set.source === 'mine') return false;
+      if (activeTab === 'my-sets' && set.source !== 'mine') return false;
+      if (activeTab === 'favorites' && !favorites.has(set.id)) return false;
 
-      // Subject filter
       if (subjectFilter !== 'all' && set.subject !== subjectFilter) return false;
 
-      // Difficulty filter
-      if (difficultyFilter !== 'all' && set.difficulty !== difficultyFilter) return false;
-
-      // Grade filter
-      if (gradeFilter !== 'all') {
-        const hasMatchingGrade = set.questions.some(q => q.grade_level === gradeFilter);
-        if (!hasMatchingGrade) return false;
-      }
-
-      // Search filter
       if (searchTerm) {
-        const term = searchTerm.toLowerCase();
-        const matchesTitle = set.title.toLowerCase().includes(term);
-        const matchesSubject = set.subject.toLowerCase().includes(term);
-        const matchesQuestion = set.questions.some(q => 
-          q.question_text.toLowerCase().includes(term)
+        const search = searchTerm.toLowerCase();
+        return (
+          set.title.toLowerCase().includes(search) ||
+          set.subject.toLowerCase().includes(search) ||
+          set.topic.toLowerCase().includes(search)
         );
-        if (!matchesTitle && !matchesSubject && !matchesQuestion) return false;
       }
 
       return true;
-    }).sort((a, b) => {
-      // Sort: mine first, then by question count
-      if (a.source === 'mine' && b.source !== 'mine') return -1;
-      if (a.source !== 'mine' && b.source === 'mine') return 1;
-      return b.questionCount - a.questionCount;
     });
-  }, [questionSets, activeTab, subjectFilter, difficultyFilter, gradeFilter, searchTerm]);
+  }, [questionSets, activeTab, subjectFilter, searchTerm, favorites]);
 
   // Handlers
   const handlePreview = useCallback((set: QuestionSet) => {
@@ -479,125 +516,149 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
     setSelectedQuestionIds(new Set());
   }, []);
 
+  const handleToggleFavorite = useCallback((setId: string) => {
+    setFavorites(prev => {
+      const next = new Set(prev);
+      if (next.has(setId)) {
+        next.delete(setId);
+      } else {
+        next.add(setId);
+      }
+      return next;
+    });
+  }, []);
+
   // Stats
-  const totalQuestions = questions.length;
-  const myQuestionsCount = questions.filter(q => teacher && q.teacher_id === teacher.id).length;
+  const totalSets = questionSets.length;
+  const mySetsCount = questionSets.filter(s => s.source === 'mine').length;
 
   return (
-    <div className="qb-container">
-      {/* Header */}
-      <div className="qb-header">
-        <div className="qb-header-content">
-          <h1 className="qb-title">📚 Question Bank</h1>
-          <p className="qb-subtitle">
-            {totalQuestions} questions available • {myQuestionsCount} created by you
-          </p>
+    <div className="blooket-container">
+      {/* Sidebar */}
+      <aside className="blooket-sidebar">
+        <div className="blooket-logo">
+          <span className="logo-icon">🧠</span>
+          <span className="logo-text">BrainHeist</span>
         </div>
+
         {onCreateQuestion && (
-          <button className="qb-create-btn" onClick={onCreateQuestion}>
-            ➕ New Question
+          <button className="blooket-create-btn" onClick={onCreateQuestion}>
+            <span className="create-icon">✏️</span>
+            <span>Create</span>
           </button>
         )}
-      </div>
 
-      {/* Tabs */}
-      <div className="qb-tabs">
-        <button 
-          className={`qb-tab ${activeTab === 'all' ? 'active' : ''}`}
-          onClick={() => setActiveTab('all')}
-        >
-          📋 All Sets
-        </button>
-        <button 
-          className={`qb-tab ${activeTab === 'mine' ? 'active' : ''}`}
-          onClick={() => setActiveTab('mine')}
-        >
-          ✨ My Questions
-        </button>
-        <button 
-          className={`qb-tab ${activeTab === 'community' ? 'active' : ''}`}
-          onClick={() => setActiveTab('community')}
-        >
-          👥 Community
-        </button>
-      </div>
+        <nav className="blooket-nav">
+          <button 
+            className={`blooket-nav-item ${activeTab === 'discover' ? 'active' : ''}`}
+            onClick={() => setActiveTab('discover')}
+          >
+            <span className="nav-icon">🔍</span>
+            <span>Discover</span>
+          </button>
+          <button 
+            className={`blooket-nav-item ${activeTab === 'my-sets' ? 'active' : ''}`}
+            onClick={() => setActiveTab('my-sets')}
+          >
+            <span className="nav-icon">📋</span>
+            <span>My Sets</span>
+            {mySetsCount > 0 && <span className="nav-badge">{mySetsCount}</span>}
+          </button>
+          <button 
+            className={`blooket-nav-item ${activeTab === 'favorites' ? 'active' : ''}`}
+            onClick={() => setActiveTab('favorites')}
+          >
+            <span className="nav-icon">⭐</span>
+            <span>Favorites</span>
+            {favorites.size > 0 && <span className="nav-badge">{favorites.size}</span>}
+          </button>
+        </nav>
 
-      {/* Filters */}
-      <div className="qb-filters">
-        <div className="qb-search-wrapper">
-          <span className="qb-search-icon">🔍</span>
-          <input
-            type="text"
-            className="qb-search"
-            placeholder="Search questions..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-          />
-          {searchTerm && (
-            <button className="qb-search-clear" onClick={() => setSearchTerm('')}>✕</button>
+        <div className="blooket-sidebar-footer">
+          <div className="sidebar-stats">
+            <span>{totalSets} Sets</span>
+            <span>{questions.length} Questions</span>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="blooket-main">
+        {/* Header */}
+        <header className="blooket-header">
+          <h1 className="blooket-page-title">
+            {activeTab === 'discover' && 'Discover'}
+            {activeTab === 'my-sets' && 'My Sets'}
+            {activeTab === 'favorites' && 'Favorites'}
+          </h1>
+        </header>
+
+        {/* Search Bar */}
+        <div className="blooket-search-container">
+          <div className="blooket-search-wrapper">
+            <input
+              type="text"
+              className="blooket-search"
+              placeholder="Search for a set..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <button className="blooket-search-btn">
+              <span>🔍</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Subject Filter Pills */}
+        <div className="blooket-filter-pills">
+          <button 
+            className={`filter-pill ${subjectFilter === 'all' ? 'active' : ''}`}
+            onClick={() => setSubjectFilter('all')}
+          >
+            All Subjects
+          </button>
+          {subjects.map(subject => (
+            <button
+              key={subject}
+              className={`filter-pill ${subjectFilter === subject ? 'active' : ''}`}
+              onClick={() => setSubjectFilter(subject)}
+            >
+              {getSubjectEmoji(subject)} {subject}
+            </button>
+          ))}
+        </div>
+
+        {/* Cards Grid */}
+        <div className="blooket-cards-grid">
+          {filteredSets.length === 0 ? (
+            <div className="blooket-empty">
+              <div className="empty-icon">📭</div>
+              <h3>No sets found</h3>
+              <p>
+                {activeTab === 'my-sets' 
+                  ? "You haven't created any question sets yet. Create your first question!"
+                  : activeTab === 'favorites'
+                  ? "You haven't favorited any sets yet. Click the star on a set to add it here."
+                  : "No sets match your search. Try different keywords or clear filters."}
+              </p>
+              {activeTab === 'my-sets' && onCreateQuestion && (
+                <button className="blooket-empty-btn" onClick={onCreateQuestion}>
+                  ✏️ Create Question
+                </button>
+              )}
+            </div>
+          ) : (
+            filteredSets.map(set => (
+              <QuestionSetCard
+                key={set.id}
+                set={set}
+                onPreview={() => handlePreview(set)}
+                onUseSet={() => handleUseSet(set)}
+              />
+            ))
           )}
         </div>
-
-        <select 
-          className="qb-filter-select"
-          value={subjectFilter}
-          onChange={e => setSubjectFilter(e.target.value as 'all' | Subject)}
-        >
-          <option value="all">All Subjects</option>
-          {subjects.map(s => (
-            <option key={s} value={s}>{getSubjectIcon(s)} {s}</option>
-          ))}
-        </select>
-
-        <select 
-          className="qb-filter-select"
-          value={difficultyFilter}
-          onChange={e => setDifficultyFilter(e.target.value as 'all' | QuestionDifficulty)}
-        >
-          <option value="all">All Difficulties</option>
-          <option value="easy">🟢 Easy</option>
-          <option value="medium">🟡 Medium</option>
-          <option value="hard">🔴 Hard</option>
-        </select>
-
-        {grades.length > 0 && (
-          <select 
-            className="qb-filter-select"
-            value={gradeFilter}
-            onChange={e => setGradeFilter(e.target.value)}
-          >
-            <option value="all">All Grades</option>
-            {grades.map(g => (
-              <option key={g} value={g}>{g}</option>
-            ))}
-          </select>
-        )}
-      </div>
-
-      {/* Results Count */}
-      <div className="qb-results-info">
-        <span>{filteredSets.length} set{filteredSets.length !== 1 ? 's' : ''} found</span>
-      </div>
-
-      {/* Question Sets Grid */}
-      {filteredSets.length === 0 ? (
-        <div className="qb-empty">
-          <span className="qb-empty-icon">📭</span>
-          <h3>No question sets found</h3>
-          <p>Try adjusting your filters or search term</p>
-        </div>
-      ) : (
-        <div className="qb-sets-grid">
-          {filteredSets.map(set => (
-            <QuestionSetCard
-              key={set.id}
-              set={set}
-              onPreview={() => handlePreview(set)}
-              onUseSet={() => handleUseSet(set)}
-            />
-          ))}
-        </div>
-      )}
+      </main>
 
       {/* Preview Modal */}
       {previewSet && (
