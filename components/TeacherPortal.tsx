@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, TeacherAssignmentSummary, TeacherAssignmentReportRow, AssignmentBatch, StudentForAssignment, QuestionOption } from '../types';
 import * as GameService from '../services/gameService';
 import { supabase } from '../services/supabaseClient';
 import BackButton from './BackButton';
 import DiagramBuilder from './geometry/DiagramBuilder';
+import QuestionBank from './teacher/QuestionBank';
 import '../src/styles/teacher-theme.css';
 
 interface TeacherPortalProps {
@@ -1707,6 +1708,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     );
   };
 
+  // Handle "Use Set" from the Blooket-style QuestionBank
+  const handleUseQuestionSet = useCallback((questionIds: string[]) => {
+    // Pre-select the questions and navigate to assignment creation
+    setAssignmentQuestionIds(questionIds);
+    setView('create-assignment');
+  }, []);
+
   const selectAllStudents = () => {
     setSelectedStudentIds(filteredStudents.map(s => s.id));
   };
@@ -2587,225 +2595,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </button>
         </form>
       </div>
-    </div>
-  );
-
-  // Render Question Bank
-  const renderQuestionBank = () => (
-    <div>
-      <div className="teacher-section-header">
-        <h2>📚 Question Bank</h2>
-        <button
-          onClick={() => {
-            setEditingQuestion(null);
-            setView('create-question');
-          }}
-          className="teacher-btn teacher-btn-primary"
-        >
-          ➕ New Question
-        </button>
-      </div>
-
-      <div className="teacher-card mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          <div className="teacher-form-group">
-            <label className="teacher-label">Search</label>
-            <input
-              type="text"
-              placeholder="Search questions, subjects, or topics..."
-              value={questionSearchTerm}
-              onChange={(e) => setQuestionSearchTerm(e.target.value)}
-              className="teacher-input"
-            />
-          </div>
-
-          <div className="teacher-form-group">
-            <label className="teacher-label">Subject</label>
-            <select
-              value={questionSubjectFilter}
-              onChange={(e) => setQuestionSubjectFilter(e.target.value as Subject | 'all')}
-              className="teacher-select"
-            >
-              <option value="all">All Subjects</option>
-              {subjectFilterOptions.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="teacher-form-group">
-            <label className="teacher-label">Topic</label>
-            <select
-              value={questionTopicFilter}
-              onChange={(e) => setQuestionTopicFilter(e.target.value)}
-              className="teacher-select"
-            >
-              <option value="all">All Topics</option>
-              {topicFilterOptions.map((topic) => (
-                <option key={topic} value={topic}>{topic}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="teacher-form-group">
-            <label className="teacher-label">Difficulty</label>
-            <select
-              value={questionDifficultyFilter}
-              onChange={(e) => setQuestionDifficultyFilter(e.target.value as QuestionDifficulty | 'all')}
-              className="teacher-select"
-            >
-              <option value="all">All Levels</option>
-              <option value="easy">Easy</option>
-              <option value="medium">Medium</option>
-              <option value="hard">Hard</option>
-            </select>
-          </div>
-
-          <div className="teacher-form-group">
-            <label className="teacher-label">Question Type</label>
-            <select
-              value={questionTypeFilter}
-              onChange={(e) => setQuestionTypeFilter(e.target.value as 'all' | 'multiple_choice' | 'true_false' | 'short_answer')}
-              className="teacher-select"
-            >
-              <option value="all">All Types</option>
-              <option value="multiple_choice">Multiple Choice</option>
-              <option value="true_false">True/False</option>
-              <option value="short_answer">Short Answer</option>
-            </select>
-          </div>
-
-          <div className="teacher-form-group justify-end">
-            <button
-              onClick={() => {
-                setQuestionSearchTerm('');
-                setQuestionSubjectFilter('all');
-                setQuestionTopicFilter('all');
-                setQuestionDifficultyFilter('all');
-                setQuestionTypeFilter('all');
-              }}
-              className="teacher-btn teacher-btn-secondary w-full"
-            >
-              Reset Filters
-            </button>
-          </div>
-        </div>
-
-        <div className="text-sm text-slate-500 mt-4 pt-4 border-t border-slate-200">
-          Showing {filteredQuestions.length} of {questions.length} questions
-        </div>
-      </div>
-
-      {questions.length === 0 ? (
-        <div className="teacher-card p-12 text-center">
-          <div className="text-6xl mb-4">📝</div>
-          <p className="text-xl text-slate-500 mb-4">No questions yet!</p>
-          <button
-            onClick={() => setView('create-question')}
-            className="teacher-btn teacher-btn-primary"
-          >
-            Create Your First Question
-          </button>
-        </div>
-      ) : filteredQuestions.length === 0 ? (
-        <div className="teacher-card p-8 text-center">
-          <p className="text-lg text-slate-600">No questions match your filters.</p>
-          <p className="text-sm text-slate-500">Try adjusting the subject, topic, or search keywords.</p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {Object.entries(groupedQuestions).sort(([a], [b]) => a.localeCompare(b)).map(([subjectName, topics]) => (
-            <div key={subjectName} className="teacher-card">
-              <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-200">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 text-white flex items-center justify-center font-bold text-xl shadow-lg">
-                    {subjectName[0]}
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-slate-800">{subjectName}</h3>
-                    <p className="text-sm text-slate-500">{Object.values(topics).reduce((sum, list) => sum + list.length, 0)} questions</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {Object.entries(topics).sort(([a], [b]) => a.localeCompare(b)).map(([topicName, topicQuestions]) => (
-                  <div key={topicName} className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <h4 className="text-lg font-semibold text-cyan-700">{topicName}</h4>
-                        <p className="text-xs text-slate-500">{topicQuestions.length} question{topicQuestions.length !== 1 ? 's' : ''}</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      {topicQuestions.map((q) => (
-                        <div key={q.id} className="bg-white border border-slate-200 rounded-lg p-4 hover:border-cyan-300 hover:shadow-md transition-all">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
-                                <span className={`teacher-badge ${
-                                  q.difficulty === 'easy' ? 'teacher-badge-success' :
-                                  q.difficulty === 'medium' ? 'teacher-badge-warning' :
-                                  'teacher-badge-danger'
-                                }`}>
-                                  {q.difficulty.toUpperCase()}
-                                </span>
-                                <span className="text-xs text-slate-500">
-                                  {q.question_type.replace('_', ' ').toUpperCase()}
-                                </span>
-                                <span className="text-xs text-amber-600 font-medium">⭐ {q.points} XP</span>
-                              </div>
-
-                              <p className="text-slate-800 mb-3">{q.question_text}</p>
-
-                              <div className="flex items-center gap-4 text-sm text-slate-500">
-                                <span>✅ {q.times_correct} correct</span>
-                                <span>📊 {q.times_answered} total</span>
-                                {q.times_answered > 0 && (
-                                  <span className={`font-bold ${
-                                    (q.times_correct / q.times_answered * 100) >= 70 ? 'text-emerald-600' : 'text-red-500'
-                                  }`}>
-                                    {Math.round((q.times_correct / q.times_answered) * 100)}% success
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="ml-4 flex gap-1">
-                              <button
-                                onClick={() => handleEditQuestion(q)}
-                                className="teacher-btn-icon text-amber-600 hover:bg-amber-50"
-                                title="Edit question"
-                              >
-                                ✏️
-                              </button>
-                              <button
-                                onClick={() => handleDuplicateQuestion(q)}
-                                className="teacher-btn-icon text-cyan-600 hover:bg-cyan-50"
-                                title="Duplicate question"
-                              >
-                                📋
-                              </button>
-                              <button
-                                onClick={() => handleDeleteQuestion(q.id)}
-                                className="teacher-btn-icon text-red-500 hover:bg-red-50"
-                                title="Delete question"
-                              >
-                                🗑️
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 
@@ -4813,7 +4602,19 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         <div className="teacher-main-panel">
           {view === 'dashboard' && renderDashboard()}
           {view === 'create-question' && renderCreateQuestion()}
-          {view === 'question-bank' && renderQuestionBank()}
+          {view === 'question-bank' && (
+            <QuestionBank
+              questions={questions}
+              teacher={teacher}
+              onUseSet={handleUseQuestionSet}
+              onEditQuestion={handleEditQuestion}
+              onDeleteQuestion={handleDeleteQuestion}
+              onCreateQuestion={() => {
+                setEditingQuestion(null);
+                setView('create-question');
+              }}
+            />
+          )}
           {view === 'csv-upload' && renderCSVUpload()}
           {view === 'assignments' && renderAssignments()}
           {view === 'create-assignment' && renderCreateAssignment()}
