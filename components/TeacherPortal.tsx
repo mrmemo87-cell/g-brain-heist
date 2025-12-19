@@ -154,6 +154,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     return Array.from(subjects).sort();
   }, [questions]);
 
+  // Filter to get only the teacher's own questions (for stats)
+  const myQuestions = useMemo(() => {
+    if (!teacher) return [];
+    return questions.filter((q) => q.teacher_id === teacher.id);
+  }, [questions, teacher]);
+
   const topicFilterOptions = useMemo(() => {
     const topics = new Set<string>();
     questions
@@ -1920,20 +1926,22 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       </div>
 
       {/* Stats Cards - Professional Grid */}
+      {/* Uses myQuestions (teacher's own) for stats, not the global question bank */}
       <div className="teacher-stats-grid">
         <div className="teacher-dashboard-stat cyan">
           <div className="teacher-dashboard-stat-info">
-            <h4>Questions Created</h4>
-            <div className="teacher-dashboard-stat-value">{questions.length}</div>
+            <h4>My Questions</h4>
+            <div className="teacher-dashboard-stat-value">{myQuestions.length}</div>
+            <p className="teacher-dashboard-stat-sub">{questions.length} in global bank</p>
           </div>
           <div className="teacher-dashboard-stat-icon">📝</div>
         </div>
         
         <div className="teacher-dashboard-stat green">
           <div className="teacher-dashboard-stat-info">
-            <h4>Total Responses</h4>
+            <h4>My Responses</h4>
             <div className="teacher-dashboard-stat-value">
-              {questions.reduce((sum, q) => sum + q.times_answered, 0)}
+              {myQuestions.reduce((sum, q) => sum + (q.times_answered || 0), 0)}
             </div>
           </div>
           <div className="teacher-dashboard-stat-icon">✅</div>
@@ -1941,11 +1949,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         
         <div className="teacher-dashboard-stat amber">
           <div className="teacher-dashboard-stat-info">
-            <h4>Success Rate</h4>
+            <h4>My Success Rate</h4>
             <div className="teacher-dashboard-stat-value">
-              {questions.length > 0
-                ? Math.round((questions.reduce((sum, q) => sum + q.times_correct, 0) /
-                    Math.max(questions.reduce((sum, q) => sum + q.times_answered, 0), 1)) * 100)
+              {myQuestions.length > 0
+                ? Math.round((myQuestions.reduce((sum, q) => sum + (q.times_correct || 0), 0) /
+                    Math.max(myQuestions.reduce((sum, q) => sum + (q.times_answered || 0), 0), 1)) * 100)
                 : 0}%
             </div>
           </div>

@@ -1287,7 +1287,8 @@ export const whoami = async (): Promise<Profile> => {
       profile.last_ap_update = new Date().toISOString();
 
       // ====== NOTIFICATION: AP FULL ======
-      if (ap_regenerated > 0 && new_ap === profile.ap_max) {
+      // Only send AP notifications to students (not teachers/admins)
+      if (ap_regenerated > 0 && new_ap === profile.ap_max && profile.role === 'student') {
         try {
           await notifyApFull(user.id);
         } catch (notifError) {
