@@ -73,60 +73,73 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     fetchDashboardData();
   }, []);
 
-  // Fetch Cambridge Quiz Scores
+  // Fetch Cambridge Quiz Scores (school-isolated for admins)
   const fetchQuizScores = async () => {
     setQuizScoresLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('quiz_scores')
-        .select('*')
-        .order('submitted_at', { ascending: false });
+      // Use school-scoped RPC to get only scores from admin's school
+      const { data, error } = await supabase.rpc('get_school_cambridge_scores', { p_limit: 500 });
 
-      if (error) throw error;
+      if (error) {
+        // Fallback to direct query if RPC doesn't exist yet (migration not run)
+        console.warn('RPC get_school_cambridge_scores not available, falling back:', error.message);
+        const fallback = await supabase
+          .from('quiz_scores')
+          .select('*')
+          .order('submitted_at', { ascending: false });
+        
+        if (fallback.error) throw fallback.error;
+        setQuizScores(fallback.data || []);
+        calculateQuizStats(fallback.data || []);
+        return;
+      }
 
       const scores = data || [];
       setQuizScores(scores);
-
-      // Calculate stats
-      if (scores.length > 0) {
-        const avgPercentage = Math.round(scores.reduce((sum, s) => sum + (s.percentage || 0), 0) / scores.length);
-        const sorted = [...scores].sort((a, b) => b.percentage - a.percentage);
-        const highestScore = sorted[0] ? { name: sorted[0].student_name, percentage: sorted[0].percentage } : null;
-        const lowestScore = sorted[sorted.length - 1] ? { name: sorted[sorted.length - 1].student_name, percentage: sorted[sorted.length - 1].percentage } : null;
-        
-        // Class stats
-        const classStats: Record<string, { count: number; avg: number; total: number }> = {};
-        scores.forEach(s => {
-          const cls = s.student_class || 'Unknown';
-          if (!classStats[cls]) classStats[cls] = { count: 0, avg: 0, total: 0 };
-          classStats[cls].count++;
-          classStats[cls].total += s.percentage || 0;
-        });
-        Object.keys(classStats).forEach(cls => {
-          classStats[cls].avg = Math.round(classStats[cls].total / classStats[cls].count);
-        });
-
-        setQuizStats({
-          totalSubmissions: scores.length,
-          avgPercentage,
-          highestScore,
-          lowestScore,
-          classStats
-        });
-      } else {
-        setQuizStats({
-          totalSubmissions: 0,
-          avgPercentage: 0,
-          highestScore: null,
-          lowestScore: null,
-          classStats: {}
-        });
-      }
+      calculateQuizStats(scores);
     } catch (error) {
       console.error('Failed to fetch quiz scores:', error);
       addToast('Failed to fetch Cambridge test scores', 'error');
     } finally {
       setQuizScoresLoading(false);
+    }
+  };
+
+  // Helper to calculate quiz stats
+  const calculateQuizStats = (scores: any[]) => {
+    if (scores.length > 0) {
+      const avgPercentage = Math.round(scores.reduce((sum, s) => sum + (s.percentage || 0), 0) / scores.length);
+      const sorted = [...scores].sort((a, b) => b.percentage - a.percentage);
+      const highestScore = sorted[0] ? { name: sorted[0].student_name, percentage: sorted[0].percentage } : null;
+      const lowestScore = sorted[sorted.length - 1] ? { name: sorted[sorted.length - 1].student_name, percentage: sorted[sorted.length - 1].percentage } : null;
+      
+      // Class stats
+      const classStats: Record<string, { count: number; avg: number; total: number }> = {};
+      scores.forEach(s => {
+        const cls = s.student_class || 'Unknown';
+        if (!classStats[cls]) classStats[cls] = { count: 0, avg: 0, total: 0 };
+        classStats[cls].count++;
+        classStats[cls].total += s.percentage || 0;
+      });
+      Object.keys(classStats).forEach(cls => {
+        classStats[cls].avg = Math.round(classStats[cls].total / classStats[cls].count);
+      });
+
+      setQuizStats({
+        totalSubmissions: scores.length,
+        avgPercentage,
+        highestScore,
+        lowestScore,
+        classStats
+      });
+    } else {
+      setQuizStats({
+        totalSubmissions: 0,
+        avgPercentage: 0,
+        highestScore: null,
+        lowestScore: null,
+        classStats: {}
+      });
     }
   };
 

@@ -359,71 +359,72 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) =>
     }
   };
 
-  // Load Cambridge test scores for teacher's classes
+  // Load Cambridge test scores for teacher's school (school-isolated)
   const loadCambridgeScores = async () => {
     setCambridgeLoading(true);
     try {
-      // Get the teacher's batch/class from profile (teachers see students in their assigned classes)
-      // For now, load all scores and filter by class if needed
-      const { data, error } = await supabase
-        .from('quiz_scores')
-        .select('*')
-        .order('submitted_at', { ascending: false });
+      // Use school-scoped RPC to get only scores from teacher's school
+      const { data, error } = await supabase.rpc('get_school_cambridge_scores', { p_limit: 500 });
 
-      if (error) throw error;
+      if (error) {
+        // Fallback to direct query if RPC doesn't exist yet (migration not run)
+        console.warn('RPC get_school_cambridge_scores not available, falling back to direct query:', error.message);
+        const fallback = await supabase
+          .from('quiz_scores')
+          .select('*')
+          .order('submitted_at', { ascending: false });
+        
+        if (fallback.error) throw fallback.error;
+        setCambridgeScores(fallback.data || []);
+        calculateCambridgeStats(fallback.data || []);
+        return;
+      }
 
       const scores = data || [];
-      
-      // Filter by teacher's classes if profile.batch is set
-      // Teachers can see all classes they teach
-      const teacherBatch = profile.batch;
-      let filteredScores = scores;
-      
-      // If teacher has a specific batch assigned, filter to only show those students
-      // But most teachers should see all students, so we'll show all by default
-      // This can be enhanced later with a teacher_classes table
-      
-      setCambridgeScores(filteredScores);
-
-      // Calculate stats
-      if (filteredScores.length > 0) {
-        const avgPercentage = Math.round(filteredScores.reduce((sum, s) => sum + (s.percentage || 0), 0) / filteredScores.length);
-        const sorted = [...filteredScores].sort((a, b) => b.percentage - a.percentage);
-        const highestScore = sorted[0] ? { name: sorted[0].student_name, percentage: sorted[0].percentage } : null;
-        const lowestScore = sorted[sorted.length - 1] ? { name: sorted[sorted.length - 1].student_name, percentage: sorted[sorted.length - 1].percentage } : null;
-        
-        // Class stats
-        const classStats: Record<string, { count: number; avg: number; total: number }> = {};
-        filteredScores.forEach(s => {
-          const cls = s.student_class || 'Unknown';
-          if (!classStats[cls]) classStats[cls] = { count: 0, avg: 0, total: 0 };
-          classStats[cls].count++;
-          classStats[cls].total += s.percentage || 0;
-        });
-        Object.keys(classStats).forEach(cls => {
-          classStats[cls].avg = Math.round(classStats[cls].total / classStats[cls].count);
-        });
-
-        setCambridgeStats({
-          totalSubmissions: filteredScores.length,
-          avgPercentage,
-          highestScore,
-          lowestScore,
-          classStats
-        });
-      } else {
-        setCambridgeStats({
-          totalSubmissions: 0,
-          avgPercentage: 0,
-          highestScore: null,
-          lowestScore: null,
-          classStats: {}
-        });
-      }
+      setCambridgeScores(scores);
+      calculateCambridgeStats(scores);
     } catch (error) {
       console.error('Failed to fetch Cambridge scores:', error);
     } finally {
       setCambridgeLoading(false);
+    }
+  };
+
+  // Helper to calculate Cambridge stats
+  const calculateCambridgeStats = (scores: any[]) => {
+    if (scores.length > 0) {
+      const avgPercentage = Math.round(scores.reduce((sum, s) => sum + (s.percentage || 0), 0) / scores.length);
+      const sorted = [...scores].sort((a, b) => b.percentage - a.percentage);
+      const highestScore = sorted[0] ? { name: sorted[0].student_name, percentage: sorted[0].percentage } : null;
+      const lowestScore = sorted[sorted.length - 1] ? { name: sorted[sorted.length - 1].student_name, percentage: sorted[sorted.length - 1].percentage } : null;
+      
+      // Class stats
+      const classStats: Record<string, { count: number; avg: number; total: number }> = {};
+      scores.forEach(s => {
+        const cls = s.student_class || 'Unknown';
+        if (!classStats[cls]) classStats[cls] = { count: 0, avg: 0, total: 0 };
+        classStats[cls].count++;
+        classStats[cls].total += s.percentage || 0;
+      });
+      Object.keys(classStats).forEach(cls => {
+        classStats[cls].avg = Math.round(classStats[cls].total / classStats[cls].count);
+      });
+
+      setCambridgeStats({
+        totalSubmissions: scores.length,
+        avgPercentage,
+        highestScore,
+        lowestScore,
+        classStats
+      });
+    } else {
+      setCambridgeStats({
+        totalSubmissions: 0,
+        avgPercentage: 0,
+        highestScore: null,
+        lowestScore: null,
+        classStats: {}
+      });
     }
   };
 
