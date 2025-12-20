@@ -261,23 +261,6 @@
 }
 
 /* ============================================================
-   NAVIGATION
-   ============================================================ */
-.teacher-nav-container {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%);
-  border-radius: var(--teacher-radius-xl);
-  padding: 0.625rem;
-  margin-bottom: 1.5rem;
-  box-shadow: var(--teacher-shadow-lg);
-  border: 1px solid var(--teacher-border);
-  position: relative;
-  overflow: hidden;
-}
-
-.teacher-nav-container::before {
-  content: '';
-  position: absolute;
-/* ============================================================
    NAVIGATION - Premium Design
    ============================================================ */
 .teacher-nav-container {
