@@ -186,3 +186,10 @@ export const fetchRaidStatus = (
 ): RpcResult<any> => {
   return execute('get_raid_status', { p_raid_id: raidId }, client);
 };
+
+export const getMyAssignmentAnswers = (
+  assignmentId: string,
+  client?: RpcClient
+): RpcResult<unknown> => {
+  return execute('rpc_get_my_assignment_answers', { p_assignment_id: assignmentId }, client);
+};

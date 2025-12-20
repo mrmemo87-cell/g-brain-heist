@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import * as GameService from '../services/gameService';
 import BackButton from './BackButton';
-import { CompletedAssignment } from '../types';
+import { CompletedAssignment, MyAssignmentAnswer } from '../types';
 
 interface Achievement {
   id: string;
@@ -28,6 +28,9 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
   const [filter, setFilter] = useState<'all' | 'earned' | 'locked'>('all');
   const [completedAssignments, setCompletedAssignments] = useState<CompletedAssignment[]>([]);
   const [showAssignments, setShowAssignments] = useState(false);
+  const [selectedAssignment, setSelectedAssignment] = useState<CompletedAssignment | null>(null);
+  const [assignmentAnswers, setAssignmentAnswers] = useState<MyAssignmentAnswer[]>([]);
+  const [loadingAnalysis, setLoadingAnalysis] = useState(false);
 
   useEffect(() => {
     fetchAchievements();
@@ -41,6 +44,21 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
     } catch (error) {
       console.error('Failed to fetch completed assignments:', error);
       setCompletedAssignments([]);
+    }
+  };
+
+  const handleViewAnalysis = async (assignment: CompletedAssignment) => {
+    setLoadingAnalysis(true);
+    setSelectedAssignment(assignment);
+    try {
+      const answers = await GameService.get_my_assignment_answers(assignment.assignment_id);
+      setAssignmentAnswers(answers);
+    } catch (error: any) {
+      console.error('Failed to load assignment analysis:', error);
+      addToast('Failed to load assignment analysis. Please try again.', 'error');
+      setAssignmentAnswers([]);
+    } finally {
+      setLoadingAnalysis(false);
     }
   };
 
@@ -255,7 +273,7 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-heading text-lg text-white">{assignment.title}</h4>
+                        <h4 className="font-heading text-lg text-white">{assignment.title || assignment.subject_name}</h4>
                         <p className="text-sm text-gray-400">
                           Assigned by {assignment.teacher_name || 'Teacher'}
                         </p>
@@ -267,14 +285,27 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
                           {scorePercent}%
                         </div>
                         <div className="text-sm text-gray-400">
-                          {assignment.score}/{assignment.total_questions}
+                          {assignment.correct}/{assignment.total_questions}
                         </div>
                       </div>
                     </div>
-                    <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
-                      <span>
+                    <div className="mt-3 flex items-center justify-between">
+                      <div className="text-xs text-gray-500">
                         {isExcellent ? '🌟 Excellent!' : isGood ? '✅ Good job!' : '📖 Keep practicing!'}
-                      </span>
+                        <span className="ml-2">
+                          Completed: {new Date(assignment.completed_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleViewAnalysis(assignment)}
+                        className="px-3 py-1 text-xs rounded-lg bg-cyan-600/30 text-cyan-300 hover:bg-cyan-600/50 transition-all"
+                      >
+                        📊 View Analysis
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
                       <span>
                         Completed: {new Date(assignment.completed_at).toLocaleDateString()}
                       </span>
@@ -293,14 +324,14 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
                   </div>
                   <div>
                     <div className="text-2xl font-heading text-yellow-400">
-                      {completedAssignments.filter(a => (a.score / a.total_questions) >= 0.9).length}
+                      {completedAssignments.filter(a => (a.correct / a.total_questions) >= 0.9).length}
                     </div>
                     <div className="text-xs text-gray-400">Perfect Scores</div>
                   </div>
                   <div>
                     <div className="text-2xl font-heading text-green-400">
                       {completedAssignments.length > 0 
-                        ? Math.round(completedAssignments.reduce((sum, a) => sum + (a.score / a.total_questions) * 100, 0) / completedAssignments.length)
+                        ? Math.round(completedAssignments.reduce((sum, a) => sum + (a.correct / a.total_questions) * 100, 0) / completedAssignments.length)
                         : 0}%
                     </div>
                     <div className="text-xs text-gray-400">Avg Score</div>
@@ -309,6 +340,125 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Assignment Analysis Modal */}
+      {selectedAssignment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+          <div className="w-full max-w-3xl max-h-[90vh] overflow-auto rounded-2xl bg-slate-900 p-6 shadow-2xl border border-cyan-500/30">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="font-heading text-2xl text-cyan-400">
+                  📊 Assignment Analysis
+                </h3>
+                <p className="text-gray-400 text-sm">
+                  {selectedAssignment.title || selectedAssignment.subject_name} • {selectedAssignment.topic_name}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setSelectedAssignment(null);
+                  setAssignmentAnswers([]);
+                }}
+                className="text-gray-400 hover:text-white text-2xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            {loadingAnalysis ? (
+              <div className="text-center py-10">
+                <div className="text-4xl mb-4 animate-spin">⚙️</div>
+                <p className="text-gray-400">Loading your answers...</p>
+              </div>
+            ) : assignmentAnswers.length === 0 ? (
+              <div className="text-center py-10">
+                <div className="text-4xl mb-4">📝</div>
+                <p className="text-gray-400">No detailed answer data available.</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Answer tracking was added recently. Your future assignments will show detailed analysis.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Summary Stats */}
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="card-glass p-4 text-center border border-green-500/30">
+                    <div className="text-2xl font-heading text-green-400">
+                      {assignmentAnswers.filter(a => a.is_correct).length}
+                    </div>
+                    <div className="text-xs text-gray-400">Correct</div>
+                  </div>
+                  <div className="card-glass p-4 text-center border border-red-500/30">
+                    <div className="text-2xl font-heading text-red-400">
+                      {assignmentAnswers.filter(a => !a.is_correct).length}
+                    </div>
+                    <div className="text-xs text-gray-400">Incorrect</div>
+                  </div>
+                  <div className="card-glass p-4 text-center border border-blue-500/30">
+                    <div className="text-2xl font-heading text-blue-400">
+                      {Math.round(assignmentAnswers.filter(a => a.is_correct).length / assignmentAnswers.length * 100)}%
+                    </div>
+                    <div className="text-xs text-gray-400">Accuracy</div>
+                  </div>
+                </div>
+
+                {/* Question-by-Question Review */}
+                <h4 className="font-heading text-lg text-white mb-3">Question Review</h4>
+                {assignmentAnswers.map((answer, index) => (
+                  <div
+                    key={answer.question_id}
+                    className={`card-glass p-4 border-l-4 ${
+                      answer.is_correct ? 'border-l-green-500' : 'border-l-red-500'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`text-2xl ${answer.is_correct ? 'text-green-400' : 'text-red-400'}`}>
+                        {answer.is_correct ? '✓' : '✗'}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-white font-medium mb-2">
+                          Q{index + 1}: {answer.question_text}
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                          <div className={`p-2 rounded ${answer.is_correct ? 'bg-green-900/30' : 'bg-red-900/30'}`}>
+                            <span className="text-gray-400">Your answer:</span>{' '}
+                            <span className={answer.is_correct ? 'text-green-300' : 'text-red-300'}>
+                              {answer.student_answer}
+                            </span>
+                          </div>
+                          {!answer.is_correct && (
+                            <div className="p-2 rounded bg-green-900/30">
+                              <span className="text-gray-400">Correct answer:</span>{' '}
+                              <span className="text-green-300">{answer.correct_answer}</span>
+                            </div>
+                          )}
+                        </div>
+                        {answer.explanation && !answer.is_correct && (
+                          <div className="mt-2 p-2 rounded bg-blue-900/20 border border-blue-500/20">
+                            <span className="text-blue-300 text-sm">💡 {answer.explanation}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-6 text-center">
+              <button
+                onClick={() => {
+                  setSelectedAssignment(null);
+                  setAssignmentAnswers([]);
+                }}
+                className="px-6 py-2 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-heading hover:scale-105 transition-all"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -1031,6 +1031,17 @@ export interface AssignmentAchievementEarned {
   coin_reward: number;
 }
 
+export interface MyAssignmentAnswer {
+  question_id: string;
+  question_text: string;
+  correct_answer: string;
+  student_answer: string;
+  is_correct: boolean;
+  time_taken_ms: number;
+  answered_at: string;
+  explanation: string | null;
+}
+
 export interface QuestionAttemptResult {
   is_correct: boolean;
   points_earned: number;

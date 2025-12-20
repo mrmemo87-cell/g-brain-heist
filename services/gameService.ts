@@ -42,6 +42,7 @@ import {
     StudentAnswerInput,
     CompletedAssignment,
     AssignmentAchievementEarned,
+    MyAssignmentAnswer,
 } from '../types';
 import * as RaidFeatureService from '../src/features/raids/raidService';
 import {
@@ -81,7 +82,8 @@ import {
     getAssignmentStudentAnswers as rpcGetAssignmentStudentAnswers,
     getAssignmentQuestionAnalysis as rpcGetAssignmentQuestionAnalysis,
     getStudentCompletedAssignments as rpcGetStudentCompletedAssignments,
-    checkAssignmentAchievements as rpcCheckAssignmentAchievements
+    checkAssignmentAchievements as rpcCheckAssignmentAchievements,
+    getMyAssignmentAnswers as rpcGetMyAssignmentAnswers
 } from './rpcGateway';
 
 const MOCK_DELAY = 500;
@@ -4196,17 +4198,17 @@ export const achievements_list = async (): Promise<Achievement[]> => {
     if (achError) throw achError;
 
     // Get user's earned achievements
-    // Select either earned_at or unlocked_at depending on which column exists
+    // Select both earned_at and unlocked_at - some schemas have one or the other
     const { data: earnedAchievements, error: earnedError } = await supabase
         .from('user_achievements')
-        .select('achievement_id, COALESCE(earned_at, unlocked_at) as earned_at')
+        .select('achievement_id, earned_at, unlocked_at')
         .eq('user_id', user.id);
 
     if (earnedError) throw earnedError;
 
     const earnedMap: Record<string, string> = {};
     (earnedAchievements || []).forEach((ua: any) => {
-        // some migrations used `unlocked_at` instead of `earned_at`, coalesced above
+        // Use whichever timestamp column exists
         earnedMap[ua.achievement_id] = ua.earned_at || ua.unlocked_at || null;
     });
 
@@ -4899,6 +4901,22 @@ export const check_assignment_achievements = async (
     }
 
     return (data as AssignmentAchievementEarned[]) || [];
+};
+
+/**
+ * Get student's own answers for a completed assignment (for review/analysis)
+ */
+export const get_my_assignment_answers = async (
+    assignmentId: string
+): Promise<MyAssignmentAnswer[]> => {
+    const { data, error } = await rpcGetMyAssignmentAnswers(assignmentId);
+
+    if (error) {
+        console.error('Failed to load assignment answers:', error);
+        throw new Error(error.message || 'Failed to load assignment answers');
+    }
+
+    return (data as MyAssignmentAnswer[]) || [];
 };
 
 type QuestProgressOutcome = {

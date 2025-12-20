@@ -696,6 +696,65 @@ $$;
 GRANT EXECUTE ON FUNCTION rpc_get_student_completed_assignments() TO authenticated;
 
 -- ============================================================================
+-- FIX 9B: RPC for students to view their own assignment answers (after completion)
+-- ============================================================================
+-- Students can review their answers and see where they went wrong
+
+CREATE OR REPLACE FUNCTION rpc_get_my_assignment_answers(
+  p_assignment_id UUID
+)
+RETURNS TABLE (
+  question_id UUID,
+  question_text TEXT,
+  correct_answer TEXT,
+  student_answer TEXT,
+  is_correct BOOLEAN,
+  time_taken_ms INTEGER,
+  answered_at TIMESTAMPTZ,
+  explanation TEXT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_student_id UUID := auth.uid();
+BEGIN
+  IF v_student_id IS NULL THEN
+    RAISE EXCEPTION 'NOT_AUTHENTICATED';
+  END IF;
+
+  -- Verify student has completed this assignment
+  IF NOT EXISTS (
+    SELECT 1 FROM student_assignments 
+    WHERE assignment_id = p_assignment_id 
+      AND student_id = v_student_id 
+      AND status = 'completed'
+  ) THEN
+    RAISE EXCEPTION 'Assignment not completed or not assigned to you';
+  END IF;
+
+  RETURN QUERY
+  SELECT
+    saa.question_id,
+    saa.question_text,
+    saa.correct_answer,
+    saa.student_answer,
+    saa.is_correct,
+    saa.time_taken_ms,
+    saa.answered_at,
+    q.explanation
+  FROM student_assignment_answers saa
+  LEFT JOIN questions q ON q.id = saa.question_id
+  WHERE saa.assignment_id = p_assignment_id
+    AND saa.student_id = v_student_id
+  ORDER BY saa.answered_at;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION rpc_get_my_assignment_answers(UUID) TO authenticated;
+
+-- ============================================================================
 -- FIX 10: Update check_achievements to include assignment achievements
 -- ============================================================================
 -- This function checks for newly earned achievements after assignment completion
