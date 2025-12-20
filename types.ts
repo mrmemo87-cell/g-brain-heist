@@ -1009,6 +1009,7 @@ export interface StudentAnswerInput {
 }
 
 export interface CompletedAssignment {
+  id: string; // Maps from assignment_id in SQL
   assignment_id: string;
   subject_name: string;
   topic_name: string;
@@ -1017,6 +1018,7 @@ export interface CompletedAssignment {
   accuracy: number;
   correct: number;
   incorrect: number;
+  total_questions: number; // Computed: correct + incorrect
   completed_at: string;
   title: string | null;
 }

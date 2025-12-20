@@ -4861,7 +4861,12 @@ export const get_student_completed_assignments = async (): Promise<CompletedAssi
         return [];
     }
 
-    return (data as CompletedAssignment[]) || [];
+    // Map SQL response to include computed fields
+    return ((data as any[]) || []).map((a) => ({
+        ...a,
+        id: a.assignment_id, // Alias for React key
+        total_questions: (a.correct || 0) + (a.incorrect || 0)
+    })) as CompletedAssignment[];
 };
 
 /**

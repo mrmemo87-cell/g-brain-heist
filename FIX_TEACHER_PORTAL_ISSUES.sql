@@ -811,6 +811,35 @@ $$;
 GRANT EXECUTE ON FUNCTION check_assignment_achievements(UUID) TO authenticated;
 
 -- ============================================================================
+-- FIX 11: Clean up existing assignments - remove students from wrong schools
+-- ============================================================================
+-- This one-time cleanup removes student_assignments where the student's school
+-- doesn't match the teacher's school for that assignment.
+
+DO $$
+DECLARE
+  v_deleted_count INT;
+BEGIN
+  -- Delete student_assignments where student is from a different school than the teacher
+  DELETE FROM student_assignments sa
+  WHERE EXISTS (
+    SELECT 1 
+    FROM assignments a
+    JOIN teachers t ON t.id = a.teacher_id
+    JOIN users teacher_user ON teacher_user.id = t.user_id
+    JOIN users student_user ON student_user.id = sa.student_id
+    WHERE a.id = sa.assignment_id
+      AND teacher_user.school_id IS NOT NULL
+      AND student_user.school_id IS NOT NULL
+      AND teacher_user.school_id != student_user.school_id
+  );
+  
+  GET DIAGNOSTICS v_deleted_count = ROW_COUNT;
+  RAISE NOTICE 'Cleaned up % student_assignments from wrong schools', v_deleted_count;
+END;
+$$;
+
+-- ============================================================================
 -- VERIFICATION
 -- ============================================================================
 
