@@ -10,6 +10,7 @@ import '../src/styles/teacher-theme.css';
 interface TeacherPortalProps {
   profile: Profile;
   onComplete: () => void;
+  onLockdown?: () => void;
 }
 
 type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'geometry-diagrams' | 'cambridge-reports';
@@ -29,7 +30,7 @@ const MAX_QUESTION_XP = 30;
 
 const getQuestionTopicLabel = (question: TeacherQuestion) => question.topic_name || question.topic || 'General';
 
-const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete }) => {
+const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLockdown }) => {
   const [view, setView] = useState<PortalView>('dashboard');
   const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [questions, setQuestions] = useState<TeacherQuestion[]>([]);
@@ -2043,6 +2044,19 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             <h4 className="teacher-action-title">New Assignment</h4>
             <p className="teacher-action-desc">Assign work to students</p>
           </button>
+
+          {/* Lockdown Mode - Premium Feature */}
+          {onLockdown && (
+            <button
+              onClick={onLockdown}
+              className="teacher-action-card teacher-action-card-lockdown"
+              data-color="emerald"
+            >
+              <div className="teacher-action-icon">🔒</div>
+              <h4 className="teacher-action-title">Lockdown Mode</h4>
+              <p className="teacher-action-desc">Host a live classroom session</p>
+            </button>
+          )}
         </div>
       </div>
 

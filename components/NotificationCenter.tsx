@@ -5,30 +5,49 @@ interface NotificationCenterProps {
   isOpen: boolean;
   onClose: () => void;
   onNavigate?: (view: 'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher') => void;
+  userRole?: 'student' | 'teacher' | 'admin';
 }
 
-export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose, onNavigate }) => {
+export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose, onNavigate, userRole = 'student' }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Filter notifications based on user role
+  const filterNotificationsForRole = (notifs: Notification[]): Notification[] => {
+    if (userRole === 'teacher') {
+      // Teachers only see teacher-relevant notifications (exclude game-related ones)
+      return notifs.filter(n => !NotificationService.STUDENT_ONLY_TYPES.includes(n.type));
+    }
+    if (userRole === 'student') {
+      // Students don't see teacher-only notifications
+      return notifs.filter(n => !NotificationService.TEACHER_ONLY_TYPES.includes(n.type));
+    }
+    // Admins see everything
+    return notifs;
+  };
 
   useEffect(() => {
     loadNotifications();
     
     // Subscribe to new notifications
     const unsubscribe = notificationService.subscribe((notification) => {
-      setNotifications(prev => [notification, ...prev]);
+      const [filtered] = filterNotificationsForRole([notification]);
+      if (filtered) {
+        setNotifications(prev => [notification, ...prev]);
+      }
     });
 
     return () => {
       unsubscribe();
     };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userRole]);
 
   const loadNotifications = async () => {
     try {
       setLoading(true);
       const data = await notificationService.getNotifications(20);
-      setNotifications(data);
+      setNotifications(filterNotificationsForRole(data));
     } catch (error) {
       console.error('Failed to load notifications:', error);
     } finally {

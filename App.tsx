@@ -924,7 +924,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         case 'raid_admin':
             return renderLazy(<RaidAdminView profile={profile} onComplete={handleViewComplete} addToast={addToast} />);
         case 'teacher':
-            return renderLazy(<TeacherPortal profile={profile} onComplete={handleViewComplete} />);
+            return renderLazy(<TeacherPortal profile={profile} onComplete={handleViewComplete} onLockdown={() => setView('lockdown')} />);
         case 'admin':
             return renderLazy(<AdminPortal profile={profile} onComplete={handleViewComplete} addToast={addToast} />);
         case 'tournament':
@@ -996,56 +996,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           );
         case 'dashboard':
         default:
-            // Teacher Dashboard - simplified view focused on teaching
+            // Teacher goes directly to TeacherPortal - unified experience
             if (profile?.role === 'teacher') {
-                return (
-                    <main className="mt-6 max-w-6xl mx-auto">
-                        <div className="text-center mb-8">
-                            <h1 className="font-heading text-4xl mb-2" style={{color: 'var(--ion-blue)'}}>👨‍🏫 Teacher Dashboard</h1>
-                            <p className="text-gray-300">Manage your questions and track student progress</p>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                            {/* Quick Stats */}
-                            <div className="card-glass p-6">
-                                <h3 className="font-heading text-xl mb-4" style={{color: 'var(--ion-blue)'}}>Overview</h3>
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-center p-3 bg-black/20 rounded-lg">
-                                        <span className="text-gray-300">Username</span>
-                                        <span className="font-bold text-white">{profile.username}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center p-3 bg-purple-500/20 rounded-lg border border-purple-400">
-                                        <span className="text-gray-300">Role</span>
-                                        <span className="font-bold text-white">👨‍🏫 Teacher</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            {/* Quick Actions */}
-                            <div className="card-glass p-6">
-                                <h3 className="font-heading text-xl mb-4" style={{color: 'var(--amber-warn)'}}>Quick Actions</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <button
-                                        onClick={() => setView('teacher')}
-                                        className="w-full p-6 rounded-xl bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-2 border-purple-400 hover:border-purple-300 transition-all hover:scale-105 active:scale-95"
-                                    >
-                                        <div className="text-4xl mb-2">🧑‍🏫📘</div>
-                                        <div className="font-heading text-xl mb-1">Question Management</div>
-                                        <div className="text-sm text-gray-300">Create and manage your questions</div>
-                                    </button>
-                                    <button
-                                        onClick={() => setView('lockdown')}
-                                        className="w-full p-6 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border-2 border-emerald-400 hover:border-emerald-300 transition-all hover:scale-105 active:scale-95"
-                                    >
-                                        <div className="text-4xl mb-2">🔒🛰️</div>
-                                        <div className="font-heading text-xl mb-1">Lockdown Mode</div>
-                                        <div className="text-sm text-gray-300">Host a live classroom session</div>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                    </main>
+                return renderLazy(
+                    <TeacherPortal
+                        profile={profile}
+                        onComplete={handleViewComplete}
+                        onLockdown={() => setView('lockdown')}
+                    />
                 );
             }
             

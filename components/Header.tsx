@@ -703,6 +703,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
         onNavigate={onNavigate}
+        userRole={profile.role as 'student' | 'teacher' | 'admin' | undefined}
       />
     </>
   );

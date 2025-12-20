@@ -196,7 +196,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
           </div>
 
-          {/* Cosmetics */}
+          {/* Cosmetics - Only show for non-teacher accounts */}
+          {profile.role !== 'teacher' && (
           <div>
             <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--amber-warn)' }}>Cosmetics</h3>
             {hasNeonFrame ? (
@@ -254,6 +255,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               </div>
             )}
           </div>
+          )}
 
           {/* Light Mode Toggle */}
           <div>

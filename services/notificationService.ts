@@ -18,7 +18,13 @@ export type NotificationType =
   | 'revenge_available'    // 💢 Opportunity - Get revenge
   | 'streak_danger'       // 🔥 Warning - Streak about to break
   | 'new_rival'           // 👊 Competition - New rival appeared
-  | 'leaderboard_change'; // 📊 Progress - Rank changed
+  | 'leaderboard_change'  // 📊 Progress - Rank changed
+  // Teacher-specific notifications
+  | 'assignment_completed'  // ✅ Student finished an assignment
+  | 'cambridge_test_taken' // 📝 Student took a Cambridge test
+  | 'student_improvement'  // 📈 Student showed academic improvement
+  | 'new_submission'       // 📬 New work submitted for review
+  | 'class_milestone';     // 🎯 Class reached a milestone
 
 export type NotificationAction = {
   label: string;
@@ -214,7 +220,7 @@ class NotificationService {
 
   // Get notification emoji and color based on type
   static getNotificationStyle(type: NotificationType): { emoji: string; color: string; bgColor: string } {
-    const styles = {
+    const styles: Record<NotificationType, { emoji: string; color: string; bgColor: string }> = {
       attack_incoming: { emoji: '🚨', color: 'text-red-400', bgColor: 'bg-red-500/20' },
       attack_defended: { emoji: '🛡️', color: 'text-green-400', bgColor: 'bg-green-500/20' },
       attack_success: { emoji: '⚔️', color: 'text-yellow-400', bgColor: 'bg-yellow-500/20' },
@@ -233,6 +239,12 @@ class NotificationService {
       streak_danger: { emoji: '🔥', color: 'text-orange-400', bgColor: 'bg-orange-500/20' },
       new_rival: { emoji: '👊', color: 'text-purple-400', bgColor: 'bg-purple-500/20' },
       leaderboard_change: { emoji: '📊', color: 'text-cyan-400', bgColor: 'bg-cyan-500/20' },
+      // Teacher notification styles
+      assignment_completed: { emoji: '✅', color: 'text-green-400', bgColor: 'bg-green-500/20' },
+      cambridge_test_taken: { emoji: '📝', color: 'text-blue-400', bgColor: 'bg-blue-500/20' },
+      student_improvement: { emoji: '📈', color: 'text-emerald-400', bgColor: 'bg-emerald-500/20' },
+      new_submission: { emoji: '📬', color: 'text-purple-400', bgColor: 'bg-purple-500/20' },
+      class_milestone: { emoji: '🎯', color: 'text-yellow-400', bgColor: 'bg-yellow-500/20' },
     };
 
     return styles[type];
@@ -259,10 +271,30 @@ class NotificationService {
       streak_danger: { label: 'Play Now', view: 'quest' },
       new_rival: { label: 'View Leaderboard', view: 'leaderboard' },
       leaderboard_change: { label: 'View Leaderboard', view: 'leaderboard' },
+      // Teacher notification actions
+      assignment_completed: { label: 'View Reports', view: 'teacher' },
+      cambridge_test_taken: { label: 'Review Test', view: 'teacher' },
+      student_improvement: { label: 'View Progress', view: 'teacher' },
+      new_submission: { label: 'Review', view: 'teacher' },
+      class_milestone: { label: 'View Class', view: 'teacher' },
     };
 
     return actions[type];
   }
+
+  // Types that are ONLY for students (game-related)
+  static readonly STUDENT_ONLY_TYPES: NotificationType[] = [
+    'attack_incoming', 'attack_defended', 'attack_success', 'attack_failed',
+    'coins_earned', 'coins_lost', 'gemstone_earned', 'low_ap', 'ap_full',
+    'challenge_received', 'revenge_available', 'streak_danger', 'new_rival',
+    'clan_invite',
+  ];
+
+  // Types that are ONLY for teachers
+  static readonly TEACHER_ONLY_TYPES: NotificationType[] = [
+    'assignment_completed', 'cambridge_test_taken', 'student_improvement',
+    'new_submission', 'class_milestone',
+  ];
 }
 
 export const notificationService = new NotificationService();
