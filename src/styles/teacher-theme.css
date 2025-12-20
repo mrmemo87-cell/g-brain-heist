@@ -1953,6 +1953,85 @@
 }
 
 /* ============================================================
+   SMART DUE DATE SELECTOR
+   ============================================================ */
+.teacher-due-date-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.teacher-due-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.teacher-due-preset-btn {
+  padding: 0.625rem 1rem;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #f3f4f6;
+  border: 2px solid #e5e7eb;
+  color: #6b7280;
+}
+
+.teacher-due-preset-btn:hover {
+  background: #ede9fe;
+  border-color: #c4b5fd;
+  color: #7c3aed;
+  transform: translateY(-1px);
+}
+
+.teacher-due-preset-btn.active {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 4px 12px -2px rgba(139, 92, 246, 0.4);
+}
+
+.teacher-due-custom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.teacher-due-custom span {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.teacher-due-custom input[type="datetime-local"] {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.625rem 0.875rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  background: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.teacher-due-custom input[type="datetime-local"]:hover {
+  border-color: #c4b5fd;
+}
+
+.teacher-due-custom input[type="datetime-local"]:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+}
+
+/* ============================================================
    PRINT STYLES
    ============================================================ */
 @media print {

@@ -3034,24 +3034,43 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </div>
           </div>
 
-          <div className="teacher-form-grid">
-            <div className="teacher-form-group-premium">
-              <label className="teacher-label-premium">Assigned At</label>
-              <input
-                type="datetime-local"
-                value={assignmentAssignedAt}
-                onChange={(e) => setAssignmentAssignedAt(e.target.value)}
-                className="teacher-input-premium"
-              />
-            </div>
-            <div className="teacher-form-group-premium">
-              <label className="teacher-label-premium">Due At</label>
-              <input
-                type="datetime-local"
-                value={assignmentDueAt}
-                onChange={(e) => setAssignmentDueAt(e.target.value)}
-                className="teacher-input-premium"
-              />
+          <div className="teacher-form-group-premium">
+            <label className="teacher-label-premium">Due Date</label>
+            <div className="teacher-due-date-selector">
+              <div className="teacher-due-presets">
+                {[
+                  { label: 'Today', days: 0 },
+                  { label: 'Tomorrow', days: 1 },
+                  { label: '3 Days', days: 3 },
+                  { label: '1 Week', days: 7 },
+                  { label: '2 Weeks', days: 14 },
+                ].map(preset => {
+                  const presetDate = new Date();
+                  presetDate.setDate(presetDate.getDate() + preset.days);
+                  presetDate.setHours(23, 59, 0, 0);
+                  const presetValue = presetDate.toISOString().slice(0, 16);
+                  const isActive = assignmentDueAt === presetValue;
+                  return (
+                    <button
+                      key={preset.days}
+                      type="button"
+                      className={`teacher-due-preset-btn ${isActive ? 'active' : ''}`}
+                      onClick={() => setAssignmentDueAt(presetValue)}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="teacher-due-custom">
+                <span className="teacher-due-custom-label">Or pick a date:</span>
+                <input
+                  type="datetime-local"
+                  value={assignmentDueAt}
+                  onChange={(e) => setAssignmentDueAt(e.target.value)}
+                  className="teacher-input-premium"
+                />
+              </div>
             </div>
           </div>
 
@@ -4622,8 +4641,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
   return (
     <div className="teacher-portal">
       <div className="teacher-portal-container">
-        <BackButton onClick={onComplete} />
-
         {/* Professional Header */}
         <div className="teacher-header">
           <div className="teacher-header-content">
