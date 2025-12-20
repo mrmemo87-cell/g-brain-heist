@@ -306,13 +306,6 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
                   </div>
                 );
               })}
-                      <span>
-                        Completed: {new Date(assignment.completed_at).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
 
               {/* Assignment Stats Summary */}
               <div className="card-glass p-4 bg-gradient-to-r from-purple-900/30 to-blue-900/30 mt-4">
