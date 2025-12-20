@@ -454,7 +454,14 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       setStage('loading');
     }
       try {
+          console.log('[QuestView] Checking for active assignment...');
           const assignment = await GameService.get_student_active_assignment();
+          console.log('[QuestView] Active assignment result:', assignment ? { 
+            id: assignment.assignment_id, 
+            title: assignment.title,
+            questions: assignment.questions?.length || 0 
+          } : 'null');
+          
           if (assignment) {
               applyAssignmentState({
                 ...assignment,
@@ -462,6 +469,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               });
               await refreshAssignment?.();
           } else {
+              console.log('[QuestView] No active assignment found, showing subject selection');
               setActiveAssignment(null);
               setTeacherQuestions([]);
               setSelectedSubject(null);
@@ -472,7 +480,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         await refreshAssignment?.();
           }
       } catch (error) {
-          console.error('Error loading assignment:', error);
+          console.error('[QuestView] Error loading assignment:', error);
       if (showLoading || stage === 'loading') {
         loadSubjects();
       }

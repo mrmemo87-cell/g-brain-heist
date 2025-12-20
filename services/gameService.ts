@@ -4721,13 +4721,29 @@ export const get_students_for_assignment = async (): Promise<StudentForAssignmen
 };
 
 export const get_student_active_assignment = async (): Promise<StudentAssignmentTask | null> => {
+    console.log('[gameService] Calling rpc_get_student_active_assignment...');
     const { data, error } = await rpcGetStudentActiveAssignment();
-    if (error) throw new Error(error.message || 'Failed to load assignment');
+    
+    if (error) {
+        console.error('[gameService] Error from rpc_get_student_active_assignment:', error);
+        throw new Error(error.message || 'Failed to load assignment');
+    }
+    
+    console.log('[gameService] Raw assignment data:', data);
 
     const row = Array.isArray(data) ? data[0] : data;
-    if (!row) return null;
+    if (!row) {
+        console.log('[gameService] No active assignment found (data is null/empty)');
+        return null;
+    }
 
     const parsedRow = row as StudentAssignmentTask;
+    console.log('[gameService] Parsed assignment:', { 
+        id: parsedRow.assignment_id, 
+        title: parsedRow.title,
+        questionsCount: parsedRow.questions?.length || 0 
+    });
+    
     let normalizedQuestions = ((parsedRow.questions ?? []) as TeacherQuestion[]).map(normalizeTeacherQuestionPayload);
 
     if (!normalizedQuestions.length) {
