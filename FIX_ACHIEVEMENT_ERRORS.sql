@@ -55,7 +55,13 @@ DECLARE
   v_current_value INTEGER;
   v_newly_earned JSONB := '[]'::JSONB;
   v_achievement_json JSONB;
-  v_user RECORD;
+  v_user_xp INTEGER;
+  v_user_coins INTEGER;
+  v_user_level INTEGER;
+  v_user_streak INTEGER;
+  v_user_correct_answers INTEGER;
+  v_user_clan_id UUID;
+  v_username TEXT;
   v_pvp_wins INTEGER;
   v_quests_completed INTEGER;
   v_items_purchased INTEGER;
@@ -73,11 +79,32 @@ BEGIN
     WHERE table_name = 'user_achievements' AND column_name = 'target'
   ) INTO v_has_target_column;
 
-  -- Get user profile
-  SELECT * INTO v_user FROM users WHERE id = p_user_id;
-  IF NOT FOUND THEN
+  -- Get user profile - fetch only columns that definitely exist
+  SELECT 
+    COALESCE(xp, 0),
+    COALESCE(coins, 0),
+    COALESCE(level, 1),
+    COALESCE(streak, 0),
+    username
+  INTO v_user_xp, v_user_coins, v_user_level, v_user_streak, v_username
+  FROM users WHERE id = p_user_id;
+  
+  IF v_username IS NULL THEN
     RAISE EXCEPTION 'User not found';
   END IF;
+
+  -- Try to get optional columns that may not exist
+  BEGIN
+    EXECUTE 'SELECT correct_answers FROM users WHERE id = $1' INTO v_user_correct_answers USING p_user_id;
+  EXCEPTION WHEN undefined_column THEN
+    v_user_correct_answers := 0;
+  END;
+
+  BEGIN
+    EXECUTE 'SELECT clan_id FROM users WHERE id = $1' INTO v_user_clan_id USING p_user_id;
+  EXCEPTION WHEN undefined_column THEN
+    v_user_clan_id := NULL;
+  END;
 
   -- Count PvP wins (check if activities table has the data)
   BEGIN
@@ -128,23 +155,23 @@ BEGIN
       WHEN 'pvp_wins_count', 'pvp_wins' THEN
         v_current_value := v_pvp_wins;
       WHEN 'total_xp' THEN
-        v_current_value := COALESCE(v_user.xp, 0);
+        v_current_value := v_user_xp;
       WHEN 'quests_completed' THEN
         v_current_value := v_quests_completed;
       WHEN 'coins_earned', 'total_coins_earned' THEN
-        v_current_value := COALESCE(v_user.coins, 0);
+        v_current_value := v_user_coins;
       WHEN 'items_purchased' THEN
         v_current_value := v_items_purchased;
       WHEN 'clan_member', 'clan_joined' THEN
-        v_current_value := CASE WHEN v_user.clan_id IS NOT NULL THEN 1 ELSE 0 END;
+        v_current_value := CASE WHEN v_user_clan_id IS NOT NULL THEN 1 ELSE 0 END;
       WHEN 'level' THEN
-        v_current_value := COALESCE(v_user.level, 1);
+        v_current_value := v_user_level;
       WHEN 'login_count' THEN
         v_current_value := 1; -- If they're here, they've logged in
       WHEN 'streak' THEN
-        v_current_value := COALESCE(v_user.streak, 0);
+        v_current_value := v_user_streak;
       WHEN 'correct_answers' THEN
-        v_current_value := COALESCE(v_user.correct_answers, 0);
+        v_current_value := v_user_correct_answers;
       ELSE
         v_current_value := 0;
     END CASE;
@@ -179,7 +206,7 @@ BEGIN
         VALUES (
           'achievement_earned',
           p_user_id,
-          v_user.username,
+          v_username,
           jsonb_build_object(
             'achievement_id', v_achievement.id,
             'achievement_name', v_achievement.name,
