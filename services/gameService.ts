@@ -4242,13 +4242,14 @@ export const achievements_list = async (): Promise<Achievement[]> => {
     const purchaseCount = (itemsPurchased as any)?.count || 0;
 
     // Calculate coins earned (current + spent)
+    // Note: activities table uses 'data' JSONB column, not 'amount'
     const { data: purchases } = await supabase
         .from('activities')
-        .select('amount')
+        .select('data')
         .eq('actor_id', user.id)
         .eq('kind', 'shop_purchase');
 
-    const coinsSpent = (purchases || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+    const coinsSpent = (purchases || []).reduce((sum: number, p: any) => sum + (p.data?.amount || p.data?.price || 0), 0);
     const coinsEarned = (profile?.coins || 0) + coinsSpent;
 
     // Map achievements with earned status and progress
