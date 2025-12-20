@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, TeacherAssignmentSummary, TeacherAssignmentReportRow, AssignmentBatch, StudentForAssignment, QuestionOption } from '../types';
+import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, TeacherAssignmentSummary, TeacherAssignmentReportRow, AssignmentBatch, StudentForAssignment, QuestionOption, StudentAssignmentAnswer, AssignmentQuestionAnalysis } from '../types';
 import * as GameService from '../services/gameService';
 import { supabase } from '../services/supabaseClient';
 import BackButton from './BackButton';
@@ -13,7 +13,7 @@ interface TeacherPortalProps {
   onLockdown?: () => void;
 }
 
-type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'geometry-diagrams' | 'cambridge-reports';
+type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'geometry-diagrams' | 'cambridge-reports';
 
 // XP points based on difficulty: Easy=10, Medium=15, Hard=20
 const getDefaultPointsForDifficulty = (diff: QuestionDifficulty): number => {
@@ -85,6 +85,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [availableStudents, setAvailableStudents] = useState<StudentForAssignment[]>([]);
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
   const [studentSearchTerm, setStudentSearchTerm] = useState('');
+
+  // Assignment Analysis State
+  const [questionAnalysis, setQuestionAnalysis] = useState<AssignmentQuestionAnalysis[]>([]);
+  const [studentAnswers, setStudentAnswers] = useState<StudentAssignmentAnswer[]>([]);
+  const [selectedAnalysisStudent, setSelectedAnalysisStudent] = useState<TeacherAssignmentReportRow | null>(null);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [analysisTab, setAnalysisTab] = useState<'overview' | 'questions' | 'student'>('overview');
 
   // Cambridge Test Reports State
   const [cambridgeScores, setCambridgeScores] = useState<any[]>([]);
@@ -1814,12 +1821,42 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setSelectedReportAssignment(assignment);
       const rows = await GameService.get_teacher_assignment_report(assignment.id);
       setAssignmentReport(rows);
+      
+      // Also load question analysis
+      try {
+        const analysis = await GameService.get_assignment_question_analysis(assignment.id);
+        setQuestionAnalysis(analysis);
+      } catch (err) {
+        console.warn('Question analysis not available:', err);
+        setQuestionAnalysis([]);
+      }
+      
       setView('report-detail');
     } catch (error) {
       console.error('Error loading assignment report:', error);
       alert('❌ Failed to load report: ' + (error as Error).message);
     } finally {
       setReportLoading(false);
+    }
+  };
+
+  const handleViewStudentAnalysis = async (student: TeacherAssignmentReportRow) => {
+    if (!selectedReportAssignment) return;
+    
+    try {
+      setAnalysisLoading(true);
+      setSelectedAnalysisStudent(student);
+      const answers = await GameService.get_assignment_student_answers(
+        selectedReportAssignment.id,
+        student.student_id
+      );
+      setStudentAnswers(answers);
+      setView('report-analysis');
+    } catch (error) {
+      console.error('Error loading student answers:', error);
+      alert('❌ Failed to load student analysis: ' + (error as Error).message);
+    } finally {
+      setAnalysisLoading(false);
     }
   };
 
@@ -3231,37 +3268,258 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           {assignmentReport.length === 0 ? (
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-10 text-center text-slate-500">No students have completed this assignment yet.</div>
           ) : (
-            <div className="overflow-x-auto bg-white border border-slate-200 rounded-xl">
-              <table className="min-w-full text-left text-sm">
-                <thead className="bg-slate-100 border-b border-slate-200">
-                  <tr>
-                    <th className="py-3 px-4 text-slate-700 font-semibold">Student</th>
-                    <th className="py-3 px-4 text-slate-700 font-semibold">Batch</th>
-                    <th className="py-3 px-4 text-slate-700 font-semibold">Score</th>
-                    <th className="py-3 px-4 text-slate-700 font-semibold">Correct</th>
-                    <th className="py-3 px-4 text-slate-700 font-semibold">Incorrect</th>
-                    <th className="py-3 px-4 text-slate-700 font-semibold">Accuracy</th>
-                    <th className="py-3 px-4 text-slate-700 font-semibold">Completed</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {assignmentReport.map((row, i) => (
-                    <tr key={row.student_id} className={`border-b border-slate-100 ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
-                      <td className="py-3 px-4 text-slate-800 font-medium">{row.student_name}</td>
-                      <td className="py-3 px-4 text-slate-600">{row.batch ?? '—'}</td>
-                      <td className="py-3 px-4 text-slate-700">{row.score}</td>
-                      <td className="py-3 px-4 text-green-600 font-medium">{row.correct}</td>
-                      <td className="py-3 px-4 text-red-600 font-medium">{row.incorrect}</td>
-                      <td className="py-3 px-4">
-                        <span className={`font-bold ${row.accuracy >= 70 ? 'text-green-600' : row.accuracy >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
-                          {row.accuracy}%
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-slate-500 text-sm">{new Date(row.completed_at).toLocaleString()}</td>
+            <>
+              {/* Question Analysis Summary */}
+              {questionAnalysis.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-lg font-bold text-slate-800 mb-3">📊 Question Analysis</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {questionAnalysis.map((qa, idx) => (
+                      <div 
+                        key={qa.question_id} 
+                        className={`p-4 rounded-xl border ${
+                          qa.accuracy_percent < 50 
+                            ? 'border-red-300 bg-red-50' 
+                            : qa.accuracy_percent < 70 
+                              ? 'border-amber-300 bg-amber-50' 
+                              : 'border-green-300 bg-green-50'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <span className="text-xs font-bold text-slate-500">Q{idx + 1}</span>
+                          <span className={`text-lg font-bold ${
+                            qa.accuracy_percent < 50 ? 'text-red-600' : qa.accuracy_percent < 70 ? 'text-amber-600' : 'text-green-600'
+                          }`}>
+                            {qa.accuracy_percent}%
+                          </span>
+                        </div>
+                        <p className="text-sm text-slate-700 line-clamp-2 mb-2">{qa.question_text}</p>
+                        <div className="flex items-center justify-between text-xs text-slate-500">
+                          <span>✅ {qa.correct_count} / ❌ {qa.incorrect_count}</span>
+                          <span>⏱️ {Math.round(qa.avg_time_ms / 1000)}s avg</span>
+                        </div>
+                        {qa.common_wrong_answers && qa.common_wrong_answers.length > 0 && (
+                          <div className="mt-2 pt-2 border-t border-slate-200">
+                            <span className="text-xs font-semibold text-red-600">Common mistakes:</span>
+                            <ul className="text-xs text-slate-600 mt-1">
+                              {qa.common_wrong_answers.slice(0, 2).map((w, wi) => (
+                                <li key={wi}>"{w.answer}" ({w.count}x)</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Student Performance Table */}
+              <div className="overflow-x-auto bg-white border border-slate-200 rounded-xl">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="bg-slate-100 border-b border-slate-200">
+                    <tr>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Student</th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Batch</th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Score</th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Correct</th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Incorrect</th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Accuracy</th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Completed</th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Actions</th>
                     </tr>
+                  </thead>
+                  <tbody>
+                    {assignmentReport.map((row, i) => (
+                      <tr key={row.student_id} className={`border-b border-slate-100 ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
+                        <td className="py-3 px-4 text-slate-800 font-medium">{row.student_name}</td>
+                        <td className="py-3 px-4 text-slate-600">{row.batch ?? '—'}</td>
+                        <td className="py-3 px-4 text-slate-700">{row.score}</td>
+                        <td className="py-3 px-4 text-green-600 font-medium">{row.correct}</td>
+                        <td className="py-3 px-4 text-red-600 font-medium">{row.incorrect}</td>
+                        <td className="py-3 px-4">
+                          <span className={`font-bold ${row.accuracy >= 70 ? 'text-green-600' : row.accuracy >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+                            {row.accuracy}%
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-slate-500 text-sm">{new Date(row.completed_at).toLocaleString()}</td>
+                        <td className="py-3 px-4">
+                          <button
+                            onClick={() => handleViewStudentAnalysis(row)}
+                            className="px-3 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg text-xs font-medium transition-colors"
+                          >
+                            🔍 Analyze
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
+  // Render Student Analysis View - Personalized feedback on mistakes
+  const renderReportAnalysis = () => (
+    <div className="max-w-4xl mx-auto space-y-6">
+      <button
+        onClick={() => setView('report-detail')}
+        className="teacher-back-link mb-4"
+      >
+        <span>←</span> Back to Report
+      </button>
+
+      {analysisLoading ? (
+        <div className="teacher-card p-12 text-center text-cyan-600">Loading student analysis...</div>
+      ) : !selectedAnalysisStudent ? (
+        <div className="teacher-card p-12 text-center text-slate-500">No student selected.</div>
+      ) : (
+        <div className="space-y-6">
+          {/* Student Header */}
+          <div className="teacher-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                  <span className="text-3xl">👤</span>
+                  {selectedAnalysisStudent.student_name}
+                </h2>
+                <p className="text-slate-600 mt-1">
+                  Batch: {selectedAnalysisStudent.batch ?? '—'} · 
+                  Completed: {new Date(selectedAnalysisStudent.completed_at).toLocaleString()}
+                </p>
+              </div>
+              <div className="text-center">
+                <div className={`text-4xl font-bold ${
+                  selectedAnalysisStudent.accuracy >= 70 
+                    ? 'text-green-600' 
+                    : selectedAnalysisStudent.accuracy >= 50 
+                      ? 'text-amber-600' 
+                      : 'text-red-600'
+                }`}>
+                  {selectedAnalysisStudent.accuracy}%
+                </div>
+                <div className="text-sm text-slate-500">Accuracy</div>
+              </div>
+            </div>
+
+            {/* Performance Summary */}
+            <div className="grid grid-cols-3 gap-4 mt-6 pt-4 border-t border-slate-200">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">{selectedAnalysisStudent.correct}</div>
+                <div className="text-xs text-slate-500">Correct</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-red-600">{selectedAnalysisStudent.incorrect}</div>
+                <div className="text-xs text-slate-500">Incorrect</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-600">{selectedAnalysisStudent.score}</div>
+                <div className="text-xs text-slate-500">Total Score</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Detailed Answers */}
+          {studentAnswers.length === 0 ? (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
+              <span className="text-4xl mb-2 block">📝</span>
+              <p className="text-amber-800 font-medium">No detailed answer data available yet.</p>
+              <p className="text-amber-600 text-sm mt-1">
+                Answer tracking is enabled for new assignments. Students who complete assignments going forward will have their answers recorded for analysis.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-slate-800">📋 Question-by-Question Analysis</h3>
+              
+              {/* Show incorrect answers first for learning focus */}
+              {studentAnswers.filter(a => !a.is_correct).length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-lg font-semibold text-red-700 mb-3 flex items-center gap-2">
+                    <span>❌</span> Questions to Review ({studentAnswers.filter(a => !a.is_correct).length})
+                  </h4>
+                  {studentAnswers.filter(a => !a.is_correct).map((answer, idx) => (
+                    <div key={answer.question_id} className="bg-red-50 border border-red-200 rounded-xl p-4 mb-3">
+                      <div className="flex items-start justify-between mb-2">
+                        <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded">INCORRECT</span>
+                        <span className="text-xs text-slate-500">⏱️ {Math.round(answer.time_taken_ms / 1000)}s</span>
+                      </div>
+                      <p className="text-slate-800 font-medium mb-3">{answer.question_text}</p>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="bg-red-100 rounded-lg p-3">
+                          <span className="text-xs font-semibold text-red-700 block mb-1">Student's Answer:</span>
+                          <span className="text-red-800">{answer.student_answer}</span>
+                        </div>
+                        <div className="bg-green-100 rounded-lg p-3">
+                          <span className="text-xs font-semibold text-green-700 block mb-1">Correct Answer:</span>
+                          <span className="text-green-800">{answer.correct_answer}</span>
+                        </div>
+                      </div>
+                      {answer.explanation && (
+                        <div className="mt-3 bg-blue-50 rounded-lg p-3">
+                          <span className="text-xs font-semibold text-blue-700 block mb-1">💡 Explanation:</span>
+                          <span className="text-blue-800 text-sm">{answer.explanation}</span>
+                        </div>
+                      )}
+                    </div>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              )}
+
+              {/* Correct answers section */}
+              {studentAnswers.filter(a => a.is_correct).length > 0 && (
+                <div>
+                  <h4 className="text-lg font-semibold text-green-700 mb-3 flex items-center gap-2">
+                    <span>✅</span> Correct Answers ({studentAnswers.filter(a => a.is_correct).length})
+                  </h4>
+                  {studentAnswers.filter(a => a.is_correct).map((answer, idx) => (
+                    <div key={answer.question_id} className="bg-green-50 border border-green-200 rounded-xl p-4 mb-3">
+                      <div className="flex items-start justify-between mb-2">
+                        <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded">CORRECT</span>
+                        <span className="text-xs text-slate-500">⏱️ {Math.round(answer.time_taken_ms / 1000)}s</span>
+                      </div>
+                      <p className="text-slate-800 font-medium mb-2">{answer.question_text}</p>
+                      <div className="bg-green-100 rounded-lg p-3 text-sm">
+                        <span className="text-xs font-semibold text-green-700 block mb-1">Answer:</span>
+                        <span className="text-green-800">{answer.student_answer}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Learning Recommendations */}
+          {studentAnswers.filter(a => !a.is_correct).length > 0 && (
+            <div className="teacher-card bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+              <h4 className="text-lg font-bold text-purple-800 mb-3 flex items-center gap-2">
+                <span>🎯</span> Personalized Recommendations
+              </h4>
+              <ul className="space-y-2 text-slate-700">
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-500">•</span>
+                  <span>Review the {studentAnswers.filter(a => !a.is_correct).length} incorrect answer{studentAnswers.filter(a => !a.is_correct).length !== 1 ? 's' : ''} above with the student</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-500">•</span>
+                  <span>Focus on understanding why the correct answers are right, not just memorizing them</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-500">•</span>
+                  <span>Consider assigning targeted practice on the topics where mistakes occurred</span>
+                </li>
+                {studentAnswers.some(a => !a.is_correct && a.time_taken_ms < 5000) && (
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-500">⚠️</span>
+                    <span>Some questions were answered very quickly - encourage the student to read more carefully</span>
+                  </li>
+                )}
+              </ul>
             </div>
           )}
         </div>
@@ -4727,6 +4985,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           {view === 'create-assignment' && renderCreateAssignment()}
           {view === 'reports' && renderReports()}
           {view === 'report-detail' && renderReportDetail()}
+          {view === 'report-analysis' && renderReportAnalysis()}
           {view === 'cambridge-reports' && renderCambridgeReports()}
           {view === 'geometry-diagrams' && teacher && (
             <DiagramBuilder

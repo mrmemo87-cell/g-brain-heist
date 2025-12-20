@@ -600,7 +600,7 @@
   height: 100vh;
   background: rgba(15, 23, 42, 0.75);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 9999;
   padding: 2rem;
@@ -616,7 +616,9 @@
   to { opacity: 1; }
 }
 
+/* Modal container - centered with margin auto for vertical centering when content fits */
 .qb-modal.blooket-modal {
+  margin: auto;
   width: 92%;
   max-width: 680px;
   max-height: 88vh;

@@ -968,6 +968,67 @@ export interface AssignmentResultInput {
   timeTakenSeconds: number;
 }
 
+// ============================================================================
+// ASSIGNMENT ANSWER ANALYSIS TYPES
+// ============================================================================
+
+export interface StudentAssignmentAnswer {
+  student_id: string;
+  student_name: string;
+  student_batch: string | null;
+  question_id: string;
+  question_text: string;
+  correct_answer: string;
+  student_answer: string;
+  is_correct: boolean;
+  time_taken_ms: number;
+  answered_at: string;
+  explanation: string | null;
+}
+
+export interface AssignmentQuestionAnalysis {
+  question_id: string;
+  question_text: string;
+  correct_answer: string;
+  total_attempts: number;
+  correct_count: number;
+  incorrect_count: number;
+  accuracy_percent: number;
+  avg_time_ms: number;
+  common_wrong_answers: Array<{ answer: string; count: number }> | null;
+}
+
+export interface StudentAnswerInput {
+  assignmentId: string;
+  questionId: string;
+  questionText: string;
+  correctAnswer: string;
+  studentAnswer: string;
+  isCorrect: boolean;
+  timeTakenMs?: number;
+}
+
+export interface CompletedAssignment {
+  assignment_id: string;
+  subject_name: string;
+  topic_name: string;
+  teacher_name: string;
+  score: number;
+  accuracy: number;
+  correct: number;
+  incorrect: number;
+  completed_at: string;
+  title: string | null;
+}
+
+export interface AssignmentAchievementEarned {
+  achievement_id: string;
+  achievement_name: string;
+  achievement_icon: string;
+  xp_reward: number;
+  coin_reward: number;
+}
+
 export interface QuestionAttemptResult {
   is_correct: boolean;
   points_earned: number;

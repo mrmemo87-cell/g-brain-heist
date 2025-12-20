@@ -37,6 +37,11 @@ import {
     StudentForAssignment,
     QuestionOption,
     Grade,
+    StudentAssignmentAnswer,
+    AssignmentQuestionAnalysis,
+    StudentAnswerInput,
+    CompletedAssignment,
+    AssignmentAchievementEarned,
 } from '../types';
 import * as RaidFeatureService from '../src/features/raids/raidService';
 import {
@@ -71,7 +76,12 @@ import {
     getStudentsForAssignment as rpcGetStudentsForAssignment,
     getStudentActiveAssignment as rpcGetStudentActiveAssignment,
     submitAssignmentResult as rpcSubmitAssignmentResult,
-    teacherAssignmentReport as rpcTeacherAssignmentReport
+    teacherAssignmentReport as rpcTeacherAssignmentReport,
+    submitAssignmentAnswer as rpcSubmitAssignmentAnswer,
+    getAssignmentStudentAnswers as rpcGetAssignmentStudentAnswers,
+    getAssignmentQuestionAnalysis as rpcGetAssignmentQuestionAnalysis,
+    getStudentCompletedAssignments as rpcGetStudentCompletedAssignments,
+    checkAssignmentAchievements as rpcCheckAssignmentAchievements
 } from './rpcGateway';
 
 const MOCK_DELAY = 500;
@@ -4771,6 +4781,103 @@ export const get_teacher_assignment_report = async (
     if (error) throw new Error(error.message || 'Failed to load report');
 
     return (data as TeacherAssignmentReportRow[]) || [];
+};
+
+// ============================================================================
+// ASSIGNMENT ANSWER ANALYSIS FUNCTIONS
+// ============================================================================
+
+/**
+ * Submit an individual student answer for an assignment question.
+ * This enables detailed analysis for teachers.
+ */
+export const submit_assignment_answer = async (payload: StudentAnswerInput): Promise<void> => {
+    const { error } = await rpcSubmitAssignmentAnswer({
+        p_assignment_id: payload.assignmentId,
+        p_question_id: payload.questionId,
+        p_question_text: payload.questionText,
+        p_correct_answer: payload.correctAnswer,
+        p_student_answer: payload.studentAnswer,
+        p_is_correct: payload.isCorrect,
+        p_time_taken_ms: payload.timeTakenMs || 0,
+    });
+
+    if (error) {
+        console.error('Failed to submit assignment answer:', error);
+        // Don't throw - this is a non-critical tracking feature
+    }
+};
+
+/**
+ * Get detailed student answers for an assignment (teacher only).
+ * Optionally filter by student_id for individual analysis.
+ */
+export const get_assignment_student_answers = async (
+    assignmentId: string,
+    studentId?: string
+): Promise<StudentAssignmentAnswer[]> => {
+    const teacher = await get_teacher_profile();
+    if (!teacher) throw new Error('User is not a teacher');
+
+    const { data, error } = await rpcGetAssignmentStudentAnswers({
+        p_assignment_id: assignmentId,
+        p_teacher_id: teacher.id,
+        p_student_id: studentId || null,
+    });
+
+    if (error) throw new Error(error.message || 'Failed to load student answers');
+
+    return (data as StudentAssignmentAnswer[]) || [];
+};
+
+/**
+ * Get question-level analysis for an assignment (teacher only).
+ * Shows which questions students struggle with most.
+ */
+export const get_assignment_question_analysis = async (
+    assignmentId: string
+): Promise<AssignmentQuestionAnalysis[]> => {
+    const teacher = await get_teacher_profile();
+    if (!teacher) throw new Error('User is not a teacher');
+
+    const { data, error } = await rpcGetAssignmentQuestionAnalysis({
+        p_assignment_id: assignmentId,
+        p_teacher_id: teacher.id,
+    });
+
+    if (error) throw new Error(error.message || 'Failed to load question analysis');
+
+    return (data as AssignmentQuestionAnalysis[]) || [];
+};
+
+/**
+ * Get student's completed assignments for achievement display
+ */
+export const get_student_completed_assignments = async (): Promise<CompletedAssignment[]> => {
+    const { data, error } = await rpcGetStudentCompletedAssignments();
+
+    if (error) {
+        console.error('Failed to load completed assignments:', error);
+        return [];
+    }
+
+    return (data as CompletedAssignment[]) || [];
+};
+
+/**
+ * Check and award assignment-related achievements after completing an assignment
+ */
+export const check_assignment_achievements = async (
+    userId: string
+): Promise<AssignmentAchievementEarned[]> => {
+    const { data, error } = await rpcCheckAssignmentAchievements(userId);
+
+    if (error) {
+        console.warn('Failed to check assignment achievements:', error);
+        return [];
+    }
+
+    return (data as AssignmentAchievementEarned[]) || [];
 };
 
 type QuestProgressOutcome = {

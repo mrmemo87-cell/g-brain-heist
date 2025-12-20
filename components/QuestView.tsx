@@ -635,6 +635,23 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           score: missionTotal,
           timeTakenSeconds,
         });
+        
+        // Check for assignment achievements after submission
+        try {
+          const user = await GameService.get_current_profile();
+          if (user?.id) {
+            const newAchievements = await GameService.check_assignment_achievements(user.id);
+            if (newAchievements.length > 0) {
+              // Show achievement notification for each new achievement
+              newAchievements.forEach(ach => {
+                console.log(`🏆 Assignment Achievement Earned: ${ach.achievement_name}`);
+              });
+            }
+          }
+        } catch (achievementError) {
+          console.warn('Failed to check assignment achievements:', achievementError);
+        }
+        
         setAssignmentSubmissionState('submitted');
         setLastCompletedAssignment(activeAssignment);
         setActiveAssignment(null);
@@ -812,6 +829,24 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           undefined,
           undefined
         );
+
+        // Track individual answers for assignment analysis
+        if (mode === 'assignment' && activeAssignment?.assignment_id) {
+          try {
+            await GameService.submit_assignment_answer({
+              assignmentId: activeAssignment.assignment_id,
+              questionId: currentQuestion.id,
+              questionText: currentQuestion.question_text,
+              correctAnswer: currentQuestion.correct_answer,
+              studentAnswer: option,
+              isCorrect: result.is_correct,
+              timeTakenMs: questionStartTime ? Date.now() - questionStartTime : 0,
+            });
+          } catch (trackingError) {
+            // Non-critical - continue even if tracking fails
+            console.warn('Failed to track assignment answer:', trackingError);
+          }
+        }
 
         const response: AnswerResponse = {
           correct: result.is_correct,

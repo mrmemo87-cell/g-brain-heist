@@ -105,11 +105,45 @@ export const submitAssignmentResult = (
   return execute('rpc_submit_assignment_result', payload, client);
 };
 
+export const submitAssignmentAnswer = (
+  payload: Record<string, unknown>,
+  client?: RpcClient
+): RpcResult<unknown> => {
+  return execute('rpc_submit_assignment_answer', payload, client);
+};
+
 export const teacherAssignmentReport = (
   payload: Record<string, unknown>,
   client?: RpcClient
 ): RpcResult<unknown> => {
   return execute('rpc_teacher_assignment_report', payload, client);
+};
+
+export const getAssignmentStudentAnswers = (
+  payload: Record<string, unknown>,
+  client?: RpcClient
+): RpcResult<unknown> => {
+  return execute('rpc_get_assignment_student_answers', payload, client);
+};
+
+export const getAssignmentQuestionAnalysis = (
+  payload: Record<string, unknown>,
+  client?: RpcClient
+): RpcResult<unknown> => {
+  return execute('rpc_get_assignment_question_analysis', payload, client);
+};
+
+export const getStudentCompletedAssignments = (
+  client?: RpcClient
+): RpcResult<unknown> => {
+  return execute('rpc_get_student_completed_assignments', {}, client);
+};
+
+export const checkAssignmentAchievements = (
+  userId: string,
+  client?: RpcClient
+): RpcResult<unknown> => {
+  return execute('check_assignment_achievements', { p_user_id: userId }, client);
 };
 
 export const createRaidSession = (

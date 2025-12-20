@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import * as GameService from '../services/gameService';
 import BackButton from './BackButton';
+import { CompletedAssignment } from '../types';
 
 interface Achievement {
   id: string;
@@ -25,10 +26,23 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
   const [loading, setLoading] = useState(true);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [filter, setFilter] = useState<'all' | 'earned' | 'locked'>('all');
+  const [completedAssignments, setCompletedAssignments] = useState<CompletedAssignment[]>([]);
+  const [showAssignments, setShowAssignments] = useState(false);
 
   useEffect(() => {
     fetchAchievements();
+    fetchCompletedAssignments();
   }, []);
+
+  const fetchCompletedAssignments = async () => {
+    try {
+      const data = await GameService.get_student_completed_assignments();
+      setCompletedAssignments(data || []);
+    } catch (error) {
+      console.error('Failed to fetch completed assignments:', error);
+      setCompletedAssignments([]);
+    }
+  };
 
   const fetchAchievements = async () => {
     setLoading(true);
@@ -202,6 +216,100 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
 
       {filteredAchievements.length === 0 && (
         <p className="text-center text-gray-400 mt-10">No achievements in this category</p>
+      )}
+
+      {/* Completed Assignments Section */}
+      {completedAssignments.length > 0 && (
+        <div className="mt-10">
+          <button
+            onClick={() => setShowAssignments(!showAssignments)}
+            className="w-full card-glass p-4 flex items-center justify-between hover:bg-white/5 transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">📚</span>
+              <div className="text-left">
+                <h3 className="font-heading text-xl text-cyan-400">Completed Assignments</h3>
+                <p className="text-sm text-gray-400">{completedAssignments.length} assignments finished</p>
+              </div>
+            </div>
+            <span className="text-2xl text-gray-400 transition-transform" style={{ transform: showAssignments ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+              ▼
+            </span>
+          </button>
+
+          {showAssignments && (
+            <div className="mt-4 space-y-3">
+              {completedAssignments.map((assignment) => {
+                const scorePercent = assignment.total_questions > 0 
+                  ? Math.round((assignment.score / assignment.total_questions) * 100) 
+                  : 0;
+                const isExcellent = scorePercent >= 90;
+                const isGood = scorePercent >= 70 && scorePercent < 90;
+
+                return (
+                  <div
+                    key={assignment.id}
+                    className={`card-glass p-4 border-l-4 ${
+                      isExcellent ? 'border-l-yellow-400' : isGood ? 'border-l-green-500' : 'border-l-blue-500'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-heading text-lg text-white">{assignment.title}</h4>
+                        <p className="text-sm text-gray-400">
+                          Assigned by {assignment.teacher_name || 'Teacher'}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-2xl font-heading ${
+                          isExcellent ? 'text-yellow-400' : isGood ? 'text-green-400' : 'text-blue-400'
+                        }`}>
+                          {scorePercent}%
+                        </div>
+                        <div className="text-sm text-gray-400">
+                          {assignment.score}/{assignment.total_questions}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
+                      <span>
+                        {isExcellent ? '🌟 Excellent!' : isGood ? '✅ Good job!' : '📖 Keep practicing!'}
+                      </span>
+                      <span>
+                        Completed: {new Date(assignment.completed_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Assignment Stats Summary */}
+              <div className="card-glass p-4 bg-gradient-to-r from-purple-900/30 to-blue-900/30 mt-4">
+                <h4 className="font-heading text-lg text-purple-400 mb-3">📊 Assignment Stats</h4>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="text-2xl font-heading text-white">{completedAssignments.length}</div>
+                    <div className="text-xs text-gray-400">Total Completed</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-heading text-yellow-400">
+                      {completedAssignments.filter(a => (a.score / a.total_questions) >= 0.9).length}
+                    </div>
+                    <div className="text-xs text-gray-400">Perfect Scores</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-heading text-green-400">
+                      {completedAssignments.length > 0 
+                        ? Math.round(completedAssignments.reduce((sum, a) => sum + (a.score / a.total_questions) * 100, 0) / completedAssignments.length)
+                        : 0}%
+                    </div>
+                    <div className="text-xs text-gray-400">Avg Score</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
