@@ -4640,16 +4640,16 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </div>
             <div className="teacher-header-stats">
               <div className="teacher-stat-card">
-                <div className="teacher-stat-label">Questions</div>
-                <div className="teacher-stat-value cyan">{questions.length}</div>
+                <div className="teacher-stat-label">My Questions</div>
+                <div className="teacher-stat-value cyan">{myQuestions.length}</div>
               </div>
               <div className="teacher-stat-card">
                 <div className="teacher-stat-label">Assignments</div>
                 <div className="teacher-stat-value emerald">{assignments.length}</div>
               </div>
               <div className="teacher-stat-card">
-                <div className="teacher-stat-label">Responses</div>
-                <div className="teacher-stat-value purple">{questions.reduce((sum, q) => sum + q.times_answered, 0)}</div>
+                <div className="teacher-stat-label">My Responses</div>
+                <div className="teacher-stat-value purple">{myQuestions.reduce((sum, q) => sum + (q.times_answered || 0), 0)}</div>
               </div>
             </div>
           </div>

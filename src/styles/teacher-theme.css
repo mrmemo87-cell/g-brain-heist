@@ -72,7 +72,7 @@
    BASE LAYOUT
    ============================================================ */
 .teacher-portal {
-  background: var(--teacher-bg);
+  background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 50%, #f1f5f9 100%);
   color: var(--teacher-text);
   min-height: 100vh;
   position: relative;
@@ -85,10 +85,11 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 400px;
+  height: 500px;
   background: 
-    radial-gradient(circle at 10% 20%, rgba(14, 165, 233, 0.08), transparent 40%),
-    radial-gradient(circle at 90% 10%, rgba(99, 102, 241, 0.08), transparent 40%);
+    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(14, 165, 233, 0.12), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(99, 102, 241, 0.1), transparent),
+    radial-gradient(ellipse 50% 30% at 50% 60%, rgba(168, 85, 247, 0.06), transparent);
   pointer-events: none;
   z-index: 0;
 }
@@ -108,17 +109,20 @@
 }
 
 /* ============================================================
-   HEADER SECTION
+   HEADER SECTION - Premium Design
    ============================================================ */
 .teacher-header {
-  background: var(--teacher-gradient-header);
-  border-radius: var(--teacher-radius-2xl);
-  padding: 2rem;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 40%, #1e1b4b 100%);
+  border-radius: 24px;
+  padding: 2.5rem;
   margin-bottom: 1.5rem;
   position: relative;
   overflow: hidden;
-  box-shadow: var(--teacher-shadow-xl);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 20px 40px -15px rgba(15, 23, 42, 0.4),
+    0 8px 16px -8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .teacher-header::before {
@@ -126,8 +130,21 @@
   position: absolute;
   inset: 0;
   background: 
-    radial-gradient(circle at 20% 30%, rgba(14, 165, 233, 0.3), transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.25), transparent 40%);
+    radial-gradient(ellipse 60% 40% at 10% 20%, rgba(14, 165, 233, 0.35), transparent),
+    radial-gradient(ellipse 50% 50% at 90% 80%, rgba(168, 85, 247, 0.3), transparent),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(99, 102, 241, 0.2), transparent);
+  pointer-events: none;
+}
+
+.teacher-header::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  opacity: 0.5;
   pointer-events: none;
 }
 
@@ -136,13 +153,13 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 @media (min-width: 768px) {
   .teacher-header-content {
     flex-direction: row;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
   }
 }
@@ -155,75 +172,93 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.375rem 0.875rem;
+  padding: 0.5rem 1rem;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%);
+  border: 1px solid rgba(14, 165, 233, 0.3);
   color: #7dd3fc;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.75rem;
+  letter-spacing: 0.08em;
+  margin-bottom: 1rem;
+  backdrop-filter: blur(8px);
 }
 
 .teacher-header-title {
-  font-size: 1.875rem;
-  font-weight: 700;
+  font-size: 2.25rem;
+  font-weight: 800;
   color: #ffffff;
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   line-height: 1.2;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .teacher-header-subtitle {
-  color: #cbd5e1;
-  font-size: 1rem;
-  line-height: 1.6;
-  max-width: 600px;
+  color: #94a3b8;
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  max-width: 550px;
 }
 
 .teacher-header-subtitle strong {
-  color: #7dd3fc;
+  color: #38bdf8;
+  font-weight: 600;
 }
 
 .teacher-header-stats {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
 .teacher-stat-card {
   flex: 1;
-  min-width: 100px;
-  padding: 0.875rem 1.25rem;
-  border-radius: var(--teacher-radius-lg);
+  min-width: 110px;
+  padding: 1rem 1.25rem;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(10px);
-  text-align: right;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.teacher-stat-card:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
 }
 
 .teacher-stat-label {
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: 0.6875rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 0.25rem;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 0.375rem;
 }
 
 .teacher-stat-value {
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-size: 2rem;
+  font-weight: 800;
   line-height: 1;
 }
 
-.teacher-stat-value.cyan { color: #67e8f9; }
-.teacher-stat-value.emerald { color: #6ee7b7; }
-.teacher-stat-value.purple { color: #c4b5fd; }
+.teacher-stat-value.cyan { 
+  color: #22d3ee;
+  text-shadow: 0 0 20px rgba(34, 211, 238, 0.4);
+}
+.teacher-stat-value.emerald { 
+  color: #34d399;
+  text-shadow: 0 0 20px rgba(52, 211, 153, 0.4);
+}
+.teacher-stat-value.purple { 
+  color: #a78bfa;
+  text-shadow: 0 0 20px rgba(167, 139, 250, 0.4);
+}
 
 /* ============================================================
    NAVIGATION
@@ -242,17 +277,37 @@
 .teacher-nav-container::before {
   content: '';
   position: absolute;
+/* ============================================================
+   NAVIGATION - Premium Design
+   ============================================================ */
+.teacher-nav-container {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+  border-radius: 20px;
+  padding: 0.75rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 
+    0 4px 20px -4px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+}
+
+.teacher-nav-container::before {
+  content: '';
+  position: absolute;
   inset: 0;
   background: 
-    radial-gradient(circle at 15% 50%, rgba(14, 165, 233, 0.05), transparent 30%),
-    radial-gradient(circle at 85% 50%, rgba(99, 102, 241, 0.05), transparent 30%);
+    radial-gradient(ellipse 40% 60% at 15% 50%, rgba(14, 165, 233, 0.06), transparent),
+    radial-gradient(ellipse 40% 60% at 85% 50%, rgba(99, 102, 241, 0.06), transparent);
   pointer-events: none;
 }
 
 .teacher-nav-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 0.5rem;
+  gap: 0.625rem;
   position: relative;
   z-index: 1;
 }
@@ -260,53 +315,58 @@
 .teacher-nav-btn {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1rem;
-  border-radius: var(--teacher-radius-lg);
-  background: var(--teacher-surface);
-  border: 1px solid var(--teacher-border);
+  gap: 0.875rem;
+  padding: 1rem 1.25rem;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   color: var(--teacher-text);
   font-weight: 500;
   text-align: left;
   cursor: pointer;
-  transition: all var(--teacher-transition);
-  box-shadow: var(--teacher-shadow-sm);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .teacher-nav-btn:hover {
-  border-color: var(--teacher-primary-light);
-  box-shadow: var(--teacher-shadow), 0 0 0 3px rgba(14, 165, 233, 0.08);
-  transform: translateY(-1px);
+  border-color: #38bdf8;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  box-shadow: 0 4px 12px -2px rgba(14, 165, 233, 0.15);
+  transform: translateY(-2px);
 }
 
 .teacher-nav-btn.active {
-  background: var(--teacher-gradient-primary);
+  background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
   border-color: transparent;
   color: #ffffff;
-  box-shadow: var(--teacher-shadow-md), 0 0 20px rgba(14, 165, 233, 0.3);
+  box-shadow: 
+    0 8px 20px -4px rgba(14, 165, 233, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
 }
 
 .teacher-nav-icon {
-  font-size: 1.375rem;
+  font-size: 1.5rem;
   flex-shrink: 0;
 }
 
 .teacher-nav-text {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: 0.1875rem;
 }
 
 .teacher-nav-label {
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.2;
 }
 
 .teacher-nav-desc {
   font-size: 0.75rem;
-  opacity: 0.7;
+  opacity: 0.65;
   display: none;
+  font-weight: 500;
 }
 
 @media (min-width: 1024px) {
@@ -316,18 +376,20 @@
 }
 
 .teacher-nav-btn.active .teacher-nav-desc {
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 /* ============================================================
-   MAIN CONTENT PANEL
+   MAIN CONTENT PANEL - Premium Design
    ============================================================ */
 .teacher-main-panel {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 251, 252, 0.95) 100%);
-  border-radius: var(--teacher-radius-2xl);
-  padding: 2rem;
-  border: 1px solid var(--teacher-border);
-  box-shadow: var(--teacher-shadow-lg);
+  background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+  border-radius: 24px;
+  padding: 2.5rem;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 
+    0 10px 40px -10px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
   position: relative;
   overflow: hidden;
 }
@@ -335,11 +397,22 @@
 .teacher-main-panel::before {
   content: '';
   position: absolute;
-  top: 0;
-  right: 0;
+  top: -100px;
+  right: -100px;
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, rgba(14, 165, 233, 0.04), transparent 60%);
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.05), transparent 60%);
+  pointer-events: none;
+}
+
+.teacher-main-panel::after {
+  content: '';
+  position: absolute;
+  bottom: -100px;
+  left: -100px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.04), transparent 60%);
   pointer-events: none;
 }
 
@@ -385,13 +458,13 @@
 }
 
 /* ============================================================
-   STAT CARDS (Dashboard)
+   STAT CARDS (Dashboard) - Premium Design
    ============================================================ */
 .teacher-stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 1.25rem;
+  margin-bottom: 2.5rem;
 }
 
 @media (min-width: 1024px) {
@@ -401,45 +474,60 @@
 }
 
 .teacher-dashboard-stat {
-  padding: 1.25rem;
-  border-radius: var(--teacher-radius-lg);
+  padding: 1.5rem;
+  border-radius: 18px;
   border: 1px solid;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition: all var(--teacher-transition);
-  box-shadow: var(--teacher-shadow-sm);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.teacher-dashboard-stat::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.4), transparent 70%);
+  pointer-events: none;
 }
 
 .teacher-dashboard-stat:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--teacher-shadow-md);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
 }
 
 .teacher-dashboard-stat.cyan {
-  background: linear-gradient(135deg, #ecfeff, #cffafe);
-  border-color: #a5f3fc;
+  background: linear-gradient(135deg, #ecfeff 0%, #cffafe 50%, #a5f3fc 100%);
+  border-color: #67e8f9;
 }
 
 .teacher-dashboard-stat.green {
-  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
-  border-color: #a7f3d0;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 50%, #a7f3d0 100%);
+  border-color: #6ee7b7;
 }
 
 .teacher-dashboard-stat.amber {
-  background: linear-gradient(135deg, #fffbeb, #fef3c7);
-  border-color: #fde68a;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fde68a 100%);
+  border-color: #fcd34d;
 }
 
 .teacher-dashboard-stat.purple {
-  background: linear-gradient(135deg, #faf5ff, #ede9fe);
-  border-color: #ddd6fe;
+  background: linear-gradient(135deg, #faf5ff 0%, #ede9fe 50%, #ddd6fe 100%);
+  border-color: #c4b5fd;
 }
 
 .teacher-dashboard-stat-info h4 {
-  font-size: 0.875rem;
-  font-weight: 600;
-  margin-bottom: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .teacher-dashboard-stat.cyan h4 { color: #0e7490; }
@@ -448,8 +536,8 @@
 .teacher-dashboard-stat.purple h4 { color: #7c3aed; }
 
 .teacher-dashboard-stat-value {
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 2.5rem;
+  font-weight: 800;
   line-height: 1;
 }
 
@@ -459,25 +547,31 @@
 .teacher-dashboard-stat.purple .teacher-dashboard-stat-value { color: #7c3aed; }
 
 .teacher-dashboard-stat-icon {
-  font-size: 2.5rem;
-  opacity: 0.8;
+  font-size: 3rem;
+  opacity: 0.7;
+  position: relative;
+  z-index: 1;
 }
 
 .teacher-dashboard-stat-sub {
   font-size: 0.75rem;
-  margin-top: 0.25rem;
+  margin-top: 0.375rem;
+  font-weight: 500;
 }
 
+.teacher-dashboard-stat.cyan .teacher-dashboard-stat-sub { color: #0e7490; }
+.teacher-dashboard-stat.green .teacher-dashboard-stat-sub { color: #047857; }
+.teacher-dashboard-stat.amber .teacher-dashboard-stat-sub { color: #b45309; }
 .teacher-dashboard-stat.purple .teacher-dashboard-stat-sub { color: #8b5cf6; }
 
 /* ============================================================
-   ACTION CARDS
+   ACTION CARDS - Premium Design
    ============================================================ */
 .teacher-actions-grid {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 1.25rem;
+  margin-bottom: 2.5rem;
 }
 
 @media (min-width: 640px) {
@@ -493,18 +587,32 @@
 }
 
 .teacher-action-card {
-  background: var(--teacher-surface);
-  border: 2px solid var(--teacher-border);
-  border-radius: var(--teacher-radius-lg);
-  padding: 1.5rem;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 1.75rem;
   text-align: left;
   cursor: pointer;
-  transition: all var(--teacher-transition);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.teacher-action-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #0ea5e9, #6366f1);
+  opacity: 0;
+  transition: opacity 0.25s ease;
 }
 
 .teacher-action-card:hover {
-  border-color: var(--teacher-primary);
-  box-shadow: var(--teacher-shadow-md);
+  border-color: #38bdf8;
+  box-shadow: 0 8px 24px -8px rgba(14, 165, 233, 0.2);
   transform: translateY(-2px);
 }
 
