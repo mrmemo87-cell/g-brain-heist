@@ -407,24 +407,24 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   };
 
   const applyAssignmentState = (assignment: StudentAssignmentTask) => {
+    // Check if assignment is past due (but still allow completion)
     const isExpired = (() => {
       if (!assignment.due_at) return false;
       const dueTimestamp = new Date(assignment.due_at).getTime();
       return Number.isFinite(dueTimestamp) && dueTimestamp < Date.now();
     })();
 
+    // Log expiration status for debugging
     if (isExpired) {
-      setActiveAssignment(null);
-      setLastCompletedAssignment(null);
-      setTeacherQuestions([]);
-      setMode('practice');
-      loadSubjects();
-      return;
+      console.log('[QuestView] Assignment is past due, but still allowing completion:', assignment.due_at);
     }
+
+    // REMOVED: Previously we would skip expired assignments and go to practice mode
+    // Now we show the assignment regardless, as students should complete mandatory work even if late
 
     const normalizedQuestions = (assignment.questions || []).map(normalizeAssignmentQuestion);
 
-    setActiveAssignment({ ...assignment, questions: normalizedQuestions });
+    setActiveAssignment({ ...assignment, questions: normalizedQuestions, isLate: isExpired });
     setLastCompletedAssignment(null);
     setMode('assignment');
     setTeacherQuestions(normalizedQuestions);
@@ -1168,10 +1168,26 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   
   const renderAssignmentBlocker = () => {
     if (!activeAssignment) return null;
+    
+    // Check if assignment is late
+    const isLate = (activeAssignment as any).isLate || (() => {
+      if (!activeAssignment.due_at) return false;
+      const dueTimestamp = new Date(activeAssignment.due_at).getTime();
+      return Number.isFinite(dueTimestamp) && dueTimestamp < Date.now();
+    })();
+    
     return (
       <div className="max-w-3xl mx-auto card-glass p-8 text-center">
-        <div className="text-6xl mb-4">🚨</div>
-        <h2 className="font-heading text-3xl text-white mb-3">Mandatory Assignment</h2>
+        <div className="text-6xl mb-4">{isLate ? '⏰' : '🚨'}</div>
+        <h2 className="font-heading text-3xl text-white mb-3">
+          {isLate ? 'Late Assignment' : 'Mandatory Assignment'}
+        </h2>
+        {isLate && (
+          <div className="bg-amber-500/20 border border-amber-500/50 rounded-lg p-3 mb-4">
+            <p className="text-amber-300 font-semibold">⚠️ This assignment is past due!</p>
+            <p className="text-amber-200 text-sm">You can still complete it, but it will be marked as late.</p>
+          </div>
+        )}
         <p className="text-gray-300 mb-4">
           You have a compulsory assignment from <span className="text-white font-semibold">{activeAssignment.teacher_username}</span>.
           Complete it before continuing regular quests.
@@ -1192,16 +1208,23 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             <p className="text-gray-400">Assigned</p>
             <p className="text-white font-semibold">{new Date(activeAssignment.assigned_at).toLocaleString()}</p>
           </div>
-          <div className="card-glass p-4 border border-purple-500/30">
+          <div className={`card-glass p-4 border ${isLate ? 'border-amber-500/50 bg-amber-500/10' : 'border-purple-500/30'}`}>
             <p className="text-gray-400">Due</p>
-            <p className="text-white font-semibold">{activeAssignment.due_at ? new Date(activeAssignment.due_at).toLocaleString() : 'No deadline'}</p>
+            <p className={`font-semibold ${isLate ? 'text-amber-400' : 'text-white'}`}>
+              {activeAssignment.due_at ? new Date(activeAssignment.due_at).toLocaleString() : 'No deadline'}
+              {isLate && ' (OVERDUE)'}
+            </p>
           </div>
         </div>
         <button
           onClick={handleAssignmentBegin}
-          className="px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white font-heading text-lg hover:scale-105 transition-all"
+          className={`px-6 py-3 rounded-lg text-white font-heading text-lg hover:scale-105 transition-all ${
+            isLate 
+              ? 'bg-gradient-to-r from-amber-500 to-orange-500' 
+              : 'bg-gradient-to-r from-purple-500 to-pink-500'
+          }`}
         >
-          Begin Assignment
+          {isLate ? 'Complete Late Assignment' : 'Begin Assignment'}
         </button>
       </div>
     );
