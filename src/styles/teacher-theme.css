@@ -72,7 +72,7 @@
    BASE LAYOUT
    ============================================================ */
 .teacher-portal {
-  background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 50%, #f1f5f9 100%);
+  background: transparent;
   color: var(--teacher-text);
   min-height: 100vh;
   position: relative;
@@ -80,18 +80,7 @@
 }
 
 .teacher-portal::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 500px;
-  background: 
-    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(14, 165, 233, 0.12), transparent),
-    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(99, 102, 241, 0.1), transparent),
-    radial-gradient(ellipse 50% 30% at 50% 60%, rgba(168, 85, 247, 0.06), transparent);
-  pointer-events: none;
-  z-index: 0;
+  display: none;
 }
 
 .teacher-portal-container {
@@ -109,43 +98,25 @@
 }
 
 /* ============================================================
-   HEADER SECTION - Premium Design
+   HEADER SECTION - Transparent Design
    ============================================================ */
 .teacher-header {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 40%, #1e1b4b 100%);
-  border-radius: 24px;
-  padding: 2.5rem;
+  background: transparent;
+  border-radius: 0;
+  padding: 2rem 0 2.5rem;
   margin-bottom: 1.5rem;
   position: relative;
-  overflow: hidden;
-  box-shadow: 
-    0 20px 40px -15px rgba(15, 23, 42, 0.4),
-    0 8px 16px -8px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: visible;
+  box-shadow: none;
+  border: none;
 }
 
 .teacher-header::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: 
-    radial-gradient(ellipse 60% 40% at 10% 20%, rgba(14, 165, 233, 0.35), transparent),
-    radial-gradient(ellipse 50% 50% at 90% 80%, rgba(168, 85, 247, 0.3), transparent),
-    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(99, 102, 241, 0.2), transparent);
-  pointer-events: none;
+  display: none;
 }
 
 .teacher-header::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-  opacity: 0.5;
-  pointer-events: none;
+  display: none;
 }
 
 .teacher-header-content {
@@ -220,15 +191,15 @@
   min-width: 110px;
   padding: 1rem 1.25rem;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(12px);
   text-align: center;
   transition: all 0.2s ease;
 }
 
 .teacher-stat-card:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.15);
   transform: translateY(-2px);
 }
 
