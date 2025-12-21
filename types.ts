@@ -110,12 +110,17 @@ export interface Caps {
 
 export interface NewsEvent {
   id: string;
-  kind: 'level_up' | 'quest_cleared' | 'weekly_claim' | 'purchase' | 'pvp_win' | 'pvp_blocked' | 'pvp_loss' | 'clan_create';
+  kind: 'level_up' | 'quest_cleared' | 'weekly_claim' | 'purchase' | 'pvp_win' | 'pvp_blocked' | 'pvp_loss' | 'clan_create' | 'achievement_earned';
   actor: string;
   target?: string;
   data: {
     details?: string;
     item?: string;
+    achievement_id?: string;
+    achievement_name?: string;
+    achievement_icon?: string;
+    reward_xp?: number;
+    reward_coins?: number;
   };
   created_at: string;
   reactions: { [key: string]: number };

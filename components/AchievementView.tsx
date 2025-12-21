@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import * as GameService from '../services/gameService';
 import BackButton from './BackButton';
 import { CompletedAssignment, MyAssignmentAnswer } from '../types';
@@ -12,6 +12,8 @@ interface Achievement {
   reward_xp: number;
   reward_coins: number;
   icon: string;
+  category?: string;
+  rarity?: string;
   is_earned?: boolean;
   earned_at?: string;
   progress?: number;
@@ -22,10 +24,29 @@ interface AchievementViewProps {
   addToast: (message: string, type: 'success' | 'error' | 'info') => void;
 }
 
+// Category configuration
+const CATEGORIES = {
+  progression: { name: 'Progression', icon: '📈', color: 'from-blue-600 to-cyan-500', border: 'border-blue-500' },
+  combat: { name: 'Combat', icon: '⚔️', color: 'from-red-600 to-orange-500', border: 'border-red-500' },
+  social: { name: 'Social', icon: '👥', color: 'from-purple-600 to-pink-500', border: 'border-purple-500' },
+  collection: { name: 'Collection', icon: '💎', color: 'from-yellow-600 to-amber-500', border: 'border-yellow-500' },
+  assignments: { name: 'Assignments', icon: '📚', color: 'from-green-600 to-emerald-500', border: 'border-green-500' },
+  general: { name: 'General', icon: '🎮', color: 'from-gray-600 to-slate-500', border: 'border-gray-500' },
+};
+
+// Rarity configuration
+const RARITY_CONFIG = {
+  common: { name: 'Common', color: 'text-gray-300', bg: 'bg-gray-700/50', glow: '' },
+  rare: { name: 'Rare', color: 'text-blue-400', bg: 'bg-blue-900/30', glow: 'shadow-blue-500/20' },
+  epic: { name: 'Epic', color: 'text-purple-400', bg: 'bg-purple-900/30', glow: 'shadow-purple-500/30' },
+  legendary: { name: 'Legendary', color: 'text-yellow-400', bg: 'bg-yellow-900/30', glow: 'shadow-yellow-500/40 animate-pulse' },
+};
+
 const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast }) => {
   const [loading, setLoading] = useState(true);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [filter, setFilter] = useState<'all' | 'earned' | 'locked'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [completedAssignments, setCompletedAssignments] = useState<CompletedAssignment[]>([]);
   const [showAssignments, setShowAssignments] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState<CompletedAssignment | null>(null);
@@ -37,7 +58,7 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
     fetchCompletedAssignments();
   }, []);
 
-  const fetchCompletedAssignments = async () => {
+  const fetchCompletedAssignements = async () => {
     try {
       const data = await GameService.get_student_completed_assignments();
       setCompletedAssignments(data || []);
@@ -46,6 +67,8 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
       setCompletedAssignments([]);
     }
   };
+
+  const fetchCompletedAssignments = fetchCompletedAssignements;
 
   const handleViewAnalysis = async (assignment: CompletedAssignment) => {
     setLoadingAnalysis(true);
@@ -81,94 +104,147 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
     } catch (error: any) {
       console.error('Failed to fetch achievements:', error);
       
-      // Check if it's a missing table error
       if (error?.message?.includes('does not exist') || error?.code === '42P01') {
         addToast('⚠️ Achievements not set up yet. Please run the SQL migrations.', 'error');
       } else {
         addToast('Failed to load achievements. Please try again.', 'error');
       }
-      setAchievements([]); // Set empty array to prevent crashes
+      setAchievements([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredAchievements = achievements.filter(ach => {
-    if (filter === 'earned') return ach.is_earned;
-    if (filter === 'locked') return !ach.is_earned;
-    return true;
-  });
+  // Group achievements by category
+  const achievementsByCategory = useMemo(() => {
+    const grouped: Record<string, Achievement[]> = {};
+    achievements.forEach(ach => {
+      const cat = ach.category || 'general';
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(ach);
+    });
+    return grouped;
+  }, [achievements]);
+
+  // Get unique categories from achievements
+  const availableCategories = useMemo(() => {
+    return Object.keys(achievementsByCategory);
+  }, [achievementsByCategory]);
+
+  // Filter achievements
+  const filteredAchievements = useMemo(() => {
+    return achievements.filter(ach => {
+      // Status filter
+      if (filter === 'earned' && !ach.is_earned) return false;
+      if (filter === 'locked' && ach.is_earned) return false;
+      // Category filter
+      if (categoryFilter !== 'all' && (ach.category || 'general') !== categoryFilter) return false;
+      return true;
+    });
+  }, [achievements, filter, categoryFilter]);
 
   const earnedCount = achievements.filter(a => a.is_earned).length;
   const totalCount = achievements.length;
 
+  const getRarityConfig = (rarity?: string) => {
+    return RARITY_CONFIG[rarity as keyof typeof RARITY_CONFIG] || RARITY_CONFIG.common;
+  };
+
+  const getCategoryConfig = (category?: string) => {
+    return CATEGORIES[category as keyof typeof CATEGORIES] || CATEGORIES.general;
+  };
+
   const renderAchievementCard = (achievement: Achievement) => {
     const progress = achievement.progress || 0;
-    const target = achievement.condition_value;
+    const target = achievement.condition_value || 1;
     const percentage = Math.min((progress / target) * 100, 100);
+    const rarityConfig = getRarityConfig(achievement.rarity);
+    const categoryConfig = getCategoryConfig(achievement.category);
 
     return (
       <div
         key={achievement.id}
-        className={`card-glass p-4 transition-all ${
+        className={`relative overflow-hidden rounded-xl transition-all duration-300 transform hover:scale-[1.02] ${
           achievement.is_earned
-            ? 'border-2 border-yellow-400 shadow-lg shadow-yellow-400/20'
-            : 'border border-gray-700 opacity-75'
+            ? `${rarityConfig.bg} border-2 ${categoryConfig.border} shadow-lg ${rarityConfig.glow}`
+            : 'bg-slate-800/50 border border-slate-700/50 opacity-70'
         }`}
       >
-        <div className="flex items-start gap-4">
-          {/* Icon */}
-          <div
-            className={`text-5xl flex-shrink-0 ${
-              achievement.is_earned ? 'animate-pulse' : 'grayscale'
-            }`}
-          >
-            {achievement.icon}
+        {/* Rarity ribbon */}
+        {achievement.is_earned && achievement.rarity && achievement.rarity !== 'common' && (
+          <div className={`absolute top-0 right-0 px-3 py-1 text-xs font-bold ${rarityConfig.color} bg-black/50 rounded-bl-lg`}>
+            {rarityConfig.name}
           </div>
+        )}
 
-          {/* Content */}
-          <div className="flex-1">
-            <h3 className={`font-heading text-xl mb-1 ${achievement.is_earned ? 'text-yellow-400' : 'text-gray-400'}`}>
-              {achievement.name}
-            </h3>
-            <p className="text-sm text-gray-400 mb-3">{achievement.description}</p>
-
-            {/* Progress Bar (only for locked achievements) */}
-            {!achievement.is_earned && (
-              <div className="mb-2">
-                <div className="flex justify-between text-xs text-gray-500 mb-1">
-                  <span>Progress</span>
-                  <span>{progress}/{target}</span>
-                </div>
-                <div className="h-2 bg-black/50 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500"
-                    style={{ width: `${percentage}%` }}
-                  />
-                </div>
+        <div className="p-4">
+          <div className="flex items-start gap-4">
+            {/* Icon with glow effect */}
+            <div className="relative">
+              <div
+                className={`text-5xl flex-shrink-0 transition-all ${
+                  achievement.is_earned 
+                    ? 'drop-shadow-lg' 
+                    : 'grayscale opacity-50'
+                }`}
+              >
+                {achievement.icon}
               </div>
-            )}
-
-            {/* Rewards */}
-            <div className="flex gap-3 text-sm">
-              {achievement.reward_xp > 0 && (
-                <span className="text-blue-400">
-                  ⭐ {achievement.reward_xp} XP
-                </span>
-              )}
-              {achievement.reward_coins > 0 && (
-                <span className="text-yellow-400">
-                  💰 {achievement.reward_coins} Coins
-                </span>
+              {achievement.is_earned && (
+                <div className="absolute -bottom-1 -right-1 text-lg bg-green-500 rounded-full w-6 h-6 flex items-center justify-center shadow-lg">
+                  ✓
+                </div>
               )}
             </div>
 
-            {/* Earned Timestamp */}
-            {achievement.is_earned && achievement.earned_at && (
-              <p className="text-xs text-gray-500 mt-2">
-                Earned: {new Date(achievement.earned_at).toLocaleDateString()}
-              </p>
-            )}
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className={`font-heading text-lg truncate ${
+                  achievement.is_earned ? rarityConfig.color : 'text-gray-500'
+                }`}>
+                  {achievement.name}
+                </h3>
+              </div>
+              <p className="text-sm text-gray-400 mb-3 line-clamp-2">{achievement.description}</p>
+
+              {/* Progress Bar (only for locked achievements) */}
+              {!achievement.is_earned && target > 0 && (
+                <div className="mb-3">
+                  <div className="flex justify-between text-xs text-gray-500 mb-1">
+                    <span>Progress</span>
+                    <span>{Math.min(progress, target)}/{target}</span>
+                  </div>
+                  <div className="h-2 bg-black/50 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full bg-gradient-to-r ${categoryConfig.color} transition-all duration-500`}
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Rewards */}
+              <div className="flex items-center gap-3 text-sm flex-wrap">
+                {(achievement.reward_xp > 0 || achievement.condition_value > 0) && (
+                  <span className="flex items-center gap-1 bg-blue-900/30 px-2 py-0.5 rounded text-blue-300">
+                    ⭐ {achievement.reward_xp || Math.floor((achievement.condition_value || 1) * 10)} XP
+                  </span>
+                )}
+                {(achievement.reward_coins > 0 || achievement.condition_value > 0) && (
+                  <span className="flex items-center gap-1 bg-yellow-900/30 px-2 py-0.5 rounded text-yellow-300">
+                    💰 {achievement.reward_coins || Math.floor((achievement.condition_value || 1) * 5)}
+                  </span>
+                )}
+              </div>
+
+              {/* Earned Timestamp */}
+              {achievement.is_earned && achievement.earned_at && (
+                <p className="text-xs text-gray-500 mt-2">
+                  🏆 Earned: {new Date(achievement.earned_at).toLocaleDateString()}
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -177,80 +253,175 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
 
   if (loading) {
     return (
-      <div className="font-heading text-2xl animate-pulse text-center mt-20" style={{ color: 'var(--amber-warn)' }}>
-        Loading Achievements...
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="text-6xl mb-4 animate-bounce">🏆</div>
+        <div className="font-heading text-2xl animate-pulse" style={{ color: 'var(--amber-warn)' }}>
+          Loading Achievements...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="mt-6 max-w-4xl mx-auto">
+    <div className="mt-6 max-w-5xl mx-auto px-4">
       <BackButton onClick={onComplete} />
-      <h2 className="font-heading text-3xl text-center mb-2" style={{ color: 'var(--amber-warn)' }}>
-        🏆 Achievements
-      </h2>
-      <p className="text-center text-gray-400 mb-6">
-        {earnedCount} of {totalCount} unlocked
-      </p>
+      
+      {/* Header with Stats */}
+      <div className="text-center mb-8">
+        <h2 className="font-heading text-4xl mb-2" style={{ color: 'var(--amber-warn)' }}>
+          🏆 Achievement Hall
+        </h2>
+        
+        {/* Progress Ring */}
+        <div className="flex justify-center mb-4">
+          <div className="relative w-32 h-32">
+            <svg className="w-32 h-32 transform -rotate-90">
+              <circle
+                cx="64"
+                cy="64"
+                r="56"
+                stroke="currentColor"
+                strokeWidth="8"
+                fill="none"
+                className="text-slate-700"
+              />
+              <circle
+                cx="64"
+                cy="64"
+                r="56"
+                stroke="url(#gradient)"
+                strokeWidth="8"
+                fill="none"
+                strokeDasharray={`${(earnedCount / Math.max(totalCount, 1)) * 352} 352`}
+                strokeLinecap="round"
+                className="transition-all duration-1000"
+              />
+              <defs>
+                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#fbbf24" />
+                  <stop offset="100%" stopColor="#f59e0b" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-3xl font-heading text-yellow-400">{earnedCount}</span>
+              <span className="text-sm text-gray-400">of {totalCount}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Rarity Stats */}
+        <div className="flex justify-center gap-4 flex-wrap mb-6">
+          {Object.entries(RARITY_CONFIG).map(([key, config]) => {
+            const count = achievements.filter(a => a.is_earned && (a.rarity || 'common') === key).length;
+            if (count === 0 && key !== 'common') return null;
+            return (
+              <div key={key} className={`px-3 py-1 rounded-full ${config.bg} ${config.color} text-sm`}>
+                {config.name}: {count}
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-2 mb-6 justify-center">
+      <div className="flex flex-wrap gap-2 mb-4 justify-center">
         <button
           onClick={() => setFilter('all')}
-          className={`px-6 py-2 rounded-lg font-heading transition-all ${
+          className={`px-5 py-2 rounded-lg font-heading transition-all ${
             filter === 'all'
-              ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white'
-              : 'bg-black/20 text-gray-400 hover:text-white'
+              ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg shadow-cyan-500/30'
+              : 'bg-slate-800/50 text-gray-400 hover:text-white hover:bg-slate-700/50'
           }`}
         >
           All ({totalCount})
         </button>
         <button
           onClick={() => setFilter('earned')}
-          className={`px-6 py-2 rounded-lg font-heading transition-all ${
+          className={`px-5 py-2 rounded-lg font-heading transition-all ${
             filter === 'earned'
-              ? 'bg-gradient-to-r from-yellow-600 to-amber-600 text-white'
-              : 'bg-black/20 text-gray-400 hover:text-white'
+              ? 'bg-gradient-to-r from-yellow-600 to-amber-600 text-white shadow-lg shadow-amber-500/30'
+              : 'bg-slate-800/50 text-gray-400 hover:text-white hover:bg-slate-700/50'
           }`}
         >
-          Earned ({earnedCount})
+          ✓ Earned ({earnedCount})
         </button>
         <button
           onClick={() => setFilter('locked')}
-          className={`px-6 py-2 rounded-lg font-heading transition-all ${
+          className={`px-5 py-2 rounded-lg font-heading transition-all ${
             filter === 'locked'
-              ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white'
-              : 'bg-black/20 text-gray-400 hover:text-white'
+              ? 'bg-gradient-to-r from-gray-600 to-slate-600 text-white shadow-lg'
+              : 'bg-slate-800/50 text-gray-400 hover:text-white hover:bg-slate-700/50'
           }`}
         >
-          Locked ({totalCount - earnedCount})
+          🔒 Locked ({totalCount - earnedCount})
         </button>
       </div>
 
+      {/* Category Filters */}
+      <div className="flex flex-wrap gap-2 mb-6 justify-center">
+        <button
+          onClick={() => setCategoryFilter('all')}
+          className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+            categoryFilter === 'all'
+              ? 'bg-white/20 text-white border border-white/30'
+              : 'bg-slate-800/30 text-gray-500 hover:text-gray-300'
+          }`}
+        >
+          All Categories
+        </button>
+        {availableCategories.map(cat => {
+          const config = getCategoryConfig(cat);
+          const count = achievements.filter(a => (a.category || 'general') === cat).length;
+          return (
+            <button
+              key={cat}
+              onClick={() => setCategoryFilter(cat)}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 ${
+                categoryFilter === cat
+                  ? `bg-gradient-to-r ${config.color} text-white shadow-lg`
+                  : 'bg-slate-800/30 text-gray-500 hover:text-gray-300'
+              }`}
+            >
+              {config.icon} {config.name} ({count})
+            </button>
+          );
+        })}
+      </div>
+
       {/* Achievement Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         {filteredAchievements.map(renderAchievementCard)}
       </div>
 
       {filteredAchievements.length === 0 && (
-        <p className="text-center text-gray-400 mt-10">No achievements in this category</p>
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4 opacity-50">🔍</div>
+          <p className="text-gray-400 text-lg">No achievements found in this category</p>
+          <button
+            onClick={() => { setFilter('all'); setCategoryFilter('all'); }}
+            className="mt-4 text-cyan-400 hover:text-cyan-300 underline"
+          >
+            Show all achievements
+          </button>
+        </div>
       )}
 
       {/* Completed Assignments Section */}
       {completedAssignments.length > 0 && (
-        <div className="mt-10">
+        <div className="mt-10 mb-8">
           <button
             onClick={() => setShowAssignments(!showAssignments)}
-            className="w-full card-glass p-4 flex items-center justify-between hover:bg-white/5 transition-all"
+            className="w-full rounded-xl bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-500/30 p-4 flex items-center justify-between hover:from-green-900/50 hover:to-emerald-900/50 transition-all"
           >
             <div className="flex items-center gap-3">
-              <span className="text-3xl">📚</span>
+              <span className="text-4xl">📚</span>
               <div className="text-left">
-                <h3 className="font-heading text-xl text-cyan-400">Completed Assignments</h3>
+                <h3 className="font-heading text-xl text-green-400">Completed Assignments</h3>
                 <p className="text-sm text-gray-400">{completedAssignments.length} assignments finished</p>
               </div>
             </div>
-            <span className="text-2xl text-gray-400 transition-transform" style={{ transform: showAssignments ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+            <span className={`text-2xl text-green-400 transition-transform duration-300 ${showAssignments ? 'rotate-180' : ''}`}>
               ▼
             </span>
           </button>
@@ -267,7 +438,7 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
                 return (
                   <div
                     key={assignment.id}
-                    className={`card-glass p-4 border-l-4 ${
+                    className={`rounded-xl p-4 border-l-4 bg-slate-800/50 transition-all hover:bg-slate-800/70 ${
                       isExcellent ? 'border-l-yellow-400' : isGood ? 'border-l-green-500' : 'border-l-blue-500'
                     }`}
                   >
@@ -279,7 +450,7 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
                         </p>
                       </div>
                       <div className="text-right">
-                        <div className={`text-2xl font-heading ${
+                        <div className={`text-3xl font-heading ${
                           isExcellent ? 'text-yellow-400' : isGood ? 'text-green-400' : 'text-blue-400'
                         }`}>
                           {scorePercent}%
@@ -298,7 +469,7 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
                       </div>
                       <button
                         onClick={() => handleViewAnalysis(assignment)}
-                        className="px-3 py-1 text-xs rounded-lg bg-cyan-600/30 text-cyan-300 hover:bg-cyan-600/50 transition-all"
+                        className="px-4 py-1.5 text-sm rounded-lg bg-cyan-600/30 text-cyan-300 hover:bg-cyan-600/50 transition-all flex items-center gap-1"
                       >
                         📊 View Analysis
                       </button>
@@ -308,21 +479,21 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
               })}
 
               {/* Assignment Stats Summary */}
-              <div className="card-glass p-4 bg-gradient-to-r from-purple-900/30 to-blue-900/30 mt-4">
-                <h4 className="font-heading text-lg text-purple-400 mb-3">📊 Assignment Stats</h4>
+              <div className="rounded-xl p-5 bg-gradient-to-r from-purple-900/30 to-blue-900/30 border border-purple-500/20 mt-4">
+                <h4 className="font-heading text-lg text-purple-400 mb-4">📊 Assignment Statistics</h4>
                 <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <div className="text-2xl font-heading text-white">{completedAssignments.length}</div>
+                  <div className="bg-black/20 rounded-lg p-3">
+                    <div className="text-3xl font-heading text-white">{completedAssignments.length}</div>
                     <div className="text-xs text-gray-400">Total Completed</div>
                   </div>
-                  <div>
-                    <div className="text-2xl font-heading text-yellow-400">
+                  <div className="bg-black/20 rounded-lg p-3">
+                    <div className="text-3xl font-heading text-yellow-400">
                       {completedAssignments.filter(a => (a.correct / a.total_questions) >= 0.9).length}
                     </div>
-                    <div className="text-xs text-gray-400">Perfect Scores</div>
+                    <div className="text-xs text-gray-400">90%+ Scores</div>
                   </div>
-                  <div>
-                    <div className="text-2xl font-heading text-green-400">
+                  <div className="bg-black/20 rounded-lg p-3">
+                    <div className="text-3xl font-heading text-green-400">
                       {completedAssignments.length > 0 
                         ? Math.round(completedAssignments.reduce((sum, a) => sum + (a.correct / a.total_questions) * 100, 0) / completedAssignments.length)
                         : 0}%
@@ -338,8 +509,8 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
 
       {/* Assignment Analysis Modal */}
       {selectedAssignment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-          <div className="w-full max-w-3xl max-h-[90vh] overflow-auto rounded-2xl bg-slate-900 p-6 shadow-2xl border border-cyan-500/30">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="w-full max-w-3xl max-h-[90vh] overflow-auto rounded-2xl bg-gradient-to-b from-slate-900 to-slate-800 p-6 shadow-2xl border border-cyan-500/30">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="font-heading text-2xl text-cyan-400">
@@ -354,7 +525,7 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
                   setSelectedAssignment(null);
                   setAssignmentAnswers([]);
                 }}
-                className="text-gray-400 hover:text-white text-2xl"
+                className="text-gray-400 hover:text-white text-2xl transition-colors"
               >
                 ✕
               </button>
@@ -362,12 +533,12 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
 
             {loadingAnalysis ? (
               <div className="text-center py-10">
-                <div className="text-4xl mb-4 animate-spin">⚙️</div>
+                <div className="text-5xl mb-4 animate-spin">⚙️</div>
                 <p className="text-gray-400">Loading your answers...</p>
               </div>
             ) : assignmentAnswers.length === 0 ? (
               <div className="text-center py-10">
-                <div className="text-4xl mb-4">📝</div>
+                <div className="text-5xl mb-4">📝</div>
                 <p className="text-gray-400">No detailed answer data available.</p>
                 <p className="text-sm text-gray-500 mt-2">
                   Answer tracking was added recently. Your future assignments will show detailed analysis.
@@ -377,20 +548,20 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
               <div className="space-y-4">
                 {/* Summary Stats */}
                 <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="card-glass p-4 text-center border border-green-500/30">
-                    <div className="text-2xl font-heading text-green-400">
+                  <div className="rounded-xl p-4 text-center bg-green-900/20 border border-green-500/30">
+                    <div className="text-3xl font-heading text-green-400">
                       {assignmentAnswers.filter(a => a.is_correct).length}
                     </div>
                     <div className="text-xs text-gray-400">Correct</div>
                   </div>
-                  <div className="card-glass p-4 text-center border border-red-500/30">
-                    <div className="text-2xl font-heading text-red-400">
+                  <div className="rounded-xl p-4 text-center bg-red-900/20 border border-red-500/30">
+                    <div className="text-3xl font-heading text-red-400">
                       {assignmentAnswers.filter(a => !a.is_correct).length}
                     </div>
                     <div className="text-xs text-gray-400">Incorrect</div>
                   </div>
-                  <div className="card-glass p-4 text-center border border-blue-500/30">
-                    <div className="text-2xl font-heading text-blue-400">
+                  <div className="rounded-xl p-4 text-center bg-blue-900/20 border border-blue-500/30">
+                    <div className="text-3xl font-heading text-blue-400">
                       {Math.round(assignmentAnswers.filter(a => a.is_correct).length / assignmentAnswers.length * 100)}%
                     </div>
                     <div className="text-xs text-gray-400">Accuracy</div>
@@ -402,7 +573,7 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
                 {assignmentAnswers.map((answer, index) => (
                   <div
                     key={answer.question_id}
-                    className={`card-glass p-4 border-l-4 ${
+                    className={`rounded-xl p-4 border-l-4 bg-slate-800/50 ${
                       answer.is_correct ? 'border-l-green-500' : 'border-l-red-500'
                     }`}
                   >
@@ -415,21 +586,21 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
                           Q{index + 1}: {answer.question_text}
                         </p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                          <div className={`p-2 rounded ${answer.is_correct ? 'bg-green-900/30' : 'bg-red-900/30'}`}>
+                          <div className={`p-2 rounded-lg ${answer.is_correct ? 'bg-green-900/30' : 'bg-red-900/30'}`}>
                             <span className="text-gray-400">Your answer:</span>{' '}
                             <span className={answer.is_correct ? 'text-green-300' : 'text-red-300'}>
                               {answer.student_answer}
                             </span>
                           </div>
                           {!answer.is_correct && (
-                            <div className="p-2 rounded bg-green-900/30">
+                            <div className="p-2 rounded-lg bg-green-900/30">
                               <span className="text-gray-400">Correct answer:</span>{' '}
                               <span className="text-green-300">{answer.correct_answer}</span>
                             </div>
                           )}
                         </div>
                         {answer.explanation && !answer.is_correct && (
-                          <div className="mt-2 p-2 rounded bg-blue-900/20 border border-blue-500/20">
+                          <div className="mt-2 p-3 rounded-lg bg-blue-900/20 border border-blue-500/20">
                             <span className="text-blue-300 text-sm">💡 {answer.explanation}</span>
                           </div>
                         )}
@@ -446,7 +617,7 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
                   setSelectedAssignment(null);
                   setAssignmentAnswers([]);
                 }}
-                className="px-6 py-2 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-heading hover:scale-105 transition-all"
+                className="px-8 py-2 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-heading hover:scale-105 transition-all shadow-lg shadow-cyan-500/30"
               >
                 Close
               </button>

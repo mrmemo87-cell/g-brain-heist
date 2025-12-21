@@ -2,6 +2,7 @@
 // All audio files are located in /public/sounds/
 
 type SoundEffect = 
+  | 'achievement'  // Achievement unlocked (special fanfare)
   | 'activate'      // Item activation sound
   | 'bg'           // Background music
   | 'buy'          // Shop purchase sound
@@ -10,8 +11,12 @@ type SoundEffect =
   | 'hack_fail'    // Failed hack attempt
   | 'hack_win'     // Successful hack
   | 'level_up'     // Level up celebration
+  | 'notification' // Generic notification ping
   | 'tada'         // General success sound
   | 'wrong';       // Wrong answer sound
+
+// Export SoundEffect type for external use
+export type { SoundEffect };
 
 class AudioManager {
   private sounds: Map<SoundEffect, HTMLAudioElement> = new Map();
@@ -51,8 +56,8 @@ class AudioManager {
 
   private preloadSounds() {
     const soundFiles: SoundEffect[] = [
-      'activate', 'buy', 'collect', 'correct', 
-      'hack_fail', 'hack_win', 'level_up', 'tada', 'wrong'
+      'achievement', 'activate', 'buy', 'collect', 'correct', 
+      'hack_fail', 'hack_win', 'level_up', 'notification', 'tada', 'wrong'
     ];
 
     soundFiles.forEach(sound => {

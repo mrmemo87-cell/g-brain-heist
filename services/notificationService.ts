@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { audioService, SoundEffect } from './audioService';
 
 export type NotificationType = 
   | 'attack_incoming'      // 🚨 Danger - Someone is attacking you
@@ -47,7 +48,6 @@ export interface Notification {
 
 class NotificationService {
   private listeners: ((notification: Notification) => void)[] = [];
-  private audioContext: AudioContext | null = null;
   
   constructor() {
     this.setupRealtimeSubscription();
@@ -88,30 +88,37 @@ class NotificationService {
 
   // Play appropriate sound for notification type
   private playNotificationSound(type: NotificationType) {
-    const soundMap: Record<NotificationType, string> = {
-      attack_incoming: 'alarm',       // Danger!
-      attack_defended: 'victory',     // Success!
-      attack_success: 'victory',      // Win!
-      attack_failed: 'error',         // Loss
-      level_up: 'levelup',           // Celebration!
-      achievement_earned: 'achievement', // Trophy sound
-      coins_earned: 'collect',        // Cha-ching!
-      coins_lost: 'error',           // Sad sound
-      quest_completed: 'complete',    // Success chime
-      gemstone_earned: 'achievement', // Sparkly reward
-      low_ap: 'warning',             // Beep
-      ap_full: 'ready',              // Ready sound
-      challenge_received: 'challenge', // Battle drum
-      clan_invite: 'social',         // Friendly ping
-      revenge_available: 'revenge',   // Intense sound
-      streak_danger: 'warning',      // Alert
-      new_rival: 'challenge',        // Battle ready
-      leaderboard_change: 'rankup',  // Progress sound
+    // Map notification types to sound effects
+    const soundMap: Partial<Record<NotificationType, SoundEffect>> = {
+      attack_incoming: 'hack_fail',       // Alert!
+      attack_defended: 'hack_win',        // Success!
+      attack_success: 'hack_win',         // Win!
+      attack_failed: 'wrong',             // Loss
+      level_up: 'level_up',               // Celebration!
+      achievement_earned: 'achievement',  // Trophy sound! 🏆
+      coins_earned: 'collect',            // Cha-ching!
+      coins_lost: 'wrong',                // Sad sound
+      quest_completed: 'tada',            // Success chime
+      gemstone_earned: 'achievement',     // Sparkly reward
+      low_ap: 'notification',             // Beep
+      ap_full: 'notification',            // Ready sound
+      challenge_received: 'notification', // Battle drum
+      clan_invite: 'notification',        // Friendly ping
+      revenge_available: 'notification',  // Intense sound
+      streak_danger: 'wrong',             // Alert
+      new_rival: 'notification',          // Battle ready
+      leaderboard_change: 'tada',         // Progress sound
+      assignment_completed: 'correct',    // Teacher notification
+      cambridge_test_taken: 'notification',
+      student_improvement: 'tada',
+      new_submission: 'notification',
+      class_milestone: 'tada',
     };
 
-    // Play sound using audio service
-    // This would integrate with your existing audioService
-    console.log(`🔊 Playing sound: ${soundMap[type]}`);
+    const sound = soundMap[type];
+    if (sound) {
+      audioService.play(sound);
+    }
   }
 
   // Subscribe to notifications

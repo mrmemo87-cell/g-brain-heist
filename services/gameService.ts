@@ -4181,6 +4181,8 @@ export interface Achievement {
   reward_xp: number;
   reward_coins: number;
   icon: string;
+  category?: string;
+  rarity?: string;
   is_earned?: boolean;
   earned_at?: string;
   progress?: number; // Current progress towards achievement
@@ -4189,7 +4191,7 @@ export interface Achievement {
 export const achievements_list = async (): Promise<Achievement[]> => {
     const user = await getCurrentUser();
 
-    // Get all achievements
+    // Get all achievements including category and rarity
     const { data: allAchievements, error: achError } = await supabase
         .from('achievements')
         .select('*')
@@ -4197,19 +4199,25 @@ export const achievements_list = async (): Promise<Achievement[]> => {
 
     if (achError) throw achError;
 
-    // Get user's earned achievements
-    // Select both earned_at and unlocked_at - some schemas have one or the other
+    // Get user's EARNED achievements (must have a timestamp to be considered earned)
     const { data: earnedAchievements, error: earnedError } = await supabase
         .from('user_achievements')
-        .select('achievement_id, earned_at, unlocked_at')
+        .select('achievement_id, earned_at, unlocked_at, progress')
         .eq('user_id', user.id);
 
     if (earnedError) throw earnedError;
 
-    const earnedMap: Record<string, string> = {};
+    // Only consider earned if there's an actual timestamp
+    const earnedMap: Record<string, { earned_at: string | null; progress: number }> = {};
     (earnedAchievements || []).forEach((ua: any) => {
-        // Use whichever timestamp column exists
-        earnedMap[ua.achievement_id] = ua.earned_at || ua.unlocked_at || null;
+        const timestamp = ua.earned_at || ua.unlocked_at;
+        // CRITICAL: Only mark as earned if timestamp exists
+        if (timestamp) {
+            earnedMap[ua.achievement_id] = {
+                earned_at: timestamp,
+                progress: ua.progress || 0
+            };
+        }
     });
 
     // Get user stats for progress calculation
@@ -4254,8 +4262,9 @@ export const achievements_list = async (): Promise<Achievement[]> => {
 
     // Map achievements with earned status and progress
     return (allAchievements || []).map((ach: any) => {
-        const is_earned = !!earnedMap[ach.id];
-        let progress = 0;
+        const earnedData = earnedMap[ach.id];
+        const is_earned = !!earnedData;
+        let progress = is_earned ? (earnedData?.progress || ach.condition_value) : 0;
 
         if (!is_earned) {
             switch (ach.condition_type) {
@@ -4282,8 +4291,10 @@ export const achievements_list = async (): Promise<Achievement[]> => {
 
         return {
             ...ach,
+            category: ach.category || 'general',
+            rarity: ach.rarity || 'common',
             is_earned,
-            earned_at: earnedMap[ach.id],
+            earned_at: earnedData?.earned_at || null,
             progress: Math.min(progress, ach.condition_value),
         };
     });
@@ -4300,10 +4311,34 @@ export const check_achievements = async (): Promise<Achievement[]> => {
     const achievementRows = data as Array<{ newly_earned: Achievement[] }>;
     const newlyEarned = achievementRows[0]?.newly_earned || [];
 
-    // ====== NOTIFICATION: ACHIEVEMENT EARNED ======
+    // ====== PLAY ACHIEVEMENT SOUND & ADD TO ACTIVITY FEED ======
     if (newlyEarned.length > 0) {
+        // Import and play achievement sound
         try {
-            // Send notification for each new achievement
+            const { audioService } = await import('./audioService');
+            audioService.play('achievement');
+        } catch (audioErr) {
+            console.warn('Failed to play achievement sound:', audioErr);
+        }
+
+        // Add to local activity feed for each achievement
+        for (const achievement of newlyEarned) {
+            addActivityEvent({
+                kind: 'achievement_earned',
+                actor: user.user_metadata?.['username'] || user.email || 'Player',
+                data: {
+                    achievement_id: achievement.id,
+                    achievement_name: achievement.name,
+                    achievement_icon: achievement.icon,
+                    reward_xp: achievement.reward_xp,
+                    reward_coins: achievement.reward_coins,
+                },
+                created_at: new Date().toISOString(),
+            });
+        }
+
+        // Send notifications for each new achievement
+        try {
             for (const achievement of newlyEarned) {
                 await notificationService.createNotification(
                     user.id,

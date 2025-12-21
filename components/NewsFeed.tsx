@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NewsEvent } from '../types';
-import { LevelUpIcon, PvpWinIcon, PvpBlockedIcon, QuestClearedIcon, PurchaseIcon } from './icons';
+import { LevelUpIcon, PvpWinIcon, PvpBlockedIcon, QuestClearedIcon, PurchaseIcon, TrophyIcon } from './icons';
 import { activity_reaction_toggle } from '../services/gameService';
 
 const getEventIconAndColor = (kind: NewsEvent['kind']) => {
@@ -10,9 +10,10 @@ const getEventIconAndColor = (kind: NewsEvent['kind']) => {
         case 'pvp_win': return { icon: <div style={{...iconStyle, color: 'var(--success-teal)'}}><PvpWinIcon /></div>, color: 'var(--success-teal)' };
         case 'pvp_loss':
         case 'pvp_blocked': return { icon: <div style={{...iconStyle, color: 'var(--danger-red)'}}><PvpBlockedIcon /></div>, color: 'var(--danger-red)' };
-  case 'quest_cleared': return { icon: <div style={{...iconStyle, color: 'var(--ion-blue)'}}><QuestClearedIcon /></div>, color: 'var(--ion-blue)' };
-  case 'clan_create': return { icon: <div style={{...iconStyle, color: 'var(--ion-blue)'}}><QuestClearedIcon /></div>, color: 'var(--ion-blue)' };
+        case 'quest_cleared': return { icon: <div style={{...iconStyle, color: 'var(--ion-blue)'}}><QuestClearedIcon /></div>, color: 'var(--ion-blue)' };
+        case 'clan_create': return { icon: <div style={{...iconStyle, color: 'var(--ion-blue)'}}><QuestClearedIcon /></div>, color: 'var(--ion-blue)' };
         case 'purchase': return { icon: <div style={{...iconStyle, color: 'var(--success-teal)'}}><PurchaseIcon /></div>, color: 'var(--success-teal)' };
+        case 'achievement_earned': return { icon: <div style={{...iconStyle, color: '#fbbf24'}}><TrophyIcon className="w-6 h-6" /></div>, color: '#fbbf24' };
         default: return { icon: null, color: 'var(--mist-400)'};
     }
 };
@@ -44,6 +45,9 @@ const formatEventText = (event: NewsEvent) => {
         
         case 'weekly_claim':
             return <><span style={{...actorStyle, color: 'var(--amber-warn)'}}>{event.actor}</span> claimed weekly rewards! 💰</>;
+        
+        case 'achievement_earned':
+            return <><span style={{...actorStyle, color: '#fbbf24'}}>{event.actor}</span> unlocked <span className="font-bold">{event.data.achievement_icon || '🏆'} {event.data.achievement_name}</span>! 🎉</>;
         
         default:
             return <><span style={actorStyle}>{event.actor}</span> is up to something... 🤔</>;
