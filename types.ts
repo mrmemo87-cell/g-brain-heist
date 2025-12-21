@@ -71,6 +71,16 @@ export interface Profile {
   clan_total_score?: number | null;
   active_clan_buffs?: ActiveClanBuff[];
   clan_buff_effects?: ClanBuffEffect;
+  // Earnings tracking
+  pvp_wins?: number;
+  coins_from_achievements?: number;
+  xp_from_achievements?: number;
+  coins_from_pvp?: number;
+  xp_from_pvp?: number;
+  coins_from_assignments?: number;
+  xp_from_assignments?: number;
+  coins_from_quests?: number;
+  xp_from_quests?: number;
 }
 
 export interface Task {

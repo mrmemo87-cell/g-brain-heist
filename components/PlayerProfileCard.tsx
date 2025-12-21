@@ -246,7 +246,37 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
       accentClass: 'text-cyan-200 border border-cyan-300/40',
     },
   ];
-
+  // Earnings breakdown stats
+  const earningsStats: StatDisplayProps[] = [
+    {
+      icon: <span className="text-base">🏆</span>,
+      label: 'From Achievements',
+      value: `${(profile.coins_from_achievements || 0).toLocaleString()} coins`,
+      subtitle: `${(profile.xp_from_achievements || 0).toLocaleString()} XP`,
+      accentClass: 'text-purple-200 border border-purple-300/40',
+    },
+    {
+      icon: <span className="text-base">⚔️</span>,
+      label: 'From PvP Attacks',
+      value: `${(profile.coins_from_pvp || 0).toLocaleString()} coins`,
+      subtitle: `${(profile.xp_from_pvp || 0).toLocaleString()} XP • ${profile.pvp_wins || 0} wins`,
+      accentClass: 'text-red-200 border border-red-300/40',
+    },
+    {
+      icon: <span className="text-base">📋</span>,
+      label: 'From Assignments',
+      value: `${(profile.coins_from_assignments || 0).toLocaleString()} coins`,
+      subtitle: `${(profile.xp_from_assignments || 0).toLocaleString()} XP`,
+      accentClass: 'text-green-200 border border-green-300/40',
+    },
+    {
+      icon: <span className="text-base">🎯</span>,
+      label: 'From Quests',
+      value: `${(profile.coins_from_quests || 0).toLocaleString()} coins`,
+      subtitle: `${(profile.xp_from_quests || 0).toLocaleString()} XP`,
+      accentClass: 'text-blue-200 border border-blue-300/40',
+    },
+  ];
   return (
     <div className="animate-fade-in-up rounded-2xl border border-pink-500/30 bg-slate-950/90 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.55)]">
       <div className="flex flex-col gap-4">
@@ -308,6 +338,18 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             {secondaryStats.map((stat) => (
+              <StatDisplay key={stat.label} {...stat} />
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Earnings Breakdown</p>
+            <span className="text-[11px] text-slate-400">Where your rewards come from</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+            {earningsStats.map((stat) => (
               <StatDisplay key={stat.label} {...stat} />
             ))}
           </div>

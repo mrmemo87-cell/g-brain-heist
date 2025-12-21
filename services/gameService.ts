@@ -2357,6 +2357,44 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
         }
         botSimulation = simulateBotRaid(target.user_id);
         response = botSimulation.response;
+        
+        // ====== APPLY BOT BATTLE REWARDS TO USER'S DATABASE PROFILE ======
+        const xpDelta = response.attacker_deltas?.xp ?? 0;
+        const coinsDelta = response.attacker_deltas?.coins ?? 0;
+        if (xpDelta !== 0 || coinsDelta !== 0) {
+            const { data: currentProfile } = await supabase
+                .from('users')
+                .select('xp, coins, level')
+                .eq('id', user.id)
+                .single();
+            
+            if (currentProfile) {
+                const newXP = Math.max(0, currentProfile.xp + xpDelta);
+                const newCoins = Math.max(0, currentProfile.coins + coinsDelta);
+                const newLevel = Math.floor(newXP / 100) + 1;
+                
+                await updateProfile(user.id, {
+                    xp: newXP,
+                    coins: newCoins,
+                    level: newLevel,
+                });
+                
+                // Track PvP earnings for stats display
+                if (xpDelta > 0 || coinsDelta > 0) {
+                    try {
+                        await supabase.rpc('track_pvp_earnings', {
+                            p_user_id: user.id,
+                            p_xp_delta: Math.max(0, xpDelta),
+                            p_coins_delta: Math.max(0, coinsDelta)
+                        });
+                    } catch (trackErr) {
+                        console.warn('Failed to track PvP earnings:', trackErr);
+                    }
+                }
+                
+                console.log(`[Bot PvP] Applied rewards: ${xpDelta} XP, ${coinsDelta} coins`);
+            }
+        }
     } else {
         const { data, error } = await performHackAttempt(defender_id);
 
@@ -5182,6 +5220,19 @@ const finalizeMcqAnswer = async ({
             gemstones: newGemstones,
         });
         console.log(`[MCQ] ✅ Profile updated successfully - New totals: ${newXP} XP, ${newCoins} coins`);
+        
+        // Track quest earnings for stats display
+        if (xpReward > 0 || coinDelta > 0) {
+            try {
+                await supabase.rpc('track_quest_earnings', {
+                    p_user_id: userId,
+                    p_xp_delta: Math.max(0, xpReward),
+                    p_coins_delta: Math.max(0, coinDelta)
+                });
+            } catch (trackErr) {
+                console.warn('[MCQ] Failed to track quest earnings:', trackErr);
+            }
+        }
     } else {
         console.warn(`[MCQ] ⚠️ NO REWARDS - xpReward=${xpReward}, coinDelta=${coinDelta}, gemstoneDelta=${gemstoneDelta}`);
         if (duplicateCorrect) {

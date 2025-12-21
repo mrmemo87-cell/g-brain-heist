@@ -223,10 +223,12 @@ begin
       result_kind := 'pvp_win';
     end if;
 
-    -- Update attacker
+    -- Update attacker (including earnings tracking)
     update public.users
     set xp = xp + xp_delta,
-        coins = coins + coins_delta
+        coins = coins + coins_delta,
+        xp_from_pvp = COALESCE(xp_from_pvp, 0) + GREATEST(0, xp_delta),
+        coins_from_pvp = COALESCE(coins_from_pvp, 0) + GREATEST(0, coins_delta)
     where id = v_attacker_id;
 
     -- Update defender (lose coins if not blocked, and set cooldown)
