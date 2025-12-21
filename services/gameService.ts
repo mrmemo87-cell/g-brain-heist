@@ -2398,6 +2398,20 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
         // Update PvP score in database (affects clan competition)
         await updatePvPScore(user.id, true);
         
+        // ====== INCREMENT PVP WINS IN DATABASE & CHECK ACHIEVEMENTS ======
+        try {
+            // Increment pvp_wins counter in users table
+            await supabase.rpc('increment_pvp_wins', { p_user_id: user.id });
+            
+            // Check for newly earned achievements
+            const newlyEarned = await check_achievements();
+            if (newlyEarned && newlyEarned.length > 0) {
+                console.log('🏆 Achievements earned from PvP win:', newlyEarned.map(a => a.name));
+            }
+        } catch (achError) {
+            console.error('Failed to check PvP achievements:', achError);
+        }
+        
         const progress = getTaskProgress();
         if (progress.daily_pvp_wins === 1 && canEarnPvpGemstone(PVP_GEMSTONE_DAILY_CAP)) {
             gemstoneReward += PVP_GEMSTONE_REWARD;
@@ -4227,11 +4241,8 @@ export const achievements_list = async (): Promise<Achievement[]> => {
         .eq('id', user.id)
         .single();
 
-    const { data: pvpWins } = await supabase
-        .from('activities')
-        .select('id', { count: 'exact', head: true })
-        .eq('actor_id', user.id)
-        .eq('kind', 'pvp_win');
+    // PvP wins now stored directly in users table
+    const pvpWinCount = profile?.pvp_wins || 0;
 
     const { data: questsCompleted } = await supabase
         .from('activities')
@@ -4245,7 +4256,6 @@ export const achievements_list = async (): Promise<Achievement[]> => {
         .eq('actor_id', user.id)
         .eq('kind', 'shop_purchase');
 
-    const pvpWinCount = (pvpWins as any)?.count || 0;
     const questCount = (questsCompleted as any)?.count || 0;
     const purchaseCount = (itemsPurchased as any)?.count || 0;
 

@@ -9,6 +9,43 @@
 -- ============================================================================
 
 -- ============================================================================
+-- STEP 0: Add pvp_wins column to users table if missing
+-- ============================================================================
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS pvp_wins INTEGER DEFAULT 0;
+
+-- Create RPC function to increment PvP wins
+CREATE OR REPLACE FUNCTION increment_pvp_wins(p_user_id UUID)
+RETURNS INTEGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_new_wins INTEGER;
+BEGIN
+  UPDATE users 
+  SET pvp_wins = COALESCE(pvp_wins, 0) + 1
+  WHERE id = p_user_id
+  RETURNING pvp_wins INTO v_new_wins;
+  
+  RETURN v_new_wins;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION increment_pvp_wins(UUID) TO authenticated;
+
+-- ============================================================================
+-- STEP 0B: Credit existing PvP wins from pvp_score
+-- ============================================================================
+-- pvp_score = (wins * 3) + (losses * 1), so estimate wins as pvp_score / 3
+-- This is a rough estimate to give credit for existing wins
+
+UPDATE users 
+SET pvp_wins = GREATEST(COALESCE(pvp_wins, 0), COALESCE(pvp_score / 3, 0))
+WHERE pvp_score > 0;
+
+-- ============================================================================
 -- STEP 1: NUCLEAR OPTION - Delete everything and start fresh
 -- ============================================================================
 
@@ -127,19 +164,12 @@ BEGIN
   -- Account age
   v_account_age_days := GREATEST(0, EXTRACT(DAY FROM NOW() - v_user_created_at)::INT);
 
-  -- Get clan_id
+  -- Get clan_id and pvp_wins directly from users table
   BEGIN
-    EXECUTE 'SELECT clan_id FROM users WHERE id = $1' INTO v_clan_id USING p_user_id;
+    EXECUTE 'SELECT clan_id, COALESCE(pvp_wins, 0) FROM users WHERE id = $1' 
+    INTO v_clan_id, v_pvp_wins USING p_user_id;
   EXCEPTION WHEN OTHERS THEN
     v_clan_id := NULL;
-  END;
-
-  -- Count PvP wins (from real battles table if exists, otherwise 0)
-  BEGIN
-    SELECT COUNT(*) INTO v_pvp_wins 
-    FROM brains_heist_battles 
-    WHERE winner_id = p_user_id AND status = 'completed';
-  EXCEPTION WHEN undefined_table THEN
     v_pvp_wins := 0;
   END;
 
@@ -364,7 +394,39 @@ WHERE (u.role = 'student' OR u.role IS NULL)
 ON CONFLICT (user_id, achievement_id) DO NOTHING;
 
 -- ============================================================================
--- STEP 7: Award assignment achievements based on REAL data
+-- STEP 7: Award PvP achievements based on users.pvp_wins
+-- ============================================================================
+
+-- First Strike (1 PvP win)
+INSERT INTO user_achievements (user_id, achievement_id, earned_at, progress, target)
+SELECT u.id, 'pvp_first', NOW(), u.pvp_wins, 1
+FROM users u
+WHERE u.pvp_wins >= 1 AND (u.role = 'student' OR u.role IS NULL)
+ON CONFLICT (user_id, achievement_id) DO NOTHING;
+
+-- Attacker (5 PvP wins)
+INSERT INTO user_achievements (user_id, achievement_id, earned_at, progress, target)
+SELECT u.id, 'pvp_5', NOW(), u.pvp_wins, 5
+FROM users u
+WHERE u.pvp_wins >= 5 AND (u.role = 'student' OR u.role IS NULL)
+ON CONFLICT (user_id, achievement_id) DO NOTHING;
+
+-- Raider (10 PvP wins)
+INSERT INTO user_achievements (user_id, achievement_id, earned_at, progress, target)
+SELECT u.id, 'pvp_10', NOW(), u.pvp_wins, 10
+FROM users u
+WHERE u.pvp_wins >= 10 AND (u.role = 'student' OR u.role IS NULL)
+ON CONFLICT (user_id, achievement_id) DO NOTHING;
+
+-- Warlord (25 PvP wins)
+INSERT INTO user_achievements (user_id, achievement_id, earned_at, progress, target)
+SELECT u.id, 'pvp_25', NOW(), u.pvp_wins, 25
+FROM users u
+WHERE u.pvp_wins >= 25 AND (u.role = 'student' OR u.role IS NULL)
+ON CONFLICT (user_id, achievement_id) DO NOTHING;
+
+-- ============================================================================
+-- STEP 8: Award assignment achievements based on REAL data
 -- ============================================================================
 
 -- First Assignment (1 completed)
