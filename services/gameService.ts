@@ -4260,32 +4260,73 @@ export const achievements_list = async (): Promise<Achievement[]> => {
     const coinsSpent = (purchases || []).reduce((sum: number, p: any) => sum + (p.data?.amount || p.data?.price || 0), 0);
     const coinsEarned = (profile?.coins || 0) + coinsSpent;
 
+    // Count assignments
+    const { data: assignmentResults } = await supabase
+        .from('student_assignment_results')
+        .select('id, accuracy, completed_at', { count: 'exact', head: false })
+        .eq('student_id', user.id);
+
+    const assignmentsCompleted = assignmentResults?.length || 0;
+    const perfectScores = (assignmentResults || []).filter((r: any) => r.accuracy === 100).length;
+
     // Map achievements with earned status and progress
     return (allAchievements || []).map((ach: any) => {
         const earnedData = earnedMap[ach.id];
         const is_earned = !!earnedData;
         let progress = is_earned ? (earnedData?.progress || ach.condition_value) : 0;
 
-        if (!is_earned) {
+        if (!is_earned && ach.condition_type && ach.condition_value) {
             switch (ach.condition_type) {
+                // PvP - use actual count
+                case 'pvp_wins':
                 case 'pvp_wins_count':
                     progress = pvpWinCount;
                     break;
+                // Level
+                case 'level':
+                    progress = profile?.level || 1;
+                    break;
+                // Streak
+                case 'streak':
+                    progress = profile?.streak || 0;
+                    break;
+                // Coins (current balance)
+                case 'coins_balance':
+                case 'coins_earned':
+                case 'total_coins_earned':
+                    progress = profile?.coins || 0;
+                    break;
+                // XP
                 case 'total_xp':
                     progress = profile?.xp || 0;
                     break;
-                case 'quests_completed':
-                    progress = questCount;
-                    break;
-                case 'coins_earned':
-                    progress = coinsEarned;
-                    break;
+                // Shop purchases
                 case 'items_purchased':
                     progress = purchaseCount;
                     break;
+                // Clan
                 case 'clan_member':
+                case 'clan_joined':
                     progress = profile?.clan_id ? 1 : 0;
                     break;
+                // Assignments
+                case 'assignments_completed':
+                    progress = assignmentsCompleted;
+                    break;
+                // Perfect scores
+                case 'perfect_scores':
+                    progress = perfectScores;
+                    break;
+                // Correct answers
+                case 'correct_answers':
+                    progress = profile?.correct_answers || 0;
+                    break;
+                // Login
+                case 'login_count':
+                    progress = 1;
+                    break;
+                default:
+                    progress = 0;
             }
         }
 
@@ -4295,7 +4336,7 @@ export const achievements_list = async (): Promise<Achievement[]> => {
             rarity: ach.rarity || 'common',
             is_earned,
             earned_at: earnedData?.earned_at || null,
-            progress: Math.min(progress, ach.condition_value),
+            progress: Math.min(progress, ach.condition_value || 0),
         };
     });
 };
