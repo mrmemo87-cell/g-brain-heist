@@ -2665,6 +2665,29 @@ export const shop_buy = async (item_id: string, quantity: number): Promise<Purch
         total_cost: totalCoinCost,
     });
 
+    // Log activity for achievement tracking
+    await supabase.from('activities').insert({
+        kind: 'shop_purchase',
+        actor_id: user.id,
+        actor_username: user.email?.split('@')[0] || 'Unknown',
+        data: { 
+            item_id: item.id, 
+            item_name: item.name, 
+            quantity: quantity,
+            amount: totalCoinCost 
+        },
+    });
+
+    // Check for shop-related achievements
+    try {
+        const newlyEarned = await check_achievements();
+        if (newlyEarned && newlyEarned.length > 0) {
+            console.log('🏆 Achievements earned from shop purchase:', newlyEarned.map(a => a.name));
+        }
+    } catch (achError) {
+        console.warn('Failed to check shop achievements:', achError);
+    }
+
     // Add items to inventory
     const inventoryItems = [];
     for (let i = 0; i < quantity; i++) {
