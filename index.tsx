@@ -106,9 +106,9 @@ const Main: React.FC = () => {
       setIsAuthenticated(!!session);
       
       if (session) {
-        // Check if user needs to complete profile setup
+        // Check if user needs to complete profile setup - use short timeout
         try {
-          const status = await withTimeout(AuthService.checkUserSetupStatus(), 10000, 'check_user_setup_status');
+          const status = await withTimeout(AuthService.checkUserSetupStatus(), 3000, 'check_user_setup_status');
           setNeedsSetup(status.needs_setup);
           if (status.has_username) {
             setSetupUsername(status.username);
@@ -152,15 +152,15 @@ const Main: React.FC = () => {
         setIsAuthenticated(!!session);
 
         if (session) {
-          // Check setup status on auth change
+          // Check setup status on auth change - use short timeout to avoid blocking
           try {
-            const status = await withTimeout(AuthService.checkUserSetupStatus(), 10000, 'check_user_setup_status');
+            const status = await withTimeout(AuthService.checkUserSetupStatus(), 3000, 'check_user_setup_status');
             setNeedsSetup(status.needs_setup);
             if (status.has_username) {
               setSetupUsername(status.username);
             }
           } catch (setupErr) {
-            // Don't force setup on timeout - let user proceed
+            // Don't force setup on timeout - let user proceed immediately
             console.warn('Setup check timed out on auth change, proceeding without setup');
             setNeedsSetup(false);
           }
