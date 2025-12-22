@@ -1582,6 +1582,7 @@ export const whoami = async (): Promise<Profile> => {
 /**
  * Fetch a public profile for any user by their user ID.
  * This returns a subset of profile data that is safe to show to other players.
+ * Uses an RPC function to bypass RLS restrictions.
  */
 export const getPublicProfile = async (userId: string): Promise<Profile | null> => {
   // Retry logic for fetching profile
@@ -1590,21 +1591,18 @@ export const getPublicProfile = async (userId: string): Promise<Profile | null> 
   
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
-      const result = await supabase
-        .from('users')
-        .select(`
-          id, username, avatar_url, level, xp, coins, gemstones, streak, pvp_score,
-          attack_power, defense_power, bio, batch, grade, role, last_seen,
-          ap_now, ap_max
-        `)
-        .eq('id', userId)
-        .single();
+      // Use RPC function to bypass RLS and get public profile
+      const { data, error } = await supabase.rpc('get_public_profile', {
+        target_user_id: userId
+      });
       
-      profile = result.data;
-      fetchError = result.error;
+      if (error) throw error;
       
-      if (!fetchError && profile) break; // Success
-      if (fetchError) throw fetchError;
+      // The RPC returns JSON, so data is the profile object directly
+      profile = data;
+      fetchError = null;
+      
+      if (profile) break; // Success
     } catch (err) {
       fetchError = err;
       if (attempt < 3) {
