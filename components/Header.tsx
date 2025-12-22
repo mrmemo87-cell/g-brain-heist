@@ -401,78 +401,51 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
             </div>
 
             {profile.role !== 'teacher' && (
-              <div className="mt-3 rounded-3xl border border-slate-800/60 bg-slate-950/60 p-3 shadow-inner shadow-slate-950/40">
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="flex items-center gap-2 rounded-2xl border border-yellow-500/40 bg-yellow-500/10 px-3 py-2">
-                    <div className="flex-shrink-0 text-yellow-300">
-                      <CoinAnimation width={24} height={24} />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-semibold uppercase tracking-wide text-yellow-200/80">Coins</span>
-                      <span id="coin-hud" className="font-mono text-sm font-bold text-white">
-                        {profile.coins.toLocaleString()}
-                      </span>
-                    </div>
+              <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5">
+                {/* Coins */}
+                <div className="flex items-center gap-1.5 rounded-xl border border-yellow-500/40 bg-yellow-500/10 px-2.5 py-1.5">
+                  <CoinAnimation width={18} height={18} />
+                  <span id="coin-hud" className="font-mono text-xs font-bold text-white">
+                    {profile.coins.toLocaleString()}
+                  </span>
+                </div>
+                {/* Gemstones */}
+                <div className="flex items-center gap-1.5 rounded-xl border border-rose-500/50 bg-rose-500/10 px-2.5 py-1.5">
+                  <div className="h-4 w-4">
+                    <GemIcon />
                   </div>
-                  <div className="flex items-center gap-2 rounded-2xl border border-rose-500/50 bg-rose-500/10 px-3 py-2 shadow-[0_12px_24px_rgba(248,113,113,0.25)]">
-                    <div className="h-6 w-6">
-                      <GemIcon />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-semibold uppercase tracking-wide text-rose-200/80">Gemstones</span>
-                      <span id="gem-hud" className="font-mono text-sm font-bold text-white">
-                        {profile.gemstones.toLocaleString()}
-                      </span>
-                    </div>
+                  <span id="gem-hud" className="font-mono text-xs font-bold text-white">
+                    {profile.gemstones.toLocaleString()}
+                  </span>
+                </div>
+                {/* XP */}
+                <div className="flex items-center gap-1.5 rounded-xl border border-cyan-400/40 bg-cyan-500/10 px-2.5 py-1.5">
+                  <div className="h-4 w-4 text-cyan-300">
+                    <XPIcon />
                   </div>
-                  <div className="flex items-center gap-2 rounded-2xl border border-cyan-400/40 bg-cyan-500/10 px-3 py-2">
-                    <div className="h-6 w-6 text-cyan-300">
-                      <XPIcon />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-semibold uppercase tracking-wide text-cyan-200/80">XP</span>
-                      <span id="xp-hud" className="font-mono text-sm font-bold text-white">
-                        {profile.xp.toLocaleString()}
-                      </span>
-                    </div>
+                  <span id="xp-hud" className="font-mono text-xs font-bold text-white">
+                    {profile.xp.toLocaleString()}
+                  </span>
+                </div>
+                {/* AP */}
+                <div className="flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1.5">
+                  <div className="h-4 w-4 text-emerald-300">
+                    <APIcon />
                   </div>
-                  <div className="flex items-center gap-2 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2">
-                    <div className="h-6 w-6 text-emerald-300">
-                      <APIcon />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-semibold uppercase tracking-wide text-emerald-200/80">AP</span>
-                      <div className="flex items-baseline gap-1">
-                        <span id="ap-hud" className="font-mono text-sm font-bold text-white">
-                          {calculatedAP}
-                        </span>
-                        <span className="text-[10px] text-slate-400">/{profile.ap_max}</span>
-                      </div>
-                      {apRegenCountdown !== 'MAX' && (
-                        <span className="text-[10px] text-emerald-200/70">+1 in {apRegenCountdown}</span>
-                      )}
-                    </div>
+                  <span id="ap-hud" className="font-mono text-xs font-bold text-white">
+                    {calculatedAP}<span className="text-[10px] text-slate-400">/{profile.ap_max}</span>
+                  </span>
+                </div>
+                {/* Streak */}
+                <div className={`flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 ${
+                  profile.streak >= 7 ? 'border-orange-500/50 bg-orange-500/15' : 'border-slate-700 bg-slate-800/40'
+                }`}>
+                  <div className={`h-4 w-4 ${profile.streak >= 7 ? 'text-orange-300' : 'text-slate-400'}`}>
+                    <StreakIcon />
                   </div>
-                  <div
-                    className={`flex items-center gap-2 rounded-2xl border px-3 py-2 ${
-                      profile.streak >= 7
-                        ? 'border-orange-500/50 bg-orange-500/15'
-                        : 'border-slate-700 bg-slate-800/40'
-                    }`}
-                  >
-                    <div className={`h-6 w-6 ${profile.streak >= 7 ? 'text-orange-300 animate-pulse' : 'text-slate-400'}`}>
-                      <StreakIcon />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-300/80">Streak</span>
-                      <span
-                        id="streak-hud"
-                        className={`font-mono text-sm font-bold ${profile.streak >= 7 ? 'text-orange-200' : 'text-white'}`}
-                      >
-                        {profile.streak || 0} days
-                      </span>
-                    </div>
-                  </div>
+                  <span id="streak-hud" className={`font-mono text-xs font-bold ${profile.streak >= 7 ? 'text-orange-200' : 'text-white'}`}>
+                    {profile.streak || 0}
+                  </span>
                 </div>
               </div>
             )}
@@ -545,75 +518,53 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
             </div>
 
             {/* Right: Stats and Actions */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               
               {/* Stats Row - Only for students */}
               {profile.role !== 'teacher' && (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 {/* Coins */}
-                <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-br from-yellow-600/20 to-orange-600/20 rounded-xl border-2 border-yellow-500/50 backdrop-blur-sm hover:scale-105 transition-transform min-w-[100px]">
-                  <div className="flex-shrink-0 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]">
-                    <CoinAnimation width={28} height={28} />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-xs text-yellow-300/80 font-semibold uppercase tracking-wide leading-none">Coins</span>
-                    <span id="coin-hud" className="font-mono font-bold text-lg text-white leading-none mt-0.5">{profile.coins.toLocaleString()}</span>
-                  </div>
+                <div className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-br from-yellow-600/20 to-orange-600/20 rounded-xl border border-yellow-500/50 backdrop-blur-sm hover:scale-105 transition-transform">
+                  <CoinAnimation width={22} height={22} />
+                  <span id="coin-hud" className="font-mono font-bold text-sm text-white">{profile.coins.toLocaleString()}</span>
                 </div>
 
                 {/* Gemstones */}
-                <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-br from-rose-700/25 via-rose-600/20 to-pink-600/20 rounded-xl border-2 border-rose-500/60 backdrop-blur-sm hover:scale-105 transition-transform min-w-[100px] shadow-[0_14px_28px_-16px_rgba(248,113,113,0.45)]">
-                  <div className="w-7 h-7">
+                <div className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-br from-rose-700/25 to-pink-600/20 rounded-xl border border-rose-500/60 backdrop-blur-sm hover:scale-105 transition-transform">
+                  <div className="w-5 h-5">
                     <GemIcon />
                   </div>
-                  <div className="flex flex-col">
-                    <span className="text-xs text-rose-200/90 font-semibold uppercase tracking-wide leading-none">Gemstones</span>
-                    <span id="gem-hud" className="font-mono font-bold text-lg text-white leading-none mt-0.5">{profile.gemstones.toLocaleString()}</span>
-                  </div>
+                  <span id="gem-hud" className="font-mono font-bold text-sm text-white">{profile.gemstones.toLocaleString()}</span>
                 </div>
 
                 {/* XP */}
-                <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-br from-blue-600/20 to-cyan-600/20 rounded-xl border-2 border-cyan-500/50 backdrop-blur-sm hover:scale-105 transition-transform min-w-[100px]">
-                  <div className="w-7 h-7 text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">
+                <div className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-br from-blue-600/20 to-cyan-600/20 rounded-xl border border-cyan-500/50 backdrop-blur-sm hover:scale-105 transition-transform">
+                  <div className="w-5 h-5 text-cyan-400">
                     <XPIcon />
                   </div>
-                  <div className="flex flex-col">
-                    <span className="text-xs text-cyan-300/80 font-semibold uppercase tracking-wide leading-none">XP</span>
-                    <span id="xp-hud" className="font-mono font-bold text-lg text-white leading-none mt-0.5">{profile.xp.toLocaleString()}</span>
-                  </div>
+                  <span id="xp-hud" className="font-mono font-bold text-sm text-white">{profile.xp.toLocaleString()}</span>
                 </div>
 
                 {/* AP */}
-                <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-br from-green-600/20 to-emerald-600/20 rounded-xl border-2 border-green-500/50 backdrop-blur-sm hover:scale-105 transition-transform min-w-[100px]">
-                  <div className="w-7 h-7 text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.8)]">
+                <div className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-br from-green-600/20 to-emerald-600/20 rounded-xl border border-green-500/50 backdrop-blur-sm hover:scale-105 transition-transform">
+                  <div className="w-5 h-5 text-green-400">
                     <APIcon />
                   </div>
-                  <div className="flex flex-col">
-                    <span className="text-xs text-green-300/80 font-semibold uppercase tracking-wide leading-none">AP</span>
-                    <div className="flex items-baseline gap-1">
-                      <span id="ap-hud" className="font-mono font-bold text-lg text-white leading-none">{calculatedAP}</span>
-                      <span className="text-xs text-gray-400">/{profile.ap_max}</span>
-                    </div>
-                    {apRegenCountdown !== 'MAX' && (
-                      <span className="text-[9px] text-green-300/60 leading-none mt-0.5">+1 in {apRegenCountdown}</span>
-                    )}
-                  </div>
+                  <span id="ap-hud" className="font-mono font-bold text-sm text-white">{calculatedAP}<span className="text-xs text-gray-400">/{profile.ap_max}</span></span>
                 </div>
 
                 {/* Streak */}
-                <div className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 backdrop-blur-sm hover:scale-105 transition-transform ${
+                <div className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border backdrop-blur-sm hover:scale-105 transition-transform ${
                   profile.streak >= 7 
                     ? 'bg-gradient-to-br from-orange-600/30 to-red-600/30 border-orange-500/60' 
                     : 'bg-gradient-to-br from-gray-700/20 to-gray-600/20 border-gray-500/30'
                 }`}>
-                  <div className={`w-6 h-6 ${profile.streak >= 7 ? 'text-orange-400 animate-pulse' : 'text-gray-400'}`}>
+                  <div className={`w-5 h-5 ${profile.streak >= 7 ? 'text-orange-400' : 'text-gray-400'}`}>
                     <StreakIcon />
                   </div>
-                  <div className="flex flex-col">
-                    <span id="streak-hud" className={`font-mono font-bold text-base leading-none ${profile.streak >= 7 ? 'text-orange-300' : 'text-white'}`}>
-                      {profile.streak || 0}
-                    </span>
-                  </div>
+                  <span id="streak-hud" className={`font-mono font-bold text-sm ${profile.streak >= 7 ? 'text-orange-300' : 'text-white'}`}>
+                    {profile.streak || 0}
+                  </span>
                 </div>
               </div>
               )}

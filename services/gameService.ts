@@ -2118,6 +2118,71 @@ export const mcq_questions_get = async (subject_id: string, limit: number = 5): 
     }));
 };
 
+/**
+ * Get student's progress for each subject - how many questions they've answered
+ * This is USER-SPECIFIC progress, not global question bank size
+ */
+export const get_student_subject_progress = async (): Promise<{ id: string; name: string; answeredCount: number; totalAvailable: number }[]> => {
+    const user = await getCurrentUser();
+    
+    // Get all subjects
+    const subjects = await mcq_subjects_list();
+    
+    // Get counts of questions answered by THIS student, grouped by subject
+    const { data: attemptCounts, error: attemptError } = await supabase
+        .from('question_attempts')
+        .select(`
+            question_id,
+            questions!inner(subject)
+        `)
+        .eq('student_id', user.id);
+    
+    if (attemptError) {
+        console.error('Error fetching student attempts:', attemptError);
+    }
+    
+    // Get total available questions per subject
+    const { data: questionCounts, error: questionsError } = await supabase
+        .from('questions')
+        .select('subject')
+        .eq('is_public', true)
+        .eq('is_active', true);
+    
+    if (questionsError) {
+        console.error('Error fetching question counts:', questionsError);
+    }
+    
+    // Build answer counts by subject
+    const answeredBySubject: Record<string, number> = {};
+    if (attemptCounts) {
+        for (const attempt of attemptCounts) {
+            const subject = (attempt as any).questions?.subject;
+            if (subject) {
+                answeredBySubject[subject] = (answeredBySubject[subject] || 0) + 1;
+            }
+        }
+    }
+    
+    // Build total counts by subject
+    const totalBySubject: Record<string, number> = {};
+    if (questionCounts) {
+        for (const q of questionCounts) {
+            const subject = q.subject;
+            if (subject) {
+                totalBySubject[subject] = (totalBySubject[subject] || 0) + 1;
+            }
+        }
+    }
+    
+    // Map to result with subject names
+    return subjects.map(s => ({
+        id: s.id,
+        name: s.name,
+        answeredCount: answeredBySubject[s.name] || 0,
+        totalAvailable: totalBySubject[s.name] || 0,
+    }));
+};
+
 
 export const raid_targets = async (): Promise<RaidTarget[]> => {
     const user = await getCurrentUser();

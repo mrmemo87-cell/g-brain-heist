@@ -30,7 +30,6 @@ import { getMilestoneReward } from '../src/lib/brains_heist/rewards';
 import { recordSoloQuestion, recordMissionSummary } from '../services/adaptiveService';
 import DifficultyPicker from './DifficultyPicker';
 import UnifiedSubjectPlay from './UnifiedSubjectPlay';
-import { getRecommendedDifficulty, difficultyColorClasses, getRecommendedLabel } from '../src/utils/difficultyHelpers';
 import type { QuestProgress } from '../types';
 
 // Helper to get option text (handles both string and QuestionOption formats)
@@ -146,6 +145,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [particles, setParticles] = useState<Omit<RewardParticleProps, 'onComplete'>[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeAssignment, setActiveAssignment] = useState<StudentAssignmentTask | null>(null);
+  const [isAssignmentLate, setIsAssignmentLate] = useState(false);
   const [lastCompletedAssignment, setLastCompletedAssignment] = useState<StudentAssignmentTask | null>(null);
   const [assignmentStartTime, setAssignmentStartTime] = useState<number | null>(null);
   const [assignmentSubmissionState, setAssignmentSubmissionState] = useState<'idle' | 'submitting' | 'submitted'>('idle');
@@ -286,35 +286,46 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     setStage('loading');
     
     try {
-      // Load regular practice subjects and progress
+      // Load regular practice subjects
       const data = await GameService.mcq_subjects_list();
       setSubjects(data);
       
-      // Mock progress data - TODO: Replace with actual API call
-      const mockProgress: SubjectProgress[] = data.map(subject => ({
-        id: subject.id,
-        name: subject.name,
-        easy: { 
-          total: 50, 
-          completed: Math.floor(Math.random() * 50),
-          answeredWithRewards: Math.floor(Math.random() * 50),
-          newLeft: Math.max(0, 50 - Math.floor(Math.random() * 50))
-        },
-        medium: { 
-          total: 30, 
-          completed: Math.floor(Math.random() * 30),
-          answeredWithRewards: Math.floor(Math.random() * 30),
-          newLeft: Math.max(0, 30 - Math.floor(Math.random() * 30))
-        },
-        hard: { 
-          total: 20, 
-          completed: Math.floor(Math.random() * 20),
-          answeredWithRewards: Math.floor(Math.random() * 20),
-          newLeft: Math.max(0, 20 - Math.floor(Math.random() * 20))
-        }
-      }));
+      // Load REAL student progress - user-specific, not mocked
+      const studentProgress = await GameService.get_student_subject_progress();
       
-      setSubjectProgress(mockProgress);
+      // Map to SubjectProgress format with all difficulties combined
+      // For now, we show overall progress since questions don't have difficulty in the bank
+      const realProgress: SubjectProgress[] = data.map(subject => {
+        const progress = studentProgress.find(p => p.id === subject.id);
+        const answered = progress?.answeredCount || 0;
+        const total = progress?.totalAvailable || 0;
+        
+        // Distribute progress across difficulties for UI (simplified - all shown as easy for now)
+        return {
+          id: subject.id,
+          name: subject.name,
+          easy: { 
+            total: total, 
+            completed: answered,
+            answeredWithRewards: answered,
+            newLeft: Math.max(0, total - answered)
+          },
+          medium: { 
+            total: 0, 
+            completed: 0,
+            answeredWithRewards: 0,
+            newLeft: 0
+          },
+          hard: { 
+            total: 0, 
+            completed: 0,
+            answeredWithRewards: 0,
+            newLeft: 0
+          }
+        };
+      });
+      
+      setSubjectProgress(realProgress);
       setStage('subject_selection');
     } catch (error) {
       console.error('Error loading subjects:', error);
@@ -424,7 +435,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
     const normalizedQuestions = (assignment.questions || []).map(normalizeAssignmentQuestion);
 
-    setActiveAssignment({ ...assignment, questions: normalizedQuestions, isLate: isExpired });
+    setActiveAssignment({ ...assignment, questions: normalizedQuestions });
+    setIsAssignmentLate(isExpired);
     setLastCompletedAssignment(null);
     setMode('assignment');
     setTeacherQuestions(normalizedQuestions);
@@ -646,7 +658,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         
         // Check for assignment achievements after submission
         try {
-          const user = await GameService.get_current_profile();
+          const user = await GameService.whoami();
           if (user?.id) {
             const newAchievements = await GameService.check_assignment_achievements(user.id);
             if (newAchievements.length > 0) {
@@ -894,72 +906,81 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
   const renderSubjectSelection = () => (
     <div>
-      {/* Helpful tip banner */}
-      <div className="max-w-4xl mx-auto mb-6 p-5 rounded-2xl bg-gradient-to-r from-cyan-500/15 to-blue-500/15 border-2 border-cyan-400/40 shadow-lg">
-        <div className="flex items-start gap-4">
-          <div className="text-4xl">💡</div>
+      {/* Practice Mode Header */}
+      <div className="max-w-4xl mx-auto mb-6 p-5 rounded-2xl bg-gradient-to-r from-emerald-500/15 to-cyan-500/15 border-2 border-emerald-400/40 shadow-lg">
+        <div className="flex items-center gap-4 mb-3">
+          <div className="text-4xl">🧠</div>
           <div className="flex-1">
-            <h3 className="font-bold text-xl text-cyan-300 mb-2">Maximize Your Rewards!</h3>
-            <p className="text-gray-200 leading-relaxed mb-2">
-              You can only earn rewards <strong className="text-cyan-400">once per question</strong>. Choose questions you haven't answered before to earn XP and coins!
-            </p>
-            <div className="flex flex-wrap gap-2 mt-3">
-              <span className="px-3 py-1 bg-green-500/20 border border-green-400/40 rounded-full text-green-300 text-sm font-semibold">
-                ✓ Try different subjects
-              </span>
-              <span className="px-3 py-1 bg-blue-500/20 border border-blue-400/40 rounded-full text-blue-300 text-sm font-semibold">
-                ✓ Explore different difficulties
-              </span>
-              <span className="px-3 py-1 bg-purple-500/20 border border-purple-400/40 rounded-full text-purple-300 text-sm font-semibold">
-                ✓ Check teacher assignments
-              </span>
-            </div>
+            <h2 className="font-heading text-2xl text-emerald-300">Practice Mode</h2>
+            <p className="text-gray-200 text-sm">Practice questions to earn XP & coins. No time pressure!</p>
           </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <span className="px-3 py-1 bg-emerald-500/20 border border-emerald-400/40 rounded-full text-emerald-300 text-sm font-semibold">
+            ✓ Earn XP for new answers
+          </span>
+          <span className="px-3 py-1 bg-cyan-500/20 border border-cyan-400/40 rounded-full text-cyan-300 text-sm font-semibold">
+            ✓ No deadline
+          </span>
+          <span className="px-3 py-1 bg-purple-500/20 border border-purple-400/40 rounded-full text-purple-300 text-sm font-semibold">
+            ✓ Choose any subject
+          </span>
         </div>
       </div>
 
-      <h2 className="font-heading text-3xl text-center mb-8 animate-fade-in-up" style={{color: 'var(--ion-blue)'}}>Select a Subject</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+      <h3 className="font-heading text-xl text-center mb-6 text-gray-300">Select a Subject to Practice</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
         {subjects.map(subject => {
           const progress = subjectProgress.find(p => p.id === subject.id);
-          const recommended = progress ? getRecommendedDifficulty(progress) : 'easy';
-          const colorClass = difficultyColorClasses[recommended];
+          const answeredCount = progress ? (progress.easy.completed + progress.medium.completed + progress.hard.completed) : 0;
+          const totalCount = progress ? (progress.easy.total + progress.medium.total + progress.hard.total) : 0;
+          const progressPercent = totalCount > 0 ? Math.round((answeredCount / totalCount) * 100) : 0;
+          const hasQuestions = totalCount > 0;
           
           return (
             <button
               key={subject.id} 
               onClick={() => handleSubjectSelect(subject)}
-              className={`card-glass p-6 transform hover:scale-105 transition-all duration-300 animate-fade-in-up border-2 ${colorClass} text-left`}
+              disabled={!hasQuestions}
+              className={`card-glass p-5 transform hover:scale-[1.02] transition-all duration-200 text-left ${
+                hasQuestions 
+                  ? 'border border-cyan-500/30 hover:border-cyan-400/50' 
+                  : 'border border-gray-600/30 opacity-60 cursor-not-allowed'
+              }`}
             >
-              <div className="flex items-center gap-4 mb-3">
-                <div className="w-14 h-14 flex-shrink-0 animate-float" style={{ color: 'var(--ion-blue)'}}><BrainIcon /></div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 flex-shrink-0" style={{ color: 'var(--ion-blue)'}}><BrainIcon /></div>
                 <div className="flex-1">
-                  <h3 className="font-heading text-xl text-white">{subject.name}</h3>
-                  <p className="text-sm text-gray-400 mt-1">{getRecommendedLabel(recommended)}</p>
+                  <h4 className="font-heading text-lg text-white">{subject.name}</h4>
+                  {!hasQuestions && (
+                    <p className="text-xs text-gray-500">No questions available</p>
+                  )}
                 </div>
               </div>
               
-              {progress && recommended !== 'done' && (
-                <div className="mt-4 space-y-1">
+              {hasQuestions && (
+                <div className="space-y-2">
                   <div className="flex justify-between text-xs text-gray-400">
-                    <span>Overall Progress</span>
-                    <span>
-                      {progress.easy.completed + progress.medium.completed + progress.hard.completed} / 
-                      {progress.easy.total + progress.medium.total + progress.hard.total}
+                    <span>Your Progress</span>
+                    <span className={answeredCount === 0 ? 'text-gray-500' : 'text-cyan-400'}>
+                      {answeredCount} / {totalCount} answered
                     </span>
                   </div>
-                  <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
                     <div
-                      className={`h-full transition-all duration-500 ${
-                        recommended === 'easy' ? 'bg-green-500' : 
-                        recommended === 'medium' ? 'bg-amber-500' : 'bg-rose-500'
-                      }`}
-                      style={{ 
-                        width: `${((progress.easy.completed + progress.medium.completed + progress.hard.completed) / 
-                                  (progress.easy.total + progress.medium.total + progress.hard.total) * 100)}%` 
-                      }}
+                      className="h-full bg-gradient-to-r from-cyan-500 to-emerald-500 transition-all duration-500"
+                      style={{ width: `${progressPercent}%` }}
                     />
                   </div>
+                  {answeredCount === 0 && (
+                    <p className="text-xs text-gray-500 italic">Start practicing to track progress!</p>
+                  )}
+                  {answeredCount > 0 && answeredCount < totalCount && (
+                    <p className="text-xs text-emerald-400">{totalCount - answeredCount} new questions left</p>
+                  )}
+                  {answeredCount >= totalCount && totalCount > 0 && (
+                    <p className="text-xs text-amber-400">✓ All questions answered! Review for practice.</p>
+                  )}
                 </div>
               )}
             </button>
@@ -1177,55 +1198,75 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     })();
     
     return (
-      <div className="max-w-3xl mx-auto card-glass p-8 text-center">
-        <div className="text-6xl mb-4">{isLate ? '⏰' : '🚨'}</div>
-        <h2 className="font-heading text-3xl text-white mb-3">
-          {isLate ? 'Late Assignment' : 'Mandatory Assignment'}
-        </h2>
-        {isLate && (
-          <div className="bg-amber-500/20 border border-amber-500/50 rounded-lg p-3 mb-4">
-            <p className="text-amber-300 font-semibold">⚠️ This assignment is past due!</p>
-            <p className="text-amber-200 text-sm">You can still complete it, but it will be marked as late.</p>
+      <div className="max-w-3xl mx-auto">
+        {/* Assignment Mode Header */}
+        <div className="p-6 rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-2 border-purple-400/50 shadow-lg mb-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="text-5xl">🎯</div>
+            <div className="flex-1">
+              <h2 className="font-heading text-2xl text-purple-300">Teacher Assignment</h2>
+              <p className="text-purple-200 text-sm font-semibold">(Required)</p>
+            </div>
           </div>
-        )}
-        <p className="text-gray-300 mb-4">
-          You have a compulsory assignment from <span className="text-white font-semibold">{activeAssignment.teacher_username}</span>.
-          Complete it before continuing regular quests.
-        </p>
-        {activeAssignment.instructions && (
-          <p className="text-gray-400 mb-4">{activeAssignment.instructions}</p>
-        )}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-sm">
-          <div className="card-glass p-4 border border-purple-500/30">
-            <p className="text-gray-400">Subject</p>
-            <p className="text-white font-semibold">{activeAssignment.subject_name}</p>
-          </div>
-          <div className="card-glass p-4 border border-purple-500/30">
-            <p className="text-gray-400">Topic</p>
-            <p className="text-white font-semibold">{activeAssignment.topic_name}</p>
-          </div>
-          <div className="card-glass p-4 border border-purple-500/30">
-            <p className="text-gray-400">Assigned</p>
-            <p className="text-white font-semibold">{new Date(activeAssignment.assigned_at).toLocaleString()}</p>
-          </div>
-          <div className={`card-glass p-4 border ${isLate ? 'border-amber-500/50 bg-amber-500/10' : 'border-purple-500/30'}`}>
-            <p className="text-gray-400">Due</p>
-            <p className={`font-semibold ${isLate ? 'text-amber-400' : 'text-white'}`}>
-              {activeAssignment.due_at ? new Date(activeAssignment.due_at).toLocaleString() : 'No deadline'}
-              {isLate && ' (OVERDUE)'}
+          
+          <div className="bg-slate-900/60 rounded-xl p-4 border border-purple-500/30 mb-4">
+            <p className="text-gray-200 leading-relaxed">
+              <span className="text-amber-400 font-semibold">⚠️ Practice mode is paused</span> until this assignment is completed.
             </p>
           </div>
+          
+          {isLate && (
+            <div className="bg-amber-500/20 border border-amber-500/50 rounded-lg p-3 mb-4">
+              <p className="text-amber-300 font-semibold">⏰ This assignment is past due!</p>
+              <p className="text-amber-200 text-sm">You can still complete it, but it will be marked as late.</p>
+            </div>
+          )}
         </div>
-        <button
-          onClick={handleAssignmentBegin}
-          className={`px-6 py-3 rounded-lg text-white font-heading text-lg hover:scale-105 transition-all ${
-            isLate 
-              ? 'bg-gradient-to-r from-amber-500 to-orange-500' 
-              : 'bg-gradient-to-r from-purple-500 to-pink-500'
-          }`}
-        >
-          {isLate ? 'Complete Late Assignment' : 'Begin Assignment'}
-        </button>
+
+        {/* Assignment Details Card */}
+        <div className="card-glass p-6">
+          <h3 className="font-heading text-xl text-white mb-4">{activeAssignment.title || 'Untitled Assignment'}</h3>
+          
+          <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
+            <div className="card-glass p-3 border border-purple-500/30">
+              <p className="text-gray-400 text-xs uppercase tracking-wide mb-1">Teacher</p>
+              <p className="text-white font-semibold">{activeAssignment.teacher_username}</p>
+            </div>
+            <div className="card-glass p-3 border border-purple-500/30">
+              <p className="text-gray-400 text-xs uppercase tracking-wide mb-1">Subject</p>
+              <p className="text-white font-semibold">{activeAssignment.subject_name}</p>
+            </div>
+            <div className="card-glass p-3 border border-purple-500/30">
+              <p className="text-gray-400 text-xs uppercase tracking-wide mb-1">Questions</p>
+              <p className="text-white font-semibold">{activeAssignment.questions?.length || 0}</p>
+            </div>
+            <div className={`card-glass p-3 border ${isLate ? 'border-amber-500/50 bg-amber-500/10' : 'border-purple-500/30'}`}>
+              <p className="text-gray-400 text-xs uppercase tracking-wide mb-1">Due</p>
+              <p className={`font-semibold ${isLate ? 'text-amber-400' : 'text-white'}`}>
+                {activeAssignment.due_at ? new Date(activeAssignment.due_at).toLocaleString() : 'No deadline'}
+                {isLate && ' (LATE)'}
+              </p>
+            </div>
+          </div>
+          
+          {activeAssignment.instructions && (
+            <div className="bg-slate-800/50 rounded-lg p-4 mb-6 border border-gray-600/30">
+              <p className="text-gray-400 text-xs uppercase tracking-wide mb-2">Instructions</p>
+              <p className="text-gray-200">{activeAssignment.instructions}</p>
+            </div>
+          )}
+          
+          <button
+            onClick={handleAssignmentBegin}
+            className={`w-full px-6 py-4 rounded-xl text-white font-heading text-lg hover:scale-[1.02] transition-all shadow-lg ${
+              isLate 
+                ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400' 
+                : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400'
+            }`}
+          >
+            {isLate ? '⏰ Complete Late Assignment' : '▶️ Start Assignment'}
+          </button>
+        </div>
       </div>
     );
   };
