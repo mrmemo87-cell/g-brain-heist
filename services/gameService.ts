@@ -2258,25 +2258,29 @@ export interface SubjectProgressWithDifficulty {
 export const get_student_subject_progress_with_difficulty = async (): Promise<SubjectProgressWithDifficulty[]> => {
     try {
         const user = await getCurrentUser();
+        console.log('[Progress] Fetching progress for user:', user.id);
         
         // Get all subjects
         const subjects = await mcq_subjects_list();
         
-        // Get student's answered question IDs
+        // Get student's answered question IDs - using RLS to filter by student_id
         let attemptCounts: { question_id: string }[] = [];
         try {
+            // Note: RLS policy filters by auth.uid() = student_id automatically
+            // We don't need to manually filter, but we do for explicit clarity
             const { data, error: attemptError } = await supabase
                 .from('question_attempts')
                 .select('question_id')
                 .eq('student_id', user.id);
             
             if (attemptError) {
-                console.error('Error fetching student attempts:', attemptError);
+                console.error('[Progress] Error fetching student attempts:', attemptError);
             } else {
                 attemptCounts = data || [];
+                console.log(`[Progress] Found ${attemptCounts.length} question attempts for user`);
             }
         } catch (err) {
-            console.warn('Failed to fetch attempt counts:', err);
+            console.warn('[Progress] Failed to fetch attempt counts:', err);
         }
         
         // Build set of answered question IDs
