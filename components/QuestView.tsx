@@ -1410,6 +1410,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                   setMissionSummary(null);
                   setTopicSummary(null);
                   setQuestionStartTime(null);
+                  // Reload subjects to refresh progress counts after answering questions
+                  loadSubjects();
                 }
               }}
               className={`px-8 py-4 rounded-lg font-bold text-lg transition-all shadow-lg ${isAssignmentSubmitting ? 'opacity-60 cursor-not-allowed bg-gray-600 text-gray-300' : 'gradient-cyan hover:scale-105 active:scale-95 animate-pulse-glow'}`}
