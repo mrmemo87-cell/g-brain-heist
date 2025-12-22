@@ -119,6 +119,43 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
     audioService.setAudioEnabled(newState);
   };
 
+  // Apply avatar change (for both preset selection and custom upload)
+  const applyAvatarChange = async (avatarUrlOrFile: string | File) => {
+    try {
+      let avatarUrl: string;
+      
+      if (typeof avatarUrlOrFile === 'string') {
+        avatarUrl = avatarUrlOrFile;
+      } else {
+        // For file uploads, get the URL from the uploaded file
+        const file = avatarUrlOrFile;
+        const fileExt = file.name.split('.').pop();
+        avatarUrl = `${Date.now()}.${fileExt}`; // Will be replaced by actual upload URL
+        // The actual URL comes from upload_avatar_file, so we need to refetch
+        const updatedProfile = await update_avatar(avatarUrl);
+        avatarUrl = updatedProfile.avatar_url || avatarUrl;
+      }
+      
+      // Update avatar in database
+      const updatedProfile = await update_avatar(avatarUrl);
+      
+      // Update local state
+      setSelectedAvatar(updatedProfile.avatar_url || avatarUrl);
+      
+      // Notify parent component
+      if (onProfileAvatarChange) {
+        onProfileAvatarChange(updatedProfile.avatar_url || avatarUrl);
+      }
+      
+      audioService.play('collect');
+    } catch (error: any) {
+      console.error('Failed to apply avatar change:', error);
+      setAvatarUploadError(error.message || 'Failed to update avatar. Please try again.');
+      audioService.play('wrong');
+      throw error;
+    }
+  };
+
   const handleAvatarSelect = async (avatarUrl: string) => {
     if (uploadingAvatar) return;
     setUploadingAvatar(true);

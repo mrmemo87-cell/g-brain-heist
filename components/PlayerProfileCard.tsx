@@ -155,14 +155,16 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
       label: 'Attack',
       value: attackValue || 10,
       subtitle: attackSubtitle,
-      accentClass: 'text-rose-200 border border-rose-300/40',
+      accentClass: 'text-orange-300 border-2 border-orange-500/60 bg-orange-950/30 shadow-[0_0_12px_rgba(249,115,22,0.3)]',
+      containerClassName: 'ring-1 ring-orange-400/30',
     },
     {
       icon: <ShieldIcon className="w-4 h-4" />,
       label: 'Defense',
       value: defenseValue || 10,
       subtitle: defenseSubtitle,
-      accentClass: 'text-cyan-200 border border-cyan-300/40',
+      accentClass: 'text-emerald-300 border-2 border-emerald-500/60 bg-emerald-950/30 shadow-[0_0_12px_rgba(16,185,129,0.3)]',
+      containerClassName: 'ring-1 ring-emerald-400/30',
     },
   ];
   // Earnings breakdown stats
@@ -250,17 +252,7 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
           </div>
         </div>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Earnings Breakdown</p>
-            <span className="text-[11px] text-slate-400">Where your rewards come from</span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {earningsStats.map((stat) => (
-              <StatDisplay key={stat.label} {...stat} />
-            ))}
-          </div>
-        </div>
+        {/* Earnings breakdown hidden per user request */}
 
         {profile.clan_name && (
           <div className="grid gap-2">

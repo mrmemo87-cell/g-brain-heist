@@ -1668,10 +1668,80 @@ export const getPublicProfile = async (userId: string): Promise<Profile | null> 
   } as Profile;
 };
 
-export const tasks_list = (): Promise<Task[]> => {
-  const progress = getTaskProgress();
+export const tasks_list = async (): Promise<Task[]> => {
+  // Try to get progress from database first (works on mobile)
+  // Fall back to localStorage if database query fails
+  let dailyQuestsCompleted = 0;
+  let dailyPvpWins = 0;
+  let weeklyTasksCompleted = 0;
   
-  // Get claimed tasks for today from localStorage
+  try {
+    const user = await getCurrentUser();
+    
+    // Get today's date range (UTC)
+    const now = new Date();
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(now);
+    todayEnd.setHours(23, 59, 59, 999);
+    
+    // Get start of week (Sunday)
+    const weekStart = new Date(now);
+    const dayOfWeek = weekStart.getDay();
+    weekStart.setDate(weekStart.getDate() - dayOfWeek);
+    weekStart.setHours(0, 0, 0, 0);
+    
+    // Query database for today's quest completions
+    const { data: questData } = await supabase
+      .from('activities')
+      .select('id')
+      .eq('actor_id', user.id)
+      .eq('kind', 'quest_complete')
+      .gte('created_at', todayStart.toISOString())
+      .lte('created_at', todayEnd.toISOString());
+    
+    dailyQuestsCompleted = questData?.length || 0;
+    
+    // Query database for today's PvP wins
+    const { data: pvpData } = await supabase
+      .from('activities')
+      .select('id')
+      .eq('actor_id', user.id)
+      .eq('kind', 'pvp_win')
+      .gte('created_at', todayStart.toISOString())
+      .lte('created_at', todayEnd.toISOString());
+    
+    dailyPvpWins = pvpData?.length || 0;
+    
+    // Query database for this week's task claims
+    const { data: weeklyData } = await supabase
+      .from('activities')
+      .select('id')
+      .eq('actor_id', user.id)
+      .eq('kind', 'task_claimed')
+      .gte('created_at', weekStart.toISOString());
+    
+    weeklyTasksCompleted = weeklyData?.length || 0;
+    
+  } catch (error) {
+    // Fall back to localStorage if database query fails
+    console.warn('Failed to fetch task progress from database, using localStorage:', error);
+    const progress = getTaskProgress();
+    dailyQuestsCompleted = progress.daily_quests_completed;
+    dailyPvpWins = progress.daily_pvp_wins;
+    weeklyTasksCompleted = progress.weekly_tasks_completed;
+  }
+  
+  // Also sync localStorage for consistency
+  const progress = getTaskProgress();
+  if (dailyQuestsCompleted > progress.daily_quests_completed) {
+    // Update localStorage to match database
+    progress.daily_quests_completed = dailyQuestsCompleted;
+    progress.daily_pvp_wins = dailyPvpWins;
+    progress.weekly_tasks_completed = weeklyTasksCompleted;
+  }
+  
+  // Get claimed tasks for today from localStorage (still needed for claim tracking)
   const today = new Date().toISOString().split('T')[0];
   const claimedKey = `task_claims_${today}`;
   const claimedTasks = JSON.parse(localStorage.getItem(claimedKey) || '[]') as string[];
@@ -1688,46 +1758,69 @@ export const tasks_list = (): Promise<Task[]> => {
   const dailyExpiry = `${hoursUntilMidnight}h ${minutesUntilMidnight}m ${secondsUntilMidnight}s`;
   
   // Calculate days until next Sunday for weekly reset
-  const dayOfWeek = now.getDay();
-  const daysUntilSunday = dayOfWeek === 0 ? 7 : 7 - dayOfWeek;
+  const dayOfWeekNow = now.getDay();
+  const daysUntilSunday = dayOfWeekNow === 0 ? 7 : 7 - dayOfWeekNow;
   const weeklyExpiry = daysUntilSunday === 1 ? '1d' : `${daysUntilSunday}d`;
+  
+  // Also check database for claimed status
+  let claimedFromDb: string[] = [];
+  try {
+    const user = await getCurrentUser();
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    
+    const { data: claimedData } = await supabase
+      .from('activities')
+      .select('data')
+      .eq('actor_id', user.id)
+      .eq('kind', 'task_claimed')
+      .gte('created_at', todayStart.toISOString());
+    
+    claimedFromDb = (claimedData || [])
+      .map((d: any) => d.data?.task_id)
+      .filter(Boolean);
+  } catch {
+    // Ignore errors, use localStorage
+  }
+  
+  const allClaimedTasks = [...new Set([...claimedTasks, ...claimedFromDb])];
   
   const tasks: Task[] = [
     {
       id: 'task_d1',
       title: 'Complete 3 Knowledge Quests',
       kind: 'daily',
-      progress: progress.daily_quests_completed,
+      progress: dailyQuestsCompleted,
       target: 3,
       reward_preview: '175 XP, 350 Coins, +1 Gemstone',
       expires_at: dailyExpiry,
-      claimed: claimedTasks.includes('task_d1'),
+      claimed: allClaimedTasks.includes('task_d1'),
       reward: { xp: 175, coins: 350, gemstones: 1 },
     },
     {
       id: 'task_d2',
       title: 'Win a PvP Hack',
       kind: 'daily',
-      progress: progress.daily_pvp_wins,
+      progress: dailyPvpWins,
       target: 1,
       reward_preview: '100 XP, 50 Coins, +1 Gemstone',
       expires_at: dailyExpiry,
-      claimed: claimedTasks.includes('task_d2'),
+      claimed: allClaimedTasks.includes('task_d2'),
       reward: { xp: 100, coins: 50, gemstones: 1 },
     },
     {
       id: 'task_w1',
       title: 'Complete 15 Daily Tasks this week',
       kind: 'weekly',
-      progress: progress.weekly_tasks_completed,
+      progress: weeklyTasksCompleted,
       target: 15,
       reward_preview: '500 XP, 400 Coins, +1 Item Crate, +5 Gemstones',
       expires_at: weeklyExpiry,
-      claimed: claimedTasks.includes('task_w1'),
+      claimed: allClaimedTasks.includes('task_w1'),
       reward: { xp: 500, coins: 400, gemstones: 5, items: ['mystery_crate'] },
     },
   ];
-  return mockApiCall(tasks);
+  return tasks;
 };
 
 export const task_claim = async (task_id: string): Promise<{ xp: number; coins: number; gemstones?: number; items?: string[] }> => {
@@ -1776,6 +1869,19 @@ export const task_claim = async (task_id: string): Promise<{ xp: number; coins: 
   const claimedTasks = JSON.parse(localStorage.getItem(claimedKey) || '[]') as string[];
   claimedTasks.push(task_id);
   localStorage.setItem(claimedKey, JSON.stringify(claimedTasks));
+  
+  // Also record in database for cross-device sync (mobile support)
+  try {
+    await supabase.from('activities').insert({
+      actor_id: user.id,
+      actor_username: (await whoami()).username,
+      kind: 'task_claimed',
+      data: { task_id, reward: task.reward },
+    });
+  } catch (error) {
+    console.warn('Failed to record task claim in database:', error);
+    // Continue anyway - localStorage will be used as fallback
+  }
   
   // Grant items if any (add to inventory)
   if (task.reward.items && task.reward.items.length > 0) {
