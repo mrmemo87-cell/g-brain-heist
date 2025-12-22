@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Profile, ActiveClanBuff } from '../types';
-import { XPIcon, TrophyIcon, BattleIcon, ShieldIcon, ClanIcon } from './icons';
+import { TrophyIcon, BattleIcon, ShieldIcon, ClanIcon } from './icons';
 import AvatarWithFrame from './AvatarWithFrame';
 import { getXpProgress } from '../src/lib/leveling';
 
@@ -136,12 +136,6 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
       value: totalScore.toLocaleString(),
       subtitle: 'XP + PvP',
       accentClass: 'text-amber-200 border border-amber-300/40',
-    },
-    {
-      icon: <XPIcon className="w-4 h-4" />,
-      label: 'Total XP',
-      value: profile.xp.toLocaleString(),
-      accentClass: 'text-cyan-200 border border-cyan-300/40',
     },
     {
       icon: <BattleIcon className="w-4 h-4" />,
