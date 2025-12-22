@@ -65,7 +65,7 @@ class AudioManager {
       'hack_fail': 'hack_fail',
       'hack_win': 'hack_win',
       'level_up': 'level_up',
-      'notification': 'collect', // Use collect for notification (no notification.mp3)
+      'notification': 'notification',
       'tada': 'tada',
       'wrong': 'wrong'
     };
