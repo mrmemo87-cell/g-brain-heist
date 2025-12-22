@@ -335,6 +335,8 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                         onClick={() => {
                           setShowNotifications(true);
                           setMobileMenuOpen(false);
+                          // Clear badge immediately when opening
+                          setUnreadCount(0);
                         }}
                         className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm text-slate-200 transition hover:bg-slate-800/60"
                       >
@@ -571,7 +573,13 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
 
               {/* Notification Bell */}
               <button 
-                onClick={() => setShowNotifications(!showNotifications)}
+                onClick={() => {
+                  setShowNotifications(!showNotifications);
+                  // Clear badge immediately when opening
+                  if (!showNotifications) {
+                    setUnreadCount(0);
+                  }
+                }}
                 className="relative p-2.5 rounded-xl bg-black/40 border border-gray-600 hover:border-purple-500 hover:bg-purple-500/10 transition-all hover:scale-110 backdrop-blur-sm"
                 aria-label="Notifications"
               >

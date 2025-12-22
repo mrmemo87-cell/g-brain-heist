@@ -55,13 +55,23 @@ class AudioManager {
   }
 
   private preloadSounds() {
-    const soundFiles: SoundEffect[] = [
-      'achievement', 'activate', 'buy', 'collect', 'correct', 
-      'hack_fail', 'hack_win', 'level_up', 'notification', 'tada', 'wrong'
-    ];
+    // Map of sound effects to their file paths (some share files)
+    const soundFileMap: Record<SoundEffect, string> = {
+      'achievement': 'tada',    // Use tada for achievement (no achievement.mp3)
+      'activate': 'activate',
+      'buy': 'buy',
+      'collect': 'collect',
+      'correct': 'correct',
+      'hack_fail': 'hack_fail',
+      'hack_win': 'hack_win',
+      'level_up': 'level_up',
+      'notification': 'collect', // Use collect for notification (no notification.mp3)
+      'tada': 'tada',
+      'wrong': 'wrong'
+    };
 
-    soundFiles.forEach(sound => {
-      const audio = new Audio(`/sounds/${sound}.mp3`);
+    (Object.entries(soundFileMap) as [SoundEffect, string][]).forEach(([sound, file]) => {
+      const audio = new Audio(`/sounds/${file}.mp3`);
       audio.preload = 'auto';
       this.sounds.set(sound, audio);
     });

@@ -26,6 +26,18 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
     return notifs;
   };
 
+  // Mark all as read when panel opens
+  useEffect(() => {
+    if (isOpen) {
+      // Auto-mark all as read when panel opens
+      notificationService.markAllAsRead().then(() => {
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      }).catch(err => {
+        console.warn('Failed to auto-mark notifications as read:', err);
+      });
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     loadNotifications();
     
