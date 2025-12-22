@@ -939,8 +939,12 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                                          <p className="font-semibold text-white">{buff.name}</p>
                                                          <p className="text-xs text-gray-400">{buff.description}</p>
                                                      </div>
-                                                     <button onClick={() => handleBuyBuff(buff.code)} disabled={clan.vault_coins < buff.cost} className="bg-ion-blue/20 hover:bg-ion-blue/30 text-white font-semibold px-3 py-1 rounded-md text-sm disabled:opacity-50">
-                                                         {buff.cost.toLocaleString()} <CoinIcon className="inline h-4 w-4" />
+                                                     <button 
+                                                         onClick={() => handleBuyBuff(buff.code)} 
+                                                         disabled={clan.vault_coins < buff.cost} 
+                                                         className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-bold px-4 py-2 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all"
+                                                     >
+                                                         ⚡ {buff.cost.toLocaleString()} <CoinIcon className="inline h-4 w-4" />
                                                      </button>
                                                  </div>
                                             ))}
