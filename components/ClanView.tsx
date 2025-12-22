@@ -98,6 +98,10 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
         const [noticeDraft, setNoticeDraft] = useState('');
         const [isEditingNotice, setIsEditingNotice] = useState(false);
         const [isSavingNotice, setIsSavingNotice] = useState(false);
+  // Browse clans state lifted to parent to prevent re-fetching on tab switch
+  const [browseClansList, setBrowseClansList] = useState<ClanSummary[]>([]);
+  const [browseClansFetched, setBrowseClansFetched] = useState(false);
+  const [isBrowseClansLoading, setIsBrowseClansLoading] = useState(false);
   const [pendingJoinRequest, setPendingJoinRequest] = useState<ClanJoinRequest | null>(null);
   const [pendingApprovals, setPendingApprovals] = useState<ClanJoinRequest[]>([]);
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
@@ -203,6 +207,48 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
           addToast("Buff purchased successfully!", "success");
       } catch (error: any) {
           addToast(error.message || "Failed to buy buff.", "error");
+      }
+  };
+
+  const [isActivatingAllBuffs, setIsActivatingAllBuffs] = useState(false);
+  
+  const handleActivateAllBuffs = async () => {
+      if (!clan) return;
+      
+      // Calculate total cost
+      const totalCost = availableBuffs.reduce((sum, buff) => sum + buff.cost, 0);
+      
+      if (clan.vault_coins < totalCost) {
+          addToast(`Insufficient vault coins. Need ${totalCost.toLocaleString()} coins.`, "error");
+          return;
+      }
+      
+      setIsActivatingAllBuffs(true);
+      let successCount = 0;
+      let latestClan = clan;
+      
+      try {
+          for (const buff of availableBuffs) {
+              try {
+                  latestClan = await GameService.clan_buy_buff(buff.code);
+                  successCount++;
+              } catch (error: any) {
+                  // Continue with other buffs even if one fails
+                  console.warn(`Failed to activate buff ${buff.name}:`, error.message);
+              }
+          }
+          
+          setClan(latestClan);
+          
+          if (successCount === availableBuffs.length) {
+              addToast(`All ${successCount} buffs activated!`, "success");
+          } else if (successCount > 0) {
+              addToast(`${successCount}/${availableBuffs.length} buffs activated.`, "success");
+          } else {
+              addToast("No buffs were activated.", "error");
+          }
+      } finally {
+          setIsActivatingAllBuffs(false);
       }
   };
 
@@ -559,15 +605,24 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
       );
   };
   
-    const BrowseClansTab: React.FC<{ currentClanId: string; addToast: (msg: string, type: ToastMessage['type']) => void; onViewMembers: (clan: ClanSummary) => void }> = ({ currentClanId, addToast, onViewMembers }) => {
-    const [clanList, setClanList] = useState<ClanSummary[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const BrowseClansTab: React.FC<{ 
+        currentClanId: string; 
+        addToast: (msg: string, type: ToastMessage['type']) => void; 
+        onViewMembers: (clan: ClanSummary) => void;
+        clanList: ClanSummary[];
+        setClanList: (clans: ClanSummary[]) => void;
+        hasFetched: boolean;
+        setHasFetched: (val: boolean) => void;
+        isLoading: boolean;
+        setIsLoading: (val: boolean) => void;
+    }> = ({ currentClanId, addToast, onViewMembers, clanList, setClanList, hasFetched, setHasFetched, isLoading, setIsLoading }) => {
 
     const fetchClans = async () => {
         setIsLoading(true);
         try {
             const clans = await GameService.clan_list();
             setClanList(clans);
+            setHasFetched(true);
         } catch (error) {
             addToast("Failed to fetch clan list.", "error");
         } finally {
@@ -576,8 +631,11 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
     };
 
     useEffect(() => {
-        fetchClans();
-    }, []);
+        // Only fetch on first mount, not on re-render
+        if (!hasFetched) {
+            fetchClans();
+        }
+    }, [hasFetched]);
 
     if (isLoading) {
         return <div className="font-heading text-xl animate-pulse text-center py-8" style={{color: 'var(--amber-warn)'}}>Loading clans...</div>;
@@ -853,7 +911,27 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                     </div>
 
                                     {isPrivileged && <div className="mt-6">
-                                        <h3 className="font-heading text-xl mb-3 text-amber-300">Purchase Clan Buffs</h3>
+                                        <div className="flex items-center justify-between mb-3">
+                                            <h3 className="font-heading text-xl text-amber-300">Purchase Clan Buffs</h3>
+                                            {availableBuffs.length > 1 && (
+                                                <button 
+                                                    onClick={handleActivateAllBuffs}
+                                                    disabled={isActivatingAllBuffs || clan.vault_coins < availableBuffs.reduce((sum, b) => sum + b.cost, 0)}
+                                                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-bold px-4 py-2 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all"
+                                                >
+                                                    {isActivatingAllBuffs ? (
+                                                        <>
+                                                            <span className="animate-spin">⚡</span>
+                                                            Activating...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            ⚡ Activate All ({availableBuffs.reduce((sum, b) => sum + b.cost, 0).toLocaleString()} <CoinIcon className="inline h-4 w-4" />)
+                                                        </>
+                                                    )}
+                                                </button>
+                                            )}
+                                        </div>
                                         <div className="space-y-3">
                                             {availableBuffs.map(buff => (
                                                  <div key={buff.id} className="bg-black/20 p-3 rounded-lg flex justify-between items-center">
@@ -920,7 +998,19 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                         </div>
                     )}
                     {activeTab === 'chat' && <ClanChat />}
-                    {activeTab === 'browse' && <BrowseClansTab currentClanId={clan.id} addToast={addToast} onViewMembers={(clanItem) => openMembersModal(clanItem.id, clanItem.name, clanItem.notice)} />}
+                    {activeTab === 'browse' && (
+                        <BrowseClansTab 
+                            currentClanId={clan.id} 
+                            addToast={addToast} 
+                            onViewMembers={(clanItem) => openMembersModal(clanItem.id, clanItem.name, clanItem.notice)}
+                            clanList={browseClansList}
+                            setClanList={setBrowseClansList}
+                            hasFetched={browseClansFetched}
+                            setHasFetched={setBrowseClansFetched}
+                            isLoading={isBrowseClansLoading}
+                            setIsLoading={setIsBrowseClansLoading}
+                        />
+                    )}
                     {activeTab === 'management' && isPrivileged && (
                          <div>
                              {(myMemberInfo.role === 'leader' || myMemberInfo.role === 'moderator') && (

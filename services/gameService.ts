@@ -3912,29 +3912,26 @@ export const clan_create = async (name: string, notice: string): Promise<Clan> =
     const user = await getCurrentUser();
     const creationFee = 1000;
     
-    // Fetch current user profile
-    const { data: profile } = await supabase
-        .from('users')
-        .select('coins')
-        .eq('id', user.id)
-        .single();
+    // Parallelize initial checks for speed
+    const [profileResult, membershipResult, usernameResult] = await Promise.all([
+        supabase.from('users').select('coins').eq('id', user.id).single(),
+        supabase.from('clan_members').select('clan_id').eq('user_id', user.id).maybeSingle(),
+        supabase.from('users').select('username').eq('id', user.id).single(),
+    ]);
+    
+    const profile = profileResult.data;
+    const existingMembership = membershipResult.data;
+    const username = usernameResult.data?.username || 'Unknown';
     
     if (!profile || profile.coins < creationFee) {
         throw new Error('Not enough coins to create a clan.');
     }
     
-    // Check if user is already in a clan
-    const { data: existingMembership } = await supabase
-        .from('clan_members')
-        .select('clan_id')
-        .eq('user_id', user.id)
-        .single();
-    
     if (existingMembership) {
         throw new Error('You are already in a clan.');
     }
     
-    // Deduct coins
+    // Deduct coins and create clan in parallel-ish flow
     await updateProfile(user.id, { coins: profile.coins - creationFee });
     
     // Create clan
@@ -3959,7 +3956,7 @@ export const clan_create = async (name: string, notice: string): Promise<Clan> =
         throw new Error('Failed to create clan - no data returned.');
     }
     
-    // Add creator as leader
+    // Add creator as leader (don't wait for activity log)
     const { error: memberError } = await supabase.from('clan_members').insert({
         clan_id: newClan.id,
         user_id: user.id,
@@ -3971,25 +3968,50 @@ export const clan_create = async (name: string, notice: string): Promise<Clan> =
         throw new Error('Failed to add you as clan leader.');
     }
 
-    // Log a clan creation activity to the feed so other users see it.
-    try {
-        const { data: creator } = await supabase.from('users').select('username').eq('id', user.id).single();
-        await supabase.from('activities').insert({
-            kind: 'clan_create',
-            actor_id: user.id,
-            actor_username: creator?.username || 'Unknown',
-            data: { details: newClan.name },
-        });
-    } catch (e) {
-        console.warn('Failed to log clan_create activity:', e);
-    }
+    // Log activity in background (don't wait)
+    void (async () => {
+        try {
+            await supabase.from('activities').insert({
+                kind: 'clan_create',
+                actor_id: user.id,
+                actor_username: username,
+                data: { details: newClan.name },
+            });
+        } catch (e) {
+            console.warn('Failed to log clan_create activity:', e);
+        }
+    })();
     
-    // Return full clan details
-    const clanDetails = await clan_details();
-    if (!clanDetails) {
-        throw new Error('Clan created but details could not be retrieved.');
-    }
-    return clanDetails;
+    // Return immediate clan object without heavy clan_details() call
+    // The UI will refresh the full details on next mount
+    const immediateClan: Clan = {
+        id: newClan.id,
+        name: newClan.name,
+        notice: newClan.notice || 'Welcome to the clan!',
+        crest_url: undefined,
+        vault_metric: 0,
+        vault_coins: 0,
+        members: [{
+            user_id: user.id,
+            username: username,
+            role: 'leader',
+            contribution: 0,
+            avatar_url: '',
+            active_cosmetic_frame: null,
+            active_cosmetic_theme: null,
+            active_cosmetic_effect: null,
+            custom_title: null,
+            bio: null,
+            total_score: 0,
+            xp: 0,
+            pvp_score: 0,
+        }],
+        active_buffs: [],
+        clan_total_score: 0,
+        leader_id: user.id,
+    };
+    
+    return immediateClan;
 };
 
 export const clan_chat_recent = async (): Promise<ClanChatMessage[]> => {
