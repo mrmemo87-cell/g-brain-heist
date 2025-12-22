@@ -526,28 +526,12 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     setStage('loading');
     
     try {
-      // Load teacher quests for this subject
-      const teacherQuestionsData = await GameService.get_public_questions(subject.name as any);
-      
-      // Get REAL student progress for this subject's questions
-      const progress = await GameService.get_subject_question_progress(subject.name);
-      
-      // Create teacher quest with real progress data (not mock)
-      const realQuests: QuestProgress[] = teacherQuestionsData.length > 0 ? [
-        {
-          questId: `quest-${subject.id}-1`,
-          title: `${subject.name} Fundamentals`,
-          description: 'Master the basics',
-          totalQuestions: progress.totalCount,
-          rewardedQuestions: progress.answeredCount,
-          subjectId: subject.id
-        }
-      ] : [];
-      
-      setTeacherQuests(realQuests);
+      // No fake "teacher quests" - the Free Practice section shows all available questions
+      // Teacher-assigned work only comes from actual assignments (handled separately)
+      setTeacherQuests([]);
       setStage('unified_subject_play');
     } catch (err) {
-      console.error('Error loading teacher quests:', err);
+      console.error('Error loading subject:', err);
       setTeacherQuests([]);
       setStage('unified_subject_play');
     }
