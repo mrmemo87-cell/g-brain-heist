@@ -291,7 +291,18 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       setSubjects(data);
       
       // Load REAL student progress - user-specific, not mocked
-      const studentProgress = await GameService.get_student_subject_progress();
+      // Add timeout to prevent infinite loading if the query hangs
+      let studentProgress: { id: string; name: string; answeredCount: number; totalAvailable: number }[] = [];
+      try {
+        const progressPromise = GameService.get_student_subject_progress();
+        const timeoutPromise = new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Progress fetch timeout')), 10000)
+        );
+        studentProgress = await Promise.race([progressPromise, timeoutPromise]);
+      } catch (progressError) {
+        console.warn('[QuestView] Failed to load student progress, using defaults:', progressError);
+        // Continue with empty progress - user can still practice
+      }
       
       // Map to SubjectProgress format with all difficulties combined
       // For now, we show overall progress since questions don't have difficulty in the bank
@@ -465,38 +476,47 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     if (showLoading) {
       setStage('loading');
     }
-      try {
-          console.log('[QuestView] Checking for active assignment...');
-          const assignment = await GameService.get_student_active_assignment();
-          console.log('[QuestView] Active assignment result:', assignment ? { 
-            id: assignment.assignment_id, 
-            title: assignment.title,
-            questions: assignment.questions?.length || 0 
-          } : 'null');
-          
-          if (assignment) {
-              applyAssignmentState({
-                ...assignment,
-                questions: (assignment.questions || []).map(normalizeAssignmentQuestion),
-              });
-              await refreshAssignment?.();
-          } else {
-              console.log('[QuestView] No active assignment found, showing subject selection');
-              setActiveAssignment(null);
-              setTeacherQuestions([]);
-              setSelectedSubject(null);
-              if (mode === 'assignment') {
-                  setMode('practice');
-              }
-        loadSubjects();
+    try {
+      console.log('[QuestView] Checking for active assignment...');
+      
+      // Add timeout to prevent infinite loading
+      const assignmentPromise = GameService.get_student_active_assignment();
+      const timeoutPromise = new Promise<null>((resolve) => 
+        setTimeout(() => {
+          console.warn('[QuestView] Assignment fetch timed out after 15s');
+          resolve(null);
+        }, 15000)
+      );
+      
+      const assignment = await Promise.race([assignmentPromise, timeoutPromise]);
+      console.log('[QuestView] Active assignment result:', assignment ? { 
+        id: assignment.assignment_id, 
+        title: assignment.title,
+        questions: assignment.questions?.length || 0 
+      } : 'null');
+      
+      if (assignment) {
+        applyAssignmentState({
+          ...assignment,
+          questions: (assignment.questions || []).map(normalizeAssignmentQuestion),
+        });
         await refreshAssignment?.();
-          }
-      } catch (error) {
-          console.error('[QuestView] Error loading assignment:', error);
-      if (showLoading || stage === 'loading') {
-        loadSubjects();
+      } else {
+        console.log('[QuestView] No active assignment found, showing subject selection');
+        setActiveAssignment(null);
+        setTeacherQuestions([]);
+        setSelectedSubject(null);
+        if (mode === 'assignment') {
+          setMode('practice');
+        }
+        await loadSubjects();
+        await refreshAssignment?.();
       }
-      }
+    } catch (error) {
+      console.error('[QuestView] Error loading assignment:', error);
+      // Ensure we exit loading state on error
+      await loadSubjects();
+    }
   };
 
   const handleSubjectSelect = async (subject: SubjectData) => {

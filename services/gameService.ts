@@ -2123,64 +2123,85 @@ export const mcq_questions_get = async (subject_id: string, limit: number = 5): 
  * This is USER-SPECIFIC progress, not global question bank size
  */
 export const get_student_subject_progress = async (): Promise<{ id: string; name: string; answeredCount: number; totalAvailable: number }[]> => {
-    const user = await getCurrentUser();
-    
-    // Get all subjects
-    const subjects = await mcq_subjects_list();
-    
-    // Get counts of questions answered by THIS student, grouped by subject
-    const { data: attemptCounts, error: attemptError } = await supabase
-        .from('question_attempts')
-        .select(`
-            question_id,
-            questions!inner(subject)
-        `)
-        .eq('student_id', user.id);
-    
-    if (attemptError) {
-        console.error('Error fetching student attempts:', attemptError);
-    }
-    
-    // Get total available questions per subject
-    const { data: questionCounts, error: questionsError } = await supabase
-        .from('questions')
-        .select('subject')
-        .eq('is_public', true)
-        .eq('is_active', true);
-    
-    if (questionsError) {
-        console.error('Error fetching question counts:', questionsError);
-    }
-    
-    // Build answer counts by subject
-    const answeredBySubject: Record<string, number> = {};
-    if (attemptCounts) {
+    try {
+        const user = await getCurrentUser();
+        
+        // Get all subjects
+        const subjects = await mcq_subjects_list();
+        
+        // Get counts of questions answered by THIS student, grouped by subject
+        // Use a simpler query that doesn't rely on foreign key joins
+        let attemptCounts: any[] = [];
+        try {
+            const { data, error: attemptError } = await supabase
+                .from('question_attempts')
+                .select('question_id')
+                .eq('student_id', user.id);
+            
+            if (attemptError) {
+                console.error('Error fetching student attempts:', attemptError);
+            } else {
+                attemptCounts = data || [];
+            }
+        } catch (err) {
+            console.warn('Failed to fetch attempt counts:', err);
+        }
+        
+        // Get total available questions per subject
+        let questionData: { id: string; subject: string }[] = [];
+        try {
+            const { data: questionCounts, error: questionsError } = await supabase
+                .from('questions')
+                .select('id, subject')
+                .eq('is_public', true)
+                .eq('is_active', true);
+            
+            if (questionsError) {
+                console.error('Error fetching question counts:', questionsError);
+            } else {
+                questionData = questionCounts || [];
+            }
+        } catch (err) {
+            console.warn('Failed to fetch question counts:', err);
+        }
+        
+        // Build a map of question_id -> subject
+        const questionSubjectMap: Record<string, string> = {};
+        const totalBySubject: Record<string, number> = {};
+        for (const q of questionData) {
+            if (q.id && q.subject) {
+                questionSubjectMap[q.id] = q.subject;
+                totalBySubject[q.subject] = (totalBySubject[q.subject] || 0) + 1;
+            }
+        }
+        
+        // Build answer counts by subject using the question-subject map
+        const answeredBySubject: Record<string, number> = {};
         for (const attempt of attemptCounts) {
-            const subject = (attempt as any).questions?.subject;
+            const subject = questionSubjectMap[attempt.question_id];
             if (subject) {
                 answeredBySubject[subject] = (answeredBySubject[subject] || 0) + 1;
             }
         }
+        
+        // Map to result with subject names
+        return subjects.map(s => ({
+            id: s.id,
+            name: s.name,
+            answeredCount: answeredBySubject[s.name] || 0,
+            totalAvailable: totalBySubject[s.name] || 0,
+        }));
+    } catch (error) {
+        console.error('get_student_subject_progress failed:', error);
+        // Return empty progress as fallback
+        const subjects = await mcq_subjects_list();
+        return subjects.map(s => ({
+            id: s.id,
+            name: s.name,
+            answeredCount: 0,
+            totalAvailable: 0,
+        }));
     }
-    
-    // Build total counts by subject
-    const totalBySubject: Record<string, number> = {};
-    if (questionCounts) {
-        for (const q of questionCounts) {
-            const subject = q.subject;
-            if (subject) {
-                totalBySubject[subject] = (totalBySubject[subject] || 0) + 1;
-            }
-        }
-    }
-    
-    // Map to result with subject names
-    return subjects.map(s => ({
-        id: s.id,
-        name: s.name,
-        answeredCount: answeredBySubject[s.name] || 0,
-        totalAvailable: totalBySubject[s.name] || 0,
-    }));
 };
 
 
