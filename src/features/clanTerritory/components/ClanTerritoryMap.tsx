@@ -529,7 +529,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
       <div
         ref={containerRef}
-        className="w-full h-[340px] flex items-center justify-center overflow-hidden [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:w-auto [&>svg]:h-auto"
+        className="w-full min-h-[300px] h-[50vh] sm:h-[55vh] md:h-[60vh] lg:h-[500px] xl:h-[600px] flex items-center justify-center overflow-visible [&>svg]:w-full [&>svg]:h-full [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:object-contain"
         dangerouslySetInnerHTML={{ __html: mapMarkup }}
       />
 

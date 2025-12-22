@@ -54,6 +54,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const [clanLoadTimeout, setClanLoadTimeout] = useState(false);
   const [isRefreshingProfile, setIsRefreshingProfile] = useState(false);
   const [allowClanlessPlayers, setAllowClanlessPlayers] = useState(false);
+  const [userSchoolId, setUserSchoolId] = useState<string | null>(null);
 
   const handleRefreshProfile = async () => {
     setIsRefreshingProfile(true);
@@ -152,7 +153,28 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   // On mount, try to fetch clan data directly (don't wait for props)
   useEffect(() => {
     fetchClanDataDirectly();
+    // Also fetch the user's school_id for room isolation
+    fetchUserSchoolId();
   }, []);
+
+  const fetchUserSchoolId = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from('users')
+        .select('school_id')
+        .eq('id', user.id)
+        .single();
+      
+      if (data?.school_id) {
+        setUserSchoolId(data.school_id);
+      }
+    } catch (error) {
+      console.warn('Failed to fetch user school_id:', error);
+    }
+  };
 
   useEffect(() => {
     // Reactive update: whenever props change, update the resolved clan data
@@ -183,12 +205,13 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   // Discovery
   useEffect(() => {
     if (!isTeacher && mode === "menu") {
-      transport.startDiscovery((id, metadata) => {
+      // Pass userSchoolId to only discover rooms from the same school
+      transport.startDiscovery(userSchoolId, (id, metadata) => {
         setDiscoveredRoom({ id, allowClanlessPlayers: metadata?.allowClanlessPlayers });
       });
       return () => transport.stopDiscovery();
     }
-  }, [isTeacher, mode, transport]);
+  }, [isTeacher, mode, transport, userSchoolId]);
 
   useEffect(() => {
     // Set up state listener for all roles when roomId is available
@@ -218,7 +241,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     
     // If we're in configure mode, create room after questions selected
     if (mode === 'configure') {
-      const id = await transport.createRoom({ allowClanlessPlayers });
+      const id = await transport.createRoom({ allowClanlessPlayers, schoolId: userSchoolId || undefined });
       
       // Set up state listener BEFORE sending any actions
       transport.onGameState(id, setGameState);
@@ -235,7 +258,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     }
     
     // Otherwise proceed with room creation (legacy flow)
-    const id = await transport.createRoom({ allowClanlessPlayers });
+    const id = await transport.createRoom({ allowClanlessPlayers, schoolId: userSchoolId || undefined });
     
     // IMPORTANT: Set up state listener BEFORE sending any actions or setting roomId
     // This prevents race conditions where JOIN actions are processed before the callback is set

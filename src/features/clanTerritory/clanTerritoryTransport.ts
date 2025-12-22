@@ -4,7 +4,7 @@ export type RoomId = string;
 export type PlayerId = string;
 
 export interface ClanTerritoryTransport {
-  createRoom(options?: { allowClanlessPlayers?: boolean }): Promise<RoomId>;
+  createRoom(options?: { allowClanlessPlayers?: boolean; schoolId?: string }): Promise<RoomId>;
   joinRoom(
     roomId: RoomId,
     playerName: string,
@@ -14,7 +14,7 @@ export interface ClanTerritoryTransport {
   ): Promise<PlayerId>;
   onGameState(roomId: RoomId, callback: (state: ClanTerritoryGameState) => void): () => void;
   sendAction(roomId: RoomId, action: GameAction): Promise<void>;
-  startDiscovery(onRoomFound: (roomId: RoomId, metadata?: { allowClanlessPlayers?: boolean }) => void): void;
+  startDiscovery(schoolId: string | null, onRoomFound: (roomId: RoomId, metadata?: { allowClanlessPlayers?: boolean }) => void): void;
   stopDiscovery(): void;
   cleanup(): void;
 }

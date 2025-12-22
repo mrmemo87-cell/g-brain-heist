@@ -19,11 +19,13 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
   private state: ClanTerritoryGameState = INITIAL_STATE;
   private isHost: boolean = false;
   private allowClanlessPlayers: boolean = false;
+  private schoolId: string | null = null;
 
-  async createRoom(options?: { allowClanlessPlayers?: boolean }): Promise<RoomId> {
+  async createRoom(options?: { allowClanlessPlayers?: boolean; schoolId?: string }): Promise<RoomId> {
     const roomId = Math.floor(1000 + Math.random() * 9000).toString();
     this.isHost = true;
     this.allowClanlessPlayers = Boolean(options?.allowClanlessPlayers);
+    this.schoolId = options?.schoolId || null;
     this.state = { ...INITIAL_STATE, allowClanlessPlayers: this.allowClanlessPlayers };
 
     // Start hosting logic immediately
@@ -35,7 +37,12 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
 
   // --- Discovery Logic ---
   private startBroadcastingDiscovery(roomId: RoomId) {
-    this.discoveryChannel = supabase.channel('clan-territory-discovery', {
+    // Use school-specific discovery channel to isolate rooms between schools
+    const channelName = this.schoolId 
+      ? `clan-territory-discovery:${this.schoolId}` 
+      : 'clan-territory-discovery:global';
+    
+    this.discoveryChannel = supabase.channel(channelName, {
       config: {
         broadcast: { ack: false },
       },
@@ -48,7 +55,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
             this.discoveryChannel.send({
               type: 'broadcast',
               event: 'room_open',
-              payload: { roomId, allowClanlessPlayers: this.allowClanlessPlayers }
+              payload: { roomId, allowClanlessPlayers: this.allowClanlessPlayers, schoolId: this.schoolId }
             });
           }
         }, 2000);
@@ -67,8 +74,13 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     }
   }
 
-  startDiscovery(onRoomFound: (roomId: RoomId, metadata?: { allowClanlessPlayers?: boolean }) => void) {
-    this.discoveryChannel = supabase.channel('clan-territory-discovery');
+  startDiscovery(schoolId: string | null, onRoomFound: (roomId: RoomId, metadata?: { allowClanlessPlayers?: boolean }) => void) {
+    // Listen on school-specific discovery channel to only see rooms from same school
+    const channelName = schoolId 
+      ? `clan-territory-discovery:${schoolId}` 
+      : 'clan-territory-discovery:global';
+    
+    this.discoveryChannel = supabase.channel(channelName);
     this.discoveryChannel
       .on('broadcast', { event: 'room_open' }, (payload: any) => {
         onRoomFound(payload.payload.roomId, { allowClanlessPlayers: payload.payload.allowClanlessPlayers });
