@@ -2129,8 +2129,8 @@ export const get_student_subject_progress = async (): Promise<{ id: string; name
         // Get all subjects
         const subjects = await mcq_subjects_list();
         
-        // Get counts of questions answered by THIS student, grouped by subject
-        // Use a simpler query that doesn't rely on foreign key joins
+        // Get DISTINCT question_ids answered by THIS student (not duplicate attempts)
+        // This prevents counting the same question multiple times
         let attemptCounts: any[] = [];
         try {
             const { data, error: attemptError } = await supabase
@@ -2175,22 +2175,55 @@ export const get_student_subject_progress = async (): Promise<{ id: string; name
             }
         }
         
-        // Build answer counts by subject using the question-subject map
-        const answeredBySubject: Record<string, number> = {};
+        // Build answer counts by subject using UNIQUE question_ids only
+        // Use a Set to track which questions have been answered per subject
+        const answeredQuestionsPerSubject: Record<string, Set<string>> = {};
         for (const attempt of attemptCounts) {
             const subject = questionSubjectMap[attempt.question_id];
             if (subject) {
-                answeredBySubject[subject] = (answeredBySubject[subject] || 0) + 1;
+                if (!answeredQuestionsPerSubject[subject]) {
+                    answeredQuestionsPerSubject[subject] = new Set();
+                }
+                answeredQuestionsPerSubject[subject].add(attempt.question_id);
             }
         }
         
-        // Map to result with subject names
-        return subjects.map(s => ({
-            id: s.id,
-            name: s.name,
-            answeredCount: answeredBySubject[s.name] || 0,
-            totalAvailable: totalBySubject[s.name] || 0,
-        }));
+        // Convert Sets to counts
+        const answeredBySubject: Record<string, number> = {};
+        for (const [subject, questionSet] of Object.entries(answeredQuestionsPerSubject)) {
+            answeredBySubject[subject] = questionSet.size;
+        }
+        
+        // Map to result with subject names (case-insensitive matching for robustness)
+        return subjects.map(s => {
+            // Try exact match first, then case-insensitive
+            let answered = answeredBySubject[s.name] || 0;
+            let total = totalBySubject[s.name] || 0;
+            
+            // If no match, try case-insensitive
+            if (answered === 0 && total === 0) {
+                const lowerName = s.name.toLowerCase();
+                for (const [subject, count] of Object.entries(answeredBySubject)) {
+                    if (subject.toLowerCase() === lowerName) {
+                        answered = count;
+                        break;
+                    }
+                }
+                for (const [subject, count] of Object.entries(totalBySubject)) {
+                    if (subject.toLowerCase() === lowerName) {
+                        total = count;
+                        break;
+                    }
+                }
+            }
+            
+            return {
+                id: s.id,
+                name: s.name,
+                answeredCount: answered,
+                totalAvailable: total,
+            };
+        });
     } catch (error) {
         console.error('get_student_subject_progress failed:', error);
         // Return empty progress as fallback
@@ -2200,6 +2233,166 @@ export const get_student_subject_progress = async (): Promise<{ id: string; name
             name: s.name,
             answeredCount: 0,
             totalAvailable: 0,
+        }));
+    }
+};
+
+export interface DifficultyBreakdown {
+    easy: { total: number; completed: number };
+    medium: { total: number; completed: number };
+    hard: { total: number; completed: number };
+}
+
+export interface SubjectProgressWithDifficulty {
+    id: string;
+    name: string;
+    answeredCount: number;
+    totalAvailable: number;
+    difficulties: DifficultyBreakdown;
+}
+
+/**
+ * Get student subject progress with difficulty breakdown
+ * Returns progress per subject, split by easy/medium/hard
+ */
+export const get_student_subject_progress_with_difficulty = async (): Promise<SubjectProgressWithDifficulty[]> => {
+    try {
+        const user = await getCurrentUser();
+        
+        // Get all subjects
+        const subjects = await mcq_subjects_list();
+        
+        // Get student's answered question IDs
+        let attemptCounts: { question_id: string }[] = [];
+        try {
+            const { data, error: attemptError } = await supabase
+                .from('question_attempts')
+                .select('question_id')
+                .eq('student_id', user.id);
+            
+            if (attemptError) {
+                console.error('Error fetching student attempts:', attemptError);
+            } else {
+                attemptCounts = data || [];
+            }
+        } catch (err) {
+            console.warn('Failed to fetch attempt counts:', err);
+        }
+        
+        // Build set of answered question IDs
+        const answeredQuestionIds = new Set(attemptCounts.map(a => a.question_id));
+        
+        // Get all questions with their subject and difficulty
+        let questionData: { id: string; subject: string; difficulty: string | null }[] = [];
+        try {
+            const { data: questions, error: questionsError } = await supabase
+                .from('questions')
+                .select('id, subject, difficulty')
+                .eq('is_public', true)
+                .eq('is_active', true);
+            
+            if (questionsError) {
+                console.error('Error fetching questions:', questionsError);
+            } else {
+                questionData = questions || [];
+            }
+        } catch (err) {
+            console.warn('Failed to fetch questions:', err);
+        }
+        
+        // Normalize difficulty values (db uses 'med' but UI uses 'medium')
+        const normalizeDifficulty = (d: string | null): 'easy' | 'medium' | 'hard' => {
+            if (!d) return 'easy'; // Default to easy if no difficulty set
+            const lower = d.toLowerCase();
+            if (lower === 'easy') return 'easy';
+            if (lower === 'med' || lower === 'medium') return 'medium';
+            if (lower === 'hard') return 'hard';
+            return 'easy'; // Default fallback
+        };
+        
+        // Build progress per subject with difficulty breakdown
+        const subjectProgress: Record<string, {
+            total: number;
+            answered: number;
+            difficulties: {
+                easy: { total: number; completed: number };
+                medium: { total: number; completed: number };
+                hard: { total: number; completed: number };
+            };
+        }> = {};
+        
+        for (const q of questionData) {
+            if (!q.subject) continue;
+            
+            const subjectKey = q.subject;
+            const difficulty = normalizeDifficulty(q.difficulty);
+            const isAnswered = answeredQuestionIds.has(q.id);
+            
+            if (!subjectProgress[subjectKey]) {
+                subjectProgress[subjectKey] = {
+                    total: 0,
+                    answered: 0,
+                    difficulties: {
+                        easy: { total: 0, completed: 0 },
+                        medium: { total: 0, completed: 0 },
+                        hard: { total: 0, completed: 0 }
+                    }
+                };
+            }
+            
+            subjectProgress[subjectKey].total++;
+            subjectProgress[subjectKey].difficulties[difficulty].total++;
+            
+            if (isAnswered) {
+                subjectProgress[subjectKey].answered++;
+                subjectProgress[subjectKey].difficulties[difficulty].completed++;
+            }
+        }
+        
+        // Map subjects to results with case-insensitive matching
+        return subjects.map(s => {
+            // Try exact match first
+            let progress = subjectProgress[s.name];
+            
+            // If no match, try case-insensitive
+            if (!progress) {
+                const lowerName = s.name.toLowerCase();
+                for (const [subject, prog] of Object.entries(subjectProgress)) {
+                    if (subject.toLowerCase() === lowerName) {
+                        progress = prog;
+                        break;
+                    }
+                }
+            }
+            
+            const defaultDifficulties = {
+                easy: { total: 0, completed: 0 },
+                medium: { total: 0, completed: 0 },
+                hard: { total: 0, completed: 0 }
+            };
+            
+            return {
+                id: s.id,
+                name: s.name,
+                answeredCount: progress?.answered || 0,
+                totalAvailable: progress?.total || 0,
+                difficulties: progress?.difficulties || defaultDifficulties
+            };
+        });
+    } catch (error) {
+        console.error('get_student_subject_progress_with_difficulty failed:', error);
+        // Return empty progress as fallback
+        const subjects = await mcq_subjects_list();
+        return subjects.map(s => ({
+            id: s.id,
+            name: s.name,
+            answeredCount: 0,
+            totalAvailable: 0,
+            difficulties: {
+                easy: { total: 0, completed: 0 },
+                medium: { total: 0, completed: 0 },
+                hard: { total: 0, completed: 0 }
+            }
         }));
     }
 };
@@ -4800,6 +4993,59 @@ export const get_public_questions = async (subject?: string, difficulty?: string
     if (error) throw error;
 
     return data || [];
+};
+
+/**
+ * Get student's progress on public questions for a specific subject
+ * Returns count of unique questions answered out of total available
+ */
+export const get_subject_question_progress = async (subject: string): Promise<{ answeredCount: number; totalCount: number }> => {
+    try {
+        const user = await getCurrentUser();
+        
+        // Get all public questions for this subject
+        const { data: questions, error: questionsError } = await supabase
+            .from('questions')
+            .select('id')
+            .eq('subject', subject)
+            .eq('is_public', true)
+            .eq('is_active', true);
+        
+        if (questionsError) {
+            console.error('Error fetching questions for progress:', questionsError);
+            return { answeredCount: 0, totalCount: 0 };
+        }
+        
+        const questionIds = (questions || []).map(q => q.id);
+        const totalCount = questionIds.length;
+        
+        if (totalCount === 0) {
+            return { answeredCount: 0, totalCount: 0 };
+        }
+        
+        // Get student's attempts for these questions
+        const { data: attempts, error: attemptsError } = await supabase
+            .from('question_attempts')
+            .select('question_id')
+            .eq('student_id', user.id)
+            .in('question_id', questionIds);
+        
+        if (attemptsError) {
+            console.error('Error fetching attempts for progress:', attemptsError);
+            return { answeredCount: 0, totalCount };
+        }
+        
+        // Count unique question_ids answered
+        const uniqueAnswered = new Set((attempts || []).map(a => a.question_id));
+        
+        return { 
+            answeredCount: uniqueAnswered.size, 
+            totalCount 
+        };
+    } catch (error) {
+        console.error('get_subject_question_progress failed:', error);
+        return { answeredCount: 0, totalCount: 0 };
+    }
 };
 
 /**

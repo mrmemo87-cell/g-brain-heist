@@ -304,11 +304,11 @@ const UnifiedSubjectPlay: React.FC<UnifiedSubjectPlayProps> = ({
         {subject.name}
       </h2>
 
-      {/* Teacher Assignments Section */}
+      {/* Teacher Quests Section */}
       {teacherQuests.length > 0 && (
         <div className="mb-12">
           <h3 className="font-heading text-2xl mb-6 text-purple-300 flex items-center gap-2">
-            <span>📚</span> Assignments from your teacher
+            <span>📚</span> Teacher Quests
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {teacherQuests.map(quest => (

@@ -290,11 +290,11 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       const data = await GameService.mcq_subjects_list();
       setSubjects(data);
       
-      // Load REAL student progress - user-specific, not mocked
+      // Load REAL student progress WITH DIFFICULTY BREAKDOWN
       // Add timeout to prevent infinite loading if the query hangs
-      let studentProgress: { id: string; name: string; answeredCount: number; totalAvailable: number }[] = [];
+      let studentProgress: Awaited<ReturnType<typeof GameService.get_student_subject_progress_with_difficulty>> = [];
       try {
-        const progressPromise = GameService.get_student_subject_progress();
+        const progressPromise = GameService.get_student_subject_progress_with_difficulty();
         const timeoutPromise = new Promise<never>((_, reject) => 
           setTimeout(() => reject(new Error('Progress fetch timeout')), 10000)
         );
@@ -304,34 +304,36 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         // Continue with empty progress - user can still practice
       }
       
-      // Map to SubjectProgress format with all difficulties combined
-      // For now, we show overall progress since questions don't have difficulty in the bank
+      // Map to SubjectProgress format with REAL difficulty data
       const realProgress: SubjectProgress[] = data.map(subject => {
         const progress = studentProgress.find(p => p.id === subject.id);
-        const answered = progress?.answeredCount || 0;
-        const total = progress?.totalAvailable || 0;
+        const difficulties = progress?.difficulties || {
+          easy: { total: 0, completed: 0 },
+          medium: { total: 0, completed: 0 },
+          hard: { total: 0, completed: 0 }
+        };
         
-        // Distribute progress across difficulties for UI (simplified - all shown as easy for now)
+        // Use real difficulty breakdown from database
         return {
           id: subject.id,
           name: subject.name,
           easy: { 
-            total: total, 
-            completed: answered,
-            answeredWithRewards: answered,
-            newLeft: Math.max(0, total - answered)
+            total: difficulties.easy.total, 
+            completed: difficulties.easy.completed,
+            answeredWithRewards: difficulties.easy.completed,
+            newLeft: Math.max(0, difficulties.easy.total - difficulties.easy.completed)
           },
           medium: { 
-            total: 0, 
-            completed: 0,
-            answeredWithRewards: 0,
-            newLeft: 0
+            total: difficulties.medium.total, 
+            completed: difficulties.medium.completed,
+            answeredWithRewards: difficulties.medium.completed,
+            newLeft: Math.max(0, difficulties.medium.total - difficulties.medium.completed)
           },
           hard: { 
-            total: 0, 
-            completed: 0,
-            answeredWithRewards: 0,
-            newLeft: 0
+            total: difficulties.hard.total, 
+            completed: difficulties.hard.completed,
+            answeredWithRewards: difficulties.hard.completed,
+            newLeft: Math.max(0, difficulties.hard.total - difficulties.hard.completed)
           }
         };
       });
@@ -527,19 +529,22 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       // Load teacher quests for this subject
       const teacherQuestionsData = await GameService.get_public_questions(subject.name as any);
       
-      // Mock teacher quest progress - TODO: Replace with actual API call
-      const mockQuests: QuestProgress[] = teacherQuestionsData.length > 0 ? [
+      // Get REAL student progress for this subject's questions
+      const progress = await GameService.get_subject_question_progress(subject.name);
+      
+      // Create teacher quest with real progress data (not mock)
+      const realQuests: QuestProgress[] = teacherQuestionsData.length > 0 ? [
         {
           questId: `quest-${subject.id}-1`,
           title: `${subject.name} Fundamentals`,
           description: 'Master the basics',
-          totalQuestions: Math.min(5, teacherQuestionsData.length),
-          rewardedQuestions: Math.floor(Math.random() * Math.min(5, teacherQuestionsData.length)),
+          totalQuestions: progress.totalCount,
+          rewardedQuestions: progress.answeredCount,
           subjectId: subject.id
         }
       ] : [];
       
-      setTeacherQuests(mockQuests);
+      setTeacherQuests(realQuests);
       setStage('unified_subject_play');
     } catch (err) {
       console.error('Error loading teacher quests:', err);
