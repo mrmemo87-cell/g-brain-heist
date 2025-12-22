@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Profile } from '../types';
 import { getPublicProfile } from '../services/gameService';
-import { APIcon, CoinIcon, GemIcon, ShieldIcon, StreakIcon, XPIcon, BrainIcon } from './icons';
+import { ShieldIcon, BrainIcon } from './icons';
 import AvatarWithFrame from './AvatarWithFrame';
 
 interface ClickableUsernameProps {
@@ -34,11 +34,11 @@ const ProfileModal: React.FC<{ profile: Profile; onClose: () => void }> = ({ pro
 
   return (
     <div 
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto"
       onClick={onClose}
     >
       <div 
-        className="w-full max-w-xl rounded-3xl border border-slate-800 bg-slate-900/95 shadow-2xl shadow-cyan-900/40 animate-fade-in-up"
+        className="w-full max-w-xl rounded-3xl border border-slate-800 bg-slate-900/95 shadow-2xl shadow-cyan-900/40 animate-fade-in-up my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between border-b border-slate-800 px-5 py-4">
@@ -70,37 +70,8 @@ const ProfileModal: React.FC<{ profile: Profile; onClose: () => void }> = ({ pro
         </div>
 
         <div className="grid gap-4 px-5 py-4">
-          {/* Primary Stats */}
-          <div className="grid grid-cols-2 gap-3">
-            <StatPill
-              label="Coins"
-              value={profile.coins.toLocaleString()}
-              icon={<CoinIcon className="h-5 w-5 text-yellow-300 drop-shadow-[0_0_6px_rgba(234,179,8,0.6)]" />}
-            />
-            <StatPill
-              label="XP"
-              value={profile.xp.toLocaleString()}
-              icon={<XPIcon className="h-5 w-5 text-cyan-300 drop-shadow-[0_0_6px_rgba(34,211,238,0.6)]" />}
-            />
-            <StatPill
-              label="Gemstones"
-              value={profile.gemstones.toLocaleString()}
-              icon={<GemIcon className="h-5 w-5 text-rose-300 drop-shadow-[0_0_6px_rgba(244,114,182,0.6)]" />}
-            />
-            <StatPill
-              label="AP"
-              value={`${profile.ap_now}/${profile.ap_max}`}
-              icon={<APIcon className="h-5 w-5 text-emerald-300 drop-shadow-[0_0_6px_rgba(16,185,129,0.6)]" />}
-            />
-          </div>
-
-          {/* Secondary Stats */}
-          <div className="grid grid-cols-2 gap-3">
-            <StatPill
-              label="Streak"
-              value={`${profile.streak || 0} days`}
-              icon={<StreakIcon className="h-5 w-5 text-orange-300 drop-shadow-[0_0_6px_rgba(251,146,60,0.6)]" />}
-            />
+          {/* Public Stats - Only show PvP, Attack, Defense */}
+          <div className="grid grid-cols-3 gap-3">
             <StatPill
               label="PvP Score"
               value={profile.pvp_score}
