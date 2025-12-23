@@ -292,10 +292,8 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
                     this.tickInterval = null;
                 }
                 
-                // Start the game loop (tick) with visibility handling
-                // Use timestamp-based ticking to survive tab inactivity
-                let lastTickTime = Date.now();
-                
+                // Timer uses absolute timestamps now (gameEndTime), so a single TICK
+                // will correctly calculate remaining time based on Date.now()
                 const tick = () => {
                     if (this.state.phase === 'ACTIVE') {
                         const newState = clanTerritoryReducer(this.state, { type: 'TICK' });
@@ -304,40 +302,16 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
                             this.broadcastState();
                             if (this.onStateUpdate) this.onStateUpdate(this.state);
                         }
-                        lastTickTime = Date.now();
                     }
                 };
                 
-                // Use a more reliable interval that checks elapsed time
-                const smartTick = () => {
-                    if (this.state.phase === 'ACTIVE') {
-                        const now = Date.now();
-                        const elapsed = now - lastTickTime;
-                        // Process multiple ticks if we've been inactive
-                        const missedTicks = Math.floor(elapsed / 1000);
-                        if (missedTicks >= 1) {
-                            // Process all missed ticks to catch up
-                            for (let i = 0; i < missedTicks && this.state.phase === 'ACTIVE'; i++) {
-                                const newState = clanTerritoryReducer(this.state, { type: 'TICK' });
-                                if (newState !== this.state) {
-                                    this.state = newState;
-                                }
-                            }
-                            // Broadcast final state after catching up
-                            this.broadcastState();
-                            if (this.onStateUpdate) this.onStateUpdate(this.state);
-                            lastTickTime = now;
-                        }
-                    }
-                };
+                // Run tick every second - it uses absolute time so tab inactivity won't cause drift
+                this.tickInterval = setInterval(tick, 1000);
                 
-                this.tickInterval = setInterval(smartTick, 1000);
-                
-                // Handle visibility changes to immediately catch up
+                // Handle visibility changes to immediately update when tab becomes visible
                 const handleVisibilityChange = () => {
                     if (!document.hidden && this.state.phase === 'ACTIVE') {
-                        // Immediately process any missed time
-                        smartTick();
+                        tick(); // Single tick recalculates from gameEndTime
                     }
                 };
                 document.addEventListener('visibilitychange', handleVisibilityChange);

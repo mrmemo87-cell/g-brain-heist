@@ -541,7 +541,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   }
 
   return (
-    <div className="relative rounded-2xl border border-slate-800/70 bg-gradient-to-br from-slate-950 via-slate-900 to-black p-3 shadow-xl overflow-hidden w-full h-full">
+    <div className="relative bg-gradient-to-br from-slate-950 via-slate-900 to-black overflow-hidden w-full h-full">
       {!hideHeader && (
         <div className="mb-3">
           <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">
@@ -552,8 +552,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
       <div
         ref={containerRef}
-        className="w-full h-full min-h-[200px] flex items-center justify-center [&>svg]:w-full [&>svg]:h-auto [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:object-contain"
-        style={{ contain: 'layout' }}
+        className="w-full h-full [&>svg]:w-full [&>svg]:h-full"
         dangerouslySetInnerHTML={{ __html: mapMarkup }}
       />
 

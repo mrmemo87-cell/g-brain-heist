@@ -99,6 +99,7 @@ export const CONFIG = {
   FAST_ANSWER_THRESHOLD_MS: 5000,
   FAST_ANSWER_BONUS: 1,
   BASE_CORRECT_POINTS: 1,
+  WRONG_ANSWER_PENALTY: 1, // Points deducted for wrong answers
   MIN_CONTRIBUTION_SCORE: 1,
   INFLUENCE_PER_POINT: 10,
 };
@@ -145,7 +146,9 @@ export interface BattleQuestion {
 
 export interface ClanTerritoryGameState {
   phase: GamePhase;
-  timer: number;
+  timer: number; // Remaining seconds (computed from gameEndTime - now)
+  gameStartTime?: number; // Unix timestamp when game started
+  gameEndTime?: number; // Unix timestamp when game should end
   players: Record<string, PlayerStats>;
   zones: Record<ZoneId, ZoneState>;
   clans: Record<ClanId, ClanMetadata>;

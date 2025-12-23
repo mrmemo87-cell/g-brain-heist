@@ -103,16 +103,28 @@ export function clanTerritoryReducer(
     }
 
     case "START_GAME": {
+      const now = Date.now();
+      const durationMs = action.payload.duration * 1000;
       return {
         ...state,
         phase: "ACTIVE",
         timer: action.payload.duration,
+        gameStartTime: now,
+        gameEndTime: now + durationMs,
       };
     }
 
     case "TICK": {
       if (state.phase !== "ACTIVE") return state;
-      const newTimer = Math.max(0, state.timer - 1);
+      
+      // Use absolute time if available, otherwise fall back to decrement
+      let newTimer: number;
+      if (state.gameEndTime) {
+        newTimer = Math.max(0, Math.floor((state.gameEndTime - Date.now()) / 1000));
+      } else {
+        newTimer = Math.max(0, state.timer - 1);
+      }
+      
       return {
         ...state,
         timer: newTimer,
@@ -163,26 +175,30 @@ export function clanTerritoryReducer(
       const isFast = safeDuration <= CONFIG.FAST_ANSWER_THRESHOLD_MS;
       const newStreak = isCorrect ? player.streak + 1 : 0;
       const streakBonus = isCorrect && newStreak % CONFIG.STREAK_BONUS_THRESHOLD === 0 ? CONFIG.STREAK_BONUS_POINTS : 0;
-      let scoreGain = 0;
+      let scoreChange = 0;
 
       if (isCorrect) {
-        scoreGain += CONFIG.BASE_CORRECT_POINTS;
-        if (isFast) scoreGain += CONFIG.FAST_ANSWER_BONUS;
-        scoreGain += streakBonus;
+        scoreChange += CONFIG.BASE_CORRECT_POINTS;
+        if (isFast) scoreChange += CONFIG.FAST_ANSWER_BONUS;
+        scoreChange += streakBonus;
+      } else {
+        // Deduct points for wrong answers
+        scoreChange -= CONFIG.WRONG_ANSWER_PENALTY;
       }
 
-      const influenceGain = scoreGain * CONFIG.INFLUENCE_PER_POINT;
+      // Only gain influence for correct answers (no negative influence)
+      const influenceGain = isCorrect ? scoreChange * CONFIG.INFLUENCE_PER_POINT : 0;
       
-      console.log(`[clanTerritoryEngine] SUBMIT_ANSWER: scoreGain=${scoreGain}, influenceGain=${influenceGain}, clanId=${player.clanId}`);
+      console.log(`[clanTerritoryEngine] SUBMIT_ANSWER: scoreChange=${scoreChange}, influenceGain=${influenceGain}, clanId=${player.clanId}`);
 
-      // Update Player Stats
+      // Update Player Stats - score can go negative but influence cannot
       const updatedPlayer: PlayerStats = {
         ...player,
         questionsAnswered: player.questionsAnswered + 1,
         questionsCorrect: player.questionsCorrect + (isCorrect ? 1 : 0),
         streak: newStreak,
         bestStreak: Math.max(player.bestStreak, newStreak),
-        battleScore: player.battleScore + scoreGain,
+        battleScore: player.battleScore + scoreChange,
         totalAnswerTimeMs: player.totalAnswerTimeMs + safeDuration,
         fastAnswers: player.fastAnswers + (isFast && isCorrect ? 1 : 0),
       };
