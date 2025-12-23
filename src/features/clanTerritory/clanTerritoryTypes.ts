@@ -99,7 +99,8 @@ export const CONFIG = {
   FAST_ANSWER_THRESHOLD_MS: 5000,
   FAST_ANSWER_BONUS: 1,
   BASE_CORRECT_POINTS: 1,
-  WRONG_ANSWER_PENALTY: 1, // Points deducted for wrong answers
+  WRONG_ANSWER_PENALTY: 1, // Points deducted from battle score for wrong answers
+  WRONG_ANSWER_INFLUENCE_PENALTY_PERCENT: 0.1, // Percentage of current zone capture removed on wrong answers
   MIN_CONTRIBUTION_SCORE: 1,
   INFLUENCE_PER_POINT: 10,
 };
