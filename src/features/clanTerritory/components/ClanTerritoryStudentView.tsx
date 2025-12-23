@@ -330,76 +330,76 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   // 2. Active Phase - Zone Selection
   if (gameState.phase === "ACTIVE" && !hydratedPlayer.selectedZoneId) {
     return (
-      <div className="flex flex-col h-full bg-gray-950 text-white p-4 gap-4">
-        <h2 className="text-3xl font-bold text-center text-yellow-300">Select a Zone to Reinforce</h2>
-        <div className="grid lg:grid-cols-3 gap-4 flex-1 overflow-hidden">
-          <div className="lg:col-span-2 overflow-y-auto pr-2 flex flex-col gap-4">
+      <div className="flex flex-col h-full bg-gray-950 text-white overflow-hidden">
+        <div className="p-4 border-b border-gray-800 shrink-0">
+          <h2 className="text-2xl font-bold text-center text-yellow-300">Select a Zone to Reinforce</h2>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-w-4xl mx-auto">
             {activeZones.map((zone) => {
               const zoneState = gameState.zones[zone.id];
               const zoneTotal = zoneState ? Object.values(zoneState.influence).reduce((a, b) => a + b, 0) : 0;
               const snapshot = getZoneSnapshot(zone.id);
               const holder = snapshot.controller ? clanList.find((c) => c.id === snapshot.controller) : null;
+              const myClanInfluence = zoneState?.influence[hydratedPlayer.clanId] || 0;
+              const myPercent = zoneTotal > 0 ? (myClanInfluence / zoneTotal) * 100 : 0;
 
               return (
                 <button
                   key={zone.id}
-                  onClick={() => onSelectZone(zone.id)}
-                  className="relative bg-slate-900/70 border border-slate-800 rounded-2xl overflow-hidden flex flex-col hover:border-yellow-400 transition-all text-left group"
+                  onClick={() => {
+                    console.log('[ZoneSelection] Zone clicked:', zone.id);
+                    onSelectZone(zone.id);
+                  }}
+                  className="relative bg-slate-900/70 border-2 border-slate-700 rounded-xl p-3 hover:border-yellow-400 hover:bg-slate-800/70 transition-all text-left cursor-pointer active:scale-95"
                 >
-                  <div className="p-4 flex justify-between items-center border-b border-slate-800">
-                    <div>
-                      <p className="text-sm uppercase text-slate-400">{holder ? `${holder.name} control ${Math.round(snapshot.percent * 100)}%` : "Unclaimed"}</p>
-                      <h3 className="font-bold text-2xl">{zone.name}</h3>
-                    </div>
-                    <span className="text-xs bg-slate-950 px-3 py-1 rounded-full text-yellow-400 font-mono">
-                      {zone.baseValue} pts
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-bold text-sm text-white">{zone.name}</h3>
+                    <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full font-mono">
+                      {zone.baseValue}
                     </span>
                   </div>
-
-                  <div className="p-4 flex flex-col gap-3">
+                  
+                  {/* Control bar */}
+                  <div className="h-1.5 bg-slate-950 rounded-full overflow-hidden mb-2">
                     {clanList.map((clan) => {
                       const influence = zoneState?.influence[clan.id] || 0;
                       const percent = zoneTotal > 0 ? (influence / zoneTotal) * 100 : 0;
-
+                      if (percent === 0) return null;
                       return (
-                        <div key={clan.id} className="w-full">
-                          <div className="flex justify-between text-xs mb-1">
-                            <span style={{ color: clan.color }} className="font-bold">{clan.name}</span>
-                            <span className="text-gray-400">{influence}</span>
-                          </div>
-                          <div className="h-2 bg-slate-950 rounded-full overflow-hidden">
-                            <div
-                              className="h-full transition-all duration-500 ease-out"
-                              style={{
-                                width: `${percent}%`,
-                                backgroundColor: clan.color,
-                              }}
-                            />
-                          </div>
-                        </div>
+                        <div
+                          key={clan.id}
+                          className="h-full float-left"
+                          style={{ width: `${percent}%`, backgroundColor: clan.color }}
+                        />
                       );
                     })}
                   </div>
-
-                  <div className="absolute inset-0 bg-yellow-500/0 group-hover:bg-yellow-500/5 transition-colors pointer-events-none" />
+                  
+                  <p className="text-xs text-slate-400">
+                    {holder ? (
+                      <span style={{ color: holder.color }}>{holder.name} {Math.round(snapshot.percent * 100)}%</span>
+                    ) : (
+                      'Unclaimed'
+                    )}
+                  </p>
                 </button>
               );
             })}
           </div>
-          <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 flex flex-col gap-4">
-            <h3 className="text-lg font-bold text-center">Battle Map</h3>
-            <ClanTerritoryMap zones={gameState.zones} clans={clansWithColors} mapId={gameState.mapId} />
-            <div className="flex flex-col gap-2">
-              {priorityTargets.map(({ zone, snapshot, needsHelp }) => (
-                <div key={zone.id} className={`p-3 rounded-xl border ${needsHelp ? "border-yellow-400" : "border-slate-800"} bg-slate-950/60`}>
-                  <p className="font-semibold">{zone.name}</p>
-                  <p className="text-xs text-slate-400">
-                    {snapshot.controller ? `${clanList.find((c) => c.id === snapshot.controller)?.name ?? "Unknown"}` : "Unclaimed"} · {Math.round(snapshot.percent * 100)}%
-                  </p>
-                  {needsHelp && <p className="text-xs text-yellow-400">Your clan needs this zone</p>}
-                </div>
-              ))}
-            </div>
+        </div>
+        
+        {/* Bottom Map Preview */}
+        <div className="shrink-0 border-t border-gray-800 bg-gray-900/50 p-3">
+          <div className="max-w-md mx-auto">
+            <ClanTerritoryMap 
+              zones={gameState.zones} 
+              clans={clansWithColors} 
+              mapId={gameState.mapId}
+              hideHeader
+              hideLegend
+            />
           </div>
         </div>
       </div>
