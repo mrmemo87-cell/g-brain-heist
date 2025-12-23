@@ -90,20 +90,20 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
   const containerRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   const lastRegionStyleKeyRef = useRef<Record<string, string>>({});
-  const resolveRegionElement = (svg: SVGSVGElement, regionId: string): SVGGElement | null => {
-    const direct = svg.querySelector<SVGGElement>(`#${regionId}`);
+  const resolveRegionElement = (svg: SVGSVGElement, regionId: string): SVGElement | null => {
+    const direct = svg.querySelector<SVGElement>(`#${regionId}`);
     if (direct) return direct;
 
     const normalizedTargets = new Set<string>([normalizeRegionKey(regionId)]);
     (LEGACY_REGION_KEYS[regionId] ?? []).forEach((key) => normalizedTargets.add(normalizeRegionKey(key)));
 
-    const candidates = svg.querySelectorAll<SVGGElement>("g[id]");
-    for (const group of candidates) {
-      if (normalizedTargets.has(normalizeRegionKey(group.id))) {
-        if (group.id !== regionId) {
-          group.id = regionId;
+    const candidates = svg.querySelectorAll<SVGElement>("[id]");
+    for (const element of candidates) {
+      if (normalizedTargets.has(normalizeRegionKey(element.id))) {
+        if (element.id !== regionId) {
+          element.id = regionId;
         }
-        return group;
+        return element;
       }
     }
 
