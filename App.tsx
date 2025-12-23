@@ -95,8 +95,13 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const renderLazy = (node: React.ReactNode) => (
     <Suspense
       fallback={(
-        <div className="p-8 text-center text-gray-300">
-          Loading view...
+        <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-[#0a0a1a] via-[#1a1a2e] to-[#0a0a1a] z-50">
+          <img 
+            src="/BRAINS.svg" 
+            alt="Loading..." 
+            className="w-48 h-48 md:w-64 md:h-64 animate-pulse"
+            style={{ filter: 'drop-shadow(0 0 30px rgba(0, 212, 255, 0.6))' }}
+          />
         </div>
       )}
     >

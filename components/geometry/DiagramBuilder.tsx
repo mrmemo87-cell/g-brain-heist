@@ -271,7 +271,9 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400">Loading...</div>
+        <div className="flex justify-center py-12">
+          <img src="/BRAINS.svg" alt="Loading..." className="w-24 h-24" style={{ filter: 'drop-shadow(0 0 20px rgba(0, 212, 255, 0.6))' }} />
+        </div>
       ) : savedQuestions.length === 0 ? (
         <div className="card-glass p-12 text-center">
           <div className="text-6xl mb-4">📐</div>

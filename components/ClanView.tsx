@@ -638,7 +638,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
     }, [hasFetched]);
 
     if (isLoading) {
-        return <div className="font-heading text-xl animate-pulse text-center py-8" style={{color: 'var(--amber-warn)'}}>Loading clans...</div>;
+        return <div className="flex justify-center py-8"><img src="/BRAINS.svg" alt="Loading..." className="w-20 h-20 animate-pulse" style={{ filter: 'drop-shadow(0 0 20px rgba(0, 212, 255, 0.6))' }} /></div>;
     }
 
     return (

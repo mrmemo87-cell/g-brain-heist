@@ -197,10 +197,8 @@ const Main: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="font-heading text-2xl animate-pulse" style={{ color: 'var(--ion-blue)' }}>
-          Initializing Heist OS...
-        </div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0a0a1a 100%)' }}>
+        <img src="/BRAINS.svg" alt="Loading..." className="w-48 h-48 animate-pulse" style={{ filter: 'drop-shadow(0 0 30px rgba(0, 212, 255, 0.6))' }} />
       </div>
     );
   }
@@ -283,11 +281,8 @@ const IELTSMain: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="ielts-auth-wrapper">
-        <div className="ielts-auth-panel" style={{ textAlign: 'center' }}>
-          <div className="ielts-auth-badge">IELTS Prep Hub</div>
-          <p style={{ margin: '0.5rem 0 0', color: 'var(--ielts-slate-600)' }}>Preparing secure study environment…</p>
-        </div>
+      <div className="ielts-auth-wrapper" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0a0a1a 100%)' }}>
+        <img src="/BRAINS.svg" alt="Loading..." style={{ width: '150px', height: '150px', filter: 'drop-shadow(0 0 30px rgba(0, 212, 255, 0.6))' }} />
       </div>
     );
   }

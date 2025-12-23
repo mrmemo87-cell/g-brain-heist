@@ -204,10 +204,7 @@ const GeometryPlay: React.FC<GeometryPlayProps> = ({
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-4 animate-pulse">📐</div>
-          <p className="text-gray-400">Loading diagram...</p>
-        </div>
+        <img src="/BRAINS.svg" alt="Loading..." className="w-32 h-32 animate-pulse" style={{ filter: 'drop-shadow(0 0 30px rgba(0, 212, 255, 0.6))' }} />
       </div>
     );
   }

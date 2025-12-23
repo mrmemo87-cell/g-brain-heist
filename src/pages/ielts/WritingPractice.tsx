@@ -167,12 +167,16 @@ const WritingPractice: React.FC = () => {
     return (
       <div style={{ 
         minHeight: '100vh', 
-        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+        background: 'linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0a0a1a 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
       }}>
-        <div style={{ color: '#1e293b', fontSize: '1.25rem' }}>Loading...</div>
+        <img 
+          src="/BRAINS.svg" 
+          alt="Loading..." 
+          style={{ width: '200px', height: '200px', filter: 'drop-shadow(0 0 30px rgba(0, 212, 255, 0.6))' }}
+        />
       </div>
     );
   }

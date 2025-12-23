@@ -4896,8 +4896,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
   if (loading) {
     return (
-      <div className="teacher-loading">
-        <div className="teacher-loading-text">Loading Teacher Portal...</div>
+      <div className="teacher-loading" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <img src="/BRAINS.svg" alt="Loading..." style={{ width: '200px', height: '200px', filter: 'drop-shadow(0 0 30px rgba(0, 212, 255, 0.6))' }} />
       </div>
     );
   }

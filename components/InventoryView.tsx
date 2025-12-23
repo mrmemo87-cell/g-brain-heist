@@ -383,7 +383,7 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onN
 
 
   if (loading) {
-     return <div className="font-heading text-2xl animate-pulse text-center mt-20" style={{color: 'var(--grid-purple)'}}>Accessing Inventory...</div>;
+     return <div className="flex justify-center mt-20"><img src="/BRAINS.svg" alt="Loading..." className="w-32 h-32 animate-pulse" style={{ filter: 'drop-shadow(0 0 30px rgba(0, 212, 255, 0.6))' }} /></div>;
   }
 
   return (

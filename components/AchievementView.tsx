@@ -254,10 +254,7 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        <div className="text-6xl mb-4 animate-bounce">🏆</div>
-        <div className="font-heading text-2xl animate-pulse" style={{ color: 'var(--amber-warn)' }}>
-          Loading Achievements...
-        </div>
+        <img src="/BRAINS.svg" alt="Loading..." className="w-40 h-40 animate-pulse" style={{ filter: 'drop-shadow(0 0 30px rgba(0, 212, 255, 0.6))' }} />
       </div>
     );
   }

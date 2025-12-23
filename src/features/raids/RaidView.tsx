@@ -604,8 +604,8 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
 
   if (loading) {
     return (
-      <div className="p-6">
-        <p className="text-center text-slate-500">Scanning raid network…</p>
+      <div className="p-6 flex justify-center">
+        <img src="/BRAINS.svg" alt="Loading..." className="w-24 h-24 animate-pulse" style={{ filter: 'drop-shadow(0 0 20px rgba(0, 212, 255, 0.6))' }} />
       </div>
     );
   }

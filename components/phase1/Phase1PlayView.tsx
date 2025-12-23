@@ -147,9 +147,8 @@ const Phase1PlayView: React.FC<Phase1PlayViewProps> = ({
   if (stage === 'loading') {
     return (
       <div className="max-w-3xl mx-auto">
-        <div className="card-glass p-8 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-400 mx-auto mb-4"></div>
-          <p className="text-gray-300">Scanning the archives for your next challenge...</p>
+        <div className="card-glass p-8 flex justify-center">
+          <img src="/BRAINS.svg" alt="Loading..." className="w-24 h-24 animate-pulse" style={{ filter: 'drop-shadow(0 0 30px rgba(0, 212, 255, 0.6))' }} />
         </div>
       </div>
     );

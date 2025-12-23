@@ -658,8 +658,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                       </div>
                     </div>
                   ) : (
-                    <div className="p-3 rounded-xl border border-dashed border-gray-600 bg-black/20 text-center text-gray-500 animate-pulse">
-                      ⏳ Loading clan assignment...
+                    <div className="p-3 rounded-xl border border-dashed border-gray-600 bg-black/20 flex justify-center">
+                      <img src="/BRAINS.svg" alt="Loading..." className="w-12 h-12 animate-pulse" style={{ filter: 'drop-shadow(0 0 15px rgba(0, 212, 255, 0.6))' }} />
                     </div>
                   )}
                 </div>
