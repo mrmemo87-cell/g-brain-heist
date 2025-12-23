@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import ReactDOM from 'react-dom/client';
+import BrainsLoader from './components/BrainsLoader';
 import App from './App';
 import LoginView from './components/LoginView';
 import FinishSetupModal from './components/FinishSetupModal';
@@ -196,11 +197,7 @@ const Main: React.FC = () => {
   }, []);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0a0a1a 100%)' }}>
-        <img src="/BRAINS.svg" alt="Loading..." className="w-48 h-48 animate-pulse" style={{ filter: 'drop-shadow(0 0 30px rgba(0, 212, 255, 0.6))' }} />
-      </div>
-    );
+    return <BrainsLoader message="Initializing Brains Heist..." />;
   }
 
   if (initError) {
@@ -280,11 +277,7 @@ const IELTSMain: React.FC = () => {
   }, []);
 
   if (isLoading) {
-    return (
-      <div className="ielts-auth-wrapper" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0a0a1a 100%)' }}>
-        <img src="/BRAINS.svg" alt="Loading..." style={{ width: '150px', height: '150px', filter: 'drop-shadow(0 0 30px rgba(0, 212, 255, 0.6))' }} />
-      </div>
-    );
+    return <BrainsLoader message="Loading IELTS Hub..." size={180} />;
   }
 
   if (!isAuthenticated) {
