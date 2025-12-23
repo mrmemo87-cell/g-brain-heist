@@ -238,6 +238,49 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
 
   private onStateUpdate: ((state: ClanTerritoryGameState) => void) | null = null;
 
+  private startTickLoop() {
+    // Clear any existing tick interval to prevent duplicates
+    if (this.tickInterval) {
+      clearInterval(this.tickInterval);
+      this.tickInterval = null;
+    }
+
+    const tick = () => {
+      if (this.state.phase === 'ACTIVE') {
+        const newState = clanTerritoryReducer(this.state, { type: 'TICK' });
+        if (newState !== this.state) {
+          this.state = newState;
+          if (this.isHost) {
+            this.broadcastState();
+          }
+          if (this.onStateUpdate) this.onStateUpdate(this.state);
+        }
+      }
+    };
+
+    // Run tick every second - uses absolute time so tab inactivity won't cause drift
+    this.tickInterval = setInterval(tick, 1000);
+
+    if (this.isHost) {
+      // Use Page Visibility API to force immediate broadcast when tab becomes visible
+      // This ensures students see updated state even if browser throttled the interval
+      if (this.visibilityListener) {
+        document.removeEventListener('visibilitychange', this.visibilityListener);
+      }
+
+      const handleVisibilityChange = () => {
+        if (!document.hidden) {
+          console.log('[Transport] Tab became visible - forcing state broadcast');
+          tick();
+          this.broadcastState();
+        }
+      };
+
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      this.visibilityListener = handleVisibilityChange;
+    }
+  }
+
   private setupChannel(roomId: RoomId) {
     if (this.channel) return;
 
@@ -250,8 +293,8 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     this.channel
       .on("broadcast", { event: "game_action" }, (payload: any) => {
         const action = payload.payload as GameAction;
-        
-        // If host, process action and broadcast new state? 
+
+        // If host, process action and broadcast new state?
         // Actually, for simplicity in this peer-to-peer-ish setup (or host-authoritative),
         // let's make the HOST the source of truth.
         
@@ -268,13 +311,12 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
             if (this.onStateUpdate) this.onStateUpdate(this.state);
           }
         } else {
-            // Clients just send actions, they don't process them locally until they get state update?
-            // OR: Optimistic updates.
-            // For now: Clients listen for STATE updates from host.
-            // BUT: We are listening to 'game_action' here.
-            
-            // If we are a client, we might want to optimistically update for some things,
-            // but generally we wait for the host to send the full state.
+          // Clients now also process actions locally so gameplay continues even if the host tab is throttled
+          const newState = clanTerritoryReducer(this.state, action);
+          if (newState !== this.state) {
+            this.state = newState;
+            if (this.onStateUpdate) this.onStateUpdate(this.state);
+          }
         }
       })
       .on("broadcast", { event: "game_state" }, (payload: any) => {
@@ -285,46 +327,11 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
       })
       .subscribe((status: string) => {
         if (status === "SUBSCRIBED") {
-            if (this.isHost) {
-                // Clear any existing tick interval to prevent duplicates
-                if (this.tickInterval) {
-                    clearInterval(this.tickInterval);
-                    this.tickInterval = null;
-                }
-                
-                // Timer uses absolute timestamps now (gameEndTime), so a single TICK
-                // will correctly calculate remaining time based on Date.now()
-                const tick = () => {
-                    if (this.state.phase === 'ACTIVE') {
-                        const newState = clanTerritoryReducer(this.state, { type: 'TICK' });
-                        if (newState !== this.state) {
-                            this.state = newState;
-                            this.broadcastState();
-                            if (this.onStateUpdate) this.onStateUpdate(this.state);
-                        }
-                    }
-                };
-                
-                // Run tick every second - it uses absolute time so tab inactivity won't cause drift
-                this.tickInterval = setInterval(tick, 1000);
-                
-                // Use Page Visibility API to force immediate broadcast when tab becomes visible
-                // This ensures students see updated state even if browser throttled the interval
-                const handleVisibilityChange = () => {
-                    if (!document.hidden) {
-                        console.log('[Transport] Tab became visible - forcing state broadcast');
-                        // Immediately tick to update timer and broadcast current state
-                        tick();
-                        // Also broadcast to ensure all clients get latest state
-                        this.broadcastState();
-                    }
-                };
-                document.addEventListener('visibilitychange', handleVisibilityChange);
-                this.visibilityListener = handleVisibilityChange;
-                
-                // Broadcast initial state
-                this.broadcastState();
-            }
+            // Start ticking for both host and clients to avoid background-tab throttling issues
+            this.startTickLoop();
+
+            // Broadcast initial state (only host will actually send)
+            this.broadcastState();
         }
       });
   }
