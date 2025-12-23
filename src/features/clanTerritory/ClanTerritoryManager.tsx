@@ -552,10 +552,15 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
           playerId={playerId}
           fallbackPlayer={playerFallback ?? undefined}
           onSelectZone={(zoneId) => {
-            if (!roomId || !zoneId) return;
-            transport.sendAction(roomId, { type: "SELECT_ZONE", payload: { playerId, zoneId } });
+            if (!roomId) return;
+            // Allow null zoneId to deselect current zone (for zone switching)
+            transport.sendAction(roomId, { type: "SELECT_ZONE", payload: { playerId, zoneId: zoneId || null } });
           }}
-          onSubmitAnswer={(isCorrect, durationMs) => roomId && transport.sendAction(roomId, { type: "SUBMIT_ANSWER", payload: { playerId, isCorrect, durationMs } })}
+          onSubmitAnswer={(isCorrect, durationMs) => {
+            if (!roomId) return;
+            console.log('[ClanTerritoryManager] Sending SUBMIT_ANSWER:', { playerId, isCorrect, durationMs });
+            transport.sendAction(roomId, { type: "SUBMIT_ANSWER", payload: { playerId, isCorrect, durationMs } });
+          }}
         />
       </ClanTerritoryErrorBoundary>
     );

@@ -167,7 +167,7 @@ export type GameAction =
   | { type: "SET_ALLOW_CLANLESS"; payload: { allow: boolean } }
   | { type: "START_GAME"; payload: { duration: number } }
   | { type: "TICK" }
-  | { type: "SELECT_ZONE"; payload: { playerId: string; zoneId: ZoneId } }
+  | { type: "SELECT_ZONE"; payload: { playerId: string; zoneId: ZoneId | null } }
   | {
       type: "SUBMIT_ANSWER";
       payload: { playerId: string; isCorrect: boolean; durationMs: number };

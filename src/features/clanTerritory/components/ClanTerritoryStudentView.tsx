@@ -276,10 +276,13 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
 
   const handleAnswerClick = (selectedAnswer: string) => {
     if (!currentQuestion) return;
+    if (feedback !== null) return; // Prevent double-clicking
 
     const durationMs = Date.now() - answerStartTime;
     const isCorrect = selectedAnswer === currentQuestion.correct_answer;
 
+    console.log('[StudentView] Answer clicked:', { selectedAnswer, isCorrect, durationMs, selectedZoneId: hydratedPlayer?.selectedZoneId });
+    
     onSubmitAnswer(isCorrect, durationMs);
     setFeedback(isCorrect ? "correct" : "incorrect");
     
@@ -287,7 +290,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
     setTimeout(() => {
       setFeedback(null);
       setQuestionIndex((prev) => prev + 1);
-    }, 1000);
+    }, 1200);
   };
 
   if (!hydratedPlayer) return <div className="text-white p-4">Loading player data...</div>;
@@ -430,8 +433,11 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
             </div>
           </div>
           <button
-            onClick={() => onSelectZone(null as any)}
-            className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold transition"
+            onClick={() => {
+              console.log('[StudentView] SWITCH ZONE clicked - deselecting zone');
+              onSelectZone(null as any);
+            }}
+            className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold transition cursor-pointer"
           >
             SWITCH ZONE
           </button>
@@ -477,7 +483,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                 Live Battle Map
               </h3>
-              <div className="flex-1 min-h-0">
+              <div className="flex-1 min-h-0 flex items-center justify-center">
                 <ClanTerritoryMap 
                   zones={gameState.zones} 
                   clans={clansWithColors} 
@@ -532,17 +538,20 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                     return (
                       <button
                         key={z.id}
-                        onClick={() => onSelectZone(z.id)}
+                        onClick={() => {
+                          console.log('[StudentView] Quick Switch clicked:', z.id);
+                          onSelectZone(z.id);
+                        }}
                         disabled={isCurrentZone}
                         className={`p-2 rounded-lg text-left text-xs transition ${
                           isCurrentZone 
                             ? 'bg-yellow-500/20 border border-yellow-500/50 cursor-default' 
-                            : 'bg-gray-800/50 border border-gray-700 hover:border-gray-500'
+                            : 'bg-gray-800/50 border border-gray-700 hover:border-gray-500 hover:bg-gray-700/50 cursor-pointer'
                         }`}
                       >
                         <div className="font-semibold text-white truncate">{z.name}</div>
                         <div className="text-gray-500 truncate">
-                          {holder ? `${holder.name.slice(0, 8)}... ${Math.round(snapshot.percent * 100)}%` : 'Unclaimed'}
+                          {holder ? `${holder.name.length > 8 ? holder.name.slice(0, 8) + '...' : holder.name} ${Math.round(snapshot.percent * 100)}%` : 'Unclaimed'}
                         </div>
                       </button>
                     );
