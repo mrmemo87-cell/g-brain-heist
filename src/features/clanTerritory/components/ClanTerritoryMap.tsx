@@ -540,8 +540,15 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     );
   }
 
+  const maxHeight = hideHeader
+    ? "calc(100vh - 140px)"
+    : "calc(100vh - 180px)";
+
   return (
-    <div className="relative bg-gradient-to-br from-slate-950 via-slate-900 to-black overflow-hidden w-full h-full">
+    <div
+      className="relative bg-gradient-to-br from-slate-950 via-slate-900 to-black overflow-hidden w-full h-full min-h-[360px]"
+      style={{ maxHeight }}
+    >
       {!hideHeader && (
         <div className="mb-3">
           <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">
@@ -554,8 +561,8 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         ref={containerRef}
         className="w-full h-full flex items-center justify-center"
       >
-        <div 
-          className="w-full h-full max-w-full max-h-full"
+        <div
+          className="relative w-full h-full max-w-5xl aspect-[4/3] min-h-[320px] max-h-full"
           dangerouslySetInnerHTML={{ __html: mapMarkup }}
         />
       </div>
