@@ -293,6 +293,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
                 }
                 
                 // Start the game loop (tick) with visibility handling
+                // Use timestamp-based ticking to survive tab inactivity
                 let lastTickTime = Date.now();
                 
                 const tick = () => {
@@ -307,17 +308,36 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
                     }
                 };
                 
-                this.tickInterval = setInterval(tick, 1000);
-                
-                // Handle visibility changes to keep timer accurate
-                const handleVisibilityChange = () => {
-                    if (!document.hidden && this.state.phase === 'ACTIVE') {
+                // Use a more reliable interval that checks elapsed time
+                const smartTick = () => {
+                    if (this.state.phase === 'ACTIVE') {
                         const now = Date.now();
                         const elapsed = now - lastTickTime;
-                        // If more than 2 seconds passed, catch up
-                        if (elapsed > 2000) {
-                            tick();
+                        // Process multiple ticks if we've been inactive
+                        const missedTicks = Math.floor(elapsed / 1000);
+                        if (missedTicks >= 1) {
+                            // Process all missed ticks to catch up
+                            for (let i = 0; i < missedTicks && this.state.phase === 'ACTIVE'; i++) {
+                                const newState = clanTerritoryReducer(this.state, { type: 'TICK' });
+                                if (newState !== this.state) {
+                                    this.state = newState;
+                                }
+                            }
+                            // Broadcast final state after catching up
+                            this.broadcastState();
+                            if (this.onStateUpdate) this.onStateUpdate(this.state);
+                            lastTickTime = now;
                         }
+                    }
+                };
+                
+                this.tickInterval = setInterval(smartTick, 1000);
+                
+                // Handle visibility changes to immediately catch up
+                const handleVisibilityChange = () => {
+                    if (!document.hidden && this.state.phase === 'ACTIVE') {
+                        // Immediately process any missed time
+                        smartTick();
                     }
                 };
                 document.addEventListener('visibilitychange', handleVisibilityChange);

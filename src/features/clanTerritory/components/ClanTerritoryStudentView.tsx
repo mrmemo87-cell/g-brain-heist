@@ -446,8 +446,8 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
         {/* Main Content Area - Map + Questions Side by Side */}
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
           
-          {/* Live Map Panel - Always Visible */}
-          <div className="lg:w-[320px] xl:w-[380px] shrink-0 bg-gray-900/50 border-b lg:border-b-0 lg:border-r border-gray-800 p-3 flex flex-col">
+          {/* Live Map Panel - Always Visible - Half screen on desktop */}
+          <div className="lg:w-1/2 xl:w-[45%] shrink-0 bg-gray-900/50 border-b lg:border-b-0 lg:border-r border-gray-800 p-4 flex flex-col">
             {/* Mobile: Compact horizontal layout */}
             <div className="lg:hidden flex gap-3 items-start">
               <div className="w-32 h-32 shrink-0">
@@ -483,16 +483,14 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                 Live Battle Map
               </h3>
-              <div className="flex-1 min-h-0 w-full flex items-center justify-center">
-                <div className="w-full max-w-[300px] mx-auto">
-                  <ClanTerritoryMap 
-                    zones={gameState.zones} 
-                    clans={clansWithColors} 
-                    mapId={gameState.mapId}
-                    hideHeader
-                    hideLegend
-                  />
-                </div>
+              <div className="flex-1 min-h-0 w-full flex items-center justify-center p-2">
+                <ClanTerritoryMap 
+                  zones={gameState.zones} 
+                  clans={clansWithColors} 
+                  mapId={gameState.mapId}
+                  hideHeader
+                  hideLegend
+                />
               </div>
               
               {/* Zone Control Legend */}
