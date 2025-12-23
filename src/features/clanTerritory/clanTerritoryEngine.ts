@@ -123,8 +123,16 @@ export function clanTerritoryReducer(
     case "SELECT_ZONE": {
       const { playerId, zoneId } = action.payload;
       const player = state.players[playerId];
-      if (!player) return state;
+      
+      console.log(`[clanTerritoryEngine] SELECT_ZONE: playerId=${playerId}, zoneId=${zoneId}, player exists=${!!player}`);
+      
+      if (!player) {
+        console.warn(`[clanTerritoryEngine] SELECT_ZONE ignored: player ${playerId} not found`);
+        return state;
+      }
 
+      console.log(`[clanTerritoryEngine] SELECT_ZONE: Updating player ${playerId} selectedZoneId from ${player.selectedZoneId} to ${zoneId}`);
+      
       return {
         ...state,
         players: {
@@ -137,7 +145,19 @@ export function clanTerritoryReducer(
     case "SUBMIT_ANSWER": {
       const { playerId, isCorrect, durationMs } = action.payload;
       const player = state.players[playerId];
-      if (!player || !player.selectedZoneId) return state;
+      
+      // Enhanced logging for debugging
+      console.log(`[clanTerritoryEngine] SUBMIT_ANSWER: playerId=${playerId}, isCorrect=${isCorrect}, player exists=${!!player}, selectedZoneId=${player?.selectedZoneId}`);
+      
+      if (!player) {
+        console.warn(`[clanTerritoryEngine] SUBMIT_ANSWER ignored: player ${playerId} not found in state`);
+        return state;
+      }
+      
+      if (!player.selectedZoneId) {
+        console.warn(`[clanTerritoryEngine] SUBMIT_ANSWER ignored: player ${playerId} has no selectedZoneId`);
+        return state;
+      }
 
       const safeDuration = Number.isFinite(durationMs) ? Math.max(0, durationMs) : CONFIG.FAST_ANSWER_THRESHOLD_MS;
       const isFast = safeDuration <= CONFIG.FAST_ANSWER_THRESHOLD_MS;
@@ -152,6 +172,8 @@ export function clanTerritoryReducer(
       }
 
       const influenceGain = scoreGain * CONFIG.INFLUENCE_PER_POINT;
+      
+      console.log(`[clanTerritoryEngine] SUBMIT_ANSWER: scoreGain=${scoreGain}, influenceGain=${influenceGain}, clanId=${player.clanId}`);
 
       // Update Player Stats
       const updatedPlayer: PlayerStats = {
@@ -171,6 +193,7 @@ export function clanTerritoryReducer(
       
       if (!zoneState) {
         // Safety check: if zone doesn't exist, just update player stats
+        console.warn(`[clanTerritoryEngine] SUBMIT_ANSWER: zone ${zoneId} not found in state.zones, only updating player stats`);
         return {
           ...state,
           players: { ...state.players, [playerId]: updatedPlayer },
@@ -178,12 +201,15 @@ export function clanTerritoryReducer(
       }
 
       const currentZoneInfluence = zoneState.influence[player.clanId] || 0;
+      const newZoneInfluence = currentZoneInfluence + influenceGain;
+      
+      console.log(`[clanTerritoryEngine] SUBMIT_ANSWER: Updating zone ${zoneId} influence for clan ${player.clanId}: ${currentZoneInfluence} -> ${newZoneInfluence}`);
       
       const updatedZone = {
         ...zoneState,
         influence: {
           ...zoneState.influence,
-          [player.clanId]: currentZoneInfluence + influenceGain,
+          [player.clanId]: newZoneInfluence,
         },
       };
 

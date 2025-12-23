@@ -133,17 +133,40 @@ const normalizeSvgMarkup = (svgContent: string) => {
   const svgEl = doc.querySelector("svg");
   if (!svgEl) return svgContent;
 
+  // Get the viewBox if it exists, or try to compute from width/height
+  let viewBox = svgEl.getAttribute("viewBox");
+  if (!viewBox) {
+    const originalWidth = svgEl.getAttribute("width");
+    const originalHeight = svgEl.getAttribute("height");
+    if (originalWidth && originalHeight) {
+      // Parse numeric values, removing units like 'mm', 'px', etc.
+      const w = parseFloat(originalWidth);
+      const h = parseFloat(originalHeight);
+      if (!isNaN(w) && !isNaN(h)) {
+        viewBox = `0 0 ${w} ${h}`;
+        svgEl.setAttribute("viewBox", viewBox);
+      }
+    }
+  }
+
+  // Remove fixed dimensions to allow responsive scaling
   svgEl.removeAttribute("width");
   svgEl.removeAttribute("height");
+  
+  // Set responsive attributes
   svgEl.setAttribute("width", "100%");
   svgEl.setAttribute("height", "100%");
   svgEl.setAttribute("preserveAspectRatio", "xMidYMid meet");
-  svgEl.style.width = "100%";
-  svgEl.style.height = "100%";
-  svgEl.style.maxWidth = "100%";
-  svgEl.style.maxHeight = "100%";
-  svgEl.style.display = "block";
-  svgEl.style.objectFit = "contain";
+  
+  // Apply inline styles to ensure proper rendering
+  svgEl.style.cssText = `
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+    object-fit: contain;
+  `.replace(/\s+/g, ' ').trim();
 
   return svgEl.outerHTML;
 };
@@ -529,7 +552,8 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
       <div
         ref={containerRef}
-        className="w-full min-h-[300px] h-[50vh] sm:h-[55vh] md:h-[60vh] lg:h-[500px] xl:h-[600px] flex items-center justify-center overflow-visible [&>svg]:w-full [&>svg]:h-full [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:object-contain"
+        className="w-full aspect-[1/1.1] min-h-[250px] max-h-[70vh] sm:max-h-[65vh] md:max-h-[60vh] lg:max-h-[500px] xl:max-h-[600px] flex items-center justify-center [&>svg]:w-full [&>svg]:h-full [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:object-contain"
+        style={{ contain: 'layout' }}
         dangerouslySetInnerHTML={{ __html: mapMarkup }}
       />
 

@@ -98,7 +98,6 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   const [feedback, setFeedback] = useState<"correct" | "incorrect" | null>(null);
   const [rewardsClaimed, setRewardsClaimed] = useState(false);
   const [claimingRewards, setClaimingRewards] = useState(false);
-  const [showMap, setShowMap] = useState(false);
   const lastQuestionKeyRef = useRef<string | null>(null);
   const clanList = React.useMemo(() => {
     const known = Object.values(gameState.clans).map((clan) => ({
@@ -404,170 +403,241 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
     );
   }
 
-  // 3. Active Phase - Combat (Answering Questions)
+  // 3. Active Phase - Combat (Answering Questions) - WITH LIVE MAP
   if (gameState.phase === "ACTIVE" && hydratedPlayer.selectedZoneId) {
     const zone = activeZones.find((z) => z.id === hydratedPlayer.selectedZoneId);
     const zoneState = gameState.zones[hydratedPlayer.selectedZoneId];
     const zoneTotal = zoneState ? Object.values(zoneState.influence).reduce((a, b) => a + b, 0) : 0;
-
-    if (showMap) {
-      return (
-        <div className="flex flex-col h-full bg-gray-950 text-white p-4 gap-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold">Battle Map</h2>
-            <button
-              onClick={() => setShowMap(false)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold"
-            >
-              BACK TO COMBAT
-            </button>
-          </div>
-          <ClanTerritoryMap zones={gameState.zones} clans={clansWithColors} mapId={gameState.mapId} />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {activeZones.map((z) => {
-              const snapshot = getZoneSnapshot(z.id);
-              const holder = snapshot.controller ? clanList.find((c) => c.id === snapshot.controller) : null;
-              return (
-                <button
-                  key={z.id}
-                  onClick={() => {
-                    onSelectZone(z.id);
-                    setShowMap(false);
-                  }}
-                  className="bg-slate-900/70 border border-slate-800 rounded-xl p-3 hover:border-yellow-400 transition text-left"
-                >
-                  <p className="font-bold text-lg">{z.name}</p>
-                  <p className="text-xs text-slate-400">
-                    {holder ? `${holder.name} ${Math.round(snapshot.percent * 100)}%` : "Unclaimed"}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      );
-    }
     
     return (
-      <div className="flex flex-col h-full bg-gray-900 text-white">
-        {/* HUD */}
-        <div className="bg-gray-800 p-4 border-b border-gray-700 space-y-3">
-          <div className="flex justify-between items-center">
+      <div className="flex flex-col h-full bg-gray-950 text-white overflow-hidden">
+        {/* Compact HUD Header */}
+        <div className="bg-gray-900/90 backdrop-blur px-4 py-2 border-b border-gray-800 flex items-center justify-between gap-4 shrink-0">
+          <div className="flex items-center gap-4">
             <div>
-              <div className="text-xs text-gray-400">LOCATION</div>
-              <div className="font-bold text-yellow-400">{zone?.name}</div>
+              <div className="text-[10px] text-gray-500 uppercase tracking-wider">Zone</div>
+              <div className="font-bold text-yellow-400 text-sm">{zone?.name}</div>
             </div>
-            <div className="text-right">
-              <div className="text-xs text-gray-400">STREAK</div>
-              <div className="font-bold text-xl text-orange-500">x{hydratedPlayer.streak}</div>
+            <div className="h-8 w-px bg-gray-700" />
+            <div>
+              <div className="text-[10px] text-gray-500 uppercase tracking-wider">Streak</div>
+              <div className="font-bold text-orange-500">x{hydratedPlayer.streak}</div>
+            </div>
+            <div className="h-8 w-px bg-gray-700" />
+            <div>
+              <div className="text-[10px] text-gray-500 uppercase tracking-wider">Score</div>
+              <div className="font-bold text-cyan-400">{hydratedPlayer.battleScore}</div>
             </div>
           </div>
-
-          {/* Zone Control Bar */}
-          <div className="h-2 flex rounded-full overflow-hidden bg-gray-900">
-            {clanList.map((clan) => {
-              const influence = zoneState?.influence[clan.id] || 0;
-              const percent = zoneTotal > 0 ? (influence / zoneTotal) * 100 : 0;
-              if (percent === 0) return null;
-              return (
-                <div 
-                  key={clan.id}
-                  style={{ width: `${percent}%`, backgroundColor: clan.color }}
-                  className="h-full transition-all duration-500"
-                />
-              );
-            })}
-          </div>
+          <button
+            onClick={() => onSelectZone(null as any)}
+            className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold transition"
+          >
+            SWITCH ZONE
+          </button>
         </div>
 
-        {/* Question Area */}
-        <div className="flex-1 flex flex-col items-center justify-center p-6">
-          <div className="flex gap-2 mb-4">
-            <button
-              onClick={() => onSelectZone(null as any)}
-              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-bold"
-            >
-              SWITCH ZONE
-            </button>
-            <button
-              onClick={() => setShowMap(true)}
-              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-bold"
-            >
-              VIEW MAP
-            </button>
-          </div>
-          {currentQuestion ? (
-            <>
-              <div className="text-3xl font-bold mb-4 text-center max-w-2xl">
-                {currentQuestion.question_text}
+        {/* Main Content Area - Map + Questions Side by Side */}
+        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+          
+          {/* Live Map Panel - Always Visible */}
+          <div className="lg:w-[320px] xl:w-[380px] shrink-0 bg-gray-900/50 border-b lg:border-b-0 lg:border-r border-gray-800 p-3 flex flex-col">
+            {/* Mobile: Compact horizontal layout */}
+            <div className="lg:hidden flex gap-3 items-start">
+              <div className="w-32 h-32 shrink-0">
+                <ClanTerritoryMap 
+                  zones={gameState.zones} 
+                  clans={clansWithColors} 
+                  mapId={gameState.mapId}
+                  hideHeader
+                  hideLegend
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Zone Control</h4>
+                <div className="space-y-1.5">
+                  {clanList.slice(0, 4).map((clan) => {
+                    const influence = zoneState?.influence[clan.id] || 0;
+                    const percent = zoneTotal > 0 ? (influence / zoneTotal) * 100 : 0;
+                    return (
+                      <div key={clan.id} className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: clan.color }} />
+                        <span className="text-xs text-gray-300 truncate flex-1">{clan.name}</span>
+                        <span className="text-xs font-mono text-gray-500">{Math.round(percent)}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+            
+            {/* Desktop: Full map with legend */}
+            <div className="hidden lg:flex lg:flex-col lg:h-full">
+              <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                Live Battle Map
+              </h3>
+              <div className="flex-1 min-h-0">
+                <ClanTerritoryMap 
+                  zones={gameState.zones} 
+                  clans={clansWithColors} 
+                  mapId={gameState.mapId}
+                  hideHeader
+                  hideLegend
+                />
               </div>
               
-              {/* Display question image if available */}
-              {currentQuestion.image_url && (
-                <div className="mb-6 flex justify-center">
-                  <img
-                    src={currentQuestion.image_url}
-                    alt="Question"
-                    className="max-w-full max-h-48 rounded-lg border border-gray-600 object-contain"
-                  />
+              {/* Zone Control Legend */}
+              <div className="mt-3 pt-3 border-t border-gray-800">
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">
+                  {zone?.name} Control
+                </h4>
+                <div className="h-2 flex rounded-full overflow-hidden bg-gray-800 mb-2">
+                  {clanList.map((clan) => {
+                    const influence = zoneState?.influence[clan.id] || 0;
+                    const percent = zoneTotal > 0 ? (influence / zoneTotal) * 100 : 0;
+                    if (percent === 0) return null;
+                    return (
+                      <div 
+                        key={clan.id}
+                        style={{ width: `${percent}%`, backgroundColor: clan.color }}
+                        className="h-full transition-all duration-500"
+                      />
+                    );
+                  })}
+                </div>
+                <div className="grid grid-cols-2 gap-1">
+                  {clanList.map((clan) => {
+                    const influence = zoneState?.influence[clan.id] || 0;
+                    const percent = zoneTotal > 0 ? (influence / zoneTotal) * 100 : 0;
+                    return (
+                      <div key={clan.id} className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: clan.color }} />
+                        <span className="text-xs text-gray-400 truncate">{clan.name}</span>
+                        <span className="text-xs font-mono text-gray-500 ml-auto">{Math.round(percent)}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Quick Zone Switcher */}
+              <div className="mt-3 pt-3 border-t border-gray-800">
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Quick Switch</h4>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {activeZones.slice(0, 6).map((z) => {
+                    const snapshot = getZoneSnapshot(z.id);
+                    const isCurrentZone = z.id === hydratedPlayer.selectedZoneId;
+                    const holder = snapshot.controller ? clanList.find((c) => c.id === snapshot.controller) : null;
+                    return (
+                      <button
+                        key={z.id}
+                        onClick={() => onSelectZone(z.id)}
+                        disabled={isCurrentZone}
+                        className={`p-2 rounded-lg text-left text-xs transition ${
+                          isCurrentZone 
+                            ? 'bg-yellow-500/20 border border-yellow-500/50 cursor-default' 
+                            : 'bg-gray-800/50 border border-gray-700 hover:border-gray-500'
+                        }`}
+                      >
+                        <div className="font-semibold text-white truncate">{z.name}</div>
+                        <div className="text-gray-500 truncate">
+                          {holder ? `${holder.name.slice(0, 8)}... ${Math.round(snapshot.percent * 100)}%` : 'Unclaimed'}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Question Panel */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-4 lg:p-6">
+              {currentQuestion ? (
+                <div className="max-w-2xl mx-auto">
+                  {/* Question Text */}
+                  <div className="text-xl lg:text-2xl font-bold mb-4 text-center">
+                    {currentQuestion.question_text}
+                  </div>
+                  
+                  {/* Question Image */}
+                  {currentQuestion.image_url && (
+                    <div className="mb-4 flex justify-center">
+                      <img
+                        src={currentQuestion.image_url}
+                        alt="Question"
+                        className="max-w-full max-h-36 lg:max-h-48 rounded-lg border border-gray-700 object-contain"
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Answer Options */}
+                  <div className="grid gap-2 lg:gap-3">
+                    {shuffledAnswers.map((answer, idx) => {
+                      const answerText = getOptionText(answer);
+                      const answerImageUrl = getOptionImageUrl(answer);
+                      const isSelected = feedback !== null;
+                      const isCorrect = answerText === currentQuestion.correct_answer;
+                      const showResult = isSelected && isCorrect;
+                      const showWrong = isSelected && !isCorrect && feedback === "incorrect";
+                      
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => handleAnswerClick(answerText)}
+                          disabled={feedback !== null}
+                          className={`p-3 lg:p-4 rounded-xl text-left text-base lg:text-lg font-semibold transition-all ${
+                            showResult ? "bg-green-600 border-green-400" :
+                            showWrong ? "bg-red-600 border-red-400" :
+                            "bg-gray-800 border-gray-700 hover:bg-gray-700 hover:border-blue-500"
+                          } border-2 disabled:cursor-not-allowed`}
+                        >
+                          <div className="flex flex-col">
+                            <span>{answerText}</span>
+                            {answerImageUrl && (
+                              <img
+                                src={answerImageUrl}
+                                alt={`Option ${idx + 1}`}
+                                className="mt-2 max-h-16 lg:max-h-20 rounded border border-gray-600 object-contain"
+                              />
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-xl text-gray-400">
+                    Waiting for questions to load...
+                  </div>
                 </div>
               )}
-              
-              <div className="w-full max-w-2xl grid gap-3">
-                {shuffledAnswers.map((answer, idx) => {
-                  const answerText = getOptionText(answer);
-                  const answerImageUrl = getOptionImageUrl(answer);
-                  const isSelected = feedback !== null;
-                  const isCorrect = answerText === currentQuestion.correct_answer;
-                  const showResult = isSelected && isCorrect;
-                  const showWrong = isSelected && !isCorrect && feedback === "incorrect";
-                  
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => handleAnswerClick(answerText)}
-                      disabled={feedback !== null}
-                      className={`p-4 rounded-xl text-left text-lg font-semibold transition-all ${
-                        showResult ? "bg-green-600 border-green-400" :
-                        showWrong ? "bg-red-600 border-red-400" :
-                        "bg-gray-800 border-gray-600 hover:bg-gray-700 hover:border-blue-500"
-                      } border-2 disabled:cursor-not-allowed`}
-                    >
-                      <div className="flex flex-col">
-                        <span>{answerText}</span>
-                        {answerImageUrl && (
-                          <img
-                            src={answerImageUrl}
-                            alt={`Option ${idx + 1}`}
-                            className="mt-2 max-h-20 rounded border border-gray-600 object-contain"
-                          />
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </>
-          ) : (
-            <div className="text-xl text-gray-400">
-              Waiting for questions to load...
             </div>
-          )}
-        </div>
 
-        {/* Stats Footer */}
-        <div className="bg-gray-800 p-4 grid grid-cols-2 gap-4 text-center text-sm">
-          <div>
-            <div className="text-gray-400">Battle Score</div>
-            <div className="font-bold text-lg">{hydratedPlayer.battleScore}</div>
-          </div>
-          <div>
-            <div className="text-gray-400">Accuracy</div>
-            <div className="font-bold text-lg">
-              {hydratedPlayer.questionsAnswered > 0
-                ? Math.round((hydratedPlayer.questionsCorrect / hydratedPlayer.questionsAnswered) * 100)
-                : 0}
-              %
+            {/* Compact Stats Footer */}
+            <div className="bg-gray-900/80 backdrop-blur px-4 py-2 border-t border-gray-800 flex items-center justify-center gap-6 text-sm shrink-0">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">Answered:</span>
+                <span className="font-bold text-white">{hydratedPlayer.questionsAnswered}</span>
+              </div>
+              <div className="h-4 w-px bg-gray-700" />
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">Accuracy:</span>
+                <span className="font-bold text-white">
+                  {hydratedPlayer.questionsAnswered > 0
+                    ? Math.round((hydratedPlayer.questionsCorrect / hydratedPlayer.questionsAnswered) * 100)
+                    : 0}%
+                </span>
+              </div>
+              <div className="h-4 w-px bg-gray-700" />
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">Best Streak:</span>
+                <span className="font-bold text-orange-400">x{hydratedPlayer.bestStreak}</span>
+              </div>
             </div>
           </div>
         </div>
