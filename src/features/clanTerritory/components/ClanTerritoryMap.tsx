@@ -127,6 +127,37 @@ const NEUTRAL_TERRITORY_SHADE = "#1e293b";
 
 const normalizeRegionKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, "");
 
+const getAspectRatioFromSvg = (svgContent: string) => {
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgContent, "image/svg+xml");
+    const svgEl = doc.querySelector("svg");
+
+    if (!svgEl) return null;
+
+    const viewBox = svgEl.getAttribute("viewBox");
+    if (viewBox) {
+      const [, , w, h] = viewBox.split(/\s+/).map(Number);
+      if (!Number.isNaN(w) && !Number.isNaN(h) && h !== 0) {
+        return w / h;
+      }
+    }
+
+    const widthAttr = svgEl.getAttribute("width");
+    const heightAttr = svgEl.getAttribute("height");
+    const width = widthAttr ? parseFloat(widthAttr) : NaN;
+    const height = heightAttr ? parseFloat(heightAttr) : NaN;
+
+    if (!Number.isNaN(width) && !Number.isNaN(height) && height !== 0) {
+      return width / height;
+    }
+  } catch (error) {
+    console.warn("[ClanTerritoryMap] Failed to parse SVG aspect ratio", error);
+  }
+
+  return null;
+};
+
 const normalizeSvgMarkup = (svgContent: string) => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(svgContent, "image/svg+xml");
@@ -223,6 +254,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   const mapSvg = mapConfig.svg;
   const containerRef = useRef<HTMLDivElement>(null);
   const [mapMarkup, setMapMarkup] = useState("");
+  const [mapAspectRatio, setMapAspectRatio] = useState<number | null>(null);
   const defaultRegionStylesRef = useRef<
     Record<
       string,
@@ -294,6 +326,11 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
   useEffect(() => {
     setMapMarkup(normalizeSvgMarkup(mapSvg));
+  }, [mapSvg]);
+
+  useEffect(() => {
+    const ratio = getAspectRatioFromSvg(mapSvg);
+    setMapAspectRatio(ratio);
   }, [mapSvg]);
 
   useEffect(() => {
@@ -562,7 +599,10 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         className="w-full h-full flex items-center justify-center"
       >
         <div
-          className="relative w-full h-full max-w-5xl aspect-[4/3] min-h-[320px] max-h-full"
+          className="relative w-full max-w-5xl min-h-[320px] max-h-full"
+          style={{
+            aspectRatio: mapAspectRatio ?? 4 / 3,
+          }}
           dangerouslySetInnerHTML={{ __html: mapMarkup }}
         />
       </div>
