@@ -483,14 +483,16 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                 Live Battle Map
               </h3>
-              <div className="flex-1 min-h-0 flex items-center justify-center">
-                <ClanTerritoryMap 
-                  zones={gameState.zones} 
-                  clans={clansWithColors} 
-                  mapId={gameState.mapId}
-                  hideHeader
-                  hideLegend
-                />
+              <div className="flex-1 min-h-0 w-full flex items-center justify-center">
+                <div className="w-full max-w-[300px] mx-auto">
+                  <ClanTerritoryMap 
+                    zones={gameState.zones} 
+                    clans={clansWithColors} 
+                    mapId={gameState.mapId}
+                    hideHeader
+                    hideLegend
+                  />
+                </div>
               </div>
               
               {/* Zone Control Legend */}
@@ -530,8 +532,8 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
               {/* Quick Zone Switcher */}
               <div className="mt-3 pt-3 border-t border-gray-800">
                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Quick Switch</h4>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {activeZones.slice(0, 6).map((z) => {
+                <div className={`grid gap-1.5 ${activeZones.length > 6 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                  {activeZones.map((z) => {
                     const snapshot = getZoneSnapshot(z.id);
                     const isCurrentZone = z.id === hydratedPlayer.selectedZoneId;
                     const holder = snapshot.controller ? clanList.find((c) => c.id === snapshot.controller) : null;
