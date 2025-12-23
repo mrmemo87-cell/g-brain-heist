@@ -534,8 +534,8 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
   if (!mapMarkup) {
     return (
-      <div className="relative rounded-3xl border border-slate-800/70 bg-gradient-to-br from-slate-950 via-slate-900 to-black p-6 shadow-2xl flex items-center justify-center h-96">
-        <img src="/BRAINS.svg" alt="Loading..." className="w-24 h-24 animate-pulse" style={{ filter: 'drop-shadow(0 0 20px rgba(0, 212, 255, 0.6))' }} />
+      <div className="w-full h-full min-h-[200px] flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-black rounded-xl">
+        <img src="/BRAINS.svg" alt="Loading..." className="w-16 h-16 animate-pulse" style={{ filter: 'drop-shadow(0 0 20px rgba(0, 212, 255, 0.6))' }} />
       </div>
     );
   }
