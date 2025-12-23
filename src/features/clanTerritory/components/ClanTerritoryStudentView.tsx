@@ -451,9 +451,9 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
             {/* Mobile: Compact horizontal layout */}
             <div className="lg:hidden flex gap-3 items-start">
               <div className="w-32 h-32 shrink-0">
-                <ClanTerritoryMap 
-                  zones={gameState.zones} 
-                  clans={clansWithColors} 
+                <ClanTerritoryMap
+                  zones={gameState.zones}
+                  clans={clansWithColors}
                   mapId={gameState.mapId}
                   hideHeader
                   hideLegend
@@ -474,6 +474,41 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                     );
                   })}
                 </div>
+              </div>
+            </div>
+
+            {/* Mobile: Quick zone buttons remain visible even in lightweight mode */}
+            <div className="lg:hidden mt-3">
+              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Quick Switch</h4>
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {activeZones.map((z) => {
+                  const snapshot = getZoneSnapshot(z.id);
+                  const isCurrentZone = z.id === hydratedPlayer.selectedZoneId;
+                  const holder = snapshot.controller
+                    ? clanList.find((c) => c.id === snapshot.controller)
+                    : null;
+                  return (
+                    <button
+                      key={z.id}
+                      onClick={() => onSelectZone(z.id)}
+                      disabled={isCurrentZone}
+                      className={`flex-shrink-0 px-3 py-2 rounded-lg text-left text-xs border transition min-w-[140px] ${
+                        isCurrentZone
+                          ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-100'
+                          : 'bg-gray-800/60 border-gray-700 text-white hover:border-gray-500 hover:bg-gray-700/60'
+                      }`}
+                    >
+                      <div className="font-semibold truncate">{z.name}</div>
+                      <div className="text-gray-400 truncate">
+                        {holder
+                          ? `${holder.name.length > 10 ? holder.name.slice(0, 10) + '…' : holder.name} ${Math.round(
+                              snapshot.percent * 100
+                            )}%`
+                          : 'Unclaimed'}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
             
