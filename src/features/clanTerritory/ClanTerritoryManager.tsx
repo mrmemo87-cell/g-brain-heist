@@ -552,14 +552,27 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
           playerId={playerId}
           fallbackPlayer={playerFallback ?? undefined}
           onSelectZone={(zoneId) => {
-            if (!roomId) return;
+            console.log('[ClanTerritoryManager] onSelectZone called:', { zoneId, roomId, playerId });
+            if (!roomId) {
+              console.error('[ClanTerritoryManager] onSelectZone: roomId is null/undefined!');
+              return;
+            }
             // Allow null zoneId to deselect current zone (for zone switching)
-            transport.sendAction(roomId, { type: "SELECT_ZONE", payload: { playerId, zoneId: zoneId || null } });
+            console.log('[ClanTerritoryManager] Sending SELECT_ZONE action...');
+            transport.sendAction(roomId, { type: "SELECT_ZONE", payload: { playerId, zoneId: zoneId || null } })
+              .then(() => console.log('[ClanTerritoryManager] SELECT_ZONE sent successfully'))
+              .catch((err) => console.error('[ClanTerritoryManager] SELECT_ZONE failed:', err));
           }}
           onSubmitAnswer={(isCorrect, durationMs) => {
-            if (!roomId) return;
-            console.log('[ClanTerritoryManager] Sending SUBMIT_ANSWER:', { playerId, isCorrect, durationMs });
-            transport.sendAction(roomId, { type: "SUBMIT_ANSWER", payload: { playerId, isCorrect, durationMs } });
+            console.log('[ClanTerritoryManager] onSubmitAnswer called:', { isCorrect, durationMs, roomId, playerId });
+            if (!roomId) {
+              console.error('[ClanTerritoryManager] onSubmitAnswer: roomId is null/undefined!');
+              return;
+            }
+            console.log('[ClanTerritoryManager] Sending SUBMIT_ANSWER action...');
+            transport.sendAction(roomId, { type: "SUBMIT_ANSWER", payload: { playerId, isCorrect, durationMs } })
+              .then(() => console.log('[ClanTerritoryManager] SUBMIT_ANSWER sent successfully'))
+              .catch((err) => console.error('[ClanTerritoryManager] SUBMIT_ANSWER failed:', err));
           }}
         />
       </ClanTerritoryErrorBoundary>

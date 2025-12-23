@@ -199,12 +199,16 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
   }
 
   async sendAction(roomId: RoomId, action: GameAction): Promise<void> {
+    console.log('[Transport] sendAction called:', { roomId, actionType: action.type, channelState: this.channel?.state });
+    
     // Wait for channel to be ready if it's not already
     if (!this.channel || this.channel.state !== 'joined') {
+      console.log('[Transport] Channel not ready, waiting...');
       // Wait for channel to be subscribed with timeout
       await new Promise<void>((resolve, reject) => {
         const timeout = setTimeout(() => {
           clearInterval(check);
+          console.error('[Transport] Channel subscription timeout');
           reject(new Error('Channel subscription timeout: Unable to send action'));
         }, 5000); // 5 second timeout
         
@@ -212,6 +216,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
           if (this.channel && this.channel.state === 'joined') {
             clearInterval(check);
             clearTimeout(timeout);
+            console.log('[Transport] Channel now ready');
             resolve();
           }
         }, 100);
@@ -219,11 +224,15 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     }
 
     if (this.channel && this.channel.state === 'joined') {
+      console.log('[Transport] Broadcasting action:', action.type);
       await this.channel.send({
         type: "broadcast",
         event: "game_action",
         payload: action,
       });
+      console.log('[Transport] Action broadcast complete');
+    } else {
+      console.error('[Transport] Cannot send - channel not ready after wait');
     }
   }
 
