@@ -308,10 +308,15 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
                 // Run tick every second - it uses absolute time so tab inactivity won't cause drift
                 this.tickInterval = setInterval(tick, 1000);
                 
-                // Handle visibility changes to immediately update when tab becomes visible
+                // Use Page Visibility API to force immediate broadcast when tab becomes visible
+                // This ensures students see updated state even if browser throttled the interval
                 const handleVisibilityChange = () => {
-                    if (!document.hidden && this.state.phase === 'ACTIVE') {
-                        tick(); // Single tick recalculates from gameEndTime
+                    if (!document.hidden) {
+                        console.log('[Transport] Tab became visible - forcing state broadcast');
+                        // Immediately tick to update timer and broadcast current state
+                        tick();
+                        // Also broadcast to ensure all clients get latest state
+                        this.broadcastState();
                     }
                 };
                 document.addEventListener('visibilitychange', handleVisibilityChange);

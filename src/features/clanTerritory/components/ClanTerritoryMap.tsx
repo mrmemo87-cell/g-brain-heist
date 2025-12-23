@@ -552,9 +552,13 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
       <div
         ref={containerRef}
-        className="w-full h-full [&>svg]:w-full [&>svg]:h-full"
-        dangerouslySetInnerHTML={{ __html: mapMarkup }}
-      />
+        className="w-full h-full flex items-center justify-center"
+      >
+        <div 
+          className="w-full h-full max-w-full max-h-full"
+          dangerouslySetInnerHTML={{ __html: mapMarkup }}
+        />
+      </div>
 
       {!hideLegend && (
         <div className="absolute top-4 right-4 bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-3 space-y-2 max-h-72 overflow-y-auto z-10">

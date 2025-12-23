@@ -186,12 +186,12 @@ export function clanTerritoryReducer(
         scoreChange -= CONFIG.WRONG_ANSWER_PENALTY;
       }
 
-      // Only gain influence for correct answers (no negative influence)
-      const influenceGain = isCorrect ? scoreChange * CONFIG.INFLUENCE_PER_POINT : 0;
+      // Calculate influence change - wrong answers reduce zone influence
+      const influenceChange = scoreChange * CONFIG.INFLUENCE_PER_POINT;
       
-      console.log(`[clanTerritoryEngine] SUBMIT_ANSWER: scoreChange=${scoreChange}, influenceGain=${influenceGain}, clanId=${player.clanId}`);
+      console.log(`[clanTerritoryEngine] SUBMIT_ANSWER: scoreChange=${scoreChange}, influenceChange=${influenceChange}, clanId=${player.clanId}`);
 
-      // Update Player Stats - score can go negative but influence cannot
+      // Update Player Stats
       const updatedPlayer: PlayerStats = {
         ...player,
         questionsAnswered: player.questionsAnswered + 1,
@@ -217,9 +217,9 @@ export function clanTerritoryReducer(
       }
 
       const currentZoneInfluence = zoneState.influence[player.clanId] || 0;
-      const newZoneInfluence = currentZoneInfluence + influenceGain;
+      const newZoneInfluence = Math.max(0, currentZoneInfluence + influenceChange); // Can't go below 0
       
-      console.log(`[clanTerritoryEngine] SUBMIT_ANSWER: Updating zone ${zoneId} influence for clan ${player.clanId}: ${currentZoneInfluence} -> ${newZoneInfluence}`);
+      console.log(`[clanTerritoryEngine] SUBMIT_ANSWER: Updating zone ${zoneId} influence for clan ${player.clanId}: ${currentZoneInfluence} -> ${newZoneInfluence} (change: ${influenceChange})`);
       
       const updatedZone = {
         ...zoneState,
