@@ -56,6 +56,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const [allowClanlessPlayers, setAllowClanlessPlayers] = useState(false);
   const [userSchoolId, setUserSchoolId] = useState<string | null>(null);
 
+  const durationPercentage = ((durationMinutes - 2) / 18) * 100;
+
   const handleRefreshProfile = async () => {
     setIsRefreshingProfile(true);
     try {
@@ -350,15 +352,18 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
             <div className="space-y-3">
               <label className="block text-sm font-bold text-white">Battle Duration</label>
               <div className="flex items-center gap-4">
-                <input
-                  type="range"
-                  min="2"
-                  max="20"
-                  step="1"
-                  value={durationMinutes}
-                  onChange={(e) => setDurationMinutes(Number(e.target.value))}
-                  className="flex-1 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                />
+                <div className="flex-1">
+                  <input
+                    type="range"
+                    min="2"
+                    max="20"
+                    step="1"
+                    value={durationMinutes}
+                    onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                    className="clan-range w-full"
+                    style={{ "--clan-range-fill": `${durationPercentage}%` } as React.CSSProperties}
+                  />
+                </div>
                 <div className="min-w-[80px] text-center rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-2 font-mono text-lg font-bold text-amber-300">
                   {durationMinutes}m
                 </div>
@@ -453,7 +458,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                   onChange={(e) => setAllowClanlessPlayers(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="peer h-6 w-11 rounded-full bg-slate-600 after:absolute after:left-1 after:top-1 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition peer-checked:bg-emerald-500 peer-checked:after:translate-x-full"></div>
+                <div className="peer relative h-6 w-11 rounded-full bg-slate-600 after:absolute after:left-1 after:top-1 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition after:content-[''] peer-checked:bg-emerald-500 peer-checked:after:translate-x-full"></div>
               </label>
             </div>
 

@@ -186,11 +186,6 @@ export function clanTerritoryReducer(
         scoreChange -= CONFIG.WRONG_ANSWER_PENALTY;
       }
 
-      // Calculate influence change - wrong answers reduce zone influence
-      const influenceChange = scoreChange * CONFIG.INFLUENCE_PER_POINT;
-      
-      console.log(`[clanTerritoryEngine] SUBMIT_ANSWER: scoreChange=${scoreChange}, influenceChange=${influenceChange}, clanId=${player.clanId}`);
-
       // Update Player Stats
       const updatedPlayer: PlayerStats = {
         ...player,
@@ -206,7 +201,7 @@ export function clanTerritoryReducer(
       // Update Zone Influence
       const zoneId = player.selectedZoneId;
       const zoneState = state.zones[zoneId];
-      
+
       if (!zoneState) {
         // Safety check: if zone doesn't exist, just update player stats
         console.warn(`[clanTerritoryEngine] SUBMIT_ANSWER: zone ${zoneId} not found in state.zones, only updating player stats`);
@@ -217,9 +212,23 @@ export function clanTerritoryReducer(
       }
 
       const currentZoneInfluence = zoneState.influence[player.clanId] || 0;
+
+      const influenceChange = isCorrect
+        ? scoreChange * CONFIG.INFLUENCE_PER_POINT
+        : -Math.max(
+            Math.ceil(currentZoneInfluence * CONFIG.WRONG_ANSWER_INFLUENCE_PENALTY_PERCENT),
+            CONFIG.INFLUENCE_PER_POINT * CONFIG.WRONG_ANSWER_PENALTY
+          );
+
+      console.log(
+        `[clanTerritoryEngine] SUBMIT_ANSWER: scoreChange=${scoreChange}, influenceChange=${influenceChange}, clanId=${player.clanId}`
+      );
+
       const newZoneInfluence = Math.max(0, currentZoneInfluence + influenceChange); // Can't go below 0
-      
-      console.log(`[clanTerritoryEngine] SUBMIT_ANSWER: Updating zone ${zoneId} influence for clan ${player.clanId}: ${currentZoneInfluence} -> ${newZoneInfluence} (change: ${influenceChange})`);
+
+      console.log(
+        `[clanTerritoryEngine] SUBMIT_ANSWER: Updating zone ${zoneId} influence for clan ${player.clanId}: ${currentZoneInfluence} -> ${newZoneInfluence} (change: ${influenceChange})`
+      );
       
       const updatedZone = {
         ...zoneState,

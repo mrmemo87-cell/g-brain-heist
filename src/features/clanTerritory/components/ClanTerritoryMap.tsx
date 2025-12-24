@@ -127,6 +127,37 @@ const NEUTRAL_TERRITORY_SHADE = "#1e293b";
 
 const normalizeRegionKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, "");
 
+const getAspectRatioFromSvg = (svgContent: string) => {
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgContent, "image/svg+xml");
+    const svgEl = doc.querySelector("svg");
+
+    if (!svgEl) return null;
+
+    const viewBox = svgEl.getAttribute("viewBox");
+    if (viewBox) {
+      const [, , w, h] = viewBox.split(/\s+/).map(Number);
+      if (!Number.isNaN(w) && !Number.isNaN(h) && h !== 0) {
+        return w / h;
+      }
+    }
+
+    const widthAttr = svgEl.getAttribute("width");
+    const heightAttr = svgEl.getAttribute("height");
+    const width = widthAttr ? parseFloat(widthAttr) : NaN;
+    const height = heightAttr ? parseFloat(heightAttr) : NaN;
+
+    if (!Number.isNaN(width) && !Number.isNaN(height) && height !== 0) {
+      return width / height;
+    }
+  } catch (error) {
+    console.warn("[ClanTerritoryMap] Failed to parse SVG aspect ratio", error);
+  }
+
+  return null;
+};
+
 const normalizeSvgMarkup = (svgContent: string) => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(svgContent, "image/svg+xml");
@@ -223,6 +254,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   const mapSvg = mapConfig.svg;
   const containerRef = useRef<HTMLDivElement>(null);
   const [mapMarkup, setMapMarkup] = useState("");
+  const [mapAspectRatio, setMapAspectRatio] = useState<number | null>(null);
   const defaultRegionStylesRef = useRef<
     Record<
       string,
@@ -294,6 +326,11 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
   useEffect(() => {
     setMapMarkup(normalizeSvgMarkup(mapSvg));
+  }, [mapSvg]);
+
+  useEffect(() => {
+    const ratio = getAspectRatioFromSvg(mapSvg);
+    setMapAspectRatio(ratio);
   }, [mapSvg]);
 
   useEffect(() => {
@@ -540,10 +577,17 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     );
   }
 
+  const maxHeight = hideHeader
+    ? "clamp(260px, 65vh, 640px)"
+    : "clamp(260px, 60vh, 600px)";
+
   return (
-    <div className="relative bg-gradient-to-br from-slate-950 via-slate-900 to-black overflow-hidden w-full rounded-2xl border border-slate-800">
+    <div
+      className="relative bg-gradient-to-br from-slate-950 via-slate-900 to-black w-full h-full min-h-[280px] md:rounded-2xl shadow-inner shadow-black/30"
+      style={{ maxHeight, maxWidth: "min(96vw, 1180px)", margin: "0 auto" }}
+    >
       {!hideHeader && (
-        <div className="mb-3 px-4 pt-4">
+        <div className="mb-3">
           <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">
             Territory Control
           </h3>
@@ -552,11 +596,15 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
       <div
         ref={containerRef}
-        className="w-full flex items-center justify-center px-4 pb-4"
-        style={{ aspectRatio: '16/9', minHeight: '450px' }}
+        className="w-full h-full flex items-center justify-center px-3 pb-3 md:px-4"
       >
-        <div 
-          className="w-full h-full"
+        <div
+          className="relative w-full max-w-[1100px] min-h-[260px] max-h-full mx-auto"
+          style={{
+            aspectRatio: mapAspectRatio ?? 4 / 3,
+            maxWidth: "min(96vw, 1100px)",
+            overflow: "visible",
+          }}
           dangerouslySetInnerHTML={{ __html: mapMarkup }}
         />
       </div>
