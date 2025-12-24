@@ -446,10 +446,10 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
         {/* Main Content Area - Optimized for Mobile & Desktop */}
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden gap-0 lg:gap-0">
           
-          {/* Mobile: Compact Top Bar with Map + Zone Info */}
-          <div className="lg:hidden flex gap-2 bg-gray-900/50 border-b border-gray-800 p-2 shrink-0">
-            {/* Mini Map */}
-            <div className="w-24 h-24 shrink-0 flex items-center justify-center rounded-lg bg-gray-800/50 border border-gray-700">
+          {/* Mobile: Map + Zone Info (Full width, stacked) */}
+          <div className="lg:hidden flex flex-col gap-2 bg-gray-900/50 border-b border-gray-800 p-3 shrink-0">
+            {/* Map - Same size as Zone Selection page */}
+            <div className="w-full max-w-md mx-auto">
               <ClanTerritoryMap 
                 zones={gameState.zones} 
                 clans={clansWithColors} 
@@ -460,36 +460,34 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
             </div>
             
             {/* Zone Control Data */}
-            <div className="flex-1 min-w-0 flex flex-col justify-between">
-              <div>
-                <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">{zone?.name} Control</h4>
-                <div className="h-1.5 flex rounded-full overflow-hidden bg-gray-700 mb-1">
-                  {clanList.map((clan) => {
-                    const influence = zoneState?.influence[clan.id] || 0;
-                    const percent = zoneTotal > 0 ? (influence / zoneTotal) * 100 : 0;
-                    if (percent === 0) return null;
-                    return (
-                      <div 
-                        key={clan.id}
-                        style={{ width: `${percent}%`, backgroundColor: clan.color }}
-                        className="h-full transition-all duration-500"
-                      />
-                    );
-                  })}
-                </div>
-                <div className="grid grid-cols-2 gap-0.5 text-[9px]">
-                  {clanList.slice(0, 4).map((clan) => {
-                    const influence = zoneState?.influence[clan.id] || 0;
-                    const percent = zoneTotal > 0 ? (influence / zoneTotal) * 100 : 0;
-                    return (
-                      <div key={clan.id} className="flex items-center gap-1">
-                        <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: clan.color }} />
-                        <span className="text-gray-400 truncate">{clan.name}</span>
-                        <span className="text-gray-500 font-mono ml-auto">{Math.round(percent)}%</span>
-                      </div>
-                    );
-                  })}
-                </div>
+            <div>
+              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">{zone?.name} Control</h4>
+              <div className="h-2 flex rounded-full overflow-hidden bg-gray-700 mb-2">
+                {clanList.map((clan) => {
+                  const influence = zoneState?.influence[clan.id] || 0;
+                  const percent = zoneTotal > 0 ? (influence / zoneTotal) * 100 : 0;
+                  if (percent === 0) return null;
+                  return (
+                    <div 
+                      key={clan.id}
+                      style={{ width: `${percent}%`, backgroundColor: clan.color }}
+                      className="h-full transition-all duration-500"
+                    />
+                  );
+                })}
+              </div>
+              <div className="grid grid-cols-2 gap-1 text-[10px]">
+                {clanList.map((clan) => {
+                  const influence = zoneState?.influence[clan.id] || 0;
+                  const percent = zoneTotal > 0 ? (influence / zoneTotal) * 100 : 0;
+                  return (
+                    <div key={clan.id} className="flex items-center gap-1">
+                      <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: clan.color }} />
+                      <span className="text-gray-400 truncate">{clan.name}</span>
+                      <span className="text-gray-500 font-mono ml-auto">{Math.round(percent)}%</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
