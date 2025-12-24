@@ -577,17 +577,10 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     );
   }
 
-  const maxHeight = hideHeader
-    ? "clamp(260px, 65vh, 640px)"
-    : "clamp(260px, 60vh, 600px)";
-
   return (
-    <div
-      className="relative bg-gradient-to-br from-slate-950 via-slate-900 to-black w-full h-full min-h-[280px] md:rounded-2xl shadow-inner shadow-black/30"
-      style={{ maxHeight, maxWidth: "min(96vw, 1180px)", margin: "0 auto" }}
-    >
+    <div className="relative bg-gradient-to-br from-slate-950 via-slate-900 to-black w-full rounded-2xl border border-slate-800 overflow-hidden">
       {!hideHeader && (
-        <div className="mb-3">
+        <div className="px-4 pt-4 pb-2">
           <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">
             Territory Control
           </h3>
@@ -596,15 +589,11 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
       <div
         ref={containerRef}
-        className="w-full h-full flex items-center justify-center px-3 pb-3 md:px-4"
+        className="w-full flex items-center justify-center px-4 pb-4"
+        style={{ aspectRatio: '16 / 9', minHeight: '420px' }}
       >
         <div
-          className="relative w-full max-w-[1100px] min-h-[260px] max-h-full mx-auto"
-          style={{
-            aspectRatio: mapAspectRatio ?? 4 / 3,
-            maxWidth: "min(96vw, 1100px)",
-            overflow: "visible",
-          }}
+          className="w-full h-full"
           dangerouslySetInnerHTML={{ __html: mapMarkup }}
         />
       </div>
