@@ -443,77 +443,13 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           </button>
         </div>
 
-        {/* Main Content Area - Map + Questions Side by Side */}
+        {/* Main Content Area - Questions Panel (Full screen on mobile, split on desktop) */}
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
           
-          {/* Live Map Panel - Always Visible - Half screen on desktop */}
-          <div className="lg:w-1/2 xl:w-[45%] shrink-0 bg-gray-900/50 border-b lg:border-b-0 lg:border-r border-gray-800 p-4 flex flex-col">
-            {/* Mobile: Compact horizontal layout */}
-            <div className="lg:hidden flex gap-3 items-start">
-              <div className="w-32 h-32 shrink-0">
-                <ClanTerritoryMap
-                  zones={gameState.zones}
-                  clans={clansWithColors}
-                  mapId={gameState.mapId}
-                  hideHeader
-                  hideLegend
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Zone Control</h4>
-                <div className="space-y-1.5">
-                  {clanList.slice(0, 4).map((clan) => {
-                    const influence = zoneState?.influence[clan.id] || 0;
-                    const percent = zoneTotal > 0 ? (influence / zoneTotal) * 100 : 0;
-                    return (
-                      <div key={clan.id} className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: clan.color }} />
-                        <span className="text-xs text-gray-300 truncate flex-1">{clan.name}</span>
-                        <span className="text-xs font-mono text-gray-500">{Math.round(percent)}%</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* Mobile: Quick zone buttons remain visible even in lightweight mode */}
-            <div className="lg:hidden mt-3">
-              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Quick Switch</h4>
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {activeZones.map((z) => {
-                  const snapshot = getZoneSnapshot(z.id);
-                  const isCurrentZone = z.id === hydratedPlayer.selectedZoneId;
-                  const holder = snapshot.controller
-                    ? clanList.find((c) => c.id === snapshot.controller)
-                    : null;
-                  return (
-                    <button
-                      key={z.id}
-                      onClick={() => onSelectZone(z.id)}
-                      disabled={isCurrentZone}
-                      className={`flex-shrink-0 px-3 py-2 rounded-lg text-left text-xs border transition min-w-[140px] ${
-                        isCurrentZone
-                          ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-100'
-                          : 'bg-gray-800/60 border-gray-700 text-white hover:border-gray-500 hover:bg-gray-700/60'
-                      }`}
-                    >
-                      <div className="font-semibold truncate">{z.name}</div>
-                      <div className="text-gray-400 truncate">
-                        {holder
-                          ? `${holder.name.length > 10 ? holder.name.slice(0, 10) + '…' : holder.name} ${Math.round(
-                              snapshot.percent * 100
-                            )}%`
-                          : 'Unclaimed'}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            
+          {/* Live Map Panel - Desktop Only */}
+          <div className="hidden lg:flex lg:w-1/2 xl:w-[45%] shrink-0 bg-gray-900/50 lg:border-r border-gray-800 p-4 flex-col">
             {/* Desktop: Full map with legend */}
-            <div className="hidden lg:flex lg:flex-col lg:h-full">
+            <div className="flex flex-col h-full">
               <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                 Live Battle Map
