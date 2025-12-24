@@ -443,10 +443,58 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           </button>
         </div>
 
-        {/* Main Content Area - Questions Panel (Full screen on mobile, split on desktop) */}
-        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        {/* Main Content Area - Optimized for Mobile & Desktop */}
+        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden gap-0 lg:gap-0">
           
-          {/* Live Map Panel - Desktop Only */}
+          {/* Mobile: Compact Top Bar with Map + Zone Info */}
+          <div className="lg:hidden flex gap-2 bg-gray-900/50 border-b border-gray-800 p-2 shrink-0">
+            {/* Mini Map */}
+            <div className="w-24 h-24 shrink-0 flex items-center justify-center rounded-lg bg-gray-800/50 border border-gray-700">
+              <ClanTerritoryMap 
+                zones={gameState.zones} 
+                clans={clansWithColors} 
+                mapId={gameState.mapId}
+                hideHeader
+                hideLegend
+              />
+            </div>
+            
+            {/* Zone Control Data */}
+            <div className="flex-1 min-w-0 flex flex-col justify-between">
+              <div>
+                <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">{zone?.name} Control</h4>
+                <div className="h-1.5 flex rounded-full overflow-hidden bg-gray-700 mb-1">
+                  {clanList.map((clan) => {
+                    const influence = zoneState?.influence[clan.id] || 0;
+                    const percent = zoneTotal > 0 ? (influence / zoneTotal) * 100 : 0;
+                    if (percent === 0) return null;
+                    return (
+                      <div 
+                        key={clan.id}
+                        style={{ width: `${percent}%`, backgroundColor: clan.color }}
+                        className="h-full transition-all duration-500"
+                      />
+                    );
+                  })}
+                </div>
+                <div className="grid grid-cols-2 gap-0.5 text-[9px]">
+                  {clanList.slice(0, 4).map((clan) => {
+                    const influence = zoneState?.influence[clan.id] || 0;
+                    const percent = zoneTotal > 0 ? (influence / zoneTotal) * 100 : 0;
+                    return (
+                      <div key={clan.id} className="flex items-center gap-1">
+                        <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: clan.color }} />
+                        <span className="text-gray-400 truncate">{clan.name}</span>
+                        <span className="text-gray-500 font-mono ml-auto">{Math.round(percent)}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop: Full Map Panel */}
           <div className="hidden lg:flex lg:w-1/2 xl:w-[45%] shrink-0 bg-gray-900/50 lg:border-r border-gray-800 p-4 flex-col">
             {/* Desktop: Full map with legend */}
             <div className="flex flex-col h-full">
@@ -530,6 +578,35 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Mobile: Quick Zone Buttons */}
+          <div className="lg:hidden flex gap-1 bg-gray-900/50 border-b border-gray-800 p-2 overflow-x-auto shrink-0">
+            {activeZones.map((z) => {
+              const snapshot = getZoneSnapshot(z.id);
+              const isCurrentZone = z.id === hydratedPlayer.selectedZoneId;
+              const holder = snapshot.controller ? clanList.find((c) => c.id === snapshot.controller) : null;
+              return (
+                <button
+                  key={z.id}
+                  onClick={() => {
+                    console.log('[StudentView] Mobile Quick Switch clicked:', z.id);
+                    onSelectZone(z.id);
+                  }}
+                  disabled={isCurrentZone}
+                  className={`flex-shrink-0 px-2 py-1 rounded text-left text-[9px] transition min-w-[90px] ${
+                    isCurrentZone 
+                      ? 'bg-yellow-500/30 border border-yellow-500/60 cursor-default' 
+                      : 'bg-gray-800/60 border border-gray-700 hover:border-gray-500 hover:bg-gray-700/60 cursor-pointer'
+                  }`}
+                >
+                  <div className="font-semibold text-white truncate text-[10px]">{z.name}</div>
+                  <div className="text-gray-500 truncate text-[8px]">
+                    {holder ? `${holder.name.slice(0, 6)}... ${Math.round(snapshot.percent * 100)}%` : 'Unclaimed'}
+                  </div>
+                </button>
+              );
+            })}
           </div>
 
           {/* Question Panel */}
