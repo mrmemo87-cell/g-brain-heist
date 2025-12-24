@@ -72,36 +72,32 @@ const MAP_CONFIGS: Record<string, MapConfig> = {
     regionAliases: {},
   },
   fortress: {
-    svg: territoryMapSvgRaw, // Use default until fortress_map.svg is created
+    svg: territoryMapSvgRaw, // Fortress uses territory map as base (8 regions for 6 zones + keep + wall)
     maxZones: 6,
     zoneToRegion: {
-      "zone-1": "layer_1",
-      "zone-2": "layer_2",
-      "zone-3": "layer_3",
-      "zone-4": "layer_4",
-      "zone-5": "layer_5",
-      "zone-6": "layer_6",
-      "zone-7": "central_keep",
-      "zone-8": "outer_wall",
+      "zone-1": "region_1",
+      "zone-2": "region_2",
+      "zone-3": "region_3",
+      "zone-4": "region_4",
+      "zone-5": "region_5",
+      "zone-6": "region_6",
+      "zone-7": "region_7",
+      "zone-8": "region_8",
     },
     regionAliases: {},
   },
   islands: {
-    svg: territoryMapSvgRaw, // Use default until islands_map.svg is created
-    maxZones: 12,
+    svg: territoryMapSvgRaw, // Islands uses territory map as base (8 regions for 6 main islands + 2 outposts)
+    maxZones: 6,
     zoneToRegion: {
-      "zone-1": "island_1",
-      "zone-2": "island_2",
-      "zone-3": "island_3",
-      "zone-4": "island_4",
-      "zone-5": "island_5",
-      "zone-6": "island_6",
-      "zone-7": "island_7",
-      "zone-8": "island_8",
-      "zone-9": "island_9",
-      "zone-10": "island_10",
-      "zone-11": "island_11",
-      "zone-12": "island_12",
+      "zone-1": "region_1",
+      "zone-2": "region_2",
+      "zone-3": "region_3",
+      "zone-4": "region_4",
+      "zone-5": "region_5",
+      "zone-6": "region_6",
+      "zone-7": "region_7",
+      "zone-8": "region_8",
     },
     regionAliases: {},
   },
@@ -257,7 +253,16 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   }, [mapId]);
 
   // Get the appropriate map configuration based on mapId
-  const mapConfig = MAP_CONFIGS[mapId] || MAP_CONFIGS.default;
+  let mapConfig = MAP_CONFIGS[mapId] || MAP_CONFIGS.default;
+  
+  // Update city config if city map just loaded
+  if (mapId === 'city' && cityMapLoaded && cityMapSvgRaw) {
+    mapConfig = {
+      ...MAP_CONFIGS.city,
+      svg: cityMapSvgRaw,
+    };
+  }
+  
   const ZONE_TO_REGION = mapConfig.zoneToRegion;
   const REGION_ALIAS_MAP = mapConfig.regionAliases;
   const mapSvg = mapConfig.svg;
