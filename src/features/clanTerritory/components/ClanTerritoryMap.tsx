@@ -1,15 +1,10 @@
 import React, { ReactNode, useEffect, useRef, useState } from "react";
 // @ts-expect-error - Vite injects raw SVG strings for ?raw imports
 import territoryMapSvgRaw from "../assets/territory_map.svg?raw";
-// Import additional maps when available:
-// @ts-expect-error
-import cityMapSvgRaw from "../assets/city_map.svg?raw";
-// @ts-expect-error
+// @ts-expect-error - Kyrgyzstan map is much smaller and commonly used
 import kyrgyzstanMapSvgRaw from "../assets/kyrgyzstanHigh.svg?raw";
-// @ts-expect-error
-// import fortressMapSvgRaw from "../assets/fortress_map.svg?raw";
-// @ts-expect-error
-// import islandsMapSvgRaw from "../assets/islands_map.svg?raw";
+// City map is 2.7MB - don't import eagerly to avoid startup lag
+let cityMapSvgRaw = "";
 
 import {
   ClanId,
@@ -247,6 +242,20 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   overlay,
   mapId = 'default',
 }) => {
+  const [cityMapLoaded, setCityMapLoaded] = useState(false);
+
+  // Lazy-load the large city map (2.7MB) on first use to prevent startup lag
+  useEffect(() => {
+    if (mapId === 'city' && !cityMapSvgRaw) {
+      // Dynamic import with @ts-expect-error to suppress type checking
+      // @ts-expect-error - Vite handles this at build time
+      import("../assets/city_map.svg?raw").then((module) => {
+        cityMapSvgRaw = module.default;
+        setCityMapLoaded(true);
+      }).catch(e => console.error("Failed to load city map:", e));
+    }
+  }, [mapId]);
+
   // Get the appropriate map configuration based on mapId
   const mapConfig = MAP_CONFIGS[mapId] || MAP_CONFIGS.default;
   const ZONE_TO_REGION = mapConfig.zoneToRegion;
