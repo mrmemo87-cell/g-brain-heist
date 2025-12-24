@@ -578,14 +578,13 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   }
 
   const maxHeight = hideHeader
-    ? "clamp(220px, 55vh, 520px)"
-    : "clamp(220px, 50vh, 480px)";
-  const maxWidth = hideHeader ? "min(94vw, 960px)" : "min(92vw, 900px)";
+    ? "clamp(260px, 65vh, 640px)"
+    : "clamp(260px, 60vh, 600px)";
 
   return (
     <div
-      className="relative bg-gradient-to-br from-slate-950 via-slate-900 to-black w-full min-h-[240px] md:rounded-2xl shadow-inner shadow-black/30"
-      style={{ maxHeight, maxWidth, margin: "0 auto" }}
+      className="relative bg-gradient-to-br from-slate-950 via-slate-900 to-black w-full h-full min-h-[280px] md:rounded-2xl shadow-inner shadow-black/30"
+      style={{ maxHeight, maxWidth: "min(96vw, 1180px)", margin: "0 auto" }}
     >
       {!hideHeader && (
         <div className="mb-3">
@@ -600,11 +599,10 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         className="w-full h-full flex items-center justify-center px-3 pb-3 md:px-4"
       >
         <div
-          className="relative w-full max-w-[900px] min-h-[220px] max-h-full mx-auto"
+          className="relative w-full max-w-[1100px] min-h-[260px] max-h-full mx-auto"
           style={{
             aspectRatio: mapAspectRatio ?? 4 / 3,
-            maxWidth,
-            height: "auto",
+            maxWidth: "min(96vw, 1100px)",
             overflow: "visible",
           }}
           dangerouslySetInnerHTML={{ __html: mapMarkup }}
