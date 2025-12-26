@@ -9,6 +9,7 @@ import { update_avatar, upload_avatar_file } from '../services/gameService';
 import { isAdmin } from '../services/adminService';
 import SettingsModal from './SettingsModal';
 import UserProfileModal from './UserProfileModal';
+import '../src/styles/full-mode.css';
 
 // Custom hook for animating number changes
 const useAnimatedValue = (endValue: number, duration: number = 500) => {
@@ -286,6 +287,87 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
     }
   };
 
+  // Full Mode: render an isolated, themed header when liteMode === false
+  if (!liteMode) {
+    const xpCurrent = (profile as any).xp ?? profile.ap_now ?? 0;
+    const xpNext = (profile as any).xp_to_next ?? profile.ap_max ?? 100;
+    const xpPercent = Math.min(100, Math.round((xpCurrent / Math.max(1, xpNext)) * 100));
+
+    return (
+      <header className="fullMode-header">
+        <div className="fullMode-inner mx-auto max-w-6xl px-4 py-3">
+          <div className="fullMode-left">
+            <button onClick={handleBrandClick} className="fullMode-brand" aria-label="Go to dashboard">
+              <img src="/BRAINS.svg" alt="Brains Heist" className="fullMode-logo" />
+            </button>
+            <div className="fullMode-status">
+              <div className="fullMode-avatar-ring">
+                <img src={profile.avatar_url || ''} alt={profile.username || 'Agent'} className="fullMode-avatar" />
+              </div>
+              <div className="fullMode-player">
+                <div className="fullMode-player-top">
+                  <span className="fullMode-username">{profile.username}</span>
+                  <span className="fullMode-level">Lv {profile.level}</span>
+                </div>
+                <div className="fullMode-xp">
+                  <div className="fullMode-xp-bar">
+                    <div className="fullMode-xp-fill" style={{ width: `${xpPercent}%` }} />
+                  </div>
+                  <div className="fullMode-xp-text">{xpPercent}%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <nav className="fullMode-nav">
+            <button className="fullMode-action fullMode-action-quest" onClick={() => onNavigate?.('quest')}>
+              <span className="fullMode-action-icon">▶</span>
+              <span className="fullMode-action-label">QUEST</span>
+            </button>
+            <button className="fullMode-action" onClick={() => onNavigate?.('pvp')}>
+              <span className="fullMode-action-icon">⚔️</span>
+              <span className="fullMode-action-label">ATTACK</span>
+            </button>
+            <button className="fullMode-action" onClick={() => onNavigate?.('shop')}>
+              <span className="fullMode-action-icon">🛍️</span>
+              <span className="fullMode-action-label">SHOP</span>
+            </button>
+            <button className="fullMode-action" onClick={() => onNavigate?.('inventory')}>
+              <span className="fullMode-action-icon">🎒</span>
+              <span className="fullMode-action-label">INVENTORY</span>
+            </button>
+            <button className="fullMode-action" onClick={() => onNavigate?.('leaderboard')}>
+              <span className="fullMode-action-icon">🏆</span>
+              <span className="fullMode-action-label">LEADERBOARD</span>
+            </button>
+          </nav>
+
+          <div className="fullMode-right">
+            <div className="fullMode-stats">
+              <div className="fullMode-stat">
+                <CoinIcon />
+                <div className="fullMode-stat-value">{profile.coins?.toLocaleString?.() ?? 0}</div>
+              </div>
+              <div className="fullMode-stat">
+                <StreakIcon />
+                <div className="fullMode-stat-value">{profile.streak ?? 0}</div>
+              </div>
+              <div className="fullMode-stat">
+                <APIcon />
+                <div className="fullMode-stat-value">{profile.ap_now}/{profile.ap_max}</div>
+              </div>
+            </div>
+            <div className="fullMode-actions">
+              <button className="fullMode-icon-btn" onClick={() => setShowNotifications(true)}>🔔</button>
+              <button className="fullMode-icon-btn" onClick={() => setShowSettingsModal(true)}>⚙️</button>
+            </div>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  // Lightweight mode - existing header UI (unchanged)
   return (
     <>
       <header className="z-40 border-b border-slate-800/60 bg-slate-950/85 backdrop-blur">

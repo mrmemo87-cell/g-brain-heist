@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLightMode } from '../src/contexts/LightModeContext';
 import { BattleIcon, TrophyIcon, SyndicateRune } from './icons';
 
 // Default school icon as SVG data URL
@@ -162,10 +163,34 @@ const MainActions: React.FC<MainActionsProps> = ({
   schoolName,
   schoolLogoUrl,
 }) => {
+  const { isLightMode: isLiteMode } = useLightMode();
   const displaySchoolName = schoolName || 'My School';
   const displaySchoolLogo = schoolLogoUrl || defaultSchoolIcon;
   
   console.log('MainActions render - onOpenCambridgeTests:', !!onOpenCambridgeTests);
+  // If Full Mode is active, render the Neon Glass themed full-mode action panel
+  if (!isLiteMode) {
+    return (
+      <section className="fullMode-dashboard">
+        <div className="fullMode-dashboard-inner">
+          <div className="fullMode-hero">
+            <button className="fullMode-quest-btn" onClick={onStartQuest} aria-label="Play Quest">
+              <span className="fullMode-quest-label">QUEST</span>
+              <span className="fullMode-quest-sub">Primary Action</span>
+            </button>
+          </div>
+          <div className="fullMode-actions-grid">
+            <button className="fullMode-circle-btn" onClick={onStartPvp}>⚔️</button>
+            <button className="fullMode-circle-btn" onClick={onVisitShop}>🛍️</button>
+            <button className="fullMode-circle-btn" onClick={onVisitInventory}>🎒</button>
+            <button className="fullMode-circle-btn" onClick={onViewLeaderboard}>🏆</button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Lightweight / existing UI preserved below
   return (
     <section className="dashboard-panel relative overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-950/60 p-4 shadow-2xl shadow-slate-950/50 backdrop-blur sm:p-6">
       <span
