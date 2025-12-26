@@ -33,6 +33,7 @@ export const LightModeProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
   });
   const [autoEnabledReason, setAutoEnabledReason] = useState<string | null>(null);
+  const [autoProtectionSuppressed, setAutoProtectionSuppressed] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -53,16 +54,17 @@ export const LightModeProvider: React.FC<{ children: ReactNode }> = ({ children 
       document.body.classList.remove('lite-mode');
       document.body.classList.add('performance-mode-disabled');
     }
-  }, [isLightMode]);
+  }, [isLightMode, autoProtectionSuppressed]);
 
   const toggleLightMode = () => {
     setAutoEnabledReason(null);
+    setAutoProtectionSuppressed(true);
     setIsLightMode((prev) => !prev);
   };
 
   // Automatically enable lite mode when system signals low resources or user preference
   useEffect(() => {
-    if (typeof window === 'undefined' || isLightMode) {
+    if (typeof window === 'undefined' || isLightMode || autoProtectionSuppressed) {
       return;
     }
 
@@ -81,11 +83,11 @@ export const LightModeProvider: React.FC<{ children: ReactNode }> = ({ children 
     } catch {
       /* ignore capability detection errors */
     }
-  }, [isLightMode]);
+  }, [isLightMode, autoProtectionSuppressed]);
 
   // Watch for battery drain signals and auto-enable lite mode
   useEffect(() => {
-    if (typeof navigator === 'undefined' || isLightMode || !(navigator as any).getBattery) {
+    if (typeof navigator === 'undefined' || isLightMode || !(navigator as any).getBattery || autoProtectionSuppressed) {
       return;
     }
 
@@ -125,11 +127,11 @@ export const LightModeProvider: React.FC<{ children: ReactNode }> = ({ children 
       cancelled = true;
       batteryRef?.cleanup?.();
     };
-  }, [isLightMode]);
+  }, [isLightMode, autoProtectionSuppressed]);
 
   // Monitor frame rate; if it tanks for an extended period, protect the device by switching to lite mode
   useEffect(() => {
-    if (typeof window === 'undefined' || isLightMode) {
+    if (typeof window === 'undefined' || isLightMode || autoProtectionSuppressed) {
       return;
     }
 
@@ -171,9 +173,12 @@ export const LightModeProvider: React.FC<{ children: ReactNode }> = ({ children 
         window.cancelAnimationFrame(rafId);
       }
     };
-  }, [isLightMode]);
+  }, [isLightMode, autoProtectionSuppressed]);
 
-  const clearAutoEnabledReason = () => setAutoEnabledReason(null);
+  const clearAutoEnabledReason = () => {
+    setAutoEnabledReason(null);
+    setAutoProtectionSuppressed(true);
+  };
 
   return (
     <LightModeContext.Provider value={{ isLightMode, toggleLightMode, autoEnabledReason, clearAutoEnabledReason }}>
