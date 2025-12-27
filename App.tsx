@@ -1054,6 +1054,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                       onOpenIeltsPrep={!isStudent ? () => setView('ielts') : undefined}
                       onOpenCambridgeTests={() => setView('cambridge')}
                       onOpenLockdown={() => setView('lockdown')}
+                      profile={profile}
                       hasPendingAssignment={Boolean(activeAssignment)}
                       clanBadgeCount={pendingClanRequests}
                       schoolName={profile?.school_name}
