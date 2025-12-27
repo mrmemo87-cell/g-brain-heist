@@ -515,6 +515,131 @@
   justify-items: center;
 }
 
+.fullMode-rowActions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.fullMode-rectAction {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 233, 255, 0.14);
+  color: #eafcff;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 14px 30px -18px rgba(0, 0, 0, 0.8);
+}
+
+.fullMode-rectAction:hover {
+  transform: translateY(-4px);
+  border-color: rgba(0, 233, 255, 0.3);
+  box-shadow: 0 18px 40px rgba(0, 233, 255, 0.14);
+}
+
+.fullMode-rectIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(0, 233, 255, 0.16), rgba(0, 114, 255, 0.08));
+  border: 1px solid rgba(0, 233, 255, 0.2);
+  font-size: 22px;
+}
+
+.fullMode-rectCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fullMode-rectLabel {
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.fullMode-rectSub {
+  font-size: 12px;
+  color: rgba(223, 251, 255, 0.75);
+}
+
+.fullMode-footerActions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.fullMode-footerAction {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 233, 255, 0.14);
+  background: linear-gradient(135deg, rgba(0, 233, 255, 0.1), rgba(0, 0, 0, 0.4));
+  color: #eafcff;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  box-shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.9);
+}
+
+.fullMode-footerAction:hover {
+  transform: translateY(-4px);
+  border-color: rgba(0, 233, 255, 0.3);
+  box-shadow: 0 22px 52px rgba(0, 233, 255, 0.16);
+}
+
+.fullMode-footerGlow {
+  position: absolute;
+  inset: -30% -10% auto -10%;
+  height: 160px;
+  background: radial-gradient(circle, rgba(0, 233, 255, 0.2), transparent 60%);
+  filter: blur(20px);
+}
+
+.fullMode-footerContent {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.fullMode-footerIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 24px;
+}
+
+.fullMode-footerCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fullMode-footerLabel {
+  font-weight: 800;
+  letter-spacing: 0.6px;
+}
+
+.fullMode-footerSub {
+  font-size: 12px;
+  color: rgba(223, 251, 255, 0.75);
+}
+
 .fullMode-circleAction {
   position: relative;
   width: 150px;

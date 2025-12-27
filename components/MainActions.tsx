@@ -257,6 +257,59 @@ const MainActions: React.FC<MainActionsProps> = ({
               </button>
             ))}
           </div>
+
+          {(onViewAchievements || onGoToClan) && (
+            <div className="fullMode-rowActions" aria-label="Progress and clan actions">
+              {onViewAchievements && (
+                <button type="button" className="fullMode-rectAction" onClick={onViewAchievements}>
+                  <span className="fullMode-rectIcon" aria-hidden>🎖️</span>
+                  <div className="fullMode-rectCopy">
+                    <span className="fullMode-rectLabel">Achievements</span>
+                    <span className="fullMode-rectSub">View medals and milestones</span>
+                  </div>
+                </button>
+              )}
+
+              {onGoToClan && (
+                <button type="button" className="fullMode-rectAction" onClick={onGoToClan}>
+                  <span className="fullMode-rectIcon" aria-hidden>🛡️</span>
+                  <div className="fullMode-rectCopy">
+                    <span className="fullMode-rectLabel">Clan</span>
+                    <span className="fullMode-rectSub">Coordinate with your squad</span>
+                  </div>
+                </button>
+              )}
+            </div>
+          )}
+
+          {(onOpenLockdown || onOpenCambridgeTests) && (
+            <div className="fullMode-footerActions" aria-label="Special operations">
+              {onOpenLockdown && (
+                <button type="button" className="fullMode-footerAction" onClick={onOpenLockdown}>
+                  <div className="fullMode-footerGlow" aria-hidden />
+                  <div className="fullMode-footerContent">
+                    <span className="fullMode-footerIcon" aria-hidden>🔒</span>
+                    <div className="fullMode-footerCopy">
+                      <span className="fullMode-footerLabel">Lockdown</span>
+                      <span className="fullMode-footerSub">Clan territory defenses</span>
+                    </div>
+                  </div>
+                </button>
+              )}
+              {onOpenCambridgeTests && (
+                <button type="button" className="fullMode-footerAction" onClick={onOpenCambridgeTests}>
+                  <div className="fullMode-footerGlow" aria-hidden />
+                  <div className="fullMode-footerContent">
+                    <span className="fullMode-footerIcon" aria-hidden>📚</span>
+                    <div className="fullMode-footerCopy">
+                      <span className="fullMode-footerLabel">Cambridge Tests</span>
+                      <span className="fullMode-footerSub">Reading & grammar drills</span>
+                    </div>
+                  </div>
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </section>
     );
