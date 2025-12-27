@@ -206,17 +206,48 @@
 .fullMode-stat {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   background: rgba(255, 255, 255, 0.04);
-  padding: 7px 10px;
+  padding: 9px 12px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  min-width: 120px;
+}
+
+.fullMode-statHot {
+  border-color: rgba(249, 115, 22, 0.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 36px rgba(249, 115, 22, 0.18);
+}
+
+.fullMode-statIcon {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  color: #dffbff;
+}
+
+.fullMode-statBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fullMode-statLabel {
+  font-size: 11px;
+  letter-spacing: 0.6px;
+  color: rgba(223, 251, 255, 0.7);
 }
 
 .fullMode-stat-value {
   color: #c7fbff;
   font-weight: 700;
+}
+
+.fullMode-statSub {
+  font-size: 11px;
+  color: rgba(223, 251, 255, 0.65);
 }
 
 .fullMode-actions {
@@ -239,6 +270,33 @@
   background: rgba(255, 255, 255, 0.08);
   transform: translateY(-3px);
   box-shadow: 0 12px 30px rgba(0, 180, 255, 0.16);
+}
+
+.fullMode-icon-btn--alert {
+  position: relative;
+}
+
+.fullMode-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 20px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: linear-gradient(120deg, #ef4444, #f97316);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  box-shadow: 0 10px 28px rgba(239, 68, 68, 0.35);
+}
+
+.fullMode-icon-btn--admin {
+  border-color: rgba(251, 191, 36, 0.4);
+  box-shadow: 0 10px 30px rgba(251, 191, 36, 0.24);
+}
+
+.fullMode-icon-btn--danger {
+  border-color: rgba(248, 113, 113, 0.4);
 }
 
 /* MainActions Full Mode */
