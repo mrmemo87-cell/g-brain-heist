@@ -15,28 +15,63 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
   const defenseValue = profile.defense_power_effective ?? profile.defense_power;
 
   if (!isLiteMode) {
-    // Full Mode UI (minimal, valid JSX only)
     return (
-      <div className="fullMode-profile-card">
-        <div className="fullMode-profile-header">
-          <div className="fullMode-profile-avatar">
+      <div className="fullMode-profile-card theme-neon-glass">
+        <div className="fullMode-profile-top">
+          <div className="fullMode-profile-avatarShell">
+            <span className="fullMode-profile-ambient" aria-hidden />
             <img src={profile.avatar_url} alt={profile.username} className="fullMode-profile-avatar-img" />
+            <span className="fullMode-profile-levelChip">Lv {xpProgress.effectiveLevel}</span>
           </div>
           <div className="fullMode-profile-meta">
-            <span className="fullMode-profile-username">{profile.username}</span>
-            <span className="fullMode-profile-level">Lv {xpProgress.effectiveLevel}</span>
-            <div className="fullMode-profile-xp-bar">
-              <div className="fullMode-profile-xp-fill" style={{ width: `${Math.round(xpProgress.progress * 100)}%` }} />
+            <p className="fullMode-profile-role">AGENT STATUS</p>
+            <h3 className="fullMode-profile-username">{profile.username}</h3>
+            <div className="fullMode-profile-xp-row">
+              <div className="fullMode-profile-xp-bar" role="progressbar" aria-valuenow={Math.round(xpProgress.progress * 100)} aria-valuemin={0} aria-valuemax={100}>
+                <span className="fullMode-profile-xp-fill" style={{ width: `${Math.round(xpProgress.progress * 100)}%` }} />
+              </div>
+              <span className="fullMode-profile-xp-label">
+                {xpProgress.xpIntoLevel.toLocaleString()} / {xpProgress.xpForNextLevel} XP
+              </span>
             </div>
-            <span className="fullMode-profile-xp-label">{xpProgress.xpIntoLevel.toLocaleString()} / {xpProgress.xpForNextLevel} XP</span>
           </div>
         </div>
         <div className="fullMode-profile-stats">
-          <div className="fullMode-profile-stat"><span>🏆</span> {totalScore.toLocaleString()} <span className="fullMode-profile-stat-label">Total Score</span></div>
-          <div className="fullMode-profile-stat"><span>⚔️</span> {profile.pvp_score.toLocaleString()} <span className="fullMode-profile-stat-label">PvP</span></div>
-          <div className="fullMode-profile-stat"><span>🔥</span> {profile.streak ?? 0} <span className="fullMode-profile-stat-label">Streak</span></div>
-          <div className="fullMode-profile-stat"><span>🛡️</span> {defenseValue || 10} <span className="fullMode-profile-stat-label">Defense</span></div>
-          <div className="fullMode-profile-stat"><span>💥</span> {attackValue || 10} <span className="fullMode-profile-stat-label">Attack</span></div>
+          <div className="fullMode-profile-stat">
+            <span className="fullMode-profile-stat-icon">🏆</span>
+            <div className="fullMode-profile-stat-content">
+              <strong>{totalScore.toLocaleString()}</strong>
+              <span className="fullMode-profile-stat-label">Total Score</span>
+            </div>
+          </div>
+          <div className="fullMode-profile-stat">
+            <span className="fullMode-profile-stat-icon">⚔️</span>
+            <div className="fullMode-profile-stat-content">
+              <strong>{profile.pvp_score.toLocaleString()}</strong>
+              <span className="fullMode-profile-stat-label">PvP</span>
+            </div>
+          </div>
+          <div className="fullMode-profile-stat">
+            <span className="fullMode-profile-stat-icon">🔥</span>
+            <div className="fullMode-profile-stat-content">
+              <strong>{profile.streak ?? 0}</strong>
+              <span className="fullMode-profile-stat-label">Streak</span>
+            </div>
+          </div>
+          <div className="fullMode-profile-stat">
+            <span className="fullMode-profile-stat-icon">🛡️</span>
+            <div className="fullMode-profile-stat-content">
+              <strong>{defenseValue || 10}</strong>
+              <span className="fullMode-profile-stat-label">Defense</span>
+            </div>
+          </div>
+          <div className="fullMode-profile-stat">
+            <span className="fullMode-profile-stat-icon">💥</span>
+            <div className="fullMode-profile-stat-content">
+              <strong>{attackValue || 10}</strong>
+              <span className="fullMode-profile-stat-label">Attack</span>
+            </div>
+          </div>
         </div>
       </div>
     );

@@ -1,6 +1,8 @@
 import React from 'react';
+import { Profile } from '../types';
 import { useLightMode } from '../src/contexts/LightModeContext';
-import { BattleIcon, TrophyIcon, SyndicateRune } from './icons';
+import { getXpProgress } from '../src/lib/leveling';
+import { TrophyIcon, SyndicateRune } from './icons';
 
 // Default school icon as SVG data URL
 const defaultSchoolIcon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMjIgMTBWNkwxMiAyIDIgNnY0Yy4zNC0uMDguNjUtLjEgMS0uMWg1LjFsMi40NSAzLjA2YTEgMSAwIDAgMCAxLjU2IDBMMTQuNTUgOS45SDE5Ljljey4zNSAwIC42Ny4wMiAxIC4xWiIvPjxwYXRoIGQ9Ik0xMiAyMnYtNiIvPjxwYXRoIGQ9Ik00IDEwdjEwYzAgLjU1LjQ1IDEgMSAxaDE0Yy41NSAwIDEtLjQ1IDEtMVYxMCIvPjwvc3ZnPg==';
@@ -26,6 +28,7 @@ interface MainActionsProps {
   onOpenIeltsPrep?: () => void;
   onOpenLockdown?: () => void;
   onOpenCambridgeTests?: () => void;
+  profile?: Profile | null;
   hasPendingAssignment?: boolean;
   clanBadgeCount?: number;
   schoolName?: string | null;
@@ -166,24 +169,93 @@ const MainActions: React.FC<MainActionsProps> = ({
   const { isLightMode: isLiteMode } = useLightMode();
   const displaySchoolName = schoolName || 'My School';
   const displaySchoolLogo = schoolLogoUrl || defaultSchoolIcon;
-  
-  console.log('MainActions render - onOpenCambridgeTests:', !!onOpenCambridgeTests);
+  const xpProgress = getXpProgress(profile?.xp ?? 0, profile?.level ?? 1);
+  const xpPercent = Math.min(100, Math.round(xpProgress.progress * 100));
+  const streakCount = profile?.streak ?? 0;
+  const coins = profile?.coins ?? 0;
+  const shieldActive = profile?.has_shield ?? false;
+
   // If Full Mode is active, render the Neon Glass themed full-mode action panel
   if (!isLiteMode) {
+    const circleActions = [
+      { key: 'attack', label: 'ATTACK', icon: '⚔️', onClick: onStartPvp },
+      { key: 'shop', label: 'SHOP', icon: '🛍️', onClick: onVisitShop },
+      { key: 'inventory', label: 'INVENTORY', icon: '🎒', onClick: onVisitInventory },
+      { key: 'leaderboard', label: 'LEADERBOARD', icon: '🏆', onClick: onViewLeaderboard },
+    ].filter((action) => Boolean(action.onClick));
+
     return (
-      <section className="fullMode-dashboard">
-        <div className="fullMode-dashboard-inner">
-          <div className="fullMode-hero">
-            <button className="fullMode-quest-btn" onClick={onStartQuest} aria-label="Play Quest">
-              <span className="fullMode-quest-label">QUEST</span>
-              <span className="fullMode-quest-sub">Primary Action</span>
-            </button>
+      <section className="fullMode-dashboard theme-neon-glass" aria-label="Full Mode mission console">
+        <div className="fullMode-dashboard-glow" aria-hidden />
+
+        <div className="fullMode-statusRow">
+          <div className="fullMode-agentBlock">
+            <div className="fullMode-avatarWrap">
+              <span className="fullMode-avatarHalo" aria-hidden />
+              <img
+                src={profile?.avatar_url || displaySchoolLogo}
+                alt={profile?.username || 'Agent avatar'}
+                className="fullMode-avatarImage"
+                onError={(e) => { (e.target as HTMLImageElement).src = defaultSchoolIcon; }}
+              />
+              <span className="fullMode-levelBadge">LV {xpProgress.effectiveLevel}</span>
+            </div>
+            <div className="fullMode-agentMeta">
+              <p className="fullMode-agentLabel">ACTIVE OPERATIVE</p>
+              <h3 className="fullMode-agentName">{profile?.username || 'Agent'}</h3>
+              <div className="fullMode-xpTrack">
+                <div className="fullMode-xpMeter" role="progressbar" aria-valuenow={xpPercent} aria-valuemin={0} aria-valuemax={100}>
+                  <span className="fullMode-xpFill" style={{ width: `${xpPercent}%` }} />
+                </div>
+                <span className="fullMode-xpText">
+                  {xpProgress.xpIntoLevel.toLocaleString()} / {xpProgress.xpForNextLevel} XP
+                </span>
+              </div>
+            </div>
           </div>
-          <div className="fullMode-actions-grid">
-            <button className="fullMode-circle-btn" onClick={onStartPvp}>⚔️</button>
-            <button className="fullMode-circle-btn" onClick={onVisitShop}>🛍️</button>
-            <button className="fullMode-circle-btn" onClick={onVisitInventory}>🎒</button>
-            <button className="fullMode-circle-btn" onClick={onViewLeaderboard}>🏆</button>
+          <div className="fullMode-indicators" aria-label="Status indicators">
+            <div className="fullMode-indicator">
+              <span className="fullMode-indicatorIcon">🪙</span>
+              <div className="fullMode-indicatorLabel">Coins</div>
+              <div className="fullMode-indicatorValue">{coins.toLocaleString()}</div>
+            </div>
+            <div className="fullMode-indicator">
+              <span className="fullMode-indicatorIcon">🔥</span>
+              <div className="fullMode-indicatorLabel">Streak</div>
+              <div className="fullMode-indicatorValue">{streakCount}</div>
+            </div>
+            <div className={`fullMode-indicator ${shieldActive ? 'is-active' : 'is-idle'}`}>
+              <span className="fullMode-indicatorIcon">🛡️</span>
+              <div className="fullMode-indicatorLabel">Shield</div>
+              <div className="fullMode-indicatorValue">{shieldActive ? 'ONLINE' : 'OFFLINE'}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="fullMode-actionsShell">
+          <div className="fullMode-heroAction">
+            <div className="fullMode-heroAurora" aria-hidden />
+            <button className="fullMode-questPrimary" onClick={onStartQuest} aria-label="Launch Quest">
+              <span className="fullMode-questGlow" aria-hidden />
+              <span className="fullMode-questLabel">QUEST</span>
+              <span className="fullMode-questSub">Primary objective</span>
+            </button>
+            {hasPendingAssignment && (
+              <span className="fullMode-warningPill">Complete assignment to unlock</span>
+            )}
+          </div>
+          <div className="fullMode-circleGrid">
+            {circleActions.map((action) => (
+              <button
+                key={action.key}
+                type="button"
+                className="fullMode-circleAction"
+                onClick={action.onClick}
+              >
+                <span className="fullMode-circleIcon" aria-hidden>{action.icon}</span>
+                <span className="fullMode-circleLabel">{action.label}</span>
+              </button>
+            ))}
           </div>
         </div>
       </section>
