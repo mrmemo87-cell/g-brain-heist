@@ -25,6 +25,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient();
 
+// Some legacy code paths (and certain mobile browsers) attempt to read a global
+// `profile` variable when the heavy “full mode” UI is enabled. Define a harmless
+// default to prevent ReferenceError crashes before React mounts.
+if (typeof window !== 'undefined' && typeof (window as any).profile === 'undefined') {
+  (window as any).profile = null;
+}
+
 const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> => {
   let timeoutId: number | undefined;
   const timeoutPromise = new Promise<never>((_resolve, reject) => {

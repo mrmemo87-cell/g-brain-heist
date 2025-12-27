@@ -131,3 +131,9 @@ declare namespace JSX {
   }
   interface Element extends React.ReactElement {}
 }
+
+declare global {
+  interface Window {
+    profile?: unknown;
+  }
+}
