@@ -76,6 +76,25 @@
       border-color: rgba(245, 158, 11, 0.35);
       color: #fef08a;
     }
+    .fraction {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      vertical-align: middle;
+      font-size: 0.95em;
+      white-space: nowrap;
+      gap: 2px;
+    }
+    .fraction .fraction-top,
+    .fraction .fraction-bottom {
+      padding: 0 0.2em;
+    }
+    .fraction .fraction-bottom {
+      border-top: 1px solid currentColor;
+      margin-top: -2px;
+    }
     .student-info {
       display: grid;
       gap: 12px;
@@ -773,9 +792,9 @@
         code: '9701_s21_qp_12 Q: 2',
         prompt: 'Which equation represents the first ionisation energy of iodine?',
         options: {
-          A: '<sup>1</sup>/<sub>2</sub>I<sub>2</sub>(g) + e<sup>−</sup> → I<sup>−</sup>(g)',
+          A: '<span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span> I<sub>2</sub>(g) + e<sup>−</sup> → I<sup>−</sup>(g)',
           B: 'I(g) + e<sup>−</sup> → I<sup>−</sup>(g)',
-          C: '<sup>1</sup>/<sub>2</sub>I<sub>2</sub>(g) → I<sup>+</sup>(g) + e<sup>−</sup>',
+          C: '<span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span> I<sub>2</sub>(g) → I<sup>+</sup>(g) + e<sup>−</sup>',
           D: 'I(g) → I<sup>+</sup>(g) + e<sup>−</sup>',
         }
       },
