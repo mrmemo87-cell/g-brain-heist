@@ -35,7 +35,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     totalQuestions: 42,
     difficulty: 'Intermediate',
     category: 'Reading',
-    url: '/cambridge_reading_25_answer_form.html',
+    url: '/cambridge-tests/English%20stage%209/cambridge_reading_25_answer_form.html',
   },
   {
     id: 'cambridge-listening-1',
@@ -45,7 +45,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     totalQuestions: 25,
     difficulty: 'Intermediate',
     category: 'Listening',
-    url: '/cambridge_listening_test_1.html',
+    url: '/cambridge-tests/English%20stage%209/cambridge_listening_test_1.html',
   },
   {
     id: 'cambridge-writing-1',
@@ -55,7 +55,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     totalQuestions: 2,
     difficulty: 'Intermediate',
     category: 'Writing',
-    url: '/cambridge_writing_test_1.html',
+    url: '/cambridge-tests/English%20stage%209/cambridge_writing_test_1.html',
     requiresMarking: true,
   },
   {
@@ -66,7 +66,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     totalQuestions: 49,
     difficulty: 'Advanced',
     category: 'Science',
-    url: '/AS%20Chemistry/atomic_structure.html',
+    url: '/cambridge-tests/Chemistry/atomic_structure.html',
   },
   // Add more tests here as they become available
 ];
