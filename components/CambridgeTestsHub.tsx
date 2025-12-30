@@ -68,6 +68,16 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     category: 'Science',
     url: '/cambridge-tests/Chemistry/atomic_structure.html',
   },
+  {
+    id: 'as-chemistry-ch2-atoms-molecules-stoichiometry',
+    name: 'AS Chemistery Ch2 (Atoms, molecules and stoichiometry)',
+    description: 'Chapter 2 multiple-choice practice covering Avogadro constant, empirical formulae, ionisation trends, and reacting masses.',
+    duration: '20 min',
+    totalQuestions: 21,
+    difficulty: 'Advanced',
+    category: 'Science',
+    url: '/cambridge-tests/Chemistry/atoms_molecules_stoichiometry.html',
+  },
   // Add more tests here as they become available
 ];
 
