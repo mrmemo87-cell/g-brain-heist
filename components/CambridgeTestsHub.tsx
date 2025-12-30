@@ -9,7 +9,7 @@ interface CambridgeTest {
   duration: string;
   totalQuestions: number;
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
-  category: 'Reading' | 'Listening' | 'Grammar' | 'Vocabulary' | 'Writing';
+  category: 'Reading' | 'Listening' | 'Grammar' | 'Vocabulary' | 'Writing' | 'Science';
   url: string;
   isCompleted?: boolean;
   score?: number;
@@ -57,6 +57,16 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     category: 'Writing',
     url: '/cambridge_writing_test_1.html',
     requiresMarking: true,
+  },
+  {
+    id: 'as-chemistry-atomic-structure',
+    name: 'AS Chemistry — Atomic Structure',
+    description: 'Chapter 1 multiple-choice practice focusing on protons, neutrons, electrons, isotopes, and particle behaviour in fields.',
+    duration: '20 min',
+    totalQuestions: 49,
+    difficulty: 'Advanced',
+    category: 'Science',
+    url: '/AS%20Chemistry/atomic_structure.html',
   },
   // Add more tests here as they become available
 ];
@@ -344,6 +354,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       case 'Grammar': return '✍️';
       case 'Vocabulary': return '📚';
       case 'Writing': return '✏️';
+      case 'Science': return '🧪';
       default: return '📝';
     }
   };
@@ -455,7 +466,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                 Cambridge Tests
               </h1>
               <p style={{ margin: '5px 0 0', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>
-                Complete tests to boost your English skills
+                Complete tests to boost your skills across subjects
               </p>
             </div>
           </div>

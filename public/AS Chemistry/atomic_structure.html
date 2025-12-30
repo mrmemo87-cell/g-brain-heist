@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
+  <title>AS Chemistry — Atomic Structure</title>
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.12);
+      --accent: #38bdf8;
+      --accent-2: #8b5cf6;
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+      --success: #22c55e;
+      --warning: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto 40px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    }
+    .header {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .header img {
+      width: 54px;
+      height: 54px;
+      border-radius: 12px;
+      background: #fff;
+      padding: 6px;
+    }
+    .badge-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .badge {
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .status {
+      margin: 14px 0 22px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #bae6fd;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .pending {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.35);
+      color: #fef08a;
+    }
+    .student-info {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      margin-bottom: 24px;
+    }
+    .student-info input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(15,23,42,0.6);
+      color: var(--text-main);
+      font-size: 14px;
+    }
+    .student-info input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56,189,248,0.25);
+    }
+    .question-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+    }
+    .question-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    .question-title {
+      font-weight: 700;
+      color: #fff;
+      margin: 0 0 10px;
+      line-height: 1.4;
+    }
+    .option-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .option {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .option input {
+      margin-top: 3px;
+    }
+    .option:hover {
+      border-color: var(--accent);
+      background: rgba(56,189,248,0.06);
+    }
+    .option strong {
+      min-width: 22px;
+      display: inline-block;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      background: rgba(0,0,0,0.12);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    table th, table td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid var(--border);
+      color: #e2e8f0;
+    }
+    table th {
+      background: rgba(255,255,255,0.06);
+      font-weight: 700;
+    }
+    .nuclide sup, .nuclide sub {
+      font-size: 0.7em;
+      line-height: 1;
+    }
+    .nuclide sup {
+      vertical-align: super;
+    }
+    .nuclide sub {
+      vertical-align: sub;
+    }
+    .submit-area {
+      margin-top: 26px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    button {
+      background: linear-gradient(135deg, #38bdf8, #8b5cf6);
+      color: #0b1033;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 22px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(139,92,246,0.35);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    button:disabled {
+      background: #475569;
+      color: #cbd5e1;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .submit-status {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+    .score-box {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 12px;
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      color: #bbf7d0;
+      font-weight: 700;
+    }
+    @media (max-width: 640px) {
+      body { padding: 12px; }
+      .container { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="/logo.png" alt="Brains Heist" onerror="this.style.display='none';" />
+      <div>
+        <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
+        <h1 style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry — Atomic Structure</h1>
+        <div style="color: var(--text-muted); font-size: 14px;">Chapter 1 • 49 multiple-choice questions</div>
+      </div>
+    </div>
+
+    <div class="badge-row">
+      <span class="badge">🧪 Category: Science</span>
+      <span class="badge">🎯 Difficulty: Advanced</span>
+      <span class="badge">📝 Format: Multiple Choice (A–D)</span>
+      <span class="badge">⏱️ Suggested time: 20 min</span>
+    </div>
+
+    <div class="status">
+      ✅ Auto-marked: correct answers are loaded. Submit once to see your score and share it with your teacher.
+    </div>
+
+    <div class="student-info">
+      <input type="text" id="studentName" placeholder="Student Name" autocomplete="name" />
+      <input type="text" id="studentClass" placeholder="Class / Batch" autocomplete="section" />
+    </div>
+
+    <div id="questions"></div>
+
+    <div class="submit-area">
+      <button id="submitBtn">Submit Answers</button>
+      <div id="status" class="submit-status">Progress saves automatically in this browser.</div>
+    </div>
+    <div id="score" class="score-box" style="display:none;"></div>
+  </div>
+
+  <script>
+    // Supabase helpers (fetch-based, no external SDK)
+    const SUPABASE_URL = 'https://sozodkxwhubespiedgxm.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwczovL3N1cGFiYXNlLmlvL2NsYWltcy9zdWJqZWN0IjoicHVibGljIiwiaHR0cHM6Ly9zdXBhYmFzZS5pby9jbGFpbXMvcm9sZSI6ImFub24iLCJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTY5OTA1MjkyNywiZXhwIjoyMDE0NjI4OTI3fQ.o6SgqFWWf3XwT63MifOnRmPGzfmrPZ7dx6hPb6jt4WI';
+
+    function createSupabaseClient(url, key) {
+      return {
+        from(table) {
+          return {
+            async insert(data) {
+              try {
+                const response = await fetch(`${url}/rest/v1/${table}`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': key,
+                    'Authorization': `Bearer ${key}`,
+                    'Prefer': 'return=minimal'
+                  },
+                  body: JSON.stringify(Array.isArray(data) ? data : [data])
+                });
+                if (!response.ok) {
+                  const errorText = await response.text();
+                  throw new Error(errorText || response.statusText);
+                }
+                return { data: null, error: null };
+              } catch (err) {
+                return { data: null, error: err };
+              }
+            }
+          };
+        }
+      };
+    }
+
+    const supabaseClient = createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const QUIZ_ID = 'as_chemistry_atomic_structure';
+    const QUIZ_NAME = 'AS Chemistry — Atomic Structure';
+
+    const QUESTIONS = [
+      {
+        number: 1,
+        code: '9701_m20_qp_12 Q: 1',
+        prompt: 'What number of protons, neutrons and electrons are present in the ion <span class="nuclide"><sup>54</sup>Fe<sup>3+</sup></span>?',
+        table: {
+          headers: ['protons', 'neutrons', 'electrons'],
+          rows: [
+            { label: 'A', values: ['26', '28', '23'] },
+            { label: 'B', values: ['26', '28', '29'] },
+            { label: 'C', values: ['29', '25', '23'] },
+            { label: 'D', values: ['29', '25', '26'] },
+          ]
+        }
+      },
+      {
+        number: 2,
+        code: '9701_w20_qp_11 Q: 3',
+        prompt: 'A single <span class="nuclide"><sup>32</sup>P</span> nucleus can be produced when a single <span class="nuclide"><sup>32</sup>S</span> nucleus joins with particle X. In the process a proton is emitted.<br><br>What is particle X?',
+        options: {
+          A: 'a deuteron, <span class="nuclide"><sup>2</sup><sub>1</sub>H<sup>+</sup></span>',
+          B: 'an electron',
+          C: 'a neutron',
+          D: 'a proton',
+        }
+      },
+      {
+        number: 3,
+        code: '9701_m18_qp_12 Q: 3',
+        prompt: 'Drinking water may contain dissolved calcium hydrogencarbonate, Ca(HCO<sub>3</sub>)<sub>2</sub>.<br><br>How many electrons are present in a hydrogencarbonate anion?',
+        options: {
+          A: '30',
+          B: '31',
+          C: '32',
+          D: '33',
+        }
+      },
+      {
+        number: 4,
+        code: '9701_s18_qp_13 Q: 2',
+        prompt: 'Neutrons are passed through an electric field. The mass of one neutron relative to 1/12 the mass of a <span class="nuclide"><sup>12</sup>C</span> atom and any deflection in the electric field is recorded.<br><br>Which row is correct?',
+        table: {
+          headers: ['mass of neutron', 'behaviour of beam of neutrons in an electric field'],
+          rows: [
+            { label: 'A', values: ['0', 'deflected'] },
+            { label: 'B', values: ['1', 'deflected'] },
+            { label: 'C', values: ['0', 'not deflected'] },
+            { label: 'D', values: ['1', 'not deflected'] },
+          ]
+        }
+      },
+      {
+        number: 5,
+        code: '9701_w18_qp_12 Q: 2',
+        prompt: 'Beams of charged particles are deflected by an electrical field. The angle of deflection of a particle is proportional to its charge/mass ratio.<br><br>In an experiment protons are deflected by an angle of +15°. In another experiment under identical conditions <span class="nuclide"><sup>2</sup><sub>1</sub>H<sup>−</sup></span> ions are deflected by an angle of Y°. <br><br>What is the value of Y?',
+        options: {
+          A: '−30.0',
+          B: '−7.5',
+          C: '+7.5',
+          D: '+30.0',
+        }
+      },
+      {
+        number: 6,
+        code: '9701_s17_qp_12 Q: 1',
+        prompt: 'In which species are the numbers of protons, neutrons and electrons all different?',
+        options: {
+          A: '<span class="nuclide"><sup>19</sup><sub>9</sub>F<sup>−</sup></span>',
+          B: '<span class="nuclide"><sup>23</sup><sub>11</sub>Na<sup>+</sup></span>',
+          C: '<span class="nuclide"><sup>31</sup><sub>15</sub>P</span>',
+          D: '<span class="nuclide"><sup>32</sup><sub>16</sub>S<sup>2−</sup></span>',
+        }
+      },
+      {
+        number: 7,
+        code: '9701_s17_qp_13 Q: 1',
+        prompt: 'The ion Y<sup>3−</sup> contains 18 electrons and has a mass number of 31.<br><br>How many protons and neutrons does Y<sup>3−</sup> contain?',
+        table: {
+          headers: ['protons', 'neutrons'],
+          rows: [
+            { label: 'A', values: ['15', '16'] },
+            { label: 'B', values: ['15', '18'] },
+            { label: 'C', values: ['18', '13'] },
+            { label: 'D', values: ['21', '10'] },
+          ]
+        }
+      },
+      {
+        number: 8,
+        code: '9701_w17_qp_12 Q: 1',
+        prompt: 'In which pair do the atoms contain the same number of neutrons?',
+        options: {
+          A: '<span class="nuclide"><sup>11</sup>B</span> and <span class="nuclide"><sup>12</sup>C</span>',
+          B: '<span class="nuclide"><sup>7</sup>Li</span> and <span class="nuclide"><sup>9</sup>Be</span>',
+          C: '<span class="nuclide"><sup>24</sup>Mg</span> and <span class="nuclide"><sup>28</sup>Si</span>',
+          D: '<span class="nuclide"><sup>14</sup>N</span> and <span class="nuclide"><sup>16</sup>O</span>',
+        }
+      },
+      {
+        number: 9,
+        code: '9701_m16_qp_12 Q: 3',
+        prompt: 'Which ion has both more electrons than protons and more protons than neutrons?<br><br>[H = <span class="nuclide"><sup>1</sup><sub>1</sub>H</span>; D = <span class="nuclide"><sup>2</sup><sub>1</sub>H</span>; O = <span class="nuclide"><sup>16</sup><sub>8</sub>O</span>]',
+        options: {
+          A: '<span class="nuclide">D<sup>−</sup></span>',
+          B: '<span class="nuclide">H<sub>3</sub>O<sup>+</sup></span>',
+          C: '<span class="nuclide">OD<sup>−</sup></span>',
+          D: '<span class="nuclide">OH<sup>−</sup></span>',
+        }
+      },
+      {
+        number: 10,
+        code: '9701_m16_qp_12 Q: 4',
+        prompt: 'Which species contains the smallest number of electrons?',
+        options: {
+          A: '<span class="nuclide">B<sup>3+</sup></span>',
+          B: '<span class="nuclide">Be<sup>2+</sup></span>',
+          C: '<span class="nuclide">H<sup>−</sup></span>',
+          D: '<span class="nuclide">He<sup>+</sup></span>',
+        }
+      },
+      {
+        number: 11,
+        code: '9701_w16_qp_11 Q: 4',
+        prompt: 'Sodium azide, NaN<sub>3</sub> is an explosive used to inflate airbags in cars when they crash. It consists of positive sodium ions and negative azide ions.<br><br>What are the numbers of electrons in the sodium ion and the azide ion?',
+        table: {
+          headers: ['sodium ion', 'azide ion'],
+          rows: [
+            { label: 'A', values: ['10', '20'] },
+            { label: 'B', values: ['10', '22'] },
+            { label: 'C', values: ['12', '20'] },
+            { label: 'D', values: ['12', '22'] },
+          ]
+        }
+      },
+      {
+        number: 12,
+        code: '9701_m21_qp_12 Q: 1',
+        prompt: 'The table shows the numbers of protons, neutrons and electrons in four different particles, W, X, Y, and Z.<br><br>Which pair represents the atoms of two isotopes of the same element?',
+        table: {
+          headers: ['number of protons', 'number of neutrons', 'number of electrons'],
+          rows: [
+            { label: 'W', values: ['32', '40', '32'] },
+            { label: 'X', values: ['32', '40', '34'] },
+            { label: 'Y', values: ['32', '42', '32'] },
+            { label: 'Z', values: ['34', '40', '34'] },
+          ]
+        },
+        options: {
+          A: 'W and Y',
+          B: 'W and Z',
+          C: 'X and Y',
+          D: 'X and Z',
+        }
+      },
+      {
+        number: 13,
+        code: '9701_w21_qp_12 Q: 3',
+        prompt: 'Technetium (Tc) is a second row transition element that does not occur naturally on Earth. One of its isotopes has 56 neutrons.<br><br>What is the nucleon number of this isotope?',
+        options: {
+          A: '43',
+          B: '56',
+          C: '99',
+          D: '112',
+        }
+      },
+      {
+        number: 14,
+        code: '9701_s16_qp_11 Q: 4',
+        prompt: 'When nuclear reactions take place, the elements produced are different from the elements that reacted. Nuclear equations, such as the one below, are used to represent the changes that occur.<br><br><span class="nuclide"><sup>235</sup><sub>92</sub>U</span> + <span class="nuclide"><sup>1</sup><sub>0</sub>n</span> → <span class="nuclide"><sup>144</sup><sub>56</sub>Ba</span> + <span class="nuclide"><sup>89</sup><sub>36</sub>Kr</span> + 3<span class="nuclide"><sup>1</sup><sub>0</sub>n</span><br><br>The nucleon (mass) number total is constant at 236 and the proton number total is constant at 92.<br><br>In another nuclear reaction, uranium-238 is reacted with deuterium atoms, <span class="nuclide"><sup>2</sup><sub>1</sub>H</span>. An isotope of a new element, J, is formed as well as two neutrons.<br><br><span class="nuclide"><sup>238</sup><sub>92</sub>U</span> + <span class="nuclide"><sup>2</sup><sub>1</sub>H</span> → J + 2<span class="nuclide"><sup>1</sup><sub>0</sub>n</span><br><br>What is isotope J?',
+        options: {
+          A: '<span class="nuclide"><sup>238</sup>Np</span>',
+          B: '<span class="nuclide"><sup>238</sup>Pu</span>',
+          C: '<span class="nuclide"><sup>240</sup>Np</span>',
+          D: '<span class="nuclide"><sup>240</sup>Pu</span>',
+        }
+      },
+      {
+        number: 15,
+        code: '9701_w16_qp_11 Q: 5',
+        prompt: 'The <span class="nuclide"><sup>68</sup>Ge</span> isotope is medically useful because it undergoes a natural radioactive process to give an isotope of a different element, <span class="nuclide"><sup>68</sup>X</span>, which can be used to detect tumours. This transformation of <span class="nuclide"><sup>68</sup>Ge</span> occurs when an electron enters the nucleus and changes a proton into a neutron.<br><br>Which statement about the composition of an atom of <span class="nuclide"><sup>68</sup>X</span> is correct?',
+        options: {
+          A: 'It has 4 electrons in its outer p orbitals.',
+          B: 'It has 13 electrons in its outer shell.',
+          C: 'It has 37 neutrons.',
+          D: 'Its proton number is 32.',
+        }
+      },
+      {
+        number: 16,
+        code: '9701_m22_qp_12 Q: 2',
+        prompt: 'What is the electronic configuration of Mg<sup>2+</sup>?',
+        options: {
+          A: '1s<sup>2</sup> 2s<sup>2</sup> 2p<sup>6</sup>',
+          B: '1s<sup>2</sup> 2s<sup>2</sup> 2p<sup>6</sup> 3s<sup>2</sup>',
+          C: '1s<sup>2</sup> 2s<sup>2</sup> 2p<sup>6</sup> 3s<sup>2</sup> 3p<sup>2</sup>',
+          D: '1s<sup>2</sup> 2s<sup>2</sup> 2p<sup>6</sup> 3s<sup>2</sup> 3p<sup>6</sup> 3d<sup>2</sup> 4s<sup>2</sup>',
+        }
+      },
+      {
+        number: 17,
+        code: '9701_m21_qp_12 Q: 2',
+        prompt: 'Where in the Periodic Table is the element that has an outer electron shell arrangement of 4s<sup>2</sup>4p<sup>3</sup>?',
+        table: {
+          headers: ['Group', 'Period'],
+          rows: [
+            { label: 'A', values: ['13', '3'] },
+            { label: 'B', values: ['13', '4'] },
+            { label: 'C', values: ['15', '3'] },
+            { label: 'D', values: ['15', '4'] },
+          ]
+        }
+      },
+      {
+        number: 18,
+        code: '9701_s21_qp_11 Q: 2',
+        prompt: 'In which pair of species do both species have only one unpaired p electron?',
+        options: {
+          A: 'Ar<sup>+</sup> and C<sup>−</sup>',
+          B: 'B and Ti<sup>+</sup>',
+          C: 'F and Ga',
+          D: 'Se<sup>−</sup> and Si<sup>−</sup>',
+        }
+      },
+      {
+        number: 19,
+        code: '9701_s21_qp_13 Q: 3',
+        prompt: 'Which atom has the same number of electrons as an ammonium ion?',
+        options: {
+          A: 'Mg',
+          B: 'Na',
+          C: 'Ne',
+          D: 'O',
+        }
+      },
+      {
+        number: 20,
+        code: '9701_w21_qp_11 Q: 4',
+        prompt: 'The ion X<sup>2+</sup> has the same electronic configuration as the atom Kr.<br><br>What is the electronic configuration of an atom of X?',
+        options: {
+          A: '[Ar] 4s<sup>2</sup>3d<sup>10</sup>4p<sup>6</sup>',
+          B: '[Ar] 4s<sup>2</sup>3d<sup>10</sup>4p<sup>6</sup>5s<sup>2</sup>',
+          C: '[Ar] 4s<sup>2</sup>4d<sup>10</sup>4p<sup>6</sup>',
+          D: '[Ar] 4s<sup>2</sup>4d<sup>10</sup>4p<sup>6</sup>5s<sup>2</sup>',
+        }
+      },
+      {
+        number: 21,
+        code: '9701_w21_qp_12 Q: 4',
+        prompt: 'Which atom has more unpaired electrons than paired electrons in orbitals of principal quantum number 2?',
+        options: {
+          A: 'carbon',
+          B: 'nitrogen',
+          C: 'oxygen',
+          D: 'fluorine',
+        }
+      },
+      {
+        number: 22,
+        code: '9701_s20_qp_11 Q: 10',
+        prompt: 'In which pair does each species have the same number of unpaired electrons?',
+        options: {
+          A: 'Al and Cu<sup>2+</sup>',
+          B: 'Ca and Cr<sup>3+</sup>',
+          C: 'Ca and Ni<sup>2+</sup>',
+          D: 'Fe<sup>3+</sup> and O<sup>2−</sup>',
+        }
+      },
+      {
+        number: 23,
+        code: '9701_s20_qp_13 Q: 1',
+        prompt: 'Which particle has equal numbers of protons and neutrons and an electronic structure of 1s<sup>2</sup>2s<sup>2</sup>2p<sup>6</sup>3s<sup>2</sup>3p<sup>6</sup>?',
+        options: {
+          A: '<span class="nuclide"><sup>39</sup><sub>18</sub>Ar</span>',
+          B: '<span class="nuclide"><sup>40</sup><sub>20</sub>Ca<sup>2+</sup></span>',
+          C: '<span class="nuclide"><sup>16</sup><sub>8</sub>O<sup>2−</sup></span>',
+          D: '<span class="nuclide"><sup>32</sup><sub>16</sub>S</span>',
+        }
+      },
+      {
+        number: 24,
+        code: '9701_s20_qp_13 Q: 8',
+        prompt: 'What is the electronic configuration of an isolated Ni<sup>2+</sup> ion?',
+        options: {
+          A: '1s<sup>2</sup>2s<sup>2</sup>2p<sup>6</sup>3s<sup>2</sup>3p<sup>6</sup>3d<sup>6</sup>4s<sup>2</sup>',
+          B: '1s<sup>2</sup>2s<sup>2</sup>2p<sup>6</sup>3s<sup>2</sup>3p<sup>6</sup>3d<sup>7</sup>4s<sup>1</sup>',
+          C: '1s<sup>2</sup>2s<sup>2</sup>2p<sup>6</sup>3s<sup>2</sup>3p<sup>6</sup>3d<sup>10</sup>4s<sup>2</sup>',
+          D: '1s<sup>2</sup>2s<sup>2</sup>2p<sup>6</sup>3s<sup>2</sup>3p<sup>6</sup>3d<sup>8</sup>',
+        }
+      },
+      {
+        number: 25,
+        code: '9701_w20_qp_11 Q: 14',
+        prompt: 'The electronic arrangement for atoms of four elements is given.<br><br>Which element is the strongest oxidising agent?',
+        options: {
+          A: '1s<sup>2</sup>2s<sup>2</sup>2p<sup>5</sup>',
+          B: '1s<sup>2</sup>2s<sup>2</sup>2p<sup>6</sup>3s<sup>2</sup>',
+          C: '1s<sup>2</sup>2s<sup>2</sup>2p<sup>6</sup>3s<sup>2</sup>3p<sup>5</sup>',
+          D: '1s<sup>2</sup>2s<sup>2</sup>2p<sup>6</sup>3s<sup>2</sup>3p<sup>6</sup>4s<sup>2</sup>',
+        }
+      },
+      {
+        number: 26,
+        code: '9701_w20_qp_12 Q: 3',
+        prompt: 'Which atomic orbitals are occupied in an atom of phosphorus?',
+        options: {
+          A: '1p 2s 2p',
+          B: '2s 2p 2d',
+          C: '2s 2p 3s',
+          D: '2p 3s 3d',
+        }
+      },
+      {
+        number: 27,
+        code: '9701_m19_qp_12 Q: 3',
+        prompt: 'Which statement about a 3p orbital is correct?',
+        options: {
+          A: 'It can hold a maximum of 6 electrons.',
+          B: 'It has the highest energy of the orbitals with principal quantum number 3.',
+          C: 'It is at a higher energy level than a 3s orbital but has the same shape.',
+          D: 'It is occupied by one electron in an isolated phosphorus atom.',
+        }
+      },
+      {
+        number: 28,
+        code: '9701_s19_qp_11 Q: 4',
+        prompt: 'The outermost electron in an atom of neon occupies a particular orbital.<br><br>Which row shows the relative energy and shape of this orbital?',
+        table: {
+          headers: ['energy of orbital relative to other occupied orbitals', 'shape of orbital'],
+          rows: [
+            { label: 'A', values: ['higher or equal', '<span aria-label="p orbital" style="font-size:28px; display:inline-block;">∞</span>'] },
+            { label: 'B', values: ['higher or equal', '<span aria-label="s orbital" style="font-size:24px; display:inline-block;">●</span>'] },
+            { label: 'C', values: ['lower or equal', '<span aria-label="p orbital" style="font-size:28px; display:inline-block;">∞</span>'] },
+            { label: 'D', values: ['lower or equal', '<span aria-label="s orbital" style="font-size:24px; display:inline-block;">●</span>'] },
+          ]
+        }
+      },
+      {
+        number: 29,
+        code: '9701_s19_qp_13 Q: 3',
+        prompt: 'Which atom has exactly three unpaired electrons?',
+        options: {
+          A: 'an isolated gaseous aluminium atom',
+          B: 'an isolated gaseous carbon atom',
+          C: 'an isolated gaseous chromium atom',
+          D: 'an isolated gaseous phosphorus atom',
+        }
+      },
+      {
+        number: 30,
+        code: '9701_w19_qp_12 Q: 4',
+        prompt: 'Which statement about the electrons in a ground state carbon atom is correct?',
+        options: {
+          A: 'Electrons are present in four different energy levels.',
+          B: 'There are more electrons in p orbitals than there are in s orbitals.',
+          C: 'The occupied orbital of highest energy is spherical.',
+          D: 'The occupied orbital of lowest energy is spherical.',
+        }
+      },
+      {
+        number: 31,
+        code: '9701_m18_qp_12 Q: 4',
+        prompt: 'Which molecule contains a nitrogen atom with sp hybridised orbitals?',
+        options: {
+          A: 'CH<sub>3</sub>CH<sub>2</sub>NH<sub>2</sub>',
+          B: 'HNO<sub>3</sub>',
+          C: 'HCN',
+          D: 'NH<sub>3</sub>',
+        }
+      },
+      {
+        number: 32,
+        code: '9701_s18_qp_11 Q: 1',
+        prompt: 'This question refers to isolated gaseous atoms.<br><br>In which atom are all electrons paired?',
+        options: {
+          A: 'Ba',
+          B: 'Br',
+          C: 'S',
+          D: 'Si',
+        }
+      },
+      {
+        number: 33,
+        code: '9701_s18_qp_12 Q: 2',
+        prompt: 'The electronic configuration of an atom of sulfur is 1s<sup>2</sup>2s<sup>2</sup>2p<sup>6</sup>3s<sup>2</sup>3p<sup>4</sup>.<br><br>How many valence shell and unpaired electrons are present in one sulfur atom?',
+        table: {
+          headers: ['valence shell electrons', 'unpaired electrons'],
+          rows: [
+            { label: 'A', values: ['2', '1'] },
+            { label: 'B', values: ['4', '2'] },
+            { label: 'C', values: ['6', '0'] },
+            { label: 'D', values: ['6', '2'] },
+          ]
+        }
+      },
+      {
+        number: 34,
+        code: '9701_s18_qp_13 Q: 3',
+        prompt: 'The table refers to the electron distribution in the second shell of an atom with eight protons.<br><br>Which row is correct for this atom?',
+        table: {
+          headers: ['orbital shape', 'orbital type', 'number of electrons', 'orbital shape', 'orbital type', 'number of electrons'],
+          rows: [
+            { label: 'A', values: ['<span aria-label="p orbital" style="font-size:28px; display:inline-block;">∞</span>', 'p', '2', '<span aria-label="s orbital" style="font-size:24px; display:inline-block;">●</span>', 's', '4'] },
+            { label: 'B', values: ['<span aria-label="p orbital" style="font-size:28px; display:inline-block;">∞</span>', 'p', '4', '<span aria-label="s orbital" style="font-size:24px; display:inline-block;">●</span>', 's', '2'] },
+            { label: 'C', values: ['<span aria-label="s orbital" style="font-size:24px; display:inline-block;">●</span>', 's', '2', '<span aria-label="p orbital" style="font-size:28px; display:inline-block;">∞</span>', 'p', '4'] },
+            { label: 'D', values: ['<span aria-label="s orbital" style="font-size:24px; display:inline-block;">●</span>', 's', '4', '<span aria-label="p orbital" style="font-size:28px; display:inline-block;">∞</span>', 'p', '2'] },
+          ]
+        }
+      },
+      {
+        number: 35,
+        code: '9701_m17_qp_12 Q: 1',
+        prompt: 'Which ion has the same electronic configuration as Cl<sup>−</sup>?',
+        options: {
+          A: 'F<sup>−</sup>',
+          B: 'P<sup>+</sup>',
+          C: 'Sc<sup>3+</sup>',
+          D: 'Si<sup>4+</sup>',
+        }
+      },
+      {
+        number: 36,
+        code: '9701_s16_qp_12 Q: 2',
+        prompt: 'Four electronic configurations are shown below. Three of these configurations belong to atoms of the elements chlorine, sodium and vanadium.<br><br>Which electronic configuration belongs to an atom of another element?',
+        options: {
+          A: '1s<sup>2</sup>2s<sup>2</sup>2p<sup>6</sup>3s<sup>1</sup>',
+          B: '1s<sup>2</sup>2s<sup>2</sup>2p<sup>6</sup>3s<sup>2</sup>3p<sup>5</sup>',
+          C: '1s<sup>2</sup>2s<sup>2</sup>2p<sup>6</sup>3s<sup>2</sup>3p<sup>6</sup>3d<sup>3</sup>4s<sup>2</sup>',
+          D: '1s<sup>2</sup>2s<sup>2</sup>2p<sup>6</sup>3s<sup>2</sup>3p<sup>6</sup>3d<sup>6</sup>4s<sup>2</sup>',
+        }
+      },
+      {
+        number: 37,
+        code: '9701_s16_qp_13 Q: 5',
+        prompt: 'Which isolated gaseous atom has a total of five electrons occupying spherically shaped orbitals?',
+        options: {
+          A: 'boron',
+          B: 'fluorine',
+          C: 'sodium',
+          D: 'potassium',
+        }
+      },
+      {
+        number: 38,
+        code: '9701_s15_qp_12 Q: 1',
+        prompt: 'In which option do all three particles have the same electronic configuration and the same number of neutrons?',
+        options: {
+          A: '<span class="nuclide"><sup>15</sup>N<sup>3−</sup></span>, <span class="nuclide"><sup>16</sup>O<sup>2−</sup></span>, <span class="nuclide"><sup>19</sup>F<sup>−</sup></span>',
+          B: '<span class="nuclide"><sup>18</sup>O<sup>2−</sup></span>, <span class="nuclide"><sup>19</sup>F<sup>−</sup></span>, <span class="nuclide"><sup>20</sup>Ne</span>',
+          C: '<span class="nuclide"><sup>19</sup>F<sup>−</sup></span>, <span class="nuclide"><sup>20</sup>Ne</span>, <span class="nuclide"><sup>23</sup>Na<sup>+</sup></span>',
+          D: '<span class="nuclide"><sup>22</sup>Ne</span>, <span class="nuclide"><sup>23</sup>Na</span>, <span class="nuclide"><sup>24</sup>Mg<sup>2+</sup></span>',
+        }
+      },
+      {
+        number: 39,
+        code: '9701_m22_qp_12 Q: 1',
+        prompt: 'The first ionisation energy of potassium, K, is 418 kJ mol<sup>−1</sup>. The first ionisation energy of strontium, Sr, is 548 kJ mol<sup>−1</sup>.<br><br>Which statement helps to explain why Sr has a greater first ionisation energy than K?',
+        options: {
+          A: 'The charge on a Sr nucleus is greater than the charge on a K nucleus.',
+          B: 'The outer electron in a Sr atom experiences greater shielding than the outer electron in a K atom.',
+          C: 'The outer electron in a Sr atom experiences spin-pair repulsion.',
+          D: 'The outer electron in a Sr atom is further from the nucleus than the outer electron in a K atom.',
+        }
+      },
+      {
+        number: 40,
+        code: '9701_s21_qp_11 Q: 7',
+        prompt: 'Why is the first ionisation energy of oxygen less than that of nitrogen?',
+        options: {
+          A: 'The nitrogen atom has its outer electron in a different subshell.',
+          B: 'The nuclear charge on the oxygen atom is greater than that on the nitrogen atom.',
+          C: 'The oxygen atom has a pair of electrons in one p orbital that repel one another.',
+          D: 'There is more shielding in an oxygen atom.',
+        }
+      },
+      {
+        number: 41,
+        code: '9701_s21_qp_12 Q: 2',
+        prompt: 'Which equation represents the first ionisation energy of iodine?',
+        options: {
+          A: '<sup>1</sup>/<sub>2</sub>I<sub>2</sub>(g) + e<sup>−</sup> → I<sup>−</sup>(g)',
+          B: 'I(g) + e<sup>−</sup> → I<sup>−</sup>(g)',
+          C: '<sup>1</sup>/<sub>2</sub>I<sub>2</sub>(g) → I<sup>+</sup>(g) + e<sup>−</sup>',
+          D: 'I(g) → I<sup>+</sup>(g) + e<sup>−</sup>',
+        }
+      },
+      {
+        number: 42,
+        code: '9701_w21_qp_11 Q: 3',
+        prompt: 'Which of these elements has the highest fifth ionisation energy?',
+        options: {
+          A: 'C',
+          B: 'N',
+          C: 'P',
+          D: 'Si',
+        }
+      },
+      {
+        number: 43,
+        code: '9701_s20_qp_12 Q: 12',
+        prompt: 'The fifth to eighth ionisation energies of four elements in Period 3 of the Periodic Table are shown.<br><br>Which row refers to chlorine?',
+        table: {
+          headers: [
+            '<span style="display:block;">&nbsp;</span>',
+            'ionisation energies / kJ mol<sup>−1</sup>',
+            '',
+            '',
+            ''
+          ],
+          rows: [
+            { label: '', values: ['fifth', 'sixth', 'seventh', 'eighth'], isOption: false },
+            { label: 'A', values: ['6280', '21200', '25900', '30500'] },
+            { label: 'B', values: ['6990', '8490', '27100', '31700'] },
+            { label: 'C', values: ['6540', '9330', '11000', '33600'] },
+            { label: 'D', values: ['7240', '8790', '12000', '13800'] },
+          ]
+        }
+      },
+      {
+        number: 44,
+        code: '9701_s19_qp_12 Q: 13',
+        prompt: 'The eight elements sodium to argon are in the same period of the Periodic Table. The equation corresponding to the first ionisation energy is shown.<br><br>X(g) → X<sup>+</sup>(g) + e<sup>−</sup><br><br>For which of these eight elements is the electron in this equation removed from a filled orbital?',
+        options: {
+          A: 'Mg, Al, Si, P, S, Cl and Ar',
+          B: 'Al, Si, P, S, Cl and Ar only',
+          C: 'Mg, S, Cl and Ar only',
+          D: 'S, Cl and Ar only',
+        }
+      },
+      {
+        number: 45,
+        code: '9701_w18_qp_11 Q: 1',
+        prompt: 'The first four ionisation energies for element X are shown in the table.<br><br><table style="border-collapse: collapse; margin: 10px 0; text-align: center;"><thead><tr><th style="border:1px solid #ccc; padding:6px;">ionisation energy</th><th style="border:1px solid #ccc; padding:6px;">1st</th><th style="border:1px solid #ccc; padding:6px;">2nd</th><th style="border:1px solid #ccc; padding:6px;">3rd</th><th style="border:1px solid #ccc; padding:6px;">4th</th></tr></thead><tbody><tr><td style="border:1px solid #ccc; padding:6px;">value / kJ mol<sup>−1</sup></td><td style="border:1px solid #ccc; padding:6px;">577</td><td style="border:1px solid #ccc; padding:6px;">1980</td><td style="border:1px solid #ccc; padding:6px;">2960</td><td style="border:1px solid #ccc; padding:6px;">6190</td></tr></tbody></table>Which ion of X is produced by removing an electron from a filled shell?',
+        options: {
+          A: 'X<sup>+</sup>',
+          B: 'X<sup>2+</sup>',
+          C: 'X<sup>3+</sup>',
+          D: 'X<sup>4+</sup>',
+        }
+      },
+      {
+        number: 46,
+        code: '9701_s17_qp_11 Q: 4',
+        prompt: 'Which property of an atom does not affect its first ionisation energy?',
+        options: {
+          A: 'the atomic radius',
+          B: 'the number of electron shells',
+          C: 'the number of neutrons',
+          D: 'the number of protons',
+        }
+      },
+      {
+        number: 47,
+        code: '9701_s17_qp_11 Q: 12',
+        prompt: 'Why is the second ionisation energy of sodium larger than the second ionisation energy of magnesium?',
+        options: {
+          A: 'The attraction between the nucleus and the outer electron is greater in Na<sup>+</sup> than in Mg<sup>+</sup>.',
+          B: 'The nuclear charge of Na<sup>+</sup> is greater than that of Mg<sup>+</sup>.',
+          C: 'The outer electron of Na<sup>+</sup> is more shielded than the outer electron of Mg<sup>+</sup>.',
+          D: 'The outer electron of Na is in the same orbital as the outer electron of Mg.',
+        }
+      },
+      {
+        number: 48,
+        code: '9701_m16_qp_12 Q: 2',
+        prompt: 'For the element sulfur, which pair of ionisation energies has the largest difference between them?',
+        options: {
+          A: 'third and fourth ionisation energies',
+          B: 'fourth and fifth ionisation energies',
+          C: 'fifth and sixth ionisation energies',
+          D: 'sixth and seventh ionisation energies',
+        }
+      },
+      {
+        number: 49,
+        code: '9701_s16_qp_12 Q: 3',
+        prompt: 'Elements X and Y are in the same group of the Periodic Table. The table shows the first six ionisation energies of X and Y in kJ mol<sup>−1</sup>.<br><br><table style="border-collapse: collapse; margin: 10px 0; text-align: center;"><thead><tr><th style="border:1px solid #ccc; padding:6px;"></th><th style="border:1px solid #ccc; padding:6px;">1st</th><th style="border:1px solid #ccc; padding:6px;">2nd</th><th style="border:1px solid #ccc; padding:6px;">3rd</th><th style="border:1px solid #ccc; padding:6px;">4th</th><th style="border:1px solid #ccc; padding:6px;">5th</th><th style="border:1px solid #ccc; padding:6px;">6th</th></tr></thead><tbody><tr><td style="border:1px solid #ccc; padding:6px;">X</td><td style="border:1px solid #ccc; padding:6px;">800</td><td style="border:1px solid #ccc; padding:6px;">1600</td><td style="border:1px solid #ccc; padding:6px;">2400</td><td style="border:1px solid #ccc; padding:6px;">4300</td><td style="border:1px solid #ccc; padding:6px;">5400</td><td style="border:1px solid #ccc; padding:6px;">10400</td></tr><tr><td style="border:1px solid #ccc; padding:6px;">Y</td><td style="border:1px solid #ccc; padding:6px;">1000</td><td style="border:1px solid #ccc; padding:6px;">1800</td><td style="border:1px solid #ccc; padding:6px;">2700</td><td style="border:1px solid #ccc; padding:6px;">4800</td><td style="border:1px solid #ccc; padding:6px;">6000</td><td style="border:1px solid #ccc; padding:6px;">12300</td></tr></tbody></table><br>What could be the identities of X and Y?',
+        optionTable: {
+          headers: ['', 'X', 'Y'],
+          rows: [
+            { label: 'A', values: ['antimony, Sb', 'arsenic, As'] },
+            { label: 'B', values: ['arsenic, As', 'antimony, Sb'] },
+            { label: 'C', values: ['selenium, Se', 'tellurium, Te'] },
+            { label: 'D', values: ['tellurium, Te', 'selenium, Se'] },
+          ]
+        }
+      },
+    ];
+
+    // Placeholder answer key (awaiting official answers)
+    const ANSWER_KEY = {
+      1: 'A', 2: 'C', 3: 'C', 4: 'D', 5: 'B',
+      6: 'B', 7: 'A', 8: 'A', 9: 'D', 10: 'D',
+      11: 'B', 12: 'A', 13: 'C', 14: 'A', 15: 'C',
+      16: 'A', 17: 'D', 18: 'C', 19: 'C', 20: 'B',
+      21: 'B', 22: 'A', 23: 'B', 24: 'D', 25: 'A',
+      26: 'C', 27: 'D', 28: 'A', 29: 'D', 30: 'C',
+      31: 'D', 32: 'D', 33: 'D', 34: 'B', 35: 'C',
+      36: 'D', 37: 'B', 38: 'A', 39: 'A', 40: 'C',
+      41: 'D', 42: 'A', 43: 'C', 44: 'C', 45: 'D',
+      46: 'C', 47: 'A', 48: 'D', 49: 'A',
+    };
+
+    const totalQuestions = QUESTIONS.length;
+    let hasSubmitted = false;
+    let startTime = null;
+
+    function loadStudentInfoFromGame() {
+      try {
+        const stored = localStorage.getItem('cambridge_test_user');
+        if (stored) {
+          const user = JSON.parse(stored);
+          if (user.name) {
+            const nameInput = document.getElementById('studentName');
+            nameInput.value = user.name;
+            nameInput.readOnly = true;
+            nameInput.style.backgroundColor = '#0f172a';
+            nameInput.style.borderColor = '#22c55e';
+          }
+          if (user.class) {
+            const classInput = document.getElementById('studentClass');
+            classInput.value = user.class;
+            classInput.readOnly = true;
+            classInput.style.backgroundColor = '#0f172a';
+            classInput.style.borderColor = '#22c55e';
+          }
+        }
+      } catch (e) {
+        console.log('Could not load game user info');
+      }
+    }
+
+    function renderQuestions() {
+      const container = document.getElementById('questions');
+      QUESTIONS.forEach((q) => {
+        const card = document.createElement('div');
+        card.className = 'question-card';
+
+        const meta = document.createElement('div');
+        meta.className = 'question-meta';
+        meta.innerHTML = `<span>#${q.number.toString().padStart(2, '0')}</span><span>${q.code}</span>`;
+        card.appendChild(meta);
+
+        const title = document.createElement('div');
+        title.className = 'question-title';
+        title.innerHTML = q.prompt;
+        card.appendChild(title);
+
+        if (q.table) {
+          const table = document.createElement('table');
+          const thead = document.createElement('thead');
+          const headRow = document.createElement('tr');
+          headRow.innerHTML = `<th></th>${q.table.headers.map(h => `<th>${h}</th>`).join('')}`;
+          thead.appendChild(headRow);
+          table.appendChild(thead);
+
+          const tbody = document.createElement('tbody');
+          q.table.rows.forEach(row => {
+            const tr = document.createElement('tr');
+            if (row.isOption === false) {
+              tr.innerHTML = `
+                <td style="width:90px; text-align:left;"></td>
+                ${row.values.map(v => `<td>${v}</td>`).join('')}
+              `;
+            } else {
+              tr.innerHTML = `
+                <td style="width:90px; text-align:left;">
+                  <label class="option-label" style="display:flex; align-items:center; gap:6px;">
+                    <input type="radio" name="q${q.number}" value="${row.label}" />
+                    <strong>${row.label}</strong>
+                  </label>
+                </td>
+                ${row.values.map(v => `<td>${v}</td>`).join('')}
+              `;
+            }
+            tbody.appendChild(tr);
+          });
+          table.appendChild(tbody);
+          card.appendChild(table);
+        } else if (q.optionTable) {
+          const table = document.createElement('table');
+          const thead = document.createElement('thead');
+          const headRow = document.createElement('tr');
+          headRow.innerHTML = `<th></th>${q.optionTable.headers.map(h => `<th>${h}</th>`).join('')}`;
+          thead.appendChild(headRow);
+          table.appendChild(thead);
+
+          const tbody = document.createElement('tbody');
+          q.optionTable.rows.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="width:90px; text-align:left;">
+                <label class="option-label" style="display:flex; align-items:center; gap:6px;">
+                  <input type="radio" name="q${q.number}" value="${row.label}" />
+                  <strong>${row.label}</strong>
+                </label>
+              </td>
+              ${row.values.map(v => `<td>${v}</td>`).join('')}
+            `;
+            tbody.appendChild(tr);
+          });
+          table.appendChild(tbody);
+          card.appendChild(table);
+        } else if (q.options) {
+          const list = document.createElement('div');
+          list.className = 'option-list';
+          Object.entries(q.options).forEach(([letter, text]) => {
+            const option = document.createElement('label');
+            option.className = 'option';
+            option.innerHTML = `
+              <input type="radio" name="q${q.number}" value="${letter}" />
+              <div><strong>${letter}</strong> <span>${text}</span></div>
+            `;
+            list.appendChild(option);
+          });
+          card.appendChild(list);
+        }
+
+        container.appendChild(card);
+      });
+    }
+
+    function checkPreviousSubmission() {
+      const saved = localStorage.getItem(`quiz_submitted_${QUIZ_ID}`);
+      if (!saved) return;
+      const data = JSON.parse(saved);
+      hasSubmitted = true;
+      document.querySelectorAll('input').forEach(i => i.disabled = true);
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = '✓ Submitted';
+      const status = document.getElementById('status');
+      status.textContent = `You submitted this test on ${new Date(data.submittedAt).toLocaleString()}.`;
+      const scoreDiv = document.getElementById('score');
+      scoreDiv.style.display = 'block';
+      scoreDiv.textContent = `Stored score: ${data.score}/${data.total} (${Math.round((data.score / data.total) * 100)}%).`;
+    }
+
+    function calculateScore(responses) {
+      const answerKeyReady = Object.values(ANSWER_KEY).every(v => !!v);
+      if (!answerKeyReady) {
+        return { score: 0, percentage: 0, pending: true };
+      }
+      let correct = 0;
+      Object.entries(ANSWER_KEY).forEach(([q, ans]) => {
+        const studentAns = (responses[q] || '').toString().trim().toUpperCase();
+        const correctAns = (ans || '').toString().trim().toUpperCase();
+        if (studentAns && studentAns === correctAns) correct++;
+      });
+      return {
+        score: correct,
+        percentage: Math.round((correct / totalQuestions) * 100),
+        pending: false
+      };
+    }
+
+    async function handleSubmit() {
+      if (hasSubmitted) return;
+      const status = document.getElementById('status');
+      const btn = document.getElementById('submitBtn');
+      const name = document.getElementById('studentName').value.trim();
+      const cls = document.getElementById('studentClass').value.trim();
+
+      if (!name) {
+        status.textContent = '⚠️ Please enter your name.';
+        return;
+      }
+      if (!cls) {
+        status.textContent = '⚠️ Please enter your class.';
+        return;
+      }
+
+      const responses = {};
+      for (let i = 1; i <= totalQuestions; i++) {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        responses[i] = selected ? selected.value : '';
+      }
+
+      const confirmSubmit = confirm(
+        'Submit answers now?\n\n• Your current selections will be saved.\n• Score will remain pending until the official answer key is added.'
+      );
+      if (!confirmSubmit) return;
+
+      const timeTaken = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+      const result = calculateScore(responses);
+
+      btn.disabled = true;
+      status.textContent = '📤 Submitting...';
+
+      const payload = {
+        student_name: name,
+        student_class: cls,
+        quiz_name: QUIZ_NAME,
+        score: result.score,
+        total_questions: totalQuestions,
+        percentage: result.percentage,
+        answers: {
+          responses,
+          answer_key_ready: !result.pending,
+          pending_answer_key: result.pending,
+          quiz_version: 'v1-49q'
+        },
+        time_taken_seconds: timeTaken
+      };
+
+      const { error } = await supabaseClient.from('quiz_scores').insert(payload);
+      if (error) {
+        console.error(error);
+        status.textContent = '❌ Failed to submit. Please try again.';
+        btn.disabled = false;
+        return;
+      }
+
+      hasSubmitted = true;
+      localStorage.setItem(`quiz_submitted_${QUIZ_ID}`, JSON.stringify({
+        score: result.score,
+        total: totalQuestions,
+        submittedAt: new Date().toISOString()
+      }));
+
+      document.querySelectorAll('input').forEach(i => i.disabled = true);
+      btn.textContent = '✓ Submitted';
+      status.textContent = result.pending
+        ? '✅ Submitted. Scoring will be applied once the answer key is available.'
+        : '✅ Submitted successfully.';
+
+      const scoreDiv = document.getElementById('score');
+      scoreDiv.style.display = 'block';
+      scoreDiv.textContent = result.pending
+        ? 'Score pending official answer key.'
+        : `Score: ${result.score}/${totalQuestions} (${result.percentage}%).`;
+
+      try {
+        if (window.parent !== window) {
+          window.parent.postMessage({
+            type: 'CAMBRIDGE_TEST_COMPLETE',
+            quizId: QUIZ_ID,
+            score: result.score,
+            total: totalQuestions,
+            percentage: result.percentage
+          }, '*');
+        }
+      } catch (e) {
+        console.log('Parent notification unavailable');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderQuestions();
+      loadStudentInfoFromGame();
+      checkPreviousSubmission();
+      startTime = Date.now();
+      document.getElementById('submitBtn').addEventListener('click', handleSubmit);
+    });
+  </script>
+</body>
+</html>
