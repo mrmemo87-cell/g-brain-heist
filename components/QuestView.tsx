@@ -13,10 +13,11 @@ import {
   QuestionOption,
   SubjectProgress,
   DifficultyProgress,
+  Subject,
 } from '../types';
 import * as GameService from '../services/gameService';
 import { audioService } from '../services/audioService';
-import { BrainIcon, CoinIcon, GemIcon, XPIcon } from './icons';
+import { CoinIcon, GemIcon, XPIcon } from './icons';
 import BackButton from './BackButton';
 import { createPortal } from 'react-dom';
 import {
@@ -31,6 +32,7 @@ import { recordSoloQuestion, recordMissionSummary } from '../services/adaptiveSe
 import DifficultyPicker from './DifficultyPicker';
 import UnifiedSubjectPlay from './UnifiedSubjectPlay';
 import type { QuestProgress } from '../types';
+import QuestionBank from './teacher/QuestionBank';
 
 // Helper to get option text (handles both string and QuestionOption formats)
 const getOptionText = (option: string | QuestionOption): string => {
@@ -132,6 +134,9 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [selectedDifficulty, setSelectedDifficulty] = useState<SoloDifficulty | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [teacherQuestions, setTeacherQuestions] = useState<TeacherQuestion[]>([]);
+  const [publicQuestions, setPublicQuestions] = useState<TeacherQuestion[]>([]);
+  const [questionBankLoading, setQuestionBankLoading] = useState(false);
+  const [questionBankError, setQuestionBankError] = useState<string | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [answerResponse, setAnswerResponse] = useState<AnswerResponse | null>(null);
@@ -152,6 +157,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [nextAction, setNextAction] = useState<(() => void) | null>(null);
   const [nextActionLabel, setNextActionLabel] = useState<string>('');
   const [freeformAnswer, setFreeformAnswer] = useState('');
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
 
   const answerFeedbackRef = useRef<HTMLDivElement>(null);
 
@@ -284,8 +290,16 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     }
 
     setStage('loading');
+    setQuestionBankLoading(true);
+    setQuestionBankError(null);
     
     try {
+      const publicQuestionsPromise = GameService.get_public_questions().catch((error) => {
+        console.warn('[QuestView] Failed to load public question bank:', error);
+        setQuestionBankError('Unable to load the question bank right now.');
+        return [] as TeacherQuestion[];
+      });
+
       // Load regular practice subjects
       const data = await GameService.mcq_subjects_list();
       setSubjects(data);
@@ -339,10 +353,20 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       });
       
       setSubjectProgress(realProgress);
+
+      // Load public questions so students can browse the bank like teachers
+      const publicQuestionsResult = await publicQuestionsPromise;
+      const normalizedPublicQuestions = (publicQuestionsResult || []).map(normalizeAssignmentQuestion);
+      setPublicQuestions(normalizedPublicQuestions);
+      setQuestionBankError(null);
       setStage('subject_selection');
     } catch (error) {
       console.error('Error loading subjects:', error);
+      setPublicQuestions([]);
+      setQuestionBankError('Unable to load subjects or question bank.');
       setStage('subject_selection');
+    } finally {
+      setQuestionBankLoading(false);
     }
   };
   
@@ -458,6 +482,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       name: assignment.subject_name,
       difficulty: 1,
     });
+    setSelectedTopic(assignment.topic_name || assignment.topic || null);
     setStage('assignment_blocked');
     setCurrentQuestionIndex(0);
     setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
@@ -523,6 +548,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
   const handleSubjectSelect = async (subject: SubjectData) => {
     setSelectedSubject(subject);
+    setSelectedTopic(null);
     setStage('loading');
     
     try {
@@ -541,6 +567,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     if (!selectedSubject) return;
     
     setMode('teacher');
+    setSelectedTopic(null);
     setStage('loading');
     setQuestionScores([]);
     setQuestionPerformances([]);
@@ -573,11 +600,48 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     }
   };
 
+  const handleUseQuestionSet = (questionIds: string[], subject: Subject, topic: string) => {
+    const matchedSubject = subjects.find((s) => s.name === subject) || { id: subject, name: subject, difficulty: 1 };
+    const selectedQuestions = publicQuestions.filter((question) => questionIds.includes(question.id));
+
+    if (selectedQuestions.length === 0) {
+      alert('No questions available for this set yet.');
+      return;
+    }
+
+    const normalizedQuestions = selectedQuestions.map(normalizeAssignmentQuestion);
+
+    setMode('teacher');
+    setSelectedSubject(matchedSubject);
+    setSelectedTopic(topic || null);
+    setTeacherQuestions(normalizedQuestions);
+    setQuestions([]);
+    setCurrentQuestionIndex(0);
+    setScore({ correct: 0, xp: 0, coins: 0, gemstones: 0 });
+    setSelectedOption(null);
+    setAnswerResponse(null);
+    setQuestionScores([]);
+    setQuestionPerformances([]);
+    setSoloStreak(0);
+    setMissionSummary(null);
+    setTopicSummary(null);
+    setQuestionStartTime(Date.now());
+    setSelectedDifficulty(null);
+    setNextAction(null);
+    setNextActionLabel('');
+    setFreeformAnswer('');
+    setActiveAssignment(null);
+    setLastCompletedAssignment(null);
+    setIsAssignmentLate(false);
+    setStage('in_progress');
+  };
+
   const handleDifficultySelect = (difficulty: SoloDifficulty) => {
     if (!selectedSubject) return;
     
     setMode('practice');
     setSelectedDifficulty(difficulty);
+    setSelectedTopic(null);
     setStage('loading');
     setQuestionScores([]);
     setQuestionPerformances([]);
@@ -914,87 +978,58 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   };
 
   const renderSubjectSelection = () => (
-    <div>
-      {/* Practice Mode Header */}
-      <div className="max-w-4xl mx-auto mb-6 p-5 rounded-2xl bg-gradient-to-r from-emerald-500/15 to-cyan-500/15 border-2 border-emerald-400/40 shadow-lg">
-        <div className="flex items-center gap-4 mb-3">
-          <div className="text-4xl">🧠</div>
-          <div className="flex-1">
-            <h2 className="font-heading text-2xl text-emerald-300">Practice Mode</h2>
-            <p className="text-gray-200 text-sm">Practice questions to earn XP & coins. No time pressure!</p>
+    <div className="space-y-6">
+      <div className="max-w-5xl mx-auto p-6 rounded-2xl bg-gradient-to-r from-indigo-500/20 via-cyan-500/10 to-emerald-500/20 border border-cyan-400/30 shadow-lg">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="text-4xl">📚</div>
+            <div>
+              <h2 className="font-heading text-2xl text-white">Explore the Question Bank</h2>
+              <p className="text-sm text-gray-200">Browse every subject and topic just like your teacher.</p>
+            </div>
           </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <span className="px-3 py-1 bg-emerald-500/20 border border-emerald-400/40 rounded-full text-emerald-300 text-sm font-semibold">
-            ✓ Earn XP for new answers
-          </span>
-          <span className="px-3 py-1 bg-cyan-500/20 border border-cyan-400/40 rounded-full text-cyan-300 text-sm font-semibold">
-            ✓ No deadline
-          </span>
-          <span className="px-3 py-1 bg-purple-500/20 border border-purple-400/40 rounded-full text-purple-300 text-sm font-semibold">
-            ✓ Choose any subject
-          </span>
+          <div className="grid grid-cols-3 gap-3 text-sm text-gray-200">
+            <div className="card-glass p-3 border border-cyan-500/30 text-center">
+              <p className="text-xs uppercase tracking-widest text-gray-400">Subjects</p>
+              <p className="font-heading text-xl text-white">{subjects.length || '—'}</p>
+            </div>
+            <div className="card-glass p-3 border border-emerald-500/30 text-center">
+              <p className="text-xs uppercase tracking-widest text-gray-400">Topics</p>
+              <p className="font-heading text-xl text-white">
+                {new Set(publicQuestions.map((question) => question.topic_name || question.topic || 'General')).size || '—'}
+              </p>
+            </div>
+            <div className="card-glass p-3 border border-amber-500/30 text-center">
+              <p className="text-xs uppercase tracking-widest text-gray-400">Questions</p>
+              <p className="font-heading text-xl text-white">{publicQuestions.length || '—'}</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <h3 className="font-heading text-xl text-center mb-6 text-gray-300">Select a Subject to Practice</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
-        {subjects.map(subject => {
-          const progress = subjectProgress.find(p => p.id === subject.id);
-          const answeredCount = progress ? (progress.easy.completed + progress.medium.completed + progress.hard.completed) : 0;
-          const totalCount = progress ? (progress.easy.total + progress.medium.total + progress.hard.total) : 0;
-          const progressPercent = totalCount > 0 ? Math.round((answeredCount / totalCount) * 100) : 0;
-          const hasQuestions = totalCount > 0;
-          
-          return (
-            <button
-              key={subject.id} 
-              onClick={() => handleSubjectSelect(subject)}
-              disabled={!hasQuestions}
-              className={`card-glass p-5 transform hover:scale-[1.02] transition-all duration-200 text-left ${
-                hasQuestions 
-                  ? 'border border-cyan-500/30 hover:border-cyan-400/50' 
-                  : 'border border-gray-600/30 opacity-60 cursor-not-allowed'
-              }`}
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 flex-shrink-0" style={{ color: 'var(--ion-blue)'}}><BrainIcon /></div>
-                <div className="flex-1">
-                  <h4 className="font-heading text-lg text-white">{subject.name}</h4>
-                  {!hasQuestions && (
-                    <p className="text-xs text-gray-500">No questions available</p>
-                  )}
-                </div>
-              </div>
-              
-              {hasQuestions && (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs text-gray-400">
-                    <span>Your Progress</span>
-                    <span className={answeredCount === 0 ? 'text-gray-500' : 'text-cyan-400'}>
-                      {answeredCount} / {totalCount} answered
-                    </span>
-                  </div>
-                  <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-cyan-500 to-emerald-500 transition-all duration-500"
-                      style={{ width: `${progressPercent}%` }}
-                    />
-                  </div>
-                  {answeredCount === 0 && (
-                    <p className="text-xs text-gray-500 italic">Start practicing to track progress!</p>
-                  )}
-                  {answeredCount > 0 && answeredCount < totalCount && (
-                    <p className="text-xs text-emerald-400">{totalCount - answeredCount} new questions left</p>
-                  )}
-                  {answeredCount >= totalCount && totalCount > 0 && (
-                    <p className="text-xs text-amber-400">✓ All questions answered! Review for practice.</p>
-                  )}
-                </div>
-              )}
-            </button>
-          );
-        })}
+      <div className="max-w-6xl mx-auto w-full">
+        {questionBankLoading ? (
+          <div className="flex justify-center mt-10">
+            <img src="/BRAINS.svg" alt="Loading..." className="w-28 h-28 animate-pulse" style={{ filter: 'drop-shadow(0 0 30px rgba(0, 212, 255, 0.6))' }} />
+          </div>
+        ) : questionBankError ? (
+          <div className="card-glass p-6 text-center border border-red-500/40">
+            <p className="text-red-300 font-semibold mb-2">We hit a snag loading the question bank.</p>
+            <p className="text-gray-300 text-sm">{questionBankError}</p>
+          </div>
+        ) : publicQuestions.length === 0 ? (
+          <div className="card-glass p-6 text-center border border-cyan-500/30">
+            <p className="text-white font-heading text-xl mb-2">No questions are available yet.</p>
+            <p className="text-gray-300 text-sm">Once your teacher publishes questions, they will appear here for practice.</p>
+          </div>
+        ) : (
+          <QuestionBank
+            questions={publicQuestions}
+            teacher={null}
+            onUseSet={handleUseQuestionSet}
+            useActionLabel="Start Quest"
+          />
+        )}
       </div>
     </div>
   );
@@ -1050,6 +1085,13 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         <div className="text-center mb-4">
           <p className="font-mono" style={{color: 'var(--mist-400)'}}>Question {currentQuestionIndex + 1} / {totalQuestions}</p>
           <h2 className="font-heading text-2xl mt-2" style={{color: 'var(--ion-blue)'}}>{selectedSubject?.name}</h2>
+          {selectedTopic && (
+            <div className="flex items-center justify-center gap-2 mt-1">
+              <span className="text-xs px-2 py-1 rounded-full bg-amber-500/20 border border-amber-400 text-amber-100">
+                {selectedTopic}
+              </span>
+            </div>
+          )}
           {mode === 'teacher' && teacherQuestion && (
             <div className="flex items-center justify-center gap-2 mt-2">
               <span className="text-xs px-2 py-1 rounded-full bg-purple-500/20 border border-purple-400">
@@ -1382,6 +1424,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                 if (mode === 'assignment' || assignmentContext) {
                   setMode('practice');
                   setSelectedSubject(null);
+                  setSelectedTopic(null);
                   setQuestions([]);
                   setTeacherQuestions([]);
                   setCurrentQuestionIndex(0);
@@ -1400,6 +1443,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                 } else {
                   setStage('subject_selection');
                   setSelectedSubject(null);
+                  setSelectedTopic(null);
                   setQuestions([]);
                   setTeacherQuestions([]);
                   setCurrentQuestionIndex(0);
