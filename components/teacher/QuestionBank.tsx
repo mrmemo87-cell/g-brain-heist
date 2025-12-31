@@ -32,6 +32,7 @@ interface QuestionBankProps {
   onEditQuestion?: (question: TeacherQuestion) => void;
   onDeleteQuestion?: (questionId: string) => void;
   onCreateQuestion?: () => void;
+  useActionLabel?: string;
 }
 
 // ============================================================================
@@ -136,9 +137,10 @@ interface QuestionSetCardProps {
   set: QuestionSet;
   onPreview: () => void;
   onUseSet: () => void;
+  useActionLabel: string;
 }
 
-const QuestionSetCard: React.FC<QuestionSetCardProps> = ({ set, onPreview, onUseSet }) => {
+const QuestionSetCard: React.FC<QuestionSetCardProps> = ({ set, onPreview, onUseSet, useActionLabel }) => {
   return (
     <div className="blooket-card" onClick={onPreview}>
       {/* Cover Image Area */}
@@ -193,7 +195,7 @@ const QuestionSetCard: React.FC<QuestionSetCardProps> = ({ set, onPreview, onUse
           className="blooket-action-btn use"
           onClick={(e) => { e.stopPropagation(); onUseSet(); }}
         >
-          ▶ Host
+          ▶ {useActionLabel}
         </button>
       </div>
     </div>
@@ -212,6 +214,7 @@ interface SetPreviewModalProps {
   onDeselectAll: () => void;
   onConfirm: () => void;
   onClose: () => void;
+  useActionLabel: string;
 }
 
 const SetPreviewModal: React.FC<SetPreviewModalProps> = ({
@@ -222,6 +225,7 @@ const SetPreviewModal: React.FC<SetPreviewModalProps> = ({
   onDeselectAll,
   onConfirm,
   onClose,
+  useActionLabel,
 }) => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -357,7 +361,7 @@ const SetPreviewModal: React.FC<SetPreviewModalProps> = ({
             onClick={onConfirm}
             disabled={selectedCount === 0}
           >
-            ▶ Host with {selectedCount} Question{selectedCount !== 1 ? 's' : ''}
+            ▶ {useActionLabel} with {selectedCount} Question{selectedCount !== 1 ? 's' : ''}
           </button>
         </div>
       </div>
@@ -376,6 +380,7 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
   onEditQuestion,
   onDeleteQuestion,
   onCreateQuestion,
+  useActionLabel = 'Host',
 }) => {
   // State
   const [activeTab, setActiveTab] = useState<TabFilter>('discover');
@@ -656,6 +661,7 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
                 set={set}
                 onPreview={() => handlePreview(set)}
                 onUseSet={() => handleUseSet(set)}
+                useActionLabel={useActionLabel}
               />
             ))
           )}
@@ -672,6 +678,7 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
           onDeselectAll={handleDeselectAll}
           onConfirm={handleConfirmSelection}
           onClose={handleClosePreview}
+          useActionLabel={useActionLabel}
         />
       )}
     </div>
