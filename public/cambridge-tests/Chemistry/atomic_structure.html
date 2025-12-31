@@ -164,19 +164,27 @@
       min-width: 22px;
       display: inline-block;
     }
+    .table-wrapper {
+      margin: 12px 0;
+      overflow-x: auto;
+      border-radius: 12px;
+      -webkit-overflow-scrolling: touch;
+    }
     table {
       width: 100%;
+      min-width: 420px;
       border-collapse: collapse;
-      margin: 12px 0;
       background: rgba(0,0,0,0.12);
       border-radius: 12px;
       overflow: hidden;
+      table-layout: fixed;
     }
     table th, table td {
       padding: 10px;
       text-align: center;
       border: 1px solid var(--border);
       color: #e2e8f0;
+      word-break: break-word;
     }
     table th {
       background: rgba(255,255,255,0.06);
@@ -252,7 +260,7 @@
       <span class="badge">🧪 Category: Science</span>
       <span class="badge">🎯 Difficulty: Advanced</span>
       <span class="badge">📝 Format: Multiple Choice (A–D)</span>
-      <span class="badge">⏱️ Suggested time: 20 min</span>
+      <span class="badge">⏱️ Suggested time: 75 min</span>
     </div>
 
     <div class="status">
@@ -958,9 +966,17 @@
         const title = document.createElement('div');
         title.className = 'question-title';
         title.innerHTML = q.prompt;
+        title.querySelectorAll('table').forEach(tbl => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'table-wrapper';
+          tbl.parentNode.insertBefore(wrapper, tbl);
+          wrapper.appendChild(tbl);
+        });
         card.appendChild(title);
 
         if (q.table) {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'table-wrapper';
           const table = document.createElement('table');
           const thead = document.createElement('thead');
           const headRow = document.createElement('tr');
@@ -990,8 +1006,11 @@
             tbody.appendChild(tr);
           });
           table.appendChild(tbody);
-          card.appendChild(table);
+          wrapper.appendChild(table);
+          card.appendChild(wrapper);
         } else if (q.optionTable) {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'table-wrapper';
           const table = document.createElement('table');
           const thead = document.createElement('thead');
           const headRow = document.createElement('tr');
@@ -1014,7 +1033,8 @@
             tbody.appendChild(tr);
           });
           table.appendChild(tbody);
-          card.appendChild(table);
+          wrapper.appendChild(table);
+          card.appendChild(wrapper);
         } else if (q.options) {
           const list = document.createElement('div');
           list.className = 'option-list';
