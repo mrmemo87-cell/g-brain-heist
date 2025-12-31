@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cambridge Practice Tests</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 24px;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: #e2e8f0;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 28px;
+    }
+    p {
+      margin: 0 0 20px;
+      color: #cbd5e1;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: #22d3ee;
+    }
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: rgba(34, 211, 238, 0.15);
+      color: #67e8f9;
+      border: 1px solid rgba(34, 211, 238, 0.35);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Cambridge Practice Tests</h1>
+    <p>Select a folder to browse the available papers.</p>
+    <div class="grid">
+      <a class="card" href="./English%20stage%209/">
+        <h2>English Stage 9</h2>
+        <p class="pill">Reading · Listening · Writing</p>
+        <p style="margin-top: 10px;">Open the folder to access all Stage 9 Cambridge papers.</p>
+      </a>
+      <a class="card" href="./Chemistry/">
+        <h2>Chemistry</h2>
+        <p class="pill">Atomic Structure</p>
+        <p style="margin-top: 10px;">Open the folder to find the AS Chemistry practice test.</p>
+      </a>
+    </div>
+  </div>
+</body>
+</html>

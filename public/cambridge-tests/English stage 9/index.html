@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>English Stage 9 — Cambridge Tests</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 24px;
+      background: linear-gradient(135deg, #0f172a, #1f2937);
+      color: #e5e7eb;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 { margin: 0 0 6px; font-size: 28px; }
+    p { margin: 0 0 18px; color: #cbd5e1; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 18px;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    .card:hover { transform: translateY(-3px); border-color: #22d3ee; }
+    .card h2 { margin: 0 0 10px; font-size: 18px; }
+    .meta { font-size: 13px; margin: 0 0 8px; color: #cbd5e1; }
+    .pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: rgba(34, 211, 238, 0.15);
+      color: #67e8f9;
+      border: 1px solid rgba(34, 211, 238, 0.35);
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: #67e8f9;
+      margin-bottom: 18px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a class="back-link" href="../">← Back to Cambridge folders</a>
+    <h1>English Stage 9</h1>
+    <p>Choose a paper to open it directly.</p>
+
+    <div class="grid">
+      <a class="card" href="./cambridge_reading_25_answer_form.html">
+        <h2>Cambridge Reading Test 25</h2>
+        <p class="meta">Reading comprehension — answer form</p>
+        <span class="pill">Reading</span>
+      </a>
+      <a class="card" href="./cambridge_listening_test_1.html">
+        <h2>Cambridge Listening Test 1</h2>
+        <p class="meta">Five-part listening paper</p>
+        <span class="pill">Listening</span>
+      </a>
+      <a class="card" href="./cambridge_writing_test_1.html">
+        <h2>Cambridge Writing Test 1</h2>
+        <p class="meta">E2L Stage 9 Paper 3 — writing tasks</p>
+        <span class="pill">Writing</span>
+      </a>
+    </div>
+  </div>
+</body>
+</html>
