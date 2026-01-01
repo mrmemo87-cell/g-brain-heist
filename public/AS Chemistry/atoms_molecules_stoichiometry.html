@@ -1193,40 +1193,40 @@
     }
 
     function renderIonisationGraphs() {
+      const xPositions = [30, 52, 74, 96, 118, 140, 162, 184, 206];
+      const labelY = 145;
+      const buildGraph = (points, color, suffix, label) => {
+        const tickLines = xPositions.map(x => `<line x1="${x}" y1="130" x2="${x}" y2="134" stroke="#94a3b8" stroke-width="1" />`).join('');
+        const tickLabels = xPositions.map((x, idx) => `<text x="${x - 3}" y="${labelY}" fill="#cbd5e1" font-size="10">${idx}</text>`).join('');
+        const polylinePoints = points.map((y, idx) => `${xPositions[idx]},${y}`).join(' ');
+        const pointDots = points.map((y, idx) => `<circle cx="${xPositions[idx]}" cy="${y}" r="3" fill="${color}" />`).join('');
+
+        return `
+          <svg viewBox="0 0 230 170" width="100%" height="170" aria-label="Ionisation energy graph for ${label}">
+            <defs>
+              <marker id="axis-arrow-${suffix}" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L8,4 L0,8 z" fill="#94a3b8" />
+              </marker>
+            </defs>
+            <line x1="30" y1="130" x2="210" y2="130" stroke="#94a3b8" stroke-width="1.5" />
+            <line x1="30" y1="130" x2="30" y2="20" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#axis-arrow-${suffix})" />
+            ${tickLines}
+            ${tickLabels}
+            <polyline points="${polylinePoints}" fill="none" stroke="${color}" stroke-width="3" />
+            ${pointDots}
+            <text x="40" y="32" fill="#e2e8f0" font-size="11">ionisation energy</text>
+            <text x="76" y="156" fill="#e2e8f0" font-size="11">electron removed</text>
+          </svg>
+        `;
+      };
+
+      const graphA = buildGraph([123, 122, 121, 119, 118, 116, 114, 110, 42], '#38bdf8', 'a', 'element A');
+      const graphB = buildGraph([124, 123, 122, 102, 88, 76, 64, 52, 40], '#f59e0b', 'b', 'element B');
+
       return `
         <div class="graph-row">
-          <div class="mini-graph">
-            <svg viewBox="0 0 220 160" width="100%" height="160" aria-label="Ionisation energy graph for element A">
-              <line x1="30" y1="130" x2="200" y2="130" stroke="#94a3b8" stroke-width="1.5" />
-              <line x1="30" y1="130" x2="30" y2="20" stroke="#94a3b8" stroke-width="1.5" />
-              <polyline points="30,118 60,115 90,112 120,108 150,101 180,90 200,40" fill="none" stroke="#38bdf8" stroke-width="3" />
-              <text x="30" y="142" fill="#cbd5e1" font-size="10">0</text>
-              <text x="60" y="142" fill="#cbd5e1" font-size="10">1</text>
-              <text x="90" y="142" fill="#cbd5e1" font-size="10">2</text>
-              <text x="120" y="142" fill="#cbd5e1" font-size="10">3</text>
-              <text x="150" y="142" fill="#cbd5e1" font-size="10">4</text>
-              <text x="180" y="142" fill="#cbd5e1" font-size="10">5</text>
-              <text x="200" y="142" fill="#cbd5e1" font-size="10">6 7 8</text>
-              <text x="40" y="32" fill="#e2e8f0" font-size="11">ionisation energy</text>
-              <text x="70" y="154" fill="#e2e8f0" font-size="11">electron removed</text>
-            </svg>
-          </div>
-          <div class="mini-graph">
-            <svg viewBox="0 0 220 160" width="100%" height="160" aria-label="Ionisation energy graph for element B">
-              <line x1="30" y1="130" x2="200" y2="130" stroke="#94a3b8" stroke-width="1.5" />
-              <line x1="30" y1="130" x2="30" y2="20" stroke="#94a3b8" stroke-width="1.5" />
-              <polyline points="30,125 70,122 110,114 140,102 170,85 190,60 200,30" fill="none" stroke="#f59e0b" stroke-width="3" />
-              <text x="30" y="142" fill="#cbd5e1" font-size="10">0</text>
-              <text x="60" y="142" fill="#cbd5e1" font-size="10">1</text>
-              <text x="90" y="142" fill="#cbd5e1" font-size="10">2</text>
-              <text x="120" y="142" fill="#cbd5e1" font-size="10">3</text>
-              <text x="150" y="142" fill="#cbd5e1" font-size="10">4</text>
-              <text x="180" y="142" fill="#cbd5e1" font-size="10">5</text>
-              <text x="200" y="142" fill="#cbd5e1" font-size="10">6 7 8</text>
-              <text x="40" y="32" fill="#e2e8f0" font-size="11">ionisation energy</text>
-              <text x="70" y="154" fill="#e2e8f0" font-size="11">electron removed</text>
-            </svg>
-          </div>
+          <div class="mini-graph">${graphA}</div>
+          <div class="mini-graph">${graphB}</div>
         </div>
       `;
     }
