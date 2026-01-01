@@ -78,6 +78,16 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     category: 'Science',
     url: '/cambridge-tests/Chemistry/atoms_molecules_stoichiometry.html',
   },
+  {
+    id: 'as-chemistry-ch3-chemical-bonding',
+    name: 'AS Chemistry Ch3 (Chemical bonding)',
+    description: 'Chapter 3 multiple-choice practice on metallic bonding, shapes, hybridisation, bonding energetics, and dative bonds.',
+    duration: '20 min',
+    totalQuestions: 55,
+    difficulty: 'Advanced',
+    category: 'Science',
+    url: '/cambridge-tests/Chemistry/chemical_bonding.html',
+  },
   // Add more tests here as they become available
 ];
 
