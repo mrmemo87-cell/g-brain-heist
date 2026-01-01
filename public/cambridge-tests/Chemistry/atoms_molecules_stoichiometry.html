@@ -192,16 +192,24 @@
       background: rgba(0,0,0,0.12);
       border-radius: 12px;
       overflow: hidden;
+      table-layout: fixed;
     }
     table th, table td {
       padding: 10px;
       text-align: center;
       border: 1px solid var(--border);
       color: #e2e8f0;
+      word-break: break-word;
+      white-space: normal;
     }
     table th {
       background: rgba(255,255,255,0.06);
       font-weight: 700;
+    }
+    .table-scroll {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
     }
     .nuclide sup, .nuclide sub {
       font-size: 0.7em;
@@ -1298,6 +1306,17 @@
       `;
     }
 
+    function wrapTables(card) {
+      const tables = card.querySelectorAll('table');
+      tables.forEach(table => {
+        if (table.parentElement && table.parentElement.classList.contains('table-scroll')) return;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'table-scroll';
+        table.parentNode.insertBefore(wrapper, table);
+        wrapper.appendChild(table);
+      });
+    }
+
     function renderQuestions() {
       const container = document.getElementById('questions');
       QUESTIONS.forEach((q) => {
@@ -1390,6 +1409,7 @@
           card.appendChild(list);
         }
 
+        wrapTables(card);
         container.appendChild(card);
       });
     }
