@@ -1184,6 +1184,81 @@
       }
     }
 
+    function parseColorString(color) {
+      if (!color) return null;
+      const hexMatch = color.trim().match(/^#([0-9a-fA-F]{3,8})$/);
+      if (hexMatch) {
+        const hex = hexMatch[1];
+        if (hex.length === 3 || hex.length === 4) {
+          const r = parseInt(hex[0] + hex[0], 16);
+          const g = parseInt(hex[1] + hex[1], 16);
+          const b = parseInt(hex[2] + hex[2], 16);
+          return { r, g, b };
+        }
+        if (hex.length >= 6) {
+          const r = parseInt(hex.slice(0, 2), 16);
+          const g = parseInt(hex.slice(2, 4), 16);
+          const b = parseInt(hex.slice(4, 6), 16);
+          return { r, g, b };
+        }
+      }
+      const rgbMatch = color.match(/rgba?\(([^)]+)\)/);
+      if (rgbMatch) {
+        const parts = rgbMatch[1].split(',').map(v => parseFloat(v.trim()));
+        return { r: parts[0], g: parts[1], b: parts[2] };
+      }
+      return null;
+    }
+
+    function calculateLuminance({ r, g, b }) {
+      const [R, G, B] = [r, g, b].map(v => {
+        const channel = v / 255;
+        return channel <= 0.03928
+          ? channel / 12.92
+          : Math.pow((channel + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * R + 0.7152 * G + 0.0722 * B;
+    }
+
+    function detectDarkBackground(element = document.body) {
+      const style = window.getComputedStyle(element);
+      const colorSamples = [];
+
+      const bgImage = style.backgroundImage;
+      if (bgImage && bgImage !== 'none') {
+        const matches = bgImage.match(/(#[0-9a-fA-F]{3,8}|rgba?\([^\)]+\))/g) || [];
+        matches.forEach(match => {
+          const parsed = parseColorString(match);
+          if (parsed) colorSamples.push(parsed);
+        });
+      }
+
+      const bgColor = parseColorString(style.backgroundColor);
+      if (bgColor) colorSamples.push(bgColor);
+
+      if (!colorSamples.length) {
+        const textColor = parseColorString(style.color);
+        if (textColor) colorSamples.push(textColor);
+      }
+
+      if (!colorSamples.length) {
+        return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      }
+
+      const averageLuminance = colorSamples.reduce((sum, sample) => sum + calculateLuminance(sample), 0) / colorSamples.length;
+      return averageLuminance < 0.5;
+    }
+
+    function updateSvgColorsForBackground() {
+      const svgImages = document.querySelectorAll('#questions img[src$=".svg"]');
+      if (!svgImages.length) return;
+      const darkBg = detectDarkBackground();
+      svgImages.forEach(img => {
+        img.style.filter = darkBg ? 'brightness(0) invert(1)' : 'none';
+        img.style.transition = 'filter 0.2s ease';
+      });
+    }
+
     function renderIonisationGraphs() {
       return `
         <div class="graph-row">
@@ -1450,6 +1525,23 @@
       checkPreviousSubmission();
       startTime = Date.now();
       document.getElementById('submitBtn').addEventListener('click', handleSubmit);
+      updateSvgColorsForBackground();
+
+      const colorSchemeQuery = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+      if (colorSchemeQuery) {
+        const listener = () => updateSvgColorsForBackground();
+        if (colorSchemeQuery.addEventListener) {
+          colorSchemeQuery.addEventListener('change', listener);
+        } else if (colorSchemeQuery.addListener) {
+          colorSchemeQuery.addListener(listener);
+        }
+      }
+
+      document.querySelectorAll('#questions img[src$=".svg"]').forEach(img => {
+        if (!img.complete) {
+          img.addEventListener('load', updateSvgColorsForBackground, { once: true });
+        }
+      });
     });
   </script>
 </body>
