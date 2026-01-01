@@ -260,7 +260,7 @@
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
         <h1 style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch2 (Atoms, molecules and stoichiometry)</h1>
-        <div style="color: var(--text-muted); font-size: 14px;">Chapter 2 • 21 multiple-choice questions</div>
+        <div style="color: var(--text-muted); font-size: 14px;">Chapter 2 • 63 multiple-choice questions</div>
       </div>
     </div>
 
@@ -332,240 +332,451 @@
     const QUESTIONS = [
       {
         number: 1,
-        code: '9701_m22_qp_12 Q: 32',
-        prompt: 'The structure of tartaric acid is shown.<br><br>HOOC–CHOH–CHOH–COOH<br><br>Four moles of substance X react with one mole of tartaric acid.<br><br>What could be substance X?',
+        code: '9701_m21_qp_12 Q: 4',
+        prompt: 'Originally, chemists thought indium oxide had the formula InO. By experiment they showed that 4.8 g of indium combined with 1.0 g of oxygen to produce 5.8 g of indium oxide. The A<sub>r</sub> of oxygen was known to be 16.<br><br>Which value for the A<sub>r</sub> of indium is calculated using these data?',
         options: {
-          A: 'sodium',
-          B: 'sodium carbonate',
-          C: 'sodium hydrogencarbonate',
-          D: 'sodium hydroxide',
+          A: '38',
+          B: '77',
+          C: '115',
+          D: '154',
         }
       },
       {
         number: 2,
-        code: '9701_m21_qp_12 Q: 3',
-        prompt: 'Substance Q is a hydrocarbon. When 1.00 g of Q is completely burned, 3.22 g of carbon dioxide is produced.<br><br>What could be the identity of Q?',
+        code: '9701_w20_qp_11 Q: 1',
+        prompt: 'Which statement is correct?',
         options: {
-          A: 'cyclohexene',
-          B: 'cyclopentane',
-          C: 'ethene',
-          D: 'pentane',
+          A: 'Cl has a relative isotopic mass of 35.5.',
+          B: 'Cl<sub>2</sub> has a relative molecular mass of 70.',
+          C: 'ICl has a relative molecular mass of 162.4.',
+          D: 'NaCl has a relative molecular mass of 58.5.',
         }
       },
       {
         number: 3,
-        code: '9701_s21_qp_11 Q: 6',
-        prompt: 'What is the minimum mass of oxygen required to ensure the complete combustion of 12 dm<sup>3</sup> of propane measured under room conditions?',
+        code: '9701_s21_qp_11 Q: 1',
+        prompt: 'Which contains the largest number of hydrogen atoms?',
         options: {
-          A: '60 g',
-          B: '80 g',
-          C: '120 g',
-          D: '160 g',
+          A: '0.10 mol of pentane',
+          B: '0.20 mol of but-2-ene',
+          C: '1.00 mol of hydrogen molecules',
+          D: '6.02 × 10<sup>23</sup> hydrogen atoms',
         }
       },
       {
         number: 4,
-        code: '9701_s21_qp_11 Q: 27',
-        prompt: 'How many moles of hydrogen, H<sub>2</sub>, are evolved when an excess of sodium metal is added to one mole of citric acid?',
+        code: '9701_s21_qp_12 Q: 1',
+        prompt: 'Which statement about the Avogadro constant is correct?',
         options: {
-          A: '0.5',
-          B: '1.5',
-          C: '2',
-          D: '4',
+          A: 'It is the mass of one mole of any element.',
+          B: 'It is the mass of 6.02 × 10<sup>23</sup> atoms of any element.',
+          C: 'It is the number of atoms in one mole of neon.',
+          D: 'It is the number of atoms in 12 g of any element.',
         }
       },
       {
         number: 5,
-        code: '9701_s21_qp_13 Q: 2',
-        prompt: 'A sample of propane, C<sub>3</sub>H<sub>8</sub>, with a mass of 9.61 g is completely combusted in an excess of oxygen under room conditions.<br><br>Which volume of carbon dioxide gas is produced?',
+        code: '9701_w21_qp_12 Q: 2',
+        prompt: 'Which statement is correct?',
         options: {
-          A: '4.89 dm<sup>3</sup>',
-          B: '5.24 dm<sup>3</sup>',
-          C: '14.7 dm<sup>3</sup>',
-          D: '15.7 dm<sup>3</sup>',
+          A: '1.0 g of hydrogen gas contains 3.0 × 10<sup>23</sup> atoms.',
+          B: '4.0 g of helium gas contains 1.2 × 10<sup>24</sup> atoms.',
+          C: '16 g of methane gas contains 3.0 × 10<sup>24</sup> atoms.',
+          D: '44 g of carbon dioxide gas contains 6.0 × 10<sup>23</sup> atoms.',
         }
       },
       {
         number: 6,
-        code: '9701_w21_qp_11 Q: 15',
-        prompt: 'Anhydrous magnesium nitrate, Mg(NO<sub>3</sub>)<sub>2</sub>, decomposes when heated, giving a white solid and a mixture of two gases, X and Y.<br><br>Y is oxygen.<br><br>What is the ratio <span class="fraction"><span class="fraction-top">mass of X released</span><span class="fraction-bottom">mass of Y released</span></span>?',
+        code: '9701_s20_qp_11 Q: 11',
+        prompt: 'A sample of solid ammonium chloride decomposes on heating.<br><br>solid ammonium chloride → ammonia gas + hydrogen chloride gas<br><br>A total of 2.4 × 10<sup>21</sup> molecules of gas is formed.<br><br>How many hydrogen atoms are present in the gaseous products?',
         options: {
-          A: '<span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">0.174</span></span>',
-          B: '<span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">0.267</span></span>',
-          C: '<span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">0.348</span></span>',
-          D: '<span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">3.43</span></span>',
+          A: '1.2 × 10<sup>21</sup>',
+          B: '2.4 × 10<sup>21</sup>',
+          C: '4.8 × 10<sup>21</sup>',
+          D: '9.6 × 10<sup>21</sup>',
         }
       },
       {
         number: 7,
-        code: '9701_w21_qp_11 Q: 28',
-        prompt: 'Citric acid is found in lemon juice.<br><br>Which volume of 0.40 mol dm<sup>−3</sup> sodium hydroxide solution is required to neutralise a solution containing 0.0050 mol of citric acid?',
+        code: '9701_w19_qp_11 Q: 2',
+        prompt: 'Diamond is a pure form of carbon. The mass of a diamond can be measured in carats. One carat is 0.200 g of carbon.<br><br>Which expression gives the number of carats that contain 6.02 × 10<sup>23</sup> carbon atoms?',
         options: {
-          A: '12.5 cm<sup>3</sup>',
-          B: '25.0 cm<sup>3</sup>',
-          C: '37.5 cm<sup>3</sup>',
-          D: '50.0 cm<sup>3</sup>',
+          A: '0.200 × 12.0',
+          B: '<span class="fraction"><span class="fraction-top">0.200</span><span class="fraction-bottom">12.0</span></span>',
+          C: '<span class="fraction"><span class="fraction-top">12.0</span><span class="fraction-bottom">0.200</span></span>',
+          D: '<span class="fraction"><span class="fraction-top">0.200</span><span class="fraction-bottom">6.02 × 10<sup>23</sup></span></span> × 12.0',
         }
       },
       {
         number: 8,
-        code: '9701_w21_qp_12 Q: 14',
-        prompt: 'A 0.005 mol sample of anhydrous calcium carbonate is completely thermally decomposed to give 100 cm<sup>3</sup> of gas.<br><br>In a separate experiment carried out under the same conditions, a 0.005 mol sample of anhydrous calcium nitrate is completely thermally decomposed. The volume of gaseous products is measured.<br><br>What total volume of gaseous products is produced from the calcium nitrate?',
+        code: '9701_s17_qp_11 Q: 3',
+        prompt: 'A sports medal has a total surface area of 150 cm<sup>2</sup>. It was evenly coated with silver by electrolysis. Its mass increased by 0.216 g.<br><br>How many atoms of silver were deposited per cm<sup>2</sup> on the surface of the medal?',
         options: {
-          A: '50 cm<sup>3</sup>',
-          B: '100 cm<sup>3</sup>',
-          C: '200 cm<sup>3</sup>',
-          D: '250 cm<sup>3</sup>',
+          A: '8.0 × 10<sup>18</sup>',
+          B: '1.8 × 10<sup>19</sup>',
+          C: '8.7 × 10<sup>20</sup>',
+          D: '1.2 × 10<sup>21</sup>',
         }
       },
       {
         number: 9,
-        code: '9701_m20_qp_12 Q: 7',
-        prompt: 'Sodium azide, NaN<sub>3</sub>, decomposes as shown.<br><br>2NaN<sub>3</sub> → 2Na + 3N<sub>2</sub><br><br>Which volume of nitrogen, measured at room temperature and pressure, will be produced by the decomposition of 150 g of sodium azide?',
+        code: '9701_s17_qp_12 Q: 2',
+        prompt: 'Which would contain 9.03 × 10<sup>23</sup> oxygen atoms?',
         options: {
-          A: '166 dm<sup>3</sup>',
-          B: '83 dm<sup>3</sup>',
-          C: '55 dm<sup>3</sup>',
-          D: '37 dm<sup>3</sup>',
+          A: '0.25 mol aluminium oxide',
+          B: '0.75 mol sulfur dioxide',
+          C: '1.5 mol sulfur trioxide',
+          D: '3.0 mol water',
         }
       },
       {
         number: 10,
-        code: '9701_s20_qp_11 Q: 4',
-        prompt: '10 cm<sup>3</sup> of ethane is burned in 45 cm<sup>3</sup> of oxygen at a pressure of 101 kPa and a temperature of 200 °C. Complete combustion takes place.<br><br>What is the total volume of gas present when the reaction is complete, measured under the same conditions?',
+        code: '9701_m22_qp_12 Q: 3',
+        prompt: 'Compound X contains the elements C, H and O only.<br><br>2.00 g of X produces 4.00 g of carbon dioxide and 1.63 g of water when completely combusted.<br><br>What is the empirical formula of X?',
         options: {
-          A: '30 cm<sup>3</sup>',
-          B: '50 cm<sup>3</sup>',
-          C: '55 cm<sup>3</sup>',
-          D: '60 cm<sup>3</sup>',
+          A: 'CHO<sub>2</sub>',
+          B: 'C<sub>2</sub>H<sub>2</sub>O',
+          C: 'C<sub>2</sub>H<sub>4</sub>O',
+          D: 'CH<sub>2</sub>O<sub>2</sub>',
         }
       },
       {
         number: 11,
-        code: '9701_s20_qp_11 Q: 13',
-        prompt: '6.90 g of an ammonium salt is heated with an excess of aqueous sodium hydroxide. The volume of ammonia produced, measured under room conditions, is 2.51 dm<sup>3</sup>.<br><br>Which ammonium salt is used?',
+        code: '9701_m22_qp_12 Q: 14',
+        prompt: 'Which statement about atoms and molecules is correct?',
         options: {
-          A: 'ammonium carbonate (M<sub>r</sub> = 96.0)',
-          B: 'ammonium chloride (M<sub>r</sub> = 53.5)',
-          C: 'ammonium nitrate (M<sub>r</sub> = 80.0)',
-          D: 'ammonium sulfate (M<sub>r</sub> = 132.1)',
+          A: 'The molecular formula of a compound is the simplest whole number ratio of atoms of each element in the compound.',
+          B: 'One mole of any substance contains 6 × 10<sup>23</sup> atoms.',
+          C: 'The relative atomic mass of an element is the ratio of the average mass of one atom of the element to the mass of an atom of carbon-12.',
+          D: 'The relative formula mass of a compound is the sum of the individual atomic masses of all the atoms in the formula.',
         }
       },
       {
         number: 12,
-        code: '9701_s20_qp_11 Q: 17',
-        prompt: '0.25 g of anhydrous magnesium nitrate is heated strongly until it completely decomposes.<br><br>What is the total volume of gas produced, measured under room conditions?',
+        code: '9701_s21_qp_13 Q: 1',
+        prompt: 'Compound X is an organic compound that contains 30.6% carbon, 3.8% hydrogen, 20.4% oxygen and 45.2% chlorine by mass.<br><br>What is the empirical formula of X?',
         options: {
-          A: '40 cm<sup>3</sup>',
-          B: '81 cm<sup>3</sup>',
-          C: '101 cm<sup>3</sup>',
-          D: '202 cm<sup>3</sup>',
+          A: 'C<sub>2</sub>H<sub>3</sub>OCl',
+          B: 'C<sub>2</sub>H<sub>4</sub>OCl',
+          C: 'C<sub>3</sub>H<sub>4</sub>OCl',
+          D: 'C<sub>4</sub>H<sub>3</sub>O<sub>2</sub>Cl<sub>2</sub>',
         }
       },
       {
         number: 13,
-        code: '9701_s20_qp_12 Q: 2',
-        prompt: 'A copper ore contains 3.00% of copper carbonate, CuCO<sub>3</sub>, by mass.<br><br>Which mass of copper would be obtained from 1 tonne of the ore?',
+        code: '9701_s19_qp_12 Q: 3',
+        prompt: 'The first eight successive ionisation energies for two elements of Period 3 of the Periodic Table are shown in the graphs.<br><br>Identify the ionic compound formed from these elements.',
+        graphs: true,
         options: {
-          A: '1.91 kg',
-          B: '3.71 kg',
-          C: '15.4 kg',
-          D: '58.4 kg',
+          A: 'MgCl<sub>2</sub>',
+          B: 'CaBr<sub>2</sub>',
+          C: 'Na<sub>2</sub>S',
+          D: 'K<sub>2</sub>Se',
         }
       },
       {
         number: 14,
-        code: '9701_s20_qp_12 Q: 6',
-        prompt: 'In this question you should assume air contains 21% oxygen.<br><br>What is the minimum volume of air required to ensure complete combustion of 10 cm<sup>3</sup> of butane gas, under room conditions?',
-        options: {
-          A: '14 cm<sup>3</sup>',
-          B: '27 cm<sup>3</sup>',
-          C: '65 cm<sup>3</sup>',
-          D: '310 cm<sup>3</sup>',
+        code: '9701_m18_qp_12 Q: 1',
+        prompt: 'What are the shapes of the molecules of water and boron trifluoride?',
+        optionTable: {
+          headers: ['H<sub>2</sub>O', 'BF<sub>3</sub>'],
+          rows: [
+            { label: 'A', values: ['linear', 'pyramidal'] },
+            { label: 'B', values: ['linear', 'trigonal'] },
+            { label: 'C', values: ['non-linear', 'pyramidal'] },
+            { label: 'D', values: ['non-linear', 'trigonal'] },
+          ]
         }
       },
       {
         number: 15,
-        code: '9701_s20_qp_12 Q: 13',
-        prompt: 'Magnesium nitrate, Mg(NO<sub>3</sub>)<sub>2</sub>, decomposes when heated to give a white solid and a mixture of gases. One of the gases released is an oxide of nitrogen, X.<br><br>7.4 g of anhydrous magnesium nitrate is heated until no further reaction takes place.<br><br>What mass of X is produced?',
+        code: '9701_s18_qp_12 Q: 4',
+        prompt: 'Compound J burns in excess oxygen to give carbon dioxide and water only. When a 3.00 g sample of compound J is burnt in excess oxygen, 4.40 g of carbon dioxide and 1.80 g of water are formed.<br><br>What is the empirical formula of J?',
         options: {
-          A: '1.5 g',
-          B: '2.3 g',
-          C: '3.0 g',
-          D: '4.6 g',
+          A: 'CH',
+          B: 'CHO',
+          C: 'CH<sub>2</sub>',
+          D: 'CH<sub>2</sub>O',
         }
       },
       {
         number: 16,
-        code: '9701_w20_qp_11 Q: 2',
-        prompt: 'Strontium metal can be extracted from strontium oxide, SrO, by reduction with aluminium. One of the possible reactions is shown.<br><br>6SrO + 2Al → 3Sr + Sr<sub>3</sub>Al<sub>2</sub>O<sub>6</sub><br><br>What is the maximum mass of strontium metal that can be produced from the reduction of 100 g of strontium oxide using this reaction?',
-        options: {
-          A: '41.3 g',
-          B: '42.3 g',
-          C: '84.6 g',
-          D: '169.2 g',
+        code: '9701_m17_qp_12 Q: 2',
+        prompt: 'Compounds J and K each contain 40% carbon by mass.<br><br>What could J and K be?',
+        optionTable: {
+          headers: ['J', 'K'],
+          rows: [
+            { label: 'A', values: ['a hexose, C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>', 'starch, (C<sub>6</sub>H<sub>10</sub>O<sub>5</sub>)<sub>n</sub>'] },
+            { label: 'B', values: ['a pentose, C<sub>5</sub>H<sub>10</sub>O<sub>5</sub>', 'a hexose, C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>'] },
+            { label: 'C', values: ['a pentose, C<sub>5</sub>H<sub>10</sub>O<sub>5</sub>', 'sucrose, C<sub>12</sub>H<sub>22</sub>O<sub>11</sub>'] },
+            { label: 'D', values: ['starch, (C<sub>6</sub>H<sub>10</sub>O<sub>5</sub>)<sub>n</sub>', 'sucrose, C<sub>12</sub>H<sub>22</sub>O<sub>11</sub>'] },
+          ]
         }
       },
       {
         number: 17,
-        code: '9701_w20_qp_12 Q: 2',
-        prompt: 'An ore of manganese contains 4% by mass of MnO<sub>2</sub> and no other manganese compound.<br><br>Which mass of manganese would be obtained from 1 tonne of this ore?',
+        code: '9701_w17_qp_11 Q: 1',
+        prompt: 'Which formula represents the empirical formula of a compound?',
         options: {
-          A: '25.3 kg',
-          B: '40.0 kg',
-          C: '63.3 kg',
-          D: '632 kg',
+          A: 'C<sub>2</sub>H<sub>4</sub>O',
+          B: 'C<sub>2</sub>H<sub>4</sub>O<sub>2</sub>',
+          C: 'C<sub>6</sub>H<sub>12</sub>',
+          D: 'H<sub>2</sub>O<sub>2</sub>',
         }
       },
       {
         number: 18,
-        code: '9701_w20_qp_12 Q: 5',
-        prompt: 'A white powder is known to be a mixture of magnesium oxide and aluminium oxide.<br><br>100 cm<sup>3</sup> of 2 mol dm<sup>−3</sup> NaOH(aq) is just enough to dissolve the aluminium oxide in x grams of the mixture.<br><br>800 cm<sup>3</sup> of 2 mol dm<sup>−3</sup> HCl(aq) is just enough to dissolve all of the oxide in x grams of the mixture.<br><br>How many moles of each oxide are present in x grams of the mixture?',
+        code: '9701_w17_qp_12 Q: 2',
+        prompt: 'Two hydrocarbons have the formulae C<sub>w</sub>H<sub>x</sub> and C<sub>y</sub>H<sub>z</sub>. W, X, Y and Z represent different whole numbers and <span class="fraction"><span class="fraction-top">W</span><span class="fraction-bottom">X</span></span> = <span class="fraction"><span class="fraction-top">Y</span><span class="fraction-bottom">Z</span></span>.<br><br>Which row is correct when comparing the two hydrocarbons?',
         optionTable: {
-          headers: ['aluminium oxide', 'magnesium oxide'],
+          headers: ['empirical formula', 'molecular formula', 'relative molecular mass'],
           rows: [
-            { label: 'A', values: ['0.05', '0.25'] },
-            { label: 'B', values: ['0.05', '0.50'] },
-            { label: 'C', values: ['0.10', '0.25'] },
-            { label: 'D', values: ['0.10', '0.50'] },
+            { label: 'A', values: ['different', 'same', 'different'] },
+            { label: 'B', values: ['different', 'same', 'same'] },
+            { label: 'C', values: ['same', 'different', 'different'] },
+            { label: 'D', values: ['same', 'different', 'same'] },
           ]
         }
       },
       {
         number: 19,
-        code: '9701_m19_qp_12 Q: 2',
-        prompt: 'A 3.7 g sample of copper(II) carbonate is added to 25 cm<sup>3</sup> of 2.0 mol dm<sup>−3</sup> hydrochloric acid.<br><br>Which volume of gas is produced under room conditions?',
+        code: '9701_w15_qp_11 Q: 1',
+        prompt: 'The table gives the successive ionisation energies for an element X.<br><br><table style="border-collapse: collapse; margin: 10px 0; text-align: center;"><thead><tr><th style="border:1px solid #ccc; padding:6px;"></th><th style="border:1px solid #ccc; padding:6px;">1st</th><th style="border:1px solid #ccc; padding:6px;">2nd</th><th style="border:1px solid #ccc; padding:6px;">3rd</th><th style="border:1px solid #ccc; padding:6px;">4th</th><th style="border:1px solid #ccc; padding:6px;">5th</th><th style="border:1px solid #ccc; padding:6px;">6th</th></tr></thead><tbody><tr><td style="border:1px solid #ccc; padding:6px;">ionisation energy / kJ mol<sup>−1</sup></td><td style="border:1px solid #ccc; padding:6px;">950</td><td style="border:1px solid #ccc; padding:6px;">1800</td><td style="border:1px solid #ccc; padding:6px;">2700</td><td style="border:1px solid #ccc; padding:6px;">4800</td><td style="border:1px solid #ccc; padding:6px;">6000</td><td style="border:1px solid #ccc; padding:6px;">12300</td></tr></tbody></table>What could be the formula of a chloride of X?',
         options: {
-          A: '0.60 dm<sup>3</sup>',
-          B: '0.72 dm<sup>3</sup>',
-          C: '1.20 dm<sup>3</sup>',
-          D: '2.40 dm<sup>3</sup>',
+          A: 'XCl',
+          B: 'XCl<sub>2</sub>',
+          C: 'XCl<sub>3</sub>',
+          D: 'XCl<sub>4</sub>',
         }
       },
       {
         number: 20,
-        code: '9701_s19_qp_11 Q: 3',
-        prompt: 'A washing powder contains sodium hydrogencarbonate, NaHCO<sub>3</sub>, as one of the ingredients.<br><br>In a titration, a solution containing 1.00 g of this washing powder requires 7.15 cm<sup>3</sup> of 0.100 mol dm<sup>−3</sup> sulfuric acid for complete reaction. The sodium hydrogencarbonate is the only ingredient that reacts with the acid.<br><br>What is the percentage by mass of sodium hydrogencarbonate in the washing powder?',
+        code: '9701_m22_qp_12 Q: 20',
+        prompt: 'Equal masses of CaCO<sub>3</sub>, Ca(NO<sub>3</sub>)<sub>2</sub>, BaCO<sub>3</sub> and Ba(NO<sub>3</sub>)<sub>2</sub> are thermally decomposed. The volume of gas produced in each experiment is measured under the same conditions.<br><br>Which compound will produce the greatest volume of gas?',
         options: {
-          A: '3.0%',
-          B: '6.0%',
-          C: '12.0%',
-          D: '24.0%',
+          A: 'CaCO<sub>3</sub>',
+          B: 'Ca(NO<sub>3</sub>)<sub>2</sub>',
+          C: 'BaCO<sub>3</sub>',
+          D: 'Ba(NO<sub>3</sub>)<sub>2</sub>',
         }
       },
       {
         number: 21,
-        code: '9701_w19_qp_12 Q: 2',
-        prompt: 'In this question it should be assumed that (NH<sub>4</sub>)<sub>2</sub>CO<sub>3</sub>·H<sub>2</sub>O(s) dissolves in water without causing an increase in volume.<br><br>Which mass of (NH<sub>4</sub>)<sub>2</sub>CO<sub>3</sub>·H<sub>2</sub>O(s) should be added to 800 cm<sup>3</sup> of water to form a 0.100 mol dm<sup>−3</sup> solution of NH<sub>4</sub><sup>+</sup> ions?',
+        code: '9701_m22_qp_12 Q: 31',
+        prompt: 'A sample of 2.30 g of ethanol is mixed with an excess of aqueous acidified potassium dichromate(VI). The reaction mixture is boiled under reflux for one hour. The required organic product is then collected by distillation. The yield of product is 60.0%.<br><br>Which mass of product is collected?',
         options: {
-          A: '4.56 g',
-          B: '7.13 g',
-          C: '9.12 g',
-          D: '14.3 g',
+          A: '1.32 g',
+          B: '1.38 g',
+          C: '1.80 g',
+          D: '3.00 g',
         }
       },
       {
         number: 22,
+        code: '9701_w19_qp_12 Q: 9',
+        prompt: 'When lead(II) sulfide, PbS, is heated in air, sulfur dioxide and lead(II) oxide are formed.<br><br>What is the equation for the reaction between PbS and oxygen?',
+        options: {
+          A: 'PbS + 2O<sub>2</sub> → SO<sub>2</sub> + PbO<sub>2</sub>',
+          B: 'PbS + 2<span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span>O<sub>2</sub> → SO<sub>3</sub> + PbO<sub>2</sub>',
+          C: 'PbS + 1<span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span>O<sub>2</sub> → SO<sub>2</sub> + PbO',
+          D: 'PbS + 2O<sub>2</sub> → SO<sub>3</sub> + PbO',
+        }
+      },
+      {
+        number: 23,
+        code: '9701_m18_qp_12 Q: 2',
+        prompt: 'The electronic configuration of the two outermost shells of an atom is 3s<sup>2</sup>3p<sup>6</sup>3d<sup>5</sup>4s<sup>2</sup>.<br><br>What is this atom?',
+        options: {
+          A: 'manganese',
+          B: 'phosphorus',
+          C: 'strontium',
+          D: 'vanadium',
+        }
+      },
+      {
+        number: 24,
+        code: '9701_m18_qp_12 Q: 25',
+        prompt: 'Which volume of hydrogen, measured under room conditions, is produced when 0.160 g of methanol reacts with an excess of sodium?',
+        options: {
+          A: '60 cm<sup>3</sup>',
+          B: '120 cm<sup>3</sup>',
+          C: '240 cm<sup>3</sup>',
+          D: '480 cm<sup>3</sup>',
+        }
+      },
+      {
+        number: 25,
+        code: '9701_s18_qp_13 Q: 5',
+        prompt: 'Aspirin, C<sub>9</sub>H<sub>8</sub>O<sub>4</sub>, M<sub>r</sub> = 180.0, can be made by a reaction between 2-hydroxybenzoic acid, C<sub>7</sub>H<sub>6</sub>O<sub>3</sub>, M<sub>r</sub> = 138.0, and ethanoic anhydride, C<sub>4</sub>H<sub>6</sub>O<sub>3</sub>, M<sub>r</sub> = 102.0. The balanced equation for the reaction is shown.<br><br>C<sub>7</sub>H<sub>6</sub>O<sub>3</sub> + C<sub>4</sub>H<sub>6</sub>O<sub>3</sub> → C<sub>9</sub>H<sub>8</sub>O<sub>4</sub> + C<sub>2</sub>H<sub>4</sub>O<sub>2</sub><br><br>If a reaction mixture consists of 10.0 g of each of the two reactants, what is the maximum mass of aspirin that can be produced?',
+        options: {
+          A: '5.7 g',
+          B: '10.0 g',
+          C: '13.0 g',
+          D: '17.6 g',
+        }
+      },
+      {
+        number: 26,
+        code: '9701_s17_qp_13 Q: 2',
+        prompt: 'A 0.216 g sample of an aluminium compound X reacts with an excess of water to produce a single hydrocarbon gas. This gas burns completely in O<sub>2</sub> to form H<sub>2</sub>O and CO<sub>2</sub> only. The volume of CO<sub>2</sub> at room temperature and pressure is 108 cm<sup>3</sup>.<br><br>What is the formula of X?',
+        options: {
+          A: 'Al<sub>2</sub>C<sub>3</sub>',
+          B: 'Al<sub>3</sub>C<sub>2</sub>',
+          C: 'Al<sub>3</sub>C<sub>4</sub>',
+          D: 'Al<sub>4</sub>C<sub>3</sub>',
+        }
+      },
+      {
+        number: 27,
+        code: '9701_s17_qp_13 Q: 3',
+        prompt: 'Which equation correctly describes the complete combustion of an alkene, C<sub>n</sub>H<sub>2n</sub>?',
+        options: {
+          A: 'C<sub>n</sub>H<sub>2n</sub> + <span class="fraction"><span class="fraction-top">3</span><span class="fraction-bottom">2</span></span>nO<sub>2</sub> → nCO<sub>2</sub> + 2nH<sub>2</sub>O',
+          B: 'C<sub>n</sub>H<sub>2n</sub> + <span class="fraction"><span class="fraction-top">3</span><span class="fraction-bottom">2</span></span>nO<sub>2</sub> → nCO<sub>2</sub> + nH<sub>2</sub>O',
+          C: 'C<sub>n</sub>H<sub>2n</sub> + 2nO<sub>2</sub> → nCO<sub>2</sub> + nH<sub>2</sub>O',
+          D: 'C<sub>n</sub>H<sub>2n</sub> + 2nO<sub>2</sub> → nCO<sub>2</sub> + 2nH<sub>2</sub>O',
+        }
+      },
+      {
+        number: 28,
+        code: '9701_w17_qp_12 Q: 3',
+        prompt: 'The airbags in cars contain sodium azide, NaN<sub>3</sub>, and an excess of potassium nitrate, KNO<sub>3</sub>.<br><br>In a car accident, the reactions shown occur, producing nitrogen. This causes the airbag to inflate rapidly.<br><br>2NaN<sub>3</sub> → 2Na + 3N<sub>2</sub><br>10Na + 2KNO<sub>3</sub> → K<sub>2</sub>O + 5Na<sub>2</sub>O + N<sub>2</sub><br><br>How many moles of nitrogen gas are produced in total when 1 mol of sodium azide, NaN<sub>3</sub>, decomposes in an airbag?',
+        options: {
+          A: '1.5',
+          B: '1.6',
+          C: '3.2',
+          D: '4.0',
+        }
+      },
+      {
+        number: 29,
+        code: '9701_s16_qp_11 Q: 3',
+        prompt: 'Tetraethyl lead, Pb(C<sub>2</sub>H<sub>5</sub>)<sub>4</sub>, has been used as a petrol additive.<br><br>What is the percentage by mass of carbon in tetraethyl lead?',
+        options: {
+          A: '10.2',
+          B: '14.9',
+          C: '29.7',
+          D: '32.0',
+        }
+      },
+      {
+        number: 30,
+        code: '9701_s16_qp_11 Q: 17',
+        prompt: 'A piece of rock has a mass of 2.00 g. It contains calcium carbonate, but no other basic substances. It neutralises exactly 36.0 cm<sup>3</sup> of 0.500 mol dm<sup>−3</sup> hydrochloric acid.<br><br>What is the percentage of calcium carbonate in the 2.00 g piece of rock?',
+        options: {
+          A: '22.5%',
+          B: '45.0%',
+          C: '72.0%',
+          D: '90.1%',
+        }
+      },
+      {
+        number: 31,
+        code: '9701_s16_qp_12 Q: 4',
+        prompt: 'In China, the concentration of blood glucose, C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>, is measured in mmol / l. In Pakistan, the concentration of blood glucose is measured in mg / dl.<br><br>The unit l is a litre (1 dm<sup>3</sup>). The unit dl is a decilitre (0.1 dm<sup>3</sup>).<br><br>A blood glucose concentration of 18.5 mmol / l indicates a health problem.<br><br>What is 18.5 mmol / l converted to mg / dl?',
+        options: {
+          A: '33.3 mg / dl',
+          B: '178 mg / dl',
+          C: '333 mg / dl',
+          D: '3330 mg / dl',
+        }
+      },
+      {
+        number: 32,
+        code: '9701_s16_qp_12 Q: 14',
+        prompt: 'A 0.005 mol sample of anhydrous calcium carbonate was completely thermally decomposed to give 100 cm<sup>3</sup> of gas measured at a certain temperature and pressure.<br><br>In a separate experiment carried out at the same temperature and pressure, a 0.005 mol sample of anhydrous calcium nitrate was completely thermally decomposed. The volume of gaseous products was measured.<br><br>What total volume of gaseous products was produced from the calcium nitrate?',
+        options: {
+          A: '50 cm<sup>3</sup>',
+          B: '100 cm<sup>3</sup>',
+          C: '200 cm<sup>3</sup>',
+          D: '250 cm<sup>3</sup>',
+        }
+      },
+      {
+        number: 33,
+        code: '9701_s16_qp_13 Q: 3',
+        prompt: 'Which mass of urea, CO(NH<sub>2</sub>)<sub>2</sub>, contains the same mass of nitrogen as 101.1 g of potassium nitrate?',
+        options: {
+          A: '22 g',
+          B: '30 g',
+          C: '44 g',
+          D: '60 g',
+        }
+      },
+      {
+        number: 34,
+        code: '9701_w16_qp_12 Q: 3',
+        prompt: 'People are advised to eat less than 6.00 g of salt (sodium chloride) per day for health reasons.<br><br>Which mass of sodium is present in 6.00 g of sodium chloride?',
+        options: {
+          A: '0.261 g',
+          B: '2.36 g',
+          C: '3.64 g',
+          D: '3.88 g',
+        }
+      },
+      {
+        number: 35,
+        code: '9701_w16_qp_12 Q: 4',
+        prompt: 'When copper reacts with a 50% solution of nitric acid, nitrogen monoxide is evolved and a blue solution results.<br><br>The balanced equation for this reaction is shown.<br><br>pCu + qHNO<sub>3</sub> → rCu(NO<sub>3</sub>)<sub>2</sub> + sH<sub>2</sub>O + tNO<br><br>What are the values of the integers p, q, r, s and t?',
+        table: {
+          headers: ['p', 'q', 'r', 's', 't'],
+          rows: [
+            { label: 'A', values: ['1', '4', '1', '2', '2'] },
+            { label: 'B', values: ['2', '6', '2', '3', '2'] },
+            { label: 'C', values: ['2', '8', '2', '4', '4'] },
+            { label: 'D', values: ['3', '8', '3', '4', '2'] },
+          ]
+        }
+      },
+      {
+        number: 36,
+        code: '9701_s15_qp_12 Q: 2',
+        prompt: 'The shell of a chicken’s egg makes up 5% of the mass of an average egg. An average egg has a mass of 50 g.<br><br>Assume the egg shell is pure calcium carbonate.<br><br>How many complete chicken’s egg shells would be needed to neutralise 50 cm<sup>3</sup> of 2.0 mol dm<sup>−3</sup> ethanoic acid?',
+        options: {
+          A: '1',
+          B: '2',
+          C: '3',
+          D: '4',
+        }
+      },
+      {
+        number: 37,
+        code: '9701_w15_qp_11 Q: 3',
+        prompt: 'The compound S<sub>2</sub>O<sub>7</sub> is hydrolysed by water to produce sulfuric acid and oxygen only.<br><br>Which volume of oxygen, measured at room temperature and pressure, is evolved when 0.352 g of S<sub>2</sub>O<sub>7</sub> is hydrolysed?',
+        options: {
+          A: '12 cm<sup>3</sup>',
+          B: '24 cm<sup>3</sup>',
+          C: '48 cm<sup>3</sup>',
+          D: '96 cm<sup>3</sup>',
+        }
+      },
+      {
+        number: 38,
+        code: '9701_w15_qp_12 Q: 2',
+        prompt: 'Arsenic chloride, AsCl<sub>3</sub>, reacts with sodium borohydride, NaBH<sub>4</sub>.<br><br>pAsCl<sub>3</sub> + qNaBH<sub>4</sub> → rAsH<sub>3</sub> + sNaCl + tBCl<sub>3</sub><br><br>What are the numbers p, q, r, s and t when this equation is balanced correctly?',
+        table: {
+          headers: ['p', 'q', 'r', 's', 't'],
+          rows: [
+            { label: 'A', values: ['2', '3', '2', '3', '1'] },
+            { label: 'B', values: ['3', '3', '3', '3', '2'] },
+            { label: 'C', values: ['4', '3', '4', '3', '3'] },
+            { label: 'D', values: ['4', '4', '4', '4', '3'] },
+          ]
+        }
+      },
+      {
+        number: 39,
+        code: '9701_w15_qp_12 Q: 13',
+        prompt: 'The reaction between aluminium powder and anhydrous barium nitrate is used as the propellant in some fireworks. The metal oxides and nitrogen are the only products.<br><br>Which volume of nitrogen, measured under room conditions, is produced when 0.783 g of anhydrous barium nitrate reacts with an excess of aluminium?',
+        options: {
+          A: '46.8 cm<sup>3</sup>',
+          B: '72.0 cm<sup>3</sup>',
+          C: '93.6 cm<sup>3</sup>',
+          D: '144 cm<sup>3</sup>',
+        }
+      },
+      {
+        number: 40,
         code: '9701_m22_qp_12 Q: 32',
         prompt: 'The structure of tartaric acid is shown.<br><br>HOOC–CHOH–CHOH–COOH<br><br>Four moles of substance X react with one mole of tartaric acid.<br><br>What could be substance X?',
         options: {
@@ -576,7 +787,7 @@
         }
       },
       {
-        number: 23,
+        number: 41,
         code: '9701_m21_qp_12 Q: 3',
         prompt: 'Substance Q is a hydrocarbon. When 1.00 g of Q is completely burned, 3.22 g of carbon dioxide is produced.<br><br>What could be the identity of Q?',
         options: {
@@ -587,7 +798,7 @@
         }
       },
       {
-        number: 24,
+        number: 42,
         code: '9701_s21_qp_11 Q: 6',
         prompt: 'What is the minimum mass of oxygen required to ensure the complete combustion of 12 dm<sup>3</sup> of propane measured under room conditions?',
         options: {
@@ -598,7 +809,7 @@
         }
       },
       {
-        number: 25,
+        number: 43,
         code: '9701_s21_qp_11 Q: 27',
         prompt: 'How many moles of hydrogen, H<sub>2</sub>, are evolved when an excess of sodium metal is added to one mole of citric acid?',
         options: {
@@ -609,7 +820,7 @@
         }
       },
       {
-        number: 26,
+        number: 44,
         code: '9701_s21_qp_13 Q: 2',
         prompt: 'A sample of propane, C<sub>3</sub>H<sub>8</sub>, with a mass of 9.61 g is completely combusted in an excess of oxygen under room conditions.<br><br>Which volume of carbon dioxide gas is produced?',
         options: {
@@ -620,7 +831,7 @@
         }
       },
       {
-        number: 27,
+        number: 45,
         code: '9701_w21_qp_11 Q: 15',
         prompt: 'Anhydrous magnesium nitrate, Mg(NO<sub>3</sub>)<sub>2</sub>, decomposes when heated, giving a white solid and a mixture of two gases, X and Y.<br><br>Y is oxygen.<br><br>What is the ratio <span class="fraction"><span class="fraction-top">mass of X released</span><span class="fraction-bottom">mass of Y released</span></span>?',
         options: {
@@ -631,7 +842,7 @@
         }
       },
       {
-        number: 28,
+        number: 46,
         code: '9701_w21_qp_11 Q: 28',
         prompt: 'Citric acid is found in lemon juice.<br><br>Which volume of 0.40 mol dm<sup>−3</sup> sodium hydroxide solution is required to neutralise a solution containing 0.0050 mol of citric acid?',
         options: {
@@ -642,7 +853,7 @@
         }
       },
       {
-        number: 29,
+        number: 47,
         code: '9701_w21_qp_12 Q: 14',
         prompt: 'A 0.005 mol sample of anhydrous calcium carbonate is completely thermally decomposed to give 100 cm<sup>3</sup> of gas.<br><br>In a separate experiment carried out under the same conditions, a 0.005 mol sample of anhydrous calcium nitrate is completely thermally decomposed. The volume of gaseous products is measured.<br><br>What total volume of gaseous products is produced from the calcium nitrate?',
         options: {
@@ -653,7 +864,7 @@
         }
       },
       {
-        number: 30,
+        number: 48,
         code: '9701_m20_qp_12 Q: 7',
         prompt: 'Sodium azide, NaN<sub>3</sub>, decomposes as shown.<br><br>2NaN<sub>3</sub> → 2Na + 3N<sub>2</sub><br><br>Which volume of nitrogen, measured at room temperature and pressure, will be produced by the decomposition of 150 g of sodium azide?',
         options: {
@@ -664,7 +875,7 @@
         }
       },
       {
-        number: 31,
+        number: 49,
         code: '9701_s20_qp_11 Q: 4',
         prompt: '10 cm<sup>3</sup> of ethane is burned in 45 cm<sup>3</sup> of oxygen at a pressure of 101 kPa and a temperature of 200 °C. Complete combustion takes place.<br><br>What is the total volume of gas present when the reaction is complete, measured under the same conditions?',
         options: {
@@ -675,7 +886,7 @@
         }
       },
       {
-        number: 32,
+        number: 50,
         code: '9701_s20_qp_11 Q: 13',
         prompt: '6.90 g of an ammonium salt is heated with an excess of aqueous sodium hydroxide. The volume of ammonia produced, measured under room conditions, is 2.51 dm<sup>3</sup>.<br><br>Which ammonium salt is used?',
         options: {
@@ -686,7 +897,7 @@
         }
       },
       {
-        number: 33,
+        number: 51,
         code: '9701_s20_qp_11 Q: 17',
         prompt: '0.25 g of anhydrous magnesium nitrate is heated strongly until it completely decomposes.<br><br>What is the total volume of gas produced, measured under room conditions?',
         options: {
@@ -697,7 +908,7 @@
         }
       },
       {
-        number: 34,
+        number: 52,
         code: '9701_s20_qp_12 Q: 2',
         prompt: 'A copper ore contains 3.00% of copper carbonate, CuCO<sub>3</sub>, by mass.<br><br>Which mass of copper would be obtained from 1 tonne of the ore?',
         options: {
@@ -708,7 +919,7 @@
         }
       },
       {
-        number: 35,
+        number: 53,
         code: '9701_s20_qp_12 Q: 6',
         prompt: 'In this question you should assume air contains 21% oxygen.<br><br>What is the minimum volume of air required to ensure complete combustion of 10 cm<sup>3</sup> of butane gas, under room conditions?',
         options: {
@@ -719,7 +930,7 @@
         }
       },
       {
-        number: 36,
+        number: 54,
         code: '9701_s20_qp_12 Q: 13',
         prompt: 'Magnesium nitrate, Mg(NO<sub>3</sub>)<sub>2</sub>, decomposes when heated to give a white solid and a mixture of gases. One of the gases released is an oxide of nitrogen, X.<br><br>7.4 g of anhydrous magnesium nitrate is heated until no further reaction takes place.<br><br>What mass of X is produced?',
         options: {
@@ -730,7 +941,7 @@
         }
       },
       {
-        number: 37,
+        number: 55,
         code: '9701_w20_qp_11 Q: 2',
         prompt: 'Strontium metal can be extracted from strontium oxide, SrO, by reduction with aluminium. One of the possible reactions is shown.<br><br>6SrO + 2Al → 3Sr + Sr<sub>3</sub>Al<sub>2</sub>O<sub>6</sub><br><br>What is the maximum mass of strontium metal that can be produced from the reduction of 100 g of strontium oxide using this reaction?',
         options: {
@@ -741,7 +952,7 @@
         }
       },
       {
-        number: 38,
+        number: 56,
         code: '9701_w20_qp_12 Q: 2',
         prompt: 'An ore of manganese contains 4% by mass of MnO<sub>2</sub> and no other manganese compound.<br><br>Which mass of manganese would be obtained from 1 tonne of this ore?',
         options: {
@@ -752,7 +963,7 @@
         }
       },
       {
-        number: 39,
+        number: 57,
         code: '9701_w20_qp_12 Q: 5',
         prompt: 'A white powder is known to be a mixture of magnesium oxide and aluminium oxide.<br><br>100 cm<sup>3</sup> of 2 mol dm<sup>−3</sup> NaOH(aq) is just enough to dissolve the aluminium oxide in x grams of the mixture.<br><br>800 cm<sup>3</sup> of 2 mol dm<sup>−3</sup> HCl(aq) is just enough to dissolve all of the oxide in x grams of the mixture.<br><br>How many moles of each oxide are present in x grams of the mixture?',
         optionTable: {
@@ -766,7 +977,7 @@
         }
       },
       {
-        number: 40,
+        number: 58,
         code: '9701_m19_qp_12 Q: 2',
         prompt: 'A 3.7 g sample of copper(II) carbonate is added to 25 cm<sup>3</sup> of 2.0 mol dm<sup>−3</sup> hydrochloric acid.<br><br>Which volume of gas is produced under room conditions?',
         options: {
@@ -777,7 +988,7 @@
         }
       },
       {
-        number: 41,
+        number: 59,
         code: '9701_s19_qp_11 Q: 3',
         prompt: 'A washing powder contains sodium hydrogencarbonate, NaHCO<sub>3</sub>, as one of the ingredients.<br><br>In a titration, a solution containing 1.00 g of this washing powder requires 7.15 cm<sup>3</sup> of 0.100 mol dm<sup>−3</sup> sulfuric acid for complete reaction. The sodium hydrogencarbonate is the only ingredient that reacts with the acid.<br><br>What is the percentage by mass of sodium hydrogencarbonate in the washing powder?',
         options: {
@@ -788,7 +999,7 @@
         }
       },
       {
-        number: 42,
+        number: 60,
         code: '9701_w19_qp_12 Q: 2',
         prompt: 'In this question it should be assumed that (NH<sub>4</sub>)<sub>2</sub>CO<sub>3</sub>·H<sub>2</sub>O(s) dissolves in water without causing an increase in volume.<br><br>Which mass of (NH<sub>4</sub>)<sub>2</sub>CO<sub>3</sub>·H<sub>2</sub>O(s) should be added to 800 cm<sup>3</sup> of water to form a 0.100 mol dm<sup>−3</sup> solution of NH<sub>4</sub><sup>+</sup> ions?',
         options: {
@@ -798,20 +1009,56 @@
           D: '14.3 g',
         }
       },
+      {
+        number: 61,
+        code: 'Stoichiometry practice 61',
+        prompt: 'Magnesium metal reacts with dilute hydrochloric acid to produce magnesium chloride and hydrogen.<br><br>What volume of hydrogen gas, measured at room conditions, is released when 4.50 g of magnesium completely reacts with excess hydrochloric acid?',
+        options: {
+          A: '1.1 dm<sup>3</sup>',
+          B: '2.2 dm<sup>3</sup>',
+          C: '4.5 dm<sup>3</sup>',
+          D: '8.9 dm<sup>3</sup>',
+        }
+      },
+      {
+        number: 62,
+        code: 'Stoichiometry practice 62',
+        prompt: 'A compound contains 52.2% carbon, 13.0% hydrogen and 34.8% oxygen by mass.<br><br>What is its empirical formula?',
+        options: {
+          A: 'CH<sub>2</sub>O',
+          B: 'C<sub>2</sub>H<sub>6</sub>O',
+          C: 'C<sub>3</sub>H<sub>8</sub>O',
+          D: 'C<sub>4</sub>H<sub>10</sub>O',
+        }
+      },
+      {
+        number: 63,
+        code: 'Stoichiometry practice 63',
+        prompt: 'The equation for the reduction of iron(III) oxide by carbon is shown.<br><br>2Fe<sub>2</sub>O<sub>3</sub> + 3C → 4Fe + 3CO<sub>2</sub><br><br>What mass of iron is produced from 15.9 g of iron(III) oxide?',
+        options: {
+          A: '5.6 g',
+          B: '7.9 g',
+          C: '11.1 g',
+          D: '22.2 g',
+        }
+      },
     ];
 
     const ANSWER_KEY = {
-      1: 'B', 2: 'B', 3: 'C', 4: 'C', 5: 'C',
-      6: 'D', 7: 'B', 8: 'A', 9: 'B', 10: 'C',
-      11: 'D', 12: 'A', 13: 'A', 14: 'B', 15: 'D',
-      16: 'C', 17: 'A', 18: 'C', 19: 'B', 20: 'B',
-      21: 'C', 22: 'A', 23: 'A', 24: 'B', 25: 'C',
-      26: 'D', 27: 'A', 28: 'C', 29: 'D', 30: 'B',
-      31: 'B', 32: 'D', 33: 'C', 34: 'C', 35: 'D',
-      36: 'D', 37: 'A', 38: 'A', 39: 'D', 40: 'A',
-      41: 'A', 42: 'A',
+      1: 'C', 2: 'C', 3: 'C', 4: 'C', 5: 'C',
+      6: 'C', 7: 'C', 8: 'A', 9: 'B', 10: 'C',
+      11: 'D', 12: 'A', 13: 'A', 14: 'D', 15: 'D',
+      16: 'B', 17: 'A', 18: 'C', 19: 'C', 20: 'B',
+      21: 'C', 22: 'C', 23: 'A', 24: 'A', 25: 'C',
+      26: 'D', 27: 'B', 28: 'B', 29: 'C', 30: 'B',
+      31: 'C', 32: 'D', 33: 'B', 34: 'B', 35: 'D',
+      36: 'B', 37: 'B', 38: 'C', 39: 'B', 40: 'B',
+      41: 'B', 42: 'C', 43: 'C', 44: 'C', 45: 'D',
+      46: 'B', 47: 'A', 48: 'B', 49: 'C', 50: 'D',
+      51: 'A', 52: 'A', 53: 'B', 54: 'D', 55: 'C',
+      56: 'A', 57: 'C', 58: 'B', 59: 'B', 60: 'C',
+      61: 'C', 62: 'B', 63: 'C',
     };
-
 
     const totalQuestions = QUESTIONS.length;
     let hasSubmitted = false;
