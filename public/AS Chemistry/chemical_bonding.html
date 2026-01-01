@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
+  <title>AS Chemistry Ch3 (Chemical bonding)</title>
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.12);
+      --accent: #38bdf8;
+      --accent-2: #8b5cf6;
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+      --success: #22c55e;
+      --warning: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto 40px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    }
+    .header {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .header img {
+      width: 54px;
+      height: 54px;
+      border-radius: 12px;
+      background: #fff;
+      padding: 6px;
+    }
+    .badge-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .badge {
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .status {
+      margin: 14px 0 22px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #bae6fd;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .pending {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.35);
+      color: #fef08a;
+    }
+    .fraction {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      vertical-align: middle;
+      font-size: 0.95em;
+      white-space: nowrap;
+      gap: 2px;
+    }
+    .fraction .fraction-top,
+    .fraction .fraction-bottom {
+      padding: 0 0.2em;
+    }
+    .fraction .fraction-bottom {
+      border-top: 1px solid currentColor;
+      margin-top: -2px;
+    }
+    .molecule-diagram {
+      display: flex;
+      justify-content: center;
+      margin: 14px 0;
+    }
+    .molecule-diagram svg {
+      max-width: 100%;
+      height: auto;
+      color: inherit;
+    }
+    .molecule-diagram line {
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+    .molecule-diagram text {
+      fill: currentColor;
+      font-size: 14px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-weight: 600;
+    }
+    .student-info {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      margin-bottom: 24px;
+    }
+    .student-info input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(15,23,42,0.6);
+      color: var(--text-main);
+      font-size: 14px;
+    }
+    .student-info input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56,189,248,0.25);
+    }
+    .question-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+    }
+    .question-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    .question-title {
+      font-weight: 700;
+      color: #fff;
+      margin: 0 0 10px;
+      line-height: 1.4;
+    }
+    .option-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .option {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .option input {
+      margin-top: 3px;
+    }
+    .option:hover {
+      border-color: var(--accent);
+      background: rgba(56,189,248,0.06);
+    }
+    .option strong {
+      min-width: 22px;
+      display: inline-block;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      background: rgba(0,0,0,0.12);
+      border-radius: 12px;
+      overflow: hidden;
+      table-layout: fixed;
+    }
+    table th, table td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid var(--border);
+      color: #e2e8f0;
+      word-break: break-word;
+      white-space: normal;
+    }
+    table th {
+      background: rgba(255,255,255,0.06);
+      font-weight: 700;
+    }
+    .table-scroll {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .nuclide sup, .nuclide sub {
+      font-size: 0.7em;
+      line-height: 1;
+    }
+    .nuclide sup {
+      vertical-align: super;
+    }
+    .nuclide sub {
+      vertical-align: sub;
+    }
+    .el{
+      font-family: "Times New Roman", "Cambria", "STIX Two Text", serif;
+      font-weight: 700;
+    }
+    .submit-area {
+      margin-top: 26px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    button {
+      background: linear-gradient(135deg, #38bdf8, #8b5cf6);
+      color: #0b1033;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 22px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(139,92,246,0.35);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    button:disabled {
+      background: #475569;
+      color: #cbd5e1;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .submit-status {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+    .score-box {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 12px;
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      color: #bbf7d0;
+      font-weight: 700;
+    }
+    .graph-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .mini-graph {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+    }
+    @media (max-width: 640px) {
+      body { padding: 12px; }
+      .container { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="/logo.png" alt="Brains Heist" onerror="this.style.display='none';" />
+      <div>
+        <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
+        <h1 style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch3 (Chemical bonding)</h1>
+        <div style="color: var(--text-muted); font-size: 14px;">Chapter 2 • 64 multiple-choice questions</div>
+      </div>
+    </div>
+
+    <div class="badge-row">
+      <span class="badge">🧪 Category: Science</span>
+      <span class="badge">🎯 Difficulty: Advanced</span>
+      <span class="badge">📝 Format: Multiple Choice (A–D)</span>
+      <span class="badge">⏱️ Suggested time: 20 min</span>
+    </div>
+
+    <div class="status">
+      ✅ Auto-marked: correct answers are loaded. Submit once to see your score and share it with your teacher.
+    </div>
+
+    <div class="student-info">
+      <input type="text" id="studentName" placeholder="Student Name" autocomplete="name" />
+      <input type="text" id="studentClass" placeholder="Class / Batch" autocomplete="section" />
+    </div>
+
+    <div id="questions"></div>
+
+    <div class="submit-area">
+      <button id="submitBtn">Submit Answers</button>
+      <div id="status" class="submit-status">Progress saves automatically in this browser.</div>
+    </div>
+    <div id="score" class="score-box" style="display:none;"></div>
+  </div>
+
+  <script>
+    // Supabase helpers (fetch-based, no external SDK)
+    const SUPABASE_URL = 'https://sozodkxwhubespiedgxm.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwczovL3N1cGFiYXNlLmlvL2NsYWltcy9zdWJqZWN0IjoicHVibGljIiwiaHR0cHM6Ly9zdXBhYmFzZS5pby9jbGFpbXMvcm9sZSI6ImFub24iLCJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTY5OTA1MjkyNywiZXhwIjoyMDE0NjI4OTI3fQ.o6SgqFWWf3XwT63MifOnRmPGzfmrPZ7dx6hPb6jt4WI';
+
+    function createSupabaseClient(url, key) {
+      return {
+        from(table) {
+          return {
+            async insert(data) {
+              try {
+                const response = await fetch(`${url}/rest/v1/${table}`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': key,
+                    'Authorization': `Bearer ${key}`,
+                    'Prefer': 'return=minimal'
+                  },
+                  body: JSON.stringify(Array.isArray(data) ? data : [data])
+                });
+                if (!response.ok) {
+                  const errorText = await response.text();
+                  throw new Error(errorText || response.statusText);
+                }
+                return { data: null, error: null };
+              } catch (err) {
+                return { data: null, error: err };
+              }
+            }
+          };
+        }
+      };
+    }
+
+    const supabaseClient = createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const QUIZ_ID = 'as_chemistry_ch3_chemical_bonding';
+    const QUIZ_NAME = 'AS Chemistry Ch3 (Chemical bonding)';
+
+    const QUESTIONS = [
+      {
+        number: 1,
+        code: '9701_w20_qp_11 Q: 5',
+        prompt: 'Copper has a high melting point.<br><br>What is the reason for the high melting point of copper?',
+        options: {
+          A: 'strong attractive forces between copper atoms only',
+          B: 'strong attractive forces between copper ions and delocalised electrons',
+          C: 'strong attractive forces between copper ions only',
+          D: 'strong attractive forces between copper atoms and delocalised electrons',
+        }
+      },
+      {
+        number: 2,
+        code: '9701_s21_qp_12 Q: 8',
+        prompt: 'Nitrogen and oxygen can react together to form nitrogen monoxide, NO.<br><br>N<sub>2</sub> + O<sub>2</sub> → 2NO &nbsp;&nbsp;&nbsp; ΔH = +180 kJ mol<sup>−1</sup><br><br>What is the bond energy of the bond between the atoms in NO?',
+        options: {
+          A: '630 kJ mol<sup>−1</sup>',
+          B: '810 kJ mol<sup>−1</sup>',
+          C: '1260 kJ mol<sup>−1</sup>',
+          D: '1620 kJ mol<sup>−1</sup>',
+        }
+      },
+      {
+        number: 3,
+        code: '9701_s20_qp_11 Q: 3',
+        prompt: 'When considering one molecule of ethene, which row describes both the hybridisation of the atomic orbitals in the carbon atoms and the overall bonding?',
+        optionTable: {
+          headers: ['hybridisation', 'bonding'],
+          rows: [
+            { label: 'A', values: ['sp<sup>2</sup>', '4 σ bonds 1 π bond'] },
+            { label: 'B', values: ['sp<sup>2</sup>', '5 σ bonds 1 π bond'] },
+            { label: 'C', values: ['sp<sup>3</sup>', '4 σ bonds 1 π bond'] },
+            { label: 'D', values: ['sp<sup>3</sup>', '5 σ bonds 1 π bond'] },
+          ]
+        }
+      },
+      {
+        number: 4,
+        code: '9701_s19_qp_12 Q: 4',
+        prompt: 'A σ bond is made between two carbon atoms in a molecule of ethene.<br><br>Which description shows the orbital overlap that occurs to form this bond?',
+        options: {
+          A: 'end-on overlap of two s orbitals',
+          B: 'end-on overlap of two sp<sup>2</sup> hybrid orbitals',
+          C: 'sideways overlap of two p orbitals',
+          D: 'end-on overlap of two p orbitals',
+        }
+      },
+      {
+        number: 5,
+        code: '9701_m18_qp_12 Q: 6',
+        prompt: 'Sodium hydroxide neutralises acid.<br><br>H<sup>+</sup> + OH<sup>−</sup> → H<sub>2</sub>O<br><br>In a 11 000 dm<sup>3</sup> sample of an aqueous solution, the concentration of acid, [H<sup>+</sup>], is 1.26 × 10<sup>−3</sup> mol dm<sup>−3</sup>.<br><br>Which mass of solid sodium hydroxide neutralises the acid?',
+        options: {
+          A: '0.0214 g',
+          B: '0.0504 g',
+          C: '236 g',
+          D: '554 g',
+        }
+      },
+      {
+        number: 6,
+        code: '9701_s18_qp_13 Q: 4',
+        prompt: 'Which statement describes the bond between carbon and hydrogen in an ethene molecule?',
+        options: {
+          A: 'a π bond between an s orbital and an sp<sup>2</sup> orbital',
+          B: 'a π bond between an s orbital and an sp<sup>3</sup> orbital',
+          C: 'a σ bond between an s orbital and an sp<sup>2</sup> orbital',
+          D: 'a σ bond between an s orbital and an sp<sup>3</sup> orbital',
+        }
+      },
+      {
+        number: 7,
+        code: '9701_s16_qp_11 Q: 2',
+        prompt: 'What is the correct number of bonds of each type in the Al<sub>2</sub>Cl<sub>6</sub> molecule?',
+        optionTable: {
+          headers: ['covalent', 'co-ordinate (dative covalent)'],
+          rows: [
+            { label: 'A', values: ['6', '1'] },
+            { label: 'B', values: ['6', '2'] },
+            { label: 'C', values: ['7', '0'] },
+            { label: 'D', values: ['7', '1'] },
+          ]
+        }
+      },
+      {
+        number: 8,
+        code: '9701_w16_qp_12 Q: 6',
+        prompt: 'When solid aluminium chloride is heated, Al<sub>2</sub>Cl<sub>6</sub> is formed.<br><br>Which bonding is present in Al<sub>2</sub>Cl<sub>6</sub>?',
+        options: {
+          A: 'covalent and co-ordinate (dative covalent)',
+          B: 'covalent only',
+          C: 'ionic and co-ordinate (dative covalent)',
+          D: 'ionic only',
+        }
+      },
+      {
+        number: 9,
+        code: '9701_s15_qp_11 Q: 10',
+        prompt: 'The double bond between the two carbon atoms in an ethene molecule consists of one σ bond and one π bond.<br><br>Which orbitals overlap to form each of these bonds?',
+        optionTable: {
+          headers: ['σ bond', 'π bond'],
+          rows: [
+            { label: 'A', values: ['sp<sup>2</sup>–sp<sup>2</sup>', 'p–p'] },
+            { label: 'B', values: ['sp<sup>2</sup>–sp<sup>2</sup>', 'sp<sup>2</sup>–sp<sup>2</sup>'] },
+            { label: 'C', values: ['sp<sup>3</sup>–sp<sup>3</sup>', 'p–p'] },
+            { label: 'D', values: ['sp<sup>3</sup>–sp<sup>3</sup>', 'sp<sup>2</sup>–sp<sup>2</sup>'] },
+          ]
+        }
+      },
+      {
+        number: 10,
+        code: '9701_s15_qp_12 Q: 3',
+        prompt: 'Phosphorus forms a compound with hydrogen called phosphine, PH<sub>3</sub>. This compound can react with a hydrogen ion, H<sup>+</sup>.<br><br>Which type of interaction occurs between PH<sub>3</sub> and H<sup>+</sup>?',
+        options: {
+          A: 'dative covalent bond',
+          B: 'dipole-dipole forces',
+          C: 'hydrogen bond',
+          D: 'ionic bond',
+        }
+      },
+      {
+        number: 11,
+        code: '9701_m22_qp_12 Q: 25',
+        prompt: 'When ammonia, NH<sub>3</sub>, is dissolved in water, a small concentration of ammonium ions, NH<sub>4</sub><sup>+</sup>, is formed.<br><br>Which row is correct?',
+        optionTable: {
+          headers: ['number of electrons in one ammonium ion', 'change of the H–N–H angle from ammonia to the ammonium ion'],
+          rows: [
+            { label: 'A', values: ['8', 'decreases'] },
+            { label: 'B', values: ['8', 'increases'] },
+            { label: 'C', values: ['10', 'decreases'] },
+            { label: 'D', values: ['10', 'increases'] },
+          ]
+        }
+      },
+      {
+        number: 12,
+        code: '9701_s21_qp_11 Q: 3',
+        prompt: 'Phosphorus forms two chlorides. Phosphorus(III) chloride, PCl<sub>3</sub>, is a covalent liquid.<br><br>Phosphorus(V) chloride is an ionic solid. One of the ions present is [PCl<sub>4</sub>]<sup>+</sup>.<br><br>What is the shape of the PCl<sub>3</sub> molecule and the [PCl<sub>4</sub>]<sup>+</sup> ion?',
+        optionTable: {
+          headers: ['PCl<sub>3</sub>', '[PCl<sub>4</sub>]<sup>+</sup>'],
+          rows: [
+            { label: 'A', values: ['pyramidal', 'square planar'] },
+            { label: 'B', values: ['pyramidal', 'tetrahedral'] },
+            { label: 'C', values: ['tetrahedral', 'square planar'] },
+            { label: 'D', values: ['trigonal planar', 'tetrahedral'] },
+          ]
+        }
+      },
+      {
+        number: 13,
+        code: '9701_s21_qp_13 Q: 4',
+        prompt: 'Ethanal reacts with hydroxylamine, NH<sub>2</sub>OH, to form the molecule shown.<br><div style="margin: 12px 0; text-align: center;"><span style="display: inline-block; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px;">H<br>│<br>H–C–H<br>&nbsp;&nbsp;│<sub>x</sub><br>&nbsp;&nbsp;C<br>&nbsp;&nbsp;│<sub>y</sub><br>&nbsp;&nbsp;N–O–H<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<sub>z</sub></span></div>What is the order of <strong>increasing</strong> bond angle in this structure from smallest to largest?',
+        options: {
+          A: 'z, x, y',
+          B: 'y, z, x',
+          C: 'x, z, y',
+          D: 'z, y, x',
+        }
+      },
+      {
+        number: 14,
+        code: '9701_w21_qp_12 Q: 5',
+        prompt: 'Atom X is the central atom in a molecule.<br><br>In this molecule, atom X has four pairs of valence electrons in its outer shell.<br><br>The four pairs of valence electrons include at least one bond pair and at least one lone pair.<br><br>What could be a possible shape for the molecule?',
+        options: {
+          A: 'linear',
+          B: 'non-linear',
+          C: 'trigonal bipyramidal',
+          D: 'trigonal planar',
+        }
+      },
+      {
+        number: 15,
+        code: '9701_m20_qp_12 Q: 3',
+        prompt: 'Which molecule does <strong>not</strong> have any 90° or 180° bond angles?',
+        options: {
+          A: 'C<sub>2</sub>H<sub>6</sub>',
+          B: 'CO<sub>2</sub>',
+          C: 'PF<sub>5</sub>',
+          D: 'SF<sub>6</sub>',
+        }
+      },
+      {
+        number: 16,
+        code: '9701_m20_qp_12 Q: 8',
+        prompt: 'A stable ion N<sub>5</sub><sup>+</sup> has been produced by research chemists.<br><br>Which structure is most likely to show the electron arrangement of this ion?',
+        options: {
+          A: 'linear chain with two triple bonds separated by single bonds: N≡N–N–N≡N<sup>+</sup>',
+          B: 'linear chain of alternating double and single bonds: N=N–N=N–N<sup>+</sup>',
+          C: 'linear chain of alternating double bonds: N=N=N=N=N<sup>+</sup>',
+          D: 'linear chain with terminal triple bonds and a central single bond: N≡N–N≡N–N<sup>+</sup>',
+        }
+      },
+      {
+        number: 17,
+        code: '9701_s20_qp_13 Q: 2',
+        prompt: 'Which molecule contains six bonding electrons?',
+        options: {
+          A: 'NCl<sub>3</sub>',
+          B: 'H<sub>2</sub>S',
+          C: 'C<sub>2</sub>H<sub>4</sub>',
+          D: 'SF<sub>6</sub>',
+        }
+      },
+      {
+        number: 18,
+        code: '9701_s20_qp_13 Q: 9',
+        prompt: 'At 200 °C aluminium chloride is a gas with M<sub>r</sub> = 267.<br><br>What is the number of covalent bonds, dative covalent bonds and lone pairs of electrons in one molecule of aluminium chloride at 200 °C?',
+        optionTable: {
+          headers: ['covalent bonds', 'dative covalent bonds', 'lone pairs'],
+          rows: [
+            { label: 'A', values: ['6', '2', '0'] },
+            { label: 'B', values: ['6', '2', '16'] },
+            { label: 'C', values: ['6', '2', '18'] },
+            { label: 'D', values: ['3', '0', '9'] },
+          ]
+        }
+      },
+      {
+        number: 19,
+        code: '9701_m19_qp_12 Q: 4',
+        prompt: 'The eight species that follow all have covalent bonds.<br><br>In which pair do the species have different shapes from each other?',
+        options: {
+          A: 'BeCl<sub>2</sub> and CO<sub>2</sub>',
+          B: 'CH<sub>4</sub> and NH<sub>4</sub><sup>+</sup>',
+          C: 'NH<sub>3</sub> and BF<sub>3</sub>',
+          D: 'SCl<sub>2</sub> and H<sub>2</sub>O',
+        }
+      },
+      {
+        number: 20,
+        code: '9701_s19_qp_11 Q: 5',
+        prompt: 'In which species is there a lone pair of electrons?',
+        options: {
+          A: 'CH<sub>3</sub>',
+          B: 'CH<sub>3</sub><sup>+</sup>',
+          C: 'CH<sub>3</sub><sup>−</sup>',
+          D: 'CH<sub>4</sub>',
+        }
+      },
+      {
+        number: 21,
+        code: '9701_w19_qp_11 Q: 3',
+        prompt: 'Which molecule or ion contains the smallest bond angle?',
+        options: {
+          A: 'C<sub>2</sub>H<sub>4</sub>',
+          B: 'CH<sub>3</sub>COCH<sub>3</sub>',
+          C: 'NH<sub>4</sub><sup>+</sup>',
+          D: 'NH<sub>3</sub>',
+        }
+      },
+      {
+        number: 22,
+        code: '9701_m18_qp_12 Q: 5',
+        prompt: 'Which mass of solid residue is obtained from the thermal decomposition of 4.10 g of anhydrous calcium nitrate?',
+        options: {
+          A: '0.70 g',
+          B: '1.00 g',
+          C: '1.40 g',
+          D: '2.25 g',
+        }
+      },
+      {
+        number: 23,
+        code: '9701_s18_qp_12 Q: 18',
+        prompt: 'The dative covalent bond can be represented by an arrow, →. The arrow points towards the atom receiving the lone pair.<br><br>Which diagram of an ammonium ion is correct?',
+        options: {
+          A: '<div aria-label=\"Option A ammonium ion\" style=\"display:inline-flex; gap:4px; align-items:center;\"><span style=\"border:1px solid var(--border); padding:6px 10px; border-radius:10px; display:inline-block;\">H<br>↓<br>H–N–H<br>&nbsp;&nbsp;&nbsp;H</span><sup>+</sup></div>',
+          B: '<div aria-label=\"Option B ammonium ion\" style=\"display:inline-flex; gap:4px; align-items:center;\"><span style=\"border:1px solid var(--border); padding:6px 10px; border-radius:10px; display:inline-block;\">H<br>↓<br>H–N–H<br>&nbsp;&nbsp;&nbsp;H</span><sup>−</sup></div>',
+          C: '<div aria-label=\"Option C ammonium ion\" style=\"display:inline-flex; gap:4px; align-items:center;\"><span style=\"border:1px solid var(--border); padding:6px 10px; border-radius:10px; display:inline-block;\">H<br>↑<br>H–N–H<br>&nbsp;&nbsp;&nbsp;H</span><sup>+</sup></div>',
+          D: '<div aria-label=\"Option D ammonium ion\" style=\"display:inline-flex; gap:4px; align-items:center;\"><span style=\"border:1px solid var(--border); padding:6px 10px; border-radius:10px; display:inline-block;\">H<br>↑<br>H–N–H<br>&nbsp;&nbsp;&nbsp;H</span><sup>−</sup></div>',
+        }
+      },
+      {
+        number: 24,
+        code: '9701_w18_qp_12 Q: 4',
+        prompt: 'In which set do all the molecules have all their atoms arranged in one plane?',
+        options: {
+          A: 'AlCl<sub>3</sub>, BF<sub>3</sub>, PH<sub>3</sub>',
+          B: 'AlCl<sub>3</sub>, CO<sub>2</sub>, NH<sub>3</sub>',
+          C: 'BF<sub>3</sub>, C<sub>2</sub>H<sub>4</sub>, C<sub>3</sub>H<sub>6</sub>',
+          D: 'C<sub>2</sub>H<sub>4</sub>, CO<sub>2</sub>, H<sub>2</sub>O',
+        }
+      },
+      {
+        number: 25,
+        code: '9701_w17_qp_11 Q: 3',
+        prompt: 'In which structure are three atoms bonded together in a straight line?',
+        options: {
+          A: 'poly(ethene), –(CH<sub>2</sub>CH<sub>2</sub>)<sub>n</sub>–',
+          B: 'propane, C<sub>3</sub>H<sub>8</sub>',
+          C: 'silicon tetrachloride, SiCl<sub>4</sub>',
+          D: 'sulfur hexafluoride, SF<sub>6</sub>',
+        }
+      },
+      {
+        number: 26,
+        code: '9701_w17_qp_12 Q: 4',
+        prompt: 'Ethane burns in oxygen to produce carbon dioxide and water vapour.<br><br>Which bond angles are present in the molecules of ethane and its combustion products?',
+        optionTable: {
+          headers: ['ethane', 'combustion products'],
+          rows: [
+            { label: 'A', values: ['90°', '104.5° and 180°'] },
+            { label: 'B', values: ['90°', '109.5° and 120°'] },
+            { label: 'C', values: ['109.5°', '104.5° and 180°'] },
+            { label: 'D', values: ['109.5°', '109.5° and 180°'] },
+          ]
+        }
+      },
+      {
+        number: 27,
+        code: '9701_m16_qp_12 Q: 6',
+        prompt: 'Which series shows molecules in order of increasing bond angle?',
+        options: {
+          A: 'CH<sub>4</sub> → BF<sub>3</sub> → NH<sub>3</sub>',
+          B: 'H<sub>2</sub>O → CO<sub>2</sub> → BF<sub>3</sub>',
+          C: 'NH<sub>3</sub> → CH<sub>4</sub> → CO<sub>2</sub>',
+          D: 'NH<sub>3</sub> → CH<sub>4</sub> → H<sub>2</sub>O',
+        }
+      },
+      {
+        number: 28,
+        code: '9701_m16_qp_12 Q: 15',
+        prompt: 'Which row of the table is correct?',
+        optionTable: {
+          headers: ['shape', '', 'bonds present', ''],
+          rows: [
+            { label: 'A', values: ['ammonia molecule: pyramidal', 'ammonium ion: regular tetrahedral', 'ammonia molecule: σ', 'ammonium ion: σ'] },
+            { label: 'B', values: ['ammonia molecule: pyramidal', 'ammonium ion: regular tetrahedral', 'ammonia molecule: σ', 'ammonium ion: π'] },
+            { label: 'C', values: ['ammonia molecule: regular tetrahedral', 'ammonium ion: pyramidal', 'ammonia molecule: σ', 'ammonium ion: σ'] },
+            { label: 'D', values: ['ammonia molecule: regular tetrahedral', 'ammonium ion: pyramidal', 'ammonia molecule: π', 'ammonium ion: σ'] },
+          ]
+        }
+      },
+      {
+        number: 29,
+        code: '9701_s16_qp_11 Q: 5',
+        prompt: 'Dicarbon monoxide, C<sub>2</sub>O, is found in dust clouds in space. The structure of this molecule is C=C=O. The molecule contains no unpaired electrons.<br><br>How many lone pairs of electrons are present in a molecule of C<sub>2</sub>O?',
+        options: {
+          A: '1',
+          B: '2',
+          C: '3',
+          D: '4',
+        }
+      },
+      {
+        number: 30,
+        code: '9701_s16_qp_12 Q: 5',
+        prompt: 'Each of the four species in this question are isolated and gaseous.<br><br>Which species is <strong>not</strong> planar?',
+        options: {
+          A: 'BF<sub>3</sub>',
+          B: 'CH<sub>3</sub><sup>+</sup>',
+          C: 'C<sub>2</sub>H<sub>4</sub>',
+          D: 'NH<sub>3</sub>',
+        }
+      },
+      {
+        number: 31,
+        code: '9701_s16_qp_13 Q: 7',
+        prompt: 'Methyl isocyanate, CH<sub>3</sub>NCO, is a toxic liquid which is used in the manufacture of some pesticides.<br><br>What is the approximate angle between the bonds formed by the N atom in a molecule of methyl isocyanate?',
+        options: {
+          A: '104°',
+          B: '109°',
+          C: '120°',
+          D: '180°',
+        }
+      },
+      {
+        number: 32,
+        code: '9701_w16_qp_12 Q: 7',
+        prompt: 'In which hydride is the H–X–H bond angle the smallest?',
+        options: {
+          A: 'BH<sub>3</sub>',
+          B: 'CH<sub>4</sub>',
+          C: 'C<sub>2</sub>H<sub>6</sub>',
+          D: 'NH<sub>3</sub>',
+        }
+      },
+      {
+        number: 33,
+        code: '9701_s15_qp_13 Q: 4',
+        prompt: 'Which pair has species with different shapes?',
+        options: {
+          A: 'BeCl<sub>2</sub> and CO<sub>2</sub>',
+          B: 'CH<sub>4</sub> and NH<sub>4</sub><sup>+</sup>',
+          C: 'NH<sub>3</sub> and BF<sub>3</sub>',
+          D: 'SCl<sub>2</sub> and H<sub>2</sub>O',
+        }
+      },
+      {
+        number: 34,
+        code: '9701_m22_qp_12 Q: 4',
+        prompt: 'For which molecule is the dipole moment zero?',
+        options: {
+          A: 'CH<sub>3</sub>Cl',
+          B: 'CH<sub>2</sub>Cl<sub>2</sub>',
+          C: 'CHCl<sub>3</sub>',
+          D: 'CCl<sub>4</sub>',
+        }
+      },
+      {
+        number: 35,
+        code: '9701_m21_qp_12 Q: 5',
+        prompt: 'In which substance are the only intermolecular forces temporary dipole-induced dipole attractions?',
+        options: {
+          A: 'hydrogen chloride',
+          B: 'methanol',
+          C: 'octane',
+          D: 'water',
+        }
+      },
+      {
+        number: 36,
+        code: '9701_s21_qp_13 Q: 5',
+        prompt: 'Descriptions of the bonding in three substances are given.<br><br>substance 1&nbsp;&nbsp;&nbsp;strong covalent bonds between atoms, permanent dipole-dipole attractions between molecules<br>substance 2&nbsp;&nbsp;&nbsp;strong covalent bonds between atoms, weak forces between molecules<br>substance 3&nbsp;&nbsp;&nbsp;strong covalent bonds between atoms, hydrogen bonding between molecules<br><br>Which compounds could be substances 1, 2 and 3?',
+        optionTable: {
+          headers: ['substance 1', 'substance 2', 'substance 3'],
+          rows: [
+            { label: 'A', values: ['CH<sub>3</sub>OH', 'Al<sub>2</sub>Cl<sub>6</sub>', 'CH<sub>2</sub>Cl<sub>2</sub>'] },
+            { label: 'B', values: ['Al<sub>2</sub>Cl<sub>6</sub>', 'CH<sub>2</sub>Cl<sub>2</sub>', 'CH<sub>4</sub>'] },
+            { label: 'C', values: ['CH<sub>2</sub>Cl<sub>2</sub>', 'CH<sub>4</sub>', 'CH<sub>3</sub>OH'] },
+            { label: 'D', values: ['CH<sub>4</sub>', 'CH<sub>3</sub>OH', 'H<sub>2</sub>O'] },
+          ]
+        }
+      },
+      {
+        number: 37,
+        code: '9701_w21_qp_11 Q: 5',
+        prompt: 'Which type of interaction exists between water molecules and metal cations in aqueous solution?',
+        options: {
+          A: 'dipole-dipole interactions',
+          B: 'hydrogen bonds',
+          C: 'ion-dipole interactions',
+          D: 'ionic bonds',
+        }
+      },
+      {
+        number: 38,
+        code: '9701_w21_qp_12 Q: 6',
+        prompt: 'Which molecule has the largest overall dipole?',
+        optionTable: {
+          headers: ['', '', '', ''],
+          rows: [
+            { label: 'A', values: ['<span aria-label=\"tetrachloroethene\" style=\"display:inline-block; padding:6px 10px; border:1px solid var(--border); border-radius:10px;\">Cl<br>\\\\ C=C // <br>Cl</span>'] },
+            { label: 'B', values: ['<span aria-label=\"methanal\" style=\"display:inline-block; padding:6px 10px; border:1px solid var(--border); border-radius:10px;\">H<br>&nbsp;\\\\ C //O<br>&nbsp;&nbsp;H</span>'] },
+            { label: 'C', values: ['<span aria-label=\"trichloroethanal\" style=\"display:inline-block; padding:6px 10px; border:1px solid var(--border); border-radius:10px;\">Cl<br>&nbsp;\\\\ C //O<br>&nbsp;&nbsp;Cl</span>'] },
+            { label: 'D', values: ['<span aria-label=\"carbon dioxide\" style=\"display:inline-block; padding:6px 10px; border:1px solid var(--border); border-radius:10px;\">O = C = O</span>'] },
+          ]
+        }
+      },
+      {
+        number: 39,
+        code: '9701_w21_qp_12 Q: 7',
+        prompt: 'The strength of hydrogen bonding increases as the electronegativity of the element bonded to hydrogen increases.<br><br>Some information for a range of hydrides is given.<br><br><table style=\"border-collapse: collapse; text-align:center; margin: 12px auto; min-width: 220px;\"><thead><tr><th style=\"border:1px solid var(--border); padding:6px;\">hydride</th><th style=\"border:1px solid var(--border); padding:6px;\">boiling point / K</th></tr></thead><tbody><tr><td style=\"border:1px solid var(--border); padding:6px;\">PH<sub>3</sub></td><td style=\"border:1px solid var(--border); padding:6px;\">185</td></tr><tr><td style=\"border:1px solid var(--border); padding:6px;\">HCl</td><td style=\"border:1px solid var(--border); padding:6px;\">188</td></tr><tr><td style=\"border:1px solid var(--border); padding:6px;\">HF</td><td style=\"border:1px solid var(--border); padding:6px;\">293</td></tr><tr><td style=\"border:1px solid var(--border); padding:6px;\">H<sub>2</sub>O</td><td style=\"border:1px solid var(--border); padding:6px;\">373</td></tr></tbody></table>Which statement and reason about these hydrides is correct?',
+        options: {
+          A: 'The boiling point of PH<sub>3</sub> is much lower than the boiling point of H<sub>2</sub>O because PH<sub>3</sub> does not form hydrogen bonds or instantaneous dipole-induced dipole forces between its molecules.',
+          B: 'The boiling point of HF is higher than the boiling point of HCl because the bond energy of H–F is greater than the bond energy of H–Cl.',
+          C: 'The boiling point of H<sub>2</sub>O is higher than the boiling point of HF because each hydrogen bond between the H<sub>2</sub>O molecules is stronger than each hydrogen bond between HF molecules.',
+          D: 'The boiling points of PH<sub>3</sub> and HCl are similar because the molecules of PH<sub>3</sub> and HCl have the same number of electrons and similar intermolecular forces.',
+        }
+      },
+      {
+        number: 40,
+        code: '9701_w21_qp_13 Q: 5',
+        prompt: 'Which type of interaction exists between water molecules and metal cations in aqueous solution?',
+        options: {
+          A: 'dipole-dipole interactions',
+          B: 'hydrogen bonds',
+          C: 'ion-dipole interactions',
+          D: 'ionic bonds',
+        }
+      },
+      {
+        number: 41,
+        code: '9701_s20_qp_12 Q: 8',
+        prompt: 'In which change are only temporary dipole-induced dipole forces overcome?',
+        options: {
+          A: 'C<sub>2</sub>H<sub>5</sub>OH(l) → C<sub>2</sub>H<sub>5</sub>OH(g)',
+          B: 'H<sub>2</sub>O(s) → H<sub>2</sub>O(l)',
+          C: 'O<sub>2</sub>(s) → O<sub>2</sub>(l)',
+          D: 'C<sub>4</sub>H<sub>10</sub>(l) → C<sub>4</sub>H<sub>10</sub>(g)',
+        }
+      },
+      {
+        number: 42,
+        code: '9701_w20_qp_11 Q: 4',
+        prompt: 'In which of the following, when in liquid form, are there only intermolecular forces based on temporary dipoles between the particles?',
+        options: {
+          A: 'bromine',
+          B: 'ethanol',
+          C: 'hydrogen chloride',
+          D: 'water',
+        }
+      },
+      {
+        number: 43,
+        code: '9701_s18_qp_11 Q: 5',
+        prompt: 'Which molecule has no overall dipole?',
+        options: {
+          A: 'CH<sub>3</sub>Cl',
+          B: 'CH<sub>2</sub>Cl<sub>2</sub>',
+          C: 'CHCl<sub>3</sub>',
+          D: 'CCl<sub>4</sub>',
+        }
+      },
+      {
+        number: 44,
+        code: '9701_s17_qp_11 Q: 5',
+        prompt: 'Which molecule has the largest overall dipole?',
+        optionTable: {
+          headers: ['', '', '', ''],
+          rows: [
+            { label: 'A', values: ['<span aria-label=\"1,1-dichloroethene\" style=\"display:inline-block; padding:6px 10px; border:1px solid var(--border); border-radius:10px;\">H &nbsp;&nbsp;CH<sub>3</sub><br>&nbsp;\\\\&nbsp; &nbsp;/<br>&nbsp;C=C<br>H &nbsp;&nbsp;CH<sub>3</sub></span>'] },
+            { label: 'B', values: ['<span aria-label=\"acetone\" style=\"display:inline-block; padding:6px 10px; border:1px solid var(--border); border-radius:10px;\">CH<sub>3</sub>–C(=O)–CH<sub>3</sub></span>'] },
+            { label: 'C', values: ['<span aria-label=\"phosgene\" style=\"display:inline-block; padding:6px 10px; border:1px solid var(--border); border-radius:10px;\">Cl<br>&nbsp;\\\\ C //O<br>&nbsp;&nbsp;Cl</span>'] },
+            { label: 'D', values: ['<span aria-label=\"1,2-dichloro-1,2-dimethylethene\" style=\"display:inline-block; padding:6px 10px; border:1px solid var(--border); border-radius:10px;\">CH<sub>3</sub>&nbsp;&nbsp;Cl<br>&nbsp;\\\\ C=C // <br>Cl&nbsp;&nbsp;CH<sub>3</sub></span>'] },
+          ]
+        }
+      },
+      {
+        number: 45,
+        code: '9701_s17_qp_12 Q: 4',
+        prompt: 'Which organic compound has the highest boiling point?',
+        options: {
+          A: 'C(CH<sub>3</sub>)<sub>4</sub>',
+          B: 'CH<sub>3</sub>CH<sub>2</sub>CH<sub>2</sub>CH<sub>2</sub>CH<sub>3</sub>',
+          C: 'CH<sub>3</sub>COCH<sub>2</sub>CH<sub>3</sub>',
+          D: 'CH<sub>3</sub>CH(OH)CH<sub>2</sub>CH<sub>3</sub>',
+        }
+      },
+      {
+        number: 46,
+        code: '9701_w17_qp_11 Q: 2',
+        prompt: 'The relative first ionisation energies of four elements with consecutive atomic numbers below 20 are shown on the graph.<br><br>One of the elements reacts with hydrogen to form a covalent compound with formula HX.<br><br>Which element could be X?<br><div style=\"text-align:center; margin:12px 0;\"><svg viewBox=\"0 0 240 150\" width=\"240\" height=\"150\" aria-label=\"Ionisation energy trend graph\"><polyline points=\"40,100 80,60 140,120 180,110\" fill=\"none\" stroke=\"#22d3ee\" stroke-width=\"3\" /><circle cx=\"40\" cy=\"100\" r=\"4\" fill=\"#22d3ee\" /><circle cx=\"80\" cy=\"60\" r=\"4\" fill=\"#22d3ee\" /><circle cx=\"140\" cy=\"120\" r=\"4\" fill=\"#22d3ee\" /><circle cx=\"180\" cy=\"110\" r=\"4\" fill=\"#22d3ee\" /><text x=\"34\" y=\"114\" fill=\"#e2e8f0\">A</text><text x=\"74\" y=\"54\" fill=\"#e2e8f0\">B</text><text x=\"134\" y=\"134\" fill=\"#e2e8f0\">C</text><text x=\"174\" y=\"124\" fill=\"#e2e8f0\">D</text><text x=\"10\" y=\"20\" fill=\"#cbd5e1\" font-size=\"11\">first ionisation energy / kJ mol<sup>−1</sup></text><text x=\"140\" y=\"145\" fill=\"#cbd5e1\" font-size=\"11\">atomic number</text></svg></div>',
+        options: {
+          A: 'A',
+          B: 'B',
+          C: 'C',
+          D: 'D',
+        }
+      },
+      {
+        number: 47,
+        code: '9701_s16_qp_11 Q: 7',
+        prompt: 'At room temperature and pressure, H<sub>2</sub>O is a liquid and H<sub>2</sub>S is a gas.<br><br>What is the reason for this difference?',
+        options: {
+          A: 'O has higher first and second ionisation energies than S.',
+          B: 'The covalent bond between O and H is stronger than the covalent bond between S and H.',
+          C: 'There is significant hydrogen bonding between H<sub>2</sub>O molecules but not between H<sub>2</sub>S molecules.',
+          D: 'The instantaneous dipole-induced dipole forces between H<sub>2</sub>O molecules are stronger than the instantaneous dipole-induced dipole forces between H<sub>2</sub>S molecules.',
+        }
+      },
+      {
+        number: 48,
+        code: '9701_s16_qp_13 Q: 6',
+        prompt: 'Carbon and silicon have the same outer electronic structure.<br><br>Why is a Si–Si bond weaker than a C–C bond?',
+        options: {
+          A: 'Silicon atoms have a larger atomic radius than carbon atoms.',
+          B: 'Silicon has a greater nuclear charge than carbon.',
+          C: 'Silicon has a smaller first ionisation energy than carbon.',
+          D: 'Silicon is more metallic than carbon.',
+        }
+      },
+      {
+        number: 49,
+        code: '9701_w16_qp_12 Q: 13',
+        prompt: 'Which element shows the greatest tendency to form covalent compounds?',
+        options: {
+          A: 'boron',
+          B: 'magnesium',
+          C: 'neon',
+          D: 'potassium',
+        }
+      },
+      {
+        number: 50,
+        code: '9701_s15_qp_11 Q: 2',
+        prompt: 'Which quantity gives the best indication of the relative strengths of the hydrogen bonds between the molecules in liquid hydrogen halides?',
+        options: {
+          A: 'bond dissociation energies',
+          B: 'enthalpy changes of formation',
+          C: 'enthalpy changes of solution',
+          D: 'enthalpy changes of vaporisation',
+        }
+      },
+      {
+        number: 51,
+        code: '9701_s15_qp_13 Q: 6',
+        prompt: 'Which statement can be explained by intermolecular hydrogen bonding?',
+        options: {
+          A: 'Ethanol has a higher boiling point than propane.',
+          B: 'Hydrogen chloride has a higher boiling point than silane, SiH<sub>4</sub>.',
+          C: 'Hydrogen iodide forms an acidic solution when dissolved in water.',
+          D: 'Propanone has a higher boiling point than propane.',
+        }
+      },
+      {
+        number: 52,
+        code: '9701_w15_qp_11 Q: 4',
+        prompt: 'Nitrogen, N<sub>2</sub>, and carbon monoxide, CO, both have M<sub>r</sub> = 28.<br><br>The boiling point of N<sub>2</sub> is 77 K.<br>The boiling point of CO is 82 K.<br><br>What could be responsible for this difference in boiling points?',
+        options: {
+          A: 'CO molecules have a permanent dipole, the N<sub>2</sub> molecules are not polar.',
+          B: 'N<sub>2</sub> has σ and π bonding, CO has σ bonding only.',
+          C: 'N<sub>2</sub> has a strong N≡N bond, CO has a C=O bond.',
+          D: 'The CO molecule has more electrons than the N<sub>2</sub> molecule.',
+        }
+      },
+      {
+        number: 53,
+        code: '9701_w15_qp_12 Q: 1',
+        prompt: 'Which type of bonding is never found in elements?',
+        options: {
+          A: 'covalent',
+          B: 'ionic',
+          C: 'metallic',
+          D: 'van der Waals’ forces',
+        }
+      },
+      {
+        number: 54,
+        code: '9701_m22_qp_12 Q: 5',
+        prompt: 'Which dot-and-cross diagram is correct for Al<sub>2</sub>Cl<sub>6</sub>?<br><div style=\"text-align:center; margin:12px 0;\"><img src=\"https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/path_dcx_al2cl6.svg\" alt=\"Dot and cross options for Al2Cl6 labelled A, B, C, D\" style=\"max-width: 100%; border-radius: 12px; border: 1px solid var(--border);\" loading=\"lazy\"></div>',
+        options: {
+          A: 'A',
+          B: 'B',
+          C: 'C',
+          D: 'D',
+        }
+      },
+
+      {
+        number: 55,
+        code: '9701_s21_qp_13 Q: 6',
+        prompt: 'Which type of bonding is <strong>never</strong> found in elements?',
+        options: {
+          A: 'covalent',
+          B: 'ionic',
+          C: 'metallic',
+          D: 'van der Waals’ forces',
+        }
+      },
+    ];
+
+    const ANSWER_KEY = {
+      1: 'B', 2: 'A', 3: 'B', 4: 'B', 5: 'D',
+      6: 'C', 7: 'B', 8: 'A', 9: 'A', 10: 'A',
+      11: 'D', 12: 'B', 13: 'A', 14: 'B', 15: 'A',
+      16: 'D', 17: 'A', 18: 'C', 19: 'C', 20: 'C',
+      21: 'D', 22: 'C', 23: 'A', 24: 'D', 25: 'D',
+      26: 'C', 27: 'C', 28: 'A', 29: 'C', 30: 'D',
+      31: 'C', 32: 'D', 33: 'C', 34: 'D', 35: 'C',
+      36: 'C', 37: 'C', 38: 'B', 39: 'C', 40: 'C',
+      41: 'C', 42: 'A', 43: 'D', 44: 'B', 45: 'D',
+      46: 'A', 47: 'C', 48: 'A', 49: 'A', 50: 'D',
+      51: 'A', 52: 'A', 53: 'B', 54: 'D', 55: 'B',
+    };
+
+    const totalQuestions = QUESTIONS.length;
+    let hasSubmitted = false;
+    let startTime = null;
+
+    function loadStudentInfoFromGame() {
+      try {
+        const stored = localStorage.getItem('cambridge_test_user');
+        if (stored) {
+          const user = JSON.parse(stored);
+          if (user.name) {
+            const nameInput = document.getElementById('studentName');
+            nameInput.value = user.name;
+            nameInput.readOnly = true;
+            nameInput.style.backgroundColor = '#0f172a';
+            nameInput.style.borderColor = '#22c55e';
+          }
+          if (user.class) {
+            const classInput = document.getElementById('studentClass');
+            classInput.value = user.class;
+            classInput.readOnly = true;
+            classInput.style.backgroundColor = '#0f172a';
+            classInput.style.borderColor = '#22c55e';
+          }
+        }
+      } catch (e) {
+        console.log('Could not load game user info');
+      }
+    }
+
+    function parseColorString(color) {
+      if (!color) return null;
+      const hexMatch = color.trim().match(/^#([0-9a-fA-F]{3,8})$/);
+      if (hexMatch) {
+        const hex = hexMatch[1];
+        if (hex.length === 3 || hex.length === 4) {
+          const r = parseInt(hex[0] + hex[0], 16);
+          const g = parseInt(hex[1] + hex[1], 16);
+          const b = parseInt(hex[2] + hex[2], 16);
+          return { r, g, b };
+        }
+        if (hex.length >= 6) {
+          const r = parseInt(hex.slice(0, 2), 16);
+          const g = parseInt(hex.slice(2, 4), 16);
+          const b = parseInt(hex.slice(4, 6), 16);
+          return { r, g, b };
+        }
+      }
+      const rgbMatch = color.match(/rgba?\(([^)]+)\)/);
+      if (rgbMatch) {
+        const parts = rgbMatch[1].split(',').map(v => parseFloat(v.trim()));
+        return { r: parts[0], g: parts[1], b: parts[2] };
+      }
+      return null;
+    }
+
+    function calculateLuminance({ r, g, b }) {
+      const [R, G, B] = [r, g, b].map(v => {
+        const channel = v / 255;
+        return channel <= 0.03928
+          ? channel / 12.92
+          : Math.pow((channel + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * R + 0.7152 * G + 0.0722 * B;
+    }
+
+    function detectDarkBackground(element = document.body) {
+      const style = window.getComputedStyle(element);
+      const colorSamples = [];
+
+      const bgImage = style.backgroundImage;
+      if (bgImage && bgImage !== 'none') {
+        const matches = bgImage.match(/(#[0-9a-fA-F]{3,8}|rgba?\([^\)]+\))/g) || [];
+        matches.forEach(match => {
+          const parsed = parseColorString(match);
+          if (parsed) colorSamples.push(parsed);
+        });
+      }
+
+      const bgColor = parseColorString(style.backgroundColor);
+      if (bgColor) colorSamples.push(bgColor);
+
+      if (!colorSamples.length) {
+        const textColor = parseColorString(style.color);
+        if (textColor) colorSamples.push(textColor);
+      }
+
+      if (!colorSamples.length) {
+        return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      }
+
+      const averageLuminance = colorSamples.reduce((sum, sample) => sum + calculateLuminance(sample), 0) / colorSamples.length;
+      return averageLuminance < 0.5;
+    }
+
+    function updateSvgColorsForBackground() {
+      const svgImages = document.querySelectorAll('#questions img[src$=".svg"]');
+      if (!svgImages.length) return;
+      const darkBg = detectDarkBackground();
+      svgImages.forEach(img => {
+        img.style.filter = darkBg ? 'brightness(0) invert(1)' : 'none';
+        img.style.transition = 'filter 0.2s ease';
+      });
+    }
+
+    function renderIonisationGraphs() {
+      const xPositions = [30, 52, 74, 96, 118, 140, 162, 184, 206];
+      const labelY = 145;
+      const buildGraph = (points, color, suffix, label) => {
+        const tickLines = xPositions.map(x => `<line x1="${x}" y1="130" x2="${x}" y2="134" stroke="#94a3b8" stroke-width="1" />`).join('');
+        const tickLabels = xPositions.map((x, idx) => `<text x="${x - 3}" y="${labelY}" fill="#cbd5e1" font-size="10">${idx}</text>`).join('');
+        const polylinePoints = points.map((y, idx) => `${xPositions[idx]},${y}`).join(' ');
+        const pointDots = points.map((y, idx) => `<circle cx="${xPositions[idx]}" cy="${y}" r="3" fill="${color}" />`).join('');
+
+        return `
+          <svg viewBox="0 0 230 170" width="100%" height="170" aria-label="Ionisation energy graph for ${label}">
+            <defs>
+              <marker id="axis-arrow-${suffix}" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L8,4 L0,8 z" fill="#94a3b8" />
+              </marker>
+            </defs>
+            <line x1="30" y1="130" x2="210" y2="130" stroke="#94a3b8" stroke-width="1.5" />
+            <line x1="30" y1="130" x2="30" y2="20" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#axis-arrow-${suffix})" />
+            ${tickLines}
+            ${tickLabels}
+            <polyline points="${polylinePoints}" fill="none" stroke="${color}" stroke-width="3" />
+            ${pointDots}
+            <text x="40" y="32" fill="#e2e8f0" font-size="11">ionisation energy</text>
+            <text x="76" y="156" fill="#e2e8f0" font-size="11">electron removed</text>
+          </svg>
+        `;
+      };
+
+      const graphA = buildGraph([123, 122, 121, 119, 118, 116, 114, 110, 42], '#38bdf8', 'a', 'element A');
+      const graphB = buildGraph([124, 123, 122, 102, 88, 76, 64, 52, 40], '#f59e0b', 'b', 'element B');
+
+      return `
+        <div class="graph-row">
+          <div class="mini-graph">${graphA}</div>
+          <div class="mini-graph">${graphB}</div>
+        </div>
+      `;
+    }
+
+    function wrapTables(card) {
+      const tables = card.querySelectorAll('table');
+      tables.forEach(table => {
+        if (table.parentElement && table.parentElement.classList.contains('table-scroll')) return;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'table-scroll';
+        table.parentNode.insertBefore(wrapper, table);
+        wrapper.appendChild(table);
+      });
+    }
+
+    function renderQuestions() {
+      const container = document.getElementById('questions');
+      QUESTIONS.forEach((q) => {
+        const card = document.createElement('div');
+        card.className = 'question-card';
+
+        const meta = document.createElement('div');
+        meta.className = 'question-meta';
+        meta.innerHTML = `<span>#${q.number.toString().padStart(2, '0')}</span><span>${q.code}</span>`;
+        card.appendChild(meta);
+
+        const title = document.createElement('div');
+        title.className = 'question-title';
+        title.innerHTML = q.prompt;
+        card.appendChild(title);
+
+        if (q.graphs) {
+          const graphHolder = document.createElement('div');
+          graphHolder.innerHTML = renderIonisationGraphs();
+          card.appendChild(graphHolder);
+        }
+
+        if (q.table) {
+          const table = document.createElement('table');
+          const thead = document.createElement('thead');
+          const headRow = document.createElement('tr');
+          headRow.innerHTML = `<th></th>${q.table.headers.map(h => `<th>${h}</th>`).join('')}`;
+          thead.appendChild(headRow);
+          table.appendChild(thead);
+
+          const tbody = document.createElement('tbody');
+          q.table.rows.forEach(row => {
+            const tr = document.createElement('tr');
+            if (row.isOption === false) {
+              tr.innerHTML = `
+                <td style='width:90px; text-align:left;'></td>
+                ${row.values.map(v => `<td>${v}</td>`).join('')}
+              `;
+            } else {
+              tr.innerHTML = `
+                <td style='width:90px; text-align:left;'>
+                  <label class='option-label' style='display:flex; align-items:center; gap:6px;'>
+                    <input type='radio' name='q${q.number}' value='${row.label}' />
+                    <strong>${row.label}</strong>
+                  </label>
+                </td>
+                ${row.values.map(v => `<td>${v}</td>`).join('')}
+              `;
+            }
+            tbody.appendChild(tr);
+          });
+          table.appendChild(tbody);
+          card.appendChild(table);
+        } else if (q.optionTable) {
+          const table = document.createElement('table');
+          const thead = document.createElement('thead');
+          const headRow = document.createElement('tr');
+          headRow.innerHTML = `<th></th>${q.optionTable.headers.map(h => `<th>${h}</th>`).join('')}`;
+          thead.appendChild(headRow);
+          table.appendChild(thead);
+
+          const tbody = document.createElement('tbody');
+          q.optionTable.rows.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style='width:90px; text-align:left;'>
+                <label class='option-label' style='display:flex; align-items:center; gap:6px;'>
+                  <input type='radio' name='q${q.number}' value='${row.label}' />
+                  <strong>${row.label}</strong>
+                </label>
+              </td>
+              ${row.values.map(v => `<td>${v}</td>`).join('')}
+            `;
+            tbody.appendChild(tr);
+          });
+          table.appendChild(tbody);
+          card.appendChild(table);
+        } else if (q.options) {
+          const list = document.createElement('div');
+          list.className = 'option-list';
+          Object.entries(q.options).forEach(([letter, text]) => {
+            const option = document.createElement('label');
+            option.className = 'option';
+            option.innerHTML = `
+              <input type='radio' name='q${q.number}' value='${letter}' />
+              <div><strong>${letter}</strong> <span>${text}</span></div>
+            `;
+            list.appendChild(option);
+          });
+          card.appendChild(list);
+        }
+
+        wrapTables(card);
+        container.appendChild(card);
+      });
+    }
+
+    function checkPreviousSubmission() {
+      const saved = localStorage.getItem(`quiz_submitted_${QUIZ_ID}`);
+      if (!saved) return;
+      const data = JSON.parse(saved);
+      hasSubmitted = true;
+      document.querySelectorAll('input').forEach(i => i.disabled = true);
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = '✓ Submitted';
+      const status = document.getElementById('status');
+      status.textContent = `You submitted this test on ${new Date(data.submittedAt).toLocaleString()}.`;
+      const scoreDiv = document.getElementById('score');
+      scoreDiv.style.display = 'block';
+      scoreDiv.textContent = `Stored score: ${data.score}/${data.total} (${Math.round((data.score / data.total) * 100)}%).`;
+    }
+
+    function calculateScore(responses) {
+      const answerKeyReady = Object.values(ANSWER_KEY).every(v => !!v);
+      if (!answerKeyReady) {
+        return { score: 0, percentage: 0, pending: true };
+      }
+      let correct = 0;
+      Object.entries(ANSWER_KEY).forEach(([q, ans]) => {
+        const studentAns = (responses[q] || '').toString().trim().toUpperCase();
+        const correctAns = (ans || '').toString().trim().toUpperCase();
+        if (studentAns && studentAns === correctAns) correct++;
+      });
+      return {
+        score: correct,
+        percentage: Math.round((correct / totalQuestions) * 100),
+        pending: false
+      };
+    }
+
+    async function handleSubmit() {
+      if (hasSubmitted) return;
+      const status = document.getElementById('status');
+      const btn = document.getElementById('submitBtn');
+      const name = document.getElementById('studentName').value.trim();
+      const cls = document.getElementById('studentClass').value.trim();
+
+      if (!name) {
+        status.textContent = '⚠️ Please enter your name.';
+        return;
+      }
+      if (!cls) {
+        status.textContent = '⚠️ Please enter your class.';
+        return;
+      }
+
+      const responses = {};
+      for (let i = 1; i <= totalQuestions; i++) {
+      const selected = document.querySelector(`input[name='q${i}']:checked`);
+        responses[i] = selected ? selected.value : '';
+      }
+
+      const confirmSubmit = confirm(
+        'Submit answers now?\n\n• Your current selections will be saved.\n• Score will remain pending until the official answer key is added.'
+      );
+      if (!confirmSubmit) return;
+
+      const timeTaken = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+      const result = calculateScore(responses);
+
+      btn.disabled = true;
+      status.textContent = '📤 Submitting...';
+
+      const payload = {
+        student_name: name,
+        student_class: cls,
+        quiz_name: QUIZ_NAME,
+        score: result.score,
+        total_questions: totalQuestions,
+        percentage: result.percentage,
+          answers: {
+            responses,
+            answer_key_ready: !result.pending,
+            pending_answer_key: result.pending,
+            quiz_version: 'v1-55q'
+          },
+        time_taken_seconds: timeTaken
+      };
+
+      const { error } = await supabaseClient.from('quiz_scores').insert(payload);
+      if (error) {
+        console.error(error);
+        status.textContent = '❌ Failed to submit. Please try again.';
+        btn.disabled = false;
+        return;
+      }
+
+      hasSubmitted = true;
+      localStorage.setItem(`quiz_submitted_${QUIZ_ID}`, JSON.stringify({
+        score: result.score,
+        total: totalQuestions,
+        submittedAt: new Date().toISOString()
+      }));
+
+      document.querySelectorAll('input').forEach(i => i.disabled = true);
+      btn.textContent = '✓ Submitted';
+      status.textContent = result.pending
+        ? '✅ Submitted. Scoring will be applied once the answer key is available.'
+        : '✅ Submitted successfully.';
+
+      const scoreDiv = document.getElementById('score');
+      scoreDiv.style.display = 'block';
+      scoreDiv.textContent = result.pending
+        ? 'Score pending official answer key.'
+        : `Score: ${result.score}/${totalQuestions} (${result.percentage}%).`;
+
+      try {
+        if (window.parent !== window) {
+          window.parent.postMessage({
+            type: 'CAMBRIDGE_TEST_COMPLETE',
+            quizId: QUIZ_ID,
+            score: result.score,
+            total: totalQuestions,
+            percentage: result.percentage
+          }, '*');
+        }
+      } catch (e) {
+        console.log('Parent notification unavailable');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderQuestions();
+      loadStudentInfoFromGame();
+      checkPreviousSubmission();
+      startTime = Date.now();
+      document.getElementById('submitBtn').addEventListener('click', handleSubmit);
+      updateSvgColorsForBackground();
+
+      const colorSchemeQuery = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+      if (colorSchemeQuery) {
+        const listener = () => updateSvgColorsForBackground();
+        if (colorSchemeQuery.addEventListener) {
+          colorSchemeQuery.addEventListener('change', listener);
+        } else if (colorSchemeQuery.addListener) {
+          colorSchemeQuery.addListener(listener);
+        }
+      }
+
+      document.querySelectorAll('#questions img[src$=".svg"]').forEach(img => {
+        if (!img.complete) {
+          img.addEventListener('load', updateSvgColorsForBackground, { once: true });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
