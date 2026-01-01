@@ -281,7 +281,7 @@
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
         <h1 style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch2 (Atoms, molecules and stoichiometry)</h1>
-        <div style="color: var(--text-muted); font-size: 14px;">Chapter 2 • 63 multiple-choice questions</div>
+        <div style="color: var(--text-muted); font-size: 14px;">Chapter 2 • 64 multiple-choice questions</div>
       </div>
     </div>
 
@@ -1126,6 +1126,17 @@
           D: '22.2 g',
         }
       },
+      {
+        number: 64,
+        code: '9701_w18_qp_11 Q: 3',
+        prompt: 'A sample of the hydrocarbon C<sub>6</sub>H<sub>12</sub> is completely burned in dry oxygen and the product gases are collected as shown.<br><div style="margin: 12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/path302.svg" alt="Combustion of C6H12 with product gases passing through calcium chloride tube P then soda lime tube Q" style="max-width: 100%; border-radius: 12px; border: 1px solid var(--border);" loading="lazy"></div>The increases in mass of the collecting vessels P and Q are M<sub>P</sub> and M<sub>Q</sub>, respectively.<br><br>What is the ratio M<sub>P</sub> / M<sub>Q</sub>?',
+        options: {
+          A: '0.41',
+          B: '0.82',
+          C: '1.2',
+          D: '2.4',
+        }
+      },
     ];
 
     const ANSWER_KEY = {
@@ -1141,7 +1152,7 @@
       46: 'B', 47: 'A', 48: 'B', 49: 'C', 50: 'D',
       51: 'A', 52: 'A', 53: 'B', 54: 'D', 55: 'C',
       56: 'A', 57: 'C', 58: 'B', 59: 'B', 60: 'C',
-      61: 'C', 62: 'B', 63: 'C',
+      61: 'C', 62: 'B', 63: 'C', 64: 'A',
     };
 
     const totalQuestions = QUESTIONS.length;
@@ -1382,12 +1393,12 @@
         score: result.score,
         total_questions: totalQuestions,
         percentage: result.percentage,
-        answers: {
-          responses,
-          answer_key_ready: !result.pending,
-          pending_answer_key: result.pending,
-          quiz_version: 'v1-39q'
-        },
+          answers: {
+            responses,
+            answer_key_ready: !result.pending,
+            pending_answer_key: result.pending,
+            quiz_version: 'v1-64q'
+          },
         time_taken_seconds: timeTaken
       };
 
