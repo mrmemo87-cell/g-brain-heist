@@ -105,6 +105,15 @@
       height: auto;
       color: inherit;
     }
+    .option-graphic {
+      display: block;
+      max-width: min(460px, 100%);
+      height: auto;
+      margin-top: 6px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
     .molecule-diagram line {
       stroke: currentColor;
       stroke-width: 2;
@@ -276,6 +285,22 @@
       border-radius: 10px;
       padding: 10px;
     }
+    .svg-fallback {
+      margin-top: 6px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.04);
+      border: 1px dashed rgba(226,232,240,0.35);
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .svg-fallback a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .svg-fallback a:hover { text-decoration: underline; }
+    .svg-fallback small { display: block; margin-top: 4px; }
     @media (max-width: 640px) {
       body { padding: 12px; }
       .container { padding: 16px; }
@@ -1123,6 +1148,52 @@
       });
     }
 
+    function showSvgFallback(img, originalSrc) {
+      if (!img || img.dataset.fallbackApplied) return;
+      img.dataset.fallbackApplied = 'true';
+      const fallback = document.createElement('div');
+      fallback.className = 'svg-fallback';
+      fallback.innerHTML = `🔗 <a href="${originalSrc}" target="_blank" rel="noopener noreferrer">Open diagram</a>${img.alt ? `<small>${img.alt}</small>` : ''}`;
+      img.insertAdjacentElement('afterend', fallback);
+      img.style.display = 'none';
+    }
+
+    async function inlineSupabaseSvg(img) {
+      const src = img?.getAttribute('src');
+      if (!src || !src.endsWith('.svg') || !src.includes(SUPABASE_URL)) return;
+      if (img.dataset.svgHydrated === 'true' || img.dataset.svgHydrated === 'pending') return;
+      img.dataset.svgHydrated = 'pending';
+      const headers = {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      };
+      try {
+        const response = await fetch(src, { headers });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        img.dataset.objectUrl = objectUrl;
+        img.src = objectUrl;
+        img.dataset.svgHydrated = 'true';
+        img.addEventListener('error', () => showSvgFallback(img, src), { once: true });
+      } catch (err) {
+        console.warn('Failed to load SVG with auth headers', err);
+        img.dataset.svgHydrated = 'failed';
+        showSvgFallback(img, src);
+      }
+    }
+
+    function hydrateSupabaseSvgs() {
+      const svgImages = document.querySelectorAll('#questions img[src$=".svg"]');
+      svgImages.forEach(img => inlineSupabaseSvg(img));
+    }
+
+    function revokeObjectUrls() {
+      document.querySelectorAll('#questions img[data-object-url]').forEach(img => {
+        URL.revokeObjectURL(img.dataset.objectUrl);
+      });
+    }
+
     function renderIonisationGraphs() {
       const xPositions = [30, 52, 74, 96, 118, 140, 162, 184, 206];
       const labelY = 145;
@@ -1402,6 +1473,7 @@
       startTime = Date.now();
       document.getElementById('submitBtn').addEventListener('click', handleSubmit);
       updateSvgColorsForBackground();
+      hydrateSupabaseSvgs();
 
       const colorSchemeQuery = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
       if (colorSchemeQuery) {
@@ -1416,9 +1488,12 @@
       document.querySelectorAll('#questions img[src$=".svg"]').forEach(img => {
         if (!img.complete) {
           img.addEventListener('load', updateSvgColorsForBackground, { once: true });
+          img.addEventListener('load', () => inlineSupabaseSvg(img), { once: true });
         }
       });
     });
+
+    window.addEventListener('beforeunload', revokeObjectUrls);
   </script>
 </body>
 </html>
