@@ -98,6 +98,16 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     category: 'Science',
     url: '/cambridge-tests/Chemistry/states_of_matter.html',
   },
+  {
+    id: 'as-chemistry-ch5-chemical-energetics',
+    name: 'AS Chemistry Ch5 (Chemical Energetics)',
+    description: 'Chapter 5 multiple-choice practice on enthalpy terminology, energy profiles, Hess’ law reasoning, and calorimetry.',
+    duration: '55 min',
+    totalQuestions: 53,
+    difficulty: 'Advanced',
+    category: 'Science',
+    url: '/cambridge-tests/Chemistry/chemical_energetics.html',
+  },
   // Add more tests here as they become available
 ];
 
