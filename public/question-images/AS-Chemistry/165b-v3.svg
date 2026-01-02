@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 170" role="img" aria-labelledby="title desc">
+  <title id="title">Al2Cl6 diagram option B</title>
+  <desc id="desc">Two aluminium centres with a single bridging chlorine at the top; other chlorines remain terminal.</desc>
+  <style>
+    .al { fill: #fde68a; stroke: #0f172a; stroke-width: 2; }
+    .cl { fill: #c7f9cc; stroke: #0f172a; stroke-width: 2; }
+    .bond { stroke: #0f172a; stroke-width: 2; stroke-linecap: round; }
+    .bridge { stroke: #0f172a; stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: 5 3; }
+    text { font-family: 'Inter', 'Arial', sans-serif; font-size: 12px; fill: #0f172a; font-weight: 700; }
+  </style>
+  <rect width="280" height="170" rx="12" fill="#ffffff" stroke="#e2e8f0" />
+  <g>
+    <circle class="al" cx="90" cy="85" r="18" />
+    <text x="90" y="89" text-anchor="middle">Al</text>
+    <circle class="al" cx="190" cy="85" r="18" />
+    <text x="190" y="89" text-anchor="middle">Al</text>
+  </g>
+  <g class="bonds">
+    <line class="bond" x1="90" y1="85" x2="45" y2="40" />
+    <line class="bond" x1="90" y1="85" x2="45" y2="130" />
+    <line class="bridge" x1="90" y1="85" x2="140" y2="32" />
+
+    <line class="bond" x1="190" y1="85" x2="235" y2="40" />
+    <line class="bond" x1="190" y1="85" x2="235" y2="130" />
+    <line class="bridge" x1="190" y1="85" x2="140" y2="32" />
+  </g>
+  <g class="chlorines">
+    <circle class="cl" cx="45" cy="40" r="16" /><text x="45" y="44" text-anchor="middle">A</text>
+    <circle class="cl" cx="140" cy="32" r="16" /><text x="140" y="36" text-anchor="middle">B</text>
+    <circle class="cl" cx="45" cy="130" r="16" /><text x="45" y="134" text-anchor="middle">C</text>
+
+    <circle class="cl" cx="235" cy="40" r="16" /><text x="235" y="44" text-anchor="middle">D</text>
+    <circle class="cl" cx="190" cy="140" r="16" /><text x="190" y="144" text-anchor="middle">E</text>
+    <circle class="cl" cx="235" cy="130" r="16" /><text x="235" y="134" text-anchor="middle">F</text>
+  </g>
+</svg>
