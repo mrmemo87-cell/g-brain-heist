@@ -171,10 +171,19 @@
       display: block;
       margin: 12px auto;
     }
-    @media (prefers-color-scheme: dark) {
-      .theme-aware-graphic {
-        filter: invert(1) brightness(1.8);
-      }
+    .white-graphic {
+      filter: invert(1) brightness(2);
+    }
+    .option img,
+    .question-title img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: 8px 0 0;
+    }
+    .option .option-graphic {
+      max-width: 220px;
+      width: 100%;
     }
     table {
       width: 100%;
@@ -333,16 +342,16 @@
         code: '9701_m22_qp_12 Q: 9',
         prompt: 'Nitrogen monoxide forms in car engines by an endothermic reaction.<br><br>N<sub>2</sub>(g) + O<sub>2</sub>(g) → 2NO(g)<br><br>Which diagram correctly represents the energy profile for this reaction?',
         options: {
-          A: 'Products are higher than reactants; ΔH arrow points up from reactants to products and E<sub>a</sub> is measured from reactants to the peak.',
-          B: 'Products are higher than reactants; ΔH arrow points down from products to reactants while E<sub>a</sub> is shown from reactants to the peak.',
-          C: 'Products are lower than reactants; ΔH arrow points down from reactants to products and E<sub>a</sub> is drawn from products to the peak.',
-          D: 'Products are lower than reactants; ΔH arrow points up from reactants to products and E<sub>a</sub> is measured from products to the peak.',
+          A: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/229a.svg" alt="Energy profile option A" class="option-graphic white-graphic" loading="lazy" />',
+          B: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/229b.svg" alt="Energy profile option B" class="option-graphic white-graphic" loading="lazy" />',
+          C: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/229c.svg" alt="Energy profile option C" class="option-graphic white-graphic" loading="lazy" />',
+          D: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/229d.svg" alt="Energy profile option D" class="option-graphic white-graphic" loading="lazy" />',
         }
       },
       {
         number: 3,
         code: '9701_m21_qp_12 Q: 7',
-        prompt: 'An experiment was performed to determine the enthalpy of combustion of ethanol.<br><br>Data collected:<ul style="margin: 10px 0 0 18px; padding-left: 4px; color: var(--text-main);"><li>mass of water = W g</li><li>mass of ethanol burned = X g</li><li>temperature rise = Y °C</li><li>molar mass of ethanol = Z g mol<sup>−1</sup></li><li>specific heat capacity of water = 4.2 J K<sup>−1</sup> g<sup>−1</sup></li></ul><br>Which expression calculates the enthalpy of combustion of ethanol in kJ mol<sup>−1</sup>?',
+        prompt: 'An experiment was performed to determine the enthalpy of combustion of ethanol.<br><br><div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/230.svg" alt="Calorimetry setup diagram" class="theme-aware-graphic white-graphic" loading="lazy" /></div>Data collected:<ul style="margin: 10px 0 0 18px; padding-left: 4px; color: var(--text-main);"><li>mass of water = W g</li><li>mass of ethanol burned = X g</li><li>temperature rise = Y °C</li><li>molar mass of ethanol = Z g mol<sup>−1</sup></li><li>specific heat capacity of water = 4.2 J K<sup>−1</sup> g<sup>−1</sup></li></ul><br>Which expression calculates the enthalpy of combustion of ethanol in kJ mol<sup>−1</sup>?',
         options: {
           A: '−4.2WYZ / 1000X',
           B: '−4.2WYX / 1000Z',
@@ -377,10 +386,10 @@
         code: '9701_w21_qp_12 Q: 9',
         prompt: 'The equation for the formation of ammonium chloride is shown.<br><br>NH<sub>3</sub>(g) + HCl(g) ⇌ NH<sub>4</sub>Cl(s) &nbsp;&nbsp; ΔH = −314 kJ mol<sup>−1</sup><br><br>Which diagram shows the correctly labelled reaction pathway diagram for the decomposition of ammonium chloride?',
         options: {
-          A: 'Reactants (NH<sub>3</sub> + HCl) are higher than NH<sub>4</sub>Cl; ΔH arrow points up and E<sub>a</sub> starts at NH<sub>4</sub>Cl.',
-          B: 'Reactants (NH<sub>3</sub> + HCl) are higher than NH<sub>4</sub>Cl; ΔH arrow points down and E<sub>a</sub> starts at NH<sub>4</sub>Cl.',
-          C: 'NH<sub>4</sub>Cl is higher than NH<sub>3</sub> + HCl; ΔH arrow points down and E<sub>a</sub> starts at NH<sub>4</sub>Cl.',
-          D: 'NH<sub>4</sub>Cl is higher than NH<sub>3</sub> + HCl; ΔH arrow points up and E<sub>a</sub> starts at NH<sub>3</sub> + HCl.',
+          A: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/233a.svg" alt="Reaction pathway option A" class="option-graphic white-graphic" loading="lazy" />',
+          B: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/233b.svg" alt="Reaction pathway option B" class="option-graphic white-graphic" loading="lazy" />',
+          C: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/233c.svg" alt="Reaction pathway option C" class="option-graphic white-graphic" loading="lazy" />',
+          D: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/233d.svg" alt="Reaction pathway option D" class="option-graphic white-graphic" loading="lazy" />',
         }
       },
       {
@@ -441,7 +450,7 @@
       {
         number: 12,
         code: '9701_s19_qp_12 Q: 8',
-        prompt: 'A reaction pathway diagram is shown with labelled arrows K, L, M, N, O and P.<br><br>Which row is correct?',
+        prompt: 'A reaction pathway diagram is shown with labelled arrows K, L, M, N, O and P.<br><div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/239.svg" alt="Reaction pathway diagram with arrows K to P" class="theme-aware-graphic white-graphic" loading="lazy" /></div>Which row is correct?',
         optionTable: {
           headers: ['enthalpy change of the forward reaction', 'activation energy of the reverse reaction'],
           rows: [
@@ -455,7 +464,7 @@
       {
         number: 13,
         code: '9701_s19_qp_13 Q: 6',
-        prompt: 'The reaction pathway diagram for a chemical reaction is shown.<br><div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/240.svg" alt="Reaction pathway diagram with forward activation energy and enthalpy change labels" class="theme-aware-graphic" loading="lazy" /></div>Which statement is correct?',
+        prompt: 'The reaction pathway diagram for a chemical reaction is shown.<br><div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/240.svg" alt="Reaction pathway diagram with forward activation energy and enthalpy change labels" class="theme-aware-graphic white-graphic" loading="lazy" /></div>Which statement is correct?',
         options: {
           A: 'The activation energy of the forward reaction and the enthalpy change of the backward reaction have the same sign.',
           B: 'The activation energy of the forward reaction is more than twice the enthalpy change of the backward reaction and opposite in sign.',
