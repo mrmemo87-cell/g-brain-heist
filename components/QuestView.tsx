@@ -40,10 +40,31 @@ const getOptionText = (option: string | QuestionOption): string => {
   return option.text;
 };
 
+// Resolve Supabase storage-relative URLs to fully qualified public URLs
+const resolveQuestionImageUrl = (url?: string | null): string | undefined => {
+  if (!url) return undefined;
+  const trimmed = url.trim();
+  if (!trimmed) return undefined;
+
+  // Already absolute
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  if (!supabaseUrl) {
+    return trimmed;
+  }
+
+  const normalizedPath = trimmed.replace(/^\/+/, '');
+  const withBucket = normalizedPath.startsWith('question-images/') ? normalizedPath : `question-images/${normalizedPath}`;
+  return `${supabaseUrl}/storage/v1/object/public/${withBucket}`;
+};
+
 // Helper to get option image URL (handles both string and QuestionOption formats)
 const getOptionImageUrl = (option: string | QuestionOption): string | undefined => {
   if (typeof option === 'string') return undefined;
-  return option.image_url;
+  return resolveQuestionImageUrl(option.image_url);
 };
 
 type QuestStage = 'loading' | 'subject_selection' | 'unified_subject_play' | 'in_progress' | 'completed' | 'assignment_blocked';
@@ -1130,10 +1151,10 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         <div className="card-glass p-6 mb-6">
             <p className="text-xl text-gray-200">{questionText}</p>
             {/* Display question image if available (for all question types) */}
-            {(mode === 'practice' ? question?.image_url : activeTeacherQuestion?.image_url) && (
+            {resolveQuestionImageUrl(mode === 'practice' ? question?.image_url : activeTeacherQuestion?.image_url) && (
               <div className="mt-4 flex justify-center">
                 <img
-                  src={(mode === 'practice' ? question?.image_url : activeTeacherQuestion?.image_url) || ''}
+                  src={resolveQuestionImageUrl(mode === 'practice' ? question?.image_url : activeTeacherQuestion?.image_url) || ''}
                   alt="Question"
                   className="max-w-full max-h-64 rounded-lg border border-gray-600 object-contain"
                   onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
