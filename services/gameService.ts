@@ -4608,9 +4608,9 @@ export const upload_question_image = async (file: File): Promise<string> => {
     const user = await getCurrentUser();
     
     // Validate file type
-    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
     if (!validTypes.includes(file.type)) {
-        throw new Error('Invalid file type. Please upload a JPEG, PNG, GIF, or WebP image.');
+        throw new Error('Invalid file type. Please upload a JPEG, PNG, GIF, SVG, or WebP image.');
     }
     
     // Validate file size (max 5MB)
