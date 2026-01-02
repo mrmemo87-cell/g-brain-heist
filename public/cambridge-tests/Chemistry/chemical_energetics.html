@@ -165,6 +165,17 @@
       border-radius: 12px;
       -webkit-overflow-scrolling: touch;
     }
+    .theme-aware-graphic {
+      width: 220px;
+      max-width: 100%;
+      display: block;
+      margin: 12px auto;
+    }
+    @media (prefers-color-scheme: dark) {
+      .theme-aware-graphic {
+        filter: invert(1) brightness(1.8);
+      }
+    }
     table {
       width: 100%;
       min-width: 420px;
@@ -444,7 +455,7 @@
       {
         number: 13,
         code: '9701_s19_qp_13 Q: 6',
-        prompt: 'The reaction pathway diagram for a chemical reaction is shown.<br><br>Which statement is correct?',
+        prompt: 'The reaction pathway diagram for a chemical reaction is shown.<br><div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/240.svg" alt="Reaction pathway diagram with forward activation energy and enthalpy change labels" class="theme-aware-graphic" loading="lazy" /></div>Which statement is correct?',
         options: {
           A: 'The activation energy of the forward reaction and the enthalpy change of the backward reaction have the same sign.',
           B: 'The activation energy of the forward reaction is more than twice the enthalpy change of the backward reaction and opposite in sign.',
