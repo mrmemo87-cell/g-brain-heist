@@ -88,6 +88,16 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     category: 'Science',
     url: '/cambridge-tests/Chemistry/chemical_bonding.html',
   },
+  {
+    id: 'as-chemistry-ch4-states-of-matter',
+    name: 'AS Chemistry Ch4 (States of matter)',
+    description: 'Chapter 4 multiple-choice practice on gas laws, kinetic theory, real gas deviations, and quantitative gas questions.',
+    duration: '20 min',
+    totalQuestions: 32,
+    difficulty: 'Advanced',
+    category: 'Science',
+    url: '/cambridge-tests/Chemistry/states_of_matter.html',
+  },
   // Add more tests here as they become available
 ];
 
