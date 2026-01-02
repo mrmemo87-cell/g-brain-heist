@@ -2450,7 +2450,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   <div className="text-slate-500">
                     <span className="text-2xl">📷</span>
                     <p className="mt-2">Click to upload or <span className="text-cyan-600 font-medium">paste screenshot</span> (Ctrl+V)</p>
-                    <p className="text-xs mt-1">JPEG, PNG, GIF, or WebP (max 5MB)</p>
+                    <p className="text-xs mt-1">JPEG, PNG, GIF, SVG, or WebP (max 5MB)</p>
                   </div>
                 </div>
               )}
@@ -2460,7 +2460,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   <input
                     id="question-image-input"
                     type="file"
-                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
@@ -2580,7 +2580,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                         📷 {option.image_url || optionImages[index] ? 'Change' : 'Add Image'}
                         <input
                           type="file"
-                          accept="image/jpeg,image/png,image/gif,image/webp"
+                          accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
