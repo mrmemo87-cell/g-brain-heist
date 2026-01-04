@@ -118,6 +118,16 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     category: 'Science',
     url: '/cambridge-tests/Chemistry/electrochemistry.html',
   },
+  {
+    id: 'as-chemistry-ch7-equilibria',
+    name: 'AS Chemistry Ch7 (Equilibria)',
+    description: 'Le Chatelier shifts, Kp / Kc calculations, industrial processes, and equilibrium graphs.',
+    duration: '70 min',
+    totalQuestions: 73,
+    difficulty: 'Advanced',
+    category: 'Science',
+    url: '/cambridge-tests/Chemistry/equilibria.html',
+  },
   // Add more tests here as they become available
 ];
 
