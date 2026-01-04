@@ -108,6 +108,16 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     category: 'Science',
     url: '/cambridge-tests/Chemistry/chemical_energetics.html',
   },
+  {
+    id: 'as-chemistry-ch6-electrochemistry',
+    name: 'AS Chemistry Ch6 (Electrochemistry)',
+    description: 'Chapter 6 multiple-choice practice on electrochemical cells, electrode potentials, fuel cells, and redox processes.',
+    duration: '70 min',
+    totalQuestions: 56,
+    difficulty: 'Advanced',
+    category: 'Science',
+    url: '/cambridge-tests/Chemistry/electrochemistry.html',
+  },
   // Add more tests here as they become available
 ];
 
