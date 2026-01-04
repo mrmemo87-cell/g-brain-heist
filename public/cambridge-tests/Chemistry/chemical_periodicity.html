@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
+  <title>AS Chemistry Ch9 (Chemical Periodicity)</title>
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.12);
+      --accent: #38bdf8;
+      --accent-2: #8b5cf6;
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+      --success: #22c55e;
+      --warning: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto 40px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    }
+    .header {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .header img {
+      width: 54px;
+      height: 54px;
+      border-radius: 12px;
+      background: #fff;
+      padding: 6px;
+    }
+    .badge-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .badge {
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .status {
+      margin: 14px 0 22px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      color: #fef08a;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .student-info {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      margin-bottom: 24px;
+    }
+    .student-info input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(15,23,42,0.6);
+      color: var(--text-main);
+      font-size: 14px;
+    }
+    .student-info input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56,189,248,0.25);
+    }
+    .question-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+    }
+    .question-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    .question-title {
+      font-weight: 700;
+      color: #fff;
+      margin: 0 0 10px;
+      line-height: 1.4;
+    }
+    .option-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .option {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .option input {
+      margin-top: 3px;
+    }
+    .option:hover {
+      border-color: var(--accent);
+      background: rgba(56,189,248,0.06);
+    }
+    .option strong {
+      min-width: 22px;
+      display: inline-block;
+    }
+    .table-wrapper {
+      margin: 12px 0;
+      overflow-x: auto;
+      border-radius: 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+    table {
+      width: 100%;
+      min-width: 420px;
+      border-collapse: collapse;
+      background: rgba(0,0,0,0.12);
+      border-radius: 12px;
+      overflow: hidden;
+      table-layout: fixed;
+    }
+    table th, table td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid var(--border);
+      color: #e2e8f0;
+      word-break: break-word;
+    }
+    table th {
+      background: rgba(255,255,255,0.06);
+      font-weight: 700;
+    }
+    .submit-area {
+      margin-top: 26px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    button {
+      background: linear-gradient(135deg, #38bdf8, #8b5cf6);
+      color: #0b1033;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 22px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 14px 35px rgba(0,0,0,0.4); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .submit-status { font-size: 14px; color: var(--text-muted); }
+    .score-box {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #bbf7d0;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/chemistry.png" alt="Chemistry icon" />
+      <div>
+        <h1 style="margin:0;">AS Chemistry Ch9 (Chemical Periodicity)</h1>
+        <div style="color: var(--text-muted); font-size: 14px;">Period 3 trends, ionisation energies, melting points, and ionic radii.</div>
+      </div>
+    </div>
+
+    <div class="badge-row">
+      <div class="badge">Duration: ~105 minutes</div>
+      <div class="badge">Total questions: 85</div>
+      <div class="badge">Level: Advanced</div>
+      <div class="badge">Category: Science</div>
+      <div class="badge">Answer key pending (teacher review)</div>
+    </div>
+
+    <div class="status">
+      Your score will be updated once the official answer key is published. Submit now to save your responses.
+    </div>
+
+    <div class="student-info">
+      <div>
+        <label for="studentName" style="display:block; margin-bottom:6px; color: var(--text-muted);">Student name</label>
+        <input id="studentName" placeholder="Enter your full name" />
+      </div>
+      <div>
+        <label for="studentClass" style="display:block; margin-bottom:6px; color: var(--text-muted);">Class</label>
+        <input id="studentClass" placeholder="Enter your class" />
+      </div>
+    </div>
+
+    <div id="questions"></div>
+
+    <div class="submit-area">
+      <button id="submitBtn">Submit Answers</button>
+      <div id="status" class="submit-status">Progress saves automatically in this browser.</div>
+    </div>
+    <div id="score" class="score-box" style="display:none;"></div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://sozodkxwhubespiedgxm.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwczovL3N1cGFiYXNlLmlvL2NsYWltcy9zdWJqZWN0IjoicHVibGljIiwiaHR0cHM6Ly9zdXBhYmFzZS5pby9jbGFpbXMvcm9sZSI6ImFub24iLCJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTY5OTA1MjkyNywiZXhwIjoyMDE0NjI4OTI3fQ.o6SgqFWWf3XwT63MifOnRmPGzfmrPZ7dx6hPb6jt4WI';
+
+    function createSupabaseClient(url, key) {
+      return {
+        from(table) {
+          return {
+            async insert(data) {
+              try {
+                const response = await fetch(`${url}/rest/v1/${table}`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': key,
+                    'Authorization': `Bearer ${key}`,
+                    'Prefer': 'return=minimal'
+                  },
+                  body: JSON.stringify(Array.isArray(data) ? data : [data])
+                });
+                if (!response.ok) {
+                  const errorText = await response.text();
+                  throw new Error(errorText || response.statusText);
+                }
+                return { data: null, error: null };
+              } catch (err) {
+                return { data: null, error: err };
+              }
+            }
+          };
+        }
+      };
+    }
+
+    const supabaseClient = createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const QUIZ_ID = 'as_chemistry_ch9_chemical_periodicity';
+    const QUIZ_NAME = 'AS Chemistry Ch9 (Chemical Periodicity)';
+
+    const QUESTIONS = [
+      {
+        number: 1,
+        code: '9701_m21_qp_12 Q: 13',
+        prompt: 'Which row is correct?',
+        optionTable: {
+          headers: ['statement', 'reason'],
+          rows: [
+            { label: 'A', values: ['The first ionisation energy of phosphorus is greater than that of magnesium.', 'Electron is lost from a 3p orbital in both cases.'] },
+            { label: 'B', values: ['The melting point of phosphorus is greater than that of magnesium.', 'Phosphorus has more valence electrons than magnesium.'] },
+            { label: 'C', values: ['The atomic radius of phosphorus is smaller than that of magnesium.', 'Phosphorus has greater nuclear charge than magnesium.'] },
+            { label: 'D', values: ['The electrical conductivity of phosphorus is smaller than that of magnesium.', 'Bonding changes from ionic in magnesium to covalent in phosphorus.'] },
+          ]
+        }
+      },
+      {
+        number: 2,
+        code: '9701_s19_qp_12 Q: 14',
+        prompt: 'Elements D and E are both in Period 3. Element D has the smallest atomic radius in Period 3. There are only two elements with lower melting points than element E. Elements D and E react together to form compound L. Which compound could be L?',
+        options: {
+          A: 'MgCl₂',
+          B: 'MgS',
+          C: 'Na₂S',
+          D: 'PCl₃',
+        }
+      },
+      {
+        number: 3,
+        code: '9701_s19_qp_13 Q: 12',
+        prompt: 'Sodium and sulfur react together to form sodium sulfide, Na₂S. How do the atomic radius and ionic radius of sodium compare with those of sulfur?',
+        optionTable: {
+          headers: ['atomic radius', 'ionic radius'],
+          rows: [
+            { label: 'A', values: ['sodium < sulfur', 'sodium > sulfur'] },
+            { label: 'B', values: ['sodium < sulfur', 'sodium < sulfur'] },
+            { label: 'C', values: ['sodium > sulfur', 'sodium > sulfur'] },
+            { label: 'D', values: ['sodium > sulfur', 'sodium < sulfur'] },
+          ]
+        }
+      },
+      {
+        number: 4,
+        code: '9701_w19_qp_11 Q: 13',
+        prompt: 'X, Y and Z are consecutive elements in Period 3 of the Periodic Table. Element Y has the highest first ionisation energy and the lowest melting point of these three elements. What are the identities of X, Y and Z?',
+        optionTable: {
+          headers: ['X', 'Y', 'Z'],
+          rows: [
+            { label: 'A', values: ['Na', 'Mg', 'Al'] },
+            { label: 'B', values: ['Mg', 'Al', 'Si'] },
+            { label: 'C', values: ['Al', 'Si', 'P'] },
+            { label: 'D', values: ['Si', 'P', 'S'] },
+          ]
+        }
+      },
+      {
+        number: 5,
+        code: '9701_w19_qp_12 Q: 3',
+        prompt: 'The graph shows successive ionisation energies of elements X and Y in Period 3. Which statement is correct?',
+        options: {
+          A: 'An atom of element X needs one extra electron for a full outer shell; an atom of element Y needs three extra electrons for a full outer shell.',
+          B: 'An atom of element Y has five electrons in the 3p subshell.',
+          C: 'Element X has an oxidation number of +7 in most of its compounds.',
+          D: 'When element X combines with element Y, the bonding is ionic.',
+        }
+      },
+      {
+        number: 6,
+        code: '9701_w19_qp_12 Q: 12',
+        prompt: 'Which sketch best matches the electronegativity and first ionisation energy trends for Na, Mg, Al and Si?',
+        options: {
+          A: 'Both properties increase in the order Na < Mg < Al < Si.',
+          B: 'First ionisation energy increases Na < Al < Mg < Si while electronegativity follows Na < Mg < Al < Si.',
+          C: 'First ionisation energy increases Na < Mg < Al < Si while electronegativity increases Na < Al < Mg < Si.',
+          D: 'Na has the lowest values, Si the highest values; Al has higher electronegativity but lower first ionisation energy than Mg.',
+        }
+      },
+      {
+        number: 7,
+        code: '9701_w18_qp_12 Q: 3',
+        prompt: 'Rubidium and bromine form ions that are isoelectronic (36 electrons). Which row is correct?',
+        optionTable: {
+          headers: ['rubidium radii', 'bromine / bromide radii'],
+          rows: [
+            { label: 'A', values: ['atomic < ionic', 'atomic < ionic'] },
+            { label: 'B', values: ['atomic < ionic', 'atomic > ionic'] },
+            { label: 'C', values: ['atomic > ionic', 'atomic < ionic'] },
+            { label: 'D', values: ['atomic > ionic', 'atomic > ionic'] },
+          ]
+        }
+      },
+      {
+        number: 8,
+        code: '9701_m17_qp_12 Q: 12',
+        prompt: 'The electrical conductivities of two compounds, Y and Z, are shown in the table. What could compounds Y and Z be?<div class="table-wrapper"><table><thead><tr><th></th><th>Y</th><th>Z</th></tr></thead><tbody><tr><td>conductivity of the compound in the liquid state</td><td>good</td><td>does not conduct</td></tr><tr><td>conductivity of the mixture obtained by adding the compound to water</td><td>good</td><td>good</td></tr></tbody></table></div>',
+        optionTable: {
+          headers: ['Y', 'Z'],
+          rows: [
+            { label: 'A', values: ['Al₂O₃', 'SiCl₄'] },
+            { label: 'B', values: ['NaF', 'Al₂O₃'] },
+            { label: 'C', values: ['NaF', 'SiCl₄'] },
+            { label: 'D', values: ['SiCl₄', 'Al₂O₃'] },
+          ]
+        }
+      },
+      {
+        number: 9,
+        code: '9701_s17_qp_12 Q: 12',
+        prompt: 'The elements magnesium and sulfur each form doubly charged ions. How do the atomic radii and ionic radii of these elements compare?',
+        optionTable: {
+          headers: ['atomic radius', 'ionic radius', 'atomic radius', 'ionic radius'],
+          rows: [
+            { label: 'A', values: ['Mg > Mg²⁺', 'S > S²⁻'] },
+            { label: 'B', values: ['Mg > Mg²⁺', 'S < S²⁻'] },
+            { label: 'C', values: ['Mg < Mg²⁺', 'S > S²⁻'] },
+            { label: 'D', values: ['Mg < Mg²⁺', 'S < S²⁻'] },
+          ]
+        }
+      },
+      {
+        number: 10,
+        code: '9701_s17_qp_13 Q: 13',
+        prompt: 'Which arrangement best matches the relative melting points and first ionisation energies of Mg, Al, Si and P?',
+        options: {
+          A: 'Si has the highest melting point and highest first ionisation energy; P has the lowest melting point and lowest first ionisation energy.',
+          B: 'Al has the highest melting point, Si has the highest first ionisation energy, P has the lowest melting point.',
+          C: 'Si has the highest melting point, P has the lowest melting point, Al has the lowest first ionisation energy.',
+          D: 'P has the lowest melting point, Si has the highest melting point, Al has the lowest first ionisation energy.',
+        }
+      },
+      {
+        number: 11,
+        code: '9701_w17_qp_11 Q: 12',
+        prompt: 'The elements Cl, Mg, Si and S are all in Period 3. What is the correct sequence of the melting points of these elements, from lowest to highest?',
+        options: {
+          A: 'Cl < S < Mg < Si',
+          B: 'Cl < S < Si < Mg',
+          C: 'Mg < Si < S < Cl',
+          D: 'Si < Mg < S < Cl',
+        }
+      },
+      {
+        number: 12,
+        code: '9701_m16_qp_12 Q: 12',
+        prompt: 'Consecutive elements X, Y and Z are in Period 3 of the Periodic Table. Element Y has the highest first ionisation energy and the lowest melting point of these three elements. What are the identities of X, Y and Z?',
+        options: {
+          A: 'sodium, magnesium, aluminium',
+          B: 'magnesium, aluminium, silicon',
+          C: 'aluminium, silicon, phosphorus',
+          D: 'silicon, phosphorus, sulfur',
+        }
+      },
+      {
+        number: 13,
+        code: '9701_s16_qp_11 Q: 12',
+        prompt: 'Why is the ionic radius of a chloride ion larger than the ionic radius of a sodium ion?',
+        options: {
+          A: 'A chloride ion has one more occupied electron shell than a sodium ion.',
+          B: 'Chlorine has a higher proton number than sodium.',
+          C: 'Ionic radius increases regularly across the third period.',
+          D: 'Sodium is a metal, chlorine is a non-metal.',
+        }
+      },
+      {
+        number: 14,
+        code: '9701_s16_qp_11 Q: 13',
+        prompt: 'Elements D and E are both in Period 3. Element D has the smallest atomic radius in Period 3. There are only two elements with lower melting point than element E. Elements D and E react together to form compound L. Which compound could be L?',
+        options: {
+          A: 'MgCl₂',
+          B: 'MgS',
+          C: 'Na₂S',
+          D: 'PCl₃',
+        }
+      },
+      {
+        number: 15,
+        code: '9701_s16_qp_12 Q: 12',
+        prompt: 'Sodium and sulfur react together to form sodium sulfide, Na₂S. How do the atomic radius and ionic radius of sodium compare with those of sulfur?',
+        options: {
+          A: 'atomic radius sodium < sulfur; ionic radius sodium > sulfur',
+          B: 'atomic radius sodium < sulfur; ionic radius sodium < sulfur',
+          C: 'atomic radius sodium > sulfur; ionic radius sodium > sulfur',
+          D: 'atomic radius sodium > sulfur; ionic radius sodium < sulfur',
+        }
+      },
+      {
+        number: 16,
+        code: '9701_w16_qp_11 Q: 13',
+        prompt: 'The diagram shows the melting points of eight elements with consecutive atomic numbers. Which element could be sodium?',
+        options: {
+          A: 'Point A',
+          B: 'Point B',
+          C: 'Point C',
+          D: 'Point D',
+        }
+      },
+      {
+        number: 17,
+        code: '9701_w16_qp_12 Q: 12',
+        prompt: 'The graph shows variation of the first ionisation energy with proton number for several elements (letters Q to X). Which statement about the elements is correct?',
+        options: {
+          A: 'P and X are in the same period in the Periodic Table.',
+          B: 'The general increase from Q to X is due to increasing atomic radius.',
+          C: 'The small decrease from R to S is due to decreased shielding.',
+          D: 'The small decrease from U to V is due to repulsion between paired electrons.',
+        }
+      },
+      {
+        number: 18,
+        code: '9701_s15_qp_11 Q: 15',
+        prompt: 'Which diagram correctly shows the atomic radii of the elements Mg, Al, Si and P plotted against their melting points?',
+        options: {
+          A: 'Atomic radius decreases P > Mg > Al > Si while melting point increases.',
+          B: 'Atomic radius decreases Mg > Al > P > Si while melting point increases.',
+          C: 'Atomic radius decreases Mg > Al > Si > P while melting point increases.',
+          D: 'Atomic radius decreases P > Si > Al > Mg while melting point increases.',
+        }
+      },
+      {
+        number: 19,
+        code: '9701_s15_qp_13 Q: 17',
+        prompt: 'The species F⁻, Ne and Na⁺ are isoelectronic. In which order do their radii increase?',
+        options: {
+          A: 'Na⁺ < F⁻ < Ne',
+          B: 'F⁻ < Ne < Na⁺',
+          C: 'Na⁺ < Ne < F⁻',
+          D: 'Ne < F⁻ < Na⁺',
+        }
+      },
+      {
+        number: 20,
+        code: '9701_w15_qp_11 Q: 14',
+        prompt: 'Which of the elements sodium, magnesium, aluminium, silicon, phosphorus, sulfur and chlorine has all of the following properties?<ul style="margin:10px 0 0 18px; color: var(--text-main);"><li>lower first ionisation energy than the preceding element in the Periodic Table</li><li>conducts electricity</li><li>lower atomic radius than the preceding element in the Periodic Table</li></ul>',
+        options: {
+          A: 'aluminium',
+          B: 'magnesium',
+          C: 'phosphorus',
+          D: 'sulfur',
+        }
+      },
+      {
+        number: 21,
+        code: '9701_w15_qp_11 Q: 15',
+        prompt: 'The melting points of the Period 3 elements sodium to aluminium are shown.<div class="table-wrapper"><table><thead><tr><th>element</th><th>Na</th><th>Mg</th><th>Al</th></tr></thead><tbody><tr><td>mp / K</td><td>371</td><td>923</td><td>932</td></tr></tbody></table></div>Which factor explains the increase in melting points from sodium to aluminium?',
+        options: {
+          A: 'The changes in first ionisation energy from sodium to aluminium',
+          B: 'The increase in electronegativity from sodium to aluminium',
+          C: 'The increase in the Aᵣ of the elements from sodium to aluminium',
+          D: 'The increase in the number of outer electrons in each atom from sodium to aluminium',
+        }
+      },
+      {
+        number: 22,
+        code: '9701_w15_qp_12 Q: 15',
+        prompt: 'Which row correctly compares the electrical conductivity and first ionisation energy of magnesium and aluminium?',
+        optionTable: {
+          headers: ['higher electrical conductivity', 'higher first ionisation energy'],
+          rows: [
+            { label: 'A', values: ['aluminium', 'aluminium'] },
+            { label: 'B', values: ['aluminium', 'magnesium'] },
+            { label: 'C', values: ['magnesium', 'aluminium'] },
+            { label: 'D', values: ['magnesium', 'magnesium'] },
+          ]
+        }
+      },
+      {
+        number: 23,
+        code: '9701_m22_qp_12 Q: 17',
+        prompt: 'A student investigated the chloride of a Period 3 element and recorded:<div class="status" style="background:rgba(59,130,246,0.12); border-color:rgba(59,130,246,0.35); color:#bfdbfe; margin:10px 0;">The compound was a white crystalline solid. It dissolved easily in water to give a solution of pH 12. When heated strongly in a test-tube, the compound melted after several minutes.</div>What can be deduced from this record?',
+        options: {
+          A: 'At least one of the recorded observations is incorrect.',
+          B: 'The compound was magnesium chloride, MgCl₂.',
+          C: 'The compound was phosphorus pentachloride, PCl₅.',
+          D: 'The compound was sodium chloride, NaCl.',
+        }
+      },
+      {
+        number: 24,
+        code: '9701_m22_qp_12 Q: 18',
+        prompt: 'The elements in Period 3 and their compounds show trends from sodium to chlorine. Which row is correct?',
+        optionTable: {
+          headers: ['electronegativity of the elements', 'acid / base behaviour of the oxides of the elements'],
+          rows: [
+            { label: 'A', values: ['decreases', 'basic → amphoteric → acidic'] },
+            { label: 'B', values: ['decreases', 'acidic → amphoteric → basic'] },
+            { label: 'C', values: ['increases', 'basic → amphoteric → acidic'] },
+            { label: 'D', values: ['increases', 'acidic → amphoteric → basic'] },
+          ]
+        }
+      },
+      {
+        number: 25,
+        code: '9701_m22_qp_12 Q: 19',
+        prompt: 'The table shows the melting points of SiO₂ and P₄O₆.<div class="table-wrapper"><table><thead><tr><th>oxide</th><th>SiO₂</th><th>P₄O₆</th></tr></thead><tbody><tr><td>melting point / K</td><td>1883</td><td>297</td></tr></tbody></table></div>Which statement explains the difference?',
+        options: {
+          A: 'The bonding of the oxides changes from ionic to covalent.',
+          B: 'The metallic character of the elements decreases across Period 3.',
+          C: 'The oxidation number of the element increases from Si to P.',
+          D: 'The structure changes from giant molecular to simple molecular.',
+        }
+      },
+      {
+        number: 26,
+        code: '9701_m21_qp_12 Q: 12',
+        prompt: 'Which observations are made when a sample of silicon chloride, SiCl₄, is added to a beaker of water?',
+        options: {
+          A: 'No visible change is observed.',
+          B: 'Steamy fumes and a precipitate are both observed.',
+          C: 'The appearance of a precipitate is the only observation.',
+          D: 'The appearance of steamy fumes is the only observation.',
+        }
+      },
+      {
+        number: 27,
+        code: '9701_s21_qp_11 Q: 12',
+        prompt: 'Element X is in Period 3. Element X forms a solid oxide Y. Y reacts with hot concentrated hydrochloric acid. Y reacts with hot aqueous sodium hydroxide to form a compound in which X is part of an anion. How many p electrons does one atom of X have in its outer shell?',
+        options: {
+          A: '0',
+          B: '1',
+          C: '2',
+          D: '3',
+        }
+      },
+      {
+        number: 28,
+        code: '9701_s21_qp_11 Q: 19',
+        prompt: 'R is an oxide of Period 3 element T. 5.00 g of R contains 2.50 g of T. What is T?',
+        options: {
+          A: 'magnesium',
+          B: 'aluminium',
+          C: 'silicon',
+          D: 'sulfur',
+        }
+      },
+      {
+        number: 29,
+        code: '9701_s21_qp_12 Q: 12',
+        prompt: 'A sample of SiCl₄ is added to cold water. Which statement describes the mixture formed at the end of the reaction?',
+        options: {
+          A: 'acidic solution with no precipitate',
+          B: 'acidic solution with white precipitate',
+          C: 'neutral solution with no precipitate',
+          D: 'neutral solution with white precipitate',
+        }
+      },
+      {
+        number: 30,
+        code: '9701_s21_qp_12 Q: 13',
+        prompt: 'L and M are elements in Period 3 of the Periodic Table.<ul style="margin:10px 0 0 18px; color: var(--text-main);"><li>The oxide of L is a solid at room temperature with a giant structure.</li><li>The chloride of L does not react with water.</li><li>Argon is the only Period 3 element with a lower melting point than M.</li></ul>Which formula represents a compound of elements L and M?',
+        options: {
+          A: 'Al₂S₃',
+          B: 'MgS',
+          C: 'NaCl',
+          D: 'PCl₅',
+        }
+      },
+      {
+        number: 31,
+        code: '9701_s21_qp_13 Q: 19',
+        prompt: 'Two oxides of Period 3 elements are added separately to water. Both react to form colourless solutions. One solution is alkaline, the other is acidic. What could be the two oxides?',
+        options: {
+          A: 'Al₂O₃ and SiO₂',
+          B: 'Al₂O₃ and P₄O₁₀',
+          C: 'Na₂O and P₄O₁₀',
+          D: 'Na₂O and SiO₂',
+        }
+      },
+      {
+        number: 32,
+        code: '9701_w21_qp_11 Q: 12',
+        prompt: 'Which element requires the least number of moles of oxygen for the complete combustion of 1 mol of its atoms?',
+        options: {
+          A: 'aluminium',
+          B: 'magnesium',
+          C: 'phosphorus',
+          D: 'sodium',
+        }
+      },
+      {
+        number: 33,
+        code: '9701_w21_qp_11 Q: 13',
+        prompt: 'An element, Y, reacts according to the following sequence.<div class="table-wrapper"><table><tbody><tr><td>burns in O₂ → white solid → HCℓ(aq) → solution → NaOH(aq) → white precipitate → an excess of NaOH(aq) → solution</td></tr></tbody></table></div>What could element Y be?',
+        options: {
+          A: 'Na',
+          B: 'Mg',
+          C: 'Al',
+          D: 'P',
+        }
+      },
+      {
+        number: 34,
+        code: '9701_w21_qp_12 Q: 12',
+        prompt: 'A mixture of two Period 3 oxides are added to water. A solution forms with a pH of just below 7. What could be the constituents of the mixture?',
+        options: {
+          A: 'Al₂O₃ and MgO',
+          B: 'Na₂O and MgO',
+          C: 'Na₂O and P₄O₁₀',
+          D: 'SO₃ and P₄O₁₀',
+        }
+      },
+      {
+        number: 35,
+        code: '9701_w21_qp_13 Q: 12',
+        prompt: 'Which element requires the least number of moles of oxygen for the complete combustion of 1 mol of its atoms?',
+        options: {
+          A: 'aluminium',
+          B: 'magnesium',
+          C: 'phosphorus',
+          D: 'sodium',
+        }
+      },
+      {
+        number: 36,
+        code: '9701_w21_qp_13 Q: 13',
+        prompt: 'An element, Y, reacts according to the following sequence.<div class="table-wrapper"><table><tbody><tr><td>burns in O₂ → white solid → HCℓ(aq) → solution → NaOH(aq) → white precipitate → an excess of NaOH(aq) → solution</td></tr></tbody></table></div>What could element Y be?',
+        options: {
+          A: 'Na',
+          B: 'Mg',
+          C: 'Al',
+          D: 'P',
+        }
+      },
+      {
+        number: 37,
+        code: '9701_m20_qp_12 Q: 12',
+        prompt: 'X and Y are oxides of different Period 3 elements. If one mole of X is added to water, the solution formed is neutralised by exactly one mole of Y. What could be the identities of X and Y?',
+        optionTable: {
+          headers: ['X', 'Y'],
+          rows: [
+            { label: 'A', values: ['P₄O₁₀', 'Al₂O₃'] },
+            { label: 'B', values: ['SO₃', 'Al₂O₃'] },
+            { label: 'C', values: ['P₄O₁₀', 'Na₂O'] },
+            { label: 'D', values: ['SO₃', 'Na₂O'] },
+          ]
+        }
+      },
+      {
+        number: 38,
+        code: '9701_m20_qp_12 Q: 16',
+        prompt: 'Solid ammonium nitrate is put into a test-tube and solution X is added. On warming, the gas given off turns damp red litmus paper blue. What could be the identity of X and its role in the reaction?',
+        optionTable: {
+          headers: ['identity of X', 'role of X'],
+          rows: [
+            { label: 'A', values: ['NaOH(aq)', 'proton donor'] },
+            { label: 'B', values: ['NaOH(aq)', 'proton acceptor'] },
+            { label: 'C', values: ['HCl(aq)', 'proton donor'] },
+            { label: 'D', values: ['HCl(aq)', 'proton acceptor'] },
+          ]
+        }
+      },
+      {
+        number: 39,
+        code: '9701_s20_qp_11 Q: 15',
+        prompt: 'Element Z has a giant structure. The chloride of Z reacts with water to give a solution with a pH less than 5. Which pair shows two elements which could be Z?',
+        options: {
+          A: 'aluminium, magnesium',
+          B: 'aluminium, silicon',
+          C: 'phosphorus, magnesium',
+          D: 'phosphorus, silicon',
+        }
+      },
+      {
+        number: 40,
+        code: '9701_s20_qp_11 Q: 16',
+        prompt: 'Sodium, aluminium and silicon are three elements in Period 3. Each forms an oxide. Which row has three correct properties of these oxides?',
+        optionTable: {
+          headers: ['sodium oxide', 'aluminium oxide', 'silicon dioxide'],
+          rows: [
+            { label: 'A', values: ['basic', 'basic', 'amphoteric'] },
+            { label: 'B', values: ['giant ionic', 'giant ionic', 'simple molecular'] },
+            { label: 'C', values: ['high melting point', 'low melting point', 'high melting point'] },
+            { label: 'D', values: ['reacts with water', 'no reaction with water', 'no reaction with water'] },
+          ]
+        }
+      },
+      {
+        number: 41,
+        code: '9701_s20_qp_12 Q: 16',
+        prompt: 'One molecule of an oxide of element Z reacts with six molecules of water to produce an acidic compound. What is element Z?',
+        options: {
+          A: 'aluminium',
+          B: 'phosphorus',
+          C: 'silicon',
+          D: 'sulfur',
+        }
+      },
+      {
+        number: 42,
+        code: '9701_s20_qp_13 Q: 15',
+        prompt: 'Which element, when burned in oxygen, can form an oxide that is a reducing agent?',
+        options: {
+          A: 'Na',
+          B: 'Mg',
+          C: 'Al',
+          D: 'S',
+        }
+      },
+      {
+        number: 43,
+        code: '9701_s20_qp_13 Q: 19',
+        prompt: 'Element X is in Period 3. It reacts rapidly with water to form an alkaline solution. Which statement about the chloride of element X is correct?',
+        options: {
+          A: 'It conducts electricity when molten.',
+          B: 'It has a melting point of less than 100 °C.',
+          C: 'It has covalent bonding.',
+          D: 'It reacts rapidly with cold water.',
+        }
+      },
+      {
+        number: 44,
+        code: '9701_w20_qp_11 Q: 12',
+        prompt: 'X and Y are two elements in Period 3 of the Periodic Table. They combine to form compound Z. X forms a soluble acidic oxide. The oxidation number of X in this oxide is +4. Y forms an amphoteric oxide. What is the formula of compound Z?',
+        options: {
+          A: 'AlP',
+          B: 'Al₂S₃',
+          C: 'Si₂P₅',
+          D: 'SiS₂',
+        }
+      },
+      {
+        number: 45,
+        code: '9701_w20_qp_11 Q: 19',
+        prompt: 'Sulfur dioxide, SO₂, reacts with calcium hydroxide in aqueous solution. What is the main product that is first formed?',
+        options: {
+          A: 'Ca(HSO₃)₂',
+          B: 'CaS',
+          C: 'CaSO₃',
+          D: 'CaSO₄',
+        }
+      },
+      {
+        number: 46,
+        code: '9701_w20_qp_12 Q: 12',
+        prompt: 'Element X, in Period 3, has the following properties.<ul style="margin:10px 0 0 18px; color: var(--text-main);"><li>Its oxide has a giant structure.</li><li>It forms covalent bonds with chlorine.</li><li>Its oxide will neutralise HCl(aq).</li></ul>What is element X?',
+        options: {
+          A: 'Mg',
+          B: 'Al',
+          C: 'Si',
+          D: 'P',
+        }
+      },
+      {
+        number: 47,
+        code: '9701_w20_qp_12 Q: 19',
+        prompt: 'Compound X is the oxide of a Period 3 element and reacts with water to give an acidic solution. A solution is prepared by reacting 0.100 g of compound X with an excess of water. This solution is neutralised by exactly 25.0 cm³ of 0.100 mol dm⁻³ sodium hydroxide solution. What could be the identity of compound X?',
+        options: {
+          A: 'Al₂O₃',
+          B: 'MgO',
+          C: 'P₄O₁₀',
+          D: 'SO₃',
+        }
+      },
+      {
+        number: 48,
+        code: '9701_m19_qp_12 Q: 12',
+        prompt: 'X, Y and Z are elements in Period 3 of the Periodic Table. Results of experiments are shown.<div class="table-wrapper"><table><thead><tr><th>element</th><th>result of adding the oxide of the element to H₂O(l)</th><th>result of adding the chloride of the element to H₂O(l)</th><th>result of adding the oxide of the element to HCl(aq)</th></tr></thead><tbody><tr><td>X</td><td>no reaction</td><td>hydrolyses</td><td>forms chloride salt</td></tr><tr><td>Y</td><td>forms hydroxide</td><td>dissolves</td><td>forms chloride salt</td></tr><tr><td>Z</td><td>forms acid</td><td>hydrolyses</td><td>hydrolyses</td></tr></tbody></table></div>Which statement could be correct?',
+        options: {
+          A: 'X is Al and Y is Mg.',
+          B: 'X is Si and Y is Na.',
+          C: 'Y is Al and Z is P.',
+          D: 'Y is Na and Z is Al.',
+        }
+      },
+      {
+        number: 49,
+        code: '9701_m19_qp_12 Q: 13',
+        prompt: 'A solid Period 3 element, Q, is reacted with oxygen gas. Compound R is formed. When R is added to water the pH decreases. What could be the empirical formula of R?',
+        options: {
+          A: 'Q₂O₄',
+          B: 'Q₂O₅',
+          C: 'Q₄O₁₀',
+          D: 'Q₅O₂',
+        }
+      },
+      {
+        number: 50,
+        code: '9701_s19_qp_12 Q: 12',
+        prompt: 'Element Q readily oxidises in air. The oxide produced reacts with water to form a solution of very low pH. Where could element Q be found in the Periodic Table?',
+        optionTable: {
+          headers: ['period', 'group'],
+          rows: [
+            { label: 'A', values: ['2', '1'] },
+            { label: 'B', values: ['2', '14'] },
+            { label: 'C', values: ['3', '14'] },
+            { label: 'D', values: ['3', '15'] },
+          ]
+        }
+      },
+      {
+        number: 51,
+        code: '9701_s19_qp_13 Q: 13',
+        prompt: 'Which graph represents the variation in electronegativity for Period 3 elements?',
+        options: {
+          A: 'Decreasing curve from Na to Cl with a gentle slope flattening after Al.',
+          B: 'Steady increase in electronegativity from Na to Cl.',
+          C: 'Steady rise from Na to Cl with small steps upwards at Al, Si, P, S, Cl.',
+          D: 'Sharp peak at Al followed by very low values for Si, P, S and Cl.',
+        }
+      },
+      {
+        number: 52,
+        code: '9701_w19_qp_11 Q: 12',
+        prompt: 'Which oxide will cause an increase in pH when added to water?',
+        options: {
+          A: 'MgO',
+          B: 'Al₂O₃',
+          C: 'SiO₂',
+          D: 'SO₂',
+        }
+      },
+      {
+        number: 53,
+        code: '9701_m18_qp_12 Q: 16',
+        prompt: 'The volatility of the Group 17 elements decreases down the group. What is responsible for this?',
+        options: {
+          A: 'bond length in the halogen molecule',
+          B: 'bond strength in the halogen molecule',
+          C: 'electronegativity of the halogen',
+          D: 'number of electrons in the halogen molecule',
+        }
+      },
+      {
+        number: 54,
+        code: '9701_m18_qp_12 Q: 17',
+        prompt: 'Bromine is extracted from sea-water. In the final stages two redox reactions take place.<br>Br₂(aq) + SO₂(g) + 2H₂O(l) → 2HBr(aq) + H₂SO₄(aq)<br>2HBr(aq) + Cl₂(g) → Br₂(g) + 2HCl(aq)<br>Which row is correct?',
+        optionTable: {
+          headers: ['strongest oxidising agent', '→', 'weakest oxidising agent'],
+          rows: [
+            { label: 'A', values: ['Br₂', 'SO₂', 'Cl₂'] },
+            { label: 'B', values: ['Cl₂', 'Br₂', 'SO₂'] },
+            { label: 'C', values: ['Cl₂', 'SO₂', 'Br₂'] },
+            { label: 'D', values: ['SO₂', 'Br₂', 'Cl₂'] },
+          ]
+        }
+      },
+      {
+        number: 55,
+        code: '9701_m18_qp_12 Q: 18',
+        prompt: 'When burned, sulfur forms a gaseous product X which can be oxidised to produce a gas Y. Gas Y reacts with water to produce a product Z. Which row correctly shows the oxidation states of sulfur in X, Y and Z?',
+        optionTable: {
+          headers: ['X', 'Y', 'Z'],
+          rows: [
+            { label: 'A', values: ['−2', '+4', '+4'] },
+            { label: 'B', values: ['+2', '+4', '−2'] },
+            { label: 'C', values: ['+4', '+6', '+6'] },
+            { label: 'D', values: ['+6', '+4', '+6'] },
+          ]
+        }
+      },
+      {
+        number: 56,
+        code: '9701_s18_qp_11 Q: 12',
+        prompt: 'Silicon is heated in an excess of chlorine, producing compound J. Excess water is added to the sample of J produced. Which row is correct?',
+        optionTable: {
+          headers: ['structure of J', 'Is HCl produced when water is added to J?'],
+          rows: [
+            { label: 'A', values: ['giant molecular', 'no'] },
+            { label: 'B', values: ['giant molecular', 'yes'] },
+            { label: 'C', values: ['simple molecular', 'no'] },
+            { label: 'D', values: ['simple molecular', 'yes'] },
+          ]
+        }
+      },
+      {
+        number: 57,
+        code: '9701_s18_qp_12 Q: 12',
+        prompt: 'Which oxide does <strong>not</strong> react with cold, dilute sodium hydroxide to produce a salt?',
+        options: {
+          A: 'Al₂O₃',
+          B: 'P₄O₁₀',
+          C: 'SO₂',
+          D: 'SiO₂',
+        }
+      },
+      {
+        number: 58,
+        code: '9701_s18_qp_12 Q: 13',
+        prompt: 'The graphs show trends in four physical properties of elements in Period 3, excluding argon. Which graph has electronegativity on the y-axis?',
+        options: {
+          A: 'Graph A (rises from Na to Al, slight dip at Si, then falls from P to Cl)',
+          B: 'Graph B (steady increase from Na through Cl)',
+          C: 'Graph C (stepped rise from Na to Cl with small increases at Al, Si, P, S, Cl)',
+          D: 'Graph D (sharp peak at Al then very low values for Si, P, S, Cl)',
+        }
+      },
+      {
+        number: 59,
+        code: '9701_s18_qp_13 Q: 12',
+        prompt: 'Which description of the bonding and acid/base nature of aluminium oxide is correct?',
+        optionTable: {
+          headers: ['bonding', 'acid / base nature'],
+          rows: [
+            { label: 'A', values: ['simple covalent', 'amphoteric'] },
+            { label: 'B', values: ['giant covalent', 'basic only'] },
+            { label: 'C', values: ['ionic', 'amphoteric'] },
+            { label: 'D', values: ['ionic', 'basic only'] },
+          ]
+        }
+      },
+      {
+        number: 60,
+        code: '9701_s18_qp_13 Q: 13',
+        prompt: 'X and Y are elements of the third period. X and Y are individually heated in excess chlorine. Each product is purified and then separately added to water, producing two solutions with pH less than 5. What could be X and Y?',
+        options: {
+          A: 'Na and P',
+          B: 'Mg and Al',
+          C: 'Mg and Si',
+          D: 'Si and P',
+        }
+      },
+      {
+        number: 61,
+        code: '9701_w18_qp_11 Q: 12',
+        prompt: 'Sodium and sulfur are burned separately in oxygen. Each reaction has a distinctive coloured flame. Which row is correct?',
+        optionTable: {
+          headers: ['Na + O₂', 'S + O₂'],
+          rows: [
+            { label: 'A', values: ['white', 'blue'] },
+            { label: 'B', values: ['white', 'yellow'] },
+            { label: 'C', values: ['yellow', 'blue'] },
+            { label: 'D', values: ['yellow', 'yellow'] },
+          ]
+        }
+      },
+      {
+        number: 62,
+        code: '9701_w18_qp_11 Q: 13',
+        prompt: 'X and Y are elements in Period 3 of the Periodic Table.<ul style="margin:10px 0 0 18px; color: var(--text-main);"><li>The oxide of X is a solid at room temperature with a giant structure.</li><li>The chloride of X does not react with water.</li><li>Argon is the only element in Period 3 with a lower melting point than Y.</li></ul>What could be the formula of a compound formed between elements X and Y?',
+        options: {
+          A: 'Al₂S₃',
+          B: 'MgS',
+          C: 'NaCl',
+          D: 'PCl₅',
+        }
+      },
+      {
+        number: 63,
+        code: '9701_w18_qp_12 Q: 12',
+        prompt: 'The melting points of the Period 3 elements phosphorus to argon are shown.<div class="table-wrapper"><table><thead><tr><th>element</th><th>P</th><th>S</th><th>Cl</th><th>Ar</th></tr></thead><tbody><tr><td>mp / K</td><td>317</td><td>392</td><td>172</td><td>84</td></tr></tbody></table></div>Which factor explains the changes in melting points from phosphorus to argon?',
+        options: {
+          A: 'the changes in electronegativity from phosphorus to argon',
+          B: 'the changes in first ionisation energy from phosphorus to argon',
+          C: 'the increase in the number of electrons in each atom from phosphorus to argon',
+          D: 'the number of atoms in each molecule of the element from phosphorus to argon',
+        }
+      },
+      {
+        number: 64,
+        code: '9701_w18_qp_12 Q: 13',
+        prompt: 'Which observations are made when a sample of silicon chloride, SiCl₄, is added to a beaker of water?',
+        options: {
+          A: 'No visible change is observed.',
+          B: 'Steamy fumes and a precipitate are both observed.',
+          C: 'The appearance of a precipitate is the only observation.',
+          D: 'The appearance of steamy fumes is the only observation.',
+        }
+      },
+      {
+        number: 65,
+        code: '9701_m17_qp_12 Q: 15',
+        prompt: 'The magnitude of property X of five Period 3 elements P, Q, R, S and T is shown. P, Q, R, S and T have consecutive atomic numbers (letters do not represent symbols). Which row correctly identifies property X and element R?',
+        optionTable: {
+          headers: ['property X', 'element R'],
+          rows: [
+            { label: 'A', values: ['electrical conductivity', 'Al'] },
+            { label: 'B', values: ['electronegativity', 'Si'] },
+            { label: 'C', values: ['melting point', 'Al'] },
+            { label: 'D', values: ['melting point', 'Si'] },
+          ]
+        }
+      },
+      {
+        number: 66,
+        code: '9701_s17_qp_11 Q: 13',
+        prompt: 'Which graph correctly shows the relative melting points of the elements Mg, Al, Si and P plotted against their relative electronegativities?',
+        options: {
+          A: 'Graph A (Al highest melting point, Mg below, Si mid, P lowest)',
+          B: 'Graph B (Si highest melting point, Mg and Al mid, P lowest)',
+          C: 'Graph C (Si highest, Al mid, Mg mid, P lowest at low electronegativity)',
+          D: 'Graph D (Al highest, Mg mid-high, Si mid, P lowest)',
+        }
+      },
+      {
+        number: 67,
+        code: '9701_s17_qp_12 Q: 13',
+        prompt: 'Which graph correctly shows relative electronegativity plotted against relative atomic radius for Na, Mg, Al and Si?',
+        options: {
+          A: 'Graph A (electronegativity increases as atomic radius decreases Na → Mg → Al → Si)',
+          B: 'Graph B (Si highest electronegativity at smallest radius; Al mid; Mg mid-large; Na largest radius lowest electronegativity)',
+          C: 'Graph C (Na highest electronegativity with largest radius; Si lowest with smallest radius)',
+          D: 'Graph D (Si highest electronegativity, Na lowest; Al and Mg in between, ordered by decreasing radius)',
+        }
+      },
+      {
+        number: 68,
+        code: '9701_s17_qp_13 Q: 12',
+        prompt: 'Magnesium chloride, MgCl₂, and silicon tetrachloride, SiCl₄, are separately added to water. What are the approximate pH values of the solutions formed?',
+        optionTable: {
+          headers: ['MgCl₂', 'SiCl₄'],
+          rows: [
+            { label: 'A', values: ['0–3', '0–3'] },
+            { label: 'B', values: ['0–3', '6–7'] },
+            { label: 'C', values: ['6–7', '0–3'] },
+            { label: 'D', values: ['6–7', '6–7'] },
+          ]
+        }
+      },
+      {
+        number: 69,
+        code: '9701_w17_qp_11 Q: 13',
+        prompt: 'An element Y reacts according to the following sequence.<div class="table-wrapper"><table><tbody><tr><td>burns in O₂ → white solid → HCℓ(aq) → solution → NaOH(aq) → white precipitate → an excess of NaOH(aq) → solution</td></tr></tbody></table></div>What could element Y be?',
+        options: {
+          A: 'Al',
+          B: 'Ca',
+          C: 'Mg',
+          D: 'P',
+        }
+      },
+      {
+        number: 70,
+        code: '9701_w17_qp_12 Q: 12',
+        prompt: 'The relative magnitude of property X of five Period 3 elements P, Q, R, S and T (consecutive atomic numbers) is shown. Which row shows a correct pairing of property X and element R?',
+        optionTable: {
+          headers: ['property X', 'element R'],
+          rows: [
+            { label: 'A', values: ['electrical conductivity', 'Al'] },
+            { label: 'B', values: ['electronegativity', 'Si'] },
+            { label: 'C', values: ['melting point', 'Al'] },
+            { label: 'D', values: ['second ionisation energy', 'Si'] },
+          ]
+        }
+      },
+      {
+        number: 71,
+        code: '9701_w17_qp_12 Q: 13',
+        prompt: 'Element Z has a giant structure. The chloride of Z reacts with water to give a solution with a pH less than 5. Which row shows two elements which could be Z?',
+        options: {
+          A: 'aluminium, magnesium',
+          B: 'aluminium, silicon',
+          C: 'phosphorus, magnesium',
+          D: 'phosphorus, silicon',
+        }
+      },
+      {
+        number: 72,
+        code: '9701_m16_qp_12 Q: 13',
+        prompt: 'When dealing with a spillage of metallic sodium, which material should be used to ensure no toxic or flammable products are formed?',
+        options: {
+          A: 'dilute hydrochloric acid',
+          B: 'ethanol',
+          C: 'sand',
+          D: 'water spray',
+        }
+      },
+      {
+        number: 73,
+        code: '9701_s16_qp_12 Q: 13',
+        prompt: 'Solid aluminium chloride sublimes at 178 °C. Which structure best represents the species in the vapour at this temperature?',
+        options: {
+          A: 'dimer Al₂Cl₆ with two bridging chlorides',
+          B: 'cyclic (AlCl₃)₃ trimer',
+          C: 'monomer AlCl₃',
+          D: 'Al³⁺(Cl⁻)₃ ionic species',
+        }
+      },
+      {
+        number: 74,
+        code: '9701_s16_qp_13 Q: 12',
+        prompt: 'The oxide and chloride of an element X are separately mixed with water. The two resulting solutions have the same effect on litmus. What could element X be?',
+        options: {
+          A: 'Al',
+          B: 'Ca',
+          C: 'Na',
+          D: 'P',
+        }
+      },
+      {
+        number: 75,
+        code: '9701_s16_qp_13 Q: 13',
+        prompt: 'Each pair below consists of a sample of two separate elements in their standard state. Which pair has chemical bonds of the same type between their atoms?',
+        options: {
+          A: 'aluminium and phosphorus',
+          B: 'chlorine and argon',
+          C: 'magnesium and silicon',
+          D: 'sulfur and chlorine',
+        }
+      },
+      {
+        number: 76,
+        code: '9701_w16_qp_12 Q: 14',
+        prompt: 'Elements Y and Z are both in Period 3. The chloride of Y reacts with water to give pH 2. The chloride of Z dissolves in water to give pH 7. Which statement explains these observations?',
+        options: {
+          A: 'Both chlorides hydrolyse in water.',
+          B: 'Y is magnesium and Z is sodium.',
+          C: 'Y is phosphorus and Z is aluminium.',
+          D: 'Y is silicon and Z is sodium.',
+        }
+      },
+      {
+        number: 77,
+        code: '9701_s15_qp_11 Q: 14',
+        prompt: 'Which observations are made when a sample of silicon chloride, SiCl₄, is added to a beaker of water?',
+        options: {
+          A: 'No visible changes are observed.',
+          B: 'Steamy fumes and a white precipitate are both observed.',
+          C: 'The appearance of a white precipitate is the only observation.',
+          D: 'The appearance of steamy fumes is the only observation.',
+        }
+      },
+      {
+        number: 78,
+        code: '9701_s15_qp_12 Q: 15',
+        prompt: 'Which diagram correctly shows the electronegativity of Na, Mg, Al and Si plotted against their first ionisation energies?',
+        options: {
+          A: 'Graph A (Na lowest at both axes; Mg, Al mid; Si highest for both)',
+          B: 'Graph B (Na lowest; Mg mid ionisation/low electronegativity; Al mid-high; Si highest)',
+          C: 'Graph C (Na lowest electronegativity and mid ionisation; Si lowest ionisation; Mg mid; Al highest)',
+          D: 'Graph D (Na lowest; Mg highest ionisation but low electronegativity; Al mid; Si lowest ionisation)',
+        }
+      },
+      {
+        number: 79,
+        code: '9701_s15_qp_13 Q: 12',
+        prompt: 'Which oxide will produce the solution with the highest pH when mixed with water?',
+        options: {
+          A: 'Al₂O₃',
+          B: 'CO₂',
+          C: 'Na₂O',
+          D: 'SO₂',
+        }
+      },
+      {
+        number: 80,
+        code: '9701_s15_qp_13 Q: 15',
+        prompt: 'Labels were detached from four bottles in a laboratory. On addition of water, which bottle would <strong>not</strong> give fumes of hydrogen chloride?',
+        options: {
+          A: 'Al₂Cl₆',
+          B: 'MgCl₂',
+          C: 'PCl₅',
+          D: 'SiCl₄',
+        }
+      },
+      {
+        number: 81,
+        code: '9701_w15_qp_11 Q: 16',
+        prompt: 'X is the oxide of a Period 3 element. X reacts with water to give an acidic solution. A solution is prepared by reacting 0.100 g of X with excess water. This solution is neutralised by exactly 25.0 cm³ of 0.100 mol dm⁻³ sodium hydroxide solution. What could be the identity of X?',
+        options: {
+          A: 'Al₂O₃',
+          B: 'MgO',
+          C: 'P₄O₁₀',
+          D: 'SO₃',
+        }
+      },
+      {
+        number: 82,
+        code: '9701_w15_qp_12 Q: 14',
+        prompt: 'Which chloride of a Period 3 element dissolves in water to form a solution with a pH of 7?',
+        options: {
+          A: 'aluminium chloride',
+          B: 'phosphorus(V) chloride',
+          C: 'silicon(IV) chloride',
+          D: 'sodium chloride',
+        }
+      },
+      {
+        number: 83,
+        code: '9701_s19_qp_11 Q: 13',
+        prompt: 'The relative melting points of four consecutive elements in the Periodic Table (proton numbers &lt; 20) are shown. Which element is in Group 16?',
+        options: {
+          A: 'the element at point A',
+          B: 'the element at point B',
+          C: 'the element at point C',
+          D: 'the element at point D',
+        }
+      },
+      {
+        number: 84,
+        code: '9701_s18_qp_11 Q: 10',
+        prompt: 'Element X has a higher first ionisation energy than element Y. Only one student explanation is correct.<br><br><strong>student 1</strong>: “X has a higher first ionisation energy because an atom of X has more protons in its nucleus than an atom of Y.”<br><strong>student 2</strong>: “X has a higher first ionisation energy because X has a smaller atomic radius than Y.”<br><br>What could X and Y be?',
+        optionTable: {
+          headers: ['X', 'Y'],
+          rows: [
+            { label: 'A', values: ['carbon', 'boron'] },
+            { label: 'B', values: ['magnesium', 'aluminium'] },
+            { label: 'C', values: ['oxygen', 'nitrogen'] },
+            { label: 'D', values: ['oxygen', 'sulfur'] },
+          ]
+        }
+      },
+      {
+        number: 85,
+        code: '9701_s18_qp_11 Q: 13',
+        prompt: 'Which element has the second smallest atomic radius in its group and the third lowest first ionisation energy in its period?',
+        options: {
+          A: 'boron',
+          B: 'calcium',
+          C: 'magnesium',
+          D: 'sodium',
+        }
+      },
+    ];
+
+    const ANSWER_KEY = {
+      1: 'C', 2: 'D', 3: 'D', 4: 'D', 5: 'A', 6: 'B',
+      7: 'C', 8: 'C', 9: 'B', 10: 'C', 11: 'A', 12: 'D',
+      13: 'A', 14: 'D', 15: 'D', 16: 'C', 17: 'D', 18: 'C',
+      19: 'C', 20: 'A', 21: 'D', 22: 'B', 23: 'A', 24: 'C',
+      25: 'D', 26: 'B', 27: 'B', 28: 'D', 29: 'B', 30: 'C',
+      31: 'C', 32: 'D', 33: 'C', 34: 'C', 35: 'D', 36: 'C',
+      37: 'D', 38: 'D', 39: 'B', 40: 'D', 41: 'B', 42: 'D',
+      43: 'A', 44: 'B', 45: 'C', 46: 'B', 47: 'D', 48: 'A',
+      49: 'B', 50: 'D', 51: 'B', 52: 'A', 53: 'D', 54: 'B',
+      55: 'D', 56: 'D', 57: 'D', 58: 'D', 59: 'C', 60: 'D',
+      61: 'C', 62: 'C', 63: 'D', 64: 'B', 65: 'C', 66: 'B',
+      67: 'B', 68: 'C', 69: 'A', 70: 'A', 71: 'B', 72: 'C',
+      73: 'A', 74: 'D', 75: 'D', 76: 'D', 77: 'B', 78: 'B',
+      79: 'C', 80: 'B', 81: 'D', 82: 'D', 83: 'C', 84: 'D',
+      85: 'C',
+    };
+
+    const totalQuestions = QUESTIONS.length;
+    let hasSubmitted = false;
+    let startTime = null;
+
+    function loadStudentInfoFromGame() {
+      try {
+        const stored = localStorage.getItem('cambridge_test_user');
+        if (stored) {
+          const user = JSON.parse(stored);
+          if (user.name) {
+            const nameInput = document.getElementById('studentName');
+            nameInput.value = user.name;
+            nameInput.readOnly = true;
+            nameInput.style.backgroundColor = '#0f172a';
+            nameInput.style.borderColor = '#22c55e';
+          }
+          if (user.class) {
+            const classInput = document.getElementById('studentClass');
+            classInput.value = user.class;
+            classInput.readOnly = true;
+            classInput.style.backgroundColor = '#0f172a';
+            classInput.style.borderColor = '#22c55e';
+          }
+        }
+      } catch (e) {
+        console.log('Could not load game user info');
+      }
+    }
+
+    function renderQuestions() {
+      const container = document.getElementById('questions');
+      container.innerHTML = '';
+
+      QUESTIONS.forEach(q => {
+        const card = document.createElement('div');
+        card.className = 'question-card';
+
+        const meta = document.createElement('div');
+        meta.className = 'question-meta';
+        const code = document.createElement('span');
+        code.textContent = q.code;
+        const num = document.createElement('span');
+        num.textContent = `Q${q.number}`;
+        meta.appendChild(code);
+        meta.appendChild(num);
+
+        const title = document.createElement('div');
+        title.className = 'question-title';
+        title.innerHTML = q.prompt;
+
+        card.appendChild(meta);
+        card.appendChild(title);
+
+        if (q.options) {
+          const optionsWrap = document.createElement('div');
+          optionsWrap.className = 'option-list';
+          Object.entries(q.options).forEach(([label, text]) => {
+            const opt = document.createElement('label');
+            opt.className = 'option';
+            opt.innerHTML = `<input type="radio" name="q${q.number}" value="${label}"><strong>${label}</strong> <span>${text}</span>`;
+            optionsWrap.appendChild(opt);
+          });
+          card.appendChild(optionsWrap);
+        }
+
+        if (q.optionTable) {
+          const tableWrap = document.createElement('div');
+          tableWrap.className = 'table-wrapper';
+
+          const table = document.createElement('table');
+          const thead = document.createElement('thead');
+          const headerRow = document.createElement('tr');
+          headerRow.innerHTML = `<th></th>${q.optionTable.headers.map(h => `<th>${h}</th>`).join('')}`;
+          thead.appendChild(headerRow);
+          table.appendChild(thead);
+
+          const tbody = document.createElement('tbody');
+          q.optionTable.rows.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="width:90px; text-align:left;">
+                <label class="option-label" style="display:flex; align-items:center; gap:6px;">
+                  <input type="radio" name="q${q.number}" value="${row.label}">
+                  <strong>${row.label}</strong>
+                </label>
+              </td>
+              ${row.values.map(v => `<td>${v}</td>`).join('')}
+            `;
+            tbody.appendChild(tr);
+          });
+          table.appendChild(tbody);
+          tableWrap.appendChild(table);
+          card.appendChild(tableWrap);
+        }
+
+        container.appendChild(card);
+      });
+    }
+
+    function calculateScore(responses) {
+      const answerKeyReady = Object.values(ANSWER_KEY).every(v => !!v);
+      if (!answerKeyReady) {
+        return { score: 0, percentage: 0, pending: true };
+      }
+      let correct = 0;
+      Object.entries(ANSWER_KEY).forEach(([q, ans]) => {
+        const studentAns = (responses[q] || '').toString().trim().toUpperCase();
+        const correctAns = (ans || '').toString().trim().toUpperCase();
+        if (studentAns && studentAns === correctAns) correct++;
+      });
+      return {
+        score: correct,
+        percentage: Math.round((correct / totalQuestions) * 100),
+        pending: false
+      };
+    }
+
+    function handleSubmit() {
+      const btn = document.getElementById('submitBtn');
+      const status = document.getElementById('status');
+      const name = document.getElementById('studentName').value.trim();
+      const studentClass = document.getElementById('studentClass').value.trim();
+
+      if (!name || !studentClass) {
+        status.textContent = 'Please enter your name and class before submitting.';
+        return;
+      }
+
+      const responses = {};
+      let answered = 0;
+      QUESTIONS.forEach(q => {
+        const selected = document.querySelector(`input[name="q${q.number}"]:checked`);
+        if (selected) {
+          responses[q.number] = selected.value;
+          answered++;
+        }
+      });
+
+      if (answered < totalQuestions) {
+        status.textContent = `You have answered ${answered}/${totalQuestions} questions. Please answer all questions.`;
+        return;
+      }
+
+      btn.disabled = true;
+      status.textContent = 'Submitting...';
+      status.style.color = '#e2e8f0';
+
+      const result = calculateScore(responses);
+      const timeTaken = startTime ? Math.floor((Date.now() - startTime) / 1000) : null;
+
+      const payload = {
+        student_name: name,
+        student_class: studentClass,
+        quiz_id: QUIZ_ID,
+        quiz_name: QUIZ_NAME,
+        score: result.score,
+        total_questions: totalQuestions,
+        percentage: result.percentage,
+        submitted_at: new Date().toISOString(),
+        answers: {
+          responses,
+          answer_key_ready: !result.pending,
+          pending_answer_key: result.pending,
+          quiz_version: 'v4-85q'
+        },
+        time_taken_seconds: timeTaken
+      };
+
+      supabaseClient.from('quiz_scores').insert(payload).then(({ error }) => {
+        if (error) {
+          console.error(error);
+          status.textContent = '❌ Failed to submit. Please try again.';
+          btn.disabled = false;
+          return;
+        }
+
+        hasSubmitted = true;
+        localStorage.setItem(`quiz_submitted_${QUIZ_ID}`, JSON.stringify({
+          score: result.score,
+          total: totalQuestions,
+          submittedAt: new Date().toISOString()
+        }));
+
+        document.querySelectorAll('input').forEach(i => i.disabled = true);
+        btn.textContent = '✓ Submitted';
+        status.textContent = result.pending
+          ? '✅ Submitted. Scoring will be applied once the answer key is available.'
+          : '✅ Submitted successfully.';
+
+        const scoreDiv = document.getElementById('score');
+        scoreDiv.style.display = 'block';
+        scoreDiv.textContent = result.pending
+          ? 'Score pending official answer key.'
+          : `Score: ${result.score}/${totalQuestions} (${result.percentage}%).`;
+
+        try {
+          if (window.parent !== window) {
+            window.parent.postMessage({
+              type: 'CAMBRIDGE_TEST_COMPLETE',
+              quizId: QUIZ_ID,
+              score: result.score,
+              total: totalQuestions,
+              percentage: result.percentage
+            }, '*');
+          }
+        } catch (e) {
+          console.log('Parent notification unavailable');
+        }
+      });
+    }
+
+    function checkPreviousSubmission() {
+      try {
+        const saved = localStorage.getItem(`quiz_submitted_${QUIZ_ID}`);
+        if (saved) {
+          const data = JSON.parse(saved);
+          const scoreDiv = document.getElementById('score');
+          scoreDiv.style.display = 'block';
+          if (Object.values(ANSWER_KEY).every(v => !!v)) {
+            scoreDiv.textContent = `Score: ${data.score}/${data.total} (${Math.round((data.score / data.total) * 100)}%).`;
+          } else {
+            scoreDiv.textContent = 'Score pending official answer key.';
+          }
+          document.querySelectorAll('input').forEach(i => i.disabled = true);
+          const btn = document.getElementById('submitBtn');
+          btn.textContent = '✓ Submitted';
+          btn.disabled = true;
+          const status = document.getElementById('status');
+          status.textContent = 'You already submitted this test in this browser.';
+        }
+      } catch (e) {
+        console.log('Could not check submission cache');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderQuestions();
+      loadStudentInfoFromGame();
+      checkPreviousSubmission();
+      startTime = Date.now();
+      document.getElementById('submitBtn').addEventListener('click', handleSubmit);
+    });
+  </script>
+</body>
+</html>
