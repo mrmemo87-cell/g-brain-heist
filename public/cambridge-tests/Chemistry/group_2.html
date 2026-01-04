@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
+  <title>AS Chemistry Ch10 (Group 2)</title>
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.12);
+      --accent: #38bdf8;
+      --accent-2: #8b5cf6;
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+      --success: #22c55e;
+      --warning: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto 40px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    }
+    .header {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .header img {
+      width: 54px;
+      height: 54px;
+      border-radius: 12px;
+      background: #fff;
+      padding: 6px;
+    }
+    .badge-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .badge {
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .status {
+      margin: 14px 0 22px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      color: #fef08a;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .student-info {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      margin-bottom: 24px;
+    }
+    .student-info input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(15,23,42,0.6);
+      color: var(--text-main);
+      font-size: 14px;
+    }
+    .student-info input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56,189,248,0.25);
+    }
+    .question-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+    }
+    .question-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    .question-title {
+      font-weight: 700;
+      color: #fff;
+      margin: 0 0 10px;
+      line-height: 1.4;
+    }
+    .option-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .option {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .option input { margin-top: 3px; }
+    .option:hover {
+      border-color: var(--accent);
+      background: rgba(56,189,248,0.06);
+    }
+    .option strong { min-width: 22px; display: inline-block; }
+    .table-wrapper {
+      margin: 12px 0;
+      overflow-x: auto;
+      border-radius: 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .option img,
+    .question-title img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: 8px 0 0;
+    }
+    table {
+      width: 100%;
+      min-width: 420px;
+      border-collapse: collapse;
+      background: rgba(0,0,0,0.12);
+      border-radius: 12px;
+      overflow: hidden;
+      table-layout: fixed;
+    }
+    table th, table td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid var(--border);
+      color: #e2e8f0;
+      word-break: break-word;
+    }
+    table th { background: rgba(255,255,255,0.06); font-weight: 700; }
+    .submit-area {
+      margin-top: 26px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    button {
+      background: linear-gradient(135deg, #38bdf8, #8b5cf6);
+      color: #0b1033;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 22px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(139,92,246,0.35);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    button:disabled {
+      background: #475569;
+      color: #cbd5e1;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .submit-status { font-size: 14px; color: var(--text-muted); }
+    .score-box {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 12px;
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      color: #bbf7d0;
+      font-weight: 700;
+    }
+    @media (max-width: 640px) {
+      body { padding: 12px; }
+      .container { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="/logo.png" alt="Brains Heist" onerror="this.style.display='none';" />
+      <div>
+        <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
+        <h1 style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch10 (Group 2)</h1>
+        <div style="color: var(--text-muted); font-size: 14px;">Chapter 10 • 73 multiple-choice questions</div>
+      </div>
+    </div>
+
+    <div class="badge-row">
+      <span class="badge">🧪 Category: Science</span>
+      <span class="badge">🎯 Difficulty: Advanced</span>
+      <span class="badge">📝 Format: Multiple Choice (A–D)</span>
+      <span class="badge">⏱️ Suggested time: 70 min</span>
+    </div>
+
+    <div class="status">
+      ⚠️ Answer key pending: submit to save your responses. Scores will update once the official answers are added.
+    </div>
+
+    <div class="student-info">
+      <input type="text" id="studentName" placeholder="Student Name" autocomplete="name" />
+      <input type="text" id="studentClass" placeholder="Class / Batch" autocomplete="section" />
+    </div>
+
+    <div id="questions"></div>
+
+    <div class="submit-area">
+      <button id="submitBtn">Submit Answers</button>
+      <div id="status" class="submit-status">Progress saves automatically in this browser.</div>
+    </div>
+    <div id="score" class="score-box" style="display:none;"></div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://sozodkxwhubespiedgxm.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwczovL3N1cGFiYXNlLmlvL2NsYWltcy9zdWJqZWN0IjoicHVibGljIiwiaHR0cHM6Ly9zdXBhYmFzZS5pby9jbGFpbXMvcm9sZSI6ImFub24iLCJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTY5OTA1MjkyNywiZXhwIjoyMDE0NjI4OTI3fQ.o6SgqFWWf3XwT63MifOnRmPGzfmrPZ7dx6hPb6jt4WI';
+
+    function createSupabaseClient(url, key) {
+      return {
+        from(table) {
+          return {
+            async insert(data) {
+              try {
+                const response = await fetch(`${url}/rest/v1/${table}`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': key,
+                    'Authorization': `Bearer ${key}`,
+                    'Prefer': 'return=minimal'
+                  },
+                  body: JSON.stringify(Array.isArray(data) ? data : [data])
+                });
+                if (!response.ok) {
+                  const errorText = await response.text();
+                  throw new Error(errorText || response.statusText);
+                }
+                return { data: null, error: null };
+              } catch (err) {
+                return { data: null, error: err };
+              }
+            }
+          };
+        }
+      };
+    }
+
+    const supabaseClient = createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const QUIZ_ID = 'as_chemistry_ch10_group_2';
+    const QUIZ_NAME = 'AS Chemistry Ch10 (Group 2)';
+
+    const QUESTIONS = [
+      {
+        number: 1,
+        code: '9701_m22_qp_12 Q: 21',
+        prompt: 'Which row gives correct comparisons between the solubilities of calcium hydroxide and barium hydroxide and the thermal stabilities of calcium carbonate and barium carbonate?<br><div class="table-wrapper"><table><thead><tr><th colspan="2">solubility</th><th colspan="2">thermal stability</th></tr><tr><th>calcium hydroxide</th><th>barium hydroxide</th><th>calcium carbonate</th><th>barium carbonate</th></tr></thead><tbody><tr><td colspan="4">(values compared as higher/lower)</td></tr></tbody></table></div>',
+        options: {
+          A: 'higher | lower | higher | lower',
+          B: 'higher | lower | lower | higher',
+          C: 'lower | higher | higher | lower',
+          D: 'lower | higher | lower | higher',
+        }
+      },
+      {
+        number: 2,
+        code: '9701_m21_qp_12 Q: 14',
+        prompt: 'Which row correctly describes one property of barium and one property of barium oxide?<br><div class="table-wrapper"><table><thead><tr><th>observation when barium metal is added to water</th><th>pH when a spatula of BaO is added to 100 cm³ of water</th></tr></thead><tbody><tr><td colspan="2">(values compared)</td></tr></tbody></table></div>',
+        options: {
+          A: 'a few gas bubbles form on the metal surface | 8',
+          B: 'a few gas bubbles form on the metal surface | 13',
+          C: 'rapid effervescence is seen | 8',
+          D: 'rapid effervescence is seen | 13',
+        }
+      },
+      {
+        number: 3,
+        code: '9701_m21_qp_12 Q: 15',
+        prompt: 'An anhydrous white salt, Z, is heated strongly for 30 minutes. A mixture of gases is given off. The solid remaining is dissolved in a small volume of dilute hydrochloric acid. Addition of a few drops of dilute sulfuric acid causes a white precipitate to form. Which substance could be Z?',
+        options: {
+          A: 'barium carbonate',
+          B: 'barium nitrate',
+          C: 'magnesium carbonate',
+          D: 'magnesium nitrate',
+        }
+      },
+      {
+        number: 4,
+        code: '9701_s21_qp_11 Q: 14',
+        prompt: 'Q is a mixture of a Group 2 oxide and a Group 2 sulfate in equal amounts. Q is shaken with water and the mixture filtered. The solid residue shows no reaction with HCl(aq). Shaking the filtrate with H₂SO₄(aq) produces a white precipitate. What could be Q?',
+        options: {
+          A: 'BaO + BaSO₄',
+          B: 'BaO + MgSO₄',
+          C: 'MgO + BaSO₄',
+          D: 'MgO + MgSO₄',
+        }
+      },
+      {
+        number: 5,
+        code: '9701_s21_qp_11 Q: 15',
+        prompt: 'Which substance will not be a product of the thermal decomposition of hydrated magnesium nitrate?',
+        options: {
+          A: 'dinitrogen monoxide',
+          B: 'magnesium oxide',
+          C: 'oxygen',
+          D: 'steam',
+        }
+      },
+      {
+        number: 6,
+        code: '9701_m22_qp_12 Q: 14',
+        prompt: 'A farmer needs a solid compound to raise the pH of the soil in a field from 5.5 to above 6.0. Which compound could the farmer use?',
+        options: {
+          A: '(NH₄)₂SO₄',
+          B: 'NH₄NO₃',
+          C: 'Ca(OH)₂',
+          D: 'Ca(NO₃)₂',
+        }
+      },
+      {
+        number: 7,
+        code: '9701_s21_qp_12 Q: 15',
+        prompt: 'Z is an anhydrous compound of a Group 2 element. On heating it undergoes thermal decomposition to produce two different gases. Z has relatively low thermal stability compared to other Group 2 compounds containing the same anion. What is compound Z?',
+        options: {
+          A: 'barium carbonate',
+          B: 'barium nitrate',
+          C: 'magnesium carbonate',
+          D: 'magnesium nitrate',
+        }
+      },
+      {
+        number: 8,
+        code: '9701_s21_qp_13 Q: 17',
+        prompt: 'Which statement is correct?',
+        options: {
+          A: 'Doctors can use the very insoluble MgSO₄ to investigate the digestive system.',
+          B: 'Farmers can lower the pH of soil by spreading CaCO₃ on it.',
+          C: 'Students can test a solution for SO₄²⁻ ions by using Ba(NO₃)₂(aq) followed by HNO₃(aq).',
+          D: 'The insoluble hydroxide, Ba(OH)₂, can be safely used to lower the acidity of the stomach.',
+        }
+      },
+      {
+        number: 9,
+        code: '9701_s21_qp_13 Q: 18',
+        prompt: 'A solid, X, was placed in an excess of the liquid Y. A colourless gas was given off and a white precipitate was seen. The precipitate was not X. What could be the identities of X and Y?<br><div class="table-wrapper"><table><thead><tr><th>X</th><th>Y</th></tr></thead><tbody><tr><td>BaCO₃</td><td>H₂O</td></tr><tr><td>Ca</td><td>dilute H₂SO₄</td></tr><tr><td>Mg</td><td>dilute H₂SO₄</td></tr><tr><td>SrCO₃</td><td>dilute HCl</td></tr></tbody></table></div>',
+        options: {
+          A: 'BaCO₃ and H₂O',
+          B: 'Ca and dilute H₂SO₄',
+          C: 'Mg and dilute H₂SO₄',
+          D: 'SrCO₃ and dilute HCl',
+        }
+      },
+      {
+        number: 10,
+        code: '9701_w21_qp_11 Q: 2',
+        prompt: '2.0 g of ammonium nitrate, NH₄NO₃, decomposes to give 0.90 g of water and a single gas. What is the identity of the gas?',
+        options: {
+          A: 'NO',
+          B: 'NO₂',
+          C: 'N₂O',
+          D: 'N₂',
+        }
+      },
+      {
+        number: 11,
+        code: '9701_w21_qp_11 Q: 14',
+        prompt: 'In which list are all three compounds soluble in water?',
+        options: {
+          A: 'barium chloride, calcium carbonate, magnesium hydroxide',
+          B: 'barium hydroxide, calcium hydroxide, strontium carbonate',
+          C: 'barium chloride, barium hydroxide, magnesium sulfate',
+          D: 'barium sulfate, calcium sulfate, magnesium hydroxide',
+        }
+      },
+      {
+        number: 12,
+        code: '9701_w21_qp_12 Q: 13',
+        prompt: 'Which statement about the compounds of the Group 2 metals is correct?',
+        options: {
+          A: 'Barium carbonate is less thermally stable than strontium carbonate.',
+          B: 'Barium sulfate is less soluble than magnesium sulfate.',
+          C: 'Calcium hydroxide is less soluble than magnesium hydroxide.',
+          D: 'Calcium nitrate is more thermally stable than strontium nitrate.',
+        }
+      },
+      {
+        number: 13,
+        code: '9701_w21_qp_13 Q: 14',
+        prompt: 'In which list are all three compounds soluble in water?',
+        options: {
+          A: 'barium chloride, calcium carbonate, magnesium hydroxide',
+          B: 'barium hydroxide, calcium hydroxide, strontium carbonate',
+          C: 'barium chloride, barium hydroxide, magnesium sulfate',
+          D: 'barium sulfate, calcium sulfate, magnesium hydroxide',
+        }
+      },
+      {
+        number: 14,
+        code: '9701_m20_qp_12 Q: 13',
+        prompt: 'Compound Z is insoluble in water but soluble at low pH. What could compound Z be?',
+        options: {
+          A: 'barium carbonate',
+          B: 'barium chloride',
+          C: 'barium hydroxide',
+          D: 'barium sulfate',
+        }
+      },
+      {
+        number: 15,
+        code: '9701_m20_qp_12 Q: 17',
+        prompt: 'A student heats calcium nitrate crystals in the apparatus shown and tests the gas at Y. Which observations would the student make?<br><div style="text-align:center; margin:12px 0;"><em>Heating tube gives a gas over litmus solution with flame test at exit.</em></div>',
+        options: {
+          A: 'litmus changes to blue | flame burns more brightly',
+          B: 'litmus changes to blue | flame goes out',
+          C: 'litmus changes to red | flame burns more brightly',
+          D: 'litmus changes to red | flame goes out',
+        }
+      },
+      {
+        number: 16,
+        code: '9701_s20_qp_11 Q: 14',
+        prompt: 'An excess of MgO is shaken with water and filtered into test-tube P. An excess of BaO is shaken with water and filtered into test-tube Q. Which oxide reacts more readily with water and which filtrate has the lower pH?',
+        options: {
+          A: 'BaO | P',
+          B: 'BaO | Q',
+          C: 'MgO | P',
+          D: 'MgO | Q',
+        }
+      },
+      {
+        number: 17,
+        code: '9701_s20_qp_12 Q: 17',
+        prompt: 'Which property shows an increase from magnesium to barium?',
+        options: {
+          A: 'the first ionisation energy of the elements',
+          B: 'the oxidising power of the metals',
+          C: 'the solubility of the hydroxides',
+          D: 'the solubility of the sulfates',
+        }
+      },
+      {
+        number: 18,
+        code: '9701_s20_qp_13 Q: 14',
+        prompt: 'The statements apply to the elements in Group 2. Which statement is correct?',
+        options: {
+          A: 'As atomic number increases, ionic radius increases.',
+          B: 'As atomic number increases, reducing ability decreases.',
+          C: 'As atomic number increases, first ionisation energy increases.',
+          D: 'As atomic radius increases, first ionisation energy increases.',
+        }
+      },
+      {
+        number: 19,
+        code: '9701_s20_qp_13 Q: 18',
+        prompt: 'Which property shows an increase from calcium to barium going down Group 2?',
+        options: {
+          A: 'the ease of decomposition of the carbonates',
+          B: 'the solubility of the hydroxides',
+          C: 'the solubility of the sulfates',
+          D: 'the volume of hydrogen given off when 1 g of the metal reacts with water',
+        }
+      },
+      {
+        number: 20,
+        code: '9701_w20_qp_11 Q: 13',
+        prompt: 'This question is about two elements in Group 2, Q and R. Three of the statements shown are correct for metal Q. The remaining statement is correct for metal R. Which statement applies to R?',
+        options: {
+          A: 'A saturated solution of the hydroxide of this metal has the higher pH value.',
+          B: 'This metal has a carbonate that is used in agriculture to reduce the acidity of soil.',
+          C: 'This metal has the greater atomic radius.',
+          D: 'This metal reacts more quickly with cold water.',
+        }
+      },
+      {
+        number: 21,
+        code: '9701_w20_qp_11 Q: 15',
+        prompt: 'A student mixes pairs of chemicals together in separate test-tubes.<ul style="margin:10px 0 0 18px; padding-left:4px;"><li>excess calcium (s) + water (l)</li><li>barium chloride (aq) + strontium hydroxide (aq)</li><li>calcium carbonate (s) + excess hydrochloric acid (aq)</li><li>magnesium sulfate (aq) + barium nitrate (aq)</li></ul>How many of the mixtures produce a white, solid product?',
+        options: {
+          A: '0',
+          B: '1',
+          C: '2',
+          D: '3',
+        }
+      },
+      {
+        number: 22,
+        code: '9701_w20_qp_11 Q: 18',
+        prompt: 'What are the trends in the stated properties as Group 2 is descended from magnesium to barium?<br><div class="table-wrapper"><table><thead><tr><th></th><th>decomposition temperature of the carbonate</th><th>first ionisation energy</th></tr></thead><tbody><tr><td>A</td><td>decreases</td><td>increases</td></tr><tr><td>B</td><td>decreases</td><td>decreases</td></tr><tr><td>C</td><td>increases</td><td>increases</td></tr><tr><td>D</td><td>increases</td><td>decreases</td></tr></tbody></table></div>',
+        options: {
+          A: 'row A',
+          B: 'row B',
+          C: 'row C',
+          D: 'row D',
+        }
+      },
+      {
+        number: 23,
+        code: '9701_w20_qp_12 Q: 13',
+        prompt: 'Which row could refer to barium metal and barium hydroxide?<br><div class="table-wrapper"><table><thead><tr><th>colour seen when the metal is burnt in O₂</th><th>pH of a saturated solution of the hydroxide</th></tr></thead><tbody><tr><td>green flame</td><td>8</td></tr><tr><td>green flame</td><td>13</td></tr><tr><td>white flame</td><td>8</td></tr><tr><td>white flame</td><td>13</td></tr></tbody></table></div>',
+        options: {
+          A: 'green flame | pH 8',
+          B: 'green flame | pH 13',
+          C: 'white flame | pH 8',
+          D: 'white flame | pH 13',
+        }
+      },
+      {
+        number: 24,
+        code: '9701_w20_qp_12 Q: 16',
+        prompt: 'Due to their similar ionic radii, the reactions of lithium and magnesium and their corresponding compounds are very similar. Which statement about the reactions of lithium or its compounds can be predicted from this statement?',
+        options: {
+          A: 'Lithium burns very slowly in oxygen.',
+          B: 'Lithium carbonate decomposes on heating in a blue Bunsen burner flame, forming lithium oxide and carbon dioxide.',
+          C: 'Lithium nitrate decomposes on heating, forming lithium nitrite, LiNO₂, and oxygen.',
+          D: 'Lithium reacts very violently with cold water, producing hydrogen.',
+        }
+      },
+      {
+        number: 25,
+        code: '9701_m19_qp_12 Q: 14',
+        prompt: 'Metal T reacts with water to produce a colourless solution. A white precipitate is produced when this colourless solution is mixed with aqueous sulfuric acid. What is metal T?',
+        options: {
+          A: 'barium',
+          B: 'magnesium',
+          C: 'potassium',
+          D: 'sodium',
+        }
+      },
+      {
+        number: 26,
+        code: '9701_m19_qp_12 Q: 15',
+        prompt: 'When calcium nitrate thermally decomposes, oxygen is one of the products. Which volume of oxygen is produced under room conditions when 0.50 mol of calcium nitrate thermally decomposes?',
+        options: {
+          A: '6.0 dm³',
+          B: '12.0 dm³',
+          C: '18.0 dm³',
+          D: '30.0 dm³',
+        }
+      },
+      {
+        number: 27,
+        code: '9701_m19_qp_12 Q: 16',
+        prompt: 'L, M and N are Group 2 metals. L reacts more vigorously with dilute hydrochloric acid than N does. M(OH)₂ is more soluble than N(OH)₂. What could be the identities of L, M and N?<br><div class="table-wrapper"><table><thead><tr><th>L</th><th>M</th><th>N</th></tr></thead><tbody><tr><td>Ba</td><td>Ca</td><td>Sr</td></tr><tr><td>Ba</td><td>Sr</td><td>Ca</td></tr><tr><td>Ca</td><td>Ba</td><td>Sr</td></tr><tr><td>Sr</td><td>Ca</td><td>Ba</td></tr></tbody></table></div>',
+        options: {
+          A: 'Ba, Ca, Sr',
+          B: 'Ba, Sr, Ca',
+          C: 'Ca, Ba, Sr',
+          D: 'Sr, Ca, Ba',
+        }
+      },
+      {
+        number: 28,
+        code: '9701_s19_qp_11 Q: 14',
+        prompt: 'Substance X reacts with water. A gas is given off and the pH of the solution increases. The solution is then reacted with sulfuric acid and a white precipitate forms. What could substance X be?',
+        options: {
+          A: 'barium',
+          B: 'barium oxide',
+          C: 'magnesium',
+          D: 'magnesium oxide',
+        }
+      },
+      {
+        number: 29,
+        code: '9701_s19_qp_11 Q: 15',
+        prompt: 'Solutions of 0.1 mol dm⁻³ Mg(NO₃)₂ and 0.1 mol dm⁻³ Ba(NO₃)₂ separately undergo a series of reactions using pure reagents.<br><div style="margin:10px 0 0 12px;">Mg(NO₃)₂(aq) →(sodium carbonate) M →(excess HCl, then boil) N →(excess NaOH) P<br>Ba(NO₃)₂(aq) →(sodium carbonate) Q →(excess HCl, then boil) R →(excess NaOH) S</div>How many of M, N, P, Q, R and S are white precipitates?',
+        options: {
+          A: '2',
+          B: '3',
+          C: '4',
+          D: '5',
+        }
+      },
+      {
+        number: 30,
+        code: '9701_s19_qp_12 Q: 15',
+        prompt: 'How many of the solutions shown, when added to separate portions of magnesium sulfate solution, produce a white precipitate?<br><div class="table-wrapper"><table><thead><tr><th></th><th>HCl(aq)</th><th>NH₃(aq)</th><th>(NH₄)₂CO₃(aq)</th><th>Ba(NO₃)₂(aq)</th></tr></thead><tbody><tr><td>options</td><td colspan="4">(count the mixtures giving a white ppt)</td></tr></tbody></table></div>',
+        options: {
+          A: '0',
+          B: '1',
+          C: '2',
+          D: '3',
+        }
+      },
+      {
+        number: 31,
+        code: '9701_s19_qp_12 Q: 16',
+        prompt: 'A white solid, Z, is soluble in water. A sample of Z is heated with a Bunsen burner until there is no further change. When the residue is shaken with water a solution is formed with no solid remaining. What could Z be?',
+        options: {
+          A: 'MgCO₃',
+          B: 'Mg(NO₃)₂',
+          C: 'BaCO₃',
+          D: 'Ba(NO₃)₂',
+        }
+      },
+      {
+        number: 32,
+        code: '9701_s19_qp_13 Q: 11',
+        prompt: 'The volume of carbon dioxide collected by reacting 0.100 mol of magnesium carbonate with 50.0 cm³ of 1.00 mol dm⁻³ sulfuric acid is measured against time (line P). The experiment is repeated using 0.100 mol of the same magnesium carbonate and a different sample of acid; plotting these results gives line Q. Which sample of acid could give the line labelled Q?',
+        options: {
+          A: '100 cm³ of 0.500 mol dm⁻³ sulfuric acid',
+          B: '100 cm³ of 1.00 mol dm⁻³ sulfuric acid',
+          C: '200 cm³ of 0.500 mol dm⁻³ hydrochloric acid',
+          D: '200 cm³ of 1.00 mol dm⁻³ hydrochloric acid',
+        }
+      },
+      {
+        number: 33,
+        code: '9701_s19_qp_13 Q: 14',
+        prompt: 'Dilute hydrochloric acid is added to solid barium carbonate and solid magnesium carbonate in separate test-tubes. Dilute sodium hydroxide is added to 0.1 mol dm⁻³ barium chloride and 0.1 mol dm⁻³ magnesium chloride in separate test-tubes. Which row is correct?<br><div class="table-wrapper"><table><thead><tr><th></th><th>BaCO₃(s) + HCl(aq)</th><th>BaCl₂(aq) + NaOH(aq)</th><th>MgCO₃(s) + HCl(aq)</th><th>MgCl₂(aq) + NaOH(aq)</th></tr></thead><tbody><tr><td>A</td><td>no change</td><td>white ppt</td><td>no change</td><td>no change</td></tr><tr><td>B</td><td>effervescence</td><td>no change</td><td>effervescence</td><td>no change</td></tr><tr><td>C</td><td>effervescence</td><td>no change</td><td>effervescence</td><td>white ppt</td></tr><tr><td>D</td><td>effervescence</td><td>white ppt</td><td>no change</td><td>white ppt</td></tr></tbody></table></div>',
+        options: {
+          A: 'row A',
+          B: 'row B',
+          C: 'row C',
+          D: 'row D',
+        }
+      },
+      {
+        number: 34,
+        code: '9701_w19_qp_11 Q: 14',
+        prompt: 'A 5.00 g sample of an anhydrous Group 2 metal nitrate loses 3.29 g in mass when heated strongly. Which metal is present?',
+        options: {
+          A: 'magnesium',
+          B: 'calcium',
+          C: 'strontium',
+          D: 'barium',
+        }
+      },
+      {
+        number: 35,
+        code: '9701_w19_qp_11 Q: 15',
+        prompt: 'Solutions P and Q each contain a different Group 2 ion at the same concentration. One contains Mg²⁺, the other contains Ba²⁺. Tests are carried out on separate 5 cm³ samples of P and Q.<br><br>test 1: add 1 cm³ of 0.1 mol dm⁻³ Na₂SO₄(aq)<br>test 2: add 1 cm³ of 0.1 mol dm⁻³ NaOH(aq)<br><br>What are the results of these tests?<br><div class="table-wrapper"><table><thead><tr><th></th><th>results in test 1</th><th>results in test 2</th></tr></thead><tbody><tr><td>A</td><td>more precipitate with Ba²⁺</td><td>more precipitate with Ba²⁺</td></tr><tr><td>B</td><td>more precipitate with Ba²⁺</td><td>more precipitate with Mg²⁺</td></tr><tr><td>C</td><td>more precipitate with Mg²⁺</td><td>more precipitate with Ba²⁺</td></tr><tr><td>D</td><td>more precipitate with Mg²⁺</td><td>more precipitate with Mg²⁺</td></tr></tbody></table></div>',
+        options: {
+          A: 'more precipitate with Ba²⁺ | more precipitate with Ba²⁺',
+          B: 'more precipitate with Ba²⁺ | more precipitate with Mg²⁺',
+          C: 'more precipitate with Mg²⁺ | more precipitate with Ba²⁺',
+          D: 'more precipitate with Mg²⁺ | more precipitate with Mg²⁺',
+        }
+      },
+      {
+        number: 36,
+        code: '9701_w19_qp_12 Q: 13',
+        prompt: 'Which statement about the compounds of Group 2 elements magnesium to barium is correct?',
+        options: {
+          A: 'Carbonates of Group 2 elements produce bubbles when added to dilute nitric acid.',
+          B: 'Nitrates of Group 2 elements produce nitrogen and oxygen on heating.',
+          C: 'Oxides of Group 2 elements produce bubbles when added to dilute hydrochloric acid.',
+          D: 'The oxides of Group 2 elements are amphoteric.',
+        }
+      },
+      {
+        number: 37,
+        code: '9701_w19_qp_12 Q: 14',
+        prompt: 'When equal volumes of saturated solutions of barium hydroxide and calcium hydroxide are mixed, a white precipitate, Y, forms. The mixture is filtered and carbon dioxide is bubbled through the filtrate, producing a second white precipitate, Z.<br><br>What are Y and Z?<br><div class="table-wrapper"><table><thead><tr><th></th><th>Y</th><th>Z</th></tr></thead><tbody><tr><td>A</td><td>Ba(OH)₂</td><td>Ca(OH)₂</td></tr><tr><td>B</td><td>Ba(OH)₂</td><td>CaCO₃</td></tr><tr><td>C</td><td>Ca(OH)₂</td><td>BaCO₃</td></tr><tr><td>D</td><td>Ca(OH)₂</td><td>Ba(OH)₂</td></tr></tbody></table></div>',
+        options: {
+          A: 'Y = Ba(OH)₂, Z = Ca(OH)₂',
+          B: 'Y = Ba(OH)₂, Z = CaCO₃',
+          C: 'Y = Ca(OH)₂, Z = BaCO₃',
+          D: 'Y = Ca(OH)₂, Z = Ba(OH)₂',
+        }
+      },
+      {
+        number: 38,
+        code: '9701_m18_qp_12 Q: 20',
+        prompt: 'Which types of stereoisomerism are shown by 2,4-dimethylhex-2-ene?',
+        options: {
+          A: 'both cis-trans isomerism and optical isomerism',
+          B: 'cis-trans isomerism only',
+          C: 'neither cis-trans isomerism nor optical isomerism',
+          D: 'optical isomerism only',
+        }
+      },
+      {
+        number: 39,
+        code: '9701_m18_qp_12 Q: 21',
+        prompt: 'An organic ion containing a carbon atom with a negative charge is called a carbanion.<br><br>An organic ion containing a carbon atom with a positive charge is called a carbocation.<br><br>The reaction between aqueous sodium hydroxide and 1-bromobutane proceeds by an S<sub>N</sub>2 mechanism.<br><br>What is the first step in the mechanism?',
+        options: {
+          A: 'attack by a nucleophile on a carbon atom with a partial positive charge',
+          B: 'heterolytic bond fission followed by attack by an electrophile on a carbanion',
+          C: 'heterolytic bond fission followed by attack by a nucleophile on a carbocation',
+          D: 'homolytic bond fission followed by attack by a nucleophile on a carbocation',
+        }
+      },
+      {
+        number: 40,
+        code: '9701_s18_qp_11 Q: 18',
+        prompt: 'When 3.00 g of an anhydrous nitrate of a Group 2 metal is decomposed, 1.53 g of gas is produced. What is the nitrate compound?',
+        options: {
+          A: 'beryllium nitrate',
+          B: 'calcium nitrate',
+          C: 'magnesium nitrate',
+          D: 'strontium nitrate',
+        }
+      },
+      {
+        number: 41,
+        code: '9701_s18_qp_11 Q: 19',
+        prompt: 'Which row correctly describes one property of barium and one property of barium oxide?<br><div class="table-wrapper"><table><thead><tr><th>observation when barium metal is added to water</th><th>pH of solution obtained when a spatula measure of BaO is added to 100 cm³ of water</th></tr></thead><tbody><tr><td>A</td><td>a few gas bubbles form on the metal surface</td><td>8</td></tr><tr><td>B</td><td>a few gas bubbles form on the metal surface</td><td>13</td></tr><tr><td>C</td><td>rapid effervescence is seen</td><td>8</td></tr><tr><td>D</td><td>rapid effervescence is seen</td><td>13</td></tr></tbody></table></div>',
+        options: {
+          A: 'a few gas bubbles form on the metal surface | 8',
+          B: 'a few gas bubbles form on the metal surface | 13',
+          C: 'rapid effervescence is seen | 8',
+          D: 'rapid effervescence is seen | 13',
+        }
+      },
+      {
+        number: 42,
+        code: '9701_s18_qp_12 Q: 16',
+        prompt: 'In Group 2 of the Periodic Table, the properties of the elements and their compounds show regular change down the group. Which property shows a decrease from magnesium to barium?',
+        options: {
+          A: 'the decomposition temperature of the carbonates',
+          B: 'the decomposition temperature of the nitrates',
+          C: 'the solubility of the hydroxides',
+          D: 'the solubility of the sulfates',
+        }
+      },
+      {
+        number: 43,
+        code: '9701_s18_qp_13 Q: 14',
+        prompt: 'An ore contains magnesium carbonate and barium carbonate. A sample of the ore is dissolved in nitric acid.<br><br>How could this solution be processed into a magnesium compound and a separate barium compound?',
+        options: {
+          A: 'Add HCl(aq), filter off the solid barium chloride.',
+          B: 'Add HCl(aq), filter off the solid magnesium chloride.',
+          C: 'Add H₂SO₄(aq), filter off the solid barium sulfate.',
+          D: 'Add H₂SO₄(aq), filter off the solid magnesium sulfate.',
+        }
+      },
+      {
+        number: 44,
+        code: '9701_s18_qp_13 Q: 15',
+        prompt: 'When calcium and calcium hydride, CaH₂, react separately with water, they each produce a white solid and a colourless gas. The white solid is the same compound in each reaction.<br><br>Which statement is correct?',
+        options: {
+          A: 'Both Ca and CaH₂ produce H₂.',
+          B: 'Both Ca and CaH₂ produce O₂.',
+          C: 'Ca produces H₂ and CaH₂ produces O₂.',
+          D: 'Ca produces O₂ and CaH₂ produces H₂.',
+        }
+      },
+      {
+        number: 45,
+        code: '9701_w18_qp_11 Q: 15',
+        prompt: 'A sample of anhydrous calcium nitrate is placed in a test-tube and heated in a roaring Bunsen flame until it decomposes. The description of the gas in the test-tube is then noted. A glowing splint is then put into the test-tube and any changes are noted.<br><br>Which observations are correct?<br><div class="table-wrapper"><table><thead><tr><th></th><th>description of the gas in the test-tube</th><th>result of glowing splint test</th></tr></thead><tbody><tr><td>A</td><td>brown</td><td>the splint goes out</td></tr><tr><td>B</td><td>brown</td><td>the splint relights</td></tr><tr><td>C</td><td>colourless</td><td>the splint goes out</td></tr><tr><td>D</td><td>colourless</td><td>the splint relights</td></tr></tbody></table></div>',
+        options: {
+          A: 'brown gas | the splint goes out',
+          B: 'brown gas | the splint relights',
+          C: 'colourless gas | the splint goes out',
+          D: 'colourless gas | the splint relights',
+        }
+      },
+      {
+        number: 46,
+        code: '9701_w18_qp_11 Q: 18',
+        prompt: 'Which statement explains the observation that magnesium hydroxide dissolves in aqueous ammonium chloride, but not in aqueous sodium chloride?',
+        options: {
+          A: 'The ionic radius of the NH₄⁺ ion is similar to that of Mg²⁺ but not that of Na⁺.',
+          B: 'NH₄Cl dissociates less fully than NaCl.',
+          C: 'The Na⁺ and Mg²⁺ ions have the same number of electrons.',
+          D: 'The NH₄⁺ ion can donate a proton.',
+        }
+      },
+      {
+        number: 47,
+        code: '9701_w18_qp_12 Q: 14',
+        prompt: 'A 4.00 g sample of an anhydrous Group 2 metal nitrate is heated strongly until there is no further change. A solid residue of mass 1.37 g is formed. Which metal is present?',
+        options: {
+          A: 'barium',
+          B: 'calcium',
+          C: 'magnesium',
+          D: 'strontium',
+        }
+      },
+      {
+        number: 48,
+        code: '9701_w18_qp_12 Q: 15',
+        prompt: 'In which row are all statements comparing magnesium and barium correct?<br><div class="table-wrapper"><table><thead><tr><th></th><th>fourth ionisation energy</th><th>reaction with water</th></tr></thead><tbody><tr><td></td><td>magnesium | barium</td><td>magnesium | barium</td></tr><tr><td>A</td><td>higher | lower</td><td>faster | slower</td></tr><tr><td>B</td><td>higher | lower</td><td>slower | faster</td></tr><tr><td>C</td><td>lower | higher</td><td>faster | slower</td></tr><tr><td>D</td><td>lower | higher</td><td>slower | faster</td></tr></tbody></table></div>',
+        options: {
+          A: 'higher | lower ; faster | slower',
+          B: 'higher | lower ; slower | faster',
+          C: 'lower | higher ; faster | slower',
+          D: 'lower | higher ; slower | faster',
+        }
+      },
+      {
+        number: 49,
+        code: '9701_m17_qp_12 Q: 14',
+        prompt: 'Why does barium react more rapidly with cold water than magnesium does?',
+        options: {
+          A: 'Barium atoms are larger and form ions more easily than magnesium atoms.',
+          B: 'Barium floats on the surface of the water but magnesium sinks in the water.',
+          C: 'Barium hydroxide is less soluble than magnesium hydroxide.',
+          D: 'The sum of the 1st and 2nd ionisation energies of barium is more than that for magnesium.',
+        }
+      },
+      {
+        number: 50,
+        code: '9701_s17_qp_11 Q: 14',
+        prompt: 'An excess of MgO is shaken with water. The resulting mixture is filtered into test-tube X.<br><br>An excess of BaO is shaken with water. The resulting mixture is filtered into test-tube Y.<br><br>Which oxide reacts more readily with water and which filtrate has the lower pH?<br><div class="table-wrapper"><table><thead><tr><th></th><th>oxide reacts more readily with water</th><th>test-tube with filtrate of lower pH</th></tr></thead><tbody><tr><td>A</td><td>barium oxide</td><td>X</td></tr><tr><td>B</td><td>barium oxide</td><td>Y</td></tr><tr><td>C</td><td>magnesium oxide</td><td>X</td></tr><tr><td>D</td><td>magnesium oxide</td><td>Y</td></tr></tbody></table></div>',
+        options: {
+          A: 'barium oxide | X',
+          B: 'barium oxide | Y',
+          C: 'magnesium oxide | X',
+          D: 'magnesium oxide | Y',
+        }
+      },
+      {
+        number: 51,
+        code: '9701_s17_qp_11 Q: 15',
+        prompt: 'Samples of magnesium carbonate, MgCO₃, are placed in crucibles R and S. The sample in crucible R is heated until there is no further loss in mass, and then allowed to cool. The sample in crucible S is left unheated.<br><br>Dilute hydrochloric acid is then added to both crucibles.<br><br>On adding the dilute hydrochloric acid, which observations are correct?<br><div class="table-wrapper"><table><thead><tr><th></th><th>R</th><th>S</th></tr></thead><tbody><tr><td>A</td><td>gas produced</td><td>gas produced</td></tr><tr><td>B</td><td>gas produced</td><td>no gas produced</td></tr><tr><td>C</td><td>no gas produced</td><td>gas produced</td></tr><tr><td>D</td><td>no gas produced</td><td>no gas produced</td></tr></tbody></table></div>',
+        options: {
+          A: 'gas produced | gas produced',
+          B: 'gas produced | no gas produced',
+          C: 'no gas produced | gas produced',
+          D: 'no gas produced | no gas produced',
+        }
+      },
+      {
+        number: 52,
+        code: '9701_s17_qp_12 Q: 3',
+        prompt: 'In some fireworks there is a reaction between powdered aluminium and powdered barium nitrate. Heat is evolved, an unreactive gas is produced, and all nitrogen atoms are reduced.<br><br>What is the equation for this reaction?',
+        options: {
+          A: '2Al + Ba(NO₃)₂ → Al₂O₃ + BaO + 2NO',
+          B: '4Al + 4Ba(NO₃)₂ → 2Al₂O₃ + 4Ba(NO₂)₂ + O₂',
+          C: '10Al + 3Ba(NO₃)₂ → 5Al₂O₃ + 3BaO + 3N₂',
+          D: '10Al + 18Ba(NO₃)₂ → 10Al(NO₃)₃ + 18BaO + 3N₂',
+        }
+      },
+      {
+        number: 53,
+        code: '9701_s17_qp_12 Q: 14',
+        prompt: 'Trends are seen in the physical and chemical properties of the elements of Group 2 and their compounds.<br><br>Which property shows a decrease from magnesium to barium?',
+        options: {
+          A: 'the rate of the reaction between the element and dilute hydrochloric acid',
+          B: 'the solubility of the hydroxides',
+          C: 'the solubility of the sulfates',
+          D: 'the temperature of decomposition of the carbonates',
+        }
+      },
+      {
+        number: 54,
+        code: '9701_s17_qp_12 Q: 15',
+        prompt: 'Calcium oxide is added to water and the resulting mixture is filtered. This filtrate is X.<br><br>When carbon dioxide is bubbled through filtrate X, a white precipitate is formed.<br><br>Which equation for this reaction of filtrate X with carbon dioxide is correct?',
+        options: {
+          A: 'CaO + CO₂ → CaCO₃',
+          B: 'Ca(OH)₂ + CO₂ → CaO + H₂CO₃',
+          C: '2CaO + H₂O + CO₂ → CaCO₃ + Ca(OH)₂',
+          D: 'Ca(OH)₂ + CO₂ → CaCO₃ + H₂O',
+        }
+      },
+      {
+        number: 55,
+        code: '9701_s17_qp_13 Q: 15',
+        prompt: 'Which row correctly describes the reactions of calcium and strontium with water?<br><div class="table-wrapper"><table><thead><tr><th></th><th>substance reduced</th><th>substance oxidised</th><th>more vigorous reaction</th></tr></thead><tbody><tr><td>A</td><td>calcium or strontium</td><td>water</td><td>calcium + water</td></tr><tr><td>B</td><td>calcium or strontium</td><td>water</td><td>strontium + water</td></tr><tr><td>C</td><td>water</td><td>calcium or strontium</td><td>calcium + water</td></tr><tr><td>D</td><td>water</td><td>calcium or strontium</td><td>strontium + water</td></tr></tbody></table></div>',
+        options: {
+          A: 'calcium or strontium reduced | water oxidised | calcium + water more vigorous',
+          B: 'calcium or strontium reduced | water oxidised | strontium + water more vigorous',
+          C: 'water reduced | calcium or strontium oxidised | calcium + water more vigorous',
+          D: 'water reduced | calcium or strontium oxidised | strontium + water more vigorous',
+        }
+      },
+      {
+        number: 56,
+        code: '9701_w17_qp_11 Q: 15',
+        prompt: 'The mineral dolomite is a mixture of magnesium carbonate and calcium carbonate.<br><br>An aqueous reagent, X, was added to a small sample of dolomite. Effervescence was seen and a white solid, Y, was formed.<br><br>What could be the correct identity of reagent X and solid Y?<br><div class="table-wrapper"><table><thead><tr><th>reagent X</th><th>solid Y</th></tr></thead><tbody><tr><td>hydrochloric acid</td><td>calcium chloride</td></tr><tr><td>hydrochloric acid</td><td>magnesium chloride</td></tr><tr><td>sulfuric acid</td><td>calcium sulfate</td></tr><tr><td>sulfuric acid</td><td>magnesium sulfate</td></tr></tbody></table></div>',
+        options: {
+          A: 'hydrochloric acid | calcium chloride',
+          B: 'hydrochloric acid | magnesium chloride',
+          C: 'sulfuric acid | calcium sulfate',
+          D: 'sulfuric acid | magnesium sulfate',
+        }
+      },
+      {
+        number: 57,
+        code: '9701_w17_qp_12 Q: 14',
+        prompt: 'Radium is an element below barium in Group 2 of the Periodic Table.<br><br>Which equation shows what happens when solid radium nitrate, Ra(NO₃)₂, is heated strongly?',
+        options: {
+          A: 'Ra(NO₃)₂(s) → RaO(s) + N₂O(g) + 2O₂(g)',
+          B: '2Ra(NO₃)₂(s) → 2RaO(s) + 2N₂(g) + 5O₂(g)',
+          C: '2Ra(NO₃)₂(s) → 2RaO(s) + 4NO₂(g) + O₂(g)',
+          D: '4Ra(NO₃)₂(s) → 2Ra₂O₃(s) + 8NO₂(g) + 3O₂(g)',
+        }
+      },
+      {
+        number: 58,
+        code: '9701_w17_qp_12 Q: 19',
+        prompt: 'X is a mixture of two compounds of Group 2 elements.<br><br>X undergoes thermal decomposition to produce a white solid and only two gaseous products. One of the gaseous products relights a glowing splint.<br><br>What could be the components of mixture X?',
+        options: {
+          A: 'MgCl₂ and CaCO₃',
+          B: 'MgCO₃ and Ca(NO₃)₂',
+          C: 'Mg(NO₃)₂ and Ca(NO₃)₂',
+          D: 'MgO and CaO',
+        }
+      },
+      {
+        number: 59,
+        code: '9701_s16_qp_11 Q: 14',
+        prompt: 'X and Y are both Group 2 metals.<br><br>X and Y both form hydroxide compounds, but X(OH)₂ is more soluble in water than Y(OH)₂.<br><br>If a piece of metal Y is put into cold water a very slow reaction occurs, and only a very few, small hydrogen bubbles can be seen.<br><br>What could be the identities of X and Y?<br><div class="table-wrapper"><table><thead><tr><th></th><th>X</th><th>Y</th></tr></thead><tbody><tr><td>A</td><td>barium</td><td>magnesium</td></tr><tr><td>B</td><td>barium</td><td>strontium</td></tr><tr><td>C</td><td>calcium</td><td>strontium</td></tr><tr><td>D</td><td>magnesium</td><td>calcium</td></tr></tbody></table></div>',
+        options: {
+          A: 'X = barium | Y = magnesium',
+          B: 'X = barium | Y = strontium',
+          C: 'X = calcium | Y = strontium',
+          D: 'X = magnesium | Y = calcium',
+        }
+      },
+      {
+        number: 60,
+        code: '9701_s16_qp_12 Q: 16',
+        prompt: 'A solid, T, was placed in an excess of the liquid U. A colourless gas was given off and a white precipitate was seen. The precipitate was not T.<br><br>What could be the identities of T and U?<br><div class="table-wrapper"><table><thead><tr><th>T</th><th>U</th></tr></thead><tbody><tr><td>BaCO₃</td><td>H₂O</td></tr><tr><td>Ca</td><td>dilute H₂SO₄</td></tr><tr><td>Mg</td><td>dilute H₂SO₄</td></tr><tr><td>SrCO₃</td><td>dilute HCl</td></tr></tbody></table></div>',
+        options: {
+          A: 'BaCO₃ and H₂O',
+          B: 'Ca and dilute H₂SO₄',
+          C: 'Mg and dilute H₂SO₄',
+          D: 'SrCO₃ and dilute HCl',
+        }
+      },
+      {
+        number: 61,
+        code: '9701_s16_qp_13 Q: 14',
+        prompt: 'Solutions of Mg(NO₃)₂ and Ba(NO₃)₂ separately undergo a series of reactions using pure reagents.<br><div style="margin:10px 0 0 12px;">Mg(NO₃)₂(aq) →(sodium carbonate solution) M →(excess HCl(aq), then boil) N →(excess NaOH(aq)) P<br>Ba(NO₃)₂(aq) →(sodium carbonate solution) Q →(excess HCl(aq), then boil) R →(excess NaOH(aq)) S</div>M, N and P are magnesium compounds.<br><br>Q, R and S are barium compounds.<br><br>How many of M, N, P, Q, R and S are white precipitates?',
+        options: {
+          A: '2',
+          B: '3',
+          C: '4',
+          D: '5',
+        }
+      },
+      {
+        number: 62,
+        code: '9701_s16_qp_13 Q: 16',
+        prompt: 'Steam is passed over heated magnesium to give compound J and hydrogen.<br><br>What is not a property of compound J?',
+        options: {
+          A: 'It has an M<sub>r</sub> of 40.3.',
+          B: 'It is basic.',
+          C: 'It is a white solid.',
+          D: 'It is very soluble in water.',
+        }
+      },
+      {
+        number: 63,
+        code: '9701_w16_qp_11 Q: 18',
+        prompt: 'Which row of the table gives correct comparisons between the solubilities of calcium and barium hydroxide and the thermal stabilities of calcium and barium carbonate?<br><div class="table-wrapper"><table><thead><tr><th colspan="2">solubility</th><th colspan="2">thermal stability</th></tr><tr><th>calcium hydroxide</th><th>barium hydroxide</th><th>calcium carbonate</th><th>barium carbonate</th></tr></thead><tbody><tr><td>A</td><td>higher</td><td>lower</td><td>higher</td><td>lower</td></tr><tr><td>B</td><td>higher</td><td>lower</td><td>lower</td><td>higher</td></tr><tr><td>C</td><td>lower</td><td>higher</td><td>higher</td><td>lower</td></tr><tr><td>D</td><td>lower</td><td>higher</td><td>lower</td><td>higher</td></tr></tbody></table></div>',
+        options: {
+          A: 'higher | lower | higher | lower',
+          B: 'higher | lower | lower | higher',
+          C: 'lower | higher | higher | lower',
+          D: 'lower | higher | lower | higher',
+        }
+      },
+      {
+        number: 64,
+        code: '9701_w16_qp_12 Q: 17',
+        prompt: 'When heated, magnesium nitrate decomposes. Which equation for the thermal decomposition of magnesium nitrate is correct?',
+        options: {
+          A: 'Mg(NO₃)₂ → MgO + NO₂ + NO + O₂',
+          B: '2Mg(NO₃)₂ → 2MgO + 4NO + 3O₂',
+          C: '2Mg(NO₃)₂ → 2MgO + 4NO₂ + O₂',
+          D: '3Mg(NO₃)₂ → Mg₂N₃ + MgO + 3NO + 7O₂',
+        }
+      },
+      {
+        number: 65,
+        code: '9701_s15_qp_11 Q: 13',
+        prompt: 'The three minerals below are obtained from mines around the world. Each behaves as a mixture of two carbonate compounds. They can be used as fire retardants because they decompose in the heat, producing CO₂. This gas smothers the fire.<br><br>barytocite &nbsp;&nbsp; BaCa(CO₃)₂<br>dolomite &nbsp;&nbsp;&nbsp;&nbsp; CaMg(CO₃)₂<br>huntite &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Mg₃Ca(CO₃)₄<br><br>What is the order of effectiveness as fire retardant, from best to worst?<br><div class="table-wrapper"><table><thead><tr><th></th><th>best</th><th>→</th><th>worst</th></tr></thead><tbody><tr><td>A</td><td>dolomite</td><td></td><td>barytocite</td><td>huntite</td></tr><tr><td>B</td><td>dolomite</td><td></td><td>huntite</td><td>barytocite</td></tr><tr><td>C</td><td>huntite</td><td></td><td>barytocite</td><td>dolomite</td></tr><tr><td>D</td><td>huntite</td><td></td><td>dolomite</td><td>barytocite</td></tr></tbody></table></div>',
+        options: {
+          A: 'dolomite → barytocite → huntite',
+          B: 'dolomite → huntite → barytocite',
+          C: 'huntite → barytocite → dolomite',
+          D: 'huntite → dolomite → barytocite',
+        }
+      },
+      {
+        number: 66,
+        code: '9701_s15_qp_11 Q: 19',
+        prompt: 'Which mass of solid residue will be obtained from the thermal decomposition of 4.10 g of anhydrous calcium nitrate?',
+        options: {
+          A: '0.70 g',
+          B: '1.00 g',
+          C: '1.40 g',
+          D: '2.25 g',
+        }
+      },
+      {
+        number: 67,
+        code: '9701_s15_qp_12 Q: 12',
+        prompt: 'When 3.00 g of an anhydrous nitrate of a Group II metal is decomposed, 1.53 g of gas is produced. What is the nitrate compound?',
+        options: {
+          A: 'beryllium nitrate',
+          B: 'calcium nitrate',
+          C: 'magnesium nitrate',
+          D: 'strontium nitrate',
+        }
+      },
+      {
+        number: 68,
+        code: '9701_s15_qp_12 Q: 13',
+        prompt: 'What happens when a piece of magnesium ribbon is placed in cold water?',
+        options: {
+          A: 'A vigorous effervescence occurs.',
+          B: 'Bubbles of gas form slowly on the magnesium.',
+          C: 'The magnesium floats on the surface of the water and reacts quickly.',
+          D: 'The magnesium glows and a white solid is produced.',
+        }
+      },
+      {
+        number: 69,
+        code: '9701_s15_qp_12 Q: 14',
+        prompt: 'Compound X releases carbon dioxide gas and forms a white solid, Y, when it is heated. Neither X nor Y are soluble in water. Compound Y is used as a refractory kiln lining. What is compound X?',
+        options: {
+          A: 'CaCO₃',
+          B: 'CaO',
+          C: 'MgCO₃',
+          D: 'MgO',
+        }
+      },
+      {
+        number: 70,
+        code: '9701_s15_qp_13 Q: 18',
+        prompt: 'Due to their similar ionic radii, the reactions of lithium and magnesium and their corresponding compounds are very similar. Which statement about the reactions of lithium or its compounds can be predicted from this statement?',
+        options: {
+          A: 'Lithium burns very slowly in oxygen.',
+          B: 'Lithium carbonate decomposes on heating in a blue Bunsen burner flame, forming lithium oxide and carbon dioxide.',
+          C: 'Lithium nitrate decomposes on heating, forming lithium nitrite, LiNO₂, and oxygen.',
+          D: 'Lithium reacts very violently with cold water, liberating hydrogen.',
+        }
+      },
+      {
+        number: 71,
+        code: '9701_w15_qp_11 Q: 12',
+        prompt: 'X is a Group II metal. The carbonate of X decomposes when heated in a Bunsen flame to give carbon dioxide and a white solid residue as the only products. This white solid residue is sparingly soluble in water. Even when large amounts of the solid residue are added to water the pH of the saturated solution is less than that of limewater. What could be the identity of X?',
+        options: {
+          A: 'magnesium',
+          B: 'calcium',
+          C: 'strontium',
+          D: 'barium',
+        }
+      },
+      {
+        number: 72,
+        code: '9701_w15_qp_11 Q: 13',
+        prompt: 'Rat poison needs to be insoluble in rain water but soluble at the low pH of stomach contents. What is a suitable barium compound to use for rat poison?',
+        options: {
+          A: 'barium carbonate',
+          B: 'barium chloride',
+          C: 'barium hydroxide',
+          D: 'barium sulfate',
+        }
+      },
+      {
+        number: 73,
+        code: '9701_w15_qp_12 Q: 12',
+        prompt: 'Which property decreases on descending Group II?',
+        options: {
+          A: 'radius of the cation, M²⁺',
+          B: 'reactivity of the element with water',
+          C: 'shielding of outermost electrons',
+          D: 'the ease of thermal decomposition of the carbonates, MCO₃',
+        }
+      },
+    ];
+
+    const ANSWER_KEY = {
+      1: 'D', 2: 'D', 3: 'B', 4: 'A', 5: 'A', 6: 'C', 7: 'D', 8: 'C', 9: 'B', 10: 'C',
+      11: 'C', 12: 'B', 13: 'C', 14: 'A', 15: 'C', 16: 'A', 17: 'C', 18: 'A', 19: 'B', 20: 'B',
+      21: 'C', 22: 'D', 23: 'B', 24: 'B', 25: 'A', 26: 'A', 27: 'B', 28: 'A', 29: 'B', 30: 'D',
+      31: 'D', 32: 'D', 33: 'C', 34: 'B', 35: 'B', 36: 'A', 37: 'C', 38: 'D', 39: 'A', 40: 'D',
+      41: 'D', 42: 'D', 43: 'C', 44: 'A', 45: 'B', 46: 'D', 47: 'B', 48: 'B', 49: 'A', 50: 'A',
+      51: 'C', 52: 'C', 53: 'C', 54: 'D', 55: 'D', 56: 'C', 57: 'C', 58: 'C', 59: 'A', 60: 'B',
+      61: 'B', 62: 'D', 63: 'D', 64: 'C', 65: 'D', 66: 'C', 67: 'D', 68: 'B', 69: 'C', 70: 'B',
+      71: 'A', 72: 'A', 73: 'D',
+    };
+
+    const totalQuestions = QUESTIONS.length;
+    let hasSubmitted = false;
+    let startTime = null;
+
+    function loadStudentInfoFromGame() {
+      try {
+        const stored = localStorage.getItem('cambridge_test_user');
+        if (stored) {
+          const user = JSON.parse(stored);
+          if (user.name) {
+            const nameInput = document.getElementById('studentName');
+            nameInput.value = user.name;
+            nameInput.readOnly = true;
+            nameInput.style.backgroundColor = '#0f172a';
+            nameInput.style.borderColor = '#22c55e';
+          }
+          if (user.class) {
+            const classInput = document.getElementById('studentClass');
+            classInput.value = user.class;
+            classInput.readOnly = true;
+            classInput.style.backgroundColor = '#0f172a';
+            classInput.style.borderColor = '#22c55e';
+          }
+        }
+      } catch (e) {
+        console.log('Could not load game user info');
+      }
+    }
+
+    function renderQuestions() {
+      const container = document.getElementById('questions');
+      container.innerHTML = '';
+
+      QUESTIONS.forEach(q => {
+        const card = document.createElement('div');
+        card.className = 'question-card';
+
+        const meta = document.createElement('div');
+        meta.className = 'question-meta';
+        const code = document.createElement('span');
+        code.textContent = q.code;
+        const num = document.createElement('span');
+        num.textContent = `Q${q.number}`;
+        meta.appendChild(code);
+        meta.appendChild(num);
+
+        const title = document.createElement('div');
+        title.className = 'question-title';
+        title.innerHTML = q.prompt;
+
+        card.appendChild(meta);
+        card.appendChild(title);
+
+        if (q.table) {
+          const tableWrap = document.createElement('div');
+          tableWrap.className = 'table-wrapper';
+          tableWrap.innerHTML = q.table;
+          card.appendChild(tableWrap);
+        }
+
+        if (q.options) {
+          const optionsWrap = document.createElement('div');
+          optionsWrap.className = 'option-list';
+          Object.entries(q.options).forEach(([label, text]) => {
+            const opt = document.createElement('label');
+            opt.className = 'option';
+            opt.innerHTML = `<input type="radio" name="q${q.number}" value="${label}"><strong>${label}</strong> <span>${text}</span>`;
+            optionsWrap.appendChild(opt);
+          });
+          card.appendChild(optionsWrap);
+        }
+
+        if (q.optionTable) {
+          const tableWrap = document.createElement('div');
+          tableWrap.className = 'table-wrapper';
+
+          const table = document.createElement('table');
+          const thead = document.createElement('thead');
+          const headerRow = document.createElement('tr');
+          headerRow.innerHTML = `<th></th>${q.optionTable.headers.map(h => `<th>${h}</th>`).join('')}`;
+          thead.appendChild(headerRow);
+          table.appendChild(thead);
+
+          const tbody = document.createElement('tbody');
+          q.optionTable.rows.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="width:90px; text-align:left;">
+                <label class="option-label" style="display:flex; align-items:center; gap:6px;">
+                  <input type="radio" name="q${q.number}" value="${row.label}">
+                  <strong>${row.label}</strong>
+                </label>
+              </td>
+              ${row.values.map(v => `<td>${v}</td>`).join('')}
+            `;
+            tbody.appendChild(tr);
+          });
+          table.appendChild(tbody);
+          tableWrap.appendChild(table);
+          card.appendChild(tableWrap);
+        }
+
+        container.appendChild(card);
+      });
+    }
+
+    function calculateScore(responses) {
+      const answerKeyReady = Object.values(ANSWER_KEY).every(v => !!v);
+      if (!answerKeyReady) {
+        return { score: 0, percentage: 0, pending: true };
+      }
+      let correct = 0;
+      Object.entries(ANSWER_KEY).forEach(([q, ans]) => {
+        const studentAns = (responses[q] || '').toString().trim().toUpperCase();
+        const correctAns = (ans || '').toString().trim().toUpperCase();
+        if (studentAns && studentAns === correctAns) correct++;
+      });
+      return {
+        score: correct,
+        percentage: Math.round((correct / totalQuestions) * 100),
+        pending: false
+      };
+    }
+
+    function checkPreviousSubmission() {
+      const saved = localStorage.getItem(`quiz_submitted_${QUIZ_ID}`);
+      if (!saved) return;
+      const data = JSON.parse(saved);
+      hasSubmitted = true;
+      document.querySelectorAll('input').forEach(i => i.disabled = true);
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = '✓ Submitted';
+      const status = document.getElementById('status');
+      status.textContent = `You submitted this test on ${new Date(data.submittedAt).toLocaleString()}.`;
+      const scoreDiv = document.getElementById('score');
+      scoreDiv.style.display = 'block';
+      scoreDiv.textContent = `Stored score: ${data.score}/${data.total} (${Math.round((data.score / data.total) * 100)}%).`;
+    }
+
+    async function handleSubmit() {
+      if (hasSubmitted) return;
+      const status = document.getElementById('status');
+      const btn = document.getElementById('submitBtn');
+      const name = document.getElementById('studentName').value.trim();
+      const cls = document.getElementById('studentClass').value.trim();
+
+      if (!name) {
+        status.textContent = '⚠️ Please enter your name.';
+        return;
+      }
+      if (!cls) {
+        status.textContent = '⚠️ Please enter your class.';
+        return;
+      }
+
+      const responses = {};
+      for (let i = 1; i <= totalQuestions; i++) {
+        const selected = document.querySelector(`input[name='q${i}']:checked`);
+        responses[i] = selected ? selected.value : '';
+      }
+
+      const confirmSubmit = confirm(
+        'Submit answers now?\n\n• Your current selections will be saved.\n• Score will remain pending until the official answer key is added.'
+      );
+      if (!confirmSubmit) return;
+
+      const timeTaken = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+      const result = calculateScore(responses);
+
+      btn.disabled = true;
+      status.textContent = '📤 Submitting...';
+
+      const payload = {
+        student_name: name,
+        student_class: cls,
+        quiz_name: QUIZ_NAME,
+        score: result.score,
+        total_questions: totalQuestions,
+        percentage: result.percentage,
+        answers: {
+          responses,
+          answer_key_ready: !result.pending,
+          pending_answer_key: result.pending,
+          quiz_version: 'v1-73q'
+        },
+        time_taken_seconds: timeTaken
+      };
+
+      const { error } = await supabaseClient.from('quiz_scores').insert(payload);
+      if (error) {
+        console.error(error);
+        status.textContent = '❌ Failed to submit. Please try again.';
+        btn.disabled = false;
+        return;
+      }
+
+      hasSubmitted = true;
+      localStorage.setItem(`quiz_submitted_${QUIZ_ID}`, JSON.stringify({
+        score: result.score,
+        total: totalQuestions,
+        submittedAt: new Date().toISOString()
+      }));
+
+      document.querySelectorAll('input').forEach(i => i.disabled = true);
+      btn.textContent = '✓ Submitted';
+      status.textContent = result.pending
+        ? '✅ Submitted. Scoring will be applied once the answer key is available.'
+        : '✅ Submitted successfully.';
+
+      const scoreDiv = document.getElementById('score');
+      scoreDiv.style.display = 'block';
+      scoreDiv.textContent = result.pending
+        ? 'Score pending official answer key.'
+        : `Score: ${result.score}/${totalQuestions} (${result.percentage}%).`;
+
+      try {
+        if (window.parent !== window) {
+          window.parent.postMessage({
+            type: 'CAMBRIDGE_TEST_COMPLETE',
+            quizId: QUIZ_ID,
+            score: result.score,
+            total: totalQuestions,
+            percentage: result.percentage
+          }, '*');
+        }
+      } catch (e) {
+        console.log('Parent notification unavailable');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderQuestions();
+      loadStudentInfoFromGame();
+      checkPreviousSubmission();
+      startTime = Date.now();
+      document.getElementById('submitBtn').addEventListener('click', handleSubmit);
+    });
+  </script>
+</body>
+</html>

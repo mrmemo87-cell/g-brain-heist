@@ -129,14 +129,14 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     url: '/cambridge-tests/Chemistry/equilibria.html',
   },
   {
-    id: 'as-chemistry-ch9-chemical-periodicity',
-    name: 'AS Chemistry Ch9 (Chemical Periodicity)',
-    description: 'Period 3 atomic radius trends, melting points, ionisation energies, ionic radii, and electronegativity patterns.',
-    duration: '105 min',
-    totalQuestions: 85,
+    id: 'as-chemistry-ch10-group-2',
+    name: 'AS Chemistry Ch10 (Group 2)',
+    description: 'Group 2 trends practice on solubility, thermal stability, reactions, and qualitative analysis scenarios.',
+    duration: '70 min',
+    totalQuestions: 73,
     difficulty: 'Advanced',
     category: 'Science',
-    url: '/cambridge-tests/Chemistry/chemical_periodicity.html',
+    url: '/cambridge-tests/Chemistry/group_2.html',
   },
   // Add more tests here as they become available
 ];
