@@ -128,6 +128,16 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     category: 'Science',
     url: '/cambridge-tests/Chemistry/equilibria.html',
   },
+  {
+    id: 'as-chemistry-ch8-reaction-kinetics',
+    name: 'AS Chemistry Ch8 (Reaction kinetics)',
+    description: 'Rate graphs, collision theory, activation energies, catalysis effects, and multi-step mechanism questions.',
+    duration: '20 min',
+    totalQuestions: 41,
+    difficulty: 'Advanced',
+    category: 'Science',
+    url: '/cambridge-tests/Chemistry/reaction_kinetics.html',
+  },
   // Add more tests here as they become available
 ];
 
