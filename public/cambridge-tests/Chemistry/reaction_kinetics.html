@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
+  <title>AS Chemistry Ch8 (Reaction kinetics)</title>
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.12);
+      --accent: #38bdf8;
+      --accent-2: #8b5cf6;
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+      --success: #22c55e;
+      --warning: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto 40px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    }
+    .header {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .header img {
+      width: 54px;
+      height: 54px;
+      border-radius: 12px;
+      background: #fff;
+      padding: 6px;
+    }
+    .badge-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .badge {
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .status {
+      margin: 14px 0 22px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      color: #fef08a;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .fraction {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      vertical-align: middle;
+      font-size: 0.95em;
+      white-space: nowrap;
+      gap: 2px;
+    }
+    .fraction .fraction-top,
+    .fraction .fraction-bottom {
+      padding: 0 0.2em;
+    }
+    .fraction .fraction-bottom {
+      border-top: 1px solid currentColor;
+      margin-top: -2px;
+    }
+    .question-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+    }
+    .question-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    .question-title {
+      font-weight: 700;
+      color: #fff;
+      margin: 0 0 10px;
+      line-height: 1.4;
+    }
+    .option-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .option {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .option input { margin-top: 3px; }
+    .option:hover {
+      border-color: var(--accent);
+      background: rgba(56,189,248,0.06);
+    }
+    .option strong {
+      min-width: 22px;
+      display: inline-block;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      background: rgba(0,0,0,0.12);
+      border-radius: 12px;
+      overflow: hidden;
+      table-layout: fixed;
+    }
+    table th, table td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    table th { background: rgba(255,255,255,0.07); }
+    .submit-area { margin-top: 22px; }
+    button {
+      background: linear-gradient(135deg, #38bdf8, #8b5cf6);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 22px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(139,92,246,0.35);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    button:disabled {
+      background: #475569;
+      color: #cbd5e1;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .submit-status {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+    .score-box {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 12px;
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      color: #bbf7d0;
+      font-weight: 700;
+    }
+    @media (max-width: 640px) {
+      body { padding: 12px; }
+      .container { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="/logo.png" alt="Brains Heist" onerror="this.style.display='none';" />
+      <div>
+        <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
+        <h1 style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch8 (Reaction kinetics)</h1>
+        <div style="color: var(--text-muted); font-size: 14px;">Chapter 8 • 41 multiple-choice questions</div>
+      </div>
+    </div>
+
+    <div class="badge-row">
+      <span class="badge">🧪 Category: Science</span>
+      <span class="badge">🎯 Difficulty: Advanced</span>
+      <span class="badge">📝 Format: Multiple Choice (A–D)</span>
+      <span class="badge">⏱️ Suggested time: 20 min</span>
+    </div>
+
+    <div class="status">
+      ✅ Auto-marked: correct answers are loaded. Submit once to see your score and share it with your teacher.
+    </div>
+
+    <div class="student-info">
+      <input type="text" id="studentName" placeholder="Student Name" autocomplete="name" />
+      <input type="text" id="studentClass" placeholder="Class / Batch" autocomplete="section" />
+    </div>
+
+    <div id="questions"></div>
+
+    <div class="submit-area">
+      <button id="submitBtn">Submit Answers</button>
+      <div id="status" class="submit-status">Progress saves automatically in this browser.</div>
+    </div>
+    <div id="score" class="score-box" style="display:none;"></div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://sozodkxwhubespiedgxm.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwczovL3N1cGFiYXNlLmlvL2NsYWltcy9zdWJqZWN0IjoicHVibGljIiwiaHR0cHM6Ly9zdXBhYmFzZS5pby9jbGFpbXMvcm9sZSI6ImFub24iLCJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTY5OTA1MjkyNywiZXhwIjoyMDE0NjI4OTI3fQ.o6SgqFWWf3XwT63MifOnRmPGzfmrPZ7dx6hPb6jt4WI';
+
+    function createSupabaseClient(url, key) {
+      return {
+        from(table) {
+          return {
+            async insert(data) {
+              try {
+                const response = await fetch(`${url}/rest/v1/${table}`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': key,
+                    'Authorization': `Bearer ${key}`,
+                    'Prefer': 'return=minimal'
+                  },
+                  body: JSON.stringify(Array.isArray(data) ? data : [data])
+                });
+                if (!response.ok) {
+                  const errorText = await response.text();
+                  throw new Error(errorText || response.statusText);
+                }
+                return { data: null, error: null };
+              } catch (err) {
+                return { data: null, error: err };
+              }
+            }
+          };
+        }
+      };
+    }
+
+    const supabaseClient = createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const QUIZ_ID = 'as_chemistry_ch8_reaction_kinetics';
+    const QUIZ_NAME = 'AS Chemistry Ch8 (Reaction kinetics)';
+
+    const QUESTIONS = [
+      {
+        number: 1,
+        code: '9701_m21_qp_12 Q: 10',
+        prompt: 'A large excess of marble chips is reacted with 25 cm<sup>3</sup> of 1.0 mol dm<sup>−3</sup> hydrochloric acid at 40 °C.<br><br>How is the result different when the reaction is repeated with 60 cm<sup>3</sup> of 0.5 mol dm<sup>−3</sup> hydrochloric acid at 40 °C?',
+        options: {
+          A: 'The reaction is faster and more of the products are made.',
+          B: 'The reaction is faster and less of the products are made.',
+          C: 'The reaction is slower and more of the products are made.',
+          D: 'The reaction is slower and less of the products are made.',
+        }
+      },
+      {
+        number: 2,
+        code: '9701_s21_qp_12 Q: 11',
+        prompt: 'Two chemicals, X and Y, react together in solution to give product Z. The rate of formation of product Z at the start of the reaction was measured in five experiments using various concentrations of X and Y.<br><br><table><thead><tr><th>experiment number</th><th>starting concentration of X / mol dm<sup>−3</sup></th><th>starting concentration of Y / mol dm<sup>−3</sup></th><th>rate of formation of Z at the start / mol dm<sup>−3</sup> s<sup>−1</sup></th></tr></thead><tbody><tr><td>1</td><td>0.10</td><td>0.10</td><td>0.0001</td></tr><tr><td>2</td><td>0.10</td><td>0.20</td><td>0.0004</td></tr><tr><td>3</td><td>0.10</td><td>0.40</td><td>0.0016</td></tr><tr><td>4</td><td>0.20</td><td>0.10</td><td>0.0001</td></tr><tr><td>5</td><td>0.40</td><td>0.10</td><td>0.0001</td></tr></tbody></table><br>Which statement is correct?',
+        options: {
+          A: 'The rate of the reaction is directly proportional to the concentration of reagent X.',
+          B: 'The rate of the reaction is directly proportional to the concentration of reagent Y.',
+          C: 'The rate of the reaction is not affected by the concentration of reagent X.',
+          D: 'The rate of the reaction is not affected by the concentration of reagent Y.',
+        }
+      },
+      {
+        number: 3,
+        code: '9701_s17_qp_11 Q: 11',
+        prompt: 'When 4 g of powdered calcium carbonate (M<sub>r</sub> = 100) are added to 100 cm<sup>3</sup> of 0.10 mol dm<sup>−3</sup> hydrochloric acid, the volume of carbon dioxide produced is recorded as follows.<br><br><table><thead><tr><th>time / s</th><th>30</th><th>60</th><th>90</th><th>120</th><th>150</th><th>180</th><th>210</th><th>240</th></tr></thead><tbody><tr><td>total volume of carbon dioxide given off / cm<sup>3</sup></td><td>40</td><td>70</td><td>88</td><td>101</td><td>110</td><td>116</td><td>120</td><td>120</td></tr></tbody></table><br>Which row gives the correct explanations about these results?',
+        optionTable: {
+          headers: ['why the rate changes with time', 'why the reaction stops'],
+          rows: [
+            { label: 'A', values: ['fewer collisions between reacting molecules occur', 'the calcium carbonate is used up'] },
+            { label: 'B', values: ['fewer collisions between reacting molecules occur', 'the hydrochloric acid is used up'] },
+            { label: 'C', values: ['more collisions between reacting molecules occur', 'the calcium carbonate is used up'] },
+            { label: 'D', values: ['more collisions between reacting molecules occur', 'the hydrochloric acid is used up'] },
+          ]
+        }
+      },
+      {
+        number: 4,
+        code: '9701_w17_qp_11 Q: 7',
+        prompt: 'Iodine and propanone react according to I<sub>2</sub>(aq) + CH<sub>3</sub>COCH<sub>3</sub>(aq) → CH<sub>3</sub>COCH<sub>2</sub>I(aq) + HI(aq). If the concentration of propanone is increased while the total reaction volume is kept constant, the rate of the reaction increases.<br><br>What could explain this?',
+        options: {
+          A: 'A greater proportion of collisions is successful at the higher concentration.',
+          B: 'The particles are further apart at the higher concentration.',
+          C: 'The particles have more energy at the higher concentration.',
+          D: 'There are more collisions between reactant particles per second at the higher concentration.',
+        }
+      },
+      {
+        number: 5,
+        code: '9701_m22_qp_12 Q: 15',
+        prompt: 'A Boltzmann distribution for one mole of a gas at temperature T is shown. One mole of the same gas is added while the temperature remains T.<br><br>Which description matches the dotted curve for the distribution with the added gas?',
+        options: {
+          A: 'Higher peak at the same most probable energy with overall area doubled.',
+          B: 'Lower, broader curve shifted to higher energy values.',
+          C: 'Sharp higher peak at lower energy with the same tail length.',
+          D: 'Broader curve shifted to lower energy values with reduced peak height.',
+        }
+      },
+      {
+        number: 6,
+        code: '9701_m22_qp_12 Q: 16',
+        prompt: 'In the reaction X(aq) + Y(aq) → XY(aq), the concentrations of both X and Y are reduced to half while the total volume is kept constant, and the temperature is increased from 298 K to 348 K.<br><br>Which prediction is definitely true?',
+        options: {
+          A: 'A smaller proportion of collisions between particles of X and Y will be successful.',
+          B: 'The average kinetic energy of particles of X and particles of Y will increase.',
+          C: 'The rate of the reaction will be unaffected.',
+          D: 'The frequency of collisions between particles of X and particles of Y will halve.',
+        }
+      },
+      {
+        number: 7,
+        code: '9701_m21_qp_12 Q: 11',
+        prompt: 'The Boltzmann distribution curve for a gaseous mixture of ethene and hydrogen is shown with activation energies E<sub>a</sub> and E<sub>a</sub> (catalysed). Nickel is an effective catalyst.<br><br>How would the diagram appear if the same reaction mixture is at a higher temperature?',
+        options: {
+          A: 'The curve is unchanged.',
+          B: 'The values of both E<sub>a</sub> (catalysed) and E<sub>a</sub> decrease.',
+          C: 'The values of both E<sub>a</sub> (catalysed) and E<sub>a</sub> increase.',
+          D: 'The values of both E<sub>a</sub> (catalysed) and E<sub>a</sub> remain the same.',
+        }
+      },
+      {
+        number: 8,
+        code: '9701_s21_qp_11 Q: 5',
+        prompt: 'The diagram shows the Boltzmann distribution for the same gas at two different temperatures, T<sub>1</sub> and T<sub>2</sub>.<br><br>What is plotted on the y-axis and which line represents the higher temperature?',
+        optionTable: {
+          headers: ['plotted on y-axis', 'higher temperature'],
+          rows: [
+            { label: 'A', values: ['number of molecules', 'T<sub>1</sub>'] },
+            { label: 'B', values: ['number of molecules', 'T<sub>2</sub>'] },
+            { label: 'C', values: ['molecular energy', 'T<sub>1</sub>'] },
+            { label: 'D', values: ['molecular energy', 'T<sub>2</sub>'] },
+          ]
+        }
+      },
+      {
+        number: 9,
+        code: '9701_s21_qp_13 Q: 12',
+        prompt: 'The height of the peak of the curve in a Boltzmann distribution represents the number of molecules that have the most probable energy. A sample of gas has its temperature decreased without changing the number of molecules present.<br><br>Which statement correctly describes a feature of the Boltzmann distribution for the gas when the temperature decreases?',
+        options: {
+          A: 'The value of the most probable energy would stay the same.',
+          B: 'The number of molecules with the most probable energy would increase.',
+          C: 'The area under the molecular energy distribution curve would decrease.',
+          D: 'The number of molecules at the very high energy end of the distribution would stay the same.',
+        }
+      },
+      {
+        number: 10,
+        code: '9701_s20_qp_11 Q: 6',
+        prompt: 'The diagram shows the Boltzmann energy distribution curves for molecules of a sample of gas at two different temperatures. Letters on the axes mark positions on the curves.<br><br>Which letter on the axes represents the most probable energy for molecules of the same sample of gas at the lower temperature?',
+        options: {
+          A: 'A',
+          B: 'B',
+          C: 'C',
+          D: 'D',
+        }
+      },
+      {
+        number: 11,
+        code: '9701_m19_qp_12 Q: 1',
+        prompt: 'A Boltzmann distribution is shown for a sample of gas at an initial temperature T<sub>1</sub>. The sample is heated to temperature T<sub>2</sub>.<br><br>Which option shows the correct distribution for the higher temperature T<sub>2</sub>?',
+        options: {
+          A: 'Peak moves lower and broader to higher energy with unchanged area.',
+          B: 'Peak moves higher and narrower at higher energy with reduced tail.',
+          C: 'Peak height unchanged but shifted slightly to higher energy.',
+          D: 'Peak becomes taller and sharper at lower energy with shorter tail.',
+        }
+      },
+      {
+        number: 12,
+        code: '9701_s19_qp_11 Q: 1',
+        prompt: 'The temperature of a sample of an inert gas is increased.<br><br>What effect does this have on the number of molecules with the most probable energy and on the number of molecules with high energy?',
+        optionTable: {
+          headers: ['number of molecules with the most probable energy', 'number of molecules with high energy'],
+          rows: [
+            { label: 'A', values: ['decreases', 'decreases'] },
+            { label: 'B', values: ['decreases', 'increases'] },
+            { label: 'C', values: ['increases', 'decreases'] },
+            { label: 'D', values: ['increases', 'increases'] },
+          ]
+        }
+      },
+      {
+        number: 13,
+        code: '9701_s17_qp_13 Q: 11',
+        prompt: 'A Boltzmann distribution of the energy of gaseous molecules at a particular temperature is shown with labels X and Y on the curve.<br><br>Which statement is correct?',
+        options: {
+          A: 'If the temperature of the gas is raised, the height of the maximum of the curve increases.',
+          B: 'If the temperature of the gas is raised, the maximum of the curve moves to the right.',
+          C: 'The length of the line labelled X shows the activation energy for the reaction.',
+          D: 'The length of the line labelled Y shows the enthalpy change of the reaction.',
+        }
+      },
+      {
+        number: 14,
+        code: '9701_s16_qp_12 Q: 1',
+        prompt: 'The diagram shows the Boltzmann distribution of energies in 1 mole of a gas. The gas can take part in a reaction with an activation energy E<sub>a</sub> indicated.<br><br>Which statement correctly describes the effect of an increase in temperature?',
+        options: {
+          A: 'Peak P will be higher and fewer molecules will have energy greater than E<sub>a</sub>.',
+          B: 'Peak P will be higher and more molecules will have energy greater than E<sub>a</sub>.',
+          C: 'Peak P will be lower and fewer molecules will have energy greater than E<sub>a</sub>.',
+          D: 'Peak P will be lower and more molecules will have energy greater than E<sub>a</sub>.',
+        }
+      },
+      {
+        number: 15,
+        code: '9701_w16_qp_11 Q: 1',
+        prompt: 'The Boltzmann distribution of kinetic energies for a mixture of two gases at a given temperature is shown with activation energy E<sub>a</sub>. The dotted curves show the distribution at a higher temperature where H marks the activation energy at that temperature.<br><br>Which diagram is correct?',
+        options: {
+          A: 'Dashed curve is lower and broader with activation energy shifting to the left.',
+          B: 'Dashed curve is lower and broader with activation energy shifting to the right.',
+          C: 'Dashed curve is higher and narrower with activation energy shifting to the left.',
+          D: 'Dashed curve is higher and narrower with activation energy shifting to the right.',
+        }
+      },
+      {
+        number: 16,
+        code: '9701_w16_qp_12 Q: 1',
+        prompt: 'The molecules of a gas have a distribution of energies at temperature T<sub>1</sub>. When the temperature is increased to T<sub>2</sub>, the distribution changes.<br><br>Which diagram correctly shows this change?',
+        options: {
+          A: 'Curve for T<sub>2</sub> is higher and at lower energy than T<sub>1</sub>.',
+          B: 'Curve for T<sub>2</sub> is higher and at higher energy than T<sub>1</sub>.',
+          C: 'Curve for T<sub>2</sub> is lower and shifted to higher energy than T<sub>1</sub>.',
+          D: 'Curve for T<sub>2</sub> is lower and shifted to lower energy than T<sub>1</sub>.',
+        }
+      },
+      {
+        number: 17,
+        code: '9701_s16_qp_12 Q: 11',
+        prompt: 'The Boltzmann distribution shows the molecular energies in a gas at a given temperature.<br><br>Which statement correctly describes the change when temperature increases?',
+        options: {
+          A: 'Fewer molecules possess the most probable energy value and this value shifts to the left.',
+          B: 'Fewer molecules possess the most probable energy value and this value shifts to the right.',
+          C: 'More molecules possess the most probable energy value and this value shifts to the left.',
+          D: 'The area under the curve of the distribution increases.',
+        }
+      },
+      {
+        number: 18,
+        code: '9701_w15_qp_12 Q: 11',
+        prompt: 'Which row correctly describes what happens when the temperature of a chemical reaction is decreased?',
+        optionTable: {
+          headers: ['activation energy (E<sub>a</sub>)', 'number of successful collisions'],
+          rows: [
+            { label: 'A', values: ['decreases', 'decreases'] },
+            { label: 'B', values: ['decreases', 'increases'] },
+            { label: 'C', values: ['remains the same', 'decreases'] },
+            { label: 'D', values: ['remains the same', 'increases'] },
+          ]
+        }
+      },
+      {
+        number: 19,
+        code: '9701_s21_qp_11 Q: 11',
+        prompt: 'Which statement about catalysts is correct?',
+        options: {
+          A: 'They change the reaction pathway by increasing the activation energy.',
+          B: 'They increase the rate of the reaction by lowering the enthalpy change of the reaction.',
+          C: 'They increase the number of particles that have sufficient energy to react.',
+          D: 'Heterogeneous catalysts are in the same state as the reactant mixture.',
+        }
+      },
+      {
+        number: 20,
+        code: '9701_s21_qp_12 Q: 7',
+        prompt: 'The reaction pathway diagram for the catalysed and uncatalysed reaction between N<sub>2</sub> and H<sub>2</sub> is shown. Which letter represents the activation energy for the first step in the decomposition of NH<sub>3</sub> in the presence of a catalyst?',
+        options: {
+          A: 'A',
+          B: 'B',
+          C: 'C',
+          D: 'D',
+        }
+      },
+      {
+        number: 21,
+        code: '9701_w21_qp_11 Q: 11',
+        prompt: 'The diagram shows the Boltzmann distribution of energies for a reactant gas. For a particular reaction, the activation energy is X.<br><br>Which change to the diagram occurs if an effective catalyst is added at the same temperature?',
+        options: {
+          A: 'More particles will possess higher values of E.',
+          B: 'The peak will move to the left.',
+          C: 'The peak will move to the right.',
+          D: 'The value of the activation energy decreases.',
+        }
+      },
+      {
+        number: 22,
+        code: '9701_w21_qp_13 Q: 11',
+        prompt: 'The diagram shows the Boltzmann distribution of energies for a reactant gas with activation energy X.<br><br>Which change to the diagram occurs if an effective catalyst is added at the same temperature?',
+        options: {
+          A: 'More particles will possess higher values of E.',
+          B: 'The peak will move to the left.',
+          C: 'The peak will move to the right.',
+          D: 'The value of the activation energy decreases.',
+        }
+      },
+      {
+        number: 23,
+        code: '9701_w20_qp_11 Q: 11',
+        prompt: 'An autocatalytic reaction is one in which one of the products catalyses the reaction.<br><br>Which curve would be obtained if the rate of an autocatalytic reaction is plotted against time?',
+        options: {
+          A: 'Rapid rise then immediate plateau at a low rate.',
+          B: 'Instant jump to a high constant rate.',
+          C: 'Slow rise to a peak followed by a decline.',
+          D: 'Initial slow rise that accelerates before levelling off.',
+        }
+      },
+      {
+        number: 24,
+        code: '9701_s19_qp_12 Q: 1',
+        prompt: 'The Boltzmann distribution of molecular energies in aqueous hydrogen peroxide at room temperature is shown.<br><br>Which diagram shows the distribution when a catalyst, manganese(IV) oxide, is added at room temperature?',
+        options: {
+          A: 'Activation energy unchanged with a smaller shaded area of molecules able to react.',
+          B: 'Activation energy decreased with a larger shaded area of molecules able to react.',
+          C: 'Activation energy decreased with a smaller shaded area of molecules able to react.',
+          D: 'Activation energy unchanged with a larger shaded area of molecules able to react.',
+        }
+      },
+      {
+        number: 25,
+        code: '9701_s19_qp_12 Q: 11',
+        prompt: 'Which row is an example of heterogeneous catalysis?',
+        optionTable: {
+          headers: ['reaction', 'catalyst'],
+          rows: [
+            { label: 'A', values: ['esterification', 'sulfuric acid'] },
+            { label: 'B', values: ['the Contact process', 'vanadium pentoxide'] },
+            { label: 'C', values: ['destruction of the ozone layer', 'chlorine radicals'] },
+            { label: 'D', values: ['atmospheric formation of sulfur trioxide', 'nitrogen dioxide'] },
+          ]
+        }
+      },
+      {
+        number: 26,
+        code: '9701_w19_qp_11 Q: 1',
+        prompt: 'The diagram shows the Boltzmann distribution of energies in a gas with activation energy E<sub>a</sub>. If the same reaction is carried out in the presence of a catalyst, which statement is correct?',
+        options: {
+          A: 'The peak P is at a lower height and the position of E<sub>a</sub> moves to the left.',
+          B: 'The peak P is at a lower height and the position of E<sub>a</sub> moves to the right.',
+          C: 'The peak P remains at the same height and the position of E<sub>a</sub> moves to the left.',
+          D: 'The peak P remains at the same height and the position of E<sub>a</sub> moves to the right.',
+        }
+      },
+      {
+        number: 27,
+        code: '9701_w19_qp_12 Q: 1',
+        prompt: 'The diagram shows a Boltzmann distribution of energies of gaseous molecules and the activation energies, E<sub>a1</sub> and E<sub>a2</sub>, of a reaction with and without a catalyst.<br><br>Which statement about this distribution curve is correct?',
+        options: {
+          A: 'If the temperature of the gas is increased, the maximum of the curve becomes higher.',
+          B: 'If the temperature of the gas is increased, the maximum of the curve moves to the left.',
+          C: 'The fraction of molecules that react in the presence of a catalyst is shown by the hatched area.',
+          D: 'The fraction of molecules that react in the absence of a catalyst is shown by the hatched area.',
+        }
+      },
+      {
+        number: 28,
+        code: '9701_s18_qp_11 Q: 4',
+        prompt: 'The diagram shows the Boltzmann distribution of energies in a gas with activation energy E<sub>a</sub>. The gas is at constant temperature.<br><br>Which statement is correct if a catalyst is added?',
+        options: {
+          A: 'Peak P will be lower and E<sub>a</sub> will move to the left.',
+          B: 'Peak P will be lower and E<sub>a</sub> will move to the right.',
+          C: 'Peak P will be the same and E<sub>a</sub> will move to the left.',
+          D: 'Peak P will be the same and E<sub>a</sub> will move to the right.',
+        }
+      },
+      {
+        number: 29,
+        code: '9701_s18_qp_12 Q: 11',
+        prompt: 'A chemical company used a catalyst in a process but will now increase the temperature so the rate matches that when the catalyst was used.<br><br>Which statement about the new conditions compared to the original is correct?',
+        options: {
+          A: 'The activation energy has been decreased.',
+          B: 'The activation energy has been increased.',
+          C: 'There are fewer successful collisions per unit time.',
+          D: 'There are more successful collisions per unit time.',
+        }
+      },
+      {
+        number: 30,
+        code: '9701_s18_qp_13 Q: 11',
+        prompt: 'The enzyme maltase speeds up the reaction between maltose and water to form glucose. Maltase shows specificity.<br><br>Which statement describes the specificity of maltase?',
+        options: {
+          A: 'Maltase is a biological catalyst and it is a type of protein.',
+          B: 'Maltase is most effective between pH 6.1 and pH 6.8.',
+          C: 'Maltase lowers the activation energies of the reactions it catalyses.',
+          D: 'Maltase only speeds up a small number of chemical reactions.',
+        }
+      },
+      {
+        number: 31,
+        code: '9701_w18_qp_11 Q: 11',
+        prompt: 'Two reactions are shown.<br><br>reaction 1   N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ⇌ 2NH<sub>3</sub>(g)<br>reaction 2   2O<sub>3</sub>(g) ⇌ 3O<sub>2</sub>(g)<br><br>In reaction 1, a finely powdered iron catalyst is used. In reaction 2, a vaporised tetrachloromethane catalyst in ultraviolet light is used.<br><br>Which statement about the catalysts used is correct?',
+        options: {
+          A: 'Both reaction 1 and reaction 2 use a heterogeneous catalyst.',
+          B: 'Both reaction 1 and reaction 2 use a homogeneous catalyst.',
+          C: 'Reaction 1 uses a heterogeneous catalyst and reaction 2 uses a homogeneous catalyst.',
+          D: 'Reaction 1 uses a homogeneous catalyst and reaction 2 uses a heterogeneous catalyst.',
+        }
+      },
+      {
+        number: 32,
+        code: '9701_w18_qp_12 Q: 10',
+        prompt: 'In a chemical system the particles have a range of energies shown by a Boltzmann distribution.<br><br>Which statement correctly explains the effect of a catalyst on the particles in a chemical system?',
+        options: {
+          A: 'A catalyst enables particles with a lower energy to collide successfully.',
+          B: 'A catalyst increases the number of particles with higher energies.',
+          C: 'A catalyst increases the number of particles with the most probable energy.',
+          D: 'A catalyst increases the value of the most probable particle energy.',
+        }
+      },
+      {
+        number: 33,
+        code: '9701_w18_qp_12 Q: 11',
+        prompt: 'Nitrogen and hydrogen react together to form ammonia and the reaction is exothermic.<br><br>Which row shows the effects of adding iron to the mixture and increasing the temperature?',
+        optionTable: {
+          headers: ['adding iron', 'increasing the temperature'],
+          rows: [
+            { label: 'A', values: ['has no effect on the equilibrium yield', 'reduces the equilibrium yield'] },
+            { label: 'B', values: ['increases the equilibrium yield', 'increases the equilibrium yield'] },
+            { label: 'C', values: ['increases the equilibrium yield', 'increases the rate'] },
+            { label: 'D', values: ['increases the rate', 'has no effect on the equilibrium yield'] },
+          ]
+        }
+      },
+      {
+        number: 34,
+        code: '9701_s17_qp_12 Q: 11',
+        prompt: 'The Boltzmann distribution for the hydrogenation of an alkene at a particular temperature in the absence of a catalyst is shown.<br><br>Which row correctly describes the effects of adding nickel to the reaction vessel?',
+        optionTable: {
+          headers: ['the shape of the Boltzmann distribution', 'activation energy, E<sub>a</sub>'],
+          rows: [
+            { label: 'A', values: ['changes', 'decreases'] },
+            { label: 'B', values: ['changes', 'increases'] },
+            { label: 'C', values: ['does not change', 'decreases'] },
+            { label: 'D', values: ['does not change', 'increases'] },
+          ]
+        }
+      },
+      {
+        number: 35,
+        code: '9701_w17_qp_11 Q: 10',
+        prompt: 'The diagram shows the distribution of molecular energies in a gas at temperature T<sub>1</sub> with activation energy E<sub>a(uncat)</sub> for an uncatalysed reaction.<br><br>Which diagram correctly shows the distribution at higher temperature T<sub>2</sub> with a catalyst that increases the rate (E<sub>a(cat)</sub>)?',
+        options: {
+          A: 'T<sub>2</sub> curve lower and broader with E<sub>a(cat)</sub> left of E<sub>a(uncat)</sub>.',
+          B: 'T<sub>2</sub> curve lower and broader with E<sub>a(cat)</sub> right of E<sub>a(uncat)</sub>.',
+          C: 'T<sub>2</sub> curve higher and sharper with E<sub>a(cat)</sub> left of E<sub>a(uncat)</sub>.',
+          D: 'T<sub>2</sub> curve higher and sharper with E<sub>a(cat)</sub> right of E<sub>a(uncat)</sub>.',
+        }
+      },
+      {
+        number: 36,
+        code: '9701_w17_qp_12 Q: 11',
+        prompt: 'Which change alters the activation energy of a given reaction?',
+        options: {
+          A: 'adding a suitable catalyst',
+          B: 'changing the particle size of the reactants',
+          C: 'changing the pressure at which the reaction is carried out',
+          D: 'changing the temperature at which the reaction is carried out',
+        }
+      },
+      {
+        number: 37,
+        code: '9701_s16_qp_11 Q: 11',
+        prompt: 'Enzymes are biological catalysts and show specificity. Glucokinase is involved in glucose metabolism.<br><br>What does specificity mean in this context?',
+        options: {
+          A: 'Glucokinase is most effective as a catalyst over a narrow pH range.',
+          B: 'Glucokinase is most effective as a catalyst over a narrow range of temperatures.',
+          C: 'Glucokinase only operates on a narrow range of substrate molecules.',
+          D: 'Glucokinase provides an alternative route for the reactions it catalyses.',
+        }
+      },
+      {
+        number: 38,
+        code: '9701_w16_qp_11 Q: 11',
+        prompt: 'An autocatalytic reaction is one in which one of the products catalyses the reaction.<br><br>Which curve would be obtained if the rate of an autocatalytic reaction is plotted against time?',
+        options: {
+          A: 'Rapid rise then immediate plateau at a low rate.',
+          B: 'Instant jump to a high constant rate.',
+          C: 'Slow rise to a peak followed by a decline.',
+          D: 'Gradual rise to a maximum rate then levels at a higher steady rate.',
+        }
+      },
+      {
+        number: 39,
+        code: '9701_w16_qp_12 Q: 2',
+        prompt: 'The diagram shows pathways of a reaction, with and without a catalyst. Which letter represents the overall energy change for the reaction?',
+        options: {
+          A: 'A',
+          B: 'B',
+          C: 'C',
+          D: 'D',
+        }
+      },
+      {
+        number: 40,
+        code: '9701_s15_qp_11 Q: 1',
+        prompt: 'A Boltzmann distribution for a gaseous mixture shows a peak P and an activation energy line. What happens when an effective catalyst is added?',
+        options: {
+          A: 'The peak height decreases and the activation energy moves to the right.',
+          B: 'The peak height decreases and the activation energy moves to the left.',
+          C: 'The peak height remains the same and the activation energy moves to the right.',
+          D: 'The peak height remains the same and the activation energy moves to the left.',
+        }
+      },
+      {
+        number: 41,
+        code: '9701_s15_qp_13 Q: 1',
+        prompt: 'The Boltzmann energy distribution shows activation energies E<sub>a1</sub> and E<sub>a2</sub> for a reaction between gases, one catalysed and one uncatalysed.<br><br>Which statement about E<sub>a1</sub> is correct?',
+        options: {
+          A: 'E<sub>a1</sub> corresponds to a catalysed reaction with fewer effective collisions than the uncatalysed reaction.',
+          B: 'E<sub>a1</sub> corresponds to an uncatalysed reaction with fewer effective collisions than the catalysed reaction.',
+          C: 'E<sub>a1</sub> corresponds to a catalysed reaction with a greater number of effective collisions than the uncatalysed reaction.',
+          D: 'E<sub>a1</sub> corresponds to an uncatalysed reaction with a greater number of effective collisions than the catalysed reaction.',
+        }
+      },
+    ];
+
+    const ANSWER_KEY = {
+      1: 'C', 2: 'C', 3: 'B', 4: 'D', 5: 'D',
+      6: 'A', 7: 'B', 8: 'D', 9: 'B', 10: 'C',
+      11: 'B', 12: 'B', 13: 'B', 14: 'D', 15: 'C',
+      16: 'D', 17: 'B', 18: 'C', 19: 'C', 20: 'D',
+      21: 'D', 22: 'D', 23: 'C', 24: 'B', 25: 'B',
+      26: 'C', 27: 'D', 28: 'C', 29: 'B', 30: 'D',
+      31: 'C', 32: 'A', 33: 'A', 34: 'C', 35: 'C',
+      36: 'A', 37: 'C', 38: 'C', 39: 'D', 40: 'D',
+      41: 'D',
+    };
+
+    const totalQuestions = QUESTIONS.length;
+    let hasSubmitted = false;
+    let startTime = null;
+
+    function loadStudentInfoFromGame() {
+      try {
+        const stored = localStorage.getItem('cambridge_test_user');
+        if (stored) {
+          const user = JSON.parse(stored);
+          if (user.name) {
+            const nameInput = document.getElementById('studentName');
+            nameInput.value = user.name;
+            nameInput.readOnly = true;
+            nameInput.style.backgroundColor = '#0f172a';
+            nameInput.style.borderColor = '#22c55e';
+          }
+          if (user.class) {
+            const classInput = document.getElementById('studentClass');
+            classInput.value = user.class;
+            classInput.readOnly = true;
+            classInput.style.backgroundColor = '#0f172a';
+            classInput.style.borderColor = '#22c55e';
+          }
+        }
+      } catch (e) {
+        console.log('Could not load game user info');
+      }
+    }
+
+    function wrapTables(card) {
+      const tables = card.querySelectorAll('table');
+      tables.forEach(table => {
+        const wrapper = document.createElement('div');
+        wrapper.style.overflowX = 'auto';
+        wrapper.appendChild(table.cloneNode(true));
+        table.replaceWith(wrapper);
+      });
+    }
+
+    function renderQuestions() {
+      const container = document.getElementById('questions');
+      QUESTIONS.forEach(q => {
+        const card = document.createElement('div');
+        card.className = 'question-card';
+
+        const meta = document.createElement('div');
+        meta.className = 'question-meta';
+        meta.innerHTML = `<span>Question ${q.number}</span><span>${q.code}</span>`;
+        card.appendChild(meta);
+
+        const title = document.createElement('div');
+        title.className = 'question-title';
+        title.innerHTML = q.prompt;
+        card.appendChild(title);
+
+        if (q.optionTable) {
+          const table = document.createElement('table');
+          const thead = document.createElement('thead');
+          const headerRow = document.createElement('tr');
+          headerRow.innerHTML = `<th></th>${q.optionTable.headers.map(h => `<th>${h}</th>`).join('')}`;
+          thead.appendChild(headerRow);
+          table.appendChild(thead);
+
+          const tbody = document.createElement('tbody');
+          q.optionTable.rows.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td><strong>${row.label}</strong></td>${row.values.map(v => `<td>${v}</td>`).join('')}`;
+            tbody.appendChild(tr);
+          });
+          table.appendChild(tbody);
+          card.appendChild(table);
+        } else if (q.options) {
+          const optionsContainer = document.createElement('div');
+          optionsContainer.className = 'option-list';
+
+          Object.entries(q.options).forEach(([key, text]) => {
+            const optionDiv = document.createElement('label');
+            optionDiv.className = 'option';
+            optionDiv.innerHTML = `<input type="radio" name="q${q.number}" value="${key}"><strong>${key}</strong> <span>${text}</span>`;
+            optionsContainer.appendChild(optionDiv);
+          });
+
+          card.appendChild(optionsContainer);
+        }
+
+        wrapTables(card);
+        container.appendChild(card);
+      });
+    }
+
+    function getSelectedAnswers() {
+      const answers = {};
+      QUESTIONS.forEach(q => {
+        const selected = document.querySelector(`input[name="q${q.number}"]:checked`);
+        answers[q.number] = selected ? selected.value : null;
+      });
+      return answers;
+    }
+
+    function calculateScore(answers) {
+      let score = 0;
+      Object.entries(answers).forEach(([q, ans]) => {
+        if (ANSWER_KEY[q] && ans === ANSWER_KEY[q]) {
+          score++;
+        }
+      });
+      return score;
+    }
+
+    async function submitAnswers() {
+      const answers = getSelectedAnswers();
+      const name = document.getElementById('studentName').value.trim();
+      const studentClass = document.getElementById('studentClass').value.trim();
+
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = 'Submitting...';
+      document.getElementById('submitBtn').disabled = true;
+
+      const endTime = Date.now();
+      const timeTakenSeconds = startTime ? Math.round((endTime - startTime) / 1000) : null;
+
+      const answerKeyReady = Object.values(ANSWER_KEY).every(v => !!v);
+
+      const { error } = await supabaseClient
+        .from('quiz_scores')
+        .insert({
+          quiz_id: QUIZ_ID,
+          quiz_name: QUIZ_NAME,
+          student_name: name || null,
+          student_class: studentClass || null,
+          score: answerKeyReady ? calculateScore(answers) : null,
+          total_questions: totalQuestions,
+          percentage: answerKeyReady ? Math.round((calculateScore(answers) / totalQuestions) * 100) : null,
+          time_taken_seconds: timeTakenSeconds,
+          answers,
+          answer_key_ready: answerKeyReady,
+          pending_answer_key: !answerKeyReady,
+        });
+
+      if (error) {
+        statusEl.textContent = 'Could not save answers. Please try again.';
+        document.getElementById('submitBtn').disabled = false;
+        return;
+      }
+
+      hasSubmitted = true;
+
+      if (!answerKeyReady) {
+        statusEl.textContent = '✅ Submitted. Scoring will be applied once the answer key is available.';
+        document.getElementById('score').style.display = 'none';
+      } else {
+        const score = calculateScore(answers);
+        const percentage = Math.round((score / totalQuestions) * 100);
+        statusEl.textContent = '✅ Submitted. Your score has been recorded.';
+        const scoreBox = document.getElementById('score');
+        scoreBox.textContent = `You scored ${score}/${totalQuestions} (${percentage}%).`;
+        scoreBox.style.display = 'block';
+      }
+    }
+
+    document.getElementById('submitBtn').addEventListener('click', () => {
+      if (hasSubmitted) {
+        const confirmResubmit = confirm(
+          'Submit answers again?\n\n• Your previous submission will be overwritten.\n• Score will remain pending until the official answer key is added.'
+        );
+        if (!confirmResubmit) return;
+      }
+      submitAnswers();
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderQuestions();
+      loadStudentInfoFromGame();
+      startTime = Date.now();
+    });
+  </script>
+</body>
+</html>
