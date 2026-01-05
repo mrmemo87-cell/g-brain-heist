@@ -73,7 +73,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     name: 'AS Chemistry Ch2 (Atoms, molecules and stoichiometry)',
     description: 'Chapter 2 multiple-choice practice covering Avogadro constant, empirical formulae, ionisation trends, and reacting masses.',
     duration: '20 min',
-    totalQuestions: 63,
+    totalQuestions: 64,
     difficulty: 'Advanced',
     category: 'Science',
     url: '/cambridge-tests/Chemistry/atoms_molecules_stoichiometry.html',
