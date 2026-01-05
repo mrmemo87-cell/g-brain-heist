@@ -420,6 +420,7 @@
         number: 9,
         code: '9701_w20_qp_12 Q: 6',
         prompt: 'A graph of pV against T is shown for a fixed mass of gas.<br><br>Which gas gives this graph over the widest range of temperatures and pressures?',
+        graph: 'pvT',
         options: {
           A: 'hydrogen, H<sub>2</sub>',
           B: 'hydrogen chloride, HCl',
@@ -1096,6 +1097,46 @@
       });
     }
 
+    function renderPvTGraph() {
+      return `
+        <div class="mini-graph" aria-label="Graph of pV against temperature for a gas">
+          <svg viewBox="0 0 340 240" width="100%" height="220" role="img" aria-labelledby="pv-title pv-desc">
+            <title id="pv-title">pV versus T for an ideal gas</title>
+            <desc id="pv-desc">Graph showing pV increasing linearly with temperature.</desc>
+            <defs>
+              <linearGradient id="pvLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#38bdf8" />
+                <stop offset="100%" stop-color="#8b5cf6" />
+              </linearGradient>
+              <marker id="axis-arrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L10,5 L0,10 Z" fill="#94a3b8" />
+              </marker>
+            </defs>
+            <rect x="14" y="14" width="312" height="200" rx="12" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.08)" />
+            <line x1="60" y1="190" x2="280" y2="190" stroke="#94a3b8" stroke-width="2" marker-end="url(#axis-arrow)" />
+            <line x1="60" y1="190" x2="60" y2="50" stroke="#94a3b8" stroke-width="2" marker-end="url(#axis-arrow)" />
+            <line x1="90" y1="190" x2="90" y2="183" stroke="#475569" stroke-width="1.5" />
+            <line x1="120" y1="190" x2="120" y2="183" stroke="#475569" stroke-width="1.5" />
+            <line x1="150" y1="190" x2="150" y2="183" stroke="#475569" stroke-width="1.5" />
+            <line x1="180" y1="190" x2="180" y2="183" stroke="#475569" stroke-width="1.5" />
+            <line x1="210" y1="190" x2="210" y2="183" stroke="#475569" stroke-width="1.5" />
+            <line x1="240" y1="190" x2="240" y2="183" stroke="#475569" stroke-width="1.5" />
+            <line x1="60" y1="160" x2="68" y2="160" stroke="#475569" stroke-width="1.5" />
+            <line x1="60" y1="130" x2="68" y2="130" stroke="#475569" stroke-width="1.5" />
+            <line x1="60" y1="100" x2="68" y2="100" stroke="#475569" stroke-width="1.5" />
+            <line x1="60" y1="70" x2="68" y2="70" stroke="#475569" stroke-width="1.5" />
+            <polyline points="85,172 235,90" fill="none" stroke="url(#pvLineGradient)" stroke-width="5" stroke-linecap="round" />
+            <circle cx="85" cy="172" r="6" fill="#38bdf8" stroke="#0ea5e9" stroke-width="2" />
+            <circle cx="235" cy="90" r="6" fill="#8b5cf6" stroke="#7c3aed" stroke-width="2" />
+            <text x="286" y="200" fill="#e2e8f0" font-size="14" font-weight="600">T</text>
+            <text x="48" y="46" fill="#e2e8f0" font-size="14" font-weight="600">pV</text>
+            <text x="92" y="207" fill="#94a3b8" font-size="11">T≈900 K</text>
+            <text x="70" y="150" fill="#94a3b8" font-size="11">pV</text>
+          </svg>
+        </div>
+      `;
+    }
+
     function renderQuestions() {
       const container = document.getElementById('questions');
       QUESTIONS.forEach(q => {
@@ -1111,6 +1152,12 @@
         title.className = 'question-title';
         title.innerHTML = q.prompt;
         card.appendChild(title);
+
+        if (q.graph === 'pvT') {
+          const graphHolder = document.createElement('div');
+          graphHolder.innerHTML = renderPvTGraph();
+          card.appendChild(graphHolder);
+        }
 
         if (q.optionTable) {
           const table = document.createElement('table');
