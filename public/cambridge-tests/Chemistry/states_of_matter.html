@@ -784,15 +784,12 @@
       {
         number: 41,
         code: '9701_s20_qp_11 Q: 19',
-        prompt: 'What is the order of increasing melting point of CCl<sub>4</sub>, MgCl<sub>2</sub> and PCl<sub>5</sub>?',
-        optionTable: {
-          headers: ['lowest melting point', 'highest melting point'],
-          rows: [
-            { label: 'A', values: ['CCl<sub>4</sub>', 'PCl<sub>5</sub>', 'MgCl<sub>2</sub>'] },
-            { label: 'B', values: ['MgCl<sub>2</sub>', 'CCl<sub>4</sub>', 'PCl<sub>5</sub>'] },
-            { label: 'C', values: ['MgCl<sub>2</sub>', 'PCl<sub>5</sub>', 'CCl<sub>4</sub>'] },
-            { label: 'D', values: ['PCl<sub>5</sub>', 'CCl<sub>4</sub>', 'MgCl<sub>2</sub>'] },
-          ]
+        prompt: 'What is the order of increasing melting point of CCl<sub>4</sub>, MgCl<sub>2</sub> and PCl<sub>5</sub>?<br><br><table><thead><tr><th></th><th>lowest melting point</th><th>→</th><th>highest melting point</th></tr></thead><tbody><tr><td><strong>A</strong></td><td>CCl<sub>4</sub></td><td>PCl<sub>5</sub></td><td>MgCl<sub>2</sub></td></tr><tr><td><strong>B</strong></td><td>MgCl<sub>2</sub></td><td>CCl<sub>4</sub></td><td>PCl<sub>5</sub></td></tr><tr><td><strong>C</strong></td><td>MgCl<sub>2</sub></td><td>PCl<sub>5</sub></td><td>CCl<sub>4</sub></td></tr><tr><td><strong>D</strong></td><td>PCl<sub>5</sub></td><td>CCl<sub>4</sub></td><td>MgCl<sub>2</sub></td></tr></tbody></table>',
+        options: {
+          A: 'Option A',
+          B: 'Option B',
+          C: 'Option C',
+          D: 'Option D',
         }
       },
       {
@@ -1131,21 +1128,6 @@
       `;
     }
 
-    function renderOptionRadios(labels, questionNumber) {
-      const list = document.createElement('div');
-      list.className = 'option-list';
-      labels.forEach(label => {
-        const opt = document.createElement('label');
-        opt.className = 'option';
-        opt.innerHTML = `
-          <input type="radio" name="q${questionNumber}" value="${label}" />
-          <div><strong>${label}</strong></div>
-        `;
-        list.appendChild(opt);
-      });
-      return list;
-    }
-
     function renderQuestions() {
       const container = document.getElementById('questions');
       QUESTIONS.forEach(q => {
@@ -1179,7 +1161,19 @@
           const tbody = document.createElement('tbody');
           q.optionTable.rows.forEach(row => {
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td><strong>${row.label}</strong></td>${row.values.map(v => `<td>${v}</td>`).join('')}`;
+            const radioCell = document.createElement('td');
+            radioCell.innerHTML = `
+              <label style="display:flex;align-items:center;gap:6px;">
+                <input type="radio" name="q${q.number}" value="${row.label}" />
+                <strong>${row.label}</strong>
+              </label>
+            `;
+            tr.appendChild(radioCell);
+            row.values.forEach(value => {
+              const td = document.createElement('td');
+              td.innerHTML = value;
+              tr.appendChild(td);
+            });
             tbody.appendChild(tr);
           });
           table.appendChild(tbody);
