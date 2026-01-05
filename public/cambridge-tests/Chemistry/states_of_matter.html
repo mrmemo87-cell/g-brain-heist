@@ -245,6 +245,9 @@
       border-radius: 10px;
       padding: 10px;
     }
+    .white-graphic {
+      filter: brightness(0) invert(1);
+    }
     @media (max-width: 640px) {
       body { padding: 12px; }
       .container { padding: 16px; }
@@ -419,7 +422,8 @@
       {
         number: 9,
         code: '9701_w20_qp_12 Q: 6',
-        prompt: 'A graph of pV against T is shown for a fixed mass of gas.<br><br>Which gas gives this graph over the widest range of temperatures and pressures?',
+        prompt: 'A graph of pV against T is shown for a fixed mass of gas. (p = pressure, V = volume and T = temperature in K.)<br><br>Which gas gives this graph over the widest range of temperatures and pressures?',
+        graph: 'pvT',
         options: {
           A: 'hydrogen, H<sub>2</sub>',
           B: 'hydrogen chloride, HCl',
@@ -534,10 +538,10 @@
         code: '9701_s18_qp_13 Q: 6',
         prompt: 'Which diagram correctly describes the behaviour of a fixed mass of an ideal gas? (T is measured in K.)',
         options: {
-          A: 'A: V vs T at constant p — straight line through the origin with positive gradient.',
-          B: 'B: p vs V at constant T — straight line with positive gradient.',
-          C: 'C: pV vs p at constant T — straight line with positive gradient.',
-          D: 'D: pV vs V at constant T — straight line with negative gradient.',
+          A: '<img class="white-graphic" src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/185a.svg" alt="Graph option A" style="max-width: 110px; width: 100%;">',
+          B: '<img class="white-graphic" src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/185b.svg" alt="Graph option B" style="max-width: 110px; width: 100%;">',
+          C: '<img class="white-graphic" src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/185c.svg" alt="Graph option C" style="max-width: 110px; width: 100%;">',
+          D: '<img class="white-graphic" src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/185d.svg" alt="Graph option D" style="max-width: 110px; width: 100%;">',
         }
       },
       {
@@ -576,7 +580,7 @@
       {
         number: 23,
         code: '9701_m17_qp_12 Q: 6',
-        prompt: 'Which gas sample contains the fewest molecules?',
+        prompt: 'Which gas sample contains the <strong>fewest</strong> molecules?',
         options: {
           A: '1.00 dm<sup>3</sup> of carbon dioxide at 27 °C and 2.0 kPa',
           B: '1.00 dm<sup>3</sup> of hydrogen at 100 °C and 2.0 kPa',
@@ -620,12 +624,12 @@
       {
         number: 27,
         code: '9701_w17_qp_12 Q: 5',
-        prompt: 'A sample of an ideal gas is contained at a constant temperature of 300 K in a gas syringe.<br><br>The pressure is increased and a graph of <span class="fraction"><span class="fraction-top">pV</span><span class="fraction-bottom">RT</span></span> against pressure is plotted.<br><br>Which graph correctly represents the results?',
+        prompt: 'A sample of an ideal gas is contained at a constant temperature of 300 K in a gas syringe.<br><br>The pressure is increased and a graph of <span class="fraction"><span class="fraction-top">pV</span><span class="fraction-bottom">RT</span></span> against pressure is plotted.<br><br><img class="white-graphic" src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/193.svg" alt="pV over RT versus pressure axes" style="max-width: 160px; width: 100%; margin: 8px 0;"><br>Which graph correctly represents the results?',
         options: {
-          A: 'A: pV/RT increases with increasing pressure.',
-          B: 'B: pV/RT increases slightly with increasing pressure.',
-          C: 'C: pV/RT is horizontal and independent of pressure.',
-          D: 'D: pV/RT decreases as pressure increases.',
+          A: 'A',
+          B: 'B',
+          C: 'C',
+          D: 'D',
         }
       },
       {
@@ -692,16 +696,7 @@
       {
         number: 33,
         code: '9701_w16_qp_11 Q: 7',
-        prompt: 'The approximate percentage composition of the atmospheres on four different planets is given in the table. Which mixture of gases has the greatest density?',
-        optionTable: {
-          headers: ['planet', 'H<sub>2</sub>', 'He', 'CH<sub>4</sub>'],
-          rows: [
-            { label: 'A', values: ['Jupiter', '89.8', '10.2', '0.0'] },
-            { label: 'B', values: ['Neptune', '80.0', '19.0', '1.0'] },
-            { label: 'C', values: ['Saturn', '96.3', '3.3', '0.4'] },
-            { label: 'D', values: ['Uranus', '82.5', '15.2', '2.3'] },
-          ]
-        }
+        prompt: 'The approximate percentage composition of the atmospheres on four different planets is given in the table. Which mixture of gases has the greatest density?<br><br><table><thead><tr><th rowspan="2"></th><th rowspan="2">planet</th><th colspan="3">major gases /<br>% by number of molecules</th></tr><tr><th>H<sub>2</sub></th><th>He</th><th>CH<sub>4</sub></th></tr></thead><tbody><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q33" value="A" /><strong>A</strong></label></td><td>Jupiter</td><td>89.8</td><td>10.2</td><td>0.0</td></tr><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q33" value="B" /><strong>B</strong></label></td><td>Neptune</td><td>80.0</td><td>19.0</td><td>1.0</td></tr><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q33" value="C" /><strong>C</strong></label></td><td>Saturn</td><td>96.3</td><td>3.3</td><td>0.4</td></tr><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q33" value="D" /><strong>D</strong></label></td><td>Uranus</td><td>82.5</td><td>15.2</td><td>2.3</td></tr></tbody></table>',
       },
       {
         number: 34,
@@ -717,7 +712,7 @@
       {
         number: 35,
         code: '9701_s15_qp_11 Q: 3',
-        prompt: '1.00 g of carbon is combusted in a limited supply of oxygen. 0.50 g forms CO<sub>2</sub> and 0.50 g forms CO. The mixture passes through excess NaOH(aq) and the remaining gas is dried and collected at 25 °C and 1 atm. What is its volume?',
+        prompt: '1.00 g of carbon is combusted in a limited supply of oxygen.<br>0.50 g forms CO<sub>2</sub> and 0.50 g forms CO.<br>The mixture passes through excess NaOH(aq) and the remaining gas is dried and collected at 25 °C and 1 atm. What is its volume?',
         options: {
           A: '1 dm<sup>3</sup>',
           B: '1.5 dm<sup>3</sup>',
@@ -730,10 +725,10 @@
         code: '9701_s15_qp_13 Q: 2',
         prompt: 'Which diagram shows the correct graph of pV against n for an ideal gas at constant temperature?',
         options: {
-          A: 'Straight line with positive gradient through the origin.',
-          B: 'Curve decreasing from high pV toward a shallow gradient as n increases.',
-          C: 'Horizontal line showing pV independent of n.',
-          D: 'Straight line with positive gradient through the origin (less steep).',
+          A: '<img class="white-graphic" src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/202a.svg" alt="pV vs n option A" style="max-width: 110px; width: 100%;">',
+          B: '<img class="white-graphic" src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/202b.svg" alt="pV vs n option B" style="max-width: 110px; width: 100%;">',
+          C: '<img class="white-graphic" src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/202c.svg" alt="pV vs n option C" style="max-width: 110px; width: 100%;">',
+          D: '<img class="white-graphic" src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/202d.svg" alt="pV vs n option D" style="max-width: 110px; width: 100%;">',
         }
       },
       {
@@ -761,16 +756,7 @@
       {
         number: 39,
         code: '9701_m22_qp_12 Q: 7',
-        prompt: 'Elements X, Y and Z (first two periods) have Pauling electronegativities X = 1.0, Y = 2.1, Z = 4.0. Substances XZ, YZ and Z<sub>2</sub> exist. Which order lists them in increasing melting point?',
-        optionTable: {
-          headers: ['lowest melting point', 'highest melting point'],
-          rows: [
-            { label: 'A', values: ['XZ', 'YZ', 'Z<sub>2</sub>'] },
-            { label: 'B', values: ['XZ', 'Z<sub>2</sub>', 'YZ'] },
-            { label: 'C', values: ['Z<sub>2</sub>', 'YZ', 'XZ'] },
-            { label: 'D', values: ['Z<sub>2</sub>', 'XZ', 'YZ'] },
-          ]
-        }
+        prompt: 'Elements X, Y and Z (first two periods) have Pauling electronegativities X = 1.0, Y = 2.1, Z = 4.0. Substances XZ, YZ and Z<sub>2</sub> exist. Which order lists them in increasing melting point?<br><br><table><thead><tr><th></th><th>lowest melting point</th><th>→</th><th>highest melting point</th></tr></thead><tbody><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q39" value="A" /><strong>A</strong></label></td><td>XZ</td><td>YZ</td><td>Z<sub>2</sub></td></tr><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q39" value="B" /><strong>B</strong></label></td><td>XZ</td><td>Z<sub>2</sub></td><td>YZ</td></tr><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q39" value="C" /><strong>C</strong></label></td><td>Z<sub>2</sub></td><td>YZ</td><td>XZ</td></tr><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q39" value="D" /><strong>D</strong></label></td><td>Z<sub>2</sub></td><td>XZ</td><td>YZ</td></tr></tbody></table>',
       },
       {
         number: 40,
@@ -789,16 +775,7 @@
       {
         number: 41,
         code: '9701_s20_qp_11 Q: 19',
-        prompt: 'What is the order of increasing melting point of CCl<sub>4</sub>, MgCl<sub>2</sub> and PCl<sub>5</sub>?',
-        optionTable: {
-          headers: ['lowest melting point', 'highest melting point'],
-          rows: [
-            { label: 'A', values: ['CCl<sub>4</sub>', 'PCl<sub>5</sub>', 'MgCl<sub>2</sub>'] },
-            { label: 'B', values: ['MgCl<sub>2</sub>', 'CCl<sub>4</sub>', 'PCl<sub>5</sub>'] },
-            { label: 'C', values: ['MgCl<sub>2</sub>', 'PCl<sub>5</sub>', 'CCl<sub>4</sub>'] },
-            { label: 'D', values: ['PCl<sub>5</sub>', 'CCl<sub>4</sub>', 'MgCl<sub>2</sub>'] },
-          ]
-        }
+        prompt: 'What is the order of increasing melting point of CCl<sub>4</sub>, MgCl<sub>2</sub> and PCl<sub>5</sub>?<br><br><table><thead><tr><th></th><th>lowest melting point</th><th>→</th><th>highest melting point</th></tr></thead><tbody><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q41" value="A" /><strong>A</strong></label></td><td>CCl<sub>4</sub></td><td>PCl<sub>5</sub></td><td>MgCl<sub>2</sub></td></tr><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q41" value="B" /><strong>B</strong></label></td><td>MgCl<sub>2</sub></td><td>CCl<sub>4</sub></td><td>PCl<sub>5</sub></td></tr><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q41" value="C" /><strong>C</strong></label></td><td>MgCl<sub>2</sub></td><td>PCl<sub>5</sub></td><td>CCl<sub>4</sub></td></tr><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q41" value="D" /><strong>D</strong></label></td><td>PCl<sub>5</sub></td><td>CCl<sub>4</sub></td><td>MgCl<sub>2</sub></td></tr></tbody></table>',
       },
       {
         number: 42,
@@ -825,7 +802,7 @@
       {
         number: 44,
         code: '9701_m19_qp_12 Q: 7',
-        prompt: 'P, Q and R represent three different structures of an element. Which structures are giant molecular?',
+        prompt: 'P, Q and R represent three different structures of an element.<br><img class="white-graphic" src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/210p.svg" alt="Structure P" style="max-width: 120px; width: 100%; margin: 6px 0;"><br><img class="white-graphic" src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/210q.svg" alt="Structure Q" style="max-width: 120px; width: 100%; margin: 6px 0;"><br><img class="white-graphic" src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/210r.svg" alt="Structure R" style="max-width: 120px; width: 100%; margin: 6px 0; filter: brightness(0.9);"><br>Which structures are giant molecular?',
         options: {
           A: 'P, Q and R',
           B: 'P and Q only',
@@ -1096,57 +1073,119 @@
       });
     }
 
+    function renderPvTGraph() {
+      return `
+        <div class="mini-graph" aria-label="Graph of pV against temperature for a gas">
+          <svg viewBox="0 0 340 240" width="100%" height="220" role="img" aria-labelledby="pv-title pv-desc">
+            <title id="pv-title">pV versus T for an ideal gas</title>
+            <desc id="pv-desc">Graph showing pV increasing linearly with temperature.</desc>
+            <defs>
+              <linearGradient id="pvLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#38bdf8" />
+                <stop offset="100%" stop-color="#8b5cf6" />
+              </linearGradient>
+              <marker id="axis-arrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L10,5 L0,10 Z" fill="#94a3b8" />
+              </marker>
+            </defs>
+            <rect x="14" y="14" width="312" height="200" rx="12" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.08)" />
+            <line x1="60" y1="190" x2="280" y2="190" stroke="#94a3b8" stroke-width="2" marker-end="url(#axis-arrow)" />
+            <line x1="60" y1="190" x2="60" y2="50" stroke="#94a3b8" stroke-width="2" marker-end="url(#axis-arrow)" />
+            <line x1="90" y1="190" x2="90" y2="183" stroke="#475569" stroke-width="1.5" />
+            <line x1="120" y1="190" x2="120" y2="183" stroke="#475569" stroke-width="1.5" />
+            <line x1="150" y1="190" x2="150" y2="183" stroke="#475569" stroke-width="1.5" />
+            <line x1="180" y1="190" x2="180" y2="183" stroke="#475569" stroke-width="1.5" />
+            <line x1="210" y1="190" x2="210" y2="183" stroke="#475569" stroke-width="1.5" />
+            <line x1="240" y1="190" x2="240" y2="183" stroke="#475569" stroke-width="1.5" />
+            <line x1="60" y1="160" x2="68" y2="160" stroke="#475569" stroke-width="1.5" />
+            <line x1="60" y1="130" x2="68" y2="130" stroke="#475569" stroke-width="1.5" />
+            <line x1="60" y1="100" x2="68" y2="100" stroke="#475569" stroke-width="1.5" />
+            <line x1="60" y1="70" x2="68" y2="70" stroke="#475569" stroke-width="1.5" />
+            <polyline points="85,172 235,90" fill="none" stroke="url(#pvLineGradient)" stroke-width="5" stroke-linecap="round" />
+            <circle cx="85" cy="172" r="6" fill="#38bdf8" stroke="#0ea5e9" stroke-width="2" />
+            <circle cx="235" cy="90" r="6" fill="#8b5cf6" stroke="#7c3aed" stroke-width="2" />
+            <text x="286" y="200" fill="#e2e8f0" font-size="14" font-weight="600">T</text>
+            <text x="48" y="46" fill="#e2e8f0" font-size="14" font-weight="600">pV</text>
+            <text x="92" y="207" fill="#94a3b8" font-size="11">T≈900 K</text>
+            <text x="70" y="150" fill="#94a3b8" font-size="11">pV</text>
+          </svg>
+        </div>
+      `;
+    }
+
     function renderQuestions() {
       const container = document.getElementById('questions');
       QUESTIONS.forEach(q => {
-        const card = document.createElement('div');
-        card.className = 'question-card';
+        try {
+          const card = document.createElement('div');
+          card.className = 'question-card';
 
-        const meta = document.createElement('div');
-        meta.className = 'question-meta';
-        meta.innerHTML = `<span>Question ${q.number}</span><span>${q.code}</span>`;
-        card.appendChild(meta);
+          const meta = document.createElement('div');
+          meta.className = 'question-meta';
+          meta.innerHTML = `<span>Question ${q.number}</span><span>${q.code}</span>`;
+          card.appendChild(meta);
 
-        const title = document.createElement('div');
-        title.className = 'question-title';
-        title.innerHTML = q.prompt;
-        card.appendChild(title);
+          const title = document.createElement('div');
+          title.className = 'question-title';
+          title.innerHTML = q.prompt;
+          card.appendChild(title);
 
-        if (q.optionTable) {
-          const table = document.createElement('table');
-          const thead = document.createElement('thead');
-          const headerRow = document.createElement('tr');
-          headerRow.innerHTML = `<th></th>${q.optionTable.headers.map(h => `<th>${h}</th>`).join('')}`;
-          thead.appendChild(headerRow);
-          table.appendChild(thead);
+          if (q.graph === 'pvT') {
+            const graphHolder = document.createElement('div');
+            graphHolder.innerHTML = renderPvTGraph();
+            card.appendChild(graphHolder);
+          }
 
-          const tbody = document.createElement('tbody');
-          q.optionTable.rows.forEach(row => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td><strong>${row.label}</strong></td>${row.values.map(v => `<td>${v}</td>`).join('')}`;
-            tbody.appendChild(tr);
-          });
-          table.appendChild(tbody);
-          card.appendChild(table);
+          if (q.optionTable) {
+            const table = document.createElement('table');
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            headerRow.innerHTML = `<th></th>${q.optionTable.headers.map(h => `<th>${h}</th>`).join('')}`;
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            q.optionTable.rows.forEach(row => {
+              const tr = document.createElement('tr');
+              const radioCell = document.createElement('td');
+              radioCell.innerHTML = `
+                <label style="display:flex;align-items:center;gap:6px;">
+                  <input type="radio" name="q${q.number}" value="${row.label}" />
+                  <strong>${row.label}</strong>
+                </label>
+              `;
+              tr.appendChild(radioCell);
+              row.values.forEach(value => {
+                const td = document.createElement('td');
+                td.innerHTML = value;
+                tr.appendChild(td);
+              });
+              tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            card.appendChild(table);
+          }
+
+          if (q.options) {
+            const list = document.createElement('div');
+            list.className = 'option-list';
+            Object.entries(q.options).forEach(([key, text]) => {
+              const opt = document.createElement('label');
+              opt.className = 'option';
+              opt.innerHTML = `
+                <input type="radio" name="q${q.number}" value="${key}" />
+                <div><strong>${key}</strong> <span>${text}</span></div>
+              `;
+              list.appendChild(opt);
+            });
+            card.appendChild(list);
+          }
+
+          wrapTables(card);
+          container.appendChild(card);
+        } catch (err) {
+          console.error(`Failed to render question ${q.number}`, err);
         }
-
-        if (q.options) {
-          const list = document.createElement('div');
-          list.className = 'option-list';
-          Object.entries(q.options).forEach(([key, text]) => {
-            const opt = document.createElement('label');
-            opt.className = 'option';
-            opt.innerHTML = `
-              <input type="radio" name="q${q.number}" value="${key}" />
-              <div><strong>${key}</strong> <span>${text}</span></div>
-            `;
-            list.appendChild(opt);
-          });
-          card.appendChild(list);
-        }
-
-        wrapTables(card);
-        container.appendChild(card);
       });
     }
 
