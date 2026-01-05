@@ -10,6 +10,7 @@ interface CambridgeTest {
   totalQuestions: number;
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
   category: 'Reading' | 'Listening' | 'Grammar' | 'Vocabulary' | 'Writing' | 'Science';
+  subject: 'English stage 9' | 'AS Chemistry';
   url: string;
   isCompleted?: boolean;
   score?: number;
@@ -35,6 +36,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     totalQuestions: 42,
     difficulty: 'Intermediate',
     category: 'Reading',
+    subject: 'English stage 9',
     url: '/cambridge-tests/English%20stage%209/cambridge_reading_25_answer_form.html',
   },
   {
@@ -45,6 +47,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     totalQuestions: 25,
     difficulty: 'Intermediate',
     category: 'Listening',
+    subject: 'English stage 9',
     url: '/cambridge-tests/English%20stage%209/cambridge_listening_test_1.html',
   },
   {
@@ -55,6 +58,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     totalQuestions: 2,
     difficulty: 'Intermediate',
     category: 'Writing',
+    subject: 'English stage 9',
     url: '/cambridge-tests/English%20stage%209/cambridge_writing_test_1.html',
     requiresMarking: true,
   },
@@ -66,6 +70,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     totalQuestions: 49,
     difficulty: 'Advanced',
     category: 'Science',
+    subject: 'AS Chemistry',
     url: '/cambridge-tests/Chemistry/atomic_structure.html',
   },
   {
@@ -76,6 +81,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     totalQuestions: 64,
     difficulty: 'Advanced',
     category: 'Science',
+    subject: 'AS Chemistry',
     url: '/cambridge-tests/Chemistry/atoms_molecules_stoichiometry.html',
   },
   {
@@ -86,6 +92,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     totalQuestions: 55,
     difficulty: 'Advanced',
     category: 'Science',
+    subject: 'AS Chemistry',
     url: '/cambridge-tests/Chemistry/chemical_bonding.html',
   },
   {
@@ -96,6 +103,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     totalQuestions: 32,
     difficulty: 'Advanced',
     category: 'Science',
+    subject: 'AS Chemistry',
     url: '/cambridge-tests/Chemistry/states_of_matter.html',
   },
   {
@@ -106,6 +114,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     totalQuestions: 53,
     difficulty: 'Advanced',
     category: 'Science',
+    subject: 'AS Chemistry',
     url: '/cambridge-tests/Chemistry/chemical_energetics.html',
   },
   {
@@ -116,6 +125,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     totalQuestions: 56,
     difficulty: 'Advanced',
     category: 'Science',
+    subject: 'AS Chemistry',
     url: '/cambridge-tests/Chemistry/electrochemistry.html',
   },
   {
@@ -126,6 +136,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     totalQuestions: 73,
     difficulty: 'Advanced',
     category: 'Science',
+    subject: 'AS Chemistry',
     url: '/cambridge-tests/Chemistry/equilibria.html',
   },
   {
@@ -136,6 +147,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     totalQuestions: 41,
     difficulty: 'Advanced',
     category: 'Science',
+    subject: 'AS Chemistry',
     url: '/cambridge-tests/Chemistry/reaction_kinetics.html',
   },
   {
@@ -146,6 +158,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     totalQuestions: 85,
     difficulty: 'Advanced',
     category: 'Science',
+    subject: 'AS Chemistry',
     url: '/cambridge-tests/Chemistry/chemical_periodicity.html',
   },
   {
@@ -156,6 +169,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     totalQuestions: 73,
     difficulty: 'Advanced',
     category: 'Science',
+    subject: 'AS Chemistry',
     url: '/cambridge-tests/Chemistry/group_2.html',
   },
   // Add more tests here as they become available
@@ -424,6 +438,12 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
     return true;
   });
 
+  const testsBySubject = filteredTests.reduce<Record<string, CambridgeTest[]>>((acc, test) => {
+    if (!acc[test.subject]) acc[test.subject] = [];
+    acc[test.subject].push(test);
+    return acc;
+  }, {});
+
   const completedCount = tests.filter(t => t.isCompleted).length;
   const totalCount = tests.length;
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
@@ -684,179 +704,194 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
               : "No tests available at the moment."}
           </div>
         ) : (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-            gap: '20px',
-          }}>
-            {filteredTests.map(test => (
-              <div
-                key={test.id}
-                style={{
-                  background: 'rgba(255,255,255,0.05)',
-                  borderRadius: '16px',
-                  overflow: 'hidden',
-                  border: test.isCompleted 
-                    ? '2px solid #22c55e' 
-                    : '1px solid rgba(255,255,255,0.1)',
-                  transition: 'all 0.3s',
-                }}
-              >
-                {/* Test Header */}
-                <div style={{
-                  background: test.isCompleted 
-                    ? 'linear-gradient(135deg, #22c55e, #16a34a)'
-                    : 'linear-gradient(135deg, #667eea, #764ba2)',
-                  padding: '20px',
-                  position: 'relative',
-                }}>
-                  {test.isCompleted && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '10px',
-                      right: '10px',
-                      background: '#fff',
-                      color: '#22c55e',
-                      padding: '4px 10px',
-                      borderRadius: '12px',
-                      fontSize: '11px',
-                      fontWeight: 'bold',
-                    }}>
-                      ✓ COMPLETED
-                    </div>
-                  )}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '32px' }}>{getCategoryIcon(test.category)}</span>
-                    <div>
-                      <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600 }}>
-                        {test.name}
-                      </h3>
-                      <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
-                        <span style={{
-                          padding: '2px 8px',
-                          borderRadius: '10px',
-                          fontSize: '10px',
-                          fontWeight: 600,
-                          background: 'rgba(255,255,255,0.2)',
-                        }}>
-                          {test.category}
-                        </span>
-                        <span style={{
-                          padding: '2px 8px',
-                          borderRadius: '10px',
-                          fontSize: '10px',
-                          fontWeight: 600,
-                          background: getDifficultyColor(test.difficulty),
-                          color: '#fff',
-                        }}>
-                          {test.difficulty}
-                        </span>
-                      </div>
-                    </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+            {Object.entries(testsBySubject).map(([subject, subjectTests]) => (
+              <div key={subject} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '16px', padding: '16px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                  <span style={{ fontSize: '22px' }}>📁</span>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '16px', color: '#fff' }}>{subject}</h3>
+                    <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>
+                      {subjectTests.length} test{subjectTests.length !== 1 ? 's' : ''} available
+                    </p>
                   </div>
                 </div>
-
-                {/* Test Body */}
-                <div style={{ padding: '20px' }}>
-                  <p style={{
-                    margin: '0 0 15px',
-                    fontSize: '13px',
-                    color: 'rgba(255,255,255,0.7)',
-                    lineHeight: 1.5,
-                  }}>
-                    {test.description}
-                  </p>
-
-                  <div style={{
-                    display: 'flex',
-                    gap: '15px',
-                    marginBottom: '15px',
-                    fontSize: '12px',
-                    color: 'rgba(255,255,255,0.6)',
-                  }}>
-                    <span>⏱️ {test.duration}</span>
-                    <span>📝 {test.category === 'Writing' ? '2 parts' : `${test.totalQuestions} questions`}</span>
-                  </div>
-
-                  {test.isCompleted && test.score !== undefined && (
-                    <div style={{
-                      background: test.isAwaitingMarking 
-                        ? 'rgba(245,158,11,0.1)' 
-                        : 'rgba(34,197,94,0.1)',
-                      borderRadius: '10px',
-                      padding: '12px',
-                      marginBottom: '15px',
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-                          {test.isAwaitingMarking ? 'Status:' : 'Your Score:'}
-                        </span>
-                        <span style={{
-                          fontSize: test.isAwaitingMarking ? '14px' : '20px',
-                          fontWeight: 'bold',
-                          color: test.isAwaitingMarking 
-                            ? '#f59e0b' 
-                            : (test.score >= 70 ? '#22c55e' : test.score >= 50 ? '#f59e0b' : '#ef4444'),
-                        }}>
-                          {test.isAwaitingMarking ? '⏳ Awaiting Marking' : `${test.score}%`}
-                        </span>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                  gap: '20px',
+                }}>
+                  {subjectTests.map(test => (
+                    <div
+                      key={test.id}
+                      style={{
+                        background: 'rgba(255,255,255,0.05)',
+                        borderRadius: '16px',
+                        overflow: 'hidden',
+                        border: test.isCompleted 
+                          ? '2px solid #22c55e' 
+                          : '1px solid rgba(255,255,255,0.1)',
+                        transition: 'all 0.3s',
+                      }}
+                    >
+                      {/* Test Header */}
+                      <div style={{
+                        background: test.isCompleted 
+                          ? 'linear-gradient(135deg, #22c55e, #16a34a)'
+                          : 'linear-gradient(135deg, #667eea, #764ba2)',
+                        padding: '20px',
+                        position: 'relative',
+                      }}>
+                        {test.isCompleted && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '10px',
+                            right: '10px',
+                            background: '#fff',
+                            color: '#22c55e',
+                            padding: '4px 10px',
+                            borderRadius: '12px',
+                            fontSize: '11px',
+                            fontWeight: 'bold',
+                          }}>
+                            ✓ COMPLETED
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <span style={{ fontSize: '32px' }}>{getCategoryIcon(test.category)}</span>
+                          <div>
+                            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600 }}>
+                              {test.name}
+                            </h3>
+                            <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                              <span style={{
+                                padding: '2px 8px',
+                                borderRadius: '10px',
+                                fontSize: '10px',
+                                fontWeight: 600,
+                                background: 'rgba(255,255,255,0.2)',
+                              }}>
+                                {test.category}
+                              </span>
+                              <span style={{
+                                padding: '2px 8px',
+                                borderRadius: '10px',
+                                fontSize: '10px',
+                                fontWeight: 600,
+                                background: getDifficultyColor(test.difficulty),
+                                color: '#fff',
+                              }}>
+                                {test.difficulty}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      {test.completedAt && (
-                        <p style={{ margin: '8px 0 0', fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>
-                          {test.isAwaitingMarking ? 'Submitted:' : 'Completed:'} {new Date(test.completedAt).toLocaleDateString('en-GB', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
+
+                      {/* Test Body */}
+                      <div style={{ padding: '20px' }}>
+                        <p style={{
+                          margin: '0 0 15px',
+                          fontSize: '13px',
+                          color: 'rgba(255,255,255,0.7)',
+                          lineHeight: 1.5,
+                        }}>
+                          {test.description}
                         </p>
-                      )}
-                      
-                      {/* View Feedback button for marked writing tests */}
-                      {test.requiresMarking && !test.isAwaitingMarking && test.isCompleted && (
+
+                        <div style={{
+                          display: 'flex',
+                          gap: '15px',
+                          marginBottom: '15px',
+                          fontSize: '12px',
+                          color: 'rgba(255,255,255,0.6)',
+                        }}>
+                          <span>⏱️ {test.duration}</span>
+                          <span>📝 {test.category === 'Writing' ? '2 parts' : `${test.totalQuestions} questions`}</span>
+                        </div>
+
+                        {test.isCompleted && test.score !== undefined && (
+                          <div style={{
+                            background: test.isAwaitingMarking 
+                              ? 'rgba(245,158,11,0.1)' 
+                              : 'rgba(34,197,94,0.1)',
+                            borderRadius: '10px',
+                            padding: '12px',
+                            marginBottom: '15px',
+                          }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
+                                {test.isAwaitingMarking ? 'Status:' : 'Your Score:'}
+                              </span>
+                              <span style={{
+                                fontSize: test.isAwaitingMarking ? '14px' : '20px',
+                                fontWeight: 'bold',
+                                color: test.isAwaitingMarking 
+                                  ? '#f59e0b' 
+                                  : (test.score >= 70 ? '#22c55e' : test.score >= 50 ? '#f59e0b' : '#ef4444'),
+                              }}>
+                                {test.isAwaitingMarking ? '⏳ Awaiting Marking' : `${test.score}%`}
+                              </span>
+                            </div>
+                            {test.completedAt && (
+                              <p style={{ margin: '8px 0 0', fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>
+                                {test.isAwaitingMarking ? 'Submitted:' : 'Completed:'} {new Date(test.completedAt).toLocaleDateString('en-GB', {
+                                  day: '2-digit',
+                                  month: 'short',
+                                  year: 'numeric',
+                                })}
+                              </p>
+                            )}
+                            
+                            {/* View Feedback button for marked writing tests */}
+                            {test.requiresMarking && !test.isAwaitingMarking && test.isCompleted && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  viewWritingFeedback(test);
+                                }}
+                                style={{
+                                  marginTop: '10px',
+                                  width: '100%',
+                                  padding: '8px',
+                                  borderRadius: '8px',
+                                  border: '1px solid #00f5ff',
+                                  background: 'transparent',
+                                  color: '#00f5ff',
+                                  fontSize: '12px',
+                                  fontWeight: 600,
+                                  cursor: 'pointer',
+                                  transition: 'all 0.2s',
+                                }}
+                              >
+                                📝 View Teacher Feedback
+                              </button>
+                            )}
+                          </div>
+                        )}
+
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            viewWritingFeedback(test);
-                          }}
+                          onClick={() => handleStartTest(test)}
                           style={{
-                            marginTop: '10px',
                             width: '100%',
-                            padding: '8px',
-                            borderRadius: '8px',
-                            border: '1px solid #00f5ff',
-                            background: 'transparent',
-                            color: '#00f5ff',
-                            fontSize: '12px',
-                            fontWeight: 600,
+                            padding: '12px',
+                            borderRadius: '10px',
+                            border: 'none',
                             cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: 600,
                             transition: 'all 0.2s',
+                            background: test.isCompleted
+                              ? 'rgba(255,255,255,0.1)'
+                              : 'linear-gradient(135deg, #00f5ff, #00d4aa)',
+                            color: test.isCompleted ? '#fff' : '#0f0c29',
                           }}
                         >
-                          📝 View Teacher Feedback
+                          {test.isCompleted ? '🔄 Retake Test' : '▶️ Start Test'}
                         </button>
-                      )}
+                      </div>
                     </div>
-                  )}
-
-                  <button
-                    onClick={() => handleStartTest(test)}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      borderRadius: '10px',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      transition: 'all 0.2s',
-                      background: test.isCompleted
-                        ? 'rgba(255,255,255,0.1)'
-                        : 'linear-gradient(135deg, #00f5ff, #00d4aa)',
-                      color: test.isCompleted ? '#fff' : '#0f0c29',
-                    }}
-                  >
-                    {test.isCompleted ? '🔄 Retake Test' : '▶️ Start Test'}
-                  </button>
+                  ))}
                 </div>
               </div>
             ))}
