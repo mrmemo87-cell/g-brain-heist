@@ -360,20 +360,36 @@
         }
       },
       {
-        number: 4,
-        code: '9701_s21_qp_11 Q: 4',
-        prompt: 'ΔH<sub>f</sub><sup>⦵</sup> is the standard enthalpy of formation of methane.<br>ΔH<sub>2</sub><sup>⦵</sup> is the standard enthalpy of combustion of carbon.<br>ΔH<sub>3</sub><sup>⦵</sup> is the standard enthalpy of combustion of hydrogen.<br><br>CH<sub>4</sub>(g) + 2O<sub>2</sub>(g) ⟶ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)<br><br>Which expression is equivalent to ΔH<sub>c</sub><sup>⦵</sup>?',
-        options: {
-          A: 'ΔH<sub>f</sub><sup>⦵</sup> − ΔH<sub>2</sub><sup>⦵</sup> + ΔH<sub>3</sub><sup>⦵</sup>',
-          B: 'ΔH<sub>f</sub><sup>⦵</sup> − 2ΔH<sub>3</sub><sup>⦵</sup> + ΔH<sub>2</sub><sup>⦵</sup>',
-          C: 'ΔH<sub>2</sub><sup>⦵</sup> − ΔH<sub>3</sub><sup>⦵</sup> + ΔH<sub>f</sub><sup>⦵</sup>',
-          D: 'ΔH<sub>2</sub><sup>⦵</sup> + 2ΔH<sub>3</sub><sup>⦵</sup> − ΔH<sub>f</sub><sup>⦵</sup>',
-        }
-      },
+      number: 4,
+  code: '9701_s21_qp_11 Q: 4',
+  prompt: 'ΔH<sub>1</sub><sup>⦵</sup> is the standard enthalpy of formation of methane.<br>' +
+          'ΔH<sub>2</sub><sup>⦵</sup> is the standard enthalpy of combustion of carbon.<br>' +
+          'ΔH<sub>3</sub><sup>⦵</sup> is the standard enthalpy of combustion of hydrogen.<br><br>' +
+
+          'CH<sub>4</sub>(g) + 2O<sub>2</sub>(g) ' +
+          '<span class="arrowTop">' +
+            '<span class="top">ΔH<sup>⦵</sup><sub>c</sub></span>' +
+            '<span class="arrow">→</span>' +
+          '</span> ' +
+          'CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)' +
+
+          '<br><br>Which expression is equivalent to ΔH<sub>c</sub><sup>°</sup>?' +
+          '<style>' +
+            '.arrowTop{display:inline-block;text-align:center;vertical-align:middle;margin:0 .3em;}' +
+            '.arrowTop .top{display:block;font-size:.75em;line-height:1;margin-bottom:.15em;}' +
+            '.arrowTop .arrow{display:block;}' +
+          '</style>',
+  options: {
+    A: 'ΔH<sub>1</sub><sup>⦵</sup> − ΔH<sub>2</sub><sup>⦵</sup> + ΔH<sub>3</sub><sup>⦵</sup>',
+    B: 'ΔH<sub>1</sub><sup>⦵</sup> − 2ΔH<sub>3</sub><sup>⦵</sup> + ΔH<sub>2</sub><sup>⦵</sup>',
+    C: 'ΔH<sub>2</sub><sup>⦵</sup> − ΔH<sub>3</sub><sup>⦵</sup> + ΔH<sub>1</sub><sup>⦵</sup>',
+    D: 'ΔH<sub>2</sub><sup>⦵</sup> + 2ΔH<sub>3</sub><sup>⦵</sup> − ΔH<sub>1</sub><sup>⦵</sup>',
+  }
+},
       {
         number: 5,
         code: '9701_s21_qp_13 Q: 7',
-        prompt: 'Using the information in the table, what is the enthalpy change, q, for the reaction described?<br><br>Cs<sup>+</sup>(g) + Br<sup>−</sup>(g) → CsBr(s) &nbsp;&nbsp; ΔH = q kJ mol<sup>−1</sup><br><br><div class="table-wrapper"><table><thead><tr><th>standard enthalpy change</th><th>value / kJ mol<sup>−1</sup></th></tr></thead><tbody><tr><td>ΔH<sub>sub</sub><sup>⦵</sup> CsBr(s)</td><td>+25.9</td></tr><tr><td>ΔH<sub>hyd</sub><sup>⦵</sup> Cs<sup>+</sup>(g)</td><td>−276</td></tr><tr><td>ΔH<sub>hyd</sub><sup>⦵</sup> Br<sup>−</sup>(g)</td><td>−335</td></tr></tbody></table></div>',
+        prompt: 'Using the information in the table, what is the enthalpy change, q, for the reaction described?<br><br>Cs<sup>+</sup>(g) + Br<sup>−</sup>(g) → CsBr(s) &nbsp;&nbsp; ΔH = q kJ mol<sup>−1</sup><br><br><div class="table-wrapper"><table><thead><tr><th>standard enthalpy change</th><th>value / kJ mol<sup>−1</sup></th></tr></thead><tbody><tr><td>ΔH<sup>⦵</sup><sub>sol</sub> CsBr(s)</td><td>+25.9</td></tr><tr><td>ΔH<sub>hyd</sub><sup>⦵</sup> Cs<sup>+</sup>(g)</td><td>−276</td></tr><tr><td>ΔH<sub>hyd</sub><sup>⦵</sup> Br<sup>−</sup>(g)</td><td>−335</td></tr></tbody></table></div>',
         options: {
           A: '−636.9',
           B: '−585.1',
