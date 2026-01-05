@@ -1178,6 +1178,11 @@
           });
           table.appendChild(tbody);
           card.appendChild(table);
+
+          if (!q.options && q.optionTable.rows) {
+            const labels = q.optionTable.rows.map(row => row.label);
+            card.appendChild(renderOptionRadios(labels, q.number));
+          }
         }
 
         if (q.options) {
