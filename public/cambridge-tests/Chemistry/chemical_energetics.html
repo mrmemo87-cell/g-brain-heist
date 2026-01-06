@@ -370,29 +370,30 @@
     'CH<sub>4</sub>(g) + 2O<sub>2</sub>(g) ' +
     '<span class="arrowTop">' +
       '<span class="top">ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span></span>' +
-      '<span class="arrow"></span>' +
+      '<span class="chemArrow" aria-label="reaction arrow"></span>' +
     '</span> ' +
     'CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)' +
 
     '<br><br>Which expression is equivalent to ΔH<sub>c</sub><sup><span class="stdSym">⦵</span></sup>?' +
 
     '<style>' +
-      /* make the ⦵ a bit smaller in normal superscripts too */
+      /* smaller ⦵ for normal superscripts */
       '.stdSym{font-size:.8em;}' +
 
-      /* stacked sup+sub (⦵ above c, centered like the screenshot) */
+      /* stacked ⦵ over c (centered like your reference) */
       '.subsup{position:relative;display:inline-block;width:.9em;margin-left:.05em;vertical-align:middle;}' +
       '.subsup .supSym{position:absolute;left:50%;top:-.78em;transform:translateX(-50%);font-size:.65em;line-height:1;}' +
       '.subsup .subSym{position:absolute;left:50%;top:.12em;transform:translateX(-50%);font-size:.75em;line-height:1;}' +
 
-      /* arrow with label above it */
+      /* container that stacks label over arrow */
       '.arrowTop{display:inline-grid;grid-template-rows:auto auto;justify-items:center;vertical-align:middle;margin:0 .45em;}' +
-      '.arrowTop .top{display:block;font-size:.75em;line-height:1;margin-bottom:.2em;}' +
+      '.arrowTop .top{display:block;font-size:.75em;line-height:1;margin-bottom:.25em;}' +
 
-      /* LONG ARROW (change width here if you want) */
-      '.arrowTop .arrow{position:relative;width:190px;height:1em;}' +
-      '.arrowTop .arrow:before{content:"";position:absolute;left:0;right:.9em;top:50%;border-top:2px solid currentColor;transform:translateY(-50%);}' +
-      '.arrowTop .arrow:after{content:"→";position:absolute;right:0;top:50%;transform:translateY(-55%);}' +
+      /* CLEAN LONG ARROW (tweak width here) */
+      '.chemArrow{position:relative;width:210px;height:14px;}' +
+      '.chemArrow:before{content:"";position:absolute;left:0;right:12px;top:50%;border-top:2px solid currentColor;transform:translateY(-50%);}' +
+      '.chemArrow:after{content:"";position:absolute;right:0;top:50%;transform:translateY(-50%);' +
+        'border-left:12px solid currentColor;border-top:6px solid transparent;border-bottom:6px solid transparent;}' +
     '</style>',
   options: {
     A: 'ΔH<sub>1</sub><sup><span class="stdSym">⦵</span></sup> − ΔH<sub>2</sub><sup><span class="stdSym">⦵</span></sup> + ΔH<sub>3</sub><sup><span class="stdSym">⦵</span></sup>',
@@ -401,6 +402,7 @@
     D: 'ΔH<sub>2</sub><sup><span class="stdSym">⦵</span></sup> + 2ΔH<sub>3</sub><sup><span class="stdSym">⦵</span></sup> − ΔH<sub>1</sub><sup><span class="stdSym">⦵</span></sup>',
   }
 },
+
 
       {
         number: 5,
