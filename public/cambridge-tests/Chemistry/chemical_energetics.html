@@ -362,30 +362,43 @@
   {
   number: 4,
   code: '9701_s21_qp_11 Q: 4',
-  prompt: 'ΔH<sub>1</sub><sup>⦵</sup> is the standard enthalpy of formation of methane.<br>' +
-          'ΔH<sub>2</sub><sup>⦵</sup> is the standard enthalpy of combustion of carbon.<br>' +
-          'ΔH<sub>3</sub><sup>⦵</sup> is the standard enthalpy of combustion of hydrogen.<br><br>' +
+  prompt:
+    'ΔH<sub>1</sub><sup><span class="stdSym">⦵</span></sup> is the standard enthalpy of formation of methane.<br>' +
+    'ΔH<sub>2</sub><sup><span class="stdSym">⦵</span></sup> is the standard enthalpy of combustion of carbon.<br>' +
+    'ΔH<sub>3</sub><sup><span class="stdSym">⦵</span></sup> is the standard enthalpy of combustion of hydrogen.<br><br>' +
 
-          'CH<sub>4</sub>(g) + 2O<sub>2</sub>(g) ' +
-          '<span class="arrowTop arrowLong">' +
-            '<span class="top">ΔH<sup>⦵</sup><sub>c</sub></span>' +
-            '<span class="arrow">→</span>' +
-          '</span> ' +
-          'CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)' +
+    'CH<sub>4</sub>(g) + 2O<sub>2</sub>(g) ' +
+    '<span class="arrowTop">' +
+      '<span class="top">ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span></span>' +
+      '<span class="arrow"></span>' +
+    '</span> ' +
+    'CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)' +
 
-          '<br><br>Which expression is equivalent to ΔH<sub>c</sub><sup>⦵</sup>?' +
-          '<style>' +
-            '.arrowTop{display:inline-block;text-align:center;vertical-align:middle;margin:0 .3em;}' +
-            '.arrowTop .top{display:block;font-size:.75em;line-height:1;margin-bottom:.15em;}' +
-            '.arrowTop .arrow{display:block;}' +
-            '.arrowLong{min-width:90px;}' +
-            '.arrowLong .arrow{letter-spacing:30px;}' +
-          '</style>',
+    '<br><br>Which expression is equivalent to ΔH<sub>c</sub><sup><span class="stdSym">⦵</span></sup>?' +
+
+    '<style>' +
+      /* make the ⦵ a bit smaller in normal superscripts too */
+      '.stdSym{font-size:.8em;}' +
+
+      /* stacked sup+sub (⦵ above c, centered like the screenshot) */
+      '.subsup{position:relative;display:inline-block;width:.9em;margin-left:.05em;vertical-align:middle;}' +
+      '.subsup .supSym{position:absolute;left:50%;top:-.78em;transform:translateX(-50%);font-size:.65em;line-height:1;}' +
+      '.subsup .subSym{position:absolute;left:50%;top:.12em;transform:translateX(-50%);font-size:.75em;line-height:1;}' +
+
+      /* arrow with label above it */
+      '.arrowTop{display:inline-grid;grid-template-rows:auto auto;justify-items:center;vertical-align:middle;margin:0 .45em;}' +
+      '.arrowTop .top{display:block;font-size:.75em;line-height:1;margin-bottom:.2em;}' +
+
+      /* LONG ARROW (change width here if you want) */
+      '.arrowTop .arrow{position:relative;width:190px;height:1em;}' +
+      '.arrowTop .arrow:before{content:"";position:absolute;left:0;right:.9em;top:50%;border-top:2px solid currentColor;transform:translateY(-50%);}' +
+      '.arrowTop .arrow:after{content:"→";position:absolute;right:0;top:50%;transform:translateY(-55%);}' +
+    '</style>',
   options: {
-    A: 'ΔH<sub>1</sub><sup>⦵</sup> − ΔH<sub>2</sub><sup>⦵</sup> + ΔH<sub>3</sub><sup>⦵</sup>',
-    B: 'ΔH<sub>1</sub><sup>⦵</sup> − 2ΔH<sub>3</sub><sup>⦵</sup> + ΔH<sub>2</sub><sup>⦵</sup>',
-    C: 'ΔH<sub>2</sub><sup>⦵</sup> − ΔH<sub>3</sub><sup>⦵</sup> + ΔH<sub>1</sub><sup>⦵</sup>',
-    D: 'ΔH<sub>2</sub><sup>⦵</sup> + 2ΔH<sub>3</sub><sup>⦵</sup> − ΔH<sub>1</sub><sup>⦵</sup>',
+    A: 'ΔH<sub>1</sub><sup><span class="stdSym">⦵</span></sup> − ΔH<sub>2</sub><sup><span class="stdSym">⦵</span></sup> + ΔH<sub>3</sub><sup><span class="stdSym">⦵</span></sup>',
+    B: 'ΔH<sub>1</sub><sup><span class="stdSym">⦵</span></sup> − 2ΔH<sub>3</sub><sup><span class="stdSym">⦵</span></sup> + ΔH<sub>2</sub><sup><span class="stdSym">⦵</span></sup>',
+    C: 'ΔH<sub>2</sub><sup><span class="stdSym">⦵</span></sup> − ΔH<sub>3</sub><sup><span class="stdSym">⦵</span></sup> + ΔH<sub>1</sub><sup><span class="stdSym">⦵</span></sup>',
+    D: 'ΔH<sub>2</sub><sup><span class="stdSym">⦵</span></sup> + 2ΔH<sub>3</sub><sup><span class="stdSym">⦵</span></sup> − ΔH<sub>1</sub><sup><span class="stdSym">⦵</span></sup>',
   }
 },
 
