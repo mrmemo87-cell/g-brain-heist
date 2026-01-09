@@ -94,9 +94,10 @@
     .arrowTop{display:inline-grid;grid-template-rows:auto auto;justify-items:center;vertical-align:middle;margin:0 .45em;}
     .arrowTop .top{display:block;font-size:.75em;line-height:1;margin-bottom:.25em;}
     /* allow multi-letter subscripts like sol/hyd */
-    .subsup{position:relative;display:inline-block;min-width:1.6em;margin-left:.05em;vertical-align:middle;}
-    .subsup .supSym{position:absolute;left:50%;top:-.78em;transform:translateX(-50%);font-size:.65em;line-height:1;}
-    .subsup .subSym{position:absolute;left:50%;top:.12em;transform:translateX(-50%);font-size:.75em;line-height:1;}
+    .subsup{display:inline-grid;grid-template-rows:auto auto;justify-items:center;align-items:center;margin-left:.05em;vertical-align:middle;line-height:1;}
+    .subsup .supSym{font-size:.65em;line-height:1;}
+    .subsup .subSym{font-size:.75em;line-height:1;}
+    .chem-element{font-family:"Times New Roman","Cambria",serif;font-style:normal;}
     .chemArrow{position:relative;width:50px;height:14px;}
     .chemArrow:before{content:"";position:absolute;left:0;right:12px;top:50%;border-top:2px solid currentColor;transform:translateY(-50%);}
     .chemArrow:after{content:"";position:absolute;right:0;top:50%;transform:translateY(-50%);border-left:12px solid currentColor;border-top:6px solid transparent;border-bottom:6px solid transparent;}
@@ -424,10 +425,10 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
         code: '9701_w21_qp_13 Q: 8',
         prompt: 'Which equation represents the enthalpy change of atomisation of iodine?',
         options: {
-          A: '<span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span> I<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> I(g)',
-          B: 'I<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> 2I(g)',
-          C: '<span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span> I<sub>2</sub>(s) <span class="arrowTop"><span class="chemArrow"></span></span> I(g)',
-          D: 'I<sub>2</sub>(s) <span class="arrowTop"><span class="chemArrow"></span></span> 2I(g)',
+          A: '<span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span> <span class="chem-element">I</span><sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> <span class="chem-element">I</span>(g)',
+          B: '<span class="chem-element">I</span><sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> 2<span class="chem-element">I</span>(g)',
+          C: '<span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span> <span class="chem-element">I</span><sub>2</sub>(s) <span class="arrowTop"><span class="chemArrow"></span></span> <span class="chem-element">I</span>(g)',
+          D: '<span class="chem-element">I</span><sub>2</sub>(s) <span class="arrowTop"><span class="chemArrow"></span></span> 2<span class="chem-element">I</span>(g)',
         }
       },
       {
