@@ -261,6 +261,71 @@
       color: #bbf7d0;
       font-weight: 700;
     }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 2000;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .modal-card {
+      width: min(520px, 92vw);
+      background: #0f172a;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #e2e8f0;
+    }
+    .modal-text {
+      font-size: 14px;
+      color: #cbd5f5;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .modal-button {
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+    .modal-button:focus {
+      outline: 2px solid rgba(56, 189, 248, 0.6);
+      outline-offset: 2px;
+    }
+    .modal-button.primary {
+      background: linear-gradient(135deg, #38bdf8, #6366f1);
+      color: #0f172a;
+    }
+    .modal-button.secondary {
+      background: transparent;
+      border-color: rgba(148, 163, 184, 0.4);
+      color: #e2e8f0;
+    }
+    .modal-button:hover {
+      transform: translateY(-1px);
+    }
     @media (max-width: 640px) {
       body { padding: 12px; }
       .container { padding: 16px; }
@@ -303,9 +368,22 @@
     <div id="score" class="score-box" style="display:none;"></div>
   </div>
 
+  <div id="confirmOverlay" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmText">
+      <div class="modal-title" id="confirmTitle">Ready to submit your answers?</div>
+      <div class="modal-text" id="confirmText">
+        Your responses will be saved securely. You’ll receive your results once the official marking is completed.
+      </div>
+      <div class="modal-actions">
+        <button class="modal-button secondary" id="confirmCancel" type="button">Review Answers</button>
+        <button class="modal-button primary" id="confirmSubmit" type="button">Submit Now</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const SUPABASE_URL = 'https://sozodkxwhubespiedgxm.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwczovL3N1cGFiYXNlLmlvL2NsYWltcy9zdWJqZWN0IjoicHVibGljIiwiaHR0cHM6Ly9zdXBhYmFzZS5pby9jbGFpbXMvcm9sZSI6ImFub24iLCJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTY5OTA1MjkyNywiZXhwIjoyMDE0NjI4OTI3fQ.o6SgqFWWf3XwT63MifOnRmPGzfmrPZ7dx6hPb6jt4WI';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvem9ka3h3aHViZXNwaWVkZ3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTUxNjYsImV4cCI6MjA3NzQ3MTE2Nn0.DBfFFWvVjpqXTga0uZcH5qR4ej6VOFBUm-CiCTgGLVA';
 
     function createSupabaseClient(url, key) {
       return {
@@ -341,6 +419,7 @@
 
     const QUIZ_ID = 'as_chemistry_ch5_chemical_energetics';
     const QUIZ_NAME = 'AS Chemistry Ch5 (Chemical Energetics)';
+    const RELEASE_SCORES = false;
 
     const QUESTIONS = [
       {
@@ -1063,6 +1142,9 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
     }
 
     function calculateScore(responses) {
+      if (!RELEASE_SCORES) {
+        return { score: 0, percentage: 0, pending: true };
+      }
       const answerKeyReady = Object.values(ANSWER_KEY).every(v => !!v);
       if (!answerKeyReady) {
         return { score: 0, percentage: 0, pending: true };
@@ -1093,7 +1175,31 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       status.textContent = `You submitted this test on ${new Date(data.submittedAt).toLocaleString()}.`;
       const scoreDiv = document.getElementById('score');
       scoreDiv.style.display = 'block';
-      scoreDiv.textContent = `Stored score: ${data.score}/${data.total} (${Math.round((data.score / data.total) * 100)}%).`;
+      scoreDiv.textContent = 'Results pending official review.';
+    }
+
+    function openSubmitConfirmation() {
+      return new Promise(resolve => {
+        const overlay = document.getElementById('confirmOverlay');
+        const confirmBtn = document.getElementById('confirmSubmit');
+        const cancelBtn = document.getElementById('confirmCancel');
+
+        const cleanup = (confirmed) => {
+          overlay.classList.remove('active');
+          overlay.setAttribute('aria-hidden', 'true');
+          confirmBtn.removeEventListener('click', confirmHandler);
+          cancelBtn.removeEventListener('click', cancelHandler);
+          resolve(confirmed);
+        };
+
+        const confirmHandler = () => cleanup(true);
+        const cancelHandler = () => cleanup(false);
+
+        confirmBtn.addEventListener('click', confirmHandler);
+        cancelBtn.addEventListener('click', cancelHandler);
+        overlay.classList.add('active');
+        overlay.setAttribute('aria-hidden', 'false');
+      });
     }
 
     async function handleSubmit() {
@@ -1118,9 +1224,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
         responses[i] = selected ? selected.value : '';
       }
 
-      const confirmSubmit = confirm(
-        'Submit answers now?\n\n• Your current selections will be saved.\n• Score will remain pending until the official answer key is added.'
-      );
+      const confirmSubmit = await openSubmitConfirmation();
       if (!confirmSubmit) return;
 
       const timeTaken = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
@@ -1157,20 +1261,17 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       localStorage.setItem(`quiz_submitted_${QUIZ_ID}`, JSON.stringify({
         score: result.score,
         total: totalQuestions,
+        pending: true,
         submittedAt: new Date().toISOString()
       }));
 
       document.querySelectorAll('input').forEach(i => i.disabled = true);
       btn.textContent = '✓ Submitted';
-      status.textContent = result.pending
-        ? '✅ Submitted. Scoring will be applied once the answer key is available.'
-        : '✅ Submitted successfully.';
+      status.textContent = '✅ Submitted. You will receive your results soon.';
 
       const scoreDiv = document.getElementById('score');
       scoreDiv.style.display = 'block';
-      scoreDiv.textContent = result.pending
-        ? 'Score pending official answer key.'
-        : `Score: ${result.score}/${totalQuestions} (${result.percentage}%).`;
+      scoreDiv.textContent = 'Results pending official review.';
 
       try {
         if (window.parent !== window) {
