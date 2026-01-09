@@ -565,12 +565,14 @@
         number: 21,
         code: '9701_s19_qp_13 Q: 1',
         prompt: 'Manganese and nitrogen can show a range of different oxidation states. Calculate the sum of the oxidation states of Mn and N in each row of the table.<br><br>In which row is this sum the smallest?',
-        table: '<table><thead><tr><th></th><th>manganese-containing species</th><th>nitrogen-containing species</th></tr></thead><tbody><tr><td>A</td><td>MnCl<sub>4</sub></td><td>N<sub>2</sub></td></tr><tr><td>B</td><td>MnCO<sub>3</sub></td><td>NO<sub>2</sub><sup>−</sup></td></tr><tr><td>C</td><td>K<sub>2</sub>MnO<sub>4</sub></td><td>NH<sub>4</sub><sup>+</sup></td></tr><tr><td>D</td><td>Mn(OH)<sub>3</sub></td><td>NH<sub>2</sub>OH</td></tr></tbody></table>',
-        options: {
-          A: 'Row A',
-          B: 'Row B',
-          C: 'Row C',
-          D: 'Row D',
+        optionTable: {
+          headers: ['manganese-containing species', 'nitrogen-containing species'],
+          rows: [
+            { label: 'A', values: ['MnCl<sub>4</sub>', 'N<sub>2</sub>'] },
+            { label: 'B', values: ['MnCO<sub>3</sub>', 'NO<sub>2</sub><sup>−</sup>'] },
+            { label: 'C', values: ['K<sub>2</sub>MnO<sub>4</sub>', 'NH<sub>4</sub><sup>+</sup>'] },
+            { label: 'D', values: ['Mn(OH)<sub>3</sub>', 'NH<sub>2</sub>OH'] },
+          ]
         }
       },
       {
