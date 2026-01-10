@@ -328,6 +328,34 @@
       body { padding: 12px; }
       .container { padding: 16px; }
     }
+  
+    .question-card table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      display: block;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .question-card table th,
+    .question-card table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+    .question-card table thead th {
+      color: var(--text-main);
+      font-weight: 600;
+      background: rgba(15, 23, 42, 0.45);
+    }
+    .theme-aware-graphic {
+      width: min(520px, 100%);
+    }
+    .option .option-graphic {
+      width: min(220px, 100%);
+    }
+
   </style>
 </head>
 <body>
