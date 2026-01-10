@@ -349,11 +349,20 @@
       font-weight: 600;
       background: rgba(15, 23, 42, 0.45);
     }
+    .question-card table.table-compact {
+      width: max-content;
+      max-width: 100%;
+      display: table;
+      table-layout: auto;
+    }
     .theme-aware-graphic {
       width: min(520px, 100%);
     }
     .option .option-graphic {
       width: min(220px, 100%);
+    }
+    .option .option-graphic--tiny {
+      width: min(55px, 100%);
     }
 
   </style>
@@ -458,7 +467,7 @@
       {
         number: 2,
         code: '9701_s21_qp_12 Q: 11',
-        prompt: 'Two chemicals, X and Y, react together in solution to give product Z. The rate of formation of product Z at the start of the reaction was measured in five experiments using various concentrations of X and Y.<br><br><table><thead><tr><th>experiment number</th><th>starting concentration of X / mol dm<sup>−3</sup></th><th>starting concentration of Y / mol dm<sup>−3</sup></th><th>rate of formation of Z at the start / mol dm<sup>−3</sup> s<sup>−1</sup></th></tr></thead><tbody><tr><td>1</td><td>0.10</td><td>0.10</td><td>0.0001</td></tr><tr><td>2</td><td>0.10</td><td>0.20</td><td>0.0004</td></tr><tr><td>3</td><td>0.10</td><td>0.40</td><td>0.0016</td></tr><tr><td>4</td><td>0.20</td><td>0.10</td><td>0.0001</td></tr><tr><td>5</td><td>0.40</td><td>0.10</td><td>0.0001</td></tr></tbody></table><br>Which statement is correct?',
+        prompt: 'Two chemicals, X and Y, react together in solution to give product Z. The rate of formation of product Z at the start of the reaction was measured in five experiments using various concentrations of X and Y.<br><br><div class="table-wrapper"><table class="table-compact"><thead><tr><th>experiment number</th><th>starting concentration of X / mol dm<sup>−3</sup></th><th>starting concentration of Y / mol dm<sup>−3</sup></th><th>rate of formation of Z at the start / mol dm<sup>−3</sup> s<sup>−1</sup></th></tr></thead><tbody><tr><td>1</td><td>0.10</td><td>0.10</td><td>0.0001</td></tr><tr><td>2</td><td>0.10</td><td>0.20</td><td>0.0004</td></tr><tr><td>3</td><td>0.10</td><td>0.40</td><td>0.0016</td></tr><tr><td>4</td><td>0.20</td><td>0.10</td><td>0.0001</td></tr><tr><td>5</td><td>0.40</td><td>0.10</td><td>0.0001</td></tr></tbody></table></div><br>Which statement is correct?',
         options: {
           A: 'The rate of the reaction is directly proportional to the concentration of reagent X.',
           B: 'The rate of the reaction is directly proportional to the concentration of reagent Y.',
@@ -469,7 +478,7 @@
       {
         number: 3,
         code: '9701_s17_qp_11 Q: 11',
-        prompt: 'When 4 g of powdered calcium carbonate (M<sub>r</sub> = 100) are added to 100 cm<sup>3</sup> of 0.10 mol dm<sup>−3</sup> hydrochloric acid, the volume of carbon dioxide produced is recorded as follows.<br><br><table><thead><tr><th>time / s</th><th>30</th><th>60</th><th>90</th><th>120</th><th>150</th><th>180</th><th>210</th><th>240</th></tr></thead><tbody><tr><td>total volume of carbon dioxide given off / cm<sup>3</sup></td><td>40</td><td>70</td><td>88</td><td>101</td><td>110</td><td>116</td><td>120</td><td>120</td></tr></tbody></table><br>Which row gives the correct explanations about these results?',
+        prompt: 'When 4 g of powdered calcium carbonate (M<sub>r</sub> = 100) are added to 100 cm<sup>3</sup> of 0.10 mol dm<sup>−3</sup> hydrochloric acid, the volume of carbon dioxide produced is recorded as follows.<br><br><div class="table-wrapper"><table class="table-compact"><thead><tr><th>time / s</th><th>30</th><th>60</th><th>90</th><th>120</th><th>150</th><th>180</th><th>210</th><th>240</th></tr></thead><tbody><tr><td>total volume of carbon dioxide given off / cm<sup>3</sup></td><td>40</td><td>70</td><td>88</td><td>101</td><td>110</td><td>116</td><td>120</td><td>120</td></tr></tbody></table></div><br>Which row gives the correct explanations about these results?',
         optionTable: {
           headers: ['why the rate changes with time', 'why the reaction stops'],
           rows: [
@@ -752,8 +761,8 @@
         options: {
           A: 'If the temperature of the gas is increased, the maximum of the curve becomes higher.',
           B: 'If the temperature of the gas is increased, the maximum of the curve moves to the left.',
-          C: 'The fraction of molecules that react in the presence of a catalyst is shown by the hatched area.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/437c.svg" alt="Option C diagram" class="option-graphic white-graphic" loading="lazy" />',
-          D: 'The fraction of molecules that react in the absence of a catalyst is shown by the hatched area.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/437d.svg" alt="Option D diagram" class="option-graphic white-graphic" loading="lazy" />',
+          C: 'The fraction of molecules that react in the presence of a catalyst is shown by the hatched area.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/437c.svg" alt="Option C diagram" class="option-graphic option-graphic--tiny white-graphic" loading="lazy" />',
+          D: 'The fraction of molecules that react in the absence of a catalyst is shown by the hatched area.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/437d.svg" alt="Option D diagram" class="option-graphic option-graphic--tiny white-graphic" loading="lazy" />',
         }
       },
       {
