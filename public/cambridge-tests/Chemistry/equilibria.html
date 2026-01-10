@@ -90,6 +90,21 @@
       border-top: 1px solid currentColor;
       margin-top: -2px;
     }
+    .stdSym{font-size:.8em;}
+    .arrowTop{display:inline-grid;grid-template-rows:auto auto;justify-items:center;vertical-align:middle;margin:0 .45em;}
+    .arrowTop .top{display:block;font-size:.75em;line-height:1;margin-bottom:.25em;}
+    /* allow multi-letter subscripts like sol/hyd */
+    .subsup{display:inline-grid;grid-template-rows:auto auto;justify-items:center;align-items:center;margin-left:.05em;vertical-align:middle;line-height:1;}
+    .subsup .supSym{font-size:.65em;line-height:1;}
+    .subsup .subSym{font-size:.75em;line-height:1;}
+    .chem-element{font-family:"Times New Roman","Cambria",serif;font-style:normal;}
+    .chemArrow{position:relative;width:50px;height:14px;}
+    .chemArrow:before{content:"";position:absolute;left:0;right:12px;top:50%;border-top:2px solid currentColor;transform:translateY(-50%);}
+    .chemArrow:after{content:"";position:absolute;right:0;top:50%;transform:translateY(-50%);border-left:12px solid currentColor;border-top:6px solid transparent;border-bottom:6px solid transparent;}
+    .chemArrowBoth{position:relative;width:60px;height:14px;}
+    .chemArrowBoth:before{content:"";position:absolute;left:12px;right:12px;top:50%;border-top:2px solid currentColor;transform:translateY(-50%);}
+    .chemArrowBoth:after{content:"";position:absolute;right:0;top:50%;transform:translateY(-50%);border-left:12px solid currentColor;border-top:6px solid transparent;border-bottom:6px solid transparent;}
+    .chemArrowBoth-left{position:absolute;left:0;top:50%;transform:translateY(-50%);border-right:12px solid currentColor;border-top:6px solid transparent;border-bottom:6px solid transparent;width:0;height:0;}
     .molecule-diagram {
       display: flex;
       justify-content: center;
@@ -100,14 +115,20 @@
       height: auto;
       color: inherit;
     }
+    .theme-aware-graphic {
+      width: 440px;
+      max-width: 100%;
+      display: block;
+      margin: 12px auto;
+    }
+    .white-graphic {
+      filter: invert(1) brightness(2);
+    }
     .option-graphic {
       display: block;
-      max-width: min(460px, 100%);
+      max-width: 440px;
+      width: 440px;
       height: auto;
-      margin-top: 6px;
-      background: rgba(255, 255, 255, 0.02);
-      border-radius: 10px;
-      border: 1px solid var(--border);
     }
     .option {
       display: flex;
@@ -129,6 +150,10 @@
     .option strong {
       min-width: 22px;
       display: inline-block;
+    }
+    .option .option-graphic {
+      margin-left: auto;
+      margin-right: auto;
     }
     .question-card {
       background: var(--card-bg);
@@ -152,6 +177,13 @@
       color: #fff;
       margin: 0 0 10px;
       line-height: 1.4;
+    }
+    .option img,
+    .question-title img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: 8px auto 0;
     }
     .option-list {
       display: grid;
@@ -187,6 +219,26 @@
       width: 100%;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
+    }
+    .student-info {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      margin-bottom: 24px;
+    }
+    .student-info input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(15,23,42,0.6);
+      color: var(--text-main);
+      font-size: 14px;
+    }
+    .student-info input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56,189,248,0.25);
     }
     .submit-area {
       margin-top: 26px;
@@ -337,16 +389,11 @@
       {
         number: 3,
         code: '9701_s21_qp_11 Q: 10',
-        prompt: 'The diagram representsthe Harber process of the manufacture of Ammonia from nitrogen and hydrogen.
-          <img
-  src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/339.svg"
-  alt="A flow diagram of the Haber process shows a heat exchanger between the compressor and catalytic converter."
-  class="white-graphic"
-  style="max-width: 100%; border-radius: 12px; border: 1px solid var(--border);"
-  loading="lazy"
-/>
-        
-        What is the purpose of the heat exchanger?',
+        prompt: `The diagram represents the Haber process for the manufacture of ammonia from nitrogen and hydrogen.<br><br>
+          <div style="text-align:center; margin:12px 0;">
+            <img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/339.svg" alt="A flow diagram of the Haber process showing a heat exchanger between the compressor and catalytic converter." class="theme-aware-graphic white-graphic" loading="lazy" />
+          </div>
+          What is the purpose of the heat exchanger?`,
         options: {
           A: 'to cool the incoming gas mixture to avoid overheating the catalyst',
           B: 'to cool the reaction products and separate NH<sub>3</sub> from unused N<sub>2</sub> and H<sub>2</sub>',
@@ -407,12 +454,16 @@
       {
         number: 8,
         code: '9701_w21_qp_11 Q: 10',
-        prompt: 'For the exothermic equilibrium H<sub>2</sub>(g) + I<sub>2</sub>(g) ⇌ 2HI(g), a mixture with equal amounts of H<sub>2</sub> and I<sub>2</sub> is monitored at temperature T<sub>1</sub>. The mole fraction of I<sub>2</sub> starts at 0.50 and falls to 0.23 at equilibrium.<br><br>The experiment is repeated at a lower temperature T<sub>2</sub>. Which graph shows the mole fraction of I<sub>2</sub> against time?',
+        prompt: `For the exothermic equilibrium H<sub>2</sub>(g) + I<sub>2</sub>(g) ⇌ 2HI(g), a mixture with equal amounts of H<sub>2</sub> and I<sub>2</sub> is monitored at temperature T<sub>1</sub>. The mole fraction of I<sub>2</sub> starts at 0.50 and falls to 0.23 at equilibrium.<br><br>
+          <div style="text-align:center; margin:12px 0;">
+            <img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/344.svg" alt="Mole fraction of iodine versus time axes" class="theme-aware-graphic white-graphic" loading="lazy" />
+          </div>
+          The experiment is repeated at a lower temperature T<sub>2</sub>. Which graph shows the mole fraction of I<sub>2</sub> against time?`,
         options: {
-          A: 'A flat line at 0.23 throughout the experiment.',
-          B: 'A curve falling from 0.50 past 0.23 to a lower equilibrium value.',
-          C: 'A curve falling from 0.50 to an equilibrium value above 0.23.',
-          D: 'A curve falling from 0.50 to a new equilibrium exactly at 0.23.',
+          A: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/344a.svg" alt="Mole fraction of iodine graph option A" class="option-graphic white-graphic" loading="lazy" />',
+          B: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/344b.svg" alt="Mole fraction of iodine graph option B" class="option-graphic white-graphic" loading="lazy" />',
+          C: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/344c.svg" alt="Mole fraction of iodine graph option C" class="option-graphic white-graphic" loading="lazy" />',
+          D: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/344d.svg" alt="Mole fraction of iodine graph option D" class="option-graphic white-graphic" loading="lazy" />',
         }
       },
       {
@@ -616,10 +667,10 @@
         code: '9701_w19_qp_11 Q: 10',
         prompt: 'X + Y ⇌ Z in a closed system. How do the rates of the forward and reverse reactions change over time as equilibrium is established?',
         options: {
-          A: 'Forward rate starts high and decreases to meet a rising reverse rate; both level at the same value.',
-          B: 'Forward rate rises from zero then falls to zero; reverse rate rises and falls to zero later.',
-          C: 'Both forward and reverse rates stay constant from the start.',
-          D: 'Forward rate increases steadily while the reverse rate decreases steadily.',
+          A: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/362a.svg" alt="Reaction rate graph option A" class="option-graphic white-graphic" loading="lazy" />',
+          B: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/362b.svg" alt="Reaction rate graph option B" class="option-graphic white-graphic" loading="lazy" />',
+          C: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/362c.svg" alt="Reaction rate graph option C" class="option-graphic white-graphic" loading="lazy" />',
+          D: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/362d.svg" alt="Reaction rate graph option D" class="option-graphic white-graphic" loading="lazy" />',
         }
       },
       {
@@ -973,7 +1024,11 @@
       {
         number: 57,
         code: '9701_w16_qp_12 Q: 11',
-        prompt: 'Lithium reacts with nitrogen to form solid Li<sub>3</sub>N. Three equal-volume vessels are connected by taps A and B.<br><br>Left vessel evacuated; middle vessel holds N<sub>2</sub> + 3H<sub>2</sub> ⇌ 2NH<sub>3</sub> at equilibrium; right vessel contains lithium only.<br><br>Which action allows the equilibrium mixture to contain the most ammonia?',
+        prompt: `Lithium reacts with nitrogen to form solid Li<sub>3</sub>N. Three equal-volume vessels are connected by taps A and B, as shown.<br><br>
+          <div style="text-align:center; margin:12px 0;">
+            <img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/393.svg" alt="Three connected vessels with taps A and B for the lithium and ammonia equilibrium setup." class="theme-aware-graphic white-graphic" loading="lazy" />
+          </div>
+          Left vessel evacuated; middle vessel holds N<sub>2</sub> + 3H<sub>2</sub> ⇌ 2NH<sub>3</sub> at equilibrium; right vessel contains lithium only.<br><br>Which action allows the equilibrium mixture to contain the most ammonia?`,
         options: {
           A: 'Keep both A and B closed.',
           B: 'Open both A and B.',
