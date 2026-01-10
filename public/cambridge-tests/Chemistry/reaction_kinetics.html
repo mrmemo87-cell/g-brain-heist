@@ -90,6 +90,41 @@
       border-top: 1px solid currentColor;
       margin-top: -2px;
     }
+    .stdSym{font-size:.8em;}
+    .arrowTop{display:inline-grid;grid-template-rows:auto auto;justify-items:center;vertical-align:middle;margin:0 .45em;}
+    .arrowTop .top{display:block;font-size:.75em;line-height:1;margin-bottom:.25em;}
+    /* allow multi-letter subscripts like sol/hyd */
+    .subsup{display:inline-grid;grid-template-rows:auto auto;justify-items:center;align-items:center;margin-left:.05em;vertical-align:middle;line-height:1;}
+    .subsup .supSym{font-size:.65em;line-height:1;}
+    .subsup .subSym{font-size:.75em;line-height:1;}
+    .chem-element{font-family:"Times New Roman","Cambria",serif;font-style:normal;}
+    .chemArrow{position:relative;width:50px;height:14px;}
+    .chemArrow:before{content:"";position:absolute;left:0;right:12px;top:50%;border-top:2px solid currentColor;transform:translateY(-50%);}
+    .chemArrow:after{content:"";position:absolute;right:0;top:50%;transform:translateY(-50%);border-left:12px solid currentColor;border-top:6px solid transparent;border-bottom:6px solid transparent;}
+    .chemArrowBoth{position:relative;width:60px;height:14px;}
+    .chemArrowBoth:before{content:"";position:absolute;left:12px;right:12px;top:50%;border-top:2px solid currentColor;transform:translateY(-50%);}
+    .chemArrowBoth:after{content:"";position:absolute;right:0;top:50%;transform:translateY(-50%);border-left:12px solid currentColor;border-top:6px solid transparent;border-bottom:6px solid transparent;}
+    .chemArrowBoth-left{position:absolute;left:0;top:50%;transform:translateY(-50%);border-right:12px solid currentColor;border-top:6px solid transparent;border-bottom:6px solid transparent;width:0;height:0;}
+    .student-info {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      margin-bottom: 24px;
+    }
+    .student-info input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(15,23,42,0.6);
+      color: var(--text-main);
+      font-size: 14px;
+    }
+    .student-info input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56,189,248,0.25);
+    }
     .question-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -137,10 +172,38 @@
       min-width: 22px;
       display: inline-block;
     }
+    .table-wrapper {
+      margin: 12px 0;
+      overflow-x: auto;
+      border-radius: 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .theme-aware-graphic {
+      width: 440px;
+      max-width: 100%;
+      display: block;
+      margin: 12px auto;
+    }
+    .white-graphic {
+      filter: invert(1) brightness(2);
+    }
+    .option img,
+    .question-title img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: 8px auto 0;
+    }
+    .option .option-graphic {
+      max-width: 440px;
+      width: 440px;
+      margin-left: auto;
+      margin-right: auto;
+    }
     table {
       width: 100%;
+      min-width: 420px;
       border-collapse: collapse;
-      margin: 12px 0;
       background: rgba(0,0,0,0.12);
       border-radius: 12px;
       overflow: hidden;
@@ -150,12 +213,23 @@
       padding: 10px;
       text-align: center;
       border: 1px solid var(--border);
+      color: #e2e8f0;
+      word-break: break-word;
     }
-    table th { background: rgba(255,255,255,0.07); }
-    .submit-area { margin-top: 22px; }
+    table th {
+      background: rgba(255,255,255,0.06);
+      font-weight: 700;
+    }
+    .submit-area {
+      margin-top: 26px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
     button {
       background: linear-gradient(135deg, #38bdf8, #8b5cf6);
-      color: #fff;
+      color: #0b1033;
       border: none;
       border-radius: 12px;
       padding: 12px 22px;
@@ -185,6 +259,71 @@
       color: #bbf7d0;
       font-weight: 700;
     }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 2000;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .modal-card {
+      width: min(520px, 92vw);
+      background: #0f172a;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #e2e8f0;
+    }
+    .modal-text {
+      font-size: 14px;
+      color: #cbd5f5;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .modal-button {
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+    .modal-button:focus {
+      outline: 2px solid rgba(56, 189, 248, 0.6);
+      outline-offset: 2px;
+    }
+    .modal-button.primary {
+      background: linear-gradient(135deg, #38bdf8, #6366f1);
+      color: #0f172a;
+    }
+    .modal-button.secondary {
+      background: transparent;
+      border-color: rgba(148, 163, 184, 0.4);
+      color: #e2e8f0;
+    }
+    .modal-button:hover {
+      transform: translateY(-1px);
+    }
     @media (max-width: 640px) {
       body { padding: 12px; }
       .container { padding: 16px; }
@@ -209,10 +348,6 @@
       <span class="badge">⏱️ Suggested time: 20 min</span>
     </div>
 
-    <div class="status">
-      ✅ Auto-marked: correct answers are loaded. Submit once to see your score and share it with your teacher.
-    </div>
-
     <div class="student-info">
       <input type="text" id="studentName" placeholder="Student Name" autocomplete="name" />
       <input type="text" id="studentClass" placeholder="Class / Batch" autocomplete="section" />
@@ -227,9 +362,22 @@
     <div id="score" class="score-box" style="display:none;"></div>
   </div>
 
+  <div id="confirmOverlay" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmText">
+      <div class="modal-title" id="confirmTitle">Ready to submit your answers?</div>
+      <div class="modal-text" id="confirmText">
+        Your responses will be saved securely. You’ll receive your results once the official marking is completed.
+      </div>
+      <div class="modal-actions">
+        <button class="modal-button secondary" id="confirmCancel" type="button">Review Answers</button>
+        <button class="modal-button primary" id="confirmSubmit" type="button">Submit Now</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const SUPABASE_URL = 'https://sozodkxwhubespiedgxm.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwczovL3N1cGFiYXNlLmlvL2NsYWltcy9zdWJqZWN0IjoicHVibGljIiwiaHR0cHM6Ly9zdXBhYmFzZS5pby9jbGFpbXMvcm9sZSI6ImFub24iLCJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTY5OTA1MjkyNywiZXhwIjoyMDE0NjI4OTI3fQ.o6SgqFWWf3XwT63MifOnRmPGzfmrPZ7dx6hPb6jt4WI';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvem9ka3h3aHViZXNwaWVkZ3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTUxNjYsImV4cCI6MjA3NzQ3MTE2Nn0.DBfFFWvVjpqXTga0uZcH5qR4ej6VOFBUm-CiCTgGLVA';
 
     function createSupabaseClient(url, key) {
       return {
@@ -265,6 +413,7 @@
 
     const QUIZ_ID = 'as_chemistry_ch8_reaction_kinetics';
     const QUIZ_NAME = 'AS Chemistry Ch8 (Reaction kinetics)';
+    const RELEASE_SCORES = false;
 
     const QUESTIONS = [
       {
@@ -328,7 +477,7 @@
       {
         number: 6,
         code: '9701_m22_qp_12 Q: 16',
-        prompt: 'In the reaction X(aq) + Y(aq) → XY(aq), the concentrations of both X and Y are reduced to half while the total volume is kept constant, and the temperature is increased from 298 K to 348 K.<br><br>Which prediction is definitely true?',
+        prompt: 'In the reaction X(aq) + Y(aq) → XY(aq), the concentrations of both X and Y are reduced to half while the total volume is kept constant, and the temperature is increased from 298 K to 348 K.<br><br>Which prediction is definitely true?<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/415.svg" alt="Question 415 diagram" class="theme-aware-graphic white-graphic" loading="lazy" /></div>',
         options: {
           A: 'A smaller proportion of collisions between particles of X and Y will be successful.',
           B: 'The average kinetic energy of particles of X and particles of Y will increase.',
@@ -350,7 +499,7 @@
       {
         number: 8,
         code: '9701_s21_qp_11 Q: 5',
-        prompt: 'The diagram shows the Boltzmann distribution for the same gas at two different temperatures, T<sub>1</sub> and T<sub>2</sub>.<br><br>What is plotted on the y-axis and which line represents the higher temperature?',
+        prompt: 'The diagram shows the Boltzmann distribution for the same gas at two different temperatures, T<sub>1</sub> and T<sub>2</sub>.<br><br>What is plotted on the y-axis and which line represents the higher temperature?<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/417.svg" alt="Question 417 diagram" class="theme-aware-graphic white-graphic" loading="lazy" /></div>',
         optionTable: {
           headers: ['plotted on y-axis', 'higher temperature'],
           rows: [
@@ -364,7 +513,7 @@
       {
         number: 9,
         code: '9701_s21_qp_13 Q: 12',
-        prompt: 'The height of the peak of the curve in a Boltzmann distribution represents the number of molecules that have the most probable energy. A sample of gas has its temperature decreased without changing the number of molecules present.<br><br>Which statement correctly describes a feature of the Boltzmann distribution for the gas when the temperature decreases?',
+        prompt: 'The height of the peak of the curve in a Boltzmann distribution represents the number of molecules that have the most probable energy. A sample of gas has its temperature decreased without changing the number of molecules present.<br><br>Which statement correctly describes a feature of the Boltzmann distribution for the gas when the temperature decreases?<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/418.svg" alt="Question 418 diagram" class="theme-aware-graphic white-graphic" loading="lazy" /></div>',
         options: {
           A: 'The value of the most probable energy would stay the same.',
           B: 'The number of molecules with the most probable energy would increase.',
@@ -386,7 +535,7 @@
       {
         number: 11,
         code: '9701_m19_qp_12 Q: 1',
-        prompt: 'A Boltzmann distribution is shown for a sample of gas at an initial temperature T<sub>1</sub>. The sample is heated to temperature T<sub>2</sub>.<br><br>Which option shows the correct distribution for the higher temperature T<sub>2</sub>?',
+        prompt: 'A Boltzmann distribution is shown for a sample of gas at an initial temperature T<sub>1</sub>. The sample is heated to temperature T<sub>2</sub>.<br><br>Which option shows the correct distribution for the higher temperature T<sub>2</sub>?<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/420.svg" alt="Question 420 diagram" class="theme-aware-graphic white-graphic" loading="lazy" /></div>',
         options: {
           A: 'Peak moves lower and broader to higher energy with unchanged area.',
           B: 'Peak moves higher and narrower at higher energy with reduced tail.',
@@ -397,14 +546,14 @@
       {
         number: 12,
         code: '9701_s19_qp_11 Q: 1',
-        prompt: 'The temperature of a sample of an inert gas is increased.<br><br>What effect does this have on the number of molecules with the most probable energy and on the number of molecules with high energy?',
+        prompt: 'The temperature of a sample of an inert gas is increased.<br><br>What effect does this have on the number of molecules with the most probable energy and on the number of molecules with high energy?<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/421.svg" alt="Question 421 diagram" class="theme-aware-graphic white-graphic" loading="lazy" /></div>',
         optionTable: {
           headers: ['number of molecules with the most probable energy', 'number of molecules with high energy'],
           rows: [
-            { label: 'A', values: ['decreases', 'decreases'] },
-            { label: 'B', values: ['decreases', 'increases'] },
-            { label: 'C', values: ['increases', 'decreases'] },
-            { label: 'D', values: ['increases', 'increases'] },
+            { label: 'A', values: ['decreases', 'decreases<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/421a.svg" alt="Option A diagram" class="option-graphic white-graphic" loading="lazy" />'] },
+            { label: 'B', values: ['decreases', 'increases<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/421b.svg" alt="Option B diagram" class="option-graphic white-graphic" loading="lazy" />'] },
+            { label: 'C', values: ['increases', 'decreases<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/421c.svg" alt="Option C diagram" class="option-graphic white-graphic" loading="lazy" />'] },
+            { label: 'D', values: ['increases', 'increases<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/421d.svg" alt="Option D diagram" class="option-graphic white-graphic" loading="lazy" />'] },
           ]
         }
       },
@@ -422,7 +571,7 @@
       {
         number: 14,
         code: '9701_s16_qp_12 Q: 1',
-        prompt: 'The diagram shows the Boltzmann distribution of energies in 1 mole of a gas. The gas can take part in a reaction with an activation energy E<sub>a</sub> indicated.<br><br>Which statement correctly describes the effect of an increase in temperature?',
+        prompt: 'The diagram shows the Boltzmann distribution of energies in 1 mole of a gas. The gas can take part in a reaction with an activation energy E<sub>a</sub> indicated.<br><br>Which statement correctly describes the effect of an increase in temperature?<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/423.svg" alt="Question 423 diagram" class="theme-aware-graphic white-graphic" loading="lazy" /></div>',
         options: {
           A: 'Peak P will be higher and fewer molecules will have energy greater than E<sub>a</sub>.',
           B: 'Peak P will be higher and more molecules will have energy greater than E<sub>a</sub>.',
@@ -433,7 +582,7 @@
       {
         number: 15,
         code: '9701_w16_qp_11 Q: 1',
-        prompt: 'The Boltzmann distribution of kinetic energies for a mixture of two gases at a given temperature is shown with activation energy E<sub>a</sub>. The dotted curves show the distribution at a higher temperature where H marks the activation energy at that temperature.<br><br>Which diagram is correct?',
+        prompt: 'The Boltzmann distribution of kinetic energies for a mixture of two gases at a given temperature is shown with activation energy E<sub>a</sub>. The dotted curves show the distribution at a higher temperature where H marks the activation energy at that temperature.<br><br>Which diagram is correct?<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/424.svg" alt="Question 424 diagram" class="theme-aware-graphic white-graphic" loading="lazy" /></div>',
         options: {
           A: 'Dashed curve is lower and broader with activation energy shifting to the left.',
           B: 'Dashed curve is lower and broader with activation energy shifting to the right.',
@@ -444,29 +593,29 @@
       {
         number: 16,
         code: '9701_w16_qp_12 Q: 1',
-        prompt: 'The molecules of a gas have a distribution of energies at temperature T<sub>1</sub>. When the temperature is increased to T<sub>2</sub>, the distribution changes.<br><br>Which diagram correctly shows this change?',
+        prompt: 'The molecules of a gas have a distribution of energies at temperature T<sub>1</sub>. When the temperature is increased to T<sub>2</sub>, the distribution changes.<br><br>Which diagram correctly shows this change?<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/425.svg" alt="Question 425 diagram" class="theme-aware-graphic white-graphic" loading="lazy" /></div>',
         options: {
-          A: 'Curve for T<sub>2</sub> is higher and at lower energy than T<sub>1</sub>.',
-          B: 'Curve for T<sub>2</sub> is higher and at higher energy than T<sub>1</sub>.',
-          C: 'Curve for T<sub>2</sub> is lower and shifted to higher energy than T<sub>1</sub>.',
+          A: 'Curve for T<sub>2</sub> is higher and at lower energy than T<sub>1</sub>.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/425a.svg" alt="Option A diagram" class="option-graphic white-graphic" loading="lazy" />',
+          B: 'Curve for T<sub>2</sub> is higher and at higher energy than T<sub>1</sub>.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/425b.svg" alt="Option B diagram" class="option-graphic white-graphic" loading="lazy" />',
+          C: 'Curve for T<sub>2</sub> is lower and shifted to higher energy than T<sub>1</sub>.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/425c.svg" alt="Option C diagram" class="option-graphic white-graphic" loading="lazy" />',
           D: 'Curve for T<sub>2</sub> is lower and shifted to lower energy than T<sub>1</sub>.',
         }
       },
       {
         number: 17,
         code: '9701_s16_qp_12 Q: 11',
-        prompt: 'The Boltzmann distribution shows the molecular energies in a gas at a given temperature.<br><br>Which statement correctly describes the change when temperature increases?',
+        prompt: 'The Boltzmann distribution shows the molecular energies in a gas at a given temperature.<br><br>Which statement correctly describes the change when temperature increases?<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/426.svg" alt="Question 426 diagram" class="theme-aware-graphic white-graphic" loading="lazy" /></div>',
         options: {
-          A: 'Fewer molecules possess the most probable energy value and this value shifts to the left.',
-          B: 'Fewer molecules possess the most probable energy value and this value shifts to the right.',
-          C: 'More molecules possess the most probable energy value and this value shifts to the left.',
-          D: 'The area under the curve of the distribution increases.',
+          A: 'Fewer molecules possess the most probable energy value and this value shifts to the left.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/426a.svg" alt="Option A diagram" class="option-graphic white-graphic" loading="lazy" />',
+          B: 'Fewer molecules possess the most probable energy value and this value shifts to the right.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/426b.svg" alt="Option B diagram" class="option-graphic white-graphic" loading="lazy" />',
+          C: 'More molecules possess the most probable energy value and this value shifts to the left.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/426c.svg" alt="Option C diagram" class="option-graphic white-graphic" loading="lazy" />',
+          D: 'The area under the curve of the distribution increases.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/426d.svg" alt="Option D diagram" class="option-graphic white-graphic" loading="lazy" />',
         }
       },
       {
         number: 18,
         code: '9701_w15_qp_12 Q: 11',
-        prompt: 'Which row correctly describes what happens when the temperature of a chemical reaction is decreased?',
+        prompt: 'Which row correctly describes what happens when the temperature of a chemical reaction is decreased?<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/427.svg" alt="Question 427 diagram" class="theme-aware-graphic white-graphic" loading="lazy" /></div>',
         optionTable: {
           headers: ['activation energy (E<sub>a</sub>)', 'number of successful collisions'],
           rows: [
@@ -502,7 +651,7 @@
       {
         number: 21,
         code: '9701_w21_qp_11 Q: 11',
-        prompt: 'The diagram shows the Boltzmann distribution of energies for a reactant gas. For a particular reaction, the activation energy is X.<br><br>Which change to the diagram occurs if an effective catalyst is added at the same temperature?',
+        prompt: 'The diagram shows the Boltzmann distribution of energies for a reactant gas. For a particular reaction, the activation energy is X.<br><br>Which change to the diagram occurs if an effective catalyst is added at the same temperature?<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/430.svg" alt="Question 430 diagram" class="theme-aware-graphic white-graphic" loading="lazy" /></div>',
         options: {
           A: 'More particles will possess higher values of E.',
           B: 'The peak will move to the left.',
@@ -513,7 +662,7 @@
       {
         number: 22,
         code: '9701_w21_qp_13 Q: 11',
-        prompt: 'The diagram shows the Boltzmann distribution of energies for a reactant gas with activation energy X.<br><br>Which change to the diagram occurs if an effective catalyst is added at the same temperature?',
+        prompt: 'The diagram shows the Boltzmann distribution of energies for a reactant gas with activation energy X.<br><br>Which change to the diagram occurs if an effective catalyst is added at the same temperature?<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/431.svg" alt="Question 431 diagram" class="theme-aware-graphic white-graphic" loading="lazy" /></div>',
         options: {
           A: 'More particles will possess higher values of E.',
           B: 'The peak will move to the left.',
@@ -524,7 +673,7 @@
       {
         number: 23,
         code: '9701_w20_qp_11 Q: 11',
-        prompt: 'An autocatalytic reaction is one in which one of the products catalyses the reaction.<br><br>Which curve would be obtained if the rate of an autocatalytic reaction is plotted against time?',
+        prompt: 'An autocatalytic reaction is one in which one of the products catalyses the reaction.<br><br>Which curve would be obtained if the rate of an autocatalytic reaction is plotted against time?<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/432.svg" alt="Question 432 diagram" class="theme-aware-graphic white-graphic" loading="lazy" /></div>',
         options: {
           A: 'Rapid rise then immediate plateau at a low rate.',
           B: 'Instant jump to a high constant rate.',
@@ -537,23 +686,23 @@
         code: '9701_s19_qp_12 Q: 1',
         prompt: 'The Boltzmann distribution of molecular energies in aqueous hydrogen peroxide at room temperature is shown.<br><br>Which diagram shows the distribution when a catalyst, manganese(IV) oxide, is added at room temperature?',
         options: {
-          A: 'Activation energy unchanged with a smaller shaded area of molecules able to react.',
-          B: 'Activation energy decreased with a larger shaded area of molecules able to react.',
-          C: 'Activation energy decreased with a smaller shaded area of molecules able to react.',
-          D: 'Activation energy unchanged with a larger shaded area of molecules able to react.',
+          A: 'Activation energy unchanged with a smaller shaded area of molecules able to react.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/433a.svg" alt="Option A diagram" class="option-graphic white-graphic" loading="lazy" />',
+          B: 'Activation energy decreased with a larger shaded area of molecules able to react.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/433b.svg" alt="Option B diagram" class="option-graphic white-graphic" loading="lazy" />',
+          C: 'Activation energy decreased with a smaller shaded area of molecules able to react.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/433c.svg" alt="Option C diagram" class="option-graphic white-graphic" loading="lazy" />',
+          D: 'Activation energy unchanged with a larger shaded area of molecules able to react.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/433d.svg" alt="Option D diagram" class="option-graphic white-graphic" loading="lazy" />',
         }
       },
       {
         number: 25,
         code: '9701_s19_qp_12 Q: 11',
-        prompt: 'Which row is an example of heterogeneous catalysis?',
+        prompt: 'Which row is an example of heterogeneous catalysis?<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/434.svg" alt="Question 434 diagram" class="theme-aware-graphic white-graphic" loading="lazy" /></div>',
         optionTable: {
           headers: ['reaction', 'catalyst'],
           rows: [
-            { label: 'A', values: ['esterification', 'sulfuric acid'] },
-            { label: 'B', values: ['the Contact process', 'vanadium pentoxide'] },
-            { label: 'C', values: ['destruction of the ozone layer', 'chlorine radicals'] },
-            { label: 'D', values: ['atmospheric formation of sulfur trioxide', 'nitrogen dioxide'] },
+            { label: 'A', values: ['esterification', 'sulfuric acid<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/434a.svg" alt="Option A diagram" class="option-graphic white-graphic" loading="lazy" />'] },
+            { label: 'B', values: ['the Contact process', 'vanadium pentoxide<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/434b.svg" alt="Option B diagram" class="option-graphic white-graphic" loading="lazy" />'] },
+            { label: 'C', values: ['destruction of the ozone layer', 'chlorine radicals<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/434c.svg" alt="Option C diagram" class="option-graphic white-graphic" loading="lazy" />'] },
+            { label: 'D', values: ['atmospheric formation of sulfur trioxide', 'nitrogen dioxide<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/434d.svg" alt="Option D diagram" class="option-graphic white-graphic" loading="lazy" />'] },
           ]
         }
       },
@@ -571,7 +720,7 @@
       {
         number: 27,
         code: '9701_w19_qp_12 Q: 1',
-        prompt: 'The diagram shows a Boltzmann distribution of energies of gaseous molecules and the activation energies, E<sub>a1</sub> and E<sub>a2</sub>, of a reaction with and without a catalyst.<br><br>Which statement about this distribution curve is correct?',
+        prompt: 'The diagram shows a Boltzmann distribution of energies of gaseous molecules and the activation energies, E<sub>a1</sub> and E<sub>a2</sub>, of a reaction with and without a catalyst.<br><br>Which statement about this distribution curve is correct?<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/436.svg" alt="Question 436 diagram" class="theme-aware-graphic white-graphic" loading="lazy" /></div>',
         options: {
           A: 'If the temperature of the gas is increased, the maximum of the curve becomes higher.',
           B: 'If the temperature of the gas is increased, the maximum of the curve moves to the left.',
@@ -593,7 +742,7 @@
       {
         number: 29,
         code: '9701_s18_qp_12 Q: 11',
-        prompt: 'A chemical company used a catalyst in a process but will now increase the temperature so the rate matches that when the catalyst was used.<br><br>Which statement about the new conditions compared to the original is correct?',
+        prompt: 'A chemical company used a catalyst in a process but will now increase the temperature so the rate matches that when the catalyst was used.<br><br>Which statement about the new conditions compared to the original is correct?<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/438.svg" alt="Question 438 diagram" class="theme-aware-graphic white-graphic" loading="lazy" /></div>',
         options: {
           A: 'The activation energy has been decreased.',
           B: 'The activation energy has been increased.',
@@ -782,16 +931,6 @@
       }
     }
 
-    function wrapTables(card) {
-      const tables = card.querySelectorAll('table');
-      tables.forEach(table => {
-        const wrapper = document.createElement('div');
-        wrapper.style.overflowX = 'auto';
-        wrapper.appendChild(table.cloneNode(true));
-        table.replaceWith(wrapper);
-      });
-    }
-
     function renderQuestions() {
       const container = document.getElementById('questions');
       QUESTIONS.forEach(q => {
@@ -808,23 +947,7 @@
         title.innerHTML = q.prompt;
         card.appendChild(title);
 
-        if (q.optionTable) {
-          const table = document.createElement('table');
-          const thead = document.createElement('thead');
-          const headerRow = document.createElement('tr');
-          headerRow.innerHTML = `<th></th>${q.optionTable.headers.map(h => `<th>${h}</th>`).join('')}`;
-          thead.appendChild(headerRow);
-          table.appendChild(thead);
-
-          const tbody = document.createElement('tbody');
-          q.optionTable.rows.forEach(row => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td><strong>${row.label}</strong></td>${row.values.map(v => `<td>${v}</td>`).join('')}`;
-            tbody.appendChild(tr);
-          });
-          table.appendChild(tbody);
-          card.appendChild(table);
-        } else if (q.options) {
+        if (q.options) {
           const optionsContainer = document.createElement('div');
           optionsContainer.className = 'option-list';
 
@@ -838,95 +961,193 @@
           card.appendChild(optionsContainer);
         }
 
-        wrapTables(card);
+        if (q.optionTable) {
+          const tableWrap = document.createElement('div');
+          tableWrap.className = 'table-wrapper';
+
+          const table = document.createElement('table');
+          const thead = document.createElement('thead');
+          const headerRow = document.createElement('tr');
+          headerRow.innerHTML = `<th></th>${q.optionTable.headers.map(h => `<th>${h}</th>`).join('')}`;
+          thead.appendChild(headerRow);
+          table.appendChild(thead);
+
+          const tbody = document.createElement('tbody');
+          q.optionTable.rows.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="width:90px; text-align:left;">
+                <label class="option-label" style="display:flex; align-items:center; gap:6px;">
+                  <input type="radio" name="q${q.number}" value="${row.label}">
+                  <strong>${row.label}</strong>
+                </label>
+              </td>
+              ${row.values.map(v => `<td>${v}</td>`).join('')}
+            `;
+            tbody.appendChild(tr);
+          });
+          table.appendChild(tbody);
+          tableWrap.appendChild(table);
+          card.appendChild(tableWrap);
+        }
+
         container.appendChild(card);
       });
     }
 
-    function getSelectedAnswers() {
-      const answers = {};
-      QUESTIONS.forEach(q => {
-        const selected = document.querySelector(`input[name="q${q.number}"]:checked`);
-        answers[q.number] = selected ? selected.value : null;
-      });
-      return answers;
-    }
-
-    function calculateScore(answers) {
-      let score = 0;
-      Object.entries(answers).forEach(([q, ans]) => {
-        if (ANSWER_KEY[q] && ans === ANSWER_KEY[q]) {
-          score++;
-        }
-      });
-      return score;
-    }
-
-    async function submitAnswers() {
-      const answers = getSelectedAnswers();
-      const name = document.getElementById('studentName').value.trim();
-      const studentClass = document.getElementById('studentClass').value.trim();
-
-      const statusEl = document.getElementById('status');
-      statusEl.textContent = 'Submitting...';
-      document.getElementById('submitBtn').disabled = true;
-
-      const endTime = Date.now();
-      const timeTakenSeconds = startTime ? Math.round((endTime - startTime) / 1000) : null;
-
+    function calculateScore(responses) {
+      if (!RELEASE_SCORES) {
+        return { score: 0, percentage: 0, pending: true };
+      }
       const answerKeyReady = Object.values(ANSWER_KEY).every(v => !!v);
+      if (!answerKeyReady) {
+        return { score: 0, percentage: 0, pending: true };
+      }
+      let correct = 0;
+      Object.entries(ANSWER_KEY).forEach(([q, ans]) => {
+        const studentAns = (responses[q] || '').toString().trim().toUpperCase();
+        const correctAns = (ans || '').toString().trim().toUpperCase();
+        if (studentAns && studentAns === correctAns) correct++;
+      });
+      return {
+        score: correct,
+        percentage: Math.round((correct / totalQuestions) * 100),
+        pending: false
+      };
+    }
 
-      const { error } = await supabaseClient
-        .from('quiz_scores')
-        .insert({
-          quiz_id: QUIZ_ID,
-          quiz_name: QUIZ_NAME,
-          student_name: name || null,
-          student_class: studentClass || null,
-          score: answerKeyReady ? calculateScore(answers) : null,
-          total_questions: totalQuestions,
-          percentage: answerKeyReady ? Math.round((calculateScore(answers) / totalQuestions) * 100) : null,
-          time_taken_seconds: timeTakenSeconds,
-          answers,
-          answer_key_ready: answerKeyReady,
-          pending_answer_key: !answerKeyReady,
-        });
+    function checkPreviousSubmission() {
+      const saved = localStorage.getItem(`quiz_submitted_${QUIZ_ID}`);
+      if (!saved) return;
+      const data = JSON.parse(saved);
+      hasSubmitted = true;
+      document.querySelectorAll('input').forEach(i => i.disabled = true);
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = '✓ Submitted';
+      const status = document.getElementById('status');
+      status.textContent = `You submitted this test on ${new Date(data.submittedAt).toLocaleString()}.`;
+      const scoreDiv = document.getElementById('score');
+      scoreDiv.style.display = 'block';
+      scoreDiv.textContent = 'Results pending official review.';
+    }
 
+    function openSubmitConfirmation() {
+      return new Promise(resolve => {
+        const overlay = document.getElementById('confirmOverlay');
+        const confirmBtn = document.getElementById('confirmSubmit');
+        const cancelBtn = document.getElementById('confirmCancel');
+
+        const cleanup = (confirmed) => {
+          overlay.classList.remove('active');
+          overlay.setAttribute('aria-hidden', 'true');
+          confirmBtn.removeEventListener('click', confirmHandler);
+          cancelBtn.removeEventListener('click', cancelHandler);
+          resolve(confirmed);
+        };
+
+        const confirmHandler = () => cleanup(true);
+        const cancelHandler = () => cleanup(false);
+
+        confirmBtn.addEventListener('click', confirmHandler);
+        cancelBtn.addEventListener('click', cancelHandler);
+        overlay.classList.add('active');
+        overlay.setAttribute('aria-hidden', 'false');
+      });
+    }
+
+    async function handleSubmit() {
+      if (hasSubmitted) return;
+      const status = document.getElementById('status');
+      const btn = document.getElementById('submitBtn');
+      const name = document.getElementById('studentName').value.trim();
+      const cls = document.getElementById('studentClass').value.trim();
+
+      if (!name) {
+        status.textContent = '⚠️ Please enter your name.';
+        return;
+      }
+      if (!cls) {
+        status.textContent = '⚠️ Please enter your class.';
+        return;
+      }
+
+      const responses = {};
+      for (let i = 1; i <= totalQuestions; i++) {
+        const selected = document.querySelector(`input[name='q${i}']:checked`);
+        responses[i] = selected ? selected.value : '';
+      }
+
+      const confirmSubmit = await openSubmitConfirmation();
+      if (!confirmSubmit) return;
+
+      const timeTaken = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+      const result = calculateScore(responses);
+
+      btn.disabled = true;
+      status.textContent = '📤 Submitting...';
+
+      const payload = {
+        student_name: name,
+        student_class: cls,
+        quiz_name: QUIZ_NAME,
+        score: result.score,
+        total_questions: totalQuestions,
+        percentage: result.percentage,
+        answers: {
+          responses,
+          answer_key_ready: !result.pending,
+          pending_answer_key: result.pending,
+          quiz_version: 'v1-41q'
+        },
+        time_taken_seconds: timeTaken
+      };
+
+      const { error } = await supabaseClient.from('quiz_scores').insert(payload);
       if (error) {
-        statusEl.textContent = 'Could not save answers. Please try again.';
-        document.getElementById('submitBtn').disabled = false;
+        console.error(error);
+        status.textContent = '❌ Failed to submit. Please try again.';
+        btn.disabled = false;
         return;
       }
 
       hasSubmitted = true;
+      localStorage.setItem(`quiz_submitted_${QUIZ_ID}`, JSON.stringify({
+        score: result.score,
+        total: totalQuestions,
+        pending: true,
+        submittedAt: new Date().toISOString()
+      }));
 
-      if (!answerKeyReady) {
-        statusEl.textContent = '✅ Submitted. Scoring will be applied once the answer key is available.';
-        document.getElementById('score').style.display = 'none';
-      } else {
-        const score = calculateScore(answers);
-        const percentage = Math.round((score / totalQuestions) * 100);
-        statusEl.textContent = '✅ Submitted. Your score has been recorded.';
-        const scoreBox = document.getElementById('score');
-        scoreBox.textContent = `You scored ${score}/${totalQuestions} (${percentage}%).`;
-        scoreBox.style.display = 'block';
+      document.querySelectorAll('input').forEach(i => i.disabled = true);
+      btn.textContent = '✓ Submitted';
+      status.textContent = '✅ Submitted. You will receive your results soon.';
+
+      const scoreDiv = document.getElementById('score');
+      scoreDiv.style.display = 'block';
+      scoreDiv.textContent = 'Results pending official review.';
+
+      try {
+        if (window.parent !== window) {
+          window.parent.postMessage({
+            type: 'CAMBRIDGE_TEST_COMPLETE',
+            quizId: QUIZ_ID,
+            score: result.score,
+            total: totalQuestions,
+            percentage: result.percentage
+          }, '*');
+        }
+      } catch (e) {
+        console.log('Parent notification unavailable');
       }
     }
 
-    document.getElementById('submitBtn').addEventListener('click', () => {
-      if (hasSubmitted) {
-        const confirmResubmit = confirm(
-          'Submit answers again?\n\n• Your previous submission will be overwritten.\n• Score will remain pending until the official answer key is added.'
-        );
-        if (!confirmResubmit) return;
-      }
-      submitAnswers();
-    });
-
-    window.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', () => {
       renderQuestions();
       loadStudentInfoFromGame();
+      checkPreviousSubmission();
       startTime = Date.now();
+      document.getElementById('submitBtn').addEventListener('click', handleSubmit);
     });
   </script>
 </body>
