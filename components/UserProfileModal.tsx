@@ -123,9 +123,9 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ profile, apValue, o
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-      <div className="w-full max-w-xl rounded-3xl border border-slate-800 bg-slate-900/90 shadow-2xl shadow-cyan-900/40 max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-xl rounded-3xl border border-slate-800 bg-slate-900/90 shadow-2xl shadow-cyan-900/40 max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-slate-800 px-5 py-4 sticky top-0 bg-slate-900/95 backdrop-blur z-10">
+        <div className="sticky top-0 z-20 flex items-start justify-between border-b border-slate-800 bg-slate-900/95 px-5 py-4 backdrop-blur">
           <div className="flex items-center gap-4">
             <div className={`relative h-14 w-14 overflow-hidden rounded-full border-2 ${profile.active_cosmetic_frame === 'neon' ? 'neon-frame neon-frame-sm' : 'border-pink-400/60'}`}>
               <img src={profile.avatar_url} alt={profile.username} className="h-full w-full object-cover" />
@@ -138,9 +138,10 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ profile, apValue, o
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-slate-700 px-3 py-1 text-sm text-slate-200 transition hover:bg-slate-800"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-600 bg-slate-900 text-lg font-semibold text-white shadow-sm transition hover:border-cyan-400 hover:text-cyan-200"
+            aria-label="Close profile"
           >
-            Close
+            ✕
           </button>
         </div>
 
