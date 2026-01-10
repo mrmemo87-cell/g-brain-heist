@@ -211,6 +211,15 @@
       background: rgba(255,255,255,0.06);
       font-weight: 700;
     }
+    .table-option {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+    }
+    .table-option input {
+      margin: 0;
+    }
     .el {
       font-family: "Times New Roman", "Cambria", "STIX Two Text", serif;
       font-weight: 700;
@@ -841,10 +850,10 @@
         code: '9701_m17_qp_12 Q: 11',
         prompt: 'N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ⇌ 2NH<sub>3</sub>(g)<br><br>What is the expression for K<sub>c</sub> for this equilibrium?',
         options: {
-          A: '\\[ \\dfrac{2[NH_3(g)]}{[N_2(g)] + [H_2(g)]} \\]',
-          B: '\\[ \\dfrac{2[NH_3(g)]}{[N_2(g)] \\times 3[H_2(g)]} \\]',
-          C: '\\[ \\dfrac{[NH_3(g)]^2}{[N_2(g)] + [H_2(g)]^3} \\]',
-          D: '\\[ \\dfrac{[NH_3(g)]^2}{[N_2(g)] \\times [H_2(g)]^3} \\]',
+          A: '<span class="el"><span class="fraction"><span class="fraction-top">2[NH<sub>3</sub>(g)]</span><span class="fraction-bottom">[N<sub>2</sub>(g)] + 3[H<sub>2</sub>(g)]</span></span></span>',
+          B: '<span class="el"><span class="fraction"><span class="fraction-top">2[NH<sub>3</sub>(g)]</span><span class="fraction-bottom">[N<sub>2</sub>(g)] &times; 3[H<sub>2</sub>(g)]</span></span></span>',
+          C: '<span class="el"><span class="fraction"><span class="fraction-top">[NH<sub>3</sub>(g)]<sup>2</sup></span><span class="fraction-bottom">[N<sub>2</sub>(g)] + [H<sub>2</sub>(g)]<sup>3</sup></span></span></span>',
+          D: '<span class="el"><span class="fraction"><span class="fraction-top">[NH<sub>3</sub>(g)]<sup>2</sup></span><span class="fraction-bottom">[N<sub>2</sub>(g)] &times; [H<sub>2</sub>(g)]<sup>3</sup></span></span></span>',
         }
       },
       {
@@ -852,10 +861,10 @@
         code: '9701_s17_qp_11 Q: 10',
         prompt: '2H<sub>2</sub>(g) + CO(g) ⇌ CH<sub>3</sub>OH(g)<br><br>What is the expression for K<sub>p</sub> for this reaction?',
         options: {
-          A: 'K<sub>p</sub> = \\dfrac{(2p_{H_2})^2 \\times p_{CO}}{p_{CH_3OH}}',
-          B: 'K<sub>p</sub> = \\dfrac{(p_{H_2})^2 \\times p_{CO}}{p_{CH_3OH}}',
-          C: 'K<sub>p</sub> = \\dfrac{p_{CH_3OH}}{(p_{H_2})^2 \\times p_{CO}}',
-          D: 'K<sub>p</sub> = \\dfrac{p_{CH_3OH}}{p_{CO} \\times (2p_{H_2})^2}',
+          A: '<span class="el">K<sub>p</sub> = <span class="fraction"><span class="fraction-top">(2p<sub>H<sub>2</sub></sub>)<sup>2</sup> &times; p<sub>CO</sub></span><span class="fraction-bottom">p<sub>CH<sub>3</sub>OH</sub></span></span></span>',
+          B: '<span class="el">K<sub>p</sub> = <span class="fraction"><span class="fraction-top">(p<sub>H<sub>2</sub></sub>)<sup>2</sup> &times; p<sub>CO</sub></span><span class="fraction-bottom">p<sub>CH<sub>3</sub>OH</sub></span></span></span>',
+          C: '<span class="el">K<sub>p</sub> = <span class="fraction"><span class="fraction-top">p<sub>CH<sub>3</sub>OH</sub></span><span class="fraction-bottom">(p<sub>H<sub>2</sub></sub>)<sup>2</sup> &times; p<sub>CO</sub></span></span></span>',
+          D: '<span class="el">K<sub>p</sub> = <span class="fraction"><span class="fraction-top">p<sub>CH<sub>3</sub>OH</sub></span><span class="fraction-bottom">p<sub>CO</sub> &times; (2p<sub>H<sub>2</sub></sub>)<sup>2</sup></span></span></span>',
         }
       },
       {
@@ -907,10 +916,10 @@
         code: '9701_w17_qp_11 Q: 9',
         prompt: '2HI(g) ⇌ H<sub>2</sub>(g) + I<sub>2</sub>(g)<br><br>b mol HI in a vessel at pressure p. At equilibrium x mol HI dissociated.<br><br>Which expression for K<sub>p</sub> is correct?',
         options: {
-          A: '\\[ \\dfrac{x^2}{(b - x)^2} \\]',
-          B: '\\[ \\dfrac{x^2 p^2}{(b - x)^2} \\]',
-          C: '\\[ \\dfrac{x^2 p^2}{4b(b - x)} \\]',
-          D: '\\[ \\dfrac{x^2}{4(b - x)^2} \\]',
+          A: '<span class="el"><span class="fraction"><span class="fraction-top">x<sup>2</sup></span><span class="fraction-bottom">(b - x)<sup>2</sup></span></span></span>',
+          B: '<span class="el"><span class="fraction"><span class="fraction-top">x<sup>2</sup>p<sup>2</sup></span><span class="fraction-bottom">(b - x)<sup>2</sup></span></span></span>',
+          C: '<span class="el"><span class="fraction"><span class="fraction-top">x<sup>2</sup>p<sup>2</sup></span><span class="fraction-bottom">4b(b - x)</span></span></span>',
+          D: '<span class="el"><span class="fraction"><span class="fraction-top">x<sup>2</sup></span><span class="fraction-bottom">4(b - x)<sup>2</sup></span></span></span>',
         }
       },
       {
@@ -963,7 +972,7 @@
       {
         number: 52,
         code: '9701_s16_qp_12 Q: 10',
-        prompt: 'NH<sub>4</sub>Cl(s) ⇌ NH<sub>3</sub>(g) + HCl(g)<br><br>Initial NH<sub>4</sub>Cl(s) = 1.00 mol in 0.500 dm<sup>3</sup>. At equilibrium 0.300 mol NH<sub>4</sub>Cl remain.<br><br>What is K<sub>c</sub>?',
+        prompt: 'When solid ammonium chloride dissociates at a certain temperature in a 0.500 dm<sup>3</sup> container, ammonia and hydrogen chloride are formed.<br><br>NH<sub>4</sub>Cl(s) ⇌ NH<sub>3</sub>(g) + HCl(g)<br><br>The initial amount of ammonium chloride was 1.00 mol, and when equilibrium was reached there was 0.300 mol of ammonium chloride.<br><br>What is the numerical value of K<sub>c</sub> for this reaction under these conditions?',
         options: {
           A: '0.490',
           B: '1.63',
@@ -976,9 +985,9 @@
         code: '9701_s16_qp_13 Q: 9',
         prompt: 'For N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ⇌ 2NH<sub>3</sub>(g), K<sub>c</sub> = 2 mol<sup>−2</sup> dm<sup>6</sup> at 600 K.<br><br>Equilibrium concentrations: [N<sub>2</sub>] = [H<sub>2</sub>] = 2 mol dm<sup>−3</sup>. What is [NH<sub>3</sub>]?',
         options: {
-          A: '\\(\\sqrt{8}\\) mol dm<sup>−3</sup>',
-          B: '\\(\\sqrt{16}\\) mol dm<sup>−3</sup>',
-          C: '\\(\\sqrt{32}\\) mol dm<sup>−3</sup>',
+          A: '&radic;8 mol dm<sup>−3</sup>',
+          B: '&radic;16 mol dm<sup>−3</sup>',
+          C: '&radic;32 mol dm<sup>−3</sup>',
           D: '32 mol dm<sup>−3</sup>',
         }
       },
@@ -999,7 +1008,32 @@
       {
         number: 55,
         code: '9701_w16_qp_11 Q: 10',
-        prompt: 'Partial pressures in an equilibrium Haber mixture (kPa): N<sub>2</sub> = 7000, H<sub>2</sub> = 8000, NH<sub>3</sub> = 4000.<br><br>3H<sub>2</sub>(g) + N<sub>2</sub>(g) ⇌ 2NH<sub>3</sub>(g)<br><br>What is K<sub>p</sub>?',
+        prompt: `The table shows the partial pressures in an equilibrium mixture formed by the Haber process.<br><br>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>substance</th>
+                  <th>partial pressure / kPa</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>nitrogen</td>
+                  <td>7000</td>
+                </tr>
+                <tr>
+                  <td>hydrogen</td>
+                  <td>8000</td>
+                </tr>
+                <tr>
+                  <td>ammonia</td>
+                  <td>4000</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          3H<sub>2</sub>(g) + N<sub>2</sub>(g) ⇌ 2NH<sub>3</sub>(g)<br><br>What is the numerical value of the equilibrium constant, K<sub>p</sub>, for this reaction?`,
         options: {
           A: '4.46 × 10<sup>−9</sup>',
           B: '4.76 × 10<sup>−5</sup>',
@@ -1026,7 +1060,7 @@
         code: '9701_w16_qp_12 Q: 11',
         prompt: `Lithium reacts with nitrogen to form solid Li<sub>3</sub>N. Three equal-volume vessels are connected by taps A and B, as shown.<br><br>
           <div style="text-align:center; margin:12px 0;">
-            <img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/393.svg" alt="Three connected vessels with taps A and B for the lithium and ammonia equilibrium setup." class="theme-aware-graphic white-graphic" loading="lazy" />
+            <img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/393.svg" alt="Three connected vessels with taps A and B for the lithium and ammonia equilibrium setup." class="theme-aware-graphic white-graphic" style="width: 880px; max-width: 100%;" loading="lazy" />
           </div>
           Left vessel evacuated; middle vessel holds N<sub>2</sub> + 3H<sub>2</sub> ⇌ 2NH<sub>3</sub> at equilibrium; right vessel contains lithium only.<br><br>Which action allows the equilibrium mixture to contain the most ammonia?`,
         options: {
@@ -1050,7 +1084,7 @@
       {
         number: 59,
         code: '9701_s15_qp_11 Q: 9',
-        prompt: 'Hb(aq) + 4O<sub>2</sub>(aq) ⇌ Hb(O<sub>2</sub>)<sub>4</sub>(aq)<br><br>When [O<sub>2</sub>] = 7.6 × 10<sup>−6</sup> mol dm<sup>−3</sup>, [Hb] = [Hb(O<sub>2</sub>)<sub>4</sub>].<br><br>What is K<sub>c</sub>?',
+        prompt: 'One molecule of haemoglobin, Hb, can bind with four molecules of oxygen according to the following equation.<br><br>Hb(aq) + 4O<sub>2</sub>(aq) ⇌ Hb(O<sub>2</sub>)<sub>4</sub>(aq)<br><br>When the equilibrium concentration of O<sub>2</sub> is 7.6 × 10<sup>−6</sup> mol dm<sup>−3</sup>, the equilibrium concentrations of Hb and Hb(O<sub>2</sub>)<sub>4</sub> are equal.<br><br>What is the value of K<sub>c</sub> for this equilibrium?',
         options: {
           A: '3.0 × 10<sup>20</sup>',
           B: '1.3 × 10<sup>5</sup>',
@@ -1075,7 +1109,7 @@
       {
         number: 61,
         code: '9701_s15_qp_12 Q: 9',
-        prompt: '2HI(g) ⇌ H<sub>2</sub>(g) + I<sub>2</sub>(g)<br><br>At a certain temperature, p(HI) is 28 times p(H<sub>2</sub>).<br><br>What is K<sub>p</sub> at this temperature?',
+        prompt: 'When a sample of HI is warmed to a particular temperature the equilibrium below is established.<br><br>2HI(g) ⇌ H<sub>2</sub>(g) + I<sub>2</sub>(g)<br><br>At this temperature, it is found that the partial pressure of HI(g) is 28 times the partial pressure of H<sub>2</sub>(g).<br><br>What is the value of K<sub>p</sub> at this temperature?',
         options: {
           A: '1.28 × 10<sup>−3</sup>',
           B: '0.035',
@@ -1085,6 +1119,17 @@
       },
       {
         number: 62,
+        code: '9701_w15_qp_11 Q: 10',
+        prompt: 'A mixture of nitrogen and hydrogen gases, at a temperature of 500 K, was put into an evacuated vessel of volume 6.0 dm<sup>3</sup>. The vessel was then sealed.<br><br>N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ⇌ 2NH<sub>3</sub>(g)<br><br>The mixture was allowed to reach equilibrium. It was found that 7.2 mol of N<sub>2</sub> and 12.0 mol of H<sub>2</sub> were present in the equilibrium mixture. The value of the equilibrium constant, K<sub>c</sub>, for this equilibrium is 6.0 × 10<sup>−2</sup> at 500 K.<br><br>What is the concentration of ammonia present in the equilibrium mixture at 500 K?',
+        options: {
+          A: '0.58 mol dm<sup>−3</sup>',
+          B: '0.76 mol dm<sup>−3</sup>',
+          C: '3.5 mol dm<sup>−3</sup>',
+          D: '27 mol dm<sup>−3</sup>',
+        }
+      },
+      {
+        number: 63,
         code: '9701_w15_qp_11 Q: 2',
         prompt: 'N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ⇌ 2NH<sub>3</sub>(g) &nbsp;&nbsp; ΔH° = −92 kJ mol<sup>−1</sup><br><br>Which set of conditions gives the highest yield of ammonia at equilibrium?',
         optionTable: {
@@ -1095,17 +1140,6 @@
             { label: 'C', values: ['present', 'high', 'high'] },
             { label: 'D', values: ['present', 'low', 'low'] },
           ]
-        }
-      },
-      {
-        number: 63,
-        code: '9701_w15_qp_11 Q: 10',
-        prompt: 'N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ⇌ 2NH<sub>3</sub>(g)<br><br>At 500 K, 7.2 mol N<sub>2</sub> and 12.0 mol H<sub>2</sub> are placed in a 6.0 dm<sup>3</sup> vessel. K<sub>c</sub> = 6.0 × 10<sup>−2</sup> at 500 K.<br><br>What is [NH<sub>3</sub>] at equilibrium?',
-        options: {
-          A: '0.58 mol dm<sup>−3</sup>',
-          B: '0.76 mol dm<sup>−3</sup>',
-          C: '3.5 mol dm<sup>−3</sup>',
-          D: '27 mol dm<sup>−3</sup>',
         }
       },
       {
@@ -1161,7 +1195,7 @@
       {
         number: 68,
         code: '9701_w21_qp_11 Q: 7',
-        prompt: 'Neutralisation experiment: 25.0 cm<sup>3</sup> of 2.00 mol dm<sup>−3</sup> NaOH with 25.0 cm<sup>3</sup> of 2.00 mol dm<sup>−3</sup> HCl raises temperature by 12 °C.<br><br>Repeating with 50.0 cm<sup>3</sup> of each solution, what is the temperature increase?',
+        prompt: 'In order to determine the enthalpy of neutralisation of a strong acid and a strong alkali, 25.0 cm<sup>3</sup> of 2.00 mol dm<sup>−3</sup> sodium hydroxide is added to 25.0 cm<sup>3</sup> of 2.00 mol dm<sup>−3</sup> hydrochloric acid. The increase in temperature is 12 °C.<br><br>In a second experiment, the same method is used, but 50.0 cm<sup>3</sup> of 2.00 mol dm<sup>−3</sup> sodium hydroxide is added to 50.0 cm<sup>3</sup> of 2.00 mol dm<sup>−3</sup> hydrochloric acid.<br><br>What is the increase in temperature in the second experiment?',
         options: {
           A: '6 °C',
           B: '12 °C',
@@ -1319,7 +1353,7 @@
           const tbody = document.createElement('tbody');
           q.optionTable.rows.forEach(row => {
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td style="width:50px;font-weight:700;">${row.label}</td>` + row.values.map(v => `<td>${v}</td>`).join('');
+            tr.innerHTML = `<td style="width:90px;text-align:left;"><label class="table-option"><input type="radio" name="q${q.number}" value="${row.label}" /><span>${row.label}</span></label></td>` + row.values.map(v => `<td>${v}</td>`).join('');
             tbody.appendChild(tr);
           });
           table.appendChild(tbody);
