@@ -146,6 +146,28 @@
       border-radius: 12px;
       -webkit-overflow-scrolling: touch;
     }
+    .theme-aware-graphic {
+      width: 440px;
+      max-width: 100%;
+      display: block;
+      margin: 12px auto;
+    }
+    .white-graphic {
+      filter: invert(1) brightness(2);
+    }
+    .option img,
+    .question-title img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: 8px auto 0;
+    }
+    .option .option-graphic {
+      max-width: 440px;
+      width: 440px;
+      margin-left: auto;
+      margin-right: auto;
+    }
     table {
       width: 100%;
       min-width: 420px;
@@ -456,17 +478,20 @@
         number: 15,
         code: '9701_s16_qp_12 Q: 12',
         prompt: 'Sodium and sulfur react together to form sodium sulfide, Na₂S. How do the atomic radius and ionic radius of sodium compare with those of sulfur?',
-        options: {
-          A: 'atomic radius sodium < sulfur; ionic radius sodium > sulfur',
-          B: 'atomic radius sodium < sulfur; ionic radius sodium < sulfur',
-          C: 'atomic radius sodium > sulfur; ionic radius sodium > sulfur',
-          D: 'atomic radius sodium > sulfur; ionic radius sodium < sulfur',
+        optionTable: {
+          headers: ['atomic radius', 'ionic radius'],
+          rows: [
+            { label: 'A', values: ['sodium < sulfur', 'sodium > sulfur'] },
+            { label: 'B', values: ['sodium < sulfur', 'sodium < sulfur'] },
+            { label: 'C', values: ['sodium > sulfur', 'sodium > sulfur'] },
+            { label: 'D', values: ['sodium > sulfur', 'sodium < sulfur'] },
+          ]
         }
       },
       {
         number: 16,
         code: '9701_w16_qp_11 Q: 13',
-        prompt: 'The diagram shows the melting points of eight elements with consecutive atomic numbers. Which element could be sodium?',
+        prompt: 'The diagram shows the melting points of eight elements with consecutive atomic numbers.<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/467.svg" alt="Melting point diagram for eight elements" class="theme-aware-graphic white-graphic" loading="lazy" /></div>Which element could be sodium?',
         options: {
           A: 'Point A',
           B: 'Point B',
@@ -477,7 +502,7 @@
       {
         number: 17,
         code: '9701_w16_qp_12 Q: 12',
-        prompt: 'The graph shows variation of the first ionisation energy with proton number for several elements (letters Q to X). Which statement about the elements is correct?',
+        prompt: 'The graph shows variation of the first ionisation energy with proton number for several elements (letters Q to X).<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/468.svg" alt="First ionisation energy variation graph" class="theme-aware-graphic white-graphic" loading="lazy" /></div>Which statement about the elements is correct?',
         options: {
           A: 'P and X are in the same period in the Periodic Table.',
           B: 'The general increase from Q to X is due to increasing atomic radius.',
@@ -490,21 +515,24 @@
         code: '9701_s15_qp_11 Q: 15',
         prompt: 'Which diagram correctly shows the atomic radii of the elements Mg, Al, Si and P plotted against their melting points?',
         options: {
-          A: 'Atomic radius decreases P > Mg > Al > Si while melting point increases.',
-          B: 'Atomic radius decreases Mg > Al > P > Si while melting point increases.',
-          C: 'Atomic radius decreases Mg > Al > Si > P while melting point increases.',
-          D: 'Atomic radius decreases P > Si > Al > Mg while melting point increases.',
+          A: 'Atomic radius decreases P > Mg > Al > Si while melting point increases.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/469a.svg" alt="Atomic radius vs melting point diagram A" class="option-graphic white-graphic" loading="lazy" />',
+          B: 'Atomic radius decreases Mg > Al > P > Si while melting point increases.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/469b.svg" alt="Atomic radius vs melting point diagram B" class="option-graphic white-graphic" loading="lazy" />',
+          C: 'Atomic radius decreases Mg > Al > Si > P while melting point increases.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/469c.svg" alt="Atomic radius vs melting point diagram C" class="option-graphic white-graphic" loading="lazy" />',
+          D: 'Atomic radius decreases P > Si > Al > Mg while melting point increases.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/469d.svg" alt="Atomic radius vs melting point diagram D" class="option-graphic white-graphic" loading="lazy" />',
         }
       },
       {
         number: 19,
         code: '9701_s15_qp_13 Q: 17',
-        prompt: 'The species F⁻, Ne and Na⁺ are isoelectronic. In which order do their radii increase?',
-        options: {
-          A: 'Na⁺ < F⁻ < Ne',
-          B: 'F⁻ < Ne < Na⁺',
-          C: 'Na⁺ < Ne < F⁻',
-          D: 'Ne < F⁻ < Na⁺',
+        prompt: 'This question refers to isolated gaseous species.<br><br>The species F<sup>−</sup>, Ne and Na<sup>+</sup> are isoelectronic. This means they have the same number of electrons.<br><br>In which order do their radii increase?',
+        optionTable: {
+          headers: ['smallest', '→', 'largest'],
+          rows: [
+            { label: 'A', values: ['Na<sup>+</sup>', 'F<sup>−</sup>', 'Ne'] },
+            { label: 'B', values: ['F<sup>−</sup>', 'Ne', 'Na<sup>+</sup>'] },
+            { label: 'C', values: ['Na<sup>+</sup>', 'Ne', 'F<sup>−</sup>'] },
+            { label: 'D', values: ['Ne', 'F<sup>−</sup>', 'Na<sup>+</sup>'] },
+          ]
         }
       },
       {
@@ -659,7 +687,7 @@
       {
         number: 33,
         code: '9701_w21_qp_11 Q: 13',
-        prompt: 'An element, Y, reacts according to the following sequence.<div class="table-wrapper"><table><tbody><tr><td>burns in O₂ → white solid → HCℓ(aq) → solution → NaOH(aq) → white precipitate → an excess of NaOH(aq) → solution</td></tr></tbody></table></div>What could element Y be?',
+        prompt: 'An element, Y, reacts according to the following sequence.<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/484.svg" alt="Reaction sequence for element Y" class="theme-aware-graphic white-graphic" loading="lazy" /></div>What could element Y be?',
         options: {
           A: 'Na',
           B: 'Mg',
@@ -692,7 +720,7 @@
       {
         number: 36,
         code: '9701_w21_qp_13 Q: 13',
-        prompt: 'An element, Y, reacts according to the following sequence.<div class="table-wrapper"><table><tbody><tr><td>burns in O₂ → white solid → HCℓ(aq) → solution → NaOH(aq) → white precipitate → an excess of NaOH(aq) → solution</td></tr></tbody></table></div>What could element Y be?',
+        prompt: 'An element, Y, reacts according to the following sequence.<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/487.svg" alt="Reaction sequence for element Y" class="theme-aware-graphic white-graphic" loading="lazy" /></div>What could element Y be?',
         options: {
           A: 'Na',
           B: 'Mg',
@@ -871,10 +899,10 @@
         code: '9701_s19_qp_13 Q: 13',
         prompt: 'Which graph represents the variation in electronegativity for Period 3 elements?',
         options: {
-          A: 'Decreasing curve from Na to Cl with a gentle slope flattening after Al.',
-          B: 'Steady increase in electronegativity from Na to Cl.',
-          C: 'Steady rise from Na to Cl with small steps upwards at Al, Si, P, S, Cl.',
-          D: 'Sharp peak at Al followed by very low values for Si, P, S and Cl.',
+          A: 'Decreasing curve from Na to Cl with a gentle slope flattening after Al.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/502a.svg" alt="Electronegativity variation graph A" class="option-graphic white-graphic" loading="lazy" />',
+          B: 'Steady increase in electronegativity from Na to Cl.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/502b.svg" alt="Electronegativity variation graph B" class="option-graphic white-graphic" loading="lazy" />',
+          C: 'Steady rise from Na to Cl with small steps upwards at Al, Si, P, S, Cl.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/502c.svg" alt="Electronegativity variation graph C" class="option-graphic white-graphic" loading="lazy" />',
+          D: 'Sharp peak at Al followed by very low values for Si, P, S and Cl.<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/502d.svg" alt="Electronegativity variation graph D" class="option-graphic white-graphic" loading="lazy" />',
         }
       },
       {
@@ -957,10 +985,10 @@
         code: '9701_s18_qp_12 Q: 13',
         prompt: 'The graphs show trends in four physical properties of elements in Period 3, excluding argon. Which graph has electronegativity on the y-axis?',
         options: {
-          A: 'Graph A (rises from Na to Al, slight dip at Si, then falls from P to Cl)',
-          B: 'Graph B (steady increase from Na through Cl)',
-          C: 'Graph C (stepped rise from Na to Cl with small increases at Al, Si, P, S, Cl)',
-          D: 'Graph D (sharp peak at Al then very low values for Si, P, S, Cl)',
+          A: 'Graph A (rises from Na to Al, slight dip at Si, then falls from P to Cl)<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/509a.svg" alt="Period 3 property graph A" class="option-graphic white-graphic" loading="lazy" />',
+          B: 'Graph B (steady increase from Na through Cl)<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/509b.svg" alt="Period 3 property graph B" class="option-graphic white-graphic" loading="lazy" />',
+          C: 'Graph C (stepped rise from Na to Cl with small increases at Al, Si, P, S, Cl)<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/509c.svg" alt="Period 3 property graph C" class="option-graphic white-graphic" loading="lazy" />',
+          D: 'Graph D (sharp peak at Al then very low values for Si, P, S, Cl)<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/509d.svg" alt="Period 3 property graph D" class="option-graphic white-graphic" loading="lazy" />',
         }
       },
       {
@@ -1038,7 +1066,7 @@
       {
         number: 65,
         code: '9701_m17_qp_12 Q: 15',
-        prompt: 'The magnitude of property X of five Period 3 elements P, Q, R, S and T is shown. P, Q, R, S and T have consecutive atomic numbers (letters do not represent symbols). Which row correctly identifies property X and element R?',
+        prompt: 'The magnitude of property X of five Period 3 elements P, Q, R, S and T is shown.<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/516.svg" alt="Property X magnitude diagram for Period 3 elements" class="theme-aware-graphic white-graphic" loading="lazy" /></div>P, Q, R, S and T have consecutive atomic numbers (letters do not represent symbols). Which row correctly identifies property X and element R?',
         optionTable: {
           headers: ['property X', 'element R'],
           rows: [
@@ -1054,10 +1082,10 @@
         code: '9701_s17_qp_11 Q: 13',
         prompt: 'Which graph correctly shows the relative melting points of the elements Mg, Al, Si and P plotted against their relative electronegativities?',
         options: {
-          A: 'Graph A (Al highest melting point, Mg below, Si mid, P lowest)',
-          B: 'Graph B (Si highest melting point, Mg and Al mid, P lowest)',
-          C: 'Graph C (Si highest, Al mid, Mg mid, P lowest at low electronegativity)',
-          D: 'Graph D (Al highest, Mg mid-high, Si mid, P lowest)',
+          A: 'Graph A (Al highest melting point, Mg below, Si mid, P lowest)<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/517a.svg" alt="Melting point vs electronegativity graph A" class="option-graphic white-graphic" loading="lazy" />',
+          B: 'Graph B (Si highest melting point, Mg and Al mid, P lowest)<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/517b.svg" alt="Melting point vs electronegativity graph B" class="option-graphic white-graphic" loading="lazy" />',
+          C: 'Graph C (Si highest, Al mid, Mg mid, P lowest at low electronegativity)<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/517c.svg" alt="Melting point vs electronegativity graph C" class="option-graphic white-graphic" loading="lazy" />',
+          D: 'Graph D (Al highest, Mg mid-high, Si mid, P lowest)<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/517d.svg" alt="Melting point vs electronegativity graph D" class="option-graphic white-graphic" loading="lazy" />',
         }
       },
       {
@@ -1065,10 +1093,10 @@
         code: '9701_s17_qp_12 Q: 13',
         prompt: 'Which graph correctly shows relative electronegativity plotted against relative atomic radius for Na, Mg, Al and Si?',
         options: {
-          A: 'Graph A (electronegativity increases as atomic radius decreases Na → Mg → Al → Si)',
-          B: 'Graph B (Si highest electronegativity at smallest radius; Al mid; Mg mid-large; Na largest radius lowest electronegativity)',
-          C: 'Graph C (Na highest electronegativity with largest radius; Si lowest with smallest radius)',
-          D: 'Graph D (Si highest electronegativity, Na lowest; Al and Mg in between, ordered by decreasing radius)',
+          A: 'Graph A (electronegativity increases as atomic radius decreases Na → Mg → Al → Si)<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/518a.svg" alt="Electronegativity vs atomic radius graph A" class="option-graphic white-graphic" loading="lazy" />',
+          B: 'Graph B (Si highest electronegativity at smallest radius; Al mid; Mg mid-large; Na largest radius lowest electronegativity)<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/518b.svg" alt="Electronegativity vs atomic radius graph B" class="option-graphic white-graphic" loading="lazy" />',
+          C: 'Graph C (Na highest electronegativity with largest radius; Si lowest with smallest radius)<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/518c.svg" alt="Electronegativity vs atomic radius graph C" class="option-graphic white-graphic" loading="lazy" />',
+          D: 'Graph D (Si highest electronegativity, Na lowest; Al and Mg in between, ordered by decreasing radius)<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/518d.svg" alt="Electronegativity vs atomic radius graph D" class="option-graphic white-graphic" loading="lazy" />',
         }
       },
       {
@@ -1088,7 +1116,7 @@
       {
         number: 69,
         code: '9701_w17_qp_11 Q: 13',
-        prompt: 'An element Y reacts according to the following sequence.<div class="table-wrapper"><table><tbody><tr><td>burns in O₂ → white solid → HCℓ(aq) → solution → NaOH(aq) → white precipitate → an excess of NaOH(aq) → solution</td></tr></tbody></table></div>What could element Y be?',
+        prompt: 'An element Y reacts according to the following sequence.<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/520.svg" alt="Reaction sequence for element Y" class="theme-aware-graphic white-graphic" loading="lazy" /></div>What could element Y be?',
         options: {
           A: 'Al',
           B: 'Ca',
@@ -1099,7 +1127,7 @@
       {
         number: 70,
         code: '9701_w17_qp_12 Q: 12',
-        prompt: 'The relative magnitude of property X of five Period 3 elements P, Q, R, S and T (consecutive atomic numbers) is shown. Which row shows a correct pairing of property X and element R?',
+        prompt: 'The relative magnitude of property X of five Period 3 elements P, Q, R, S and T (consecutive atomic numbers) is shown.<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/521.svg" alt="Property X magnitude for elements P to T" class="theme-aware-graphic white-graphic" loading="lazy" /></div>Which row shows a correct pairing of property X and element R?',
         optionTable: {
           headers: ['property X', 'element R'],
           rows: [
@@ -1137,10 +1165,10 @@
         code: '9701_s16_qp_12 Q: 13',
         prompt: 'Solid aluminium chloride sublimes at 178 °C. Which structure best represents the species in the vapour at this temperature?',
         options: {
-          A: 'dimer Al₂Cl₆ with two bridging chlorides',
-          B: 'cyclic (AlCl₃)₃ trimer',
-          C: 'monomer AlCl₃',
-          D: 'Al³⁺(Cl⁻)₃ ionic species',
+          A: 'dimer Al₂Cl₆ with two bridging chlorides<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/524a.svg" alt="Aluminium chloride structure option A" class="option-graphic white-graphic" loading="lazy" />',
+          B: 'cyclic (AlCl₃)₃ trimer<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/524b.svg" alt="Aluminium chloride structure option B" class="option-graphic white-graphic" loading="lazy" />',
+          C: 'monomer AlCl₃<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/524c.svg" alt="Aluminium chloride structure option C" class="option-graphic white-graphic" loading="lazy" />',
+          D: 'Al³⁺(Cl⁻)₃ ionic species<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/524d.svg" alt="Aluminium chloride structure option D" class="option-graphic white-graphic" loading="lazy" />',
         }
       },
       {
@@ -1192,10 +1220,10 @@
         code: '9701_s15_qp_12 Q: 15',
         prompt: 'Which diagram correctly shows the electronegativity of Na, Mg, Al and Si plotted against their first ionisation energies?',
         options: {
-          A: 'Graph A (Na lowest at both axes; Mg, Al mid; Si highest for both)',
-          B: 'Graph B (Na lowest; Mg mid ionisation/low electronegativity; Al mid-high; Si highest)',
-          C: 'Graph C (Na lowest electronegativity and mid ionisation; Si lowest ionisation; Mg mid; Al highest)',
-          D: 'Graph D (Na lowest; Mg highest ionisation but low electronegativity; Al mid; Si lowest ionisation)',
+          A: 'Graph A (Na lowest at both axes; Mg, Al mid; Si highest for both)<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/529a.svg" alt="Electronegativity vs ionisation energy graph A" class="option-graphic white-graphic" loading="lazy" />',
+          B: 'Graph B (Na lowest; Mg mid ionisation/low electronegativity; Al mid-high; Si highest)<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/529b.svg" alt="Electronegativity vs ionisation energy graph B" class="option-graphic white-graphic" loading="lazy" />',
+          C: 'Graph C (Na lowest electronegativity and mid ionisation; Si lowest ionisation; Mg mid; Al highest)<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/529c.svg" alt="Electronegativity vs ionisation energy graph C" class="option-graphic white-graphic" loading="lazy" />',
+          D: 'Graph D (Na lowest; Mg highest ionisation but low electronegativity; Al mid; Si lowest ionisation)<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/529d.svg" alt="Electronegativity vs ionisation energy graph D" class="option-graphic white-graphic" loading="lazy" />',
         }
       },
       {
@@ -1245,7 +1273,7 @@
       {
         number: 83,
         code: '9701_s19_qp_11 Q: 13',
-        prompt: 'The relative melting points of four consecutive elements in the Periodic Table (proton numbers &lt; 20) are shown. Which element is in Group 16?',
+        prompt: 'The relative melting points of four consecutive elements in the Periodic Table (proton numbers &lt; 20) are shown.<div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/534.svg" alt="Relative melting points diagram for four elements" class="theme-aware-graphic white-graphic" loading="lazy" /></div>Which element is in Group 16?',
         options: {
           A: 'the element at point A',
           B: 'the element at point B',
