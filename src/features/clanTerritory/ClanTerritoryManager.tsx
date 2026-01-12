@@ -609,6 +609,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
           gameState={gameState}
           playerId={playerId}
           fallbackPlayer={playerFallback ?? undefined}
+          onRewardsClaimed={handleRefreshProfile}
           onSelectZone={(zoneId) => {
             console.log('[ClanTerritoryManager] onSelectZone called:', { zoneId, roomId, playerId });
             if (!roomId) {
