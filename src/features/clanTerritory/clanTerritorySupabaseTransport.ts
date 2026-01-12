@@ -101,9 +101,9 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     playerName: string,
     clanId: string,
     clanName: string,
-    options?: { clanColor?: string }
+    options?: { clanColor?: string; playerId?: string }
   ): Promise<PlayerId> {
-    const playerId = crypto.randomUUID();
+    const playerId = options?.playerId ?? crypto.randomUUID();
     this.isHost = false;
     
     this.setupChannel(roomId);

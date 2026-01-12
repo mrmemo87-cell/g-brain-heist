@@ -23,8 +23,11 @@ const CLANLESS_CLAN_ID_PREFIX = "clanless-agent";
 const CLANLESS_CLAN_LABEL = "Independent Agents";
 const CLANLESS_CLAN_NAME = "Independent Agent";
 
-const createClanlessIdentity = (playerName: string) => {
-  const clanId = `${CLANLESS_CLAN_ID_PREFIX}-${crypto.randomUUID()}` as ClanId;
+const createClanlessIdentity = (playerName: string, playerId?: string | null) => {
+  const stableId = playerId
+    ? `${CLANLESS_CLAN_ID_PREFIX}-${playerId}`
+    : `${CLANLESS_CLAN_ID_PREFIX}-${crypto.randomUUID()}`;
+  const clanId = stableId as ClanId;
   return {
     clanId,
     clanName: `${CLANLESS_CLAN_NAME} (${playerName})`,
@@ -313,8 +316,15 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     if (!discoveredRoom) return;
     const allowClanless = discoveredRoom.allowClanlessPlayers || gameState.allowClanlessPlayers;
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const storageKey = `clan-territory-player:${discoveredRoom.id}`;
+      const storedPlayerId = typeof window !== "undefined" ? sessionStorage.getItem(storageKey) : null;
+      const stablePlayerId = user?.id ?? storedPlayerId ?? crypto.randomUUID();
+      if (typeof window !== "undefined" && !storedPlayerId) {
+        sessionStorage.setItem(storageKey, stablePlayerId);
+      }
       const clanlessAssigned = allowClanless && (!resolvedClanId || !resolvedClanName);
-      const clanlessIdentity = clanlessAssigned ? createClanlessIdentity(playerName) : null;
+      const clanlessIdentity = clanlessAssigned ? createClanlessIdentity(playerName, stablePlayerId) : null;
       if (!resolvedClanId || !resolvedClanName) {
         if (!clanlessAssigned) {
           throw new Error("You must be in a clan to join the Arena. Go to the Clans section to join a clan first.");
@@ -328,7 +338,10 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
         playerName,
         activeClanId,
         activeClanName,
-        activeClanColor ? { clanColor: activeClanColor } : undefined
+        {
+          clanColor: activeClanColor,
+          playerId: stablePlayerId,
+        }
       );
       setRoomId(discoveredRoom.id);
       setPlayerId(pid);

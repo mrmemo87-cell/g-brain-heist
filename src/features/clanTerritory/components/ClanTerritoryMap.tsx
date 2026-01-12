@@ -239,6 +239,10 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   mapId = 'default',
 }) => {
   const [cityMapLoaded, setCityMapLoaded] = useState(false);
+  const clanEntries = Object.values(clans);
+  const maxLegendEntries = 6;
+  const visibleClans = clanEntries.slice(0, maxLegendEntries);
+  const hiddenClanCount = Math.max(0, clanEntries.length - visibleClans.length);
 
   // Lazy-load the large city map (2.7MB) on first use to prevent startup lag
   useEffect(() => {
@@ -613,11 +617,11 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       </div>
 
       {!hideLegend && (
-        <div className="absolute top-4 right-4 bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-3 space-y-2 max-h-72 overflow-y-auto z-10">
+        <div className="absolute top-4 right-4 bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-3 space-y-2 max-h-60 w-44 overflow-y-auto z-10">
           <h4 className="text-xs font-bold text-white uppercase tracking-wide">
             Active Clans
           </h4>
-          {Object.values(clans).map((clan) => (
+          {visibleClans.map((clan) => (
             <div key={clan.id} className="flex items-center gap-2 text-xs">
               <div
                 className="w-3 h-3 rounded-full"
@@ -626,6 +630,11 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
               <span className="text-white font-semibold">{clan.name}</span>
             </div>
           ))}
+          {hiddenClanCount > 0 && (
+            <div className="text-[11px] text-slate-400 font-semibold">
+              +{hiddenClanCount} more clans
+            </div>
+          )}
         </div>
       )}
 
