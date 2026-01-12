@@ -8,14 +8,14 @@ export interface ClanMetadata {
 }
 
 const CLAN_COLOR_PALETTE = [
-  "#f97316",
-  "#0ea5e9",
-  "#10b981",
-  "#a855f7",
-  "#f43f5e",
-  "#14b8a6",
-  "#6366f1",
-  "#eab308",
+  "#e11d48", // rose
+  "#2563eb", // blue
+  "#16a34a", // green
+  "#f59e0b", // amber
+  "#9333ea", // purple
+  "#0d9488", // teal
+  "#db2777", // pink
+  "#06b6d4", // cyan
 ];
 
 export const getClanColor = (clanId: string): string => {
