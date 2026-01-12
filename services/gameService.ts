@@ -3396,47 +3396,46 @@ export const deactivate_glitch_effect = async (): Promise<void> => {
 };
 
 export const clan_list = async (): Promise<ClanSummary[]> => {
-    // Fetch clans with member XP sum
-    const { data: clans, error } = await supabase
-        .from('clans')
-        .select(`
-            id,
-            name,
-            notice,
-            member_count,
-            vault_coins,
-            clan_members!inner (
-                users!inner (xp, pvp_score)
-            )
-        `);
-    
+    const { data: clanScores, error } = await supabase.rpc('get_school_clan_leaderboard', { p_limit: 50 });
+
     if (error) {
         console.error('Error fetching clans:', error);
         return mockApiCall([]);
     }
-    
-    // Calculate total XP from all members
-    const mappedClans = (clans || []).map((clan: any) => {
-        const totalScore = clan.clan_members?.reduce((sum: number, member: any) => {
-            const xp = member.users?.xp || 0;
-            const pvp = member.users?.pvp_score || 0;
-            return sum + calculateTotalScore(xp, pvp);
-        }, 0) || 0;
-        
-        // Get actual member count from array length
-        const actualMemberCount = clan.clan_members?.length || 0;
-        
+
+    const clanIds = (clanScores || []).map((clan: any) => clan.id).filter(Boolean);
+    let metaById = new Map<string, { notice?: string; crest_url?: string }>();
+
+    if (clanIds.length > 0) {
+        const { data: clanMeta, error: metaError } = await supabase
+            .from('clans')
+            .select('id, notice, crest_url')
+            .in('id', clanIds);
+
+        if (metaError) {
+            console.warn('Failed to load clan metadata:', metaError);
+        } else if (clanMeta) {
+            metaById = new Map(
+                clanMeta.map((clan: any) => [clan.id, { notice: clan.notice, crest_url: clan.crest_url }])
+            );
+        }
+    }
+
+    const mappedClans = (clanScores || []).map((clan: any) => {
+        const meta = metaById.get(clan.id);
+        const totalScore = Number(clan.clan_total_score ?? 0);
+
         return {
             id: clan.id,
             name: clan.name,
-            notice: clan.notice,
-            member_count: actualMemberCount,
+            notice: meta?.notice,
+            crest_url: meta?.crest_url,
+            member_count: Number(clan.member_count ?? 0),
             vault_metric: totalScore,
-            vault_coins: clan.vault_coins,
             clan_total_score: totalScore,
         };
     });
-    
+
     return mockApiCall(mappedClans);
 };
 
