@@ -16,6 +16,47 @@ import { calculateRegionStats } from "./regionCalculator.js";
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
+const PLAYER_COLOR_PALETTE = [
+  "#38bdf8", // sky-400
+  "#f97316", // orange-500
+  "#22c55e", // green-500
+  "#a855f7", // purple-500
+  "#f43f5e", // rose-500
+  "#eab308", // yellow-500
+  "#14b8a6", // teal-500
+  "#6366f1", // indigo-500
+  "#f59e0b", // amber-500
+  "#ec4899", // pink-500
+];
+
+const hashToPaletteColor = (seed: string) => {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash << 5) - hash + seed.charCodeAt(i);
+    hash |= 0;
+  }
+  const index = Math.abs(hash) % PLAYER_COLOR_PALETTE.length;
+  return PLAYER_COLOR_PALETTE[index];
+};
+
+const assignParticipantColor = (state: GameState, action: JoinGameAction) => {
+  const existingPlayers = Object.values(state.players);
+  if (action.clanId) {
+    const existingClanColor = existingPlayers.find((player) => player.clanId === action.clanId && player.color)?.color;
+    if (existingClanColor) {
+      return existingClanColor;
+    }
+  }
+
+  const usedColors = new Set(existingPlayers.map((player) => player.color).filter(Boolean));
+  const availableColor = PLAYER_COLOR_PALETTE.find((color) => !usedColors.has(color));
+  if (availableColor) {
+    return availableColor;
+  }
+
+  return hashToPaletteColor(action.clanId ?? action.playerId);
+};
+
 const getEntryRouteModifier = (
   roomSettings: RoomSettings,
   route?: EntryRoute,
@@ -68,6 +109,7 @@ const applyJoin = (state: GameState, action: JoinGameAction): GameState => {
     clanId: action.clanId,
     clanName: action.clanName,
     clanAvatarUrl: action.clanAvatarUrl,
+    color: assignParticipantColor(state, action),
   };
   return { ...state, players: { ...state.players, [action.playerId]: player } };
 };
@@ -401,4 +443,3 @@ export const applyAction = (state: GameState, action: GameAction): GameState => 
   
   return updatedState;
 };
-

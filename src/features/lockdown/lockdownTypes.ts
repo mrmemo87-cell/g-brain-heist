@@ -97,6 +97,7 @@ export type PlayerState = {
   clanId?: string;
   clanName?: string;
   clanAvatarUrl?: string;
+  color?: string;
   currentRegion?: string;
 };
 
@@ -242,4 +243,3 @@ export type GameAction =
   | PauseGameAction
   | ResumeGameAction
   | KickPlayerAction;
-

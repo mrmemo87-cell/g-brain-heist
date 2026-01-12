@@ -113,7 +113,7 @@ export const calculateRegionStats = (state: GameState): Record<string, RegionSta
       // Get clan name from first player
       const clanName = clanData.players[0]?.clanName || "Unknown";
       const avatarUrl = clanData.players[0]?.clanAvatarUrl;
-      const color = getClanColor(clanId);
+      const color = clanData.players.find((player) => player.color)?.color ?? getClanColor(clanId);
 
       clanStatsArray.push({
         clanId,
