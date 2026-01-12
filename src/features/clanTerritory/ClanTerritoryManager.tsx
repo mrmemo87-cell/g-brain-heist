@@ -18,9 +18,18 @@ interface ClanTerritoryManagerProps {
   onGoToClan?: () => void;
 }
 
-const CLANLESS_CLAN_ID = "clanless-agents" as ClanId;
-const CLANLESS_CLAN_NAME = "Independent Agents";
-const CLANLESS_CLAN_COLOR = "#94a3b8";
+const CLANLESS_CLAN_ID_PREFIX = "clanless-agent";
+const CLANLESS_CLAN_LABEL = "Independent Agents";
+const CLANLESS_CLAN_NAME = "Independent Agent";
+
+const createClanlessIdentity = (playerName: string) => {
+  const clanId = `${CLANLESS_CLAN_ID_PREFIX}-${crypto.randomUUID()}` as ClanId;
+  return {
+    clanId,
+    clanName: `${CLANLESS_CLAN_NAME} (${playerName})`,
+    clanColor: getClanColor(clanId),
+  };
+};
 
 const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   onExit,
@@ -278,25 +287,29 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     const allowClanless = discoveredRoom.allowClanlessPlayers || gameState.allowClanlessPlayers;
     try {
       const clanlessAssigned = allowClanless && (!resolvedClanId || !resolvedClanName);
+      const clanlessIdentity = clanlessAssigned ? createClanlessIdentity(playerName) : null;
       if (!resolvedClanId || !resolvedClanName) {
         if (!clanlessAssigned) {
           throw new Error("You must be in a clan to join the Arena. Go to the Clans section to join a clan first.");
         }
       }
+      const activeClanId = clanlessAssigned ? clanlessIdentity!.clanId : (resolvedClanId as ClanId);
+      const activeClanName = clanlessAssigned ? clanlessIdentity!.clanName : (resolvedClanName as string);
+      const activeClanColor = clanlessAssigned ? clanlessIdentity!.clanColor : undefined;
       const pid = await transport.joinRoom(
         discoveredRoom.id,
         playerName,
-        clanlessAssigned ? CLANLESS_CLAN_ID : (resolvedClanId as ClanId),
-        clanlessAssigned ? CLANLESS_CLAN_NAME : (resolvedClanName as string),
-        clanlessAssigned ? { clanColor: CLANLESS_CLAN_COLOR } : undefined
+        activeClanId,
+        activeClanName,
+        activeClanColor ? { clanColor: activeClanColor } : undefined
       );
       setRoomId(discoveredRoom.id);
       setPlayerId(pid);
       setPlayerFallback({
         id: pid,
         name: playerName,
-        clanId: clanlessAssigned ? CLANLESS_CLAN_ID : (resolvedClanId as ClanId),
-        clanName: clanlessAssigned ? CLANLESS_CLAN_NAME : (resolvedClanName as string),
+        clanId: activeClanId,
+        clanName: activeClanName,
       });
       setMode("player");
     } catch (e) {
@@ -448,7 +461,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
               <div className="space-y-1">
                 <p className="text-sm font-bold text-white">Allow independent agents</p>
                 <p className="text-xs text-gray-400">
-                  Let students without a clan join this battle as "{CLANLESS_CLAN_NAME}"
+                  Let students without a clan join this battle as "{CLANLESS_CLAN_LABEL}"
                 </p>
               </div>
               <label className="inline-flex items-center cursor-pointer">
@@ -653,7 +666,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                     </div>
                   ) : allowClanlessEntry ? (
                     <div className="p-3 rounded-xl border border-emerald-500/50 bg-emerald-500/10 text-center text-emerald-200 text-sm">
-                      Teacher enabled independent agents. You can join as {CLANLESS_CLAN_NAME} without a clan.
+                      Teacher enabled independent agents. You can join as {CLANLESS_CLAN_LABEL} without a clan.
                     </div>
                   ) : clanLoadTimeout ? (
                     <div className="space-y-3">
