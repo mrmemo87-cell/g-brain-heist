@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { SupabaseClanTerritoryTransport } from "./clanTerritorySupabaseTransport";
 import { ClanTerritoryTeacherView } from "./components/ClanTerritoryTeacherView";
 import { ClanTerritoryStudentView } from "./components/ClanTerritoryStudentView";
@@ -7,6 +7,7 @@ import { ClanTerritoryErrorBoundary } from "./components/ClanTerritoryErrorBound
 import { ClanTerritoryGameState, ClanId, getClanColor } from "./clanTerritoryTypes";
 import { INITIAL_STATE } from "./clanTerritoryEngine";
 import { supabase } from "../../../services/supabaseClient";
+import { audioService } from "../../../services/audioService";
 
 interface ClanTerritoryManagerProps {
   onExit: () => void;
@@ -64,6 +65,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const [isRefreshingProfile, setIsRefreshingProfile] = useState(false);
   const [allowClanlessPlayers, setAllowClanlessPlayers] = useState(false);
   const [userSchoolId, setUserSchoolId] = useState<string | null>(null);
+  const previousBgMusicEnabled = useRef<boolean | null>(null);
 
   const durationPercentage = ((durationMinutes - 2) / 18) * 100;
 
@@ -233,6 +235,31 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       return () => unsubscribe();
     }
   }, [roomId, transport]);
+
+  const shouldPlayMusic =
+    Boolean(roomId) &&
+    (mode === "host" || mode === "player") &&
+    gameState.phase !== "ENDED";
+
+  useEffect(() => {
+    if (shouldPlayMusic) {
+      if (previousBgMusicEnabled.current === null) {
+        previousBgMusicEnabled.current = audioService.isBgMusicEnabled();
+      }
+      if (!audioService.isBgMusicEnabled()) {
+        audioService.setBgMusicEnabled(true);
+      } else {
+        audioService.playBackgroundMusic();
+      }
+    }
+
+    return () => {
+      if (previousBgMusicEnabled.current !== null) {
+        audioService.setBgMusicEnabled(previousBgMusicEnabled.current);
+        previousBgMusicEnabled.current = null;
+      }
+    };
+  }, [shouldPlayMusic]);
 
   // Cleanup on unmount - prevent memory leaks
   useEffect(() => {
