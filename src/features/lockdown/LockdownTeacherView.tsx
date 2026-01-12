@@ -168,8 +168,18 @@ export const LockdownTeacherView: React.FC<LockdownTeacherViewProps> = ({
                     className="group flex items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-4 transition hover:border-emerald-500/40 hover:bg-slate-900"
                   >
                     <div className="space-y-1">
-                      <p className="text-sm font-semibold text-white sm:text-base">{p.name}</p>
-                      <p className="text-xs text-slate-400">Heat {p.heat}% · Coins {p.coins}</p>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="h-3 w-3 rounded-full border border-slate-900/80"
+                          style={{ backgroundColor: p.color ?? "#94a3b8" }}
+                          aria-hidden="true"
+                        />
+                        <p className="text-sm font-semibold text-white sm:text-base">{p.name}</p>
+                      </div>
+                      <p className="text-xs text-slate-400">
+                        Heat {p.heat}% · Coins {p.coins}
+                        {p.clanName ? ` · ${p.clanName}` : ""}
+                      </p>
                     </div>
                     <div className="flex flex-col items-end gap-2">
                       {p.mostWanted && (
