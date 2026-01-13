@@ -87,6 +87,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const [activeScheduledStartAt, setActiveScheduledStartAt] = useState<string | null>(null);
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const previousBgMusicEnabled = useRef<boolean | null>(null);
+  const discoveredRoomsRef = useRef<Record<string, DiscoveredRoom>>({});
 
   const durationPercentage = ((durationMinutes - 2) / 18) * 100;
 
@@ -321,6 +322,10 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   }, [isTeacher, mode, transport, userSchoolId]);
 
   useEffect(() => {
+    discoveredRoomsRef.current = discoveredRooms;
+  }, [discoveredRooms]);
+
+  useEffect(() => {
     if (isTeacher || mode !== "menu") return;
 
     const interval = setInterval(() => {
@@ -442,7 +447,34 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
   const handleJoinRoom = async (targetRoomId: string) => {
     if (!targetRoomId) return;
-    const roomMetadata = discoveredRooms[targetRoomId];
+    const waitForDiscovery = async () => {
+      const initialRoom = discoveredRoomsRef.current[targetRoomId];
+      if (initialRoom && Date.now() - initialRoom.lastSeen < 10000) {
+        return true;
+      }
+      return new Promise<boolean>((resolve) => {
+        const interval = setInterval(() => {
+          const room = discoveredRoomsRef.current[targetRoomId];
+          if (room && Date.now() - room.lastSeen < 10000) {
+            clearInterval(interval);
+            clearTimeout(timeout);
+            resolve(true);
+          }
+        }, 200);
+        const timeout = setTimeout(() => {
+          clearInterval(interval);
+          resolve(false);
+        }, 3000);
+      });
+    };
+
+    const roomAvailable = await waitForDiscovery();
+    if (!roomAvailable) {
+      alert("No active arena found with that code. Ask your teacher for a fresh code and try again.");
+      return;
+    }
+
+    const roomMetadata = discoveredRoomsRef.current[targetRoomId];
     const allowClanless = roomMetadata?.allowClanlessPlayers ?? gameState.allowClanlessPlayers ?? false;
     try {
       const { data: { user } } = await supabase.auth.getUser();
