@@ -30,6 +30,28 @@ const MAX_QUESTION_XP = 30;
 
 const getQuestionTopicLabel = (question: TeacherQuestion) => question.topic_name || question.topic || 'General';
 
+const WRITING_TEST_NAMES = ['Cambridge Writing Test 1', 'Cambridge Writing Test 2'];
+
+const WRITING_TEST_METADATA: Record<string, {
+  part1Label: string;
+  part1Context: string;
+  part2Label: string;
+  part2Context: string;
+}> = {
+  'Cambridge Writing Test 1': {
+    part1Label: 'Message',
+    part1Context: 'Photography lessons',
+    part2Label: 'Essay',
+    part2Context: 'Online vs shop shopping',
+  },
+  'Cambridge Writing Test 2': {
+    part1Label: 'Email',
+    part1Context: 'Band email to Sam',
+    part2Label: 'Story',
+    part2Context: 'Midnight phone call story',
+  },
+};
+
 const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLockdown }) => {
   const [view, setView] = useState<PortalView>('dashboard');
   const [teacher, setTeacher] = useState<Teacher | null>(null);
@@ -1240,7 +1262,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const bulkProofreadWriting = async (releaseToStudent: boolean) => {
     // Get all writing submissions that need marking
     const writingSubmissions = cambridgeScores.filter(
-      s => s.quiz_name === 'Cambridge Writing Test 1' && s.answers?.requires_marking
+      s => WRITING_TEST_NAMES.includes(s.quiz_name) && s.answers?.requires_marking
     );
 
     if (writingSubmissions.length === 0) {
@@ -3541,7 +3563,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       return scores;
     };
     const tabScores = getTabScores();
-    const pendingWriting = cambridgeScores.filter(s => s.quiz_name === 'Cambridge Writing Test 1' && s.answers?.requires_marking).length;
+    const pendingWriting = cambridgeScores.filter(s => WRITING_TEST_NAMES.includes(s.quiz_name) && s.answers?.requires_marking).length;
 
     return (
     <div className="space-y-4 text-black">
@@ -3607,7 +3629,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               </button>
               {uniqueCambridgeQuizNames.map(name => {
                 const count = cambridgeScores.filter(s => s.quiz_name === name).length;
-                const isWriting = name === 'Cambridge Writing Test 1';
+                const isWriting = WRITING_TEST_NAMES.includes(name);
                 const needsMarking = isWriting ? cambridgeScores.filter(s => s.quiz_name === name && s.answers?.requires_marking).length : 0;
                 return (
                   <button
@@ -3648,8 +3670,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               </span>
               
               {/* Bulk AI Proofread buttons - only for Writing Test tab */}
-              {cambridgeActiveTab === 'Cambridge Writing Test 1' && (() => {
-                const pendingCount = cambridgeScores.filter(s => s.quiz_name === 'Cambridge Writing Test 1' && s.answers?.requires_marking).length;
+              {WRITING_TEST_NAMES.includes(cambridgeActiveTab) && (() => {
+                const pendingCount = cambridgeScores.filter(s => s.quiz_name === cambridgeActiveTab && s.answers?.requires_marking).length;
                 return pendingCount > 0 ? (
                   <div className="flex items-center gap-2 ml-auto">
                     {bulkProofreadLoading ? (
@@ -3696,7 +3718,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {tabScores.map((score) => {
-                    const isWritingTest = score.quiz_name === 'Cambridge Writing Test 1';
+                    const isWritingTest = WRITING_TEST_NAMES.includes(score.quiz_name);
                     const needsMarking = isWritingTest && score.answers?.requires_marking;
                     return (
                       <tr key={score.id} className={`hover:bg-gray-50 ${needsMarking ? 'bg-amber-50' : ''}`}>
@@ -4061,7 +4083,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         const quizName = selectedCambridgeStudent.quiz_name;
         
         // Special handling for Writing Test
-        if (quizName === 'Cambridge Writing Test 1') {
+        if (WRITING_TEST_NAMES.includes(quizName)) {
+          const writingMeta = WRITING_TEST_METADATA[quizName] ?? WRITING_TEST_METADATA['Cambridge Writing Test 1'];
           const feedback = answers.feedback || {};
           
           return (
@@ -4109,8 +4132,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   {/* Part 1 */}
                   <div className="border-2 border-blue-200 rounded-xl overflow-hidden">
                     <div className="bg-blue-100 p-4">
-                      <h3 className="text-lg font-bold text-blue-800">📝 Part 1: Message</h3>
-                      <p className="text-sm text-blue-600">Photography lessons • Word count: {answers.part1_words || 0} (Target: 45-55)</p>
+                      <h3 className="text-lg font-bold text-blue-800">📝 Part 1: {writingMeta.part1Label}</h3>
+                      <p className="text-sm text-blue-600">{writingMeta.part1Context} • Word count: {answers.part1_words || 0} (Target: 45-55)</p>
                     </div>
                     <div className="p-4">
                       <label className="text-sm font-semibold text-gray-700 block mb-2">Student's Original Response:</label>
@@ -4154,8 +4177,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   {/* Part 2 */}
                   <div className="border-2 border-indigo-200 rounded-xl overflow-hidden">
                     <div className="bg-indigo-100 p-4">
-                      <h3 className="text-lg font-bold text-indigo-800">📝 Part 2: Essay</h3>
-                      <p className="text-sm text-indigo-600">Online vs shop shopping • Word count: {answers.part2_words || 0} (Target: 110-130)</p>
+                      <h3 className="text-lg font-bold text-indigo-800">📝 Part 2: {writingMeta.part2Label}</h3>
+                      <p className="text-sm text-indigo-600">{writingMeta.part2Context} • Word count: {answers.part2_words || 0} (Target: 110-130)</p>
                     </div>
                     <div className="p-4">
                       <label className="text-sm font-semibold text-gray-700 block mb-2">Student's Original Response:</label>
@@ -4398,6 +4421,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                           writingMarks.part2.organisation + writingMarks.part2.language;
         const totalScore = part1Total + part2Total;
         const percentage = Math.round((totalScore / 35) * 100);
+        const writingMeta = WRITING_TEST_METADATA[selectedCambridgeStudent.quiz_name] ?? WRITING_TEST_METADATA['Cambridge Writing Test 1'];
         
         return (
           <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/90 p-4 overflow-y-auto">
@@ -4461,8 +4485,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 {/* Part 1 */}
                 <div className="border-2 border-blue-200 rounded-xl overflow-hidden">
                   <div className="bg-blue-100 p-4">
-                    <h3 className="text-lg font-bold text-blue-800">📝 Part 1: Message (15 marks)</h3>
-                    <p className="text-sm text-blue-600">Photography lessons message • Target: 45-55 words • Actual: {answers.part1_words || 0} words</p>
+                    <h3 className="text-lg font-bold text-blue-800">📝 Part 1: {writingMeta.part1Label} (15 marks)</h3>
+                    <p className="text-sm text-blue-600">{writingMeta.part1Context} • Target: 45-55 words • Actual: {answers.part1_words || 0} words</p>
                   </div>
                   
                   {/* Student's Answer */}
@@ -4631,8 +4655,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 {/* Part 2 */}
                 <div className="border-2 border-indigo-200 rounded-xl overflow-hidden">
                   <div className="bg-indigo-100 p-4">
-                    <h3 className="text-lg font-bold text-indigo-800">📝 Part 2: Essay (20 marks)</h3>
-                    <p className="text-sm text-indigo-600">Online vs shop shopping essay • Target: 110-130 words • Actual: {answers.part2_words || 0} words</p>
+                    <h3 className="text-lg font-bold text-indigo-800">📝 Part 2: {writingMeta.part2Label} (20 marks)</h3>
+                    <p className="text-sm text-indigo-600">{writingMeta.part2Context} • Target: 110-130 words • Actual: {answers.part2_words || 0} words</p>
                   </div>
                   
                   {/* Student's Answer */}

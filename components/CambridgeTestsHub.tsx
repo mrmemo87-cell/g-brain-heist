@@ -63,6 +63,18 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     requiresMarking: true,
   },
   {
+    id: 'cambridge-writing-2',
+    name: 'Cambridge Writing Test 2',
+    description: 'E2L Stage 9 Paper 3 writing test with 2 parts: an email (45-55 words) and a story (110-130 words). Teacher-marked.',
+    duration: '45 min',
+    totalQuestions: 2,
+    difficulty: 'Intermediate',
+    category: 'Writing',
+    subject: 'English stage 9',
+    url: '/cambridge-tests/English%20stage%209/cambridge_writing_test_2.html',
+    requiresMarking: true,
+  },
+  {
     id: 'as-chemistry-atomic-structure',
     name: 'AS Chemistry — Atomic Structure',
     description: 'Chapter 1 multiple-choice practice focusing on protons, neutrons, electrons, isotopes, and particle behaviour in fields.',
