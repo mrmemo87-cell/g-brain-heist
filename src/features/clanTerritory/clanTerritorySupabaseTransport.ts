@@ -5,7 +5,7 @@ import { clanTerritoryReducer, INITIAL_STATE } from "./clanTerritoryEngine";
 
 export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
   private channel: any;
-  private discoveryChannel: any;
+  private discoveryChannels: any[] = [];
   private discoveryBroadcastInterval: any;
   private tickInterval: any = null;
   private visibilityListener: (() => void) | null = null;
@@ -42,36 +42,45 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
 
   // --- Discovery Logic ---
   private startBroadcastingDiscovery(roomId: RoomId) {
-    // Use school-specific discovery channel to isolate rooms between schools
-    const channelName = this.schoolId 
-      ? `clan-territory-discovery:${this.schoolId}` 
-      : 'clan-territory-discovery:global';
-    
-    this.discoveryChannel = supabase.channel(channelName, {
-      config: {
-        broadcast: { ack: false },
-      },
-    });
-    this.discoveryChannel.subscribe((status: string) => {
-      if (status === 'SUBSCRIBED') {
-        // Broadcast presence periodically
-        this.discoveryBroadcastInterval = setInterval(() => {
-          if (this.discoveryChannel && this.discoveryChannel.state === 'joined') {
-            this.discoveryChannel.send({
-              type: 'broadcast',
-              event: 'room_open',
-              payload: {
-                roomId,
-                allowClanlessPlayers: this.allowClanlessPlayers,
-                schoolId: this.schoolId,
-                teacherName: this.teacherName,
-                classCode: this.classCode,
-                scheduledStartAt: this.scheduledStartAt,
+    const channelNames = this.schoolId
+      ? [
+          `clan-territory-discovery:${this.schoolId}`,
+          'clan-territory-discovery:global',
+        ]
+      : ['clan-territory-discovery:global'];
+
+    this.discoveryChannels = channelNames.map((channelName) =>
+      supabase.channel(channelName, {
+        config: {
+          broadcast: { ack: false },
+        },
+      })
+    );
+
+    this.discoveryChannels.forEach((channel) => {
+      channel.subscribe((status: string) => {
+        if (status === 'SUBSCRIBED' && !this.discoveryBroadcastInterval) {
+          // Broadcast presence periodically
+          this.discoveryBroadcastInterval = setInterval(() => {
+            this.discoveryChannels.forEach((activeChannel) => {
+              if (activeChannel && activeChannel.state === 'joined') {
+                activeChannel.send({
+                  type: 'broadcast',
+                  event: 'room_open',
+                  payload: {
+                    roomId,
+                    allowClanlessPlayers: this.allowClanlessPlayers,
+                    schoolId: this.schoolId,
+                    teacherName: this.teacherName,
+                    classCode: this.classCode,
+                    scheduledStartAt: this.scheduledStartAt,
+                  },
+                });
               }
             });
-          }
-        }, 2000);
-      }
+          }, 2000);
+        }
+      });
     });
   }
 
@@ -80,9 +89,11 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
       clearInterval(this.discoveryBroadcastInterval);
       this.discoveryBroadcastInterval = null;
     }
-    if (this.discoveryChannel) {
-      supabase.removeChannel(this.discoveryChannel);
-      this.discoveryChannel = null;
+    if (this.discoveryChannels.length > 0) {
+      this.discoveryChannels.forEach((channel) => {
+        supabase.removeChannel(channel);
+      });
+      this.discoveryChannels = [];
     }
   }
 
@@ -98,28 +109,39 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
       }
     ) => void
   ) {
-    // Listen on school-specific discovery channel to only see rooms from same school
-    const channelName = schoolId 
-      ? `clan-territory-discovery:${schoolId}` 
-      : 'clan-territory-discovery:global';
-    
-    this.discoveryChannel = supabase.channel(channelName);
-    this.discoveryChannel
-      .on('broadcast', { event: 'room_open' }, (payload: any) => {
-        onRoomFound(payload.payload.roomId, {
-          allowClanlessPlayers: payload.payload.allowClanlessPlayers,
-          teacherName: payload.payload.teacherName,
-          classCode: payload.payload.classCode,
-          scheduledStartAt: payload.payload.scheduledStartAt,
-        });
-      })
-      .subscribe();
+    const channelNames = schoolId
+      ? [
+          `clan-territory-discovery:${schoolId}`,
+          'clan-territory-discovery:global',
+        ]
+      : ['clan-territory-discovery:global'];
+
+    this.discoveryChannels = channelNames.map((channelName) => supabase.channel(channelName));
+
+    this.discoveryChannels.forEach((channel) => {
+      channel
+        .on('broadcast', { event: 'room_open' }, (payload: any) => {
+          const roomPayload = payload.payload ?? {};
+          if (schoolId && roomPayload.schoolId && roomPayload.schoolId !== schoolId) {
+            return;
+          }
+          onRoomFound(roomPayload.roomId, {
+            allowClanlessPlayers: roomPayload.allowClanlessPlayers,
+            teacherName: roomPayload.teacherName,
+            classCode: roomPayload.classCode,
+            scheduledStartAt: roomPayload.scheduledStartAt,
+          });
+        })
+        .subscribe();
+    });
   }
 
   stopDiscovery() {
-    if (this.discoveryChannel) {
-      supabase.removeChannel(this.discoveryChannel);
-      this.discoveryChannel = null;
+    if (this.discoveryChannels.length > 0) {
+      this.discoveryChannels.forEach((channel) => {
+        supabase.removeChannel(channel);
+      });
+      this.discoveryChannels = [];
     }
   }
   // -----------------------
