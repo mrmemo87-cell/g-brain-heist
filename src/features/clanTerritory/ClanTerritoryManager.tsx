@@ -291,6 +291,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       // This ensures zones are created for the correct map before any other state changes
       await transport.sendAction(id, { type: "SET_MAP", payload: { mapId: selectedMap } });
       await transport.sendAction(id, { type: "SET_ALLOW_CLANLESS", payload: { allow: allowClanlessPlayers } });
+      await transport.sendAction(id, { type: "SET_DURATION", payload: { duration: durationMinutes * 60 } });
       await transport.sendAction(id, { type: "SET_QUESTIONS", payload: { questions } });
       
       setRoomId(id);
@@ -307,6 +308,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     
     // Send questions to game state
     await transport.sendAction(id, { type: "SET_ALLOW_CLANLESS", payload: { allow: allowClanlessPlayers } });
+    await transport.sendAction(id, { type: "SET_DURATION", payload: { duration: durationMinutes * 60 } });
     await transport.sendAction(id, { type: "SET_QUESTIONS", payload: { questions } });
     setRoomId(id);
     setMode("host");

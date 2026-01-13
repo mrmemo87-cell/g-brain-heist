@@ -71,6 +71,16 @@ export function clanTerritoryReducer(
       return { ...state, allowClanlessPlayers: action.payload.allow };
     }
 
+    case "SET_DURATION": {
+      if (state.phase === "ACTIVE") return state;
+      return {
+        ...state,
+        timer: action.payload.duration,
+        gameStartTime: undefined,
+        gameEndTime: undefined,
+      };
+    }
+
     case "JOIN": {
       const { player } = action.payload;
       if (state.players[player.id]) return state; // Already joined
