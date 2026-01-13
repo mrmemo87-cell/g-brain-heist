@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -11,6 +11,7 @@ import {
   IeltsSessionRecord,
   IeltsWritingTask,
 } from '@/services/ieltsService';
+import { ExamGuard } from '../../utils/examGuard';
 
 const stepLabels = ['Reading', 'Listening', 'Writing', 'Review & Submit'];
 
@@ -102,8 +103,8 @@ const IeltsSession: React.FC = () => {
     setActiveStep((prev) => Math.max(prev - 1, 0));
   };
 
-  const handleSubmit = () => {
-    if (!ensureStepValid()) {
+  const handleSubmit = (forceSubmit = false) => {
+    if (!forceSubmit && !ensureStepValid()) {
       return;
     }
     finaliseMutation.mutate();
@@ -462,7 +463,17 @@ const IeltsSession: React.FC = () => {
           {activeStep === 2 && (
             <Fragment>
               <h2 className="text-2xl font-semibold text-slate-900">Writing</h2>
-              <WritingTask task={session.writing_task} value={writingAnswer} onChange={setWritingAnswer} wordsWritten={wordsWritten} />
+              <WritingTask
+                task={session.writing_task}
+                value={writingAnswer}
+                onChange={setWritingAnswer}
+                wordsWritten={wordsWritten}
+                onAutoSubmit={() => {
+                  ExamGuard.stop();
+                  handleSubmit(true);
+                }}
+                testId={`ielts-session-${session.id}`}
+              />
             </Fragment>
           )}
           {activeStep === 3 && (
@@ -513,9 +524,48 @@ interface WritingTaskProps {
   value: string;
   onChange: (value: string) => void;
   wordsWritten: number;
+  onAutoSubmit: () => void;
+  testId: string;
 }
 
-const WritingTask: React.FC<WritingTaskProps> = ({ task, value, onChange, wordsWritten }) => {
+const WritingTask: React.FC<WritingTaskProps> = ({ task, value, onChange, wordsWritten, onAutoSubmit, testId }) => {
+  const promptContainerRef = useRef<HTMLDivElement | null>(null);
+  const editorRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useEffect(() => {
+    if (!task || !promptContainerRef.current || !editorRef.current) {
+      return undefined;
+    }
+
+    ExamGuard.stop();
+    ExamGuard.start({
+      promptContainer: promptContainerRef.current,
+      editor: editorRef.current,
+      onSubmit: onAutoSubmit,
+      onViolation: (event) => {
+        console.warn('ExamGuard violation (IeltsSession Writing):', event);
+      },
+      testId,
+      maxViolations: 3,
+      blurGraceMs: 300,
+      suspiciousJump: {
+        minDeltaChars: 80,
+        maxDeltaMs: 1200,
+      },
+      actions: {
+        warn: true,
+        showBanner: true,
+        disableEditor: false,
+        autosubmit: true,
+        blockSelectAll: true,
+      },
+    });
+
+    return () => {
+      ExamGuard.stop();
+    };
+  }, [onAutoSubmit, task, testId]);
+
   if (!task) {
     return <p className="text-sm text-slate-500">No writing task has been assigned for this session.</p>;
   }
@@ -523,10 +573,13 @@ const WritingTask: React.FC<WritingTaskProps> = ({ task, value, onChange, wordsW
     <div className="space-y-4">
       <div>
         <h3 className="text-xl font-semibold text-slate-900">{task.title ?? 'Writing task'}</h3>
-        <p className="mt-2 whitespace-pre-line rounded-2xl border border-slate-100 bg-slate-50 p-4 text-slate-700">{task.prompt}</p>
-        {task.wordGoal && <p className="mt-1 text-sm text-slate-500">Suggested word count: {task.wordGoal}</p>}
+        <div ref={promptContainerRef}>
+          <p className="mt-2 whitespace-pre-line rounded-2xl border border-slate-100 bg-slate-50 p-4 text-slate-700">{task.prompt}</p>
+          {task.wordGoal && <p className="mt-1 text-sm text-slate-500">Suggested word count: {task.wordGoal}</p>}
+        </div>
       </div>
       <textarea
+        ref={editorRef}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className="h-64 w-full rounded-2xl border border-slate-200 p-4 text-sm"

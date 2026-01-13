@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '../../../services/supabaseClient';
 import { ensureIeltsProfile, saveNotificationPreferences } from '../../../services/ieltsService';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
+import { ExamGuard } from '../../utils/examGuard';
 
 interface WritingTask {
   id: number;
@@ -32,6 +33,8 @@ const WritingPractice: React.FC = () => {
   const [notifyByEmail, setNotifyByEmail] = useState(true);
   const [notifyBySms, setNotifyBySms] = useState(false);
   const [notifyInApp, setNotifyInApp] = useState(true);
+  const promptContainerRef = useRef<HTMLDivElement | null>(null);
+  const editorRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Stop background music when entering IELTS Writing practice
   useEffect(() => {
@@ -132,9 +135,10 @@ const WritingPractice: React.FC = () => {
     }
   }, [alternateEmail, phoneNumber, notifyByEmail, notifyBySms, notifyInApp, lastAttemptId, hasSubmitted]);
 
-  const handleSubmit = () => {
-    if (!taskId || !answer.trim()) return;
-    
+  const handleSubmit = (forceSubmit = false) => {
+    if (!taskId || (!answer.trim() && !forceSubmit)) return;
+
+    ExamGuard.stop();
     submitMutation.mutate({
       taskId: Number(taskId),
       answer: answer.trim(),
@@ -162,6 +166,40 @@ const WritingPractice: React.FC = () => {
   };
 
   const getMinWords = () => task?.task_type === 'task1' ? 150 : 250;
+
+  useEffect(() => {
+    if (!task || !promptContainerRef.current || !editorRef.current) {
+      return undefined;
+    }
+
+    ExamGuard.stop();
+    ExamGuard.start({
+      promptContainer: promptContainerRef.current,
+      editor: editorRef.current,
+      onSubmit: () => handleSubmit(true),
+      onViolation: (event) => {
+        console.warn('ExamGuard violation (WritingPractice):', event);
+      },
+      testId: `ielts-writing-${task.id}`,
+      maxViolations: 3,
+      blurGraceMs: 300,
+      suspiciousJump: {
+        minDeltaChars: 80,
+        maxDeltaMs: 1200,
+      },
+      actions: {
+        warn: true,
+        showBanner: true,
+        disableEditor: false,
+        autosubmit: true,
+        blockSelectAll: true,
+      },
+    });
+
+    return () => {
+      ExamGuard.stop();
+    };
+  }, [task?.id]);
 
   if (isLoading) {
     return (
@@ -595,7 +633,9 @@ const WritingPractice: React.FC = () => {
             }}>
               <h2 style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '1rem' }}>📋 Task</h2>
               
-              <div style={{
+              <div
+                ref={promptContainerRef}
+                style={{
                 background: '#f8fafc',
                 border: '1px solid #e2e8f0',
                 borderRadius: '0.75rem',
@@ -718,6 +758,7 @@ const WritingPractice: React.FC = () => {
               </div>
 
               <textarea
+                ref={editorRef}
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
                 placeholder={`Start writing your ${task.task_type === 'task1' ? 'report' : 'essay'} here...
@@ -758,7 +799,7 @@ Remember to:
                   Clear
                 </button>
                 <button
-                  onClick={handleSubmit}
+                  onClick={() => handleSubmit()}
                   disabled={submitMutation.isPending || wordCount < 50}
                   style={{
                     flex: 1,
