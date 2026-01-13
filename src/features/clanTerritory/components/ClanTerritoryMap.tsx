@@ -254,43 +254,65 @@ const normalizeSvgMarkup = (svgContent: string) => {
 };
 
 const adjustViewBoxToContent = (svgEl: SVGSVGElement) => {
-  try {
+  const padding = 8;
+  const target =
+    (svgEl.querySelector('[data-map-root="true"]') as SVGGElement | null) ||
+    (svgEl.querySelector("g") as SVGGElement | null) ||
+    svgEl;
+
+  const safeBBox = (el: SVGGraphicsElement) => {
+    try {
+      const box = el.getBBox();
+      if (box && box.width > 0 && box.height > 0) return box;
+    } catch {}
+    return null;
+  };
+
+  const primaryBBox =
+    target instanceof SVGGraphicsElement ? safeBBox(target) : null;
+
+  let minX = Number.POSITIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY;
+  let maxY = Number.NEGATIVE_INFINITY;
+
+  const expand = (box: DOMRect) => {
+    minX = Math.min(minX, box.x);
+    minY = Math.min(minY, box.y);
+    maxX = Math.max(maxX, box.x + box.width);
+    maxY = Math.max(maxY, box.y + box.height);
+  };
+
+  if (primaryBBox) {
+    expand(primaryBBox as unknown as DOMRect);
+  } else {
     const graphics = Array.from(
       svgEl.querySelectorAll<SVGGraphicsElement>(
-        "path, rect, circle, ellipse, polygon, polyline"
+        "path, rect, circle, ellipse, polygon, polyline, image, line, g, use"
       )
     );
-    if (graphics.length === 0) return null;
 
-    let minX = Number.POSITIVE_INFINITY;
-    let minY = Number.POSITIVE_INFINITY;
-    let maxX = Number.NEGATIVE_INFINITY;
-    let maxY = Number.NEGATIVE_INFINITY;
-
-    graphics.forEach((element) => {
-      const { x, y, width, height } = element.getBBox();
-      minX = Math.min(minX, x);
-      minY = Math.min(minY, y);
-      maxX = Math.max(maxX, x + width);
-      maxY = Math.max(maxY, y + height);
-    });
-
-    if (!Number.isFinite(minX) || !Number.isFinite(minY)) return null;
-
-    const padding = 8;
-    const viewBox = [
-      minX - padding,
-      minY - padding,
-      maxX - minX + padding * 2,
-      maxY - minY + padding * 2,
-    ].join(" ");
-    svgEl.setAttribute("viewBox", viewBox);
-    return viewBox;
-  } catch (error) {
-    console.warn("[ClanTerritoryMap] Failed to adjust viewBox", error);
+    for (const element of graphics) {
+      const box = safeBBox(element);
+      if (box) expand(box as unknown as DOMRect);
+    }
   }
 
-  return null;
+  if (!Number.isFinite(minX) || !Number.isFinite(minY)) return null;
+
+  const viewBox = [
+    minX - padding,
+    minY - padding,
+    maxX - minX + padding * 2,
+    maxY - minY + padding * 2,
+  ].join(" ");
+
+  svgEl.setAttribute("viewBox", viewBox);
+  if (!svgEl.getAttribute("preserveAspectRatio")) {
+    svgEl.setAttribute("preserveAspectRatio", "xMidYMid meet");
+  }
+
+  return viewBox;
 };
 
 const getZoneController = (
@@ -484,8 +506,9 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     const svgEl = containerRef.current.querySelector("svg");
     if (!svgEl) return;
 
-    const currentViewBox = svgEl.getAttribute("viewBox");
-    if (!viewBoxAdjustedRef.current[mapId] && (!currentViewBox || mapId === "usa")) {
+    if (viewBoxAdjustedRef.current[mapId]) return;
+
+    requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         const viewBox = adjustViewBoxToContent(svgEl);
         if (viewBox) {
@@ -496,9 +519,13 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         }
         viewBoxAdjustedRef.current[mapId] = true;
       });
-    } else if (!viewBoxAdjustedRef.current[mapId]) {
-      viewBoxAdjustedRef.current[mapId] = true;
-    }
+    });
+  }, [mapMarkup, mapId]);
+
+  useEffect(() => {
+    if (!mapMarkup || !containerRef.current) return;
+    const svgEl = containerRef.current.querySelector("svg");
+    if (!svgEl) return;
 
     const ensureInitialAttributes = (element: SVGPathElement) => {
       if (!element.getAttribute("data-initial-fill")) {
