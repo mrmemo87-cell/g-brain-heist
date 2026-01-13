@@ -484,8 +484,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     const svgEl = containerRef.current.querySelector("svg");
     if (!svgEl) return;
 
-    const currentViewBox = svgEl.getAttribute("viewBox");
-    if (!viewBoxAdjustedRef.current[mapId] && (!currentViewBox || mapId === "usa")) {
+    if (!viewBoxAdjustedRef.current[mapId]) {
       requestAnimationFrame(() => {
         const viewBox = adjustViewBoxToContent(svgEl);
         if (viewBox) {
@@ -496,8 +495,6 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         }
         viewBoxAdjustedRef.current[mapId] = true;
       });
-    } else if (!viewBoxAdjustedRef.current[mapId]) {
-      viewBoxAdjustedRef.current[mapId] = true;
     }
 
     const ensureInitialAttributes = (element: SVGPathElement) => {
