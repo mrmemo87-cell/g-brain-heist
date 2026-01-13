@@ -419,38 +419,40 @@
   <div class="section">
     <h2>📝 Part 1 — Question 1</h2>
     
-    <div class="marking-info">
-      <h3>Marking Criteria — Total: 15 marks</h3>
-      <div class="criteria">
-        <div class="criterion">
-          <div class="criterion-name">Content</div>
-          <div class="criterion-marks">5</div>
-        </div>
-        <div class="criterion">
-          <div class="criterion-name">Organisation</div>
-          <div class="criterion-marks">5</div>
-        </div>
-        <div class="criterion">
-          <div class="criterion-name">Language</div>
-          <div class="criterion-marks">5</div>
+    <div class="examguard-prompt">
+      <div class="marking-info">
+        <h3>Marking Criteria — Total: 15 marks</h3>
+        <div class="criteria">
+          <div class="criterion">
+            <div class="criterion-name">Content</div>
+            <div class="criterion-marks">5</div>
+          </div>
+          <div class="criterion">
+            <div class="criterion-name">Organisation</div>
+            <div class="criterion-marks">5</div>
+          </div>
+          <div class="criterion">
+            <div class="criterion-name">Language</div>
+            <div class="criterion-marks">5</div>
+          </div>
         </div>
       </div>
-    </div>
-    
-    <div class="task-box">
-      <h3>📷 Photography Lessons Message</h3>
-      <p>You want to learn how to take better photographs. You see a notice for photography lessons on your school noticeboard.</p>
-      <p><strong>Write a message to the person who is offering the lessons.</strong></p>
-      <p><strong>In your message you should:</strong></p>
-      <ul>
-        <li>say why you want to learn photography</li>
-        <li>explain how much experience you have</li>
-        <li>ask some questions about the lessons</li>
-      </ul>
-    </div>
-    
-    <div class="word-count-box">
-      📏 Write <strong>45–55 words</strong>
+      
+      <div class="task-box">
+        <h3>📷 Photography Lessons Message</h3>
+        <p>You want to learn how to take better photographs. You see a notice for photography lessons on your school noticeboard.</p>
+        <p><strong>Write a message to the person who is offering the lessons.</strong></p>
+        <p><strong>In your message you should:</strong></p>
+        <ul>
+          <li>say why you want to learn photography</li>
+          <li>explain how much experience you have</li>
+          <li>ask some questions about the lessons</li>
+        </ul>
+      </div>
+      
+      <div class="word-count-box">
+        📏 Write <strong>45–55 words</strong>
+      </div>
     </div>
     
     <div class="writing-area">
@@ -467,40 +469,42 @@
   <div class="section">
     <h2>📝 Part 2 — Question 2</h2>
     
-    <div class="marking-info">
-      <h3>Marking Criteria — Total: 20 marks</h3>
-      <div class="criteria">
-        <div class="criterion">
-          <div class="criterion-name">Content</div>
-          <div class="criterion-marks">5</div>
-        </div>
-        <div class="criterion">
-          <div class="criterion-name">Communicative Achievement</div>
-          <div class="criterion-marks">5</div>
-        </div>
-        <div class="criterion">
-          <div class="criterion-name">Organisation</div>
-          <div class="criterion-marks">5</div>
-        </div>
-        <div class="criterion">
-          <div class="criterion-name">Language</div>
-          <div class="criterion-marks">5</div>
+    <div class="examguard-prompt">
+      <div class="marking-info">
+        <h3>Marking Criteria — Total: 20 marks</h3>
+        <div class="criteria">
+          <div class="criterion">
+            <div class="criterion-name">Content</div>
+            <div class="criterion-marks">5</div>
+          </div>
+          <div class="criterion">
+            <div class="criterion-name">Communicative Achievement</div>
+            <div class="criterion-marks">5</div>
+          </div>
+          <div class="criterion">
+            <div class="criterion-name">Organisation</div>
+            <div class="criterion-marks">5</div>
+          </div>
+          <div class="criterion">
+            <div class="criterion-name">Language</div>
+            <div class="criterion-marks">5</div>
+          </div>
         </div>
       </div>
-    </div>
-    
-    <div class="task-box">
-      <h3>🛒 Shopping Essay</h3>
-      <p>In your English class, you have been talking about shopping.</p>
-      <p><strong>Your teacher has asked you to write this essay:</strong></p>
-      <p style="font-style: italic; background: #f0f0f0; padding: 15px; border-radius: 8px; margin: 15px 0; font-size: 16px; color: #333;">
-        "Buying things online is much better than buying things in shops. Do you agree?"
-      </p>
-      <p><strong>Write your essay in an appropriate style.</strong></p>
-    </div>
-    
-    <div class="word-count-box">
-      📏 Write <strong>110–130 words</strong>
+      
+      <div class="task-box">
+        <h3>🛒 Shopping Essay</h3>
+        <p>In your English class, you have been talking about shopping.</p>
+        <p><strong>Your teacher has asked you to write this essay:</strong></p>
+        <p style="font-style: italic; background: #f0f0f0; padding: 15px; border-radius: 8px; margin: 15px 0; font-size: 16px; color: #333;">
+          "Buying things online is much better than buying things in shops. Do you agree?"
+        </p>
+        <p><strong>Write your essay in an appropriate style.</strong></p>
+      </div>
+      
+      <div class="word-count-box">
+        📏 Write <strong>110–130 words</strong>
+      </div>
     </div>
     
     <div class="writing-area">
@@ -530,6 +534,7 @@
   <button id="floatingSubmitBtn" onclick="submitWriting()">📤 Submit Writing</button>
 </div>
 
+<script src="../examguard.js"></script>
 <script>
   // Mobile detection
   function isMobile() {
@@ -703,6 +708,9 @@
   // Show locked state
   function showLockedState(data) {
     hasSubmitted = true;
+    if (window.ExamGuard) {
+      window.ExamGuard.stop();
+    }
     document.getElementById("alreadySubmitted").style.display = "block";
     
     document.querySelectorAll('input, textarea').forEach(input => {
@@ -746,7 +754,8 @@
   }
 
   // Submit writing
-  async function submitWriting() {
+  async function submitWriting(options = {}) {
+    const { skipConfirm = false } = options;
     const studentName = document.getElementById("studentName").value.trim();
     const studentClass = document.getElementById("studentClass").value.trim();
     const answer1 = document.getElementById("answer1").value.trim();
@@ -815,7 +824,7 @@
     
     confirmMessage += "Click OK to submit, or Cancel to review.";
     
-    if (!confirm(confirmMessage)) return;
+    if (!skipConfirm && !confirm(confirmMessage)) return;
     
     // Calculate time taken
     const timeTaken = startTime ? Math.floor((new Date() - startTime) / 1000) : 0;
@@ -909,6 +918,7 @@
       
       // Re-enable inputs on error
       document.querySelectorAll('input, textarea').forEach(input => input.disabled = false);
+      startExamGuard();
     }
   }
 
@@ -966,11 +976,41 @@
     }
   }
 
+  function startExamGuard() {
+    if (!window.ExamGuard || hasSubmitted) return;
+    const promptContainers = Array.from(document.querySelectorAll('.examguard-prompt'));
+    const editorOne = document.getElementById('answer1');
+    const editorTwo = document.getElementById('answer2');
+    window.ExamGuard.start({
+      promptContainer: promptContainers,
+      editor: [editorOne, editorTwo].filter(Boolean),
+      onSubmit: () => submitWriting({ skipConfirm: true }),
+      onViolation: (event) => {
+        console.warn('ExamGuard violation (Cambridge Writing Test 1):', event);
+      },
+      testId: 'cambridge-writing-test-1',
+      maxViolations: 3,
+      blurGraceMs: 300,
+      suspiciousJump: {
+        minDeltaChars: 80,
+        maxDeltaMs: 1200,
+      },
+      actions: {
+        warn: true,
+        showBanner: true,
+        autosubmit: true,
+        disableEditor: false,
+        blockSelectAll: true,
+      }
+    });
+  }
+
   // Initialize
   checkPreviousSubmission();
   loadStudentInfoFromGame();
   if (!hasSubmitted) {
     loadDraft();
+    startExamGuard();
   }
 </script>
 
