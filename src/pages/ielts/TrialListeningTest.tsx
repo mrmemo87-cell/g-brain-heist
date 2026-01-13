@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
+import { getRequiredEnvVar } from '../../../services/env';
 
 // Supabase storage URL for audio files
-const SUPABASE_STORAGE_URL = 'https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/ielts-audio';
+const SUPABASE_STORAGE_URL = `${getRequiredEnvVar('VITE_SUPABASE_URL').replace(/\/$/, '')}/storage/v1/object/public/ielts-audio`;
 
 // Audio URLs for each section
 const SECTION_AUDIO = {

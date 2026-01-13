@@ -529,8 +529,8 @@
   });
 
   // Supabase Configuration - using REST API directly (no eval/external library needed)
-  const SUPABASE_URL = 'https://sozodkxwhubespiedgxm.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvem9ka3h3aHViZXNwaWVkZ3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTUxNjYsImV4cCI6MjA3NzQ3MTE2Nn0.DBfFFWvVjpqXTga0uZcH5qR4ej6VOFBUm-CiCTgGLVA';
+  const SUPABASE_URL = window.__SUPABASE_ENV__?.VITE_SUPABASE_URL || '';
+  const SUPABASE_ANON_KEY = window.__SUPABASE_ENV__?.VITE_SUPABASE_ANON_KEY || '';
   const SUPABASE_IMAGES = 'https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/cambridge-images';
   
   // Simple Supabase REST API wrapper (CSP-safe, no eval needed)
