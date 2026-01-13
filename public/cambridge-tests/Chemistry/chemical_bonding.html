@@ -345,8 +345,8 @@
 
   <script>
     // Supabase helpers (fetch-based, no external SDK)
-    const SUPABASE_URL = 'https://sozodkxwhubespiedgxm.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwczovL3N1cGFiYXNlLmlvL2NsYWltcy9zdWJqZWN0IjoicHVibGljIiwiaHR0cHM6Ly9zdXBhYmFzZS5pby9jbGFpbXMvcm9sZSI6ImFub24iLCJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTY5OTA1MjkyNywiZXhwIjoyMDE0NjI4OTI3fQ.o6SgqFWWf3XwT63MifOnRmPGzfmrPZ7dx6hPb6jt4WI';
+    const SUPABASE_URL = window.__SUPABASE_ENV__?.VITE_SUPABASE_URL || '';
+    const SUPABASE_ANON_KEY = window.__SUPABASE_ENV__?.VITE_SUPABASE_ANON_KEY || '';
 
     function createSupabaseClient(url, key) {
       return {
