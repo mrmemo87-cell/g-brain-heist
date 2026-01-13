@@ -399,7 +399,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [mapMarkup, setMapMarkup] = useState("");
   const [mapAspectRatio, setMapAspectRatio] = useState<number | null>(null);
-  const usaViewBoxAdjustedRef = useRef(false);
+  const viewBoxAdjustedRef = useRef<Record<string, boolean>>({});
   const defaultRegionStylesRef = useRef<
     Record<
       string,
@@ -467,7 +467,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     defaultRegionStylesRef.current = {};
     lastRegionStyleKeyRef.current = {};
     svgRef.current = null;
-    usaViewBoxAdjustedRef.current = false;
+    viewBoxAdjustedRef.current = {};
   }, [mapId]);
 
   useEffect(() => {
@@ -484,7 +484,8 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     const svgEl = containerRef.current.querySelector("svg");
     if (!svgEl) return;
 
-    if (mapId === "usa" && !usaViewBoxAdjustedRef.current) {
+    const currentViewBox = svgEl.getAttribute("viewBox");
+    if (!viewBoxAdjustedRef.current[mapId] && (!currentViewBox || mapId === "usa")) {
       requestAnimationFrame(() => {
         const viewBox = adjustViewBoxToContent(svgEl);
         if (viewBox) {
@@ -493,8 +494,10 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
             setMapAspectRatio(width / height);
           }
         }
-        usaViewBoxAdjustedRef.current = true;
+        viewBoxAdjustedRef.current[mapId] = true;
       });
+    } else if (!viewBoxAdjustedRef.current[mapId]) {
+      viewBoxAdjustedRef.current[mapId] = true;
     }
 
     const ensureInitialAttributes = (element: SVGPathElement) => {
