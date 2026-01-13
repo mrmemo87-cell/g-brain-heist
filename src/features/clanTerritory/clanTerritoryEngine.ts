@@ -13,6 +13,7 @@ const MAP_ZONE_COUNTS: Record<string, number> = {
   default: 8,
   city: 10,
   kyrgyzstan: 7,
+  usa: 51,
   fortress: 6,
   islands: 12,
 };
