@@ -303,7 +303,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   // Lazy-load the large city map (2.7MB) on first use to prevent startup lag
   useEffect(() => {
     if (mapId === "city" && !cityMapLoaded) {
-      import("../assets/city.svg?raw")
+      import("../assets/city_map.svg?raw")
         .then((module) => {
           cityMapSvgRaw = module.default;
           setCityMapLoaded(true);
