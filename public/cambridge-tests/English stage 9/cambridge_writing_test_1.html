@@ -554,18 +554,33 @@
   // Supabase Configuration
   const SUPABASE_URL = 'https://sozodkxwhubespiedgxm.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvem9ka3h3aHViZXNwaWVkZ3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTUxNjYsImV4cCI6MjA3NzQ3MTE2Nn0.DBfFFWvVjpqXTga0uZcH5qR4ej6VOFBUm-CiCTgGLVA';
+  const SUPABASE_PROJECT_REF = 'sozodkxwhubespiedgxm';
+  const SUPABASE_AUTH_STORAGE_KEY = `sb-${SUPABASE_PROJECT_REF}-auth-token`;
+
+  function getSupabaseAccessToken() {
+    try {
+      const authValue = localStorage.getItem(SUPABASE_AUTH_STORAGE_KEY);
+      if (!authValue) return null;
+      const parsed = JSON.parse(authValue);
+      return parsed?.access_token || null;
+    } catch (error) {
+      console.warn('Unable to read Supabase auth token:', error);
+      return null;
+    }
+  }
   
   const supabaseClient = {
     from: function(table) {
       return {
         insert: async function(data) {
           try {
+            const accessToken = getSupabaseAccessToken();
             const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
                 'apikey': SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Authorization': `Bearer ${accessToken ?? SUPABASE_ANON_KEY}`,
                 'Prefer': 'return=minimal'
               },
               body: JSON.stringify(Array.isArray(data) ? data : [data])
