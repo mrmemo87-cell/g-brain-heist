@@ -359,6 +359,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [mapMarkup, setMapMarkup] = useState("");
   const [mapAspectRatio, setMapAspectRatio] = useState<number | null>(null);
+  const usaViewBoxAdjustedRef = useRef(false);
   const defaultRegionStylesRef = useRef<
     Record<
       string,
@@ -426,6 +427,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     defaultRegionStylesRef.current = {};
     lastRegionStyleKeyRef.current = {};
     svgRef.current = null;
+    usaViewBoxAdjustedRef.current = false;
   }, [mapId]);
 
   useEffect(() => {
@@ -439,6 +441,25 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
   useEffect(() => {
     if (!mapMarkup || !containerRef.current) return;
+    if (mapId === "usa" && !usaViewBoxAdjustedRef.current) {
+      const svgEl = containerRef.current.querySelector("svg");
+      if (svgEl) {
+        try {
+          const bbox = svgEl.getBBox();
+          const padding = 8;
+          const viewBox = [
+            bbox.x - padding,
+            bbox.y - padding,
+            bbox.width + padding * 2,
+            bbox.height + padding * 2,
+          ].join(" ");
+          svgEl.setAttribute("viewBox", viewBox);
+          usaViewBoxAdjustedRef.current = true;
+        } catch (error) {
+          console.warn("[ClanTerritoryMap] Failed to adjust USA viewBox", error);
+        }
+      }
+    }
 
     const ensureInitialAttributes = (element: SVGPathElement) => {
       if (!element.getAttribute("data-initial-fill")) {
