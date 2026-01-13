@@ -65,6 +65,7 @@ interface ClanTerritoryStudentViewProps {
   };
   onSelectZone: (zoneId: ZoneId | null) => void;
   onSubmitAnswer: (isCorrect: boolean, durationMs: number) => void;
+  onRewardsClaimed?: () => Promise<void> | void;
 }
 
 export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> = ({
@@ -73,6 +74,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   fallbackPlayer,
   onSelectZone,
   onSubmitAnswer,
+  onRewardsClaimed,
 }) => {
   const player = gameState.players[playerId];
   const hydratedPlayer: PlayerStats | undefined = player
@@ -262,6 +264,9 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
             console.log("Rewards claimed:", data);
             setRewardsClaimed(true);
             setClaimingRewards(false);
+            if (onRewardsClaimed) {
+              void Promise.resolve(onRewardsClaimed());
+            }
           })
           .catch((err) => {
             console.error("Failed to claim rewards:", err);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Clan, ClanChatMessage, Profile, ToastMessage, ClanSummary, ClanBuff, ClanMember, ActiveClanBuff, ClanJoinRequest } from '../types';
 import * as GameService from '../services/gameService';
+import { supabase } from '../services/supabaseClient';
 import BackButton from './BackButton';
 import { SyndicateRune, CoinIcon, DemoteIcon, KickIcon, LeaveIcon, ManageIcon, PromoteIcon } from './icons';
 import AvatarWithFrame from './AvatarWithFrame';
@@ -111,8 +112,10 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   const myMemberInfo = clan?.members.find(m => m.user_id === profile.id);
     const isPrivileged = !!myMemberInfo && ['leader', 'officer', 'moderator'].includes(myMemberInfo.role);
 
-  const fetchClanDetails = async () => {
-    setStage('loading');
+  const fetchClanDetails = async (options?: { showLoading?: boolean }) => {
+    if (options?.showLoading) {
+        setStage('loading');
+    }
     try {
         const results = await Promise.allSettled([
             GameService.clan_details(),
@@ -146,8 +149,55 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   };
 
   useEffect(() => {
-    fetchClanDetails();
+    void fetchClanDetails({ showLoading: true });
   }, []);
+
+    useEffect(() => {
+        const userId = profile.id;
+        let isActive = true;
+
+        const refreshState = async () => {
+            if (!isActive) return;
+            await fetchClanDetails();
+        };
+
+        const joinRequestChannel = supabase
+            .channel(`clan-join-requests-${userId}`)
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'clan_join_requests', filter: `user_id=eq.${userId}` },
+                (payload) => {
+                    const status = (payload.new as { status?: string })?.status;
+                    if (status === 'approved' || status === 'rejected' || payload.eventType === 'DELETE') {
+                        void refreshState();
+                        return;
+                    }
+                    if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+                        void refreshState();
+                    }
+                }
+            )
+            .subscribe();
+
+        const membershipChannel = supabase
+            .channel(`clan-membership-${userId}`)
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'clan_members', filter: `user_id=eq.${userId}` },
+                (payload) => {
+                    if (payload.eventType === 'INSERT' || payload.eventType === 'DELETE' || payload.eventType === 'UPDATE') {
+                        void refreshState();
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            isActive = false;
+            void supabase.removeChannel(joinRequestChannel);
+            void supabase.removeChannel(membershipChannel);
+        };
+    }, [profile.id]);
 
     useEffect(() => {
             setNoticeDraft(clan?.notice || '');
@@ -698,17 +748,63 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
     );
   };
   
-  const ClanChat: React.FC = () => {
+  const ClanChat: React.FC<{ clanId: string }> = ({ clanId }) => {
     const [messages, setMessages] = useState<ClanChatMessage[]>([]);
     const [newMessage, setNewMessage] = useState('');
-    const chatEndRef = useRef<HTMLDivElement>(null);
+    const chatScrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        GameService.clan_chat_recent().then(setMessages);
-    }, []);
+        let isMounted = true;
+
+        GameService.clan_chat_recent().then((data) => {
+            if (isMounted) {
+                setMessages(data);
+            }
+        });
+
+        const channel = supabase
+            .channel(`clan-chat-${clanId}`)
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'clan_chat', filter: `clan_id=eq.${clanId}` },
+                (payload) => {
+                    const newRow = payload.new as {
+                        id: string;
+                        message: string;
+                        username?: string;
+                        user_id?: string;
+                        created_at?: string;
+                    };
+
+                    setMessages((prev) => {
+                        if (prev.some((msg) => msg.id === newRow.id)) {
+                            return prev;
+                        }
+                        return [
+                            ...prev,
+                            {
+                                id: newRow.id,
+                                user: newRow.username || 'Unknown',
+                                message: newRow.message,
+                                created_at: 'Just now',
+                                is_self: newRow.user_id === profile.id,
+                            },
+                        ];
+                    });
+                }
+            )
+            .subscribe();
+
+        return () => {
+            isMounted = false;
+            void supabase.removeChannel(channel);
+        };
+    }, [clanId, profile.id]);
 
     useEffect(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        const container = chatScrollRef.current;
+        if (!container) return;
+        container.scrollTop = container.scrollHeight;
     }, [messages]);
 
     const handleSend = async () => {
@@ -735,7 +831,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
 
     return (
         <div className="h-full flex flex-col">
-            <div className="flex-grow bg-black/20 p-4 rounded-t-lg overflow-y-auto h-[400px]">
+            <div ref={chatScrollRef} className="flex-grow bg-black/20 p-4 rounded-t-lg overflow-y-auto h-[400px]">
                 <div className="space-y-4">
                     {messages.map(msg => (
                         <div key={msg.id} className={`flex items-end gap-3 ${msg.is_self ? 'flex-row-reverse' : ''}`}>
@@ -746,12 +842,23 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                             </div>
                         </div>
                     ))}
-                    <div ref={chatEndRef} />
                 </div>
             </div>
             <div className="flex p-4 bg-black/30 rounded-b-lg">
-                <input type="text" value={newMessage} onChange={e => setNewMessage(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSend()} placeholder="Type a message..." className="flex-grow bg-gray-900 p-2 rounded-l-lg border border-gray-600 focus:border-amber-400 outline-none" />
-                <button onClick={handleSend} className="bg-amber-500/80 hover:bg-amber-500 text-ink-900 font-bold p-2 rounded-r-lg">Send</button>
+                <input
+                    type="text"
+                    value={newMessage}
+                    onChange={e => setNewMessage(e.target.value)}
+                    onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            void handleSend();
+                        }
+                    }}
+                    placeholder="Type a message..."
+                    className="flex-grow bg-gray-900 p-2 rounded-l-lg border border-gray-600 focus:border-amber-400 outline-none"
+                />
+                <button type="button" onClick={handleSend} className="bg-amber-500/80 hover:bg-amber-500 text-ink-900 font-bold p-2 rounded-r-lg">Send</button>
             </div>
         </div>
     );
@@ -1001,7 +1108,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                             </div>
                         </div>
                     )}
-                    {activeTab === 'chat' && <ClanChat />}
+                    {activeTab === 'chat' && <ClanChat clanId={clan.id} />}
                     {activeTab === 'browse' && (
                         <BrowseClansTab 
                             currentClanId={clan.id} 

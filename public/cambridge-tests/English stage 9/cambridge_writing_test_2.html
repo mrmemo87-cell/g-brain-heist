@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="format-detection" content="telephone=no" />
+<title>Cambridge Writing Test 2 — E2L Stage 9 Paper 3</title>
+
+<style>
+  * { box-sizing: border-box; }
+  html {
+    height: 100%;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+  }
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    padding-bottom: 150px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100%;
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+    position: relative;
+  }
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+  h1 { color: #333; text-align: center; margin-bottom: 10px; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 20px; }
+  
+  .warning-box {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 25px;
+  }
+  .warning-box h3 { color: #856404; margin: 0 0 10px 0; font-size: 16px; text-align: center; }
+  .warning-box ul { margin: 0; padding-left: 20px; color: #856404; font-size: 14px; }
+  
+  .timer-box {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: bold;
+  }
+  
+  .section {
+    margin-bottom: 30px;
+    padding: 25px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border-left: 4px solid #6366f1;
+  }
+  .section h2 { color: #6366f1; margin: 0 0 15px 0; font-size: 20px; }
+  .section-instructions {
+    background: #e0e7ff;
+    padding: 15px 18px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #4338ca;
+    line-height: 1.6;
+  }
+  
+  .task-box {
+    background: white;
+    border: 2px solid #6366f1;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .task-box h3 {
+    color: #6366f1;
+    margin: 0 0 15px 0;
+    font-size: 16px;
+  }
+  .task-box p {
+    color: #333;
+    line-height: 1.7;
+    margin: 0 0 10px 0;
+    font-size: 15px;
+  }
+  .task-box ul {
+    margin: 10px 0;
+    padding-left: 25px;
+  }
+  .task-box li {
+    margin: 8px 0;
+    color: #333;
+  }
+  
+  .word-count-box {
+    background: #d4edda;
+    border: 1px solid #28a745;
+    border-radius: 8px;
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    font-size: 14px;
+    color: #155724;
+    text-align: center;
+    font-weight: bold;
+  }
+  
+  .writing-area {
+    margin-top: 15px;
+  }
+  .writing-area label {
+    display: block;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 15px;
+  }
+  .writing-area textarea {
+    width: 100%;
+    min-height: 200px;
+    padding: 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 15px;
+    line-height: 1.6;
+    font-family: Arial, sans-serif;
+    resize: vertical;
+    transition: border-color 0.3s;
+  }
+  .writing-area textarea:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+  .writing-area textarea:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+  }
+  
+  .word-counter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding: 10px 15px;
+    background: #f0f0f0;
+    border-radius: 8px;
+    font-size: 14px;
+  }
+  .word-counter .count {
+    font-weight: bold;
+    color: #6366f1;
+  }
+  .word-counter .count.warning {
+    color: #dc3545;
+  }
+  .word-counter .count.success {
+    color: #28a745;
+  }
+  
+  .student-info {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+  }
+  .student-info input {
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    flex: 1;
+    min-width: 200px;
+  }
+  .student-info input:focus {
+    outline: none;
+    border-color: #6366f1;
+  }
+  .student-info input:disabled {
+    background-color: #e9ecef;
+  }
+  
+  .btn-container {
+    text-align: center;
+    margin-top: 30px;
+  }
+  button {
+    padding: 15px 40px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 5px 20px rgba(40,167,69,0.4);
+  }
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(40,167,69,0.5);
+  }
+  button:active {
+    transform: translateY(0);
+  }
+  button:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
+  
+  .submit-status {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: center;
+  }
+  .submit-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+  .submit-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+  .submit-loading {
+    background: #cce5ff;
+    color: #004085;
+    border: 1px solid #b8daff;
+  }
+  
+  .required-field {
+    border-color: #dc3545 !important;
+  }
+  
+  .already-submitted {
+    background: #d4edda;
+    border: 2px solid #28a745;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .already-submitted h3 {
+    color: #155724;
+    margin: 0;
+  }
+  
+  .marking-info {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+  }
+  .marking-info h3 { margin: 0 0 15px 0; font-size: 18px; text-align: center; }
+  .marking-info .criteria {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+  }
+  .marking-info .criterion {
+    background: rgba(255,255,255,0.2);
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+  }
+  .marking-info .criterion-name {
+    font-weight: bold;
+    font-size: 13px;
+    margin-bottom: 5px;
+  }
+  .marking-info .criterion-marks {
+    font-size: 20px;
+    font-weight: bold;
+  }
+  
+  .success-message {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    margin-top: 20px;
+    display: none;
+  }
+  .success-message.show {
+    display: block;
+    animation: fadeIn 0.5s ease;
+  }
+  .success-message h2 { margin: 0 0 10px 0; font-size: 24px; }
+  .success-message p { margin: 0; font-size: 14px; opacity: 0.9; }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Floating Submit Button for Mobile */
+  .floating-submit {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    padding: 15px 20px;
+    padding-bottom: max(15px, env(safe-area-inset-bottom));
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.3);
+    z-index: 9999;
+    display: none;
+  }
+  .floating-submit button {
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
+    border-radius: 12px;
+    margin: 0;
+  }
+  .floating-submit.show {
+    display: block;
+  }
+  .floating-submit.submitted {
+    background: #6c757d;
+  }
+  .floating-submit.submitted button {
+    background: #6c757d;
+  }
+  
+  @media (max-width: 768px) {
+    .btn-container {
+      display: none;
+    }
+    .floating-submit {
+      display: block;
+    }
+    body {
+      padding-bottom: 120px;
+    }
+    .container {
+      padding: 20px;
+    }
+    .section {
+      padding: 18px;
+    }
+    .marking-info .criteria {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  /* Safe area for notched devices */
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .floating-submit {
+      padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Back to Game button -->
+  <div id="backToGameBtn" style="display: none; margin-bottom: 15px;">
+    <button onclick="goBackToGame()" style="
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #302b63 0%, #24243e 100%);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+    ">← Back to Game</button>
+  </div>
+
+  <h1>✍️ Cambridge Writing Test 2</h1>
+  <p class="subtitle">E2L Stage 9 Paper 3 — Parts 1 & 2</p>
+
+  <div class="warning-box">
+    <h3>⚠️ Important Rules</h3>
+    <ul>
+      <li>You can only submit <b>ONCE</b> — your writing cannot be changed after submission</li>
+      <li>Your teacher will mark your writing using the official marking scheme</li>
+      <li>Your submission time is recorded</li>
+      <li>Save your progress by staying on this page — do NOT refresh</li>
+      <li>Check your word count before submitting</li>
+    </ul>
+  </div>
+
+  <div id="timerBox" class="timer-box" style="display: none;">
+    ⏱️ Time: <span id="timer">00:00</span>
+  </div>
+
+  <div id="alreadySubmitted" class="already-submitted" style="display: none;">
+    <h3>✅ You have already submitted this test</h3>
+    <p>Your writing has been sent to your teacher for marking. Check back for your score later.</p>
+  </div>
+
+  <div class="student-info">
+    <input type="text" id="studentName" placeholder="Enter your full name *" required />
+    <input type="text" id="studentClass" placeholder="Enter your class (e.g., 9A) *" required />
+  </div>
+
+  <!-- Part 1 -->
+  <div class="section">
+    <h2>📝 Part 1 — Question 1</h2>
+    
+    <div class="marking-info">
+      <h3>Marking Criteria — Total: 15 marks</h3>
+      <div class="criteria">
+        <div class="criterion">
+          <div class="criterion-name">Content</div>
+          <div class="criterion-marks">5</div>
+        </div>
+        <div class="criterion">
+          <div class="criterion-name">Organisation</div>
+          <div class="criterion-marks">5</div>
+        </div>
+        <div class="criterion">
+          <div class="criterion-name">Language</div>
+          <div class="criterion-marks">5</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="task-box">
+      <h3>🎵 Band Email</h3>
+      <p>You recently saw a really good band and you want to tell your English-speaking friend, Sam, about it.</p>
+      <p><strong>Write an email to Sam. In your email, you should:</strong></p>
+      <ul>
+        <li>tell Sam where you saw the band</li>
+        <li>say how you found out about the band</li>
+        <li>explain why you like the band</li>
+      </ul>
+    </div>
+    
+    <div class="word-count-box">
+      📏 Write <strong>45–55 words</strong>
+    </div>
+    
+    <div class="writing-area">
+      <label for="answer1">Write your message below:</label>
+      <textarea id="answer1" placeholder="Start writing your message here..." oninput="updateWordCount(1); startTimer();"></textarea>
+      <div class="word-counter">
+        <span>Word count:</span>
+        <span class="count" id="wordCount1">0 words</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Part 2 -->
+  <div class="section">
+    <h2>📝 Part 2 — Question 2</h2>
+    
+    <div class="marking-info">
+      <h3>Marking Criteria — Total: 20 marks</h3>
+      <div class="criteria">
+        <div class="criterion">
+          <div class="criterion-name">Content</div>
+          <div class="criterion-marks">5</div>
+        </div>
+        <div class="criterion">
+          <div class="criterion-name">Communicative Achievement</div>
+          <div class="criterion-marks">5</div>
+        </div>
+        <div class="criterion">
+          <div class="criterion-name">Organisation</div>
+          <div class="criterion-marks">5</div>
+        </div>
+        <div class="criterion">
+          <div class="criterion-name">Language</div>
+          <div class="criterion-marks">5</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="task-box">
+      <h3>🌙 Midnight Phone Call Story</h3>
+      <p>Your English teacher has asked you to write a story.</p>
+      <p><strong>Your story must begin with this sentence:</strong></p>
+      <p style="font-style: italic; background: #f0f0f0; padding: 15px; border-radius: 8px; margin: 15px 0; font-size: 16px; color: #333;">
+        "Just after midnight, I woke up to the sound of my phone ringing."
+      </p>
+      <p><strong>Write your story in an appropriate style.</strong></p>
+    </div>
+    
+    <div class="word-count-box">
+      📏 Write <strong>110–130 words</strong>
+    </div>
+    
+    <div class="writing-area">
+      <label for="answer2">Write your essay below:</label>
+      <textarea id="answer2" placeholder="Start writing your essay here..." style="min-height: 300px;" oninput="updateWordCount(2); startTimer();"></textarea>
+      <div class="word-counter">
+        <span>Word count:</span>
+        <span class="count" id="wordCount2">0 words</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-container">
+    <button id="submitBtn" onclick="submitWriting()">📤 Submit Writing</button>
+  </div>
+
+  <div id="submitStatus"></div>
+  
+  <div id="successMessage" class="success-message">
+    <h2>✅ Writing Submitted Successfully!</h2>
+    <p>Your teacher will mark your writing using the Cambridge marking scheme.<br>Check your results in the Cambridge Tests section later.</p>
+  </div>
+</div>
+
+<!-- Floating Submit Button for Mobile -->
+<div class="floating-submit show" id="floatingSubmit">
+  <button id="floatingSubmitBtn" onclick="submitWriting()">📤 Submit Writing</button>
+</div>
+
+<script>
+  // Mobile detection
+  function isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+  
+  function goBackToGame() {
+    if (document.referrer && document.referrer.includes(window.location.hostname)) {
+      window.history.back();
+    } else {
+      window.location.href = '/';
+    }
+  }
+  
+  // Show back button when opened directly
+  if (window.parent === window) {
+    const backBtn = document.getElementById('backToGameBtn');
+    if (backBtn) backBtn.style.display = 'block';
+  }
+
+  // Supabase Configuration
+  const SUPABASE_URL = 'https://sozodkxwhubespiedgxm.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvem9ka3h3aHViZXNwaWVkZ3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTUxNjYsImV4cCI6MjA3NzQ3MTE2Nn0.DBfFFWvVjpqXTga0uZcH5qR4ej6VOFBUm-CiCTgGLVA';
+  
+  const supabaseClient = {
+    from: function(table) {
+      return {
+        insert: async function(data) {
+          try {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Prefer': 'return=minimal'
+              },
+              body: JSON.stringify(Array.isArray(data) ? data : [data])
+            });
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(errorText || response.statusText);
+            }
+            return { data: null, error: null };
+          } catch (err) {
+            return { data: null, error: err };
+          }
+        }
+      };
+    }
+  };
+
+  const QUIZ_ID = 'cambridge_writing_test_2';
+  let hasSubmitted = false;
+  let startTime = null;
+  let timerInterval = null;
+
+  // Word count limits
+  const PART1_MIN = 45;
+  const PART1_MAX = 55;
+  const PART2_MIN = 110;
+  const PART2_MAX = 130;
+
+  // Auto-populate student info from game
+  function loadStudentInfoFromGame() {
+    try {
+      const gameUser = localStorage.getItem('cambridge_test_user');
+      if (gameUser) {
+        const user = JSON.parse(gameUser);
+        const nameInput = document.getElementById('studentName');
+        const classInput = document.getElementById('studentClass');
+        
+        if (user.name && nameInput) {
+          nameInput.value = user.name;
+          nameInput.readOnly = true;
+          nameInput.style.backgroundColor = '#e8f5e9';
+          nameInput.style.borderColor = '#4caf50';
+        }
+        if (user.class && classInput) {
+          classInput.value = user.class;
+          classInput.readOnly = true;
+          classInput.style.backgroundColor = '#e8f5e9';
+          classInput.style.borderColor = '#4caf50';
+        }
+        
+        const infoDiv = document.querySelector('.student-info');
+        if (infoDiv && user.name) {
+          const badge = document.createElement('div');
+          badge.style.cssText = 'width: 100%; text-align: center; color: #4caf50; font-size: 12px; margin-top: -10px; margin-bottom: 10px;';
+          badge.innerHTML = '✅ Logged in as <strong>' + user.name + '</strong> from Brains Heist';
+          infoDiv.parentNode.insertBefore(badge, infoDiv.nextSibling);
+        }
+      }
+    } catch (e) {
+      console.log('No game user info found');
+    }
+  }
+
+  // Count words in text
+  function countWords(text) {
+    const trimmed = text.trim();
+    if (!trimmed) return 0;
+    return trimmed.split(/\s+/).filter(word => word.length > 0).length;
+  }
+
+  // Update word count display
+  function updateWordCount(partNumber) {
+    const textarea = document.getElementById('answer' + partNumber);
+    const counter = document.getElementById('wordCount' + partNumber);
+    const words = countWords(textarea.value);
+    
+    let min, max;
+    if (partNumber === 1) {
+      min = PART1_MIN;
+      max = PART1_MAX;
+    } else {
+      min = PART2_MIN;
+      max = PART2_MAX;
+    }
+    
+    counter.textContent = words + ' words';
+    
+    if (words < min) {
+      counter.className = 'count warning';
+      counter.textContent += ` (need at least ${min})`;
+    } else if (words > max) {
+      counter.className = 'count warning';
+      counter.textContent += ` (max ${max})`;
+    } else {
+      counter.className = 'count success';
+      counter.textContent += ' ✓';
+    }
+  }
+
+  // Check previous submission
+  function checkPreviousSubmission() {
+    // Check if this is a retake (parent app cleared localStorage and set flag)
+    const isRetake = localStorage.getItem('cambridge_retake');
+    if (isRetake) {
+      localStorage.removeItem('cambridge_retake');
+      localStorage.removeItem(`quiz_submitted_${QUIZ_ID}`);
+      localStorage.removeItem(`quiz_draft_${QUIZ_ID}`);
+      return false; // Allow the test to proceed
+    }
+    
+    const submitted = localStorage.getItem(`quiz_submitted_${QUIZ_ID}`);
+    if (submitted) {
+      const data = JSON.parse(submitted);
+      showLockedState(data);
+      return true;
+    }
+    return false;
+  }
+
+  // Show locked state
+  function showLockedState(data) {
+    hasSubmitted = true;
+    document.getElementById("alreadySubmitted").style.display = "block";
+    
+    document.querySelectorAll('input, textarea').forEach(input => {
+      input.disabled = true;
+    });
+    document.getElementById("submitBtn").disabled = true;
+    document.getElementById("submitBtn").textContent = "✓ Already Submitted";
+    
+    const floatingBtn = document.getElementById("floatingSubmitBtn");
+    if (floatingBtn) {
+      floatingBtn.disabled = true;
+      floatingBtn.textContent = "✓ Submitted";
+    }
+    
+    // Show their previous answers (read-only)
+    if (data.answers) {
+      if (data.answers.part1) {
+        document.getElementById('answer1').value = data.answers.part1;
+        updateWordCount(1);
+      }
+      if (data.answers.part2) {
+        document.getElementById('answer2').value = data.answers.part2;
+        updateWordCount(2);
+      }
+    }
+  }
+
+  // Start timer
+  function startTimer() {
+    if (startTime) return;
+    
+    startTime = new Date();
+    document.getElementById("timerBox").style.display = "block";
+    
+    timerInterval = setInterval(() => {
+      const elapsed = Math.floor((new Date() - startTime) / 1000);
+      const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+      const seconds = (elapsed % 60).toString().padStart(2, '0');
+      document.getElementById("timer").textContent = `${minutes}:${seconds}`;
+    }, 1000);
+  }
+
+  // Submit writing
+  async function submitWriting() {
+    const studentName = document.getElementById("studentName").value.trim();
+    const studentClass = document.getElementById("studentClass").value.trim();
+    const answer1 = document.getElementById("answer1").value.trim();
+    const answer2 = document.getElementById("answer2").value.trim();
+    const statusDiv = document.getElementById("submitStatus");
+    const submitBtn = document.getElementById("submitBtn");
+    
+    if (hasSubmitted) {
+      statusDiv.className = "submit-status submit-error";
+      statusDiv.textContent = "⚠️ You have already submitted. Contact your teacher to retake.";
+      return;
+    }
+    
+    // Validation
+    if (!studentName || studentName.length < 2) {
+      document.getElementById("studentName").classList.add("required-field");
+      statusDiv.className = "submit-status submit-error";
+      statusDiv.textContent = "⚠️ Please enter your full name (at least 2 characters).";
+      return;
+    }
+    document.getElementById("studentName").classList.remove("required-field");
+    
+    if (!studentClass || studentClass.length < 1) {
+      document.getElementById("studentClass").classList.add("required-field");
+      statusDiv.className = "submit-status submit-error";
+      statusDiv.textContent = "⚠️ Please enter your class.";
+      return;
+    }
+    document.getElementById("studentClass").classList.remove("required-field");
+    
+    // Check if writing is empty
+    if (!answer1 || countWords(answer1) < 10) {
+      statusDiv.className = "submit-status submit-error";
+      statusDiv.textContent = "⚠️ Please write your Part 1 message (at least 10 words).";
+      document.getElementById("answer1").focus();
+      return;
+    }
+    
+    if (!answer2 || countWords(answer2) < 20) {
+      statusDiv.className = "submit-status submit-error";
+      statusDiv.textContent = "⚠️ Please write your Part 2 essay (at least 20 words).";
+      document.getElementById("answer2").focus();
+      return;
+    }
+    
+    // Word count warnings
+    const words1 = countWords(answer1);
+    const words2 = countWords(answer2);
+    let warnings = [];
+    
+    if (words1 < PART1_MIN || words1 > PART1_MAX) {
+      warnings.push(`Part 1: ${words1} words (should be ${PART1_MIN}-${PART1_MAX})`);
+    }
+    if (words2 < PART2_MIN || words2 > PART2_MAX) {
+      warnings.push(`Part 2: ${words2} words (should be ${PART2_MIN}-${PART2_MAX})`);
+    }
+    
+    let confirmMessage = "⚠️ ARE YOU SURE?\n\n" +
+      "• You can only submit ONCE\n" +
+      "• Your writing CANNOT be changed after this\n" +
+      "• Your teacher will mark your work\n\n";
+    
+    if (warnings.length > 0) {
+      confirmMessage += "⚠️ WORD COUNT WARNING:\n" + warnings.join("\n") + "\n\n";
+    }
+    
+    confirmMessage += "Click OK to submit, or Cancel to review.";
+    
+    if (!confirm(confirmMessage)) return;
+    
+    // Calculate time taken
+    const timeTaken = startTime ? Math.floor((new Date() - startTime) / 1000) : 0;
+    
+    // Stop timer
+    if (timerInterval) clearInterval(timerInterval);
+    
+    // Disable all inputs
+    document.getElementById("studentName").disabled = true;
+    document.getElementById("studentClass").disabled = true;
+    document.getElementById("answer1").disabled = true;
+    document.getElementById("answer2").disabled = true;
+    
+    // Show loading
+    submitBtn.disabled = true;
+    statusDiv.className = "submit-status submit-loading";
+    statusDiv.textContent = "📤 Submitting your writing...";
+    
+    try {
+      const { data, error } = await supabaseClient
+        .from('quiz_scores')
+        .insert([{
+          student_name: studentName,
+          student_class: studentClass,
+          quiz_name: 'Cambridge Writing Test 2',
+          score: 0, // Teacher will mark later
+          total_questions: 35, // Max possible: 15 + 20
+          percentage: 0, // Will be updated by teacher
+          answers: {
+            part1: answer1,
+            part1_words: words1,
+            part2: answer2,
+            part2_words: words2,
+            requires_marking: true
+          },
+          time_taken_seconds: timeTaken
+        }]);
+      
+      if (error) throw error;
+      
+      hasSubmitted = true;
+      localStorage.setItem(`quiz_submitted_${QUIZ_ID}`, JSON.stringify({
+        studentName: studentName,
+        submittedAt: new Date().toISOString(),
+        answers: {
+          part1: answer1,
+          part2: answer2
+        }
+      }));
+      
+      statusDiv.className = "submit-status submit-success";
+      statusDiv.textContent = "✅ Submitted successfully! Your teacher will mark your writing.";
+      submitBtn.textContent = "✓ Submitted";
+      
+      const floatingBtn = document.getElementById("floatingSubmitBtn");
+      if (floatingBtn) {
+        floatingBtn.disabled = true;
+        floatingBtn.textContent = "✓ Submitted";
+      }
+      
+      document.getElementById("successMessage").classList.add("show");
+      document.getElementById("successMessage").scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Notify parent window
+      try {
+        if (window.parent !== window) {
+          window.parent.postMessage({
+            type: 'CAMBRIDGE_TEST_COMPLETE',
+            quizId: QUIZ_ID,
+            score: 0,
+            total: 35,
+            percentage: 0,
+            requiresMarking: true
+          }, '*');
+        }
+      } catch (e) {
+        console.log('Parent notification not available');
+      }
+      
+    } catch (error) {
+      console.error('Submit error:', error);
+      statusDiv.className = "submit-status submit-error";
+      statusDiv.textContent = `❌ Failed to submit: ${error.message}. Please try again.`;
+      submitBtn.disabled = false;
+      
+      const floatingBtn = document.getElementById("floatingSubmitBtn");
+      if (floatingBtn) {
+        floatingBtn.disabled = false;
+        floatingBtn.textContent = "📤 Submit Writing";
+      }
+      
+      // Re-enable inputs on error
+      document.querySelectorAll('input, textarea').forEach(input => input.disabled = false);
+    }
+  }
+
+  // Warn before leaving page
+  window.addEventListener('beforeunload', function(e) {
+    const answer1 = document.getElementById('answer1').value.trim();
+    const answer2 = document.getElementById('answer2').value.trim();
+    
+    if ((answer1 || answer2) && !hasSubmitted) {
+      e.preventDefault();
+      e.returnValue = 'You have unsaved writing. Are you sure you want to leave?';
+    }
+  });
+
+  // Auto-save to localStorage every 30 seconds
+  setInterval(() => {
+    if (!hasSubmitted) {
+      const answer1 = document.getElementById('answer1').value;
+      const answer2 = document.getElementById('answer2').value;
+      if (answer1 || answer2) {
+        localStorage.setItem(`${QUIZ_ID}_draft`, JSON.stringify({
+          answer1: answer1,
+          answer2: answer2,
+          savedAt: new Date().toISOString()
+        }));
+      }
+    }
+  }, 30000);
+
+  // Load draft if available
+  function loadDraft() {
+    const draft = localStorage.getItem(`${QUIZ_ID}_draft`);
+    if (draft && !hasSubmitted) {
+      const data = JSON.parse(draft);
+      const savedMinutesAgo = Math.round((new Date() - new Date(data.savedAt)) / 60000);
+      
+      if (savedMinutesAgo < 60) { // Only restore if saved within the last hour
+        if (data.answer1) {
+          document.getElementById('answer1').value = data.answer1;
+          updateWordCount(1);
+        }
+        if (data.answer2) {
+          document.getElementById('answer2').value = data.answer2;
+          updateWordCount(2);
+        }
+        
+        const infoDiv = document.querySelector('.warning-box');
+        if (infoDiv && (data.answer1 || data.answer2)) {
+          const badge = document.createElement('div');
+          badge.style.cssText = 'background: #cce5ff; border: 1px solid #b8daff; border-radius: 8px; padding: 10px; text-align: center; color: #004085; font-size: 13px; margin-bottom: 15px;';
+          badge.innerHTML = `📝 Draft restored from ${savedMinutesAgo} minute${savedMinutesAgo !== 1 ? 's' : ''} ago`;
+          infoDiv.parentNode.insertBefore(badge, infoDiv.nextSibling);
+        }
+      }
+    }
+  }
+
+  // Initialize
+  checkPreviousSubmission();
+  loadStudentInfoFromGame();
+  if (!hasSubmitted) {
+    loadDraft();
+  }
+</script>
+
+</body>
+</html>

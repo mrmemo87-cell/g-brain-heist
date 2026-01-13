@@ -928,6 +928,86 @@
 }
 
 @media (max-width: 768px) {
+  .fullMode-inner {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .fullMode-left {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .fullMode-status {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 12px;
+  }
+
+  .fullMode-avatar-ring {
+    width: 52px;
+    height: 52px;
+  }
+
+  .fullMode-username {
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .fullMode-xp-bar {
+    width: 120px;
+  }
+
+  .fullMode-nav {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .fullMode-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .fullMode-action {
+    min-width: 64px;
+    height: 64px;
+  }
+
+  .fullMode-action-quest {
+    width: 82px;
+    height: 82px;
+  }
+
+  .fullMode-right {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .fullMode-stats {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .fullMode-stat {
+    flex: 1 1 120px;
+    min-width: 120px;
+  }
+
+  .fullMode-actions {
+    width: 100%;
+    justify-content: flex-end;
+    margin-left: 0;
+    flex-wrap: wrap;
+  }
+
   .fullMode-dashboard {
     padding: 14px;
   }

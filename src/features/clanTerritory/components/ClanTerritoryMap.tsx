@@ -5,6 +5,8 @@ import territoryMapSvgRaw from "../assets/territory_map.svg?raw";
 import kyrgyzstanMapSvgRaw from "../assets/kyrgyzstanHigh.svg?raw";
 // City map is 2.7MB - don't import eagerly to avoid startup lag
 let cityMapSvgRaw = "";
+// USA map is served from public and loaded on demand
+let usaMapSvgRaw = "";
 
 import {
   ClanId,
@@ -68,6 +70,64 @@ const MAP_CONFIGS: Record<string, MapConfig> = {
       "zone-5": "KG-O",  // Osh
       "zone-6": "KG-T",  // Talas
       "zone-7": "KG-Y",  // Ysyk-Köl
+    },
+    regionAliases: {},
+  },
+  usa: {
+    svg: usaMapSvgRaw,
+    maxZones: 51,
+    zoneToRegion: {
+      "zone-1": "US-AL",
+      "zone-2": "US-AK",
+      "zone-3": "US-AZ",
+      "zone-4": "US-AR",
+      "zone-5": "US-CA",
+      "zone-6": "US-CO",
+      "zone-7": "US-CT",
+      "zone-8": "US-DC",
+      "zone-9": "US-DE",
+      "zone-10": "US-FL",
+      "zone-11": "US-GA",
+      "zone-12": "US-HI",
+      "zone-13": "US-ID",
+      "zone-14": "US-IL",
+      "zone-15": "US-IN",
+      "zone-16": "US-IA",
+      "zone-17": "US-KS",
+      "zone-18": "US-KY",
+      "zone-19": "US-LA",
+      "zone-20": "US-ME",
+      "zone-21": "US-MD",
+      "zone-22": "US-MA",
+      "zone-23": "US-MI",
+      "zone-24": "US-MN",
+      "zone-25": "US-MS",
+      "zone-26": "US-MO",
+      "zone-27": "US-MT",
+      "zone-28": "US-NE",
+      "zone-29": "US-NV",
+      "zone-30": "US-NH",
+      "zone-31": "US-NJ",
+      "zone-32": "US-NM",
+      "zone-33": "US-NY",
+      "zone-34": "US-NC",
+      "zone-35": "US-ND",
+      "zone-36": "US-OH",
+      "zone-37": "US-OK",
+      "zone-38": "US-OR",
+      "zone-39": "US-PA",
+      "zone-40": "US-RI",
+      "zone-41": "US-SC",
+      "zone-42": "US-SD",
+      "zone-43": "US-TN",
+      "zone-44": "US-TX",
+      "zone-45": "US-UT",
+      "zone-46": "US-VT",
+      "zone-47": "US-VA",
+      "zone-48": "US-WA",
+      "zone-49": "US-WV",
+      "zone-50": "US-WI",
+      "zone-51": "US-WY",
     },
     regionAliases: {},
   },
@@ -239,6 +299,11 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   mapId = 'default',
 }) => {
   const [cityMapLoaded, setCityMapLoaded] = useState(false);
+  const [usaMapLoaded, setUsaMapLoaded] = useState(false);
+  const clanEntries = Object.values(clans);
+  const maxLegendEntries = 6;
+  const visibleClans = clanEntries.slice(0, maxLegendEntries);
+  const hiddenClanCount = Math.max(0, clanEntries.length - visibleClans.length);
 
   // Lazy-load the large city map (2.7MB) on first use to prevent startup lag
   useEffect(() => {
@@ -252,6 +317,24 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     }
   }, [mapId]);
 
+  // Load USA map from public directory when requested
+  useEffect(() => {
+    if (mapId === 'usa' && !usaMapSvgRaw) {
+      fetch("/USA.svg")
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Failed to load USA map: ${response.status}`);
+          }
+          return response.text();
+        })
+        .then((svgText) => {
+          usaMapSvgRaw = svgText;
+          setUsaMapLoaded(true);
+        })
+        .catch((e) => console.error("Failed to load USA map:", e));
+    }
+  }, [mapId]);
+
   // Get the appropriate map configuration based on mapId
   let mapConfig = MAP_CONFIGS[mapId] || MAP_CONFIGS.default;
   
@@ -260,6 +343,13 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     mapConfig = {
       ...MAP_CONFIGS.city,
       svg: cityMapSvgRaw,
+    };
+  }
+
+  if (mapId === 'usa' && usaMapLoaded && usaMapSvgRaw) {
+    mapConfig = {
+      ...MAP_CONFIGS.usa,
+      svg: usaMapSvgRaw,
     };
   }
   
@@ -613,11 +703,11 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       </div>
 
       {!hideLegend && (
-        <div className="absolute top-4 right-4 bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-3 space-y-2 max-h-72 overflow-y-auto z-10">
+        <div className="absolute top-4 right-4 bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-3 space-y-2 max-h-60 w-44 overflow-y-auto z-10">
           <h4 className="text-xs font-bold text-white uppercase tracking-wide">
             Active Clans
           </h4>
-          {Object.values(clans).map((clan) => (
+          {visibleClans.map((clan) => (
             <div key={clan.id} className="flex items-center gap-2 text-xs">
               <div
                 className="w-3 h-3 rounded-full"
@@ -626,6 +716,11 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
               <span className="text-white font-semibold">{clan.name}</span>
             </div>
           ))}
+          {hiddenClanCount > 0 && (
+            <div className="text-[11px] text-slate-400 font-semibold">
+              +{hiddenClanCount} more clans
+            </div>
+          )}
         </div>
       )}
 

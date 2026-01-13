@@ -458,7 +458,16 @@ const renderMobilePanelNav = () => (
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-2">
               <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Agent Online</p>
-              <h1 className="text-2xl font-black tracking-tight sm:text-3xl">Agent {myPlayer.name ?? "Unknown"}</h1>
+              <h1 className="text-2xl font-black tracking-tight sm:text-3xl">
+                <span className="inline-flex items-center gap-2">
+                  <span
+                    className="h-3 w-3 rounded-full border border-slate-900/80"
+                    style={{ backgroundColor: myPlayer.color ?? "#94a3b8" }}
+                    aria-hidden="true"
+                  />
+                  Agent {myPlayer.name ?? "Unknown"}
+                </span>
+              </h1>
               <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
                 <span className="rounded-full border border-slate-800 bg-slate-900/80 px-3 py-1 font-semibold">Room {roomCode}</span>
                 <span className="rounded-full border border-emerald-500/50 bg-emerald-600/10 px-3 py-1 font-semibold text-emerald-300">
