@@ -209,7 +209,10 @@ const getAspectRatioFromSvg = (svgContent: string) => {
   return null;
 };
 
-const normalizeSvgMarkup = (svgContent: string) => {
+const normalizeSvgMarkup = (
+  svgContent: string,
+  fit: "meet" | "slice" = "meet"
+) => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(svgContent, "image/svg+xml");
   const svgEl = doc.querySelector("svg");
@@ -238,7 +241,7 @@ const normalizeSvgMarkup = (svgContent: string) => {
   // Set responsive attributes
   svgEl.setAttribute("width", "100%");
   svgEl.setAttribute("height", "100%");
-  svgEl.setAttribute("preserveAspectRatio", "xMidYMid meet");
+  svgEl.setAttribute("preserveAspectRatio", `xMidYMid ${fit}`);
   
   // Apply inline styles to ensure proper rendering
   svgEl.style.cssText = `
@@ -247,8 +250,7 @@ const normalizeSvgMarkup = (svgContent: string) => {
     max-width: 100%;
     max-height: 100%;
     display: block;
-    object-fit: contain;
-  `.replace(/\s+/g, ' ').trim();
+  `.replace(/\s+/g, " ").trim();
 
   return svgEl.outerHTML;
 };
@@ -493,8 +495,9 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   }, [mapId]);
 
   useEffect(() => {
-    setMapMarkup(normalizeSvgMarkup(mapSvg));
-  }, [mapSvg]);
+    const fit = mapId === "usa" ? "slice" : "meet";
+    setMapMarkup(normalizeSvgMarkup(mapSvg, fit));
+  }, [mapSvg, mapId]);
 
   useEffect(() => {
     const ratio = getAspectRatioFromSvg(mapSvg);
