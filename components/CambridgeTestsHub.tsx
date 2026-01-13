@@ -445,7 +445,20 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
     }
   };
 
-  const filteredTests = tests.filter(test => {
+  const gradeSubjectMap: Record<number, CambridgeTest['subject'][]> = {
+    8: ['English stage 9'],
+    11: ['AS Chemistry'],
+  };
+
+  const eligibleSubjects = profile.grade === null
+    ? null
+    : gradeSubjectMap[profile.grade] ?? [];
+
+  const gradeFilteredTests = eligibleSubjects === null
+    ? tests
+    : tests.filter(test => eligibleSubjects.includes(test.subject));
+
+  const filteredTests = gradeFilteredTests.filter(test => {
     if (filter === 'completed') return test.isCompleted;
     if (filter === 'pending') return !test.isCompleted;
     return true;
@@ -464,7 +477,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       const next = { ...prev };
       subjectList.forEach(subject => {
         if (next[subject] === undefined) {
-          next[subject] = false;
+          next[subject] = true;
         }
       });
       return next;
@@ -478,8 +491,8 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
     }));
   };
 
-  const completedCount = tests.filter(t => t.isCompleted).length;
-  const totalCount = tests.length;
+  const completedCount = gradeFilteredTests.filter(t => t.isCompleted).length;
+  const totalCount = gradeFilteredTests.length;
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   const getDifficultyColor = (difficulty: string) => {
