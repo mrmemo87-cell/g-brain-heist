@@ -253,6 +253,46 @@ const normalizeSvgMarkup = (svgContent: string) => {
   return svgEl.outerHTML;
 };
 
+const adjustViewBoxToContent = (svgEl: SVGSVGElement) => {
+  try {
+    const graphics = Array.from(
+      svgEl.querySelectorAll<SVGGraphicsElement>(
+        "path, rect, circle, ellipse, polygon, polyline"
+      )
+    );
+    if (graphics.length === 0) return null;
+
+    let minX = Number.POSITIVE_INFINITY;
+    let minY = Number.POSITIVE_INFINITY;
+    let maxX = Number.NEGATIVE_INFINITY;
+    let maxY = Number.NEGATIVE_INFINITY;
+
+    graphics.forEach((element) => {
+      const { x, y, width, height } = element.getBBox();
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x + width);
+      maxY = Math.max(maxY, y + height);
+    });
+
+    if (!Number.isFinite(minX) || !Number.isFinite(minY)) return null;
+
+    const padding = 8;
+    const viewBox = [
+      minX - padding,
+      minY - padding,
+      maxX - minX + padding * 2,
+      maxY - minY + padding * 2,
+    ].join(" ");
+    svgEl.setAttribute("viewBox", viewBox);
+    return viewBox;
+  } catch (error) {
+    console.warn("[ClanTerritoryMap] Failed to adjust viewBox", error);
+  }
+
+  return null;
+};
+
 const getZoneController = (
   zoneState?: ZoneState,
   clans?: Record<ClanId, ClanMetadata>
@@ -441,24 +481,20 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
   useEffect(() => {
     if (!mapMarkup || !containerRef.current) return;
+    const svgEl = containerRef.current.querySelector("svg");
+    if (!svgEl) return;
+
     if (mapId === "usa" && !usaViewBoxAdjustedRef.current) {
-      const svgEl = containerRef.current.querySelector("svg");
-      if (svgEl) {
-        try {
-          const bbox = svgEl.getBBox();
-          const padding = 8;
-          const viewBox = [
-            bbox.x - padding,
-            bbox.y - padding,
-            bbox.width + padding * 2,
-            bbox.height + padding * 2,
-          ].join(" ");
-          svgEl.setAttribute("viewBox", viewBox);
-          usaViewBoxAdjustedRef.current = true;
-        } catch (error) {
-          console.warn("[ClanTerritoryMap] Failed to adjust USA viewBox", error);
+      requestAnimationFrame(() => {
+        const viewBox = adjustViewBoxToContent(svgEl);
+        if (viewBox) {
+          const [, , width, height] = viewBox.split(/\s+/).map(Number);
+          if (width && height) {
+            setMapAspectRatio(width / height);
+          }
         }
-      }
+        usaViewBoxAdjustedRef.current = true;
+      });
     }
 
     const ensureInitialAttributes = (element: SVGPathElement) => {
@@ -714,8 +750,8 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
       <div
         ref={containerRef}
-        className="w-full flex items-center justify-center px-4 pb-4"
-        style={{ aspectRatio: '16 / 9', minHeight: '420px' }}
+        className="w-full flex items-center justify-center px-4 pb-4 min-h-[240px] sm:min-h-[320px] lg:min-h-[420px]"
+        style={{ aspectRatio: mapAspectRatio ? `${mapAspectRatio}` : '16 / 9' }}
       >
         <div
           className="w-full h-full"

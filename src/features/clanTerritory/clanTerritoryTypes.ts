@@ -225,6 +225,7 @@ export type GameAction =
   | { type: "SET_QUESTIONS"; payload: { questions: BattleQuestion[] } }
   | { type: "SET_MAP"; payload: { mapId: string } }
   | { type: "SET_ALLOW_CLANLESS"; payload: { allow: boolean } }
+  | { type: "SET_DURATION"; payload: { duration: number } }
   | { type: "START_GAME"; payload: { duration: number } }
   | { type: "TICK" }
   | { type: "SELECT_ZONE"; payload: { playerId: string; zoneId: ZoneId | null } }
