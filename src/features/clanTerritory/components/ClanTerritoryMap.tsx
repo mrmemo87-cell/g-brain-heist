@@ -284,6 +284,7 @@ export type ClanTerritoryMapProps = {
   hideLegend?: boolean;
   overlay?: ReactNode;
   mapId?: string;
+  containerClassName?: string; // Allow parent to control container sizing
 };
 
 export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
@@ -293,6 +294,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   hideLegend = false,
   overlay,
   mapId = "default",
+  containerClassName = "w-full h-full min-h-[240px] sm:min-h-[320px] lg:min-h-[420px]",
 }) => {
   const [cityMapLoaded, setCityMapLoaded] = useState(false);
   const [usaMapLoaded, setUsaMapLoaded] = useState(false);
@@ -642,7 +644,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
       <div
         ref={containerRef}
-        className="w-full h-full flex items-center justify-center px-4 pb-4 min-h-[240px] sm:min-h-[320px] lg:min-h-[420px]"
+        className={`flex items-center justify-center px-4 pb-4 ${containerClassName}`}
       >
         <div className="w-full h-full" dangerouslySetInnerHTML={{ __html: mapMarkup }} />
       </div>

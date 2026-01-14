@@ -314,8 +314,10 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           </p>
           <p className="text-slate-500 text-sm">Awaiting teacher to arm the arena...</p>
         </div>
-        <ClanTerritoryMap zones={gameState.zones} clans={clansWithColors} mapId={gameState.mapId} />
-        <div className="grid grid-cols-2 gap-4 text-center">
+        <div className="flex-1 min-h-0">
+          <ClanTerritoryMap zones={gameState.zones} clans={clansWithColors} mapId={gameState.mapId} containerClassName="w-full h-full" />
+        </div>
+        <div className="grid grid-cols-2 gap-4 text-center shrink-0">
           <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4">
             <p className="text-xs uppercase text-slate-400">Agents Online</p>
             <p className="text-3xl font-mono">{Object.keys(gameState.players).length}</p>
@@ -325,7 +327,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
             <p className="text-xl font-bold" style={{ color: myClan?.color }}>{myClan?.name}</p>
           </div>
         </div>
-        <div className="text-center text-slate-400 animate-pulse">
+        <div className="text-center text-slate-400 animate-pulse shrink-0">
           Scanning... the battlefield unlocks once the teacher starts the raid.
         </div>
       </div>
@@ -452,15 +454,16 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden gap-0 lg:gap-0">
           
           {/* Mobile: Map + Zone Info (Full width, stacked) */}
-          <div className="lg:hidden flex flex-col gap-2 bg-gray-900/50 border-b border-gray-800 p-3 shrink-0">
-            {/* Map - Same size as Zone Selection page */}
-            <div className="w-full max-w-md mx-auto">
+          <div className="lg:hidden flex flex-col gap-2 bg-gray-900/50 border-b border-gray-800 p-3 shrink-0 h-auto">
+            {/* Map - Fit to available space with aspect ratio */}
+            <div className="w-full bg-slate-950 rounded-lg overflow-hidden" style={{ aspectRatio: "16/9", maxHeight: "300px" }}>
               <ClanTerritoryMap 
                 zones={gameState.zones} 
                 clans={clansWithColors} 
                 mapId={gameState.mapId}
                 hideHeader
                 hideLegend
+                containerClassName="w-full h-full"
               />
             </div>
             
@@ -505,13 +508,14 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                 Live Battle Map
               </h3>
-              <div className="flex-1 min-h-0 w-full flex items-center justify-center p-2">
+              <div className="flex-1 min-h-0 w-full">
                 <ClanTerritoryMap 
                   zones={gameState.zones} 
                   clans={clansWithColors} 
                   mapId={gameState.mapId}
                   hideHeader
                   hideLegend
+                  containerClassName="w-full h-full"
                 />
               </div>
               
