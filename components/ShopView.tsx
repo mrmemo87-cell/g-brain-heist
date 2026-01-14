@@ -376,16 +376,18 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
 
   return (
     <div className="mt-6">
-      <div className="flex justify-between items-center mb-4">
-        <BackButton onClick={onComplete} />
-        {onNavigateToInventory && (
-          <button 
-            onClick={onNavigateToInventory}
-            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-heading hover:from-blue-500 hover:to-purple-500 transition-all"
-          >
-            View Inventory →
-          </button>
-        )}
+      <div className="sticky top-4 z-40 mb-6">
+        <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-slate-950/70 p-2 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+          <BackButton onClick={onComplete} containerClassName="mb-0" />
+          {onNavigateToInventory && (
+            <button
+              onClick={onNavigateToInventory}
+              className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-heading hover:from-blue-500 hover:to-purple-500 transition-all sm:w-auto"
+            >
+              View Inventory →
+            </button>
+          )}
+        </div>
       </div>
       <h2 className="font-heading text-3xl text-center mb-8" style={{ color: 'var(--success-teal)' }}>Item Shop</h2>
             <div className="space-y-6">
