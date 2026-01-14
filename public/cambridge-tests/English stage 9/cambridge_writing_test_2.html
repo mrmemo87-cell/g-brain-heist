@@ -456,7 +456,7 @@
     
     <div class="writing-area">
       <label for="answer1">Write your message below:</label>
-      <textarea id="answer1" placeholder="Start writing your message here..." oninput="updateWordCount(1); startTimer();"></textarea>
+      <textarea id="answer1" placeholder="Start writing your message here..." oninput="updateWordCount(1); startTimer(); autoSaveDraft();"></textarea>
       <div class="word-counter">
         <span>Word count:</span>
         <span class="count" id="wordCount1">0 words</span>
@@ -508,7 +508,7 @@
     
     <div class="writing-area">
       <label for="answer2">Write your essay below:</label>
-      <textarea id="answer2" placeholder="Start writing your essay here..." style="min-height: 300px;" oninput="updateWordCount(2); startTimer();"></textarea>
+      <textarea id="answer2" placeholder="Start writing your essay here..." style="min-height: 300px;" oninput="updateWordCount(2); startTimer(); autoSaveDraft();"></textarea>
       <div class="word-counter">
         <span>Word count:</span>
         <span class="count" id="wordCount2">0 words</span>
@@ -579,6 +579,12 @@
         insert: async function(data) {
           try {
             const accessToken = getSupabaseAccessToken();
+            
+            // Log submission attempt for debugging
+            console.log('📤 Attempting to submit to:', table);
+            console.log('🔑 Using token:', accessToken ? 'authenticated' : 'anonymous (anon key)');
+            console.log('📊 Payload size:', JSON.stringify(Array.isArray(data) ? data : [data]).length, 'bytes');
+            
             const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
               method: 'POST',
               headers: {
@@ -589,12 +595,22 @@
               },
               body: JSON.stringify(Array.isArray(data) ? data : [data])
             });
+            
+            // Log response details
+            console.log('✅ Response status:', response.status, response.statusText);
+            
             if (!response.ok) {
               const errorText = await response.text();
-              throw new Error(errorText || response.statusText);
+              const detailedError = `HTTP ${response.status}: ${errorText || response.statusText}`;
+              console.error('❌ Submission failed:', detailedError);
+              throw new Error(detailedError);
             }
+            
+            console.log('✅ Submission successful!');
             return { data: null, error: null };
           } catch (err) {
+            console.error('💥 Critical error during submission:', err.message || err);
+            console.error('Full error object:', err);
             return { data: null, error: err };
           }
         }
@@ -682,6 +698,30 @@
       counter.className = 'count success';
       counter.textContent += ' ✓';
     }
+  }
+
+  // Auto-save draft on typing (debounced for performance)
+  let autoSaveTimeout = null;
+  function autoSaveDraft() {
+    // Clear existing timeout
+    if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
+    
+    // Debounce: only save after user stops typing for 1 second
+    autoSaveTimeout = setTimeout(() => {
+      if (!hasSubmitted) {
+        const answer1 = document.getElementById('answer1').value;
+        const answer2 = document.getElementById('answer2').value;
+        if (answer1 || answer2) {
+          const draftData = {
+            answer1: answer1,
+            answer2: answer2,
+            savedAt: new Date().toISOString()
+          };
+          localStorage.setItem(`${QUIZ_ID}_draft`, JSON.stringify(draftData));
+          console.log('💾 Draft auto-saved (' + (answer1.length + answer2.length) + ' characters)');
+        }
+      }
+    }, 1000); // Save 1 second after user stops typing
   }
 
   // Check previous submission
@@ -837,6 +877,15 @@
     document.getElementById("answer1").disabled = true;
     document.getElementById("answer2").disabled = true;
     
+    // Save draft IMMEDIATELY before submission attempt
+    const draftData = {
+      answer1: answer1,
+      answer2: answer2,
+      savedAt: new Date().toISOString()
+    };
+    localStorage.setItem(`${QUIZ_ID}_draft`, JSON.stringify(draftData));
+    console.log('📝 Draft saved before submission attempt');
+    
     // Show loading
     submitBtn.disabled = true;
     statusDiv.className = "submit-status submit-loading";
@@ -904,9 +953,37 @@
       }
       
     } catch (error) {
-      console.error('Submit error:', error);
+      console.error('💥 CRITICAL: Submit error:', error);
+      console.error('Error message:', error.message);
+      console.error('Error details:', error);
+      
+      // Save draft immediately after failure
+      const draftData = {
+        answer1: answer1,
+        answer2: answer2,
+        savedAt: new Date().toISOString(),
+        failedAt: new Date().toISOString()
+      };
+      localStorage.setItem(`${QUIZ_ID}_draft`, JSON.stringify(draftData));
+      console.log('📝 Draft auto-saved after submission failure');
+      
       statusDiv.className = "submit-status submit-error";
-      statusDiv.textContent = `❌ Failed to submit: ${error.message}. Please try again.`;
+      
+      // Provide more helpful error message
+      let helpfulMessage = `❌ Failed to submit`;
+      if (error.message?.includes('401')) {
+        helpfulMessage += ': Authentication error. Try refreshing the page.';
+      } else if (error.message?.includes('403')) {
+        helpfulMessage += ': Permission denied. Contact your teacher.';
+      } else if (error.message?.includes('CORS')) {
+        helpfulMessage += ': Network error. Check your internet connection.';
+      } else if (error.message?.includes('500')) {
+        helpfulMessage += ': Server error. Please try again in a moment.';
+      } else {
+        helpfulMessage += ': ' + (error.message || 'Unknown error') + '\n\nPlease check the browser console (F12) for details, and contact your teacher.';
+      }
+      
+      statusDiv.textContent = helpfulMessage;
       submitBtn.disabled = false;
       
       const floatingBtn = document.getElementById("floatingSubmitBtn");
