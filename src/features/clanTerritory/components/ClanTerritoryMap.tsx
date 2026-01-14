@@ -315,7 +315,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   // Lazy-load USA map from public folder
   useEffect(() => {
     if (mapId === "usa" && !usaMapLoaded) {
-      fetch("/maps/usaHigh.svg")
+      fetch("/USA.svg")
         .then((r) => r.text())
         .then((svg) => {
           usaMapSvgRaw = svg;
