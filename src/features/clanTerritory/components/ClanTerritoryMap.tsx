@@ -176,36 +176,6 @@ const getZoneControl = (
   return { clanId: leader as ClanId, contested };
 };
 
-const getAspectRatioFromSvg = (svgContent: string): number | null => {
-  try {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(svgContent, "image/svg+xml");
-    const svgEl = doc.querySelector("svg");
-    if (!svgEl) return null;
-
-    const viewBox = svgEl.getAttribute("viewBox");
-    if (viewBox) {
-      const [, , w, h] = viewBox.split(/\s+/).map(Number);
-      if (!Number.isNaN(w) && !Number.isNaN(h) && h !== 0) {
-        return w / h;
-      }
-    }
-
-    const widthAttr = svgEl.getAttribute("width");
-    const heightAttr = svgEl.getAttribute("height");
-    const width = widthAttr ? parseFloat(widthAttr) : NaN;
-    const height = heightAttr ? parseFloat(heightAttr) : NaN;
-
-    if (!Number.isNaN(width) && !Number.isNaN(height) && height !== 0) {
-      return width / height;
-    }
-  } catch (error) {
-    console.warn("[ClanTerritoryMap] Failed to parse SVG aspect ratio", error);
-  }
-
-  return null;
-};
-
 const normalizeSvgMarkup = (svgContent: string) => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(svgContent, "image/svg+xml");
@@ -234,8 +204,8 @@ const normalizeSvgMarkup = (svgContent: string) => {
   svgEl.setAttribute("width", "100%");
   svgEl.setAttribute("height", "100%");
 
-  // KEY: always fill the container (crop if needed)
-  svgEl.setAttribute("preserveAspectRatio", "xMidYMid slice");
+  // KEY: always fit inside the container without cropping
+  svgEl.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
   // Apply inline styles to ensure proper rendering
   svgEl.style.cssText = `
@@ -294,9 +264,9 @@ const adjustViewBoxToContent = (svgEl: SVGSVGElement) => {
 
     svgEl.setAttribute("viewBox", viewBox);
 
-    // Keep slice behavior even if SVG had something else originally
+    // Keep fit behavior even if SVG had something else originally
     if (!svgEl.getAttribute("preserveAspectRatio")) {
-      svgEl.setAttribute("preserveAspectRatio", "xMidYMid slice");
+      svgEl.setAttribute("preserveAspectRatio", "xMidYMid meet");
     }
 
     return viewBox;
@@ -389,7 +359,6 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   const mapSvg = mapConfig.svg;
   const containerRef = useRef<HTMLDivElement>(null);
   const [mapMarkup, setMapMarkup] = useState("");
-  const [mapAspectRatio, setMapAspectRatio] = useState<number | null>(null);
   const viewBoxAdjustedRef = useRef<Record<string, boolean>>({});
   const defaultRegionStylesRef = useRef<
     Record<
@@ -474,11 +443,6 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   }, [mapSvg]);
 
   useEffect(() => {
-    const ratio = getAspectRatioFromSvg(mapSvg);
-    setMapAspectRatio(ratio);
-  }, [mapSvg]);
-
-  useEffect(() => {
     if (!mapMarkup || !containerRef.current) return;
     const svgEl = containerRef.current.querySelector("svg");
     if (!svgEl) return;
@@ -487,12 +451,6 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           const viewBox = adjustViewBoxToContent(svgEl);
-          if (viewBox) {
-            const [, , width, height] = viewBox.split(/\s+/).map(Number);
-            if (width && height) {
-              setMapAspectRatio(width / height);
-            }
-          }
           viewBoxAdjustedRef.current[mapId] = true;
         });
       });
@@ -581,8 +539,8 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
       svgRef.current = svg;
 
-      // Force slice on the live DOM svg too (just in case)
-      svg.setAttribute("preserveAspectRatio", "xMidYMid slice");
+      // Force fit on the live DOM svg too (just in case)
+      svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
       // Apply global SVG sizing just in case
       svg.style.width = "100%";
@@ -684,8 +642,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
       <div
         ref={containerRef}
-        className="w-full flex items-center justify-center px-4 pb-4 min-h-[240px] sm:min-h-[320px] lg:min-h-[420px]"
-        style={{ aspectRatio: mapAspectRatio ? `${mapAspectRatio}` : "16 / 9" }}
+        className="w-full h-full flex items-center justify-center px-4 pb-4 min-h-[240px] sm:min-h-[320px] lg:min-h-[420px]"
       >
         <div className="w-full h-full" dangerouslySetInnerHTML={{ __html: mapMarkup }} />
       </div>

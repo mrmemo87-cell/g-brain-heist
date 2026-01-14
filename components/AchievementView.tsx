@@ -261,7 +261,7 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
 
   return (
     <div className="mt-6 max-w-5xl mx-auto px-4">
-      <BackButton onClick={onComplete} />
+      <BackButton onClick={onComplete} containerClassName="sticky top-4 z-40 mb-6" />
       
       {/* Header with Stats */}
       <div className="text-center mb-8">

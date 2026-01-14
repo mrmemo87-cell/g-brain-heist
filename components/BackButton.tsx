@@ -3,14 +3,21 @@ import React from 'react';
 interface BackButtonProps {
   onClick: () => void;
   label?: string;
+  containerClassName?: string;
+  className?: string;
 }
 
-const BackButton: React.FC<BackButtonProps> = ({ onClick, label = 'Return to Dashboard' }) => {
+const BackButton: React.FC<BackButtonProps> = ({
+  onClick,
+  label = 'Return to Dashboard',
+  containerClassName = 'mb-6',
+  className = '',
+}) => {
   return (
-    <div className="mb-6">
+    <div className={containerClassName}>
       <button
         onClick={onClick}
-        className="flex items-center space-x-2 card-glass px-6 py-3 rounded-lg hover:scale-105 transition-all duration-300 group animate-fade-in-up"
+        className={`flex items-center space-x-2 card-glass px-6 py-3 rounded-lg hover:scale-105 transition-all duration-300 group animate-fade-in-up ${className}`.trim()}
         style={{ borderColor: 'rgba(0, 208, 232, 0.3)' }}
       >
         <svg 
