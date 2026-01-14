@@ -56,6 +56,14 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
   onEndGame,
   onKickPlayer,
 }) => {
+  const mapWrapperRef = React.useRef<HTMLDivElement>(null);
+  const resizeStateRef = React.useRef<{
+    startX: number;
+    startWidth: number;
+    parentWidth: number;
+    side: "left" | "right";
+  } | null>(null);
+  const [mapWidthPct, setMapWidthPct] = React.useState(100);
   const clanList = React.useMemo(() => {
     const knownClans = Object.values(gameState.clans).map((clan) => ({
       ...clan,
@@ -168,6 +176,47 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
         player: gameState.players[reward.playerId],
       }));
   }, [results, gameState.players]);
+  const handleResizeStart = React.useCallback(
+    (side: "left" | "right") => (event: React.PointerEvent<HTMLButtonElement>) => {
+      const wrapper = mapWrapperRef.current;
+      if (!wrapper || !wrapper.parentElement) return;
+
+      const parentWidth = wrapper.parentElement.getBoundingClientRect().width;
+      const startWidth = wrapper.getBoundingClientRect().width;
+
+      resizeStateRef.current = {
+        startX: event.clientX,
+        startWidth,
+        parentWidth,
+        side,
+      };
+
+      event.preventDefault();
+      event.currentTarget.setPointerCapture(event.pointerId);
+
+      const handlePointerMove = (moveEvent: PointerEvent) => {
+        if (!resizeStateRef.current) return;
+        const { startX, startWidth, parentWidth: baseWidth, side: activeSide } =
+          resizeStateRef.current;
+        const delta = moveEvent.clientX - startX;
+        const signedDelta = activeSide === "left" ? -delta : delta;
+        const nextWidth = startWidth + signedDelta;
+        const nextPct = (nextWidth / baseWidth) * 100;
+        const clamped = Math.min(100, Math.max(50, nextPct));
+        setMapWidthPct(clamped);
+      };
+
+      const handlePointerUp = () => {
+        resizeStateRef.current = null;
+        window.removeEventListener("pointermove", handlePointerMove);
+        window.removeEventListener("pointerup", handlePointerUp);
+      };
+
+      window.addEventListener("pointermove", handlePointerMove);
+      window.addEventListener("pointerup", handlePointerUp);
+    },
+    []
+  );
 
   const endgameOverlay =
     gameState.phase === "ENDED" && results ? (
@@ -344,16 +393,37 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
 
       <div className="flex-1 grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 flex flex-col gap-4 min-h-0">
-          <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 flex-1 min-h-0 flex flex-col">
-            <ClanTerritoryMap
-              zones={gameState.zones}
-              clans={clansWithColors}
-              hideHeader={gameState.phase === "ENDED"}
-              hideLegend={gameState.phase === "ENDED"}
-              overlay={endgameOverlay}
-              mapId={gameState.mapId}
-              containerClassName="w-full h-full flex-1"
+          <div
+            ref={mapWrapperRef}
+            className="relative mx-auto w-full"
+            style={{ width: `${mapWidthPct}%` }}
+          >
+            <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 flex-1 min-h-0 flex flex-col">
+              <ClanTerritoryMap
+                zones={gameState.zones}
+                clans={clansWithColors}
+                hideHeader={gameState.phase === "ENDED"}
+                hideLegend={gameState.phase === "ENDED"}
+                overlay={endgameOverlay}
+                mapId={gameState.mapId}
+                containerClassName="w-full h-full flex-1"
+              />
+            </div>
+            <button
+              type="button"
+              aria-label="Resize map container from left"
+              onPointerDown={handleResizeStart("left")}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-16 w-3 rounded-full bg-slate-700/80 border border-slate-500 shadow-md hover:bg-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400/70"
             />
+            <button
+              type="button"
+              aria-label="Resize map container from right"
+              onPointerDown={handleResizeStart("right")}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-16 w-3 rounded-full bg-slate-700/80 border border-slate-500 shadow-md hover:bg-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400/70"
+            />
+            <div className="mt-2 text-xs text-slate-500 text-center">
+              Drag the side handles to resize the map container.
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {activeZones.map((zone) => {
