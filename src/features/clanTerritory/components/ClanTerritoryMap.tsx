@@ -302,7 +302,12 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
   // Lazy-load the large city map (2.7MB) on first use to prevent startup lag
   useEffect(() => {
-    if (mapId === "city" && !cityMapLoaded) {
+    if (mapId !== "city") return;
+    if (cityMapSvgRaw) {
+      if (!cityMapLoaded) setCityMapLoaded(true);
+      return;
+    }
+    if (!cityMapLoaded) {
       import("../assets/city_map.svg?raw")
         .then((module) => {
           cityMapSvgRaw = module.default;
@@ -314,7 +319,12 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
   // Lazy-load USA map from public folder
   useEffect(() => {
-    if (mapId === "usa" && !usaMapLoaded) {
+    if (mapId !== "usa") return;
+    if (usaMapSvgRaw) {
+      if (!usaMapLoaded) setUsaMapLoaded(true);
+      return;
+    }
+    if (!usaMapLoaded) {
       fetch("/USA.svg")
         .then((r) => r.text())
         .then((svg) => {
@@ -329,14 +339,14 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   let mapConfig = MAP_CONFIGS[mapId] || MAP_CONFIGS.default;
 
   // Update city config if city map just loaded
-  if (mapId === "city" && cityMapLoaded && cityMapSvgRaw) {
+  if (mapId === "city" && cityMapSvgRaw) {
     mapConfig = {
       ...MAP_CONFIGS.city,
       svg: cityMapSvgRaw,
     };
   }
 
-  if (mapId === "usa" && usaMapLoaded && usaMapSvgRaw) {
+  if (mapId === "usa" && usaMapSvgRaw) {
     mapConfig = {
       ...MAP_CONFIGS.usa,
       svg: usaMapSvgRaw,
