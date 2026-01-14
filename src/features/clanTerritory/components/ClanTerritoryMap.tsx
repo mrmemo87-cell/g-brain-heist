@@ -219,6 +219,17 @@ const normalizeSvgMarkup = (svgContent: string) => {
   return svgEl.outerHTML;
 };
 
+const getViewBoxAspectRatio = (viewBox: string | null) => {
+  if (!viewBox) return null;
+  const parts = viewBox.split(/\s+/).map(Number);
+  if (parts.length !== 4) return null;
+  const [, , width, height] = parts;
+  if (!Number.isFinite(width) || !Number.isFinite(height) || height === 0) {
+    return null;
+  }
+  return `${width} / ${height}`;
+};
+
 const adjustViewBoxToContent = (svgEl: SVGSVGElement) => {
   const safeBBox = (el: SVGGraphicsElement) => {
     try {
@@ -294,7 +305,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   hideLegend = false,
   overlay,
   mapId = "default",
-  containerClassName = "w-full h-full min-h-[240px] sm:min-h-[320px] lg:min-h-[420px]",
+  containerClassName = "w-full h-auto min-h-[240px] sm:min-h-[320px] lg:min-h-[420px]",
 }) => {
   const [cityMapLoaded, setCityMapLoaded] = useState(false);
   const [usaMapLoaded, setUsaMapLoaded] = useState(false);
@@ -361,6 +372,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   const mapSvg = mapConfig.svg;
   const containerRef = useRef<HTMLDivElement>(null);
   const [mapMarkup, setMapMarkup] = useState("");
+  const [mapAspectRatio, setMapAspectRatio] = useState<string | null>(null);
   const viewBoxAdjustedRef = useRef<Record<string, boolean>>({});
   const defaultRegionStylesRef = useRef<
     Record<
@@ -438,6 +450,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     lastRegionStyleKeyRef.current = {};
     svgRef.current = null;
     viewBoxAdjustedRef.current = {};
+    setMapAspectRatio(null);
   }, [mapId]);
 
   useEffect(() => {
@@ -453,9 +466,15 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           const viewBox = adjustViewBoxToContent(svgEl);
+          setMapAspectRatio(
+            getViewBoxAspectRatio(viewBox || svgEl.getAttribute("viewBox"))
+          );
           viewBoxAdjustedRef.current[mapId] = true;
         });
       });
+    }
+    if (!mapAspectRatio) {
+      setMapAspectRatio(getViewBoxAspectRatio(svgEl.getAttribute("viewBox")));
     }
 
     const ensureInitialAttributes = (element: SVGPathElement) => {
@@ -646,7 +665,11 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         ref={containerRef}
         className={`flex items-center justify-center px-4 pb-4 ${containerClassName}`}
       >
-        <div className="w-full h-full" dangerouslySetInnerHTML={{ __html: mapMarkup }} />
+        <div
+          className="w-full h-auto"
+          style={mapAspectRatio ? { aspectRatio: mapAspectRatio } : undefined}
+          dangerouslySetInnerHTML={{ __html: mapMarkup }}
+        />
       </div>
 
       {!hideLegend && (
