@@ -373,6 +373,9 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [mapMarkup, setMapMarkup] = useState("");
   const [mapAspectRatio, setMapAspectRatio] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(100);
+  const [panX, setPanX] = useState(0);
+  const [panY, setPanY] = useState(0);
   const viewBoxAdjustedRef = useRef<Record<string, boolean>>({});
   const defaultRegionStylesRef = useRef<
     Record<
@@ -661,6 +664,48 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         </div>
       )}
 
+      <div className="px-4 pb-3 grid gap-3 text-xs text-slate-300">
+        <label className="flex flex-col gap-2">
+          <span className="font-semibold text-slate-200">
+            Zoom: {zoom}%
+          </span>
+          <input
+            type="range"
+            min={10}
+            max={500}
+            value={zoom}
+            onChange={(event) => setZoom(Number(event.target.value))}
+            className="w-full accent-cyan-400"
+          />
+        </label>
+        <label className="flex flex-col gap-2">
+          <span className="font-semibold text-slate-200">
+            Move Horizontal: {panX}%
+          </span>
+          <input
+            type="range"
+            min={-100}
+            max={100}
+            value={panX}
+            onChange={(event) => setPanX(Number(event.target.value))}
+            className="w-full accent-cyan-400"
+          />
+        </label>
+        <label className="flex flex-col gap-2">
+          <span className="font-semibold text-slate-200">
+            Move Vertical: {panY}%
+          </span>
+          <input
+            type="range"
+            min={-100}
+            max={100}
+            value={panY}
+            onChange={(event) => setPanY(Number(event.target.value))}
+            className="w-full accent-cyan-400"
+          />
+        </label>
+      </div>
+
       <div
         ref={containerRef}
         className={`flex items-center justify-center px-4 pb-4 ${containerClassName}`}
@@ -668,8 +713,17 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         <div
           className="w-full h-auto"
           style={mapAspectRatio ? { aspectRatio: mapAspectRatio } : undefined}
-          dangerouslySetInnerHTML={{ __html: mapMarkup }}
-        />
+        >
+          <div
+            className="w-full h-full"
+            style={{
+              transform: `translate(${panX}%, ${panY}%) scale(${zoom / 100})`,
+              transformOrigin: "center",
+              transition: "transform 120ms ease-out",
+            }}
+            dangerouslySetInnerHTML={{ __html: mapMarkup }}
+          />
+        </div>
       </div>
 
       {!hideLegend && (
