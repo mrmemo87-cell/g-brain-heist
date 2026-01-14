@@ -145,6 +145,37 @@ const normalizeRegionKey = (k: string) =>
     .replace(/[\s_]+/g, "-")
     .replace(/[^\w-]/g, "");
 
+const getZoneControl = (
+  state: ZoneState | undefined
+): { clanId: ClanId | null; contested: boolean } => {
+  if (!state) {
+    return { clanId: null, contested: false };
+  }
+
+  const legacyClanId = (state as ZoneState & { clanId?: ClanId | null }).clanId;
+  if (legacyClanId) {
+    return { clanId: legacyClanId, contested: false };
+  }
+
+  const entries = Object.entries(state.influence || {}).filter(([, value]) => value > 0);
+  if (entries.length === 0) {
+    return { clanId: null, contested: false };
+  }
+
+  entries.sort((a, b) => b[1] - a[1]);
+  const [leader, leaderScore] = entries[0];
+  const runnerUp = entries[1];
+  if (!leader) {
+    return { clanId: null, contested: false };
+  }
+
+  const contested =
+    !!runnerUp &&
+    Math.abs(leaderScore - runnerUp[1]) / Math.max(leaderScore, 1) <= 0.1;
+
+  return { clanId: leader as ClanId, contested };
+};
+
 const getAspectRatioFromSvg = (svgContent: string): number | null => {
   try {
     const parser = new DOMParser();
@@ -571,9 +602,8 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
           maybeCaptureDefaultStyles(regionId, regionPath);
 
-          // Determine owner clan
-          const clan = state.clanId ? clans[state.clanId] : null;
-          const contested = !!state.contested;
+          const { clanId, contested } = getZoneControl(state);
+          const clan = clanId ? clans[clanId] : null;
 
           // Default visuals
           let fill = NEUTRAL_TERRITORY_SHADE;
