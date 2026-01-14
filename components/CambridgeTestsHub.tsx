@@ -336,6 +336,8 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       name: profile.username,
       class: profile.batch || 'N/A',
       grade: profile.grade,
+      schoolId: profile.school_id ?? null,
+      userId: profile.id,
     }));
     
     // If this is a retake, clear the previous submission lock from localStorage

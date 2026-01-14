@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '../../../services/supabaseClient';
 import { ensureIeltsProfile, saveNotificationPreferences } from '../../../services/ieltsService';
+import { notifyTeachersOfExamGuard } from '../../../services/notificationService';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 import { ExamGuard } from '../../utils/examGuard';
 
@@ -15,6 +16,8 @@ interface WritingTask {
   bands_target: string;
   sample_answer: string | null;
 }
+
+const MAX_EXAM_GUARD_VIOLATIONS = 3;
 
 const WritingPractice: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
@@ -35,6 +38,40 @@ const WritingPractice: React.FC = () => {
   const [notifyInApp, setNotifyInApp] = useState(true);
   const promptContainerRef = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<HTMLTextAreaElement | null>(null);
+  const autoSubmitTriggeredRef = useRef(false);
+  const studentInfoRef = useRef<{
+    id: string;
+    name: string;
+    className: string | null;
+    schoolId: string | null;
+  } | null>(null);
+
+  const loadStudentInfo = async () => {
+    if (studentInfoRef.current) {
+      return studentInfoRef.current;
+    }
+    const { data: authData } = await supabase.auth.getSession();
+    const user = authData.session?.user;
+    if (!user) {
+      return null;
+    }
+    const { data: profile } = await supabase
+      .from('users')
+      .select('id, username, batch, school_id')
+      .eq('id', user.id)
+      .single();
+    if (!profile) {
+      return null;
+    }
+    const info = {
+      id: profile.id,
+      name: profile.username ?? 'Student',
+      className: profile.batch ?? null,
+      schoolId: profile.school_id ?? null,
+    };
+    studentInfoRef.current = info;
+    return info;
+  };
 
   // Stop background music when entering IELTS Writing practice
   useEffect(() => {
@@ -172,16 +209,49 @@ const WritingPractice: React.FC = () => {
       return undefined;
     }
 
+    autoSubmitTriggeredRef.current = false;
     ExamGuard.stop();
+    const handleAutoSubmit = () => {
+      if (autoSubmitTriggeredRef.current) {
+        return;
+      }
+      autoSubmitTriggeredRef.current = true;
+      handleSubmit(true);
+    };
     ExamGuard.start({
       promptContainer: promptContainerRef.current,
       editor: editorRef.current,
-      onSubmit: () => handleSubmit(true),
+      onSubmit: handleAutoSubmit,
       onViolation: (event) => {
         console.warn('ExamGuard violation (WritingPractice):', event);
+        if (event.violationsCount >= MAX_EXAM_GUARD_VIOLATIONS) {
+          void (async () => {
+            try {
+              const info = await loadStudentInfo();
+              if (!info) {
+                return;
+              }
+              await notifyTeachersOfExamGuard({
+                studentId: info.id,
+                studentName: info.name,
+                studentClass: info.className,
+                schoolId: info.schoolId,
+                testName: `IELTS Writing Practice ${task?.title ?? ''}`.trim(),
+                violationCount: event.violationsCount,
+                type: 'new_submission',
+                extraData: {
+                  taskId: task?.id,
+                },
+              });
+            } catch (error) {
+              console.warn('ExamGuard: unable to notify teachers (IELTS writing practice).', error);
+            }
+          })();
+          handleAutoSubmit();
+        }
       },
       testId: `ielts-writing-${task.id}`,
-      maxViolations: 3,
+      maxViolations: MAX_EXAM_GUARD_VIOLATIONS,
       blurGraceMs: 300,
       suspiciousJump: {
         minDeltaChars: 80,
@@ -190,7 +260,7 @@ const WritingPractice: React.FC = () => {
       actions: {
         warn: true,
         showBanner: true,
-        disableEditor: false,
+        disableEditor: true,
         autosubmit: true,
         blockSelectAll: true,
       },
