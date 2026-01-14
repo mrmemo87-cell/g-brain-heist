@@ -306,3 +306,66 @@ class NotificationService {
 
 export const notificationService = new NotificationService();
 export { NotificationService }; // Export class for static methods
+
+export type ExamGuardTeacherNotification = {
+  studentId: string;
+  studentName: string;
+  studentClass?: string | null;
+  schoolId?: string | null;
+  testName: string;
+  violationCount: number;
+  type: NotificationType;
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
+  extraData?: Record<string, unknown>;
+};
+
+export const notifyTeachersOfExamGuard = async ({
+  studentId,
+  studentName,
+  studentClass,
+  schoolId,
+  testName,
+  violationCount,
+  type,
+  priority = 'urgent',
+  extraData,
+}: ExamGuardTeacherNotification) => {
+  if (!schoolId) {
+    return;
+  }
+
+  const { data: teachers, error } = await supabase
+    .from('users')
+    .select('id')
+    .eq('school_id', schoolId)
+    .eq('role', 'teacher');
+
+  if (error) {
+    throw error;
+  }
+
+  if (!teachers || teachers.length === 0) {
+    return;
+  }
+
+  await Promise.allSettled(
+    teachers.map((teacher) =>
+      notificationService.createNotification(
+        teacher.id,
+        type,
+        'ExamGuard auto-submission',
+        `${studentName} reached the maximum violation limit on ${testName}. The submission was auto-submitted for review.`,
+        priority,
+        {
+          studentId,
+          studentName,
+          studentClass,
+          testName,
+          violationCount,
+          autoSubmitted: true,
+          ...extraData,
+        },
+      ),
+    ),
+  );
+};

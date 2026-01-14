@@ -618,8 +618,61 @@
     }
   };
 
+  function getCambridgeUserInfo() {
+    try {
+      const stored = localStorage.getItem('cambridge_test_user');
+      return stored ? JSON.parse(stored) : null;
+    } catch (error) {
+      console.warn('Unable to read Cambridge test user info:', error);
+      return null;
+    }
+  }
+
+  async function fetchTeachersBySchool(schoolId) {
+    const accessToken = getSupabaseAccessToken();
+    const url = `${SUPABASE_URL}/rest/v1/users?select=id&school_id=eq.${encodeURIComponent(schoolId)}&role=eq.teacher`;
+    const response = await fetch(url, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${accessToken ?? SUPABASE_ANON_KEY}`,
+      },
+    });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || response.statusText);
+    }
+    return response.json();
+  }
+
+  async function notifyTeachersOfExamGuard({ studentName, studentClass, violationCount, quizName }) {
+    const userInfo = getCambridgeUserInfo();
+    if (!userInfo?.schoolId) return;
+    try {
+      const teachers = await fetchTeachersBySchool(userInfo.schoolId);
+      if (!Array.isArray(teachers) || teachers.length === 0) return;
+      const notifications = teachers.map((teacher) => ({
+        user_id: teacher.id,
+        type: 'cambridge_test_taken',
+        title: 'ExamGuard auto-submission',
+        message: `${studentName} reached the maximum violation limit on ${quizName}. The writing test was auto-submitted for review.`,
+        priority: 'urgent',
+        data: {
+          studentName,
+          studentClass,
+          quizName,
+          violationCount,
+          autoSubmitted: true,
+        }
+      }));
+      await supabaseClient.from('notifications').insert(notifications);
+    } catch (error) {
+      console.warn('ExamGuard: unable to notify teachers (Cambridge writing test 2).', error);
+    }
+  }
+
   const QUIZ_ID = 'cambridge_writing_test_2';
   let hasSubmitted = false;
+  let autoSubmitTriggered = false;
   let startTime = null;
   let timerInterval = null;
 
@@ -794,9 +847,9 @@
 
   // Submit writing
   async function submitWriting(options = {}) {
-    const { skipConfirm = false } = options;
-    const studentName = document.getElementById("studentName").value.trim();
-    const studentClass = document.getElementById("studentClass").value.trim();
+    const { skipConfirm = false, forceSubmit = false, violationCount = null } = options;
+    let studentName = document.getElementById("studentName").value.trim();
+    let studentClass = document.getElementById("studentClass").value.trim();
     const answer1 = document.getElementById("answer1").value.trim();
     const answer2 = document.getElementById("answer2").value.trim();
     const statusDiv = document.getElementById("submitStatus");
@@ -809,35 +862,40 @@
     }
     
     // Validation
-    if (!studentName || studentName.length < 2) {
-      document.getElementById("studentName").classList.add("required-field");
-      statusDiv.className = "submit-status submit-error";
-      statusDiv.textContent = "⚠️ Please enter your full name (at least 2 characters).";
-      return;
-    }
-    document.getElementById("studentName").classList.remove("required-field");
-    
-    if (!studentClass || studentClass.length < 1) {
-      document.getElementById("studentClass").classList.add("required-field");
-      statusDiv.className = "submit-status submit-error";
-      statusDiv.textContent = "⚠️ Please enter your class.";
-      return;
-    }
-    document.getElementById("studentClass").classList.remove("required-field");
-    
-    // Check if writing is empty
-    if (!answer1 || countWords(answer1) < 10) {
-      statusDiv.className = "submit-status submit-error";
-      statusDiv.textContent = "⚠️ Please write your Part 1 message (at least 10 words).";
-      document.getElementById("answer1").focus();
-      return;
-    }
-    
-    if (!answer2 || countWords(answer2) < 20) {
-      statusDiv.className = "submit-status submit-error";
-      statusDiv.textContent = "⚠️ Please write your Part 2 essay (at least 20 words).";
-      document.getElementById("answer2").focus();
-      return;
+    if (!forceSubmit) {
+      if (!studentName || studentName.length < 2) {
+        document.getElementById("studentName").classList.add("required-field");
+        statusDiv.className = "submit-status submit-error";
+        statusDiv.textContent = "⚠️ Please enter your full name (at least 2 characters).";
+        return;
+      }
+      document.getElementById("studentName").classList.remove("required-field");
+      
+      if (!studentClass || studentClass.length < 1) {
+        document.getElementById("studentClass").classList.add("required-field");
+        statusDiv.className = "submit-status submit-error";
+        statusDiv.textContent = "⚠️ Please enter your class.";
+        return;
+      }
+      document.getElementById("studentClass").classList.remove("required-field");
+      
+      // Check if writing is empty
+      if (!answer1 || countWords(answer1) < 10) {
+        statusDiv.className = "submit-status submit-error";
+        statusDiv.textContent = "⚠️ Please write your Part 1 message (at least 10 words).";
+        document.getElementById("answer1").focus();
+        return;
+      }
+      
+      if (!answer2 || countWords(answer2) < 20) {
+        statusDiv.className = "submit-status submit-error";
+        statusDiv.textContent = "⚠️ Please write your Part 2 essay (at least 20 words).";
+        document.getElementById("answer2").focus();
+        return;
+      }
+    } else {
+      if (!studentName) studentName = "Unknown Student";
+      if (!studentClass) studentClass = "Unknown Class";
     }
     
     // Word count warnings
@@ -863,7 +921,7 @@
     
     confirmMessage += "Click OK to submit, or Cancel to review.";
     
-    if (!skipConfirm && !confirm(confirmMessage)) return;
+    if (!forceSubmit && !skipConfirm && !confirm(confirmMessage)) return;
     
     // Calculate time taken
     const timeTaken = startTime ? Math.floor((new Date() - startTime) / 1000) : 0;
@@ -906,7 +964,9 @@
             part1_words: words1,
             part2: answer2,
             part2_words: words2,
-            requires_marking: true
+            requires_marking: true,
+            examguard_auto_submit: forceSubmit,
+            examguard_violation_count: violationCount
           },
           time_taken_seconds: timeTaken
         }]);
@@ -924,7 +984,9 @@
       }));
       
       statusDiv.className = "submit-status submit-success";
-      statusDiv.textContent = "✅ Submitted successfully! Your teacher will mark your writing.";
+      statusDiv.textContent = forceSubmit
+        ? "⚠️ Submitted due to maximum ExamGuard violations. Your teacher has been notified."
+        : "✅ Submitted successfully! Your teacher will mark your writing.";
       submitBtn.textContent = "✓ Submitted";
       
       const floatingBtn = document.getElementById("floatingSubmitBtn");
@@ -935,6 +997,15 @@
       
       document.getElementById("successMessage").classList.add("show");
       document.getElementById("successMessage").scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      if (forceSubmit) {
+        notifyTeachersOfExamGuard({
+          studentName,
+          studentClass,
+          violationCount,
+          quizName: 'Cambridge Writing Test 2'
+        });
+      }
       
       // Notify parent window
       try {
@@ -994,6 +1065,7 @@
       
       // Re-enable inputs on error
       document.querySelectorAll('input, textarea').forEach(input => input.disabled = false);
+      autoSubmitTriggered = false;
       startExamGuard();
     }
   }
@@ -1057,12 +1129,20 @@
     const promptContainers = Array.from(document.querySelectorAll('.examguard-prompt'));
     const editorOne = document.getElementById('answer1');
     const editorTwo = document.getElementById('answer2');
+    const handleAutoSubmit = (violationCount = null) => {
+      if (autoSubmitTriggered) return;
+      autoSubmitTriggered = true;
+      submitWriting({ skipConfirm: true, forceSubmit: true, violationCount });
+    };
     window.ExamGuard.start({
       promptContainer: promptContainers,
       editor: [editorOne, editorTwo].filter(Boolean),
-      onSubmit: () => submitWriting({ skipConfirm: true }),
+      onSubmit: () => handleAutoSubmit(),
       onViolation: (event) => {
         console.warn('ExamGuard violation (Cambridge Writing Test 2):', event);
+        if (event.violationsCount >= 3) {
+          handleAutoSubmit(event.violationsCount);
+        }
       },
       testId: 'cambridge-writing-test-2',
       maxViolations: 3,
@@ -1075,7 +1155,7 @@
         warn: true,
         showBanner: true,
         autosubmit: true,
-        disableEditor: false,
+        disableEditor: true,
         blockSelectAll: true,
       }
     });
