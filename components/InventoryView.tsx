@@ -388,16 +388,18 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onComplete, addToast, onN
 
   return (
     <div className="mt-6">
-      <div className="flex justify-between items-center mb-4">
-        <BackButton onClick={onComplete} />
-        {onNavigateToShop && (
-          <button 
-            onClick={onNavigateToShop}
-            className="px-4 py-2 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-lg font-heading hover:from-green-500 hover:to-teal-500 transition-all"
-          >
-            ← Go to Shop
-          </button>
-        )}
+      <div className="sticky top-4 z-40 mb-6">
+        <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-slate-950/70 p-2 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+          <BackButton onClick={onComplete} containerClassName="mb-0" />
+          {onNavigateToShop && (
+            <button 
+              onClick={onNavigateToShop}
+              className="w-full px-4 py-2 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-lg font-heading hover:from-green-500 hover:to-teal-500 transition-all sm:w-auto"
+            >
+              ← Go to Shop
+            </button>
+          )}
+        </div>
       </div>
       <h2 className="font-heading text-3xl text-center mb-8" style={{ color: 'var(--grid-purple)' }}>Inventory</h2>
       {sectionGroups.length > 0 ? (

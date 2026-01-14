@@ -602,7 +602,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
 
   return (
     <div className="mt-6 mb-12">
-      <BackButton onClick={onComplete} />
+      <BackButton onClick={onComplete} containerClassName="sticky top-4 z-40 mb-6" />
       <div className="mt-4">
         {renderContent()}
       </div>
