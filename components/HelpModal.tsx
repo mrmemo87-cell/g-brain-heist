@@ -7,6 +7,7 @@ interface HelpModalProps {
 type HelpSection = 
   | 'overview'
   | 'quests'
+  | 'cambridge'
   | 'pvp'
   | 'clans'
   | 'lockdown'
@@ -22,6 +23,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
   const sections: { id: HelpSection; icon: string; title: string }[] = [
     { id: 'overview', icon: '📖', title: 'Game Overview' },
     { id: 'quests', icon: '📚', title: 'Quests & Questions' },
+    { id: 'cambridge', icon: '🧪', title: 'Cambridge Tests' },
     { id: 'pvp', icon: '⚔️', title: 'PvP Raids' },
     { id: 'clans', icon: '🏰', title: 'Clans' },
     { id: 'lockdown', icon: '🔒', title: 'Lockdown Mode' },
@@ -109,6 +111,47 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
       </div>
     ),
 
+    cambridge: (
+      <div className="space-y-3 sm:space-y-4">
+        <h2 className="text-xl sm:text-2xl font-bold text-cyan-400">🧪 Cambridge Tests</h2>
+        <div className="space-y-2 sm:space-y-3 text-sm sm:text-base text-gray-300">
+          <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-bold text-cyan-400 mb-2">📌 What This Section Is</h3>
+            <p>Cambridge Tests are focused practice exams and drills (Reading, Listening, Writing, Grammar, and Science) built into the game.</p>
+            <p className="mt-2">They help you prepare for school assessments with real test-style questions.</p>
+          </div>
+
+          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-bold text-blue-400 mb-2">▶️ How to Start</h3>
+            <ol className="list-decimal list-inside space-y-1">
+              <li>From the dashboard, choose <strong>Cambridge Tests</strong>.</li>
+              <li>Pick a subject and test from the list.</li>
+              <li>Read the description and time estimate, then press <strong>Start</strong>.</li>
+            </ol>
+            <p className="mt-2 text-sm text-gray-400">Your progress is saved automatically if you leave and return later.</p>
+          </div>
+
+          <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-bold text-purple-400 mb-2">🧭 Tracking Your Progress</h3>
+            <ul className="list-disc list-inside space-y-1">
+              <li><strong>All / Pending / Completed</strong> filters help you focus on what’s next.</li>
+              <li>Completed tests show your score and completion date.</li>
+              <li>The progress ring shows how many tests you’ve finished overall.</li>
+            </ul>
+          </div>
+
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-bold text-amber-400 mb-2">✍️ Writing Tests (Teacher-Marked)</h3>
+            <ul className="list-disc list-inside space-y-1">
+              <li>Writing tests are submitted for teacher marking.</li>
+              <li>Status will show <strong>Awaiting Marking</strong> until your teacher grades it.</li>
+              <li>Once marked, you can review feedback and final results.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    ),
+
     pvp: (
       <div className="space-y-3 sm:space-y-4">
         <h2 className="text-xl sm:text-2xl font-bold text-red-400">⚔️ PvP Raids</h2>
@@ -177,6 +220,8 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
             <h3 className="text-base sm:text-lg font-bold text-blue-400 mb-2">🎯 How to Join/Create</h3>
             <p><strong>Create Clan:</strong> Costs 5,000 coins - choose a unique name</p>
             <p><strong>Join Clan:</strong> Search for clans and request to join</p>
+            <p><strong>Approval:</strong> Leaders/officers review your request</p>
+            <p><strong>Cancel Request:</strong> If you change your mind, cancel your pending request from the clan list</p>
             <p><strong>Leave Clan:</strong> Can leave anytime (leader transfers ownership)</p>
           </div>
 
@@ -185,6 +230,16 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
             <p>• Members can donate coins to clan vault</p>
             <p>• Used for future clan upgrades and bonuses</p>
             <p>• Shows clan's collective wealth</p>
+          </div>
+
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-bold text-amber-400 mb-2">📝 Join Request Updates</h3>
+            <ul className="list-disc list-inside space-y-1">
+              <li>Pending requests stay visible until a leader or officer accepts or rejects them.</li>
+              <li>You can only have one active request at a time.</li>
+              <li>To cancel, open the clan list, find your pending request, and select <strong>Cancel</strong>.</li>
+              <li>Canceling frees you to request a different clan immediately.</li>
+            </ul>
           </div>
         </div>
       </div>
@@ -221,6 +276,19 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
             <p className="ml-4">📊 <strong>Battle Score</strong> - Points earned from answering questions</p>
             <p className="ml-4">🎓 <strong>Accuracy</strong> - Need 50%+ accuracy for gems</p>
             <p className="ml-4">💯 <strong>Participation</strong> - Must answer 5+ questions for gem eligibility</p>
+          </div>
+
+          <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-bold text-cyan-400 mb-2">🧮 Updated Clan Territory Calculations</h3>
+            <ul className="list-disc list-inside space-y-1 text-sm sm:text-base">
+              <li><strong>Correct answer:</strong> +1 Battle Score.</li>
+              <li><strong>Fast answer:</strong> +1 bonus if you answer in 5 seconds or less.</li>
+              <li><strong>Streak bonus:</strong> +1 every 3 correct answers in a row.</li>
+              <li><strong>Wrong answer:</strong> -1 Battle Score.</li>
+              <li><strong>Territory influence:</strong> Each Battle Score point adds <strong>10 influence</strong> to your selected zone.</li>
+              <li><strong>Wrong answer influence loss:</strong> Lose <strong>10%</strong> of your current influence in that zone (minimum loss is 10 influence).</li>
+              <li><strong>Zone control:</strong> Influence never drops below 0, so keep answering to hold territory.</li>
+            </ul>
           </div>
 
           <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 sm:p-4">
@@ -602,5 +670,3 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
 };
 
 export default HelpModal;
-
-
