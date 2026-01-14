@@ -397,8 +397,8 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
       </div>
 
       {/* Leaderboard Content */}
-      <div className="card-glass p-6 max-h-[600px] overflow-y-auto">
-        <div className="space-y-2">
+      <div className="card-glass p-6 max-h-[70vh] md:max-h-[600px] flex flex-col">
+        <div className="space-y-2 overflow-y-auto pr-1 flex-1 min-h-0">
           {tab === 'score' && scoreLeaderboard.map(renderPlayerRow)}
           {tab === 'xp' && xpLeaderboard.map(renderPlayerRow)}
           {tab === 'pvp' && pvpLeaderboard.map(renderPlayerRow)}
