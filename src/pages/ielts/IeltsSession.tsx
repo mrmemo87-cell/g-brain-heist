@@ -11,9 +11,12 @@ import {
   IeltsSessionRecord,
   IeltsWritingTask,
 } from '@/services/ieltsService';
+import { notifyTeachersOfExamGuard } from '@/services/notificationService';
+import { supabase } from '@/services/supabaseClient';
 import { ExamGuard } from '../../utils/examGuard';
 
 const stepLabels = ['Reading', 'Listening', 'Writing', 'Review & Submit'];
+const MAX_EXAM_GUARD_VIOLATIONS = 3;
 
 const getModuleLabel = (session?: IeltsSessionRecord) => {
   const value = session?.module ?? session?.module_type ?? 'general';
@@ -473,6 +476,7 @@ const IeltsSession: React.FC = () => {
                   handleSubmit(true);
                 }}
                 testId={`ielts-session-${session.id}`}
+                testLabel={`IELTS Session ${session.reference_code}`}
               />
             </Fragment>
           )}
@@ -526,27 +530,96 @@ interface WritingTaskProps {
   wordsWritten: number;
   onAutoSubmit: () => void;
   testId: string;
+  testLabel: string;
 }
 
-const WritingTask: React.FC<WritingTaskProps> = ({ task, value, onChange, wordsWritten, onAutoSubmit, testId }) => {
+const WritingTask: React.FC<WritingTaskProps> = ({ task, value, onChange, wordsWritten, onAutoSubmit, testId, testLabel }) => {
   const promptContainerRef = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<HTMLTextAreaElement | null>(null);
+  const autoSubmitTriggeredRef = useRef(false);
+  const studentInfoRef = useRef<{
+    id: string;
+    name: string;
+    className: string | null;
+    schoolId: string | null;
+  } | null>(null);
+
+  const loadStudentInfo = async () => {
+    if (studentInfoRef.current) {
+      return studentInfoRef.current;
+    }
+    const { data: authData } = await supabase.auth.getSession();
+    const user = authData.session?.user;
+    if (!user) {
+      return null;
+    }
+    const { data: profile } = await supabase
+      .from('users')
+      .select('id, username, batch, school_id')
+      .eq('id', user.id)
+      .single();
+    if (!profile) {
+      return null;
+    }
+    const info = {
+      id: profile.id,
+      name: profile.username ?? 'Student',
+      className: profile.batch ?? null,
+      schoolId: profile.school_id ?? null,
+    };
+    studentInfoRef.current = info;
+    return info;
+  };
+
+  const handleAutoSubmit = () => {
+    if (autoSubmitTriggeredRef.current) {
+      return;
+    }
+    autoSubmitTriggeredRef.current = true;
+    onAutoSubmit();
+  };
 
   useEffect(() => {
     if (!task || !promptContainerRef.current || !editorRef.current) {
       return undefined;
     }
 
+    autoSubmitTriggeredRef.current = false;
     ExamGuard.stop();
     ExamGuard.start({
       promptContainer: promptContainerRef.current,
       editor: editorRef.current,
-      onSubmit: onAutoSubmit,
+      onSubmit: handleAutoSubmit,
       onViolation: (event) => {
         console.warn('ExamGuard violation (IeltsSession Writing):', event);
+        if (event.violationsCount >= MAX_EXAM_GUARD_VIOLATIONS) {
+          void (async () => {
+            try {
+              const info = await loadStudentInfo();
+              if (!info) {
+                return;
+              }
+              await notifyTeachersOfExamGuard({
+                studentId: info.id,
+                studentName: info.name,
+                studentClass: info.className,
+                schoolId: info.schoolId,
+                testName: testLabel,
+                violationCount: event.violationsCount,
+                type: 'new_submission',
+                extraData: {
+                  testId,
+                },
+              });
+            } catch (error) {
+              console.warn('ExamGuard: unable to notify teachers (IELTS session writing).', error);
+            }
+          })();
+          handleAutoSubmit();
+        }
       },
       testId,
-      maxViolations: 3,
+      maxViolations: MAX_EXAM_GUARD_VIOLATIONS,
       blurGraceMs: 300,
       suspiciousJump: {
         minDeltaChars: 80,
@@ -555,7 +628,7 @@ const WritingTask: React.FC<WritingTaskProps> = ({ task, value, onChange, wordsW
       actions: {
         warn: true,
         showBanner: true,
-        disableEditor: false,
+        disableEditor: true,
         autosubmit: true,
         blockSelectAll: true,
       },
@@ -564,7 +637,7 @@ const WritingTask: React.FC<WritingTaskProps> = ({ task, value, onChange, wordsW
     return () => {
       ExamGuard.stop();
     };
-  }, [onAutoSubmit, task, testId]);
+  }, [onAutoSubmit, task, testId, testLabel]);
 
   if (!task) {
     return <p className="text-sm text-slate-500">No writing task has been assigned for this session.</p>;
