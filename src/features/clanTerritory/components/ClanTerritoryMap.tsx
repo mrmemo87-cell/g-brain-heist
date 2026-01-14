@@ -63,13 +63,13 @@ const MAP_CONFIGS: Record<string, MapConfig> = {
     svg: kyrgyzstanMapSvgRaw,
     maxZones: 7,
     zoneToRegion: {
-      "zone-1": "KG-B",  // Batken
-      "zone-2": "KG-C",  // Chü (Chuy)
-      "zone-3": "KG-J",  // Jalal-Abad
-      "zone-4": "KG-N",  // Naryn
-      "zone-5": "KG-O",  // Osh
-      "zone-6": "KG-T",  // Talas
-      "zone-7": "KG-Y",  // Ysyk-Köl
+      "zone-1": "KG-B", // Batken
+      "zone-2": "KG-C", // Chü (Chuy)
+      "zone-3": "KG-J", // Jalal-Abad
+      "zone-4": "KG-N", // Naryn
+      "zone-5": "KG-O", // Osh
+      "zone-6": "KG-T", // Talas
+      "zone-7": "KG-Y", // Ysyk-Köl
     },
     regionAliases: {},
   },
@@ -84,106 +84,72 @@ const MAP_CONFIGS: Record<string, MapConfig> = {
       "zone-5": "US-CA",
       "zone-6": "US-CO",
       "zone-7": "US-CT",
-      "zone-8": "US-DC",
-      "zone-9": "US-DE",
-      "zone-10": "US-FL",
-      "zone-11": "US-GA",
-      "zone-12": "US-HI",
-      "zone-13": "US-ID",
-      "zone-14": "US-IL",
-      "zone-15": "US-IN",
-      "zone-16": "US-IA",
-      "zone-17": "US-KS",
-      "zone-18": "US-KY",
-      "zone-19": "US-LA",
-      "zone-20": "US-ME",
-      "zone-21": "US-MD",
-      "zone-22": "US-MA",
-      "zone-23": "US-MI",
-      "zone-24": "US-MN",
-      "zone-25": "US-MS",
-      "zone-26": "US-MO",
-      "zone-27": "US-MT",
-      "zone-28": "US-NE",
-      "zone-29": "US-NV",
-      "zone-30": "US-NH",
-      "zone-31": "US-NJ",
-      "zone-32": "US-NM",
-      "zone-33": "US-NY",
-      "zone-34": "US-NC",
-      "zone-35": "US-ND",
-      "zone-36": "US-OH",
-      "zone-37": "US-OK",
-      "zone-38": "US-OR",
-      "zone-39": "US-PA",
-      "zone-40": "US-RI",
-      "zone-41": "US-SC",
-      "zone-42": "US-SD",
-      "zone-43": "US-TN",
-      "zone-44": "US-TX",
-      "zone-45": "US-UT",
-      "zone-46": "US-VT",
-      "zone-47": "US-VA",
-      "zone-48": "US-WA",
-      "zone-49": "US-WV",
-      "zone-50": "US-WI",
-      "zone-51": "US-WY",
+      "zone-8": "US-DE",
+      "zone-9": "US-FL",
+      "zone-10": "US-GA",
+      "zone-11": "US-HI",
+      "zone-12": "US-ID",
+      "zone-13": "US-IL",
+      "zone-14": "US-IN",
+      "zone-15": "US-IA",
+      "zone-16": "US-KS",
+      "zone-17": "US-KY",
+      "zone-18": "US-LA",
+      "zone-19": "US-ME",
+      "zone-20": "US-MD",
+      "zone-21": "US-MA",
+      "zone-22": "US-MI",
+      "zone-23": "US-MN",
+      "zone-24": "US-MS",
+      "zone-25": "US-MO",
+      "zone-26": "US-MT",
+      "zone-27": "US-NE",
+      "zone-28": "US-NV",
+      "zone-29": "US-NH",
+      "zone-30": "US-NJ",
+      "zone-31": "US-NM",
+      "zone-32": "US-NY",
+      "zone-33": "US-NC",
+      "zone-34": "US-ND",
+      "zone-35": "US-OH",
+      "zone-36": "US-OK",
+      "zone-37": "US-OR",
+      "zone-38": "US-PA",
+      "zone-39": "US-RI",
+      "zone-40": "US-SC",
+      "zone-41": "US-SD",
+      "zone-42": "US-TN",
+      "zone-43": "US-TX",
+      "zone-44": "US-UT",
+      "zone-45": "US-VT",
+      "zone-46": "US-VA",
+      "zone-47": "US-WA",
+      "zone-48": "US-WV",
+      "zone-49": "US-WI",
+      "zone-50": "US-WY",
+      "zone-51": "US-DC",
     },
-    regionAliases: {},
-  },
-  fortress: {
-    svg: territoryMapSvgRaw, // Fortress uses territory map as base (8 regions for 6 zones + keep + wall)
-    maxZones: 6,
-    zoneToRegion: {
-      "zone-1": "region_1",
-      "zone-2": "region_2",
-      "zone-3": "region_3",
-      "zone-4": "region_4",
-      "zone-5": "region_5",
-      "zone-6": "region_6",
-      "zone-7": "region_7",
-      "zone-8": "region_8",
+    regionAliases: {
+      "US-DC": ["DC", "District of Columbia"],
     },
-    regionAliases: {},
-  },
-  islands: {
-    svg: territoryMapSvgRaw, // Islands uses territory map as base (8 regions for 6 main islands + 2 outposts)
-    maxZones: 6,
-    zoneToRegion: {
-      "zone-1": "region_1",
-      "zone-2": "region_2",
-      "zone-3": "region_3",
-      "zone-4": "region_4",
-      "zone-5": "region_5",
-      "zone-6": "region_6",
-      "zone-7": "region_7",
-      "zone-8": "region_8",
-    },
-    regionAliases: {},
   },
 };
 
-interface ClanTerritoryMapProps {
-  zones: Record<ZoneId, ZoneState>;
-  clans: Record<ClanId, ClanMetadata>;
-  hideHeader?: boolean;
-  hideLegend?: boolean;
-  overlay?: ReactNode;
-  mapId?: string;
-}
+// Neutral territory visuals
+const NEUTRAL_TERRITORY_SHADE = "#1f2937";
+const NEUTRAL_TERRITORY_STROKE = "#475569";
 
-const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+const normalizeRegionKey = (k: string) =>
+  k
+    .toLowerCase()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^\w-]/g, "");
 
-const NEUTRAL_TERRITORY_SHADE = "#1e293b";
-
-const normalizeRegionKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, "");
-
-const getAspectRatioFromSvg = (svgContent: string) => {
+const getAspectRatioFromSvg = (svgContent: string): number | null => {
   try {
     const parser = new DOMParser();
     const doc = parser.parseFromString(svgContent, "image/svg+xml");
     const svgEl = doc.querySelector("svg");
-
     if (!svgEl) return null;
 
     const viewBox = svgEl.getAttribute("viewBox");
@@ -224,22 +190,22 @@ const normalizeSvgMarkup = (svgContent: string) => {
       // Parse numeric values, removing units like 'mm', 'px', etc.
       const w = parseFloat(originalWidth);
       const h = parseFloat(originalHeight);
-      if (!isNaN(w) && !isNaN(h)) {
+      if (!Number.isNaN(w) && !Number.isNaN(h) && h !== 0) {
         viewBox = `0 0 ${w} ${h}`;
         svgEl.setAttribute("viewBox", viewBox);
       }
     }
   }
 
-  // Remove fixed dimensions to allow responsive scaling
+  // Remove any fixed dimensions and make SVG responsive
   svgEl.removeAttribute("width");
   svgEl.removeAttribute("height");
-  
-  // Set responsive attributes
   svgEl.setAttribute("width", "100%");
   svgEl.setAttribute("height", "100%");
-  svgEl.setAttribute("preserveAspectRatio", "xMidYMid meet");
-  
+
+  // KEY: always fill the container (crop if needed)
+  svgEl.setAttribute("preserveAspectRatio", "xMidYMid slice");
+
   // Apply inline styles to ensure proper rendering
   svgEl.style.cssText = `
     width: 100% !important;
@@ -247,47 +213,76 @@ const normalizeSvgMarkup = (svgContent: string) => {
     max-width: 100%;
     max-height: 100%;
     display: block;
-    object-fit: contain;
-  `.replace(/\s+/g, ' ').trim();
+  `.replace(/\s+/g, " ").trim();
 
   return svgEl.outerHTML;
 };
 
-const getZoneController = (
-  zoneState?: ZoneState,
-  clans?: Record<ClanId, ClanMetadata>
-) => {
-  if (!zoneState) return { clan: null, dominance: 0, contested: false };
-
-  const entries = Object.entries(zoneState.influence)
-    .filter(([, inf]) => inf > 0)
-    .sort((a, b) => b[1] - a[1]);
-
-  if (entries.length === 0)
-    return { clan: null, dominance: 0, contested: false };
-
-  const [leaderId, leaderInf] = entries[0];
-  const total = entries.reduce((s, [, v]) => s + v, 0);
-  const dominance = total > 0 ? leaderInf / total : 0;
-
-  const runnerUp = entries[1];
-  const contested =
-    runnerUp &&
-    Math.abs(leaderInf - runnerUp[1]) / Math.max(leaderInf, 1) <= 0.15;
-
-  const clanMeta =
-    clans?.[leaderId as ClanId] ??
-    ({
-      id: leaderId as ClanId,
-      name: leaderId,
-      color: getClanColor(leaderId),
-    } as ClanMetadata);
-
-  return {
-    clan: clanMeta,
-    dominance,
-    contested: !!contested,
+const adjustViewBoxToContent = (svgEl: SVGSVGElement) => {
+  const safeBBox = (el: SVGGraphicsElement) => {
+    try {
+      const b = el.getBBox();
+      if (b && b.width > 0 && b.height > 0) return b;
+    } catch {
+      // getBBox can throw if element isn't rendered yet
+    }
+    return null;
   };
+
+  try {
+    const graphics = Array.from(
+      svgEl.querySelectorAll<SVGGraphicsElement>(
+        "path, rect, circle, ellipse, polygon, polyline, line, image, use, g"
+      )
+    );
+
+    let minX = Number.POSITIVE_INFINITY;
+    let minY = Number.POSITIVE_INFINITY;
+    let maxX = Number.NEGATIVE_INFINITY;
+    let maxY = Number.NEGATIVE_INFINITY;
+
+    for (const element of graphics) {
+      const b = safeBBox(element);
+      if (!b) continue;
+
+      minX = Math.min(minX, b.x);
+      minY = Math.min(minY, b.y);
+      maxX = Math.max(maxX, b.x + b.width);
+      maxY = Math.max(maxY, b.y + b.height);
+    }
+
+    if (!Number.isFinite(minX) || !Number.isFinite(minY)) return null;
+
+    const padding = 8;
+    const viewBox = [
+      minX - padding,
+      minY - padding,
+      maxX - minX + padding * 2,
+      maxY - minY + padding * 2,
+    ].join(" ");
+
+    svgEl.setAttribute("viewBox", viewBox);
+
+    // Keep slice behavior even if SVG had something else originally
+    if (!svgEl.getAttribute("preserveAspectRatio")) {
+      svgEl.setAttribute("preserveAspectRatio", "xMidYMid slice");
+    }
+
+    return viewBox;
+  } catch (error) {
+    console.warn("[ClanTerritoryMap] Failed to adjust viewBox", error);
+  }
+
+  return null;
+};
+
+export type ClanTerritoryMapProps = {
+  zones: Record<ZoneId, ZoneState>;
+  clans: Record<ClanId, ClanMetadata>;
+  hideHeader?: boolean;
+  hideLegend?: boolean;
+  overlay?: ReactNode;
+  mapId?: string;
 };
 
 export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
@@ -296,7 +291,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   hideHeader = false,
   hideLegend = false,
   overlay,
-  mapId = 'default',
+  mapId = "default",
 }) => {
   const [cityMapLoaded, setCityMapLoaded] = useState(false);
   const [usaMapLoaded, setUsaMapLoaded] = useState(false);
@@ -307,58 +302,54 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
   // Lazy-load the large city map (2.7MB) on first use to prevent startup lag
   useEffect(() => {
-    if (mapId === 'city' && !cityMapSvgRaw) {
-      // Dynamic import with @ts-expect-error to suppress type checking
-      // @ts-expect-error - Vite handles this at build time
-      import("../assets/city_map.svg?raw").then((module) => {
-        cityMapSvgRaw = module.default;
-        setCityMapLoaded(true);
-      }).catch(e => console.error("Failed to load city map:", e));
-    }
-  }, [mapId]);
-
-  // Load USA map from public directory when requested
-  useEffect(() => {
-    if (mapId === 'usa' && !usaMapSvgRaw) {
-      fetch("/USA.svg")
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`Failed to load USA map: ${response.status}`);
-          }
-          return response.text();
+    if (mapId === "city" && !cityMapLoaded) {
+      import("../assets/city_map.svg?raw")
+        .then((module) => {
+          cityMapSvgRaw = module.default;
+          setCityMapLoaded(true);
         })
-        .then((svgText) => {
-          usaMapSvgRaw = svgText;
+        .catch((e) => console.error("Failed to load city map:", e));
+    }
+  }, [mapId, cityMapLoaded]);
+
+  // Lazy-load USA map from public folder
+  useEffect(() => {
+    if (mapId === "usa" && !usaMapLoaded) {
+      fetch("/USA.svg")
+        .then((r) => r.text())
+        .then((svg) => {
+          usaMapSvgRaw = svg;
           setUsaMapLoaded(true);
         })
         .catch((e) => console.error("Failed to load USA map:", e));
     }
-  }, [mapId]);
+  }, [mapId, usaMapLoaded]);
 
   // Get the appropriate map configuration based on mapId
   let mapConfig = MAP_CONFIGS[mapId] || MAP_CONFIGS.default;
-  
+
   // Update city config if city map just loaded
-  if (mapId === 'city' && cityMapLoaded && cityMapSvgRaw) {
+  if (mapId === "city" && cityMapLoaded && cityMapSvgRaw) {
     mapConfig = {
       ...MAP_CONFIGS.city,
       svg: cityMapSvgRaw,
     };
   }
 
-  if (mapId === 'usa' && usaMapLoaded && usaMapSvgRaw) {
+  if (mapId === "usa" && usaMapLoaded && usaMapSvgRaw) {
     mapConfig = {
       ...MAP_CONFIGS.usa,
       svg: usaMapSvgRaw,
     };
   }
-  
+
   const ZONE_TO_REGION = mapConfig.zoneToRegion;
   const REGION_ALIAS_MAP = mapConfig.regionAliases;
   const mapSvg = mapConfig.svg;
   const containerRef = useRef<HTMLDivElement>(null);
   const [mapMarkup, setMapMarkup] = useState("");
   const [mapAspectRatio, setMapAspectRatio] = useState<number | null>(null);
+  const viewBoxAdjustedRef = useRef<Record<string, boolean>>({});
   const defaultRegionStylesRef = useRef<
     Record<
       string,
@@ -374,7 +365,11 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   const lastRegionStyleKeyRef = useRef<Record<string, string>>({});
   const svgRef = useRef<SVGSVGElement | null>(null);
   const rafRef = useRef<number | null>(null);
-  const resolveRegionElement = (svg: SVGSVGElement, targetId: string): SVGPathElement | null => {
+
+  const resolveRegionElement = (
+    svg: SVGSVGElement,
+    targetId: string
+  ): SVGPathElement | null => {
     // Try direct ID query with multiple selector approaches
     let direct = svg.querySelector<SVGPathElement>(`#${targetId}`);
     if (direct) return direct;
@@ -384,7 +379,9 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     if (direct) return direct;
 
     // Try by inkscape:label attribute (Inkscape SVGs often have this)
-    direct = svg.querySelector<SVGPathElement>(`[inkscape\\:label="${targetId}"]`);
+    direct = svg.querySelector<SVGPathElement>(
+      `[inkscape\\:label="${targetId}"]`
+    );
     if (direct) {
       direct.id = targetId; // Set the id so future lookups are faster
       return direct;
@@ -406,7 +403,9 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
     // Try normalized alias matching
     const normalizedTargets = new Set([normalizeRegionKey(targetId)]);
-    (REGION_ALIAS_MAP[targetId] ?? []).forEach((alias) => normalizedTargets.add(normalizeRegionKey(alias)));
+    (REGION_ALIAS_MAP[targetId] ?? []).forEach((alias) =>
+      normalizedTargets.add(normalizeRegionKey(alias))
+    );
 
     const candidates = svg.querySelectorAll<SVGPathElement>("[id]");
     for (const candidate of candidates) {
@@ -426,6 +425,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     defaultRegionStylesRef.current = {};
     lastRegionStyleKeyRef.current = {};
     svgRef.current = null;
+    viewBoxAdjustedRef.current = {};
   }, [mapId]);
 
   useEffect(() => {
@@ -439,6 +439,23 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
   useEffect(() => {
     if (!mapMarkup || !containerRef.current) return;
+    const svgEl = containerRef.current.querySelector("svg");
+    if (!svgEl) return;
+
+    if (!viewBoxAdjustedRef.current[mapId]) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const viewBox = adjustViewBoxToContent(svgEl);
+          if (viewBox) {
+            const [, , width, height] = viewBox.split(/\s+/).map(Number);
+            if (width && height) {
+              setMapAspectRatio(width / height);
+            }
+          }
+          viewBoxAdjustedRef.current[mapId] = true;
+        });
+      });
+    }
 
     const ensureInitialAttributes = (element: SVGPathElement) => {
       if (!element.getAttribute("data-initial-fill")) {
@@ -454,7 +471,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         let initialStroke = element.style.stroke;
         if (!initialStroke || initialStroke === "") {
           const computedStyle = window.getComputedStyle(element);
-          initialStroke = computedStyle.stroke || "#475569";
+          initialStroke = computedStyle.stroke || NEUTRAL_TERRITORY_STROKE;
         }
         element.setAttribute("data-initial-stroke", initialStroke);
       }
@@ -466,25 +483,24 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         }
         element.setAttribute("data-initial-stroke-width", initialStrokeWidth);
       }
-      if (!element.getAttribute("data-initial-dasharray")) {
-        let initialDash = element.style.getPropertyValue("stroke-dasharray");
-        if (!initialDash || initialDash === "") {
-          const computedStyle = window.getComputedStyle(element);
-          initialDash = computedStyle.getPropertyValue("stroke-dasharray") || "none";
-        }
-        element.setAttribute("data-initial-dasharray", initialDash);
-      }
-      if (!element.getAttribute("data-initial-opacity")) {
-        let initialOpacity = element.style.opacity;
-        if (!initialOpacity || initialOpacity === "") {
-          const computedStyle = window.getComputedStyle(element);
-          initialOpacity = computedStyle.opacity || "1";
-        }
-        element.setAttribute("data-initial-opacity", initialOpacity);
+    };
+
+    // Only capture initial styles once per SVG
+    const maybeCaptureDefaultStyles = (regionId: string, el: SVGPathElement) => {
+      if (!defaultRegionStylesRef.current[regionId]) {
+        ensureInitialAttributes(el);
+        defaultRegionStylesRef.current[regionId] = {
+          fill: el.getAttribute("data-initial-fill") || NEUTRAL_TERRITORY_SHADE,
+          stroke:
+            el.getAttribute("data-initial-stroke") || NEUTRAL_TERRITORY_STROKE,
+          strokeWidth: el.getAttribute("data-initial-stroke-width") || "2",
+          dashArray: el.style.strokeDasharray || "",
+          opacity: parseFloat(el.style.opacity || "1") || 1,
+        };
       }
     };
 
-    const buildKey = (
+    const getRegionStyleKey = (
       fill: string,
       stroke: string,
       strokeWidth: string,
@@ -508,144 +524,77 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         opacity: number;
       }
     ) => {
-      // Clear any existing inline style completely to ensure our styles take precedence
-      // This is necessary for SVGs with inline styles like city_map.svg that have opacity:0.1
-      element.removeAttribute("style");
-      
-      // Set ALL styles via direct attribute - this is more reliable for SVG
-      element.setAttribute("fill", fill);
-      element.setAttribute("stroke", stroke);
-      element.setAttribute("stroke-width", strokeWidth);
-      element.setAttribute("stroke-dasharray", dashArray);
-      element.setAttribute("opacity", opacity.toString());
-      
-      // Also set via style property for browsers that prefer it
-      element.style.cssText = `fill: ${fill} !important; stroke: ${stroke} !important; stroke-width: ${strokeWidth} !important; stroke-dasharray: ${dashArray}; opacity: ${opacity} !important; pointer-events: all;`;
-      
-      // Move element to front of its parent (SVG uses painter's algorithm - last drawn is on top)
-      // This ensures the colored region appears above any background images
-      const parent = element.parentElement;
-      if (parent) {
-        parent.appendChild(element);
-      }
+      element.style.fill = fill;
+      element.style.stroke = stroke;
+      element.style.strokeWidth = strokeWidth;
+      element.style.strokeDasharray = dashArray;
+      element.style.opacity = `${opacity}`;
     };
 
-    const updateRegions = () => {
-      const svg = containerRef.current?.querySelector("svg");
-      if (!svg) {
-        console.log("[ClanTerritoryMap] No SVG found");
-        return;
-      }
+    const runLoop = () => {
+      if (!containerRef.current) return;
 
-      if (svgRef.current !== svg) {
-        svgRef.current = svg;
-        svg.style.pointerEvents = "none";
-        defaultRegionStylesRef.current = {};
-        lastRegionStyleKeyRef.current = {};
-        console.log("[ClanTerritoryMap] New SVG detected, reset caches");
-        
-        // Debug: Log all available IDs in the SVG
-        const allIds = Array.from(svg.querySelectorAll("[id]")).map(el => el.id);
-        console.log("[ClanTerritoryMap] Available IDs in SVG:", allIds.filter(id => id.includes("district") || id.includes("region")));
-      }
+      const svg =
+        svgRef.current || containerRef.current.querySelector<SVGSVGElement>("svg");
+      if (!svg) return;
 
+      svgRef.current = svg;
+
+      // Force slice on the live DOM svg too (just in case)
+      svg.setAttribute("preserveAspectRatio", "xMidYMid slice");
+
+      // Apply global SVG sizing just in case
+      svg.style.width = "100%";
+      svg.style.height = "100%";
+      svg.style.display = "block";
+
+      // Iterate zones and style regions
       Object.entries(ZONE_TO_REGION).forEach(([zoneId, regionIds]) => {
-        const ids = Array.isArray(regionIds) ? regionIds : [regionIds];
+        const state = zones[zoneId as ZoneId];
+        if (!state) return;
 
-        ids.forEach((regionId) => {
+        const regionIdList = Array.isArray(regionIds) ? regionIds : [regionIds];
+
+        regionIdList.forEach((regionId) => {
           const regionPath = resolveRegionElement(svg, regionId);
-          if (!regionPath) {
-            console.log(`[ClanTerritoryMap] Could not find region: ${regionId} for zone: ${zoneId}`);
-            return;
+          if (!regionPath) return;
+
+          maybeCaptureDefaultStyles(regionId, regionPath);
+
+          // Determine owner clan
+          const clan = state.clanId ? clans[state.clanId] : null;
+          const contested = !!state.contested;
+
+          // Default visuals
+          let fill = NEUTRAL_TERRITORY_SHADE;
+          let stroke = NEUTRAL_TERRITORY_STROKE;
+          let baseStrokeWidth = "2";
+          let dashArray = "";
+          let baseOpacity = 0.85;
+
+          if (clan) {
+            fill = clan.color;
+            stroke = clan.color;
+            baseStrokeWidth = contested ? "4" : "3";
+            dashArray = contested ? "8 6" : "";
+            baseOpacity = contested ? 0.92 : 0.88;
           }
 
-          ensureInitialAttributes(regionPath);
-
-          if (!defaultRegionStylesRef.current[regionId]) {
-            const capturedFill =
-              regionPath.getAttribute("data-initial-fill") ||
-              regionPath.getAttribute("fill") ||
-              regionPath.style.fill ||
-              NEUTRAL_TERRITORY_SHADE;
-            const capturedStroke =
-              regionPath.getAttribute("data-initial-stroke") ||
-              regionPath.getAttribute("stroke") ||
-              regionPath.style.stroke ||
-              "#475569";
-            const capturedOpacity = Number(
-              regionPath.getAttribute("data-initial-opacity") ||
-                regionPath.getAttribute("opacity") ||
-                regionPath.style.opacity ||
-                1
-            );
-
-            // Ensure minimum opacity of 0.7 for visibility (city_map.svg has 0.1 which is too low)
-            const normalizedOpacity = Math.max(capturedOpacity, 0.7);
-
-            defaultRegionStylesRef.current[regionId] = {
-              fill: capturedFill,
-              stroke: capturedStroke,
-              strokeWidth:
-                regionPath.getAttribute("stroke-width") ||
-                regionPath.style.strokeWidth ||
-                "2",
-              dashArray:
-                regionPath.getAttribute("stroke-dasharray") ||
-                regionPath.style.getPropertyValue("stroke-dasharray") ||
-                "none",
-              opacity: Number.isNaN(normalizedOpacity) ? 1 : normalizedOpacity,
-            };
-          }
-
-          const defaultStyle = defaultRegionStylesRef.current[regionId];
-          const defaultKey = buildKey(
-            defaultStyle.fill,
-            defaultStyle.stroke,
-            defaultStyle.strokeWidth,
-            defaultStyle.dashArray,
-            defaultStyle.opacity
-          );
-
-          const zoneState = zones[zoneId as ZoneId];
-          const { clan, dominance, contested } = getZoneController(
-            zoneState,
-            clans
-          );
-
-          if (!clan) {
-            if (lastRegionStyleKeyRef.current[regionId] !== defaultKey) {
-              lastRegionStyleKeyRef.current[regionId] = defaultKey;
-              applyRegionVisuals(regionPath, defaultStyle);
-              regionPath.style.filter = "none";
-            }
-            return;
-          }
-
-          // Log when a clan controls a zone
-          console.log(`[ClanTerritoryMap] Zone ${zoneId} (${regionId}) controlled by ${clan.name} with color ${clan.color}`);
-
-          const dominanceStrength = clamp01(dominance);
-          const baseOpacity = dominanceStrength >= 0.75 ? 1 : 0.85;
-          const baseStrokeWidth = contested ? "4" : "3";
-          const dashArray = contested ? "8 4" : "none";
-          const styleKey = buildKey(
-            clan.color,
-            clan.color,
+          const styleKey = getRegionStyleKey(
+            fill,
+            stroke,
             baseStrokeWidth,
             dashArray,
             baseOpacity
           );
 
-          if (lastRegionStyleKeyRef.current[regionId] === styleKey) {
-            return;
-          }
+          if (lastRegionStyleKeyRef.current[regionId] === styleKey) return;
 
-          console.log(`[ClanTerritoryMap] Applying color ${clan.color} to ${regionId}`);
           lastRegionStyleKeyRef.current[regionId] = styleKey;
 
           applyRegionVisuals(regionPath, {
-            fill: clan.color,
-            stroke: clan.color,
+            fill,
+            stroke,
             strokeWidth: baseStrokeWidth,
             dashArray,
             opacity: baseOpacity,
@@ -653,13 +602,10 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
           regionPath.style.filter = `drop-shadow(0 0 ${
             contested ? 16 : 10
-          }px ${clan.color})`;
+          }px ${stroke})`;
         });
       });
-    };
 
-    const runLoop = () => {
-      updateRegions();
       rafRef.current = requestAnimationFrame(runLoop);
     };
 
@@ -671,12 +617,17 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         rafRef.current = null;
       }
     };
-  }, [mapMarkup, zones, clans]);
+  }, [mapMarkup, zones, clans, mapId, ZONE_TO_REGION, REGION_ALIAS_MAP]);
 
   if (!mapMarkup) {
     return (
       <div className="w-full h-full min-h-[200px] flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-black rounded-xl">
-        <img src="/BRAINS.svg" alt="Loading..." className="w-16 h-16 animate-pulse" style={{ filter: 'drop-shadow(0 0 20px rgba(0, 212, 255, 0.6))' }} />
+        <img
+          src="/BRAINS.svg"
+          alt="Loading..."
+          className="w-16 h-16 animate-pulse"
+          style={{ filter: "drop-shadow(0 0 20px rgba(0, 212, 255, 0.6))" }}
+        />
       </div>
     );
   }
@@ -693,13 +644,10 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
       <div
         ref={containerRef}
-        className="w-full flex items-center justify-center px-4 pb-4"
-        style={{ aspectRatio: '16 / 9', minHeight: '420px' }}
+        className="w-full flex items-center justify-center px-4 pb-4 min-h-[240px] sm:min-h-[320px] lg:min-h-[420px]"
+        style={{ aspectRatio: mapAspectRatio ? `${mapAspectRatio}` : "16 / 9" }}
       >
-        <div
-          className="w-full h-full"
-          dangerouslySetInnerHTML={{ __html: mapMarkup }}
-        />
+        <div className="w-full h-full" dangerouslySetInnerHTML={{ __html: mapMarkup }} />
       </div>
 
       {!hideLegend && (

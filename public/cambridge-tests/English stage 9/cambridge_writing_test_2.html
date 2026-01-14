@@ -419,37 +419,39 @@
   <div class="section">
     <h2>📝 Part 1 — Question 1</h2>
     
-    <div class="marking-info">
-      <h3>Marking Criteria — Total: 15 marks</h3>
-      <div class="criteria">
-        <div class="criterion">
-          <div class="criterion-name">Content</div>
-          <div class="criterion-marks">5</div>
-        </div>
-        <div class="criterion">
-          <div class="criterion-name">Organisation</div>
-          <div class="criterion-marks">5</div>
-        </div>
-        <div class="criterion">
-          <div class="criterion-name">Language</div>
-          <div class="criterion-marks">5</div>
+    <div class="examguard-prompt">
+      <div class="marking-info">
+        <h3>Marking Criteria — Total: 15 marks</h3>
+        <div class="criteria">
+          <div class="criterion">
+            <div class="criterion-name">Content</div>
+            <div class="criterion-marks">5</div>
+          </div>
+          <div class="criterion">
+            <div class="criterion-name">Organisation</div>
+            <div class="criterion-marks">5</div>
+          </div>
+          <div class="criterion">
+            <div class="criterion-name">Language</div>
+            <div class="criterion-marks">5</div>
+          </div>
         </div>
       </div>
-    </div>
-    
-    <div class="task-box">
-      <h3>🎵 Band Email</h3>
-      <p>You recently saw a really good band and you want to tell your English-speaking friend, Sam, about it.</p>
-      <p><strong>Write an email to Sam. In your email, you should:</strong></p>
-      <ul>
-        <li>tell Sam where you saw the band</li>
-        <li>say how you found out about the band</li>
-        <li>explain why you like the band</li>
-      </ul>
-    </div>
-    
-    <div class="word-count-box">
-      📏 Write <strong>45–55 words</strong>
+      
+      <div class="task-box">
+        <h3>🎵 Band Email</h3>
+        <p>You recently saw a really good band and you want to tell your English-speaking friend, Sam, about it.</p>
+        <p><strong>Write an email to Sam. In your email, you should:</strong></p>
+        <ul>
+          <li>tell Sam where you saw the band</li>
+          <li>say how you found out about the band</li>
+          <li>explain why you like the band</li>
+        </ul>
+      </div>
+      
+      <div class="word-count-box">
+        📏 Write <strong>45–55 words</strong>
+      </div>
     </div>
     
     <div class="writing-area">
@@ -466,40 +468,42 @@
   <div class="section">
     <h2>📝 Part 2 — Question 2</h2>
     
-    <div class="marking-info">
-      <h3>Marking Criteria — Total: 20 marks</h3>
-      <div class="criteria">
-        <div class="criterion">
-          <div class="criterion-name">Content</div>
-          <div class="criterion-marks">5</div>
-        </div>
-        <div class="criterion">
-          <div class="criterion-name">Communicative Achievement</div>
-          <div class="criterion-marks">5</div>
-        </div>
-        <div class="criterion">
-          <div class="criterion-name">Organisation</div>
-          <div class="criterion-marks">5</div>
-        </div>
-        <div class="criterion">
-          <div class="criterion-name">Language</div>
-          <div class="criterion-marks">5</div>
+    <div class="examguard-prompt">
+      <div class="marking-info">
+        <h3>Marking Criteria — Total: 20 marks</h3>
+        <div class="criteria">
+          <div class="criterion">
+            <div class="criterion-name">Content</div>
+            <div class="criterion-marks">5</div>
+          </div>
+          <div class="criterion">
+            <div class="criterion-name">Communicative Achievement</div>
+            <div class="criterion-marks">5</div>
+          </div>
+          <div class="criterion">
+            <div class="criterion-name">Organisation</div>
+            <div class="criterion-marks">5</div>
+          </div>
+          <div class="criterion">
+            <div class="criterion-name">Language</div>
+            <div class="criterion-marks">5</div>
+          </div>
         </div>
       </div>
-    </div>
-    
-    <div class="task-box">
-      <h3>🌙 Midnight Phone Call Story</h3>
-      <p>Your English teacher has asked you to write a story.</p>
-      <p><strong>Your story must begin with this sentence:</strong></p>
-      <p style="font-style: italic; background: #f0f0f0; padding: 15px; border-radius: 8px; margin: 15px 0; font-size: 16px; color: #333;">
-        "Just after midnight, I woke up to the sound of my phone ringing."
-      </p>
-      <p><strong>Write your story in an appropriate style.</strong></p>
-    </div>
-    
-    <div class="word-count-box">
-      📏 Write <strong>110–130 words</strong>
+      
+      <div class="task-box">
+        <h3>🌙 Midnight Phone Call Story</h3>
+        <p>Your English teacher has asked you to write a story.</p>
+        <p><strong>Your story must begin with this sentence:</strong></p>
+        <p style="font-style: italic; background: #f0f0f0; padding: 15px; border-radius: 8px; margin: 15px 0; font-size: 16px; color: #333;">
+          "Just after midnight, I woke up to the sound of my phone ringing."
+        </p>
+        <p><strong>Write your story in an appropriate style.</strong></p>
+      </div>
+      
+      <div class="word-count-box">
+        📏 Write <strong>110–130 words</strong>
+      </div>
     </div>
     
     <div class="writing-area">
@@ -529,6 +533,7 @@
   <button id="floatingSubmitBtn" onclick="submitWriting()">📤 Submit Writing</button>
 </div>
 
+<script src="../examguard.js"></script>
 <script>
   // Mobile detection
   function isMobile() {
@@ -551,20 +556,35 @@
   }
 
   // Supabase Configuration
-  const SUPABASE_URL = 'https://sozodkxwhubespiedgxm.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvem9ka3h3aHViZXNwaWVkZ3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTUxNjYsImV4cCI6MjA3NzQ3MTE2Nn0.DBfFFWvVjpqXTga0uZcH5qR4ej6VOFBUm-CiCTgGLVA';
+  const SUPABASE_URL = window.__SUPABASE_ENV__?.VITE_SUPABASE_URL || '';
+  const SUPABASE_ANON_KEY = window.__SUPABASE_ENV__?.VITE_SUPABASE_ANON_KEY || '';
+  const SUPABASE_PROJECT_REF = 'sozodkxwhubespiedgxm';
+  const SUPABASE_AUTH_STORAGE_KEY = `sb-${SUPABASE_PROJECT_REF}-auth-token`;
+
+  function getSupabaseAccessToken() {
+    try {
+      const authValue = localStorage.getItem(SUPABASE_AUTH_STORAGE_KEY);
+      if (!authValue) return null;
+      const parsed = JSON.parse(authValue);
+      return parsed?.access_token || null;
+    } catch (error) {
+      console.warn('Unable to read Supabase auth token:', error);
+      return null;
+    }
+  }
   
   const supabaseClient = {
     from: function(table) {
       return {
         insert: async function(data) {
           try {
+            const accessToken = getSupabaseAccessToken();
             const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
                 'apikey': SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Authorization': `Bearer ${accessToken ?? SUPABASE_ANON_KEY}`,
                 'Prefer': 'return=minimal'
               },
               body: JSON.stringify(Array.isArray(data) ? data : [data])
@@ -687,6 +707,9 @@
   // Show locked state
   function showLockedState(data) {
     hasSubmitted = true;
+    if (window.ExamGuard) {
+      window.ExamGuard.stop();
+    }
     document.getElementById("alreadySubmitted").style.display = "block";
     
     document.querySelectorAll('input, textarea').forEach(input => {
@@ -730,7 +753,8 @@
   }
 
   // Submit writing
-  async function submitWriting() {
+  async function submitWriting(options = {}) {
+    const { skipConfirm = false } = options;
     const studentName = document.getElementById("studentName").value.trim();
     const studentClass = document.getElementById("studentClass").value.trim();
     const answer1 = document.getElementById("answer1").value.trim();
@@ -799,7 +823,7 @@
     
     confirmMessage += "Click OK to submit, or Cancel to review.";
     
-    if (!confirm(confirmMessage)) return;
+    if (!skipConfirm && !confirm(confirmMessage)) return;
     
     // Calculate time taken
     const timeTaken = startTime ? Math.floor((new Date() - startTime) / 1000) : 0;
@@ -893,6 +917,7 @@
       
       // Re-enable inputs on error
       document.querySelectorAll('input, textarea').forEach(input => input.disabled = false);
+      startExamGuard();
     }
   }
 
@@ -950,11 +975,41 @@
     }
   }
 
+  function startExamGuard() {
+    if (!window.ExamGuard || hasSubmitted) return;
+    const promptContainers = Array.from(document.querySelectorAll('.examguard-prompt'));
+    const editorOne = document.getElementById('answer1');
+    const editorTwo = document.getElementById('answer2');
+    window.ExamGuard.start({
+      promptContainer: promptContainers,
+      editor: [editorOne, editorTwo].filter(Boolean),
+      onSubmit: () => submitWriting({ skipConfirm: true }),
+      onViolation: (event) => {
+        console.warn('ExamGuard violation (Cambridge Writing Test 2):', event);
+      },
+      testId: 'cambridge-writing-test-2',
+      maxViolations: 3,
+      blurGraceMs: 300,
+      suspiciousJump: {
+        minDeltaChars: 80,
+        maxDeltaMs: 1200,
+      },
+      actions: {
+        warn: true,
+        showBanner: true,
+        autosubmit: true,
+        disableEditor: false,
+        blockSelectAll: true,
+      }
+    });
+  }
+
   // Initialize
   checkPreviousSubmission();
   loadStudentInfoFromGame();
   if (!hasSubmitted) {
     loadDraft();
+    startExamGuard();
   }
 </script>
 

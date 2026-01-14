@@ -1,18 +1,11 @@
-import { createClient } from "@supabase/supabase-js";
 import { supabase } from "../../../services/supabaseClient";
 import { ClanTerritoryTransport, RoomId, PlayerId } from "./clanTerritoryTransport";
 import { ClanTerritoryGameState, GameAction } from "./clanTerritoryTypes";
 import { clanTerritoryReducer, INITIAL_STATE } from "./clanTerritoryEngine";
 
-// NOTE: In a real app, these would be environment variables
-// const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || "";
-// const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || "";
-
-// const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
   private channel: any;
-  private discoveryChannel: any;
+  private discoveryChannels: any[] = [];
   private discoveryBroadcastInterval: any;
   private tickInterval: any = null;
   private visibilityListener: (() => void) | null = null;
@@ -20,12 +13,24 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
   private isHost: boolean = false;
   private allowClanlessPlayers: boolean = false;
   private schoolId: string | null = null;
+  private teacherName: string | null = null;
+  private classCode: string | null = null;
+  private scheduledStartAt: string | null = null;
 
-  async createRoom(options?: { allowClanlessPlayers?: boolean; schoolId?: string }): Promise<RoomId> {
+  async createRoom(options?: {
+    allowClanlessPlayers?: boolean;
+    schoolId?: string;
+    teacherName?: string;
+    classCode?: string;
+    scheduledStartAt?: string;
+  }): Promise<RoomId> {
     const roomId = Math.floor(1000 + Math.random() * 9000).toString();
     this.isHost = true;
     this.allowClanlessPlayers = Boolean(options?.allowClanlessPlayers);
     this.schoolId = options?.schoolId || null;
+    this.teacherName = options?.teacherName || null;
+    this.classCode = options?.classCode || null;
+    this.scheduledStartAt = options?.scheduledStartAt || null;
     this.state = { ...INITIAL_STATE, allowClanlessPlayers: this.allowClanlessPlayers };
 
     // Start hosting logic immediately
@@ -37,29 +42,45 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
 
   // --- Discovery Logic ---
   private startBroadcastingDiscovery(roomId: RoomId) {
-    // Use school-specific discovery channel to isolate rooms between schools
-    const channelName = this.schoolId 
-      ? `clan-territory-discovery:${this.schoolId}` 
-      : 'clan-territory-discovery:global';
-    
-    this.discoveryChannel = supabase.channel(channelName, {
-      config: {
-        broadcast: { ack: false },
-      },
-    });
-    this.discoveryChannel.subscribe((status: string) => {
-      if (status === 'SUBSCRIBED') {
-        // Broadcast presence periodically
-        this.discoveryBroadcastInterval = setInterval(() => {
-          if (this.discoveryChannel && this.discoveryChannel.state === 'joined') {
-            this.discoveryChannel.send({
-              type: 'broadcast',
-              event: 'room_open',
-              payload: { roomId, allowClanlessPlayers: this.allowClanlessPlayers, schoolId: this.schoolId }
+    const channelNames = this.schoolId
+      ? [
+          `clan-territory-discovery:${this.schoolId}`,
+          'clan-territory-discovery:global',
+        ]
+      : ['clan-territory-discovery:global'];
+
+    this.discoveryChannels = channelNames.map((channelName) =>
+      supabase.channel(channelName, {
+        config: {
+          broadcast: { ack: false },
+        },
+      })
+    );
+
+    this.discoveryChannels.forEach((channel) => {
+      channel.subscribe((status: string) => {
+        if (status === 'SUBSCRIBED' && !this.discoveryBroadcastInterval) {
+          // Broadcast presence periodically
+          this.discoveryBroadcastInterval = setInterval(() => {
+            this.discoveryChannels.forEach((activeChannel) => {
+              if (activeChannel && activeChannel.state === 'joined') {
+                activeChannel.send({
+                  type: 'broadcast',
+                  event: 'room_open',
+                  payload: {
+                    roomId,
+                    allowClanlessPlayers: this.allowClanlessPlayers,
+                    schoolId: this.schoolId,
+                    teacherName: this.teacherName,
+                    classCode: this.classCode,
+                    scheduledStartAt: this.scheduledStartAt,
+                  },
+                });
+              }
             });
-          }
-        }, 2000);
-      }
+          }, 2000);
+        }
+      });
     });
   }
 
@@ -68,30 +89,59 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
       clearInterval(this.discoveryBroadcastInterval);
       this.discoveryBroadcastInterval = null;
     }
-    if (this.discoveryChannel) {
-      supabase.removeChannel(this.discoveryChannel);
-      this.discoveryChannel = null;
+    if (this.discoveryChannels.length > 0) {
+      this.discoveryChannels.forEach((channel) => {
+        supabase.removeChannel(channel);
+      });
+      this.discoveryChannels = [];
     }
   }
 
-  startDiscovery(schoolId: string | null, onRoomFound: (roomId: RoomId, metadata?: { allowClanlessPlayers?: boolean }) => void) {
-    // Listen on school-specific discovery channel to only see rooms from same school
-    const channelName = schoolId 
-      ? `clan-territory-discovery:${schoolId}` 
-      : 'clan-territory-discovery:global';
-    
-    this.discoveryChannel = supabase.channel(channelName);
-    this.discoveryChannel
-      .on('broadcast', { event: 'room_open' }, (payload: any) => {
-        onRoomFound(payload.payload.roomId, { allowClanlessPlayers: payload.payload.allowClanlessPlayers });
-      })
-      .subscribe();
+  startDiscovery(
+    schoolId: string | null,
+    onRoomFound: (
+      roomId: RoomId,
+      metadata?: {
+        allowClanlessPlayers?: boolean;
+        teacherName?: string;
+        classCode?: string;
+        scheduledStartAt?: string;
+      }
+    ) => void
+  ) {
+    const channelNames = schoolId
+      ? [
+          `clan-territory-discovery:${schoolId}`,
+          'clan-territory-discovery:global',
+        ]
+      : ['clan-territory-discovery:global'];
+
+    this.discoveryChannels = channelNames.map((channelName) => supabase.channel(channelName));
+
+    this.discoveryChannels.forEach((channel) => {
+      channel
+        .on('broadcast', { event: 'room_open' }, (payload: any) => {
+          const roomPayload = payload.payload ?? {};
+          if (schoolId && roomPayload.schoolId && roomPayload.schoolId !== schoolId) {
+            return;
+          }
+          onRoomFound(roomPayload.roomId, {
+            allowClanlessPlayers: roomPayload.allowClanlessPlayers,
+            teacherName: roomPayload.teacherName,
+            classCode: roomPayload.classCode,
+            scheduledStartAt: roomPayload.scheduledStartAt,
+          });
+        })
+        .subscribe();
+    });
   }
 
   stopDiscovery() {
-    if (this.discoveryChannel) {
-      supabase.removeChannel(this.discoveryChannel);
-      this.discoveryChannel = null;
+    if (this.discoveryChannels.length > 0) {
+      this.discoveryChannels.forEach((channel) => {
+        supabase.removeChannel(channel);
+      });
+      this.discoveryChannels = [];
     }
   }
   // -----------------------
