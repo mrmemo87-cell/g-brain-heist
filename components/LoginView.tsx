@@ -528,8 +528,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                             <button
                                 type="submit"
                                 disabled={isLoading || isGoogleLoading || isSignupIncomplete}
-                                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-bold text-ink-900 bg-ion-blue hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ion-blue disabled:opacity-50 disabled:cursor-wait transition-colors"
-                                style={{ textShadow: '0 1px 1px rgba(0,0,0,0.2)' }}
+                                className="w-full flex justify-center py-3 px-4 rounded-md text-lg font-bold text-black bg-gradient-to-r from-amber-500 to-orange-500 shadow-lg shadow-amber-500/20 transition-all hover:from-amber-400 hover:to-orange-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-400 disabled:cursor-wait disabled:opacity-50"
                             >
                                 {isLoading ? 'Processing...' : mode === 'reset' ? 'Send Reset Link' : mode === 'login' ? 'Access System' : 'Create Account'}
                             </button>
