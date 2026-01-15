@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { TeacherQuestion, Subject, QuestionDifficulty, Teacher } from '../../types';
 import './QuestionBank.css';
 
@@ -669,18 +670,21 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
       </main>
 
       {/* Preview Modal */}
-      {previewSet && (
-        <SetPreviewModal
-          set={previewSet}
-          selectedQuestionIds={selectedQuestionIds}
-          onToggleQuestion={handleToggleQuestion}
-          onSelectAll={handleSelectAll}
-          onDeselectAll={handleDeselectAll}
-          onConfirm={handleConfirmSelection}
-          onClose={handleClosePreview}
-          useActionLabel={useActionLabel}
-        />
-      )}
+      {previewSet && typeof document !== 'undefined'
+        ? createPortal(
+            <SetPreviewModal
+              set={previewSet}
+              selectedQuestionIds={selectedQuestionIds}
+              onToggleQuestion={handleToggleQuestion}
+              onSelectAll={handleSelectAll}
+              onDeselectAll={handleDeselectAll}
+              onConfirm={handleConfirmSelection}
+              onClose={handleClosePreview}
+              useActionLabel={useActionLabel}
+            />,
+            document.body
+          )
+        : null}
     </div>
   );
 };
