@@ -293,6 +293,7 @@ export type ClanTerritoryMapProps = {
   clans: Record<ClanId, ClanMetadata>;
   hideHeader?: boolean;
   hideLegend?: boolean;
+  showControls?: boolean;
   overlay?: ReactNode;
   mapId?: string;
   containerClassName?: string; // Allow parent to control container sizing
@@ -303,6 +304,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   clans,
   hideHeader = false,
   hideLegend = false,
+  showControls = true,
   overlay,
   mapId = "default",
   containerClassName = "w-full h-auto min-h-[240px] sm:min-h-[320px] lg:min-h-[420px]",
@@ -664,47 +666,49 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         </div>
       )}
 
-      <div className="px-4 pb-3 grid gap-3 text-xs text-slate-300">
-        <label className="flex flex-col gap-2">
-          <span className="font-semibold text-slate-200">
-            Zoom: {zoom}%
-          </span>
-          <input
-            type="range"
-            min={10}
-            max={500}
-            value={zoom}
-            onChange={(event) => setZoom(Number(event.target.value))}
-            className="w-full accent-cyan-400"
-          />
-        </label>
-        <label className="flex flex-col gap-2">
-          <span className="font-semibold text-slate-200">
-            Move Horizontal: {panX}%
-          </span>
-          <input
-            type="range"
-            min={-100}
-            max={100}
-            value={panX}
-            onChange={(event) => setPanX(Number(event.target.value))}
-            className="w-full accent-cyan-400"
-          />
-        </label>
-        <label className="flex flex-col gap-2">
-          <span className="font-semibold text-slate-200">
-            Move Vertical: {panY}%
-          </span>
-          <input
-            type="range"
-            min={-100}
-            max={100}
-            value={panY}
-            onChange={(event) => setPanY(Number(event.target.value))}
-            className="w-full accent-cyan-400"
-          />
-        </label>
-      </div>
+      {showControls && (
+        <div className="px-4 pb-3 grid gap-3 text-xs text-slate-300">
+          <label className="flex flex-col gap-2">
+            <span className="font-semibold text-slate-200">
+              Zoom: {zoom}%
+            </span>
+            <input
+              type="range"
+              min={10}
+              max={500}
+              value={zoom}
+              onChange={(event) => setZoom(Number(event.target.value))}
+              className="w-full accent-cyan-400"
+            />
+          </label>
+          <label className="flex flex-col gap-2">
+            <span className="font-semibold text-slate-200">
+              Move Horizontal: {panX}%
+            </span>
+            <input
+              type="range"
+              min={-100}
+              max={100}
+              value={panX}
+              onChange={(event) => setPanX(Number(event.target.value))}
+              className="w-full accent-cyan-400"
+            />
+          </label>
+          <label className="flex flex-col gap-2">
+            <span className="font-semibold text-slate-200">
+              Move Vertical: {panY}%
+            </span>
+            <input
+              type="range"
+              min={-100}
+              max={100}
+              value={panY}
+              onChange={(event) => setPanY(Number(event.target.value))}
+              className="w-full accent-cyan-400"
+            />
+          </label>
+        </div>
+      )}
 
       <div
         ref={containerRef}
@@ -717,9 +721,11 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
           <div
             className="w-full h-full"
             style={{
-              transform: `translate(${panX}%, ${panY}%) scale(${zoom / 100})`,
-              transformOrigin: "center",
-              transition: "transform 120ms ease-out",
+              transform: showControls
+                ? `translate(${panX}%, ${panY}%) scale(${zoom / 100})`
+                : undefined,
+              transformOrigin: showControls ? "center" : undefined,
+              transition: showControls ? "transform 120ms ease-out" : undefined,
             }}
             dangerouslySetInnerHTML={{ __html: mapMarkup }}
           />
