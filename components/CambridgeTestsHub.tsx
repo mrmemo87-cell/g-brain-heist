@@ -247,6 +247,26 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
     loadTestProgress();
   }, [profile.username]);
 
+  useEffect(() => {
+    if (!showFeedbackModal) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    const previousPaddingRight = document.body.style.paddingRight;
+    const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+    document.body.style.overflow = 'hidden';
+    if (scrollBarWidth > 0) {
+      document.body.style.paddingRight = `${scrollBarWidth}px`;
+    }
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.body.style.paddingRight = previousPaddingRight;
+    };
+  }, [showFeedbackModal]);
+
   // Listen for test completion messages from iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -1006,8 +1026,10 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
             borderRadius: '20px',
             width: '100%',
             maxWidth: '800px',
-            maxHeight: '90vh',
-            overflow: 'auto',
+            maxHeight: 'calc(100vh - 40px)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
             border: '1px solid rgba(0,245,255,0.3)',
           }}>
             {/* Modal Header */}
@@ -1042,7 +1064,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
             </div>
 
             {/* Modal Content */}
-            <div style={{ padding: '20px' }}>
+            <div style={{ padding: '20px', overflowY: 'auto' }}>
               {feedbackLoading ? (
                 <div style={{ textAlign: 'center', padding: '40px' }}>
                   <div style={{ fontSize: '32px', marginBottom: '15px' }}>⏳</div>
