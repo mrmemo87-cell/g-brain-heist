@@ -3021,9 +3021,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </div>
           )}
 
-          {/* Subject/Topic selection - Only show when no questions are pre-selected */}
-          {assignmentQuestionIds.length === 0 && (
-            <>
+          {/* Subject/Topic selection */}
           <div className="teacher-form-grid">
             <div className="teacher-form-group-premium">
               <label className="teacher-label-premium">Subject</label>
@@ -3081,8 +3079,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               )}
             </div>
           </div>
-            </>
-          )}
+
+          
 
           <div className="teacher-form-grid">
             <div className="teacher-form-group-premium">
@@ -3147,8 +3145,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </div>
           </div>
 
-          {/* Question selector - Only show when no questions are pre-selected */}
-          {assignmentQuestionIds.length === 0 && (
+          {/* Question selector */}
           <div className="teacher-form-group-premium">
             <label className="teacher-label-premium">Select Questions</label>
             <div className="teacher-question-list-premium">
@@ -3182,7 +3179,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </div>
             </div>
           </div>
-          )}
 
           <button
             type="submit"
