@@ -5197,7 +5197,50 @@ export const submit_question_answer = async (
 
     if (error) throw error;
 
-    return data as QuestionAttemptResult;
+    const result = data as QuestionAttemptResult;
+    const xpDelta = Math.max(0, result.points_earned || 0);
+    const coinDelta = result.is_correct ? Math.floor(xpDelta / 2) : 0;
+
+    if (xpDelta > 0 || coinDelta > 0) {
+        const { data: currentProfile, error: profileError } = await supabase
+            .from('users')
+            .select('xp, coins, level, gemstones')
+            .eq('id', user.id)
+            .single();
+
+        if (profileError || !currentProfile) {
+            console.error('[submit_question_answer] Failed to fetch profile:', profileError);
+            throw new Error('Failed to fetch profile');
+        }
+
+        const newXP = currentProfile.xp + xpDelta;
+        const newCoins = Math.max(0, currentProfile.coins + coinDelta);
+        const newLevel = Math.floor(newXP / 100) + 1;
+        const leveledUp = newLevel > currentProfile.level;
+
+        let gemstoneDelta = 0;
+        if (leveledUp && newLevel % LEVEL_MILESTONE_INTERVAL === 0) {
+            gemstoneDelta += LEVEL_MILESTONE_GEMSTONE_REWARD;
+        }
+
+        const newGemstones = Math.max(0, (currentProfile.gemstones || 0) + gemstoneDelta);
+
+        await updateProfile(user.id, {
+            xp: newXP,
+            coins: newCoins,
+            level: newLevel,
+            gemstones: newGemstones,
+        });
+
+        result.final_profile_values = {
+            xp: newXP,
+            coins: newCoins,
+            level: newLevel,
+            gemstones: newGemstones,
+        };
+    }
+
+    return result;
 };
 
 /**

@@ -969,6 +969,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             coins: result.is_correct ? Math.floor(result.points_earned / 2) : 0,
             gemstones: 0,
           },
+          finalProfileValues: result.final_profile_values,
           explanation: result.is_correct
             ? currentQuestion.explanation || 'Correct!'
             : `Incorrect. ${currentQuestion.explanation || 'The correct answer was ' + currentQuestion.correct_answer}`,
