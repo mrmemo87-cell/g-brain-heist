@@ -54,6 +54,16 @@ const shuffleAnswersWithSeed = <T,>(answers: T[], seed: string): T[] => {
   return result;
 };
 
+const formatTimer = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, "0");
+  const secs = Math.floor(seconds % 60)
+    .toString()
+    .padStart(2, "0");
+  return `${minutes}:${secs}`;
+};
+
 interface ClanTerritoryStudentViewProps {
   gameState: ClanTerritoryGameState;
   playerId: string;
@@ -315,7 +325,13 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           <p className="text-slate-500 text-sm">Awaiting teacher to arm the arena...</p>
         </div>
         <div className="flex-1 min-h-0">
-          <ClanTerritoryMap zones={gameState.zones} clans={clansWithColors} mapId={gameState.mapId} containerClassName="w-full h-full" />
+          <ClanTerritoryMap
+            zones={gameState.zones}
+            clans={clansWithColors}
+            mapId={gameState.mapId}
+            containerClassName="w-full h-full"
+            showControls={false}
+          />
         </div>
         <div className="grid grid-cols-2 gap-4 text-center shrink-0">
           <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4">
@@ -400,12 +416,13 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
         {/* Bottom Map Preview */}
         <div className="shrink-0 border-t border-gray-800 bg-gray-900/50 p-3">
           <div className="max-w-md mx-auto">
-            <ClanTerritoryMap 
-              zones={gameState.zones} 
-              clans={clansWithColors} 
+            <ClanTerritoryMap
+              zones={gameState.zones}
+              clans={clansWithColors}
               mapId={gameState.mapId}
               hideHeader
               hideLegend
+              showControls={false}
             />
           </div>
         </div>
@@ -439,15 +456,23 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
               <div className="font-bold text-cyan-400">{hydratedPlayer.battleScore}</div>
             </div>
           </div>
-          <button
-            onClick={() => {
-              console.log('[StudentView] SWITCH ZONE clicked - deselecting zone');
-              onSelectZone(null as any);
-            }}
-            className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold transition cursor-pointer"
-          >
-            SWITCH ZONE
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <div className="text-[10px] text-gray-500 uppercase tracking-wider">Time Left</div>
+              <div className="font-mono text-sm text-emerald-300">
+                {formatTimer(gameState.timer)}
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                console.log('[StudentView] SWITCH ZONE clicked - deselecting zone');
+                onSelectZone(null as any);
+              }}
+              className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold transition cursor-pointer"
+            >
+              SWITCH ZONE
+            </button>
+          </div>
         </div>
 
         {/* Main Content Area - Optimized for Mobile & Desktop */}
@@ -464,6 +489,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                 hideHeader
                 hideLegend
                 containerClassName="w-full h-full"
+                showControls={false}
               />
             </div>
             
@@ -516,6 +542,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                   hideHeader
                   hideLegend
                   containerClassName="w-full h-full"
+                  showControls={false}
                 />
               </div>
               
