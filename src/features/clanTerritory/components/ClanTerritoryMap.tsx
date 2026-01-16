@@ -13,7 +13,6 @@ import {
   ClanMetadata,
   ZoneId,
   ZoneState,
-  getClanColor,
 } from "../clanTerritoryTypes";
 
 // Map configurations for different map layouts
@@ -139,12 +138,6 @@ const MAP_CONFIGS: Record<string, MapConfig> = {
 const NEUTRAL_TERRITORY_SHADE = "#1f2937";
 const NEUTRAL_TERRITORY_STROKE = "#475569";
 
-const normalizeRegionKey = (k: string) =>
-  k
-    .toLowerCase()
-    .replace(/[\s_]+/g, "-")
-    .replace(/[^\w-]/g, "");
-
 const getZoneControl = (
   state: ZoneState | undefined
 ): { clanId: ClanId | null; contested: boolean } => {
@@ -174,49 +167,6 @@ const getZoneControl = (
     Math.abs(leaderScore - runnerUp[1]) / Math.max(leaderScore, 1) <= 0.1;
 
   return { clanId: leader as ClanId, contested };
-};
-
-const normalizeSvgMarkup = (svgContent: string) => {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(svgContent, "image/svg+xml");
-  const svgEl = doc.querySelector("svg");
-  if (!svgEl) return svgContent;
-
-  // Get the viewBox if it exists, or try to compute from width/height
-  let viewBox = svgEl.getAttribute("viewBox");
-  if (!viewBox) {
-    const originalWidth = svgEl.getAttribute("width");
-    const originalHeight = svgEl.getAttribute("height");
-    if (originalWidth && originalHeight) {
-      // Parse numeric values, removing units like 'mm', 'px', etc.
-      const w = parseFloat(originalWidth);
-      const h = parseFloat(originalHeight);
-      if (!Number.isNaN(w) && !Number.isNaN(h) && h !== 0) {
-        viewBox = `0 0 ${w} ${h}`;
-        svgEl.setAttribute("viewBox", viewBox);
-      }
-    }
-  }
-
-  // Remove any fixed dimensions and make SVG responsive
-  svgEl.removeAttribute("width");
-  svgEl.removeAttribute("height");
-  svgEl.setAttribute("width", "100%");
-  svgEl.setAttribute("height", "100%");
-
-  // KEY: always fit inside the container without cropping
-  svgEl.setAttribute("preserveAspectRatio", "xMidYMid meet");
-
-  // Apply inline styles to ensure proper rendering
-  svgEl.style.cssText = `
-    width: 100% !important;
-    height: 100% !important;
-    max-width: 100%;
-    max-height: 100%;
-    display: block;
-  `.replace(/\s+/g, " ").trim();
-
-  return svgEl.outerHTML;
 };
 
 const adjustViewBoxToContent = (svgEl: SVGSVGElement) => {
@@ -284,7 +234,6 @@ export type ClanTerritoryMapProps = {
   hideLegend?: boolean;
   overlay?: ReactNode;
   mapId?: string;
-  containerClassName?: string; // Allow parent to control container sizing
 };
 
 export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
@@ -294,7 +243,6 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   hideLegend = false,
   overlay,
   mapId = "default",
-  containerClassName = "w-full h-full min-h-[240px] sm:min-h-[320px] lg:min-h-[420px]",
 }) => {
   const [cityMapLoaded, setCityMapLoaded] = useState(false);
   const [usaMapLoaded, setUsaMapLoaded] = useState(false);
@@ -358,290 +306,92 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [mapMarkup, setMapMarkup] = useState("");
-  const viewBoxAdjustedRef = useRef<Record<string, boolean>>({});
-  const defaultRegionStylesRef = useRef<
-    Record<
-      string,
-      {
-        fill: string;
-        stroke: string;
-        strokeWidth: string;
-        dashArray: string;
-        opacity: number;
-      }
-    >
-  >({});
-  const lastRegionStyleKeyRef = useRef<Record<string, string>>({});
-  const svgRef = useRef<SVGSVGElement | null>(null);
-  const rafRef = useRef<number | null>(null);
   const mapConfigRef = useRef(mapConfig);
-
-  const resolveRegionElement = (
-    svg: SVGSVGElement,
-    targetId: string,
-    regionAliasMap: Record<string, string[]>
-  ): SVGPathElement | null => {
-    // Try direct ID query with multiple selector approaches
-    let direct = svg.querySelector<SVGPathElement>(`#${targetId}`);
-    if (direct) return direct;
-
-    // Try without namespace issues
-    direct = svg.querySelector<SVGPathElement>(`[id="${targetId}"]`);
-    if (direct) return direct;
-
-    // Try by inkscape:label attribute (Inkscape SVGs often have this)
-    direct = svg.querySelector<SVGPathElement>(
-      `[inkscape\\:label="${targetId}"]`
-    );
-    if (direct) {
-      direct.id = targetId; // Set the id so future lookups are faster
-      return direct;
-    }
-
-    // Try querySelectorAll with exact ID match as fallback
-    const allElements = svg.querySelectorAll<SVGPathElement>("path, [id]");
-    for (const elem of allElements) {
-      if (elem.id === targetId) {
-        return elem as SVGPathElement;
-      }
-      // Also check inkscape:label attribute
-      const label = elem.getAttribute("inkscape:label");
-      if (label === targetId) {
-        elem.id = targetId;
-        return elem as SVGPathElement;
-      }
-    }
-
-    // Try normalized alias matching
-    const normalizedTargets = new Set([normalizeRegionKey(targetId)]);
-    (regionAliasMap[targetId] ?? []).forEach((alias: string) =>
-      normalizedTargets.add(normalizeRegionKey(alias))
-    );
-
-    const candidates = svg.querySelectorAll<SVGPathElement>("[id]");
-    for (const candidate of candidates) {
-      if (normalizedTargets.has(normalizeRegionKey(candidate.id))) {
-        if (candidate.id !== targetId) {
-          candidate.id = targetId;
-        }
-        return candidate;
-      }
-    }
-
-    return null;
-  };
 
   // Update mapConfigRef when mapConfig changes
   useEffect(() => {
     mapConfigRef.current = mapConfig;
   }, [mapConfig]);
 
-  // Reset caches when map changes
-  useEffect(() => {
-    defaultRegionStylesRef.current = {};
-    lastRegionStyleKeyRef.current = {};
-    svgRef.current = null;
-    viewBoxAdjustedRef.current = {};
-  }, [mapId]);
-
   const mapSvg = mapConfig.svg;
   useEffect(() => {
-    setMapMarkup(normalizeSvgMarkup(mapSvg));
+    setMapMarkup(mapSvg);
   }, [mapSvg]);
 
   useEffect(() => {
     if (!mapMarkup || !containerRef.current) return;
-    const svgEl = containerRef.current.querySelector("svg");
-    if (!svgEl) return;
+    const svg = containerRef.current.querySelector("svg");
+    if (!svg) return;
 
-    if (!viewBoxAdjustedRef.current[mapId]) {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const viewBox = adjustViewBoxToContent(svgEl);
-          viewBoxAdjustedRef.current[mapId] = true;
-        });
-      });
+    const originalWidth = svg.getAttribute("width");
+    const originalHeight = svg.getAttribute("height");
+
+    svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    svg.setAttribute("width", "100%");
+    svg.setAttribute("height", "100%");
+    svg.style.width = "100%";
+    svg.style.height = "100%";
+    svg.style.display = "block";
+
+    const existingViewBox = svg.getAttribute("viewBox");
+    if (!existingViewBox) {
+      const adjusted = adjustViewBoxToContent(svg);
+      if (!adjusted) {
+        if (originalWidth && originalHeight) {
+          const w = parseFloat(originalWidth);
+          const h = parseFloat(originalHeight);
+          if (!Number.isNaN(w) && !Number.isNaN(h) && h !== 0) {
+            svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+          }
+        }
+      }
     }
+  }, [mapMarkup, mapId]);
 
-    const ensureInitialAttributes = (element: SVGPathElement) => {
-      if (!element.getAttribute("data-initial-fill")) {
-        // Prioritize inline style first, then computed, then fallback
-        let initialFill = element.style.fill;
-        if (!initialFill || initialFill === "") {
-          const computedStyle = window.getComputedStyle(element);
-          initialFill = computedStyle.fill || NEUTRAL_TERRITORY_SHADE;
+  useEffect(() => {
+    const svg = containerRef.current?.querySelector("svg");
+    if (!svg) return;
+
+    const currentConfig = mapConfigRef.current;
+    const ZONE_TO_REGION = currentConfig.zoneToRegion;
+
+    Object.entries(ZONE_TO_REGION).forEach(([zoneId, regionIds]) => {
+      const state = zones[zoneId as ZoneId];
+      if (!state) return;
+
+      const regionIdList = Array.isArray(regionIds) ? regionIds : [regionIds];
+      regionIdList.forEach((regionId) => {
+        const regionPath = svg.querySelector<SVGPathElement>(
+          `#${CSS.escape(regionId)}`
+        );
+        if (!regionPath) return;
+
+        const { clanId, contested } = getZoneControl(state);
+        const clan = clanId ? clans[clanId] : null;
+
+        let fill = NEUTRAL_TERRITORY_SHADE;
+        let stroke = NEUTRAL_TERRITORY_STROKE;
+        let strokeWidth = "2";
+        let opacity = 0.85;
+
+        if (clan) {
+          fill = clan.color;
+          stroke = clan.color;
+          strokeWidth = contested ? "4" : "3";
+          opacity = contested ? 0.92 : 0.88;
         }
-        element.setAttribute("data-initial-fill", initialFill);
-      }
-      if (!element.getAttribute("data-initial-stroke")) {
-        let initialStroke = element.style.stroke;
-        if (!initialStroke || initialStroke === "") {
-          const computedStyle = window.getComputedStyle(element);
-          initialStroke = computedStyle.stroke || NEUTRAL_TERRITORY_STROKE;
-        }
-        element.setAttribute("data-initial-stroke", initialStroke);
-      }
-      if (!element.getAttribute("data-initial-stroke-width")) {
-        let initialStrokeWidth = element.style.strokeWidth;
-        if (!initialStrokeWidth || initialStrokeWidth === "") {
-          const computedStyle = window.getComputedStyle(element);
-          initialStrokeWidth = computedStyle.strokeWidth || "2";
-        }
-        element.setAttribute("data-initial-stroke-width", initialStrokeWidth);
-      }
-    };
 
-    // Only capture initial styles once per SVG
-    const maybeCaptureDefaultStyles = (regionId: string, el: SVGPathElement) => {
-      if (!defaultRegionStylesRef.current[regionId]) {
-        ensureInitialAttributes(el);
-        defaultRegionStylesRef.current[regionId] = {
-          fill: el.getAttribute("data-initial-fill") || NEUTRAL_TERRITORY_SHADE,
-          stroke:
-            el.getAttribute("data-initial-stroke") || NEUTRAL_TERRITORY_STROKE,
-          strokeWidth: el.getAttribute("data-initial-stroke-width") || "2",
-          dashArray: el.style.strokeDasharray || "",
-          opacity: parseFloat(el.style.opacity || "1") || 1,
-        };
-      }
-    };
-
-    const getRegionStyleKey = (
-      fill: string,
-      stroke: string,
-      strokeWidth: string,
-      dashArray: string,
-      opacity: number
-    ) => `${fill}|${stroke}|${strokeWidth}|${dashArray}|${opacity}`;
-
-    const applyRegionVisuals = (
-      element: SVGPathElement,
-      {
-        fill,
-        stroke,
-        strokeWidth,
-        dashArray,
-        opacity,
-      }: {
-        fill: string;
-        stroke: string;
-        strokeWidth: string;
-        dashArray: string;
-        opacity: number;
-      }
-    ) => {
-      // Remove the class that might have default styles
-      element.classList.remove("land");
-      
-      // Apply styles directly - inline styles take precedence
-      element.style.fill = fill;
-      element.style.stroke = stroke;
-      element.style.strokeWidth = strokeWidth;
-      element.style.strokeDasharray = dashArray;
-      element.style.opacity = `${opacity}`;
-      
-      // Force fill-opacity to match opacity since SVGs use this
-      element.style.fillOpacity = `${opacity}`;
-    };
-
-    const runLoop = () => {
-      if (!containerRef.current) return;
-
-      const svg =
-        svgRef.current || containerRef.current.querySelector<SVGSVGElement>("svg");
-      if (!svg) return;
-
-      svgRef.current = svg;
-
-      // Force fit on the live DOM svg too (just in case)
-      svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
-
-      // Apply global SVG sizing just in case
-      svg.style.width = "100%";
-      svg.style.height = "100%";
-      svg.style.display = "block";
-
-      // Iterate zones and style regions
-      const currentConfig = mapConfigRef.current;
-      const ZONE_TO_REGION = currentConfig.zoneToRegion;
-      const REGION_ALIAS_MAP = currentConfig.regionAliases;
-
-      Object.entries(ZONE_TO_REGION).forEach(([zoneId, regionIds]) => {
-        const state = zones[zoneId as ZoneId];
-        if (!state) return;
-
-        const regionIdList = Array.isArray(regionIds) ? regionIds : [regionIds];
-
-        regionIdList.forEach((regionId) => {
-          const regionPath = resolveRegionElement(svg, regionId, REGION_ALIAS_MAP);
-          if (!regionPath) {
-            console.warn(`[ClanTerritoryMap] Could not find region element for ${regionId} (zone ${zoneId})`);
-            return;
-          }
-
-          maybeCaptureDefaultStyles(regionId, regionPath);
-
-          const { clanId, contested } = getZoneControl(state);
-          const clan = clanId ? clans[clanId] : null;
-
-          // Debug logging for color changes
-          if (clanId) {
-            console.log(`[ClanTerritoryMap] Zone ${zoneId} (region ${regionId}) controlled by clan ${clanId}, color: ${clan?.color}, contested: ${contested}`);
-          }
-
-          // Default visuals
-          let fill = NEUTRAL_TERRITORY_SHADE;
-          let stroke = NEUTRAL_TERRITORY_STROKE;
-          let baseStrokeWidth = "2";
-          let dashArray = "";
-          let baseOpacity = 0.85;
-
-          if (clan) {
-            fill = clan.color;
-            stroke = clan.color;
-            baseStrokeWidth = contested ? "4" : "3";
-            dashArray = contested ? "8 6" : "";
-            baseOpacity = contested ? 0.92 : 0.88;
-          }
-
-          const styleKey = getRegionStyleKey(
-            fill,
-            stroke,
-            baseStrokeWidth,
-            dashArray,
-            baseOpacity
-          );
-
-          if (lastRegionStyleKeyRef.current[regionId] === styleKey) return;
-
-          lastRegionStyleKeyRef.current[regionId] = styleKey;
-
-          applyRegionVisuals(regionPath, {
-            fill,
-            stroke,
-            strokeWidth: baseStrokeWidth,
-            dashArray,
-            opacity: baseOpacity,
-          });
-
-          regionPath.style.filter = `drop-shadow(0 0 ${
-            contested ? 16 : 10
-          }px ${stroke})`;
-        });
+        regionPath.style.fill = fill;
+        regionPath.style.stroke = stroke;
+        regionPath.style.strokeWidth = strokeWidth;
+        regionPath.style.opacity = `${opacity}`;
+        regionPath.style.fillOpacity = `${opacity}`;
+        regionPath.style.filter = clan
+          ? `drop-shadow(0 0 ${contested ? 16 : 10}px ${stroke})`
+          : "";
       });
-
-      rafRef.current = requestAnimationFrame(runLoop);
-    };
-
-    runLoop();
-
-    return () => {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-    };
-  }, [mapMarkup, zones, clans]);
+    });
+  }, [zones, clans, mapId]);
 
   if (!mapMarkup) {
     return (
@@ -666,11 +416,13 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         </div>
       )}
 
-      <div
-        ref={containerRef}
-        className={`flex items-center justify-center px-4 pb-4 ${containerClassName}`}
-      >
-        <div className="w-full h-full" dangerouslySetInnerHTML={{ __html: mapMarkup }} />
+      <div className="w-full h-[70vh] overflow-hidden">
+        <div
+          key={`territory-map-${mapId}`}
+          ref={containerRef}
+          className="w-full h-full"
+          dangerouslySetInnerHTML={{ __html: mapMarkup }}
+        />
       </div>
 
       {!hideLegend && (
