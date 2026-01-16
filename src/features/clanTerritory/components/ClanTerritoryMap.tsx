@@ -19,6 +19,7 @@ import {
   ClanMetadata,
   ZoneId,
   ZoneState,
+  getClanColor,
 } from "../clanTerritoryTypes";
 
 // Map configurations for different map layouts
@@ -373,15 +374,16 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
       const { clanId, contested } = getZoneControl(state);
       const clan = clanId ? clans[clanId] : null;
+      const clanColor = clanId ? (clan?.color ?? getClanColor(clanId)) : null;
 
       let fill = NEUTRAL_TERRITORY_SHADE;
       let stroke = NEUTRAL_TERRITORY_STROKE;
       let strokeWidth = "2";
       let opacity = 0.85;
 
-      if (clan) {
-        fill = clan.color;
-        stroke = clan.color;
+      if (clanColor) {
+        fill = clanColor;
+        stroke = clanColor;
         strokeWidth = contested ? "4" : "3";
         opacity = contested ? 0.92 : 0.88;
       }
@@ -392,7 +394,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         element.style.strokeWidth = strokeWidth;
         element.style.opacity = `${opacity}`;
         element.style.fillOpacity = `${opacity}`;
-        element.style.filter = clan
+        element.style.filter = clanColor
           ? `drop-shadow(0 0 ${contested ? 16 : 10}px ${stroke})`
           : "";
       };
