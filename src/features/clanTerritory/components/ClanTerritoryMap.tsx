@@ -530,11 +530,18 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         opacity: number;
       }
     ) => {
+      // Remove the class that might have default styles
+      element.classList.remove("land");
+      
+      // Apply styles directly - inline styles take precedence
       element.style.fill = fill;
       element.style.stroke = stroke;
       element.style.strokeWidth = strokeWidth;
       element.style.strokeDasharray = dashArray;
       element.style.opacity = `${opacity}`;
+      
+      // Force fill-opacity to match opacity since SVGs use this
+      element.style.fillOpacity = `${opacity}`;
     };
 
     const runLoop = () => {
@@ -567,12 +574,20 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
         regionIdList.forEach((regionId) => {
           const regionPath = resolveRegionElement(svg, regionId, REGION_ALIAS_MAP);
-          if (!regionPath) return;
+          if (!regionPath) {
+            console.warn(`[ClanTerritoryMap] Could not find region element for ${regionId} (zone ${zoneId})`);
+            return;
+          }
 
           maybeCaptureDefaultStyles(regionId, regionPath);
 
           const { clanId, contested } = getZoneControl(state);
           const clan = clanId ? clans[clanId] : null;
+
+          // Debug logging for color changes
+          if (clanId) {
+            console.log(`[ClanTerritoryMap] Zone ${zoneId} (region ${regionId}) controlled by clan ${clanId}, color: ${clan?.color}, contested: ${contested}`);
+          }
 
           // Default visuals
           let fill = NEUTRAL_TERRITORY_SHADE;
