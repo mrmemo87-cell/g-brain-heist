@@ -616,8 +616,9 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         let baseOpacity = 0.85;
 
         if (clan) {
-          fill = clan.color;
-          stroke = clan.color;
+          const clanColor = clan.color || getClanColor(clanId);
+          fill = clanColor;
+          stroke = clanColor;
           baseStrokeWidth = contested ? "4" : "3";
           dashArray = contested ? "8 6" : "";
           baseOpacity = contested ? 0.92 : 0.88;
@@ -749,7 +750,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
             <div key={clan.id} className="flex items-center gap-2 text-xs">
               <div
                 className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: clan.color }}
+                style={{ backgroundColor: clan.color || getClanColor(clan.id) }}
               />
               <span className="text-white font-semibold">{clan.name}</span>
             </div>
