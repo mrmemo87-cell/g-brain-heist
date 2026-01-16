@@ -219,17 +219,6 @@ const normalizeSvgMarkup = (svgContent: string) => {
   return svgEl.outerHTML;
 };
 
-const getViewBoxAspectRatio = (viewBox: string | null) => {
-  if (!viewBox) return null;
-  const parts = viewBox.split(/\s+/).map(Number);
-  if (parts.length !== 4) return null;
-  const [, , width, height] = parts;
-  if (!Number.isFinite(width) || !Number.isFinite(height) || height === 0) {
-    return null;
-  }
-  return `${width} / ${height}`;
-};
-
 const adjustViewBoxToContent = (svgEl: SVGSVGElement) => {
   const safeBBox = (el: SVGGraphicsElement) => {
     try {
@@ -293,7 +282,6 @@ export type ClanTerritoryMapProps = {
   clans: Record<ClanId, ClanMetadata>;
   hideHeader?: boolean;
   hideLegend?: boolean;
-  showControls?: boolean;
   overlay?: ReactNode;
   mapId?: string;
   containerClassName?: string; // Allow parent to control container sizing
@@ -304,10 +292,9 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   clans,
   hideHeader = false,
   hideLegend = false,
-  showControls = true,
   overlay,
   mapId = "default",
-  containerClassName = "w-full h-auto min-h-[240px] sm:min-h-[320px] lg:min-h-[420px]",
+  containerClassName = "w-full h-full min-h-[240px] sm:min-h-[320px] lg:min-h-[420px]",
 }) => {
   const [cityMapLoaded, setCityMapLoaded] = useState(false);
   const [usaMapLoaded, setUsaMapLoaded] = useState(false);
@@ -369,16 +356,9 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     };
   }
 
-  const ZONE_TO_REGION = mapConfig.zoneToRegion;
-  const REGION_ALIAS_MAP = mapConfig.regionAliases;
-  const mapSvg = mapConfig.svg;
   const containerRef = useRef<HTMLDivElement>(null);
   const [mapMarkup, setMapMarkup] = useState("");
-  const [mapAspectRatio, setMapAspectRatio] = useState<string | null>(null);
-  const [zoom, setZoom] = useState(100);
-  const [panX, setPanX] = useState(0);
-  const [panY, setPanY] = useState(0);
-  const regionElementMapRef = useRef<Map<string, SVGPathElement>>(new Map());
+  const viewBoxAdjustedRef = useRef<Record<string, boolean>>({});
   const defaultRegionStylesRef = useRef<
     Record<
       string,
@@ -393,15 +373,16 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   >({});
   const lastRegionStyleKeyRef = useRef<Record<string, string>>({});
   const svgRef = useRef<SVGSVGElement | null>(null);
-  const DEBUG_TERRITORY_MAP = false;
+  const rafRef = useRef<number | null>(null);
+  const mapConfigRef = useRef(mapConfig);
 
   const resolveRegionElement = (
     svg: SVGSVGElement,
-    targetId: string
+    targetId: string,
+    regionAliasMap: Record<string, string[]>
   ): SVGPathElement | null => {
-    const escapedTarget = CSS.escape(targetId);
     // Try direct ID query with multiple selector approaches
-    let direct = svg.querySelector<SVGPathElement>(`#${escapedTarget}`);
+    let direct = svg.querySelector<SVGPathElement>(`#${targetId}`);
     if (direct) return direct;
 
     // Try without namespace issues
@@ -433,7 +414,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
     // Try normalized alias matching
     const normalizedTargets = new Set([normalizeRegionKey(targetId)]);
-    (REGION_ALIAS_MAP[targetId] ?? []).forEach((alias) =>
+    (regionAliasMap[targetId] ?? []).forEach((alias: string) =>
       normalizedTargets.add(normalizeRegionKey(alias))
     );
 
@@ -450,15 +431,20 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     return null;
   };
 
+  // Update mapConfigRef when mapConfig changes
+  useEffect(() => {
+    mapConfigRef.current = mapConfig;
+  }, [mapConfig]);
+
   // Reset caches when map changes
   useEffect(() => {
     defaultRegionStylesRef.current = {};
     lastRegionStyleKeyRef.current = {};
     svgRef.current = null;
-    regionElementMapRef.current = new Map();
-    setMapAspectRatio(null);
+    viewBoxAdjustedRef.current = {};
   }, [mapId]);
 
+  const mapSvg = mapConfig.svg;
   useEffect(() => {
     setMapMarkup(normalizeSvgMarkup(mapSvg));
   }, [mapSvg]);
@@ -468,45 +454,14 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     const svgEl = containerRef.current.querySelector("svg");
     if (!svgEl) return;
 
-    svgEl.setAttribute("preserveAspectRatio", "xMidYMid meet");
-    svgEl.style.width = "100%";
-    svgEl.style.height = "100%";
-    svgEl.style.display = "block";
-
-    const viewBox = adjustViewBoxToContent(svgEl);
-    setMapAspectRatio(
-      getViewBoxAspectRatio(viewBox || svgEl.getAttribute("viewBox"))
-    );
-
-    svgRef.current = svgEl;
-    const regionElements = new Map<string, SVGPathElement>();
-    const regionIdCandidates = Object.values(ZONE_TO_REGION).flatMap((value) =>
-      Array.isArray(value) ? value : [value]
-    );
-    regionIdCandidates.forEach((regionId) => {
-      const regionPath = resolveRegionElement(svgEl, regionId);
-      if (regionPath) {
-        regionElements.set(regionId, regionPath);
-      }
-    });
-    regionElementMapRef.current = regionElements;
-    lastRegionStyleKeyRef.current = {};
-
-    if (DEBUG_TERRITORY_MAP) {
-      const missingRegions = regionIdCandidates.filter(
-        (regionId) => !regionElements.has(regionId)
-      );
-      console.log("[ClanTerritoryMap] Debug", {
-        mapId,
-        regionsFound: regionElements.size,
-        missingRegions,
+    if (!viewBoxAdjustedRef.current[mapId]) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const viewBox = adjustViewBoxToContent(svgEl);
+          viewBoxAdjustedRef.current[mapId] = true;
+        });
       });
     }
-  }, [mapMarkup, mapId]);
-
-  useEffect(() => {
-    const regionElements = regionElementMapRef.current;
-    if (!regionElements.size) return;
 
     const ensureInitialAttributes = (element: SVGPathElement) => {
       if (!element.getAttribute("data-initial-fill")) {
@@ -582,74 +537,96 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       element.style.opacity = `${opacity}`;
     };
 
-    Object.entries(ZONE_TO_REGION).forEach(([zoneId, regionIds]) => {
-      const state = zones[zoneId as ZoneId];
-      const regionIdList = Array.isArray(regionIds) ? regionIds : [regionIds];
+    const runLoop = () => {
+      if (!containerRef.current) return;
 
-      regionIdList.forEach((regionId) => {
-        const regionPath = regionElements.get(regionId);
-        if (!regionPath) {
-          if (DEBUG_TERRITORY_MAP) {
-            const svgEl = svgRef.current;
-            const fallbackTarget = svgEl
-              ? resolveRegionElement(svgEl, regionId)
-              : null;
-            if (fallbackTarget) {
-              fallbackTarget.style.stroke = "#ef4444";
-              fallbackTarget.style.strokeWidth = "3";
-              fallbackTarget.style.opacity = "1";
-            }
+      const svg =
+        svgRef.current || containerRef.current.querySelector<SVGSVGElement>("svg");
+      if (!svg) return;
+
+      svgRef.current = svg;
+
+      // Force fit on the live DOM svg too (just in case)
+      svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+      // Apply global SVG sizing just in case
+      svg.style.width = "100%";
+      svg.style.height = "100%";
+      svg.style.display = "block";
+
+      // Iterate zones and style regions
+      const currentConfig = mapConfigRef.current;
+      const ZONE_TO_REGION = currentConfig.zoneToRegion;
+      const REGION_ALIAS_MAP = currentConfig.regionAliases;
+
+      Object.entries(ZONE_TO_REGION).forEach(([zoneId, regionIds]) => {
+        const state = zones[zoneId as ZoneId];
+        if (!state) return;
+
+        const regionIdList = Array.isArray(regionIds) ? regionIds : [regionIds];
+
+        regionIdList.forEach((regionId) => {
+          const regionPath = resolveRegionElement(svg, regionId, REGION_ALIAS_MAP);
+          if (!regionPath) return;
+
+          maybeCaptureDefaultStyles(regionId, regionPath);
+
+          const { clanId, contested } = getZoneControl(state);
+          const clan = clanId ? clans[clanId] : null;
+
+          // Default visuals
+          let fill = NEUTRAL_TERRITORY_SHADE;
+          let stroke = NEUTRAL_TERRITORY_STROKE;
+          let baseStrokeWidth = "2";
+          let dashArray = "";
+          let baseOpacity = 0.85;
+
+          if (clan) {
+            fill = clan.color;
+            stroke = clan.color;
+            baseStrokeWidth = contested ? "4" : "3";
+            dashArray = contested ? "8 6" : "";
+            baseOpacity = contested ? 0.92 : 0.88;
           }
-          return;
-        }
 
-        maybeCaptureDefaultStyles(regionId, regionPath);
+          const styleKey = getRegionStyleKey(
+            fill,
+            stroke,
+            baseStrokeWidth,
+            dashArray,
+            baseOpacity
+          );
 
-        const { clanId, contested } = getZoneControl(state);
-        const clan = clanId ? clans[clanId] : null;
+          if (lastRegionStyleKeyRef.current[regionId] === styleKey) return;
 
-        // Default visuals
-        let fill = NEUTRAL_TERRITORY_SHADE;
-        let stroke = NEUTRAL_TERRITORY_STROKE;
-        let baseStrokeWidth = "2";
-        let dashArray = "";
-        let baseOpacity = 0.85;
+          lastRegionStyleKeyRef.current[regionId] = styleKey;
 
-        if (clanId) {
-          const clanColor = clan?.color || getClanColor(clanId);
-          fill = clanColor;
-          stroke = clanColor;
-          baseStrokeWidth = contested ? "4" : "3";
-          dashArray = contested ? "8 6" : "";
-          baseOpacity = contested ? 0.92 : 0.88;
-        }
+          applyRegionVisuals(regionPath, {
+            fill,
+            stroke,
+            strokeWidth: baseStrokeWidth,
+            dashArray,
+            opacity: baseOpacity,
+          });
 
-        const styleKey = getRegionStyleKey(
-          fill,
-          stroke,
-          baseStrokeWidth,
-          dashArray,
-          baseOpacity
-        );
-
-        if (lastRegionStyleKeyRef.current[regionId] === styleKey) return;
-
-        lastRegionStyleKeyRef.current[regionId] = styleKey;
-
-        applyRegionVisuals(regionPath, {
-          fill,
-          stroke,
-          strokeWidth: baseStrokeWidth,
-          dashArray,
-          opacity: baseOpacity,
+          regionPath.style.filter = `drop-shadow(0 0 ${
+            contested ? 16 : 10
+          }px ${stroke})`;
         });
-
-        regionPath.style.filter = `drop-shadow(0 0 ${
-          contested ? 16 : 10
-        }px ${stroke})`;
       });
-    });
-  }, [zones, clans, mapId, ZONE_TO_REGION]);
+
+      rafRef.current = requestAnimationFrame(runLoop);
+    };
+
+    runLoop();
+
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
+  }, [mapMarkup, zones, clans]);
 
   if (!mapMarkup) {
     return (
@@ -674,71 +651,11 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         </div>
       )}
 
-      {showControls && (
-        <div className="px-4 pb-3 grid gap-3 text-xs text-slate-300">
-          <label className="flex flex-col gap-2">
-            <span className="font-semibold text-slate-200">
-              Zoom: {zoom}%
-            </span>
-            <input
-              type="range"
-              min={10}
-              max={500}
-              value={zoom}
-              onChange={(event) => setZoom(Number(event.target.value))}
-              className="w-full accent-cyan-400"
-            />
-          </label>
-          <label className="flex flex-col gap-2">
-            <span className="font-semibold text-slate-200">
-              Move Horizontal: {panX}%
-            </span>
-            <input
-              type="range"
-              min={-100}
-              max={100}
-              value={panX}
-              onChange={(event) => setPanX(Number(event.target.value))}
-              className="w-full accent-cyan-400"
-            />
-          </label>
-          <label className="flex flex-col gap-2">
-            <span className="font-semibold text-slate-200">
-              Move Vertical: {panY}%
-            </span>
-            <input
-              type="range"
-              min={-100}
-              max={100}
-              value={panY}
-              onChange={(event) => setPanY(Number(event.target.value))}
-              className="w-full accent-cyan-400"
-            />
-          </label>
-        </div>
-      )}
-
       <div
         ref={containerRef}
         className={`flex items-center justify-center px-4 pb-4 ${containerClassName}`}
       >
-        <div
-          className="w-full h-auto"
-          style={mapAspectRatio ? { aspectRatio: mapAspectRatio } : undefined}
-        >
-          <div
-            key={`territory-map-${mapId}`}
-            className="w-full h-full"
-            style={{
-              transform: showControls
-                ? `translate(${panX}%, ${panY}%) scale(${zoom / 100})`
-                : undefined,
-              transformOrigin: showControls ? "center" : undefined,
-              transition: showControls ? "transform 120ms ease-out" : undefined,
-            }}
-            dangerouslySetInnerHTML={{ __html: mapMarkup }}
-          />
-        </div>
+        <div className="w-full h-full" dangerouslySetInnerHTML={{ __html: mapMarkup }} />
       </div>
 
       {!hideLegend && (
@@ -750,7 +667,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
             <div key={clan.id} className="flex items-center gap-2 text-xs">
               <div
                 className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: clan.color || getClanColor(clan.id) }}
+                style={{ backgroundColor: clan.color }}
               />
               <span className="text-white font-semibold">{clan.name}</span>
             </div>
