@@ -1,4 +1,10 @@
-import React, { ReactNode, useEffect, useRef, useState } from "react";
+import React, {
+  ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 // @ts-expect-error - Vite injects raw SVG strings for ?raw imports
 import territoryMapSvgRaw from "../assets/territory_map.svg?raw";
 // @ts-expect-error - Kyrgyzstan map is much smaller and commonly used
@@ -348,7 +354,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     }
   }, [mapMarkup, mapId]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const svg = containerRef.current?.querySelector("svg");
     if (!svg) return;
 
@@ -407,7 +413,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         }
       });
     });
-  }, [zones, clans, mapId]);
+  }, [zones, clans, mapId, mapMarkup]);
 
   if (!mapMarkup) {
     return (
