@@ -313,13 +313,6 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [mapMarkup, setMapMarkup] = useState("");
-  const mapConfigRef = useRef(mapConfig);
-
-  // Update mapConfigRef when mapConfig changes
-  useEffect(() => {
-    mapConfigRef.current = mapConfig;
-  }, [mapConfig]);
-
   const mapSvg = mapConfig.svg;
   useEffect(() => {
     setMapMarkup(mapSvg);
@@ -359,8 +352,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     const svg = containerRef.current?.querySelector("svg");
     if (!svg) return;
 
-    const currentConfig = mapConfigRef.current;
-    const ZONE_TO_REGION = currentConfig.zoneToRegion;
+    const ZONE_TO_REGION = mapConfig.zoneToRegion;
 
     Object.entries(ZONE_TO_REGION).forEach(([zoneId, regionIds]) => {
       const state = zones[zoneId as ZoneId];
@@ -369,7 +361,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       const regionIdList = Array.isArray(regionIds) ? regionIds : [regionIds];
       const expandedRegionIds = regionIdList.flatMap((regionId) => [
         regionId,
-        ...(currentConfig.regionAliases[regionId] ?? []),
+        ...(mapConfig.regionAliases[regionId] ?? []),
       ]);
 
       const { clanId, contested } = getZoneControl(state);
@@ -415,7 +407,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         }
       });
     });
-  }, [zones, clans, mapId, mapMarkup]);
+  }, [zones, clans, mapId, mapMarkup, mapConfig]);
 
   if (!mapMarkup) {
     return (
