@@ -268,8 +268,6 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
 
-  // Cache region lookups so we don't querySelector every render
-  const regionCacheRef = useRef<Map<string, SVGElement[]>>(new Map());
   const lastStyleKeyRef = useRef<Record<string, string>>({});
 
   // IMPORTANT: inject SVG ONLY when svg changes (prevents style wipe)
@@ -283,7 +281,6 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     const svg = container.querySelector("svg") as SVGSVGElement | null;
     svgRef.current = svg;
 
-    regionCacheRef.current = new Map();
     lastStyleKeyRef.current = {};
 
     if (!svg) return;
@@ -311,41 +308,41 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
     const zoneToRegion = mapConfig.zoneToRegion;
 
-    const resolveElementsForRegion = (regionId: string): SVGElement[] => {
-      const cache = regionCacheRef.current;
-      if (cache.has(regionId)) return cache.get(regionId)!;
+    const paint = (
+      el: SVGElement,
+      fill: string,
+      stroke: string,
+      strokeWidth: string,
+      opacity: number,
+      filter: string
+    ) => {
+      // Remove SVG classes that bring their own fill
+      el.removeAttribute("class");
 
-      const node = svg.querySelector<SVGElement>(`#${CSS.escape(regionId)}`);
-      if (!node) {
-        cache.set(regionId, []);
-        return [];
-      }
+      // Force style with !important so nothing in <style> can override it
+      el.style.setProperty("fill", fill, "important");
+      el.style.setProperty("stroke", stroke, "important");
+      el.style.setProperty("stroke-width", strokeWidth, "important");
+      el.style.setProperty("opacity", String(opacity), "important");
+      el.style.setProperty("fill-opacity", String(opacity), "important");
+      el.style.setProperty("filter", filter || "none", "important");
 
-      if (node.tagName.toLowerCase() === "g") {
-        const shapes = Array.from(
-          node.querySelectorAll<SVGElement>("path, rect, circle, ellipse, polygon, polyline, line")
-        );
-        cache.set(regionId, shapes);
-        return shapes;
-      }
-
-      cache.set(regionId, [node]);
-      return [node];
+      // Also set attributes (helps some SVGs / browsers)
+      el.setAttribute("fill", fill);
+      el.setAttribute("stroke", stroke);
+      el.setAttribute("stroke-width", strokeWidth);
+      el.setAttribute("opacity", String(opacity));
+      el.setAttribute("fill-opacity", String(opacity));
     };
 
-    const applyStyle = (el: SVGElement, style: any, styleKey: string) => {
-      // Use per-element key to avoid repaint spam
-      const anyEl = el as any;
-      if (anyEl.__territoryStyleKey === styleKey) return;
-      anyEl.__territoryStyleKey = styleKey;
-
-      el.style.fill = style.fill;
-      el.style.stroke = style.stroke;
-      el.style.strokeWidth = style.strokeWidth;
-      el.style.opacity = String(style.opacity);
-      el.style.fillOpacity = String(style.opacity);
-      el.style.filter = style.filter || "";
-      el.style.strokeDasharray = style.dashArray || "";
+    const applyDashArray = (el: SVGElement, dashArray: string) => {
+      if (!dashArray) {
+        el.style.removeProperty("stroke-dasharray");
+        el.removeAttribute("stroke-dasharray");
+        return;
+      }
+      el.style.setProperty("stroke-dasharray", dashArray, "important");
+      el.setAttribute("stroke-dasharray", dashArray);
     };
 
     Object.entries(zoneToRegion).forEach(([zoneId, regionIds]) => {
@@ -374,15 +371,25 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       const expandedIds = baseList.flatMap((rid) => [rid, ...(mapConfig.regionAliases[rid] ?? [])]);
 
       expandedIds.forEach((rid) => {
-        const els = resolveElementsForRegion(rid);
-        if (!els.length) return;
-
         const styleKey = `${fill}|${stroke}|${strokeWidth}|${opacity}|${dashArray}|${filter}`;
         if (lastStyleKeyRef.current[rid] === styleKey) return;
         lastStyleKeyRef.current[rid] = styleKey;
 
-        for (const el of els) {
-          applyStyle(el, { fill, stroke, strokeWidth, opacity, dashArray, filter }, styleKey);
+        const region = svg.querySelector<SVGElement>(`#${CSS.escape(rid)}`);
+        if (!region) return;
+
+        if (region.tagName.toLowerCase() === "g") {
+          region
+            .querySelectorAll<SVGElement>(
+              "path, rect, circle, ellipse, polygon, polyline, line"
+            )
+            .forEach((child) => {
+              paint(child, fill, stroke, strokeWidth, opacity, filter);
+              applyDashArray(child, dashArray);
+            });
+        } else {
+          paint(region, fill, stroke, strokeWidth, opacity, filter);
+          applyDashArray(region, dashArray);
         }
       });
     });
