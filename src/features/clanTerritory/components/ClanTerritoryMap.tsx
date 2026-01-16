@@ -356,14 +356,35 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     svg.style.display = "block";
 
     const existingViewBox = svg.getAttribute("viewBox");
-    const adjusted = adjustViewBoxToContent(svg);
-    if (!adjusted && !existingViewBox && originalWidth && originalHeight) {
+    const applyFallbackViewBox = () => {
+      if (existingViewBox || !originalWidth || !originalHeight) return;
       const w = parseFloat(originalWidth);
       const h = parseFloat(originalHeight);
       if (!Number.isNaN(w) && !Number.isNaN(h) && h !== 0) {
         svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
       }
-    }
+    };
+
+    let rafId: number | null = null;
+    let rafId2: number | null = null;
+    let timeoutId: number | null = null;
+    let cancelled = false;
+
+    rafId = window.requestAnimationFrame(() => {
+      rafId2 = window.requestAnimationFrame(() => {
+        if (cancelled) return;
+        const adjusted = adjustViewBoxToContent(svg);
+        if (adjusted) return;
+
+        timeoutId = window.setTimeout(() => {
+          if (cancelled) return;
+          const retryAdjusted = adjustViewBoxToContent(svg);
+          if (!retryAdjusted) {
+            applyFallbackViewBox();
+          }
+        }, 50);
+      });
+    });
     if (mapConfig) {
       const svgIds = Array.from(svg.querySelectorAll<SVGElement>("[id]"))
         .map((element) => element.id)
@@ -400,6 +421,13 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     } else {
       setMissingRegions([]);
     }
+
+    return () => {
+      cancelled = true;
+      if (rafId !== null) window.cancelAnimationFrame(rafId);
+      if (rafId2 !== null) window.cancelAnimationFrame(rafId2);
+      if (timeoutId !== null) window.clearTimeout(timeoutId);
+    };
   }, [mapMarkup, mapId, mapConfig, zones, DEBUG]);
 
   // Apply territory styles (scoped to this SVG)
