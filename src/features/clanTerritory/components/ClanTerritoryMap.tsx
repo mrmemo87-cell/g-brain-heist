@@ -257,6 +257,9 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     elements: Map<string, SVGElement[]>;
   }>({ mapId: null, svg: null, elements: new Map() });
   const regionStyleKeyRef = useRef<Map<string, string>>(new Map());
+  const warnedOscillationRef = useRef(false);
+  const zonesEmptyTransitionsRef = useRef(0);
+  const lastZonesEmptyRef = useRef<boolean | null>(null);
 
   // Lazy-load the large city map (from assets now)
   useEffect(() => {
@@ -296,7 +299,9 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     const base = MAP_CONFIGS[mapId];
 
     if (!base) {
-      console.warn(`[ClanTerritoryMap] Missing map configuration for mapId="${mapId}"`);
+      if (DEBUG) {
+        console.warn(`[ClanTerritoryMap] Missing map configuration for mapId="${mapId}"`);
+      }
       return null;
     }
 
@@ -327,6 +332,21 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     const role = showControls === false ? "student" : "teacher";
     console.debug("[ClanTerritoryMap] Zones count", role, Object.keys(zones).length);
   }, [zones, showControls, DEBUG]);
+
+  useEffect(() => {
+    if (!DEBUG) return;
+    const isEmpty = Object.keys(zones).length === 0;
+    if (lastZonesEmptyRef.current !== null && lastZonesEmptyRef.current !== isEmpty) {
+      zonesEmptyTransitionsRef.current += 1;
+      if (zonesEmptyTransitionsRef.current >= 2 && !warnedOscillationRef.current) {
+        console.warn(
+          `[ClanTerritoryMap] Zones oscillating between empty and non-empty for mapId="${mapId}".`
+        );
+        warnedOscillationRef.current = true;
+      }
+    }
+    lastZonesEmptyRef.current = isEmpty;
+  }, [zones, mapId, DEBUG]);
 
   // Normalize injected SVG sizing + ensure viewBox exists
   useEffect(() => {
@@ -406,13 +426,19 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       );
 
       setMissingRegions(missingRegionIds);
-      if (missingRegionIds.length > 0) {
+      if (DEBUG && missingRegionIds.length > 0) {
         console.warn(
           `[ClanTerritoryMap] Missing region IDs in SVG for mapId="${mapId}": ${missingRegionIds.join(", ")}`
         );
       }
 
-      if (import.meta.env.DEV) {
+      if (DEBUG && zonesWithNoMappedRegion.length > 0) {
+        console.warn(
+          `[ClanTerritoryMap] Zones with no mapped region for mapId="${mapId}": ${zonesWithNoMappedRegion.join(", ")}`
+        );
+      }
+
+      if (DEBUG) {
         console.debug("[ClanTerritoryMap] Active mapId", mapId);
         console.debug("[ClanTerritoryMap] Regions found", svgIds);
         console.debug("[ClanTerritoryMap] Missing regions", missingRegionIds);

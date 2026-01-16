@@ -1,6 +1,6 @@
 import { supabase } from "../../../services/supabaseClient";
 import { ClanTerritoryTransport, RoomId, PlayerId } from "./clanTerritoryTransport";
-import { ClanTerritoryGameState, GameAction } from "./clanTerritoryTypes";
+import { ClanId, ClanTerritoryGameState, GameAction, ZoneId } from "./clanTerritoryTypes";
 import { clanTerritoryReducer, INITIAL_STATE } from "./clanTerritoryEngine";
 
 export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
@@ -16,6 +16,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
   private teacherName: string | null = null;
   private classCode: string | null = null;
   private scheduledStartAt: string | null = null;
+  private warnedInvalidState: boolean = false;
 
   async createRoom(options?: {
     allowClanlessPlayers?: boolean;
@@ -295,14 +296,16 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
       this.tickInterval = null;
     }
 
+    if (!this.isHost) {
+      return;
+    }
+
     const tick = () => {
       if (this.state.phase === 'ACTIVE') {
         const newState = clanTerritoryReducer(this.state, { type: 'TICK' });
         if (newState !== this.state) {
           this.state = newState;
-          if (this.isHost) {
-            this.broadcastState();
-          }
+          this.broadcastState();
           if (this.onStateUpdate) this.onStateUpdate(this.state);
         }
       }
@@ -311,24 +314,237 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     // Run tick every second - uses absolute time so tab inactivity won't cause drift
     this.tickInterval = setInterval(tick, 1000);
 
-    if (this.isHost) {
-      // Use Page Visibility API to force immediate broadcast when tab becomes visible
-      // This ensures students see updated state even if browser throttled the interval
-      if (this.visibilityListener) {
-        document.removeEventListener('visibilitychange', this.visibilityListener);
-      }
-
-      const handleVisibilityChange = () => {
-        if (!document.hidden) {
-          console.log('[Transport] Tab became visible - forcing state broadcast');
-          tick();
-          this.broadcastState();
-        }
-      };
-
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-      this.visibilityListener = handleVisibilityChange;
+    // Use Page Visibility API to force immediate broadcast when tab becomes visible
+    // This ensures students see updated state even if browser throttled the interval
+    if (this.visibilityListener) {
+      document.removeEventListener('visibilitychange', this.visibilityListener);
     }
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('[Transport] Tab became visible - forcing state broadcast');
+        tick();
+        this.broadcastState();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    this.visibilityListener = handleVisibilityChange;
+  }
+
+  private isRecord(value: unknown): value is Record<string, unknown> {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+  }
+
+  private recordsEqual<T extends Record<string, unknown>>(
+    a: T,
+    b: T,
+    valueEqual: (left: T[keyof T], right: T[keyof T]) => boolean
+  ) {
+    const aKeys = Object.keys(a);
+    const bKeys = Object.keys(b);
+    if (aKeys.length !== bKeys.length) return false;
+    for (const key of aKeys) {
+      if (!(key in b)) return false;
+      if (!valueEqual(a[key], b[key])) return false;
+    }
+    return true;
+  }
+
+  private zoneStateEqual(a: ClanTerritoryGameState["zones"][ZoneId], b: ClanTerritoryGameState["zones"][ZoneId]) {
+    if (a === b) return true;
+    if (a.id !== b.id) return false;
+    const aInfluence = a.influence ?? {};
+    const bInfluence = b.influence ?? {};
+    return this.recordsEqual(aInfluence, bInfluence, (left, right) => left === right);
+  }
+
+  private playerEqual(
+    a: ClanTerritoryGameState["players"][string],
+    b: ClanTerritoryGameState["players"][string]
+  ) {
+    if (a === b) return true;
+    return (
+      a.id === b.id &&
+      a.name === b.name &&
+      a.clanId === b.clanId &&
+      a.clanName === b.clanName &&
+      a.questionsAnswered === b.questionsAnswered &&
+      a.questionsCorrect === b.questionsCorrect &&
+      a.totalAnswerTimeMs === b.totalAnswerTimeMs &&
+      a.fastAnswers === b.fastAnswers &&
+      a.streak === b.streak &&
+      a.bestStreak === b.bestStreak &&
+      a.battleScore === b.battleScore &&
+      a.selectedZoneId === b.selectedZoneId
+    );
+  }
+
+  private clanEqual(
+    a: ClanTerritoryGameState["clans"][ClanId],
+    b: ClanTerritoryGameState["clans"][ClanId]
+  ) {
+    if (a === b) return true;
+    return a.id === b.id && a.name === b.name && a.color === b.color;
+  }
+
+  private questionsEqual(
+    a: ClanTerritoryGameState["questions"],
+    b: ClanTerritoryGameState["questions"]
+  ) {
+    if (a === b) return true;
+    if (a.length !== b.length) return false;
+    return a.every((question, index) => {
+      const other = b[index];
+      if (!other) return false;
+      if (question.id !== other.id) return false;
+      return JSON.stringify(question) === JSON.stringify(other);
+    });
+  }
+
+  private reconcileRecord<T extends Record<string, unknown>>(
+    prev: T,
+    next: T,
+    valueEqual: (left: T[keyof T], right: T[keyof T]) => boolean
+  ): T {
+    if (prev === next) return prev;
+    const prevKeys = Object.keys(prev);
+    const nextKeys = Object.keys(next);
+    if (prevKeys.length !== nextKeys.length) {
+      return next;
+    }
+    let changed = false;
+    const merged: T = { ...next };
+    for (const key of nextKeys) {
+      const prevValue = prev[key];
+      const nextValue = next[key];
+      if (prevValue !== undefined && valueEqual(prevValue, nextValue)) {
+        merged[key] = prevValue;
+      } else if (prevValue !== nextValue) {
+        changed = true;
+      }
+    }
+    if (!changed && prevKeys.length === nextKeys.length) {
+      return prev;
+    }
+    return merged;
+  }
+
+  private stateEqual(a: ClanTerritoryGameState, b: ClanTerritoryGameState) {
+    return (
+      a.phase === b.phase &&
+      a.timer === b.timer &&
+      a.gameStartTime === b.gameStartTime &&
+      a.gameEndTime === b.gameEndTime &&
+      a.mapId === b.mapId &&
+      a.allowClanlessPlayers === b.allowClanlessPlayers &&
+      this.recordsEqual(a.players, b.players, (left, right) =>
+        this.playerEqual(
+          left as ClanTerritoryGameState["players"][string],
+          right as ClanTerritoryGameState["players"][string]
+        )
+      ) &&
+      this.recordsEqual(a.zones, b.zones, (left, right) =>
+        this.zoneStateEqual(
+          left as ClanTerritoryGameState["zones"][ZoneId],
+          right as ClanTerritoryGameState["zones"][ZoneId]
+        )
+      ) &&
+      this.recordsEqual(a.clans, b.clans, (left, right) =>
+        this.clanEqual(
+          left as ClanTerritoryGameState["clans"][ClanId],
+          right as ClanTerritoryGameState["clans"][ClanId]
+        )
+      ) &&
+      this.questionsEqual(a.questions, b.questions)
+    );
+  }
+
+  private reconcileIncomingState(
+    incoming: unknown
+  ): ClanTerritoryGameState | null {
+    if (!this.isRecord(incoming)) {
+      return null;
+    }
+
+    const candidate = incoming as ClanTerritoryGameState;
+    if (
+      !this.isRecord(candidate.players) ||
+      !this.isRecord(candidate.zones) ||
+      !this.isRecord(candidate.clans) ||
+      !Array.isArray(candidate.questions) ||
+      typeof candidate.phase !== "string" ||
+      typeof candidate.timer !== "number"
+    ) {
+      return null;
+    }
+
+    if (Object.keys(candidate.zones).length === 0) {
+      return null;
+    }
+
+    const mergedPlayers = this.reconcileRecord(
+      this.state.players,
+      candidate.players,
+      (left, right) =>
+        this.playerEqual(
+          left as ClanTerritoryGameState["players"][string],
+          right as ClanTerritoryGameState["players"][string]
+        )
+    );
+    const mergedZones = this.reconcileRecord(
+      this.state.zones,
+      candidate.zones,
+      (left, right) =>
+        this.zoneStateEqual(
+          left as ClanTerritoryGameState["zones"][ZoneId],
+          right as ClanTerritoryGameState["zones"][ZoneId]
+        )
+    );
+    const mergedClans = this.reconcileRecord(
+      this.state.clans,
+      candidate.clans,
+      (left, right) =>
+        this.clanEqual(
+          left as ClanTerritoryGameState["clans"][ClanId],
+          right as ClanTerritoryGameState["clans"][ClanId]
+        )
+    );
+
+    const mergedQuestions = this.questionsEqual(this.state.questions, candidate.questions)
+      ? this.state.questions
+      : candidate.questions;
+
+    return {
+      ...candidate,
+      mapId: candidate.mapId ?? this.state.mapId,
+      allowClanlessPlayers:
+        typeof candidate.allowClanlessPlayers === "boolean"
+          ? candidate.allowClanlessPlayers
+          : this.state.allowClanlessPlayers,
+      players: mergedPlayers,
+      zones: mergedZones,
+      clans: mergedClans,
+      questions: mergedQuestions,
+    };
+  }
+
+  private applyIncomingState(incoming: unknown) {
+    const nextState = this.reconcileIncomingState(incoming);
+    if (!nextState) {
+      if (import.meta.env.DEV && !this.warnedInvalidState) {
+        console.warn("[Transport] Ignored invalid or partial game_state payload.");
+        this.warnedInvalidState = true;
+      }
+      return;
+    }
+
+    if (this.stateEqual(this.state, nextState)) {
+      return;
+    }
+
+    this.state = nextState;
+    if (this.onStateUpdate) this.onStateUpdate(this.state);
   }
 
   private setupChannel(roomId: RoomId) {
@@ -348,36 +564,31 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
         // Actually, for simplicity in this peer-to-peer-ish setup (or host-authoritative),
         // let's make the HOST the source of truth.
         
-        if (this.isHost) {
-          if (action.type === "REQUEST_STATE") {
-            this.broadcastState();
-            if (this.onStateUpdate) this.onStateUpdate(this.state);
-            return;
-          }
-          const newState = clanTerritoryReducer(this.state, action);
-          if (newState !== this.state) {
-            this.state = newState;
-            this.broadcastState();
-            if (this.onStateUpdate) this.onStateUpdate(this.state);
-          }
-        } else {
-          // Clients now also process actions locally so gameplay continues even if the host tab is throttled
-          const newState = clanTerritoryReducer(this.state, action);
-          if (newState !== this.state) {
-            this.state = newState;
-            if (this.onStateUpdate) this.onStateUpdate(this.state);
-          }
+        if (!this.isHost) {
+          return;
+        }
+
+        if (action.type === "REQUEST_STATE") {
+          this.broadcastState();
+          if (this.onStateUpdate) this.onStateUpdate(this.state);
+          return;
+        }
+
+        const newState = clanTerritoryReducer(this.state, action);
+        if (newState !== this.state) {
+          this.state = newState;
+          this.broadcastState();
+          if (this.onStateUpdate) this.onStateUpdate(this.state);
         }
       })
       .on("broadcast", { event: "game_state" }, (payload: any) => {
         if (!this.isHost) {
-          this.state = payload.payload;
-          if (this.onStateUpdate) this.onStateUpdate(this.state);
+          this.applyIncomingState(payload.payload);
         }
       })
       .subscribe((status: string) => {
         if (status === "SUBSCRIBED") {
-            // Start ticking for both host and clients to avoid background-tab throttling issues
+            // Start ticking for host to ensure authoritative timekeeping
             this.startTickLoop();
 
             // Broadcast initial state (only host will actually send)
