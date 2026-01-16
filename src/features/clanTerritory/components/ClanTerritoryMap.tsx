@@ -1,11 +1,12 @@
-import React, { ReactNode, useEffect, useRef, useState } from "react";
+import React, { ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+
 // @ts-expect-error - Vite injects raw SVG strings for ?raw imports
 import territoryMapSvgRaw from "../assets/territory_map.svg?raw";
 // @ts-expect-error - Kyrgyzstan map is much smaller and commonly used
 import kyrgyzstanMapSvgRaw from "../assets/kyrgyzstanHigh.svg?raw";
-// City map is 2.7MB - don't import eagerly to avoid startup lag
+
+// Large maps: lazy-load to avoid startup lag
 let cityMapSvgRaw = "";
-// USA map is served from public and loaded on demand
 let usaMapSvgRaw = "";
 
 import {
@@ -34,7 +35,7 @@ const MAP_CONFIGS: Record<string, MapConfig> = {
       "zone-4": "region_4",
       "zone-5": "region_8",
       "zone-6": "region_3",
-      "zone-7": ["region_2", "regio_2"],
+      "zone-7": "region_2",
       "zone-8": "region_1",
     },
     regionAliases: {
@@ -42,6 +43,7 @@ const MAP_CONFIGS: Record<string, MapConfig> = {
       region_2: ["quantumnexus", "regio_2"],
     },
   },
+
   city: {
     svg: cityMapSvgRaw,
     maxZones: 10,
@@ -59,6 +61,7 @@ const MAP_CONFIGS: Record<string, MapConfig> = {
     },
     regionAliases: {},
   },
+
   kyrgyzstan: {
     svg: kyrgyzstanMapSvgRaw,
     maxZones: 7,
@@ -73,6 +76,7 @@ const MAP_CONFIGS: Record<string, MapConfig> = {
     },
     regionAliases: {},
   },
+
   usa: {
     svg: usaMapSvgRaw,
     maxZones: 51,
@@ -139,84 +143,27 @@ const MAP_CONFIGS: Record<string, MapConfig> = {
 const NEUTRAL_TERRITORY_SHADE = "#1f2937";
 const NEUTRAL_TERRITORY_STROKE = "#475569";
 
-const normalizeRegionKey = (k: string) =>
-  k
-    .toLowerCase()
-    .replace(/[\s_]+/g, "-")
-    .replace(/[^\w-]/g, "");
-
 const getZoneControl = (
   state: ZoneState | undefined
 ): { clanId: ClanId | null; contested: boolean } => {
-  if (!state) {
-    return { clanId: null, contested: false };
-  }
+  if (!state) return { clanId: null, contested: false };
 
   const legacyClanId = (state as ZoneState & { clanId?: ClanId | null }).clanId;
-  if (legacyClanId) {
-    return { clanId: legacyClanId, contested: false };
-  }
+  if (legacyClanId) return { clanId: legacyClanId, contested: false };
 
   const entries = Object.entries(state.influence || {}).filter(([, value]) => value > 0);
-  if (entries.length === 0) {
-    return { clanId: null, contested: false };
-  }
+  if (entries.length === 0) return { clanId: null, contested: false };
 
   entries.sort((a, b) => b[1] - a[1]);
   const [leader, leaderScore] = entries[0];
   const runnerUp = entries[1];
-  if (!leader) {
-    return { clanId: null, contested: false };
-  }
+  if (!leader) return { clanId: null, contested: false };
 
   const contested =
     !!runnerUp &&
     Math.abs(leaderScore - runnerUp[1]) / Math.max(leaderScore, 1) <= 0.1;
 
   return { clanId: leader as ClanId, contested };
-};
-
-const normalizeSvgMarkup = (svgContent: string) => {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(svgContent, "image/svg+xml");
-  const svgEl = doc.querySelector("svg");
-  if (!svgEl) return svgContent;
-
-  // Get the viewBox if it exists, or try to compute from width/height
-  let viewBox = svgEl.getAttribute("viewBox");
-  if (!viewBox) {
-    const originalWidth = svgEl.getAttribute("width");
-    const originalHeight = svgEl.getAttribute("height");
-    if (originalWidth && originalHeight) {
-      // Parse numeric values, removing units like 'mm', 'px', etc.
-      const w = parseFloat(originalWidth);
-      const h = parseFloat(originalHeight);
-      if (!Number.isNaN(w) && !Number.isNaN(h) && h !== 0) {
-        viewBox = `0 0 ${w} ${h}`;
-        svgEl.setAttribute("viewBox", viewBox);
-      }
-    }
-  }
-
-  // Remove any fixed dimensions and make SVG responsive
-  svgEl.removeAttribute("width");
-  svgEl.removeAttribute("height");
-  svgEl.setAttribute("width", "100%");
-  svgEl.setAttribute("height", "100%");
-
-  // KEY: always fit inside the container without cropping
-  svgEl.setAttribute("preserveAspectRatio", "xMidYMid meet");
-
-  // Apply inline styles to ensure proper rendering
-  svgEl.style.cssText = `
-    width: 100% !important;
-    height: 100% !important;
-    max-width: 100%;
-    max-height: 100%;
-    display: block;
-  `.replace(/\s+/g, " ").trim();
-
-  return svgEl.outerHTML;
 };
 
 const adjustViewBoxToContent = (svgEl: SVGSVGElement) => {
@@ -264,7 +211,6 @@ const adjustViewBoxToContent = (svgEl: SVGSVGElement) => {
 
     svgEl.setAttribute("viewBox", viewBox);
 
-    // Keep fit behavior even if SVG had something else originally
     if (!svgEl.getAttribute("preserveAspectRatio")) {
       svgEl.setAttribute("preserveAspectRatio", "xMidYMid meet");
     }
@@ -284,7 +230,6 @@ export type ClanTerritoryMapProps = {
   hideLegend?: boolean;
   overlay?: ReactNode;
   mapId?: string;
-  containerClassName?: string; // Allow parent to control container sizing
 };
 
 export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
@@ -294,16 +239,14 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   hideLegend = false,
   overlay,
   mapId = "default",
-  containerClassName = "w-full h-full min-h-[240px] sm:min-h-[320px] lg:min-h-[420px]",
 }) => {
   const [cityMapLoaded, setCityMapLoaded] = useState(false);
   const [usaMapLoaded, setUsaMapLoaded] = useState(false);
-  const clanEntries = Object.values(clans);
-  const maxLegendEntries = 6;
-  const visibleClans = clanEntries.slice(0, maxLegendEntries);
-  const hiddenClanCount = Math.max(0, clanEntries.length - visibleClans.length);
 
-  // Lazy-load the large city map (2.7MB) on first use to prevent startup lag
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [mapMarkup, setMapMarkup] = useState("");
+
+  // Lazy-load the large city map (from assets now)
   useEffect(() => {
     if (mapId !== "city") return;
     if (cityMapSvgRaw) {
@@ -320,7 +263,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     }
   }, [mapId, cityMapLoaded]);
 
-  // Lazy-load USA map from public folder
+  // Lazy-load the USA map (from assets now)
   useEffect(() => {
     if (mapId !== "usa") return;
     if (usaMapSvgRaw) {
@@ -328,320 +271,126 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       return;
     }
     if (!usaMapLoaded) {
-      fetch("/USA.svg")
-        .then((r) => r.text())
-        .then((svg) => {
-          usaMapSvgRaw = svg;
+      import("../assets/usa.svg?raw")
+        .then((module) => {
+          usaMapSvgRaw = module.default;
           setUsaMapLoaded(true);
         })
         .catch((e) => console.error("Failed to load USA map:", e));
     }
   }, [mapId, usaMapLoaded]);
 
-  // Get the appropriate map configuration based on mapId
-  let mapConfig = MAP_CONFIGS[mapId] || MAP_CONFIGS.default;
+  const mapConfig = useMemo<MapConfig>(() => {
+    const base = MAP_CONFIGS[mapId] || MAP_CONFIGS.default;
 
-  // Update city config if city map just loaded
-  if (mapId === "city" && cityMapSvgRaw) {
-    mapConfig = {
-      ...MAP_CONFIGS.city,
-      svg: cityMapSvgRaw,
-    };
-  }
-
-  if (mapId === "usa" && usaMapSvgRaw) {
-    mapConfig = {
-      ...MAP_CONFIGS.usa,
-      svg: usaMapSvgRaw,
-    };
-  }
-
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [mapMarkup, setMapMarkup] = useState("");
-  const viewBoxAdjustedRef = useRef<Record<string, boolean>>({});
-  const defaultRegionStylesRef = useRef<
-    Record<
-      string,
-      {
-        fill: string;
-        stroke: string;
-        strokeWidth: string;
-        dashArray: string;
-        opacity: number;
-      }
-    >
-  >({});
-  const lastRegionStyleKeyRef = useRef<Record<string, string>>({});
-  const svgRef = useRef<SVGSVGElement | null>(null);
-  const rafRef = useRef<number | null>(null);
-  const mapConfigRef = useRef(mapConfig);
-
-  const resolveRegionElement = (
-    svg: SVGSVGElement,
-    targetId: string,
-    regionAliasMap: Record<string, string[]>
-  ): SVGPathElement | null => {
-    // Try direct ID query with multiple selector approaches
-    let direct = svg.querySelector<SVGPathElement>(`#${targetId}`);
-    if (direct) return direct;
-
-    // Try without namespace issues
-    direct = svg.querySelector<SVGPathElement>(`[id="${targetId}"]`);
-    if (direct) return direct;
-
-    // Try by inkscape:label attribute (Inkscape SVGs often have this)
-    direct = svg.querySelector<SVGPathElement>(
-      `[inkscape\\:label="${targetId}"]`
-    );
-    if (direct) {
-      direct.id = targetId; // Set the id so future lookups are faster
-      return direct;
+    if (mapId === "city" && cityMapSvgRaw) {
+      return { ...MAP_CONFIGS.city, svg: cityMapSvgRaw };
+    }
+    if (mapId === "usa" && usaMapSvgRaw) {
+      return { ...MAP_CONFIGS.usa, svg: usaMapSvgRaw };
     }
 
-    // Try querySelectorAll with exact ID match as fallback
-    const allElements = svg.querySelectorAll<SVGPathElement>("path, [id]");
-    for (const elem of allElements) {
-      if (elem.id === targetId) {
-        return elem as SVGPathElement;
-      }
-      // Also check inkscape:label attribute
-      const label = elem.getAttribute("inkscape:label");
-      if (label === targetId) {
-        elem.id = targetId;
-        return elem as SVGPathElement;
-      }
-    }
+    return base;
+  }, [mapId, cityMapLoaded, usaMapLoaded]);
 
-    // Try normalized alias matching
-    const normalizedTargets = new Set([normalizeRegionKey(targetId)]);
-    (regionAliasMap[targetId] ?? []).forEach((alias: string) =>
-      normalizedTargets.add(normalizeRegionKey(alias))
-    );
-
-    const candidates = svg.querySelectorAll<SVGPathElement>("[id]");
-    for (const candidate of candidates) {
-      if (normalizedTargets.has(normalizeRegionKey(candidate.id))) {
-        if (candidate.id !== targetId) {
-          candidate.id = targetId;
-        }
-        return candidate;
-      }
-    }
-
-    return null;
-  };
-
-  // Update mapConfigRef when mapConfig changes
   useEffect(() => {
-    mapConfigRef.current = mapConfig;
-  }, [mapConfig]);
+    setMapMarkup(mapConfig.svg || "");
+  }, [mapConfig.svg]);
 
-  // Reset caches when map changes
-  useEffect(() => {
-    defaultRegionStylesRef.current = {};
-    lastRegionStyleKeyRef.current = {};
-    svgRef.current = null;
-    viewBoxAdjustedRef.current = {};
-  }, [mapId]);
-
-  const mapSvg = mapConfig.svg;
-  useEffect(() => {
-    setMapMarkup(normalizeSvgMarkup(mapSvg));
-  }, [mapSvg]);
-
+  // Normalize injected SVG sizing + ensure viewBox exists
   useEffect(() => {
     if (!mapMarkup || !containerRef.current) return;
-    const svgEl = containerRef.current.querySelector("svg");
-    if (!svgEl) return;
 
-    if (!viewBoxAdjustedRef.current[mapId]) {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const viewBox = adjustViewBoxToContent(svgEl);
-          viewBoxAdjustedRef.current[mapId] = true;
-        });
-      });
+    const svg = containerRef.current.querySelector("svg");
+    if (!svg) return;
+
+    const originalWidth = svg.getAttribute("width");
+    const originalHeight = svg.getAttribute("height");
+
+    svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    svg.setAttribute("width", "100%");
+    svg.setAttribute("height", "100%");
+    svg.style.width = "100%";
+    svg.style.height = "100%";
+    svg.style.display = "block";
+
+    const existingViewBox = svg.getAttribute("viewBox");
+    if (!existingViewBox) {
+      const adjusted = adjustViewBoxToContent(svg);
+      if (!adjusted && originalWidth && originalHeight) {
+        const w = parseFloat(originalWidth);
+        const h = parseFloat(originalHeight);
+        if (!Number.isNaN(w) && !Number.isNaN(h) && h !== 0) {
+          svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+        }
+      }
     }
+  }, [mapMarkup, mapId]);
 
-    const ensureInitialAttributes = (element: SVGPathElement) => {
-      if (!element.getAttribute("data-initial-fill")) {
-        // Prioritize inline style first, then computed, then fallback
-        let initialFill = element.style.fill;
-        if (!initialFill || initialFill === "") {
-          const computedStyle = window.getComputedStyle(element);
-          initialFill = computedStyle.fill || NEUTRAL_TERRITORY_SHADE;
-        }
-        element.setAttribute("data-initial-fill", initialFill);
+  // Apply territory styles (scoped to this SVG)
+  useLayoutEffect(() => {
+    const svg = containerRef.current?.querySelector("svg");
+    if (!svg) return;
+
+    const ZONE_TO_REGION = mapConfig.zoneToRegion;
+
+    Object.entries(ZONE_TO_REGION).forEach(([zoneId, regionIds]) => {
+      const state = zones[zoneId as ZoneId];
+      if (!state) return;
+
+      const regionIdList = Array.isArray(regionIds) ? regionIds : [regionIds];
+      const expandedRegionIds = regionIdList.flatMap((regionId) => [
+        regionId,
+        ...(mapConfig.regionAliases[regionId] ?? []),
+      ]);
+
+      const { clanId, contested } = getZoneControl(state);
+      const clan = clanId ? clans[clanId] : null;
+      const clanColor = clanId ? (clan?.color ?? getClanColor(clanId)) : null;
+
+      let fill = NEUTRAL_TERRITORY_SHADE;
+      let stroke = NEUTRAL_TERRITORY_STROKE;
+      let strokeWidth = "2";
+      let opacity = 0.85;
+
+      if (clanColor) {
+        fill = clanColor;
+        stroke = clanColor;
+        strokeWidth = contested ? "4" : "3";
+        opacity = contested ? 0.92 : 0.88;
       }
-      if (!element.getAttribute("data-initial-stroke")) {
-        let initialStroke = element.style.stroke;
-        if (!initialStroke || initialStroke === "") {
-          const computedStyle = window.getComputedStyle(element);
-          initialStroke = computedStyle.stroke || NEUTRAL_TERRITORY_STROKE;
-        }
-        element.setAttribute("data-initial-stroke", initialStroke);
-      }
-      if (!element.getAttribute("data-initial-stroke-width")) {
-        let initialStrokeWidth = element.style.strokeWidth;
-        if (!initialStrokeWidth || initialStrokeWidth === "") {
-          const computedStyle = window.getComputedStyle(element);
-          initialStrokeWidth = computedStyle.strokeWidth || "2";
-        }
-        element.setAttribute("data-initial-stroke-width", initialStrokeWidth);
-      }
-    };
 
-    // Only capture initial styles once per SVG
-    const maybeCaptureDefaultStyles = (regionId: string, el: SVGPathElement) => {
-      if (!defaultRegionStylesRef.current[regionId]) {
-        ensureInitialAttributes(el);
-        defaultRegionStylesRef.current[regionId] = {
-          fill: el.getAttribute("data-initial-fill") || NEUTRAL_TERRITORY_SHADE,
-          stroke:
-            el.getAttribute("data-initial-stroke") || NEUTRAL_TERRITORY_STROKE,
-          strokeWidth: el.getAttribute("data-initial-stroke-width") || "2",
-          dashArray: el.style.strokeDasharray || "",
-          opacity: parseFloat(el.style.opacity || "1") || 1,
-        };
-      }
-    };
+      const applyStyle = (element: SVGElement) => {
+        element.style.fill = fill;
+        element.style.stroke = stroke;
+        element.style.strokeWidth = strokeWidth;
+        element.style.opacity = `${opacity}`;
+        element.style.fillOpacity = `${opacity}`;
+        element.style.filter = clanColor
+          ? `drop-shadow(0 0 ${contested ? 16 : 10}px ${stroke})`
+          : "";
+      };
 
-    const getRegionStyleKey = (
-      fill: string,
-      stroke: string,
-      strokeWidth: string,
-      dashArray: string,
-      opacity: number
-    ) => `${fill}|${stroke}|${strokeWidth}|${dashArray}|${opacity}`;
+      expandedRegionIds.forEach((regionId) => {
+        const regionElement = svg.querySelector<SVGElement>(`#${CSS.escape(regionId)}`);
+        if (!regionElement) return;
 
-    const applyRegionVisuals = (
-      element: SVGPathElement,
-      {
-        fill,
-        stroke,
-        strokeWidth,
-        dashArray,
-        opacity,
-      }: {
-        fill: string;
-        stroke: string;
-        strokeWidth: string;
-        dashArray: string;
-        opacity: number;
-      }
-    ) => {
-      // Remove the class that might have default styles
-      element.classList.remove("land");
-      
-      // Apply styles directly - inline styles take precedence
-      element.style.fill = fill;
-      element.style.stroke = stroke;
-      element.style.strokeWidth = strokeWidth;
-      element.style.strokeDasharray = dashArray;
-      element.style.opacity = `${opacity}`;
-      
-      // Force fill-opacity to match opacity since SVGs use this
-      element.style.fillOpacity = `${opacity}`;
-    };
-
-    const runLoop = () => {
-      if (!containerRef.current) return;
-
-      const svg =
-        svgRef.current || containerRef.current.querySelector<SVGSVGElement>("svg");
-      if (!svg) return;
-
-      svgRef.current = svg;
-
-      // Force fit on the live DOM svg too (just in case)
-      svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
-
-      // Apply global SVG sizing just in case
-      svg.style.width = "100%";
-      svg.style.height = "100%";
-      svg.style.display = "block";
-
-      // Iterate zones and style regions
-      const currentConfig = mapConfigRef.current;
-      const ZONE_TO_REGION = currentConfig.zoneToRegion;
-      const REGION_ALIAS_MAP = currentConfig.regionAliases;
-
-      Object.entries(ZONE_TO_REGION).forEach(([zoneId, regionIds]) => {
-        const state = zones[zoneId as ZoneId];
-        if (!state) return;
-
-        const regionIdList = Array.isArray(regionIds) ? regionIds : [regionIds];
-
-        regionIdList.forEach((regionId) => {
-          const regionPath = resolveRegionElement(svg, regionId, REGION_ALIAS_MAP);
-          if (!regionPath) {
-            console.warn(`[ClanTerritoryMap] Could not find region element for ${regionId} (zone ${zoneId})`);
-            return;
-          }
-
-          maybeCaptureDefaultStyles(regionId, regionPath);
-
-          const { clanId, contested } = getZoneControl(state);
-          const clan = clanId ? clans[clanId] : null;
-
-          // Debug logging for color changes
-          if (clanId) {
-            console.log(`[ClanTerritoryMap] Zone ${zoneId} (region ${regionId}) controlled by clan ${clanId}, color: ${clan?.color}, contested: ${contested}`);
-          }
-
-          // Default visuals
-          let fill = NEUTRAL_TERRITORY_SHADE;
-          let stroke = NEUTRAL_TERRITORY_STROKE;
-          let baseStrokeWidth = "2";
-          let dashArray = "";
-          let baseOpacity = 0.85;
-
-          if (clan) {
-            fill = clan.color;
-            stroke = clan.color;
-            baseStrokeWidth = contested ? "4" : "3";
-            dashArray = contested ? "8 6" : "";
-            baseOpacity = contested ? 0.92 : 0.88;
-          }
-
-          const styleKey = getRegionStyleKey(
-            fill,
-            stroke,
-            baseStrokeWidth,
-            dashArray,
-            baseOpacity
+        if (regionElement.tagName.toLowerCase() === "g") {
+          const shapes = regionElement.querySelectorAll<SVGElement>(
+            "path, rect, circle, ellipse, polygon, polyline, line"
           );
-
-          if (lastRegionStyleKeyRef.current[regionId] === styleKey) return;
-
-          lastRegionStyleKeyRef.current[regionId] = styleKey;
-
-          applyRegionVisuals(regionPath, {
-            fill,
-            stroke,
-            strokeWidth: baseStrokeWidth,
-            dashArray,
-            opacity: baseOpacity,
-          });
-
-          regionPath.style.filter = `drop-shadow(0 0 ${
-            contested ? 16 : 10
-          }px ${stroke})`;
-        });
+          shapes.forEach(applyStyle);
+        } else {
+          applyStyle(regionElement);
+        }
       });
+    });
+  }, [zones, clans, mapId, mapMarkup, mapConfig]);
 
-      rafRef.current = requestAnimationFrame(runLoop);
-    };
-
-    runLoop();
-
-    return () => {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-    };
-  }, [mapMarkup, zones, clans]);
+  const clanEntries = Object.values(clans);
+  const maxLegendEntries = 6;
+  const visibleClans = clanEntries.slice(0, maxLegendEntries);
+  const hiddenClanCount = Math.max(0, clanEntries.length - visibleClans.length);
 
   if (!mapMarkup) {
     return (
@@ -666,11 +415,13 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         </div>
       )}
 
-      <div
-        ref={containerRef}
-        className={`flex items-center justify-center px-4 pb-4 ${containerClassName}`}
-      >
-        <div className="w-full h-full" dangerouslySetInnerHTML={{ __html: mapMarkup }} />
+      <div className="w-full h-[70vh] overflow-hidden">
+        <div
+          key={`territory-map-${mapId}`}
+          ref={containerRef}
+          className="w-full h-full"
+          dangerouslySetInnerHTML={{ __html: mapMarkup }}
+        />
       </div>
 
       {!hideLegend && (
