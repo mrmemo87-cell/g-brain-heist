@@ -14,8 +14,6 @@ const MAP_ZONE_COUNTS: Record<string, number> = {
   city: 10,
   kyrgyzstan: 7,
   usa: 51,
-  fortress: 6,
-  islands: 12,
 };
 
 // Helper function to generate zones for a specific map

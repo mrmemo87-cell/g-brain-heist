@@ -664,32 +664,6 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                     <p className="text-xs text-gray-400">States + DC, 51 zones</p>
                   </div>
                 </button>
-                <button
-                  onClick={() => setSelectedMap('fortress')}
-                  className={`p-4 rounded-xl border-2 transition ${
-                    selectedMap === 'fortress'
-                      ? 'border-cyan-400 bg-cyan-500/20'
-                      : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
-                  }`}
-                >
-                  <div className="text-left space-y-1">
-                    <p className="font-bold text-white">🏰 Fortress</p>
-                    <p className="text-xs text-gray-400">Defensive stronghold, 6 layers</p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setSelectedMap('islands')}
-                  className={`p-4 rounded-xl border-2 transition ${
-                    selectedMap === 'islands'
-                      ? 'border-cyan-400 bg-cyan-500/20'
-                      : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
-                  }`}
-                >
-                  <div className="text-left space-y-1">
-                    <p className="font-bold text-white">🏝️ Islands</p>
-                    <p className="text-xs text-gray-400">Archipelago, 12 territories</p>
-                  </div>
-                </button>
               </div>
             </div>
 

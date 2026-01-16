@@ -242,6 +242,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 }) => {
   const [cityMapLoaded, setCityMapLoaded] = useState(false);
   const [usaMapLoaded, setUsaMapLoaded] = useState(false);
+  const [missingRegions, setMissingRegions] = useState<string[]>([]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [mapMarkup, setMapMarkup] = useState("");
@@ -280,8 +281,13 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     }
   }, [mapId, usaMapLoaded]);
 
-  const mapConfig = useMemo<MapConfig>(() => {
-    const base = MAP_CONFIGS[mapId] || MAP_CONFIGS.default;
+  const mapConfig = useMemo<MapConfig | null>(() => {
+    const base = MAP_CONFIGS[mapId];
+
+    if (!base) {
+      console.warn(`[ClanTerritoryMap] Missing map configuration for mapId="${mapId}"`);
+      return null;
+    }
 
     if (mapId === "city" && cityMapSvgRaw) {
       return { ...MAP_CONFIGS.city, svg: cityMapSvgRaw };
@@ -294,8 +300,8 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   }, [mapId, cityMapLoaded, usaMapLoaded]);
 
   useEffect(() => {
-    setMapMarkup(mapConfig.svg || "");
-  }, [mapConfig.svg]);
+    setMapMarkup(mapConfig?.svg || "");
+  }, [mapConfig?.svg]);
 
   // Normalize injected SVG sizing + ensure viewBox exists
   useEffect(() => {
@@ -325,13 +331,50 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         }
       }
     }
-  }, [mapMarkup, mapId]);
+    if (mapConfig) {
+      const svgIds = Array.from(svg.querySelectorAll<SVGElement>("[id]"))
+        .map((element) => element.id)
+        .filter(Boolean);
+      const svgIdSet = new Set(svgIds);
+      const regionIds = new Set<string>();
+
+      Object.values(mapConfig.zoneToRegion).forEach((regionEntry) => {
+        const regionList = Array.isArray(regionEntry) ? regionEntry : [regionEntry];
+        regionList.forEach((regionId) => {
+          regionIds.add(regionId);
+          (mapConfig.regionAliases[regionId] ?? []).forEach((alias) => regionIds.add(alias));
+        });
+      });
+
+      const missingRegionIds = Array.from(regionIds).filter((regionId) => !svgIdSet.has(regionId));
+      const zonesWithNoMappedRegion = Object.keys(zones).filter(
+        (zoneId) => !mapConfig.zoneToRegion[zoneId as ZoneId]
+      );
+
+      setMissingRegions(missingRegionIds);
+      if (missingRegionIds.length > 0) {
+        console.warn(
+          `[ClanTerritoryMap] Missing region IDs in SVG for mapId="${mapId}": ${missingRegionIds.join(", ")}`
+        );
+      }
+
+      if (import.meta.env.DEV) {
+        console.debug("[ClanTerritoryMap] Active mapId", mapId);
+        console.debug("[ClanTerritoryMap] Regions found", svgIds);
+        console.debug("[ClanTerritoryMap] Missing regions", missingRegionIds);
+        console.debug("[ClanTerritoryMap] Zones with no mapped region", zonesWithNoMappedRegion);
+      }
+    } else {
+      setMissingRegions([]);
+    }
+  }, [mapMarkup, mapId, mapConfig, zones]);
 
   // Apply territory styles (scoped to this SVG)
   useLayoutEffect(() => {
     const svg = containerRef.current?.querySelector("svg");
     if (!svg) return;
 
+    if (!mapConfig) return;
     const ZONE_TO_REGION = mapConfig.zoneToRegion;
 
     Object.entries(ZONE_TO_REGION).forEach(([zoneId, regionIds]) => {
@@ -407,11 +450,33 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
   return (
     <div className="relative bg-gradient-to-br from-slate-950 via-slate-900 to-black w-full rounded-2xl border border-slate-800 overflow-hidden">
+      {!mapConfig && (
+        <div className="m-4 rounded-xl border border-rose-500/50 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+          Missing map configuration for <span className="font-semibold">{mapId}</span>. Please
+          update MAP_CONFIGS to include this map.
+        </div>
+      )}
       {!hideHeader && (
         <div className="px-4 pt-4 pb-2">
           <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">
             Territory Control
           </h3>
+        </div>
+      )}
+      {import.meta.env.DEV && missingRegions.length > 0 && (
+        <div className="px-4 pb-2">
+          <button
+            type="button"
+            onClick={() =>
+              console.debug(
+                `[ClanTerritoryMap] Missing region IDs for mapId="${mapId}":`,
+                missingRegions
+              )
+            }
+            className="rounded-md border border-amber-400/60 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-200 hover:bg-amber-500/20"
+          >
+            Print missing region IDs
+          </button>
         </div>
       )}
 
