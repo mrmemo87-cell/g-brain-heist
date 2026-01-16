@@ -1,17 +1,12 @@
-import React, {
-  ReactNode,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+
 // @ts-expect-error - Vite injects raw SVG strings for ?raw imports
 import territoryMapSvgRaw from "../assets/territory_map.svg?raw";
 // @ts-expect-error - Kyrgyzstan map is much smaller and commonly used
 import kyrgyzstanMapSvgRaw from "../assets/kyrgyzstanHigh.svg?raw";
-// City map is 2.7MB - don't import eagerly to avoid startup lag
+
+// Large maps: lazy-load to avoid startup lag
 let cityMapSvgRaw = "";
-// USA map is served from public and loaded on demand
 let usaMapSvgRaw = "";
 
 import {
@@ -48,6 +43,7 @@ const MAP_CONFIGS: Record<string, MapConfig> = {
       region_2: ["quantumnexus", "regio_2"],
     },
   },
+
   city: {
     svg: cityMapSvgRaw,
     maxZones: 10,
@@ -65,6 +61,7 @@ const MAP_CONFIGS: Record<string, MapConfig> = {
     },
     regionAliases: {},
   },
+
   kyrgyzstan: {
     svg: kyrgyzstanMapSvgRaw,
     maxZones: 7,
@@ -79,6 +76,7 @@ const MAP_CONFIGS: Record<string, MapConfig> = {
     },
     regionAliases: {},
   },
+
   usa: {
     svg: usaMapSvgRaw,
     maxZones: 51,
@@ -148,26 +146,18 @@ const NEUTRAL_TERRITORY_STROKE = "#475569";
 const getZoneControl = (
   state: ZoneState | undefined
 ): { clanId: ClanId | null; contested: boolean } => {
-  if (!state) {
-    return { clanId: null, contested: false };
-  }
+  if (!state) return { clanId: null, contested: false };
 
   const legacyClanId = (state as ZoneState & { clanId?: ClanId | null }).clanId;
-  if (legacyClanId) {
-    return { clanId: legacyClanId, contested: false };
-  }
+  if (legacyClanId) return { clanId: legacyClanId, contested: false };
 
   const entries = Object.entries(state.influence || {}).filter(([, value]) => value > 0);
-  if (entries.length === 0) {
-    return { clanId: null, contested: false };
-  }
+  if (entries.length === 0) return { clanId: null, contested: false };
 
   entries.sort((a, b) => b[1] - a[1]);
   const [leader, leaderScore] = entries[0];
   const runnerUp = entries[1];
-  if (!leader) {
-    return { clanId: null, contested: false };
-  }
+  if (!leader) return { clanId: null, contested: false };
 
   const contested =
     !!runnerUp &&
@@ -221,7 +211,6 @@ const adjustViewBoxToContent = (svgEl: SVGSVGElement) => {
 
     svgEl.setAttribute("viewBox", viewBox);
 
-    // Keep fit behavior even if SVG had something else originally
     if (!svgEl.getAttribute("preserveAspectRatio")) {
       svgEl.setAttribute("preserveAspectRatio", "xMidYMid meet");
     }
@@ -253,12 +242,11 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 }) => {
   const [cityMapLoaded, setCityMapLoaded] = useState(false);
   const [usaMapLoaded, setUsaMapLoaded] = useState(false);
-  const clanEntries = Object.values(clans);
-  const maxLegendEntries = 6;
-  const visibleClans = clanEntries.slice(0, maxLegendEntries);
-  const hiddenClanCount = Math.max(0, clanEntries.length - visibleClans.length);
 
-  // Lazy-load the large city map (2.7MB) on first use to prevent startup lag
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [mapMarkup, setMapMarkup] = useState("");
+
+  // Lazy-load the large city map (from assets now)
   useEffect(() => {
     if (mapId !== "city") return;
     if (cityMapSvgRaw) {
@@ -275,7 +263,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     }
   }, [mapId, cityMapLoaded]);
 
-  // Lazy-load USA map from public folder
+  // Lazy-load the USA map (from assets now)
   useEffect(() => {
     if (mapId !== "usa") return;
     if (usaMapSvgRaw) {
@@ -283,43 +271,36 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       return;
     }
     if (!usaMapLoaded) {
-      fetch("/USA.svg")
-        .then((r) => r.text())
-        .then((svg) => {
-          usaMapSvgRaw = svg;
+      import("../assets/usa.svg?raw")
+        .then((module) => {
+          usaMapSvgRaw = module.default;
           setUsaMapLoaded(true);
         })
         .catch((e) => console.error("Failed to load USA map:", e));
     }
   }, [mapId, usaMapLoaded]);
 
-  // Get the appropriate map configuration based on mapId
-  let mapConfig = MAP_CONFIGS[mapId] || MAP_CONFIGS.default;
+  const mapConfig = useMemo<MapConfig>(() => {
+    const base = MAP_CONFIGS[mapId] || MAP_CONFIGS.default;
 
-  // Update city config if city map just loaded
-  if (mapId === "city" && cityMapSvgRaw) {
-    mapConfig = {
-      ...MAP_CONFIGS.city,
-      svg: cityMapSvgRaw,
-    };
-  }
+    if (mapId === "city" && cityMapSvgRaw) {
+      return { ...MAP_CONFIGS.city, svg: cityMapSvgRaw };
+    }
+    if (mapId === "usa" && usaMapSvgRaw) {
+      return { ...MAP_CONFIGS.usa, svg: usaMapSvgRaw };
+    }
 
-  if (mapId === "usa" && usaMapSvgRaw) {
-    mapConfig = {
-      ...MAP_CONFIGS.usa,
-      svg: usaMapSvgRaw,
-    };
-  }
+    return base;
+  }, [mapId, cityMapLoaded, usaMapLoaded]);
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [mapMarkup, setMapMarkup] = useState("");
-  const mapSvg = mapConfig.svg;
   useEffect(() => {
-    setMapMarkup(mapSvg);
-  }, [mapSvg]);
+    setMapMarkup(mapConfig.svg || "");
+  }, [mapConfig.svg]);
 
+  // Normalize injected SVG sizing + ensure viewBox exists
   useEffect(() => {
     if (!mapMarkup || !containerRef.current) return;
+
     const svg = containerRef.current.querySelector("svg");
     if (!svg) return;
 
@@ -336,18 +317,17 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     const existingViewBox = svg.getAttribute("viewBox");
     if (!existingViewBox) {
       const adjusted = adjustViewBoxToContent(svg);
-      if (!adjusted) {
-        if (originalWidth && originalHeight) {
-          const w = parseFloat(originalWidth);
-          const h = parseFloat(originalHeight);
-          if (!Number.isNaN(w) && !Number.isNaN(h) && h !== 0) {
-            svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
-          }
+      if (!adjusted && originalWidth && originalHeight) {
+        const w = parseFloat(originalWidth);
+        const h = parseFloat(originalHeight);
+        if (!Number.isNaN(w) && !Number.isNaN(h) && h !== 0) {
+          svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
         }
       }
     }
   }, [mapMarkup, mapId]);
 
+  // Apply territory styles (scoped to this SVG)
   useLayoutEffect(() => {
     const svg = containerRef.current?.querySelector("svg");
     if (!svg) return;
@@ -392,9 +372,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       };
 
       expandedRegionIds.forEach((regionId) => {
-        const regionElement = svg.querySelector<SVGElement>(
-          `#${CSS.escape(regionId)}`
-        );
+        const regionElement = svg.querySelector<SVGElement>(`#${CSS.escape(regionId)}`);
         if (!regionElement) return;
 
         if (regionElement.tagName.toLowerCase() === "g") {
@@ -408,6 +386,11 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       });
     });
   }, [zones, clans, mapId, mapMarkup, mapConfig]);
+
+  const clanEntries = Object.values(clans);
+  const maxLegendEntries = 6;
+  const visibleClans = clanEntries.slice(0, maxLegendEntries);
+  const hiddenClanCount = Math.max(0, clanEntries.length - visibleClans.length);
 
   if (!mapMarkup) {
     return (
