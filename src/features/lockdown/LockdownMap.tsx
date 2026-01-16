@@ -42,6 +42,17 @@ const normalizeSvgMarkup = (svgContent: string) => {
 
   if (!svgElement) return svgContent;
 
+  const widthAttribute = svgElement.getAttribute("width");
+  const heightAttribute = svgElement.getAttribute("height");
+  const viewBoxAttribute = svgElement.getAttribute("viewBox");
+  if (!viewBoxAttribute && widthAttribute && heightAttribute) {
+    const widthValue = parseFloat(widthAttribute);
+    const heightValue = parseFloat(heightAttribute);
+    if (!Number.isNaN(widthValue) && !Number.isNaN(heightValue)) {
+      svgElement.setAttribute("viewBox", `0 0 ${widthValue} ${heightValue}`);
+    }
+  }
+
   svgElement.removeAttribute("width");
   svgElement.removeAttribute("height");
   svgElement.setAttribute("width", "100%");
@@ -49,6 +60,11 @@ const normalizeSvgMarkup = (svgContent: string) => {
   svgElement.setAttribute("preserveAspectRatio", "xMidYMid meet");
   svgElement.style.width = "100%";
   svgElement.style.height = "100%";
+  svgElement.style.maxWidth = "100%";
+  svgElement.style.maxHeight = "100%";
+  svgElement.style.transformOrigin = "center center";
+  svgElement.style.transform = "none";
+  svgElement.removeAttribute("transform");
   svgElement.style.display = "block";
 
   return svgElement.outerHTML;
@@ -76,6 +92,15 @@ const getColorForClan = (clanId: string): string => {
   const hash = clanId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const colors = Object.values(CLAN_COLORS).slice(1); // Exclude default
   return colors[hash % colors.length] || CLAN_COLORS.default;
+};
+
+const resolveClanColor = (stats: RegionStats, topClan?: RegionStats["topClan"]) => {
+  if (!topClan) return CLAN_COLORS.default;
+  return (
+    topClan.color
+    ?? stats.clanStats.find((clan) => clan.clanId === topClan.clanId)?.color
+    ?? getColorForClan(topClan.clanId)
+  );
 };
 
 // Map configurations
@@ -232,7 +257,7 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
       }
 
       // Set color based on top clan
-      const clanColor = topClan.color || getColorForClan(topClan.clanId);
+      const clanColor = resolveClanColor(stats, topClan);
       const opacity = Math.max(0.3, topClan.percentage / 100); // Scale opacity by percentage
 
       // Memoization: skip if style unchanged
@@ -273,7 +298,7 @@ export const LockdownMap: React.FC<LockdownMapProps> = ({ regionStats, className
               >
                 <div
                   className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: topClan.color || getColorForClan(topClan.clanId) }}
+                  style={{ backgroundColor: resolveClanColor(stats, topClan) }}
                 />
                 <div className="flex-1">
                   <p className="text-white font-semibold">{regionLabel}</p>
