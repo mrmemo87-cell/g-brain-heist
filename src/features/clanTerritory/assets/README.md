@@ -10,7 +10,7 @@
    - `region_6` → Security Hub (zone-3)
    - `region_4` → Data Vault (zone-4)
    - `region_8` → Power Grid (zone-5)
-   - `region_3` → Control Room (zone-6)
+   - `region_3` → Network Core (zone-6)
 
 ## Mapping Your Regions
 

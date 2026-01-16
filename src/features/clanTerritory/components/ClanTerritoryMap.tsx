@@ -33,7 +33,7 @@ const MAP_CONFIGS: Record<string, MapConfig> = {
       "zone-4": "region_4",
       "zone-5": "region_8",
       "zone-6": "region_3",
-      "zone-7": ["region_2", "regio_2"],
+      "zone-7": "region_2",
       "zone-8": "region_1",
     },
     regionAliases: {
@@ -360,35 +360,51 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       if (!state) return;
 
       const regionIdList = Array.isArray(regionIds) ? regionIds : [regionIds];
-      regionIdList.forEach((regionId) => {
-        const regionPath = svg.querySelector<SVGPathElement>(
-          `#${CSS.escape(regionId)}`
-        );
-        if (!regionPath) return;
+      const expandedRegionIds = regionIdList.flatMap((regionId) => [
+        regionId,
+        ...(currentConfig.regionAliases[regionId] ?? []),
+      ]);
 
-        const { clanId, contested } = getZoneControl(state);
-        const clan = clanId ? clans[clanId] : null;
+      const { clanId, contested } = getZoneControl(state);
+      const clan = clanId ? clans[clanId] : null;
 
-        let fill = NEUTRAL_TERRITORY_SHADE;
-        let stroke = NEUTRAL_TERRITORY_STROKE;
-        let strokeWidth = "2";
-        let opacity = 0.85;
+      let fill = NEUTRAL_TERRITORY_SHADE;
+      let stroke = NEUTRAL_TERRITORY_STROKE;
+      let strokeWidth = "2";
+      let opacity = 0.85;
 
-        if (clan) {
-          fill = clan.color;
-          stroke = clan.color;
-          strokeWidth = contested ? "4" : "3";
-          opacity = contested ? 0.92 : 0.88;
-        }
+      if (clan) {
+        fill = clan.color;
+        stroke = clan.color;
+        strokeWidth = contested ? "4" : "3";
+        opacity = contested ? 0.92 : 0.88;
+      }
 
-        regionPath.style.fill = fill;
-        regionPath.style.stroke = stroke;
-        regionPath.style.strokeWidth = strokeWidth;
-        regionPath.style.opacity = `${opacity}`;
-        regionPath.style.fillOpacity = `${opacity}`;
-        regionPath.style.filter = clan
+      const applyStyle = (element: SVGElement) => {
+        element.style.fill = fill;
+        element.style.stroke = stroke;
+        element.style.strokeWidth = strokeWidth;
+        element.style.opacity = `${opacity}`;
+        element.style.fillOpacity = `${opacity}`;
+        element.style.filter = clan
           ? `drop-shadow(0 0 ${contested ? 16 : 10}px ${stroke})`
           : "";
+      };
+
+      expandedRegionIds.forEach((regionId) => {
+        const regionElement = svg.querySelector<SVGElement>(
+          `#${CSS.escape(regionId)}`
+        );
+        if (!regionElement) return;
+
+        if (regionElement.tagName.toLowerCase() === "g") {
+          const shapes = regionElement.querySelectorAll<SVGElement>(
+            "path, rect, circle, ellipse, polygon, polyline, line"
+          );
+          shapes.forEach(applyStyle);
+        } else {
+          applyStyle(regionElement);
+        }
       });
     });
   }, [zones, clans, mapId]);
