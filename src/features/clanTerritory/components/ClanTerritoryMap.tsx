@@ -378,7 +378,6 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   const [zoom, setZoom] = useState(100);
   const [panX, setPanX] = useState(0);
   const [panY, setPanY] = useState(0);
-  const viewBoxAdjustedRef = useRef<Record<string, boolean>>({});
   const regionElementMapRef = useRef<Map<string, SVGPathElement>>(new Map());
   const defaultRegionStylesRef = useRef<
     Record<
@@ -456,7 +455,6 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     defaultRegionStylesRef.current = {};
     lastRegionStyleKeyRef.current = {};
     svgRef.current = null;
-    viewBoxAdjustedRef.current = {};
     regionElementMapRef.current = new Map();
     setMapAspectRatio(null);
   }, [mapId]);
@@ -475,16 +473,10 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     svgEl.style.height = "100%";
     svgEl.style.display = "block";
 
-    if (!viewBoxAdjustedRef.current[mapId]) {
-      const viewBox = adjustViewBoxToContent(svgEl);
-      setMapAspectRatio(
-        getViewBoxAspectRatio(viewBox || svgEl.getAttribute("viewBox"))
-      );
-      viewBoxAdjustedRef.current[mapId] = true;
-    }
-    if (!mapAspectRatio) {
-      setMapAspectRatio(getViewBoxAspectRatio(svgEl.getAttribute("viewBox")));
-    }
+    const viewBox = adjustViewBoxToContent(svgEl);
+    setMapAspectRatio(
+      getViewBoxAspectRatio(viewBox || svgEl.getAttribute("viewBox"))
+    );
 
     svgRef.current = svgEl;
     const regionElements = new Map<string, SVGPathElement>();
@@ -592,8 +584,6 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
     Object.entries(ZONE_TO_REGION).forEach(([zoneId, regionIds]) => {
       const state = zones[zoneId as ZoneId];
-      if (!state) return;
-
       const regionIdList = Array.isArray(regionIds) ? regionIds : [regionIds];
 
       regionIdList.forEach((regionId) => {
