@@ -132,8 +132,6 @@ export const MAP_ZONES: Record<string, Zone[]> = {
   city: CITY_ZONES,
   kyrgyzstan: KYRGYZSTAN_ZONES,
   usa: USA_ZONES,
-  fortress: ZONES, // Use default for now
-  islands: ZONES, // Use default for now
 };
 
 // Helper to get zones for a specific map
