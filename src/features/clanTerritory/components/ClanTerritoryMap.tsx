@@ -248,7 +248,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       setUsaLoaded(true);
       return;
     }
-    import("../assets/usa.svg?raw")
+    import("../assets/USA.svg?raw")
       .then((m) => {
         usaMapSvgRaw = m.default;
         setUsaLoaded(true);
