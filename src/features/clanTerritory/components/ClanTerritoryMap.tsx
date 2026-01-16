@@ -230,6 +230,8 @@ export type ClanTerritoryMapProps = {
   hideLegend?: boolean;
   overlay?: ReactNode;
   mapId?: string;
+  containerClassName?: string;
+  showControls?: boolean;
 };
 
 export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
@@ -239,13 +241,22 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   hideLegend = false,
   overlay,
   mapId = "default",
+  containerClassName,
+  showControls,
 }) => {
+  const DEBUG = import.meta.env.DEV;
   const [cityMapLoaded, setCityMapLoaded] = useState(false);
   const [usaMapLoaded, setUsaMapLoaded] = useState(false);
   const [missingRegions, setMissingRegions] = useState<string[]>([]);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const [mapMarkup, setMapMarkup] = useState("");
+  const svgElementRef = useRef<SVGSVGElement | null>(null);
+  const regionCacheRef = useRef<{
+    mapId: string | null;
+    svg: SVGSVGElement | null;
+    elements: Map<string, SVGElement[]>;
+  }>({ mapId: null, svg: null, elements: new Map() });
+  const regionStyleKeyRef = useRef<Map<string, string>>(new Map());
 
   // Lazy-load the large city map (from assets now)
   useEffect(() => {
@@ -299,9 +310,23 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     return base;
   }, [mapId, cityMapLoaded, usaMapLoaded]);
 
+  const mapMarkup = mapConfig?.svg ?? "";
+
   useEffect(() => {
-    setMapMarkup(mapConfig?.svg || "");
-  }, [mapConfig?.svg]);
+    if (!DEBUG) return;
+    console.debug("[ClanTerritoryMap] mapId changed", mapId);
+  }, [mapId, DEBUG]);
+
+  useEffect(() => {
+    regionCacheRef.current = { mapId, svg: null, elements: new Map() };
+    regionStyleKeyRef.current = new Map();
+  }, [mapId]);
+
+  useEffect(() => {
+    if (!DEBUG) return;
+    const role = showControls === false ? "student" : "teacher";
+    console.debug("[ClanTerritoryMap] Zones count", role, Object.keys(zones).length);
+  }, [zones, showControls, DEBUG]);
 
   // Normalize injected SVG sizing + ensure viewBox exists
   useEffect(() => {
@@ -309,6 +334,16 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
     const svg = containerRef.current.querySelector("svg");
     if (!svg) return;
+
+    if (DEBUG && svgElementRef.current && svgElementRef.current !== svg) {
+      console.debug("[ClanTerritoryMap] SVG element replaced", mapId);
+    }
+
+    if (svgElementRef.current !== svg) {
+      svgElementRef.current = svg;
+      regionCacheRef.current = { mapId, svg, elements: new Map() };
+      regionStyleKeyRef.current = new Map();
+    }
 
     const originalWidth = svg.getAttribute("width");
     const originalHeight = svg.getAttribute("height");
@@ -321,14 +356,12 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     svg.style.display = "block";
 
     const existingViewBox = svg.getAttribute("viewBox");
-    if (!existingViewBox) {
-      const adjusted = adjustViewBoxToContent(svg);
-      if (!adjusted && originalWidth && originalHeight) {
-        const w = parseFloat(originalWidth);
-        const h = parseFloat(originalHeight);
-        if (!Number.isNaN(w) && !Number.isNaN(h) && h !== 0) {
-          svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
-        }
+    const adjusted = adjustViewBoxToContent(svg);
+    if (!adjusted && !existingViewBox && originalWidth && originalHeight) {
+      const w = parseFloat(originalWidth);
+      const h = parseFloat(originalHeight);
+      if (!Number.isNaN(w) && !Number.isNaN(h) && h !== 0) {
+        svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
       }
     }
     if (mapConfig) {
@@ -367,7 +400,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     } else {
       setMissingRegions([]);
     }
-  }, [mapMarkup, mapId, mapConfig, zones]);
+  }, [mapMarkup, mapId, mapConfig, zones, DEBUG]);
 
   // Apply territory styles (scoped to this SVG)
   useLayoutEffect(() => {
@@ -376,6 +409,38 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
 
     if (!mapConfig) return;
     const ZONE_TO_REGION = mapConfig.zoneToRegion;
+
+    if (
+      regionCacheRef.current.mapId !== mapId ||
+      regionCacheRef.current.svg !== svg
+    ) {
+      regionCacheRef.current = { mapId, svg, elements: new Map() };
+      regionStyleKeyRef.current = new Map();
+    }
+
+    const getRegionElements = (regionId: string) => {
+      const cached = regionCacheRef.current.elements.get(regionId);
+      if (cached) return cached;
+
+      const regionElement = svg.querySelector<SVGElement>(`#${CSS.escape(regionId)}`);
+      if (!regionElement) {
+        const empty: SVGElement[] = [];
+        regionCacheRef.current.elements.set(regionId, empty);
+        return empty;
+      }
+
+      const elements =
+        regionElement.tagName.toLowerCase() === "g"
+          ? Array.from(
+              regionElement.querySelectorAll<SVGElement>(
+                "path, rect, circle, ellipse, polygon, polyline, line"
+              )
+            )
+          : [regionElement];
+
+      regionCacheRef.current.elements.set(regionId, elements);
+      return elements;
+    };
 
     Object.entries(ZONE_TO_REGION).forEach(([zoneId, regionIds]) => {
       const state = zones[zoneId as ZoneId];
@@ -403,32 +468,30 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         opacity = contested ? 0.92 : 0.88;
       }
 
-      const applyStyle = (element: SVGElement) => {
-        element.style.fill = fill;
-        element.style.stroke = stroke;
-        element.style.strokeWidth = strokeWidth;
-        element.style.opacity = `${opacity}`;
-        element.style.fillOpacity = `${opacity}`;
-        element.style.filter = clanColor
-          ? `drop-shadow(0 0 ${contested ? 16 : 10}px ${stroke})`
-          : "";
-      };
+      const filter = clanColor
+        ? `drop-shadow(0 0 ${contested ? 16 : 10}px ${stroke})`
+        : "";
+      const styleKey = [fill, stroke, strokeWidth, opacity, filter].join("|");
 
       expandedRegionIds.forEach((regionId) => {
-        const regionElement = svg.querySelector<SVGElement>(`#${CSS.escape(regionId)}`);
-        if (!regionElement) return;
+        const previousStyleKey = regionStyleKeyRef.current.get(regionId);
+        if (previousStyleKey === styleKey) return;
 
-        if (regionElement.tagName.toLowerCase() === "g") {
-          const shapes = regionElement.querySelectorAll<SVGElement>(
-            "path, rect, circle, ellipse, polygon, polyline, line"
-          );
-          shapes.forEach(applyStyle);
-        } else {
-          applyStyle(regionElement);
-        }
+        const elements = getRegionElements(regionId);
+        if (elements.length === 0) return;
+
+        elements.forEach((element) => {
+          element.style.fill = fill;
+          element.style.stroke = stroke;
+          element.style.strokeWidth = strokeWidth;
+          element.style.opacity = `${opacity}`;
+          element.style.fillOpacity = `${opacity}`;
+          element.style.filter = filter;
+        });
+        regionStyleKeyRef.current.set(regionId, styleKey);
       });
     });
-  }, [zones, clans, mapId, mapMarkup, mapConfig]);
+  }, [zones, clans, mapId, mapConfig]);
 
   const clanEntries = Object.values(clans);
   const maxLegendEntries = 6;
@@ -484,7 +547,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         <div
           key={`territory-map-${mapId}`}
           ref={containerRef}
-          className="w-full h-full"
+          className={["w-full h-full", containerClassName].filter(Boolean).join(" ")}
           dangerouslySetInnerHTML={{ __html: mapMarkup }}
         />
       </div>
