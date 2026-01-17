@@ -4,6 +4,8 @@ import React, { ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState
 import territoryMapSvgRaw from "../assets/territory_map.svg?raw";
 // @ts-expect-error - Vite raw SVG imports
 import kyrgyzstanMapSvgRaw from "../assets/kyrgyzstanHigh.svg?raw";
+// @ts-expect-error - Vite raw SVG imports
+import unitedKingdomMapSvgRaw from "../assets/unitedkingdom.svg?raw";
 
 // Lazy maps
 let cityMapSvgRaw = "";
@@ -64,6 +66,29 @@ const MAP_CONFIGS: Record<string, MapConfig> = {
       "zone-5": "KG-O", // Osh
       "zone-6": "KG-T", // Talas
       "zone-7": "KG-Y", // Ysyk-Köl
+    },
+    regionAliases: {},
+  },
+  unitedkingdom: {
+    svg: unitedKingdomMapSvgRaw,
+    maxZones: 16,
+    zoneToRegion: {
+      "zone-1": "zone-1",
+      "zone-2": "zone-2",
+      "zone-3": "zone-3",
+      "zone-4": "zone-4",
+      "zone-5": "zone-5",
+      "zone-6": "zone-6",
+      "zone-7": "zone-7",
+      "zone-8": "zone-8",
+      "zone-9": "zone-9",
+      "zone-10": "zone-10",
+      "zone-11": "zone-11",
+      "zone-12": "zone-12",
+      "zone-13": "zone-13",
+      "zone-14": "zone-14",
+      "zone-15": "zone-15",
+      "zone-16": "zone-16",
     },
     regionAliases: {},
   },
