@@ -204,6 +204,7 @@ export interface ClanTerritoryGameState {
   timer: number; // Remaining seconds (computed from gameEndTime - now)
   gameStartTime?: number; // Unix timestamp when game started
   gameEndTime?: number; // Unix timestamp when game should end
+  endReason?: "TIME_UP" | "TEACHER_ENDED" | "TEACHER_DISMISSED";
   players: Record<string, PlayerStats>;
   zones: Record<ZoneId, ZoneState>;
   clans: Record<ClanId, ClanMetadata>;
@@ -232,6 +233,7 @@ export type GameAction =
       payload: { playerId: string; isCorrect: boolean; durationMs: number };
     }
   | { type: "END_GAME" }
+  | { type: "DISMISS_ARENA" }
   | { type: "KICK_PLAYER"; payload: { playerId: string } }
   | { type: "REQUEST_STATE" };
 
