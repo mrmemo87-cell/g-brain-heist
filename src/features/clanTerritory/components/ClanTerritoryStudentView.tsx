@@ -228,6 +228,14 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
     }
   }, [gameState.phase]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const frame = requestAnimationFrame(() => {
+      window.dispatchEvent(new Event("resize"));
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
   // Initialize first question when entering active phase
   useEffect(() => {
     if (gameState.phase === "ACTIVE" && gameState.questions.length > 0) {
@@ -481,7 +489,10 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           {/* Mobile: Map + Zone Info (Full width, stacked) */}
           <div className="lg:hidden flex flex-col gap-2 bg-gray-900/50 border-b border-gray-800 p-3 shrink-0 h-auto">
             {/* Map - Fit to available space with aspect ratio */}
-            <div className="w-full bg-slate-950 rounded-lg overflow-hidden" style={{ aspectRatio: "16/9", maxHeight: "300px" }}>
+            <div
+              className="w-full min-h-[45vh] bg-slate-950 rounded-lg overflow-hidden"
+              style={{ aspectRatio: "16/9", maxHeight: "300px" }}
+            >
               <ClanTerritoryMap 
                 zones={gameState.zones} 
                 clans={clansWithColors} 
