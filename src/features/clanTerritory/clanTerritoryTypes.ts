@@ -126,12 +126,33 @@ export const USA_ZONES: Zone[] = [
   { id: "zone-51", name: "Wyoming", baseValue: 150 },
 ];
 
+// United Kingdom map regions
+export const UNITED_KINGDOM_ZONES: Zone[] = [
+  { id: "zone-1", name: "Ireland", baseValue: 150 },
+  { id: "zone-2", name: "Isle of Man", baseValue: 150 },
+  { id: "zone-3", name: "Jersey", baseValue: 150 },
+  { id: "zone-4", name: "Guernsey", baseValue: 150 },
+  { id: "zone-5", name: "Northern Ireland", baseValue: 150 },
+  { id: "zone-6", name: "Scotland", baseValue: 150 },
+  { id: "zone-7", name: "Wales", baseValue: 150 },
+  { id: "zone-8", name: "South West", baseValue: 150 },
+  { id: "zone-9", name: "South East", baseValue: 150 },
+  { id: "zone-10", name: "Greater London", baseValue: 150 },
+  { id: "zone-11", name: "East of England", baseValue: 150 },
+  { id: "zone-12", name: "West Midlands", baseValue: 150 },
+  { id: "zone-13", name: "East Midlands", baseValue: 150 },
+  { id: "zone-14", name: "Yorkshire and the Humber", baseValue: 150 },
+  { id: "zone-15", name: "North West", baseValue: 150 },
+  { id: "zone-16", name: "North East", baseValue: 150 },
+];
+
 // Map-specific zone configurations
 export const MAP_ZONES: Record<string, Zone[]> = {
   default: ZONES,
   city: CITY_ZONES,
   kyrgyzstan: KYRGYZSTAN_ZONES,
   usa: USA_ZONES,
+  unitedkingdom: UNITED_KINGDOM_ZONES,
 };
 
 // Helper to get zones for a specific map
