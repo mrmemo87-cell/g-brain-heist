@@ -692,7 +692,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                   </option>
                   {availableBatches.map((batch) => (
                     <option key={batch.batch} value={batch.batch}>
-                      {batch.batch} · Grade {batch.grade} · {batch.player_count} students
+                      {batch.batch}
+                      {batch.grade !== null ? ` · Grade ${batch.grade}` : ""} · {batch.player_count} students
                     </option>
                   ))}
                 </select>
