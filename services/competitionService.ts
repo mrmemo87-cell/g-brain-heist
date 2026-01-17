@@ -18,7 +18,7 @@ export interface SchoolGradeInfo {
 
 export interface SchoolBatchInfo {
   batch: string;
-  grade: number;
+  grade: number | null;
   player_count: number;
   total_xp: number;
 }
@@ -39,6 +39,14 @@ export const fetchSchoolGrades = async (): Promise<SchoolGradeInfo[]> => {
 };
 
 // Fetch available batches for the current user's school
+const normalizeBatch = (value?: string | null) =>
+  (value ?? "").trim().toUpperCase().replace(/\s+/g, "");
+
+const getBatchGrade = (batch: string): number | null => {
+  const match = /^(\d+)[A-C]$/.exec(batch);
+  return match ? Number(match[1]) : null;
+};
+
 export const fetchSchoolBatches = async (): Promise<SchoolBatchInfo[]> => {
   const { data, error } = await supabase.rpc('get_school_batches');
   
@@ -47,12 +55,31 @@ export const fetchSchoolBatches = async (): Promise<SchoolBatchInfo[]> => {
     return [];
   }
   
-  return (data ?? []).map((row: any) => ({
-    batch: row.batch as string,
-    grade: Number(row.grade),
-    player_count: Number(row.player_count ?? 0),
-    total_xp: Number(row.total_xp ?? 0),
-  }));
+  const batches = new Map<string, SchoolBatchInfo>();
+
+  (data ?? []).forEach((row: any) => {
+    const normalized = normalizeBatch(row.batch as string | null | undefined);
+    const isUnassigned = !normalized || normalized === "N/A";
+    const key = isUnassigned ? "N/A" : normalized;
+    const existing = batches.get(key);
+    const playerCount = Number(row.player_count ?? 0);
+    const totalXp = Number(row.total_xp ?? 0);
+
+    if (existing) {
+      existing.player_count += playerCount;
+      existing.total_xp += totalXp;
+      return;
+    }
+
+    batches.set(key, {
+      batch: key,
+      grade: isUnassigned ? null : getBatchGrade(key),
+      player_count: playerCount,
+      total_xp: totalXp,
+    });
+  });
+
+  return Array.from(batches.values());
 };
 
 const mapQuestionRow = (row: any): PhaseQuestion | null => {
@@ -649,4 +676,3 @@ export const subscribeToBatchLeaderboard = (
     supabase.removeChannel(channel);
   };
 };
-
