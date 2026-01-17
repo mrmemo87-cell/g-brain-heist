@@ -527,6 +527,17 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     if (roomId) transport.sendAction(roomId, { type: "END_GAME" });
   };
 
+  const handleTeacherExit = async () => {
+    if (roomId) {
+      try {
+        await transport.sendAction(roomId, { type: "DISMISS_ARENA" });
+      } catch (error) {
+        console.warn("Failed to dismiss arena:", error);
+      }
+    }
+    onExit();
+  };
+
   const handleKickPlayer = (pid: string) => {
     if (roomId) transport.sendAction(roomId, { type: "KICK_PLAYER", payload: { playerId: pid } });
   };
@@ -825,7 +836,14 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                 </div>
               )}
             </div>
-            <button onClick={onExit} className="text-gray-400 hover:text-white font-heading">Exit</button>
+            <button
+              onClick={() => {
+                void handleTeacherExit();
+              }}
+              className="text-gray-400 hover:text-white font-heading"
+            >
+              Exit
+            </button>
           </div>
           <div className="flex-1 overflow-y-auto">
             <ClanTerritoryTeacherView

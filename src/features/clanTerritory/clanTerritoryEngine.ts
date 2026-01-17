@@ -41,6 +41,7 @@ export const INITIAL_STATE: ClanTerritoryGameState = {
   questions: [],
   mapId: 'default',
   allowClanlessPlayers: false,
+  endReason: undefined,
 };
 
 export function clanTerritoryReducer(
@@ -76,6 +77,7 @@ export function clanTerritoryReducer(
         timer: action.payload.duration,
         gameStartTime: undefined,
         gameEndTime: undefined,
+        endReason: undefined,
       };
     }
 
@@ -120,6 +122,7 @@ export function clanTerritoryReducer(
         timer: action.payload.duration,
         gameStartTime: now,
         gameEndTime: now + durationMs,
+        endReason: undefined,
       };
     }
 
@@ -138,6 +141,7 @@ export function clanTerritoryReducer(
         ...state,
         timer: newTimer,
         phase: newTimer === 0 ? "ENDED" : "ACTIVE",
+        endReason: newTimer === 0 ? state.endReason ?? "TIME_UP" : state.endReason,
       };
     }
 
@@ -258,6 +262,16 @@ export function clanTerritoryReducer(
       return {
         ...state,
         phase: "ENDED",
+        endReason: state.endReason ?? "TEACHER_ENDED",
+      };
+    }
+
+    case "DISMISS_ARENA": {
+      return {
+        ...state,
+        phase: "ENDED",
+        timer: 0,
+        endReason: "TEACHER_DISMISSED",
       };
     }
 
