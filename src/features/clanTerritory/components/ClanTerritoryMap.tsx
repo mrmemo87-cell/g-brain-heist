@@ -324,6 +324,53 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     requestAnimationFrame(() => requestAnimationFrame(normalize));
   }, [mapConfig.svg, mapId]);
 
+  // Re-normalize viewBox when container size changes (fixes iOS "blank until interaction")
+  useEffect(() => {
+    const container = containerRef.current;
+    const svg = svgRef.current;
+    if (!container || !svg) return;
+
+    let raf1 = 0;
+    let raf2 = 0;
+
+    const normalize = () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+
+      raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(() => {
+          const ok = adjustViewBoxToContent(svg);
+          if (!ok) setTimeout(() => adjustViewBoxToContent(svg), 50);
+        });
+      });
+    };
+
+    // run once immediately
+    normalize();
+
+    // run whenever container size changes (address bar collapse, flex resize, etc.)
+    const ro = new ResizeObserver(() => normalize());
+    ro.observe(container);
+
+    // run when returning to tab / phone wakes up
+    const onVis = () => {
+      if (!document.hidden) normalize();
+    };
+
+    window.addEventListener("resize", normalize, { passive: true });
+    window.addEventListener("orientationchange", normalize, { passive: true });
+    document.addEventListener("visibilitychange", onVis);
+
+    return () => {
+      ro.disconnect();
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+      window.removeEventListener("resize", normalize);
+      window.removeEventListener("orientationchange", normalize);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [mapConfig.svg, mapId]);
+
   // Apply colors based on zones/clans without re-injecting SVG
   useLayoutEffect(() => {
     const svg = svgRef.current;
