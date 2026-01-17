@@ -436,7 +436,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
       )}
 
       {/* Flat map container: no zoom/pan transforms */}
-      <div className="w-full overflow-hidden h-[60vh] sm:h-[70vh] h-[60svh] sm:h-[70svh]">
+      <div className="w-full overflow-hidden aspect-[4/3] max-h-[55svh] sm:max-h-[70vh]">
         <div ref={containerRef} className="w-full h-full" />
       </div>
 
