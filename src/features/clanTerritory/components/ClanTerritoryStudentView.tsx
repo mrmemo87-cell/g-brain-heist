@@ -76,6 +76,7 @@ interface ClanTerritoryStudentViewProps {
   onSelectZone: (zoneId: ZoneId | null) => void;
   onSubmitAnswer: (isCorrect: boolean, durationMs: number) => void;
   onRewardsClaimed?: () => Promise<void> | void;
+  onExit?: () => void;
 }
 
 export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> = ({
@@ -85,6 +86,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   onSelectZone,
   onSubmitAnswer,
   onRewardsClaimed,
+  onExit,
 }) => {
   const player = gameState.players[playerId];
   const hydratedPlayer: PlayerStats | undefined = player
@@ -228,6 +230,14 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
     }
   }, [gameState.phase]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const frame = requestAnimationFrame(() => {
+      window.dispatchEvent(new Event("resize"));
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
   // Initialize first question when entering active phase
   useEffect(() => {
     if (gameState.phase === "ACTIVE" && gameState.questions.length > 0) {
@@ -244,7 +254,13 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   }, [clanList]);
 
   useEffect(() => {
-    if (gameState.phase === "ENDED" && !rewardsClaimed && !claimingRewards && hydratedPlayer) {
+    if (
+      gameState.phase === "ENDED" &&
+      gameState.endReason !== "TEACHER_DISMISSED" &&
+      !rewardsClaimed &&
+      !claimingRewards &&
+      hydratedPlayer
+    ) {
       const results = calculateClanTerritoryResults(gameState);
       const myReward = results.playerRewards.find((r) => r.playerId === playerId);
       if (myReward && (myReward.coins > 0 || myReward.xp > 0 || myReward.gems > 0)) {
@@ -287,7 +303,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
         setRewardsClaimed(true);
       }
     }
-  }, [gameState.phase, playerId, rewardsClaimed, claimingRewards, hydratedPlayer]);
+  }, [gameState.phase, gameState.endReason, playerId, rewardsClaimed, claimingRewards, hydratedPlayer]);
 
   const handleAnswerClick = (selectedAnswer: string) => {
     if (!currentQuestion) return;
@@ -312,6 +328,16 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
 
   const myClan =
     clanList.find((c) => c.id === hydratedPlayer.clanId) ?? gameState.clans[hydratedPlayer.clanId];
+
+  const handleBackToArenas = React.useCallback(() => {
+    if (onExit) {
+      onExit();
+      return;
+    }
+    if (typeof window !== "undefined") {
+      window.location.reload();
+    }
+  }, [onExit]);
 
   // 1. Lobby Phase
   if (gameState.phase === "LOBBY") {
@@ -481,7 +507,10 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           {/* Mobile: Map + Zone Info (Full width, stacked) */}
           <div className="lg:hidden flex flex-col gap-2 bg-gray-900/50 border-b border-gray-800 p-3 shrink-0 h-auto">
             {/* Map - Fit to available space with aspect ratio */}
-            <div className="w-full bg-slate-950 rounded-lg overflow-hidden" style={{ aspectRatio: "16/9", maxHeight: "300px" }}>
+            <div
+              className="w-full min-h-[45vh] bg-slate-950 rounded-lg overflow-hidden"
+              style={{ aspectRatio: "16/9", maxHeight: "300px" }}
+            >
               <ClanTerritoryMap 
                 zones={gameState.zones} 
                 clans={clansWithColors} 
@@ -737,6 +766,29 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   }
 
   // 4. Ended Phase
+  if (gameState.phase === "ENDED" && gameState.endReason === "TEACHER_DISMISSED") {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-6">
+        <div className="w-full max-w-3xl">
+          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 text-center space-y-4">
+            <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Session Update</p>
+            <h1 className="text-4xl font-black tracking-tight text-white">Arena dismissed</h1>
+            <p className="text-lg text-slate-300">The arena was dismissed by the teacher.</p>
+            <p className="text-sm text-slate-500">Please return to the menu to join another arena.</p>
+            <div className="pt-2">
+              <button
+                onClick={handleBackToArenas}
+                className="px-6 py-3 bg-white text-slate-900 font-bold rounded-xl hover:bg-slate-200 transition"
+              >
+                Back to Arenas
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const results = gameState.phase === "ENDED" ? calculateClanTerritoryResults(gameState) : null;
   const myReward = results?.playerRewards.find((r) => r.playerId === playerId);
   const wonRewards = myReward && (myReward.coins > 0 || myReward.xp > 0 || myReward.gems > 0);
