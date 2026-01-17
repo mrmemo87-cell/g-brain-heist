@@ -276,6 +276,11 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     }
 
     if (this.channel && this.channel.state === "joined") {
+      if (this.isHost && action.type === "DISMISS_ARENA") {
+        const next = clanTerritoryReducer(this.state, action);
+        this.commitStateIfChanged(next, action.type);
+      }
+
       await this.channel.send({
         type: "broadcast",
         event: "game_action",
