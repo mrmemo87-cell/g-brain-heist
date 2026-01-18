@@ -71,6 +71,8 @@ const IeltsPrime: React.FC = () => {
   // Carousel state
   const [carouselIndex, setCarouselIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
+  const [carouselCardWidth, setCarouselCardWidth] = useState(300);
+  const [carouselStep, setCarouselStep] = useState(320);
   
   // Scroll to top on mount
   useEffect(() => {
@@ -83,6 +85,26 @@ const IeltsPrime: React.FC = () => {
       setCarouselIndex(prev => (prev + 1) % testimonials.length);
     }, 3000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const updateCarouselSizing = () => {
+      const viewportWidth = window.innerWidth || 0;
+      const horizontalPadding = 48;
+      const minCardWidth = 240;
+      const maxCardWidth = 300;
+      const nextCardWidth = Math.max(
+        minCardWidth,
+        Math.min(maxCardWidth, viewportWidth - horizontalPadding)
+      );
+
+      setCarouselCardWidth(nextCardWidth);
+      setCarouselStep(nextCardWidth + 20);
+    };
+
+    updateCarouselSizing();
+    window.addEventListener('resize', updateCarouselSizing);
+    return () => window.removeEventListener('resize', updateCarouselSizing);
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -677,15 +699,16 @@ const IeltsPrime: React.FC = () => {
             style={{
               display: 'flex',
               transition: 'transform 0.5s ease-in-out',
-              transform: `translateX(-${carouselIndex * 320}px)`,
+              transform: `translateX(-${carouselIndex * carouselStep}px)`,
             }}
           >
-            {/* Duplicate testimonials for infinite loop effect */}
+            {/* Duplicate testimonials for infinite loop effect */} 
             {[...testimonials, ...testimonials].map((testimonial, idx) => (
               <div
                 key={idx}
                 style={{
-                  minWidth: '300px',
+                  minWidth: `${carouselCardWidth}px`,
+                  width: `${carouselCardWidth}px`,
                   marginRight: '20px',
                   background: 'rgba(255,255,255,0.08)',
                   border: '1px solid rgba(255,255,255,0.15)',
