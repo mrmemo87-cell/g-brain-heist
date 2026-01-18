@@ -527,7 +527,7 @@ const ReadingPractice: React.FC = () => {
               Get unlimited practice tests, AI-powered essay feedback, speaking evaluations, and personalized study plans
             </p>
             <button
-              onClick={() => navigate('/ielts/pricing')}
+              onClick={() => navigate('/ielts/apply-prime')}
               style={{
                 padding: '0.75rem 2rem',
                 background: 'white',
