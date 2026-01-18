@@ -74,6 +74,10 @@ const ProtectedRoute: React.FC<{ element: React.ReactElement }> = ({ element }) 
     );
   }
 
+  if (!isAuthenticated) {
+    return <IELTSLoginView onAuthenticated={() => setIsAuthenticated(true)} />;
+  }
+
   return element;
 };
 

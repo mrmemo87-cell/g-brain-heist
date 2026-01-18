@@ -13,7 +13,7 @@ const defaultUsernameFromEmail = (email: string): string => {
 };
 
 const IELTSLoginView: React.FC<IELTSLoginViewProps> = ({ onAuthenticated }) => {
-  const [mode, setMode] = useState<AuthMode>('login');
+  const [mode, setMode] = useState<AuthMode>('signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
