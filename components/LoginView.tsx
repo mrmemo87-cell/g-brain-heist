@@ -9,6 +9,15 @@ interface LoginViewProps {
     onLogin: (email: string, pass: string) => Promise<void>;
 }
 
+const ieltsSchoolOption: School = {
+    id: 'just-for-ielts',
+    name: 'Just for IELTS',
+    slug: 'just-for-ielts',
+    logo_url: null,
+    allow_student_signup: true,
+    allow_teacher_signup: true,
+};
+
 const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const [mode, setMode] = useState<'login' | 'signup' | 'reset'>('login');
     const [email, setEmail] = useState('');
@@ -28,6 +37,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const [isLoadingSchools, setIsLoadingSchools] = useState(false);
     const [inviteCode, setInviteCode] = useState('');
     const [showInviteCode, setShowInviteCode] = useState(false);
+    const isIeltsSchool = selectedSchool?.slug === ieltsSchoolOption.slug;
 
     // Fetch available schools when signup mode is active
     useEffect(() => {
@@ -36,34 +46,32 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 setIsLoadingSchools(true);
                 try {
                     const schoolList = await AuthService.getAvailableSchools();
-                    setSchools(schoolList);
+                    const mergedSchools = [
+                        ieltsSchoolOption,
+                        ...schoolList.filter((school) => school.slug !== ieltsSchoolOption.slug),
+                    ];
+                    setSchools(mergedSchools);
                     
-                    // Auto-select first school if only one available
-                    if (schoolList.length === 1) {
-                        setSelectedSchool(schoolList[0]);
-                    } else if (schoolList.length > 0 && !selectedSchool) {
-                        // Select the first school by default
-                        setSelectedSchool(schoolList[0]);
+                    if (!selectedSchool) {
+                        setSelectedSchool(ieltsSchoolOption);
                     }
                 } catch (err) {
                     console.error('Failed to load schools:', err);
                     // Fallback: create a default school option
-                    const fallbackSchool: School = {
-                        id: 'default',
-                        name: 'Default School',
-                        slug: 'default-school',
-                        logo_url: null,
-                        allow_student_signup: true,
-                        allow_teacher_signup: true,
-                    };
-                    setSchools([fallbackSchool]);
-                    setSelectedSchool(fallbackSchool);
+                    setSchools([ieltsSchoolOption]);
+                    setSelectedSchool(ieltsSchoolOption);
                 }
                 setIsLoadingSchools(false);
             };
             fetchSchools();
         }
     }, [mode, schools.length, selectedSchool]);
+
+    useEffect(() => {
+        if (mode === 'signup' && !selectedSchool) {
+            setSelectedSchool(ieltsSchoolOption);
+        }
+    }, [mode, selectedSchool]);
 
     useEffect(() => {
         const persisted = consumeBanMessage();
@@ -150,7 +158,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     return;
                 }
 
-                if (role === 'student') {
+                if (role === 'student' && !isIeltsSchool) {
                     if (!grade) {
                         setError('Choose your grade to unlock the right missions.');
                         return;
@@ -162,10 +170,10 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     }
                 }
 
-                const gradeForSignup = role === 'student' ? grade ?? undefined : undefined;
-                const batchForSignup = role === 'student' ? batch || undefined : undefined;
+                const gradeForSignup = role === 'student' && !isIeltsSchool ? grade ?? undefined : undefined;
+                const batchForSignup = role === 'student' && !isIeltsSchool ? batch || undefined : undefined;
                 // Use school ID for multi-tenant, fallback to name if ID is 'default'
-                const schoolId = selectedSchool.id !== 'default' ? selectedSchool.id : undefined;
+                const schoolId = selectedSchool.id !== 'default' && !isIeltsSchool ? selectedSchool.id : undefined;
                 const schoolName = selectedSchool.name;
 
                 await AuthService.signup(
@@ -239,7 +247,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
             !username.trim() || 
             !email.trim() || 
             !password ||
-            (role === 'student' && (!grade || !batch))
+            (role === 'student' && !isIeltsSchool && (!grade || !batch))
         );
 
     return (
@@ -436,7 +444,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                     )}
                                 </div>
 
-                                {role === 'student' && (
+                                {role === 'student' && !isIeltsSchool && (
                                     <>
                                         <div>
                                             <label htmlFor="grade" className="block text-sm font-medium text-gray-300">Grade</label>
