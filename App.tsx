@@ -58,6 +58,8 @@ interface AppProps {
   onLogout: () => void;
 }
 
+const IELTS_ONLY_SCHOOL_NAME = 'Just for IELTS';
+
 const App: React.FC<AppProps> = ({ onLogout }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -91,6 +93,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [pendingClanRequests, setPendingClanRequests] = useState(0);
   const [isUserSchoolAdmin, setIsUserSchoolAdmin] = useState(false);
   const isCambridgeView = view === 'cambridge';
+  const isIeltsOnlyUser =
+    profile?.school_name?.trim().toLowerCase() === IELTS_ONLY_SCHOOL_NAME.toLowerCase();
 
   const renderLazy = (node: React.ReactNode) => (
     <Suspense
@@ -124,6 +128,18 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const addToast = (message: string, type: ToastMessage['type'] = 'info', retryAction?: () => void) => {
     const id = Date.now();
     setToasts((prevToasts: ToastMessage[]) => [...prevToasts, { id, message, type, retryAction }]);
+  };
+
+  const handleViewChange = (nextView: typeof view) => {
+    if (isIeltsOnlyUser && nextView !== 'ielts') {
+      addToast(
+        'This account is IELTS-only. Sign out and sign up with another school to access Brains Heist.',
+        'info'
+      );
+      setView('ielts');
+      return;
+    }
+    setView(nextView);
   };
 
   const removeToast = (id: number) => {
@@ -254,6 +270,12 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   useEffect(() => {
     void refreshPendingJoinRequests();
   }, [profile?.id, view]);
+
+  useEffect(() => {
+    if (profile && isIeltsOnlyUser && view !== 'ielts') {
+      setView('ielts');
+    }
+  }, [profile, isIeltsOnlyUser, view]);
 
   useEffect(() => {
     if (!profile || profile.role === 'teacher' || profile.role === 'admin') {
@@ -613,7 +635,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, [profile, previousLevel]);
   
   const handleViewComplete = () => {
-    setView('dashboard');
+    handleViewChange('dashboard');
     // Only refresh profile data (lightweight) instead of all game data
     refreshProfile();
   };
@@ -634,7 +656,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       const teacherName = activeAssignment.teacher_username || 'your teacher';
       addToast(`Assignment pending from ${teacherName}. Complete it before starting new quests.`, 'warning');
     }
-    setView('quest');
+    handleViewChange('quest');
   };
 
   const handleGrantReward = (deltas: { xp?: number; coins?: number; gemstones?: number; ap?: number }, finalValues?: { xp: number; coins: number; level: number; gemstones: number }) => {
@@ -904,7 +926,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                 onPurchase={handleGrantReward}
                 profile={profile}
                 addToast={addToast}
-                onNavigateToInventory={() => setView('inventory')}
+                onNavigateToInventory={() => handleViewChange('inventory')}
               />
             );
         case 'clan':
@@ -922,7 +944,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               <InventoryView
                 onComplete={handleViewComplete}
                 addToast={addToast}
-                onNavigateToShop={() => setView('shop')}
+                onNavigateToShop={() => handleViewChange('shop')}
                 onProfileUpdate={setProfile}
               />
             );
@@ -935,7 +957,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         case 'raid_admin':
             return renderLazy(<RaidAdminView profile={profile} onComplete={handleViewComplete} addToast={addToast} />);
         case 'teacher':
-            return renderLazy(<TeacherPortal profile={profile} onComplete={handleViewComplete} onLockdown={() => setView('lockdown')} />);
+            return renderLazy(<TeacherPortal profile={profile} onComplete={handleViewComplete} onLockdown={() => handleViewChange('lockdown')} />);
         case 'admin':
             return renderLazy(<AdminPortal profile={profile} onComplete={handleViewComplete} addToast={addToast} />);
         case 'tournament':
@@ -946,7 +968,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             return renderLazy(
               <Phase1PlayView
                 profile={profile}
-                onExit={() => setView('dashboard')}
+                onExit={() => handleViewChange('dashboard')}
                 onProfileUpdate={(updatedProfile) => setProfile(updatedProfile)}
                 addToast={addToast}
               />
@@ -955,7 +977,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             return renderLazy(
               <Phase1LeaderboardView
                 profile={profile}
-                onExit={() => setView('dashboard')}
+                onExit={() => handleViewChange('dashboard')}
                 addToast={addToast}
               />
             );
@@ -963,39 +985,41 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             return renderLazy(
               <Phase1AdminDashboard
                 profile={profile}
-                onExit={() => setView('dashboard')}
+                onExit={() => handleViewChange('dashboard')}
                 addToast={addToast}
               />
             );
         case 'ielts':
             return renderLazy(
               <div className="relative">
-                  <button
-                      onClick={() => setView('dashboard')}
-                      className="mb-4 px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors flex items-center gap-2"
-                  >
-                      ← Back to Dashboard
-                  </button>
+                  {!isIeltsOnlyUser && (
+                    <button
+                        onClick={() => handleViewChange('dashboard')}
+                        className="mb-4 px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors flex items-center gap-2"
+                    >
+                        ← Back to Dashboard
+                    </button>
+                  )}
                   <IeltsHome />
               </div>
             );
         case 'lockdown':
           return renderLazy(
             <ClanTerritoryManager
-              onExit={() => setView('dashboard')}
+              onExit={() => handleViewChange('dashboard')}
               isTeacher={profile?.role === 'teacher'}
               playerName={profile?.username || 'Agent'}
               clanId={profile?.clan_id}
               clanName={profile?.clan_name}
               onRefreshProfile={fetchGameData}
-              onGoToClan={() => setView('clan')}
+              onGoToClan={() => handleViewChange('clan')}
             />
           );
         case 'cambridge':
           return renderLazy(
             <CambridgeTestsHub
               profile={profile}
-              onExit={() => setView('dashboard')}
+              onExit={() => handleViewChange('dashboard')}
             />
           );
         case 'school_admin':
@@ -1013,7 +1037,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                     <TeacherPortal
                         profile={profile}
                         onComplete={handleViewComplete}
-                        onLockdown={() => setView('lockdown')}
+                        onLockdown={() => handleViewChange('lockdown')}
                     />
                 );
             }
@@ -1036,24 +1060,24 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                   <div className="space-y-6 lg:col-span-5 xl:col-span-6">
                     <MainActions
                       onStartQuest={handleQuestAction}
-                      onStartPvp={() => setView('pvp')}
-                      onOpenRaid={!isStudent ? () => setView('raids') : undefined}
-                      onVisitShop={() => setView('shop')}
-                      onGoToClan={() => setView('clan')}
-                      onVisitInventory={() => setView('inventory')}
-                      onViewLeaderboard={() => setView('leaderboard')}
-                      onViewAchievements={() => setView('achievements')}
-                      onOpenRaidAdmin={isAdmin(profile) ? () => setView('raid_admin') : undefined}
-                      onOpenTournament={() => setView('tournament')}
-                      onOpenAdminPortal={isAdmin(profile) ? () => setView('admin') : undefined}
-                      onOpenSchoolAdmin={isUserSchoolAdmin ? () => setView('school_admin') : undefined}
-                      onOpenTournamentAdmin={isAdmin(profile) ? () => setView('tournament_admin') : undefined}
-                      onOpenCompetitionPlay={!isStudent && profile?.grade && !profile?.is_banned ? () => setView('phase1_play') : undefined}
-                      onOpenCompetitionLeaderboard={() => setView('phase1_leaderboard')}
-                      onOpenCompetitionAdmin={profile?.is_admin ? () => setView('phase1_admin') : undefined}
-                      onOpenIeltsPrep={!isStudent ? () => setView('ielts') : undefined}
-                      onOpenCambridgeTests={() => setView('cambridge')}
-                      onOpenLockdown={() => setView('lockdown')}
+                      onStartPvp={() => handleViewChange('pvp')}
+                      onOpenRaid={!isStudent ? () => handleViewChange('raids') : undefined}
+                      onVisitShop={() => handleViewChange('shop')}
+                      onGoToClan={() => handleViewChange('clan')}
+                      onVisitInventory={() => handleViewChange('inventory')}
+                      onViewLeaderboard={() => handleViewChange('leaderboard')}
+                      onViewAchievements={() => handleViewChange('achievements')}
+                      onOpenRaidAdmin={isAdmin(profile) ? () => handleViewChange('raid_admin') : undefined}
+                      onOpenTournament={() => handleViewChange('tournament')}
+                      onOpenAdminPortal={isAdmin(profile) ? () => handleViewChange('admin') : undefined}
+                      onOpenSchoolAdmin={isUserSchoolAdmin ? () => handleViewChange('school_admin') : undefined}
+                      onOpenTournamentAdmin={isAdmin(profile) ? () => handleViewChange('tournament_admin') : undefined}
+                      onOpenCompetitionPlay={!isStudent && profile?.grade && !profile?.is_banned ? () => handleViewChange('phase1_play') : undefined}
+                      onOpenCompetitionLeaderboard={() => handleViewChange('phase1_leaderboard')}
+                      onOpenCompetitionAdmin={profile?.is_admin ? () => handleViewChange('phase1_admin') : undefined}
+                      onOpenIeltsPrep={() => handleViewChange('ielts')}
+                      onOpenCambridgeTests={() => handleViewChange('cambridge')}
+                      onOpenLockdown={() => handleViewChange('lockdown')}
                       profile={profile}
                       hasPendingAssignment={Boolean(activeAssignment)}
                       clanBadgeCount={pendingClanRequests}
@@ -1170,9 +1194,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             profile={profile}
             onLogout={onLogout}
             currentView={view}
-            onBackToDashboard={() => setView('dashboard')}
+            onBackToDashboard={() => handleViewChange('dashboard')}
             onShowHelp={() => setShowHelp(true)}
-            onNavigate={(targetView) => setView(targetView)}
+            onNavigate={(targetView) => handleViewChange(targetView)}
             liteMode={isLiteMode}
             onToggleLiteMode={toggleLightMode}
             onProfileAvatarChange={(avatarUrl) => setProfile((p) => p ? { ...p, avatar_url: avatarUrl } : p)}
