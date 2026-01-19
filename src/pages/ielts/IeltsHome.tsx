@@ -216,66 +216,6 @@ const IeltsHome: React.FC = () => {
             </div>
           </div>
 
-          {/* Listening Task 2 Banner */}
-          <div 
-            onClick={() => navigate('/ielts/trial-test-2')}
-            style={{ 
-              background: 'linear-gradient(135deg, #0f766e 0%, #134e4a 100%)',
-              borderRadius: '1rem',
-              padding: 'clamp(1rem, 3vw, 1.5rem)',
-              marginBottom: '1rem',
-              cursor: 'pointer',
-              color: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '1rem',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-            }}
-          >
-            <div style={{ fontSize: '2.5rem' }}>📝</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ 
-                display: 'inline-block',
-                background: '#22c55e',
-                color: 'white',
-                padding: '0.125rem 0.5rem',
-                borderRadius: '0.25rem',
-                fontSize: '0.625rem',
-                fontWeight: 'bold',
-                marginBottom: '0.375rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}>
-                Free Task
-              </div>
-              <h3 style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', fontWeight: 'bold', margin: '0 0 0.25rem 0' }}>
-                IELTS Listening Task 2
-              </h3>
-              <p style={{ fontSize: '0.75rem', color: '#99f6e4', margin: 0 }}>
-                Form completion • 10 questions • Instant score
-              </p>
-            </div>
-            <div style={{ 
-              background: '#14b8a6',
-              padding: '0.5rem 1rem',
-              borderRadius: '0.5rem',
-              fontWeight: 'bold',
-              fontSize: '0.875rem',
-              whiteSpace: 'nowrap',
-            }}>
-              Start →
-            </div>
-          </div>
-
           {/* Loading/Error States */}
           {error && (
             <div style={{
@@ -347,6 +287,58 @@ const IeltsHome: React.FC = () => {
               <span style={{ fontSize: '1.5rem' }}>🎧</span>
               <h2 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>Listening</h2>
             </div>
+            <button
+              onClick={() => navigate('/ielts/trial-test-2')}
+              style={{
+                width: '100%',
+                background: 'linear-gradient(135deg, #0f766e 0%, #134e4a 100%)',
+                border: '1px solid #0f766e',
+                borderRadius: '0.5rem',
+                padding: '0.75rem',
+                marginBottom: '0.75rem',
+                textAlign: 'left',
+                cursor: 'pointer',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.12)',
+              }}
+            >
+              <div style={{ fontSize: '1.75rem' }}>📝</div>
+              <div style={{ flex: 1 }}>
+                <div style={{
+                  display: 'inline-block',
+                  background: '#22c55e',
+                  color: 'white',
+                  padding: '0.125rem 0.5rem',
+                  borderRadius: '0.25rem',
+                  fontSize: '0.625rem',
+                  fontWeight: 'bold',
+                  marginBottom: '0.375rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                }}>
+                  Free Task
+                </div>
+                <div style={{ fontWeight: '600', fontSize: '0.9rem', marginBottom: '0.25rem' }}>
+                  IELTS Listening Task 2
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#99f6e4' }}>
+                  Form completion • 10 questions • Instant score
+                </div>
+              </div>
+              <div style={{
+                background: '#14b8a6',
+                padding: '0.4rem 0.75rem',
+                borderRadius: '0.5rem',
+                fontWeight: 'bold',
+                fontSize: '0.8rem',
+                whiteSpace: 'nowrap',
+              }}>
+                Start →
+              </div>
+            </button>
             {isLoading && listeningSets.length === 0 ? (
               <p style={{ color: '#6b7280', fontSize: '0.8125rem', margin: 0 }}>Loading listening sets…</p>
             ) : listeningSets.length === 0 ? (
