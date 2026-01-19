@@ -84,16 +84,53 @@ serve(async (req) => {
       return jsonResponse(400, { error: "No text provided" });
     }
 
+    const writingTaskPrompts: Record<string, { part1: string; part2: string }> = {
+      "Cambridge Writing Test 2": {
+        part1: [
+          "Task: Band Email to Sam.",
+          "You recently saw a really good band and want to tell your English-speaking friend, Sam, about it.",
+          "Write an email to Sam that covers ALL of the following points:",
+          "- where you saw the band",
+          "- how you found out about the band",
+          "- why you like the band",
+        ].join("\n"),
+        part2: [
+          "Task: Midnight Phone Call Story.",
+          "Your English teacher has asked you to write a story.",
+          "Your story MUST begin with this exact sentence:",
+          "\"Just after midnight, I woke up to the sound of my phone ringing.\"",
+          "Write your story in an appropriate style.",
+        ].join("\n"),
+      },
+    };
+
+    const getTaskPrompt = (isPart1: boolean, selectedTestType: string) => {
+      const testPrompt = writingTaskPrompts[selectedTestType];
+      if (!testPrompt) return "";
+      return isPart1 ? testPrompt.part1 : testPrompt.part2;
+    };
+
+    const getPartDescriptor = (isPart1: boolean, selectedTestType: string) => {
+      if (selectedTestType === "Cambridge Writing Test 2") {
+        return isPart1 ? "Part 1 email" : "Part 2 story";
+      }
+      return isPart1 ? "Part 1 email" : "Part 2 writing task";
+    };
+
     // GPT proofreading function
-    async function proofread(text: string, isPart1: boolean) {
+    async function proofread(text: string, isPart1: boolean, selectedTestType: string) {
       const partInfo = isPart1 ? "Part 1 (45-55 words)" : "Part 2 (110-130 words)";
       const wordCount = text.trim().split(/\s+/).length;
+      const taskPrompt = getTaskPrompt(isPart1, selectedTestType);
+      const partDescriptor = getPartDescriptor(isPart1, selectedTestType);
 
       console.log(`Calling OpenAI for ${partInfo}, ${wordCount} words...`);
 
-      const systemPrompt = `You are a Cambridge ESOL Senior Examiner marking a B2 First ${isPart1 ? 'Part 1 email' : 'Part 2 essay/article'}.
+      const systemPrompt = `You are a Cambridge ESOL Senior Examiner marking a B2 First ${partDescriptor}.
 
 TASK: Analyse the student text and return a JSON object with ALL of the following fields.
+
+${taskPrompt ? `TASK PROMPT:\n${taskPrompt}\n` : ""}
 
 ===== FIELD 1: spellingMistakes =====
 An array where EACH spelling error is a SEPARATE object.
@@ -137,7 +174,7 @@ CRITICAL REQUIREMENTS:
 
 Student word count: ${wordCount} words (target: ${isPart1 ? '45-55' : '110-130'})`;
 
-      const userMessage = `STUDENT'S TEXT:
+      const userMessage = `${taskPrompt ? `TASK PROMPT:\n${taskPrompt}\n\n` : ""}STUDENT'S TEXT:
 """
 ${text}
 """
@@ -173,11 +210,11 @@ Return valid JSON only.`;
     const result: { part1?: unknown; part2?: unknown } = {};
 
     if (part1Text?.trim()) {
-      result.part1 = await proofread(part1Text, true);
+      result.part1 = await proofread(part1Text, true, testType);
     }
 
     if (part2Text?.trim()) {
-      result.part2 = await proofread(part2Text, false);
+      result.part2 = await proofread(part2Text, false, testType);
     }
 
     console.log("Proofread complete!");
