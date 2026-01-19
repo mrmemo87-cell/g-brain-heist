@@ -57,7 +57,12 @@ const IeltsHome: React.FC = () => {
         ]);
 
         setReadingSets(reading);
-        setListeningSets(listening);
+        const excludedListeningTitles = new Set([
+          'IELTS Listening Sample Task 1 (Form Completion)',
+          'IELTS Listening Sample Task 2 (Form Completion)',
+        ]);
+        const filteredListening = listening.filter((set) => !excludedListeningTitles.has(set.title));
+        setListeningSets(filteredListening);
         setWritingTasks(writing);
         setSpeakingTasks(speaking);
         setCompletedTasks(completed);
