@@ -195,6 +195,17 @@
       "est_band_max": 7.5,
       "duration_minutes": 15,
       "audio_script": "[Coordinator] Good morning everyone. Before you register for the coastal research internship, let me outline the essentials. Applications close on the fifteenth of May, so please have your forms and supervisor signatures ready a week earlier for checks. Only second- and third-year students with at least one lab course completed may apply. The university pays for your return ferry ticket to Silverstrand Island, but you must arrange your own train fare to the harbour. Accommodation is provided in converted lighthouse quarters, which sleep six per room. They are basic but include lockers, showers and a shared workspace. Before you travel, you must attend the on-campus first-aid workshop on the 22nd of April; it is compulsory because we work on slippery jetties. During the five-week placement, Mondays are reserved for drone mapping, Wednesdays for water sampling, and Fridays for community presentations in the village hall. Pack sturdy boots, a waterproof jacket and especially a headlamp, as the island paths have no lighting after sunset. Finally, on the first weekend you will meet local fishers to record oral histories about shoreline change, so prepare respectful interview questions. [Student] Hi everyone, I’m Lia, and I joined last year’s team. The work is rewarding but be ready for surprises. For example, heavy fog settled over the island during our second week, so we had to postpone drone flights until the sky cleared. Instead, we focused on cataloguing specimens indoors. The science tasks are manageable, yet uploading files can be frustrating because the satellite internet is slow; I often stayed up late waiting for tide data to sync. My advice is to take neat field notes so you can catch up on data entry when the connection improves. The local community is welcoming, and the fishers will happily share stories if you show patience."
+    },
+    {
+      "slug": "packham-shipping-agency-form",
+      "title": "Packham Shipping Agency Form Completion",
+      "description": "Complete a customer quotation form while listening to a shipping enquiry.",
+      "level": "intermediate",
+      "est_band_min": 5.0,
+      "est_band_max": 6.5,
+      "duration_minutes": 8,
+      "audio_url": "https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/ielts-audio/speaking/b30e9c28-96f1-4d34-83e9-9b28b4926f42/ielts-listening-sample-task-1-form-completion.mp3",
+      "audio_script": "Customer provides details for a shipping quotation, including address, crate size, contents, and declared value."
     }
   ],
   "ielts_listening_questions": [
@@ -291,6 +302,70 @@
       ],
       "correct_answer": "To collect oral histories of shoreline change",
       "explanation": "Students conduct interviews with fishers to gather qualitative data about erosion patterns."
+    },
+    {
+      "set_slug": "packham-shipping-agency-form",
+      "question_order": 1,
+      "question_type": "short_answer",
+      "body": "Name",
+      "correct_answer": "Mkere",
+      "explanation": "The customer gives the surname Mkere."
+    },
+    {
+      "set_slug": "packham-shipping-agency-form",
+      "question_order": 2,
+      "question_type": "short_answer",
+      "body": "Address to be collected (street name)",
+      "correct_answer": "Westall",
+      "explanation": "The collection address is on Westall College, Downlands Rd."
+    },
+    {
+      "set_slug": "packham-shipping-agency-form",
+      "question_order": 3,
+      "question_type": "short_answer",
+      "body": "Postcode",
+      "correct_answer": "BS8 9PU",
+      "explanation": "The postcode provided is BS8 9PU."
+    },
+    {
+      "set_slug": "packham-shipping-agency-form",
+      "question_order": 4,
+      "question_type": "short_answer",
+      "body": "Crate width",
+      "correct_answer": "0.75 m",
+      "explanation": "The width is three quarters of a metre."
+    },
+    {
+      "set_slug": "packham-shipping-agency-form",
+      "question_order": 5,
+      "question_type": "short_answer",
+      "body": "Crate height",
+      "correct_answer": "0.5 m",
+      "explanation": "The height is half a metre."
+    },
+    {
+      "set_slug": "packham-shipping-agency-form",
+      "question_order": 6,
+      "question_type": "short_answer",
+      "body": "Contents (item 1)",
+      "correct_answer": "books",
+      "explanation": "The first item listed is books."
+    },
+    {
+      "set_slug": "packham-shipping-agency-form",
+      "question_order": 7,
+      "question_type": "short_answer",
+      "body": "Contents (item 2)",
+      "correct_answer": "toys",
+      "explanation": "The second item listed is toys."
+    },
+    {
+      "set_slug": "packham-shipping-agency-form",
+      "question_order": 8,
+      "question_type": "short_answer",
+      "body": "Total estimated value",
+      "correct_answer": "1700",
+      "explanation": "The declared value is 1,700."
     }
   ],
   "ielts_writing_tasks": [

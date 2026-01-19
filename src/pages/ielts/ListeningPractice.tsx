@@ -36,6 +36,8 @@ const ListeningPractice: React.FC = () => {
   const [showResults, setShowResults] = useState(false);
   const [startTime] = useState(Date.now());
   const [audioPlayed, setAudioPlayed] = useState(false);
+  const [audioStarted, setAudioStarted] = useState(false);
+  const [audioEnded, setAudioEnded] = useState(false);
   const [currentSection, setCurrentSection] = useState(0);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [audioCurrentTime, setAudioCurrentTime] = useState(0);
@@ -50,6 +52,7 @@ const ListeningPractice: React.FC = () => {
   
   const audioRef = useRef<HTMLAudioElement>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastAudioTimeRef = useRef(0);
 
   // Stop background music when entering IELTS Listening practice
   useEffect(() => {
@@ -69,6 +72,7 @@ const ListeningPractice: React.FC = () => {
 
     const handleTimeUpdate = () => {
       setAudioCurrentTime(audio.currentTime);
+      lastAudioTimeRef.current = audio.currentTime;
     };
 
     const handleLoadedMetadata = () => {
@@ -78,14 +82,25 @@ const ListeningPractice: React.FC = () => {
     const handlePlay = () => {
       setIsAudioPlaying(true);
       setAudioPlayed(true);
+      setAudioStarted(true);
     };
 
     const handlePause = () => {
       setIsAudioPlaying(false);
+      if (audioStarted && !audioEnded) {
+        void audio.play();
+      }
     };
 
     const handleEnded = () => {
       setIsAudioPlaying(false);
+      setAudioEnded(true);
+    };
+
+    const handleSeeking = () => {
+      if (audioStarted && !audioEnded) {
+        audio.currentTime = lastAudioTimeRef.current;
+      }
     };
 
     audio.addEventListener('timeupdate', handleTimeUpdate);
@@ -93,6 +108,7 @@ const ListeningPractice: React.FC = () => {
     audio.addEventListener('play', handlePlay);
     audio.addEventListener('pause', handlePause);
     audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('seeking', handleSeeking);
 
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
@@ -100,8 +116,21 @@ const ListeningPractice: React.FC = () => {
       audio.removeEventListener('play', handlePlay);
       audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('seeking', handleSeeking);
     };
-  }, []);
+  }, [audioStarted, audioEnded]);
+
+  const startAudio = async () => {
+    if (audioStarted || audioEnded) return;
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    try {
+      await audio.play();
+    } catch (error) {
+      console.error('Audio play failed:', error);
+    }
+  };
 
   // Fetch listening set
   const { data: listeningSet, isLoading: loadingSet } = useQuery({
@@ -782,13 +811,38 @@ const ListeningPractice: React.FC = () => {
                   border: '1px solid #e2e8f0',
                   borderRadius: '0.75rem',
                   padding: '1rem',
-                  marginBottom: '1rem'
+                  marginBottom: '1rem',
+                  textAlign: 'center'
                 }}>
-                  <audio
-                    ref={audioRef}
-                    controls
-                    style={{ width: '100%' }}
+                  <button
+                    onClick={startAudio}
+                    disabled={audioStarted || audioEnded}
+                    style={{
+                      width: '4.5rem',
+                      height: '4.5rem',
+                      borderRadius: '9999px',
+                      border: 'none',
+                      background: audioEnded
+                        ? '#6b7280'
+                        : audioStarted
+                          ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
+                          : 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                      color: 'white',
+                      fontSize: '1.75rem',
+                      cursor: audioStarted || audioEnded ? 'not-allowed' : 'pointer',
+                      boxShadow: audioStarted
+                        ? '0 4px 15px rgba(239, 68, 68, 0.4)'
+                        : '0 4px 15px rgba(34, 197, 94, 0.4)',
+                      transition: 'transform 0.2s'
+                    }}
+                    aria-label="Play listening audio"
                   >
+                    {audioEnded ? '✓' : audioStarted ? '🔊' : '▶'}
+                  </button>
+                  <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: '#64748b' }}>
+                    {audioEnded ? 'Audio completed — answer the questions' : audioStarted ? 'Playing... listen carefully' : 'Tap play to start (one time only)'}
+                  </div>
+                  <audio ref={audioRef} preload="metadata">
                     <source src={listeningSet.audio_url} type="audio/mpeg" />
                     Your browser does not support the audio element.
                   </audio>
