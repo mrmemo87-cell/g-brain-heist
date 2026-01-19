@@ -927,12 +927,13 @@ const TrialListeningTest: React.FC = () => {
                         flex: 1,
                         minWidth: '150px',
                         padding: '0.625rem 0.875rem',
-                        border: '2px solid #e2e8f0',
-                        borderRadius: '0.5rem',
-                        fontSize: '0.9rem',
-                        outline: 'none',
-                        transition: 'border-color 0.2s'
-                      }}
+                      border: '2px solid #e2e8f0',
+                      borderRadius: '0.5rem',
+                      fontSize: '0.9rem',
+                      outline: 'none',
+                      color: '#000',
+                      transition: 'border-color 0.2s'
+                    }}
                       onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
                       onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
                     />
@@ -1106,7 +1107,8 @@ const TrialListeningTest: React.FC = () => {
                       border: '2px solid #e2e8f0',
                       borderRadius: '0.5rem',
                       fontSize: '0.9rem',
-                      outline: 'none'
+                      outline: 'none',
+                      color: '#000'
                     }}
                     onFocus={(e) => e.target.style.borderColor = '#f59e0b'}
                     onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
@@ -1172,7 +1174,8 @@ const TrialListeningTest: React.FC = () => {
                       border: '2px solid #e2e8f0',
                       borderRadius: '0.5rem',
                       fontSize: '0.9rem',
-                      outline: 'none'
+                      outline: 'none',
+                      color: '#000'
                     }}
                     onFocus={(e) => e.target.style.borderColor = '#10b981'}
                     onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
@@ -1461,11 +1464,12 @@ const TrialListeningTest: React.FC = () => {
                       style={{
                         width: '100%',
                         padding: '0.625rem 0.875rem',
-                        border: '2px solid #e2e8f0',
-                        borderRadius: '0.5rem',
-                        fontSize: '0.9rem',
-                        outline: 'none'
-                      }}
+                      border: '2px solid #e2e8f0',
+                      borderRadius: '0.5rem',
+                      fontSize: '0.9rem',
+                      outline: 'none',
+                      color: '#000'
+                    }}
                       onFocus={(e) => e.target.style.borderColor = '#8b5cf6'}
                       onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
                     />
