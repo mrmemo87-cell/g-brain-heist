@@ -60,6 +60,7 @@ import { supabase } from './supabaseClient';
 import { fetchNeonFrameOwners, fetchFlickerThemeOwners, fetchGlitchEffectOwners } from './cosmeticService';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage';
 import { notificationService } from './notificationService';
+import { fetchMyXpStatus } from './xpStatus';
 import {
     regenerateUserAp,
     notifyApFull,
@@ -91,8 +92,6 @@ const MOCK_DELAY = 500;
 const QUEST_STREAK_TARGET = 5;
 const QUEST_GEMSTONE_REWARD = 1;
 const QUEST_GEMSTONE_DAILY_CAP = 2;
-const LEVEL_MILESTONE_INTERVAL = 5;
-const LEVEL_MILESTONE_GEMSTONE_REWARD = 1;
 const PVP_GEMSTONE_REWARD = 1;
 const PVP_GEMSTONE_DAILY_CAP = 1;
 
@@ -733,6 +732,62 @@ const getCurrentUser = async (maxRetries = 3) => {
   throw lastError || new Error('Not authenticated');
 };
 
+const getCurrentUserRole = async () => {
+  const user = await getCurrentUser();
+  const { data, error } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  if (error) {
+    console.warn('[getCurrentUserRole] Failed to fetch role, defaulting to student:', error);
+  }
+
+  return data?.role ?? 'student';
+};
+
+const applyRewardDelta = async ({
+  xpDelta = 0,
+  coinsDelta = 0,
+  gemstonesDelta = 0,
+  applyLevelMilestone = false,
+}: {
+  xpDelta?: number;
+  coinsDelta?: number;
+  gemstonesDelta?: number;
+  applyLevelMilestone?: boolean;
+}) => {
+  const user = await getCurrentUser();
+  const role = await getCurrentUserRole();
+  const response = await fetch('/api/brains_heist/rewards/apply', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-brains-user-id': user.id,
+      'x-brains-user-role': role,
+    },
+    body: JSON.stringify({
+      xpDelta,
+      coinsDelta,
+      gemstonesDelta,
+      applyLevelMilestone,
+    }),
+  });
+
+  const payload = await response.json();
+  if (!response.ok || !payload?.success) {
+    const message = payload?.error?.message || 'Failed to apply rewards';
+    throw new Error(message);
+  }
+
+  return payload.data as {
+    profile: Profile;
+    xpStatus?: { level: number; xp: number; level_xp_start: number; level_xp_next: number; xp_into_level: number; xp_to_next: number; progress: number } | null;
+    previousLevel?: number | null;
+  };
+};
+
 // Helper to update profile fields with retry logic and verification
 const updateProfile = async (userId: string, updates: Partial<Profile>, maxRetries = 3) => {
   let lastError: Error | null = null;
@@ -742,9 +797,15 @@ const updateProfile = async (userId: string, updates: Partial<Profile>, maxRetri
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       // Use .select() to return updated rows - if RLS blocks, this will return empty
+      const { xp, level, ...safeUpdates } = updates;
+
+      if (xp !== undefined || level !== undefined) {
+        console.warn('[updateProfile] xp/level updates are blocked; stripping from payload');
+      }
+
       const { data, error } = await supabase
         .from('users')
-        .update(updates)
+        .update(safeUpdates)
         .eq('id', userId)
         .select('id, xp, coins, level, gemstones')
         .single();
@@ -762,14 +823,8 @@ const updateProfile = async (userId: string, updates: Partial<Profile>, maxRetri
       
       // CRITICAL: Verify the returned data matches what we tried to set
       const mismatches: string[] = [];
-      if (updates.xp !== undefined && data.xp !== updates.xp) {
-        mismatches.push(`xp: expected ${updates.xp}, got ${data.xp}`);
-      }
-      if (updates.coins !== undefined && data.coins !== updates.coins) {
-        mismatches.push(`coins: expected ${updates.coins}, got ${data.coins}`);
-      }
-      if (updates.level !== undefined && data.level !== updates.level) {
-        mismatches.push(`level: expected ${updates.level}, got ${data.level}`);
+      if (safeUpdates.coins !== undefined && data.coins !== safeUpdates.coins) {
+        mismatches.push(`coins: expected ${safeUpdates.coins}, got ${data.coins}`);
       }
       
       if (mismatches.length > 0) {
@@ -793,11 +848,8 @@ const updateProfile = async (userId: string, updates: Partial<Profile>, maxRetri
         // Don't throw - the update might have succeeded
       } else if (verifyData) {
         const verifyMismatches: string[] = [];
-        if (updates.xp !== undefined && verifyData.xp !== updates.xp) {
-          verifyMismatches.push(`xp: wrote ${updates.xp}, read back ${verifyData.xp}`);
-        }
-        if (updates.coins !== undefined && verifyData.coins !== updates.coins) {
-          verifyMismatches.push(`coins: wrote ${updates.coins}, read back ${verifyData.coins}`);
+        if (safeUpdates.coins !== undefined && verifyData.coins !== safeUpdates.coins) {
+          verifyMismatches.push(`coins: wrote ${safeUpdates.coins}, read back ${verifyData.coins}`);
         }
         
         if (verifyMismatches.length > 0) {
@@ -1576,6 +1628,15 @@ export const whoami = async (): Promise<Profile> => {
 
     profile.total_score = calculateTotalScore(profile.xp ?? 0, profile.pvp_score ?? 0);
 
+    try {
+        profile.xp_status = await fetchMyXpStatus(supabase, {
+            xp: profile.xp,
+            level: profile.level,
+        });
+    } catch (error) {
+        console.warn('[whoami] Failed to fetch XP status:', error);
+    }
+
     return profile;
 };
 
@@ -1844,21 +1905,13 @@ export const task_claim = async (task_id: string): Promise<{ xp: number; coins: 
     throw new Error('No reward defined for this task');
   }
   
-  // Grant rewards to user
-  const { data: profile } = await supabase
-    .from('users')
-    .select('xp, coins, gemstones')
-    .eq('id', user.id)
-    .single();
-
-  if (!profile) throw new Error('Profile not found');
-
   const gemstonesEarned = task.reward.gemstones || 0;
 
-  await updateProfile(user.id, {
-    xp: profile.xp + task.reward.xp,
-    coins: profile.coins + task.reward.coins,
-    gemstones: (profile.gemstones || 0) + gemstonesEarned,
+  await applyRewardDelta({
+    xpDelta: task.reward.xp,
+    coinsDelta: task.reward.coins,
+    gemstonesDelta: gemstonesEarned,
+    applyLevelMilestone: false,
   });
   
   // Mark as claimed in localStorage
@@ -2749,38 +2802,27 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
         const xpDelta = response.attacker_deltas?.xp ?? 0;
         const coinsDelta = response.attacker_deltas?.coins ?? 0;
         if (xpDelta !== 0 || coinsDelta !== 0) {
-            const { data: currentProfile } = await supabase
-                .from('users')
-                .select('xp, coins, level')
-                .eq('id', user.id)
-                .single();
-            
-            if (currentProfile) {
-                const newXP = Math.max(0, currentProfile.xp + xpDelta);
-                const newCoins = Math.max(0, currentProfile.coins + coinsDelta);
-                const newLevel = Math.floor(newXP / 100) + 1;
-                
-                await updateProfile(user.id, {
-                    xp: newXP,
-                    coins: newCoins,
-                    level: newLevel,
-                });
-                
-                // Track PvP earnings for stats display
-                if (xpDelta > 0 || coinsDelta > 0) {
-                    try {
-                        await supabase.rpc('track_pvp_earnings', {
-                            p_user_id: user.id,
-                            p_xp_delta: Math.max(0, xpDelta),
-                            p_coins_delta: Math.max(0, coinsDelta)
-                        });
-                    } catch (trackErr) {
-                        console.warn('Failed to track PvP earnings:', trackErr);
-                    }
+            await applyRewardDelta({
+                xpDelta,
+                coinsDelta,
+                gemstonesDelta: 0,
+                applyLevelMilestone: false,
+            });
+
+            // Track PvP earnings for stats display
+            if (xpDelta > 0 || coinsDelta > 0) {
+                try {
+                    await supabase.rpc('track_pvp_earnings', {
+                        p_user_id: user.id,
+                        p_xp_delta: Math.max(0, xpDelta),
+                        p_coins_delta: Math.max(0, coinsDelta)
+                    });
+                } catch (trackErr) {
+                    console.warn('Failed to track PvP earnings:', trackErr);
                 }
-                
-                console.log(`[Bot PvP] Applied rewards: ${xpDelta} XP, ${coinsDelta} coins`);
             }
+            
+            console.log(`[Bot PvP] Applied rewards: ${xpDelta} XP, ${coinsDelta} coins`);
         }
     } else {
         const { data, error } = await performHackAttempt(defender_id);
@@ -5202,41 +5244,19 @@ export const submit_question_answer = async (
     const coinDelta = result.is_correct ? Math.floor(xpDelta / 2) : 0;
 
     if (xpDelta > 0 || coinDelta > 0) {
-        const { data: currentProfile, error: profileError } = await supabase
-            .from('users')
-            .select('xp, coins, level, gemstones')
-            .eq('id', user.id)
-            .single();
-
-        if (profileError || !currentProfile) {
-            console.error('[submit_question_answer] Failed to fetch profile:', profileError);
-            throw new Error('Failed to fetch profile');
-        }
-
-        const newXP = currentProfile.xp + xpDelta;
-        const newCoins = Math.max(0, currentProfile.coins + coinDelta);
-        const newLevel = Math.floor(newXP / 100) + 1;
-        const leveledUp = newLevel > currentProfile.level;
-
-        let gemstoneDelta = 0;
-        if (leveledUp && newLevel % LEVEL_MILESTONE_INTERVAL === 0) {
-            gemstoneDelta += LEVEL_MILESTONE_GEMSTONE_REWARD;
-        }
-
-        const newGemstones = Math.max(0, (currentProfile.gemstones || 0) + gemstoneDelta);
-
-        await updateProfile(user.id, {
-            xp: newXP,
-            coins: newCoins,
-            level: newLevel,
-            gemstones: newGemstones,
+        const rewardResult = await applyRewardDelta({
+            xpDelta,
+            coinsDelta: coinDelta,
+            gemstonesDelta: 0,
+            applyLevelMilestone: true,
         });
 
         result.final_profile_values = {
-            xp: newXP,
-            coins: newCoins,
-            level: newLevel,
-            gemstones: newGemstones,
+            xp: rewardResult.profile.xp,
+            coins: rewardResult.profile.coins,
+            level: rewardResult.profile.level,
+            gemstones: rewardResult.profile.gemstones,
+            xp_status: rewardResult.xpStatus ?? undefined,
         };
     }
 
@@ -5707,47 +5727,35 @@ const finalizeMcqAnswer = async ({
 
     const questOutcome = duplicateCorrect ? { gemstoneDelta: 0, notifications: [] } : applyQuestProgress(userId, isCorrect);
 
-    // Now fetch profile and calculate rewards AFTER we know if it's a duplicate
-    console.log(`[MCQ] Fetching profile for reward calculation. xpReward=${xpReward}, coinDelta=${coinDelta}`);
-    
-    const { data: currentProfile, error: fetchError } = await supabase
-        .from('users')
-        .select('xp, coins, level, gemstones, username')
-        .eq('id', userId)
-        .single();
+    // Now apply rewards AFTER we know if it's a duplicate
+    console.log(`[MCQ] Applying rewards. xpReward=${xpReward}, coinDelta=${coinDelta}`);
 
-    if (fetchError || !currentProfile) {
-        console.error('[MCQ] Failed to fetch profile:', fetchError);
-        throw new Error('Failed to fetch profile');
-    }
-    
-    console.log(`[MCQ] Current profile: xp=${currentProfile.xp}, coins=${currentProfile.coins}`);
+    let rewardProfile: Profile | null = null;
+    let xpStatusPayload: {
+        level: number;
+        xp: number;
+        level_xp_start: number;
+        level_xp_next: number;
+        xp_into_level: number;
+        xp_to_next: number;
+        progress: number;
+    } | null = null;
+    let previousLevel: number | null = null;
+    const gemstoneDelta = questOutcome.gemstoneDelta;
 
-    const newXP = currentProfile.xp + xpReward;
-    const newCoins = Math.max(0, currentProfile.coins + coinDelta);
-    const newLevel = Math.floor(newXP / 100) + 1;
-    const leveledUp = newLevel > currentProfile.level;
-
-    let gemstoneDelta = questOutcome.gemstoneDelta;
-    if (leveledUp && newLevel % LEVEL_MILESTONE_INTERVAL === 0) {
-        gemstoneDelta += LEVEL_MILESTONE_GEMSTONE_REWARD;
-    }
-
-    const newGemstones = Math.max(0, (currentProfile.gemstones || 0) + gemstoneDelta);
-
-    console.log(`[MCQ] Calculated new values: xp=${newXP}, coins=${newCoins}, level=${newLevel}`);
-
-    // Update profile with new values
-    if (xpReward !== 0 || coinDelta !== 0 || gemstoneDelta !== 0 || leveledUp) {
+    if (xpReward !== 0 || coinDelta !== 0 || gemstoneDelta !== 0) {
         console.log(`[MCQ] 💾 Applying rewards: +${xpReward} XP, +${coinDelta} coins, +${gemstoneDelta} gems`);
-        await updateProfile(userId, {
-            xp: newXP,
-            coins: newCoins,
-            level: newLevel,
-            gemstones: newGemstones,
+        const rewardResult = await applyRewardDelta({
+            xpDelta: xpReward,
+            coinsDelta: coinDelta,
+            gemstonesDelta: gemstoneDelta,
+            applyLevelMilestone: true,
         });
-        console.log(`[MCQ] ✅ Profile updated successfully - New totals: ${newXP} XP, ${newCoins} coins`);
-        
+        rewardProfile = rewardResult.profile;
+        xpStatusPayload = rewardResult.xpStatus ?? null;
+        previousLevel = rewardResult.previousLevel ?? null;
+        console.log(`[MCQ] ✅ Profile updated successfully - New totals: ${rewardProfile.xp} XP, ${rewardProfile.coins} coins`);
+
         // Track quest earnings for stats display
         if (xpReward > 0 || coinDelta > 0) {
             try {
@@ -5771,6 +5779,11 @@ const finalizeMcqAnswer = async ({
     const notificationOperations: Promise<unknown>[] = [...questOutcome.notifications];
     const secondaryOperations: Promise<unknown>[] = [];
 
+    const leveledUp = rewardProfile
+        && typeof rewardProfile.level === 'number'
+        && typeof previousLevel === 'number'
+        && rewardProfile.level > previousLevel;
+
     if (leveledUp) {
         // Level-up activity insert (secondary, don't block)
         secondaryOperations.push(
@@ -5778,15 +5791,15 @@ const finalizeMcqAnswer = async ({
                 const { error } = await supabase.from('activities').insert({
                     kind: 'level_up',
                     actor_id: userId,
-                    actor_username: currentProfile.username || 'Unknown',
-                    data: { details: String(newLevel) },
+                    actor_username: rewardProfile?.username || 'Unknown',
+                    data: { details: String(rewardProfile?.level ?? 1) },
                 });
                 if (error) console.error('Failed to insert level-up activity:', error);
             })()
         );
 
         notificationOperations.push(
-            notifyLevelUp(userId, newLevel, xpReward, coinDelta)
+            notifyLevelUp(userId, rewardProfile?.level ?? 1, xpReward, coinDelta)
         );
     }
 
@@ -5825,12 +5838,15 @@ const finalizeMcqAnswer = async ({
 
     baseResponse.deltas.gemstones = gemstoneDelta;
     // Include final profile values for verification
-    baseResponse.finalProfileValues = {
-        xp: newXP,
-        coins: newCoins,
-        level: newLevel,
-        gemstones: newGemstones
-    };
+    if (rewardProfile) {
+        baseResponse.finalProfileValues = {
+            xp: rewardProfile.xp,
+            coins: rewardProfile.coins,
+            level: rewardProfile.level,
+            gemstones: rewardProfile.gemstones,
+            xp_status: xpStatusPayload ?? undefined,
+        };
+    }
     return baseResponse;
 };
 

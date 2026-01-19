@@ -102,9 +102,8 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
-  const xpCurrent = (profile as any).xp ?? profile.ap_now ?? 0;
-  const xpNext = (profile as any).xp_to_next ?? profile.ap_max ?? 100;
-  const xpPercent = Math.min(100, Math.round((xpCurrent / Math.max(1, xpNext)) * 100));
+  const xpStatus = profile.xp_status;
+  const xpPercent = Math.min(100, Math.round((xpStatus?.progress ?? 0) * 100));
 
   const avatarPresets = [
     'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
@@ -318,7 +317,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
             <div className="fullMode-player">
               <div className="fullMode-player-top">
                 <span className="fullMode-username">{profile.username}</span>
-                <span className="fullMode-level">Lv {profile.level}</span>
+                <span className="fullMode-level">Lv {xpStatus?.level ?? profile.level}</span>
               </div>
               <div className="fullMode-xp">
                 <div className="fullMode-xp-bar">
@@ -596,7 +595,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                     <XPIcon />
                   </div>
                   <span id="xp-hud" className="font-mono text-xs font-bold text-white">
-                    {profile.xp.toLocaleString()}
+                    {(xpStatus?.xp ?? profile.xp).toLocaleString()}
                   </span>
                 </div>
                 {/* AP */}
@@ -714,7 +713,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                   <div className="w-5 h-5 text-cyan-400">
                     <XPIcon />
                   </div>
-                  <span id="xp-hud" className="font-mono font-bold text-sm text-white">{profile.xp.toLocaleString()}</span>
+                  <span id="xp-hud" className="font-mono font-bold text-sm text-white">{(xpStatus?.xp ?? profile.xp).toLocaleString()}</span>
                 </div>
 
                 {/* AP */}

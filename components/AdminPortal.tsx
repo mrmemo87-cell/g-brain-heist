@@ -465,10 +465,11 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       const user = allUsers.find(u => u.id === userId);
       if (!user) return;
 
-      const { error } = await supabase
-        .from('users')
-        .update({ xp: user.xp + amount })
-        .eq('id', userId);
+      const { error } = await supabase.rpc('rpc_admin_grant', {
+        p_user_id: userId,
+        p_xp_delta: amount,
+        p_coins_delta: 0,
+      });
 
       if (error) throw error;
 
@@ -480,22 +481,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   };
 
   const setUserLevel = async (userId: string, newLevel: number) => {
-    try {
-      const user = allUsers.find(u => u.id === userId);
-      if (!user) return;
-
-      const { error } = await supabase
-        .from('users')
-        .update({ level: newLevel })
-        .eq('id', userId);
-
-      if (error) throw error;
-
-      addToast(`🎚️ Set ${user.username} to level ${newLevel}`, 'success');
-      fetchDashboardData();
-    } catch (error) {
-      addToast('Failed to set level', 'error');
-    }
+    const user = allUsers.find(u => u.id === userId);
+    if (!user) return;
+    addToast(`Levels are derived from XP. Adjust XP instead of setting level for ${user.username}.`, 'info');
   };
 
   const resetUserAP = async (userId: string) => {
