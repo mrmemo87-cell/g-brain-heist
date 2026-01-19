@@ -24,7 +24,6 @@ const SpeakingPractice: React.FC = () => {
   const navigate = useNavigate();
   
   const [preparationTimeLeft, setPreparationTimeLeft] = useState<number>(0);
-  const [recordingTimeLeft, setRecordingTimeLeft] = useState<number>(0);
   const [isRecording, setIsRecording] = useState(false);
   const [isPreparing, setIsPreparing] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
@@ -32,6 +31,9 @@ const SpeakingPractice: React.FC = () => {
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [recordingDuration, setRecordingDuration] = useState<number>(0);
+
+  const MIN_RECORDING_SECONDS = 120;
+  const MAX_RECORDING_SECONDS = 600;
   
   // Success screen state
   const [alternateEmail, setAlternateEmail] = useState('');
@@ -158,10 +160,7 @@ const SpeakingPractice: React.FC = () => {
   
   // Use database values only if they're reasonable (> 10 seconds), otherwise use defaults
   const dbPrepTime = task?.follow_ups?.preparation_time;
-  const dbSpeakTime = task?.follow_ups?.speaking_time || task?.follow_ups?.time_limit;
-  
   const prepTime = (dbPrepTime && dbPrepTime >= 10) ? dbPrepTime : defaults.prep;
-  const speakingTime = (dbSpeakTime && dbSpeakTime >= 30) ? dbSpeakTime : defaults.speak;
 
   // Start the entire flow (prep -> recording)
   const startPractice = async () => {
@@ -178,22 +177,26 @@ const SpeakingPractice: React.FC = () => {
       return;
     }
     
-    // Start preparation countdown
-    setIsPreparing(true);
-    setPreparationTimeLeft(prepTime);
-    
-    preparationTimerRef.current = setInterval(() => {
-      setPreparationTimeLeft(prev => {
-        if (prev <= 1) {
-          if (preparationTimerRef.current) clearInterval(preparationTimerRef.current);
-          setIsPreparing(false);
-          // Auto-start recording when prep ends
-          startRecordingInternal();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    if (prepTime > 0) {
+      // Start preparation countdown
+      setIsPreparing(true);
+      setPreparationTimeLeft(prepTime);
+
+      preparationTimerRef.current = setInterval(() => {
+        setPreparationTimeLeft(prev => {
+          if (prev <= 1) {
+            if (preparationTimerRef.current) clearInterval(preparationTimerRef.current);
+            setIsPreparing(false);
+            // Auto-start recording when prep ends
+            startRecordingInternal();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      startRecordingInternal();
+    }
   };
 
   // Internal recording start (called automatically after prep)
@@ -222,19 +225,17 @@ const SpeakingPractice: React.FC = () => {
 
     mediaRecorder.start();
     setIsRecording(true);
-    setRecordingTimeLeft(speakingTime);
     setRecordingDuration(0);
 
-    // Countdown timer for recording
+    // Count-up timer for recording
     recordingTimerRef.current = setInterval(() => {
-      setRecordingTimeLeft(prev => {
-        setRecordingDuration(d => d + 1);
-        if (prev <= 1) {
-          // Auto-stop when time runs out
+      setRecordingDuration(prev => {
+        const next = prev + 1;
+        if (next >= MAX_RECORDING_SECONDS) {
           stopRecording();
-          return 0;
+          return MAX_RECORDING_SECONDS;
         }
-        return prev - 1;
+        return next;
       });
     }, 1000);
   };
@@ -250,7 +251,7 @@ const SpeakingPractice: React.FC = () => {
   };
 
   const handleSubmit = () => {
-    if (audioBlob) {
+    if (audioBlob && recordingDuration >= MIN_RECORDING_SECONDS) {
       submitMutation.mutate(audioBlob);
     }
   };
@@ -262,7 +263,6 @@ const SpeakingPractice: React.FC = () => {
     setAudioBlob(null);
     setAudioUrl(null);
     setPreparationTimeLeft(0);
-    setRecordingTimeLeft(0);
     setRecordingDuration(0);
   };
 
@@ -582,9 +582,9 @@ const SpeakingPractice: React.FC = () => {
 
   // Use the already calculated prepTime and speakingTime for display
   const displayPrepTime = prepTime;
-  const displayMaxTime = speakingTime;
+  const displayMaxTime = MAX_RECORDING_SECONDS;
   const prepProgress = displayPrepTime > 0 ? ((displayPrepTime - preparationTimeLeft) / displayPrepTime) * 100 : 0;
-  const recordProgress = displayMaxTime > 0 ? ((displayMaxTime - recordingTimeLeft) / displayMaxTime) * 100 : 0;
+  const recordProgress = displayMaxTime > 0 ? (recordingDuration / displayMaxTime) * 100 : 0;
 
   return (
     <div style={{ 
@@ -713,7 +713,7 @@ const SpeakingPractice: React.FC = () => {
             </div>
           </div>
 
-          {/* Start Practice Button - Only shown before practice begins */}
+          {/* Start Recording Button - Only shown before practice begins */}
           {!hasStarted && !isPreparing && !isRecording && !audioBlob && (
             <button
               onClick={startPractice}
@@ -736,7 +736,7 @@ const SpeakingPractice: React.FC = () => {
               <svg style={{ width: '1.25rem', height: '1.25rem' }} fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z"/>
               </svg>
-              Start Practice
+              Start recording
             </button>
           )}
 
@@ -779,7 +779,7 @@ const SpeakingPractice: React.FC = () => {
                   animation: 'pulse 1s infinite'
                 }} />
                 <div style={{ fontSize: 'clamp(2rem, 8vw, 4rem)', fontWeight: 'bold', color: '#dc2626' }}>
-                  {formatTime(recordingTimeLeft)}
+                  {formatTime(recordingDuration)}
                 </div>
               </div>
               <div style={{ width: '100%', background: '#e2e8f0', borderRadius: '9999px', height: '0.5rem', marginBottom: '1rem' }}>
@@ -793,7 +793,9 @@ const SpeakingPractice: React.FC = () => {
                   }}
                 />
               </div>
-              <p style={{ color: '#64748b', marginBottom: '1rem' }}>Speak now! Recording will stop automatically when time runs out.</p>
+              <p style={{ color: '#64748b', marginBottom: '1rem' }}>
+                Speak now! Recording will stop automatically at {formatTime(MAX_RECORDING_SECONDS)}.
+              </p>
               <button
                 onClick={stopRecording}
                 style={{
@@ -806,7 +808,7 @@ const SpeakingPractice: React.FC = () => {
                   fontWeight: 500
                 }}
               >
-                Stop Recording Early
+                Stop recording
               </button>
             </div>
           )}
@@ -828,6 +830,9 @@ const SpeakingPractice: React.FC = () => {
                 <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#64748b' }}>
                   Duration: {formatTime(recordingDuration)}
                 </div>
+                <div style={{ fontSize: 'clamp(0.7rem, 1.8vw, 0.8rem)', color: '#94a3b8', marginTop: '0.25rem' }}>
+                  Minimum {formatTime(MIN_RECORDING_SECONDS)} required • Max {formatTime(MAX_RECORDING_SECONDS)}
+                </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <button
@@ -847,20 +852,26 @@ const SpeakingPractice: React.FC = () => {
                 </button>
                 <button
                   onClick={handleSubmit}
-                  disabled={submitMutation.isPending}
+                  disabled={submitMutation.isPending || recordingDuration < MIN_RECORDING_SECONDS}
                   style={{
                     width: '100%',
                     padding: 'clamp(0.625rem, 2vw, 0.75rem) 1rem',
-                    background: submitMutation.isPending ? '#9ca3af' : 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                    background: submitMutation.isPending || recordingDuration < MIN_RECORDING_SECONDS
+                      ? '#9ca3af'
+                      : 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
                     color: 'white',
                     border: 'none',
                     borderRadius: '0.5rem',
-                    cursor: submitMutation.isPending ? 'not-allowed' : 'pointer',
+                    cursor: submitMutation.isPending || recordingDuration < MIN_RECORDING_SECONDS ? 'not-allowed' : 'pointer',
                     fontWeight: 'bold',
                     fontSize: 'clamp(0.875rem, 2.5vw, 1rem)'
                   }}
                 >
-                  {submitMutation.isPending ? 'Submitting...' : 'Submit for Review'}
+                  {submitMutation.isPending
+                    ? 'Submitting...'
+                    : recordingDuration < MIN_RECORDING_SECONDS
+                      ? `Record at least ${formatTime(MIN_RECORDING_SECONDS)}`
+                      : 'Submit for Review'}
                 </button>
               </div>
             </div>
