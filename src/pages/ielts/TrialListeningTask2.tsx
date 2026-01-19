@@ -24,16 +24,16 @@ const TRIAL_TEST_DATA = {
         example: { label: 'Time of travel', value: 'September' }
       },
       questions: [
-        { id: 1, type: 'fill-blank', label: 'Advantages of travelling by train: 1.', prefix: '', suffix: '', answer: 'faster', acceptableAnswers: ['faster', 'Faster'] },
-        { id: 2, type: 'fill-blank', label: 'Advantages of travelling by train: 2.', prefix: '', suffix: '', answer: 'more affordable', acceptableAnswers: ['more affordable', 'More affordable'] },
-        { id: 3, type: 'fill-blank', label: 'Advantages of travelling by train: 3. take as much ___ as you need', prefix: 'take as much', suffix: 'as you need', answer: 'luggage', acceptableAnswers: ['luggage', 'Luggage'] },
-        { id: 4, type: 'fill-blank', label: 'The Eurostar: runs on schedule 4 ___ of the time', prefix: 'runs on schedule', suffix: 'of the time', answer: '92.4 percent', acceptableAnswers: ['92.4 percent', '92.4%', '92.4'] },
-        { id: 5, type: 'fill-blank', label: 'The Eurostar: can reach speeds of 5 ___ miles per hour', prefix: 'can reach speeds of', suffix: 'miles per hour', answer: '186', acceptableAnswers: ['186', '186 miles per hour'] },
-        { id: 6, type: 'fill-blank', label: 'Two options from Paris to Nice: 1. Catch the TGV train at 6 ___', prefix: '', suffix: '', answer: '11:46', acceptableAnswers: ['11:46', '11.46', '1146'] },
-        { id: 7, type: 'fill-blank', label: 'Two options from Paris to Nice: 2. Catch the TGV train at 7 ___', prefix: '', suffix: '', answer: '22:25', acceptableAnswers: ['22:25', '22.25', '2225'] },
-        { id: 8, type: 'fill-blank', label: 'Two options from Paris to Nice: 2. Catch the TGV train at 7 ___ and travel 8 ___', prefix: 'and travel', suffix: '', answer: 'overnight', acceptableAnswers: ['overnight', 'Overnight'] },
-        { id: 9, type: 'fill-blank', label: 'Single tickets cost approximately 9 ___ the return fare.', prefix: '', suffix: 'the return fare', answer: 'half', acceptableAnswers: ['half', 'half of', 'Half', 'half (of)'] },
-        { id: 10, type: 'fill-blank', label: 'Flying from London to Nice takes 10 ___ hours.', prefix: '', suffix: 'hours', answer: '2', acceptableAnswers: ['2', '2 hours', 'two hours'] },
+        { id: 1, type: 'fill-blank', label: 'Advantage of travelling by train', prefix: '', suffix: '', answer: 'faster', acceptableAnswers: ['faster', 'Faster'] },
+        { id: 2, type: 'fill-blank', label: 'Advantage of travelling by train', prefix: '', suffix: '', answer: 'more affordable', acceptableAnswers: ['more affordable', 'More affordable'] },
+        { id: 3, type: 'fill-blank', label: 'Advantage of travelling by train', prefix: 'take as much', suffix: 'as you need', answer: 'luggage', acceptableAnswers: ['luggage', 'Luggage'] },
+        { id: 4, type: 'fill-blank', label: 'The Eurostar', prefix: 'runs on schedule', suffix: 'of the time', answer: '92.4 percent', acceptableAnswers: ['92.4 percent', '92.4%', '92.4'] },
+        { id: 5, type: 'fill-blank', label: 'The Eurostar', prefix: 'can reach speeds of', suffix: 'miles per hour', answer: '186', acceptableAnswers: ['186', '186 miles per hour'] },
+        { id: 6, type: 'fill-blank', label: 'Two options from Paris to Nice (1)', prefix: 'Catch the TGV train at', suffix: '', answer: '11:46', acceptableAnswers: ['11:46', '11.46', '1146'] },
+        { id: 7, type: 'fill-blank', label: 'Two options from Paris to Nice (2)', prefix: 'Catch the TGV train at', suffix: '', answer: '22:25', acceptableAnswers: ['22:25', '22.25', '2225'] },
+        { id: 8, type: 'fill-blank', label: 'Two options from Paris to Nice (2)', prefix: 'and travel', suffix: '', answer: 'overnight', acceptableAnswers: ['overnight', 'Overnight'] },
+        { id: 9, type: 'fill-blank', label: 'Single tickets cost approximately', prefix: '', suffix: 'the return fare', answer: 'half', acceptableAnswers: ['half', 'half of', 'Half', 'half (of)'] },
+        { id: 10, type: 'fill-blank', label: 'Flying from London to Nice takes', prefix: '', suffix: 'hours', answer: '2', acceptableAnswers: ['2', '2 hours', 'two hours'] },
       ]
     }
   ]
@@ -57,6 +57,7 @@ const TrialListeningTask2: React.FC = () => {
   const [audioError, setAudioError] = useState<string | null>(null);
   const [audioLocked, setAudioLocked] = useState(false);
   const audioLockRef = useRef(false);
+  const preloadRefs = useRef<HTMLAudioElement[]>([]);
 
   // Stop background music
   useEffect(() => {
@@ -69,6 +70,23 @@ const TrialListeningTask2: React.FC = () => {
         audioRef.current.pause();
         audioRef.current = null;
       }
+    };
+  }, []);
+
+  useEffect(() => {
+    preloadRefs.current = Object.values(SECTION_AUDIO).map((url) => {
+      const audio = new Audio();
+      audio.preload = 'auto';
+      audio.src = url;
+      audio.load();
+      return audio;
+    });
+
+    return () => {
+      preloadRefs.current.forEach((audio) => {
+        audio.pause();
+        audio.src = '';
+      });
     };
   }, []);
 
@@ -93,6 +111,7 @@ const TrialListeningTask2: React.FC = () => {
       audioLockRef.current = false;
       
       const audio = new Audio(audioUrl);
+      audio.preload = 'auto';
       audioRef.current = audio;
       
       audio.addEventListener('loadedmetadata', () => {
@@ -238,28 +257,9 @@ const TrialListeningTask2: React.FC = () => {
   const section = TRIAL_TEST_DATA.sections[currentSection];
   const answeredCount = Object.keys(answers).length;
   const totalQuestions = TRIAL_TEST_DATA.sections.reduce((sum, s) => sum + s.questions.length, 0);
-
-  const renderTextInput = (questionId: number, minWidth = '150px') => (
-    <input
-      type="text"
-      value={answers[questionId] || ''}
-      onChange={(e) => handleAnswerChange(questionId, e.target.value)}
-      placeholder="Type your answer"
-      style={{
-        minWidth,
-        flex: 1,
-        padding: '0.625rem 0.875rem',
-        border: '2px solid #e2e8f0',
-        borderRadius: '0.5rem',
-        fontSize: '0.9rem',
-        outline: 'none',
-        color: '#000',
-        transition: 'border-color 0.2s'
-      }}
-      onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-      onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
-    />
-  );
+  const fillBlankQuestions = section.questions.filter(q => q.type === 'fill-blank');
+  const firstFillBlankId = fillBlankQuestions[0]?.id;
+  const lastFillBlankId = fillBlankQuestions[fillBlankQuestions.length - 1]?.id;
 
   // Start Screen
   if (!hasStarted) {
@@ -765,115 +765,10 @@ const TrialListeningTask2: React.FC = () => {
           </p>
         </div>
 
-        {/* Form Context (for Section 1 style) */}
-        {section.context.type === 'form' && section.context.formTitle === 'NOTES: travelling to France' && (
+        {/* Form Context */}
+        {section.context.type === 'form' && (
           <>
-            <div style={{
-              background: 'white',
-              borderRadius: '0.75rem',
-              padding: '1rem',
-              marginBottom: '1rem',
-              border: '2px solid #e2e8f0'
-            }}>
-              <h3 style={{ 
-                fontSize: '1rem', 
-                color: '#1e293b', 
-                marginBottom: '1rem',
-                paddingBottom: '0.5rem',
-                borderBottom: '2px solid #3b82f6'
-              }}>
-                📋 {section.context.formTitle}
-              </h3>
-              {section.context.example && (
-                <div style={{ marginBottom: '1rem' }}>
-                  <div style={{ 
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    fontSize: '0.8rem',
-                    color: '#6b7280',
-                    fontStyle: 'italic',
-                    marginBottom: '0.25rem'
-                  }}>
-                    <span>Example</span>
-                    <span>Answer</span>
-                  </div>
-                  <div style={{ 
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    fontSize: '0.9rem',
-                    color: '#374151'
-                  }}>
-                    <span>{section.context.example.label}</span>
-                    <span style={{ fontStyle: 'italic' }}>{section.context.example.value}</span>
-                  </div>
-                </div>
-              )}
-
-              <div style={{ marginBottom: '1rem', fontSize: '0.9rem', color: '#374151' }}>
-                Advantages of travelling by train:
-              </div>
-              {[1, 2].map((id) => (
-                <div key={id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
-                  <span style={{ minWidth: '1.5rem', fontWeight: 600 }}>{id}.</span>
-                  {renderTextInput(id)}
-                </div>
-              ))}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                <span style={{ minWidth: '1.5rem', fontWeight: 600 }}>3.</span>
-                <span>take as much</span>
-                {renderTextInput(3)}
-                <span>as you need</span>
-              </div>
-
-              <div style={{ marginBottom: '0.75rem', fontSize: '0.9rem', color: '#374151' }}>
-                The Eurostar:
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
-                <span>•</span>
-                <span>runs on schedule 4</span>
-                {renderTextInput(4, '120px')}
-                <span>of the time</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                <span>•</span>
-                <span>can reach speeds of 5</span>
-                {renderTextInput(5, '120px')}
-                <span>miles per hour</span>
-              </div>
-
-              <div style={{ marginBottom: '0.75rem', fontSize: '0.9rem', color: '#374151' }}>
-                Two options from Paris to Nice:
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
-                <span style={{ minWidth: '1.5rem', fontWeight: 600 }}>1.</span>
-                <span>Catch the TGV train at 6</span>
-                {renderTextInput(6, '120px')}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                <span style={{ minWidth: '1.5rem', fontWeight: 600 }}>2.</span>
-                <span>Catch the TGV train at 7</span>
-                {renderTextInput(7, '120px')}
-                <span>and travel 8</span>
-                {renderTextInput(8, '120px')}
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
-                <span>Single tickets cost approximately 9</span>
-                {renderTextInput(9, '120px')}
-                <span>the return fare.</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <span>Flying from London to Nice takes 10</span>
-                {renderTextInput(10, '120px')}
-                <span>hours</span>
-              </div>
-            </div>
-          </>
-        )}
-
-        {section.context.type === 'form' && section.context.formTitle !== 'NOTES: travelling to France' && (
-          <>
-            {/* Questions 1-6: Fill-in-the-blank form */}
+            {/* Questions: Fill-in-the-blank form */}
             <div style={{
               background: 'white',
               borderRadius: '0.75rem',
@@ -899,7 +794,7 @@ const TrialListeningTask2: React.FC = () => {
                 fontSize: '0.75rem',
                 color: '#1e40af'
               }}>
-                <strong>Questions 1–6:</strong> Complete the form below
+                <strong>Questions {firstFillBlankId}–{lastFillBlankId}:</strong> Complete the form below
               </div>
               
               {section.context.example && (
@@ -915,7 +810,7 @@ const TrialListeningTask2: React.FC = () => {
                 </div>
               )}
 
-              {section.questions.filter(q => q.type === 'fill-blank').map(q => (
+              {fillBlankQuestions.map(q => (
                 <div key={q.id} style={{ marginBottom: '1rem' }}>
                   <label style={{ 
                     display: 'block', 

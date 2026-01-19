@@ -163,6 +163,8 @@ const TrialListeningTest: React.FC = () => {
   const [audioError, setAudioError] = useState<string | null>(null);
   const [audioLocked, setAudioLocked] = useState(false);
   const audioLockRef = useRef(false);
+  const preloadRefs = useRef<HTMLAudioElement[]>([]);
+  const autoPlayNextRef = useRef(false);
 
   // Stop background music
   useEffect(() => {
@@ -175,6 +177,23 @@ const TrialListeningTest: React.FC = () => {
         audioRef.current.pause();
         audioRef.current = null;
       }
+    };
+  }, []);
+
+  useEffect(() => {
+    preloadRefs.current = Object.values(SECTION_AUDIO).map((url) => {
+      const audio = new Audio();
+      audio.preload = 'auto';
+      audio.src = url;
+      audio.load();
+      return audio;
+    });
+
+    return () => {
+      preloadRefs.current.forEach((audio) => {
+        audio.pause();
+        audio.src = '';
+      });
     };
   }, []);
 
@@ -199,7 +218,22 @@ const TrialListeningTest: React.FC = () => {
       audioLockRef.current = false;
       
       const audio = new Audio(audioUrl);
+      audio.preload = 'auto';
       audioRef.current = audio;
+
+      const attemptAutoPlay = () => {
+        if (!autoPlayNextRef.current) return;
+        autoPlayNextRef.current = false;
+        audio.play().then(() => {
+          setIsPlaying(true);
+          setAudioLocked(true);
+          audioLockRef.current = true;
+        }).catch(() => {
+          setIsPlaying(false);
+          setAudioLocked(false);
+          audioLockRef.current = false;
+        });
+      };
       
       audio.addEventListener('loadedmetadata', () => {
         setAudioDuration(audio.duration);
@@ -209,6 +243,8 @@ const TrialListeningTest: React.FC = () => {
       audio.addEventListener('timeupdate', () => {
         setAudioProgress(audio.currentTime);
       });
+
+      audio.addEventListener('canplaythrough', attemptAutoPlay);
       
       audio.addEventListener('ended', () => {
         setIsPlaying(false);
@@ -230,6 +266,7 @@ const TrialListeningTest: React.FC = () => {
       });
       
       audio.load();
+      setTimeout(attemptAutoPlay, 0);
     }
     
     return () => {
@@ -1514,7 +1551,15 @@ const TrialListeningTest: React.FC = () => {
 
             {currentSection < TRIAL_TEST_DATA.sections.length - 1 ? (
               <button
-                onClick={() => setCurrentSection(prev => prev + 1)}
+                onClick={() => {
+                  setCurrentSection((prev) => {
+                    const nextSection = prev + 1;
+                    if (nextSection >= 1) {
+                      autoPlayNextRef.current = true;
+                    }
+                    return nextSection;
+                  });
+                }}
                 style={{
                   flex: 1,
                   padding: '0.75rem',
