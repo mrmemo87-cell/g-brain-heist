@@ -53,6 +53,7 @@ const ListeningPractice: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastAudioTimeRef = useRef(0);
+  const allowAutoResumeRef = useRef(true);
 
   // Stop background music when entering IELTS Listening practice
   useEffect(() => {
@@ -62,6 +63,35 @@ const ListeningPractice: React.FC = () => {
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
       }
+      allowAutoResumeRef.current = false;
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const stopAudio = () => {
+      allowAutoResumeRef.current = false;
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopAudio();
+      }
+    };
+
+    window.addEventListener('pagehide', stopAudio);
+    window.addEventListener('beforeunload', stopAudio);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('pagehide', stopAudio);
+      window.removeEventListener('beforeunload', stopAudio);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
@@ -87,7 +117,7 @@ const ListeningPractice: React.FC = () => {
 
     const handlePause = () => {
       setIsAudioPlaying(false);
-      if (audioStarted && !audioEnded) {
+      if (audioStarted && !audioEnded && allowAutoResumeRef.current) {
         void audio.play();
       }
     };

@@ -470,6 +470,28 @@
     body {
       padding-bottom: 120px;
     }
+    .listening-form__row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .listening-form__label {
+      min-width: 0;
+      width: 100%;
+    }
+    .listening-form__inline {
+      width: 100%;
+    }
+    .answer-input--text {
+      width: 100%;
+      max-width: 220px;
+    }
+    .crate-layout {
+      grid-template-columns: 1fr;
+    }
+    .crate-diagram {
+      width: 100%;
+      max-width: 200px;
+    }
   }
   
   /* Mobile fixes for iOS and Android */
@@ -529,7 +551,7 @@
     <p>⚠️ Press play to start. The audio will play <b>once only</b> and cannot be paused or rewound.</p>
     
     <!-- Hidden actual audio element - works on iOS and Android -->
-    <audio id="testAudio" preload="metadata" playsinline>
+    <audio id="testAudio" preload="auto" playsinline>
       <!-- Try Supabase storage first (more reliable), then local file -->
       <source src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/cambridge-audio/cambridge_listening_test_1.mp3" type="audio/mpeg">
       <source src="cambridge_listening_test_1.mp3" type="audio/mpeg">
@@ -706,6 +728,7 @@
   // Audio player state - no seeking allowed
   let audioStarted = false;
   let audioEnded = false;
+  let allowAutoResume = true;
   const audio = document.getElementById('testAudio');
   const playBtn = document.getElementById('playBtn');
   const progressBar = document.getElementById('progressBar');
@@ -723,6 +746,10 @@
   // Update total time when metadata loads
   audio.addEventListener('loadedmetadata', function() {
     totalTimeEl.textContent = formatTime(audio.duration);
+  });
+
+  window.addEventListener('DOMContentLoaded', function() {
+    audio.load();
   });
 
   // Update progress bar (no seeking allowed)
@@ -801,10 +828,25 @@
 
   // Prevent pause (backup - button already disabled)
   audio.addEventListener('pause', function() {
-    if (audioStarted && !audioEnded) {
+    if (audioStarted && !audioEnded && allowAutoResume) {
       audio.play(); // Force resume if paused somehow
     }
   });
+
+  function stopAudioPlayback() {
+    allowAutoResume = false;
+    if (!audio) return;
+    audio.pause();
+  }
+
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      stopAudioPlayback();
+    }
+  });
+
+  window.addEventListener('pagehide', stopAudioPlayback);
+  window.addEventListener('beforeunload', stopAudioPlayback);
 
   function loadStudentInfoFromGame() {
     try {
