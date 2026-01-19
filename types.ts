@@ -30,6 +30,16 @@ export type TopicStatus = 'CRUSHED' | 'AVERAGE' | 'STRUGGLED';
 // Multi-tenant: School role within a specific school
 export type SchoolRole = 'student' | 'teacher' | 'school_admin';
 
+export interface XpStatus {
+  level: number;
+  xp: number;
+  level_xp_start: number;
+  level_xp_next: number;
+  xp_into_level: number;
+  xp_to_next: number;
+  progress: number;
+}
+
 export interface Profile {
   id: string;
   username: string;
@@ -47,6 +57,7 @@ export interface Profile {
   bio?: string | null;
   level: number;
   xp: number;
+  xp_status?: XpStatus;
   coins: number;
   gemstones: number;
   streak: number;
@@ -263,7 +274,7 @@ export interface AnswerResponse {
   };
   explanation?: string;
   score?: number;
-  finalProfileValues?: { xp: number; coins: number; level: number; gemstones: number };
+  finalProfileValues?: { xp: number; coins: number; level: number; gemstones: number; xp_status?: XpStatus };
   pvpOutcome?: { won: boolean; opponentName: string; scoreChange: number };
 }
 
@@ -1062,5 +1073,5 @@ export interface QuestionAttemptResult {
   points_earned: number;
   correct_answer: string;
   explanation?: string;
-  final_profile_values?: { xp: number; coins: number; level: number; gemstones: number };
+  final_profile_values?: { xp: number; coins: number; level: number; gemstones: number; xp_status?: XpStatus };
 }

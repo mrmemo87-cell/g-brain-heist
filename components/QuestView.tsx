@@ -14,6 +14,7 @@ import {
   SubjectProgress,
   DifficultyProgress,
   Subject,
+  XpStatus,
 } from '../types';
 import * as GameService from '../services/gameService';
 import { audioService } from '../services/audioService';
@@ -134,7 +135,7 @@ const RewardParticle: React.FC<RewardParticleProps> = ({ id, type, startRect, on
 
 interface QuestViewProps {
   onComplete: () => void;
-  onGrantReward: (deltas: { xp: number; coins: number; gemstones?: number }, finalValues?: { xp: number; coins: number; level: number; gemstones: number }) => void;
+  onGrantReward: (deltas: { xp: number; coins: number; gemstones?: number }, finalValues?: { xp: number; coins: number; level: number; gemstones: number; xp_status?: XpStatus }) => void;
   /**
    * Optional pre-fetched assignment supplied by the parent so we can avoid double loading.
    */

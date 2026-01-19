@@ -1,7 +1,6 @@
 import React from 'react';
 import { Profile } from '../types';
 import { useLightMode } from '../src/contexts/LightModeContext';
-import { getXpProgress } from '../src/lib/leveling';
 import { TrophyIcon, SyndicateRune } from './icons';
 
 // Default school icon as SVG data URL
@@ -169,8 +168,8 @@ const MainActions: React.FC<MainActionsProps> = ({
   const { isLightMode: isLiteMode } = useLightMode();
   const displaySchoolName = schoolName || 'My School';
   const displaySchoolLogo = schoolLogoUrl || defaultSchoolIcon;
-  const xpProgress = getXpProgress(profile?.xp ?? 0, profile?.level ?? 1);
-  const xpPercent = Math.min(100, Math.round(xpProgress.progress * 100));
+  const xpStatus = profile?.xp_status;
+  const xpPercent = Math.min(100, Math.round((xpStatus?.progress ?? 0) * 100));
   const streakCount = profile?.streak ?? 0;
   const coins = profile?.coins ?? 0;
   const shieldActive = profile?.has_shield ?? false;
@@ -198,7 +197,7 @@ const MainActions: React.FC<MainActionsProps> = ({
                 className="fullMode-avatarImage"
                 onError={(e) => { (e.target as HTMLImageElement).src = defaultSchoolIcon; }}
               />
-              <span className="fullMode-levelBadge">LV {xpProgress.effectiveLevel}</span>
+              <span className="fullMode-levelBadge">LV {xpStatus?.level ?? profile?.level ?? 1}</span>
             </div>
             <div className="fullMode-agentMeta">
               <p className="fullMode-agentLabel">ACTIVE OPERATIVE</p>
@@ -208,7 +207,7 @@ const MainActions: React.FC<MainActionsProps> = ({
                   <span className="fullMode-xpFill" style={{ width: `${xpPercent}%` }} />
                 </div>
                 <span className="fullMode-xpText">
-                  {xpProgress.xpIntoLevel.toLocaleString()} / {xpProgress.xpForNextLevel} XP
+                  {(xpStatus?.xp_into_level ?? 0).toLocaleString()} / {(xpStatus ? xpStatus.xp_into_level + xpStatus.xp_to_next : 0).toLocaleString()} XP
                 </span>
               </div>
             </div>

@@ -1,5 +1,5 @@
 import React, { Suspense, useState, useEffect, useRef, useMemo } from 'react';
-import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage, Announcement, Grade, Batch, StudentAssignmentTask } from './types';
+import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage, Announcement, Grade, Batch, StudentAssignmentTask, XpStatus } from './types';
 import * as GameService from './services/gameService';
 import { supabase } from './services/supabaseClient';
 import Header from './components/Header';
@@ -659,7 +659,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     handleViewChange('quest');
   };
 
-  const handleGrantReward = (deltas: { xp?: number; coins?: number; gemstones?: number; ap?: number }, finalValues?: { xp: number; coins: number; level: number; gemstones: number }) => {
+  const handleGrantReward = (
+    deltas: { xp?: number; coins?: number; gemstones?: number; ap?: number },
+    finalValues?: { xp: number; coins: number; level: number; gemstones: number; xp_status?: XpStatus }
+  ) => {
     if (!profile) return;
 
     // If we have final values from the backend, use them directly for accurate sync
@@ -689,6 +692,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           coins: finalValues.coins,
           level: finalValues.level,
           gemstones: finalValues.gemstones,
+          xp_status: finalValues.xp_status ?? prevProfile.xp_status,
         };
       });
       
@@ -708,6 +712,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       }
       
       console.log('[handleGrantReward] Profile synced with backend values:', finalValues);
+      refreshProfile();
       return; // No need for verification when we have exact values
     }
 
@@ -715,23 +720,17 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     setProfile((prevProfile: Profile | null) => {
       if (!prevProfile) return null;
 
-      const nextXP = prevProfile.xp + (deltas.xp || 0);
-      const nextCoins = prevProfile.coins + (deltas.coins || 0);
-      const nextGemstones = prevProfile.gemstones + (deltas.gemstones || 0);
       const nextAP = prevProfile.ap_now + (deltas.ap || 0);
 
       return {
         ...prevProfile,
-        xp: Math.max(0, nextXP),
-        coins: Math.max(0, nextCoins),
-        gemstones: Math.max(0, nextGemstones),
         ap_now: Math.min(prevProfile.ap_max, Math.max(0, nextAP)),
       };
     });
 
     // Verify rewards were actually saved to database by refreshing after a short delay
     // This helps catch silent failures in the reward persistence
-    if ((deltas.xp || 0) + (deltas.coins || 0) > 0) {
+    if ((deltas.xp || 0) + (deltas.coins || 0) + (deltas.gemstones || 0) > 0) {
       setTimeout(async () => {
         try {
           const currentProfile = await GameService.whoami();

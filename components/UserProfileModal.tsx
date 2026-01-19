@@ -156,7 +156,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ profile, apValue, o
               />
               <StatPill
                 label="XP"
-                value={profile.xp.toLocaleString()}
+                value={(profile.xp_status?.xp ?? profile.xp).toLocaleString()}
                 icon={<XPIcon className="h-5 w-5 text-cyan-300 drop-shadow-[0_0_6px_rgba(34,211,238,0.6)]" />}
               />
               <StatPill
