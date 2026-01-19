@@ -57,6 +57,7 @@ const TrialListeningTask2: React.FC = () => {
   const [audioError, setAudioError] = useState<string | null>(null);
   const [audioLocked, setAudioLocked] = useState(false);
   const audioLockRef = useRef(false);
+  const allowAutoResumeRef = useRef(true);
   const preloadRefs = useRef<HTMLAudioElement[]>([]);
 
   // Stop background music
@@ -67,9 +68,36 @@ const TrialListeningTask2: React.FC = () => {
       if (timerRef.current) clearInterval(timerRef.current);
       // Cleanup audio
       if (audioRef.current) {
+        allowAutoResumeRef.current = false;
         audioRef.current.pause();
         audioRef.current = null;
       }
+    };
+  }, []);
+
+  useEffect(() => {
+    const stopAudio = () => {
+      allowAutoResumeRef.current = false;
+      if (audioRef.current) {
+        audioLockRef.current = false;
+        audioRef.current.pause();
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopAudio();
+      }
+    };
+
+    window.addEventListener('pagehide', stopAudio);
+    window.addEventListener('beforeunload', stopAudio);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('pagehide', stopAudio);
+      window.removeEventListener('beforeunload', stopAudio);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
@@ -130,7 +158,7 @@ const TrialListeningTask2: React.FC = () => {
       });
 
       audio.addEventListener('pause', () => {
-        if (audioLockRef.current && !audio.ended) {
+        if (audioLockRef.current && !audio.ended && allowAutoResumeRef.current) {
           audio.play().catch(() => {
             setAudioError('Could not resume audio. Please refresh the page.');
           });
