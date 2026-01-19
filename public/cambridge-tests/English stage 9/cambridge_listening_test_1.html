@@ -209,6 +209,97 @@
   }
   .example-title { color: #166534; font-weight: bold; font-size: 16px; margin-bottom: 15px; }
   .example-answer { margin-top: 10px; font-size: 14px; color: #166534; font-weight: bold; }
+
+  .listening-form {
+    border: 2px solid #1f2937;
+    padding: 24px;
+    background: #fff;
+  }
+  .listening-form__title {
+    text-align: center;
+    font-weight: 700;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+  }
+  .listening-form__example {
+    background: #e5e7eb;
+    padding: 14px 16px;
+    border: 1px solid #9ca3af;
+    margin-bottom: 18px;
+    font-size: 14px;
+  }
+  .listening-form__example strong {
+    display: inline-block;
+    min-width: 140px;
+  }
+  .listening-form__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .listening-form__label {
+    min-width: 170px;
+    font-weight: 600;
+    color: #1f2937;
+  }
+  .listening-form__hint {
+    color: #6b7280;
+    font-size: 13px;
+  }
+  .listening-form__number {
+    font-weight: 700;
+    color: #1f2937;
+    min-width: 20px;
+  }
+  .answer-input--text {
+    width: 180px;
+    text-align: left;
+    font-size: 15px;
+    font-weight: 600;
+    text-transform: none;
+  }
+  .listening-form__inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+  .listening-form__divider {
+    border-top: 1px dashed #d1d5db;
+    margin: 16px 0;
+  }
+  .crate-layout {
+    display: grid;
+    grid-template-columns: minmax(180px, 220px) 1fr;
+    gap: 16px;
+    align-items: center;
+  }
+  .crate-diagram {
+    width: 180px;
+    height: 110px;
+    border: 2px solid #374151;
+    position: relative;
+    background: #f9fafb;
+  }
+  .crate-diagram::before {
+    content: "";
+    position: absolute;
+    top: 14px;
+    left: 18px;
+    width: 120px;
+    height: 70px;
+    border: 2px solid #9ca3af;
+    background: #e5e7eb;
+  }
+  .crate-dimension {
+    font-size: 13px;
+    color: #374151;
+    margin-bottom: 8px;
+  }
   
   /* Part 3 - Orchestra Form */
   .orchestra-form {
@@ -420,7 +511,7 @@
   </div>
 
   <h1>🎧 Cambridge Listening Test 1</h1>
-  <p class="subtitle">Answer Form — Questions 1–25</p>
+  <p class="subtitle">Answer Form — Questions 1–28</p>
 
   <div class="warning-box">
     <h3>⚠️ Important Rules</h3>
@@ -566,15 +657,50 @@
   let hasSubmitted = false;
   let startTime = null;
   let timerInterval = null;
-  const total = 25;
+  const total = 28;
 
   // Correct Answers
   const correct = {
-    1: "C", 2: "A", 3: "B", 4: "B", 5: "C",
-    6: "B", 7: "B", 8: "A", 9: "C", 10: "A",
-    11: "Thursdays", 12: "flute", 13: "dance studio", 14: "restaurant", 15: "DRASTLE",
-    16: "B", 17: "C", 18: "C", 19: "A", 20: "A",
-    21: "H", 22: "E", 23: "D", 24: "C", 25: "B"
+    1: ["Mkere"],
+    2: ["Westall"],
+    3: ["BS8 9PU"],
+    4: [
+      "0.75 m",
+      "0.75 metre",
+      "0.75 meter",
+      "0.75 metres",
+      "0.75 meters",
+      "three quarters of a metre",
+      "three quarters of a meter",
+      "three quarter metre",
+      "three quarter meter",
+      "three quarters metre",
+      "three quarters meter",
+      "75 cm",
+      "75 cms"
+    ],
+    5: [
+      "0.5 m",
+      "0.5 metre",
+      "0.5 meter",
+      "0.5 metres",
+      "0.5 meters",
+      "half a metre",
+      "half a meter",
+      "a half metre",
+      "a half meter",
+      "half metre",
+      "half meter",
+      "50 cm",
+      "50 cms"
+    ],
+    6: ["books"],
+    7: ["toys"],
+    8: ["1700", "1,700"],
+    9: "B", 10: "B", 11: "A", 12: "C", 13: "A",
+    14: "Thursdays", 15: "flute", 16: "dance studio", 17: "restaurant", 18: "DRASTLE",
+    19: "B", 20: "C", 21: "C", 22: "A", 23: "A",
+    24: "H", 25: "E", 26: "D", 27: "C", 28: "B"
   };
 
   // Audio player state - no seeking allowed
@@ -747,72 +873,70 @@
     const part1 = document.createElement("div");
     part1.className = "section";
     part1.innerHTML = `
-      <h2>Part 1: Questions 1–5</h2>
+      <h2>Part 1: Questions 1–8</h2>
       <div class="section-instructions">
-        For each question, there are three pictures and a short recording.<br>
-        Choose the correct picture and circle the letter <strong>A</strong>, <strong>B</strong> or <strong>C</strong> below it.
+        Complete the form below.<br>
+        Write <strong>NO MORE THAN THREE WORDS AND/OR A NUMBER</strong> for each answer.
       </div>
-      
-      <!-- EXAMPLE -->
-      <div class="example-box">
-        <div class="example-title">Example: Why did Jason visit Ally?</div>
-        <img src="${SUPABASE_IMAGES}/listening25_example.png" class="question-image" alt="Example" onerror="this.nextElementSibling.style.display='block'; this.style.display='none';" />
-        <div class="image-error">⚠️ Example image not found</div>
-        <div class="example-answer">Answer: B (circled)</div>
-      </div>
-      
-      <!-- Question 1 -->
       <div class="question-card">
-        <div class="question-text"><span class="question-number">1</span> What is the girl having for a snack now?</div>
-        <img src="${SUPABASE_IMAGES}/listening25_q1.png" class="question-image" alt="Question 1" onerror="this.nextElementSibling.style.display='block'; this.style.display='none';" />
-        <div class="image-error">⚠️ Image not found</div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q1" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <!-- Question 2 -->
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">2</span> What does the boy's mother look like in the photo?</div>
-        <img src="${SUPABASE_IMAGES}/listening25_q2.png" class="question-image" alt="Question 2" onerror="this.nextElementSibling.style.display='block'; this.style.display='none';" />
-        <div class="image-error">⚠️ Image not found</div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q2" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <!-- Question 3 -->
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">3</span> Where did the boy go first on Saturday?</div>
-        <img src="${SUPABASE_IMAGES}/listening25_q3.png" class="question-image" alt="Question 3" onerror="this.nextElementSibling.style.display='block'; this.style.display='none';" />
-        <div class="image-error">⚠️ Image not found</div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q3" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <!-- Question 4 -->
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">4</span> What is the girl taking to school this morning?</div>
-        <img src="${SUPABASE_IMAGES}/listening25_q4.png" class="question-image" alt="Question 4" onerror="this.nextElementSibling.style.display='block'; this.style.display='none';" />
-        <div class="image-error">⚠️ Image not found</div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q4" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <!-- Question 5 -->
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">5</span> What does the boy advise the girl to do next?</div>
-        <img src="${SUPABASE_IMAGES}/listening25_q5.png" class="question-image" alt="Question 5" onerror="this.nextElementSibling.style.display='block'; this.style.display='none';" />
-        <div class="image-error">⚠️ Image not found</div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q5" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
+        <div class="listening-form">
+          <div class="listening-form__title">Packham's Shipping Agency – customer quotation</div>
+          <div class="listening-form__example">
+            <strong>Example</strong> Country of destination: <b>Kenya</b>
+          </div>
+          <div class="listening-form__row">
+            <span class="listening-form__label">Name</span>
+            <span class="listening-form__number">1</span>
+            <input type="text" id="q1" class="answer-input answer-input--text" oninput="startTimer()" />
+          </div>
+          <div class="listening-form__row">
+            <span class="listening-form__label">Address to be collected</span>
+            <span class="listening-form__number">2</span>
+            <div class="listening-form__inline">
+              <input type="text" id="q2" class="answer-input answer-input--text" oninput="startTimer()" />
+              <span>College, Downlands Rd</span>
+            </div>
+          </div>
+          <div class="listening-form__row">
+            <span class="listening-form__label">Town</span>
+            <span class="listening-form__hint">Downlands</span>
+          </div>
+          <div class="listening-form__row">
+            <span class="listening-form__label">Postcode</span>
+            <span class="listening-form__number">3</span>
+            <input type="text" id="q3" class="answer-input answer-input--text" oninput="startTimer()" />
+          </div>
+          <div class="listening-form__divider"></div>
+          <div class="listening-form__row">
+            <span class="listening-form__label">Size of crate</span>
+            <div class="crate-layout">
+              <div class="crate-diagram" aria-hidden="true"></div>
+              <div>
+                <div class="crate-dimension">Width: <span class="listening-form__number">4</span>
+                  <input type="text" id="q4" class="answer-input answer-input--text" oninput="startTimer()" />
+                </div>
+                <div class="crate-dimension">Height: <span class="listening-form__number">5</span>
+                  <input type="text" id="q5" class="answer-input answer-input--text" oninput="startTimer()" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="listening-form__divider"></div>
+          <div class="listening-form__row">
+            <span class="listening-form__label">Contents</span>
+            <span class="listening-form__number">6</span>
+            <input type="text" id="q6" class="answer-input answer-input--text" oninput="startTimer()" />
+          </div>
+          <div class="listening-form__row">
+            <span class="listening-form__label">&nbsp;</span>
+            <span class="listening-form__number">7</span>
+            <input type="text" id="q7" class="answer-input answer-input--text" oninput="startTimer()" />
+          </div>
+          <div class="listening-form__row">
+            <span class="listening-form__label">Total estimated value</span>
+            <span class="listening-form__number">8</span>
+            <input type="text" id="q8" class="answer-input answer-input--text" oninput="startTimer()" />
+          </div>
         </div>
       </div>
     `;
@@ -822,57 +946,18 @@
     const part2 = document.createElement("div");
     part2.className = "section";
     part2.innerHTML = `
-      <h2>Part 2: Questions 6–10</h2>
+      <h2>Part 2: Questions 9–13</h2>
       <div class="section-instructions">
         You will hear people talking in five different situations.<br>
         For each question, choose the correct answer <strong>A</strong>, <strong>B</strong> or <strong>C</strong>.
       </div>
       
       <div class="question-card">
-        <div class="question-text"><span class="question-number">6</span> You will hear two friends talking about transport in their city. What do they agree about it?</div>
+        <div class="question-text"><span class="question-number">9</span> You will hear two friends talking about transport in their city. What do they agree about it?</div>
         <div class="options-list">
           <div class="option-item">A) The trams are quite convenient.</div>
           <div class="option-item">B) Travelling by bus is very expensive.</div>
           <div class="option-item">C) The underground is always crowded.</div>
-        </div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q6" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">7</span> You will hear two friends talking about a museum about football. What did the girl enjoy most when she visited it?</div>
-        <div class="options-list">
-          <div class="option-item">A) looking at prizes the team received</div>
-          <div class="option-item">B) finding out about people in the team</div>
-          <div class="option-item">C) watching a documentary of the team playing</div>
-        </div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q7" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">8</span> You will hear a teacher telling his class about a photography competition. What information does he give them?</div>
-        <div class="options-list">
-          <div class="option-item">A) Everyone will see the winning entries.</div>
-          <div class="option-item">B) All students need to take part.</div>
-          <div class="option-item">C) Photos must show the natural world.</div>
-        </div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q8" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">9</span> You will hear two friends talking about their school library. What do they agree about it?</div>
-        <div class="options-list">
-          <div class="option-item">A) There are enough computers there.</div>
-          <div class="option-item">B) The opening hours are too short.</div>
-          <div class="option-item">C) There are lots of good novels there.</div>
         </div>
         <div class="answer-row">
           <label>Your Answer:</label>
@@ -881,7 +966,46 @@
       </div>
       
       <div class="question-card">
-        <div class="question-text"><span class="question-number">10</span> You will hear a girl telling a friend about a film. Why does the girl want to see it?</div>
+        <div class="question-text"><span class="question-number">10</span> You will hear two friends talking about a museum about football. What did the girl enjoy most when she visited it?</div>
+        <div class="options-list">
+          <div class="option-item">A) looking at prizes the team received</div>
+          <div class="option-item">B) finding out about people in the team</div>
+          <div class="option-item">C) watching a documentary of the team playing</div>
+        </div>
+        <div class="answer-row">
+          <label>Your Answer:</label>
+          <input type="text" id="q10" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
+        </div>
+      </div>
+      
+      <div class="question-card">
+        <div class="question-text"><span class="question-number">11</span> You will hear a teacher telling his class about a photography competition. What information does he give them?</div>
+        <div class="options-list">
+          <div class="option-item">A) Everyone will see the winning entries.</div>
+          <div class="option-item">B) All students need to take part.</div>
+          <div class="option-item">C) Photos must show the natural world.</div>
+        </div>
+        <div class="answer-row">
+          <label>Your Answer:</label>
+          <input type="text" id="q11" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
+        </div>
+      </div>
+      
+      <div class="question-card">
+        <div class="question-text"><span class="question-number">12</span> You will hear two friends talking about their school library. What do they agree about it?</div>
+        <div class="options-list">
+          <div class="option-item">A) There are enough computers there.</div>
+          <div class="option-item">B) The opening hours are too short.</div>
+          <div class="option-item">C) There are lots of good novels there.</div>
+        </div>
+        <div class="answer-row">
+          <label>Your Answer:</label>
+          <input type="text" id="q12" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
+        </div>
+      </div>
+      
+      <div class="question-card">
+        <div class="question-text"><span class="question-number">13</span> You will hear a girl telling a friend about a film. Why does the girl want to see it?</div>
         <div class="options-list">
           <div class="option-item">A) She knows and loves the story.</div>
           <div class="option-item">B) She's read some good reviews.</div>
@@ -889,7 +1013,7 @@
         </div>
         <div class="answer-row">
           <label>Your Answer:</label>
-          <input type="text" id="q10" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
+          <input type="text" id="q13" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
         </div>
       </div>
     `;
@@ -899,7 +1023,7 @@
     const part3 = document.createElement("div");
     part3.className = "section";
     part3.innerHTML = `
-      <h2>Part 3: Questions 11–15</h2>
+      <h2>Part 3: Questions 14–18</h2>
       <div class="section-instructions">
         You will hear a teacher telling some students about the school orchestra.<br>
         For each question, fill in the missing information in the numbered space.
@@ -909,32 +1033,32 @@
         <h3 class="orchestra-title">School Orchestra</h3>
         
         <p class="orchestra-line">
-          Orchestra practices will be after school on <span class="q-number">(11)</span>
-          <input type="text" id="q11" class="orchestra-input" placeholder="....................." oninput="startTimer()" />
-          .
-        </p>
-        
-        <p class="orchestra-line">
-          The orchestra really needs students who can play the <span class="q-number">(12)</span>
-          <input type="text" id="q12" class="orchestra-input" placeholder="....................." oninput="startTimer()" />
-          .
-        </p>
-        
-        <p class="orchestra-line">
-          Practices will take place in the school <span class="q-number">(13)</span>
-          <input type="text" id="q13" class="orchestra-input" placeholder="....................." oninput="startTimer()" />
-          this term.
-        </p>
-        
-        <p class="orchestra-line">
-          At the end of term there will be a visit to a local <span class="q-number">(14)</span>
+          Orchestra practices will be after school on <span class="q-number">(14)</span>
           <input type="text" id="q14" class="orchestra-input" placeholder="....................." oninput="startTimer()" />
           .
         </p>
         
         <p class="orchestra-line">
-          Interested students should email the music teacher at <span class="q-number">(15)</span>
-          <input type="text" id="q15" class="orchestra-input" style="width: 140px;" placeholder="....................." oninput="startTimer()" />
+          The orchestra really needs students who can play the <span class="q-number">(15)</span>
+          <input type="text" id="q15" class="orchestra-input" placeholder="....................." oninput="startTimer()" />
+          .
+        </p>
+        
+        <p class="orchestra-line">
+          Practices will take place in the school <span class="q-number">(16)</span>
+          <input type="text" id="q16" class="orchestra-input" placeholder="....................." oninput="startTimer()" />
+          this term.
+        </p>
+        
+        <p class="orchestra-line">
+          At the end of term there will be a visit to a local <span class="q-number">(17)</span>
+          <input type="text" id="q17" class="orchestra-input" placeholder="....................." oninput="startTimer()" />
+          .
+        </p>
+        
+        <p class="orchestra-line">
+          Interested students should email the music teacher at <span class="q-number">(18)</span>
+          <input type="text" id="q18" class="orchestra-input" style="width: 140px;" placeholder="....................." oninput="startTimer()" />
           @school.com.
         </p>
       </div>
@@ -945,57 +1069,18 @@
     const part4 = document.createElement("div");
     part4.className = "section";
     part4.innerHTML = `
-      <h2>Part 4: Questions 16–20</h2>
+      <h2>Part 4: Questions 19–23</h2>
       <div class="section-instructions">
         You will hear an interview with a girl called Mandy Livingstone who is talking about winning the Young Chef of the Year competition.<br>
         For each question, choose the correct answer <strong>A</strong>, <strong>B</strong> or <strong>C</strong>.
       </div>
       
       <div class="question-card">
-        <div class="question-text"><span class="question-number">16</span> Mandy used to cook most with</div>
+        <div class="question-text"><span class="question-number">19</span> Mandy used to cook most with</div>
         <div class="options-list">
           <div class="option-item">A) her mum at the weekends.</div>
           <div class="option-item">B) her dad after school.</div>
           <div class="option-item">C) her grandmother in the holidays.</div>
-        </div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q16" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">17</span> How did Mandy find out about the competition?</div>
-        <div class="options-list">
-          <div class="option-item">A) She saw it advertised on a website.</div>
-          <div class="option-item">B) A teacher told her about it.</div>
-          <div class="option-item">C) She heard it mentioned on the radio.</div>
-        </div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q17" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">18</span> When Mandy's friends heard she was doing the competition they were</div>
-        <div class="options-list">
-          <div class="option-item">A) keen to help her prepare for it.</div>
-          <div class="option-item">B) surprised she wanted to take part.</div>
-          <div class="option-item">C) interested to know more about it.</div>
-        </div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q18" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">19</span> When Mandy was waiting for the results she felt that</div>
-        <div class="options-list">
-          <div class="option-item">A) she could have done better.</div>
-          <div class="option-item">B) other competitors were more talented.</div>
-          <div class="option-item">C) she had definitely won.</div>
         </div>
         <div class="answer-row">
           <label>Your Answer:</label>
@@ -1004,7 +1089,46 @@
       </div>
       
       <div class="question-card">
-        <div class="question-text"><span class="question-number">20</span> What is Mandy hoping to do next?</div>
+        <div class="question-text"><span class="question-number">20</span> How did Mandy find out about the competition?</div>
+        <div class="options-list">
+          <div class="option-item">A) She saw it advertised on a website.</div>
+          <div class="option-item">B) A teacher told her about it.</div>
+          <div class="option-item">C) She heard it mentioned on the radio.</div>
+        </div>
+        <div class="answer-row">
+          <label>Your Answer:</label>
+          <input type="text" id="q20" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
+        </div>
+      </div>
+      
+      <div class="question-card">
+        <div class="question-text"><span class="question-number">21</span> When Mandy's friends heard she was doing the competition they were</div>
+        <div class="options-list">
+          <div class="option-item">A) keen to help her prepare for it.</div>
+          <div class="option-item">B) surprised she wanted to take part.</div>
+          <div class="option-item">C) interested to know more about it.</div>
+        </div>
+        <div class="answer-row">
+          <label>Your Answer:</label>
+          <input type="text" id="q21" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
+        </div>
+      </div>
+      
+      <div class="question-card">
+        <div class="question-text"><span class="question-number">22</span> When Mandy was waiting for the results she felt that</div>
+        <div class="options-list">
+          <div class="option-item">A) she could have done better.</div>
+          <div class="option-item">B) other competitors were more talented.</div>
+          <div class="option-item">C) she had definitely won.</div>
+        </div>
+        <div class="answer-row">
+          <label>Your Answer:</label>
+          <input type="text" id="q22" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
+        </div>
+      </div>
+      
+      <div class="question-card">
+        <div class="question-text"><span class="question-number">23</span> What is Mandy hoping to do next?</div>
         <div class="options-list">
           <div class="option-item">A) make some videos about cooking</div>
           <div class="option-item">B) get a qualification in cooking</div>
@@ -1012,7 +1136,7 @@
         </div>
         <div class="answer-row">
           <label>Your Answer:</label>
-          <input type="text" id="q20" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
+          <input type="text" id="q23" class="answer-input" maxlength="1" placeholder="A/B/C" oninput="startTimer(); this.value = this.value.toUpperCase()" />
         </div>
       </div>
     `;
@@ -1022,7 +1146,7 @@
     const part5 = document.createElement("div");
     part5.className = "section";
     part5.innerHTML = `
-      <h2>Part 5: Questions 21–25</h2>
+      <h2>Part 5: Questions 24–28</h2>
       <div class="section-instructions">
         You will hear five people talking about playing different sports.<br>
         For speakers 1–5, choose from the list A–H what each speaker says.<br>
@@ -1041,31 +1165,7 @@
       </div>
       
       <div class="question-card">
-        <div class="question-text"><span class="question-number">21</span> Speaker 1</div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q21" class="answer-input" maxlength="1" placeholder="A-H" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">22</span> Speaker 2</div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q22" class="answer-input" maxlength="1" placeholder="A-H" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">23</span> Speaker 3</div>
-        <div class="answer-row">
-          <label>Your Answer:</label>
-          <input type="text" id="q23" class="answer-input" maxlength="1" placeholder="A-H" oninput="startTimer(); this.value = this.value.toUpperCase()" />
-        </div>
-      </div>
-      
-      <div class="question-card">
-        <div class="question-text"><span class="question-number">24</span> Speaker 4</div>
+        <div class="question-text"><span class="question-number">24</span> Speaker 1</div>
         <div class="answer-row">
           <label>Your Answer:</label>
           <input type="text" id="q24" class="answer-input" maxlength="1" placeholder="A-H" oninput="startTimer(); this.value = this.value.toUpperCase()" />
@@ -1073,24 +1173,87 @@
       </div>
       
       <div class="question-card">
-        <div class="question-text"><span class="question-number">25</span> Speaker 5</div>
+        <div class="question-text"><span class="question-number">25</span> Speaker 2</div>
         <div class="answer-row">
           <label>Your Answer:</label>
           <input type="text" id="q25" class="answer-input" maxlength="1" placeholder="A-H" oninput="startTimer(); this.value = this.value.toUpperCase()" />
+        </div>
+      </div>
+      
+      <div class="question-card">
+        <div class="question-text"><span class="question-number">26</span> Speaker 3</div>
+        <div class="answer-row">
+          <label>Your Answer:</label>
+          <input type="text" id="q26" class="answer-input" maxlength="1" placeholder="A-H" oninput="startTimer(); this.value = this.value.toUpperCase()" />
+        </div>
+      </div>
+      
+      <div class="question-card">
+        <div class="question-text"><span class="question-number">27</span> Speaker 4</div>
+        <div class="answer-row">
+          <label>Your Answer:</label>
+          <input type="text" id="q27" class="answer-input" maxlength="1" placeholder="A-H" oninput="startTimer(); this.value = this.value.toUpperCase()" />
+        </div>
+      </div>
+      
+      <div class="question-card">
+        <div class="question-text"><span class="question-number">28</span> Speaker 5</div>
+        <div class="answer-row">
+          <label>Your Answer:</label>
+          <input type="text" id="q28" class="answer-input" maxlength="1" placeholder="A-H" oninput="startTimer(); this.value = this.value.toUpperCase()" />
         </div>
       </div>
     `;
     container.appendChild(part5);
   }
 
+  function normalizeAnswer(value) {
+    return value
+      .toLowerCase()
+      .trim()
+      .replace(/,/g, '')
+      .replace(/\s+/g, ' ');
+  }
+
+  function isAnswerCorrect(userAnswer, expectedAnswer) {
+    const normalizedUser = normalizeAnswer(userAnswer);
+    if (Array.isArray(expectedAnswer)) {
+      return expectedAnswer.some((option) => normalizeAnswer(option) === normalizedUser);
+    }
+    return normalizeAnswer(expectedAnswer) === normalizedUser;
+  }
+
+  function formatCorrectAnswer(expectedAnswer, questionNumber) {
+    if (questionNumber === 6 || questionNumber === 7) {
+      return "books / toys";
+    }
+    if (Array.isArray(expectedAnswer)) {
+      return expectedAnswer[0];
+    }
+    return expectedAnswer;
+  }
+
   function calculateScore() {
     let score = 0;
+    const answer6 = document.getElementById("q6").value;
+    const answer7 = document.getElementById("q7").value;
+    const normalized6 = normalizeAnswer(answer6);
+    const normalized7 = normalizeAnswer(answer7);
+    const pairCorrect =
+      (normalized6 === "books" && normalized7 === "toys") ||
+      (normalized6 === "toys" && normalized7 === "books");
+
     for (let i = 1; i <= total; i++) {
       const input = document.getElementById("q" + i);
-      const userAns = input.value.trim().toLowerCase();
-      const correctAns = correct[i].toLowerCase();
-      
-      if (userAns === correctAns) {
+      let isCorrect = false;
+      if (i === 6 || i === 7) {
+        const normalized = normalizeAnswer(input.value);
+        isCorrect = pairCorrect ? (normalized === "books" || normalized === "toys") : isAnswerCorrect(input.value, correct[i]);
+      } else {
+        isCorrect = isAnswerCorrect(input.value, correct[i]);
+      }
+
+      if (isCorrect) {
         score++;
         input.style.borderColor = "#22c55e";
         input.style.backgroundColor = "#dcfce7";
@@ -1099,7 +1262,7 @@
         input.style.backgroundColor = "#fee2e2";
         const correction = document.createElement("span");
         correction.style.cssText = "color: #22c55e; font-weight: bold; font-size: 13px; margin-left: 10px;";
-        correction.textContent = `✓ ${correct[i]}`;
+        correction.textContent = `✓ ${formatCorrectAnswer(correct[i], i)}`;
         input.parentElement.appendChild(correction);
       }
       input.disabled = true;
