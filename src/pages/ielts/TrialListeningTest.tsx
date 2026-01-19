@@ -161,6 +161,8 @@ const TrialListeningTest: React.FC = () => {
   const [audioDuration, setAudioDuration] = useState(0);
   const [audioLoading, setAudioLoading] = useState(false);
   const [audioError, setAudioError] = useState<string | null>(null);
+  const [audioLocked, setAudioLocked] = useState(false);
+  const audioLockRef = useRef(false);
 
   // Stop background music
   useEffect(() => {
@@ -184,6 +186,7 @@ const TrialListeningTest: React.FC = () => {
       
       // Cleanup previous audio
       if (audioRef.current) {
+        audioLockRef.current = false;
         audioRef.current.pause();
         audioRef.current = null;
       }
@@ -192,6 +195,8 @@ const TrialListeningTest: React.FC = () => {
       setAudioError(null);
       setAudioProgress(0);
       setIsPlaying(false);
+      setAudioLocked(false);
+      audioLockRef.current = false;
       
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
@@ -207,6 +212,16 @@ const TrialListeningTest: React.FC = () => {
       
       audio.addEventListener('ended', () => {
         setIsPlaying(false);
+        setAudioLocked(false);
+        audioLockRef.current = false;
+      });
+
+      audio.addEventListener('pause', () => {
+        if (audioLockRef.current && !audio.ended) {
+          audio.play().catch(() => {
+            setAudioError('Could not resume audio. Please refresh the page.');
+          });
+        }
       });
       
       audio.addEventListener('error', () => {
@@ -219,6 +234,7 @@ const TrialListeningTest: React.FC = () => {
     
     return () => {
       if (audioRef.current) {
+        audioLockRef.current = false;
         audioRef.current.pause();
       }
     };
@@ -226,16 +242,19 @@ const TrialListeningTest: React.FC = () => {
 
   const togglePlayPause = () => {
     if (!audioRef.current) return;
-    
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      audioRef.current.play().catch(() => {
-        setAudioError('Could not play audio. Please try again.');
-      });
+
+    if (audioLockRef.current) return;
+
+    audioRef.current.play().then(() => {
       setIsPlaying(true);
-    }
+      setAudioLocked(true);
+      audioLockRef.current = true;
+    }).catch(() => {
+      setAudioError('Could not play audio. Please try again.');
+      setIsPlaying(false);
+      setAudioLocked(false);
+      audioLockRef.current = false;
+    });
   };
 
   const seekAudio = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -753,6 +772,7 @@ const TrialListeningTest: React.FC = () => {
               {/* Play/Pause Button */}
               <button
                 onClick={togglePlayPause}
+                disabled={audioLocked}
                 style={{
                   width: '3rem',
                   height: '3rem',
@@ -760,17 +780,18 @@ const TrialListeningTest: React.FC = () => {
                   background: isPlaying ? '#ef4444' : '#22c55e',
                   color: 'white',
                   border: 'none',
-                  cursor: 'pointer',
+                  cursor: audioLocked ? 'not-allowed' : 'pointer',
                   fontSize: '1.25rem',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
                   transition: 'transform 0.1s',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                  opacity: audioLocked ? 0.8 : 1
                 }}
               >
-                {isPlaying ? '⏸️' : '▶️'}
+                {audioLocked ? '🔒' : '▶️'}
               </button>
               
               {/* Progress Bar */}
@@ -781,12 +802,13 @@ const TrialListeningTest: React.FC = () => {
                   max={audioDuration || 100}
                   value={audioProgress}
                   onChange={seekAudio}
+                  disabled={audioLocked}
                   style={{
                     width: '100%',
                     height: '6px',
                     borderRadius: '3px',
                     background: `linear-gradient(to right, #3b82f6 ${(audioProgress / (audioDuration || 1)) * 100}%, #475569 ${(audioProgress / (audioDuration || 1)) * 100}%)`,
-                    cursor: 'pointer',
+                    cursor: audioLocked ? 'not-allowed' : 'pointer',
                     appearance: 'none',
                     WebkitAppearance: 'none'
                   }}
