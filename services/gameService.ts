@@ -55,7 +55,7 @@ import {
     RaidStatus,
     RaidWaveState,
 } from '../src/features/raids/raidTypes';
-import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, addActivityEvent, getActivityFeed, getTaskProgress, incrementQuestCompleted, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount, canEarnQuestGemstone, recordQuestGemstoneAward, canEarnPvpGemstone, recordPvpGemstoneAward } from './storageService';
+import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, addActivityEvent, getActivityFeed, getTaskProgress, incrementPvPWin, incrementWeeklyTaskCompleted, getPurchaseCount, incrementPurchaseCount } from './storageService';
 import { supabase } from './supabaseClient';
 import { fetchNeonFrameOwners, fetchFlickerThemeOwners, fetchGlitchEffectOwners } from './cosmeticService';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage';
@@ -64,12 +64,7 @@ import { fetchMyXpStatus } from './xpStatus';
 import {
     regenerateUserAp,
     notifyApFull,
-    notifyLevelUp,
     performHackAttempt,
-    notifyAttackIncoming,
-    notifyCoinsLost,
-    notifyRevengeAvailable,
-    notifyAttackDefended,
     checkAchievements as rpcCheckAchievements,
     createTeacherProfile as rpcCreateTeacherProfile,
     recordQuestionAttempt,
@@ -89,11 +84,6 @@ import {
 
 const MOCK_DELAY = 500;
 
-const QUEST_STREAK_TARGET = 5;
-const QUEST_GEMSTONE_REWARD = 1;
-const QUEST_GEMSTONE_DAILY_CAP = 2;
-const PVP_GEMSTONE_REWARD = 1;
-const PVP_GEMSTONE_DAILY_CAP = 1;
 
 const nowIso = (): string => new Date().toISOString();
 
@@ -949,7 +939,6 @@ const DEFAULT_INVENTORY: InventoryItem[] = [
 let MOCK_INVENTORY: InventoryItem[] = loadFromStorage<InventoryItem[]>(STORAGE_KEYS.INVENTORY) || [...DEFAULT_INVENTORY];
 
 // Quest tracking state
-let currentQuestAnswers = 0; // Track answers in current quest session
 
 // Helper functions to save state
 const saveProfile = () => saveToStorage(STORAGE_KEYS.PROFILE, MOCK_PROFILE);
@@ -2679,315 +2668,49 @@ export const getRaidWaveQuestions = (request: RaidQuestionRequest): Promise<Raid
     return RaidFeatureService.getRaidWaveQuestions(request);
 };
 
-export const raid_attack = async (defender_id: string, use_cracker: boolean, target: RaidTarget, requestId?: string): Promise<RaidAttackResult> => {
-    const user = await getCurrentUser();
-    const AP_COST = 2;
+export const raid_attack = async (
+    defender_id: string,
+    _use_cracker: boolean,
+    _target: RaidTarget,
+    requestId?: string
+): Promise<RaidAttackResult> => {
+    const { data, error } = await performHackAttempt(defender_id, requestId);
 
-    const { data: attackerProfile, error: attackerError } = await supabase
-        .from('users')
-        .select('ap_now, ap_max, last_ap_update')
-        .eq('id', user.id)
-        .single();
-
-    if (attackerError || !attackerProfile) {
-        throw new Error(attackerError?.message ?? 'Unable to verify Action Points before attack.');
+    if (error) {
+        throw new Error(error.message || 'Failed to execute raid attack.');
     }
 
-    const currentAp = attackerProfile.ap_now ?? 0;
-    if (currentAp < AP_COST) {
-        throw new Error('Not enough Action Points to launch a raid.');
+    if (!data) {
+        throw new Error('Hack attempt returned no data.');
     }
 
-    const simulateBotRaid = (botId: string) => {
-        const bots = refreshKyrgyzBotStates();
-        const botIndex = bots.findIndex(bot => bot.id === botId);
-        if (botIndex === -1) {
-            throw new Error('Raid target is no longer available.');
-        }
+    const payload = data as any;
 
-        const bot = bots[botIndex];
-        const persona = KYRGYZ_PERSONA_LOOKUP.get(bot.personaId);
-        const hadShield = target?.has_shield ?? false;
-        const shieldBlocks = hadShield && !use_cracker && Math.random() < 0.8;
-        const baseWinChance = clampNumber(target?.est_win_rate ?? getBotWinChance(bot), [0.2, 0.9]);
-        const effectiveWinChance = hadShield && !use_cracker ? baseWinChance * 0.85 : baseWinChance;
-        const roll = Math.random();
-
-        let result: RaidAttackResult['result'];
-        let attackerCoins = 0;
-        let defenderCoinsLoss = 0;
-        let attackerXp = 0;
-        let summary = '';
-        let shield_state: RaidAttackResult['shield_state'] = hadShield ? 'removed' : 'none';
-
-        if (shieldBlocks) {
-            result = 'blocked';
-            attackerCoins = 0;
-            defenderCoinsLoss = 0;
-            attackerXp = -10;
-            summary = 'Attack blocked by Shield';
-            shield_state = 'remaining';
-            bot.pvp_wins += 1;
-        } else if (roll < effectiveWinChance) {
-            result = 'win';
-            const coinsStolen = Math.min(bot.coins, randomIntInRange([110, 240]));
-            attackerCoins = coinsStolen;
-            defenderCoinsLoss = coinsStolen;
-            attackerXp = randomIntInRange([60, 140]);
-            bot.coins = Math.max(0, bot.coins - coinsStolen);
-            bot.xp = Math.max(bot.xp - randomIntInRange([15, 30]), approximateXpForLevel(bot.level));
-            summary = `Stole ${coinsStolen} Coins`;
-        } else {
-            result = 'lose';
-            const coinsLost = randomIntInRange([40, 110]);
-            attackerCoins = -coinsLost;
-            defenderCoinsLoss = -coinsLost;
-            attackerXp = -randomIntInRange([20, 35]);
-            if (persona) {
-                bot.coins = clampNumber(bot.coins + coinsLost, persona.coinsRange);
-            } else {
-                bot.coins += coinsLost;
-            }
-            bot.pvp_wins += 1;
-            summary = `Defended and gained ${coinsLost} Coins`;
-        }
-
-        bot.last_seen = nowIso();
-        bot.lastRaidAt = nowIso();
-        const normalizedBot = clampBotStateToPersona(bot);
-        bots[botIndex] = normalizedBot;
-        saveKyrgyzBotStates(bots);
-
-        return {
-            response: {
-                result,
-                attacker_deltas: {
-                    xp: attackerXp,
-                    coins: attackerCoins,
-                },
-                defender_deltas: {
-                    coins_loss: defenderCoinsLoss,
-                },
-                shield_state,
-            },
-            summary,
-            botUsername: normalizedBot.username,
-        };
+    const response: RaidAttackResult = {
+        result: (payload.result ?? 'lose') as RaidAttackResult['result'],
+        attacker_deltas: {
+            xp: payload.attacker_deltas?.xp ?? 0,
+            coins: payload.attacker_deltas?.coins ?? 0,
+            gemstones: payload.attacker_deltas?.gemstones ?? 0,
+        },
+        defender_deltas: {
+            coins_loss: payload.defender_deltas?.coins_loss ?? 0,
+        },
+        shield_state: (payload.shield_state ?? 'none') as RaidAttackResult['shield_state'],
+        final_profile_values: payload.final_profile_values ?? undefined,
     };
 
-    const isBotTarget = target?.user_id?.startsWith('bot_') ?? defender_id.startsWith('bot_');
-    let botSimulation: ReturnType<typeof simulateBotRaid> | null = null;
-    let response: RaidAttackResult;
-
-    if (isBotTarget) {
-        if (!target?.user_id) {
-            throw new Error('Raid target is no longer available.');
-        }
-        botSimulation = simulateBotRaid(target.user_id);
-        response = botSimulation.response;
-        
-        // ====== APPLY BOT BATTLE REWARDS TO USER'S DATABASE PROFILE ======
-        const xpDelta = response.attacker_deltas?.xp ?? 0;
-        const coinsDelta = response.attacker_deltas?.coins ?? 0;
-        if (xpDelta !== 0 || coinsDelta !== 0) {
-            const rewardResult = await applyRewardDelta({
-                xpDelta,
-                coinsDelta,
-                gemstonesDelta: 0,
-                applyLevelMilestone: false,
-            });
-            response.final_profile_values = {
-                xp: rewardResult.profile.xp,
-                coins: rewardResult.profile.coins,
-                level: rewardResult.profile.level,
-                gemstones: rewardResult.profile.gemstones,
-                xp_status: rewardResult.xpStatus ?? undefined,
-            };
-
-            // Track PvP earnings for stats display
-            if (xpDelta > 0 || coinsDelta > 0) {
-                try {
-                    await supabase.rpc('track_pvp_earnings', {
-                        p_user_id: user.id,
-                        p_xp_delta: Math.max(0, xpDelta),
-                        p_coins_delta: Math.max(0, coinsDelta)
-                    });
-                } catch (trackErr) {
-                    console.warn('Failed to track PvP earnings:', trackErr);
-                }
-            }
-            
-            console.log(`[Bot PvP] Applied rewards: ${xpDelta} XP, ${coinsDelta} coins`);
-        }
-
-        const updatedAp = Math.max(0, currentAp - AP_COST);
-        await updateProfile(user.id, {
-            ap_now: updatedAp,
-            last_ap_update: new Date().toISOString(),
-        });
-    } else {
-        const { data, error } = await performHackAttempt(defender_id, requestId);
-
-        if (error) {
-            throw new Error(error.message || 'Failed to execute raid attack.');
-        }
-
-        if (!data) {
-            throw new Error('Hack attempt returned no data.');
-        }
-
-        const payload = data as any;
-
-        response = {
-            result: (payload.result ?? 'lose') as RaidAttackResult['result'],
-            attacker_deltas: {
-                xp: payload.attacker_deltas?.xp ?? 0,
-                coins: payload.attacker_deltas?.coins ?? 0,
-                gemstones: payload.attacker_deltas?.gemstones ?? 0,
-            },
-            defender_deltas: {
-                coins_loss: payload.defender_deltas?.coins_loss ?? 0,
-            },
-            shield_state: (payload.shield_state ?? 'none') as RaidAttackResult['shield_state'],
-            final_profile_values: payload.final_profile_values ?? undefined,
-        };
-
-        // Surface Supabase combat stats in debug logs to aid balancing
-        if (payload.combat_stats) {
-            console.debug('PvP combat stats', payload.combat_stats);
-        }
+    // Surface Supabase combat stats in debug logs to aid balancing
+    if (payload.combat_stats) {
+        console.debug('PvP combat stats', payload.combat_stats);
     }
 
-    let gemstoneReward = 0;
-
-    // Track progress (localStorage for now)
     if (response.result === 'win') {
         incrementPvPWin();
-        
-        // Update PvP score in database (affects clan competition)
-        await updatePvPScore(user.id, true);
-        
-        // ====== INCREMENT PVP WINS IN DATABASE & CHECK ACHIEVEMENTS ======
-        try {
-            // Increment pvp_wins counter in users table
-            await supabase.rpc('increment_pvp_wins', { p_user_id: user.id });
-            
-            // Check for newly earned achievements
-            const newlyEarned = await check_achievements();
-            if (newlyEarned && newlyEarned.length > 0) {
-                console.log('🏆 Achievements earned from PvP win:', newlyEarned.map(a => a.name));
-            }
-        } catch (achError) {
-            console.error('Failed to check PvP achievements:', achError);
-        }
-        
         const progress = getTaskProgress();
-        if (progress.daily_pvp_wins === 1 && canEarnPvpGemstone(PVP_GEMSTONE_DAILY_CAP)) {
-            gemstoneReward += PVP_GEMSTONE_REWARD;
-            recordPvpGemstoneAward(PVP_GEMSTONE_REWARD);
-        }
         if (progress.daily_pvp_wins === 1) {
             incrementWeeklyTaskCompleted();
         }
-    } else {
-        // Also track losses for PvP score (less points but still progression)
-        await updatePvPScore(user.id, false);
-    }
-
-    if (gemstoneReward > 0) {
-        const { data: gemProfile } = await supabase
-            .from('users')
-            .select('gemstones')
-            .eq('id', user.id)
-            .single();
-
-        const currentGemstones = gemProfile?.gemstones || 0;
-        await updateProfile(user.id, { gemstones: currentGemstones + gemstoneReward });
-
-        try {
-            const { notificationService } = await import('./notificationService');
-            await notificationService.createNotification(
-                user.id,
-                'gemstone_earned',
-                '💎 Gemstone Earned!',
-                `You recovered ${gemstoneReward} gemstone${gemstoneReward > 1 ? 's' : ''} from the heist!`,
-                'high'
-            );
-        } catch (notifError) {
-            console.error('Failed to send gemstone notification:', notifError);
-        }
-    }
-
-    response.attacker_deltas = {
-        ...response.attacker_deltas,
-        gemstones: (response.attacker_deltas?.gemstones ?? 0) + gemstoneReward,
-    };
-
-    // ====== NOTIFICATION TRIGGERS ======
-    try {
-        // Get attacker profile for username
-        const { data: attackerProfile } = await supabase
-            .from('users')
-            .select('username, level')
-            .eq('id', user.id)
-            .single();
-
-        const attackerUsername = attackerProfile?.username || 'Unknown';
-        const attackerLevel = attackerProfile?.level || 1;
-        const attackPower = attackerLevel * 10; // Estimate attack power
-
-        if (isBotTarget && botSimulation) {
-            const feedKind = response.result === 'win'
-                ? 'pvp_win'
-                : response.result === 'blocked'
-                    ? 'pvp_blocked'
-                    : 'pvp_loss';
-
-            addActivityEvent({
-                kind: feedKind,
-                actor: attackerUsername,
-                target: botSimulation.botUsername,
-                data: { details: botSimulation.summary },
-                created_at: nowIso(),
-            });
-        } else if (!isBotTarget) {
-            if (response.result === 'win') {
-                // Notify defender they're under attack
-                await notifyAttackIncoming({
-                    target_user_id: defender_id,
-                    attacker_username: attackerUsername,
-                    attacker_power: attackPower
-                });
-
-                // If significant coins stolen, notify about coin loss
-                const coinsStolen = response.defender_deltas?.coins_loss || 0;
-                if (coinsStolen > 50) {
-                    await notifyCoinsLost({
-                        user_id_param: defender_id,
-                        attacker_username: attackerUsername,
-                        coins_lost: coinsStolen
-                    });
-                }
-
-                // Offer revenge to defender
-                await notifyRevengeAvailable({
-                    user_id_param: defender_id,
-                    target_username: attackerUsername,
-                    target_user_id: user.id
-                });
-            } else if (response.result === 'lose' || response.result === 'blocked') {
-                // Defender successfully defended
-                const coinsLost = response.defender_deltas?.coins_loss || 0;
-                await notifyAttackDefended({
-                    user_id_param: defender_id,
-                    attacker_username: attackerUsername,
-                    coins_kept: Math.max(0, -coinsLost) // Negative loss means they kept coins
-                });
-            }
-        }
-    } catch (notifError) {
-        // Don't fail the attack if notifications fail
-        console.error('Failed to handle attack notifications:', notifError);
     }
 
     return mockApiCall(response);
@@ -5243,7 +4966,7 @@ export const submit_question_answer = async (
 
     const result = data as QuestionAttemptResult;
     const xpDelta = Math.max(0, result.points_earned || 0);
-    const coinDelta = result.is_correct ? Math.floor(xpDelta / 2) : 0;
+    const coinDelta = result.is_correct ? Math.trunc(xpDelta / 2) : 0;
 
     if (xpDelta > 0 || coinDelta > 0) {
         const rewardResult = await applyRewardDelta({
@@ -5593,268 +5316,7 @@ export const get_my_assignment_answers = async (
     return (data as MyAssignmentAnswer[]) || [];
 };
 
-type QuestProgressOutcome = {
-    gemstoneDelta: number;
-    notifications: Promise<unknown>[];
-};
-
-const applyQuestProgress = (userId: string, isCorrect: boolean): QuestProgressOutcome => {
-    const notifications: Promise<unknown>[] = [];
-
-    if (!isCorrect) {
-        currentQuestAnswers = 0;
-        return { gemstoneDelta: 0, notifications };
-    }
-
-    currentQuestAnswers += 1;
-    if (currentQuestAnswers < QUEST_STREAK_TARGET) {
-        return { gemstoneDelta: 0, notifications };
-    }
-
-    currentQuestAnswers = 0;
-    incrementQuestCompleted();
-
-    const progress = getTaskProgress();
-    const questsCompletedToday = progress.daily_quests_completed;
-
-    notifications.push(
-        notificationService.createNotification(
-            userId,
-            'quest_completed',
-            '✅ Quest Complete!',
-            'You completed a knowledge quest! Keep learning to earn more rewards.',
-            'high'
-        )
-    );
-
-    let gemstoneDelta = 0;
-
-    if ((questsCompletedToday === 1 || questsCompletedToday === 3) && canEarnQuestGemstone(QUEST_GEMSTONE_DAILY_CAP)) {
-        gemstoneDelta += QUEST_GEMSTONE_REWARD;
-        recordQuestGemstoneAward(QUEST_GEMSTONE_REWARD);
-    }
-
-    if (questsCompletedToday === 3 || progress.daily_pvp_wins === 1) {
-        incrementWeeklyTaskCompleted();
-    }
-
-    return { gemstoneDelta, notifications };
-};
-
-type FinalizeAnswerParams = {
-    userId: string;
-    question: Question;
-    choice: string;
-    isCorrect: boolean;
-    baseResponse: AnswerResponse;
-};
-
-const finalizeMcqAnswer = async ({
-    userId,
-    question,
-    choice,
-    isCorrect,
-    baseResponse,
-}: FinalizeAnswerParams): Promise<AnswerResponse> => {
-    let xpReward = baseResponse.deltas.xp;
-    let coinDelta = baseResponse.deltas.coins;
-    let duplicateCorrect = false;
-
-    // First, try to insert the question attempt
-    // This MUST complete before we calculate rewards to handle duplicates correctly
-    console.log(`[MCQ] Starting answer submission for user ${userId}, question ${question.id}, isCorrect=${isCorrect}`);
-    
-    const maxRetries = 3;
-    let lastInsertError: Error | null = null;
-    
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            const { error } = await supabase.from('question_attempts').insert({
-                student_id: userId,
-                question_id: question.id,
-                answer_given: choice,
-                is_correct: isCorrect,
-                points_earned: isCorrect && xpReward > 0 ? xpReward : 0,
-            });
-
-            if (error) {
-                if (error.code === '23505' && isCorrect) {
-                    // Unique constraint violation - user already has a correct answer for this question
-                    console.warn(`[MCQ] ⚠️ DUPLICATE ANSWER DETECTED - No rewards given for question ${question.id}`);
-                    console.warn(`[MCQ] You've already answered this question correctly before.`);
-                    console.warn(`[MCQ] To earn rewards, answer NEW questions you haven't solved before!`);
-                    duplicateCorrect = true;
-                    xpReward = 0;
-                    coinDelta = 0;
-                    baseResponse.deltas.xp = 0;
-                    baseResponse.deltas.coins = 0;
-                    baseResponse.explanation = '✓ Correct! But you already earned rewards for this question. Try new questions to earn more!';
-                    break; // Don't retry - this is expected
-                }
-                throw error;
-            }
-            console.log(`[MCQ] Question attempt inserted successfully`);
-            break; // Success
-        } catch (err) {
-            lastInsertError = err as Error;
-            if ((err as any)?.code === '23505') {
-                break; // Don't retry unique constraint violations
-            }
-            if (attempt < maxRetries) {
-                await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
-                console.warn(`[MCQ] attemptInsert attempt ${attempt} failed, retrying...`, err);
-            }
-        }
-    }
-    
-    // If insert failed (and wasn't a duplicate), throw the error
-    if (lastInsertError && !duplicateCorrect && (lastInsertError as any)?.code !== '23505') {
-        console.error('[MCQ] Failed to insert question attempt:', lastInsertError);
-        throw lastInsertError;
-    }
-
-    // Update question stats (fire and forget - don't block on this)
-    if (question.id) {
-        supabase
-            .from('questions')
-            .update({
-                times_answered: (question.times_answered || 0) + 1,
-                times_correct: (question.times_correct || 0) + (isCorrect ? 1 : 0),
-            })
-            .eq('id', question.id)
-            .then(({ error }) => {
-                if (error) console.warn('[MCQ] Failed to update question stats:', error);
-            });
-    }
-
-    const questOutcome = duplicateCorrect ? { gemstoneDelta: 0, notifications: [] } : applyQuestProgress(userId, isCorrect);
-
-    // Now apply rewards AFTER we know if it's a duplicate
-    console.log(`[MCQ] Applying rewards. xpReward=${xpReward}, coinDelta=${coinDelta}`);
-
-    let rewardProfile: Profile | null = null;
-    let xpStatusPayload: {
-        level: number;
-        xp: number;
-        level_xp_start: number;
-        level_xp_next: number;
-        xp_into_level: number;
-        xp_to_next: number;
-        progress: number;
-    } | null = null;
-    let previousLevel: number | null = null;
-    const gemstoneDelta = questOutcome.gemstoneDelta;
-
-    if (xpReward !== 0 || coinDelta !== 0 || gemstoneDelta !== 0) {
-        console.log(`[MCQ] 💾 Applying rewards: +${xpReward} XP, +${coinDelta} coins, +${gemstoneDelta} gems`);
-        const rewardResult = await applyRewardDelta({
-            xpDelta: xpReward,
-            coinsDelta: coinDelta,
-            gemstonesDelta: gemstoneDelta,
-            applyLevelMilestone: true,
-        });
-        rewardProfile = rewardResult.profile;
-        xpStatusPayload = rewardResult.xpStatus ?? null;
-        previousLevel = rewardResult.previousLevel ?? null;
-        console.log(`[MCQ] ✅ Profile updated successfully - New totals: ${rewardProfile.xp} XP, ${rewardProfile.coins} coins`);
-
-        // Track quest earnings for stats display
-        if (xpReward > 0 || coinDelta > 0) {
-            try {
-                await supabase.rpc('track_quest_earnings', {
-                    p_user_id: userId,
-                    p_xp_delta: Math.max(0, xpReward),
-                    p_coins_delta: Math.max(0, coinDelta)
-                });
-            } catch (trackErr) {
-                console.warn('[MCQ] Failed to track quest earnings:', trackErr);
-            }
-        }
-    } else {
-        console.warn(`[MCQ] ⚠️ NO REWARDS - xpReward=${xpReward}, coinDelta=${coinDelta}, gemstoneDelta=${gemstoneDelta}`);
-        if (duplicateCorrect) {
-            console.warn(`[MCQ] Reason: You already answered this question correctly before!`);
-        }
-    }
-
-    // Handle notifications and secondary operations (don't block main flow)
-    const notificationOperations: Promise<unknown>[] = [...questOutcome.notifications];
-    const secondaryOperations: Promise<unknown>[] = [];
-
-    const leveledUp = rewardProfile
-        && typeof rewardProfile.level === 'number'
-        && typeof previousLevel === 'number'
-        && rewardProfile.level > previousLevel;
-
-    if (leveledUp) {
-        // Level-up activity insert (secondary, don't block)
-        secondaryOperations.push(
-            (async () => {
-                const { error } = await supabase.from('activities').insert({
-                    kind: 'level_up',
-                    actor_id: userId,
-                    actor_username: rewardProfile?.username || 'Unknown',
-                    data: { details: String(rewardProfile?.level ?? 1) },
-                });
-                if (error) console.error('Failed to insert level-up activity:', error);
-            })()
-        );
-
-        notificationOperations.push(
-            notifyLevelUp(userId, rewardProfile?.level ?? 1, xpReward, coinDelta)
-        );
-    }
-
-    if (gemstoneDelta > 0) {
-        notificationOperations.push(
-            notificationService.createNotification(
-                userId,
-                'gemstone_earned',
-                '💎 Gemstone Earned!',
-                `You earned ${gemstoneDelta} rare gemstone${gemstoneDelta > 1 ? 's' : ''}!`,
-                'high'
-            )
-        );
-    }
-
-    if (isCorrect && coinDelta >= 30) {
-        notificationOperations.push(
-            notificationService.createNotification(
-                userId,
-                'coins_earned',
-                '💰 Coins Earned!',
-                `You earned ${coinDelta} coins for answering correctly!`,
-                'low'
-            )
-        );
-    }
-
-    // Handle notifications and secondary ops separately (don't block main response)
-    Promise.allSettled([...notificationOperations, ...secondaryOperations]).then(results => {
-        results.forEach((result, index) => {
-            if (result.status === 'rejected') {
-                console.error(`Failed secondary operation (index ${index}):`, result.reason);
-            }
-        });
-    });
-
-    baseResponse.deltas.gemstones = gemstoneDelta;
-    // Include final profile values for verification
-    if (rewardProfile) {
-        baseResponse.finalProfileValues = {
-            xp: rewardProfile.xp,
-            coins: rewardProfile.coins,
-            level: rewardProfile.level,
-            gemstones: rewardProfile.gemstones,
-            xp_status: xpStatusPayload ?? undefined,
-        };
-    }
-    return baseResponse;
-};
-
 export const mcq_answer_submit = async (question: Question, choice: string): Promise<AnswerResponse> => {
-    const user = await getCurrentUser();
-
     if (!question?.id) {
         throw new Error('Question payload missing identifier');
     }
@@ -5891,90 +5353,6 @@ export const mcq_answer_submit = async (question: Question, choice: string): Pro
     if (isDuplicate) {
         response.explanation = '✓ Correct! But you already earned rewards for this question. Try new questions to earn more!';
     }
-
-    const questOutcome = isDuplicate ? { gemstoneDelta: 0, notifications: [] } : applyQuestProgress(user.id, isCorrect);
-
-    if (response.deltas.xp > 0 || response.deltas.coins > 0) {
-        try {
-            await supabase.rpc('track_quest_earnings', {
-                p_user_id: user.id,
-                p_xp_delta: Math.max(0, response.deltas.xp),
-                p_coins_delta: Math.max(0, response.deltas.coins)
-            });
-        } catch (trackErr) {
-            console.warn('[MCQ] Failed to track quest earnings:', trackErr);
-        }
-    }
-
-    if (questOutcome.gemstoneDelta > 0) {
-        const { data: gemProfile } = await supabase
-            .from('users')
-            .select('gemstones')
-            .eq('id', user.id)
-            .single();
-
-        const currentGemstones = gemProfile?.gemstones || 0;
-        await updateProfile(user.id, { gemstones: currentGemstones + questOutcome.gemstoneDelta });
-
-        response.deltas.gemstones = questOutcome.gemstoneDelta;
-        if (response.finalProfileValues) {
-            response.finalProfileValues = {
-                ...response.finalProfileValues,
-                gemstones: currentGemstones + questOutcome.gemstoneDelta,
-            };
-        }
-
-        try {
-            await notificationService.createNotification(
-                user.id,
-                'gemstone_earned',
-                '💎 Gemstone Earned!',
-                `You earned ${questOutcome.gemstoneDelta} rare gemstone${questOutcome.gemstoneDelta > 1 ? 's' : ''}!`,
-                'high'
-            );
-        } catch (notifError) {
-            console.error('Failed to send gemstone notification:', notifError);
-        }
-    }
-
-    const previousLevel = payload?.previous_level ?? null;
-    const currentLevel = response.finalProfileValues?.level;
-    const leveledUp = typeof previousLevel === 'number'
-        && typeof currentLevel === 'number'
-        && currentLevel > previousLevel;
-
-    if (leveledUp) {
-        try {
-            const { data: profileSnapshot } = await supabase
-                .from('users')
-                .select('username')
-                .eq('id', user.id)
-                .single();
-            const { error: activityError } = await supabase.from('activities').insert({
-                kind: 'level_up',
-                actor_id: user.id,
-                actor_username: profileSnapshot?.username || 'Unknown',
-                data: { details: String(currentLevel ?? 1) },
-            });
-            if (activityError) console.error('Failed to insert level-up activity:', activityError);
-        } catch (err) {
-            console.warn('Failed to record level-up activity:', err);
-        }
-
-        try {
-            await notifyLevelUp(user.id, currentLevel ?? 1, response.deltas.xp, response.deltas.coins);
-        } catch (err) {
-            console.warn('Failed to notify level up:', err);
-        }
-    }
-
-    Promise.allSettled(questOutcome.notifications).then(results => {
-        results.forEach((result, index) => {
-            if (result.status === 'rejected') {
-                console.error(`Failed quest notification (index ${index}):`, result.reason);
-            }
-        });
-    });
 
     return response;
 };
