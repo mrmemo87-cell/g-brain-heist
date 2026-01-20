@@ -15,7 +15,7 @@ const NAV_SECTIONS = [
   { id: 'audit', label: 'Audit' },
 ] as const;
 
-type NavSection = typeof NAV_SECTIONS[number]['id'];
+type IeltsSubTab = 'overview' | 'attempts' | 'users' | 'content' | 'notifications' | 'prime' | 'violations';
 
 type Toast = {
   id: number;
@@ -94,110 +94,89 @@ const IeltsAdminDashboard: React.FC = () => {
   const [writingAttempts, setWritingAttempts] = useState<any[]>([]);
   const [speakingAttempts, setSpeakingAttempts] = useState<any[]>([]);
   const [primeApplications, setPrimeApplications] = useState<any[]>([]);
-  const [notificationPrefs, setNotificationPrefs] = useState<any[]>([]);
-  const [violationLogs, setViolationLogs] = useState<any[]>([]);
-  const [auditLog, setAuditLog] = useState<any[]>([]);
-  const [memberships, setMemberships] = useState<any[]>([]);
+  const [violations, setViolations] = useState<any[]>([]);
+  
+  // Filters
+  const [skillFilter, setSkillFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dateFilter, setDateFilter] = useState<string>('all');
+  const [resolutionNotes, setResolutionNotes] = useState<Record<string, string>>({});
+  const [statusUpdates, setStatusUpdates] = useState<Record<string, string>>({});
+  
+  // Modal states for Answers and Reports
+  const [selectedAttempt, setSelectedAttempt] = useState<any>(null);
+  const [showAnswerModal, setShowAnswerModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
 
-  const [selectedUser, setSelectedUser] = useState<any | null>(null);
-  const [userCaseTab, setUserCaseTab] = useState<UserCaseTab>('summary');
-  const [userCaseData, setUserCaseData] = useState<{
-    reading: any[];
-    listening: any[];
-    writing: any[];
-    speaking: any[];
-    sessions: any[];
-    violations: any[];
-    notes: any[];
-    tags: string[];
-    memberships: any[];
-    primeApplications: any[];
-    notifications: any[];
-    audit: any[];
-  } | null>(null);
-
-  const [gradeModal, setGradeModal] = useState<{
-    type: 'writing' | 'speaking';
-    attempt: any;
-  } | null>(null);
-
-  const [gradeForm, setGradeForm] = useState({
-    bandOverall: '',
-    feedback: '',
-    criteria: '{}',
-    fluency: '',
-    pronunciation: '',
-    lexical: '',
-    grammar: '',
-  });
-
-  const [noteDraft, setNoteDraft] = useState('');
-  const [tagDraft, setTagDraft] = useState('');
-  const [resetScope, setResetScope] = useState({
-    reading: false,
-    listening: false,
-    writing: false,
-    speaking: false,
-    mock: false,
-    sessions: false,
-    notifications: false,
-    violations: false,
-  });
-
-  const [membershipAction, setMembershipAction] = useState({
-    plan: 'monthly',
-    months: 1,
-    reason: '',
-  });
-  const [auditFilters, setAuditFilters] = useState({
-    action: '',
-    type: '',
-    user: '',
-  });
-
-  const addToast = (message: string, type: Toast['type'] = 'info') => {
-    setToasts((prev) => [...prev, { id: Date.now(), message, type }]);
+  const notificationColumns = {
+    emailSent: notifications.some(n => Object.prototype.hasOwnProperty.call(n, 'email_sent_at')),
+    smsSent: notifications.some(n => Object.prototype.hasOwnProperty.call(n, 'sms_sent_at')),
+    inAppShown: notifications.some(n => Object.prototype.hasOwnProperty.call(n, 'in_app_shown_at')),
   };
 
-  const dismissToast = (id: number) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  const fetchViolationLogs = async () => {
+    const { data, error } = await supabase.rpc('admin_ielts_violation_logs');
+    if (error) {
+      console.error('Error loading violation logs:', error);
+      return [];
+    }
+    return data || [];
   };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const loadAdminData = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const [statsData, attemptsData, usersData] = await Promise.all([
+      // Load notification preferences separately to handle errors
+      let notifData: any[] = [];
+      try {
+        const notifResult = await supabase
+          .from('ielts_notification_preferences')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(50);
+        notifData = notifResult.error ? [] : (notifResult.data || []);
+      } catch {
+        notifData = [];
+      }
+
+      // Load prime applications
+      let appsData: any[] = [];
+      try {
+        const appsResult = await supabase
+          .from('ielts_prime_applications')
+          .select('*')
+          .order('created_at', { ascending: false });
+        appsData = appsResult.error ? [] : (appsResult.data || []);
+        console.log('Prime applications loaded:', appsData.length, appsResult.error);
+      } catch (e) {
+        console.error('Error loading prime applications:', e);
+        appsData = [];
+      }
+
+      // Load stats, attempts, users, and content in parallel
+      const [statsData, attemptsData, usersData, contentData, violationsData] = await Promise.all([
         fetchIeltsAdminStats().catch(() => null),
         fetchIeltsRecentAttempts(200).catch(() => []),
         fetchAllIeltsUsers().catch(() => []),
+        fetchIeltsContent().catch(() => null),
+        fetchViolationLogs().catch(() => []),
       ]);
 
       setStats(statsData);
       setRecentAttempts(attemptsData);
       setUsers(usersData);
-
-      const [writingData, speakingData, primeData, notificationData, violationData, auditData, membershipData] =
-        await Promise.all([
-          supabase.from('ielts_writing_attempts').select('*').order('submitted_at', { ascending: false }).limit(200),
-          supabase.from('ielts_speaking_attempts').select('*').order('submitted_at', { ascending: false }).limit(200),
-          supabase.from('ielts_prime_applications').select('*').order('created_at', { ascending: false }),
-          supabase.from('ielts_notification_preferences').select('*').order('created_at', { ascending: false }),
-          supabase.from('ielts_violation_logs').select('*').order('occurred_at', { ascending: false }).limit(200),
-          supabase.from('ielts_admin_audit_log').select('*').order('created_at', { ascending: false }).limit(200),
-          supabase.from('ielts_memberships').select('*').order('created_at', { ascending: false }),
-        ]);
-
-      setWritingAttempts(writingData.data ?? []);
-      setSpeakingAttempts(speakingData.data ?? []);
-      setPrimeApplications(primeData.data ?? []);
-      setNotificationPrefs(notificationData.data ?? []);
-      setViolationLogs(violationData.data ?? []);
-      setAuditLog(auditData.data ?? []);
-      setMemberships(membershipData.data ?? []);
-    } catch (loadError) {
-      console.error(loadError);
-      setError('Unable to load IELTS admin data.');
+      setContent(contentData);
+      setNotifications(notifData);
+      setPrimeApplications(appsData);
+      setViolations(violationsData);
+    } catch (error) {
+      console.error('Error loading IELTS admin data:', error);
+      addToast('Failed to load IELTS data', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -249,106 +228,18 @@ const IeltsAdminDashboard: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    void loadAdminData();
-  }, []);
+  const formatViolationDate = (value: string | number | null) => {
+    if (!value) return '-';
+    const d = typeof value === 'number' ? new Date(value) : new Date(value);
+    if (Number.isNaN(d.getTime())) return '-';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
 
-  const inactivityBuckets = useMemo(() => {
-    const now = Date.now();
-    const latestAttemptMap = new Map<string, number>();
-
-    recentAttempts.forEach((attempt) => {
-      if (!attempt.user_id || !attempt.attempt_date) return;
-      const timestamp = new Date(attempt.attempt_date).getTime();
-      const current = latestAttemptMap.get(attempt.user_id) ?? 0;
-      if (timestamp > current) {
-        latestAttemptMap.set(attempt.user_id, timestamp);
-      }
-    });
-
-    const results = {
-      days7: [] as any[],
-      days14: [] as any[],
-      days30: [] as any[],
-    };
-
-    users.forEach((user) => {
-      const lastAttempt = latestAttemptMap.get(user.id);
-      if (!lastAttempt) {
-        results.days30.push(user);
-        return;
-      }
-      const diffDays = (now - lastAttempt) / (1000 * 60 * 60 * 24);
-      if (diffDays >= 30) {
-        results.days30.push(user);
-      } else if (diffDays >= 14) {
-        results.days14.push(user);
-      } else if (diffDays >= 7) {
-        results.days7.push(user);
-      }
-    });
-
-    return results;
-  }, [recentAttempts, users]);
-
-  const ungradedWriting = useMemo(
-    () => writingAttempts.filter((attempt) => attempt.band_overall == null || attempt.feedback == null),
-    [writingAttempts],
-  );
-
-  const ungradedSpeaking = useMemo(
-    () => speakingAttempts.filter((attempt) => attempt.band_overall == null),
-    [speakingAttempts],
-  );
-
-  const pendingNotifications = useMemo(
-    () =>
-      notificationPrefs.filter((pref) =>
-        (pref.notify_by_email && !pref.email_sent_at) ||
-        (pref.notify_by_sms && !pref.sms_sent_at) ||
-        (pref.show_in_app && !pref.in_app_shown_at)
-      ),
-    [notificationPrefs],
-  );
-
-  const pendingPrime = useMemo(
-    () => primeApplications.filter((application) => application.status === 'pending'),
-    [primeApplications],
-  );
-
-  const unresolvedViolations = useMemo(
-    () => violationLogs.filter((violation) => !violation.status || violation.status !== 'resolved'),
-    [violationLogs],
-  );
-
-  const filteredAuditLog = useMemo(() => {
-    return auditLog.filter((entry) => {
-      const actionMatch = auditFilters.action
-        ? (entry.action ?? entry.event_type ?? '').toLowerCase().includes(auditFilters.action.toLowerCase())
-        : true;
-      const typeMatch = auditFilters.type
-        ? (entry.event_type ?? entry.action ?? '').toLowerCase().includes(auditFilters.type.toLowerCase())
-        : true;
-      const userMatch = auditFilters.user
-        ? (entry.user_id ?? '').toLowerCase().includes(auditFilters.user.toLowerCase())
-        : true;
-      return actionMatch && typeMatch && userMatch;
-    });
-  }, [auditLog, auditFilters]);
-
-  const handleRpc = async (name: string, payload: Record<string, any>) => {
-    setRpcMissing(null);
-    const { data, error } = await supabase.rpc(name, payload);
-    if (error) {
-      if (isMissingRpc(error)) {
-        setRpcMissing('Backend RPC missing');
-        addToast('Backend RPC missing', 'error');
-        return null;
-      }
-      addToast(error.message, 'error');
-      return null;
-    }
-    return data;
+  const formatTime = (seconds: number) => {
+    if (!seconds) return '-';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}m ${secs}s`;
   };
 
   const submitWritingGrade = async () => {
@@ -505,67 +396,21 @@ const IeltsAdminDashboard: React.FC = () => {
     }
   };
 
-  const openGradeModal = (type: 'writing' | 'speaking', attempt: any) => {
-    setGradeModal({ type, attempt });
-    setGradeForm({
-      bandOverall: attempt.band_overall ?? '',
-      feedback: attempt.feedback ?? '',
-      criteria: JSON.stringify(attempt.criteria ?? {}, null, 2),
-      fluency: attempt.band_fluency ?? '',
-      pronunciation: attempt.band_pronunciation ?? '',
-      lexical: attempt.band_lexical ?? '',
-      grammar: attempt.band_grammar ?? '',
+  const updateViolationStatus = async (violationId: string, status: string, resolutionNote?: string) => {
+    const { error } = await supabase.rpc('admin_ielts_violation_set_status', {
+      p_violation_id: violationId,
+      p_status: status,
+      p_resolution_note: resolutionNote ?? null,
     });
+
+    if (error) {
+      console.error('Error updating violation status:', error);
+      addToast('Failed to update violation status', 'error');
+      return;
+    }
+    addToast(`Violation marked as ${status}`, 'success');
+    await loadData();
   };
-
-  const userMembership = selectedUser
-    ? getLatestMembership(userCaseData?.memberships ?? memberships.filter((row) => row.user_id === selectedUser.id))
-    : null;
-
-  const caseTimeline = useMemo(() => {
-    if (!userCaseData) return [];
-    const events = [
-      ...userCaseData.reading.map((item) => ({ type: 'Reading', date: item.submitted_at ?? item.created_at, detail: `Set ${item.set_id ?? ''}` })),
-      ...userCaseData.listening.map((item) => ({ type: 'Listening', date: item.submitted_at ?? item.created_at, detail: `Set ${item.set_id ?? ''}` })),
-      ...userCaseData.writing.map((item) => ({ type: 'Writing', date: item.submitted_at ?? item.created_at, detail: `Task ${item.task_id ?? ''}` })),
-      ...userCaseData.speaking.map((item) => ({ type: 'Speaking', date: item.submitted_at ?? item.created_at, detail: `Task ${item.task_id ?? ''}` })),
-      ...userCaseData.sessions.map((item) => ({ type: 'Session', date: item.created_at, detail: item.reference_code ?? item.id })),
-      ...userCaseData.violations.map((item) => ({ type: 'Violation', date: item.occurred_at, detail: item.reason ?? item.code ?? item.type })),
-      ...userCaseData.audit.map((item) => ({ type: 'Admin', date: item.created_at, detail: item.action ?? item.event_type ?? 'Action' })),
-    ];
-    return events.sort((a, b) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime());
-  }, [userCaseData]);
-
-  const progressSummary = useMemo(() => {
-    if (!userCaseData) return null;
-    const entries = [
-      { label: 'Reading', attempts: userCaseData.reading, bandKey: 'band_overall' },
-      { label: 'Listening', attempts: userCaseData.listening, bandKey: 'band_overall' },
-      { label: 'Writing', attempts: userCaseData.writing, bandKey: 'band_overall' },
-      { label: 'Speaking', attempts: userCaseData.speaking, bandKey: 'band_overall' },
-    ];
-
-    return entries.map((entry) => {
-      const bands = entry.attempts.map((attempt: any) => attempt[entry.bandKey]).filter((band: any) => band != null);
-      const times = entry.attempts
-        .map((attempt: any) => attempt.time_spent_seconds ?? attempt.time_spent ?? null)
-        .filter((value: any) => value != null);
-      const average = bands.length ? bands.reduce((acc: number, value: number) => acc + value, 0) / bands.length : null;
-      const variance = bands.length
-        ? bands.reduce((acc: number, value: number) => acc + Math.pow(value - (average ?? 0), 2), 0) / bands.length
-        : null;
-      const consistency = variance != null ? Math.max(0, 100 - Math.sqrt(variance) * 20) : null;
-      const averageTime = times.length ? times.reduce((acc: number, value: number) => acc + value, 0) / times.length : null;
-      return {
-        label: entry.label,
-        average,
-        consistency,
-        count: entry.attempts.length,
-        lastFive: entry.attempts.slice(0, 5),
-        averageTime,
-      };
-    });
-  }, [userCaseData]);
 
   if (isLoading) {
     return (
@@ -576,29 +421,65 @@ const IeltsAdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      <div className="flex flex-col lg:flex-row">
-        <nav className="sticky top-0 z-30 w-full border-b border-slate-800 bg-slate-950/95 p-4 backdrop-blur lg:h-screen lg:w-64 lg:border-b-0 lg:border-r">
-          <div className="flex items-center justify-between lg:flex-col lg:items-start lg:gap-6">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-slate-400">IELTS Admin</p>
-              <h1 className="text-xl font-semibold">Operations Portal</h1>
-            </div>
-            <div className="flex flex-wrap gap-2 lg:flex-col">
-              {NAV_SECTIONS.map((section) => (
-                <button
-                  key={section.id}
-                  className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                    activeSection === section.id
-                      ? 'bg-cyan-500 text-slate-900'
-                      : 'bg-slate-900 text-slate-200 hover:bg-slate-800'
-                  }`}
-                  onClick={() => setActiveSection(section.id)}
-                >
-                  {section.label}
-                </button>
-              ))}
-            </div>
+    <div className="space-y-6">
+      {/* Print styles for modals */}
+      <style>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          .print-content, .print-content * {
+            visibility: visible;
+          }
+          .print-content {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            background: white !important;
+          }
+          .print-content button {
+            display: none !important;
+          }
+        }
+      `}</style>
+
+      {/* Sub-tabs */}
+      <div className="flex flex-wrap gap-2 justify-center mb-6">
+        {(['overview', 'attempts', 'users', 'content', 'notifications', 'prime', 'violations'] as IeltsSubTab[]).map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveSubTab(tab)}
+            className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+              activeSubTab === tab
+                ? 'bg-gradient-to-r from-emerald-400 to-cyan-500 text-black'
+                : 'bg-black/30 text-gray-400 hover:text-white border border-gray-600'
+            }`}
+          >
+            {tab === 'overview' && '📊 Overview'}
+            {tab === 'attempts' && '📝 Attempts'}
+            {tab === 'users' && '👥 Users'}
+            {tab === 'content' && '📚 Content'}
+            {tab === 'notifications' && '🔔 Notifications'}
+            {tab === 'prime' && `⭐ Prime (${primeApplications.length})`}
+            {tab === 'violations' && `🚨 Violations (${violations.length})`}
+          </button>
+        ))}
+      </div>
+
+      {/* Overview Tab */}
+      {activeSubTab === 'overview' && stats && (
+        <div className="space-y-6">
+          {/* Main Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatCard icon="👥" label="Total IELTS Users" value={stats.total_ielts_users || 0} color="cyan" />
+            <StatCard icon="⭐" label="Premium Users" value={stats.premium_users || 0} color="yellow" />
+            <StatCard icon="📖" label="Reading Attempts" value={stats.total_reading_attempts || 0} color="blue" />
+            <StatCard icon="🎧" label="Listening Attempts" value={stats.total_listening_attempts || 0} color="purple" />
+            <StatCard icon="✍️" label="Writing Attempts" value={stats.total_writing_attempts || 0} color="green" />
+            <StatCard icon="🎤" label="Speaking Attempts" value={stats.total_speaking_attempts || 0} color="orange" />
+            <StatCard icon="📧" label="Email Notifs Requested" value={stats.email_notifications_requested || 0} color="pink" />
+            <StatCard icon="📱" label="SMS Notifs Requested" value={stats.sms_notifications_requested || 0} color="teal" />
           </div>
         </nav>
 
@@ -972,32 +853,130 @@ const IeltsAdminDashboard: React.FC = () => {
             </section>
           )}
 
-          {activeSection === 'audit' && (
-            <section className="space-y-4">
-              <header>
-                <h2 className="text-2xl font-semibold">Audit log</h2>
-                <p className="text-sm text-slate-400">Every IELTS admin action recorded.</p>
-              </header>
-              <div className="rounded-2xl bg-slate-900 p-4">
-                <div className="mb-4 grid gap-3 text-sm md:grid-cols-3">
-                  <input
-                    className="rounded-lg bg-slate-800 p-2"
-                    placeholder="Filter by action"
-                    value={auditFilters.action}
-                    onChange={(event) => setAuditFilters((prev) => ({ ...prev, action: event.target.value }))}
-                  />
-                  <input
-                    className="rounded-lg bg-slate-800 p-2"
-                    placeholder="Filter by type"
-                    value={auditFilters.type}
-                    onChange={(event) => setAuditFilters((prev) => ({ ...prev, type: event.target.value }))}
-                  />
-                  <input
-                    className="rounded-lg bg-slate-800 p-2"
-                    placeholder="Filter by user"
-                    value={auditFilters.user}
-                    onChange={(event) => setAuditFilters((prev) => ({ ...prev, user: event.target.value }))}
-                  />
+      {/* Violations Tab */}
+      {activeSubTab === 'violations' && (
+        <div className="space-y-4">
+          <div className="bg-black/40 rounded-xl p-6 border border-gray-700">
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+              <div>
+                <h3 className="text-xl font-bold text-white mb-1">🚨 Violation Logs</h3>
+                <p className="text-gray-400 text-sm">Review ExamGuard violations and update their status.</p>
+              </div>
+              <button
+                onClick={async () => {
+                  await loadData();
+                  addToast('Violation logs refreshed', 'success');
+                }}
+                className="px-3 py-2 bg-cyan-600/40 hover:bg-cyan-600/70 text-white text-xs rounded transition-colors"
+              >
+                Refresh
+              </button>
+            </div>
+
+            {violations.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">No violations logged yet</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-800/50">
+                      <th className="px-4 py-3 text-left text-gray-400">User</th>
+                      <th className="px-4 py-3 text-left text-gray-400">Test</th>
+                      <th className="px-4 py-3 text-left text-gray-400">Type</th>
+                      <th className="px-4 py-3 text-left text-gray-400">Timestamp</th>
+                      <th className="px-4 py-3 text-center text-gray-400">Words</th>
+                      <th className="px-4 py-3 text-center text-gray-400">Chars</th>
+                      <th className="px-4 py-3 text-left text-gray-400">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {violations.map((log, idx) => {
+                      const statusValue = statusUpdates[log.id] ?? log.status ?? 'open';
+                      const resolutionValue = resolutionNotes[log.id] ?? log.resolution_note ?? '';
+                      return (
+                        <tr key={log.id || idx} className="border-t border-gray-700/50">
+                          <td className="px-4 py-3 text-white">{log.user_name || log.user_id || log.userId || '-'}</td>
+                          <td className="px-4 py-3 text-gray-400">{log.test_title || log.test_id || log.testId || '-'}</td>
+                          <td className="px-4 py-3 text-gray-400">{log.violation_type || log.type || '-'}</td>
+                          <td className="px-4 py-3 text-gray-400 text-sm">
+                            {formatViolationDate(log.created_at || log.timestamp)}
+                          </td>
+                          <td className="px-4 py-3 text-center text-gray-400">
+                            {log.word_count ?? log.wordCount ?? '-'}
+                          </td>
+                          <td className="px-4 py-3 text-center text-gray-400">
+                            {log.char_count ?? log.charCount ?? '-'}
+                          </td>
+                          <td className="px-4 py-3 text-gray-400">
+                            <select
+                              value={statusValue}
+                              onChange={async e => {
+                                const nextStatus = e.target.value;
+                                if (!log.id) {
+                                  addToast('Violation record missing ID', 'error');
+                                  return;
+                                }
+                                setStatusUpdates(prev => ({ ...prev, [log.id]: nextStatus }));
+                                if (nextStatus !== 'resolved') {
+                                  await updateViolationStatus(log.id, nextStatus);
+                                }
+                              }}
+                              className="px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white text-sm"
+                            >
+                              <option value="open">Open</option>
+                              <option value="reviewing">Reviewing</option>
+                              <option value="resolved">Resolved</option>
+                            </select>
+                            {statusValue === 'resolved' && (
+                              <div className="mt-2 space-y-2">
+                                <input
+                                  type="text"
+                                  placeholder="Resolution note..."
+                                  value={resolutionValue}
+                                  onChange={e =>
+                                    setResolutionNotes(prev => ({ ...prev, [log.id]: e.target.value }))
+                                  }
+                                  className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none"
+                                />
+                                <button
+                                  onClick={async () => {
+                                    if (!log.id) {
+                                      addToast('Violation record missing ID', 'error');
+                                      return;
+                                    }
+                                    await updateViolationStatus(log.id, 'resolved', resolutionValue);
+                                  }}
+                                  className="px-3 py-2 bg-emerald-600/40 hover:bg-emerald-600/70 text-white text-xs rounded transition-colors"
+                                >
+                                  Confirm Resolve
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* IELTS Answer Modal */}
+      {showAnswerModal && selectedAttempt && (
+        <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/90 p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-4xl w-full my-8 print-content" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
+            {/* Header */}
+            <div className="p-6 border-b-4 border-blue-600">
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-3">
+                  <img src="/logo.png" alt="Brains Heist" style={{ width: '48px', height: '48px' }} />
+                  <div>
+                    <h1 className="text-2xl font-bold text-blue-800">Brains Heist - IELTS</h1>
+                    <p className="text-sm text-gray-500">Answer Review - {selectedAttempt.skill?.toUpperCase()}</p>
+                  </div>
                 </div>
                 <div className="space-y-2 text-sm">
                   {filteredAuditLog.map((entry) => (
