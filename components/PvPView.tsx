@@ -529,8 +529,9 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
   const renderResult = () => {
     if (!attackResult || !selectedTarget) return null;
 
-    const xpDelta = Number(attackResult.xp_delta ?? 0);
-    const coinsDelta = Number(attackResult.coins_delta ?? 0);
+    const xpDelta = Number(attackResult.attacker_deltas?.xp ?? 0);
+    const coinsDelta = Number(attackResult.attacker_deltas?.coins ?? 0);
+    const gemstonesDelta = Number(attackResult.attacker_deltas?.gemstones ?? 0);
 
     const resultText = {
         win: { title: 'Victory! �', subtitle: 'Enemy systems breached', color: 'var(--success-teal)' },
@@ -589,9 +590,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
                         Gemstones:
                         <span className="inline-flex items-center gap-1 text-rose-200 gem-glow">
                           <GemIcon className="w-5 h-5" />
-                          {attackResult.attacker_deltas.gemstones && attackResult.attacker_deltas.gemstones >= 0
-                            ? `+${attackResult.attacker_deltas.gemstones}`
-                            : attackResult.attacker_deltas.gemstones || 0}
+                          {gemstonesDelta >= 0 ? `+${gemstonesDelta}` : gemstonesDelta}
                         </span>
                       </p>
                   </div>
