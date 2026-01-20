@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RaidTarget, RaidAttackResult, Profile } from '../types';
+import { RaidTarget, RaidAttackResult, Profile, XpStatus } from '../types';
 import * as GameService from '../services/gameService';
 import { supabase } from '../services/supabaseClient';
 import { audioService } from '../services/audioService';
@@ -24,7 +24,10 @@ const RAID_AP_COST = 2;
 interface PvPViewProps {
   profile: Profile;
   onComplete: () => void;
-  onGrantReward: (deltas: { xp?: number; coins?: number; gemstones?: number; ap?: number }) => void;
+  onGrantReward: (
+    deltas: { xp?: number; coins?: number; gemstones?: number; ap?: number },
+    finalValues?: { xp: number; coins: number; level: number; gemstones: number; xp_status?: XpStatus }
+  ) => void;
 }
 
 const TargetCard: React.FC<{ target: RaidTarget, onSelect: (target: RaidTarget) => void }> = ({ target, onSelect }) => {
