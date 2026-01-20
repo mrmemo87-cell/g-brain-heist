@@ -6,6 +6,8 @@ import {
   fetchActiveSpeakingTasks,
   fetchActiveWritingTasks,
   fetchUserCompletedTasks,
+  getUserTier,
+  isIeltsPrime,
   UserCompletedTasks,
 } from '../../../services/ieltsService';
 import type { IELTSListeningSet, IELTSReadingSet, IELTSSpeakingTask, IELTSWritingTask } from '../../../types';
@@ -22,6 +24,9 @@ const IeltsHome: React.FC = () => {
   const [completedTasks, setCompletedTasks] = useState<UserCompletedTasks>({ reading: [], listening: [], writing: [], speaking: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userTier, setUserTier] = useState('free');
+  const isPrimeUser = isIeltsPrime({ tier: userTier });
+  const canAccessRequiredTier = (requiredTier?: string | null) => !requiredTier || requiredTier === 'free' || isPrimeUser;
 
   // Stop background music when entering IELTS section
   useEffect(() => {
@@ -46,6 +51,25 @@ const IeltsHome: React.FC = () => {
   const redirectToPrime = () => {
     window.location.href = primeRedirectUrl;
   };
+
+  useEffect(() => {
+    let isMounted = true;
+    getUserTier()
+      .then((tier) => {
+        if (isMounted) {
+          setUserTier(tier);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setUserTier('free');
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const loadTasks = async () => {
@@ -168,7 +192,7 @@ const IeltsHome: React.FC = () => {
 
           {/* Free Trial Test Banner */}
           <div 
-            onClick={redirectToPrime}
+            onClick={() => (isPrimeUser ? navigate('/ielts/trial-test') : redirectToPrime())}
             style={{ 
               background: 'linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%)',
               borderRadius: '1rem',
@@ -193,21 +217,23 @@ const IeltsHome: React.FC = () => {
           >
             <div style={{ fontSize: '2.5rem' }}>🎧</div>
             <div style={{ flex: 1 }}>
-              <div style={{ 
-                display: 'inline-block',
-                background: 'linear-gradient(135deg, #fde68a 0%, #f59e0b 100%)',
-                color: '#111827',
-                padding: '0.2rem 0.6rem',
-                borderRadius: '9999px',
-                fontSize: '0.625rem',
-                fontWeight: '700',
-                marginBottom: '0.375rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-                boxShadow: '0 4px 12px rgba(245, 158, 11, 0.35)',
-              }}>
-                Only Prime Users
-              </div>
+              {!isPrimeUser && (
+                <div style={{ 
+                  display: 'inline-block',
+                  background: 'linear-gradient(135deg, #fde68a 0%, #f59e0b 100%)',
+                  color: '#111827',
+                  padding: '0.2rem 0.6rem',
+                  borderRadius: '9999px',
+                  fontSize: '0.625rem',
+                  fontWeight: '700',
+                  marginBottom: '0.375rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  boxShadow: '0 4px 12px rgba(245, 158, 11, 0.35)',
+                }}>
+                  Only Prime Users
+                </div>
+              )}
               <h3 style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', fontWeight: 'bold', margin: '0 0 0.25rem 0' }}>
                 IELTS Listening Test 1
               </h3>
@@ -255,7 +281,7 @@ const IeltsHome: React.FC = () => {
             ) : (
               readingSets.map((set, index) => {
                 const isCompleted = completedTasks.reading.includes(set.id);
-                const isLocked = index > 0;
+                const isLocked = !canAccessRequiredTier(set.required_tier) || (!isPrimeUser && index > 0 && !set.required_tier);
                 return (
                 <button
                   key={set.id}
@@ -374,7 +400,7 @@ const IeltsHome: React.FC = () => {
             ) : (
               listeningSets.map((set) => {
                 const isCompleted = completedTasks.listening.includes(set.id);
-                const isLocked = true;
+                const isLocked = !isPrimeUser;
                 return (
                 <button
                   key={set.id}
@@ -441,7 +467,7 @@ const IeltsHome: React.FC = () => {
             ) : (
               writingTasks.map((task, index) => {
                 const isCompleted = completedTasks.writing.includes(task.id);
-                const isLocked = index > 0;
+                const isLocked = !isPrimeUser && index > 0;
                 return (
                 <button
                   key={task.id}
@@ -508,7 +534,7 @@ const IeltsHome: React.FC = () => {
             ) : (
               speakingTasks.map((task, index) => {
                 const isCompleted = completedTasks.speaking.includes(task.id);
-                const isLocked = index > 0;
+                const isLocked = !isPrimeUser && index > 0;
                 return (
                 <button
                   key={task.id}
@@ -563,31 +589,33 @@ const IeltsHome: React.FC = () => {
           </div>
 
           {/* Premium CTA */}
-          <div style={{
-            background: 'linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%)',
-            borderRadius: '0.75rem',
-            padding: '1.25rem',
-            textAlign: 'center',
-            marginBottom: '1rem',
-          }}>
-            <h3 style={{ color: '#ffffff', fontSize: '1.125rem', fontWeight: 'bold', margin: '0 0 0.5rem' }}>⭐ Upgrade to Prime</h3>
-            <p style={{ color: '#bfdbfe', fontSize: '0.8125rem', margin: '0 0 0.75rem' }}>Unlimited tests, expert feedback & certificates</p>
-            <button
-              onClick={() => navigate('/ielts/apply-prime')}
-              style={{
-                backgroundColor: '#22c55e',
-                color: '#ffffff',
-                fontWeight: 'bold',
-                padding: '0.625rem 1.5rem',
-                borderRadius: '0.5rem',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-              }}
-            >
-              Explore Prime
-            </button>
-          </div>
+          {!isPrimeUser && (
+            <div style={{
+              background: 'linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%)',
+              borderRadius: '0.75rem',
+              padding: '1.25rem',
+              textAlign: 'center',
+              marginBottom: '1rem',
+            }}>
+              <h3 style={{ color: '#ffffff', fontSize: '1.125rem', fontWeight: 'bold', margin: '0 0 0.5rem' }}>⭐ Upgrade to Prime</h3>
+              <p style={{ color: '#bfdbfe', fontSize: '0.8125rem', margin: '0 0 0.75rem' }}>Unlimited tests, expert feedback & certificates</p>
+              <button
+                onClick={() => navigate('/ielts/apply-prime')}
+                style={{
+                  backgroundColor: '#22c55e',
+                  color: '#ffffff',
+                  fontWeight: 'bold',
+                  padding: '0.625rem 1.5rem',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                }}
+              >
+                Explore Prime
+              </button>
+            </div>
+          )}
 
           {/* Back to Game */}
           <button

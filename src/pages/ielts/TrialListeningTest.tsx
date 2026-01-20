@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 import { getRequiredEnvVar } from '../../../services/env';
+import { getUserTier, isIeltsPrime } from '../../../services/ieltsService';
 
 // Supabase storage URL for audio files
 const SUPABASE_STORAGE_URL = `${getRequiredEnvVar('VITE_SUPABASE_URL').replace(/\/$/, '')}/storage/v1/object/public/ielts-audio`;
@@ -166,6 +167,8 @@ const TrialListeningTest: React.FC = () => {
   const allowAutoResumeRef = useRef(true);
   const preloadRefs = useRef<HTMLAudioElement[]>([]);
   const autoPlayNextRef = useRef(false);
+  const [userTier, setUserTier] = useState('free');
+  const isPrimeUser = isIeltsPrime({ tier: userTier });
 
   // Stop background music
   useEffect(() => {
@@ -179,6 +182,25 @@ const TrialListeningTest: React.FC = () => {
         audioRef.current.pause();
         audioRef.current = null;
       }
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    getUserTier()
+      .then((tier) => {
+        if (isMounted) {
+          setUserTier(tier);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setUserTier('free');
+        }
+      });
+
+    return () => {
+      isMounted = false;
     };
   }, []);
 
@@ -500,17 +522,18 @@ const TrialListeningTest: React.FC = () => {
             </div>
           </div>
 
-          {/* Prime Upsell */}
-          <div style={{
-            background: 'linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)',
-            borderRadius: '1rem',
-            padding: '1rem',
-            marginBottom: '2rem',
-            fontSize: '0.8rem'
-          }}>
-            <p style={{ marginBottom: '0.5rem' }}>⭐ <strong>PRIME members</strong> get:</p>
-            <p style={{ color: '#c4b5fd' }}>Detailed feedback, tips & tricks, audio transcripts, and personalized study plans</p>
-          </div>
+          {!isPrimeUser && (
+            <div style={{
+              background: 'linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)',
+              borderRadius: '1rem',
+              padding: '1rem',
+              marginBottom: '2rem',
+              fontSize: '0.8rem'
+            }}>
+              <p style={{ marginBottom: '0.5rem' }}>⭐ <strong>PRIME members</strong> get:</p>
+              <p style={{ color: '#c4b5fd' }}>Detailed feedback, tips & tricks, audio transcripts, and personalized study plans</p>
+            </div>
+          )}
 
           {/* Start Button */}
           <button
@@ -683,36 +706,37 @@ const TrialListeningTest: React.FC = () => {
             ))}
           </div>
 
-          {/* Prime Upsell */}
-          <div style={{
-            background: 'linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)',
-            borderRadius: '1rem',
-            padding: 'clamp(1.25rem, 3vw, 1.5rem)',
-            marginBottom: '1rem',
-            color: 'white',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>⭐</div>
-            <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>Want Detailed Feedback?</h3>
-            <p style={{ fontSize: '0.8rem', color: '#c4b5fd', marginBottom: '1rem' }}>
-              Get personalized tips, audio transcripts, vocabulary lists, and a study plan tailored to your weaknesses.
-            </p>
-            <button
-              onClick={() => navigate('/ielts/apply-prime')}
-              style={{
-                padding: '0.75rem 2rem',
-                background: 'white',
-                color: '#7c3aed',
-                border: 'none',
-                borderRadius: '0.5rem',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                fontSize: '0.875rem'
-              }}
-            >
-              Upgrade to Prime
-            </button>
-          </div>
+          {!isPrimeUser && (
+            <div style={{
+              background: 'linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)',
+              borderRadius: '1rem',
+              padding: 'clamp(1.25rem, 3vw, 1.5rem)',
+              marginBottom: '1rem',
+              color: 'white',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>⭐</div>
+              <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>Want Detailed Feedback?</h3>
+              <p style={{ fontSize: '0.8rem', color: '#c4b5fd', marginBottom: '1rem' }}>
+                Get personalized tips, audio transcripts, vocabulary lists, and a study plan tailored to your weaknesses.
+              </p>
+              <button
+                onClick={() => navigate('/ielts/apply-prime')}
+                style={{
+                  padding: '0.75rem 2rem',
+                  background: 'white',
+                  color: '#7c3aed',
+                  border: 'none',
+                  borderRadius: '0.5rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem'
+                }}
+              >
+                Upgrade to Prime
+              </button>
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>

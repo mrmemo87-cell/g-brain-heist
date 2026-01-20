@@ -10,6 +10,8 @@ import {
   IeltsReadingBlock,
   IeltsSessionRecord,
   IeltsWritingTask,
+  getUserTier,
+  isIeltsPrime,
 } from '@/services/ieltsService';
 import { notifyTeachersOfExamGuard } from '@/services/notificationService';
 import { supabase } from '@/services/supabaseClient';
@@ -38,6 +40,8 @@ const IeltsSession: React.FC = () => {
   const [listeningAnswers, setListeningAnswers] = useState<Record<string, string>>({});
   const [writingAnswer, setWritingAnswer] = useState('');
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
+  const [userTier, setUserTier] = useState('free');
+  const isPrimeUser = isIeltsPrime({ tier: userTier });
 
   const { data: session, isLoading, error } = useQuery({
     queryKey: ['ielts-session', sessionId],
@@ -59,6 +63,25 @@ const IeltsSession: React.FC = () => {
       setWritingAnswer(session.writing_answer ?? '');
     }
   }, [session]);
+
+  useEffect(() => {
+    let isMounted = true;
+    getUserTier()
+      .then((tier) => {
+        if (isMounted) {
+          setUserTier(tier);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setUserTier('free');
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const isCompleted = session?.status === 'completed' || Boolean(session?.completed_at);
   const readingQuestions = session?.reading_block?.questions ?? [];
@@ -432,6 +455,29 @@ const IeltsSession: React.FC = () => {
         <button type="button" className="mt-4 text-sky-700" onClick={() => navigate('/ielts')}>
           Return to IELTS home
         </button>
+      </div>
+    );
+  }
+
+  const sessionRequiredTier = (session as { required_tier?: string | null }).required_tier;
+  const canAccessSession = !sessionRequiredTier || sessionRequiredTier === 'free' || isPrimeUser;
+
+  if (!canAccessSession) {
+    return (
+      <div className="bg-slate-900 min-h-screen flex items-center justify-center px-4 py-10">
+        <div className="max-w-md text-center text-slate-100 space-y-4">
+          <h2 className="text-2xl font-semibold">Prime access required</h2>
+          <p className="text-slate-300">
+            This IELTS session is available to Prime members. Upgrade to continue your full practice session.
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate('/ielts/apply-prime')}
+            className="rounded-lg bg-emerald-500 px-5 py-2 text-sm font-semibold text-white"
+          >
+            Upgrade to Prime
+          </button>
+        </div>
       </div>
     );
   }

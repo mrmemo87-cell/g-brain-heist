@@ -591,6 +591,9 @@ export const getUserTier = async () => {
   return data?.tier || 'free';
 };
 
+export const isIeltsPrime = (user?: { tier?: string | null } | null) =>
+  user?.tier === 'prime_prep_user' || user?.tier === 'admin';
+
 // ============================================================
 // NOTIFICATION PREFERENCES
 // ============================================================

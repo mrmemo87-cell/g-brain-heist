@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { fetchActiveReadingSets, fetchReadingQuestions, submitReadingAttempt, saveNotificationPreferences } from '../../../services/ieltsService';
+import {
+  fetchActiveReadingSets,
+  fetchReadingQuestions,
+  getUserTier,
+  isIeltsPrime,
+  saveNotificationPreferences,
+  submitReadingAttempt,
+} from '../../../services/ieltsService';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 import type { IELTSReadingQuestion } from '../../../types';
 
@@ -18,7 +25,9 @@ const ReadingPractice: React.FC = () => {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [startTime] = useState(Date.now());
   const [showResults, setShowResults] = useState(false);
-  
+  const [userTier, setUserTier] = useState('free');
+  const isPrimeUser = isIeltsPrime({ tier: userTier });
+
   // Success screen state
   const [alternateEmail, setAlternateEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -31,6 +40,24 @@ const ReadingPractice: React.FC = () => {
     stopBackgroundMusic();
     return () => {
       resumeBackgroundMusic();
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    getUserTier()
+      .then((tier) => {
+        if (isMounted) {
+          setUserTier(tier);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setUserTier('free');
+        }
+      });
+    return () => {
+      isMounted = false;
     };
   }, []);
 
@@ -84,6 +111,7 @@ const ReadingPractice: React.FC = () => {
 
   const currentSet = readingSets?.find((set: any) => set.id === Number(setId));
   const currentQuestion = questions?.[currentQuestionIndex];
+  const canAccessRequiredTier = (requiredTier?: string | null) => !requiredTier || requiredTier === 'free' || isPrimeUser;
 
   const handleAnswer = (answer: string) => {
     if (!currentQuestion) return;
@@ -184,6 +212,39 @@ const ReadingPractice: React.FC = () => {
             }}
           >
             Back to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!canAccessRequiredTier(currentSet.required_tier)) {
+    return (
+      <div style={{ 
+        minHeight: '100vh', 
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{ textAlign: 'center', color: '#e2e8f0', maxWidth: '500px', padding: '1.5rem' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>Prime access required</h2>
+          <p style={{ fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+            This reading set is available to IELTS Prime members. Upgrade to unlock the full library.
+          </p>
+          <button
+            onClick={() => navigate('/ielts/apply-prime')}
+            style={{
+              padding: '0.75rem 1.75rem',
+              background: '#22c55e',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.5rem',
+              cursor: 'pointer',
+              fontWeight: 600
+            }}
+          >
+            Upgrade to Prime
           </button>
         </div>
       </div>
@@ -510,38 +571,39 @@ const ReadingPractice: React.FC = () => {
             )}
           </div>
 
-          {/* Upgrade to Prime CTA */}
-          <div style={{
-            background: 'linear-gradient(135deg, #1e40af 0%, #7c3aed 100%)',
-            borderRadius: '0.75rem',
-            padding: '1.5rem',
-            marginBottom: '1.5rem',
-            textAlign: 'center',
-            color: 'white'
-          }}>
-            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⭐</div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-              Upgrade to Prime
-            </h3>
-            <p style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '1rem' }}>
-              Get unlimited practice tests, AI-powered essay feedback, speaking evaluations, and personalized study plans
-            </p>
-            <button
-              onClick={() => navigate('/ielts/apply-prime')}
-              style={{
-                padding: '0.75rem 2rem',
-                background: 'white',
-                color: '#1e40af',
-                border: 'none',
-                borderRadius: '0.5rem',
-                cursor: 'pointer',
-                fontWeight: 700,
-                fontSize: '0.875rem'
-              }}
-            >
-              🚀 Unlock Full Access
-            </button>
-          </div>
+          {!isPrimeUser && (
+            <div style={{
+              background: 'linear-gradient(135deg, #1e40af 0%, #7c3aed 100%)',
+              borderRadius: '0.75rem',
+              padding: '1.5rem',
+              marginBottom: '1.5rem',
+              textAlign: 'center',
+              color: 'white'
+            }}>
+              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⭐</div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                Upgrade to Prime
+              </h3>
+              <p style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '1rem' }}>
+                Get unlimited practice tests, AI-powered essay feedback, speaking evaluations, and personalized study plans
+              </p>
+              <button
+                onClick={() => navigate('/ielts/apply-prime')}
+                style={{
+                  padding: '0.75rem 2rem',
+                  background: 'white',
+                  color: '#1e40af',
+                  border: 'none',
+                  borderRadius: '0.5rem',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  fontSize: '0.875rem'
+                }}
+              >
+                🚀 Unlock Full Access
+              </button>
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '1rem' }}>
