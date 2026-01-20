@@ -311,10 +311,13 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
         audioService.play('hack_fail');
       }
 
+      const xpDelta = Number(result.xp_delta ?? 0);
+      const coinsDelta = Number(result.coins_delta ?? 0);
+
       // Grant rewards/penalties (server-authoritative AP spend handled in RPC)
       onGrantReward({
-        xp: result.attacker_deltas.xp,
-        coins: result.attacker_deltas.coins,
+        xp: xpDelta,
+        coins: coinsDelta,
         gemstones: result.attacker_deltas.gemstones,
       }, result.final_profile_values);
 
@@ -526,6 +529,9 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
   const renderResult = () => {
     if (!attackResult || !selectedTarget) return null;
 
+    const xpDelta = Number(attackResult.xp_delta ?? 0);
+    const coinsDelta = Number(attackResult.coins_delta ?? 0);
+
     const resultText = {
         win: { title: 'Victory! �', subtitle: 'Enemy systems breached', color: 'var(--success-teal)' },
         lose: { title: 'Defeated �', subtitle: 'Attack repelled', color: 'var(--danger-red)' },
@@ -577,8 +583,8 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
                    <p className="text-lg mb-6">{getResultMessage()}</p>
 
                   <div className="text-lg sm:text-2xl font-heading space-y-3 mb-6">
-                      <p>XP Delta: <span style={{color: attackResult.attacker_deltas.xp > 0 ? 'var(--ion-blue)' : 'var(--danger-red)'}}>{attackResult.attacker_deltas.xp >= 0 ? `+${attackResult.attacker_deltas.xp}` : attackResult.attacker_deltas.xp}</span></p>
-                      <p>Coins Delta: <span style={{color: 'var(--amber-warn)'}}>{attackResult.attacker_deltas.coins >= 0 ? `+${attackResult.attacker_deltas.coins}`: attackResult.attacker_deltas.coins}</span></p>
+                      <p>XP Delta: <span style={{color: xpDelta > 0 ? 'var(--ion-blue)' : 'var(--danger-red)'}}>{xpDelta >= 0 ? `+${xpDelta}` : xpDelta}</span></p>
+                      <p>Coins Delta: <span style={{color: 'var(--amber-warn)'}}>{coinsDelta >= 0 ? `+${coinsDelta}`: coinsDelta}</span></p>
                       <p className="flex items-center justify-center gap-2">
                         Gemstones:
                         <span className="inline-flex items-center gap-1 text-rose-200 gem-glow">
