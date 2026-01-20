@@ -383,6 +383,68 @@ const IeltsAdminDashboard: React.FC = () => {
     }
   };
 
+  const refreshUserTags = async (userId: string) => {
+    const { data, error: tagsError } = await supabase.from('ielts_admin_user_tags').select('*').eq('user_id', userId);
+    if (tagsError) {
+      addToast('Failed to load tags.', 'error');
+      return;
+    }
+    const tagsRow = data?.[0];
+    setUserCaseData((prev) => (prev ? { ...prev, tags: tagsRow?.tags ?? [] } : prev));
+  };
+
+  const refreshUserNotes = async (userId: string) => {
+    const { data, error: notesError } = await supabase
+      .from('ielts_admin_notes')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    if (notesError) {
+      addToast('Failed to load notes.', 'error');
+      return;
+    }
+    setUserCaseData((prev) => (prev ? { ...prev, notes: data ?? [] } : prev));
+  };
+
+  const refreshUserMemberships = async (userId: string) => {
+    const { data, error: membershipError } = await supabase
+      .from('ielts_memberships')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    if (membershipError) {
+      addToast('Failed to load memberships.', 'error');
+      return;
+    }
+    setUserCaseData((prev) => (prev ? { ...prev, memberships: data ?? [] } : prev));
+  };
+
+  const refreshUserNotifications = async (userId: string) => {
+    const { data, error: notificationsError } = await supabase
+      .from('ielts_notification_preferences')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    if (notificationsError) {
+      addToast('Failed to load notifications.', 'error');
+      return;
+    }
+    setUserCaseData((prev) => (prev ? { ...prev, notifications: data ?? [] } : prev));
+  };
+
+  const refreshNotificationPrefs = async () => {
+    const { data, error: notifError } = await supabase
+      .from('ielts_notification_preferences')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (notifError) {
+      addToast('Failed to load notifications.', 'error');
+      return;
+    }
+    setNotificationPrefs(data ?? []);
+  };
+
   const submitWritingGrade = async () => {
     if (!gradeModal?.attempt) return;
     let parsedCriteria: Record<string, unknown> = {};
@@ -448,26 +510,26 @@ const IeltsAdminDashboard: React.FC = () => {
     if (!selectedUser) return;
     const tags = tagDraft.split(',').map((tag) => tag.trim()).filter(Boolean);
     const result = await handleRpc('admin_ielts_set_user_tags', {
-      user_id: selectedUser.id,
-      tags,
+      p_user_id: selectedUser.id,
+      p_tags: tags,
     });
     if (result) {
       addToast('Tags updated.', 'success');
       setTagDraft('');
-      await loadUserCaseFile(selectedUser);
+      await refreshUserTags(selectedUser.id);
     }
   };
 
   const addNote = async () => {
     if (!selectedUser || !noteDraft.trim()) return;
     const result = await handleRpc('admin_ielts_add_note', {
-      user_id: selectedUser.id,
-      note: noteDraft.trim(),
+      p_user_id: selectedUser.id,
+      p_note: noteDraft.trim(),
     });
     if (result) {
       addToast('Note added.', 'success');
       setNoteDraft('');
-      await loadUserCaseFile(selectedUser);
+      await refreshUserNotes(selectedUser.id);
     }
   };
 
@@ -484,10 +546,14 @@ const IeltsAdminDashboard: React.FC = () => {
   const updateMembershipForUser = async (userId: string, action: 'grant' | 'extend' | 'revoke') => {
     const payload =
       action === 'grant'
-        ? { user_id: userId, plan: membershipAction.plan, months: membershipAction.months }
+        ? {
+            p_user_id: userId,
+            p_plan: membershipAction.plan,
+            p_months: Number(membershipAction.months),
+          }
         : action === 'extend'
-          ? { user_id: userId, months: membershipAction.months }
-          : { user_id: userId, reason: membershipAction.reason || 'Admin revoked' };
+          ? { p_user_id: userId, p_months: Number(membershipAction.months) }
+          : { p_user_id: userId, p_reason: membershipAction.reason || 'Admin revoked' };
 
     const rpcName =
       action === 'grant'
@@ -499,9 +565,8 @@ const IeltsAdminDashboard: React.FC = () => {
     const result = await handleRpc(rpcName, payload);
     if (result) {
       addToast(`Membership ${action}ed.`, 'success');
-      await loadAdminData();
-      if (selectedUser) {
-        await loadUserCaseFile(selectedUser);
+      if (selectedUser?.id === userId) {
+        await refreshUserMemberships(selectedUser.id);
       }
       if (membershipTarget) {
         await fetchMembershipHistory(membershipTarget.id);
@@ -525,14 +590,14 @@ const IeltsAdminDashboard: React.FC = () => {
 
   const markNotificationSent = async (pref: any, channel: 'email' | 'sms' | 'in_app') => {
     const result = await handleRpc('admin_ielts_mark_notification_sent', {
-      pref_id: pref.id,
-      channel,
+      p_pref_id: String(pref.id),
+      p_channel: channel,
     });
     if (result) {
       addToast('Notification marked sent.', 'success');
-      await loadAdminData();
-      if (selectedUser) {
-        await loadUserCaseFile(selectedUser);
+      await refreshNotificationPrefs();
+      if (selectedUser?.id === pref.user_id) {
+        await refreshUserNotifications(selectedUser.id);
       }
     }
   };
