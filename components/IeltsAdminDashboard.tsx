@@ -991,12 +991,12 @@ const IeltsAdminDashboard: React.FC = () => {
     return getLatestMembership(userCaseData.memberships);
   }, [userCaseData]);
 
-  const resolveAudioUrl = async (attempt: any) => {
+  const resolveAudioUrl = async (attempt: any, force = false) => {
     if (!attempt?.id) return;
     const key = String(attempt.id);
-    if (audioUrlMap[key]) return;
+    const existing = audioUrlMap[key];
+    if (!force && (existing?.status === 'ready' || existing?.status === 'loading')) return;
     setAudioUrlMap((prev) => {
-      if (prev[key]) return prev;
       if (!attempt.audio_url) {
         return { ...prev, [key]: { status: 'error' } };
       }
@@ -1009,7 +1009,14 @@ const IeltsAdminDashboard: React.FC = () => {
       return;
     }
 
-    const { data, error } = await supabase.storage.from('ielts-recordings').createSignedUrl(attempt.audio_url, 3600);
+    const normalizedPath = attempt.audio_url.replace(/^\/+/, '');
+    const { data: publicData } = supabase.storage.from('ielts-recordings').getPublicUrl(normalizedPath);
+    if (publicData?.publicUrl) {
+      setAudioUrlMap((prev) => ({ ...prev, [key]: { status: 'ready', url: publicData.publicUrl } }));
+      return;
+    }
+
+    const { data, error } = await supabase.storage.from('ielts-recordings').createSignedUrl(normalizedPath, 3600);
     if (error || !data?.signedUrl) {
       setAudioUrlMap((prev) => ({ ...prev, [key]: { status: 'error' } }));
       return;
@@ -1475,7 +1482,15 @@ const IeltsAdminDashboard: React.FC = () => {
                         audioState?.status === 'ready' ? (
                           <audio className="mt-2 w-full" controls src={audioState.url} />
                         ) : audioState?.status === 'error' ? (
-                          <p className="mt-2 text-xs text-slate-400">Audio unavailable</p>
+                          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                            <span>Audio unavailable</span>
+                            <button
+                              className="text-cyan-300 transition hover:text-cyan-200"
+                              onClick={() => void resolveAudioUrl(attempt, true)}
+                            >
+                              Retry fetch
+                            </button>
+                          </div>
                         ) : (
                           <p className="mt-2 text-xs text-slate-400">Loading audio...</p>
                         )
@@ -2052,7 +2067,15 @@ const IeltsAdminDashboard: React.FC = () => {
                             audioState?.status === 'ready' ? (
                               <audio className="mt-2 w-full" controls src={audioState.url} />
                             ) : audioState?.status === 'error' ? (
-                              <p className="mt-2 text-xs text-slate-400">Audio unavailable</p>
+                              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                                <span>Audio unavailable</span>
+                                <button
+                                  className="text-cyan-300 transition hover:text-cyan-200"
+                                  onClick={() => void resolveAudioUrl(attempt, true)}
+                                >
+                                  Retry fetch
+                                </button>
+                              </div>
                             ) : (
                               <p className="mt-2 text-xs text-slate-400">Loading audio...</p>
                             )
