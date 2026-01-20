@@ -177,11 +177,12 @@ const Sparkline: React.FC<{ values: number[] }> = ({ values }) => {
 
 const IeltsAdminDashboard: React.FC = () => {
   const [activeSection, setActiveSection] = useState<NavSection>('overview');
-  const [isLoading, setIsLoading] = useState(true);
   const [isCaseLoading, setIsCaseLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [rpcMissing, setRpcMissing] = useState<string | null>(null);
+  const [sectionLoading, setSectionLoading] = useState<Partial<Record<NavSection, boolean>>>({});
+  const [loadedSections, setLoadedSections] = useState<Partial<Record<NavSection, boolean>>>({});
 
   const [stats, setStats] = useState<any>(null);
   const [recentAttempts, setRecentAttempts] = useState<any[]>([]);
@@ -247,8 +248,10 @@ const IeltsAdminDashboard: React.FC = () => {
   const [membershipHistory, setMembershipHistory] = useState<any[]>([]);
 
   useEffect(() => {
-    loadAdminData();
-  }, []);
+    if (!loadedSections[activeSection]) {
+      void loadSectionData(activeSection);
+    }
+  }, [activeSection, loadedSections]);
 
   const addToast = (message: string, type: Toast['type']) => {
     const id = Date.now();
@@ -277,64 +280,167 @@ const IeltsAdminDashboard: React.FC = () => {
     }
   };
 
-  const loadAdminData = async () => {
-    setIsLoading(true);
+  const markSectionsLoaded = (sections: NavSection[]) => {
+    setLoadedSections((prev) => {
+      const next = { ...prev };
+      sections.forEach((section) => {
+        next[section] = true;
+      });
+      return next;
+    });
+  };
+
+  const setSectionLoadingState = (section: NavSection, value: boolean) => {
+    setSectionLoading((prev) => ({ ...prev, [section]: value }));
+  };
+
+  const fetchOverviewData = async () => {
+    const [statsData, attemptsData] = await Promise.all([
+      fetchIeltsAdminStats().catch(() => null),
+      fetchIeltsRecentAttempts(200).catch(() => []),
+    ]);
+    setStats(statsData);
+    setRecentAttempts(attemptsData || []);
+  };
+
+  const fetchUsersData = async () => {
+    const usersData = await fetchAllIeltsUsers().catch(() => []);
+    setUsers(usersData || []);
+  };
+
+  const fetchWritingAttemptsData = async () => {
+    const { data } = await supabase
+      .from('ielts_writing_attempts')
+      .select('*')
+      .order('submitted_at', { ascending: false })
+      .limit(200);
+    setWritingAttempts(data ?? []);
+  };
+
+  const fetchSpeakingAttemptsData = async () => {
+    const { data } = await supabase
+      .from('ielts_speaking_attempts')
+      .select('*')
+      .order('submitted_at', { ascending: false })
+      .limit(200);
+    setSpeakingAttempts(data ?? []);
+  };
+
+  const fetchPrimeApplicationsData = async () => {
+    const { data } = await supabase
+      .from('ielts_prime_applications')
+      .select('*')
+      .order('created_at', { ascending: false });
+    setPrimeApplications(data ?? []);
+  };
+
+  const fetchNotificationPrefsData = async () => {
+    const { data } = await supabase
+      .from('ielts_notification_preferences')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    setNotificationPrefs(data ?? []);
+  };
+
+  const fetchViolationsData = async () => {
+    const { data } = await supabase
+      .from('ielts_violation_logs')
+      .select('*')
+      .order('occurred_at', { ascending: false })
+      .limit(200);
+    setViolations(data ?? []);
+  };
+
+  const fetchAuditEntriesData = async () => {
+    const { data } = await supabase
+      .from('ielts_admin_audit_log')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(300);
+    setAuditEntries(data ?? []);
+  };
+
+  const loadSectionData = async (section: NavSection, force = false) => {
+    if (!force && loadedSections[section]) return;
+    setSectionLoadingState(section, true);
     setError(null);
     try {
-      const [statsData, attemptsData, usersData] = await Promise.all([
-        fetchIeltsAdminStats().catch(() => null),
-        fetchIeltsRecentAttempts(200).catch(() => []),
-        fetchAllIeltsUsers().catch(() => []),
-      ]);
-
-      const [writingData, speakingData, appsData, notifData, violationData, auditData] = await Promise.all([
-        supabase
-          .from('ielts_writing_attempts')
-          .select('*')
-          .order('submitted_at', { ascending: false })
-          .limit(200),
-        supabase
-          .from('ielts_speaking_attempts')
-          .select('*')
-          .order('submitted_at', { ascending: false })
-          .limit(200),
-        supabase
-          .from('ielts_prime_applications')
-          .select('*')
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('ielts_notification_preferences')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(200),
-        supabase
-          .from('ielts_violation_logs')
-          .select('*')
-          .order('occurred_at', { ascending: false })
-          .limit(200),
-        supabase
-          .from('ielts_admin_audit_log')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(300),
-      ]);
-
-      setStats(statsData);
-      setRecentAttempts(attemptsData || []);
-      setUsers(usersData || []);
-      setWritingAttempts(writingData.data ?? []);
-      setSpeakingAttempts(speakingData.data ?? []);
-      setPrimeApplications(appsData.data ?? []);
-      setNotificationPrefs(notifData.data ?? []);
-      setViolations(violationData.data ?? []);
-      setAuditEntries(auditData.data ?? []);
+      switch (section) {
+        case 'overview':
+        case 'attempts':
+          await fetchOverviewData();
+          markSectionsLoaded(['overview', 'attempts']);
+          break;
+        case 'users':
+          await fetchUsersData();
+          markSectionsLoaded(['users']);
+          break;
+        case 'queues': {
+          const tasks = [
+            force || !loadedSections.prime ? fetchPrimeApplicationsData() : Promise.resolve(),
+            force || !loadedSections.writing ? fetchWritingAttemptsData() : Promise.resolve(),
+            force || !loadedSections.speaking ? fetchSpeakingAttemptsData() : Promise.resolve(),
+            force || !loadedSections.violations ? fetchViolationsData() : Promise.resolve(),
+            force || !loadedSections.notifications ? fetchNotificationPrefsData() : Promise.resolve(),
+            force || !loadedSections.users ? fetchUsersData() : Promise.resolve(),
+          ];
+          await Promise.all(tasks);
+          markSectionsLoaded(['queues', 'prime', 'writing', 'speaking', 'violations', 'notifications', 'users']);
+          break;
+        }
+        case 'writing':
+          await fetchWritingAttemptsData();
+          markSectionsLoaded(['writing']);
+          break;
+        case 'speaking':
+          await fetchSpeakingAttemptsData();
+          markSectionsLoaded(['speaking']);
+          break;
+        case 'prime':
+          await Promise.all([
+            fetchPrimeApplicationsData(),
+            force || !loadedSections.users ? fetchUsersData() : Promise.resolve(),
+          ]);
+          markSectionsLoaded(['prime', 'users']);
+          break;
+        case 'notifications':
+          await fetchNotificationPrefsData();
+          markSectionsLoaded(['notifications']);
+          break;
+        case 'violations':
+          await fetchViolationsData();
+          markSectionsLoaded(['violations']);
+          break;
+        case 'audit':
+          await fetchAuditEntriesData();
+          markSectionsLoaded(['audit']);
+          break;
+        default:
+          break;
+      }
     } catch (loadError) {
       console.error('Error loading IELTS admin data:', loadError);
       setError('Failed to load IELTS admin data.');
       addToast('Failed to load IELTS data', 'error');
     } finally {
-      setIsLoading(false);
+      setSectionLoadingState(section, false);
     }
+  };
+
+  const loadAdminData = async (force = false) => {
+    const sectionsToRefresh: NavSection[] = [
+      'overview',
+      'users',
+      'queues',
+      'writing',
+      'speaking',
+      'prime',
+      'notifications',
+      'violations',
+      'audit',
+    ];
+    await Promise.all(sectionsToRefresh.map((section) => loadSectionData(section, force)));
   };
 
   const loadUserCaseFile = async (user: any) => {
@@ -464,7 +570,7 @@ const IeltsAdminDashboard: React.FC = () => {
     if (result) {
       addToast('Writing grade saved.', 'success');
       setGradeModal(null);
-      await loadAdminData();
+      await loadAdminData(true);
       if (selectedUser) {
         await loadUserCaseFile(selectedUser);
       }
@@ -486,7 +592,7 @@ const IeltsAdminDashboard: React.FC = () => {
     if (result) {
       addToast('Speaking grade saved.', 'success');
       setGradeModal(null);
-      await loadAdminData();
+      await loadAdminData(true);
       if (selectedUser) {
         await loadUserCaseFile(selectedUser);
       }
@@ -613,7 +719,7 @@ const IeltsAdminDashboard: React.FC = () => {
       return;
     }
     addToast(`Application ${status}.`, 'success');
-    await loadAdminData();
+    await loadAdminData(true);
     if (selectedUser) {
       await loadUserCaseFile(selectedUser);
     }
@@ -632,7 +738,7 @@ const IeltsAdminDashboard: React.FC = () => {
       return;
     }
     addToast(`Violation marked as ${status}`, 'success');
-    await loadAdminData();
+    await loadAdminData(true);
     if (selectedUser) {
       await loadUserCaseFile(selectedUser);
     }
@@ -873,14 +979,6 @@ const IeltsAdminDashboard: React.FC = () => {
       .some((value: string) => value.toLowerCase() === candidate);
   }, [resetConfirmText, selectedUser]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-        <div className="animate-pulse text-lg font-semibold">Loading IELTS Admin Portal...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-2 justify-center">
@@ -912,40 +1010,51 @@ const IeltsAdminDashboard: React.FC = () => {
           </div>
         )}
 
-        {activeSection === 'overview' && stats && (
+        {activeSection === 'overview' && (
           <section className="space-y-6">
             <header className="space-y-2">
               <h2 className="text-2xl font-semibold">Overview</h2>
               <p className="text-sm text-slate-400">IELTS monitoring snapshot and high-level operational stats.</p>
             </header>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <StatCard icon="👥" label="Total IELTS Users" value={stats.total_ielts_users || 0} color="cyan" />
-              <StatCard icon="⭐" label="Premium Users" value={stats.premium_users || 0} color="yellow" />
-              <StatCard icon="📖" label="Reading Attempts" value={stats.total_reading_attempts || 0} color="blue" />
-              <StatCard icon="🎧" label="Listening Attempts" value={stats.total_listening_attempts || 0} color="purple" />
-              <StatCard icon="✍️" label="Writing Attempts" value={stats.total_writing_attempts || 0} color="green" />
-              <StatCard icon="🎤" label="Speaking Attempts" value={stats.total_speaking_attempts || 0} color="orange" />
-              <StatCard icon="📧" label="Email Notifs Requested" value={stats.email_notifications_requested || 0} color="pink" />
-              <StatCard icon="📱" label="SMS Notifs Requested" value={stats.sms_notifications_requested || 0} color="teal" />
-            </div>
-            <div className="rounded-2xl bg-slate-900 p-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Recent activity</h3>
-                <button className="text-sm text-cyan-400 hover:text-cyan-300" onClick={loadAdminData}>
-                  Refresh
-                </button>
-              </div>
-              <div className="mt-4 space-y-3">
-                {recentAttempts.slice(0, 6).map((attempt) => (
-                  <div key={attempt.id} className="flex flex-col gap-1 rounded-xl border border-slate-800 px-3 py-2 text-sm md:flex-row md:items-center md:justify-between">
-                    <span className="font-medium">{attempt.user_name ?? attempt.username ?? attempt.user_id}</span>
-                    <span className="text-slate-400">{attempt.skill ?? attempt.attempt_type}</span>
-                    <span className="text-slate-400">Band {formatBand(attempt.est_band ?? attempt.band_overall)}</span>
-                    <span className="text-slate-500">{formatDate(attempt.attempt_date ?? attempt.submitted_at)}</span>
+            {sectionLoading.overview && (
+              <div className="text-sm text-slate-400">Loading overview...</div>
+            )}
+            {stats ? (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <StatCard icon="👥" label="Total IELTS Users" value={stats.total_ielts_users || 0} color="cyan" />
+                  <StatCard icon="⭐" label="Premium Users" value={stats.premium_users || 0} color="yellow" />
+                  <StatCard icon="📖" label="Reading Attempts" value={stats.total_reading_attempts || 0} color="blue" />
+                  <StatCard icon="🎧" label="Listening Attempts" value={stats.total_listening_attempts || 0} color="purple" />
+                  <StatCard icon="✍️" label="Writing Attempts" value={stats.total_writing_attempts || 0} color="green" />
+                  <StatCard icon="🎤" label="Speaking Attempts" value={stats.total_speaking_attempts || 0} color="orange" />
+                  <StatCard icon="📧" label="Email Notifs Requested" value={stats.email_notifications_requested || 0} color="pink" />
+                  <StatCard icon="📱" label="SMS Notifs Requested" value={stats.sms_notifications_requested || 0} color="teal" />
+                </div>
+                <div className="rounded-2xl bg-slate-900 p-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">Recent activity</h3>
+                    <button className="text-sm text-cyan-400 hover:text-cyan-300" onClick={() => void loadSectionData('overview', true)}>
+                      Refresh
+                    </button>
                   </div>
-                ))}
+                  <div className="mt-4 space-y-3">
+                    {recentAttempts.slice(0, 6).map((attempt) => (
+                      <div key={attempt.id} className="flex flex-col gap-1 rounded-xl border border-slate-800 px-3 py-2 text-sm md:flex-row md:items-center md:justify-between">
+                        <span className="font-medium">{attempt.user_name ?? attempt.username ?? attempt.user_id}</span>
+                        <span className="text-slate-400">{attempt.skill ?? attempt.attempt_type}</span>
+                        <span className="text-slate-400">Band {formatBand(attempt.est_band ?? attempt.band_overall)}</span>
+                        <span className="text-slate-500">{formatDate(attempt.attempt_date ?? attempt.submitted_at)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="rounded-2xl bg-slate-900 p-6 text-sm text-slate-400">
+                Load overview stats to get started.
               </div>
-            </div>
+            )}
           </section>
         )}
 
@@ -955,6 +1064,7 @@ const IeltsAdminDashboard: React.FC = () => {
               <h2 className="text-2xl font-semibold">Users</h2>
               <p className="text-sm text-slate-400">Open a case file to manage IELTS-only operations.</p>
             </header>
+            {sectionLoading.users && <div className="text-sm text-slate-400">Loading users...</div>}
             <div className="rounded-2xl bg-slate-900 p-4 space-y-4">
               <div className="flex flex-wrap gap-2">
                 <input
@@ -1008,6 +1118,7 @@ const IeltsAdminDashboard: React.FC = () => {
               <h2 className="text-2xl font-semibold">Follow-up queues</h2>
               <p className="text-sm text-slate-400">Priority items requiring IELTS admin attention.</p>
             </header>
+            {sectionLoading.queues && <div className="text-sm text-slate-400">Loading queues...</div>}
             <div className="grid gap-4 md:grid-cols-2">
               <div className="rounded-2xl bg-slate-900 p-4">
                 <h3 className="text-lg font-semibold">Prime applications pending</h3>
@@ -1091,6 +1202,7 @@ const IeltsAdminDashboard: React.FC = () => {
               <h2 className="text-2xl font-semibold">Attempts</h2>
               <p className="text-sm text-slate-400">Full IELTS attempt monitoring.</p>
             </header>
+            {sectionLoading.attempts && <div className="text-sm text-slate-400">Loading attempts...</div>}
             <div className="rounded-2xl bg-slate-900 p-4 space-y-4">
               <div className="flex flex-wrap gap-2">
                 <input
@@ -1155,6 +1267,7 @@ const IeltsAdminDashboard: React.FC = () => {
               <h2 className="text-2xl font-semibold">Writing inbox</h2>
               <p className="text-sm text-slate-400">Review and grade writing submissions.</p>
             </header>
+            {sectionLoading.writing && <div className="text-sm text-slate-400">Loading writing queue...</div>}
             <div className="rounded-2xl bg-slate-900 p-4">
               <div className="space-y-3">
                 {ungradedWriting.slice(0, 20).map((attempt) => (
@@ -1185,6 +1298,7 @@ const IeltsAdminDashboard: React.FC = () => {
               <h2 className="text-2xl font-semibold">Speaking inbox</h2>
               <p className="text-sm text-slate-400">Listen and grade speaking attempts.</p>
             </header>
+            {sectionLoading.speaking && <div className="text-sm text-slate-400">Loading speaking queue...</div>}
             <div className="rounded-2xl bg-slate-900 p-4">
               <div className="space-y-3">
                 {ungradedSpeaking.slice(0, 20).map((attempt) => (
@@ -1218,6 +1332,7 @@ const IeltsAdminDashboard: React.FC = () => {
               <h2 className="text-2xl font-semibold">Prime operations</h2>
               <p className="text-sm text-slate-400">Approve/reject applications and manage memberships.</p>
             </header>
+            {sectionLoading.prime && <div className="text-sm text-slate-400">Loading prime operations...</div>}
             <div className="grid gap-4 lg:grid-cols-2">
               <div className="rounded-2xl bg-slate-900 p-4">
                 <div className="flex items-center justify-between">
@@ -1382,6 +1497,7 @@ const IeltsAdminDashboard: React.FC = () => {
               <h2 className="text-2xl font-semibold">Notification operations</h2>
               <p className="text-sm text-slate-400">Track delivery and mark messages as sent.</p>
             </header>
+            {sectionLoading.notifications && <div className="text-sm text-slate-400">Loading notifications...</div>}
             <div className="rounded-2xl bg-slate-900 p-4 space-y-4">
               <input
                 className="rounded-lg bg-slate-800 p-2 text-sm"
@@ -1451,6 +1567,7 @@ const IeltsAdminDashboard: React.FC = () => {
               <h2 className="text-2xl font-semibold">Violations</h2>
               <p className="text-sm text-slate-400">Detailed per-user violation log and global feed.</p>
             </header>
+            {sectionLoading.violations && <div className="text-sm text-slate-400">Loading violations...</div>}
             <div className="rounded-2xl bg-slate-900 p-4 space-y-4">
               <input
                 className="rounded-lg bg-slate-800 p-2 text-sm"
@@ -1508,6 +1625,7 @@ const IeltsAdminDashboard: React.FC = () => {
               <h2 className="text-2xl font-semibold">Audit log</h2>
               <p className="text-sm text-slate-400">Filter and inspect IELTS admin audit activity.</p>
             </header>
+            {sectionLoading.audit && <div className="text-sm text-slate-400">Loading audit log...</div>}
             <div className="rounded-2xl bg-slate-900 p-4 space-y-4">
               <div className="grid gap-3 md:grid-cols-4">
                 <input
