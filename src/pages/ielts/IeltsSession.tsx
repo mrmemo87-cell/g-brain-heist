@@ -13,6 +13,7 @@ import {
 } from '@/services/ieltsService';
 import { notifyTeachersOfExamGuard } from '@/services/notificationService';
 import { supabase } from '@/services/supabaseClient';
+import { logIeltsViolation } from '@/services/ieltsViolationService';
 import { ExamGuard } from '../../utils/examGuard';
 
 const stepLabels = ['Reading', 'Listening', 'Writing', 'Review & Submit'];
@@ -571,11 +572,24 @@ const WritingTask: React.FC<WritingTaskProps> = ({ task, value, onChange, wordsW
     return info;
   };
 
-  const handleAutoSubmit = () => {
+  const handleAutoSubmit = async () => {
     if (autoSubmitTriggeredRef.current) {
       return;
     }
     autoSubmitTriggeredRef.current = true;
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData.session?.user?.id;
+    if (userId) {
+      await logIeltsViolation({
+        userId,
+        module: 'session',
+        moduleType: session?.module ?? session?.module_type ?? null,
+        sessionId,
+        reason: 'auto_submit',
+        code: 'examguard_auto_submit',
+        metadata: { testId },
+      });
+    }
     onAutoSubmit();
   };
 
@@ -592,6 +606,26 @@ const WritingTask: React.FC<WritingTaskProps> = ({ task, value, onChange, wordsW
       onSubmit: handleAutoSubmit,
       onViolation: (event) => {
         console.warn('ExamGuard violation (IeltsSession Writing):', event);
+        void (async () => {
+          const { data: sessionData } = await supabase.auth.getSession();
+          const userId = sessionData.session?.user?.id;
+          if (!userId) return;
+          await logIeltsViolation({
+            userId,
+            module: 'session',
+            moduleType: session?.module ?? session?.module_type ?? null,
+            sessionId,
+            reason: 'rule_violation',
+            code: event.type,
+            metadata: {
+              violationsCount: event.violationsCount,
+              wordCount: event.wordCount,
+              charCount: event.charCount,
+              metadata: event.metadata ?? null,
+              testId,
+            },
+          });
+        })();
         if (event.violationsCount >= MAX_EXAM_GUARD_VIOLATIONS) {
           void (async () => {
             try {
