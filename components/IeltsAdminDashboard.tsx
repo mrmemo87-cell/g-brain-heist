@@ -11,7 +11,7 @@ interface IeltsAdminProps {
   addToast: (message: string, type: 'success' | 'error' | 'info') => void;
 }
 
-type IeltsSubTab = 'overview' | 'applications' | 'attempts' | 'users' | 'content' | 'notifications';
+type IeltsSubTab = 'overview' | 'attempts' | 'users' | 'content' | 'notifications' | 'prime';
 
 const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
   const [activeSubTab, setActiveSubTab] = useState<IeltsSubTab>('overview');
@@ -34,6 +34,12 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
   const [selectedAttempt, setSelectedAttempt] = useState<any>(null);
   const [showAnswerModal, setShowAnswerModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+
+  const notificationColumns = {
+    emailSent: notifications.some(n => Object.prototype.hasOwnProperty.call(n, 'email_sent_at')),
+    smsSent: notifications.some(n => Object.prototype.hasOwnProperty.call(n, 'sms_sent_at')),
+    inAppShown: notifications.some(n => Object.prototype.hasOwnProperty.call(n, 'in_app_shown_at')),
+  };
 
   useEffect(() => {
     loadData();
@@ -181,6 +187,29 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
     addToast('📥 CSV exported successfully', 'success');
   };
 
+  const handleNotificationUpdate = async (
+    notification: any,
+    column: 'email_sent_at' | 'sms_sent_at' | 'in_app_shown_at',
+    label: string
+  ) => {
+    if (!Object.prototype.hasOwnProperty.call(notification, column)) {
+      addToast(`${label} tracking is not available for this record`, 'error');
+      return;
+    }
+    const { error } = await supabase
+      .from('ielts_notification_preferences')
+      .update({ [column]: new Date().toISOString() })
+      .eq('id', notification.id);
+
+    if (error) {
+      console.error('Error updating notification preference:', error);
+      addToast(`Failed to update ${label.toLowerCase()} status`, 'error');
+      return;
+    }
+    addToast(`${label} marked as sent`, 'success');
+    loadData();
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -215,7 +244,7 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
 
       {/* Sub-tabs */}
       <div className="flex flex-wrap gap-2 justify-center mb-6">
-        {(['overview', 'applications', 'attempts', 'users', 'content', 'notifications'] as IeltsSubTab[]).map(tab => (
+        {(['overview', 'attempts', 'users', 'content', 'notifications', 'prime'] as IeltsSubTab[]).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveSubTab(tab)}
@@ -226,11 +255,11 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
             }`}
           >
             {tab === 'overview' && '📊 Overview'}
-            {tab === 'applications' && `⭐ Applications (${primeApplications.length})`}
             {tab === 'attempts' && '📝 Attempts'}
             {tab === 'users' && '👥 Users'}
             {tab === 'content' && '📚 Content'}
             {tab === 'notifications' && '🔔 Notifications'}
+            {tab === 'prime' && `⭐ Prime (${primeApplications.length})`}
           </button>
         ))}
       </div>
@@ -325,7 +354,7 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
       )}
 
       {/* Prime Applications Tab */}
-      {activeSubTab === 'applications' && (
+      {activeSubTab === 'prime' && (
         <div className="space-y-4">
           {/* Header with stats */}
           <div className="bg-gradient-to-r from-yellow-900/30 to-amber-900/30 rounded-xl p-6 border border-yellow-500/50">
@@ -640,70 +669,149 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
 
       {/* Content Tab */}
       {activeSubTab === 'content' && content && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Reading Sets */}
-          <ContentCard
-            title="📖 Reading Sets"
-            items={content.readingSets}
-            columns={['Title', 'Level', 'Active']}
-            renderRow={(item: any) => (
-              <>
-                <td className="px-3 py-2 text-white">{item.title}</td>
-                <td className="px-3 py-2 text-gray-400 capitalize">{item.level}</td>
-                <td className="px-3 py-2 text-center">
-                  {item.is_active ? '✅' : '❌'}
-                </td>
-              </>
-            )}
-          />
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatCard icon="📖" label="Reading Sets" value={content.readingSets.length} color="blue" />
+            <StatCard icon="🧩" label="Reading Questions" value={content.readingQuestions.length} color="cyan" />
+            <StatCard icon="🎧" label="Listening Sets" value={content.listeningSets.length} color="purple" />
+            <StatCard icon="🎯" label="Listening Questions" value={content.listeningQuestions.length} color="teal" />
+            <StatCard icon="✍️" label="Writing Tasks" value={content.writingTasks.length} color="green" />
+            <StatCard icon="🎤" label="Speaking Tasks" value={content.speakingTasks.length} color="orange" />
+            <StatCard icon="🧪" label="Mock Tests" value={content.mockTests.length} color="yellow" />
+            <StatCard icon="🧾" label="Sessions" value={content.sessions.length} color="pink" />
+          </div>
 
-          {/* Listening Sets */}
-          <ContentCard
-            title="🎧 Listening Sets"
-            items={content.listeningSets}
-            columns={['Title', 'Level', 'Active']}
-            renderRow={(item: any) => (
-              <>
-                <td className="px-3 py-2 text-white">{item.title}</td>
-                <td className="px-3 py-2 text-gray-400 capitalize">{item.level}</td>
-                <td className="px-3 py-2 text-center">
-                  {item.is_active ? '✅' : '❌'}
-                </td>
-              </>
-            )}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Reading Sets */}
+            <ContentCard
+              title="📖 Reading Sets"
+              items={content.readingSets}
+              columns={['Title', 'Level', 'Active']}
+              renderRow={(item: any) => (
+                <>
+                  <td className="px-3 py-2 text-white">{item.title}</td>
+                  <td className="px-3 py-2 text-gray-400 capitalize">{item.level}</td>
+                  <td className="px-3 py-2 text-center">
+                    {item.is_active ? '✅' : '❌'}
+                  </td>
+                </>
+              )}
+            />
 
-          {/* Writing Tasks */}
-          <ContentCard
-            title="✍️ Writing Tasks"
-            items={content.writingTasks}
-            columns={['Title', 'Type', 'Active']}
-            renderRow={(item: any) => (
-              <>
-                <td className="px-3 py-2 text-white">{item.title}</td>
-                <td className="px-3 py-2 text-gray-400">{item.task_type}</td>
-                <td className="px-3 py-2 text-center">
-                  {item.is_active ? '✅' : '❌'}
-                </td>
-              </>
-            )}
-          />
+            {/* Reading Questions */}
+            <ContentCard
+              title="🧩 Reading Questions"
+              items={content.readingQuestions}
+              columns={['Set', 'Order', 'Type', 'Prompt']}
+              renderRow={(item: any) => (
+                <>
+                  <td className="px-3 py-2 text-white">#{item.set_id}</td>
+                  <td className="px-3 py-2 text-gray-400">{item.question_order}</td>
+                  <td className="px-3 py-2 text-gray-400 capitalize">{item.question_type}</td>
+                  <td className="px-3 py-2 text-gray-400 max-w-[200px] truncate">{item.body}</td>
+                </>
+              )}
+            />
 
-          {/* Speaking Tasks */}
-          <ContentCard
-            title="🎤 Speaking Tasks"
-            items={content.speakingTasks}
-            columns={['Part', 'Prompt', 'Active']}
-            renderRow={(item: any) => (
-              <>
-                <td className="px-3 py-2 text-white">Part {item.part}</td>
-                <td className="px-3 py-2 text-gray-400 max-w-[200px] truncate">{item.prompt}</td>
-                <td className="px-3 py-2 text-center">
-                  {item.is_active ? '✅' : '❌'}
-                </td>
-              </>
-            )}
-          />
+            {/* Listening Sets */}
+            <ContentCard
+              title="🎧 Listening Sets"
+              items={content.listeningSets}
+              columns={['Title', 'Level', 'Active']}
+              renderRow={(item: any) => (
+                <>
+                  <td className="px-3 py-2 text-white">{item.title}</td>
+                  <td className="px-3 py-2 text-gray-400 capitalize">{item.level}</td>
+                  <td className="px-3 py-2 text-center">
+                    {item.is_active ? '✅' : '❌'}
+                  </td>
+                </>
+              )}
+            />
+
+            {/* Listening Questions */}
+            <ContentCard
+              title="🎯 Listening Questions"
+              items={content.listeningQuestions}
+              columns={['Set', 'Order', 'Type', 'Prompt']}
+              renderRow={(item: any) => (
+                <>
+                  <td className="px-3 py-2 text-white">#{item.set_id}</td>
+                  <td className="px-3 py-2 text-gray-400">{item.question_order}</td>
+                  <td className="px-3 py-2 text-gray-400 capitalize">{item.question_type}</td>
+                  <td className="px-3 py-2 text-gray-400 max-w-[200px] truncate">{item.body}</td>
+                </>
+              )}
+            />
+
+            {/* Writing Tasks */}
+            <ContentCard
+              title="✍️ Writing Tasks"
+              items={content.writingTasks}
+              columns={['Title', 'Type', 'Active']}
+              renderRow={(item: any) => (
+                <>
+                  <td className="px-3 py-2 text-white">{item.title}</td>
+                  <td className="px-3 py-2 text-gray-400">{item.task_type}</td>
+                  <td className="px-3 py-2 text-center">
+                    {item.is_active ? '✅' : '❌'}
+                  </td>
+                </>
+              )}
+            />
+
+            {/* Speaking Tasks */}
+            <ContentCard
+              title="🎤 Speaking Tasks"
+              items={content.speakingTasks}
+              columns={['Part', 'Prompt', 'Active']}
+              renderRow={(item: any) => (
+                <>
+                  <td className="px-3 py-2 text-white">Part {item.part}</td>
+                  <td className="px-3 py-2 text-gray-400 max-w-[200px] truncate">{item.prompt}</td>
+                  <td className="px-3 py-2 text-center">
+                    {item.is_active ? '✅' : '❌'}
+                  </td>
+                </>
+              )}
+            />
+
+            {/* Mock Tests */}
+            <ContentCard
+              title="🧪 Mock Tests"
+              items={content.mockTests}
+              columns={['Title', 'Duration', 'Active', 'Created']}
+              renderRow={(item: any) => (
+                <>
+                  <td className="px-3 py-2 text-white">{item.title}</td>
+                  <td className="px-3 py-2 text-gray-400">{item.duration_minutes ? `${item.duration_minutes} min` : '-'}</td>
+                  <td className="px-3 py-2 text-center">
+                    {item.is_active ? '✅' : '❌'}
+                  </td>
+                  <td className="px-3 py-2 text-gray-400 text-sm">{formatDate(item.created_at)}</td>
+                </>
+              )}
+            />
+
+            {/* Sessions */}
+            <ContentCard
+              title="🧾 IELTS Sessions"
+              items={content.sessions}
+              columns={['Ref', 'Module', 'Target', 'Overall', 'Created', 'Completed']}
+              renderRow={(item: any) => (
+                <>
+                  <td className="px-3 py-2 text-white">{item.reference_code || item.id}</td>
+                  <td className="px-3 py-2 text-gray-400 capitalize">{item.module}</td>
+                  <td className="px-3 py-2 text-gray-400">{item.target_band || '-'}</td>
+                  <td className="px-3 py-2 text-gray-400">{item.band_overall || '-'}</td>
+                  <td className="px-3 py-2 text-gray-400 text-sm">{formatDate(item.created_at)}</td>
+                  <td className="px-3 py-2 text-gray-400 text-sm">
+                    {item.completed_at ? formatDate(item.completed_at) : '-'}
+                  </td>
+                </>
+              )}
+            />
+          </div>
         </div>
       )}
 
@@ -731,8 +839,16 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
                       <th className="px-4 py-3 text-left text-gray-400">Phone</th>
                       <th className="px-4 py-3 text-center text-gray-400">Email</th>
                       <th className="px-4 py-3 text-center text-gray-400">SMS</th>
-                      <th className="px-4 py-3 text-center text-gray-400">Email Sent</th>
-                      <th className="px-4 py-3 text-center text-gray-400">SMS Sent</th>
+                      <th className="px-4 py-3 text-center text-gray-400">In-App</th>
+                      {notificationColumns.emailSent && (
+                        <th className="px-4 py-3 text-center text-gray-400">Email Sent</th>
+                      )}
+                      {notificationColumns.smsSent && (
+                        <th className="px-4 py-3 text-center text-gray-400">SMS Sent</th>
+                      )}
+                      {notificationColumns.inAppShown && (
+                        <th className="px-4 py-3 text-center text-gray-400">In-App Shown</th>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -748,22 +864,55 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
                         <td className="px-4 py-3 text-gray-400">{n.phone_number || '-'}</td>
                         <td className="px-4 py-3 text-center">{n.notify_by_email ? '✅' : '❌'}</td>
                         <td className="px-4 py-3 text-center">{n.notify_by_sms ? '✅' : '❌'}</td>
-                        <td className="px-4 py-3 text-center">
-                          {n.email_sent_at ? (
-                            <span className="text-green-400">✓ {formatDate(n.email_sent_at)}</span>
-                          ) : (
-                            <span className="text-yellow-400">Pending</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {n.sms_sent_at ? (
-                            <span className="text-green-400">✓ {formatDate(n.sms_sent_at)}</span>
-                          ) : n.notify_by_sms ? (
-                            <span className="text-yellow-400">Pending</span>
-                          ) : (
-                            <span className="text-gray-600">-</span>
-                          )}
-                        </td>
+                        <td className="px-4 py-3 text-center">{n.show_in_app ? '✅' : '❌'}</td>
+                        {notificationColumns.emailSent && (
+                          <td className="px-4 py-3 text-center">
+                            {n.email_sent_at ? (
+                              <span className="text-green-400">✓ {formatDate(n.email_sent_at)}</span>
+                            ) : n.notify_by_email ? (
+                              <button
+                                onClick={() => handleNotificationUpdate(n, 'email_sent_at', 'Email')}
+                                className="px-2 py-1 bg-cyan-600/40 hover:bg-cyan-600/70 text-white text-xs rounded transition-colors"
+                              >
+                                Mark Sent
+                              </button>
+                            ) : (
+                              <span className="text-gray-600">-</span>
+                            )}
+                          </td>
+                        )}
+                        {notificationColumns.smsSent && (
+                          <td className="px-4 py-3 text-center">
+                            {n.sms_sent_at ? (
+                              <span className="text-green-400">✓ {formatDate(n.sms_sent_at)}</span>
+                            ) : n.notify_by_sms ? (
+                              <button
+                                onClick={() => handleNotificationUpdate(n, 'sms_sent_at', 'SMS')}
+                                className="px-2 py-1 bg-purple-600/40 hover:bg-purple-600/70 text-white text-xs rounded transition-colors"
+                              >
+                                Mark Sent
+                              </button>
+                            ) : (
+                              <span className="text-gray-600">-</span>
+                            )}
+                          </td>
+                        )}
+                        {notificationColumns.inAppShown && (
+                          <td className="px-4 py-3 text-center">
+                            {n.in_app_shown_at ? (
+                              <span className="text-green-400">✓ {formatDate(n.in_app_shown_at)}</span>
+                            ) : n.show_in_app ? (
+                              <button
+                                onClick={() => handleNotificationUpdate(n, 'in_app_shown_at', 'In-app')}
+                                className="px-2 py-1 bg-emerald-600/40 hover:bg-emerald-600/70 text-white text-xs rounded transition-colors"
+                              >
+                                Mark Shown
+                              </button>
+                            ) : (
+                              <span className="text-gray-600">-</span>
+                            )}
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
