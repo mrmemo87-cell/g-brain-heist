@@ -48,10 +48,12 @@ declare
   
   xp_delta int := 0;
   coins_delta int := 0;
+  gemstones_delta int := 0;
   coins_stolen_from_def int := 0;
   coins_lost_to_def int := 0;  -- Coins attacker loses to defender on loss
 
   current_ap int;
+  pre_gemstones int;
   
   result_kind text;
   attacker_username text;
@@ -98,6 +100,8 @@ begin
   if attacker.is_admin or attacker.role <> 'student' or attacker.is_banned then
     raise exception 'attacker_not_allowed';
   end if;
+
+  pre_gemstones := attacker.gemstones;
 
   -- Refresh AP based on regeneration before spending
   current_ap := calculate_current_ap(attacker.ap_now, attacker.ap_max, coalesce(attacker.last_ap_update, v_now));
@@ -286,6 +290,8 @@ begin
     where id = p_defender_id;
   end if;
 
+  gemstones_delta := attacker.gemstones - pre_gemstones;
+
   -- ====== Log activity ======
   attacker_username := attacker.username;
   defender_username := defender.username;
@@ -308,6 +314,7 @@ begin
       'win_chance', win_chance,
       'roll', roll,
       'xp_delta', xp_delta,
+      'gemstones_delta', gemstones_delta,
       'coins_stolen', coins_stolen_from_def,
       'coins_lost', coins_lost_to_def
     ),
@@ -325,7 +332,8 @@ begin
     end,
     'attacker_deltas', json_build_object(
       'xp', xp_delta,
-      'coins', coins_delta
+      'coins', coins_delta,
+      'gemstones', gemstones_delta
     ),
     'defender_deltas', json_build_object(
       'coins_loss', case 
