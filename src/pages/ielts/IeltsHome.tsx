@@ -13,6 +13,7 @@ import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/au
 
 const IeltsHome: React.FC = () => {
   const navigate = useNavigate();
+  const primeRedirectUrl = 'https://www.brainsheist.com/ielts/apply-prime';
   const [musicEnabled, setMusicEnabled] = useState(false);
   const [readingSets, setReadingSets] = useState<IELTSReadingSet[]>([]);
   const [listeningSets, setListeningSets] = useState<IELTSListeningSet[]>([]);
@@ -40,6 +41,10 @@ const IeltsHome: React.FC = () => {
       resumeBackgroundMusic();
       setMusicEnabled(true);
     }
+  };
+
+  const redirectToPrime = () => {
+    window.location.href = primeRedirectUrl;
   };
 
   useEffect(() => {
@@ -163,7 +168,7 @@ const IeltsHome: React.FC = () => {
 
           {/* Free Trial Test Banner */}
           <div 
-            onClick={() => navigate('/ielts/trial-test')}
+            onClick={redirectToPrime}
             style={{ 
               background: 'linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%)',
               borderRadius: '1rem',
@@ -190,17 +195,18 @@ const IeltsHome: React.FC = () => {
             <div style={{ flex: 1 }}>
               <div style={{ 
                 display: 'inline-block',
-                background: '#22c55e',
-                color: 'white',
-                padding: '0.125rem 0.5rem',
-                borderRadius: '0.25rem',
+                background: 'linear-gradient(135deg, #fde68a 0%, #f59e0b 100%)',
+                color: '#111827',
+                padding: '0.2rem 0.6rem',
+                borderRadius: '9999px',
                 fontSize: '0.625rem',
-                fontWeight: 'bold',
+                fontWeight: '700',
                 marginBottom: '0.375rem',
                 textTransform: 'uppercase',
-                letterSpacing: '0.05em',
+                letterSpacing: '0.08em',
+                boxShadow: '0 4px 12px rgba(245, 158, 11, 0.35)',
               }}>
-                Free Trial
+                Only Prime Users
               </div>
               <h3 style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', fontWeight: 'bold', margin: '0 0 0.25rem 0' }}>
                 IELTS Listening Test 1
@@ -209,13 +215,13 @@ const IeltsHome: React.FC = () => {
                 40 questions • 4 sections • Get your band score instantly
               </p>
             </div>
-            <div style={{ 
-              background: '#3b82f6',
-              padding: '0.5rem 1rem',
-              borderRadius: '0.5rem',
-              fontWeight: 'bold',
-              fontSize: '0.875rem',
-              whiteSpace: 'nowrap',
+              <div style={{ 
+                background: '#f59e0b',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                fontWeight: 'bold',
+                fontSize: '0.875rem',
+                whiteSpace: 'nowrap',
             }}>
               Start →
             </div>
@@ -247,17 +253,18 @@ const IeltsHome: React.FC = () => {
             ) : readingSets.length === 0 ? (
               <p style={{ color: '#6b7280', fontSize: '0.8125rem', margin: 0 }}>No reading sets are published yet.</p>
             ) : (
-              readingSets.map((set) => {
+              readingSets.map((set, index) => {
                 const isCompleted = completedTasks.reading.includes(set.id);
+                const isLocked = index > 0;
                 return (
                 <button
                   key={set.id}
-                  onClick={() => navigate(`/ielts/reading/${set.id}`)}
+                  onClick={() => (isLocked ? redirectToPrime() : navigate(`/ielts/reading/${set.id}`))}
                   style={{
                     width: '100%',
-                    backgroundColor: isCompleted ? '#f0fdf4' : '#ffffff',
-                    border: isCompleted ? '1px solid #22c55e' : '1px solid #e5e7eb',
-                    borderLeft: isCompleted ? '4px solid #22c55e' : '1px solid #e5e7eb',
+                    backgroundColor: isLocked ? '#f8fafc' : isCompleted ? '#f0fdf4' : '#ffffff',
+                    border: isLocked ? '1px dashed #cbd5f5' : isCompleted ? '1px solid #22c55e' : '1px solid #e5e7eb',
+                    borderLeft: isLocked ? '4px solid #f59e0b' : isCompleted ? '4px solid #22c55e' : '1px solid #e5e7eb',
                     borderRadius: '0.5rem',
                     padding: '0.75rem',
                     marginBottom: '0.5rem',
@@ -269,6 +276,22 @@ const IeltsHome: React.FC = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
                       <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem', flex: 1, minWidth: '150px' }}>{set.title}</p>
                       <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                        {isLocked && (
+                          <span style={{
+                            background: 'linear-gradient(135deg, #fde68a 0%, #f59e0b 100%)',
+                            color: '#111827',
+                            fontSize: '0.625rem',
+                            padding: '0.25rem 0.6rem',
+                            borderRadius: '9999px',
+                            whiteSpace: 'nowrap',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.08em',
+                            fontWeight: 700,
+                            boxShadow: '0 4px 10px rgba(245, 158, 11, 0.35)',
+                          }}>
+                            Only Prime Users
+                          </span>
+                        )}
                         {isCompleted && (
                           <span style={{ backgroundColor: '#22c55e', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px', whiteSpace: 'nowrap' }}>
                             ✓ DONE
@@ -351,15 +374,16 @@ const IeltsHome: React.FC = () => {
             ) : (
               listeningSets.map((set) => {
                 const isCompleted = completedTasks.listening.includes(set.id);
+                const isLocked = true;
                 return (
                 <button
                   key={set.id}
-                  onClick={() => navigate(`/ielts/listening/${set.id}`)}
+                  onClick={() => (isLocked ? redirectToPrime() : navigate(`/ielts/listening/${set.id}`))}
                   style={{
                     width: '100%',
-                    backgroundColor: isCompleted ? '#f0fdf4' : '#ffffff',
-                    border: isCompleted ? '1px solid #22c55e' : '1px solid #e5e7eb',
-                    borderLeft: isCompleted ? '4px solid #22c55e' : '1px solid #e5e7eb',
+                    backgroundColor: isLocked ? '#f8fafc' : isCompleted ? '#f0fdf4' : '#ffffff',
+                    border: isLocked ? '1px dashed #cbd5f5' : isCompleted ? '1px solid #22c55e' : '1px solid #e5e7eb',
+                    borderLeft: isLocked ? '4px solid #f59e0b' : isCompleted ? '4px solid #22c55e' : '1px solid #e5e7eb',
                     borderRadius: '0.5rem',
                     padding: '0.75rem',
                     marginBottom: '0.5rem',
@@ -371,6 +395,22 @@ const IeltsHome: React.FC = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
                       <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem', flex: 1, minWidth: '150px' }}>{set.title}</p>
                       <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                        {isLocked && (
+                          <span style={{
+                            background: 'linear-gradient(135deg, #fde68a 0%, #f59e0b 100%)',
+                            color: '#111827',
+                            fontSize: '0.625rem',
+                            padding: '0.25rem 0.6rem',
+                            borderRadius: '9999px',
+                            whiteSpace: 'nowrap',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.08em',
+                            fontWeight: 700,
+                            boxShadow: '0 4px 10px rgba(245, 158, 11, 0.35)',
+                          }}>
+                            Only Prime Users
+                          </span>
+                        )}
                         {isCompleted && (
                           <span style={{ backgroundColor: '#22c55e', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px', whiteSpace: 'nowrap' }}>
                             ✓ DONE
@@ -399,17 +439,18 @@ const IeltsHome: React.FC = () => {
             ) : writingTasks.length === 0 ? (
               <p style={{ color: '#6b7280', fontSize: '0.8125rem', margin: 0 }}>No writing tasks are published yet.</p>
             ) : (
-              writingTasks.map((task) => {
+              writingTasks.map((task, index) => {
                 const isCompleted = completedTasks.writing.includes(task.id);
+                const isLocked = index > 0;
                 return (
                 <button
                   key={task.id}
-                  onClick={() => navigate(`/ielts/writing/${task.id}`)}
+                  onClick={() => (isLocked ? redirectToPrime() : navigate(`/ielts/writing/${task.id}`))}
                   style={{
                     width: '100%',
-                    backgroundColor: isCompleted ? '#f0fdf4' : '#ffffff',
-                    border: isCompleted ? '1px solid #22c55e' : '1px solid #e5e7eb',
-                    borderLeft: isCompleted ? '4px solid #22c55e' : '1px solid #e5e7eb',
+                    backgroundColor: isLocked ? '#f8fafc' : isCompleted ? '#f0fdf4' : '#ffffff',
+                    border: isLocked ? '1px dashed #cbd5f5' : isCompleted ? '1px solid #22c55e' : '1px solid #e5e7eb',
+                    borderLeft: isLocked ? '4px solid #f59e0b' : isCompleted ? '4px solid #22c55e' : '1px solid #e5e7eb',
                     borderRadius: '0.5rem',
                     padding: '0.75rem',
                     marginBottom: '0.5rem',
@@ -421,6 +462,22 @@ const IeltsHome: React.FC = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
                       <p style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '0.875rem', flex: 1, minWidth: '150px' }}>{task.title}</p>
                       <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                        {isLocked && (
+                          <span style={{
+                            background: 'linear-gradient(135deg, #fde68a 0%, #f59e0b 100%)',
+                            color: '#111827',
+                            fontSize: '0.625rem',
+                            padding: '0.25rem 0.6rem',
+                            borderRadius: '9999px',
+                            whiteSpace: 'nowrap',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.08em',
+                            fontWeight: 700,
+                            boxShadow: '0 4px 10px rgba(245, 158, 11, 0.35)',
+                          }}>
+                            Only Prime Users
+                          </span>
+                        )}
                         {isCompleted && (
                           <span style={{ backgroundColor: '#22c55e', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px', whiteSpace: 'nowrap' }}>
                             ✓ DONE
@@ -449,17 +506,18 @@ const IeltsHome: React.FC = () => {
             ) : speakingTasks.length === 0 ? (
               <p style={{ color: '#6b7280', fontSize: '0.8125rem', margin: 0 }}>No speaking tasks are published yet.</p>
             ) : (
-              speakingTasks.map((task) => {
+              speakingTasks.map((task, index) => {
                 const isCompleted = completedTasks.speaking.includes(task.id);
+                const isLocked = index > 0;
                 return (
                 <button
                   key={task.id}
-                  onClick={() => navigate(`/ielts/speaking/${task.id}`)}
+                  onClick={() => (isLocked ? redirectToPrime() : navigate(`/ielts/speaking/${task.id}`))}
                   style={{
                     width: '100%',
-                    backgroundColor: isCompleted ? '#f0fdf4' : '#ffffff',
-                    border: isCompleted ? '1px solid #22c55e' : '1px solid #e5e7eb',
-                    borderLeft: isCompleted ? '4px solid #22c55e' : '1px solid #e5e7eb',
+                    backgroundColor: isLocked ? '#f8fafc' : isCompleted ? '#f0fdf4' : '#ffffff',
+                    border: isLocked ? '1px dashed #cbd5f5' : isCompleted ? '1px solid #22c55e' : '1px solid #e5e7eb',
+                    borderLeft: isLocked ? '4px solid #f59e0b' : isCompleted ? '4px solid #22c55e' : '1px solid #e5e7eb',
                     borderRadius: '0.5rem',
                     padding: '0.75rem',
                     marginBottom: '0.5rem',
@@ -470,6 +528,22 @@ const IeltsHome: React.FC = () => {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
                       <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                        {isLocked && (
+                          <span style={{
+                            background: 'linear-gradient(135deg, #fde68a 0%, #f59e0b 100%)',
+                            color: '#111827',
+                            fontSize: '0.625rem',
+                            padding: '0.25rem 0.6rem',
+                            borderRadius: '9999px',
+                            whiteSpace: 'nowrap',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.08em',
+                            fontWeight: 700,
+                            boxShadow: '0 4px 10px rgba(245, 158, 11, 0.35)',
+                          }}>
+                            Only Prime Users
+                          </span>
+                        )}
                         {isCompleted && (
                           <span style={{ backgroundColor: '#22c55e', color: '#fff', fontSize: '0.625rem', padding: '0.25rem 0.5rem', borderRadius: '9999px', whiteSpace: 'nowrap' }}>
                             ✓ DONE
