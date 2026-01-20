@@ -63,6 +63,12 @@ const USER_CASE_TABS: { id: UserCaseTab; label: string }[] = [
   { id: 'audit', label: 'Audit' },
 ];
 
+const PRIME_PLAN_MONTHS: Record<string, number> = {
+  monthly: 1,
+  quarterly: 3,
+  annually: 12,
+};
+
 const isMissingRpc = (error: { message?: string; code?: string }) => {
   const message = error?.message?.toLowerCase() ?? '';
   return error?.code === 'PGRST202' || message.includes('function') || message.includes('not found');
@@ -247,6 +253,11 @@ const IeltsAdminDashboard: React.FC = () => {
   const [membershipSearch, setMembershipSearch] = useState('');
   const [membershipTarget, setMembershipTarget] = useState<any | null>(null);
   const [membershipHistory, setMembershipHistory] = useState<any[]>([]);
+  const [primeApprovalModal, setPrimeApprovalModal] = useState<{
+    application: any;
+    plan: 'monthly' | 'quarterly' | 'annually';
+    months: number;
+  } | null>(null);
 
   useEffect(() => {
     if (!loadedSections[activeSection]) {
@@ -765,6 +776,39 @@ const IeltsAdminDashboard: React.FC = () => {
     await loadAdminData(true);
     if (selectedUser) {
       await loadUserCaseFile(selectedUser);
+    }
+  };
+
+  const openPrimeApprovalModal = (application: any) => {
+    const plan =
+      application?.payment_method && PRIME_PLAN_MONTHS[application.payment_method]
+        ? application.payment_method
+        : 'monthly';
+    setPrimeApprovalModal({
+      application,
+      plan,
+      months: PRIME_PLAN_MONTHS[plan] ?? 1,
+    });
+  };
+
+  const approvePrimeApplication = async () => {
+    if (!primeApprovalModal?.application) return;
+    const { application, plan, months } = primeApprovalModal;
+    const result = await handleRpc('admin_ielts_prime_approve_and_grant', {
+      p_application_id: application.id,
+      p_plan: plan,
+      p_months: Number(months),
+    });
+    if (result) {
+      addToast('Application approved and membership granted.', 'success');
+      setPrimeApprovalModal(null);
+      await loadAdminData(true);
+      if (selectedUser) {
+        await loadUserCaseFile(selectedUser);
+      }
+      if (membershipTarget?.id) {
+        await fetchMembershipHistory(membershipTarget.id);
+      }
     }
   };
 
@@ -1482,7 +1526,7 @@ const IeltsAdminDashboard: React.FC = () => {
                             <>
                               <button
                                 className="rounded-full border border-emerald-400 px-3 py-1 text-xs text-emerald-200"
-                                onClick={() => updatePrimeApplication(application.id, 'approved')}
+                                onClick={() => openPrimeApprovalModal(application)}
                               >
                                 Approve
                               </button>
@@ -2091,7 +2135,7 @@ const IeltsAdminDashboard: React.FC = () => {
                                   <>
                                     <button
                                       className="rounded-full border border-emerald-400 px-3 py-1 text-xs text-emerald-200"
-                                      onClick={() => updatePrimeApplication(application.id, 'approved')}
+                                      onClick={() => openPrimeApprovalModal(application)}
                                     >
                                       Approve
                                     </button>
@@ -2315,6 +2359,74 @@ const IeltsAdminDashboard: React.FC = () => {
                 onClick={resetUserProgress}
               >
                 Confirm reset
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {primeApprovalModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-slate-900 p-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Approve Prime application</h3>
+              <button className="text-slate-400" onClick={() => setPrimeApprovalModal(null)}>Close</button>
+            </div>
+            <div className="mt-4 space-y-3 text-sm">
+              <div className="rounded-lg bg-slate-950 p-3 text-xs text-slate-300">
+                {formatUserDisplay(primeApprovalModal.application.user_id, primeApprovalModal.application.full_name).primary}
+              </div>
+              <label className="text-xs">
+                Plan
+                <select
+                  className="mt-1 w-full rounded-lg bg-slate-800 p-2 text-sm"
+                  value={primeApprovalModal.plan}
+                  onChange={(event) =>
+                    setPrimeApprovalModal((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            plan: event.target.value as 'monthly' | 'quarterly' | 'annually',
+                            months: PRIME_PLAN_MONTHS[event.target.value] ?? prev.months,
+                          }
+                        : prev
+                    )
+                  }
+                >
+                  <option value="monthly">Monthly</option>
+                  <option value="quarterly">Quarterly</option>
+                  <option value="annually">Annually</option>
+                </select>
+              </label>
+              <label className="text-xs">
+                Months
+                <input
+                  type="number"
+                  min={1}
+                  className="mt-1 w-full rounded-lg bg-slate-800 p-2 text-sm"
+                  value={primeApprovalModal.months}
+                  onChange={(event) =>
+                    setPrimeApprovalModal((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            months: Math.max(1, Number(event.target.value) || 1),
+                          }
+                        : prev
+                    )
+                  }
+                />
+              </label>
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <button className="rounded-full bg-slate-700 px-4 py-2 text-sm" onClick={() => setPrimeApprovalModal(null)}>
+                Cancel
+              </button>
+              <button
+                className="rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-900"
+                onClick={approvePrimeApplication}
+              >
+                Approve
               </button>
             </div>
           </div>
