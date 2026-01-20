@@ -1334,7 +1334,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
           {activeTab === 'ielts' && (
             <div className="card-glass p-6 border-2 border-emerald-400/50">
               <h3 className="text-3xl font-heading font-bold text-emerald-300 mb-6">🎯 IELTS Prep Dashboard</h3>
-              <IeltsAdminDashboard addToast={addToast} />
+              <IeltsAdminDashboard />
             </div>
           )}
 

@@ -1,28 +1,98 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../services/supabaseClient';
-import { 
-  fetchIeltsAdminStats, 
-  fetchIeltsRecentAttempts, 
-  fetchAllIeltsUsers,
-  fetchIeltsContent 
-} from '../services/ieltsService';
+import { fetchAllIeltsUsers, fetchIeltsAdminStats, fetchIeltsRecentAttempts } from '../services/ieltsService';
 
-interface IeltsAdminProps {
-  addToast: (message: string, type: 'success' | 'error' | 'info') => void;
-}
+const NAV_SECTIONS = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'users', label: 'Users' },
+  { id: 'queues', label: 'Queues' },
+  { id: 'attempts', label: 'Attempts' },
+  { id: 'writing', label: 'Writing Inbox' },
+  { id: 'speaking', label: 'Speaking Inbox' },
+  { id: 'prime', label: 'Prime' },
+  { id: 'notifications', label: 'Notifications' },
+  { id: 'violations', label: 'Violations' },
+  { id: 'audit', label: 'Audit' },
+] as const;
 
 type IeltsSubTab = 'overview' | 'attempts' | 'users' | 'content' | 'notifications' | 'prime' | 'violations';
 
-const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
-  const [activeSubTab, setActiveSubTab] = useState<IeltsSubTab>('overview');
+type Toast = {
+  id: number;
+  message: string;
+  type: 'success' | 'error' | 'info';
+};
+
+type UserCaseTab =
+  | 'summary'
+  | 'timeline'
+  | 'progress'
+  | 'writing'
+  | 'speaking'
+  | 'prime'
+  | 'notes'
+  | 'violations'
+  | 'notifications'
+  | 'audit';
+
+const USER_CASE_TABS: { id: UserCaseTab; label: string }[] = [
+  { id: 'summary', label: 'Summary' },
+  { id: 'timeline', label: 'Timeline' },
+  { id: 'progress', label: 'Progress' },
+  { id: 'writing', label: 'Writing' },
+  { id: 'speaking', label: 'Speaking' },
+  { id: 'prime', label: 'Prime' },
+  { id: 'notes', label: 'Notes/Tags' },
+  { id: 'violations', label: 'Violations' },
+  { id: 'notifications', label: 'Notifications' },
+  { id: 'audit', label: 'Audit Trail' },
+];
+
+const isMissingRpc = (error: { message?: string; code?: string }) => {
+  const message = error?.message?.toLowerCase() ?? '';
+  return error?.code === 'PGRST202' || message.includes('function') || message.includes('not found');
+};
+
+const formatDate = (value?: string | null) => {
+  if (!value) return '—';
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return '—';
+  return parsed.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+const formatBand = (value?: number | null) => (value ? value.toFixed(1) : '—');
+
+const formatDuration = (seconds?: number | null) => {
+  if (!seconds) return '—';
+  const minutes = Math.floor(seconds / 60);
+  const remainder = seconds % 60;
+  return `${minutes}m ${remainder}s`;
+};
+
+const getLatestMembership = (memberships: any[]) => {
+  if (!memberships.length) return null;
+  return [...memberships].sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime())[0];
+};
+
+const IeltsAdminDashboard: React.FC = () => {
+  const [activeSection, setActiveSection] = useState<NavSection>('overview');
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Data states
+  const [isCaseLoading, setIsCaseLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [rpcMissing, setRpcMissing] = useState<string | null>(null);
+
   const [stats, setStats] = useState<any>(null);
-  const [attempts, setAttempts] = useState<any[]>([]);
+  const [recentAttempts, setRecentAttempts] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
-  const [content, setContent] = useState<any>(null);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [writingAttempts, setWritingAttempts] = useState<any[]>([]);
+  const [speakingAttempts, setSpeakingAttempts] = useState<any[]>([]);
   const [primeApplications, setPrimeApplications] = useState<any[]>([]);
   const [violations, setViolations] = useState<any[]>([]);
   
@@ -57,8 +127,9 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
     loadData();
   }, []);
 
-  const loadData = async () => {
+  const loadAdminData = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       // Load notification preferences separately to handle errors
       let notifData: any[] = [];
@@ -90,14 +161,14 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
       // Load stats, attempts, users, and content in parallel
       const [statsData, attemptsData, usersData, contentData, violationsData] = await Promise.all([
         fetchIeltsAdminStats().catch(() => null),
-        fetchIeltsRecentAttempts(100).catch(() => []),
+        fetchIeltsRecentAttempts(200).catch(() => []),
         fetchAllIeltsUsers().catch(() => []),
         fetchIeltsContent().catch(() => null),
         fetchViolationLogs().catch(() => []),
       ]);
 
       setStats(statsData);
-      setAttempts(attemptsData);
+      setRecentAttempts(attemptsData);
       setUsers(usersData);
       setContent(contentData);
       setNotifications(notifData);
@@ -111,30 +182,50 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
     }
   };
 
-  // Filter attempts
-  const filteredAttempts = attempts.filter(a => {
-    if (skillFilter !== 'all' && a.skill !== skillFilter) return false;
-    if (searchQuery && !a.user_name?.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-    if (dateFilter !== 'all') {
-      const attemptDate = new Date(a.attempt_date);
-      const now = new Date();
-      if (dateFilter === 'today') {
-        if (attemptDate.toDateString() !== now.toDateString()) return false;
-      } else if (dateFilter === 'week') {
-        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        if (attemptDate < weekAgo) return false;
-      } else if (dateFilter === 'month') {
-        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        if (attemptDate < monthAgo) return false;
-      }
-    }
-    return true;
-  });
+  const loadUserCaseFile = async (user: any) => {
+    setSelectedUser(user);
+    setUserCaseTab('summary');
+    setIsCaseLoading(true);
+    setRpcMissing(null);
 
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return '-';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    try {
+      const [reading, listening, writing, speaking, sessions, violations, notes, tags, membership, primeApps, notifications, audit] =
+        await Promise.all([
+          supabase.from('ielts_reading_attempts').select('*').eq('user_id', user.id).order('submitted_at', { ascending: false }),
+          supabase.from('ielts_listening_attempts').select('*').eq('user_id', user.id).order('submitted_at', { ascending: false }),
+          supabase.from('ielts_writing_attempts').select('*').eq('user_id', user.id).order('submitted_at', { ascending: false }),
+          supabase.from('ielts_speaking_attempts').select('*').eq('user_id', user.id).order('submitted_at', { ascending: false }),
+          supabase.from('ielts_sessions').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+          supabase.from('ielts_violation_logs').select('*').eq('user_id', user.id).order('occurred_at', { ascending: false }),
+          supabase.from('ielts_admin_notes').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+          supabase.from('ielts_admin_user_tags').select('*').eq('user_id', user.id),
+          supabase.from('ielts_memberships').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+          supabase.from('ielts_prime_applications').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+          supabase.from('ielts_notification_preferences').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+          supabase.from('ielts_admin_audit_log').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+        ]);
+
+      const tagsRow = tags.data?.[0];
+      setUserCaseData({
+        reading: reading.data ?? [],
+        listening: listening.data ?? [],
+        writing: writing.data ?? [],
+        speaking: speaking.data ?? [],
+        sessions: sessions.data ?? [],
+        violations: violations.data ?? [],
+        notes: notes.data ?? [],
+        tags: tagsRow?.tags ?? [],
+        memberships: membership.data ?? [],
+        primeApplications: primeApps.data ?? [],
+        notifications: notifications.data ?? [],
+        audit: audit.data ?? [],
+      });
+    } catch (caseError) {
+      console.error(caseError);
+      addToast('Failed to load user case file.', 'error');
+    } finally {
+      setIsCaseLoading(false);
+    }
   };
 
   const formatViolationDate = (value: string | number | null) => {
@@ -151,84 +242,158 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
     return `${mins}m ${secs}s`;
   };
 
-  const getSkillIcon = (skill: string) => {
-    const icons: Record<string, string> = {
-      reading: '📖',
-      listening: '🎧',
-      writing: '✍️',
-      speaking: '🎤',
+  const submitWritingGrade = async () => {
+    if (!gradeModal?.attempt) return;
+    let parsedCriteria: Record<string, unknown> = {};
+    try {
+      parsedCriteria = JSON.parse(gradeForm.criteria || '{}');
+    } catch (parseError) {
+      addToast('Criteria JSON is invalid.', 'error');
+      return;
+    }
+    const payload = {
+      attempt_id: gradeModal.attempt.id,
+      band_overall: Number(gradeForm.bandOverall),
+      feedback: gradeForm.feedback,
+      criteria: parsedCriteria,
     };
-    return icons[skill] || '📝';
+    const result = await handleRpc('admin_ielts_write_grade', payload);
+    if (result) {
+      addToast('Writing grade saved.', 'success');
+      setGradeModal(null);
+      await loadAdminData();
+      if (selectedUser) {
+        await loadUserCaseFile(selectedUser);
+      }
+    }
   };
 
-  const getSkillColor = (skill: string) => {
-    const colors: Record<string, string> = {
-      reading: 'from-blue-500 to-blue-600',
-      listening: 'from-purple-500 to-purple-600',
-      writing: 'from-green-500 to-green-600',
-      speaking: 'from-orange-500 to-orange-600',
+  const submitSpeakingGrade = async () => {
+    if (!gradeModal?.attempt) return;
+    const payload = {
+      attempt_id: gradeModal.attempt.id,
+      band_overall: Number(gradeForm.bandOverall),
+      band_fluency: Number(gradeForm.fluency),
+      band_pronunciation: Number(gradeForm.pronunciation),
+      band_lexical: Number(gradeForm.lexical),
+      band_grammar: Number(gradeForm.grammar),
+      feedback: gradeForm.feedback,
     };
-    return colors[skill] || 'from-gray-500 to-gray-600';
+    const result = await handleRpc('admin_ielts_speaking_grade', payload);
+    if (result) {
+      addToast('Speaking grade saved.', 'success');
+      setGradeModal(null);
+      await loadAdminData();
+      if (selectedUser) {
+        await loadUserCaseFile(selectedUser);
+      }
+    }
   };
 
-  const getBandColor = (band: number | null) => {
-    if (!band) return 'text-gray-400';
-    if (band >= 7) return 'text-green-400';
-    if (band >= 6) return 'text-yellow-400';
-    if (band >= 5) return 'text-orange-400';
-    return 'text-red-400';
+  const setUserTags = async () => {
+    if (!selectedUser) return;
+    const tags = tagDraft.split(',').map((tag) => tag.trim()).filter(Boolean);
+    const result = await handleRpc('admin_ielts_set_user_tags', {
+      user_id: selectedUser.id,
+      tags,
+    });
+    if (result) {
+      addToast('Tags updated.', 'success');
+      setTagDraft('');
+      await loadUserCaseFile(selectedUser);
+    }
   };
 
-  // Export functions
-  const exportAttemptsCsv = () => {
-    if (filteredAttempts.length === 0) {
-      addToast('No data to export', 'error');
-      return;
+  const addNote = async () => {
+    if (!selectedUser || !noteDraft.trim()) return;
+    const result = await handleRpc('admin_ielts_add_note', {
+      user_id: selectedUser.id,
+      note: noteDraft.trim(),
+    });
+    if (result) {
+      addToast('Note added.', 'success');
+      setNoteDraft('');
+      await loadUserCaseFile(selectedUser);
     }
-    const headers = ['Skill', 'User', 'Content', 'Score', 'Percentage', 'Band', 'Time', 'Date', 'Email Requested', 'SMS Requested', 'Phone'];
-    const rows = filteredAttempts.map(a => [
-      a.skill,
-      a.user_name || 'Unknown',
-      a.content_title || '',
-      `${a.raw_score || '-'}/${a.total_questions || '-'}`,
-      a.percent ? `${a.percent}%` : '-',
-      a.est_band || '-',
-      formatTime(a.time_spent_seconds),
-      formatDate(a.attempt_date),
-      a.notify_by_email ? 'Yes' : 'No',
-      a.notify_by_sms ? 'Yes' : 'No',
-      a.phone_number || '',
-    ]);
-    const csv = [headers.join(','), ...rows.map(r => r.map(c => `"${c}"`).join(','))].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `ielts_attempts_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-    addToast('📥 CSV exported successfully', 'success');
   };
 
-  const handleNotificationUpdate = async (
-    notification: any,
-    column: 'email_sent_at' | 'sms_sent_at' | 'in_app_shown_at',
-    label: string
-  ) => {
-    if (!Object.prototype.hasOwnProperty.call(notification, column)) {
-      addToast(`${label} tracking is not available for this record`, 'error');
-      return;
+  const deleteNote = async (noteId: number) => {
+    const result = await handleRpc('admin_ielts_note_delete', { note_id: noteId });
+    if (result) {
+      addToast('Note removed.', 'success');
+      if (selectedUser) {
+        await loadUserCaseFile(selectedUser);
+      }
     }
-    const { error } = await supabase
-      .from('ielts_notification_preferences')
-      .update({ [column]: new Date().toISOString() })
-      .eq('id', notification.id);
+  };
 
-    if (error) {
-      console.error('Error updating notification preference:', error);
-      addToast(`Failed to update ${label.toLowerCase()} status`, 'error');
+  const updateMembership = async (action: 'grant' | 'extend' | 'revoke') => {
+    if (!selectedUser) return;
+    const payload =
+      action === 'grant'
+        ? { user_id: selectedUser.id, plan: membershipAction.plan, months: membershipAction.months }
+        : action === 'extend'
+          ? { user_id: selectedUser.id, months: membershipAction.months }
+          : { user_id: selectedUser.id, reason: membershipAction.reason || 'Admin revoked' };
+
+    const rpcName =
+      action === 'grant'
+        ? 'admin_ielts_membership_grant'
+        : action === 'extend'
+          ? 'admin_ielts_membership_extend'
+          : 'admin_ielts_membership_revoke';
+
+    const result = await handleRpc(rpcName, payload);
+    if (result) {
+      addToast(`Membership ${action}ed.`, 'success');
+      await loadAdminData();
+      if (selectedUser) {
+        await loadUserCaseFile(selectedUser);
+      }
+    }
+  };
+
+  const resetUserProgress = async () => {
+    if (!selectedUser) return;
+    const result = await handleRpc('admin_ielts_reset_progress', {
+      user_id: selectedUser.id,
+      reset_scope: resetScope,
+    });
+    if (result) {
+      addToast('Progress reset queued.', 'success');
+      await loadUserCaseFile(selectedUser);
+    }
+  };
+
+  const markNotificationSent = async (pref: any, channel: 'email' | 'sms' | 'in_app') => {
+    const result = await handleRpc('admin_ielts_mark_notification_sent', {
+      pref_id: pref.id,
+      channel,
+    });
+    if (result) {
+      addToast('Notification marked sent.', 'success');
+      await loadAdminData();
+      if (selectedUser) {
+        await loadUserCaseFile(selectedUser);
+      }
+    }
+  };
+
+  const updatePrimeApplication = async (applicationId: string | number, status: string) => {
+    const { error: updateError } = await supabase
+      .from('ielts_prime_applications')
+      .update({ status })
+      .eq('id', applicationId);
+
+    if (updateError) {
+      addToast(updateError.message, 'error');
       return;
     }
-    addToast(`${label} marked as sent`, 'success');
-    loadData();
+    addToast(`Application ${status}.`, 'success');
+    await loadAdminData();
+    if (selectedUser) {
+      await loadUserCaseFile(selectedUser);
+    }
   };
 
   const updateViolationStatus = async (violationId: string, status: string, resolutionNote?: string) => {
@@ -249,8 +414,8 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-2xl text-cyan-400 animate-pulse">Loading IELTS Data...</div>
+      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
+        <div className="animate-pulse text-lg font-semibold">Loading IELTS Admin Portal...</div>
       </div>
     );
   }
@@ -316,659 +481,377 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
             <StatCard icon="📧" label="Email Notifs Requested" value={stats.email_notifications_requested || 0} color="pink" />
             <StatCard icon="📱" label="SMS Notifs Requested" value={stats.sms_notifications_requested || 0} color="teal" />
           </div>
+        </nav>
 
-          {/* Average Scores */}
-          <div className="bg-black/40 rounded-xl p-6 border border-gray-700">
-            <h3 className="text-xl font-bold text-white mb-4">📈 Average Performance</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-blue-400">{stats.avg_reading_percent || 0}%</div>
-                <div className="text-gray-400">Avg Reading Score</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-purple-400">{stats.avg_listening_percent || 0}%</div>
-                <div className="text-gray-400">Avg Listening Score</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-green-400">{stats.avg_writing_band || 0}</div>
-                <div className="text-gray-400">Avg Writing Band</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-orange-400">{stats.avg_speaking_band || 0}</div>
-                <div className="text-gray-400">Avg Speaking Band</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Content Overview */}
-          <div className="bg-black/40 rounded-xl p-6 border border-gray-700">
-            <h3 className="text-xl font-bold text-white mb-4">📚 Active Content</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-blue-900/30 rounded-lg p-4 text-center border border-blue-500/30">
-                <div className="text-2xl font-bold text-blue-400">{stats.active_reading_sets || 0}</div>
-                <div className="text-gray-400 text-sm">Reading Sets</div>
-              </div>
-              <div className="bg-purple-900/30 rounded-lg p-4 text-center border border-purple-500/30">
-                <div className="text-2xl font-bold text-purple-400">{stats.active_listening_sets || 0}</div>
-                <div className="text-gray-400 text-sm">Listening Sets</div>
-              </div>
-              <div className="bg-green-900/30 rounded-lg p-4 text-center border border-green-500/30">
-                <div className="text-2xl font-bold text-green-400">{stats.active_writing_tasks || 0}</div>
-                <div className="text-gray-400 text-sm">Writing Tasks</div>
-              </div>
-              <div className="bg-orange-900/30 rounded-lg p-4 text-center border border-orange-500/30">
-                <div className="text-2xl font-bold text-orange-400">{stats.active_speaking_tasks || 0}</div>
-                <div className="text-gray-400 text-sm">Speaking Tasks</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Trial Test Info */}
-          <div className="bg-black/40 rounded-xl p-6 border border-teal-500/50">
-            <h3 className="text-xl font-bold text-teal-400 mb-4">🎯 Free Trial Listening Test</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-teal-900/20 rounded-lg p-4 border border-teal-500/30">
-                <h4 className="font-semibold text-white mb-2">Test Details</h4>
-                <ul className="text-gray-300 text-sm space-y-1">
-                  <li>• <span className="text-teal-400 font-medium">40 questions</span> across 4 sections</li>
-                  <li>• Section 1: Moving Company (Fill-in + Matching)</li>
-                  <li>• Section 2: Conference Schedule (Table + MCQ)</li>
-                  <li>• Section 3: Course Details (MCQ + Multi-select)</li>
-                  <li>• Section 4: Astronomy Lecture (Sentence completion)</li>
-                </ul>
-              </div>
-              <div className="bg-teal-900/20 rounded-lg p-4 border border-teal-500/30">
-                <h4 className="font-semibold text-white mb-2">Access Information</h4>
-                <ul className="text-gray-300 text-sm space-y-1">
-                  <li>• Route: <code className="bg-black/40 px-2 py-0.5 rounded text-teal-300">/ielts/trial-test</code></li>
-                  <li>• Status: <span className="text-green-400 font-medium">✅ Always Active</span></li>
-                  <li>• Audio Source: Supabase Storage (ielts-audio bucket)</li>
-                  <li>• Note: Results are shown locally (not saved to database)</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Prime Applications Tab */}
-      {activeSubTab === 'prime' && (
-        <div className="space-y-4">
-          {/* Header with stats */}
-          <div className="bg-gradient-to-r from-yellow-900/30 to-amber-900/30 rounded-xl p-6 border border-yellow-500/50">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h3 className="text-xl font-bold text-yellow-400">⭐ Prime Applications</h3>
-                <p className="text-gray-400 text-sm">Review and approve upgrade requests</p>
-              </div>
-              <div className="flex gap-4 text-center">
-                <div className="bg-black/40 rounded-lg px-4 py-2">
-                  <div className="text-2xl font-bold text-yellow-400">{primeApplications.filter(a => a.status === 'pending').length}</div>
-                  <div className="text-xs text-gray-400">Pending</div>
-                </div>
-                <div className="bg-black/40 rounded-lg px-4 py-2">
-                  <div className="text-2xl font-bold text-green-400">{primeApplications.filter(a => a.status === 'approved').length}</div>
-                  <div className="text-xs text-gray-400">Approved</div>
-                </div>
-                <div className="bg-black/40 rounded-lg px-4 py-2">
-                  <div className="text-2xl font-bold text-red-400">{primeApplications.filter(a => a.status === 'rejected').length}</div>
-                  <div className="text-xs text-gray-400">Rejected</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Applications Table */}
-          {primeApplications.length === 0 ? (
-            <div className="bg-black/40 rounded-xl p-12 text-center border border-gray-700">
-              <div className="text-6xl mb-4">📭</div>
-              <h4 className="text-xl font-bold text-white mb-2">No Applications Yet</h4>
-              <p className="text-gray-400">Prime applications will appear here when users submit them.</p>
-            </div>
-          ) : (
-            <div className="bg-black/40 rounded-xl border border-gray-700 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-800">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-gray-400 text-sm font-semibold">Status</th>
-                      <th className="px-4 py-3 text-left text-gray-400 text-sm font-semibold">Name</th>
-                      <th className="px-4 py-3 text-left text-gray-400 text-sm font-semibold">Email</th>
-                      <th className="px-4 py-3 text-left text-gray-400 text-sm font-semibold">Phone</th>
-                      <th className="px-4 py-3 text-left text-gray-400 text-sm font-semibold">Target Band</th>
-                      <th className="px-4 py-3 text-left text-gray-400 text-sm font-semibold">Level</th>
-                      <th className="px-4 py-3 text-left text-gray-400 text-sm font-semibold">Plan</th>
-                      <th className="px-4 py-3 text-left text-gray-400 text-sm font-semibold">Date</th>
-                      <th className="px-4 py-3 text-left text-gray-400 text-sm font-semibold">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {primeApplications.map((app, idx) => (
-                      <tr key={app.id || idx} className="border-t border-gray-700/50 hover:bg-gray-800/50">
-                        <td className="px-4 py-3">
-                          <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                            app.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                            app.status === 'approved' ? 'bg-green-500/20 text-green-400' :
-                            'bg-red-500/20 text-red-400'
-                          }`}>
-                            {app.status?.toUpperCase() || 'PENDING'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="font-medium text-white">{app.full_name || 'Unknown'}</div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <a href={`mailto:${app.email}`} className="text-cyan-400 hover:underline text-sm">{app.email}</a>
-                        </td>
-                        <td className="px-4 py-3">
-                          {app.phone ? (
-                            <a href={`tel:${app.phone}`} className="text-green-400 hover:underline text-sm">{app.phone}</a>
-                          ) : (
-                            <span className="text-gray-500 text-sm">-</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="text-yellow-400 font-bold">{app.target_band_score || '-'}</span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-300">{app.current_level || '-'}</td>
-                        <td className="px-4 py-3">
-                          <span className="capitalize text-purple-400 text-sm">{app.payment_method || 'monthly'}</span>
-                        </td>
-                        <td className="px-4 py-3 text-xs text-gray-400">{formatDate(app.created_at)}</td>
-                        <td className="px-4 py-3">
-                          <div className="flex gap-2">
-                            {app.status === 'pending' && (
-                              <>
-                                <button
-                                  onClick={async () => {
-                                    await supabase.from('ielts_prime_applications').update({ status: 'approved' }).eq('id', app.id);
-                                    loadData();
-                                    addToast('✅ Application approved!', 'success');
-                                  }}
-                                  className="px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded transition-colors"
-                                >
-                                  Approve
-                                </button>
-                                <button
-                                  onClick={async () => {
-                                    await supabase.from('ielts_prime_applications').update({ status: 'rejected' }).eq('id', app.id);
-                                    loadData();
-                                    addToast('❌ Application rejected', 'info');
-                                  }}
-                                  className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors"
-                                >
-                                  Reject
-                                </button>
-                              </>
-                            )}
-                            {app.goals && (
-                              <button
-                                onClick={() => alert(`Goals: ${app.goals}`)}
-                                className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors"
-                              >
-                                View Goals
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+        <main className="flex-1 space-y-8 px-4 py-6 md:px-8">
+          {error && (
+            <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
+              {error}
             </div>
           )}
-        </div>
-      )}
 
-      {/* Attempts Tab */}
-      {activeSubTab === 'attempts' && (
-        <div className="space-y-4">
-          {/* Filters */}
-          <div className="flex flex-wrap gap-4 items-center bg-black/40 rounded-xl p-4 border border-gray-700">
-            <input
-              type="text"
-              placeholder="🔍 Search by name..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="flex-1 min-w-[200px] px-4 py-2 bg-black/50 border border-gray-600 rounded-lg text-white focus:border-cyan-400 focus:outline-none"
-            />
-            <select
-              value={skillFilter}
-              onChange={e => setSkillFilter(e.target.value)}
-              className="px-4 py-2 bg-black/50 border border-gray-600 rounded-lg text-white"
-            >
-              <option value="all">All Skills</option>
-              <option value="reading">📖 Reading</option>
-              <option value="listening">🎧 Listening</option>
-              <option value="writing">✍️ Writing</option>
-              <option value="speaking">🎤 Speaking</option>
-            </select>
-            <select
-              value={dateFilter}
-              onChange={e => setDateFilter(e.target.value)}
-              className="px-4 py-2 bg-black/50 border border-gray-600 rounded-lg text-white"
-            >
-              <option value="all">All Time</option>
-              <option value="today">Today</option>
-              <option value="week">Past Week</option>
-              <option value="month">Past Month</option>
-            </select>
-            <button
-              onClick={exportAttemptsCsv}
-              className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg font-semibold hover:scale-105 transition-transform"
-            >
-              📥 Export CSV
-            </button>
-            <button
-              onClick={loadData}
-              className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-semibold hover:scale-105 transition-transform"
-            >
-              🔄 Refresh
-            </button>
-          </div>
-
-          {/* Summary */}
-          <div className="text-gray-400 text-sm">
-            Showing {filteredAttempts.length} of {attempts.length} attempts
-          </div>
-
-          {/* Attempts Table */}
-          <div className="bg-black/40 rounded-xl border border-gray-700 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-gray-800/50">
-                    <th className="px-4 py-3 text-left text-gray-400 font-semibold">Skill</th>
-                    <th className="px-4 py-3 text-left text-gray-400 font-semibold">User</th>
-                    <th className="px-4 py-3 text-left text-gray-400 font-semibold">Content</th>
-                    <th className="px-4 py-3 text-center text-gray-400 font-semibold">Score</th>
-                    <th className="px-4 py-3 text-center text-gray-400 font-semibold">Band</th>
-                    <th className="px-4 py-3 text-center text-gray-400 font-semibold">Time</th>
-                    <th className="px-4 py-3 text-center text-gray-400 font-semibold">Date</th>
-                    <th className="px-4 py-3 text-center text-gray-400 font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredAttempts.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
-                        No attempts found
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredAttempts.map((attempt, idx) => (
-                      <tr key={`${attempt.skill}-${attempt.id}-${idx}`} className="border-t border-gray-700/50 hover:bg-gray-800/30">
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-gradient-to-r ${getSkillColor(attempt.skill)} text-white`}>
-                            {getSkillIcon(attempt.skill)} {attempt.skill}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-white font-medium">{attempt.user_name || 'Unknown'}</td>
-                        <td className="px-4 py-3 text-gray-400 max-w-[200px] truncate">{attempt.content_title || '-'}</td>
-                        <td className="px-4 py-3 text-center text-white">
-                          {attempt.raw_score !== null ? `${attempt.raw_score}/${attempt.total_questions}` : '-'}
-                          {attempt.percent !== null && <span className="text-gray-400 text-xs ml-1">({attempt.percent}%)</span>}
-                        </td>
-                        <td className={`px-4 py-3 text-center font-bold ${getBandColor(attempt.est_band)}`}>
-                          {attempt.est_band || '-'}
-                        </td>
-                        <td className="px-4 py-3 text-center text-gray-400">{formatTime(attempt.time_spent_seconds)}</td>
-                        <td className="px-4 py-3 text-center text-gray-400 text-sm">{formatDate(attempt.attempt_date)}</td>
-                        <td className="px-4 py-3">
-                          <div className="flex justify-center gap-2">
-                            <button
-                              onClick={() => { setSelectedAttempt(attempt); setShowAnswerModal(true); }}
-                              className="bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400 text-white text-xs px-3 py-1 rounded transition-colors"
-                            >
-                              📝 Answers
-                            </button>
-                            <button
-                              onClick={() => { setSelectedAttempt(attempt); setShowReportModal(true); }}
-                              className="bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400 text-white text-xs px-3 py-1 rounded transition-colors"
-                            >
-                              📄 Report
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+          {rpcMissing && (
+            <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-200">
+              {rpcMissing}
             </div>
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* Users Tab */}
-      {activeSubTab === 'users' && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-4 bg-black/40 rounded-xl p-4 border border-gray-700">
-            <input
-              type="text"
-              placeholder="🔍 Search by name or email..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="flex-1 px-4 py-2 bg-black/50 border border-gray-600 rounded-lg text-white focus:border-cyan-400 focus:outline-none"
-            />
-            <span className="text-gray-400">Total: {users.length}</span>
-          </div>
+          {activeSection === 'overview' && (
+            <section className="space-y-6">
+              <header className="space-y-2">
+                <h2 className="text-2xl font-semibold">Overview</h2>
+                <p className="text-sm text-slate-400">IELTS monitoring snapshot and high-level operational stats.</p>
+              </header>
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="rounded-2xl bg-slate-900 p-4 shadow">
+                  <p className="text-xs uppercase text-slate-400">Total Users</p>
+                  <p className="text-2xl font-semibold">{stats?.total_users ?? users.length}</p>
+                </div>
+                <div className="rounded-2xl bg-slate-900 p-4 shadow">
+                  <p className="text-xs uppercase text-slate-400">Active Attempts</p>
+                  <p className="text-2xl font-semibold">{stats?.total_attempts ?? recentAttempts.length}</p>
+                </div>
+                <div className="rounded-2xl bg-slate-900 p-4 shadow">
+                  <p className="text-xs uppercase text-slate-400">Prime Members</p>
+                  <p className="text-2xl font-semibold">{stats?.prime_members ?? memberships.length}</p>
+                </div>
+              </div>
+              <div className="rounded-2xl bg-slate-900 p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Recent activity</h3>
+                  <button className="text-sm text-cyan-400 hover:text-cyan-300" onClick={loadAdminData}>
+                    Refresh
+                  </button>
+                </div>
+                <div className="mt-4 space-y-3">
+                  {recentAttempts.slice(0, 6).map((attempt) => (
+                    <div key={attempt.id} className="flex flex-col gap-1 rounded-xl border border-slate-800 px-3 py-2 text-sm md:flex-row md:items-center md:justify-between">
+                      <span className="font-medium">{attempt.user_name ?? attempt.username ?? attempt.user_id}</span>
+                      <span className="text-slate-400">{attempt.skill ?? attempt.attempt_type}</span>
+                      <span className="text-slate-400">Band {formatBand(attempt.est_band ?? attempt.band_overall)}</span>
+                      <span className="text-slate-500">{formatDate(attempt.attempt_date ?? attempt.submitted_at)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
 
-          <div className="bg-black/40 rounded-xl border border-gray-700 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-gray-800/50">
-                    <th className="px-4 py-3 text-left text-gray-400 font-semibold">Name</th>
-                    <th className="px-4 py-3 text-left text-gray-400 font-semibold">Email</th>
-                    <th className="px-4 py-3 text-left text-gray-400 font-semibold">Phone</th>
-                    <th className="px-4 py-3 text-center text-gray-400 font-semibold">Tier</th>
-                    <th className="px-4 py-3 text-center text-gray-400 font-semibold">Target Band</th>
-                    <th className="px-4 py-3 text-center text-gray-400 font-semibold">Joined</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users
-                    .filter(u => !searchQuery || 
-                      u.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      u.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      u.username?.toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                    .map(user => (
-                      <tr key={user.id} className="border-t border-gray-700/50 hover:bg-gray-800/30">
-                        <td className="px-4 py-3">
-                          <div className="text-white font-medium">{user.full_name || user.username || 'Unknown'}</div>
-                          {user.username && user.full_name && (
-                            <div className="text-gray-500 text-xs">@{user.username}</div>
+          {activeSection === 'users' && (
+            <section className="space-y-4">
+              <header>
+                <h2 className="text-2xl font-semibold">Users</h2>
+                <p className="text-sm text-slate-400">Open a case file to manage IELTS-only operations.</p>
+              </header>
+              <div className="rounded-2xl bg-slate-900 p-4">
+                <div className="space-y-3">
+                  {users.slice(0, 50).map((user) => (
+                    <button
+                      key={user.id}
+                      onClick={() => void loadUserCaseFile(user)}
+                      className="flex w-full flex-col gap-2 rounded-xl border border-slate-800 p-3 text-left transition hover:border-cyan-400"
+                    >
+                      <span className="font-semibold">{user.full_name ?? user.username ?? 'IELTS user'}</span>
+                      <span className="text-xs text-slate-400">{user.email ?? 'No email'} • Joined {formatDate(user.created_at)}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {activeSection === 'queues' && (
+            <section className="space-y-6">
+              <header>
+                <h2 className="text-2xl font-semibold">Follow-up queues</h2>
+                <p className="text-sm text-slate-400">Priority items requiring IELTS admin attention.</p>
+              </header>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-2xl bg-slate-900 p-4">
+                  <h3 className="text-lg font-semibold">Prime applications pending</h3>
+                  <p className="text-sm text-slate-400">{pendingPrime.length} pending</p>
+                  <div className="mt-3 space-y-2 text-sm">
+                    {pendingPrime.slice(0, 5).map((app) => (
+                      <div key={app.id} className="rounded-xl border border-slate-800 p-2">
+                        <p>{app.full_name ?? app.user_name ?? app.user_id}</p>
+                        <p className="text-xs text-slate-400">{formatDate(app.created_at)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-2xl bg-slate-900 p-4">
+                  <h3 className="text-lg font-semibold">Ungraded writing</h3>
+                  <p className="text-sm text-slate-400">{ungradedWriting.length} waiting</p>
+                  <div className="mt-3 space-y-2 text-sm">
+                    {ungradedWriting.slice(0, 5).map((attempt) => (
+                      <div key={attempt.id} className="rounded-xl border border-slate-800 p-2">
+                        <p>Attempt #{attempt.id}</p>
+                        <p className="text-xs text-slate-400">{formatDate(attempt.submitted_at)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-2xl bg-slate-900 p-4">
+                  <h3 className="text-lg font-semibold">Ungraded speaking</h3>
+                  <p className="text-sm text-slate-400">{ungradedSpeaking.length} waiting</p>
+                  <div className="mt-3 space-y-2 text-sm">
+                    {ungradedSpeaking.slice(0, 5).map((attempt) => (
+                      <div key={attempt.id} className="rounded-xl border border-slate-800 p-2">
+                        <p>Attempt #{attempt.id}</p>
+                        <p className="text-xs text-slate-400">{formatDate(attempt.submitted_at)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-2xl bg-slate-900 p-4">
+                  <h3 className="text-lg font-semibold">Violations unresolved</h3>
+                  <p className="text-sm text-slate-400">{unresolvedViolations.length} items</p>
+                  <div className="mt-3 space-y-2 text-sm">
+                    {unresolvedViolations.slice(0, 5).map((violation) => (
+                      <div key={violation.id} className="rounded-xl border border-slate-800 p-2">
+                        <p>{violation.reason ?? violation.code ?? violation.type ?? 'Violation'}</p>
+                        <p className="text-xs text-slate-400">{formatDate(violation.occurred_at)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-2xl bg-slate-900 p-4">
+                  <h3 className="text-lg font-semibold">Inactive users</h3>
+                  <p className="text-sm text-slate-400">7d: {inactivityBuckets.days7.length} • 14d: {inactivityBuckets.days14.length} • 30d: {inactivityBuckets.days30.length}</p>
+                  <div className="mt-3 space-y-2 text-sm">
+                    {inactivityBuckets.days30.slice(0, 5).map((user) => (
+                      <div key={user.id} className="rounded-xl border border-slate-800 p-2">
+                        <p>{user.full_name ?? user.username ?? user.id}</p>
+                        <p className="text-xs text-slate-400">Last activity: 30+ days</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-2xl bg-slate-900 p-4">
+                  <h3 className="text-lg font-semibold">Notifications pending</h3>
+                  <p className="text-sm text-slate-400">{pendingNotifications.length} pending</p>
+                  <div className="mt-3 space-y-2 text-sm">
+                    {pendingNotifications.slice(0, 5).map((pref) => (
+                      <div key={pref.id} className="rounded-xl border border-slate-800 p-2">
+                        <p>{pref.user_id}</p>
+                        <p className="text-xs text-slate-400">{formatDate(pref.created_at)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {activeSection === 'attempts' && (
+            <section className="space-y-4">
+              <header>
+                <h2 className="text-2xl font-semibold">Attempts</h2>
+                <p className="text-sm text-slate-400">Full IELTS attempt monitoring.</p>
+              </header>
+              <div className="rounded-2xl bg-slate-900 p-4">
+                <div className="space-y-2 text-sm">
+                  {recentAttempts.map((attempt) => (
+                    <div key={attempt.id} className="rounded-xl border border-slate-800 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-semibold">{attempt.user_name ?? attempt.username ?? attempt.user_id}</span>
+                        <span className="text-slate-400">{attempt.skill ?? attempt.attempt_type}</span>
+                        <span className="text-slate-400">Band {formatBand(attempt.est_band ?? attempt.band_overall)}</span>
+                        <span className="text-slate-500">{formatDate(attempt.attempt_date ?? attempt.submitted_at)}</span>
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-400">
+                        <span>Raw score: {attempt.raw_score ?? '—'}/{attempt.total_questions ?? '—'}</span>
+                        <span>Time: {formatDuration(attempt.time_spent_seconds)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {activeSection === 'writing' && (
+            <section className="space-y-4">
+              <header>
+                <h2 className="text-2xl font-semibold">Writing inbox</h2>
+                <p className="text-sm text-slate-400">Review and grade writing submissions.</p>
+              </header>
+              <div className="rounded-2xl bg-slate-900 p-4">
+                <div className="space-y-3">
+                  {ungradedWriting.map((attempt) => (
+                    <div key={attempt.id} className="rounded-xl border border-slate-800 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <p className="font-semibold">Attempt #{attempt.id}</p>
+                          <p className="text-xs text-slate-400">User: {attempt.user_id}</p>
+                        </div>
+                        <button
+                          className="rounded-full bg-cyan-500 px-4 py-1 text-sm font-semibold text-slate-900"
+                          onClick={() => openGradeModal('writing', attempt)}
+                        >
+                          Grade
+                        </button>
+                      </div>
+                      <p className="mt-2 text-xs text-slate-400">Submitted {formatDate(attempt.submitted_at)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {activeSection === 'speaking' && (
+            <section className="space-y-4">
+              <header>
+                <h2 className="text-2xl font-semibold">Speaking inbox</h2>
+                <p className="text-sm text-slate-400">Listen and grade speaking attempts.</p>
+              </header>
+              <div className="rounded-2xl bg-slate-900 p-4">
+                <div className="space-y-3">
+                  {ungradedSpeaking.map((attempt) => (
+                    <div key={attempt.id} className="rounded-xl border border-slate-800 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <p className="font-semibold">Attempt #{attempt.id}</p>
+                          <p className="text-xs text-slate-400">User: {attempt.user_id}</p>
+                        </div>
+                        <button
+                          className="rounded-full bg-cyan-500 px-4 py-1 text-sm font-semibold text-slate-900"
+                          onClick={() => openGradeModal('speaking', attempt)}
+                        >
+                          Review
+                        </button>
+                      </div>
+                      {attempt.audio_url && (
+                        <audio className="mt-2 w-full" controls src={attempt.audio_url.startsWith('http') ? attempt.audio_url : `/storage/v1/object/public/ielts-recordings/${attempt.audio_url}`} />
+                      )}
+                      <p className="mt-2 text-xs text-slate-400">Submitted {formatDate(attempt.submitted_at)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {activeSection === 'prime' && (
+            <section className="space-y-4">
+              <header>
+                <h2 className="text-2xl font-semibold">Prime operations</h2>
+                <p className="text-sm text-slate-400">Approve/reject applications and manage memberships.</p>
+              </header>
+              <div className="rounded-2xl bg-slate-900 p-4">
+                <h3 className="text-lg font-semibold">Prime applications</h3>
+                <div className="mt-3 space-y-2">
+                  {primeApplications.map((application) => (
+                    <div key={application.id} className="rounded-xl border border-slate-800 p-3 text-sm">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <p className="font-semibold">{application.full_name ?? application.user_name ?? application.user_id}</p>
+                          <p className="text-xs text-slate-400">Status: {application.status ?? 'unknown'}</p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-xs text-slate-400">{formatDate(application.created_at)}</p>
+                          {application.status === 'pending' && (
+                            <>
+                              <button
+                                className="rounded-full border border-emerald-400 px-3 py-1 text-xs text-emerald-200"
+                                onClick={() => updatePrimeApplication(application.id, 'approved')}
+                              >
+                                Approve
+                              </button>
+                              <button
+                                className="rounded-full border border-red-400 px-3 py-1 text-xs text-red-200"
+                                onClick={() => updatePrimeApplication(application.id, 'rejected')}
+                              >
+                                Reject
+                              </button>
+                            </>
                           )}
-                        </td>
-                        <td className="px-4 py-3 text-cyan-400">{user.email || '-'}</td>
-                        <td className="px-4 py-3 text-gray-400">{user.phone || '-'}</td>
-                        <td className="px-4 py-3 text-center">
-                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                            user.tier === 'premium' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-gray-500/20 text-gray-400'
-                          }`}>
-                            {user.tier || 'free'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-center text-cyan-400 font-bold">{user.target_band || '-'}</td>
-                        <td className="px-4 py-3 text-center text-gray-400 text-sm">
-                          {user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Content Tab */}
-      {activeSubTab === 'content' && content && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <StatCard icon="📖" label="Reading Sets" value={content.readingSets.length} color="blue" />
-            <StatCard icon="🧩" label="Reading Questions" value={content.readingQuestions.length} color="cyan" />
-            <StatCard icon="🎧" label="Listening Sets" value={content.listeningSets.length} color="purple" />
-            <StatCard icon="🎯" label="Listening Questions" value={content.listeningQuestions.length} color="teal" />
-            <StatCard icon="✍️" label="Writing Tasks" value={content.writingTasks.length} color="green" />
-            <StatCard icon="🎤" label="Speaking Tasks" value={content.speakingTasks.length} color="orange" />
-            <StatCard icon="🧪" label="Mock Tests" value={content.mockTests.length} color="yellow" />
-            <StatCard icon="🧾" label="Sessions" value={content.sessions.length} color="pink" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Reading Sets */}
-            <ContentCard
-              title="📖 Reading Sets"
-              items={content.readingSets}
-              columns={['Title', 'Level', 'Active']}
-              renderRow={(item: any) => (
-                <>
-                  <td className="px-3 py-2 text-white">{item.title}</td>
-                  <td className="px-3 py-2 text-gray-400 capitalize">{item.level}</td>
-                  <td className="px-3 py-2 text-center">
-                    {item.is_active ? '✅' : '❌'}
-                  </td>
-                </>
-              )}
-            />
-
-            {/* Reading Questions */}
-            <ContentCard
-              title="🧩 Reading Questions"
-              items={content.readingQuestions}
-              columns={['Set', 'Order', 'Type', 'Prompt']}
-              renderRow={(item: any) => (
-                <>
-                  <td className="px-3 py-2 text-white">#{item.set_id}</td>
-                  <td className="px-3 py-2 text-gray-400">{item.question_order}</td>
-                  <td className="px-3 py-2 text-gray-400 capitalize">{item.question_type}</td>
-                  <td className="px-3 py-2 text-gray-400 max-w-[200px] truncate">{item.body}</td>
-                </>
-              )}
-            />
-
-            {/* Listening Sets */}
-            <ContentCard
-              title="🎧 Listening Sets"
-              items={content.listeningSets}
-              columns={['Title', 'Level', 'Active']}
-              renderRow={(item: any) => (
-                <>
-                  <td className="px-3 py-2 text-white">{item.title}</td>
-                  <td className="px-3 py-2 text-gray-400 capitalize">{item.level}</td>
-                  <td className="px-3 py-2 text-center">
-                    {item.is_active ? '✅' : '❌'}
-                  </td>
-                </>
-              )}
-            />
-
-            {/* Listening Questions */}
-            <ContentCard
-              title="🎯 Listening Questions"
-              items={content.listeningQuestions}
-              columns={['Set', 'Order', 'Type', 'Prompt']}
-              renderRow={(item: any) => (
-                <>
-                  <td className="px-3 py-2 text-white">#{item.set_id}</td>
-                  <td className="px-3 py-2 text-gray-400">{item.question_order}</td>
-                  <td className="px-3 py-2 text-gray-400 capitalize">{item.question_type}</td>
-                  <td className="px-3 py-2 text-gray-400 max-w-[200px] truncate">{item.body}</td>
-                </>
-              )}
-            />
-
-            {/* Writing Tasks */}
-            <ContentCard
-              title="✍️ Writing Tasks"
-              items={content.writingTasks}
-              columns={['Title', 'Type', 'Active']}
-              renderRow={(item: any) => (
-                <>
-                  <td className="px-3 py-2 text-white">{item.title}</td>
-                  <td className="px-3 py-2 text-gray-400">{item.task_type}</td>
-                  <td className="px-3 py-2 text-center">
-                    {item.is_active ? '✅' : '❌'}
-                  </td>
-                </>
-              )}
-            />
-
-            {/* Speaking Tasks */}
-            <ContentCard
-              title="🎤 Speaking Tasks"
-              items={content.speakingTasks}
-              columns={['Part', 'Prompt', 'Active']}
-              renderRow={(item: any) => (
-                <>
-                  <td className="px-3 py-2 text-white">Part {item.part}</td>
-                  <td className="px-3 py-2 text-gray-400 max-w-[200px] truncate">{item.prompt}</td>
-                  <td className="px-3 py-2 text-center">
-                    {item.is_active ? '✅' : '❌'}
-                  </td>
-                </>
-              )}
-            />
-
-            {/* Mock Tests */}
-            <ContentCard
-              title="🧪 Mock Tests"
-              items={content.mockTests}
-              columns={['Title', 'Duration', 'Active', 'Created']}
-              renderRow={(item: any) => (
-                <>
-                  <td className="px-3 py-2 text-white">{item.title}</td>
-                  <td className="px-3 py-2 text-gray-400">{item.duration_minutes ? `${item.duration_minutes} min` : '-'}</td>
-                  <td className="px-3 py-2 text-center">
-                    {item.is_active ? '✅' : '❌'}
-                  </td>
-                  <td className="px-3 py-2 text-gray-400 text-sm">{formatDate(item.created_at)}</td>
-                </>
-              )}
-            />
-
-            {/* Sessions */}
-            <ContentCard
-              title="🧾 IELTS Sessions"
-              items={content.sessions}
-              columns={['Ref', 'Module', 'Target', 'Overall', 'Created', 'Completed']}
-              renderRow={(item: any) => (
-                <>
-                  <td className="px-3 py-2 text-white">{item.reference_code || item.id}</td>
-                  <td className="px-3 py-2 text-gray-400 capitalize">{item.module}</td>
-                  <td className="px-3 py-2 text-gray-400">{item.target_band || '-'}</td>
-                  <td className="px-3 py-2 text-gray-400">{item.band_overall || '-'}</td>
-                  <td className="px-3 py-2 text-gray-400 text-sm">{formatDate(item.created_at)}</td>
-                  <td className="px-3 py-2 text-gray-400 text-sm">
-                    {item.completed_at ? formatDate(item.completed_at) : '-'}
-                  </td>
-                </>
-              )}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Notifications Tab */}
-      {activeSubTab === 'notifications' && (
-        <div className="space-y-4">
-          <div className="bg-black/40 rounded-xl p-6 border border-gray-700">
-            <h3 className="text-xl font-bold text-white mb-4">📬 Pending Notifications</h3>
-            <p className="text-gray-400 mb-4">
-              Users who have requested email/SMS notifications for their results.
-            </p>
-            
-            {notifications.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                No notification requests yet
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-gray-800/50">
-                      <th className="px-4 py-3 text-left text-gray-400">Type</th>
-                      <th className="px-4 py-3 text-left text-gray-400">Attempt ID</th>
-                      <th className="px-4 py-3 text-left text-gray-400">Alt Email</th>
-                      <th className="px-4 py-3 text-left text-gray-400">Phone</th>
-                      <th className="px-4 py-3 text-center text-gray-400">Email</th>
-                      <th className="px-4 py-3 text-center text-gray-400">SMS</th>
-                      <th className="px-4 py-3 text-center text-gray-400">In-App</th>
-                      {notificationColumns.emailSent && (
-                        <th className="px-4 py-3 text-center text-gray-400">Email Sent</th>
-                      )}
-                      {notificationColumns.smsSent && (
-                        <th className="px-4 py-3 text-center text-gray-400">SMS Sent</th>
-                      )}
-                      {notificationColumns.inAppShown && (
-                        <th className="px-4 py-3 text-center text-gray-400">In-App Shown</th>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {notifications.map((n, idx) => (
-                      <tr key={n.id || idx} className="border-t border-gray-700/50">
-                        <td className="px-4 py-3">
-                          <span className="px-2 py-1 bg-cyan-900/30 text-cyan-400 rounded text-xs font-semibold">
-                            {n.attempt_type}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-white">{n.attempt_id}</td>
-                        <td className="px-4 py-3 text-gray-400">{n.alternate_email || '-'}</td>
-                        <td className="px-4 py-3 text-gray-400">{n.phone_number || '-'}</td>
-                        <td className="px-4 py-3 text-center">{n.notify_by_email ? '✅' : '❌'}</td>
-                        <td className="px-4 py-3 text-center">{n.notify_by_sms ? '✅' : '❌'}</td>
-                        <td className="px-4 py-3 text-center">{n.show_in_app ? '✅' : '❌'}</td>
-                        {notificationColumns.emailSent && (
-                          <td className="px-4 py-3 text-center">
-                            {n.email_sent_at ? (
-                              <span className="text-green-400">✓ {formatDate(n.email_sent_at)}</span>
-                            ) : n.notify_by_email ? (
-                              <button
-                                onClick={() => handleNotificationUpdate(n, 'email_sent_at', 'Email')}
-                                className="px-2 py-1 bg-cyan-600/40 hover:bg-cyan-600/70 text-white text-xs rounded transition-colors"
-                              >
-                                Mark Sent
-                              </button>
-                            ) : (
-                              <span className="text-gray-600">-</span>
-                            )}
-                          </td>
-                        )}
-                        {notificationColumns.smsSent && (
-                          <td className="px-4 py-3 text-center">
-                            {n.sms_sent_at ? (
-                              <span className="text-green-400">✓ {formatDate(n.sms_sent_at)}</span>
-                            ) : n.notify_by_sms ? (
-                              <button
-                                onClick={() => handleNotificationUpdate(n, 'sms_sent_at', 'SMS')}
-                                className="px-2 py-1 bg-purple-600/40 hover:bg-purple-600/70 text-white text-xs rounded transition-colors"
-                              >
-                                Mark Sent
-                              </button>
-                            ) : (
-                              <span className="text-gray-600">-</span>
-                            )}
-                          </td>
-                        )}
-                        {notificationColumns.inAppShown && (
-                          <td className="px-4 py-3 text-center">
-                            {n.in_app_shown_at ? (
-                              <span className="text-green-400">✓ {formatDate(n.in_app_shown_at)}</span>
-                            ) : n.show_in_app ? (
-                              <button
-                                onClick={() => handleNotificationUpdate(n, 'in_app_shown_at', 'In-app')}
-                                className="px-2 py-1 bg-emerald-600/40 hover:bg-emerald-600/70 text-white text-xs rounded transition-colors"
-                              >
-                                Mark Shown
-                              </button>
-                            ) : (
-                              <span className="text-gray-600">-</span>
-                            )}
-                          </td>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+            </section>
+          )}
 
-          {/* SMS Integration Notice */}
-          <div className="bg-yellow-900/20 rounded-xl p-6 border border-yellow-500/30">
-            <h4 className="text-lg font-bold text-yellow-400 mb-2">📱 SMS Integration Required</h4>
-            <p className="text-gray-300">
-              To send SMS notifications, you need to integrate with an SMS provider like Twilio.
-              Create a Supabase Edge Function to handle sending SMS messages when results are ready.
-            </p>
-          </div>
-        </div>
-      )}
+          {activeSection === 'notifications' && (
+            <section className="space-y-4">
+              <header>
+                <h2 className="text-2xl font-semibold">Notification operations</h2>
+                <p className="text-sm text-slate-400">Track delivery and mark messages as sent.</p>
+              </header>
+              <div className="rounded-2xl bg-slate-900 p-4">
+                <div className="space-y-3">
+                  {notificationPrefs.map((pref) => (
+                    <div key={pref.id} className="rounded-xl border border-slate-800 p-3 text-sm">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <p className="font-semibold">User {pref.user_id}</p>
+                          <p className="text-xs text-slate-400">Created {formatDate(pref.created_at)}</p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {pref.notify_by_email && !pref.email_sent_at && (
+                            <button
+                              className="rounded-full border border-cyan-500 px-3 py-1 text-xs text-cyan-200"
+                              onClick={() => markNotificationSent(pref, 'email')}
+                            >
+                              Mark email sent
+                            </button>
+                          )}
+                          {pref.notify_by_sms && !pref.sms_sent_at && (
+                            <button
+                              className="rounded-full border border-purple-500 px-3 py-1 text-xs text-purple-200"
+                              onClick={() => markNotificationSent(pref, 'sms')}
+                            >
+                              Mark SMS sent
+                            </button>
+                          )}
+                          {pref.show_in_app && !pref.in_app_shown_at && (
+                            <button
+                              className="rounded-full border border-emerald-500 px-3 py-1 text-xs text-emerald-200"
+                              onClick={() => markNotificationSent(pref, 'in_app')}
+                            >
+                              Mark in-app sent
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {activeSection === 'violations' && (
+            <section className="space-y-4">
+              <header>
+                <h2 className="text-2xl font-semibold">Violations</h2>
+                <p className="text-sm text-slate-400">Detailed per-user violation log and global feed.</p>
+              </header>
+              <div className="rounded-2xl bg-slate-900 p-4">
+                <div className="space-y-2 text-sm">
+                  {violationLogs.map((violation) => (
+                    <div key={violation.id} className="rounded-xl border border-slate-800 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-semibold">{violation.user_id}</span>
+                        <span className="text-slate-400">{violation.module ?? 'IELTS'}</span>
+                        <span className="text-slate-400">{violation.reason ?? violation.code ?? violation.type}</span>
+                        <span className="text-slate-500">{formatDate(violation.occurred_at)}</span>
+                      </div>
+                      {violation.metadata && (
+                        <pre className="mt-2 max-h-24 overflow-auto rounded-lg bg-slate-950 p-2 text-xs text-slate-300">
+                          {JSON.stringify(violation.metadata, null, 2)}
+                        </pre>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
 
       {/* Violations Tab */}
       {activeSubTab === 'violations' && (
@@ -1095,281 +978,493 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
                     <p className="text-sm text-gray-500">Answer Review - {selectedAttempt.skill?.toUpperCase()}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <h2 className="text-lg font-semibold text-blue-800">{selectedAttempt.content_title || selectedAttempt.skill}</h2>
-                  <p className="text-sm text-gray-500">{formatDate(selectedAttempt.attempt_date)}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Student Banner */}
-            <div className="bg-gradient-to-r from-blue-700 to-purple-800 text-white p-5 flex justify-between items-center">
-              <div>
-                <h2 className="text-xl font-bold text-white">{selectedAttempt.user_name || 'Student'}</h2>
-                <p className="text-sm opacity-80">Skill: {selectedAttempt.skill} | Band: {selectedAttempt.est_band || 'N/A'}</p>
-              </div>
-              <div className="text-right">
-                <div className="text-3xl font-bold text-white">{selectedAttempt.raw_score}/{selectedAttempt.total_questions}</div>
-                <div className="text-sm opacity-80">{selectedAttempt.percent}% Score</div>
-              </div>
-            </div>
-
-            <div className="p-6 space-y-6">
-              {/* Summary Stats */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="bg-green-100 p-4 rounded-xl text-center">
-                  <div className="text-3xl">✓</div>
-                  <div className="text-3xl font-bold text-green-700">{selectedAttempt.raw_score || 0}</div>
-                  <div className="text-sm text-gray-600">Correct</div>
-                </div>
-                <div className="bg-red-100 p-4 rounded-xl text-center">
-                  <div className="text-3xl">✗</div>
-                  <div className="text-3xl font-bold text-red-700">{(selectedAttempt.total_questions || 0) - (selectedAttempt.raw_score || 0)}</div>
-                  <div className="text-sm text-gray-600">Wrong</div>
-                </div>
-                <div className="bg-amber-100 p-4 rounded-xl text-center">
-                  <div className="text-3xl">⏱️</div>
-                  <div className="text-3xl font-bold text-amber-700">{formatTime(selectedAttempt.time_spent_seconds)}</div>
-                  <div className="text-sm text-gray-600">Time Taken</div>
-                </div>
-              </div>
-
-              {/* Band Score Display */}
-              <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-400 rounded-xl p-6 text-center">
-                <p className="text-sm text-amber-800 mb-1">Estimated IELTS Band Score</p>
-                <div className="text-5xl font-bold text-amber-600">{selectedAttempt.est_band || 'N/A'}</div>
-                <p className="text-xs text-gray-500 mt-2">Based on {selectedAttempt.percent}% accuracy</p>
-              </div>
-
-              {/* Performance Note */}
-              <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
-                <p className="text-sm text-gray-700">
-                  <strong className="text-blue-800">Note:</strong> Detailed question-by-question answers are available in the student's practice session. 
-                  This summary shows overall performance metrics for {selectedAttempt.skill} practice.
-                </p>
-              </div>
-
-              {/* Skill Tips */}
-              <div className="bg-gray-50 rounded-xl p-5">
-                <h4 className="font-semibold text-gray-800 mb-3">📚 Tips for {selectedAttempt.skill?.charAt(0).toUpperCase() + selectedAttempt.skill?.slice(1)}</h4>
-                <ul className="text-sm text-gray-700 space-y-2">
-                  {selectedAttempt.skill === 'listening' && (
-                    <>
-                      <li>• Practice with different English accents (British, Australian, American)</li>
-                      <li>• Read questions before listening to predict answers</li>
-                      <li>• Pay attention to signal words and transitions</li>
-                    </>
-                  )}
-                  {selectedAttempt.skill === 'reading' && (
-                    <>
-                      <li>• Skim the passage first to understand the main idea</li>
-                      <li>• Practice identifying keywords in questions</li>
-                      <li>• Manage your time - 20 minutes per passage</li>
-                    </>
-                  )}
-                  {selectedAttempt.skill === 'writing' && (
-                    <>
-                      <li>• Plan your essay structure before writing</li>
-                      <li>• Use a variety of sentence structures</li>
-                      <li>• Leave time to review and edit</li>
-                    </>
-                  )}
-                  {selectedAttempt.skill === 'speaking' && (
-                    <>
-                      <li>• Practice speaking English daily</li>
-                      <li>• Record yourself and listen back</li>
-                      <li>• Expand your vocabulary on common topics</li>
-                    </>
-                  )}
-                </ul>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="p-4 border-t flex justify-between items-center text-xs text-gray-400">
-              <span>Brains Heist IELTS Preparation</span>
-              <div className="flex gap-3">
-                <button onClick={() => window.print()} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700">🖨️ Print</button>
-                <button onClick={() => setShowAnswerModal(false)} className="px-4 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700">Close</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* IELTS Report Modal */}
-      {showReportModal && selectedAttempt && (
-        <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/90 p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-4xl w-full my-8 print-content" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
-            {/* Report Header */}
-            <div className="p-6 border-b-4 border-purple-600">
-              <div className="flex justify-between items-start">
-                <div className="flex items-center gap-3">
-                  <img src="/logo.png" alt="Brains Heist" style={{ width: '48px', height: '48px' }} />
-                  <div>
-                    <h1 className="text-2xl font-bold text-purple-800">Brains Heist - IELTS</h1>
-                    <p className="text-sm text-gray-500">Performance Report</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <h2 className="text-lg font-semibold text-purple-800">{selectedAttempt.skill?.toUpperCase()} Practice</h2>
-                  <p className="text-sm text-gray-500">Generated: {new Date().toLocaleDateString()}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Student Banner */}
-            <div className="bg-gradient-to-r from-purple-800 to-indigo-900 text-white p-6 flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-bold text-white">{selectedAttempt.user_name || 'Student'}</h2>
-                <p className="opacity-80">Skill: {selectedAttempt.skill?.toUpperCase()} | Completed: {formatDate(selectedAttempt.attempt_date)} | Time: {formatTime(selectedAttempt.time_spent_seconds)}</p>
-              </div>
-              <div className="w-20 h-20 rounded-full bg-white flex flex-col items-center justify-center">
-                <span className="text-3xl font-bold text-purple-800">{selectedAttempt.est_band || 'N/A'}</span>
-                <span className="text-xs text-gray-600">Band</span>
-              </div>
-            </div>
-
-            <div className="p-6 space-y-6">
-              {/* Score Breakdown */}
-              <div>
-                <h3 className="text-lg font-semibold text-purple-800 border-b-2 border-gray-200 pb-2 mb-4">📊 Score Analysis</h3>
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="bg-blue-50 rounded-xl p-4 text-center">
-                    <div className="text-4xl font-bold text-blue-700">{selectedAttempt.raw_score}/{selectedAttempt.total_questions}</div>
-                    <p className="text-sm text-gray-600">Raw Score</p>
-                  </div>
-                  <div className="bg-green-50 rounded-xl p-4 text-center">
-                    <div className="text-4xl font-bold text-green-700">{selectedAttempt.percent}%</div>
-                    <p className="text-sm text-gray-600">Accuracy</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Band Progression */}
-              <div>
-                <h3 className="text-lg font-semibold text-purple-800 border-b-2 border-gray-200 pb-2 mb-4">📈 Band Score Progress</h3>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-600 w-16">Current:</span>
-                  <div className="flex-1 h-6 bg-gray-200 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full rounded-full transition-all ${
-                        (selectedAttempt.est_band || 0) >= 7 ? 'bg-green-500' : 
-                        (selectedAttempt.est_band || 0) >= 6 ? 'bg-blue-500' : 
-                        (selectedAttempt.est_band || 0) >= 5 ? 'bg-yellow-500' : 'bg-red-500'
-                      }`}
-                      style={{ width: `${((selectedAttempt.est_band || 0) / 9) * 100}%` }}
-                    />
-                  </div>
-                  <span className="font-bold text-lg text-purple-700">{selectedAttempt.est_band || 'N/A'}</span>
-                </div>
-              </div>
-
-              {/* Recommendations */}
-              <div className="border-2 border-purple-600 rounded-xl p-5">
-                <h3 className="text-lg font-semibold text-purple-800 mb-4">📋 Personalized Recommendations</h3>
-                {(selectedAttempt.percent || 0) >= 80 ? (
-                  <div className="flex gap-4 p-4 bg-green-50 rounded-lg">
-                    <div className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">✓</div>
-                    <div>
-                      <h4 className="font-semibold text-gray-800">Excellent Performance!</h4>
-                      <p className="text-sm text-gray-600">Continue practicing with more challenging materials. Focus on time management and accuracy.</p>
+                <div className="space-y-2 text-sm">
+                  {filteredAuditLog.map((entry) => (
+                    <div key={entry.id} className="rounded-xl border border-slate-800 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-semibold">{entry.admin_name ?? entry.admin_id ?? 'Admin'}</span>
+                        <span className="text-slate-400">{entry.action ?? entry.event_type ?? 'Action'}</span>
+                        <span className="text-slate-400">User: {entry.user_id ?? '—'}</span>
+                        <span className="text-slate-500">{formatDate(entry.created_at)}</span>
+                      </div>
+                      {entry.details && (
+                        <pre className="mt-2 max-h-24 overflow-auto rounded-lg bg-slate-950 p-2 text-xs text-slate-300">
+                          {JSON.stringify(entry.details, null, 2)}
+                        </pre>
+                      )}
                     </div>
-                  </div>
-                ) : (selectedAttempt.percent || 0) >= 60 ? (
-                  <div className="flex gap-4 p-4 bg-yellow-50 rounded-lg">
-                    <div className="w-8 h-8 bg-yellow-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">📈</div>
-                    <div>
-                      <h4 className="font-semibold text-gray-800">Good Progress - Room for Improvement</h4>
-                      <p className="text-sm text-gray-600">Practice more {selectedAttempt.skill} exercises. Review the questions you missed and understand the patterns.</p>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+        </main>
+      </div>
+
+      {selectedUser && (
+        <aside className="fixed inset-0 z-40 flex items-end justify-end bg-slate-950/70 backdrop-blur">
+          <div className="h-full w-full max-w-4xl overflow-y-auto bg-slate-900 p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase text-slate-400">User Case File</p>
+                <h2 className="text-2xl font-semibold">{selectedUser.full_name ?? selectedUser.username ?? selectedUser.id}</h2>
+                <p className="text-sm text-slate-400">{selectedUser.email ?? 'No email on file'}</p>
+              </div>
+              <button
+                className="rounded-full border border-slate-700 px-4 py-2 text-sm text-slate-200"
+                onClick={() => {
+                  setSelectedUser(null);
+                  setUserCaseData(null);
+                }}
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {USER_CASE_TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                    userCaseTab === tab.id ? 'bg-cyan-500 text-slate-900' : 'bg-slate-800 text-slate-200'
+                  }`}
+                  onClick={() => setUserCaseTab(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {isCaseLoading && (
+              <div className="mt-6 text-sm text-slate-400">Loading case file...</div>
+            )}
+
+            {!isCaseLoading && userCaseData && (
+              <div className="mt-6 space-y-6">
+                {userCaseTab === 'summary' && (
+                  <section className="space-y-4">
+                    <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
+                      <h3 className="text-lg font-semibold">Identity</h3>
+                      <dl className="mt-3 grid gap-2 text-sm">
+                        <div className="flex justify-between"><dt className="text-slate-400">User ID</dt><dd>{selectedUser.id}</dd></div>
+                        <div className="flex justify-between"><dt className="text-slate-400">Username</dt><dd>{selectedUser.username ?? '—'}</dd></div>
+                        <div className="flex justify-between"><dt className="text-slate-400">Membership</dt><dd>{userMembership?.plan ?? 'None'}</dd></div>
+                        <div className="flex justify-between"><dt className="text-slate-400">Expires</dt><dd>{formatDate(userMembership?.expires_at)}</dd></div>
+                        <div className="flex justify-between"><dt className="text-slate-400">Last activity</dt><dd>{formatDate(caseTimeline[0]?.date)}</dd></div>
+                      </dl>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex gap-4 p-4 bg-red-50 rounded-lg">
-                    <div className="w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">💪</div>
-                    <div>
-                      <h4 className="font-semibold text-gray-800">Focus on Fundamentals</h4>
-                      <p className="text-sm text-gray-600">Consider more practice with basic {selectedAttempt.skill} exercises. Review strategies and techniques for this skill.</p>
+                    <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
+                      <h3 className="text-lg font-semibold">Reset progress</h3>
+                      <div className="mt-3 grid gap-2 text-sm md:grid-cols-2">
+                        {Object.keys(resetScope).map((key) => (
+                          <label key={key} className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={(resetScope as any)[key]}
+                              onChange={(event) =>
+                                setResetScope((prev) => ({ ...prev, [key]: event.target.checked }))
+                              }
+                            />
+                            <span className="capitalize">{key}</span>
+                          </label>
+                        ))}
+                      </div>
+                      <button
+                        className="mt-4 rounded-full bg-red-500 px-4 py-2 text-sm font-semibold text-white"
+                        onClick={resetUserProgress}
+                      >
+                        Confirm reset
+                      </button>
                     </div>
-                  </div>
+                  </section>
+                )}
+
+                {userCaseTab === 'timeline' && (
+                  <section className="space-y-3">
+                    {caseTimeline.map((event, index) => (
+                      <div key={`${event.type}-${index}`} className="rounded-xl border border-slate-800 bg-slate-950 p-3 text-sm">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold">{event.type}</span>
+                          <span className="text-slate-400">{formatDate(event.date)}</span>
+                        </div>
+                        <p className="mt-2 text-slate-300">{event.detail}</p>
+                      </div>
+                    ))}
+                  </section>
+                )}
+
+                {userCaseTab === 'progress' && (
+                  <section className="space-y-4">
+                    <h3 className="text-lg font-semibold">Progress analytics</h3>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {progressSummary?.map((summary) => (
+                        <div key={summary.label} className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
+                          <p className="text-sm uppercase text-slate-400">{summary.label}</p>
+                          <p className="text-2xl font-semibold">Avg Band {formatBand(summary.average)}</p>
+                          <p className="text-xs text-slate-400">Consistency {summary.consistency ? `${summary.consistency.toFixed(0)}%` : '—'}</p>
+                          <p className="text-xs text-slate-400">Avg time {formatDuration(summary.averageTime)}</p>
+                          <p className="text-xs text-slate-500">Attempts {summary.count}</p>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {summary.lastFive.map((attempt: any) => (
+                              <span key={attempt.id} className="rounded-full bg-slate-800 px-3 py-1 text-xs">
+                                {formatBand(attempt.band_overall)} • {formatDate(attempt.submitted_at)}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {userCaseTab === 'writing' && (
+                  <section className="space-y-3">
+                    {userCaseData.writing.map((attempt) => (
+                      <div key={attempt.id} className="rounded-xl border border-slate-800 bg-slate-950 p-3 text-sm">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold">Attempt #{attempt.id}</span>
+                          <button
+                            className="rounded-full border border-cyan-400 px-3 py-1 text-xs"
+                            onClick={() => openGradeModal('writing', attempt)}
+                          >
+                            Grade
+                          </button>
+                        </div>
+                        <p className="mt-2 text-slate-400">Submitted {formatDate(attempt.submitted_at)}</p>
+                      </div>
+                    ))}
+                  </section>
+                )}
+
+                {userCaseTab === 'speaking' && (
+                  <section className="space-y-3">
+                    {userCaseData.speaking.map((attempt) => (
+                      <div key={attempt.id} className="rounded-xl border border-slate-800 bg-slate-950 p-3 text-sm">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold">Attempt #{attempt.id}</span>
+                          <button
+                            className="rounded-full border border-cyan-400 px-3 py-1 text-xs"
+                            onClick={() => openGradeModal('speaking', attempt)}
+                          >
+                            Review
+                          </button>
+                        </div>
+                        {attempt.audio_url && (
+                          <audio className="mt-2 w-full" controls src={attempt.audio_url.startsWith('http') ? attempt.audio_url : `/storage/v1/object/public/ielts-recordings/${attempt.audio_url}`} />
+                        )}
+                        <p className="mt-2 text-slate-400">Submitted {formatDate(attempt.submitted_at)}</p>
+                      </div>
+                    ))}
+                  </section>
+                )}
+
+                {userCaseTab === 'prime' && (
+                  <section className="space-y-4">
+                    <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
+                      <h3 className="text-lg font-semibold">Membership actions</h3>
+                      <div className="mt-3 grid gap-3 md:grid-cols-3">
+                        <label className="text-sm">
+                          Plan
+                          <select
+                            className="mt-1 w-full rounded-lg bg-slate-800 p-2"
+                            value={membershipAction.plan}
+                            onChange={(event) => setMembershipAction((prev) => ({ ...prev, plan: event.target.value }))}
+                          >
+                            <option value="monthly">Monthly</option>
+                            <option value="quarterly">Quarterly</option>
+                            <option value="annually">Annually</option>
+                          </select>
+                        </label>
+                        <label className="text-sm">
+                          Months
+                          <input
+                            type="number"
+                            className="mt-1 w-full rounded-lg bg-slate-800 p-2"
+                            value={membershipAction.months}
+                            onChange={(event) => setMembershipAction((prev) => ({ ...prev, months: Number(event.target.value) }))}
+                          />
+                        </label>
+                        <label className="text-sm">
+                          Revoke reason
+                          <input
+                            className="mt-1 w-full rounded-lg bg-slate-800 p-2"
+                            value={membershipAction.reason}
+                            onChange={(event) => setMembershipAction((prev) => ({ ...prev, reason: event.target.value }))}
+                          />
+                        </label>
+                      </div>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <button className="rounded-full bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-900" onClick={() => updateMembership('grant')}>
+                          Grant
+                        </button>
+                        <button className="rounded-full bg-slate-700 px-4 py-2 text-sm" onClick={() => updateMembership('extend')}>
+                          Extend
+                        </button>
+                        <button className="rounded-full bg-red-500 px-4 py-2 text-sm" onClick={() => updateMembership('revoke')}>
+                          Revoke
+                        </button>
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
+                      <h3 className="text-lg font-semibold">Prime applications</h3>
+                      <div className="mt-3 space-y-2 text-sm">
+                        {userCaseData.primeApplications.map((application) => (
+                          <div key={application.id} className="rounded-xl border border-slate-800 p-3">
+                            <div className="flex flex-wrap items-center justify-between">
+                              <span>{application.status ?? 'unknown'}</span>
+                              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                                <span>{formatDate(application.created_at)}</span>
+                                {application.status === 'pending' && (
+                                  <>
+                                    <button
+                                      className="rounded-full border border-emerald-400 px-3 py-1 text-xs text-emerald-200"
+                                      onClick={() => updatePrimeApplication(application.id, 'approved')}
+                                    >
+                                      Approve
+                                    </button>
+                                    <button
+                                      className="rounded-full border border-red-400 px-3 py-1 text-xs text-red-200"
+                                      onClick={() => updatePrimeApplication(application.id, 'rejected')}
+                                    >
+                                      Reject
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            <p className="text-xs text-slate-400">{application.notes ?? application.reason ?? '—'}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
+                      <h3 className="text-lg font-semibold">Membership history</h3>
+                      <div className="mt-3 space-y-2 text-sm">
+                        {userCaseData.memberships.map((membership) => (
+                          <div key={membership.id} className="rounded-xl border border-slate-800 p-3">
+                            <div className="flex flex-wrap items-center justify-between">
+                              <span>{membership.plan ?? 'Plan'}</span>
+                              <span className="text-slate-400">Expires {formatDate(membership.expires_at)}</span>
+                            </div>
+                            <p className="text-xs text-slate-500">{formatDate(membership.created_at)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </section>
+                )}
+
+                {userCaseTab === 'notes' && (
+                  <section className="space-y-4">
+                    <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
+                      <h3 className="text-lg font-semibold">Tags</h3>
+                      <p className="text-xs text-slate-400">Comma-separated tags</p>
+                      <input
+                        className="mt-2 w-full rounded-lg bg-slate-800 p-2 text-sm"
+                        value={tagDraft}
+                        onChange={(event) => setTagDraft(event.target.value)}
+                        placeholder={(userCaseData.tags ?? []).join(', ')}
+                      />
+                      <button className="mt-3 rounded-full bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-900" onClick={setUserTags}>
+                        Save tags
+                      </button>
+                    </div>
+                    <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
+                      <h3 className="text-lg font-semibold">Admin notes</h3>
+                      <textarea
+                        className="mt-2 w-full rounded-lg bg-slate-800 p-2 text-sm"
+                        rows={3}
+                        value={noteDraft}
+                        onChange={(event) => setNoteDraft(event.target.value)}
+                      />
+                      <button className="mt-3 rounded-full bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-900" onClick={addNote}>
+                        Add note
+                      </button>
+                      <div className="mt-4 space-y-2 text-sm">
+                        {userCaseData.notes.map((note) => (
+                          <div key={note.id} className="rounded-xl border border-slate-800 p-3">
+                            <div className="flex items-center justify-between">
+                              <span>{note.note}</span>
+                              <button className="text-xs text-red-400" onClick={() => deleteNote(note.id)}>Delete</button>
+                            </div>
+                            <p className="mt-2 text-xs text-slate-500">{formatDate(note.created_at)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </section>
+                )}
+
+                {userCaseTab === 'violations' && (
+                  <section className="space-y-2">
+                    {userCaseData.violations.map((violation) => (
+                      <div key={violation.id} className="rounded-xl border border-slate-800 bg-slate-950 p-3 text-sm">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold">{violation.reason ?? violation.code ?? violation.type}</span>
+                          <span className="text-xs text-slate-400">{formatDate(violation.occurred_at)}</span>
+                        </div>
+                        {violation.metadata && (
+                          <pre className="mt-2 max-h-28 overflow-auto rounded-lg bg-slate-900 p-2 text-xs text-slate-300">
+                            {JSON.stringify(violation.metadata, null, 2)}
+                          </pre>
+                        )}
+                      </div>
+                    ))}
+                  </section>
+                )}
+
+                {userCaseTab === 'notifications' && (
+                  <section className="space-y-2">
+                    {userCaseData.notifications.map((pref) => (
+                      <div key={pref.id} className="rounded-xl border border-slate-800 bg-slate-950 p-3 text-sm">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div>
+                            <p className="font-semibold">Preference #{pref.id}</p>
+                            <p className="text-xs text-slate-400">Created {formatDate(pref.created_at)}</p>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {pref.notify_by_email && !pref.email_sent_at && (
+                              <button className="rounded-full border border-cyan-400 px-3 py-1 text-xs" onClick={() => markNotificationSent(pref, 'email')}>
+                                Mark email sent
+                              </button>
+                            )}
+                            {pref.notify_by_sms && !pref.sms_sent_at && (
+                              <button className="rounded-full border border-purple-400 px-3 py-1 text-xs" onClick={() => markNotificationSent(pref, 'sms')}>
+                                Mark SMS sent
+                              </button>
+                            )}
+                            {pref.show_in_app && !pref.in_app_shown_at && (
+                              <button className="rounded-full border border-emerald-400 px-3 py-1 text-xs" onClick={() => markNotificationSent(pref, 'in_app')}>
+                                Mark in-app sent
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </section>
+                )}
+
+                {userCaseTab === 'audit' && (
+                  <section className="space-y-2">
+                    {userCaseData.audit.map((entry) => (
+                      <div key={entry.id} className="rounded-xl border border-slate-800 bg-slate-950 p-3 text-sm">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold">{entry.action ?? entry.event_type}</span>
+                          <span className="text-xs text-slate-400">{formatDate(entry.created_at)}</span>
+                        </div>
+                        {entry.details && (
+                          <pre className="mt-2 max-h-28 overflow-auto rounded-lg bg-slate-900 p-2 text-xs text-slate-300">
+                            {JSON.stringify(entry.details, null, 2)}
+                          </pre>
+                        )}
+                      </div>
+                    ))}
+                  </section>
                 )}
               </div>
+            )}
+          </div>
+        </aside>
+      )}
 
-              {/* Encouragement */}
-              <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-xl text-center">
-                <h3 className="text-xl font-bold mb-2">Keep Practicing! 🚀</h3>
-                <p className="opacity-90">Every practice session brings you closer to your target band score. Stay consistent!</p>
-              </div>
+      {gradeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4">
+          <div className="w-full max-w-2xl rounded-2xl bg-slate-900 p-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">{gradeModal.type === 'writing' ? 'Grade writing' : 'Grade speaking'} attempt</h3>
+              <button className="text-slate-400" onClick={() => setGradeModal(null)}>Close</button>
             </div>
-
-            {/* Footer */}
-            <div className="p-4 border-t flex justify-between items-center text-xs text-gray-400">
-              <span>Brains Heist IELTS Preparation</span>
-              <span>Report ID: {selectedAttempt.id?.toString().substring(0, 8) || 'N/A'}</span>
-              <div className="flex gap-3">
-                <button onClick={() => window.print()} className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">🖨️ Print</button>
-                <button onClick={() => setShowReportModal(false)} className="px-4 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700">Close</button>
-              </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <label className="text-sm">Overall band
+                <input
+                  className="mt-1 w-full rounded-lg bg-slate-800 p-2"
+                  value={gradeForm.bandOverall}
+                  onChange={(event) => setGradeForm((prev) => ({ ...prev, bandOverall: event.target.value }))}
+                />
+              </label>
+              {gradeModal.type === 'speaking' && (
+                <>
+                  <label className="text-sm">Fluency
+                    <input
+                      className="mt-1 w-full rounded-lg bg-slate-800 p-2"
+                      value={gradeForm.fluency}
+                      onChange={(event) => setGradeForm((prev) => ({ ...prev, fluency: event.target.value }))}
+                    />
+                  </label>
+                  <label className="text-sm">Pronunciation
+                    <input
+                      className="mt-1 w-full rounded-lg bg-slate-800 p-2"
+                      value={gradeForm.pronunciation}
+                      onChange={(event) => setGradeForm((prev) => ({ ...prev, pronunciation: event.target.value }))}
+                    />
+                  </label>
+                  <label className="text-sm">Lexical
+                    <input
+                      className="mt-1 w-full rounded-lg bg-slate-800 p-2"
+                      value={gradeForm.lexical}
+                      onChange={(event) => setGradeForm((prev) => ({ ...prev, lexical: event.target.value }))}
+                    />
+                  </label>
+                  <label className="text-sm">Grammar
+                    <input
+                      className="mt-1 w-full rounded-lg bg-slate-800 p-2"
+                      value={gradeForm.grammar}
+                      onChange={(event) => setGradeForm((prev) => ({ ...prev, grammar: event.target.value }))}
+                    />
+                  </label>
+                </>
+              )}
+              {gradeModal.type === 'writing' && (
+                <label className="text-sm md:col-span-2">Criteria JSON
+                  <textarea
+                    className="mt-1 w-full rounded-lg bg-slate-800 p-2"
+                    rows={4}
+                    value={gradeForm.criteria}
+                    onChange={(event) => setGradeForm((prev) => ({ ...prev, criteria: event.target.value }))}
+                  />
+                </label>
+              )}
+              <label className="text-sm md:col-span-2">Feedback
+                <textarea
+                  className="mt-1 w-full rounded-lg bg-slate-800 p-2"
+                  rows={4}
+                  value={gradeForm.feedback}
+                  onChange={(event) => setGradeForm((prev) => ({ ...prev, feedback: event.target.value }))}
+                />
+              </label>
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <button className="rounded-full bg-slate-700 px-4 py-2 text-sm" onClick={() => setGradeModal(null)}>
+                Cancel
+              </button>
+              <button
+                className="rounded-full bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-900"
+                onClick={gradeModal.type === 'writing' ? submitWritingGrade : submitSpeakingGrade}
+              >
+                Save
+              </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {toasts.length > 0 && (
+        <div className="fixed right-6 top-6 z-50 space-y-2">
+          {toasts.map((toast) => (
+            <div key={toast.id} className={`rounded-xl px-4 py-3 text-sm shadow ${
+              toast.type === 'success' ? 'bg-emerald-500/90' : toast.type === 'error' ? 'bg-red-500/90' : 'bg-slate-700/90'
+            }`}>
+              <div className="flex items-center justify-between gap-2">
+                <span>{toast.message}</span>
+                <button className="text-xs text-white" onClick={() => dismissToast(toast.id)}>✕</button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
   );
 };
-
-// Helper Components
-const StatCard: React.FC<{ icon: string; label: string; value: number | string; color: string }> = ({ icon, label, value, color }) => {
-  const colorClasses: Record<string, string> = {
-    cyan: 'from-cyan-600/20 to-cyan-900/20 border-cyan-400 text-cyan-300',
-    yellow: 'from-yellow-600/20 to-yellow-900/20 border-yellow-400 text-yellow-300',
-    blue: 'from-blue-600/20 to-blue-900/20 border-blue-400 text-blue-300',
-    purple: 'from-purple-600/20 to-purple-900/20 border-purple-400 text-purple-300',
-    green: 'from-green-600/20 to-green-900/20 border-green-400 text-green-300',
-    orange: 'from-orange-600/20 to-orange-900/20 border-orange-400 text-orange-300',
-    pink: 'from-pink-600/20 to-pink-900/20 border-pink-400 text-pink-300',
-    teal: 'from-teal-600/20 to-teal-900/20 border-teal-400 text-teal-300',
-  };
-
-  return (
-    <div className={`bg-gradient-to-br ${colorClasses[color]} border-2 rounded-xl p-4`}>
-      <div className="text-3xl mb-2">{icon}</div>
-      <div className={`text-2xl font-bold ${colorClasses[color].split(' ').pop()}`}>{value}</div>
-      <div className="text-gray-400 text-sm">{label}</div>
-    </div>
-  );
-};
-
-const ContentCard: React.FC<{
-  title: string;
-  items: any[];
-  columns: string[];
-  renderRow: (item: any) => React.ReactNode;
-}> = ({ title, items, columns, renderRow }) => (
-  <div className="bg-black/40 rounded-xl border border-gray-700 overflow-hidden">
-    <div className="bg-gray-800/50 px-4 py-3 border-b border-gray-700">
-      <h4 className="text-lg font-bold text-white">{title}</h4>
-      <span className="text-gray-400 text-sm">{items.length} items</span>
-    </div>
-    <div className="overflow-x-auto max-h-[300px]">
-      <table className="w-full">
-        <thead className="bg-gray-800">
-          <tr>
-            {columns.map(col => (
-              <th key={col} className="px-3 py-2 text-left text-gray-400 text-sm">{col}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((item, idx) => (
-            <tr key={item.id || idx} className="border-t border-gray-700/50 hover:bg-gray-800/30">
-              {renderRow(item)}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  </div>
-);
 
 export default IeltsAdminDashboard;
