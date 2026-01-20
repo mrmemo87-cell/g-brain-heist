@@ -22,6 +22,8 @@ import WritingPractice from './src/pages/ielts/WritingPractice';
 import TrialListeningTest from './src/pages/ielts/TrialListeningTest';
 import TrialListeningTask2 from './src/pages/ielts/TrialListeningTask2';
 import IeltsPrime from './src/pages/ielts/IeltsPrime';
+import IeltsAdminGuard from './components/ielts/IeltsAdminGuard';
+import IeltsAdminDashboard from './components/IeltsAdminDashboard';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient();
@@ -311,6 +313,18 @@ const router = createBrowserRouter([
   {
     path: '/ielts',
     element: <ProtectedRoute element={<IeltsHome />} />,
+  },
+  {
+    path: '/ielts/admin',
+    element: (
+      <ProtectedRoute
+        element={(
+          <IeltsAdminGuard>
+            <IeltsAdminDashboard />
+          </IeltsAdminGuard>
+        )}
+      />
+    ),
   },
   {
     path: '/ielts/trial-test',
