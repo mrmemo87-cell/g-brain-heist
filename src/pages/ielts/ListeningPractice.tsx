@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '../../../services/supabaseClient';
-import { ensureIeltsProfile, saveNotificationPreferences } from '../../../services/ieltsService';
+import { ensureIeltsProfile, getUserTier, isIeltsPrime, saveNotificationPreferences } from '../../../services/ieltsService';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 
 interface ListeningSet {
@@ -42,6 +42,8 @@ const ListeningPractice: React.FC = () => {
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [audioCurrentTime, setAudioCurrentTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(0);
+  const [userTier, setUserTier] = useState('free');
+  const isPrimeUser = isIeltsPrime({ tier: userTier });
   
   // Success screen state
   const [alternateEmail, setAlternateEmail] = useState('');
@@ -67,6 +69,25 @@ const ListeningPractice: React.FC = () => {
       if (audioRef.current) {
         audioRef.current.pause();
       }
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    getUserTier()
+      .then((tier) => {
+        if (isMounted) {
+          setUserTier(tier);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setUserTier('free');
+        }
+      });
+
+    return () => {
+      isMounted = false;
     };
   }, []);
 
@@ -352,6 +373,39 @@ const ListeningPractice: React.FC = () => {
             }}
           >
             Back to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isPrimeUser) {
+    return (
+      <div style={{ 
+        minHeight: '100vh', 
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{ textAlign: 'center', color: '#e2e8f0', maxWidth: '500px', padding: '1.5rem' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>Prime access required</h2>
+          <p style={{ fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+            Listening practice sets are available to IELTS Prime members. Upgrade to continue.
+          </p>
+          <button
+            onClick={() => navigate('/ielts/apply-prime')}
+            style={{
+              padding: '0.75rem 1.75rem',
+              background: '#22c55e',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.5rem',
+              cursor: 'pointer',
+              fontWeight: 600
+            }}
+          >
+            Upgrade to Prime
           </button>
         </div>
       </div>
@@ -678,38 +732,39 @@ const ListeningPractice: React.FC = () => {
             )}
           </div>
 
-          {/* Upgrade to Prime CTA */}
-          <div style={{
-            background: 'linear-gradient(135deg, #1e40af 0%, #7c3aed 100%)',
-            borderRadius: '0.75rem',
-            padding: '1.5rem',
-            marginBottom: '1.5rem',
-            textAlign: 'center',
-            color: 'white'
-          }}>
-            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⭐</div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-              Upgrade to Prime
-            </h3>
-            <p style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '1rem' }}>
-              Get unlimited practice tests, AI-powered feedback, and personalized study plans
-            </p>
-            <button
-              onClick={() => navigate('/ielts/pricing')}
-              style={{
-                padding: '0.75rem 2rem',
-                background: 'white',
-                color: '#1e40af',
-                border: 'none',
-                borderRadius: '0.5rem',
-                cursor: 'pointer',
-                fontWeight: 700,
-                fontSize: '0.875rem'
-              }}
-            >
-              🚀 Unlock Full Access
-            </button>
-          </div>
+          {!isPrimeUser && (
+            <div style={{
+              background: 'linear-gradient(135deg, #1e40af 0%, #7c3aed 100%)',
+              borderRadius: '0.75rem',
+              padding: '1.5rem',
+              marginBottom: '1.5rem',
+              textAlign: 'center',
+              color: 'white'
+            }}>
+              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⭐</div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                Upgrade to Prime
+              </h3>
+              <p style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '1rem' }}>
+                Get unlimited practice tests, AI-powered feedback, and personalized study plans
+              </p>
+              <button
+                onClick={() => navigate('/ielts/apply-prime')}
+                style={{
+                  padding: '0.75rem 2rem',
+                  background: 'white',
+                  color: '#1e40af',
+                  border: 'none',
+                  borderRadius: '0.5rem',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  fontSize: '0.875rem'
+                }}
+              >
+                🚀 Unlock Full Access
+              </button>
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '1rem' }}>

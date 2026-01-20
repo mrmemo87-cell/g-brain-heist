@@ -17,6 +17,8 @@ import {
   fetchActiveSpeakingTasks,
   fetchActiveWritingTasks,
   fetchRecentAttempts,
+  getUserTier,
+  isIeltsPrime,
 } from '../../services/ieltsService';
 import * as IELTSAuthService from '../../services/ieltsAuthService';
 import '../../src/styles/ielts.css';
@@ -72,6 +74,9 @@ const IELTSApp: React.FC<IELTSAppProps> = ({ onLogout }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userTier, setUserTier] = useState('free');
+  const isPrimeUser = isIeltsPrime({ tier: userTier });
+  const canAccessRequiredTier = (requiredTier?: string | null) => !requiredTier || requiredTier === 'free' || isPrimeUser;
 
   useEffect(() => {
     document.body.classList.add('ielts-theme');
@@ -95,7 +100,7 @@ const IELTSApp: React.FC<IELTSAppProps> = ({ onLogout }) => {
       }
       setError(null);
 
-      const [profileData, readingData, listeningData, writingData, speakingData, mockData, attemptData] = await Promise.all([
+      const [profileData, readingData, listeningData, writingData, speakingData, mockData, attemptData, tier] = await Promise.all([
         ensureIeltsProfile(),
         fetchActiveReadingSets(),
         fetchActiveListeningSets(),
@@ -103,6 +108,7 @@ const IELTSApp: React.FC<IELTSAppProps> = ({ onLogout }) => {
         fetchActiveSpeakingTasks(),
         fetchActiveMockTests(),
         fetchRecentAttempts(),
+        getUserTier(),
       ]);
 
       setProfile(profileData);
@@ -112,6 +118,7 @@ const IELTSApp: React.FC<IELTSAppProps> = ({ onLogout }) => {
       setSpeakingTasks(speakingData);
       setMockTests(mockData);
       setAttempts(attemptData);
+      setUserTier(tier);
     } catch (loadError) {
       const message = loadError instanceof Error ? loadError.message : 'Failed to load study data.';
       setError(message);
@@ -194,9 +201,16 @@ const IELTSApp: React.FC<IELTSAppProps> = ({ onLogout }) => {
             <button
               type="button"
               className="ielts-secondary-btn"
-              onClick={() => addToStudyPlan('Reading', set.title)}
+              onClick={() => {
+                if (!canAccessRequiredTier(set.required_tier)) {
+                  window.location.href = '/ielts/apply-prime';
+                  return;
+                }
+                addToStudyPlan('Reading', set.title);
+              }}
+              disabled={!canAccessRequiredTier(set.required_tier)}
             >
-              Add to study session plan
+              {canAccessRequiredTier(set.required_tier) ? 'Add to study session plan' : 'Prime required'}
             </button>
           </article>
         ))}
@@ -233,9 +247,16 @@ const IELTSApp: React.FC<IELTSAppProps> = ({ onLogout }) => {
             <button
               type="button"
               className="ielts-secondary-btn"
-              onClick={() => addToStudyPlan('Listening', set.title)}
+              onClick={() => {
+                if (!isPrimeUser) {
+                  window.location.href = '/ielts/apply-prime';
+                  return;
+                }
+                addToStudyPlan('Listening', set.title);
+              }}
+              disabled={!isPrimeUser}
             >
-              Schedule listening drill
+              {isPrimeUser ? 'Schedule listening drill' : 'Prime required'}
             </button>
           </article>
         ))}
@@ -272,9 +293,16 @@ const IELTSApp: React.FC<IELTSAppProps> = ({ onLogout }) => {
             <button
               type="button"
               className="ielts-secondary-btn"
-              onClick={() => addToStudyPlan('Writing', task.title || task.slug)}
+              onClick={() => {
+                if (!isPrimeUser) {
+                  window.location.href = '/ielts/apply-prime';
+                  return;
+                }
+                addToStudyPlan('Writing', task.title || task.slug);
+              }}
+              disabled={!isPrimeUser}
             >
-              Add to writing queue
+              {isPrimeUser ? 'Add to writing queue' : 'Prime required'}
             </button>
           </article>
         ))}
@@ -306,9 +334,16 @@ const IELTSApp: React.FC<IELTSAppProps> = ({ onLogout }) => {
             <button
               type="button"
               className="ielts-secondary-btn"
-              onClick={() => addToStudyPlan('Speaking', task.slug)}
+              onClick={() => {
+                if (!isPrimeUser) {
+                  window.location.href = '/ielts/apply-prime';
+                  return;
+                }
+                addToStudyPlan('Speaking', task.slug);
+              }}
+              disabled={!isPrimeUser}
             >
-              Add to speaking practice plan
+              {isPrimeUser ? 'Add to speaking practice plan' : 'Prime required'}
             </button>
           </article>
         ))}
@@ -345,9 +380,16 @@ const IELTSApp: React.FC<IELTSAppProps> = ({ onLogout }) => {
             <button
               type="button"
               className="ielts-secondary-btn"
-              onClick={() => addToStudyPlan('Mock Test', test.title)}
+              onClick={() => {
+                if (!isPrimeUser) {
+                  window.location.href = '/ielts/apply-prime';
+                  return;
+                }
+                addToStudyPlan('Mock Test', test.title);
+              }}
+              disabled={!isPrimeUser}
             >
-              Plan full mock exam
+              {isPrimeUser ? 'Plan full mock exam' : 'Prime required'}
             </button>
           </article>
         ))}
