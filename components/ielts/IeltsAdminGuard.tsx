@@ -8,7 +8,7 @@ const IeltsAdminGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
   const [state, setState] = useState<GuardState>('loading');
 
   const checkAdminStatus = useCallback(async () => {
-    setState('loading');
+    setState((current) => (current === 'allowed' ? 'allowed' : 'loading'));
 
     const { data: sessionData } = await supabase.auth.getSession();
     if (!sessionData.session) {
