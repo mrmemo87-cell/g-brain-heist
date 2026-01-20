@@ -516,25 +516,35 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
     );
   };
   
+  const normalizePvpResult = (result: string) => {
+    if (result === 'pvp_win') return 'win';
+    if (result === 'pvp_loss') return 'lose';
+    if (result === 'pvp_blocked') return 'blocked';
+    return result;
+  };
+
   const renderResult = () => {
     if (!attackResult || !selectedTarget) return null;
 
     const resultText = {
-        win: { title: 'Victory! �', color: 'var(--success-teal)' },
-        lose: { title: 'Defeated �', color: 'var(--danger-red)' },
-        blocked: { title: 'Blocked by Shield 🛡️', color: 'var(--amber-warn)' }
+        win: { title: 'Victory! �', subtitle: 'Enemy systems breached', color: 'var(--success-teal)' },
+        lose: { title: 'Defeated �', subtitle: 'Attack repelled', color: 'var(--danger-red)' },
+        blocked: { title: 'Blocked by Shield 🛡️', subtitle: 'Barrier held strong', color: 'var(--amber-warn)' },
+        default: { title: 'Battle complete', subtitle: 'Result recorded', color: 'var(--ion-blue)' }
     };
-    const {title, color} = resultText[attackResult.result];
+    const normalizedResult = normalizePvpResult(attackResult.result);
+    const { title, subtitle, color } = resultText[normalizedResult] ?? resultText.default;
 
     // Combat result messages
     const getResultMessage = () => {
-        if (attackResult.result === 'win') {
+        if (normalizedResult === 'win') {
             return `You defeated ${selectedTarget.username}! Your superior combat skills overwhelmed their defenses! 💪`;
-        } else if (attackResult.result === 'blocked') {
+        } else if (normalizedResult === 'blocked') {
             return `${selectedTarget.username}'s shield absorbed your attack! Their protective barrier held strong! �️`;
-        } else {
+        } else if (normalizedResult === 'lose') {
             return `${selectedTarget.username} defended successfully! Their combat prowess turned the tide of battle! ⚔️`;
         }
+        return 'Battle complete. Result recorded.';
     };
 
     const handleAttackAnother = () => {
@@ -551,16 +561,17 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
         <div className="w-full px-4 sm:px-6 py-6">
           <div className="text-center max-w-lg mx-auto">
               <div className="flex flex-col items-center mb-6">
-                {attackResult.result === 'win' && (
+                {normalizedResult === 'win' && (
                   <div className="text-8xl mb-4 animate-bounce">🏆</div>
                 )}
-                {attackResult.result === 'blocked' && (
+                {normalizedResult === 'blocked' && (
                   <div className="text-8xl mb-4 animate-pulse">🛡️</div>
                 )}
-                {attackResult.result === 'lose' && (
+                {normalizedResult === 'lose' && (
                   <div className="text-8xl mb-4 animate-ping">💥</div>
                 )}
                 <h2 className="font-heading text-4xl" style={{ color }}>{title}</h2>
+                <p className="text-sm text-gray-300 mt-2">{subtitle}</p>
               </div>
               <div className="card-glass p-6 sm:p-8" style={{borderColor: `${color}80`}}>
                    <p className="text-lg mb-6">{getResultMessage()}</p>
