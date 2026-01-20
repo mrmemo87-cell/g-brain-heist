@@ -193,6 +193,7 @@ const IeltsAdminDashboard: React.FC = () => {
   const [notificationPrefs, setNotificationPrefs] = useState<any[]>([]);
   const [violations, setViolations] = useState<any[]>([]);
   const [auditEntries, setAuditEntries] = useState<any[]>([]);
+  const [audioUrlMap, setAudioUrlMap] = useState<Record<string, { status: 'loading' | 'ready' | 'error'; url?: string }>>({});
 
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [userCaseData, setUserCaseData] = useState<UserCaseData | null>(null);
@@ -259,6 +260,28 @@ const IeltsAdminDashboard: React.FC = () => {
     setTimeout(() => dismissToast(id), 4000);
   };
 
+  const userLookup = useMemo(() => {
+    return users.reduce<Record<string, { username?: string; full_name?: string; email?: string }>>((acc, user) => {
+      if (!user?.id) return acc;
+      acc[user.id] = {
+        username: user.username,
+        full_name: user.full_name,
+        email: user.email,
+      };
+      return acc;
+    }, {});
+  }, [users]);
+
+  const formatUserDisplay = (userId?: string | null, fallbackName?: string | null) => {
+    if (!userId && !fallbackName) {
+      return { primary: 'Unknown user', secondary: null };
+    }
+    const user = userId ? userLookup[userId] : null;
+    const primary = fallbackName ?? user?.full_name ?? user?.username ?? user?.email ?? userId ?? 'Unknown user';
+    const secondary = userId && primary !== userId ? userId : null;
+    return { primary, secondary };
+  };
+
   const dismissToast = (id: number) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
@@ -295,12 +318,16 @@ const IeltsAdminDashboard: React.FC = () => {
   };
 
   const fetchOverviewData = async () => {
-    const [statsData, attemptsData] = await Promise.all([
-      fetchIeltsAdminStats().catch(() => null),
-      fetchIeltsRecentAttempts(200).catch(() => []),
-    ]);
+    const tasks = [fetchIeltsAdminStats().catch(() => null), fetchIeltsRecentAttempts(200).catch(() => [])];
+    if (!loadedSections.users) {
+      tasks.push(fetchAllIeltsUsers().catch(() => []));
+    }
+    const [statsData, attemptsData, usersData] = await Promise.all(tasks);
     setStats(statsData);
     setRecentAttempts(attemptsData || []);
+    if (usersData) {
+      setUsers(usersData || []);
+    }
   };
 
   const fetchUsersData = async () => {
@@ -370,7 +397,7 @@ const IeltsAdminDashboard: React.FC = () => {
         case 'overview':
         case 'attempts':
           await fetchOverviewData();
-          markSectionsLoaded(['overview', 'attempts']);
+          markSectionsLoaded(['overview', 'attempts', 'users']);
           break;
         case 'users':
           await fetchUsersData();
@@ -390,12 +417,18 @@ const IeltsAdminDashboard: React.FC = () => {
           break;
         }
         case 'writing':
-          await fetchWritingAttemptsData();
-          markSectionsLoaded(['writing']);
+          await Promise.all([
+            fetchWritingAttemptsData(),
+            force || !loadedSections.users ? fetchUsersData() : Promise.resolve(),
+          ]);
+          markSectionsLoaded(['writing', 'users']);
           break;
         case 'speaking':
-          await fetchSpeakingAttemptsData();
-          markSectionsLoaded(['speaking']);
+          await Promise.all([
+            fetchSpeakingAttemptsData(),
+            force || !loadedSections.users ? fetchUsersData() : Promise.resolve(),
+          ]);
+          markSectionsLoaded(['speaking', 'users']);
           break;
         case 'prime':
           await Promise.all([
@@ -405,16 +438,25 @@ const IeltsAdminDashboard: React.FC = () => {
           markSectionsLoaded(['prime', 'users']);
           break;
         case 'notifications':
-          await fetchNotificationPrefsData();
-          markSectionsLoaded(['notifications']);
+          await Promise.all([
+            fetchNotificationPrefsData(),
+            force || !loadedSections.users ? fetchUsersData() : Promise.resolve(),
+          ]);
+          markSectionsLoaded(['notifications', 'users']);
           break;
         case 'violations':
-          await fetchViolationsData();
-          markSectionsLoaded(['violations']);
+          await Promise.all([
+            fetchViolationsData(),
+            force || !loadedSections.users ? fetchUsersData() : Promise.resolve(),
+          ]);
+          markSectionsLoaded(['violations', 'users']);
           break;
         case 'audit':
-          await fetchAuditEntriesData();
-          markSectionsLoaded(['audit']);
+          await Promise.all([
+            fetchAuditEntriesData(),
+            force || !loadedSections.users ? fetchUsersData() : Promise.resolve(),
+          ]);
+          markSectionsLoaded(['audit', 'users']);
           break;
         default:
           break;
@@ -674,17 +716,18 @@ const IeltsAdminDashboard: React.FC = () => {
       if (selectedUser?.id === userId) {
         await refreshUserMemberships(selectedUser.id);
       }
-      if (membershipTarget) {
-        await fetchMembershipHistory(membershipTarget.id);
+      if (membershipTarget?.id === userId) {
+        await fetchMembershipHistory(userId);
       }
+      await fetchUsersData();
     }
   };
 
   const resetUserProgress = async () => {
     if (!selectedUser) return;
     const result = await handleRpc('admin_ielts_reset_progress', {
-      user_id: selectedUser.id,
-      reset_scope: resetScope,
+      p_user_id: selectedUser.id,
+      p_reset_scope: resetScope,
     });
     if (result) {
       addToast('Progress reset queued.', 'success');
@@ -726,17 +769,12 @@ const IeltsAdminDashboard: React.FC = () => {
   };
 
   const updateViolationStatus = async (violationId: string | number, status: string, resolutionNote?: string) => {
-    const { error } = await supabase.rpc('admin_ielts_violation_set_status', {
-      violation_id: violationId,
-      status,
-      resolution_note: resolutionNote ?? null,
+    const result = await handleRpc('admin_ielts_violation_set_status', {
+      p_violation_id: violationId,
+      p_status: status,
+      p_resolution_note: resolutionNote ?? null,
     });
-
-    if (error) {
-      console.error('Error updating violation status:', error);
-      addToast('Failed to update violation status', 'error');
-      return;
-    }
+    if (!result) return;
     addToast(`Violation marked as ${status}`, 'success');
     await loadAdminData(true);
     if (selectedUser) {
@@ -788,6 +826,13 @@ const IeltsAdminDashboard: React.FC = () => {
       ),
     [notificationPrefs]
   );
+
+  const premiumUserCount = useMemo(() => {
+    return users.filter((user) => {
+      const tier = user.current_tier ?? user.tier ?? user.subscription_tier ?? user.membership_tier;
+      return tier === 'prime_prep_user';
+    }).length;
+  }, [users]);
 
   const inactivityBuckets = useMemo(() => {
     const now = Date.now();
@@ -901,6 +946,45 @@ const IeltsAdminDashboard: React.FC = () => {
     if (!userCaseData) return null;
     return getLatestMembership(userCaseData.memberships);
   }, [userCaseData]);
+
+  const resolveAudioUrl = async (attempt: any) => {
+    if (!attempt?.id) return;
+    const key = String(attempt.id);
+    if (audioUrlMap[key]) return;
+    setAudioUrlMap((prev) => {
+      if (prev[key]) return prev;
+      if (!attempt.audio_url) {
+        return { ...prev, [key]: { status: 'error' } };
+      }
+      return { ...prev, [key]: { status: 'loading' } };
+    });
+
+    if (!attempt.audio_url) return;
+    if (attempt.audio_url.startsWith('http')) {
+      setAudioUrlMap((prev) => ({ ...prev, [key]: { status: 'ready', url: attempt.audio_url } }));
+      return;
+    }
+
+    const { data, error } = await supabase.storage.from('ielts-recordings').createSignedUrl(attempt.audio_url, 3600);
+    if (error || !data?.signedUrl) {
+      setAudioUrlMap((prev) => ({ ...prev, [key]: { status: 'error' } }));
+      return;
+    }
+    setAudioUrlMap((prev) => ({ ...prev, [key]: { status: 'ready', url: data.signedUrl } }));
+  };
+
+  useEffect(() => {
+    speakingAttempts.forEach((attempt) => {
+      void resolveAudioUrl(attempt);
+    });
+  }, [speakingAttempts]);
+
+  useEffect(() => {
+    if (!userCaseData?.speaking?.length) return;
+    userCaseData.speaking.forEach((attempt) => {
+      void resolveAudioUrl(attempt);
+    });
+  }, [userCaseData?.speaking]);
 
   const paginated = <T,>(items: T[], page: number, pageSize: number) => {
     const start = (page - 1) * pageSize;
@@ -1023,7 +1107,7 @@ const IeltsAdminDashboard: React.FC = () => {
               <>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <StatCard icon="👥" label="Total IELTS Users" value={stats.total_ielts_users || 0} color="cyan" />
-                  <StatCard icon="⭐" label="Premium Users" value={stats.premium_users || 0} color="yellow" />
+                  <StatCard icon="⭐" label="Premium Users" value={premiumUserCount} color="yellow" />
                   <StatCard icon="📖" label="Reading Attempts" value={stats.total_reading_attempts || 0} color="blue" />
                   <StatCard icon="🎧" label="Listening Attempts" value={stats.total_listening_attempts || 0} color="purple" />
                   <StatCard icon="✍️" label="Writing Attempts" value={stats.total_writing_attempts || 0} color="green" />
@@ -1039,14 +1123,20 @@ const IeltsAdminDashboard: React.FC = () => {
                     </button>
                   </div>
                   <div className="mt-4 space-y-3">
-                    {recentAttempts.slice(0, 6).map((attempt) => (
-                      <div key={attempt.id} className="flex flex-col gap-1 rounded-xl border border-slate-800 px-3 py-2 text-sm md:flex-row md:items-center md:justify-between">
-                        <span className="font-medium">{attempt.user_name ?? attempt.username ?? attempt.user_id}</span>
-                        <span className="text-slate-400">{attempt.skill ?? attempt.attempt_type}</span>
-                        <span className="text-slate-400">Band {formatBand(attempt.est_band ?? attempt.band_overall)}</span>
-                        <span className="text-slate-500">{formatDate(attempt.attempt_date ?? attempt.submitted_at)}</span>
-                      </div>
-                    ))}
+                    {recentAttempts.slice(0, 6).map((attempt) => {
+                      const userDisplay = formatUserDisplay(attempt.user_id, attempt.user_name ?? attempt.username);
+                      return (
+                        <div key={attempt.id} className="flex flex-col gap-1 rounded-xl border border-slate-800 px-3 py-2 text-sm md:flex-row md:items-center md:justify-between">
+                          <div className="flex flex-col">
+                            <span className="font-medium">{userDisplay.primary}</span>
+                            {userDisplay.secondary && <span className="text-xs text-slate-500">{userDisplay.secondary}</span>}
+                          </div>
+                          <span className="text-slate-400">{attempt.skill ?? attempt.attempt_type}</span>
+                          <span className="text-slate-400">Band {formatBand(attempt.est_band ?? attempt.band_overall)}</span>
+                          <span className="text-slate-500">{formatDate(attempt.attempt_date ?? attempt.submitted_at)}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </>
@@ -1184,12 +1274,16 @@ const IeltsAdminDashboard: React.FC = () => {
                 <h3 className="text-lg font-semibold">Notifications pending</h3>
                 <p className="text-sm text-slate-400">{pendingNotifications.length} pending</p>
                 <div className="mt-3 space-y-2 text-sm">
-                  {pendingNotifications.slice(0, 5).map((pref) => (
-                    <div key={pref.id} className="rounded-xl border border-slate-800 p-2">
-                      <p>{pref.user_id}</p>
-                      <p className="text-xs text-slate-400">{formatDate(pref.created_at)}</p>
-                    </div>
-                  ))}
+                  {pendingNotifications.slice(0, 5).map((pref) => {
+                    const userDisplay = formatUserDisplay(pref.user_id);
+                    return (
+                      <div key={pref.id} className="rounded-xl border border-slate-800 p-2">
+                        <p>{userDisplay.primary}</p>
+                        {userDisplay.secondary && <p className="text-[10px] text-slate-500">{userDisplay.secondary}</p>}
+                        <p className="text-xs text-slate-400">{formatDate(pref.created_at)}</p>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -1231,20 +1325,26 @@ const IeltsAdminDashboard: React.FC = () => {
                 </select>
               </div>
               <div className="space-y-2 text-sm">
-                {paginated(filteredAttempts, attemptPage, 20).map((attempt) => (
-                  <div key={attempt.id} className="rounded-xl border border-slate-800 p-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-semibold">{attempt.user_name ?? attempt.username ?? attempt.user_id}</span>
-                      <span className="text-slate-400">{attempt.skill ?? attempt.attempt_type}</span>
-                      <span className="text-slate-400">Band {formatBand(attempt.est_band ?? attempt.band_overall)}</span>
-                      <span className="text-slate-500">{formatDate(attempt.attempt_date ?? attempt.submitted_at)}</span>
+                {paginated(filteredAttempts, attemptPage, 20).map((attempt) => {
+                  const userDisplay = formatUserDisplay(attempt.user_id, attempt.user_name ?? attempt.username);
+                  return (
+                    <div key={attempt.id} className="rounded-xl border border-slate-800 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex flex-col">
+                          <span className="font-semibold">{userDisplay.primary}</span>
+                          {userDisplay.secondary && <span className="text-xs text-slate-500">{userDisplay.secondary}</span>}
+                        </div>
+                        <span className="text-slate-400">{attempt.skill ?? attempt.attempt_type}</span>
+                        <span className="text-slate-400">Band {formatBand(attempt.est_band ?? attempt.band_overall)}</span>
+                        <span className="text-slate-500">{formatDate(attempt.attempt_date ?? attempt.submitted_at)}</span>
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-400">
+                        <span>Raw score: {attempt.raw_score ?? '—'}/{attempt.total_questions ?? '—'}</span>
+                        <span>Time: {formatDuration(attempt.time_spent_seconds)}</span>
+                      </div>
                     </div>
-                    <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-400">
-                      <span>Raw score: {attempt.raw_score ?? '—'}/{attempt.total_questions ?? '—'}</span>
-                      <span>Time: {formatDuration(attempt.time_spent_seconds)}</span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               <div className="flex items-center justify-between text-xs text-slate-400">
                 <span>Showing {Math.min(filteredAttempts.length, attemptPage * 20)} of {filteredAttempts.length}</span>
@@ -1270,23 +1370,29 @@ const IeltsAdminDashboard: React.FC = () => {
             {sectionLoading.writing && <div className="text-sm text-slate-400">Loading writing queue...</div>}
             <div className="rounded-2xl bg-slate-900 p-4">
               <div className="space-y-3">
-                {ungradedWriting.slice(0, 20).map((attempt) => (
-                  <div key={attempt.id} className="rounded-xl border border-slate-800 p-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <p className="font-semibold">Attempt #{attempt.id}</p>
-                        <p className="text-xs text-slate-400">User: {attempt.user_id}</p>
+                {ungradedWriting.slice(0, 20).map((attempt) => {
+                  const userDisplay = formatUserDisplay(attempt.user_id);
+                  return (
+                    <div key={attempt.id} className="rounded-xl border border-slate-800 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <p className="font-semibold">Attempt #{attempt.id}</p>
+                          <p className="text-xs text-slate-400">
+                            User: <span className="text-slate-200">{userDisplay.primary}</span>
+                          </p>
+                          {userDisplay.secondary && <p className="text-[10px] text-slate-500">{userDisplay.secondary}</p>}
+                        </div>
+                        <button
+                          className="rounded-full bg-cyan-500 px-4 py-1 text-sm font-semibold text-slate-900"
+                          onClick={() => openGradeModal('writing', attempt)}
+                        >
+                          Grade
+                        </button>
                       </div>
-                      <button
-                        className="rounded-full bg-cyan-500 px-4 py-1 text-sm font-semibold text-slate-900"
-                        onClick={() => openGradeModal('writing', attempt)}
-                      >
-                        Grade
-                      </button>
+                      <p className="mt-2 text-xs text-slate-400">Submitted {formatDate(attempt.submitted_at)}</p>
                     </div>
-                    <p className="mt-2 text-xs text-slate-400">Submitted {formatDate(attempt.submitted_at)}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </section>
@@ -1301,26 +1407,41 @@ const IeltsAdminDashboard: React.FC = () => {
             {sectionLoading.speaking && <div className="text-sm text-slate-400">Loading speaking queue...</div>}
             <div className="rounded-2xl bg-slate-900 p-4">
               <div className="space-y-3">
-                {ungradedSpeaking.slice(0, 20).map((attempt) => (
-                  <div key={attempt.id} className="rounded-xl border border-slate-800 p-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <p className="font-semibold">Attempt #{attempt.id}</p>
-                        <p className="text-xs text-slate-400">User: {attempt.user_id}</p>
+                {ungradedSpeaking.slice(0, 20).map((attempt) => {
+                  const userDisplay = formatUserDisplay(attempt.user_id);
+                  const audioState = audioUrlMap[String(attempt.id)];
+                  return (
+                    <div key={attempt.id} className="rounded-xl border border-slate-800 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <p className="font-semibold">Attempt #{attempt.id}</p>
+                          <p className="text-xs text-slate-400">
+                            User: <span className="text-slate-200">{userDisplay.primary}</span>
+                          </p>
+                          {userDisplay.secondary && <p className="text-[10px] text-slate-500">{userDisplay.secondary}</p>}
+                        </div>
+                        <button
+                          className="rounded-full bg-cyan-500 px-4 py-1 text-sm font-semibold text-slate-900"
+                          onClick={() => openGradeModal('speaking', attempt)}
+                        >
+                          Review
+                        </button>
                       </div>
-                      <button
-                        className="rounded-full bg-cyan-500 px-4 py-1 text-sm font-semibold text-slate-900"
-                        onClick={() => openGradeModal('speaking', attempt)}
-                      >
-                        Review
-                      </button>
+                      {attempt.audio_url ? (
+                        audioState?.status === 'ready' ? (
+                          <audio className="mt-2 w-full" controls src={audioState.url} />
+                        ) : audioState?.status === 'error' ? (
+                          <p className="mt-2 text-xs text-slate-400">Audio unavailable</p>
+                        ) : (
+                          <p className="mt-2 text-xs text-slate-400">Loading audio...</p>
+                        )
+                      ) : (
+                        <p className="mt-2 text-xs text-slate-400">Audio unavailable</p>
+                      )}
+                      <p className="mt-2 text-xs text-slate-400">Submitted {formatDate(attempt.submitted_at)}</p>
                     </div>
-                    {attempt.audio_url && (
-                      <audio className="mt-2 w-full" controls src={attempt.audio_url.startsWith('http') ? attempt.audio_url : `/storage/v1/object/public/ielts-recordings/${attempt.audio_url}`} />
-                    )}
-                    <p className="mt-2 text-xs text-slate-400">Submitted {formatDate(attempt.submitted_at)}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </section>
@@ -1509,42 +1630,46 @@ const IeltsAdminDashboard: React.FC = () => {
                 }}
               />
               <div className="space-y-3">
-                {paginated(filteredNotifications, notificationPage, 15).map((pref) => (
-                  <div key={pref.id} className="rounded-xl border border-slate-800 p-3 text-sm">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <p className="font-semibold">User {pref.user_id}</p>
-                        <p className="text-xs text-slate-400">Created {formatDate(pref.created_at)}</p>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {pref.notify_by_email && !pref.email_sent_at && (
-                          <button
-                            className="rounded-full border border-cyan-500 px-3 py-1 text-xs text-cyan-200"
-                            onClick={() => markNotificationSent(pref, 'email')}
-                          >
-                            Mark email sent
-                          </button>
-                        )}
-                        {pref.notify_by_sms && !pref.sms_sent_at && (
-                          <button
-                            className="rounded-full border border-purple-500 px-3 py-1 text-xs text-purple-200"
-                            onClick={() => markNotificationSent(pref, 'sms')}
-                          >
-                            Mark SMS sent
-                          </button>
-                        )}
-                        {pref.show_in_app && !pref.in_app_shown_at && (
-                          <button
-                            className="rounded-full border border-emerald-500 px-3 py-1 text-xs text-emerald-200"
-                            onClick={() => markNotificationSent(pref, 'in_app')}
-                          >
-                            Mark in-app sent
-                          </button>
-                        )}
+                {paginated(filteredNotifications, notificationPage, 15).map((pref) => {
+                  const userDisplay = formatUserDisplay(pref.user_id);
+                  return (
+                    <div key={pref.id} className="rounded-xl border border-slate-800 p-3 text-sm">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <p className="font-semibold">{userDisplay.primary}</p>
+                          {userDisplay.secondary && <p className="text-[10px] text-slate-500">{userDisplay.secondary}</p>}
+                          <p className="text-xs text-slate-400">Created {formatDate(pref.created_at)}</p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {pref.notify_by_email && !pref.email_sent_at && (
+                            <button
+                              className="rounded-full border border-cyan-500 px-3 py-1 text-xs text-cyan-200"
+                              onClick={() => markNotificationSent(pref, 'email')}
+                            >
+                              Mark email sent
+                            </button>
+                          )}
+                          {pref.notify_by_sms && !pref.sms_sent_at && (
+                            <button
+                              className="rounded-full border border-purple-500 px-3 py-1 text-xs text-purple-200"
+                              onClick={() => markNotificationSent(pref, 'sms')}
+                            >
+                              Mark SMS sent
+                            </button>
+                          )}
+                          {pref.show_in_app && !pref.in_app_shown_at && (
+                            <button
+                              className="rounded-full border border-emerald-500 px-3 py-1 text-xs text-emerald-200"
+                              onClick={() => markNotificationSent(pref, 'in_app')}
+                            >
+                              Mark in-app sent
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               <div className="flex items-center justify-between text-xs text-slate-400">
                 <span>Showing {Math.min(filteredNotifications.length, notificationPage * 15)} of {filteredNotifications.length}</span>
@@ -1579,30 +1704,36 @@ const IeltsAdminDashboard: React.FC = () => {
                 }}
               />
               <div className="space-y-2 text-sm">
-                {paginated(filteredViolations, violationPage, 15).map((violation) => (
-                  <div key={violation.id} className="rounded-xl border border-slate-800 p-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-semibold">{violation.user_id}</span>
-                      <span className="text-slate-400">{violation.module ?? 'IELTS'}</span>
-                      <span className="text-slate-400">{violation.reason ?? violation.code ?? violation.type}</span>
-                      <span className="text-slate-500">{formatDate(violation.occurred_at)}</span>
+                {paginated(filteredViolations, violationPage, 15).map((violation) => {
+                  const userDisplay = formatUserDisplay(violation.user_id);
+                  return (
+                    <div key={violation.id} className="rounded-xl border border-slate-800 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex flex-col">
+                          <span className="font-semibold">{userDisplay.primary}</span>
+                          {userDisplay.secondary && <span className="text-[10px] text-slate-500">{userDisplay.secondary}</span>}
+                        </div>
+                        <span className="text-slate-400">{violation.module ?? 'IELTS'}</span>
+                        <span className="text-slate-400">{violation.reason ?? violation.code ?? violation.type}</span>
+                        <span className="text-slate-500">{formatDate(violation.occurred_at)}</span>
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                        <span className="rounded-full bg-slate-800 px-2 py-1">Status: {violation.status ?? 'open'}</span>
+                        <button
+                          className="rounded-full border border-emerald-400 px-3 py-1 text-xs text-emerald-200"
+                          onClick={() => updateViolationStatus(violation.id, 'resolved', violation.resolution_note ?? '')}
+                        >
+                          Resolve
+                        </button>
+                      </div>
+                      {violation.metadata && (
+                        <pre className="mt-2 max-h-24 overflow-auto rounded-lg bg-slate-950 p-2 text-xs text-slate-300">
+                          {JSON.stringify(violation.metadata, null, 2)}
+                        </pre>
+                      )}
                     </div>
-                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                      <span className="rounded-full bg-slate-800 px-2 py-1">Status: {violation.status ?? 'open'}</span>
-                      <button
-                        className="rounded-full border border-emerald-400 px-3 py-1 text-xs text-emerald-200"
-                        onClick={() => updateViolationStatus(violation.id, 'resolved', violation.resolution_note ?? '')}
-                      >
-                        Resolve
-                      </button>
-                    </div>
-                    {violation.metadata && (
-                      <pre className="mt-2 max-h-24 overflow-auto rounded-lg bg-slate-950 p-2 text-xs text-slate-300">
-                        {JSON.stringify(violation.metadata, null, 2)}
-                      </pre>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               <div className="flex items-center justify-between text-xs text-slate-400">
                 <span>Showing {Math.min(filteredViolations.length, violationPage * 15)} of {filteredViolations.length}</span>
@@ -1666,20 +1797,37 @@ const IeltsAdminDashboard: React.FC = () => {
                 />
               </div>
               <div className="space-y-2 text-sm">
-                {paginated(filteredAuditEntries, auditPage, 15).map((entry) => (
-                  <div key={entry.id} className="rounded-xl border border-slate-800 p-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-semibold">{entry.action ?? entry.event_type ?? 'Action'}</span>
-                      <span className="text-xs text-slate-400">User {entry.user_id ?? '—'}</span>
-                      <span className="text-xs text-slate-500">{formatDate(entry.created_at)}</span>
+                {paginated(filteredAuditEntries, auditPage, 15).map((entry) => {
+                  const actorId = entry.actor_user_id ?? entry.actor_id ?? entry.admin_user_id ?? entry.actor ?? entry.created_by ?? null;
+                  const targetId = entry.target_user_id ?? entry.user_id ?? entry.target_id ?? null;
+                  const actorDisplay = formatUserDisplay(actorId);
+                  const targetDisplay = formatUserDisplay(targetId);
+                  return (
+                    <div key={entry.id} className="rounded-xl border border-slate-800 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-semibold">{entry.action ?? entry.event_type ?? 'Action'}</span>
+                        <div className="flex flex-col text-xs text-slate-400">
+                          <span>
+                            Actor: <span className="text-slate-200">{actorDisplay.primary}</span>
+                          </span>
+                          {actorDisplay.secondary && <span className="text-[10px] text-slate-500">{actorDisplay.secondary}</span>}
+                        </div>
+                        <div className="flex flex-col text-xs text-slate-400">
+                          <span>
+                            Target: <span className="text-slate-200">{targetDisplay.primary}</span>
+                          </span>
+                          {targetDisplay.secondary && <span className="text-[10px] text-slate-500">{targetDisplay.secondary}</span>}
+                        </div>
+                        <span className="text-xs text-slate-500">{formatDate(entry.created_at)}</span>
+                      </div>
+                      {entry.details && (
+                        <pre className="mt-2 max-h-32 overflow-auto rounded-lg bg-slate-950 p-2 text-xs text-slate-300">
+                          {JSON.stringify(entry.details, null, 2)}
+                        </pre>
+                      )}
                     </div>
-                    {entry.details && (
-                      <pre className="mt-2 max-h-32 overflow-auto rounded-lg bg-slate-950 p-2 text-xs text-slate-300">
-                        {JSON.stringify(entry.details, null, 2)}
-                      </pre>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               <div className="flex items-center justify-between text-xs text-slate-400">
                 <span>Showing {Math.min(filteredAuditEntries.length, auditPage * 15)} of {filteredAuditEntries.length}</span>
@@ -1843,32 +1991,43 @@ const IeltsAdminDashboard: React.FC = () => {
 
                 {userCaseTab === 'speaking' && (
                   <section className="space-y-3">
-                    {userCaseData.speaking.map((attempt) => (
-                      <div key={attempt.id} className="rounded-xl border border-slate-800 bg-slate-950 p-3 text-sm">
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold">Attempt #{attempt.id}</span>
-                          <button
-                            className="rounded-full border border-cyan-400 px-3 py-1 text-xs"
-                            onClick={() => openGradeModal('speaking', attempt)}
-                          >
-                            {attempt.band_overall ? 'Update grade' : 'Review'}
-                          </button>
+                    {userCaseData.speaking.map((attempt) => {
+                      const audioState = audioUrlMap[String(attempt.id)];
+                      return (
+                        <div key={attempt.id} className="rounded-xl border border-slate-800 bg-slate-950 p-3 text-sm">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold">Attempt #{attempt.id}</span>
+                            <button
+                              className="rounded-full border border-cyan-400 px-3 py-1 text-xs"
+                              onClick={() => openGradeModal('speaking', attempt)}
+                            >
+                              {attempt.band_overall ? 'Update grade' : 'Review'}
+                            </button>
+                          </div>
+                          {attempt.audio_url ? (
+                            audioState?.status === 'ready' ? (
+                              <audio className="mt-2 w-full" controls src={audioState.url} />
+                            ) : audioState?.status === 'error' ? (
+                              <p className="mt-2 text-xs text-slate-400">Audio unavailable</p>
+                            ) : (
+                              <p className="mt-2 text-xs text-slate-400">Loading audio...</p>
+                            )
+                          ) : (
+                            <p className="mt-2 text-xs text-slate-400">Audio unavailable</p>
+                          )}
+                          <p className="mt-2 text-slate-400">Submitted {formatDate(attempt.submitted_at)}</p>
+                          <div className="mt-3 grid gap-1 text-xs text-slate-400">
+                            <span>Band: {formatBand(attempt.band_overall)}</span>
+                            <span>Fluency: {formatBand(attempt.band_fluency)}</span>
+                            <span>Pronunciation: {formatBand(attempt.band_pronunciation)}</span>
+                            <span>Lexical: {formatBand(attempt.band_lexical)}</span>
+                            <span>Grammar: {formatBand(attempt.band_grammar)}</span>
+                            <span>Graded at: {formatDate(attempt.graded_at)}</span>
+                            {attempt.feedback && <span className="text-slate-300">Feedback: {attempt.feedback}</span>}
+                          </div>
                         </div>
-                        {attempt.audio_url && (
-                          <audio className="mt-2 w-full" controls src={attempt.audio_url.startsWith('http') ? attempt.audio_url : `/storage/v1/object/public/ielts-recordings/${attempt.audio_url}`} />
-                        )}
-                        <p className="mt-2 text-slate-400">Submitted {formatDate(attempt.submitted_at)}</p>
-                        <div className="mt-3 grid gap-1 text-xs text-slate-400">
-                          <span>Band: {formatBand(attempt.band_overall)}</span>
-                          <span>Fluency: {formatBand(attempt.band_fluency)}</span>
-                          <span>Pronunciation: {formatBand(attempt.band_pronunciation)}</span>
-                          <span>Lexical: {formatBand(attempt.band_lexical)}</span>
-                          <span>Grammar: {formatBand(attempt.band_grammar)}</span>
-                          <span>Graded at: {formatDate(attempt.graded_at)}</span>
-                          {attempt.feedback && <span className="text-slate-300">Feedback: {attempt.feedback}</span>}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </section>
                 )}
 
@@ -2075,19 +2234,39 @@ const IeltsAdminDashboard: React.FC = () => {
 
                 {userCaseTab === 'audit' && (
                   <section className="space-y-2">
-                    {userCaseData.audit.map((entry) => (
-                      <div key={entry.id} className="rounded-xl border border-slate-800 bg-slate-950 p-3 text-sm">
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold">{entry.action ?? entry.event_type}</span>
-                          <span className="text-xs text-slate-400">{formatDate(entry.created_at)}</span>
+                    {userCaseData.audit.map((entry) => {
+                      const actorId = entry.actor_user_id ?? entry.actor_id ?? entry.admin_user_id ?? entry.actor ?? entry.created_by ?? null;
+                      const targetId = entry.target_user_id ?? entry.user_id ?? entry.target_id ?? null;
+                      const actorDisplay = formatUserDisplay(actorId);
+                      const targetDisplay = formatUserDisplay(targetId);
+                      return (
+                        <div key={entry.id} className="rounded-xl border border-slate-800 bg-slate-950 p-3 text-sm">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold">{entry.action ?? entry.event_type}</span>
+                            <span className="text-xs text-slate-400">{formatDate(entry.created_at)}</span>
+                          </div>
+                          <div className="mt-2 grid gap-2 text-xs text-slate-400 md:grid-cols-2">
+                            <div>
+                              <span>
+                                Actor: <span className="text-slate-200">{actorDisplay.primary}</span>
+                              </span>
+                              {actorDisplay.secondary && <div className="text-[10px] text-slate-500">{actorDisplay.secondary}</div>}
+                            </div>
+                            <div>
+                              <span>
+                                Target: <span className="text-slate-200">{targetDisplay.primary}</span>
+                              </span>
+                              {targetDisplay.secondary && <div className="text-[10px] text-slate-500">{targetDisplay.secondary}</div>}
+                            </div>
+                          </div>
+                          {entry.details && (
+                            <pre className="mt-2 max-h-28 overflow-auto rounded-lg bg-slate-900 p-2 text-xs text-slate-300">
+                              {JSON.stringify(entry.details, null, 2)}
+                            </pre>
+                          )}
                         </div>
-                        {entry.details && (
-                          <pre className="mt-2 max-h-28 overflow-auto rounded-lg bg-slate-900 p-2 text-xs text-slate-300">
-                            {JSON.stringify(entry.details, null, 2)}
-                          </pre>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </section>
                 )}
               </div>
