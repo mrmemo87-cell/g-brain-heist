@@ -6,6 +6,7 @@ import { ensureIeltsProfile, saveNotificationPreferences } from '../../../servic
 import { notifyTeachersOfExamGuard } from '../../../services/notificationService';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 import { ExamGuard } from '../../utils/examGuard';
+import { logIeltsViolation } from '../../../services/ieltsViolationService';
 
 interface WritingTask {
   id: number;
@@ -211,11 +212,24 @@ const WritingPractice: React.FC = () => {
 
     autoSubmitTriggeredRef.current = false;
     ExamGuard.stop();
-    const handleAutoSubmit = () => {
+    const handleAutoSubmit = async () => {
       if (autoSubmitTriggeredRef.current) {
         return;
       }
       autoSubmitTriggeredRef.current = true;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData.session?.user?.id;
+      if (userId) {
+        await logIeltsViolation({
+          userId,
+          module: 'writing',
+          moduleType: 'practice',
+          attemptId: lastAttemptId ?? null,
+          reason: 'auto_submit',
+          code: 'examguard_auto_submit',
+          metadata: { taskId: task?.id ?? null },
+        });
+      }
       handleSubmit(true);
     };
     ExamGuard.start({
@@ -224,6 +238,26 @@ const WritingPractice: React.FC = () => {
       onSubmit: handleAutoSubmit,
       onViolation: (event) => {
         console.warn('ExamGuard violation (WritingPractice):', event);
+        void (async () => {
+          const { data: sessionData } = await supabase.auth.getSession();
+          const userId = sessionData.session?.user?.id;
+          if (!userId) return;
+          await logIeltsViolation({
+            userId,
+            module: 'writing',
+            moduleType: 'practice',
+            attemptId: lastAttemptId ?? null,
+            reason: 'rule_violation',
+            code: event.type,
+            metadata: {
+              violationsCount: event.violationsCount,
+              wordCount: event.wordCount,
+              charCount: event.charCount,
+              metadata: event.metadata ?? null,
+              taskId: task?.id ?? null,
+            },
+          });
+        })();
         if (event.violationsCount >= MAX_EXAM_GUARD_VIOLATIONS) {
           void (async () => {
             try {
