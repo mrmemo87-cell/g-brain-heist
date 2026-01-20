@@ -15,7 +15,7 @@ const NAV_SECTIONS = [
   { id: 'audit', label: 'Audit' },
 ] as const;
 
-type IeltsSubTab = 'overview' | 'attempts' | 'users' | 'content' | 'notifications' | 'prime' | 'violations';
+type NavSection = (typeof NAV_SECTIONS)[number]['id'];
 
 type Toast = {
   id: number;
@@ -35,6 +35,21 @@ type UserCaseTab =
   | 'notifications'
   | 'audit';
 
+type UserCaseData = {
+  reading: any[];
+  listening: any[];
+  writing: any[];
+  speaking: any[];
+  sessions: any[];
+  violations: any[];
+  notes: any[];
+  tags: string[];
+  memberships: any[];
+  primeApplications: any[];
+  notifications: any[];
+  audit: any[];
+};
+
 const USER_CASE_TABS: { id: UserCaseTab; label: string }[] = [
   { id: 'summary', label: 'Summary' },
   { id: 'timeline', label: 'Timeline' },
@@ -45,7 +60,7 @@ const USER_CASE_TABS: { id: UserCaseTab; label: string }[] = [
   { id: 'notes', label: 'Notes/Tags' },
   { id: 'violations', label: 'Violations' },
   { id: 'notifications', label: 'Notifications' },
-  { id: 'audit', label: 'Audit Trail' },
+  { id: 'audit', label: 'Audit' },
 ];
 
 const isMissingRpc = (error: { message?: string; code?: string }) => {
@@ -66,6 +81,17 @@ const formatDate = (value?: string | null) => {
   });
 };
 
+const formatDateOnly = (value?: string | null) => {
+  if (!value) return '—';
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return '—';
+  return parsed.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
 const formatBand = (value?: number | null) => (value ? value.toFixed(1) : '—');
 
 const formatDuration = (seconds?: number | null) => {
@@ -75,9 +101,78 @@ const formatDuration = (seconds?: number | null) => {
   return `${minutes}m ${remainder}s`;
 };
 
+const formatCountdown = (expiresAt?: string | null) => {
+  if (!expiresAt) return '—';
+  const expiry = new Date(expiresAt);
+  if (Number.isNaN(expiry.getTime())) return '—';
+  const diffMs = expiry.getTime() - Date.now();
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays < 0) return 'Expired';
+  if (diffDays === 0) return 'Expires today';
+  return `${diffDays} day${diffDays === 1 ? '' : 's'} remaining`;
+};
+
 const getLatestMembership = (memberships: any[]) => {
   if (!memberships.length) return null;
   return [...memberships].sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime())[0];
+};
+
+const StatCard: React.FC<{ icon: string; label: string; value: number; color: string }> = ({
+  icon,
+  label,
+  value,
+  color,
+}) => {
+  const colorClasses: Record<string, string> = {
+    cyan: 'text-cyan-300',
+    yellow: 'text-yellow-300',
+    blue: 'text-blue-300',
+    purple: 'text-purple-300',
+    green: 'text-emerald-300',
+    orange: 'text-orange-300',
+    pink: 'text-pink-300',
+    teal: 'text-teal-300',
+  };
+  const colorClass = colorClasses[color] ?? 'text-cyan-300';
+
+  return (
+    <div className="rounded-2xl bg-slate-900 p-4 shadow">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs uppercase text-slate-400">{label}</p>
+          <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
+        </div>
+        <span className={`text-2xl ${colorClass}`}>{icon}</span>
+      </div>
+    </div>
+  );
+};
+
+const Sparkline: React.FC<{ values: number[] }> = ({ values }) => {
+  if (!values.length) {
+    return <div className="text-xs text-slate-500">No data</div>;
+  }
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  const range = max - min || 1;
+  const points = values
+    .map((value, index) => {
+      const x = (index / (values.length - 1 || 1)) * 100;
+      const y = 100 - ((value - min) / range) * 100;
+      return `${x},${y}`;
+    })
+    .join(' ');
+  return (
+    <svg className="h-12 w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <polyline
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="3"
+        points={points}
+        className="text-cyan-400"
+      />
+    </svg>
+  );
 };
 
 const IeltsAdminDashboard: React.FC = () => {
@@ -94,88 +189,148 @@ const IeltsAdminDashboard: React.FC = () => {
   const [writingAttempts, setWritingAttempts] = useState<any[]>([]);
   const [speakingAttempts, setSpeakingAttempts] = useState<any[]>([]);
   const [primeApplications, setPrimeApplications] = useState<any[]>([]);
+  const [notificationPrefs, setNotificationPrefs] = useState<any[]>([]);
   const [violations, setViolations] = useState<any[]>([]);
-  
-  // Filters
-  const [skillFilter, setSkillFilter] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [dateFilter, setDateFilter] = useState<string>('all');
-  const [resolutionNotes, setResolutionNotes] = useState<Record<string, string>>({});
-  const [statusUpdates, setStatusUpdates] = useState<Record<string, string>>({});
-  
-  // Modal states for Answers and Reports
-  const [selectedAttempt, setSelectedAttempt] = useState<any>(null);
-  const [showAnswerModal, setShowAnswerModal] = useState(false);
-  const [showReportModal, setShowReportModal] = useState(false);
+  const [auditEntries, setAuditEntries] = useState<any[]>([]);
 
-  const notificationColumns = {
-    emailSent: notifications.some(n => Object.prototype.hasOwnProperty.call(n, 'email_sent_at')),
-    smsSent: notifications.some(n => Object.prototype.hasOwnProperty.call(n, 'sms_sent_at')),
-    inAppShown: notifications.some(n => Object.prototype.hasOwnProperty.call(n, 'in_app_shown_at')),
-  };
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
+  const [userCaseData, setUserCaseData] = useState<UserCaseData | null>(null);
+  const [userCaseTab, setUserCaseTab] = useState<UserCaseTab>('summary');
+  const [tagDraft, setTagDraft] = useState('');
+  const [noteDraft, setNoteDraft] = useState('');
+  const [membershipAction, setMembershipAction] = useState({ plan: 'monthly', months: 1, reason: '' });
+  const [resetScope, setResetScope] = useState({
+    reading: false,
+    listening: false,
+    writing: false,
+    speaking: false,
+    mock: false,
+    sessions: false,
+    notifications: false,
+    violations: false,
+  });
+  const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [resetConfirmText, setResetConfirmText] = useState('');
 
-  const fetchViolationLogs = async () => {
-    const { data, error } = await supabase.rpc('admin_ielts_violation_logs');
-    if (error) {
-      console.error('Error loading violation logs:', error);
-      return [];
-    }
-    return data || [];
-  };
+  const [gradeModal, setGradeModal] = useState<{ type: 'writing' | 'speaking'; attempt: any } | null>(null);
+  const [gradeForm, setGradeForm] = useState({
+    bandOverall: '',
+    feedback: '',
+    criteria: '',
+    fluency: '',
+    pronunciation: '',
+    lexical: '',
+    grammar: '',
+  });
+
+  const [userSearch, setUserSearch] = useState('');
+  const [userPage, setUserPage] = useState(1);
+  const [attemptSearch, setAttemptSearch] = useState('');
+  const [attemptSkillFilter, setAttemptSkillFilter] = useState('all');
+  const [attemptPage, setAttemptPage] = useState(1);
+  const [primeSearch, setPrimeSearch] = useState('');
+  const [primePage, setPrimePage] = useState(1);
+  const [notificationSearch, setNotificationSearch] = useState('');
+  const [notificationPage, setNotificationPage] = useState(1);
+  const [violationSearch, setViolationSearch] = useState('');
+  const [violationPage, setViolationPage] = useState(1);
+  const [auditFilters, setAuditFilters] = useState({
+    action: '',
+    targetUser: '',
+    dateFrom: '',
+    dateTo: '',
+  });
+  const [auditPage, setAuditPage] = useState(1);
+
+  const [membershipSearch, setMembershipSearch] = useState('');
+  const [membershipTarget, setMembershipTarget] = useState<any | null>(null);
+  const [membershipHistory, setMembershipHistory] = useState<any[]>([]);
 
   useEffect(() => {
-    loadData();
+    loadAdminData();
   }, []);
+
+  const addToast = (message: string, type: Toast['type']) => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => dismissToast(id), 4000);
+  };
+
+  const dismissToast = (id: number) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  };
+
+  const handleRpc = async (rpcName: string, payload: Record<string, any>) => {
+    try {
+      const { data, error } = await supabase.rpc(rpcName, payload);
+      if (error) {
+        if (isMissingRpc(error)) {
+          setRpcMissing(`Missing RPC: ${rpcName}. Please deploy the latest IELTS admin functions.`);
+        }
+        addToast(error.message || 'RPC failed', 'error');
+        return null;
+      }
+      return data;
+    } catch (err: any) {
+      addToast(err?.message || 'RPC failed', 'error');
+      return null;
+    }
+  };
 
   const loadAdminData = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      // Load notification preferences separately to handle errors
-      let notifData: any[] = [];
-      try {
-        const notifResult = await supabase
-          .from('ielts_notification_preferences')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(50);
-        notifData = notifResult.error ? [] : (notifResult.data || []);
-      } catch {
-        notifData = [];
-      }
-
-      // Load prime applications
-      let appsData: any[] = [];
-      try {
-        const appsResult = await supabase
-          .from('ielts_prime_applications')
-          .select('*')
-          .order('created_at', { ascending: false });
-        appsData = appsResult.error ? [] : (appsResult.data || []);
-        console.log('Prime applications loaded:', appsData.length, appsResult.error);
-      } catch (e) {
-        console.error('Error loading prime applications:', e);
-        appsData = [];
-      }
-
-      // Load stats, attempts, users, and content in parallel
-      const [statsData, attemptsData, usersData, contentData, violationsData] = await Promise.all([
+      const [statsData, attemptsData, usersData] = await Promise.all([
         fetchIeltsAdminStats().catch(() => null),
         fetchIeltsRecentAttempts(200).catch(() => []),
         fetchAllIeltsUsers().catch(() => []),
-        fetchIeltsContent().catch(() => null),
-        fetchViolationLogs().catch(() => []),
+      ]);
+
+      const [writingData, speakingData, appsData, notifData, violationData, auditData] = await Promise.all([
+        supabase
+          .from('ielts_writing_attempts')
+          .select('*')
+          .order('submitted_at', { ascending: false })
+          .limit(200),
+        supabase
+          .from('ielts_speaking_attempts')
+          .select('*')
+          .order('submitted_at', { ascending: false })
+          .limit(200),
+        supabase
+          .from('ielts_prime_applications')
+          .select('*')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('ielts_notification_preferences')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(200),
+        supabase
+          .from('ielts_violation_logs')
+          .select('*')
+          .order('occurred_at', { ascending: false })
+          .limit(200),
+        supabase
+          .from('ielts_admin_audit_log')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(300),
       ]);
 
       setStats(statsData);
-      setRecentAttempts(attemptsData);
-      setUsers(usersData);
-      setContent(contentData);
-      setNotifications(notifData);
-      setPrimeApplications(appsData);
-      setViolations(violationsData);
-    } catch (error) {
-      console.error('Error loading IELTS admin data:', error);
+      setRecentAttempts(attemptsData || []);
+      setUsers(usersData || []);
+      setWritingAttempts(writingData.data ?? []);
+      setSpeakingAttempts(speakingData.data ?? []);
+      setPrimeApplications(appsData.data ?? []);
+      setNotificationPrefs(notifData.data ?? []);
+      setViolations(violationData.data ?? []);
+      setAuditEntries(auditData.data ?? []);
+    } catch (loadError) {
+      console.error('Error loading IELTS admin data:', loadError);
+      setError('Failed to load IELTS admin data.');
       addToast('Failed to load IELTS data', 'error');
     } finally {
       setIsLoading(false);
@@ -189,7 +344,7 @@ const IeltsAdminDashboard: React.FC = () => {
     setRpcMissing(null);
 
     try {
-      const [reading, listening, writing, speaking, sessions, violations, notes, tags, membership, primeApps, notifications, audit] =
+      const [reading, listening, writing, speaking, sessions, violationsLog, notes, tags, membership, primeApps, notifications, audit] =
         await Promise.all([
           supabase.from('ielts_reading_attempts').select('*').eq('user_id', user.id).order('submitted_at', { ascending: false }),
           supabase.from('ielts_listening_attempts').select('*').eq('user_id', user.id).order('submitted_at', { ascending: false }),
@@ -212,7 +367,7 @@ const IeltsAdminDashboard: React.FC = () => {
         writing: writing.data ?? [],
         speaking: speaking.data ?? [],
         sessions: sessions.data ?? [],
-        violations: violations.data ?? [],
+        violations: violationsLog.data ?? [],
         notes: notes.data ?? [],
         tags: tagsRow?.tags ?? [],
         memberships: membership.data ?? [],
@@ -226,20 +381,6 @@ const IeltsAdminDashboard: React.FC = () => {
     } finally {
       setIsCaseLoading(false);
     }
-  };
-
-  const formatViolationDate = (value: string | number | null) => {
-    if (!value) return '-';
-    const d = typeof value === 'number' ? new Date(value) : new Date(value);
-    if (Number.isNaN(d.getTime())) return '-';
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  };
-
-  const formatTime = (seconds: number) => {
-    if (!seconds) return '-';
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}m ${secs}s`;
   };
 
   const submitWritingGrade = async () => {
@@ -290,6 +431,19 @@ const IeltsAdminDashboard: React.FC = () => {
     }
   };
 
+  const openGradeModal = (type: 'writing' | 'speaking', attempt: any) => {
+    setGradeModal({ type, attempt });
+    setGradeForm({
+      bandOverall: attempt.band_overall?.toString() ?? '',
+      feedback: attempt.feedback ?? '',
+      criteria: attempt.criteria ? JSON.stringify(attempt.criteria, null, 2) : '',
+      fluency: attempt.band_fluency?.toString() ?? '',
+      pronunciation: attempt.band_pronunciation?.toString() ?? '',
+      lexical: attempt.band_lexical?.toString() ?? '',
+      grammar: attempt.band_grammar?.toString() ?? '',
+    });
+  };
+
   const setUserTags = async () => {
     if (!selectedUser) return;
     const tags = tagDraft.split(',').map((tag) => tag.trim()).filter(Boolean);
@@ -327,14 +481,13 @@ const IeltsAdminDashboard: React.FC = () => {
     }
   };
 
-  const updateMembership = async (action: 'grant' | 'extend' | 'revoke') => {
-    if (!selectedUser) return;
+  const updateMembershipForUser = async (userId: string, action: 'grant' | 'extend' | 'revoke') => {
     const payload =
       action === 'grant'
-        ? { user_id: selectedUser.id, plan: membershipAction.plan, months: membershipAction.months }
+        ? { user_id: userId, plan: membershipAction.plan, months: membershipAction.months }
         : action === 'extend'
-          ? { user_id: selectedUser.id, months: membershipAction.months }
-          : { user_id: selectedUser.id, reason: membershipAction.reason || 'Admin revoked' };
+          ? { user_id: userId, months: membershipAction.months }
+          : { user_id: userId, reason: membershipAction.reason || 'Admin revoked' };
 
     const rpcName =
       action === 'grant'
@@ -350,6 +503,9 @@ const IeltsAdminDashboard: React.FC = () => {
       if (selectedUser) {
         await loadUserCaseFile(selectedUser);
       }
+      if (membershipTarget) {
+        await fetchMembershipHistory(membershipTarget.id);
+      }
     }
   };
 
@@ -361,6 +517,8 @@ const IeltsAdminDashboard: React.FC = () => {
     });
     if (result) {
       addToast('Progress reset queued.', 'success');
+      setResetModalOpen(false);
+      setResetConfirmText('');
       await loadUserCaseFile(selectedUser);
     }
   };
@@ -396,11 +554,11 @@ const IeltsAdminDashboard: React.FC = () => {
     }
   };
 
-  const updateViolationStatus = async (violationId: string, status: string, resolutionNote?: string) => {
+  const updateViolationStatus = async (violationId: string | number, status: string, resolutionNote?: string) => {
     const { error } = await supabase.rpc('admin_ielts_violation_set_status', {
-      p_violation_id: violationId,
-      p_status: status,
-      p_resolution_note: resolutionNote ?? null,
+      violation_id: violationId,
+      status,
+      resolution_note: resolutionNote ?? null,
     });
 
     if (error) {
@@ -409,8 +567,246 @@ const IeltsAdminDashboard: React.FC = () => {
       return;
     }
     addToast(`Violation marked as ${status}`, 'success');
-    await loadData();
+    await loadAdminData();
+    if (selectedUser) {
+      await loadUserCaseFile(selectedUser);
+    }
   };
+
+  const fetchMembershipHistory = async (userId: string) => {
+    const { data, error: membershipError } = await supabase
+      .from('ielts_memberships')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (membershipError) {
+      addToast('Failed to load membership history', 'error');
+      return;
+    }
+    setMembershipHistory(data ?? []);
+  };
+
+  const pendingPrime = useMemo(
+    () => primeApplications.filter((app) => (app.status ?? 'pending') === 'pending'),
+    [primeApplications]
+  );
+
+  const ungradedWriting = useMemo(
+    () => writingAttempts.filter((attempt) => attempt.band_overall == null),
+    [writingAttempts]
+  );
+
+  const ungradedSpeaking = useMemo(
+    () => speakingAttempts.filter((attempt) => attempt.band_overall == null),
+    [speakingAttempts]
+  );
+
+  const unresolvedViolations = useMemo(
+    () => violations.filter((violation) => (violation.status ?? 'open') !== 'resolved'),
+    [violations]
+  );
+
+  const pendingNotifications = useMemo(
+    () =>
+      notificationPrefs.filter(
+        (pref) =>
+          (pref.notify_by_email && !pref.email_sent_at) ||
+          (pref.notify_by_sms && !pref.sms_sent_at) ||
+          (pref.show_in_app && !pref.in_app_shown_at)
+      ),
+    [notificationPrefs]
+  );
+
+  const inactivityBuckets = useMemo(() => {
+    const now = Date.now();
+    const days7: any[] = [];
+    const days14: any[] = [];
+    const days30: any[] = [];
+
+    users.forEach((user) => {
+      const last = user.last_active_at ?? user.updated_at ?? user.created_at;
+      const lastTime = new Date(last ?? 0).getTime();
+      if (!lastTime) return;
+      const diffDays = Math.floor((now - lastTime) / (1000 * 60 * 60 * 24));
+      if (diffDays >= 7) days7.push(user);
+      if (diffDays >= 14) days14.push(user);
+      if (diffDays >= 30) days30.push(user);
+    });
+
+    return { days7, days14, days30 };
+  }, [users]);
+
+  const caseTimeline = useMemo(() => {
+    if (!userCaseData) return [];
+    const attemptEvents = [
+      ...userCaseData.reading.map((attempt) => ({
+        type: 'Reading Attempt',
+        date: attempt.submitted_at,
+        detail: `Band ${formatBand(attempt.band_overall)} • Set ${attempt.set_id ?? '—'}`,
+      })),
+      ...userCaseData.listening.map((attempt) => ({
+        type: 'Listening Attempt',
+        date: attempt.submitted_at,
+        detail: `Band ${formatBand(attempt.band_overall)} • Set ${attempt.set_id ?? '—'}`,
+      })),
+      ...userCaseData.writing.map((attempt) => ({
+        type: 'Writing Attempt',
+        date: attempt.submitted_at,
+        detail: `Band ${formatBand(attempt.band_overall)} • Task ${attempt.task_id ?? '—'}`,
+      })),
+      ...userCaseData.speaking.map((attempt) => ({
+        type: 'Speaking Attempt',
+        date: attempt.submitted_at,
+        detail: `Band ${formatBand(attempt.band_overall)} • Task ${attempt.task_id ?? '—'}`,
+      })),
+    ];
+
+    const sessionEvents = userCaseData.sessions.map((session) => ({
+      type: 'Session',
+      date: session.created_at,
+      detail: `Module ${session.module ?? session.module_type ?? '—'} • Status ${session.status ?? '—'}`,
+    }));
+
+    const violationEvents = userCaseData.violations.map((violation) => ({
+      type: 'Violation',
+      date: violation.occurred_at,
+      detail: violation.reason ?? violation.code ?? violation.type ?? 'Violation logged',
+    }));
+
+    const auditEvents = userCaseData.audit.map((entry) => ({
+      type: 'Admin Audit',
+      date: entry.created_at,
+      detail: entry.action ?? entry.event_type ?? 'Audit entry',
+    }));
+
+    return [...attemptEvents, ...sessionEvents, ...violationEvents, ...auditEvents]
+      .filter((event) => event.date)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [userCaseData]);
+
+  const progressSummary = useMemo(() => {
+    if (!userCaseData) return [];
+    const now = Date.now();
+    const timeframes = [7, 30, 90];
+    const skills = [
+      { label: 'Reading', attempts: userCaseData.reading },
+      { label: 'Listening', attempts: userCaseData.listening },
+      { label: 'Writing', attempts: userCaseData.writing },
+      { label: 'Speaking', attempts: userCaseData.speaking },
+    ];
+
+    const buildMetrics = (attempts: any[], days: number) => {
+      const cutoff = now - days * 24 * 60 * 60 * 1000;
+      const filtered = attempts.filter((attempt) => {
+        const date = new Date(attempt.submitted_at ?? attempt.created_at ?? 0).getTime();
+        return date >= cutoff;
+      });
+      const bands = filtered.map((attempt) => Number(attempt.band_overall)).filter((value) => !Number.isNaN(value));
+      const average = bands.length ? bands.reduce((sum, value) => sum + value, 0) / bands.length : null;
+      const variance = bands.length
+        ? bands.reduce((sum, value) => sum + Math.pow(value - (average ?? 0), 2), 0) / bands.length
+        : null;
+      const stdDev = variance != null ? Math.sqrt(variance) : null;
+      const consistency = stdDev != null && average ? Math.max(0, 100 - (stdDev / average) * 100) : null;
+      return {
+        count: filtered.length,
+        average,
+        consistency,
+        bands,
+      };
+    };
+
+    return skills.map((skill) => ({
+      label: skill.label,
+      timeframes: timeframes.map((days) => ({
+        days,
+        metrics: buildMetrics(skill.attempts, days),
+      })),
+    }));
+  }, [userCaseData]);
+
+  const userMembership = useMemo(() => {
+    if (!userCaseData) return null;
+    return getLatestMembership(userCaseData.memberships);
+  }, [userCaseData]);
+
+  const paginated = <T,>(items: T[], page: number, pageSize: number) => {
+    const start = (page - 1) * pageSize;
+    return items.slice(start, start + pageSize);
+  };
+
+  const filteredUsers = useMemo(() => {
+    const query = userSearch.trim().toLowerCase();
+    if (!query) return users;
+    return users.filter((user) => {
+      const name = `${user.full_name ?? ''} ${user.username ?? ''} ${user.email ?? ''}`.toLowerCase();
+      return name.includes(query) || (user.id ?? '').toLowerCase().includes(query);
+    });
+  }, [userSearch, users]);
+
+  const filteredAttempts = useMemo(() => {
+    const query = attemptSearch.trim().toLowerCase();
+    return recentAttempts.filter((attempt) => {
+      const matchesQuery =
+        !query ||
+        `${attempt.user_name ?? attempt.username ?? ''} ${attempt.user_id ?? ''}`.toLowerCase().includes(query);
+      const matchesSkill =
+        attemptSkillFilter === 'all' ||
+        (attempt.skill ?? attempt.attempt_type ?? '').toLowerCase() === attemptSkillFilter;
+      return matchesQuery && matchesSkill;
+    });
+  }, [attemptSearch, attemptSkillFilter, recentAttempts]);
+
+  const filteredPrimeApps = useMemo(() => {
+    const query = primeSearch.trim().toLowerCase();
+    return primeApplications.filter((app) => {
+      if (!query) return true;
+      const haystack = `${app.full_name ?? ''} ${app.user_name ?? ''} ${app.user_id ?? ''}`.toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [primeApplications, primeSearch]);
+
+  const filteredNotifications = useMemo(() => {
+    const query = notificationSearch.trim().toLowerCase();
+    if (!query) return notificationPrefs;
+    return notificationPrefs.filter((pref) => `${pref.user_id ?? ''}`.toLowerCase().includes(query));
+  }, [notificationPrefs, notificationSearch]);
+
+  const filteredViolations = useMemo(() => {
+    const query = violationSearch.trim().toLowerCase();
+    if (!query) return violations;
+    return violations.filter((violation) => `${violation.user_id ?? ''}`.toLowerCase().includes(query));
+  }, [violations, violationSearch]);
+
+  const filteredAuditEntries = useMemo(() => {
+    return auditEntries.filter((entry) => {
+      if (auditFilters.action && !(entry.action ?? entry.event_type ?? '').toLowerCase().includes(auditFilters.action.toLowerCase())) {
+        return false;
+      }
+      if (auditFilters.targetUser && !(entry.user_id ?? '').toLowerCase().includes(auditFilters.targetUser.toLowerCase())) {
+        return false;
+      }
+      if (auditFilters.dateFrom) {
+        const from = new Date(auditFilters.dateFrom).getTime();
+        if (new Date(entry.created_at ?? 0).getTime() < from) return false;
+      }
+      if (auditFilters.dateTo) {
+        const to = new Date(auditFilters.dateTo).getTime();
+        if (new Date(entry.created_at ?? 0).getTime() > to) return false;
+      }
+      return true;
+    });
+  }, [auditEntries, auditFilters]);
+
+  const resetGuardMatched = useMemo(() => {
+    if (!selectedUser) return false;
+    const candidate = resetConfirmText.trim().toLowerCase();
+    if (!candidate) return false;
+    return [selectedUser.username, selectedUser.email]
+      .filter(Boolean)
+      .some((value: string) => value.toLowerCase() === candidate);
+  }, [resetConfirmText, selectedUser]);
 
   if (isLoading) {
     return (
@@ -422,67 +818,21 @@ const IeltsAdminDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Print styles for modals */}
-      <style>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          .print-content, .print-content * {
-            visibility: visible;
-          }
-          .print-content {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            background: white !important;
-          }
-          .print-content button {
-            display: none !important;
-          }
-        }
-      `}</style>
-
-      {/* Sub-tabs */}
-      <div className="flex flex-wrap gap-2 justify-center mb-6">
-        {(['overview', 'attempts', 'users', 'content', 'notifications', 'prime', 'violations'] as IeltsSubTab[]).map(tab => (
+      <div className="flex flex-wrap gap-2 justify-center">
+        {NAV_SECTIONS.map((section) => (
           <button
-            key={tab}
-            onClick={() => setActiveSubTab(tab)}
+            key={section.id}
+            onClick={() => setActiveSection(section.id)}
             className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-              activeSubTab === tab
+              activeSection === section.id
                 ? 'bg-gradient-to-r from-emerald-400 to-cyan-500 text-black'
                 : 'bg-black/30 text-gray-400 hover:text-white border border-gray-600'
             }`}
           >
-            {tab === 'overview' && '📊 Overview'}
-            {tab === 'attempts' && '📝 Attempts'}
-            {tab === 'users' && '👥 Users'}
-            {tab === 'content' && '📚 Content'}
-            {tab === 'notifications' && '🔔 Notifications'}
-            {tab === 'prime' && `⭐ Prime (${primeApplications.length})`}
-            {tab === 'violations' && `🚨 Violations (${violations.length})`}
+            {section.label}
           </button>
         ))}
       </div>
-
-      {/* Overview Tab */}
-      {activeSubTab === 'overview' && stats && (
-        <div className="space-y-6">
-          {/* Main Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <StatCard icon="👥" label="Total IELTS Users" value={stats.total_ielts_users || 0} color="cyan" />
-            <StatCard icon="⭐" label="Premium Users" value={stats.premium_users || 0} color="yellow" />
-            <StatCard icon="📖" label="Reading Attempts" value={stats.total_reading_attempts || 0} color="blue" />
-            <StatCard icon="🎧" label="Listening Attempts" value={stats.total_listening_attempts || 0} color="purple" />
-            <StatCard icon="✍️" label="Writing Attempts" value={stats.total_writing_attempts || 0} color="green" />
-            <StatCard icon="🎤" label="Speaking Attempts" value={stats.total_speaking_attempts || 0} color="orange" />
-            <StatCard icon="📧" label="Email Notifs Requested" value={stats.email_notifications_requested || 0} color="pink" />
-            <StatCard icon="📱" label="SMS Notifs Requested" value={stats.sms_notifications_requested || 0} color="teal" />
-          </div>
-        </div>
-      )}
 
       <main className="flex-1 space-y-8 px-4 py-6 md:px-8">
         {error && (
@@ -497,253 +847,328 @@ const IeltsAdminDashboard: React.FC = () => {
           </div>
         )}
 
-        {activeSection === 'overview' && (
+        {activeSection === 'overview' && stats && (
           <section className="space-y-6">
-              <header className="space-y-2">
-                <h2 className="text-2xl font-semibold">Overview</h2>
-                <p className="text-sm text-slate-400">IELTS monitoring snapshot and high-level operational stats.</p>
-              </header>
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="rounded-2xl bg-slate-900 p-4 shadow">
-                  <p className="text-xs uppercase text-slate-400">Total Users</p>
-                  <p className="text-2xl font-semibold">{stats?.total_users ?? users.length}</p>
+            <header className="space-y-2">
+              <h2 className="text-2xl font-semibold">Overview</h2>
+              <p className="text-sm text-slate-400">IELTS monitoring snapshot and high-level operational stats.</p>
+            </header>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <StatCard icon="👥" label="Total IELTS Users" value={stats.total_ielts_users || 0} color="cyan" />
+              <StatCard icon="⭐" label="Premium Users" value={stats.premium_users || 0} color="yellow" />
+              <StatCard icon="📖" label="Reading Attempts" value={stats.total_reading_attempts || 0} color="blue" />
+              <StatCard icon="🎧" label="Listening Attempts" value={stats.total_listening_attempts || 0} color="purple" />
+              <StatCard icon="✍️" label="Writing Attempts" value={stats.total_writing_attempts || 0} color="green" />
+              <StatCard icon="🎤" label="Speaking Attempts" value={stats.total_speaking_attempts || 0} color="orange" />
+              <StatCard icon="📧" label="Email Notifs Requested" value={stats.email_notifications_requested || 0} color="pink" />
+              <StatCard icon="📱" label="SMS Notifs Requested" value={stats.sms_notifications_requested || 0} color="teal" />
+            </div>
+            <div className="rounded-2xl bg-slate-900 p-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Recent activity</h3>
+                <button className="text-sm text-cyan-400 hover:text-cyan-300" onClick={loadAdminData}>
+                  Refresh
+                </button>
+              </div>
+              <div className="mt-4 space-y-3">
+                {recentAttempts.slice(0, 6).map((attempt) => (
+                  <div key={attempt.id} className="flex flex-col gap-1 rounded-xl border border-slate-800 px-3 py-2 text-sm md:flex-row md:items-center md:justify-between">
+                    <span className="font-medium">{attempt.user_name ?? attempt.username ?? attempt.user_id}</span>
+                    <span className="text-slate-400">{attempt.skill ?? attempt.attempt_type}</span>
+                    <span className="text-slate-400">Band {formatBand(attempt.est_band ?? attempt.band_overall)}</span>
+                    <span className="text-slate-500">{formatDate(attempt.attempt_date ?? attempt.submitted_at)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {activeSection === 'users' && (
+          <section className="space-y-4">
+            <header>
+              <h2 className="text-2xl font-semibold">Users</h2>
+              <p className="text-sm text-slate-400">Open a case file to manage IELTS-only operations.</p>
+            </header>
+            <div className="rounded-2xl bg-slate-900 p-4 space-y-4">
+              <div className="flex flex-wrap gap-2">
+                <input
+                  className="flex-1 min-w-[240px] rounded-lg bg-slate-800 p-2 text-sm"
+                  placeholder="Search by name, email, username, or ID"
+                  value={userSearch}
+                  onChange={(event) => {
+                    setUserSearch(event.target.value);
+                    setUserPage(1);
+                  }}
+                />
+              </div>
+              <div className="space-y-3">
+                {paginated(filteredUsers, userPage, 20).map((user) => (
+                  <button
+                    key={user.id}
+                    onClick={() => void loadUserCaseFile(user)}
+                    className="flex w-full flex-col gap-2 rounded-xl border border-slate-800 p-3 text-left transition hover:border-cyan-400"
+                  >
+                    <span className="font-semibold">{user.full_name ?? user.username ?? 'IELTS user'}</span>
+                    <span className="text-xs text-slate-400">{user.email ?? 'No email'} • Joined {formatDate(user.created_at)}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center justify-between text-xs text-slate-400">
+                <span>Showing {Math.min(filteredUsers.length, userPage * 20)} of {filteredUsers.length}</span>
+                <div className="flex gap-2">
+                  <button
+                    className="rounded-full border border-slate-700 px-3 py-1"
+                    disabled={userPage === 1}
+                    onClick={() => setUserPage((prev) => Math.max(1, prev - 1))}
+                  >
+                    Prev
+                  </button>
+                  <button
+                    className="rounded-full border border-slate-700 px-3 py-1"
+                    disabled={userPage * 20 >= filteredUsers.length}
+                    onClick={() => setUserPage((prev) => prev + 1)}
+                  >
+                    Next
+                  </button>
                 </div>
-                <div className="rounded-2xl bg-slate-900 p-4 shadow">
-                  <p className="text-xs uppercase text-slate-400">Active Attempts</p>
-                  <p className="text-2xl font-semibold">{stats?.total_attempts ?? recentAttempts.length}</p>
-                </div>
-                <div className="rounded-2xl bg-slate-900 p-4 shadow">
-                  <p className="text-xs uppercase text-slate-400">Prime Members</p>
-                  <p className="text-2xl font-semibold">{stats?.prime_members ?? memberships.length}</p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {activeSection === 'queues' && (
+          <section className="space-y-6">
+            <header>
+              <h2 className="text-2xl font-semibold">Follow-up queues</h2>
+              <p className="text-sm text-slate-400">Priority items requiring IELTS admin attention.</p>
+            </header>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="rounded-2xl bg-slate-900 p-4">
+                <h3 className="text-lg font-semibold">Prime applications pending</h3>
+                <p className="text-sm text-slate-400">{pendingPrime.length} pending</p>
+                <div className="mt-3 space-y-2 text-sm">
+                  {pendingPrime.slice(0, 5).map((app) => (
+                    <div key={app.id} className="rounded-xl border border-slate-800 p-2">
+                      <p>{app.full_name ?? app.user_name ?? app.user_id}</p>
+                      <p className="text-xs text-slate-400">{formatDate(app.created_at)}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
               <div className="rounded-2xl bg-slate-900 p-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">Recent activity</h3>
-                  <button className="text-sm text-cyan-400 hover:text-cyan-300" onClick={loadAdminData}>
-                    Refresh
-                  </button>
+                <h3 className="text-lg font-semibold">Ungraded writing</h3>
+                <p className="text-sm text-slate-400">{ungradedWriting.length} waiting</p>
+                <div className="mt-3 space-y-2 text-sm">
+                  {ungradedWriting.slice(0, 5).map((attempt) => (
+                    <div key={attempt.id} className="rounded-xl border border-slate-800 p-2">
+                      <p>Attempt #{attempt.id}</p>
+                      <p className="text-xs text-slate-400">{formatDate(attempt.submitted_at)}</p>
+                    </div>
+                  ))}
                 </div>
-                <div className="mt-4 space-y-3">
-                  {recentAttempts.slice(0, 6).map((attempt) => (
-                    <div key={attempt.id} className="flex flex-col gap-1 rounded-xl border border-slate-800 px-3 py-2 text-sm md:flex-row md:items-center md:justify-between">
-                      <span className="font-medium">{attempt.user_name ?? attempt.username ?? attempt.user_id}</span>
+              </div>
+              <div className="rounded-2xl bg-slate-900 p-4">
+                <h3 className="text-lg font-semibold">Ungraded speaking</h3>
+                <p className="text-sm text-slate-400">{ungradedSpeaking.length} waiting</p>
+                <div className="mt-3 space-y-2 text-sm">
+                  {ungradedSpeaking.slice(0, 5).map((attempt) => (
+                    <div key={attempt.id} className="rounded-xl border border-slate-800 p-2">
+                      <p>Attempt #{attempt.id}</p>
+                      <p className="text-xs text-slate-400">{formatDate(attempt.submitted_at)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-2xl bg-slate-900 p-4">
+                <h3 className="text-lg font-semibold">Violations unresolved</h3>
+                <p className="text-sm text-slate-400">{unresolvedViolations.length} items</p>
+                <div className="mt-3 space-y-2 text-sm">
+                  {unresolvedViolations.slice(0, 5).map((violation) => (
+                    <div key={violation.id} className="rounded-xl border border-slate-800 p-2">
+                      <p>{violation.reason ?? violation.code ?? violation.type ?? 'Violation'}</p>
+                      <p className="text-xs text-slate-400">{formatDate(violation.occurred_at)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-2xl bg-slate-900 p-4">
+                <h3 className="text-lg font-semibold">Inactive users</h3>
+                <p className="text-sm text-slate-400">7d: {inactivityBuckets.days7.length} • 14d: {inactivityBuckets.days14.length} • 30d: {inactivityBuckets.days30.length}</p>
+                <div className="mt-3 space-y-2 text-sm">
+                  {inactivityBuckets.days30.slice(0, 5).map((user) => (
+                    <div key={user.id} className="rounded-xl border border-slate-800 p-2">
+                      <p>{user.full_name ?? user.username ?? user.id}</p>
+                      <p className="text-xs text-slate-400">Last activity: 30+ days</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-2xl bg-slate-900 p-4">
+                <h3 className="text-lg font-semibold">Notifications pending</h3>
+                <p className="text-sm text-slate-400">{pendingNotifications.length} pending</p>
+                <div className="mt-3 space-y-2 text-sm">
+                  {pendingNotifications.slice(0, 5).map((pref) => (
+                    <div key={pref.id} className="rounded-xl border border-slate-800 p-2">
+                      <p>{pref.user_id}</p>
+                      <p className="text-xs text-slate-400">{formatDate(pref.created_at)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {activeSection === 'attempts' && (
+          <section className="space-y-4">
+            <header>
+              <h2 className="text-2xl font-semibold">Attempts</h2>
+              <p className="text-sm text-slate-400">Full IELTS attempt monitoring.</p>
+            </header>
+            <div className="rounded-2xl bg-slate-900 p-4 space-y-4">
+              <div className="flex flex-wrap gap-2">
+                <input
+                  className="flex-1 min-w-[240px] rounded-lg bg-slate-800 p-2 text-sm"
+                  placeholder="Search by user name or ID"
+                  value={attemptSearch}
+                  onChange={(event) => {
+                    setAttemptSearch(event.target.value);
+                    setAttemptPage(1);
+                  }}
+                />
+                <select
+                  className="rounded-lg bg-slate-800 p-2 text-sm"
+                  value={attemptSkillFilter}
+                  onChange={(event) => {
+                    setAttemptSkillFilter(event.target.value);
+                    setAttemptPage(1);
+                  }}
+                >
+                  <option value="all">All skills</option>
+                  <option value="reading">Reading</option>
+                  <option value="listening">Listening</option>
+                  <option value="writing">Writing</option>
+                  <option value="speaking">Speaking</option>
+                  <option value="mock">Mock</option>
+                </select>
+              </div>
+              <div className="space-y-2 text-sm">
+                {paginated(filteredAttempts, attemptPage, 20).map((attempt) => (
+                  <div key={attempt.id} className="rounded-xl border border-slate-800 p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-semibold">{attempt.user_name ?? attempt.username ?? attempt.user_id}</span>
                       <span className="text-slate-400">{attempt.skill ?? attempt.attempt_type}</span>
                       <span className="text-slate-400">Band {formatBand(attempt.est_band ?? attempt.band_overall)}</span>
                       <span className="text-slate-500">{formatDate(attempt.attempt_date ?? attempt.submitted_at)}</span>
                     </div>
-                  ))}
+                    <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-400">
+                      <span>Raw score: {attempt.raw_score ?? '—'}/{attempt.total_questions ?? '—'}</span>
+                      <span>Time: {formatDuration(attempt.time_spent_seconds)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center justify-between text-xs text-slate-400">
+                <span>Showing {Math.min(filteredAttempts.length, attemptPage * 20)} of {filteredAttempts.length}</span>
+                <div className="flex gap-2">
+                  <button className="rounded-full border border-slate-700 px-3 py-1" disabled={attemptPage === 1} onClick={() => setAttemptPage((prev) => Math.max(1, prev - 1))}>
+                    Prev
+                  </button>
+                  <button className="rounded-full border border-slate-700 px-3 py-1" disabled={attemptPage * 20 >= filteredAttempts.length} onClick={() => setAttemptPage((prev) => prev + 1)}>
+                    Next
+                  </button>
                 </div>
               </div>
+            </div>
           </section>
         )}
 
-          {activeSection === 'users' && (
-            <section className="space-y-4">
-              <header>
-                <h2 className="text-2xl font-semibold">Users</h2>
-                <p className="text-sm text-slate-400">Open a case file to manage IELTS-only operations.</p>
-              </header>
-              <div className="rounded-2xl bg-slate-900 p-4">
-                <div className="space-y-3">
-                  {users.slice(0, 50).map((user) => (
-                    <button
-                      key={user.id}
-                      onClick={() => void loadUserCaseFile(user)}
-                      className="flex w-full flex-col gap-2 rounded-xl border border-slate-800 p-3 text-left transition hover:border-cyan-400"
-                    >
-                      <span className="font-semibold">{user.full_name ?? user.username ?? 'IELTS user'}</span>
-                      <span className="text-xs text-slate-400">{user.email ?? 'No email'} • Joined {formatDate(user.created_at)}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </section>
-          )}
-
-          {activeSection === 'queues' && (
-            <section className="space-y-6">
-              <header>
-                <h2 className="text-2xl font-semibold">Follow-up queues</h2>
-                <p className="text-sm text-slate-400">Priority items requiring IELTS admin attention.</p>
-              </header>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl bg-slate-900 p-4">
-                  <h3 className="text-lg font-semibold">Prime applications pending</h3>
-                  <p className="text-sm text-slate-400">{pendingPrime.length} pending</p>
-                  <div className="mt-3 space-y-2 text-sm">
-                    {pendingPrime.slice(0, 5).map((app) => (
-                      <div key={app.id} className="rounded-xl border border-slate-800 p-2">
-                        <p>{app.full_name ?? app.user_name ?? app.user_id}</p>
-                        <p className="text-xs text-slate-400">{formatDate(app.created_at)}</p>
+        {activeSection === 'writing' && (
+          <section className="space-y-4">
+            <header>
+              <h2 className="text-2xl font-semibold">Writing inbox</h2>
+              <p className="text-sm text-slate-400">Review and grade writing submissions.</p>
+            </header>
+            <div className="rounded-2xl bg-slate-900 p-4">
+              <div className="space-y-3">
+                {ungradedWriting.slice(0, 20).map((attempt) => (
+                  <div key={attempt.id} className="rounded-xl border border-slate-800 p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <p className="font-semibold">Attempt #{attempt.id}</p>
+                        <p className="text-xs text-slate-400">User: {attempt.user_id}</p>
                       </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="rounded-2xl bg-slate-900 p-4">
-                  <h3 className="text-lg font-semibold">Ungraded writing</h3>
-                  <p className="text-sm text-slate-400">{ungradedWriting.length} waiting</p>
-                  <div className="mt-3 space-y-2 text-sm">
-                    {ungradedWriting.slice(0, 5).map((attempt) => (
-                      <div key={attempt.id} className="rounded-xl border border-slate-800 p-2">
-                        <p>Attempt #{attempt.id}</p>
-                        <p className="text-xs text-slate-400">{formatDate(attempt.submitted_at)}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="rounded-2xl bg-slate-900 p-4">
-                  <h3 className="text-lg font-semibold">Ungraded speaking</h3>
-                  <p className="text-sm text-slate-400">{ungradedSpeaking.length} waiting</p>
-                  <div className="mt-3 space-y-2 text-sm">
-                    {ungradedSpeaking.slice(0, 5).map((attempt) => (
-                      <div key={attempt.id} className="rounded-xl border border-slate-800 p-2">
-                        <p>Attempt #{attempt.id}</p>
-                        <p className="text-xs text-slate-400">{formatDate(attempt.submitted_at)}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="rounded-2xl bg-slate-900 p-4">
-                  <h3 className="text-lg font-semibold">Violations unresolved</h3>
-                  <p className="text-sm text-slate-400">{unresolvedViolations.length} items</p>
-                  <div className="mt-3 space-y-2 text-sm">
-                    {unresolvedViolations.slice(0, 5).map((violation) => (
-                      <div key={violation.id} className="rounded-xl border border-slate-800 p-2">
-                        <p>{violation.reason ?? violation.code ?? violation.type ?? 'Violation'}</p>
-                        <p className="text-xs text-slate-400">{formatDate(violation.occurred_at)}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="rounded-2xl bg-slate-900 p-4">
-                  <h3 className="text-lg font-semibold">Inactive users</h3>
-                  <p className="text-sm text-slate-400">7d: {inactivityBuckets.days7.length} • 14d: {inactivityBuckets.days14.length} • 30d: {inactivityBuckets.days30.length}</p>
-                  <div className="mt-3 space-y-2 text-sm">
-                    {inactivityBuckets.days30.slice(0, 5).map((user) => (
-                      <div key={user.id} className="rounded-xl border border-slate-800 p-2">
-                        <p>{user.full_name ?? user.username ?? user.id}</p>
-                        <p className="text-xs text-slate-400">Last activity: 30+ days</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="rounded-2xl bg-slate-900 p-4">
-                  <h3 className="text-lg font-semibold">Notifications pending</h3>
-                  <p className="text-sm text-slate-400">{pendingNotifications.length} pending</p>
-                  <div className="mt-3 space-y-2 text-sm">
-                    {pendingNotifications.slice(0, 5).map((pref) => (
-                      <div key={pref.id} className="rounded-xl border border-slate-800 p-2">
-                        <p>{pref.user_id}</p>
-                        <p className="text-xs text-slate-400">{formatDate(pref.created_at)}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {activeSection === 'attempts' && (
-            <section className="space-y-4">
-              <header>
-                <h2 className="text-2xl font-semibold">Attempts</h2>
-                <p className="text-sm text-slate-400">Full IELTS attempt monitoring.</p>
-              </header>
-              <div className="rounded-2xl bg-slate-900 p-4">
-                <div className="space-y-2 text-sm">
-                  {recentAttempts.map((attempt) => (
-                    <div key={attempt.id} className="rounded-xl border border-slate-800 p-3">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="font-semibold">{attempt.user_name ?? attempt.username ?? attempt.user_id}</span>
-                        <span className="text-slate-400">{attempt.skill ?? attempt.attempt_type}</span>
-                        <span className="text-slate-400">Band {formatBand(attempt.est_band ?? attempt.band_overall)}</span>
-                        <span className="text-slate-500">{formatDate(attempt.attempt_date ?? attempt.submitted_at)}</span>
-                      </div>
-                      <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-400">
-                        <span>Raw score: {attempt.raw_score ?? '—'}/{attempt.total_questions ?? '—'}</span>
-                        <span>Time: {formatDuration(attempt.time_spent_seconds)}</span>
-                      </div>
+                      <button
+                        className="rounded-full bg-cyan-500 px-4 py-1 text-sm font-semibold text-slate-900"
+                        onClick={() => openGradeModal('writing', attempt)}
+                      >
+                        Grade
+                      </button>
                     </div>
-                  ))}
-                </div>
+                    <p className="mt-2 text-xs text-slate-400">Submitted {formatDate(attempt.submitted_at)}</p>
+                  </div>
+                ))}
               </div>
-            </section>
-          )}
+            </div>
+          </section>
+        )}
 
-          {activeSection === 'writing' && (
-            <section className="space-y-4">
-              <header>
-                <h2 className="text-2xl font-semibold">Writing inbox</h2>
-                <p className="text-sm text-slate-400">Review and grade writing submissions.</p>
-              </header>
-              <div className="rounded-2xl bg-slate-900 p-4">
-                <div className="space-y-3">
-                  {ungradedWriting.map((attempt) => (
-                    <div key={attempt.id} className="rounded-xl border border-slate-800 p-3">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div>
-                          <p className="font-semibold">Attempt #{attempt.id}</p>
-                          <p className="text-xs text-slate-400">User: {attempt.user_id}</p>
-                        </div>
-                        <button
-                          className="rounded-full bg-cyan-500 px-4 py-1 text-sm font-semibold text-slate-900"
-                          onClick={() => openGradeModal('writing', attempt)}
-                        >
-                          Grade
-                        </button>
+        {activeSection === 'speaking' && (
+          <section className="space-y-4">
+            <header>
+              <h2 className="text-2xl font-semibold">Speaking inbox</h2>
+              <p className="text-sm text-slate-400">Listen and grade speaking attempts.</p>
+            </header>
+            <div className="rounded-2xl bg-slate-900 p-4">
+              <div className="space-y-3">
+                {ungradedSpeaking.slice(0, 20).map((attempt) => (
+                  <div key={attempt.id} className="rounded-xl border border-slate-800 p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <p className="font-semibold">Attempt #{attempt.id}</p>
+                        <p className="text-xs text-slate-400">User: {attempt.user_id}</p>
                       </div>
-                      <p className="mt-2 text-xs text-slate-400">Submitted {formatDate(attempt.submitted_at)}</p>
+                      <button
+                        className="rounded-full bg-cyan-500 px-4 py-1 text-sm font-semibold text-slate-900"
+                        onClick={() => openGradeModal('speaking', attempt)}
+                      >
+                        Review
+                      </button>
                     </div>
-                  ))}
-                </div>
+                    {attempt.audio_url && (
+                      <audio className="mt-2 w-full" controls src={attempt.audio_url.startsWith('http') ? attempt.audio_url : `/storage/v1/object/public/ielts-recordings/${attempt.audio_url}`} />
+                    )}
+                    <p className="mt-2 text-xs text-slate-400">Submitted {formatDate(attempt.submitted_at)}</p>
+                  </div>
+                ))}
               </div>
-            </section>
-          )}
+            </div>
+          </section>
+        )}
 
-          {activeSection === 'speaking' && (
-            <section className="space-y-4">
-              <header>
-                <h2 className="text-2xl font-semibold">Speaking inbox</h2>
-                <p className="text-sm text-slate-400">Listen and grade speaking attempts.</p>
-              </header>
+        {activeSection === 'prime' && (
+          <section className="space-y-4">
+            <header>
+              <h2 className="text-2xl font-semibold">Prime operations</h2>
+              <p className="text-sm text-slate-400">Approve/reject applications and manage memberships.</p>
+            </header>
+            <div className="grid gap-4 lg:grid-cols-2">
               <div className="rounded-2xl bg-slate-900 p-4">
-                <div className="space-y-3">
-                  {ungradedSpeaking.map((attempt) => (
-                    <div key={attempt.id} className="rounded-xl border border-slate-800 p-3">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div>
-                          <p className="font-semibold">Attempt #{attempt.id}</p>
-                          <p className="text-xs text-slate-400">User: {attempt.user_id}</p>
-                        </div>
-                        <button
-                          className="rounded-full bg-cyan-500 px-4 py-1 text-sm font-semibold text-slate-900"
-                          onClick={() => openGradeModal('speaking', attempt)}
-                        >
-                          Review
-                        </button>
-                      </div>
-                      {attempt.audio_url && (
-                        <audio className="mt-2 w-full" controls src={attempt.audio_url.startsWith('http') ? attempt.audio_url : `/storage/v1/object/public/ielts-recordings/${attempt.audio_url}`} />
-                      )}
-                      <p className="mt-2 text-xs text-slate-400">Submitted {formatDate(attempt.submitted_at)}</p>
-                    </div>
-                  ))}
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Prime applications</h3>
+                  <input
+                    className="rounded-lg bg-slate-800 p-2 text-xs"
+                    placeholder="Search applicants"
+                    value={primeSearch}
+                    onChange={(event) => {
+                      setPrimeSearch(event.target.value);
+                      setPrimePage(1);
+                    }}
+                  />
                 </div>
-              </div>
-            </section>
-          )}
-
-          {activeSection === 'prime' && (
-            <section className="space-y-4">
-              <header>
-                <h2 className="text-2xl font-semibold">Prime operations</h2>
-                <p className="text-sm text-slate-400">Approve/reject applications and manage memberships.</p>
-              </header>
-              <div className="rounded-2xl bg-slate-900 p-4">
-                <h3 className="text-lg font-semibold">Prime applications</h3>
                 <div className="mt-3 space-y-2">
-                  {primeApplications.map((application) => (
+                  {paginated(filteredPrimeApps, primePage, 10).map((application) => (
                     <div key={application.id} className="rounded-xl border border-slate-800 p-3 text-sm">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div>
@@ -773,237 +1198,321 @@ const IeltsAdminDashboard: React.FC = () => {
                     </div>
                   ))}
                 </div>
-              </div>
-            </section>
-          )}
-
-          {activeSection === 'notifications' && (
-            <section className="space-y-4">
-              <header>
-                <h2 className="text-2xl font-semibold">Notification operations</h2>
-                <p className="text-sm text-slate-400">Track delivery and mark messages as sent.</p>
-              </header>
-              <div className="rounded-2xl bg-slate-900 p-4">
-                <div className="space-y-3">
-                  {notificationPrefs.map((pref) => (
-                    <div key={pref.id} className="rounded-xl border border-slate-800 p-3 text-sm">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div>
-                          <p className="font-semibold">User {pref.user_id}</p>
-                          <p className="text-xs text-slate-400">Created {formatDate(pref.created_at)}</p>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {pref.notify_by_email && !pref.email_sent_at && (
-                            <button
-                              className="rounded-full border border-cyan-500 px-3 py-1 text-xs text-cyan-200"
-                              onClick={() => markNotificationSent(pref, 'email')}
-                            >
-                              Mark email sent
-                            </button>
-                          )}
-                          {pref.notify_by_sms && !pref.sms_sent_at && (
-                            <button
-                              className="rounded-full border border-purple-500 px-3 py-1 text-xs text-purple-200"
-                              onClick={() => markNotificationSent(pref, 'sms')}
-                            >
-                              Mark SMS sent
-                            </button>
-                          )}
-                          {pref.show_in_app && !pref.in_app_shown_at && (
-                            <button
-                              className="rounded-full border border-emerald-500 px-3 py-1 text-xs text-emerald-200"
-                              onClick={() => markNotificationSent(pref, 'in_app')}
-                            >
-                              Mark in-app sent
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
-          )}
-
-          {activeSection === 'violations' && (
-            <section className="space-y-4">
-              <header>
-                <h2 className="text-2xl font-semibold">Violations</h2>
-                <p className="text-sm text-slate-400">Detailed per-user violation log and global feed.</p>
-              </header>
-              <div className="rounded-2xl bg-slate-900 p-4">
-                <div className="space-y-2 text-sm">
-                  {violationLogs.map((violation) => (
-                    <div key={violation.id} className="rounded-xl border border-slate-800 p-3">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="font-semibold">{violation.user_id}</span>
-                        <span className="text-slate-400">{violation.module ?? 'IELTS'}</span>
-                        <span className="text-slate-400">{violation.reason ?? violation.code ?? violation.type}</span>
-                        <span className="text-slate-500">{formatDate(violation.occurred_at)}</span>
-                      </div>
-                      {violation.metadata && (
-                        <pre className="mt-2 max-h-24 overflow-auto rounded-lg bg-slate-950 p-2 text-xs text-slate-300">
-                          {JSON.stringify(violation.metadata, null, 2)}
-                        </pre>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
-          )}
-
-      {/* Violations Tab */}
-      {activeSubTab === 'violations' && (
-        <div className="space-y-4">
-          <div className="bg-black/40 rounded-xl p-6 border border-gray-700">
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-              <div>
-                <h3 className="text-xl font-bold text-white mb-1">🚨 Violation Logs</h3>
-                <p className="text-gray-400 text-sm">Review ExamGuard violations and update their status.</p>
-              </div>
-              <button
-                onClick={async () => {
-                  await loadData();
-                  addToast('Violation logs refreshed', 'success');
-                }}
-                className="px-3 py-2 bg-cyan-600/40 hover:bg-cyan-600/70 text-white text-xs rounded transition-colors"
-              >
-                Refresh
-              </button>
-            </div>
-
-            {violations.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">No violations logged yet</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-gray-800/50">
-                      <th className="px-4 py-3 text-left text-gray-400">User</th>
-                      <th className="px-4 py-3 text-left text-gray-400">Test</th>
-                      <th className="px-4 py-3 text-left text-gray-400">Type</th>
-                      <th className="px-4 py-3 text-left text-gray-400">Timestamp</th>
-                      <th className="px-4 py-3 text-center text-gray-400">Words</th>
-                      <th className="px-4 py-3 text-center text-gray-400">Chars</th>
-                      <th className="px-4 py-3 text-left text-gray-400">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {violations.map((log, idx) => {
-                      const violationId = log.id ?? log.violation_id;
-                      const statusKey = violationId ? String(violationId) : '';
-                      const statusValue = statusUpdates[statusKey] ?? log.status ?? 'open';
-                      const resolutionValue = resolutionNotes[statusKey] ?? log.resolution_note ?? '';
-                      return (
-                        <tr key={violationId || idx} className="border-t border-gray-700/50">
-                          <td className="px-4 py-3 text-white">{log.user_name || log.user_id || log.userId || '-'}</td>
-                          <td className="px-4 py-3 text-gray-400">{log.test_title || log.test_id || log.testId || '-'}</td>
-                          <td className="px-4 py-3 text-gray-400">{log.violation_type || log.type || '-'}</td>
-                          <td className="px-4 py-3 text-gray-400 text-sm">
-                            {formatViolationDate(log.created_at || log.timestamp)}
-                          </td>
-                          <td className="px-4 py-3 text-center text-gray-400">
-                            {log.word_count ?? log.wordCount ?? '-'}
-                          </td>
-                          <td className="px-4 py-3 text-center text-gray-400">
-                            {log.char_count ?? log.charCount ?? '-'}
-                          </td>
-                          <td className="px-4 py-3 text-gray-400">
-                            <select
-                              value={statusValue}
-                              onChange={async e => {
-                                const nextStatus = e.target.value;
-                                if (!violationId) {
-                                  addToast('Violation record missing ID', 'error');
-                                  return;
-                                }
-                                setStatusUpdates(prev => ({ ...prev, [statusKey]: nextStatus }));
-                                if (nextStatus !== 'resolved') {
-                                  await updateViolationStatus(String(violationId), nextStatus);
-                                }
-                              }}
-                              className="px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white text-sm"
-                            >
-                              <option value="open">Open</option>
-                              <option value="reviewing">Reviewing</option>
-                              <option value="resolved">Resolved</option>
-                            </select>
-                            {statusValue === 'resolved' && (
-                              <div className="mt-2 space-y-2">
-                                <input
-                                  type="text"
-                                  placeholder="Resolution note..."
-                                  value={resolutionValue}
-                                  onChange={e =>
-                                    setResolutionNotes(prev => ({ ...prev, [statusKey]: e.target.value }))
-                                  }
-                                  className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none"
-                                />
-                                <button
-                                  onClick={async () => {
-                                    if (!violationId) {
-                                      addToast('Violation record missing ID', 'error');
-                                      return;
-                                    }
-                                    await updateViolationStatus(String(violationId), 'resolved', resolutionValue);
-                                  }}
-                                  className="px-3 py-2 bg-emerald-600/40 hover:bg-emerald-600/70 text-white text-xs rounded transition-colors"
-                                >
-                                  Confirm Resolve
-                                </button>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-      </main>
-
-      {/* IELTS Answer Modal */}
-      {showAnswerModal && selectedAttempt && (
-        <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/90 p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-4xl w-full my-8 print-content" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
-            {/* Header */}
-            <div className="p-6 border-b-4 border-blue-600">
-              <div className="flex justify-between items-start">
-                <div className="flex items-center gap-3">
-                  <img src="/logo.png" alt="Brains Heist" style={{ width: '48px', height: '48px' }} />
-                  <div>
-                    <h1 className="text-2xl font-bold text-blue-800">Brains Heist - IELTS</h1>
-                    <p className="text-sm text-gray-500">Answer Review - {selectedAttempt.skill?.toUpperCase()}</p>
+                <div className="mt-4 flex items-center justify-between text-xs text-slate-400">
+                  <span>Showing {Math.min(filteredPrimeApps.length, primePage * 10)} of {filteredPrimeApps.length}</span>
+                  <div className="flex gap-2">
+                    <button className="rounded-full border border-slate-700 px-3 py-1" disabled={primePage === 1} onClick={() => setPrimePage((prev) => Math.max(1, prev - 1))}>
+                      Prev
+                    </button>
+                    <button className="rounded-full border border-slate-700 px-3 py-1" disabled={primePage * 10 >= filteredPrimeApps.length} onClick={() => setPrimePage((prev) => prev + 1)}>
+                      Next
+                    </button>
                   </div>
                 </div>
-                <div className="space-y-2 text-sm">
-                  {filteredAuditLog.map((entry) => (
-                    <div key={entry.id} className="rounded-xl border border-slate-800 p-3">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="font-semibold">{entry.admin_name ?? entry.admin_id ?? 'Admin'}</span>
-                        <span className="text-slate-400">{entry.action ?? entry.event_type ?? 'Action'}</span>
-                        <span className="text-slate-400">User: {entry.user_id ?? '—'}</span>
-                        <span className="text-slate-500">{formatDate(entry.created_at)}</span>
-                      </div>
-                      {entry.details && (
-                        <pre className="mt-2 max-h-24 overflow-auto rounded-lg bg-slate-950 p-2 text-xs text-slate-300">
-                          {JSON.stringify(entry.details, null, 2)}
-                        </pre>
-                      )}
+              </div>
+              <div className="rounded-2xl bg-slate-900 p-4 space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold">Membership manager</h3>
+                  <p className="text-xs text-slate-400">Search a user to grant, extend, or revoke IELTS Prime access.</p>
+                </div>
+                <input
+                  className="rounded-lg bg-slate-800 p-2 text-sm"
+                  placeholder="Search by name, username, or email"
+                  value={membershipSearch}
+                  onChange={(event) => setMembershipSearch(event.target.value)}
+                />
+                {membershipSearch && (
+                  <div className="max-h-40 overflow-y-auto rounded-xl border border-slate-800">
+                    {users
+                      .filter((user) => {
+                        const query = membershipSearch.toLowerCase();
+                        const haystack = `${user.full_name ?? ''} ${user.username ?? ''} ${user.email ?? ''}`.toLowerCase();
+                        return haystack.includes(query);
+                      })
+                      .slice(0, 6)
+                      .map((user) => (
+                        <button
+                          key={user.id}
+                          className="w-full border-b border-slate-800 px-3 py-2 text-left text-sm hover:bg-slate-800/60"
+                          onClick={async () => {
+                            setMembershipTarget(user);
+                            await fetchMembershipHistory(user.id);
+                            setMembershipSearch('');
+                          }}
+                        >
+                          <div className="font-semibold">{user.full_name ?? user.username ?? user.id}</div>
+                          <div className="text-xs text-slate-400">{user.email ?? 'No email'}</div>
+                        </button>
+                      ))}
+                  </div>
+                )}
+                {membershipTarget ? (
+                  <div className="rounded-xl border border-slate-800 p-3 text-sm space-y-3">
+                    <div>
+                      <p className="font-semibold">{membershipTarget.full_name ?? membershipTarget.username ?? membershipTarget.id}</p>
+                      <p className="text-xs text-slate-400">{membershipTarget.email ?? 'No email'}</p>
                     </div>
-                  ))}
+                    <div className="rounded-lg bg-slate-950 p-3">
+                      <p className="text-xs uppercase text-slate-400">Latest membership</p>
+                      <p className="text-sm">{getLatestMembership(membershipHistory)?.plan ?? 'None'}</p>
+                      <p className="text-xs text-slate-400">Expires: {formatDate(getLatestMembership(membershipHistory)?.expires_at)}</p>
+                      <p className="text-xs text-slate-500">{formatCountdown(getLatestMembership(membershipHistory)?.expires_at)}</p>
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-3">
+                      <label className="text-xs">
+                        Plan
+                        <select
+                          className="mt-1 w-full rounded-lg bg-slate-800 p-2 text-sm"
+                          value={membershipAction.plan}
+                          onChange={(event) => setMembershipAction((prev) => ({ ...prev, plan: event.target.value }))}
+                        >
+                          <option value="monthly">Monthly</option>
+                          <option value="quarterly">Quarterly</option>
+                          <option value="annually">Annually</option>
+                        </select>
+                      </label>
+                      <label className="text-xs">
+                        Months
+                        <input
+                          type="number"
+                          className="mt-1 w-full rounded-lg bg-slate-800 p-2 text-sm"
+                          value={membershipAction.months}
+                          onChange={(event) => setMembershipAction((prev) => ({ ...prev, months: Number(event.target.value) }))}
+                        />
+                      </label>
+                      <label className="text-xs">
+                        Revoke reason
+                        <input
+                          className="mt-1 w-full rounded-lg bg-slate-800 p-2 text-sm"
+                          value={membershipAction.reason}
+                          onChange={(event) => setMembershipAction((prev) => ({ ...prev, reason: event.target.value }))}
+                        />
+                      </label>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button className="rounded-full bg-cyan-500 px-4 py-2 text-xs font-semibold text-slate-900" onClick={() => updateMembershipForUser(membershipTarget.id, 'grant')}>
+                        Grant
+                      </button>
+                      <button className="rounded-full bg-slate-700 px-4 py-2 text-xs" onClick={() => updateMembershipForUser(membershipTarget.id, 'extend')}>
+                        Extend
+                      </button>
+                      <button className="rounded-full bg-red-500 px-4 py-2 text-xs" onClick={() => updateMembershipForUser(membershipTarget.id, 'revoke')}>
+                        Revoke
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-slate-700 p-6 text-center text-sm text-slate-400">
+                    Select a user to manage membership.
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {activeSection === 'notifications' && (
+          <section className="space-y-4">
+            <header>
+              <h2 className="text-2xl font-semibold">Notification operations</h2>
+              <p className="text-sm text-slate-400">Track delivery and mark messages as sent.</p>
+            </header>
+            <div className="rounded-2xl bg-slate-900 p-4 space-y-4">
+              <input
+                className="rounded-lg bg-slate-800 p-2 text-sm"
+                placeholder="Search by user ID"
+                value={notificationSearch}
+                onChange={(event) => {
+                  setNotificationSearch(event.target.value);
+                  setNotificationPage(1);
+                }}
+              />
+              <div className="space-y-3">
+                {paginated(filteredNotifications, notificationPage, 15).map((pref) => (
+                  <div key={pref.id} className="rounded-xl border border-slate-800 p-3 text-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <p className="font-semibold">User {pref.user_id}</p>
+                        <p className="text-xs text-slate-400">Created {formatDate(pref.created_at)}</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {pref.notify_by_email && !pref.email_sent_at && (
+                          <button
+                            className="rounded-full border border-cyan-500 px-3 py-1 text-xs text-cyan-200"
+                            onClick={() => markNotificationSent(pref, 'email')}
+                          >
+                            Mark email sent
+                          </button>
+                        )}
+                        {pref.notify_by_sms && !pref.sms_sent_at && (
+                          <button
+                            className="rounded-full border border-purple-500 px-3 py-1 text-xs text-purple-200"
+                            onClick={() => markNotificationSent(pref, 'sms')}
+                          >
+                            Mark SMS sent
+                          </button>
+                        )}
+                        {pref.show_in_app && !pref.in_app_shown_at && (
+                          <button
+                            className="rounded-full border border-emerald-500 px-3 py-1 text-xs text-emerald-200"
+                            onClick={() => markNotificationSent(pref, 'in_app')}
+                          >
+                            Mark in-app sent
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center justify-between text-xs text-slate-400">
+                <span>Showing {Math.min(filteredNotifications.length, notificationPage * 15)} of {filteredNotifications.length}</span>
+                <div className="flex gap-2">
+                  <button className="rounded-full border border-slate-700 px-3 py-1" disabled={notificationPage === 1} onClick={() => setNotificationPage((prev) => Math.max(1, prev - 1))}>
+                    Prev
+                  </button>
+                  <button className="rounded-full border border-slate-700 px-3 py-1" disabled={notificationPage * 15 >= filteredNotifications.length} onClick={() => setNotificationPage((prev) => prev + 1)}>
+                    Next
+                  </button>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </section>
+        )}
+
+        {activeSection === 'violations' && (
+          <section className="space-y-4">
+            <header>
+              <h2 className="text-2xl font-semibold">Violations</h2>
+              <p className="text-sm text-slate-400">Detailed per-user violation log and global feed.</p>
+            </header>
+            <div className="rounded-2xl bg-slate-900 p-4 space-y-4">
+              <input
+                className="rounded-lg bg-slate-800 p-2 text-sm"
+                placeholder="Search by user ID"
+                value={violationSearch}
+                onChange={(event) => {
+                  setViolationSearch(event.target.value);
+                  setViolationPage(1);
+                }}
+              />
+              <div className="space-y-2 text-sm">
+                {paginated(filteredViolations, violationPage, 15).map((violation) => (
+                  <div key={violation.id} className="rounded-xl border border-slate-800 p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-semibold">{violation.user_id}</span>
+                      <span className="text-slate-400">{violation.module ?? 'IELTS'}</span>
+                      <span className="text-slate-400">{violation.reason ?? violation.code ?? violation.type}</span>
+                      <span className="text-slate-500">{formatDate(violation.occurred_at)}</span>
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                      <span className="rounded-full bg-slate-800 px-2 py-1">Status: {violation.status ?? 'open'}</span>
+                      <button
+                        className="rounded-full border border-emerald-400 px-3 py-1 text-xs text-emerald-200"
+                        onClick={() => updateViolationStatus(violation.id, 'resolved', violation.resolution_note ?? '')}
+                      >
+                        Resolve
+                      </button>
+                    </div>
+                    {violation.metadata && (
+                      <pre className="mt-2 max-h-24 overflow-auto rounded-lg bg-slate-950 p-2 text-xs text-slate-300">
+                        {JSON.stringify(violation.metadata, null, 2)}
+                      </pre>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center justify-between text-xs text-slate-400">
+                <span>Showing {Math.min(filteredViolations.length, violationPage * 15)} of {filteredViolations.length}</span>
+                <div className="flex gap-2">
+                  <button className="rounded-full border border-slate-700 px-3 py-1" disabled={violationPage === 1} onClick={() => setViolationPage((prev) => Math.max(1, prev - 1))}>
+                    Prev
+                  </button>
+                  <button className="rounded-full border border-slate-700 px-3 py-1" disabled={violationPage * 15 >= filteredViolations.length} onClick={() => setViolationPage((prev) => prev + 1)}>
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {activeSection === 'audit' && (
+          <section className="space-y-4">
+            <header>
+              <h2 className="text-2xl font-semibold">Audit log</h2>
+              <p className="text-sm text-slate-400">Filter and inspect IELTS admin audit activity.</p>
+            </header>
+            <div className="rounded-2xl bg-slate-900 p-4 space-y-4">
+              <div className="grid gap-3 md:grid-cols-4">
+                <input
+                  className="rounded-lg bg-slate-800 p-2 text-sm"
+                  placeholder="Action"
+                  value={auditFilters.action}
+                  onChange={(event) => {
+                    setAuditFilters((prev) => ({ ...prev, action: event.target.value }));
+                    setAuditPage(1);
+                  }}
+                />
+                <input
+                  className="rounded-lg bg-slate-800 p-2 text-sm"
+                  placeholder="Target user"
+                  value={auditFilters.targetUser}
+                  onChange={(event) => {
+                    setAuditFilters((prev) => ({ ...prev, targetUser: event.target.value }));
+                    setAuditPage(1);
+                  }}
+                />
+                <input
+                  type="date"
+                  className="rounded-lg bg-slate-800 p-2 text-sm"
+                  value={auditFilters.dateFrom}
+                  onChange={(event) => {
+                    setAuditFilters((prev) => ({ ...prev, dateFrom: event.target.value }));
+                    setAuditPage(1);
+                  }}
+                />
+                <input
+                  type="date"
+                  className="rounded-lg bg-slate-800 p-2 text-sm"
+                  value={auditFilters.dateTo}
+                  onChange={(event) => {
+                    setAuditFilters((prev) => ({ ...prev, dateTo: event.target.value }));
+                    setAuditPage(1);
+                  }}
+                />
+              </div>
+              <div className="space-y-2 text-sm">
+                {paginated(filteredAuditEntries, auditPage, 15).map((entry) => (
+                  <div key={entry.id} className="rounded-xl border border-slate-800 p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-semibold">{entry.action ?? entry.event_type ?? 'Action'}</span>
+                      <span className="text-xs text-slate-400">User {entry.user_id ?? '—'}</span>
+                      <span className="text-xs text-slate-500">{formatDate(entry.created_at)}</span>
+                    </div>
+                    {entry.details && (
+                      <pre className="mt-2 max-h-32 overflow-auto rounded-lg bg-slate-950 p-2 text-xs text-slate-300">
+                        {JSON.stringify(entry.details, null, 2)}
+                      </pre>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center justify-between text-xs text-slate-400">
+                <span>Showing {Math.min(filteredAuditEntries.length, auditPage * 15)} of {filteredAuditEntries.length}</span>
+                <div className="flex gap-2">
+                  <button className="rounded-full border border-slate-700 px-3 py-1" disabled={auditPage === 1} onClick={() => setAuditPage((prev) => Math.max(1, prev - 1))}>
+                    Prev
+                  </button>
+                  <button className="rounded-full border border-slate-700 px-3 py-1" disabled={auditPage * 15 >= filteredAuditEntries.length} onClick={() => setAuditPage((prev) => prev + 1)}>
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+      </main>
 
       {selectedUser && (
         <aside className="fixed inset-0 z-40 flex items-end justify-end bg-slate-950/70 backdrop-blur">
@@ -1052,33 +1561,25 @@ const IeltsAdminDashboard: React.FC = () => {
                       <dl className="mt-3 grid gap-2 text-sm">
                         <div className="flex justify-between"><dt className="text-slate-400">User ID</dt><dd>{selectedUser.id}</dd></div>
                         <div className="flex justify-between"><dt className="text-slate-400">Username</dt><dd>{selectedUser.username ?? '—'}</dd></div>
+                        <div className="flex justify-between"><dt className="text-slate-400">Email</dt><dd>{selectedUser.email ?? '—'}</dd></div>
+                        <div className="flex justify-between"><dt className="text-slate-400">Phone</dt><dd>{selectedUser.phone_number ?? selectedUser.phone ?? '—'}</dd></div>
+                        <div className="flex justify-between"><dt className="text-slate-400">Tier</dt><dd>{selectedUser.current_tier ?? selectedUser.tier ?? selectedUser.subscription_tier ?? '—'}</dd></div>
                         <div className="flex justify-between"><dt className="text-slate-400">Membership</dt><dd>{userMembership?.plan ?? 'None'}</dd></div>
                         <div className="flex justify-between"><dt className="text-slate-400">Expires</dt><dd>{formatDate(userMembership?.expires_at)}</dd></div>
                         <div className="flex justify-between"><dt className="text-slate-400">Last activity</dt><dd>{formatDate(caseTimeline[0]?.date)}</dd></div>
                       </dl>
                     </div>
                     <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
-                      <h3 className="text-lg font-semibold">Reset progress</h3>
-                      <div className="mt-3 grid gap-2 text-sm md:grid-cols-2">
-                        {Object.keys(resetScope).map((key) => (
-                          <label key={key} className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              checked={(resetScope as any)[key]}
-                              onChange={(event) =>
-                                setResetScope((prev) => ({ ...prev, [key]: event.target.checked }))
-                              }
-                            />
-                            <span className="capitalize">{key}</span>
-                          </label>
-                        ))}
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold">Reset progress</h3>
+                        <button
+                          className="rounded-full bg-red-500 px-4 py-2 text-sm font-semibold text-white"
+                          onClick={() => setResetModalOpen(true)}
+                        >
+                          Reset
+                        </button>
                       </div>
-                      <button
-                        className="mt-4 rounded-full bg-red-500 px-4 py-2 text-sm font-semibold text-white"
-                        onClick={resetUserProgress}
-                      >
-                        Confirm reset
-                      </button>
+                      <p className="mt-2 text-xs text-slate-400">Choose scopes and confirm before resetting user progress.</p>
                     </div>
                   </section>
                 )}
@@ -1100,19 +1601,23 @@ const IeltsAdminDashboard: React.FC = () => {
                 {userCaseTab === 'progress' && (
                   <section className="space-y-4">
                     <h3 className="text-lg font-semibold">Progress analytics</h3>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      {progressSummary?.map((summary) => (
-                        <div key={summary.label} className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
-                          <p className="text-sm uppercase text-slate-400">{summary.label}</p>
-                          <p className="text-2xl font-semibold">Avg Band {formatBand(summary.average)}</p>
-                          <p className="text-xs text-slate-400">Consistency {summary.consistency ? `${summary.consistency.toFixed(0)}%` : '—'}</p>
-                          <p className="text-xs text-slate-400">Avg time {formatDuration(summary.averageTime)}</p>
-                          <p className="text-xs text-slate-500">Attempts {summary.count}</p>
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {summary.lastFive.map((attempt: any) => (
-                              <span key={attempt.id} className="rounded-full bg-slate-800 px-3 py-1 text-xs">
-                                {formatBand(attempt.band_overall)} • {formatDate(attempt.submitted_at)}
-                              </span>
+                    <div className="space-y-4">
+                      {progressSummary.map((skill) => (
+                        <div key={skill.label} className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
+                          <p className="text-sm font-semibold text-slate-200">{skill.label}</p>
+                          <div className="mt-3 grid gap-4 md:grid-cols-3">
+                            {skill.timeframes.map((frame) => (
+                              <div key={frame.days} className="rounded-xl border border-slate-800 bg-slate-900 p-3">
+                                <div className="flex items-center justify-between">
+                                  <p className="text-xs uppercase text-slate-400">Last {frame.days} days</p>
+                                  <p className="text-xs text-slate-400">{frame.metrics.count} attempts</p>
+                                </div>
+                                <p className="mt-2 text-lg font-semibold">Avg band {formatBand(frame.metrics.average)}</p>
+                                <p className="text-xs text-slate-400">Consistency {frame.metrics.consistency ? `${frame.metrics.consistency.toFixed(0)}%` : '—'}</p>
+                                <div className="mt-2">
+                                  <Sparkline values={frame.metrics.bands} />
+                                </div>
+                              </div>
                             ))}
                           </div>
                         </div>
@@ -1131,10 +1636,23 @@ const IeltsAdminDashboard: React.FC = () => {
                             className="rounded-full border border-cyan-400 px-3 py-1 text-xs"
                             onClick={() => openGradeModal('writing', attempt)}
                           >
-                            Grade
+                            {attempt.band_overall ? 'Update grade' : 'Grade'}
                           </button>
                         </div>
                         <p className="mt-2 text-slate-400">Submitted {formatDate(attempt.submitted_at)}</p>
+                        <div className="mt-2 rounded-lg bg-slate-900 p-3">
+                          <p className="text-xs uppercase text-slate-400">Answer</p>
+                          <pre className="mt-2 whitespace-pre-wrap text-xs text-slate-200">{attempt.answer_text ?? 'No answer captured.'}</pre>
+                        </div>
+                        <div className="mt-3 grid gap-2 text-xs text-slate-400">
+                          <span>Band: {formatBand(attempt.band_overall)}</span>
+                          <span>Graded at: {formatDate(attempt.graded_at)}</span>
+                          {attempt.criteria && (
+                            <pre className="rounded-lg bg-slate-900 p-2 text-xs text-slate-300">
+                              {JSON.stringify(attempt.criteria, null, 2)}
+                            </pre>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </section>
@@ -1150,13 +1668,22 @@ const IeltsAdminDashboard: React.FC = () => {
                             className="rounded-full border border-cyan-400 px-3 py-1 text-xs"
                             onClick={() => openGradeModal('speaking', attempt)}
                           >
-                            Review
+                            {attempt.band_overall ? 'Update grade' : 'Review'}
                           </button>
                         </div>
                         {attempt.audio_url && (
                           <audio className="mt-2 w-full" controls src={attempt.audio_url.startsWith('http') ? attempt.audio_url : `/storage/v1/object/public/ielts-recordings/${attempt.audio_url}`} />
                         )}
                         <p className="mt-2 text-slate-400">Submitted {formatDate(attempt.submitted_at)}</p>
+                        <div className="mt-3 grid gap-1 text-xs text-slate-400">
+                          <span>Band: {formatBand(attempt.band_overall)}</span>
+                          <span>Fluency: {formatBand(attempt.band_fluency)}</span>
+                          <span>Pronunciation: {formatBand(attempt.band_pronunciation)}</span>
+                          <span>Lexical: {formatBand(attempt.band_lexical)}</span>
+                          <span>Grammar: {formatBand(attempt.band_grammar)}</span>
+                          <span>Graded at: {formatDate(attempt.graded_at)}</span>
+                          {attempt.feedback && <span className="text-slate-300">Feedback: {attempt.feedback}</span>}
+                        </div>
                       </div>
                     ))}
                   </section>
@@ -1198,13 +1725,13 @@ const IeltsAdminDashboard: React.FC = () => {
                         </label>
                       </div>
                       <div className="mt-4 flex flex-wrap gap-2">
-                        <button className="rounded-full bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-900" onClick={() => updateMembership('grant')}>
+                        <button className="rounded-full bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-900" onClick={() => updateMembershipForUser(selectedUser.id, 'grant')}>
                           Grant
                         </button>
-                        <button className="rounded-full bg-slate-700 px-4 py-2 text-sm" onClick={() => updateMembership('extend')}>
+                        <button className="rounded-full bg-slate-700 px-4 py-2 text-sm" onClick={() => updateMembershipForUser(selectedUser.id, 'extend')}>
                           Extend
                         </button>
-                        <button className="rounded-full bg-red-500 px-4 py-2 text-sm" onClick={() => updateMembership('revoke')}>
+                        <button className="rounded-full bg-red-500 px-4 py-2 text-sm" onClick={() => updateMembershipForUser(selectedUser.id, 'revoke')}>
                           Revoke
                         </button>
                       </div>
@@ -1307,6 +1834,15 @@ const IeltsAdminDashboard: React.FC = () => {
                           <span className="font-semibold">{violation.reason ?? violation.code ?? violation.type}</span>
                           <span className="text-xs text-slate-400">{formatDate(violation.occurred_at)}</span>
                         </div>
+                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                          <span className="rounded-full bg-slate-800 px-2 py-1">Status: {violation.status ?? 'open'}</span>
+                          <button
+                            className="rounded-full border border-emerald-400 px-3 py-1 text-xs text-emerald-200"
+                            onClick={() => updateViolationStatus(violation.id, 'resolved', violation.resolution_note ?? '')}
+                          >
+                            Resolve
+                          </button>
+                        </div>
                         {violation.metadata && (
                           <pre className="mt-2 max-h-28 overflow-auto rounded-lg bg-slate-900 p-2 text-xs text-slate-300">
                             {JSON.stringify(violation.metadata, null, 2)}
@@ -1344,6 +1880,11 @@ const IeltsAdminDashboard: React.FC = () => {
                             )}
                           </div>
                         </div>
+                        <div className="mt-2 grid gap-1 text-xs text-slate-400">
+                          <span>Email sent: {formatDate(pref.email_sent_at)}</span>
+                          <span>SMS sent: {formatDate(pref.sms_sent_at)}</span>
+                          <span>In-app sent: {formatDate(pref.in_app_shown_at)}</span>
+                        </div>
                       </div>
                     ))}
                   </section>
@@ -1370,6 +1911,52 @@ const IeltsAdminDashboard: React.FC = () => {
             )}
           </div>
         </aside>
+      )}
+
+      {resetModalOpen && selectedUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4">
+          <div className="w-full max-w-xl rounded-2xl bg-slate-900 p-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Reset progress for {selectedUser.username ?? selectedUser.email}</h3>
+              <button className="text-slate-400" onClick={() => setResetModalOpen(false)}>Close</button>
+            </div>
+            <div className="mt-4 grid gap-2 text-sm md:grid-cols-2">
+              {Object.keys(resetScope).map((key) => (
+                <label key={key} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={(resetScope as any)[key]}
+                    onChange={(event) =>
+                      setResetScope((prev) => ({ ...prev, [key]: event.target.checked }))
+                    }
+                  />
+                  <span className="capitalize">{key}</span>
+                </label>
+              ))}
+            </div>
+            <div className="mt-4">
+              <p className="text-xs text-slate-400">Type the user&apos;s username or email to confirm.</p>
+              <input
+                className="mt-2 w-full rounded-lg bg-slate-800 p-2 text-sm"
+                value={resetConfirmText}
+                onChange={(event) => setResetConfirmText(event.target.value)}
+                placeholder="Enter username or email"
+              />
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <button className="rounded-full bg-slate-700 px-4 py-2 text-sm" onClick={() => setResetModalOpen(false)}>
+                Cancel
+              </button>
+              <button
+                className="rounded-full bg-red-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40"
+                disabled={!resetGuardMatched}
+                onClick={resetUserProgress}
+              >
+                Confirm reset
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {gradeModal && (
