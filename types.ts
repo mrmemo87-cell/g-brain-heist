@@ -312,6 +312,7 @@ export interface RaidAttackResult {
     coins_loss: number;
   };
   shield_state: 'removed' | 'remaining' | 'none';
+  final_profile_values?: { xp: number; coins: number; level: number; gemstones: number; xp_status?: XpStatus };
 }
 
 export type ShopItemRarity = 'common' | 'rare' | 'legendary';

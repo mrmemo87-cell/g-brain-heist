@@ -758,33 +758,27 @@ const applyRewardDelta = async ({
   gemstonesDelta?: number;
   applyLevelMilestone?: boolean;
 }) => {
-  const user = await getCurrentUser();
-  const role = await getCurrentUserRole();
-  const response = await fetch('/api/brains_heist/rewards/apply', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-brains-user-id': user.id,
-      'x-brains-user-role': role,
-    },
-    body: JSON.stringify({
-      xpDelta,
-      coinsDelta,
-      gemstonesDelta,
-      applyLevelMilestone,
-    }),
+  const { data, error } = await supabase.rpc('rpc_apply_reward_delta', {
+    p_xp_delta: xpDelta,
+    p_coins_delta: coinsDelta,
+    p_gemstones_delta: gemstonesDelta,
+    p_apply_level_milestone: applyLevelMilestone,
   });
 
-  const payload = await response.json();
-  if (!response.ok || !payload?.success) {
-    const message = payload?.error?.message || 'Failed to apply rewards';
+  if (error || !data) {
+    const message = error?.message || 'Failed to apply rewards';
     throw new Error(message);
   }
 
-  return payload.data as {
-    profile: Profile;
-    xpStatus?: { level: number; xp: number; level_xp_start: number; level_xp_next: number; xp_into_level: number; xp_to_next: number; progress: number } | null;
-    previousLevel?: number | null;
+  return {
+    profile: {
+      xp: data.profile?.xp ?? 0,
+      coins: data.profile?.coins ?? 0,
+      level: data.profile?.level ?? 1,
+      gemstones: data.profile?.gemstones ?? 0,
+    } as Pick<Profile, 'xp' | 'coins' | 'level' | 'gemstones'>,
+    xpStatus: data.xp_status ?? null,
+    previousLevel: data.previous_level ?? null,
   };
 };
 
@@ -2685,7 +2679,7 @@ export const getRaidWaveQuestions = (request: RaidQuestionRequest): Promise<Raid
     return RaidFeatureService.getRaidWaveQuestions(request);
 };
 
-export const raid_attack = async (defender_id: string, use_cracker: boolean, target: RaidTarget): Promise<RaidAttackResult> => {
+export const raid_attack = async (defender_id: string, use_cracker: boolean, target: RaidTarget, requestId?: string): Promise<RaidAttackResult> => {
     const user = await getCurrentUser();
     const AP_COST = 2;
 
@@ -2703,12 +2697,6 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
     if (currentAp < AP_COST) {
         throw new Error('Not enough Action Points to launch a raid.');
     }
-
-    const updatedAp = Math.max(0, currentAp - AP_COST);
-    await updateProfile(user.id, {
-        ap_now: updatedAp,
-        last_ap_update: new Date().toISOString(),
-    });
 
     const simulateBotRaid = (botId: string) => {
         const bots = refreshKyrgyzBotStates();
@@ -2802,12 +2790,19 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
         const xpDelta = response.attacker_deltas?.xp ?? 0;
         const coinsDelta = response.attacker_deltas?.coins ?? 0;
         if (xpDelta !== 0 || coinsDelta !== 0) {
-            await applyRewardDelta({
+            const rewardResult = await applyRewardDelta({
                 xpDelta,
                 coinsDelta,
                 gemstonesDelta: 0,
                 applyLevelMilestone: false,
             });
+            response.final_profile_values = {
+                xp: rewardResult.profile.xp,
+                coins: rewardResult.profile.coins,
+                level: rewardResult.profile.level,
+                gemstones: rewardResult.profile.gemstones,
+                xp_status: rewardResult.xpStatus ?? undefined,
+            };
 
             // Track PvP earnings for stats display
             if (xpDelta > 0 || coinsDelta > 0) {
@@ -2824,8 +2819,14 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
             
             console.log(`[Bot PvP] Applied rewards: ${xpDelta} XP, ${coinsDelta} coins`);
         }
+
+        const updatedAp = Math.max(0, currentAp - AP_COST);
+        await updateProfile(user.id, {
+            ap_now: updatedAp,
+            last_ap_update: new Date().toISOString(),
+        });
     } else {
-        const { data, error } = await performHackAttempt(defender_id);
+        const { data, error } = await performHackAttempt(defender_id, requestId);
 
         if (error) {
             throw new Error(error.message || 'Failed to execute raid attack.');
@@ -2848,6 +2849,7 @@ export const raid_attack = async (defender_id: string, use_cracker: boolean, tar
                 coins_loss: payload.defender_deltas?.coins_loss ?? 0,
             },
             shield_state: (payload.shield_state ?? 'none') as RaidAttackResult['shield_state'],
+            final_profile_values: payload.final_profile_values ?? undefined,
         };
 
         // Surface Supabase combat stats in debug logs to aid balancing
@@ -5857,32 +5859,124 @@ export const mcq_answer_submit = async (question: Question, choice: string): Pro
         throw new Error('Question payload missing identifier');
     }
 
-    const rewardXp = question.reward_xp ?? question.points ?? 20;
-    const rewardCoins = question.reward_coins ?? Math.floor(rewardXp * 1.5);
     const correctAnswer = question.correct_answer ?? '';
-    const isCorrect = choice === correctAnswer;
-    
-    console.log(`[mcq_answer_submit] 🎯 Question ${question.id}: isCorrect=${isCorrect}, will award ${isCorrect ? rewardXp : 0} XP, ${isCorrect ? rewardCoins : 0} coins`);
+    const { data, error } = await supabase.rpc('rpc_submit_mcq_answer', {
+        p_question_id: question.id,
+        p_answer: choice,
+    });
+
+    if (error) {
+        throw new Error(error.message || 'Failed to submit MCQ answer');
+    }
+
+    const payload = data as any;
+    const isCorrect = Boolean(payload?.correct);
+    const isDuplicate = Boolean(payload?.duplicate_reward);
+
+    console.log(`[mcq_answer_submit] 🎯 Question ${question.id}: isCorrect=${isCorrect}, duplicate=${isDuplicate}`);
 
     const response: AnswerResponse = {
         correct: isCorrect,
         deltas: {
-            xp: isCorrect ? rewardXp : -5,
-            coins: isCorrect ? rewardCoins : 0,
-            gemstones: 0,
+            xp: payload?.deltas?.xp ?? 0,
+            coins: payload?.deltas?.coins ?? 0,
+            gemstones: payload?.deltas?.gemstones ?? 0,
         },
+        finalProfileValues: payload?.final_profile_values ?? undefined,
         explanation: isCorrect
             ? question.explanation || 'Well done, agent!'
             : `Incorrect. ${question.explanation || 'The correct answer was: ' + correctAnswer}`,
     };
 
-    return finalizeMcqAnswer({
-        userId: user.id,
-        question,
-        choice,
-        isCorrect,
-        baseResponse: response,
+    if (isDuplicate) {
+        response.explanation = '✓ Correct! But you already earned rewards for this question. Try new questions to earn more!';
+    }
+
+    const questOutcome = isDuplicate ? { gemstoneDelta: 0, notifications: [] } : applyQuestProgress(user.id, isCorrect);
+
+    if (response.deltas.xp > 0 || response.deltas.coins > 0) {
+        try {
+            await supabase.rpc('track_quest_earnings', {
+                p_user_id: user.id,
+                p_xp_delta: Math.max(0, response.deltas.xp),
+                p_coins_delta: Math.max(0, response.deltas.coins)
+            });
+        } catch (trackErr) {
+            console.warn('[MCQ] Failed to track quest earnings:', trackErr);
+        }
+    }
+
+    if (questOutcome.gemstoneDelta > 0) {
+        const { data: gemProfile } = await supabase
+            .from('users')
+            .select('gemstones')
+            .eq('id', user.id)
+            .single();
+
+        const currentGemstones = gemProfile?.gemstones || 0;
+        await updateProfile(user.id, { gemstones: currentGemstones + questOutcome.gemstoneDelta });
+
+        response.deltas.gemstones = questOutcome.gemstoneDelta;
+        if (response.finalProfileValues) {
+            response.finalProfileValues = {
+                ...response.finalProfileValues,
+                gemstones: currentGemstones + questOutcome.gemstoneDelta,
+            };
+        }
+
+        try {
+            await notificationService.createNotification(
+                user.id,
+                'gemstone_earned',
+                '💎 Gemstone Earned!',
+                `You earned ${questOutcome.gemstoneDelta} rare gemstone${questOutcome.gemstoneDelta > 1 ? 's' : ''}!`,
+                'high'
+            );
+        } catch (notifError) {
+            console.error('Failed to send gemstone notification:', notifError);
+        }
+    }
+
+    const previousLevel = payload?.previous_level ?? null;
+    const currentLevel = response.finalProfileValues?.level;
+    const leveledUp = typeof previousLevel === 'number'
+        && typeof currentLevel === 'number'
+        && currentLevel > previousLevel;
+
+    if (leveledUp) {
+        try {
+            const { data: profileSnapshot } = await supabase
+                .from('users')
+                .select('username')
+                .eq('id', user.id)
+                .single();
+            const { error: activityError } = await supabase.from('activities').insert({
+                kind: 'level_up',
+                actor_id: user.id,
+                actor_username: profileSnapshot?.username || 'Unknown',
+                data: { details: String(currentLevel ?? 1) },
+            });
+            if (activityError) console.error('Failed to insert level-up activity:', activityError);
+        } catch (err) {
+            console.warn('Failed to record level-up activity:', err);
+        }
+
+        try {
+            await notifyLevelUp(user.id, currentLevel ?? 1, response.deltas.xp, response.deltas.coins);
+        } catch (err) {
+            console.warn('Failed to notify level up:', err);
+        }
+    }
+
+    Promise.allSettled(questOutcome.notifications).then(results => {
+        results.forEach((result, index) => {
+            if (result.status === 'rejected') {
+                console.error(`Failed quest notification (index ${index}):`, result.reason);
+            }
+        });
     });
+
+    return response;
 };
 
 // ============================================================

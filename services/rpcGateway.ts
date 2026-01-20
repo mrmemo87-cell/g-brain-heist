@@ -53,9 +53,10 @@ export const notifyAttackDefended = (payload: NotificationParams, client?: RpcCl
 
 export const performHackAttempt = (
   defenderId: string,
+  requestId?: string,
   client?: RpcClient
 ): RpcResult<{ result: unknown }> => {
-  return execute('rpc_hack_attempt', { p_defender_id: defenderId }, client);
+  return execute('rpc_hack_attempt', { p_defender_id: defenderId, p_request_id: requestId ?? null }, client);
 };
 
 export const checkAchievements = (userId: string, client?: RpcClient): RpcResult<unknown> => {

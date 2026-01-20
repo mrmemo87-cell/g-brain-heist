@@ -1,10 +1,13 @@
 -- Brains Heist PvP Hack Attempt Function
 -- Matches our game schema: users, inventory, activities tables
--- Inputs: p_defender_id uuid
+-- Inputs: p_defender_id uuid, p_request_id uuid (optional idempotency key)
 -- Uses: auth.uid() as attacker
 -- Returns: JSON with outcome + deltas
 
-create or replace function public.rpc_hack_attempt(p_defender_id uuid)
+create or replace function public.rpc_hack_attempt(
+  p_defender_id uuid,
+  p_request_id uuid default null
+)
 returns json
 language plpgsql
 security definer
@@ -13,6 +16,9 @@ as $$
 declare
   v_attacker_id uuid := auth.uid();
   v_now timestamptz := now();
+  v_existing_response jsonb;
+  v_response jsonb;
+  v_xp_status jsonb;
 
   -- ====== CONFIG ======
   c_ap_cost int := 2;                 -- AP cost per hack attempt
@@ -52,6 +58,17 @@ declare
   defender_username text;
   
 begin
+  if p_request_id is not null then
+    select response
+    into v_existing_response
+    from public.pvp_attack_attempts
+    where request_id = p_request_id
+      and attacker_id = v_attacker_id;
+
+    if found then
+      return v_existing_response;
+    end if;
+  end if;
   -- ====== Validate ======
   if v_attacker_id is null then
     raise exception 'Not authenticated';
@@ -63,7 +80,7 @@ begin
 
   -- ====== Fetch attacker profile (with row lock) ======
   select
-    id, username, level, xp, coins, ap_now, ap_max, last_ap_update,
+    id, username, level, xp, coins, gemstones, ap_now, ap_max, last_ap_update,
     coalesce(attack_power, 10) as attack_power,
     coalesce(defense_power, 10) as defense_power,
     coalesce(is_admin, false) as is_admin,
@@ -229,7 +246,9 @@ begin
         coins = coins + coins_delta,
         xp_from_pvp = COALESCE(xp_from_pvp, 0) + GREATEST(0, xp_delta),
         coins_from_pvp = COALESCE(coins_from_pvp, 0) + GREATEST(0, coins_delta)
-    where id = v_attacker_id;
+    where id = v_attacker_id
+    returning xp, coins, level, gemstones
+    into attacker;
 
     -- Update defender (lose coins if not blocked, and set cooldown)
     update public.users
@@ -256,7 +275,9 @@ begin
     update public.users
     set xp = xp + xp_delta,
         coins = greatest(0, coins - coins_lost_to_def)
-    where id = v_attacker_id;
+    where id = v_attacker_id
+    returning xp, coins, level, gemstones
+    into attacker;
     
     -- Update defender (gains coins from failed attack, and set cooldown)
     update public.users
@@ -294,7 +315,9 @@ begin
   );
 
   -- ====== Return result ======
-  return json_build_object(
+  select to_jsonb(xp_status(p_xp => attacker.xp)) into v_xp_status;
+
+  v_response := jsonb_build_object(
     'result', case 
       when result_kind = 'pvp_win' then 'win'
       when result_kind = 'pvp_blocked' then 'blocked'
@@ -315,6 +338,13 @@ begin
       when has_cracker then 'removed'
       else 'remaining'
     end,
+    'final_profile_values', jsonb_build_object(
+      'xp', attacker.xp,
+      'coins', attacker.coins,
+      'level', attacker.level,
+      'gemstones', attacker.gemstones,
+      'xp_status', v_xp_status
+    ),
     'combat_stats', json_build_object(
       'attacker_attack', attacker_attack,
       'defender_defense', defender_defense,
@@ -322,8 +352,15 @@ begin
       'roll', round(roll * 100, 1)
     )
   );
+
+  if p_request_id is not null then
+    insert into public.pvp_attack_attempts (request_id, attacker_id, defender_id, response)
+    values (p_request_id, v_attacker_id, p_defender_id, v_response);
+  end if;
+
+  return v_response;
 end;
 $$;
 
 -- Grant execute permission to authenticated users
-grant execute on function public.rpc_hack_attempt(uuid) to authenticated;
+grant execute on function public.rpc_hack_attempt(uuid, uuid) to authenticated;

@@ -232,8 +232,6 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
       return;
     }
 
-    onGrantReward({ ap: -RAID_AP_COST });
-
     setSelectedTarget(target);
     setStage('cinematic');
     setBattleNarration([]);
@@ -293,8 +291,9 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
     });
 
     try {
+      const requestId = (crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`);
       // Call the actual attack (starts immediately but runs in parallel with animations)
-      const result = await GameService.raid_attack(target.user_id, useCracker, target);
+      const result = await GameService.raid_attack(target.user_id, useCracker, target, requestId);
 
       console.log('Battle result received:', result); // Debug log
       
@@ -309,12 +308,12 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
         audioService.play('hack_fail');
       }
 
-      // Grant rewards/penalties (AP cost already deducted when the raid was initiated)
+      // Grant rewards/penalties (server-authoritative AP spend handled in RPC)
       onGrantReward({
         xp: result.attacker_deltas.xp,
         coins: result.attacker_deltas.coins,
         gemstones: result.attacker_deltas.gemstones,
-      });
+      }, result.final_profile_values);
 
       // Wait for minimum animation time (2.8s) before showing result
       const elapsedTime = 2800;
@@ -325,7 +324,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
     } catch (error) {
       console.error('Battle attack error:', error);
       // Show error and go back to targets
-      alert('Battle failed and action points were still consumed: ' + (error as Error).message);
+      alert('Battle failed and no action points were consumed: ' + (error as Error).message);
       setStage('loading');
       GameService.raid_targets().then(data => {
         setTargets(data);
