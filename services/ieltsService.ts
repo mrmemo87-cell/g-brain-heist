@@ -711,24 +711,67 @@ export const fetchIeltsContent = async () => {
     }
   };
 
-  const [reading, listening, writing, speaking] = await Promise.all([
+  const [
+    reading,
+    readingQuestions,
+    listening,
+    listeningQuestions,
+    writing,
+    speaking,
+    mockTests,
+    sessions,
+  ] = await Promise.all([
     fetchWithFallback(supabase.from('ielts_reading_sets').select('id, title, level, is_active').order('id')),
+    fetchWithFallback(
+      supabase
+        .from('ielts_reading_questions')
+        .select('id, set_id, question_order, question_type, body')
+        .order('set_id')
+        .order('question_order')
+        .limit(200)
+    ),
     fetchWithFallback(supabase.from('ielts_listening_sets').select('id, title, level, is_active').order('id')),
+    fetchWithFallback(
+      supabase
+        .from('ielts_listening_questions')
+        .select('id, set_id, question_order, question_type, body')
+        .order('set_id')
+        .order('question_order')
+        .limit(200)
+    ),
     fetchWithFallback(supabase.from('ielts_writing_tasks').select('id, title, task_type, is_active').order('id')),
-    fetchWithFallback(supabase.from('ielts_speaking_tasks').select('id, slug, prompt, is_active').order('id')),
+    fetchWithFallback(supabase.from('ielts_speaking_tasks').select('id, slug, part, prompt, is_active').order('id')),
+    fetchWithFallback(
+      supabase
+        .from('ielts_mock_tests')
+        .select('id, title, duration_minutes, is_active, created_at')
+        .order('created_at', { ascending: false })
+        .limit(100)
+    ),
+    fetchWithFallback(
+      supabase
+        .from('ielts_sessions')
+        .select('id, reference_code, module, target_band, band_overall, created_at, completed_at')
+        .order('created_at', { ascending: false })
+        .limit(100)
+    ),
   ]);
 
   return {
     readingSets: reading,
+    readingQuestions,
     listeningSets: listening,
+    listeningQuestions,
     writingTasks: writing,
     speakingTasks: speaking,
+    mockTests,
+    sessions,
   };
 };
 
 export const markNotificationSent = async (
   attemptType: string, 
-  attemptId: number, 
+  attemptId: number | string, 
   notificationType: 'email' | 'sms' | 'in_app'
 ) => {
   const columnMap = {
