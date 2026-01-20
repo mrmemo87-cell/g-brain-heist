@@ -51,10 +51,10 @@ test('notifyLevelUp sends structured payload', async () => {
 test('performHackAttempt bubbles Supabase response', async () => {
   const mockResponse = { result: 'win', attacker_deltas: { xp: 10, coins: 20 }, defender_deltas: { coins_loss: -15 }, shield_state: 'none' };
   const { client, calls } = createMockClient(mockResponse);
-  const { data, error } = await performHackAttempt('defender-9', client);
+  const { data, error } = await performHackAttempt('defender-9', undefined, client);
   assert.equal(error, null);
   assert.equal(calls[0]?.name, 'rpc_hack_attempt');
-  assert.deepEqual(calls[0]?.params, { p_defender_id: 'defender-9' });
+  assert.deepEqual(calls[0]?.params, { p_defender_id: 'defender-9', p_request_id: null });
   assert.equal(data, mockResponse);
 });
 
