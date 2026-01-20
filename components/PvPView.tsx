@@ -311,14 +311,15 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
         audioService.play('hack_fail');
       }
 
-      const xpDelta = Number(result.xp_delta ?? 0);
-      const coinsDelta = Number(result.coins_delta ?? 0);
+      const xpDelta = Number(result.attacker_deltas?.xp ?? 0);
+      const coinsDelta = Number(result.attacker_deltas?.coins ?? 0);
+      const gemstonesDelta = Number(result.attacker_deltas?.gemstones ?? 0);
 
       // Grant rewards/penalties (server-authoritative AP spend handled in RPC)
       onGrantReward({
         xp: xpDelta,
         coins: coinsDelta,
-        gemstones: result.attacker_deltas.gemstones,
+        gemstones: gemstonesDelta,
       }, result.final_profile_values);
 
       // Wait for minimum animation time (2.8s) before showing result
