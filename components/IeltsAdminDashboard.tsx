@@ -11,7 +11,7 @@ interface IeltsAdminProps {
   addToast: (message: string, type: 'success' | 'error' | 'info') => void;
 }
 
-type IeltsSubTab = 'overview' | 'attempts' | 'users' | 'content' | 'notifications' | 'prime';
+type IeltsSubTab = 'overview' | 'attempts' | 'users' | 'content' | 'notifications' | 'prime' | 'violations';
 
 const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
   const [activeSubTab, setActiveSubTab] = useState<IeltsSubTab>('overview');
@@ -24,11 +24,14 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
   const [content, setContent] = useState<any>(null);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [primeApplications, setPrimeApplications] = useState<any[]>([]);
+  const [violations, setViolations] = useState<any[]>([]);
   
   // Filters
   const [skillFilter, setSkillFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFilter, setDateFilter] = useState<string>('all');
+  const [resolutionNotes, setResolutionNotes] = useState<Record<string, string>>({});
+  const [statusUpdates, setStatusUpdates] = useState<Record<string, string>>({});
   
   // Modal states for Answers and Reports
   const [selectedAttempt, setSelectedAttempt] = useState<any>(null);
@@ -39,6 +42,15 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
     emailSent: notifications.some(n => Object.prototype.hasOwnProperty.call(n, 'email_sent_at')),
     smsSent: notifications.some(n => Object.prototype.hasOwnProperty.call(n, 'sms_sent_at')),
     inAppShown: notifications.some(n => Object.prototype.hasOwnProperty.call(n, 'in_app_shown_at')),
+  };
+
+  const fetchViolationLogs = async () => {
+    const { data, error } = await supabase.rpc('admin_ielts_violation_logs');
+    if (error) {
+      console.error('Error loading violation logs:', error);
+      return [];
+    }
+    return data || [];
   };
 
   useEffect(() => {
@@ -76,11 +88,12 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
       }
 
       // Load stats, attempts, users, and content in parallel
-      const [statsData, attemptsData, usersData, contentData] = await Promise.all([
+      const [statsData, attemptsData, usersData, contentData, violationsData] = await Promise.all([
         fetchIeltsAdminStats().catch(() => null),
         fetchIeltsRecentAttempts(100).catch(() => []),
         fetchAllIeltsUsers().catch(() => []),
         fetchIeltsContent().catch(() => null),
+        fetchViolationLogs().catch(() => []),
       ]);
 
       setStats(statsData);
@@ -89,6 +102,7 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
       setContent(contentData);
       setNotifications(notifData);
       setPrimeApplications(appsData);
+      setViolations(violationsData);
     } catch (error) {
       console.error('Error loading IELTS admin data:', error);
       addToast('Failed to load IELTS data', 'error');
@@ -120,6 +134,13 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '-';
     const d = new Date(dateStr);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
+  const formatViolationDate = (value: string | number | null) => {
+    if (!value) return '-';
+    const d = typeof value === 'number' ? new Date(value) : new Date(value);
+    if (Number.isNaN(d.getTime())) return '-';
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
@@ -210,6 +231,22 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
     loadData();
   };
 
+  const updateViolationStatus = async (violationId: string, status: string, resolutionNote?: string) => {
+    const { error } = await supabase.rpc('admin_ielts_violation_set_status', {
+      p_violation_id: violationId,
+      p_status: status,
+      p_resolution_note: resolutionNote ?? null,
+    });
+
+    if (error) {
+      console.error('Error updating violation status:', error);
+      addToast('Failed to update violation status', 'error');
+      return;
+    }
+    addToast(`Violation marked as ${status}`, 'success');
+    await loadData();
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -244,7 +281,7 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
 
       {/* Sub-tabs */}
       <div className="flex flex-wrap gap-2 justify-center mb-6">
-        {(['overview', 'attempts', 'users', 'content', 'notifications', 'prime'] as IeltsSubTab[]).map(tab => (
+        {(['overview', 'attempts', 'users', 'content', 'notifications', 'prime', 'violations'] as IeltsSubTab[]).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveSubTab(tab)}
@@ -260,6 +297,7 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
             {tab === 'content' && '📚 Content'}
             {tab === 'notifications' && '🔔 Notifications'}
             {tab === 'prime' && `⭐ Prime (${primeApplications.length})`}
+            {tab === 'violations' && `🚨 Violations (${violations.length})`}
           </button>
         ))}
       </div>
@@ -928,6 +966,119 @@ const IeltsAdminDashboard: React.FC<IeltsAdminProps> = ({ addToast }) => {
               To send SMS notifications, you need to integrate with an SMS provider like Twilio.
               Create a Supabase Edge Function to handle sending SMS messages when results are ready.
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Violations Tab */}
+      {activeSubTab === 'violations' && (
+        <div className="space-y-4">
+          <div className="bg-black/40 rounded-xl p-6 border border-gray-700">
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+              <div>
+                <h3 className="text-xl font-bold text-white mb-1">🚨 Violation Logs</h3>
+                <p className="text-gray-400 text-sm">Review ExamGuard violations and update their status.</p>
+              </div>
+              <button
+                onClick={async () => {
+                  await loadData();
+                  addToast('Violation logs refreshed', 'success');
+                }}
+                className="px-3 py-2 bg-cyan-600/40 hover:bg-cyan-600/70 text-white text-xs rounded transition-colors"
+              >
+                Refresh
+              </button>
+            </div>
+
+            {violations.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">No violations logged yet</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-800/50">
+                      <th className="px-4 py-3 text-left text-gray-400">User</th>
+                      <th className="px-4 py-3 text-left text-gray-400">Test</th>
+                      <th className="px-4 py-3 text-left text-gray-400">Type</th>
+                      <th className="px-4 py-3 text-left text-gray-400">Timestamp</th>
+                      <th className="px-4 py-3 text-center text-gray-400">Words</th>
+                      <th className="px-4 py-3 text-center text-gray-400">Chars</th>
+                      <th className="px-4 py-3 text-left text-gray-400">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {violations.map((log, idx) => {
+                      const violationId = log.id ?? log.violation_id;
+                      const statusKey = violationId ? String(violationId) : '';
+                      const statusValue = statusUpdates[statusKey] ?? log.status ?? 'open';
+                      const resolutionValue = resolutionNotes[statusKey] ?? log.resolution_note ?? '';
+                      return (
+                        <tr key={violationId || idx} className="border-t border-gray-700/50">
+                          <td className="px-4 py-3 text-white">{log.user_name || log.user_id || log.userId || '-'}</td>
+                          <td className="px-4 py-3 text-gray-400">{log.test_title || log.test_id || log.testId || '-'}</td>
+                          <td className="px-4 py-3 text-gray-400">{log.violation_type || log.type || '-'}</td>
+                          <td className="px-4 py-3 text-gray-400 text-sm">
+                            {formatViolationDate(log.created_at || log.timestamp)}
+                          </td>
+                          <td className="px-4 py-3 text-center text-gray-400">
+                            {log.word_count ?? log.wordCount ?? '-'}
+                          </td>
+                          <td className="px-4 py-3 text-center text-gray-400">
+                            {log.char_count ?? log.charCount ?? '-'}
+                          </td>
+                          <td className="px-4 py-3 text-gray-400">
+                            <select
+                              value={statusValue}
+                              onChange={async e => {
+                                const nextStatus = e.target.value;
+                                if (!violationId) {
+                                  addToast('Violation record missing ID', 'error');
+                                  return;
+                                }
+                                setStatusUpdates(prev => ({ ...prev, [statusKey]: nextStatus }));
+                                if (nextStatus !== 'resolved') {
+                                  await updateViolationStatus(String(violationId), nextStatus);
+                                }
+                              }}
+                              className="px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white text-sm"
+                            >
+                              <option value="open">Open</option>
+                              <option value="reviewing">Reviewing</option>
+                              <option value="resolved">Resolved</option>
+                            </select>
+                            {statusValue === 'resolved' && (
+                              <div className="mt-2 space-y-2">
+                                <input
+                                  type="text"
+                                  placeholder="Resolution note..."
+                                  value={resolutionValue}
+                                  onChange={e =>
+                                    setResolutionNotes(prev => ({ ...prev, [statusKey]: e.target.value }))
+                                  }
+                                  className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none"
+                                />
+                                <button
+                                  onClick={async () => {
+                                    if (!violationId) {
+                                      addToast('Violation record missing ID', 'error');
+                                      return;
+                                    }
+                                    await updateViolationStatus(String(violationId), 'resolved', resolutionValue);
+                                  }}
+                                  className="px-3 py-2 bg-emerald-600/40 hover:bg-emerald-600/70 text-white text-xs rounded transition-colors"
+                                >
+                                  Confirm Resolve
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}
