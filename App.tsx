@@ -678,6 +678,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, [view, sessionStatus?.active]);
 
   const isStudent = profile?.role === 'student';
+  const isAdminUser = profile ? isAdmin(profile) : false;
 
   // Auto-refresh profile every 60 seconds to update AP regeneration
   useEffect(() => {
@@ -1432,11 +1433,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                       onVisitInventory={() => handleViewChange('inventory')}
                       onViewLeaderboard={() => handleViewChange('leaderboard')}
                       onViewAchievements={() => handleViewChange('achievements')}
-                      onOpenRaidAdmin={isAdmin(profile) ? () => handleViewChange('raid_admin') : undefined}
+                      onOpenRaidAdmin={isAdminUser ? () => handleViewChange('raid_admin') : undefined}
                       onOpenTournament={() => handleViewChange('tournament')}
-                      onOpenAdminPortal={isAdmin(profile) ? () => handleViewChange('admin') : undefined}
+                      onOpenAdminPortal={isAdminUser ? () => handleViewChange('admin') : undefined}
                       onOpenSchoolAdmin={isUserSchoolAdmin ? () => handleViewChange('school_admin') : undefined}
-                      onOpenTournamentAdmin={isAdmin(profile) ? () => handleViewChange('tournament_admin') : undefined}
+                      onOpenTournamentAdmin={isAdminUser ? () => handleViewChange('tournament_admin') : undefined}
                       onOpenCompetitionPlay={!isStudent && profile?.grade && !profile?.is_banned ? () => handleViewChange('phase1_play') : undefined}
                       onOpenCompetitionLeaderboard={() => handleViewChange('phase1_leaderboard')}
                       onOpenCompetitionAdmin={profile?.is_admin ? () => handleViewChange('phase1_admin') : undefined}

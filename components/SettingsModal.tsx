@@ -187,7 +187,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                   <span className="font-bold text-cyan-400">Teacher</span>
                 </div>
               )}
-              {isAdmin(profile.username) && (
+              {isAdmin(profile) && (
                 <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg border border-pink-500/50">
                   <span className="text-gray-300">Admin</span>
                   <span className="font-bold text-pink-400">✓ Verified</span>
