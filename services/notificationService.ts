@@ -91,8 +91,8 @@ class NotificationService {
     // Map notification types to sound effects
     const soundMap: Partial<Record<NotificationType, SoundEffect>> = {
       attack_incoming: 'hack_fail',       // Alert!
-      attack_defended: 'hack_win',        // Success!
-      attack_success: 'hack_win',         // Win!
+      attack_defended: 'tada',            // Success!
+      attack_success: 'tada',             // Win!
       attack_failed: 'wrong',             // Loss
       level_up: 'level_up',               // Celebration!
       achievement_earned: 'achievement',  // Trophy sound! 🏆
