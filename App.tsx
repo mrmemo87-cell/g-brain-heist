@@ -1,14 +1,14 @@
-import React, { Suspense, useState, useEffect, useRef, useMemo } from 'react';
+import React, { Suspense, useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage, Announcement, Grade, Batch, StudentAssignmentTask, XpStatus } from './types';
 import * as GameService from './services/gameService';
 import { supabase } from './services/supabaseClient';
 import Header from './components/Header';
 import { useLightMode } from './src/contexts/LightModeContext';
 import PlayerProfileCard from './components/PlayerProfileCard';
-import LoadingScreen from './components/LoadingScreen';
 import TaskList from './components/TaskList';
 import MainActions from './components/MainActions';
 import NewsFeed from './components/NewsFeed';
+import CapTracker from './components/CapTracker';
 import Toast from './components/Toast';
 import LevelUpModal from './components/LevelUpModal';
 import TutorialModal from './components/TutorialModal';
@@ -65,6 +65,15 @@ const CACHE_KEYS = {
   caps: 'brains_heist_cache_caps',
   news: 'brains_heist_cache_news',
 };
+const DEFAULT_SESSION_STATUS: SessionStatus = {
+  active: false,
+  remaining_seconds: 0,
+  current_multiplier: 1,
+  today_used: false,
+};
+
+type NonCriticalLoadState = 'idle' | 'loading' | 'ready' | 'error' | 'cached';
+type NonCriticalKey = 'tasks' | 'caps' | 'news' | 'assignment' | 'sessionStatus';
 
 const readCache = <T,>(key: string): T | null => {
   const raw = localStorage.getItem(key);
@@ -89,13 +98,13 @@ const writeCache = <T,>(key: string, value: T) => {
 
 const App: React.FC<AppProps> = ({ onLogout }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [sessionStatus, setSessionStatus] = useState<SessionStatus | null>(null);
-  const [caps, setCaps] = useState<Caps | null>(null);
-  const [news, setNews] = useState<NewsEvent[]>([]);
+  const [tasks, setTasks] = useState<Task[]>(() => readCache<Task[]>(CACHE_KEYS.tasks) ?? []);
+  const [sessionStatus, setSessionStatus] = useState<SessionStatus>(DEFAULT_SESSION_STATUS);
+  const [caps, setCaps] = useState<Caps | null>(() => readCache<Caps>(CACHE_KEYS.caps));
+  const [news, setNews] = useState<NewsEvent[]>(() => readCache<NewsEvent[]>(CACHE_KEYS.news) ?? []);
   const [activeAssignment, setActiveAssignment] = useState<StudentAssignmentTask | null>(null);
-  const [loading, setLoading] = useState(true);
-    const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'lockdown' | 'cambridge' | 'school_admin'>('dashboard');
+  const [criticalLoading, setCriticalLoading] = useState(true);
+  const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'lockdown' | 'cambridge' | 'school_admin'>('dashboard');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [levelUpData, setLevelUpData] = useState<{ newLevel: number; rewards: any } | null>(null);
@@ -120,9 +129,83 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const { isLightMode: isLiteMode, toggleLightMode } = useLightMode();
   const [pendingClanRequests, setPendingClanRequests] = useState(0);
   const [isUserSchoolAdmin, setIsUserSchoolAdmin] = useState(false);
+  const [sessionMissing, setSessionMissing] = useState(false);
+  const [isInteractive, setIsInteractive] = useState(false);
+  const [nonCriticalStatus, setNonCriticalStatus] = useState({
+    tasks: 'idle' as NonCriticalLoadState,
+    caps: 'idle' as NonCriticalLoadState,
+    news: 'idle' as NonCriticalLoadState,
+    assignment: 'idle' as NonCriticalLoadState,
+    sessionStatus: 'idle' as NonCriticalLoadState,
+  });
+  const [nonCriticalErrors, setNonCriticalErrors] = useState<Record<NonCriticalKey, string | null>>({
+    tasks: null,
+    caps: null,
+    news: null,
+    assignment: null,
+    sessionStatus: null,
+  });
+  const bootStartRef = useRef<number>(performance.now());
+  const bootTimingsRef = useRef<{ firstRender?: number; whoami?: number; nonCritical?: number }>({});
+  const criticalAbortRef = useRef<AbortController | null>(null);
+  const nonCriticalAbortRef = useRef<AbortController | null>(null);
   const isCambridgeView = view === 'cambridge';
   const isIeltsOnlyUser =
     profile?.school_name?.trim().toLowerCase() === IELTS_ONLY_SCHOOL_NAME.toLowerCase();
+
+  const SkeletonBlock: React.FC<{ className?: string }> = ({ className }) => (
+    <div className={`animate-pulse rounded-xl bg-white/10 ${className ?? ''}`} />
+  );
+
+  const SectionPlaceholder: React.FC<{ title: string; lines?: number; action?: React.ReactNode }> = ({
+    title,
+    lines = 3,
+    action,
+  }) => (
+    <div className="card-glass p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="font-heading text-lg text-cyan-200">{title}</h3>
+        {action}
+      </div>
+      <div className="space-y-3">
+        {Array.from({ length: lines }).map((_, index) => (
+          <SkeletonBlock key={index} className="h-4 w-full" />
+        ))}
+      </div>
+    </div>
+  );
+
+  const SectionError: React.FC<{ title: string; message: string; onRetry: () => void }> = ({
+    title,
+    message,
+    onRetry,
+  }) => (
+    <div className="card-glass p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="font-heading text-lg text-amber-300">{title}</h3>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="rounded-lg border border-amber-400/60 px-3 py-1 text-xs font-semibold text-amber-200 hover:bg-amber-500/20"
+        >
+          Retry
+        </button>
+      </div>
+      <p className="text-sm text-gray-300">{message}</p>
+    </div>
+  );
+
+  const HeaderShell = () => (
+    <div className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3">
+      <div className="flex items-center justify-between">
+        <SkeletonBlock className="h-6 w-32" />
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-full border border-cyan-400/60 border-t-transparent animate-spin" />
+          <span className="text-xs text-cyan-200">Loading profile…</span>
+        </div>
+      </div>
+    </div>
+  );
 
   const renderLazy = (node: React.ReactNode) => (
     <Suspense
@@ -153,10 +236,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     return GRADE_TO_BATCH[pendingGrade as Grade];
   }, [pendingGrade]);
 
-  const addToast = (message: string, type: ToastMessage['type'] = 'info', retryAction?: () => void) => {
+  const addToast = useCallback((message: string, type: ToastMessage['type'] = 'info', retryAction?: () => void) => {
     const id = Date.now();
     setToasts((prevToasts: ToastMessage[]) => [...prevToasts, { id, message, type, retryAction }]);
-  };
+  }, []);
 
   const handleViewChange = (nextView: typeof view) => {
     if (isIeltsOnlyUser && nextView !== 'ielts') {
@@ -323,7 +406,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     }
   }, [profile]);
 
-  const loadCachedData = () => {
+  const loadCachedData = useCallback(() => {
     if (cachedDataLoadedRef.current) return;
     cachedDataLoadedRef.current = true;
 
@@ -331,67 +414,83 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     const cachedCaps = readCache<Caps>(CACHE_KEYS.caps);
     const cachedNews = readCache<NewsEvent[]>(CACHE_KEYS.news);
 
-    if (cachedTasks) setTasks(cachedTasks);
-    if (cachedCaps) setCaps(cachedCaps);
-    if (cachedNews) setNews(cachedNews);
-  };
-
-  const loadNonCriticalData = async (profileData: Profile | null) => {
-    const results = await Promise.allSettled([
-      GameService.tasks_list(),
-      GameService.caps_status(),
-      GameService.news_feed(),
-    ]);
-
-    const [tasksResult, capsResult, newsResult] = results;
-
-    if (tasksResult.status === 'fulfilled') {
-      setTasks(tasksResult.value);
-      writeCache(CACHE_KEYS.tasks, tasksResult.value);
+    if (cachedTasks) {
+      setTasks(cachedTasks);
+      setNonCriticalStatus((prev) => ({ ...prev, tasks: 'cached' }));
     }
-    if (capsResult.status === 'fulfilled') {
-      setCaps(capsResult.value);
-      writeCache(CACHE_KEYS.caps, capsResult.value);
+    if (cachedCaps) {
+      setCaps(cachedCaps);
+      setNonCriticalStatus((prev) => ({ ...prev, caps: 'cached' }));
     }
-    if (newsResult.status === 'fulfilled') {
-      setNews(newsResult.value || []);
-      writeCache(CACHE_KEYS.news, newsResult.value || []);
+    if (cachedNews) {
+      setNews(cachedNews);
+      setNonCriticalStatus((prev) => ({ ...prev, news: 'cached' }));
     }
+  }, []);
 
-    await refreshAssignment(profileData);
-    isSchoolAdmin().then(setIsUserSchoolAdmin).catch(() => setIsUserSchoolAdmin(false));
-  };
+  const logBootTiming = useCallback((label: string, value: number) => {
+    if (!import.meta.env.DEV) return;
+    console.info(`[Boot diagnostics] ${label}: ${Math.round(value)}ms`);
+  }, []);
 
-  const fetchGameData = async () => {
+  useEffect(() => {
+    const firstRenderMs = performance.now() - bootStartRef.current;
+    bootTimingsRef.current.firstRender = firstRenderMs;
+    logBootTiming('time to first render', firstRenderMs);
+  }, [logBootTiming]);
+
+  const classifyBootError = useCallback((error: any) => {
+    const isDatabaseError = error?.message?.includes('relation') || 
+                            error?.message?.includes('does not exist') ||
+                            error?.code === '42P01' ||
+                            error?.code === 'PGRST116';
+
+    if (isDatabaseError) return 'database_not_setup';
+    if (!navigator.onLine || error?.message?.includes('fetch') || error?.message?.includes('network')) return 'network_error';
+    if (error?.message?.includes('timeout')) return 'timeout_error';
+    return 'unknown_error';
+  }, []);
+
+  const scheduleAfterPaint = useCallback((callback: () => void) => {
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      (window as Window & { requestIdleCallback?: (cb: () => void) => number }).requestIdleCallback?.(callback);
+    } else {
+      window.setTimeout(callback, 0);
+    }
+  }, []);
+
+  const startCriticalBoot = useCallback(async () => {
+    criticalAbortRef.current?.abort();
+    const criticalController = new AbortController();
+    criticalAbortRef.current = criticalController;
+    nonCriticalAbortRef.current?.abort();
+    setCriticalLoading(true);
+    setLoadError(null);
+    setSessionMissing(false);
+    setIsInteractive(false);
+    loadCachedData();
+
     try {
-      setLoading(true);
-      setLoadError(null);
-      loadCachedData();
+      const { session, profile: profileData } = await GameService.getCriticalBootData({
+        signal: criticalController.signal,
+        timeoutMs: 12000,
+        retryOnTimeout: 1,
+      });
 
-      // Check if offline before attempting fetch
-      if (!navigator.onLine) {
-        throw new Error('No internet connection');
+      if (!session) {
+        setSessionMissing(true);
+        return;
       }
 
-      // Add timeout to prevent infinite loading (30 seconds)
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout - server took too long to respond')), 30000)
-      );
-
-      const dataPromise = Promise.all([
-        GameService.whoami(),
-        GameService.session_status(),
-      ]);
-
-      const [profileData, sessionData] = await Promise.race([
-        dataPromise,
-        timeoutPromise
-      ]) as any;
+      if (!profileData) {
+        throw new Error('Profile not loaded');
+      }
 
       setProfile(profileData);
-      setSessionStatus(sessionData || { status: 'idle', current_task: null, started_at: null, multiplier: 1 });
 
-      void loadNonCriticalData(profileData);
+      const whoamiMs = performance.now() - bootStartRef.current;
+      bootTimingsRef.current.whoami = whoamiMs;
+      logBootTiming('time to whoami resolved', whoamiMs);
 
       // Show tutorial if first time user (only check once on initial load)
       if (!tutorialChecked && profileData && !profileData.tutorial_completed) {
@@ -400,36 +499,132 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       } else if (!tutorialChecked) {
         setTutorialChecked(true);
       }
+
+      requestAnimationFrame(() => {
+        setIsInteractive(true);
+      });
     } catch (error: any) {
-      console.error("Failed to load game data:", error);
-      
-      // Check for database setup issues
-      const isDatabaseError = error?.message?.includes('relation') || 
-                              error?.message?.includes('does not exist') ||
-                              error?.code === '42P01' ||
-                              error?.code === 'PGRST116';
-      
-      if (isDatabaseError) {
-        setLoadError('database_not_setup');
-      } else if (!navigator.onLine || error?.message?.includes('fetch') || error?.message?.includes('network')) {
-        setLoadError('network_error');
-      } else if (error?.message?.includes('timeout')) {
-        setLoadError('timeout_error');
-      } else {
-        setLoadError('unknown_error');
+      console.error('Failed to load critical boot data:', error);
+      if (criticalController.signal.aborted) {
+        return;
       }
-      
-      addToast(`Failed to load: ${error?.message || 'Unknown error'}`, "error", fetchGameData);
+      setLoadError(classifyBootError(error));
+      addToast(`Failed to load: ${error?.message || 'Unknown error'}`, 'error', startCriticalBoot);
     } finally {
-      setLoading(false);
+      setCriticalLoading(false);
     }
-  };
+  }, [addToast, classifyBootError, logBootTiming, loadCachedData, tutorialChecked]);
+
+  const runNonCriticalLoads = useCallback((targets?: NonCriticalKey[]) => {
+    if (!profile) return;
+
+    const isStudentRole = profile.role === 'student';
+    const resolvedTargets = targets
+      ? targets.filter((target) => (target === 'assignment' ? isStudentRole : true))
+      : (['tasks', 'caps', 'news', 'assignment', 'sessionStatus'] as NonCriticalKey[]).filter((target) =>
+          target === 'assignment' ? isStudentRole : true
+        );
+
+    if (!resolvedTargets.length) {
+      setNonCriticalStatus((prev) => ({ ...prev, assignment: 'ready' }));
+      setActiveAssignment(null);
+      return;
+    }
+
+    nonCriticalAbortRef.current?.abort();
+    const controller = new AbortController();
+    nonCriticalAbortRef.current = controller;
+
+    setNonCriticalStatus((prev) => {
+      const next = { ...prev };
+      resolvedTargets.forEach((target) => {
+        next[target] = 'loading';
+      });
+      return next;
+    });
+    setNonCriticalErrors((prev) => {
+      const next = { ...prev };
+      resolvedTargets.forEach((target) => {
+        next[target] = null;
+      });
+      return next;
+    });
+
+    scheduleAfterPaint(() => {
+      const { allSettled } = GameService.kickOffNonCriticalBootLoads({
+        signal: controller.signal,
+        targets: resolvedTargets,
+        onTasks: (tasksData) => {
+          setTasks(tasksData);
+          writeCache(CACHE_KEYS.tasks, tasksData);
+          setNonCriticalStatus((prev) => ({ ...prev, tasks: 'ready' }));
+        },
+        onCaps: (capsData) => {
+          setCaps(capsData);
+          writeCache(CACHE_KEYS.caps, capsData);
+          setNonCriticalStatus((prev) => ({ ...prev, caps: 'ready' }));
+        },
+        onNews: (newsData) => {
+          const normalized = newsData || [];
+          setNews(normalized);
+          writeCache(CACHE_KEYS.news, normalized);
+          setNonCriticalStatus((prev) => ({ ...prev, news: 'ready' }));
+        },
+        onAssignment: (assignmentData) => {
+          setActiveAssignment(assignmentData);
+          setNonCriticalStatus((prev) => ({ ...prev, assignment: 'ready' }));
+        },
+        onSessionStatus: (status) => {
+          setSessionStatus(status);
+          setNonCriticalStatus((prev) => ({ ...prev, sessionStatus: 'ready' }));
+        },
+        onError: (key, error) => {
+          setNonCriticalStatus((prev) => ({ ...prev, [key]: 'error' }));
+          setNonCriticalErrors((prev) => ({ ...prev, [key]: (error as Error)?.message || 'Failed to load' }));
+        },
+      });
+
+      void allSettled.then(() => {
+        const nonCriticalMs = performance.now() - bootStartRef.current;
+        bootTimingsRef.current.nonCritical = nonCriticalMs;
+        logBootTiming('time to non-critical resolved', nonCriticalMs);
+      });
+
+      void isSchoolAdmin().then(setIsUserSchoolAdmin).catch(() => setIsUserSchoolAdmin(false));
+    });
+  }, [profile, scheduleAfterPaint, logBootTiming]);
+
+  const retryNonCritical = useCallback(
+    (target: NonCriticalKey) => {
+      runNonCriticalLoads([target]);
+    },
+    [runNonCriticalLoads]
+  );
 
   useEffect(() => {
-    fetchGameData();
+    startCriticalBoot();
+  }, [startCriticalBoot]);
+
+  useEffect(() => {
+    if (sessionMissing) {
+      onLogout();
+    }
+  }, [sessionMissing, onLogout]);
+
+  useEffect(() => {
+    if (!profile || !isInteractive) return;
+    runNonCriticalLoads();
+  }, [profile?.id, isInteractive, runNonCriticalLoads]);
+
+  useEffect(() => {
+    return () => {
+      criticalAbortRef.current?.abort();
+      nonCriticalAbortRef.current?.abort();
+    };
   }, []);
 
   useEffect(() => {
+    if (!isInteractive) return;
     let cancelled = false;
 
     const loadAnnouncement = async () => {
@@ -450,7 +645,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       cancelled = true;
       clearInterval(interval);
     };
-  }, []);
+  }, [isInteractive]);
 
   useEffect(() => {
     if (previousViewRef.current !== view) {
@@ -501,7 +696,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       setIsOnline(true);
       addToast('🌐 Connection restored', 'success');
       // Refresh data when coming back online
-      fetchGameData();
+      startCriticalBoot();
     };
 
     const handleOffline = () => {
@@ -516,11 +711,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
+  }, [addToast, startCriticalBoot]);
 
   // Real-time subscription for activity feed
   useEffect(() => {
-    if (!profile) return;
+    if (!profile || !isInteractive) return;
     
     const activityChannel = supabase
       .channel('activities')
@@ -551,11 +746,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     return () => {
       supabase.removeChannel(activityChannel);
     };
-  }, [profile]);
+  }, [profile, isInteractive]);
 
   // Real-time subscription for profile updates
   useEffect(() => {
-    if (!profile?.id) return;
+    if (!profile?.id || !isInteractive) return;
 
     let isSubscribed = true;
     let lastUpdateTime = 0;
@@ -674,7 +869,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       isSubscribed = false;
       supabase.removeChannel(profileChannel);
     };
-  }, [profile?.id, previousLevel]);
+  }, [profile?.id, previousLevel, isInteractive]);
   
   // Set initial level when profile loads
   useEffect(() => {
@@ -700,6 +895,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       console.error('Failed to refresh profile:', error);
     }
   };
+
+  const handleTasksRefresh = useCallback(() => {
+    retryNonCritical('tasks');
+    void refreshProfile();
+  }, [retryNonCritical, refreshProfile]);
 
   const handleQuestAction = () => {
     if (activeAssignment) {
@@ -824,8 +1024,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   };
 
 
-  if (loading) {
-    return <LoadingScreen />;
+  if (sessionMissing) {
+    return null;
   }
 
   // Database not set up error screen
@@ -856,7 +1056,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           <button 
             onClick={() => {
               setLoadError(null);
-              fetchGameData();
+              startCriticalBoot();
             }}
             className="px-6 py-3 rounded-lg font-bold gradient-cyan hover:scale-105 transition-transform"
           >
@@ -890,7 +1090,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           <button 
             onClick={() => {
               setLoadError(null);
-              fetchGameData();
+              startCriticalBoot();
             }}
             className="px-6 py-3 rounded-lg font-bold gradient-cyan hover:scale-105 transition-transform"
           >
@@ -916,7 +1116,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           <button 
             onClick={() => {
               setLoadError(null);
-              fetchGameData();
+              startCriticalBoot();
             }}
             className="px-6 py-3 rounded-lg font-bold gradient-cyan hover:scale-105 transition-transform"
           >
@@ -933,30 +1133,147 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     );
   }
 
-  if (!profile || !tasks || !sessionStatus || !caps || !news) {
-     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="card-glass p-8 max-w-md w-full text-center">
-          <div className="text-6xl mb-4">❌</div>
-          <h1 className="font-heading text-2xl mb-4" style={{color: 'var(--danger-red)'}}>
-            Critical Data Missing
-          </h1>
-          <p className="text-gray-300 mb-6">
-            Some required game data failed to load properly.
-          </p>
-          <button 
-            onClick={fetchGameData}
-            className="px-6 py-3 rounded-lg font-bold gradient-cyan hover:scale-105 transition-transform"
-          >
-            🔄 Reload
-          </button>
+  const renderAssignmentSection = () => {
+    if (!profile || profile.role !== 'student') {
+      return null;
+    }
+
+    if (nonCriticalErrors.assignment) {
+      return (
+        <SectionError
+          title="Assignment"
+          message={nonCriticalErrors.assignment}
+          onRetry={() => retryNonCritical('assignment')}
+        />
+      );
+    }
+
+    if (!activeAssignment && (nonCriticalStatus.assignment === 'loading' || criticalLoading)) {
+      return <SectionPlaceholder title="Assignment" lines={3} />;
+    }
+
+    if (!activeAssignment) {
+      return (
+        <div className="card-glass p-5">
+          <h3 className="font-heading text-lg text-cyan-200 mb-2">Assignment</h3>
+          <p className="text-sm text-gray-300">No active assignments right now.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="card-glass p-5">
+        <h3 className="font-heading text-lg text-cyan-200 mb-2">Assignment</h3>
+        <p className="text-sm text-gray-100 font-semibold">{activeAssignment.title || 'New assignment'}</p>
+        <div className="mt-2 text-xs text-gray-300 space-y-1">
+          <p>Teacher: {activeAssignment.teacher_username || 'Your teacher'}</p>
+          <p>Subject: {activeAssignment.subject_name || 'General'}</p>
+          <p>Due: {activeAssignment.due_at ? new Date(activeAssignment.due_at).toLocaleString() : 'No deadline'}</p>
         </div>
       </div>
     );
-  }
+  };
+
+  const renderCapsSection = () => {
+    if (nonCriticalErrors.caps) {
+      return (
+        <SectionError
+          title="Caps"
+          message={nonCriticalErrors.caps}
+          onRetry={() => retryNonCritical('caps')}
+        />
+      );
+    }
+
+    if (!caps && (nonCriticalStatus.caps === 'loading' || criticalLoading)) {
+      return <SectionPlaceholder title="Caps" lines={4} />;
+    }
+
+    if (!caps) {
+      return (
+        <div className="card-glass p-5">
+          <h3 className="font-heading text-lg text-cyan-200 mb-2">Caps</h3>
+          <p className="text-sm text-gray-300">Caps data is unavailable.</p>
+        </div>
+      );
+    }
+
+    return <CapTracker caps={caps} />;
+  };
+
+  const renderTasksSection = () => {
+    if (nonCriticalErrors.tasks) {
+      return (
+        <SectionError
+          title="Tasks"
+          message={nonCriticalErrors.tasks}
+          onRetry={() => retryNonCritical('tasks')}
+        />
+      );
+    }
+
+    if (!tasks.length && (nonCriticalStatus.tasks === 'loading' || criticalLoading)) {
+      return <SectionPlaceholder title="Tasks" lines={5} />;
+    }
+
+    if (!tasks.length) {
+      return (
+        <div className="card-glass p-5">
+          <h3 className="font-heading text-lg text-cyan-200 mb-2">Tasks</h3>
+          <p className="text-sm text-gray-300">No tasks available right now.</p>
+        </div>
+      );
+    }
+
+    return <TaskList tasks={tasks} onTasksUpdate={handleTasksRefresh} />;
+  };
+
+  const renderNewsSection = () => {
+    if (nonCriticalErrors.news) {
+      return (
+        <SectionError
+          title="News"
+          message={nonCriticalErrors.news}
+          onRetry={() => retryNonCritical('news')}
+        />
+      );
+    }
+
+    if (!news.length && (nonCriticalStatus.news === 'loading' || criticalLoading)) {
+      return <SectionPlaceholder title="News" lines={6} />;
+    }
+
+    if (!news.length) {
+      return (
+        <div className="card-glass p-5">
+          <h3 className="font-heading text-lg text-cyan-200 mb-2">News</h3>
+          <p className="text-sm text-gray-300">No news yet. Check back soon.</p>
+        </div>
+      );
+    }
+
+    return <NewsFeed news={news} />;
+  };
+
+  const renderProfileSlot = () => {
+    if (profile) {
+      return <PlayerProfileCard profile={profile} />;
+    }
+    return (
+      <div className="card-glass p-5 flex items-center justify-between">
+        <div className="space-y-3">
+          <SkeletonBlock className="h-6 w-32" />
+          <SkeletonBlock className="h-4 w-40" />
+          <SkeletonBlock className="h-3 w-24" />
+        </div>
+        <div className="h-12 w-12 rounded-full border border-cyan-400/60 border-t-transparent animate-spin" />
+      </div>
+    );
+  };
 
   const renderView = () => {
-    switch(view) {
+    const resolvedView = profile ? view : 'dashboard';
+    switch(resolvedView) {
         case 'quest':
             return renderLazy(
               <QuestView
@@ -1060,7 +1377,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               playerName={profile?.username || 'Agent'}
               clanId={profile?.clan_id}
               clanName={profile?.clan_name}
-              onRefreshProfile={fetchGameData}
+              onRefreshProfile={startCriticalBoot}
               onGoToClan={() => handleViewChange('clan')}
             />
           );
@@ -1095,14 +1412,13 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             const pendingTasks = tasks.filter((task) => !task.claimed && task.progress < task.target).length;
             const completedTasks = tasks.filter((task) => task.progress >= task.target).length;
             const studyProgress = tasks.length ? Math.round((completedTasks / tasks.length) * 100) : 0;
-            const apReadyPercent = Math.min(100, Math.round((profile.ap_now / profile.ap_max) * 100));
             return (
               <main className="mt-6 space-y-6">
 
                 <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                   {/* Left Column */}
                   <div className="space-y-6 lg:col-span-4 xl:col-span-3">
-                    <PlayerProfileCard profile={profile} />
+                    {renderProfileSlot()}
                   </div>
 
                   {/* Middle Column */}
@@ -1135,12 +1451,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                       schoolName={profile?.school_name}
                       schoolLogoUrl={profile?.school_logo_url}
                     />
-                    <TaskList tasks={tasks} onTasksUpdate={fetchGameData} />
+                    {renderTasksSection()}
                   </div>
 
                   {/* Right Column */}
                   <div className="space-y-6 lg:col-span-3 xl:col-span-3">
-                    <NewsFeed news={news} />
+                    {renderAssignmentSection()}
+                    {renderCapsSection()}
+                    {renderNewsSection()}
                   </div>
                 </section>
               </main>
@@ -1241,18 +1559,22 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       )}
       <div className="relative z-10">
         {!isCambridgeView && (
-          <Header
-            profile={profile}
-            onLogout={onLogout}
-            currentView={view}
-            onBackToDashboard={() => handleViewChange('dashboard')}
-            onShowHelp={() => setShowHelp(true)}
-            onNavigate={(targetView) => handleViewChange(targetView)}
-            liteMode={isLiteMode}
-            onToggleLiteMode={toggleLightMode}
-            onProfileAvatarChange={(avatarUrl) => setProfile((p) => p ? { ...p, avatar_url: avatarUrl } : p)}
-            onProfileRefresh={refreshProfile}
-          />
+          profile ? (
+            <Header
+              profile={profile}
+              onLogout={onLogout}
+              currentView={view}
+              onBackToDashboard={() => handleViewChange('dashboard')}
+              onShowHelp={() => setShowHelp(true)}
+              onNavigate={(targetView) => handleViewChange(targetView)}
+              liteMode={isLiteMode}
+              onToggleLiteMode={toggleLightMode}
+              onProfileAvatarChange={(avatarUrl) => setProfile((p) => p ? { ...p, avatar_url: avatarUrl } : p)}
+              onProfileRefresh={refreshProfile}
+            />
+          ) : (
+            <HeaderShell />
+          )
         )}
 
         {/* Offline Banner */}
