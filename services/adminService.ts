@@ -7,8 +7,18 @@ export const ADMIN_CREDENTIALS = {
   password: '123Memoo@'
 };
 
-export const isAdmin = (profile: { username: string; role?: string }): boolean => {
-  return profile.username === ADMIN_CREDENTIALS.username && profile.role === 'admin';
+export const isAdmin = (
+  profile?: { username?: string | null; role?: string | null; is_admin?: boolean | null } | null
+): boolean => {
+  const username = profile?.username?.trim();
+  if (!username) {
+    return false;
+  }
+
+  const normalizedUsername = username.toLowerCase();
+  const adminUsername = ADMIN_CREDENTIALS.username.toLowerCase();
+
+  return normalizedUsername === adminUsername || profile?.is_admin === true || profile?.role === 'admin';
 };
 
 export const isAdminUsername = (username: string): boolean => {
