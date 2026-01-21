@@ -59,6 +59,33 @@ interface AppProps {
 }
 
 const IELTS_ONLY_SCHOOL_NAME = 'Just for IELTS';
+const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_KEYS = {
+  tasks: 'brains_heist_cache_tasks',
+  caps: 'brains_heist_cache_caps',
+  news: 'brains_heist_cache_news',
+};
+
+const readCache = <T,>(key: string): T | null => {
+  const raw = localStorage.getItem(key);
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw) as { timestamp: number; value: T };
+    if (Date.now() - parsed.timestamp > CACHE_TTL_MS) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    return parsed.value;
+  } catch {
+    localStorage.removeItem(key);
+    return null;
+  }
+};
+
+const writeCache = <T,>(key: string, value: T) => {
+  localStorage.setItem(key, JSON.stringify({ timestamp: Date.now(), value }));
+};
 
 const App: React.FC<AppProps> = ({ onLogout }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -89,6 +116,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [attackAlert, setAttackAlert] = useState(false);
   const attackAlertTimeoutRef = useRef<number | null>(null);
   const lastRewardedLevelRef = useRef<number | null>(null);
+  const cachedDataLoadedRef = useRef(false);
   const { isLightMode: isLiteMode, toggleLightMode } = useLightMode();
   const [pendingClanRequests, setPendingClanRequests] = useState(0);
   const [isUserSchoolAdmin, setIsUserSchoolAdmin] = useState(false);
@@ -295,10 +323,50 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     }
   }, [profile]);
 
+  const loadCachedData = () => {
+    if (cachedDataLoadedRef.current) return;
+    cachedDataLoadedRef.current = true;
+
+    const cachedTasks = readCache<Task[]>(CACHE_KEYS.tasks);
+    const cachedCaps = readCache<Caps>(CACHE_KEYS.caps);
+    const cachedNews = readCache<NewsEvent[]>(CACHE_KEYS.news);
+
+    if (cachedTasks) setTasks(cachedTasks);
+    if (cachedCaps) setCaps(cachedCaps);
+    if (cachedNews) setNews(cachedNews);
+  };
+
+  const loadNonCriticalData = async (profileData: Profile | null) => {
+    const results = await Promise.allSettled([
+      GameService.tasks_list(),
+      GameService.caps_status(),
+      GameService.news_feed(),
+    ]);
+
+    const [tasksResult, capsResult, newsResult] = results;
+
+    if (tasksResult.status === 'fulfilled') {
+      setTasks(tasksResult.value);
+      writeCache(CACHE_KEYS.tasks, tasksResult.value);
+    }
+    if (capsResult.status === 'fulfilled') {
+      setCaps(capsResult.value);
+      writeCache(CACHE_KEYS.caps, capsResult.value);
+    }
+    if (newsResult.status === 'fulfilled') {
+      setNews(newsResult.value || []);
+      writeCache(CACHE_KEYS.news, newsResult.value || []);
+    }
+
+    await refreshAssignment(profileData);
+    isSchoolAdmin().then(setIsUserSchoolAdmin).catch(() => setIsUserSchoolAdmin(false));
+  };
+
   const fetchGameData = async () => {
     try {
       setLoading(true);
       setLoadError(null);
+      loadCachedData();
 
       // Check if offline before attempting fetch
       if (!navigator.onLine) {
@@ -312,36 +380,18 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
       const dataPromise = Promise.all([
         GameService.whoami(),
-        GameService.tasks_list(),
         GameService.session_status(),
-        GameService.caps_status(),
-        GameService.news_feed(),
       ]);
 
-      const [profileData, tasksData, sessionData, capsData, newsData] = await Promise.race([
+      const [profileData, sessionData] = await Promise.race([
         dataPromise,
         timeoutPromise
       ]) as any;
 
       setProfile(profileData);
-      
-      // Check if user is a school admin
-      isSchoolAdmin().then(setIsUserSchoolAdmin).catch(() => setIsUserSchoolAdmin(false));
-      
-      // Admin users don't need tasks/sessions - set defaults
-      if (profileData?.role === 'admin') {
-        setTasks(tasksData || []);
-        setSessionStatus(sessionData || { status: 'idle', current_task: null, started_at: null, multiplier: 1 });
-        setCaps(capsData || { daily: 0, weekly: 0, monthly: 0 });
-      } else {
-        setTasks(tasksData);
-        setSessionStatus(sessionData);
-        setCaps(capsData);
-      }
-      
-      setNews(newsData || []);
+      setSessionStatus(sessionData || { status: 'idle', current_task: null, started_at: null, multiplier: 1 });
 
-      await refreshAssignment(profileData);
+      void loadNonCriticalData(profileData);
 
       // Show tutorial if first time user (only check once on initial load)
       if (!tutorialChecked && profileData && !profileData.tutorial_completed) {
