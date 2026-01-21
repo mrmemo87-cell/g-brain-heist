@@ -659,7 +659,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   useEffect(() => {
     if (sessionStatus) {
       if (previousSessionActiveRef.current !== null && previousSessionActiveRef.current !== sessionStatus.active) {
-        audioService.play(sessionStatus.active ? 'hack_win' : 'collect');
+        audioService.play(sessionStatus.active ? 'activate' : 'collect');
       }
       previousSessionActiveRef.current = sessionStatus.active;
     }
