@@ -98,6 +98,7 @@ const writeCache = <T,>(key: string, value: T) => {
 
 const App: React.FC<AppProps> = ({ onLogout }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [appMode, setAppMode] = useState<'pending' | 'player' | 'admin'>('pending');
   const [tasks, setTasks] = useState<Task[]>(() => readCache<Task[]>(CACHE_KEYS.tasks) ?? []);
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>(DEFAULT_SESSION_STATUS);
   const [caps, setCaps] = useState<Caps | null>(() => readCache<Caps>(CACHE_KEYS.caps));
@@ -152,6 +153,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const isCambridgeView = view === 'cambridge';
   const isIeltsOnlyUser =
     profile?.school_name?.trim().toLowerCase() === IELTS_ONLY_SCHOOL_NAME.toLowerCase();
+  const isPlayerMode = appMode === 'player';
+  const isAdminMode = appMode === 'admin';
 
   const SkeletonBlock: React.FC<{ className?: string }> = ({ className }) => (
     <div className={`animate-pulse rounded-xl bg-white/10 ${className ?? ''}`} />
@@ -242,6 +245,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, []);
 
   const handleViewChange = (nextView: typeof view) => {
+    if (isAdminMode && nextView !== 'admin') {
+      addToast('Admin mode is active. Gameplay screens are not available.', 'info');
+      setView('admin');
+      return;
+    }
     if (isIeltsOnlyUser && nextView !== 'ielts') {
       addToast(
         'This account is IELTS-only. Sign out and sign up with another school to access Brains Heist.',
@@ -379,16 +387,19 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, []);
 
   useEffect(() => {
+    if (!isPlayerMode) return;
     void refreshPendingJoinRequests();
-  }, [profile?.id, view]);
+  }, [profile?.id, view, isPlayerMode]);
 
   useEffect(() => {
+    if (!isPlayerMode) return;
     if (profile && isIeltsOnlyUser && view !== 'ielts') {
       setView('ielts');
     }
-  }, [profile, isIeltsOnlyUser, view]);
+  }, [profile, isIeltsOnlyUser, view, isPlayerMode]);
 
   useEffect(() => {
+    if (!isPlayerMode) return;
     if (!profile || profile.role === 'teacher' || profile.role === 'admin') {
       setShowAcademicSetup(false);
       return;
@@ -404,7 +415,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     } else {
       setShowAcademicSetup(false);
     }
-  }, [profile]);
+  }, [profile, isPlayerMode]);
 
   const loadCachedData = useCallback(() => {
     if (cachedDataLoadedRef.current) return;
@@ -468,9 +479,71 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     setLoadError(null);
     setSessionMissing(false);
     setIsInteractive(false);
-    loadCachedData();
+    setAppMode('pending');
 
     try {
+      const { data, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        throw sessionError;
+      }
+
+      if (!data.session) {
+        setSessionMissing(true);
+        return;
+      }
+
+      const { data: isSuperadmin, error: superadminError } = await supabase.rpc('rpc_is_superadmin');
+
+      if (!superadminError && isSuperadmin === true) {
+        console.info('[admin] Superadmin detected, entering admin mode');
+        const user = data.session.user;
+        const emailUsername = user.email?.split('@')[0] || 'admin';
+        const displayName = user.user_metadata?.['full_name'] || user.user_metadata?.['name'];
+        const username = displayName || emailUsername;
+
+        const adminProfile: Profile = {
+          id: user.id,
+          username,
+          grade: null,
+          batch: null,
+          role: 'admin',
+          school_id: null,
+          school_name: null,
+          school_logo_url: null,
+          needs_setup: false,
+          avatar_url:
+            user.user_metadata?.['avatar_url'] || `https://picsum.photos/seed/${username}/100/100`,
+          level: 0,
+          xp: 0,
+          coins: 0,
+          gemstones: 0,
+          streak: 0,
+          pvp_score: 0,
+          last_seen: new Date().toISOString(),
+          ap_now: 0,
+          ap_max: 0,
+          attack_power: 0,
+          defense_power: 0,
+          admin_visible: false,
+          is_admin: true,
+          is_banned: false,
+        };
+
+        setProfile(adminProfile);
+        setAppMode('admin');
+        setView('admin');
+        setIsInteractive(true);
+        return;
+      }
+
+      if (superadminError) {
+        console.warn('Failed to check superadmin status, continuing player boot.', superadminError);
+      }
+
+      setAppMode('player');
+      loadCachedData();
+
       const { session, profile: profileData } = await GameService.getCriticalBootData({
         signal: criticalController.signal,
         timeoutMs: 12000,
@@ -612,9 +685,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, [sessionMissing, onLogout]);
 
   useEffect(() => {
-    if (!profile || !isInteractive) return;
+    if (!isPlayerMode || !profile || !isInteractive) return;
     runNonCriticalLoads();
-  }, [profile?.id, isInteractive, runNonCriticalLoads]);
+  }, [profile?.id, isInteractive, runNonCriticalLoads, isPlayerMode]);
 
   useEffect(() => {
     return () => {
@@ -624,7 +697,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, []);
 
   useEffect(() => {
-    if (!isInteractive) return;
+    if (!isPlayerMode || !isInteractive) return;
     let cancelled = false;
 
     const loadAnnouncement = async () => {
@@ -645,25 +718,27 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       cancelled = true;
       clearInterval(interval);
     };
-  }, [isInteractive]);
+  }, [isInteractive, isPlayerMode]);
 
   useEffect(() => {
+    if (!isPlayerMode) return;
     if (previousViewRef.current !== view) {
       if (previousViewRef.current) {
         audioService.play('activate');
       }
       previousViewRef.current = view;
     }
-  }, [view]);
+  }, [view, isPlayerMode]);
 
   useEffect(() => {
+    if (!isPlayerMode) return;
     if (sessionStatus) {
       if (previousSessionActiveRef.current !== null && previousSessionActiveRef.current !== sessionStatus.active) {
         audioService.play(sessionStatus.active ? 'activate' : 'collect');
       }
       previousSessionActiveRef.current = sessionStatus.active;
     }
-  }, [sessionStatus]);
+  }, [sessionStatus, isPlayerMode]);
 
   const cinematicViewClass = useMemo(() => {
     if (sessionStatus?.active) {
@@ -682,6 +757,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
   // Auto-refresh profile every 60 seconds to update AP regeneration
   useEffect(() => {
+    if (!isPlayerMode) return;
     const intervalId = setInterval(() => {
       if (navigator.onLine && profile) {
         refreshProfile();
@@ -689,7 +765,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     }, 60000); // 60 seconds
 
     return () => clearInterval(intervalId);
-  }, [profile]);
+  }, [profile, isPlayerMode]);
 
   // Network status detection
   useEffect(() => {
@@ -716,7 +792,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
   // Real-time subscription for activity feed
   useEffect(() => {
-    if (!profile || !isInteractive) return;
+    if (!isPlayerMode || !profile || !isInteractive) return;
     
     const activityChannel = supabase
       .channel('activities')
@@ -747,11 +823,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     return () => {
       supabase.removeChannel(activityChannel);
     };
-  }, [profile, isInteractive]);
+  }, [profile, isInteractive, isPlayerMode]);
 
   // Real-time subscription for profile updates
   useEffect(() => {
-    if (!profile?.id || !isInteractive) return;
+    if (!isPlayerMode || !profile?.id || !isInteractive) return;
 
     let isSubscribed = true;
     let lastUpdateTime = 0;
@@ -870,7 +946,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       isSubscribed = false;
       supabase.removeChannel(profileChannel);
     };
-  }, [profile?.id, previousLevel, isInteractive]);
+  }, [profile?.id, previousLevel, isInteractive, isPlayerMode]);
   
   // Set initial level when profile loads
   useEffect(() => {
@@ -881,6 +957,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, [profile, previousLevel]);
   
   const handleViewComplete = () => {
+    if (isAdminMode) {
+      setView('admin');
+      return;
+    }
     handleViewChange('dashboard');
     // Only refresh profile data (lightweight) instead of all game data
     refreshProfile();
@@ -888,6 +968,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
   // Lightweight profile refresh (no loading screen)
   const refreshProfile = async () => {
+    if (!isPlayerMode) return;
     try {
       const profileData = await GameService.whoami();
       setProfile(profileData);
@@ -1273,6 +1354,16 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   };
 
   const renderView = () => {
+    if (isAdminMode) {
+      if (!profile) {
+        return (
+          <div className="card-glass p-6 text-center text-gray-300">
+            Loading admin portal…
+          </div>
+        );
+      }
+      return renderLazy(<AdminPortal profile={profile} onComplete={handleViewComplete} addToast={addToast} />);
+    }
     const resolvedView = profile ? view : 'dashboard';
     switch(resolvedView) {
         case 'quest':
@@ -1475,7 +1566,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           : 'relative min-h-screen overflow-hidden p-4 md:p-6 lg:p-8 max-w-screen-2xl mx-auto'
       }
     >
-      {attackAlert && (
+      {attackAlert && isPlayerMode && (
         <div className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center">
           <div className="absolute inset-0 bg-red-700/40 backdrop-blur-sm transition-opacity duration-300 animate-pulse" />
           <div className="pointer-events-none relative rounded-xl border border-red-500/80 bg-red-950/70 px-6 py-4 text-center shadow-2xl">
@@ -1485,7 +1576,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           </div>
         </div>
       )}
-      {showAcademicSetup && (
+      {showAcademicSetup && isPlayerMode && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4">
           <div className="w-full max-w-xl rounded-2xl bg-slate-900 p-8 shadow-2xl ring-2 ring-amber-400/40">
             <h2 className="font-heading text-2xl text-white mb-2">Almost ready!</h2>
@@ -1559,7 +1650,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         </div>
       )}
       <div className="relative z-10">
-        {!isCambridgeView && (
+        {!isCambridgeView && isPlayerMode && (
           profile ? (
             <Header
               profile={profile}
@@ -1587,7 +1678,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           </div>
         )}
 
-        {activeAnnouncement && (
+        {activeAnnouncement && isPlayerMode && (
           <Suspense fallback={null}>
             <AnnouncementBanner
               announcement={activeAnnouncement}
