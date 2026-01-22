@@ -536,8 +536,7 @@ export const fetchAdminOverviewStats = async (): Promise<AdminOverviewStats> => 
     // aggregate gemstones across users (non-null numbers expected)
     supabase
       .from('competition_players')
-      .select('sum(gemstones)')
-      .maybeSingle(),
+      .select('gemstones'),
   ]);
 
   const errorLogData = (errorLogRes as { data?: { message?: string; created_at?: string } | null })?.data ?? null;
@@ -559,7 +558,9 @@ export const fetchAdminOverviewStats = async (): Promise<AdminOverviewStats> => 
     top_batch_total_xp: topBatch.total,
     last_error_message: errorLogData?.message ?? null,
     last_error_at: errorLogData?.created_at ?? null,
-    total_gemstones: gemRes && (gemRes as any).data ? Number(((gemRes as any).data as any)[Object.keys((gemRes as any).data)[0]] ?? 0) : 0,
+    total_gemstones: Array.isArray(gemRes?.data)
+      ? gemRes.data.reduce((sum: number, row: { gemstones?: number | null }) => sum + Number(row.gemstones ?? 0), 0)
+      : 0,
   };
 };
 

@@ -373,9 +373,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     } else {
       const query = searchQuery.toLowerCase();
       const filtered = allUsers.filter(user => 
-        user.username.toLowerCase().includes(query) ||
-        user.email.toLowerCase().includes(query) ||
-        user.batch?.toLowerCase().includes(query)
+        (user.username || '').toLowerCase().includes(query) ||
+        (user.email || '').toLowerCase().includes(query) ||
+        (user.batch || '').toLowerCase().includes(query)
       );
       setFilteredUsers(filtered);
     }
@@ -410,17 +410,29 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   const fetchDashboardData = async () => {
     try {
       await fetchDashboardStats();
-      const { data: users, error } = await supabase
-        .from('users')
-        .select('*')
-        .order('xp', { ascending: false });
+      let users: any[] | null = null;
 
-      if (error) throw error;
+      const { data: rpcUsers, error: rpcError } = await supabase.rpc('rpc_admin_list_users');
+      if (!rpcError && rpcUsers) {
+        users = rpcUsers;
+      } else {
+        if (rpcError) {
+          console.warn('rpc_admin_list_users unavailable, falling back to users table:', rpcError.message);
+        }
 
-  const playerRoster = (users || []).filter((u) => !u.is_admin && u.role !== 'admin');
+        const { data: fallbackUsers, error: fallbackError } = await supabase
+          .from('users')
+          .select('*')
+          .order('xp', { ascending: false });
 
-  setAllUsers(playerRoster);
-  setFilteredUsers(playerRoster);
+        if (fallbackError) throw fallbackError;
+        users = fallbackUsers || [];
+      }
+
+      const playerRoster = (users || []).filter((u) => !u.is_admin && u.role !== 'admin');
+
+      setAllUsers(playerRoster);
+      setFilteredUsers(playerRoster);
 
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);

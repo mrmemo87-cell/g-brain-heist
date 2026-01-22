@@ -200,6 +200,66 @@ as $$
   );
 $$;
 
+-- Admin: List users for the admin portal (security definer to bypass RLS)
+create or replace function rpc_admin_list_users()
+returns table (
+  id uuid,
+  username text,
+  email text,
+  avatar_url text,
+  grade int,
+  batch text,
+  xp int,
+  coins int,
+  streak int,
+  gemstones int,
+  ap_now int,
+  ap_max int,
+  attack_power int,
+  defense_power int,
+  is_banned boolean,
+  role text,
+  level int,
+  school text,
+  admin_visible boolean,
+  is_admin boolean
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not is_current_user_admin() then
+    raise exception 'not_authorized';
+  end if;
+
+  return query
+  select
+    u.id,
+    u.username,
+    u.email,
+    u.avatar_url,
+    u.grade,
+    u.batch,
+    u.xp,
+    u.coins,
+    u.streak,
+    u.gemstones,
+    u.ap_now,
+    u.ap_max,
+    u.attack_power,
+    u.defense_power,
+    u.is_banned,
+    u.role,
+    u.level,
+    u.school,
+    u.admin_visible,
+    u.is_admin
+  from users u
+  order by u.xp desc nulls last;
+end;
+$$;
+
 -- ============================================
 -- Fetch next question for a grade
 -- ============================================
