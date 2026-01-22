@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Batch, Grade, Profile, ToastMessage } from '../types';
 import BackButton from './BackButton';
 import * as GameService from '../services/gameService';
@@ -16,17 +16,21 @@ interface AdminPortalProps {
 type AdminTab = 'dashboard' | 'users' | 'game' | 'clans' | 'analytics' | 'cambridge' | 'ielts' | 'system';
 
 const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast }) => {
+  const PAGE_SIZE = 50;
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
-  const [allUsers, setAllUsers] = useState<any[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [userPage, setUserPage] = useState(0);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [usersError, setUsersError] = useState<string | null>(null);
+  const [hasNextPage, setHasNextPage] = useState(false);
   const [clanList, setClanList] = useState<any[]>([]);
   const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalTeachers: 0,
-    bhMembers: 0,
-    ieltsUsers: 0,
-    ieltsTeachers: 0,
+    totalUsers: null as number | null,
+    totalTeachers: null as number | null,
+    bhMembers: null as number | null,
+    ieltsUsers: null as number | null,
+    ieltsTeachers: null as number | null,
   });
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsError, setStatsError] = useState<string | null>(null);
@@ -71,8 +75,65 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   };
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    void fetchDashboardStats();
+  }, [fetchDashboardStats]);
+
+  useEffect(() => {
+    setUserPage(0);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => {
+      void fetchUsers(userPage, searchQuery);
+    }, 300);
+
+    return () => {
+      window.clearTimeout(handle);
+    };
+  }, [fetchUsers, searchQuery, userPage]);
+
+  useEffect(() => {
+    let intervalId: number | null = null;
+
+    const poll = () => {
+      if (document.visibilityState !== 'visible') {
+        return;
+      }
+      void fetchDashboardStats();
+      void fetchUsers(userPage, searchQuery);
+    };
+
+    const startPolling = () => {
+      if (intervalId !== null) return;
+      intervalId = window.setInterval(poll, 9000);
+    };
+
+    const stopPolling = () => {
+      if (intervalId === null) return;
+      window.clearInterval(intervalId);
+      intervalId = null;
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        poll();
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    };
+
+    if (document.visibilityState === 'visible') {
+      startPolling();
+    }
+
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [fetchDashboardStats, fetchUsers, searchQuery, userPage]);
 
   // Fetch Cambridge Quiz Scores (school-isolated for admins)
   const fetchQuizScores = async () => {
@@ -83,7 +144,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
       if (error) {
         // Fallback to direct query if RPC doesn't exist yet (migration not run)
-        console.warn('RPC get_school_cambridge_scores not available, falling back:', error.message);
+        reportRpcError('RPC get_school_cambridge_scores not available, falling back:', error, 'Failed to load Cambridge scores.');
         const fallback = await supabase
           .from('quiz_scores')
           .select('*')
@@ -99,8 +160,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       setQuizScores(scores);
       calculateQuizStats(scores);
     } catch (error) {
-      console.error('Failed to fetch quiz scores:', error);
-      addToast('Failed to fetch Cambridge test scores', 'error');
+      reportRpcError('Failed to fetch quiz scores:', error, 'Failed to fetch Cambridge test scores');
     } finally {
       setQuizScoresLoading(false);
     }
@@ -163,6 +223,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     return `${mins}m ${secs}s`;
   };
 
+  const resolveUserLabel = (user: any) => user?.username ?? user?.email ?? 'Unknown';
+
+  const resolveUserEmail = (user: any) => user?.email ?? 'Unknown';
+
   // Delete a quiz score entry
   const deleteQuizScore = async (id: string, studentName: string) => {
     if (!window.confirm(`Delete submission from ${studentName}? This will allow them to retake the test.`)) return;
@@ -172,7 +236,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       addToast(`🗑️ Deleted submission from ${studentName}`, 'success');
       fetchQuizScores();
     } catch (error) {
-      addToast('Failed to delete submission', 'error');
+      reportRpcError('Failed to delete submission:', error, 'Failed to delete submission');
     }
   };
 
@@ -362,26 +426,42 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   };
 
   const updateUserInState = (userId: string, patch: Record<string, unknown>) => {
-    setAllUsers(prev => prev.map(user => user.id === userId ? { ...user, ...patch } : user));
-    setFilteredUsers(prev => prev.map(user => user.id === userId ? { ...user, ...patch } : user));
+    setUsers(prev => prev.map(user => user.id === userId ? { ...user, ...patch } : user));
   };
 
-  useEffect(() => {
-    // Filter users based on search query
-    if (searchQuery.trim() === '') {
-      setFilteredUsers(allUsers);
-    } else {
-      const query = searchQuery.toLowerCase();
-      const filtered = allUsers.filter(user => 
-        (user.username || '').toLowerCase().includes(query) ||
-        (user.email || '').toLowerCase().includes(query) ||
-        (user.batch || '').toLowerCase().includes(query)
-      );
-      setFilteredUsers(filtered);
+  const getErrorMessage = (error: unknown, fallback: string) => {
+    if (error instanceof Error && error.message) {
+      return error.message;
     }
-  }, [searchQuery, allUsers]);
+    if (typeof (error as { message?: string })?.message === 'string') {
+      return (error as { message?: string }).message as string;
+    }
+    return fallback;
+  };
 
-  const fetchDashboardStats = async () => {
+  const logRpcError = (context: string, error: unknown) => {
+    if (import.meta.env.DEV) {
+      console.error(context, error);
+    }
+  };
+
+  const reportRpcError = (context: string, error: unknown, fallback: string) => {
+    const message = getErrorMessage(error, fallback);
+    logRpcError(context, error);
+    addToast(message, 'error');
+    return message;
+  };
+
+  const isMissingRpc = (error: unknown, rpcName: string) => {
+    const message = (error as { message?: string })?.message?.toLowerCase() ?? '';
+    return (
+      message.includes('function') &&
+      message.includes(rpcName.toLowerCase()) &&
+      (message.includes('does not exist') || message.includes('not found') || message.includes('404'))
+    );
+  };
+
+  const fetchDashboardStats = useCallback(async () => {
     setStatsLoading(true);
     setStatsError(null);
     try {
@@ -399,46 +479,53 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         ieltsTeachers: Number(resolved.ielts_teachers ?? resolved.ieltsTeachers ?? 0),
       });
     } catch (error) {
-      console.error('Failed to fetch admin stats:', error);
-      setStatsError('Failed to load admin stats. Please try again.');
-      addToast('Failed to load admin stats', 'error');
+      const message = reportRpcError('Failed to fetch admin stats:', error, 'Failed to load admin stats.');
+      setStatsError(message);
+      setStats({
+        totalUsers: null,
+        totalTeachers: null,
+        bhMembers: null,
+        ieltsUsers: null,
+        ieltsTeachers: null,
+      });
     } finally {
       setStatsLoading(false);
     }
-  };
+  }, [addToast]);
 
-  const fetchDashboardData = async () => {
-    try {
-      await fetchDashboardStats();
-      let users: any[] | null = null;
+  const fetchUsers = useCallback(
+    async (page = 0, query = '') => {
+      setUsersLoading(true);
+      setUsersError(null);
+      try {
+        const { data, error } = await supabase.rpc('rpc_admin_list_users', {
+          p_limit: PAGE_SIZE,
+          p_offset: page * PAGE_SIZE,
+          p_search: query.trim() || null,
+        });
+        if (error) throw error;
 
-      const { data: rpcUsers, error: rpcError } = await supabase.rpc('rpc_admin_list_users');
-      if (!rpcError && rpcUsers) {
-        users = rpcUsers;
-      } else {
-        if (rpcError) {
-          console.warn('rpc_admin_list_users unavailable, falling back to users table:', rpcError.message);
-        }
-
-        const { data: fallbackUsers, error: fallbackError } = await supabase
-          .from('users')
-          .select('*')
-          .order('xp', { ascending: false });
-
-        if (fallbackError) throw fallbackError;
-        users = fallbackUsers || [];
+        const list = (data as any[]) ?? [];
+        setUsers(list);
+        setHasNextPage(list.length === PAGE_SIZE);
+      } catch (error) {
+        const message = reportRpcError('Failed to fetch users:', error, 'Failed to load users.');
+        setUsersError(message);
+        setUsers([]);
+        setHasNextPage(false);
+      } finally {
+        setUsersLoading(false);
       }
+    },
+    [PAGE_SIZE, addToast]
+  );
 
-      const playerRoster = (users || []).filter((u) => !u.is_admin && u.role !== 'admin');
-
-      setAllUsers(playerRoster);
-      setFilteredUsers(playerRoster);
-
-    } catch (error) {
-      console.error('Failed to fetch dashboard data:', error);
-      addToast('Failed to load dashboard data', 'error');
-    }
-  };
+  const refreshAdminData = useCallback(async () => {
+    await Promise.all([
+      fetchDashboardStats(),
+      fetchUsers(userPage, searchQuery),
+    ]);
+  }, [fetchDashboardStats, fetchUsers, searchQuery, userPage]);
 
   const toggleAdminVisibility = async () => {
     try {
@@ -456,32 +543,34 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         'success'
       );
     } catch (error) {
-      addToast('Failed to toggle visibility', 'error');
+      reportRpcError('Failed to toggle visibility:', error, 'Failed to toggle visibility');
     }
   };
 
   const grantCoins = async (userId: string, amount: number) => {
     try {
-      const user = allUsers.find(u => u.id === userId);
+      const user = users.find(u => u.id === userId);
       if (!user) return;
 
-      const { error } = await supabase
-        .from('users')
-        .update({ coins: user.coins + amount })
-        .eq('id', userId);
+      const { error } = await supabase.rpc('rpc_admin_grant', {
+        p_user_id: userId,
+        p_xp_delta: 0,
+        p_coins_delta: amount,
+      });
 
       if (error) throw error;
 
-      addToast(`✨ Granted ${amount} coins to ${user.username}`, 'success');
-      fetchDashboardData();
+      updateUserInState(userId, { coins: Number(user.coins ?? 0) + amount });
+      addToast(`✨ Granted ${amount} coins to ${user.username ?? user.email ?? 'Unknown'}`, 'success');
+      await refreshAdminData();
     } catch (error) {
-      addToast('Failed to grant coins', 'error');
+      reportRpcError('Failed to grant coins:', error, 'Failed to grant coins');
     }
   };
 
   const grantXP = async (userId: string, amount: number) => {
     try {
-      const user = allUsers.find(u => u.id === userId);
+      const user = users.find(u => u.id === userId);
       if (!user) return;
 
       const { error } = await supabase.rpc('rpc_admin_grant', {
@@ -492,32 +581,61 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
       if (error) throw error;
 
-      addToast(`⚡ Granted ${amount} XP to ${user.username}`, 'success');
-      fetchDashboardData();
+      updateUserInState(userId, { xp: Number(user.xp ?? 0) + amount });
+      addToast(`⚡ Granted ${amount} XP to ${user.username ?? user.email ?? 'Unknown'}`, 'success');
+      await refreshAdminData();
     } catch (error) {
-      addToast('Failed to grant XP', 'error');
+      reportRpcError('Failed to grant XP:', error, 'Failed to grant XP');
     }
   };
 
-  const setUserLevel = async (userId: string, newLevel: number) => {
-    const user = allUsers.find(u => u.id === userId);
+  const setUserLevel = async (userId: string, currentLevel: number) => {
+    const user = users.find(u => u.id === userId);
     if (!user) return;
-    addToast(`Levels are derived from XP. Adjust XP instead of setting level for ${user.username}.`, 'info');
+    const nextLevel = Number(currentLevel ?? 0) + 1;
+
+    try {
+      const { error } = await supabase.rpc('rpc_admin_set_level', {
+        p_user_id: userId,
+        p_level: nextLevel,
+      });
+
+      if (error) {
+        if (isMissingRpc(error, 'rpc_admin_set_level')) {
+          logRpcError('Missing rpc_admin_set_level:', error);
+          addToast('Backend missing rpc_admin_set_level', 'error');
+          return;
+        }
+        throw error;
+      }
+
+      updateUserInState(userId, { level: nextLevel });
+      addToast(`📈 Level updated for ${user.username ?? user.email ?? 'Unknown'}`, 'success');
+      await refreshAdminData();
+    } catch (error) {
+      reportRpcError('Failed to set level:', error, 'Failed to set level');
+    }
   };
 
   const resetUserAP = async (userId: string) => {
     try {
-      const { error } = await supabase
-        .from('users')
-        .update({ ap_now: 20, last_ap_update: new Date().toISOString() })
-        .eq('id', userId);
+      const { error } = await supabase.rpc('rpc_admin_reset_ap', {
+        p_user_id: userId,
+      });
 
-      if (error) throw error;
+      if (error) {
+        if (isMissingRpc(error, 'rpc_admin_reset_ap')) {
+          logRpcError('Missing rpc_admin_reset_ap:', error);
+          addToast('Backend missing rpc_admin_reset_ap', 'error');
+          return;
+        }
+        throw error;
+      }
 
       addToast('⚡ AP reset to 20', 'success');
-      fetchDashboardData();
+      await refreshAdminData();
     } catch (error) {
-      addToast('Failed to reset AP', 'error');
+      reportRpcError('Failed to reset AP:', error, 'Failed to reset AP');
     }
   };
 
@@ -528,12 +646,12 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         return;
       }
 
-  await CompetitionService.resetPlayerProgress(userId);
+      await CompetitionService.resetPlayerProgress(userId);
       addToast(`♻️ Progress reset for ${username}`, 'success');
-  fetchDashboardData();
-  window.dispatchEvent(new CustomEvent('leaderboards:refresh'));
+      await refreshAdminData();
+      window.dispatchEvent(new CustomEvent('leaderboards:refresh'));
     } catch (error) {
-      addToast('Failed to reset progress', 'error');
+      reportRpcError('Failed to reset progress:', error, 'Failed to reset progress');
     }
   };
 
@@ -545,12 +663,12 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       }
 
       setIsResettingAll(true);
-  const affected = await CompetitionService.resetAllPlayerProgress();
+      const affected = await CompetitionService.resetAllPlayerProgress();
       addToast(`🧨 Reset progress for ${affected} players`, 'success');
-  fetchDashboardData();
-  window.dispatchEvent(new CustomEvent('leaderboards:refresh'));
+      await refreshAdminData();
+      window.dispatchEvent(new CustomEvent('leaderboards:refresh'));
     } catch (error) {
-      addToast('Failed to reset everyone', 'error');
+      reportRpcError('Failed to reset everyone:', error, 'Failed to reset everyone');
     } finally {
       setIsResettingAll(false);
     }
@@ -558,7 +676,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
   const handleGradeChange = async (userId: string, nextGrade: string) => {
     const grade = nextGrade ? parseInt(nextGrade, 10) : null;
-    const user = allUsers.find(u => u.id === userId);
+    const user = users.find(u => u.id === userId);
     if (!user) return;
 
     const batch: Batch | null = (() => {
@@ -577,16 +695,15 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
     try {
       await CompetitionService.updatePlayerAcademics(userId, grade, batch);
-      addToast(`🎓 Updated grade${batch ? ' and class' : ''} for ${user.username}`, 'success');
-      setAllUsers(prev => prev.map(u => u.id === userId ? { ...u, grade, batch } : u));
-      setFilteredUsers(prev => prev.map(u => u.id === userId ? { ...u, grade, batch } : u));
+      addToast(`🎓 Updated grade${batch ? ' and class' : ''} for ${user.username ?? user.email ?? 'Unknown'}`, 'success');
+      updateUserInState(userId, { grade, batch });
     } catch (error) {
-      addToast('Failed to update grade', 'error');
+      reportRpcError('Failed to update grade:', error, 'Failed to update grade');
     }
   };
 
   const handleBatchChange = async (userId: string, nextBatch: string) => {
-    const user = allUsers.find(u => u.id === userId);
+    const user = users.find(u => u.id === userId);
     if (!user) return;
 
     const grade = user.grade !== null && user.grade !== undefined ? Number(user.grade) : null;
@@ -594,11 +711,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
     try {
       await CompetitionService.updatePlayerAcademics(userId, grade, batch);
-      addToast(`🏫 Updated class for ${user.username}`, 'success');
-      setAllUsers(prev => prev.map(u => u.id === userId ? { ...u, batch } : u));
-      setFilteredUsers(prev => prev.map(u => u.id === userId ? { ...u, batch } : u));
+      addToast(`🏫 Updated class for ${user.username ?? user.email ?? 'Unknown'}`, 'success');
+      updateUserInState(userId, { batch });
     } catch (error) {
-      addToast('Failed to update class', 'error');
+      reportRpcError('Failed to update class:', error, 'Failed to update class');
     }
   };
 
@@ -611,10 +727,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
       await CompetitionService.resetPlayerAcademics(userId);
       addToast(`🏫 Reset school/grade/class for ${username}`, 'success');
-      setAllUsers(prev => prev.map(u => u.id === userId ? { ...u, school: null, grade: null, batch: null } : u));
-      setFilteredUsers(prev => prev.map(u => u.id === userId ? { ...u, school: null, grade: null, batch: null } : u));
+      updateUserInState(userId, { school: null, grade: null, batch: null });
     } catch (error) {
-      addToast('Failed to reset academics', 'error');
+      reportRpcError('Failed to reset academics:', error, 'Failed to reset academics');
     }
   };
 
@@ -631,7 +746,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       setAnnouncementText('');
       setShowAnnouncementComposer(false);
     } catch (error) {
-      addToast('Failed to send announcement', 'error');
+      reportRpcError('Failed to send announcement:', error, 'Failed to send announcement');
     } finally {
       setIsSendingAnnouncement(false);
     }
@@ -649,10 +764,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     try {
       const newStatus = await CompetitionService.setPlayerBanned(userId, shouldBan);
       updateUserInState(userId, { is_banned: newStatus });
-      fetchDashboardData();
+      await refreshAdminData();
       addToast(shouldBan ? '🔨 Player banned successfully' : '✅ Player unbanned', 'success');
     } catch (error) {
-      addToast(shouldBan ? 'Failed to ban player' : 'Failed to unban player', 'error');
+      reportRpcError('Failed to toggle ban:', error, shouldBan ? 'Failed to ban player' : 'Failed to unban player');
     }
   };
 
@@ -663,12 +778,11 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
     try {
       await CompetitionService.deletePlayer(userId);
-      setAllUsers(prev => prev.filter(u => u.id !== userId));
-      setFilteredUsers(prev => prev.filter(u => u.id !== userId));
-      fetchDashboardData();
+      setUsers(prev => prev.filter(u => u.id !== userId));
+      await refreshAdminData();
       addToast(`🗑️ Deleted ${username}`, 'success');
     } catch (error) {
-      addToast('Failed to delete user', 'error');
+      reportRpcError('Failed to delete user:', error, 'Failed to delete user');
     }
   };
 
@@ -829,7 +943,15 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                     containerClass: 'bg-gradient-to-br from-pink-600/20 to-pink-900/20 border-2 border-pink-400',
                     valueClass: 'text-pink-300'
                   }
-                ].map((stat, idx) => (
+                ].map((stat, idx) => {
+                  const resolvedValue =
+                    stat.key === 'godMode'
+                      ? 'ACTIVE'
+                      : statsError
+                        ? '—'
+                        : (stats as Record<string, number | null>)[stat.key] ?? '—';
+
+                  return (
                   <div
                     key={idx}
                     className={`relative overflow-hidden rounded-2xl p-6 ${stat.containerClass} hover:shadow-[0_0_40px_rgba(255,215,0,0.4)] transition-all duration-300 hover:scale-105`}
@@ -840,11 +962,12 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                       {statsLoading && stat.key !== 'godMode' ? (
                         <div className="h-10 w-24 rounded-lg bg-white/10 animate-pulse" />
                       ) : (
-                        <p className={`text-4xl font-bold font-mono ${stat.valueClass}`}>{stat.value}</p>
+                        <p className={`text-4xl font-bold font-mono ${stat.valueClass}`}>{resolvedValue}</p>
                       )}
                     </div>
                   </div>
-                ))}
+                );
+                })}
               </div>
 
               {/* Quick Actions */}
@@ -852,7 +975,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                 <h3 className="text-2xl font-heading font-bold text-yellow-300 mb-4">⚡ Quick Actions</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <button
-                    onClick={fetchDashboardData}
+                    onClick={refreshAdminData}
                     className="bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-400 text-white font-semibold px-6 py-3 rounded-lg transition-all hover:shadow-[0_0_20px_rgba(6,182,212,0.6)]"
                   >
                     🔄 Refresh Data
@@ -884,43 +1007,43 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                   <div className="bg-black/30 p-4 rounded-lg border border-cyan-400/50">
                     <p className="text-sm text-gray-400 mb-1">Average Level</p>
                     <p className="text-3xl font-bold text-cyan-300">
-                      {allUsers.length > 0 ? (allUsers.reduce((sum, u) => sum + u.level, 0) / allUsers.length).toFixed(1) : '0'}
+                      {users.length > 0 ? (users.reduce((sum, u) => sum + Number(u.level ?? 0), 0) / users.length).toFixed(1) : '0'}
                     </p>
                   </div>
                   <div className="bg-black/30 p-4 rounded-lg border border-blue-400/50">
                     <p className="text-sm text-gray-400 mb-1">Average XP</p>
                     <p className="text-3xl font-bold text-blue-300">
-                      {allUsers.length > 0 ? Math.floor(allUsers.reduce((sum, u) => sum + u.xp, 0) / allUsers.length).toLocaleString() : '0'}
+                      {users.length > 0 ? Math.floor(users.reduce((sum, u) => sum + Number(u.xp ?? 0), 0) / users.length).toLocaleString() : '0'}
                     </p>
                   </div>
                   <div className="bg-black/30 p-4 rounded-lg border border-yellow-400/50">
                     <p className="text-sm text-gray-400 mb-1">Richest Player</p>
                     <p className="text-xl font-bold text-yellow-300">
-                      {allUsers.length > 0 ? allUsers.reduce((max, u) => u.coins > max.coins ? u : max, allUsers[0])?.username : 'None'}
+                      {users.length > 0 ? resolveUserLabel(users.reduce((max, u) => Number(u.coins ?? 0) > Number(max.coins ?? 0) ? u : max, users[0])) : 'None'}
                     </p>
                     <p className="text-sm text-gray-400">
-                      {allUsers.length > 0 ? allUsers.reduce((max, u) => u.coins > max.coins ? u : max, allUsers[0])?.coins.toLocaleString() + ' 🪙' : ''}
+                      {users.length > 0 ? `${Number(users.reduce((max, u) => Number(u.coins ?? 0) > Number(max.coins ?? 0) ? u : max, users[0])?.coins ?? 0).toLocaleString()} 🪙` : ''}
                     </p>
                   </div>
                   <div className="bg-black/30 p-4 rounded-lg border border-purple-400/50">
                     <p className="text-sm text-gray-400 mb-1">Highest Level</p>
                     <p className="text-xl font-bold text-purple-300">
-                      {allUsers.length > 0 ? allUsers.reduce((max, u) => u.level > max.level ? u : max, allUsers[0])?.username : 'None'}
+                      {users.length > 0 ? resolveUserLabel(users.reduce((max, u) => Number(u.level ?? 0) > Number(max.level ?? 0) ? u : max, users[0])) : 'None'}
                     </p>
                     <p className="text-sm text-gray-400">
-                      {allUsers.length > 0 ? 'Level ' + allUsers.reduce((max, u) => u.level > max.level ? u : max, allUsers[0])?.level : ''}
+                      {users.length > 0 ? `Level ${Number(users.reduce((max, u) => Number(u.level ?? 0) > Number(max.level ?? 0) ? u : max, users[0])?.level ?? 0)}` : ''}
                     </p>
                   </div>
                   <div className="bg-black/30 p-4 rounded-lg border border-green-400/50">
                     <p className="text-sm text-gray-400 mb-1">Total AP Pool</p>
                     <p className="text-3xl font-bold text-green-300">
-                      {allUsers.reduce((sum, u) => sum + (u.ap_now || 0), 0)}
+                      {users.reduce((sum, u) => sum + Number(u.ap_now ?? 0), 0)}
                     </p>
                   </div>
                   <div className="bg-black/30 p-4 rounded-lg border border-red-400/50">
                     <p className="text-sm text-gray-400 mb-1">Students</p>
                     <p className="text-3xl font-bold text-red-300">
-                      {allUsers.filter(u => u.role === 'student' || !u.role).length}
+                      {users.filter(u => u.role === 'student' || !u.role).length}
                     </p>
                   </div>
                 </div>
@@ -942,12 +1065,53 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                   className="w-full px-4 py-3 bg-black/40 border-2 border-purple-400/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 focus:shadow-[0_0_20px_rgba(168,85,247,0.4)]"
                 />
                 <p className="text-sm text-gray-400 mt-2">
-                  Showing {filteredUsers.length} of {allUsers.length} users
+                  Showing {users.length} users • Page {userPage + 1}
                 </p>
               </div>
-              
+
+              {usersError && (
+                <div className="mb-4 rounded-xl border border-red-400/50 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                  {usersError}
+                </div>
+              )}
+
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div className="flex items-center gap-2 text-sm text-gray-400">
+                  <span>Results per page: {PAGE_SIZE}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setUserPage((prev) => Math.max(0, prev - 1))}
+                    disabled={userPage === 0}
+                    className="rounded-lg border border-purple-400/50 px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-40 hover:bg-purple-500/20"
+                  >
+                    ◀ Prev
+                  </button>
+                  <span className="text-sm text-gray-300">Page {userPage + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => setUserPage((prev) => prev + 1)}
+                    disabled={!hasNextPage}
+                    className="rounded-lg border border-purple-400/50 px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-40 hover:bg-purple-500/20"
+                  >
+                    Next ▶
+                  </button>
+                </div>
+              </div>
+
               <div className="max-h-[600px] overflow-y-auto space-y-3">
-                {filteredUsers.map((user) => {
+                {usersLoading && (
+                  <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-6 text-center text-sm text-gray-300">
+                    Loading users…
+                  </div>
+                )}
+                {!usersLoading && users.length === 0 && (
+                  <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-6 text-center text-sm text-gray-300">
+                    No users found for this page.
+                  </div>
+                )}
+                {!usersLoading && users.map((user) => {
                   const isBanned = Boolean(user.is_banned);
                   const userGrade: Grade | null = (() => {
                     if (typeof user.grade === 'number') {
@@ -976,16 +1140,16 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                       <div className="flex items-start justify-between flex-wrap gap-4">
                         {/* User Info */}
                         <div className="flex items-center gap-3 flex-1">
-                          <img src={user.avatar_url} alt={user.username} className="w-16 h-16 rounded-full border-2 border-purple-400" />
+                          <img src={user.avatar_url} alt={resolveUserLabel(user)} className="w-16 h-16 rounded-full border-2 border-purple-400" />
                           <div>
                             <p className="font-bold text-white text-lg">
-                              <ClickableUsername userId={user.id} username={user.username}>
-                                {user.username}
+                              <ClickableUsername userId={user.id} username={resolveUserLabel(user)}>
+                                {resolveUserLabel(user)}
                               </ClickableUsername>
                             </p>
-                            <p className="text-sm text-gray-400">{user.email}</p>
+                            <p className="text-sm text-gray-400">{resolveUserEmail(user)}</p>
                             <div className="flex gap-3 mt-1">
-                              <span className="text-xs bg-cyan-600/30 text-cyan-300 px-2 py-1 rounded">Lvl {user.level}</span>
+                              <span className="text-xs bg-cyan-600/30 text-cyan-300 px-2 py-1 rounded">Lvl {Number(user.level ?? 0)}</span>
                               <span className="text-xs bg-purple-600/30 text-purple-300 px-2 py-1 rounded">{user.batch || 'No Batch'}</span>
                               <span className="text-xs bg-yellow-600/30 text-yellow-300 px-2 py-1 rounded">{user.role || 'student'}</span>
                               {isBanned && (
@@ -998,19 +1162,19 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                         {/* Stats Grid */}
                         <div className="grid grid-cols-2 gap-2 text-sm">
                           <div className="bg-blue-600/20 px-3 py-2 rounded border border-blue-400/50">
-                            <p className="text-blue-300 font-mono">{user.xp.toLocaleString()} XP</p>
+                            <p className="text-blue-300 font-mono">{Number(user.xp ?? 0).toLocaleString()} XP</p>
                           </div>
                           <div className="bg-yellow-600/20 px-3 py-2 rounded border border-yellow-400/50">
-                            <p className="text-yellow-300 font-mono">{user.coins.toLocaleString()} 🪙</p>
+                            <p className="text-yellow-300 font-mono">{Number(user.coins ?? 0).toLocaleString()} 🪙</p>
                           </div>
                           <div className="bg-emerald-600/20 px-3 py-2 rounded border border-emerald-400/50">
                             <p className="text-emerald-300 font-mono">{Number(user.gemstones ?? 0).toLocaleString()} 💎</p>
                           </div>
                           <div className="bg-green-600/20 px-3 py-2 rounded border border-green-400/50">
-                            <p className="text-green-300 font-mono">{user.ap_now}/{user.ap_max} AP</p>
+                            <p className="text-green-300 font-mono">{Number(user.ap_now ?? 0)}/{Number(user.ap_max ?? 0)} AP</p>
                           </div>
                           <div className="bg-red-600/20 px-3 py-2 rounded border border-red-400/50">
-                            <p className="text-red-300 font-mono">⚔️ {user.attack_power} | 🛡️ {user.defense_power}</p>
+                            <p className="text-red-300 font-mono">⚔️ {Number(user.attack_power ?? 0)} | 🛡️ {Number(user.defense_power ?? 0)}</p>
                           </div>
                         </div>
                       </div>
@@ -1065,25 +1229,25 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                           🔋 Reset AP
                         </button>
                         <button
-                          onClick={() => setUserLevel(user.id, user.level + 1)}
+                          onClick={() => setUserLevel(user.id, user.level)}
                           className="bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(168,85,247,0.5)]"
                         >
                           📈 +1 Level
                         </button>
                         <button
-                          onClick={() => resetUserProgress(user.id, user.username)}
+                          onClick={() => resetUserProgress(user.id, resolveUserLabel(user))}
                           className="bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(99,102,241,0.5)]"
                         >
                           ♻️ Reset Progress
                         </button>
                         <button
-                          onClick={() => resetUserAcademics(user.id, user.username)}
+                          onClick={() => resetUserAcademics(user.id, resolveUserLabel(user))}
                           className="bg-orange-600/30 hover:bg-orange-600/50 border border-orange-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(251,146,60,0.5)]"
                         >
                           🏫 Reset School/Grade/Class
                         </button>
                         <button
-                          onClick={() => setUserBanState(user.id, user.username, !isBanned)}
+                          onClick={() => setUserBanState(user.id, resolveUserLabel(user), !isBanned)}
                           className={`${
                             isBanned
                               ? 'bg-green-600/30 hover:bg-green-600/50 border border-green-400 hover:shadow-[0_0_15px_rgba(34,197,94,0.5)]'
@@ -1093,7 +1257,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                           {isBanned ? '♻️ Unban' : '🔨 Ban'}
                         </button>
                         <button
-                          onClick={() => deleteUser(user.id, user.username)}
+                          onClick={() => deleteUser(user.id, resolveUserLabel(user))}
                           className="bg-red-900/40 hover:bg-red-900/60 border border-red-600 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_18px_rgba(220,38,38,0.5)]"
                         >
                           🗑️ Delete User
@@ -1114,16 +1278,20 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                               try {
                                   const affected = await CompetitionService.refillAllAp();
                                   addToast(`⚡ Refilled AP for ${affected} players`, 'success');
-                                  fetchDashboardData();
-                              } catch (e) { addToast('Failed to refill AP', 'error'); }
+                                  await refreshAdminData();
+                              } catch (error) {
+                                reportRpcError('Failed to refill AP:', error, 'Failed to refill AP');
+                              }
                           }} className="w-full bg-green-500/20 hover:bg-green-500/30 border border-green-400 text-white px-4 py-2 rounded">Refill AP for all players</button>
 
                           <button onClick={async () => {
                               try {
                                   const affected = await CompetitionService.resetAllPlayerProgress();
                                   addToast(`Reset progress for ${affected} players`, 'success');
-                                  fetchDashboardData();
-                              } catch (e) { addToast('Failed to reset all progress', 'error'); }
+                                  await refreshAdminData();
+                              } catch (error) {
+                                reportRpcError('Failed to reset all progress:', error, 'Failed to reset all progress');
+                              }
                           }} className="w-full bg-red-500/20 hover:bg-red-500/30 border border-red-400 text-white px-4 py-2 rounded">Reset ALL player progress</button>
                         </div>
             </div>
@@ -1139,8 +1307,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                               if (error) throw error;
                               setClanList(data || []);
                               addToast(`Loaded ${data?.length ?? 0} clans`, 'success');
-                            } catch (e) {
-                              addToast('Failed to load clans', 'error');
+                            } catch (error) {
+                              reportRpcError('Failed to load clans:', error, 'Failed to load clans');
                             }
                           }} className="w-full bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white px-4 py-2 rounded">Refresh Clans</button>
 
@@ -1160,9 +1328,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                                         await CompetitionService.disbandClan(c.id);
                                         addToast(`${c.name} disbanded`, 'success');
                                         setClanList(prev => prev.filter(x => x.id !== c.id));
-                                        fetchDashboardData();
-                                      } catch (err) {
-                                        addToast('Failed to disband clan', 'error');
+                                        await refreshAdminData();
+                                      } catch (error) {
+                                        reportRpcError('Failed to disband clan:', error, 'Failed to disband clan');
                                       }
                                     }} className="bg-red-500/20 hover:bg-red-500/30 border border-red-400 text-white px-3 py-1 rounded">Disband</button>
                                   </div>
@@ -1182,8 +1350,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                             try {
                               const stats = await CompetitionService.fetchAdminOverviewStats();
                               addToast(`Players today: ${stats.players_today}`, 'success');
-                            } catch (e) {
-                              addToast('Failed to fetch analytics', 'error');
+                            } catch (error) {
+                              reportRpcError('Failed to fetch analytics:', error, 'Failed to fetch analytics');
                             }
                           }}>Refresh Analytics</button>
                           <p className="text-gray-400 mt-2">Quick analytics and health checks for the server</p>
@@ -1376,14 +1544,19 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                               }
                               const affected = await CompetitionService.resetAllPlayerProgress();
                               addToast(`System: reset applied to ${affected} accounts`, 'success');
-                              fetchDashboardData();
-                            } catch (e) { addToast('Failed system reset', 'error'); }
+                              await refreshAdminData();
+                            } catch (error) {
+                              reportRpcError('Failed system reset:', error, 'Failed system reset');
+                            }
                           }}>Reset Player Progress (System)</button>
                           <button className="w-full bg-gray-700/20 hover:bg-gray-700/30 border border-gray-600 text-white px-4 py-2 rounded" onClick={async () => {
                             try {
                               const affected = await CompetitionService.refillAllAp();
                               addToast(`System: Refilled AP for ${affected} players`, 'success');
-                            } catch (e) { addToast('Failed system AP refill', 'error'); }
+                              await refreshAdminData();
+                            } catch (error) {
+                              reportRpcError('Failed system AP refill:', error, 'Failed system AP refill');
+                            }
                           }}>Refill AP (System)</button>
                           <button className="w-full bg-gray-700/20 hover:bg-gray-700/30 border border-gray-600 text-white px-4 py-2 rounded" onClick={async () => {
                             try {
@@ -1392,8 +1565,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                               }
                               const affected = await CompetitionService.resetPvpWinsLeaderboard();
                               addToast(`System: Cleared ${affected} PvP win records`, 'success');
-                            } catch (e) {
-                              addToast('Failed to reset PvP leaderboard', 'error');
+                              await refreshAdminData();
+                            } catch (error) {
+                              reportRpcError('Failed to reset PvP leaderboard:', error, 'Failed to reset PvP leaderboard');
                             }
                           }}>Reset PvP Champions Leaderboard</button>
                         </div>
