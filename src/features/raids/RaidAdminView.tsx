@@ -18,6 +18,13 @@ const RaidAdminView: React.FC<RaidAdminViewProps> = ({ profile, onComplete, addT
   const [busy, setBusy] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
 
+  const getErrorMessage = (err: unknown, fallback: string) => {
+    if (err instanceof Error && err.message) {
+      return err.message;
+    }
+    return fallback;
+  };
+
   const loadRaid = async () => {
     setLoading(true);
     try {
@@ -25,7 +32,7 @@ const RaidAdminView: React.FC<RaidAdminViewProps> = ({ profile, onComplete, addT
       setRaid(current);
     } catch (err) {
       console.error(err);
-      addToast?.('Failed to fetch raid data', 'error');
+      addToast?.(getErrorMessage(err, 'Failed to fetch raid data'), 'error');
     } finally {
       setLoading(false);
     }
@@ -43,7 +50,7 @@ const RaidAdminView: React.FC<RaidAdminViewProps> = ({ profile, onComplete, addT
       addToast?.('Raid scheduled successfully', 'success');
     } catch (err) {
       console.error(err);
-      addToast?.('Unable to schedule raid', 'error');
+      addToast?.(getErrorMessage(err, 'Unable to schedule raid'), 'error');
     } finally {
       setBusy(false);
     }
@@ -58,7 +65,7 @@ const RaidAdminView: React.FC<RaidAdminViewProps> = ({ profile, onComplete, addT
       addToast?.('Raid finalized. Rewards queued.', 'success');
     } catch (err) {
       console.error(err);
-      addToast?.('Failed to finalize raid', 'error');
+      addToast?.(getErrorMessage(err, 'Failed to finalize raid'), 'error');
     } finally {
       setBusy(false);
     }

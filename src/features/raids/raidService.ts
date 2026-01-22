@@ -41,6 +41,7 @@ const ARENA_THEMES: Record<RaidMode, string> = {
 
 const QUESTIONS_PER_WAVE = 5;
 const QUESTION_FETCH_MULTIPLIER = 3;
+let bhEnrollmentPromise: Promise<void> | null = null;
 
 type McqQuestionRow = {
   id: number | string;
@@ -183,6 +184,19 @@ const createWaveState = (wave: RaidWaveConfig): RaidWaveState => ({
 
 const getNowIso = (): string => new Date().toISOString();
 
+const ensureBhEnrollment = async (): Promise<void> => {
+  if (!bhEnrollmentPromise) {
+    bhEnrollmentPromise = (async () => {
+      const { error } = await supabase.rpc('bh_enroll_self');
+      if (error) {
+        bhEnrollmentPromise = null;
+        throw new Error(error.message ?? 'BH access denied');
+      }
+    })();
+  }
+  return bhEnrollmentPromise;
+};
+
 export const calculateTeamDamage = (individualScore: number, waveScoreThreshold: number, bossHpPerWave: number): number => {
   if (waveScoreThreshold <= 0 || bossHpPerWave <= 0) {
     return 0;
@@ -251,6 +265,7 @@ const computeRewardBreakdown = (participants: RaidParticipantState[]): RaidRewar
 };
 
 export const startRaid = async (bossId: string): Promise<RaidStatus> => {
+  await ensureBhEnrollment();
   const { data, error } = await createRaidSession(bossId, { waves: DEFAULT_WAVES, reward_pool: RAID_REWARD_POOL });
   if (error) {
     throw new Error(error.message ?? 'Failed to create raid');
@@ -274,6 +289,7 @@ export const startRaid = async (bossId: string): Promise<RaidStatus> => {
 };
 
 export const joinRaid = async (raidId: string, username: string, userId: string): Promise<RaidParticipantState> => {
+  await ensureBhEnrollment();
   const { data, error } = await joinRaidSession(raidId);
   if (error) {
     throw new Error(error.message ?? 'Failed to join raid');
@@ -304,6 +320,7 @@ export const submitRaidAnswer = async (
   wave: RaidWaveState,
   participant: RaidParticipantState,
 ): Promise<RaidAnswerResult> => {
+  await ensureBhEnrollment();
   const damage = payload.isCorrect
     ? calculateTeamDamage(payload.score, payload.waveScoreThreshold, payload.bossHp)
     : 0;
@@ -353,6 +370,7 @@ export const submitRaidAnswer = async (
 };
 
 export const finalizeRaid = async (raidId: string, participants: RaidParticipantState[]): Promise<RaidFinalizationResult> => {
+  await ensureBhEnrollment();
   const rewards = computeRewardBreakdown(participants);
   const { error } = await finalizeRaidSession(raidId);
   if (error) {
@@ -496,6 +514,7 @@ const inflateRaid = async (raidRow: any): Promise<RaidStatus> => {
 };
 
 export const getActiveRaid = async (): Promise<RaidStatus | null> => {
+  await ensureBhEnrollment();
   const { data, error } = await supabase
     .from('raids')
     .select('*')
@@ -515,6 +534,7 @@ export const getActiveRaid = async (): Promise<RaidStatus | null> => {
 };
 
 export const getRaidStatus = async (raidId: string): Promise<RaidStatus | null> => {
+  await ensureBhEnrollment();
   const { data, error } = await fetchRaidStatus(raidId);
   if (error) {
     console.error('Failed to load raid status via RPC', error);
