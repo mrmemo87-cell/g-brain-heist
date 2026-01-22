@@ -23,12 +23,13 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   const [clanList, setClanList] = useState<any[]>([]);
   const [stats, setStats] = useState({
     totalUsers: 0,
-    activeToday: 0,
-    totalXP: 0,
-    totalCoins: 0,
-    totalGemstones: 0,
-    totalClans: 0
+    totalTeachers: 0,
+    bhMembers: 0,
+    ieltsUsers: 0,
+    ieltsTeachers: 0,
   });
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError] = useState<string | null>(null);
   const [adminVisible, setAdminVisible] = useState(profile.admin_visible || false);
   const [showAnnouncementComposer, setShowAnnouncementComposer] = useState(false);
   const [announcementText, setAnnouncementText] = useState('');
@@ -380,8 +381,35 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     }
   }, [searchQuery, allUsers]);
 
+  const fetchDashboardStats = async () => {
+    setStatsLoading(true);
+    setStatsError(null);
+    try {
+      const { data, error } = await supabase.rpc('rpc_admin_dashboard_stats');
+      if (error) throw error;
+
+      const payload = Array.isArray(data) ? data[0] : data;
+      const resolved = payload || {};
+
+      setStats({
+        totalUsers: Number(resolved.total_users ?? resolved.totalUsers ?? 0),
+        totalTeachers: Number(resolved.total_teachers ?? resolved.totalTeachers ?? 0),
+        bhMembers: Number(resolved.bh_members ?? resolved.bhMembers ?? 0),
+        ieltsUsers: Number(resolved.ielts_users ?? resolved.ieltsUsers ?? 0),
+        ieltsTeachers: Number(resolved.ielts_teachers ?? resolved.ieltsTeachers ?? 0),
+      });
+    } catch (error) {
+      console.error('Failed to fetch admin stats:', error);
+      setStatsError('Failed to load admin stats. Please try again.');
+      addToast('Failed to load admin stats', 'error');
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
   const fetchDashboardData = async () => {
     try {
+      await fetchDashboardStats();
       const { data: users, error } = await supabase
         .from('users')
         .select('*')
@@ -394,30 +422,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   setAllUsers(playerRoster);
   setFilteredUsers(playerRoster);
 
-      const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-      const activeToday = playerRoster.filter(u => {
-        const lastSeen = u.last_seen ? new Date(u.last_seen) : null;
-        return lastSeen && lastSeen >= todayStart;
-      }).length;
-
-  const totalXP = playerRoster.reduce((sum, u) => sum + (u.xp || 0), 0);
-  const totalCoins = playerRoster.reduce((sum, u) => sum + (u.coins || 0), 0);
-  const totalGemstones = playerRoster.reduce((sum, u) => sum + (u.gemstones || 0), 0);
-
-      const { data: clans } = await supabase.from('clans').select('id');
-
-      setStats({
-        totalUsers: playerRoster.length,
-        activeToday,
-        totalXP,
-        totalCoins,
-        totalGemstones,
-        totalClans: clans?.length || 0
-      });
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
+      addToast('Failed to load dashboard data', 'error');
     }
   };
 
@@ -754,10 +761,16 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         <div className="max-w-7xl mx-auto">
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
+              {statsError && (
+                <div className="rounded-xl border border-red-400/50 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                  {statsError}
+                </div>
+              )}
               {/* Stats Grid - Godly Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[
                   {
+                    key: 'totalUsers',
                     label: 'Total Users',
                     value: stats.totalUsers,
                     icon: '👥',
@@ -765,41 +778,39 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                     valueClass: 'text-cyan-300'
                   },
                   {
-                    label: 'Active Today',
-                    value: stats.activeToday,
-                    icon: '🔥',
+                    key: 'totalTeachers',
+                    label: 'Total Teachers',
+                    value: stats.totalTeachers,
+                    icon: '🧑‍🏫',
                     containerClass: 'bg-gradient-to-br from-orange-600/20 to-orange-900/20 border-2 border-orange-400',
                     valueClass: 'text-orange-300'
                   },
                   {
-                    label: 'Total XP',
-                    value: stats.totalXP.toLocaleString(),
-                    icon: '⚡',
+                    key: 'bhMembers',
+                    label: 'BH Members',
+                    value: stats.bhMembers,
+                    icon: '🧠',
                     containerClass: 'bg-gradient-to-br from-blue-600/20 to-blue-900/20 border-2 border-blue-400',
                     valueClass: 'text-blue-300'
                   },
                   {
-                    label: 'Total Coins',
-                    value: stats.totalCoins.toLocaleString(),
-                    icon: '🪙',
+                    key: 'ieltsUsers',
+                    label: 'IELTS Users',
+                    value: stats.ieltsUsers,
+                    icon: '📘',
                     containerClass: 'bg-gradient-to-br from-yellow-600/20 to-yellow-900/20 border-2 border-yellow-400',
                     valueClass: 'text-yellow-300'
                   },
                   {
-                    label: 'Total Gemstones',
-                    value: stats.totalGemstones.toLocaleString(),
-                    icon: '💎',
+                    key: 'ieltsTeachers',
+                    label: 'IELTS Teachers',
+                    value: stats.ieltsTeachers,
+                    icon: '🎓',
                     containerClass: 'bg-gradient-to-br from-emerald-600/20 to-emerald-900/20 border-2 border-emerald-400',
                     valueClass: 'text-emerald-300'
                   },
                   {
-                    label: 'Total Clans',
-                    value: stats.totalClans,
-                    icon: '🛡️',
-                    containerClass: 'bg-gradient-to-br from-purple-600/20 to-purple-900/20 border-2 border-purple-400',
-                    valueClass: 'text-purple-300'
-                  },
-                  {
+                    key: 'godMode',
                     label: 'God Mode',
                     value: 'ACTIVE',
                     icon: '👑',
@@ -814,7 +825,11 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                     <div className="absolute top-0 right-0 text-9xl opacity-10">{stat.icon}</div>
                     <div className="relative">
                       <p className="text-sm text-gray-300 mb-2">{stat.label}</p>
-                      <p className={`text-4xl font-bold font-mono ${stat.valueClass}`}>{stat.value}</p>
+                      {statsLoading && stat.key !== 'godMode' ? (
+                        <div className="h-10 w-24 rounded-lg bg-white/10 animate-pulse" />
+                      ) : (
+                        <p className={`text-4xl font-bold font-mono ${stat.valueClass}`}>{stat.value}</p>
+                      )}
                     </div>
                   </div>
                 ))}
