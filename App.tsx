@@ -360,10 +360,17 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   };
 
   useEffect(() => {
+    if (!isPlayerMode) {
+      return;
+    }
     return aiHostService.init();
-  }, []);
+  }, [isPlayerMode]);
 
   useEffect(() => {
+    if (!isPlayerMode) {
+      return;
+    }
+
     const unsubscribe = notificationService.subscribe((notification) => {
       if (notification.type === 'attack_incoming') {
         if (attackAlertTimeoutRef.current) {
@@ -384,7 +391,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       }
       unsubscribe();
     };
-  }, []);
+  }, [isPlayerMode]);
 
   useEffect(() => {
     if (!isPlayerMode) return;
