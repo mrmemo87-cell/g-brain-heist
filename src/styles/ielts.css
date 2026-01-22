@@ -217,6 +217,63 @@ body.ielts-theme {
   box-shadow: 0 16px 30px rgba(11, 61, 145, 0.22);
 }
 
+.ielts-auth-divider {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.85rem;
+  font-size: 0.85rem;
+  color: var(--ielts-slate-400);
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+}
+
+.ielts-auth-divider span:first-child,
+.ielts-auth-divider span:last-child {
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(30, 92, 179, 0.2), transparent);
+}
+
+.ielts-auth-google {
+  border: 1px solid var(--ielts-border) !important;
+  border-radius: 14px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ielts-slate-900) !important;
+  background: var(--ielts-white) !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.ielts-auth-google:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+  transform: none;
+}
+
+.ielts-auth-google:not(:disabled):hover {
+  border-color: rgba(30, 92, 179, 0.4);
+  box-shadow: 0 12px 24px rgba(30, 92, 179, 0.16);
+  transform: translateY(-1px);
+}
+
+.ielts-auth-google__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(15, 36, 84, 0.08);
+}
+
 .ielts-auth-footer {
   font-size: 0.9rem;
   color: var(--ielts-slate-600);

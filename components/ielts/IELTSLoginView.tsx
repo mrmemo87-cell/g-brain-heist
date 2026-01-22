@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { GoogleIcon } from '../icons';
 import * as IELTSAuthService from '../../services/ieltsAuthService';
 import '../../src/styles/ielts.css';
 
@@ -19,6 +20,7 @@ const IELTSLoginView: React.FC<IELTSLoginViewProps> = ({ onAuthenticated }) => {
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
@@ -83,6 +85,21 @@ const IELTSLoginView: React.FC<IELTSLoginViewProps> = ({ onAuthenticated }) => {
       setError(message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError(null);
+    setInfo(null);
+    setIsGoogleLoading(true);
+
+    try {
+      await IELTSAuthService.loginWithGoogle();
+    } catch (authError) {
+      const message = authError instanceof Error ? authError.message : 'Google sign-in failed.';
+      setError(message);
+    } finally {
+      setIsGoogleLoading(false);
     }
   };
 
@@ -176,10 +193,28 @@ const IELTSLoginView: React.FC<IELTSLoginViewProps> = ({ onAuthenticated }) => {
           {error && <div className="ielts-auth-alert ielts-auth-alert--error">{error}</div>}
           {info && <div className="ielts-auth-alert ielts-auth-alert--info">{info}</div>}
 
-          <button type="submit" className="ielts-primary-btn" disabled={!canSubmit || isSubmitting}>
+          <button type="submit" className="ielts-primary-btn" disabled={!canSubmit || isSubmitting || isGoogleLoading}>
             {isSubmitting ? 'Please wait…' : mode === 'login' ? 'Enter study hub' : 'Create account'}
           </button>
         </form>
+
+        <div className="ielts-auth-divider">
+          <span />
+          <span>or</span>
+          <span />
+        </div>
+
+        <button
+          type="button"
+          className="ielts-auth-google"
+          onClick={handleGoogleSignIn}
+          disabled={isSubmitting || isGoogleLoading}
+        >
+          <span className="ielts-auth-google__icon">
+            <GoogleIcon className="h-5 w-5" />
+          </span>
+          <span>{isGoogleLoading ? 'Connecting to Google…' : 'Continue with Google'}</span>
+        </button>
 
         <footer className="ielts-auth-footer">
           <p>
