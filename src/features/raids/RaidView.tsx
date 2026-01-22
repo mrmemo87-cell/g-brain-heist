@@ -231,6 +231,13 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
   const [isSpectating, setIsSpectating] = useState(false);
   const [cheerFeed, setCheerFeed] = useState<CheerEvent[]>([]);
 
+  const getErrorMessage = (err: unknown, fallback: string) => {
+    if (err instanceof Error && err.message) {
+      return err.message;
+    }
+    return fallback;
+  };
+
   const activeWave = useMemo(() => status?.waves.find((wave) => !wave.completed) ?? null, [status]);
   const waveQuestions = useMemo(() => {
     if (!activeWave) return [];
@@ -322,7 +329,7 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
       setError(null);
     } catch (err) {
       console.error(err);
-      setError('Failed to load raid intel.');
+      setError(getErrorMessage(err, 'Failed to load raid intel.'));
     } finally {
       setLoading(false);
     }
@@ -429,7 +436,7 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
       addToast?.('Joined the raid strike team!', 'success');
     } catch (err) {
       console.error(err);
-      addToast?.('Unable to join raid right now.', 'error');
+      addToast?.(getErrorMessage(err, 'Unable to join raid right now.'), 'error');
     }
   };
 
@@ -454,7 +461,7 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
       addToast?.('Raid launched! Rally your team.', 'success');
     } catch (err) {
       console.error(err);
-      addToast?.('Unable to launch raid right now.', 'error');
+      addToast?.(getErrorMessage(err, 'Unable to launch raid right now.'), 'error');
     } finally {
       setLaunching(false);
     }
@@ -560,7 +567,7 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
       setSelectedOption(null);
     } catch (err) {
       console.error(err);
-      addToast?.('Answer submission failed.', 'error');
+      addToast?.(getErrorMessage(err, 'Answer submission failed.'), 'error');
     } finally {
       setAnswering(false);
     }
