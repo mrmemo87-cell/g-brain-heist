@@ -40,10 +40,36 @@ interface QuestionBankProps {
 // HELPER FUNCTIONS
 // ============================================================================
 
-const getSubjectEmoji = (subject: Subject): string => {
+const normalizeSubject = (subject: Subject | string): Subject => {
+  const normalized = subject.trim().toLowerCase();
+  const subjectMap: Record<string, Subject> = {
+    math: 'Maths',
+    mathematics: 'Maths',
+    maths: 'Maths',
+    science: 'Science',
+    english: 'English',
+    'russian language': 'Russian Language',
+    'russian literature': 'Russian Literature',
+    'kyrgyz language': 'Kyrgyz Language',
+    'kyrgyz history': 'Kyrgyz History',
+    'german language': 'German Language',
+    geography: 'Geography',
+    'global perspective': 'Global Perspective',
+    ict: 'ICT',
+  };
+
+  return subjectMap[normalized] || (subject as Subject);
+};
+
+const getSubjectLabel = (subject: Subject): string => {
+  if (subject === 'Maths') return 'Math';
+  return subject;
+};
+
+const getSubjectEmoji = (subject: Subject | string): string => {
+  const normalizedSubject = normalizeSubject(subject);
   const emojis: Record<string, string> = {
     'Maths': '🔢',
-    'Mathematics': '➕',
     'Science': '🔬',
     'English': '📚',
     'Russian Language': '🇷🇺',
@@ -55,25 +81,25 @@ const getSubjectEmoji = (subject: Subject): string => {
     'Global Perspective': '🌐',
     'ICT': '💻',
   };
-  return emojis[subject] || '📝';
+  return emojis[normalizedSubject] || '📝';
 };
 
-const getSubjectGradient = (subject: Subject): string => {
+const getSubjectGradient = (subject: Subject | string): string => {
+  const normalizedSubject = normalizeSubject(subject);
   const gradients: Record<string, string> = {
-    'Maths': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    'Mathematics': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    'Science': 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
-    'English': 'linear-gradient(135deg, #ee0979 0%, #ff6a00 100%)',
-    'Russian Language': 'linear-gradient(135deg, #0052D4 0%, #65C7F7 50%, #9CECFB 100%)',
-    'Russian Literature': 'linear-gradient(135deg, #834d9b 0%, #d04ed6 100%)',
-    'Kyrgyz Language': 'linear-gradient(135deg, #ED213A 0%, #93291E 100%)',
-    'Kyrgyz History': 'linear-gradient(135deg, #b92b27 0%, #1565C0 100%)',
-    'German Language': 'linear-gradient(135deg, #232526 0%, #414345 50%, #DD1818 100%)',
-    'Geography': 'linear-gradient(135deg, #56ab2f 0%, #a8e063 100%)',
-    'Global Perspective': 'linear-gradient(135deg, #4776E6 0%, #8E54E9 100%)',
-    'ICT': 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)',
+    'Maths': 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+    'Science': 'linear-gradient(135deg, #0ea5e9 0%, #22d3ee 100%)',
+    'English': 'linear-gradient(135deg, #f97316 0%, #ec4899 100%)',
+    'Russian Language': 'linear-gradient(135deg, #1d4ed8 0%, #38bdf8 60%, #22d3ee 100%)',
+    'Russian Literature': 'linear-gradient(135deg, #6d28d9 0%, #c084fc 100%)',
+    'Kyrgyz Language': 'linear-gradient(135deg, #f43f5e 0%, #f97316 100%)',
+    'Kyrgyz History': 'linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%)',
+    'German Language': 'linear-gradient(135deg, #0f172a 0%, #f97316 60%, #ef4444 100%)',
+    'Geography': 'linear-gradient(135deg, #10b981 0%, #22c55e 100%)',
+    'Global Perspective': 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+    'ICT': 'linear-gradient(135deg, #0f172a 0%, #1d4ed8 60%, #22d3ee 100%)',
   };
-  return gradients[subject] || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+  return gradients[normalizedSubject] || 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)';
 };
 
 const getTopicDecoEmoji = (topic: string, subject: Subject): string => {
@@ -248,7 +274,7 @@ const SetPreviewModal: React.FC<SetPreviewModalProps> = ({
             <span className="qb-modal-icon">{set.coverEmoji}</span>
             <div>
               <h2 className="qb-modal-title">{set.title}</h2>
-              <p className="qb-modal-subtitle">{set.subject} • {set.questionCount} questions</p>
+              <p className="qb-modal-subtitle">{getSubjectLabel(set.subject)} • {set.questionCount} questions</p>
             </div>
           </div>
           <button className="qb-modal-close" onClick={onClose}>✕</button>
@@ -394,7 +420,7 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
   // Get unique subjects for filter
   const subjects = useMemo(() => {
     const subjectSet = new Set<Subject>();
-    questions.forEach(q => subjectSet.add(q.subject));
+    questions.forEach(q => subjectSet.add(normalizeSubject(q.subject)));
     return Array.from(subjectSet).sort();
   }, [questions]);
 
@@ -404,13 +430,14 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
 
     questions.forEach(question => {
       const topic = question.topic_name || question.topic || 'General';
-      const setId = `${question.subject}_${topic}`;
+      const normalizedSubject = normalizeSubject(question.subject);
+      const setId = `${normalizedSubject}_${topic}`;
 
       if (!setMap.has(setId)) {
         setMap.set(setId, {
           id: setId,
           title: topic,
-          subject: question.subject,
+          subject: normalizedSubject,
           topic: topic,
           difficulty: 'easy',
           questionCount: 0,
@@ -420,8 +447,8 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
           totalPlays: 0,
           authorName: 'Community',
           isVerified: false,
-          coverGradient: getSubjectGradient(question.subject),
-          coverEmoji: getTopicDecoEmoji(topic, question.subject),
+          coverGradient: getSubjectGradient(normalizedSubject),
+          coverEmoji: getTopicDecoEmoji(topic, normalizedSubject),
         });
       }
 
@@ -470,7 +497,7 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
         const search = searchTerm.toLowerCase();
         return (
           set.title.toLowerCase().includes(search) ||
-          set.subject.toLowerCase().includes(search) ||
+          getSubjectLabel(set.subject).toLowerCase().includes(search) ||
           set.topic.toLowerCase().includes(search)
         );
       }
@@ -545,8 +572,8 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
       {/* Sidebar */}
       <aside className="blooket-sidebar">
         <div className="blooket-logo">
-          <span className="logo-icon">🧠</span>
-          <span className="logo-text">BrainHeist</span>
+          <img className="logo-image" src="/BRAINS.svg" alt="Brains Heist logo" />
+          <span className="logo-text">Brains Heist</span>
         </div>
 
         {onCreateQuestion && (
@@ -631,7 +658,7 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
               className={`filter-pill ${subjectFilter === subject ? 'active' : ''}`}
               onClick={() => setSubjectFilter(subject)}
             >
-              {getSubjectEmoji(subject)} {subject}
+              {getSubjectEmoji(subject)} {getSubjectLabel(subject)}
             </button>
           ))}
         </div>

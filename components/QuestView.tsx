@@ -41,6 +41,13 @@ const getOptionText = (option: string | QuestionOption): string => {
   return option.text;
 };
 
+const normalizeQuestionBankSubject = (subject?: string): string => {
+  if (!subject) return 'General';
+  const normalized = subject.trim().toLowerCase();
+  if (['math', 'mathematics', 'maths'].includes(normalized)) return 'Math';
+  return subject.trim();
+};
+
 // Resolve Supabase storage-relative URLs to fully qualified public URLs
 const resolveQuestionImageUrl = (url?: string | null): string | undefined => {
   if (!url) return undefined;
@@ -1002,28 +1009,34 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
   const renderSubjectSelection = () => (
     <div className="space-y-6">
-      <div className="max-w-5xl mx-auto p-6 rounded-2xl bg-gradient-to-r from-indigo-500/20 via-cyan-500/10 to-emerald-500/20 border border-cyan-400/30 shadow-lg">
+      <div className="max-w-5xl mx-auto p-6 rounded-2xl bg-gradient-to-r from-slate-900/70 via-indigo-900/50 to-fuchsia-900/50 border border-cyan-400/30 shadow-[0_0_32px_rgba(34,211,238,0.18)]">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="text-4xl">📚</div>
+            <img
+              src="/BRAINS.svg"
+              alt="Brains Heist logo"
+              className="w-12 h-12 drop-shadow-[0_0_12px_rgba(34,211,238,0.4)]"
+            />
             <div>
               <h2 className="font-heading text-2xl text-white">Explore the Question Bank</h2>
-              <p className="text-sm text-gray-200">Browse every subject and topic just like your teacher.</p>
+              <p className="text-sm text-slate-200">Browse every subject and topic just like your teacher.</p>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-3 text-sm text-gray-200">
-            <div className="card-glass p-3 border border-cyan-500/30 text-center">
-              <p className="text-xs uppercase tracking-widest text-gray-400">Subjects</p>
-              <p className="font-heading text-xl text-white">{subjects.length || '—'}</p>
+          <div className="grid grid-cols-3 gap-3 text-sm text-slate-200">
+            <div className="card-glass p-3 border border-cyan-400/30 text-center">
+              <p className="text-xs uppercase tracking-widest text-slate-400">Subjects</p>
+              <p className="font-heading text-xl text-white">
+                {new Set(publicQuestions.map((question) => normalizeQuestionBankSubject(question.subject))).size || '—'}
+              </p>
             </div>
-            <div className="card-glass p-3 border border-emerald-500/30 text-center">
-              <p className="text-xs uppercase tracking-widest text-gray-400">Topics</p>
+            <div className="card-glass p-3 border border-indigo-400/30 text-center">
+              <p className="text-xs uppercase tracking-widest text-slate-400">Topics</p>
               <p className="font-heading text-xl text-white">
                 {new Set(publicQuestions.map((question) => question.topic_name || question.topic || 'General')).size || '—'}
               </p>
             </div>
-            <div className="card-glass p-3 border border-amber-500/30 text-center">
-              <p className="text-xs uppercase tracking-widest text-gray-400">Questions</p>
+            <div className="card-glass p-3 border border-fuchsia-400/30 text-center">
+              <p className="text-xs uppercase tracking-widest text-slate-400">Questions</p>
               <p className="font-heading text-xl text-white">{publicQuestions.length || '—'}</p>
             </div>
           </div>
