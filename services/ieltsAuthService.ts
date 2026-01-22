@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 import { ensureIeltsProfile } from './ieltsService';
+import { getAuthRedirectUrl } from './env';
 
 interface SignupPayload {
   email: string;
@@ -49,6 +50,25 @@ export const signup = async ({ email, password, username, fullName }: SignupPayl
 
 export const logout = async (): Promise<void> => {
   const { error } = await supabase.auth.signOut();
+  if (error) {
+    throw new Error(error.message);
+  }
+};
+
+export const loginWithGoogle = async (): Promise<void> => {
+  const redirectTo = getAuthRedirectUrl();
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo,
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'consent',
+      },
+    },
+  });
+
   if (error) {
     throw new Error(error.message);
   }
