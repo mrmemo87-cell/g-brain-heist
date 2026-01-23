@@ -113,7 +113,8 @@ CREATE TABLE IF NOT EXISTS announcements (
     id BIGSERIAL PRIMARY KEY,
     text TEXT NOT NULL,
     created_by UUID REFERENCES users(id) ON DELETE SET NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    expires_at TIMESTAMPTZ
 );
 
 CREATE INDEX IF NOT EXISTS idx_announcements_created_at ON announcements(created_at DESC);

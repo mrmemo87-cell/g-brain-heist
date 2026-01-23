@@ -252,6 +252,7 @@ export interface Announcement {
   active?: boolean;
   created_at: string;
   created_by: string | null;
+  expires_at?: string | null;
   seen_at?: string | null;
 }
 

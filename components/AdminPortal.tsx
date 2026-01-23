@@ -38,6 +38,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   const [adminVisible, setAdminVisible] = useState(profile.admin_visible || false);
   const [showAnnouncementComposer, setShowAnnouncementComposer] = useState(false);
   const [announcementText, setAnnouncementText] = useState('');
+  const [announcementExpiry, setAnnouncementExpiry] = useState<'never' | '1d' | '7d' | '30d' | 'custom'>('never');
+  const [customAnnouncementExpiry, setCustomAnnouncementExpiry] = useState('');
   const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false);
   const [isResettingAll, setIsResettingAll] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -167,6 +169,15 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   const resolveUserLabel = (user: any) => user?.username ?? user?.email ?? 'Unknown';
 
   const resolveUserEmail = (user: any) => user?.email ?? 'Unknown';
+
+  const isPlayerAccount = (user: any) => {
+    const role = String(user?.role ?? '').toLowerCase();
+    if (user?.is_admin) return false;
+    if (role && role !== 'student') return false;
+    return true;
+  };
+
+  const playerUsers = users.filter(isPlayerAccount);
 
   // Delete a quiz score entry
   const deleteQuizScore = async (id: string, studentName: string) => {
@@ -502,49 +513,6 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     };
   }, [fetchUsers, searchQuery, userPage]);
 
-  useEffect(() => {
-    let intervalId: number | null = null;
-
-    const poll = () => {
-      if (document.visibilityState !== 'visible') {
-        return;
-      }
-      void fetchDashboardStats();
-      void fetchUsers(userPage, searchQuery);
-    };
-
-    const startPolling = () => {
-      if (intervalId !== null) return;
-      intervalId = window.setInterval(poll, 9000);
-    };
-
-    const stopPolling = () => {
-      if (intervalId === null) return;
-      window.clearInterval(intervalId);
-      intervalId = null;
-    };
-
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        poll();
-        startPolling();
-      } else {
-        stopPolling();
-      }
-    };
-
-    if (document.visibilityState === 'visible') {
-      startPolling();
-    }
-
-    document.addEventListener('visibilitychange', handleVisibility);
-
-    return () => {
-      stopPolling();
-      document.removeEventListener('visibilitychange', handleVisibility);
-    };
-  }, [fetchDashboardStats, fetchUsers, searchQuery, userPage]);
-
   const toggleAdminVisibility = async () => {
     try {
       const newVisibility = !adminVisible;
@@ -758,10 +726,33 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     }
 
     try {
+      let expiresAt: string | null = null;
+
+      if (announcementExpiry !== 'never') {
+        if (announcementExpiry === 'custom') {
+          if (!customAnnouncementExpiry) {
+            addToast('Select an expiration date/time', 'error');
+            return;
+          }
+          const parsed = new Date(customAnnouncementExpiry);
+          if (Number.isNaN(parsed.getTime())) {
+            addToast('Expiration date/time is invalid', 'error');
+            return;
+          }
+          expiresAt = parsed.toISOString();
+        } else {
+          const days = announcementExpiry === '1d' ? 1 : announcementExpiry === '7d' ? 7 : 30;
+          const expiryDate = new Date();
+          expiryDate.setDate(expiryDate.getDate() + days);
+          expiresAt = expiryDate.toISOString();
+        }
+      }
       setIsSendingAnnouncement(true);
-      await CompetitionService.postAnnouncement(announcementText.trim());
+      await CompetitionService.postAnnouncement(announcementText.trim(), expiresAt);
       addToast('📢 Announcement sent to all players', 'success');
       setAnnouncementText('');
+      setAnnouncementExpiry('never');
+      setCustomAnnouncementExpiry('');
       setShowAnnouncementComposer(false);
     } catch (error) {
       reportRpcError('Failed to send announcement:', error, 'Failed to send announcement');
@@ -1025,43 +1016,43 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                   <div className="bg-black/30 p-4 rounded-lg border border-cyan-400/50">
                     <p className="text-sm text-gray-400 mb-1">Average Level</p>
                     <p className="text-3xl font-bold text-cyan-300">
-                      {users.length > 0 ? (users.reduce((sum, u) => sum + Number(u.level ?? 0), 0) / users.length).toFixed(1) : '0'}
+                      {playerUsers.length > 0 ? (playerUsers.reduce((sum, u) => sum + Number(u.level ?? 0), 0) / playerUsers.length).toFixed(1) : '0'}
                     </p>
                   </div>
                   <div className="bg-black/30 p-4 rounded-lg border border-blue-400/50">
                     <p className="text-sm text-gray-400 mb-1">Average XP</p>
                     <p className="text-3xl font-bold text-blue-300">
-                      {users.length > 0 ? Math.floor(users.reduce((sum, u) => sum + Number(u.xp ?? 0), 0) / users.length).toLocaleString() : '0'}
+                      {playerUsers.length > 0 ? Math.floor(playerUsers.reduce((sum, u) => sum + Number(u.xp ?? 0), 0) / playerUsers.length).toLocaleString() : '0'}
                     </p>
                   </div>
                   <div className="bg-black/30 p-4 rounded-lg border border-yellow-400/50">
                     <p className="text-sm text-gray-400 mb-1">Richest Player</p>
                     <p className="text-xl font-bold text-yellow-300">
-                      {users.length > 0 ? resolveUserLabel(users.reduce((max, u) => Number(u.coins ?? 0) > Number(max.coins ?? 0) ? u : max, users[0])) : 'None'}
+                      {playerUsers.length > 0 ? resolveUserLabel(playerUsers.reduce((max, u) => Number(u.coins ?? 0) > Number(max.coins ?? 0) ? u : max, playerUsers[0])) : 'None'}
                     </p>
                     <p className="text-sm text-gray-400">
-                      {users.length > 0 ? `${Number(users.reduce((max, u) => Number(u.coins ?? 0) > Number(max.coins ?? 0) ? u : max, users[0])?.coins ?? 0).toLocaleString()} 🪙` : ''}
+                      {playerUsers.length > 0 ? `${Number(playerUsers.reduce((max, u) => Number(u.coins ?? 0) > Number(max.coins ?? 0) ? u : max, playerUsers[0])?.coins ?? 0).toLocaleString()} 🪙` : ''}
                     </p>
                   </div>
                   <div className="bg-black/30 p-4 rounded-lg border border-purple-400/50">
                     <p className="text-sm text-gray-400 mb-1">Highest Level</p>
                     <p className="text-xl font-bold text-purple-300">
-                      {users.length > 0 ? resolveUserLabel(users.reduce((max, u) => Number(u.level ?? 0) > Number(max.level ?? 0) ? u : max, users[0])) : 'None'}
+                      {playerUsers.length > 0 ? resolveUserLabel(playerUsers.reduce((max, u) => Number(u.level ?? 0) > Number(max.level ?? 0) ? u : max, playerUsers[0])) : 'None'}
                     </p>
                     <p className="text-sm text-gray-400">
-                      {users.length > 0 ? `Level ${Number(users.reduce((max, u) => Number(u.level ?? 0) > Number(max.level ?? 0) ? u : max, users[0])?.level ?? 0)}` : ''}
+                      {playerUsers.length > 0 ? `Level ${Number(playerUsers.reduce((max, u) => Number(u.level ?? 0) > Number(max.level ?? 0) ? u : max, playerUsers[0])?.level ?? 0)}` : ''}
                     </p>
                   </div>
                   <div className="bg-black/30 p-4 rounded-lg border border-green-400/50">
                     <p className="text-sm text-gray-400 mb-1">Total AP Pool</p>
                     <p className="text-3xl font-bold text-green-300">
-                      {users.reduce((sum, u) => sum + Number(u.ap_now ?? 0), 0)}
+                      {playerUsers.reduce((sum, u) => sum + Number(u.ap_now ?? 0), 0)}
                     </p>
                   </div>
                   <div className="bg-black/30 p-4 rounded-lg border border-red-400/50">
                     <p className="text-sm text-gray-400 mb-1">Students</p>
                     <p className="text-3xl font-bold text-red-300">
-                      {users.filter(u => u.role === 'student' || !u.role).length}
+                      {playerUsers.length}
                     </p>
                   </div>
                 </div>
@@ -1939,7 +1930,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
           <div className="bg-gray-900 border border-green-400/60 rounded-2xl max-w-xl w-full p-6 space-y-4">
             <h3 className="text-2xl font-heading text-green-300">📢 Broadcast Announcement</h3>
             <p className="text-sm text-gray-400">
-              This message will appear once for every player until they dismiss it.
+              This message appears for every player until they dismiss it or it expires.
             </p>
             <textarea
               value={announcementText}
@@ -1948,11 +1939,40 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
               className="w-full bg-black/50 border border-green-400/40 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-300"
               placeholder="Share mission updates, tournament news, or urgent warnings..."
             />
+            <div className="space-y-2">
+              <label className="text-sm text-gray-300 font-semibold">Expiration</label>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <select
+                  value={announcementExpiry}
+                  onChange={(e) => setAnnouncementExpiry(e.target.value as typeof announcementExpiry)}
+                  className="w-full rounded-lg border border-green-400/40 bg-black/60 px-3 py-2 text-sm text-white focus:outline-none focus:border-green-300"
+                >
+                  <option value="never">Never expire</option>
+                  <option value="1d">Expires in 24 hours</option>
+                  <option value="7d">Expires in 7 days</option>
+                  <option value="30d">Expires in 30 days</option>
+                  <option value="custom">Custom date/time</option>
+                </select>
+                {announcementExpiry === 'custom' && (
+                  <input
+                    type="datetime-local"
+                    value={customAnnouncementExpiry}
+                    onChange={(e) => setCustomAnnouncementExpiry(e.target.value)}
+                    className="w-full rounded-lg border border-green-400/40 bg-black/60 px-3 py-2 text-sm text-white focus:outline-none focus:border-green-300"
+                  />
+                )}
+              </div>
+              <p className="text-xs text-gray-400">
+                When the expiration time is reached, the announcement will stop showing for everyone.
+              </p>
+            </div>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => {
                   setShowAnnouncementComposer(false);
                   setAnnouncementText('');
+                  setAnnouncementExpiry('never');
+                  setCustomAnnouncementExpiry('');
                 }}
                 className="px-4 py-2 rounded-lg border border-gray-500 text-gray-300 hover:bg-gray-800/80"
               >

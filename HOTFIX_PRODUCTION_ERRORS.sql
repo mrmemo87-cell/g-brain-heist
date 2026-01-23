@@ -153,7 +153,8 @@ RETURNS TABLE (
     text TEXT,
     title TEXT,
     priority TEXT,
-    created_at TIMESTAMPTZ
+    created_at TIMESTAMPTZ,
+    expires_at TIMESTAMPTZ
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -180,9 +181,11 @@ BEGIN
         a.text,
         a.title,
         a.priority,
-        a.created_at
+        a.created_at,
+        a.expires_at
     FROM announcements a
     WHERE a.active = true
+    AND (a.expires_at IS NULL OR a.expires_at > NOW())
     AND NOT EXISTS (
         SELECT 1 FROM announcement_receipts ar
         WHERE ar.announcement_id = a.id
@@ -196,7 +199,8 @@ $$;
 -- Create announcement_post function
 CREATE OR REPLACE FUNCTION rpc_announcement_post(
     p_text TEXT,
-    p_priority TEXT DEFAULT 'normal'
+    p_priority TEXT DEFAULT 'normal',
+    p_expires_at TIMESTAMPTZ DEFAULT NULL
 )
 RETURNS announcements
 LANGUAGE plpgsql
@@ -218,8 +222,8 @@ BEGIN
     END IF;
 
     -- Insert announcement
-    INSERT INTO announcements (text, priority, created_by, active)
-    VALUES (p_text, p_priority, current_user_id, true)
+    INSERT INTO announcements (text, priority, created_by, active, expires_at)
+    VALUES (p_text, p_priority, current_user_id, true, p_expires_at)
     RETURNING * INTO new_announcement;
 
     -- Log (with error handling)
@@ -229,7 +233,7 @@ BEGIN
             'rpc_announcement_post',
             'info',
             current_user_id,
-            jsonb_build_object('text', p_text, 'priority', p_priority),
+            jsonb_build_object('text', p_text, 'priority', p_priority, 'expires_at', p_expires_at),
             jsonb_build_object('announcement_id', new_announcement.id)
         );
     EXCEPTION WHEN OTHERS THEN
