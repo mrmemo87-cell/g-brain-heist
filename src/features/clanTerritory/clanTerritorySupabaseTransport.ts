@@ -160,6 +160,9 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
         teacherName?: string;
         classCode?: string;
         scheduledStartAt?: string;
+        phase?: ClanTerritoryGameState["phase"];
+        timer?: number;
+        gameEndTime?: number;
       }
     ) => void
   ) {
@@ -185,6 +188,9 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
             teacherName: roomPayload.teacherName,
             classCode: roomPayload.classCode,
             scheduledStartAt: roomPayload.scheduledStartAt,
+            phase: roomPayload.phase,
+            timer: roomPayload.timer,
+            gameEndTime: roomPayload.gameEndTime,
           });
         })
         .subscribe();
@@ -454,6 +460,9 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
                     teacherName: this.teacherName,
                     classCode: this.classCode,
                     scheduledStartAt: this.scheduledStartAt,
+                    phase: this.state.phase,
+                    timer: this.state.timer,
+                    gameEndTime: this.state.gameEndTime,
                   },
                 });
               }
