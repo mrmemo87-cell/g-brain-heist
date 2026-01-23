@@ -117,33 +117,31 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
         setStage('loading');
     }
     try {
+        const clanDetails = await GameService.clan_details();
+        setClan(clanDetails);
+        setStage(clanDetails ? 'in_clan' : 'no_clan');
+
         const results = await Promise.allSettled([
-            GameService.clan_details(),
             GameService.clan_get_available_buffs(),
             GameService.clan_get_my_pending_request(),
         ]);
 
-        // Extract values with fallbacks if any promise rejected
-        const clanDetails = results[0].status === 'fulfilled' ? results[0].value : null;
-        const buffs = results[1].status === 'fulfilled' ? results[1].value : [];
-        const pendingRequest = results[2].status === 'fulfilled' ? results[2].value : null;
+        const buffs = results[0].status === 'fulfilled' ? results[0].value : [];
+        const pendingRequest = results[1].status === 'fulfilled' ? results[1].value : null;
 
         if (results[0].status === 'rejected') {
-            console.error('Failed to load clan details:', results[0].reason);
+            console.error('Failed to load buffs:', results[0].reason);
         }
         if (results[1].status === 'rejected') {
-            console.error('Failed to load buffs:', results[1].reason);
-        }
-        if (results[2].status === 'rejected') {
-            console.error('Failed to load pending request:', results[2].reason);
+            console.error('Failed to load pending request:', results[1].reason);
         }
 
-        setClan(clanDetails);
         setAvailableBuffs(buffs);
         setPendingJoinRequest(pendingRequest);
-        setStage(clanDetails ? 'in_clan' : 'no_clan');
     } catch (error) {
+        console.error('Failed to load clan details:', error);
         addToast("Failed to load clan details.", "error");
+        setClan(null);
         setStage('no_clan');
     }
   };
