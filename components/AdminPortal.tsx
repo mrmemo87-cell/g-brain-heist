@@ -393,6 +393,22 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     return message;
   };
 
+  const handleLogout = async () => {
+    if (isLoggingOut) {
+      return;
+    }
+
+    setIsLoggingOut(true);
+    try {
+      await AuthService.logout();
+      onComplete();
+    } catch (error) {
+      reportRpcError('Failed to log out:', error, 'Failed to log out.');
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
   const isMissingRpc = (error: unknown, rpcName: string) => {
     const message = (error as { message?: string })?.message?.toLowerCase() ?? '';
     return (
