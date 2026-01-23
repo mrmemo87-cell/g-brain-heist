@@ -23,6 +23,7 @@ interface ClanTerritoryManagerProps {
 const CLANLESS_CLAN_ID_PREFIX = "clanless-agent";
 const CLANLESS_CLAN_LABEL = "Independent Agents";
 const CLANLESS_CLAN_NAME = "Independent Agent";
+const AUTO_START_DELAY_MS = 2 * 60 * 1000;
 
 type DiscoveredRoom = {
   id: string;
@@ -30,6 +31,9 @@ type DiscoveredRoom = {
   teacherName?: string;
   classCode?: string;
   scheduledStartAt?: string;
+  phase?: ClanTerritoryGameState["phase"];
+  timer?: number;
+  gameEndTime?: number;
   lastSeen: number;
 };
 
@@ -44,6 +48,31 @@ type StoredHostRoom = {
   teacherName?: string;
   scheduledStartAt?: string | null;
   lastUpdatedAt: number;
+};
+
+const formatTimer = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, "0");
+  const secs = Math.floor(seconds % 60)
+    .toString()
+    .padStart(2, "0");
+  return `${minutes}:${secs}`;
+};
+
+const getRemainingSeconds = (input: {
+  phase?: ClanTerritoryGameState["phase"];
+  timer?: number;
+  gameEndTime?: number;
+}) => {
+  if (input.phase !== "ACTIVE") return null;
+  if (typeof input.gameEndTime === "number") {
+    return Math.max(0, Math.floor((input.gameEndTime - Date.now()) / 1000));
+  }
+  if (typeof input.timer === "number") {
+    return Math.max(0, input.timer);
+  }
+  return null;
 };
 
 const createClanlessIdentity = (playerName: string, playerId?: string | null) => {
@@ -390,6 +419,9 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
             teacherName: metadata?.teacherName,
             classCode: metadata?.classCode,
             scheduledStartAt: metadata?.scheduledStartAt,
+            phase: metadata?.phase,
+            timer: metadata?.timer,
+            gameEndTime: metadata?.gameEndTime,
             lastSeen: Date.now(),
           },
         }));
@@ -660,8 +692,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     if (!roomId || !activeScheduledStartAt) return;
     const startAt = new Date(activeScheduledStartAt);
     if (Number.isNaN(startAt.getTime())) return;
-    const delayMs = startAt.getTime() - Date.now();
-    if (delayMs <= 0) return;
+    const delayMs = Math.max(startAt.getTime() - Date.now(), 0) + AUTO_START_DELAY_MS;
 
     const timer = setTimeout(() => {
       if (gameState.phase === "LOBBY") {
@@ -888,7 +919,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-bold text-white">Schedule Start</p>
-                  <p className="text-xs text-gray-400">Set a future time to auto-start the battle.</p>
+                  <p className="text-xs text-gray-400">Set a future time to auto-start the battle (starts 2 minutes after).</p>
                 </div>
                 <label className="inline-flex items-center cursor-pointer">
                   <input
@@ -1131,6 +1162,20 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                             Open Host View
                           </button>
                         </div>
+                        {(() => {
+                          const remainingSeconds = getRemainingSeconds({
+                            phase: room.state.phase,
+                            timer: room.state.timer,
+                            gameEndTime: room.state.gameEndTime,
+                          });
+                          if (remainingSeconds === null) return null;
+                          return (
+                            <div className="flex items-center gap-2 text-xs text-emerald-300 font-semibold">
+                              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                              Live · {formatTimer(remainingSeconds)} remaining
+                            </div>
+                          );
+                        })()}
                         <div className="text-xs text-gray-400 space-y-1">
                           <p>
                             Map: <span className="text-white capitalize">{room.selectedMap}</span>
@@ -1250,6 +1295,11 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                 <div className="space-y-3">
                   {filteredRooms.map((room) => {
                     const allowIndependent = Boolean(room.allowClanlessPlayers);
+                    const remainingSeconds = getRemainingSeconds({
+                      phase: room.phase,
+                      timer: room.timer,
+                      gameEndTime: room.gameEndTime,
+                    });
                     return (
                       <div key={room.id} className="rounded-xl border border-slate-700 bg-slate-900/60 p-4 space-y-2">
                         <div className="flex items-center justify-between">
@@ -1265,6 +1315,12 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                             {allowIndependent && missingClanAssignment ? "Join as Independent" : "Enter Arena"}
                           </button>
                         </div>
+                        {remainingSeconds !== null && (
+                          <div className="flex items-center gap-2 text-xs text-emerald-300 font-semibold">
+                            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                            Live · {formatTimer(remainingSeconds)} remaining
+                          </div>
+                        )}
                         <div className="text-xs text-gray-400 space-y-1">
                           <p>Teacher: <span className="text-white">{room.teacherName || "Teacher"}</span></p>
                           <p>Class: <span className="text-white">{room.classCode || "—"}</span></p>
