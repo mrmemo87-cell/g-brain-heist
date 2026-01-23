@@ -54,7 +54,8 @@ CREATE TABLE IF NOT EXISTS announcements (
     active BOOLEAN DEFAULT true,
     created_by UUID REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    expires_at TIMESTAMPTZ
 );
 
 DO $$
@@ -86,6 +87,13 @@ BEGIN
         WHERE table_schema = 'public' AND table_name = 'announcements' AND column_name = 'updated_at'
     ) THEN
         ALTER TABLE announcements ADD COLUMN updated_at TIMESTAMPTZ DEFAULT NOW();
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'announcements' AND column_name = 'expires_at'
+    ) THEN
+        ALTER TABLE announcements ADD COLUMN expires_at TIMESTAMPTZ;
     END IF;
 END;
 $$;

@@ -263,7 +263,7 @@ export const fetchBatchSummaries = async (): Promise<BatchLeaderboardSummary[]> 
 export const fetchAnnouncements = async (limit = 10): Promise<Announcement[]> => {
   const { data, error } = await supabase
     .from('announcements')
-    .select('id, text, created_at, created_by')
+    .select('id, text, created_at, created_by, expires_at')
     .order('created_at', { ascending: false })
     .limit(limit);
 
@@ -277,8 +277,22 @@ export const fetchAnnouncements = async (limit = 10): Promise<Announcement[]> =>
   })) as Announcement[];
 };
 
-export const postAnnouncement = async (text: string): Promise<void> => {
-  const { error } = await supabase.rpc('rpc_announcement_post', { p_text: text });
+export const postAnnouncement = async (text: string, expiresAt?: string | null): Promise<void> => {
+  const payload: Record<string, string | null> = { p_text: text };
+
+  if (expiresAt) {
+    payload.p_expires_at = expiresAt;
+  }
+
+  const { error } = await supabase.rpc('rpc_announcement_post', payload);
+
+  if (error && expiresAt) {
+    const fallback = await supabase.rpc('rpc_announcement_post', { p_text: text });
+    if (!fallback.error) {
+      return;
+    }
+    throw new Error(fallback.error.message || error.message || 'Failed to send announcement');
+  }
 
   if (error) {
     throw new Error(error.message || 'Failed to send announcement');
@@ -297,6 +311,12 @@ export const fetchNextAnnouncement = async (): Promise<Announcement | null> => {
   }
 
   const payload = Array.isArray(data) ? data[0] : data;
+  if ((payload as any)?.expires_at) {
+    const expiresAt = new Date((payload as any).expires_at as string);
+    if (!Number.isNaN(expiresAt.getTime()) && expiresAt.getTime() <= Date.now()) {
+      return null;
+    }
+  }
   return {
     ...(payload as Record<string, unknown>),
     id: String((payload as any).id),
