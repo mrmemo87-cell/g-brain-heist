@@ -76,6 +76,67 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     12: ['12A', '12B', '12C', 'N/A'],
   };
 
+  useEffect(() => {
+    void fetchDashboardStats();
+  }, [fetchDashboardStats]);
+
+  useEffect(() => {
+    setUserPage(0);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => {
+      void fetchUsers(userPage, searchQuery);
+    }, 300);
+
+    return () => {
+      window.clearTimeout(handle);
+    };
+  }, [fetchUsers, searchQuery, userPage]);
+
+  useEffect(() => {
+    let intervalId: number | null = null;
+
+    const poll = () => {
+      if (document.visibilityState !== 'visible') {
+        return;
+      }
+      void fetchDashboardStats();
+      void fetchUsers(userPage, searchQuery);
+    };
+
+    const startPolling = () => {
+      if (intervalId !== null) return;
+      intervalId = window.setInterval(poll, 9000);
+    };
+
+    const stopPolling = () => {
+      if (intervalId === null) return;
+      window.clearInterval(intervalId);
+      intervalId = null;
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        poll();
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    };
+
+    if (document.visibilityState === 'visible') {
+      startPolling();
+    }
+
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [fetchDashboardStats, fetchUsers, searchQuery, userPage]);
+
   // Fetch Cambridge Quiz Scores (school-isolated for admins)
   const fetchQuizScores = async () => {
     setQuizScoresLoading(true);
@@ -468,67 +529,6 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     ]);
   }, [fetchDashboardStats, fetchUsers, searchQuery, userPage]);
 
-  useEffect(() => {
-    void fetchDashboardStats();
-  }, [fetchDashboardStats]);
-
-  useEffect(() => {
-    setUserPage(0);
-  }, [searchQuery]);
-
-  useEffect(() => {
-    const handle = window.setTimeout(() => {
-      void fetchUsers(userPage, searchQuery);
-    }, 300);
-
-    return () => {
-      window.clearTimeout(handle);
-    };
-  }, [fetchUsers, searchQuery, userPage]);
-
-  useEffect(() => {
-    let intervalId: number | null = null;
-
-    const poll = () => {
-      if (document.visibilityState !== 'visible') {
-        return;
-      }
-      void fetchDashboardStats();
-      void fetchUsers(userPage, searchQuery);
-    };
-
-    const startPolling = () => {
-      if (intervalId !== null) return;
-      intervalId = window.setInterval(poll, 9000);
-    };
-
-    const stopPolling = () => {
-      if (intervalId === null) return;
-      window.clearInterval(intervalId);
-      intervalId = null;
-    };
-
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        poll();
-        startPolling();
-      } else {
-        stopPolling();
-      }
-    };
-
-    if (document.visibilityState === 'visible') {
-      startPolling();
-    }
-
-    document.addEventListener('visibilitychange', handleVisibility);
-
-    return () => {
-      stopPolling();
-      document.removeEventListener('visibilitychange', handleVisibility);
-    };
-  }, [fetchDashboardStats, fetchUsers, searchQuery, userPage]);
-
   const toggleAdminVisibility = async () => {
     try {
       const newVisibility = !adminVisible;
@@ -785,18 +785,6 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       addToast(`🗑️ Deleted ${username}`, 'success');
     } catch (error) {
       reportRpcError('Failed to delete user:', error, 'Failed to delete user');
-    }
-  };
-
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-    try {
-      await AuthService.logout();
-    } catch (error) {
-      console.error('Failed to log out:', error);
-      addToast('Failed to log out. Please try again.', 'error');
-    } finally {
-      setIsLoggingOut(false);
     }
   };
 
