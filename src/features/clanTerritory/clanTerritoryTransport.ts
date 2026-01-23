@@ -11,6 +11,17 @@ export interface ClanTerritoryTransport {
     classCode?: string;
     scheduledStartAt?: string;
   }): Promise<RoomId>;
+  resumeRoom(
+    roomId: RoomId,
+    options?: {
+      state?: ClanTerritoryGameState;
+      allowClanlessPlayers?: boolean;
+      schoolId?: string;
+      teacherName?: string;
+      classCode?: string;
+      scheduledStartAt?: string;
+    }
+  ): Promise<void>;
   joinRoom(
     roomId: RoomId,
     playerName: string,

@@ -121,6 +121,36 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     return roomId;
   }
 
+  async resumeRoom(
+    roomId: RoomId,
+    options?: {
+      state?: ClanTerritoryGameState;
+      allowClanlessPlayers?: boolean;
+      schoolId?: string;
+      teacherName?: string;
+      classCode?: string;
+      scheduledStartAt?: string;
+    }
+  ): Promise<void> {
+    this.isHost = true;
+    this.allowClanlessPlayers = Boolean(options?.allowClanlessPlayers);
+    this.schoolId = options?.schoolId || null;
+    this.teacherName = options?.teacherName || null;
+    this.classCode = options?.classCode || null;
+    this.scheduledStartAt = options?.scheduledStartAt || null;
+
+    const restoredState = options?.state ?? {
+      ...INITIAL_STATE,
+      allowClanlessPlayers: this.allowClanlessPlayers,
+    };
+
+    this.state = restoredState;
+    this.lastStateSignature = this.computeStateSignature(this.state);
+
+    this.setupChannel(roomId);
+    this.startBroadcastingDiscovery(roomId);
+  }
+
   startDiscovery(
     schoolId: string | null,
     onRoomFound: (
