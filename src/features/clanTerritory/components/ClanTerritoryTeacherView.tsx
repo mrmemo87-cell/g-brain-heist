@@ -14,6 +14,7 @@ import { ClanTerritoryMap } from "./ClanTerritoryMap";
 interface ClanTerritoryTeacherViewProps {
   gameState: ClanTerritoryGameState;
   selectedQuestions: any[];
+  scheduledStartAt?: string | null;
   onStartGame: () => void;
   onEndGame: () => void;
   onKickPlayer: (playerId: string) => void;
@@ -49,14 +50,18 @@ const formatTimer = (seconds: number) => {
   return `${minutes}:${secs}`;
 };
 
+const AUTO_START_DELAY_MS = 2 * 60 * 1000;
+
 export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> = ({
   gameState,
   selectedQuestions,
+  scheduledStartAt,
   onStartGame,
   onEndGame,
   onKickPlayer,
 }) => {
   const mapWrapperRef = React.useRef<HTMLDivElement>(null);
+  const [autoStartRemaining, setAutoStartRemaining] = React.useState<number | null>(null);
   const resizeStateRef = React.useRef<{
     startX: number;
     startWidth: number;
@@ -218,6 +223,30 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
     []
   );
 
+  React.useEffect(() => {
+    if (!scheduledStartAt || gameState.phase !== "LOBBY") {
+      setAutoStartRemaining(null);
+      return;
+    }
+    const startAt = new Date(scheduledStartAt);
+    if (Number.isNaN(startAt.getTime())) {
+      setAutoStartRemaining(null);
+      return;
+    }
+    const autoStartAt = startAt.getTime() + AUTO_START_DELAY_MS;
+    const updateRemaining = () => {
+      const remainingMs = autoStartAt - Date.now();
+      const remainingSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
+      setAutoStartRemaining(remainingSeconds);
+    };
+    updateRemaining();
+    const interval = window.setInterval(updateRemaining, 1000);
+    return () => window.clearInterval(interval);
+  }, [gameState.phase, scheduledStartAt]);
+
+  const startButtonLabel =
+    autoStartRemaining !== null ? `START BATTLE (${formatTimer(autoStartRemaining)})` : "START BATTLE";
+
   const endgameOverlay =
     gameState.phase === "ENDED" && results ? (
       <div className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-between p-4 text-white">
@@ -369,7 +398,7 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
               onClick={() => onStartGame()}
               className="px-6 py-2 bg-green-600 hover:bg-green-500 rounded-lg font-bold tracking-wide"
             >
-              START BATTLE
+              {startButtonLabel}
             </button>
           )}
           {gameState.phase === "ACTIVE" && (

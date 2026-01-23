@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { SupabaseClanTerritoryTransport } from "./clanTerritorySupabaseTransport";
 import { ClanTerritoryTeacherView } from "./components/ClanTerritoryTeacherView";
 import { ClanTerritoryStudentView } from "./components/ClanTerritoryStudentView";
@@ -24,6 +24,7 @@ const CLANLESS_CLAN_ID_PREFIX = "clanless-agent";
 const CLANLESS_CLAN_LABEL = "Independent Agents";
 const CLANLESS_CLAN_NAME = "Independent Agent";
 const AUTO_START_DELAY_MS = 2 * 60 * 1000;
+const FINISHED_ARENA_TTL_MS = 24 * 60 * 60 * 1000;
 
 type DiscoveredRoom = {
   id: string;
@@ -132,6 +133,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const [storedHostRooms, setStoredHostRooms] = useState<StoredHostRoom[]>([]);
   const previousBgMusicEnabled = useRef<boolean | null>(null);
   const discoveredRoomsRef = useRef<Record<string, DiscoveredRoom>>({});
+  const autoStartTriggeredRef = useRef(false);
 
   const durationPercentage = ((durationMinutes - 2) / 18) * 100;
 
@@ -163,6 +165,26 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     loadTeacherId();
   }, [isTeacher]);
 
+  const pruneExpiredHostRooms = useCallback((rooms: StoredHostRoom[]) => {
+    const now = Date.now();
+    return rooms.filter((room) => {
+      if (room.state.phase !== "ENDED") return true;
+      return now - room.lastUpdatedAt <= FINISHED_ARENA_TTL_MS;
+    });
+  }, []);
+
+  const persistHostRooms = useCallback(
+    (rooms: StoredHostRoom[]) => {
+      if (teacherUserId && typeof window !== "undefined") {
+        localStorage.setItem(
+          `clan-territory-host-rooms:${teacherUserId}`,
+          JSON.stringify(rooms)
+        );
+      }
+    },
+    [teacherUserId]
+  );
+
   useEffect(() => {
     if (!isTeacher || !teacherUserId || typeof window === "undefined") {
       setStoredHostRooms([]);
@@ -177,12 +199,30 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
     try {
       const parsed = JSON.parse(raw) as StoredHostRoom[];
-      setStoredHostRooms(Array.isArray(parsed) ? parsed : []);
+      const cleaned = pruneExpiredHostRooms(Array.isArray(parsed) ? parsed : []);
+      setStoredHostRooms(cleaned);
+      if (cleaned.length !== parsed.length) {
+        persistHostRooms(cleaned);
+      }
     } catch (error) {
       console.warn("Failed to parse stored host rooms:", error);
       setStoredHostRooms([]);
     }
-  }, [isTeacher, teacherUserId]);
+  }, [isTeacher, teacherUserId, persistHostRooms, pruneExpiredHostRooms]);
+
+  useEffect(() => {
+    if (!isTeacher || !teacherUserId) return;
+    const interval = setInterval(() => {
+      setStoredHostRooms((prev) => {
+        const cleaned = pruneExpiredHostRooms(prev);
+        if (cleaned.length !== prev.length) {
+          persistHostRooms(cleaned);
+        }
+        return cleaned;
+      });
+    }, 60 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [isTeacher, teacherUserId, persistHostRooms, pruneExpiredHostRooms]);
 
   const handleRefreshProfile = async () => {
     setIsRefreshingProfile(true);
@@ -211,19 +251,16 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       } else {
         next.unshift(room);
       }
-      if (teacherUserId && typeof window !== "undefined") {
-        localStorage.setItem(`clan-territory-host-rooms:${teacherUserId}`, JSON.stringify(next));
-      }
-      return next;
+      const cleaned = pruneExpiredHostRooms(next);
+      persistHostRooms(cleaned);
+      return cleaned;
     });
   };
 
   const removeHostRoom = (targetRoomId: string) => {
     setStoredHostRooms((prev) => {
       const next = prev.filter((room) => room.roomId !== targetRoomId);
-      if (teacherUserId && typeof window !== "undefined") {
-        localStorage.setItem(`clan-territory-host-rooms:${teacherUserId}`, JSON.stringify(next));
-      }
+      persistHostRooms(next);
       return next;
     });
   };
@@ -689,18 +726,26 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   }, [discoveredRooms, studentBatch]);
 
   useEffect(() => {
-    if (!roomId || !activeScheduledStartAt) return;
+    if (!roomId || !activeScheduledStartAt || gameState.phase !== "LOBBY") {
+      autoStartTriggeredRef.current = false;
+      return;
+    }
     const startAt = new Date(activeScheduledStartAt);
     if (Number.isNaN(startAt.getTime())) return;
-    const delayMs = Math.max(startAt.getTime() - Date.now(), 0) + AUTO_START_DELAY_MS;
+    const autoStartAt = startAt.getTime() + AUTO_START_DELAY_MS;
+    autoStartTriggeredRef.current = false;
 
-    const timer = setTimeout(() => {
-      if (gameState.phase === "LOBBY") {
+    const checkAutoStart = () => {
+      if (autoStartTriggeredRef.current) return;
+      if (Date.now() >= autoStartAt) {
+        autoStartTriggeredRef.current = true;
         transport.sendAction(roomId, { type: "START_GAME", payload: { duration: durationMinutes * 60 } });
       }
-    }, delayMs);
+    };
 
-    return () => clearTimeout(timer);
+    checkAutoStart();
+    const interval = setInterval(checkAutoStart, 1000);
+    return () => clearInterval(interval);
   }, [activeScheduledStartAt, durationMinutes, gameState.phase, roomId, transport]);
 
   useEffect(() => {
@@ -1055,6 +1100,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
             <ClanTerritoryTeacherView
               gameState={gameState}
               selectedQuestions={selectedQuestions}
+              scheduledStartAt={activeScheduledStartAt}
               onStartGame={handleStartGame}
               onEndGame={handleEndGame}
               onKickPlayer={handleKickPlayer}
