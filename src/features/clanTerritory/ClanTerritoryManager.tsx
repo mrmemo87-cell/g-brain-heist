@@ -33,6 +33,19 @@ type DiscoveredRoom = {
   lastSeen: number;
 };
 
+type StoredHostRoom = {
+  roomId: string;
+  state: ClanTerritoryGameState;
+  selectedMap: string;
+  durationMinutes: number;
+  allowClanlessPlayers: boolean;
+  selectedQuestions: any[];
+  selectedBatch: string;
+  teacherName?: string;
+  scheduledStartAt?: string | null;
+  lastUpdatedAt: number;
+};
+
 const createClanlessIdentity = (playerName: string, playerId?: string | null) => {
   const stableId = playerId
     ? `${CLANLESS_CLAN_ID_PREFIX}-${playerId}`
@@ -86,6 +99,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const [scheduledStartAt, setScheduledStartAt] = useState<string>("");
   const [activeScheduledStartAt, setActiveScheduledStartAt] = useState<string | null>(null);
   const [roomCodeInput, setRoomCodeInput] = useState("");
+  const [teacherUserId, setTeacherUserId] = useState<string | null>(null);
+  const [storedHostRooms, setStoredHostRooms] = useState<StoredHostRoom[]>([]);
   const previousBgMusicEnabled = useRef<boolean | null>(null);
   const discoveredRoomsRef = useRef<Record<string, DiscoveredRoom>>({});
 
@@ -104,6 +119,42 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     }
   }, [playerName, teacherName]);
 
+  useEffect(() => {
+    if (!isTeacher) return;
+
+    const loadTeacherId = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setTeacherUserId(user?.id ?? null);
+      } catch (error) {
+        console.warn("Failed to resolve teacher identity for host recovery:", error);
+      }
+    };
+
+    loadTeacherId();
+  }, [isTeacher]);
+
+  useEffect(() => {
+    if (!isTeacher || !teacherUserId || typeof window === "undefined") {
+      setStoredHostRooms([]);
+      return;
+    }
+
+    const raw = localStorage.getItem(`clan-territory-host-rooms:${teacherUserId}`);
+    if (!raw) {
+      setStoredHostRooms([]);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as StoredHostRoom[];
+      setStoredHostRooms(Array.isArray(parsed) ? parsed : []);
+    } catch (error) {
+      console.warn("Failed to parse stored host rooms:", error);
+      setStoredHostRooms([]);
+    }
+  }, [isTeacher, teacherUserId]);
+
   const handleRefreshProfile = async () => {
     setIsRefreshingProfile(true);
     try {
@@ -120,6 +171,32 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     } finally {
       setIsRefreshingProfile(false);
     }
+  };
+
+  const upsertHostRoom = (room: StoredHostRoom) => {
+    setStoredHostRooms((prev) => {
+      const next = [...prev];
+      const index = next.findIndex((item) => item.roomId === room.roomId);
+      if (index >= 0) {
+        next[index] = room;
+      } else {
+        next.unshift(room);
+      }
+      if (teacherUserId && typeof window !== "undefined") {
+        localStorage.setItem(`clan-territory-host-rooms:${teacherUserId}`, JSON.stringify(next));
+      }
+      return next;
+    });
+  };
+
+  const removeHostRoom = (targetRoomId: string) => {
+    setStoredHostRooms((prev) => {
+      const next = prev.filter((room) => room.roomId !== targetRoomId);
+      if (teacherUserId && typeof window !== "undefined") {
+        localStorage.setItem(`clan-territory-host-rooms:${teacherUserId}`, JSON.stringify(next));
+      }
+      return next;
+    });
   };
 
   // Fetch clan data directly from database on mount and when refreshing
@@ -420,6 +497,18 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       setRoomId(id);
       setActiveScheduledStartAt(scheduledStartIso);
       setMode("host");
+      upsertHostRoom({
+        roomId: id,
+        state: gameState,
+        selectedMap,
+        durationMinutes,
+        allowClanlessPlayers,
+        selectedQuestions: questions,
+        selectedBatch,
+        teacherName: teacherName || playerName,
+        scheduledStartAt: scheduledStartIso,
+        lastUpdatedAt: Date.now(),
+      });
       return;
     }
     
@@ -443,6 +532,18 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     setRoomId(id);
     setActiveScheduledStartAt(scheduledStartIso);
     setMode("host");
+    upsertHostRoom({
+      roomId: id,
+      state: gameState,
+      selectedMap,
+      durationMinutes,
+      allowClanlessPlayers,
+      selectedQuestions: questions,
+      selectedBatch,
+      teacherName: teacherName || playerName,
+      scheduledStartAt: scheduledStartIso,
+      lastUpdatedAt: Date.now(),
+    });
   };
 
   const handleJoinRoom = async (targetRoomId: string) => {
@@ -535,6 +636,9 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
         console.warn("Failed to dismiss arena:", error);
       }
     }
+    if (roomId) {
+      removeHostRoom(roomId);
+    }
     onExit();
   };
 
@@ -567,6 +671,63 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
     return () => clearTimeout(timer);
   }, [activeScheduledStartAt, durationMinutes, gameState.phase, roomId, transport]);
+
+  useEffect(() => {
+    if (!isTeacher || mode !== "host" || !roomId) return;
+    if (!teacherUserId) return;
+
+    upsertHostRoom({
+      roomId,
+      state: gameState,
+      selectedMap,
+      durationMinutes,
+      allowClanlessPlayers,
+      selectedQuestions,
+      selectedBatch,
+      teacherName: teacherName || playerName,
+      scheduledStartAt: activeScheduledStartAt,
+      lastUpdatedAt: Date.now(),
+    });
+  }, [
+    allowClanlessPlayers,
+    durationMinutes,
+    gameState,
+    isTeacher,
+    mode,
+    roomId,
+    selectedBatch,
+    selectedMap,
+    selectedQuestions,
+    teacherName,
+    playerName,
+    teacherUserId,
+    activeScheduledStartAt,
+  ]);
+
+  const handleResumeHostRoom = async (room: StoredHostRoom) => {
+    try {
+      await transport.resumeRoom(room.roomId, {
+        state: room.state,
+        allowClanlessPlayers: room.allowClanlessPlayers,
+        schoolId: userSchoolId || undefined,
+        teacherName: room.teacherName || teacherName || playerName,
+        classCode: room.selectedBatch || undefined,
+        scheduledStartAt: room.scheduledStartAt || undefined,
+      });
+      transport.onGameState(room.roomId, setGameState);
+      setRoomId(room.roomId);
+      setSelectedMap(room.selectedMap);
+      setDurationMinutes(room.durationMinutes);
+      setAllowClanlessPlayers(room.allowClanlessPlayers);
+      setSelectedQuestions(room.selectedQuestions);
+      setSelectedBatch(room.selectedBatch);
+      setActiveScheduledStartAt(room.scheduledStartAt ?? null);
+      setMode("host");
+    } catch (error) {
+      console.error("Failed to resume host room:", error);
+      alert("Unable to resume this arena. Please create a new one.");
+    }
+  };
 
   // --- RENDER ---
 
@@ -945,12 +1106,69 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
         <div className="grid gap-4">
           {isTeacher && (
-            <button
-              onClick={handleCreateRoom}
-              className="w-full font-heading font-bold py-4 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400 text-white rounded-xl text-lg transition-all"
-            >
-              HOST NEW BATTLE
-            </button>
+            <>
+              {storedHostRooms.length > 0 && (
+                <div className="card-glass p-5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="font-heading text-lg text-white">Your Active Arenas</h2>
+                    <span className="text-xs text-gray-400">{storedHostRooms.length} saved</span>
+                  </div>
+                  <div className="space-y-3">
+                    {storedHostRooms.map((room) => (
+                      <div
+                        key={room.roomId}
+                        className="rounded-xl border border-slate-700 bg-slate-900/60 p-4 space-y-2"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-gray-400">Room Code</p>
+                            <p className="text-2xl font-mono font-bold text-amber-400">{room.roomId}</p>
+                          </div>
+                          <button
+                            onClick={() => handleResumeHostRoom(room)}
+                            className="px-4 py-2 font-heading font-bold rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white transition-colors text-sm"
+                          >
+                            Open Host View
+                          </button>
+                        </div>
+                        <div className="text-xs text-gray-400 space-y-1">
+                          <p>
+                            Map: <span className="text-white capitalize">{room.selectedMap}</span>
+                          </p>
+                          <p>
+                            Class: <span className="text-white">{room.selectedBatch || "—"}</span>
+                          </p>
+                          {room.scheduledStartAt && (
+                            <p>
+                              Scheduled:{" "}
+                              <span className="text-white">{formatScheduleTime(room.scheduledStartAt)}</span>
+                            </p>
+                          )}
+                          <p>
+                            Updated:{" "}
+                            <span className="text-white">{new Date(room.lastUpdatedAt).toLocaleString()}</span>
+                          </p>
+                        </div>
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() => removeHostRoom(room.roomId)}
+                            className="text-xs text-gray-400 hover:text-gray-200"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <button
+                onClick={handleCreateRoom}
+                className="w-full font-heading font-bold py-4 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400 text-white rounded-xl text-lg transition-all"
+              >
+                HOST NEW BATTLE
+              </button>
+            </>
           )}
 
           {!isTeacher && (
