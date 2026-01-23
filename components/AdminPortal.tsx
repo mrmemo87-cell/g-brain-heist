@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Batch, Grade, Profile, ToastMessage } from '../types';
 import BackButton from './BackButton';
+import * as AuthService from '../services/authService';
 import * as GameService from '../services/gameService';
 import { supabase } from '../services/supabaseClient';
 import * as CompetitionService from '../services/competitionService';
@@ -39,6 +40,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   const [announcementText, setAnnouncementText] = useState('');
   const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false);
   const [isResettingAll, setIsResettingAll] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   
   // Cambridge Tests Reports State
   const [quizScores, setQuizScores] = useState<any[]>([]);
@@ -786,6 +788,18 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     }
   };
 
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await AuthService.logout();
+    } catch (error) {
+      console.error('Failed to log out:', error);
+      addToast('Failed to log out. Please try again.', 'error');
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Epic Animated Background */}
@@ -797,7 +811,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       </div>
 
       <div className="relative z-10 p-6">
-        <BackButton onClick={onComplete} />
+        <BackButton onClick={handleLogout} label={isLoggingOut ? 'Logging out…' : 'Log out'} />
 
         {/* Godly Admin Header */}
         <div className="text-center mb-8 relative">
