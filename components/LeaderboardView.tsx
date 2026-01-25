@@ -39,6 +39,7 @@ type RankedClanEntry = ClanLeaderboardEntry & { rank: number };
 interface LeaderboardViewProps {
   onComplete: () => void;
   currentUserId: string;
+  schoolId?: string | null;
 }
 
 const rankPlayers = (entries: PlayerLeaderboardEntry[]): RankedPlayerEntry[] =>
@@ -61,7 +62,7 @@ const rankClans = (entries: ClanLeaderboardEntry[]): RankedClanEntry[] =>
     })
     .map((entry, index) => ({ ...entry, rank: index + 1 }));
 
-const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUserId }) => {
+const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUserId, schoolId }) => {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'score' | 'xp' | 'pvp' | 'clans'>('score');
   const [scoreLeaderboard, setScoreLeaderboard] = useState<RankedPlayerEntry[]>([]);
@@ -76,6 +77,11 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
   } | null>(null);
 
   useEffect(() => {
+    if (!schoolId) {
+      setLoading(false);
+      return;
+    }
+
     fetchLeaderboards();
 
     const handler = () => fetchLeaderboards();
@@ -83,9 +89,13 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
     return () => {
       window.removeEventListener('leaderboards:refresh', handler);
     };
-  }, []);
+  }, [schoolId]);
 
   const fetchLeaderboards = async () => {
+    if (!schoolId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       // Use school-scoped RPCs to enforce tenant isolation
@@ -335,6 +345,20 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ onComplete, currentUs
       </button>
     );
   };
+
+  if (!schoolId) {
+    return (
+      <div className="mt-6 max-w-2xl mx-auto text-center">
+        <BackButton onClick={onComplete} />
+        <div className="card-glass p-6">
+          <h2 className="font-heading text-2xl text-white">Join a school to view leaderboards</h2>
+          <p className="mt-2 text-sm text-gray-400">
+            School leaderboards unlock once you join with an invite code or request approval.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

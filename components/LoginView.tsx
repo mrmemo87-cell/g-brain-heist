@@ -4,6 +4,7 @@ import * as AuthService from '../services/authService';
 import type { School } from '../services/authService';
 import type { Batch, Grade } from '../types';
 import { consumeBanMessage } from '../services/banMessage';
+import SchoolRequestModal from './SchoolRequestModal';
 
 interface LoginViewProps {
     onLogin: (email: string, pass: string) => Promise<void>;
@@ -13,6 +14,15 @@ const ieltsSchoolOption: School = {
     id: 'just-for-ielts',
     name: 'Just for IELTS',
     slug: 'just-for-ielts',
+    logo_url: null,
+    allow_student_signup: true,
+    allow_teacher_signup: true,
+};
+
+const individualSchoolOption: School = {
+    id: 'individuals',
+    name: 'Individuals (no school yet)',
+    slug: 'individuals',
     logo_url: null,
     allow_student_signup: true,
     allow_teacher_signup: true,
@@ -37,7 +47,9 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const [isLoadingSchools, setIsLoadingSchools] = useState(false);
     const [inviteCode, setInviteCode] = useState('');
     const [showInviteCode, setShowInviteCode] = useState(false);
+    const [showSchoolRequest, setShowSchoolRequest] = useState(false);
     const isIeltsSchool = selectedSchool?.slug === ieltsSchoolOption.slug;
+    const isIndividual = selectedSchool?.id === individualSchoolOption.id;
 
     // Fetch available schools when signup mode is active
     useEffect(() => {
@@ -47,31 +59,21 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 try {
                     const schoolList = await AuthService.getAvailableSchools();
                     const mergedSchools = [
+                        individualSchoolOption,
                         ieltsSchoolOption,
                         ...schoolList.filter((school) => school.slug !== ieltsSchoolOption.slug),
                     ];
                     setSchools(mergedSchools);
-                    
-                    if (!selectedSchool) {
-                        setSelectedSchool(ieltsSchoolOption);
-                    }
                 } catch (err) {
                     console.error('Failed to load schools:', err);
                     // Fallback: create a default school option
-                    setSchools([ieltsSchoolOption]);
-                    setSelectedSchool(ieltsSchoolOption);
+                    setSchools([individualSchoolOption, ieltsSchoolOption]);
                 }
                 setIsLoadingSchools(false);
             };
             fetchSchools();
         }
-    }, [mode, schools.length, selectedSchool]);
-
-    useEffect(() => {
-        if (mode === 'signup' && !selectedSchool) {
-            setSelectedSchool(ieltsSchoolOption);
-        }
-    }, [mode, selectedSchool]);
+    }, [mode, schools.length]);
 
     useEffect(() => {
         const persisted = consumeBanMessage();
@@ -148,17 +150,19 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     return;
                 }
 
-                // Check if school allows this role
-                if (role === 'student' && !selectedSchool.allow_student_signup) {
-                    setError('This school is not accepting student signups.');
-                    return;
-                }
-                if (role === 'teacher' && !selectedSchool.allow_teacher_signup) {
-                    setError('This school is not accepting teacher signups.');
-                    return;
+                if (!isIndividual) {
+                    // Check if school allows this role
+                    if (role === 'student' && !selectedSchool.allow_student_signup) {
+                        setError('This school is not accepting student signups.');
+                        return;
+                    }
+                    if (role === 'teacher' && !selectedSchool.allow_teacher_signup) {
+                        setError('This school is not accepting teacher signups.');
+                        return;
+                    }
                 }
 
-                if (role === 'student' && !isIeltsSchool) {
+                if (role === 'student' && !isIeltsSchool && !isIndividual) {
                     if (!grade) {
                         setError('Choose your grade to unlock the right missions.');
                         return;
@@ -170,11 +174,11 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     }
                 }
 
-                const gradeForSignup = role === 'student' && !isIeltsSchool ? grade ?? undefined : undefined;
-                const batchForSignup = role === 'student' && !isIeltsSchool ? batch || undefined : undefined;
+                const gradeForSignup = role === 'student' && !isIeltsSchool && !isIndividual ? grade ?? undefined : undefined;
+                const batchForSignup = role === 'student' && !isIeltsSchool && !isIndividual ? batch || undefined : undefined;
                 // Use school ID for multi-tenant, fallback to name if ID is 'default'
-                const schoolId = selectedSchool.id !== 'default' && !isIeltsSchool ? selectedSchool.id : undefined;
-                const schoolName = selectedSchool.name;
+                const schoolId = !isIndividual && selectedSchool.id !== 'default' && !isIeltsSchool ? selectedSchool.id : undefined;
+                const schoolName = isIndividual ? undefined : selectedSchool.name;
 
                 await AuthService.signup(
                     email.trim(),
@@ -247,7 +251,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
             !username.trim() || 
             !email.trim() || 
             !password ||
-            (role === 'student' && !isIeltsSchool && (!grade || !batch))
+            (role === 'student' && !isIeltsSchool && !isIndividual && (!grade || !batch))
         );
 
     return (
@@ -390,6 +394,13 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                             ))}
                                         </select>
                                     )}
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowSchoolRequest(true)}
+                                        className="mt-2 text-xs text-cyan-300 hover:text-cyan-200"
+                                    >
+                                        My school isn’t listed → Apply
+                                    </button>
                                     
                                     {/* Invite Code Section */}
                                     {!showInviteCode ? (
@@ -434,17 +445,19 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                     {/* Show selected school signup restrictions */}
                                     {selectedSchool && (
                                         <p className="mt-1 text-xs text-gray-400">
-                                            {selectedSchool.allow_student_signup && selectedSchool.allow_teacher_signup 
-                                                ? 'Open for students and teachers'
-                                                : selectedSchool.allow_student_signup 
-                                                    ? 'Open for students only'
-                                                    : 'Open for teachers only'
+                                            {isIndividual
+                                                ? 'Play solo until you join a school'
+                                                : selectedSchool.allow_student_signup && selectedSchool.allow_teacher_signup 
+                                                    ? 'Open for students and teachers'
+                                                    : selectedSchool.allow_student_signup 
+                                                        ? 'Open for students only'
+                                                        : 'Open for teachers only'
                                             }
                                         </p>
                                     )}
                                 </div>
 
-                                {role === 'student' && !isIeltsSchool && (
+                                {role === 'student' && !isIeltsSchool && !isIndividual && (
                                     <>
                                         <div>
                                             <label htmlFor="grade" className="block text-sm font-medium text-gray-300">Grade</label>
@@ -572,6 +585,15 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 </div>
             </div>
         </div>
+        <SchoolRequestModal
+            isOpen={showSchoolRequest}
+            onClose={() => setShowSchoolRequest(false)}
+            requesterRole={role}
+            onUseSuggestion={(code) => {
+                setInviteCode(code);
+                setShowInviteCode(true);
+            }}
+        />
         </>
     );
 };
