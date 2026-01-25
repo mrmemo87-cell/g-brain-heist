@@ -7,6 +7,7 @@ import { supabase } from '../services/supabaseClient';
 import * as CompetitionService from '../services/competitionService';
 import ClickableUsername from './ClickableUsername';
 import IeltsAdminDashboard from './IeltsAdminDashboard';
+import * as SchoolRequestService from '../services/schoolRequestService';
 
 interface AdminPortalProps {
   profile: Profile;
@@ -14,7 +15,7 @@ interface AdminPortalProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
 }
 
-type AdminTab = 'dashboard' | 'users' | 'game' | 'clans' | 'analytics' | 'cambridge' | 'ielts' | 'system';
+type AdminTab = 'dashboard' | 'users' | 'applications' | 'game' | 'clans' | 'analytics' | 'cambridge' | 'ielts' | 'system';
 
 const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast }) => {
   const PAGE_SIZE = 50;
@@ -26,6 +27,15 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   const [usersError, setUsersError] = useState<string | null>(null);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [clanList, setClanList] = useState<any[]>([]);
+  const [schoolRequests, setSchoolRequests] = useState<SchoolRequestService.SchoolRequestRecord[]>([]);
+  const [schoolRequestsLoading, setSchoolRequestsLoading] = useState(false);
+  const [schoolRequestsError, setSchoolRequestsError] = useState<string | null>(null);
+  const [schoolRequestSearch, setSchoolRequestSearch] = useState('');
+  const [schoolRequestStatus, setSchoolRequestStatus] = useState<'pending' | 'needs_more_info' | 'approved' | 'rejected' | 'duplicate' | 'all'>('pending');
+  const [schoolRequestNotes, setSchoolRequestNotes] = useState<Record<string, string>>({});
+  const [schoolRequestDuplicates, setSchoolRequestDuplicates] = useState<Record<string, string>>({});
+  const [schoolRequestActionLoading, setSchoolRequestActionLoading] = useState<string | null>(null);
+  const [schoolOptions, setSchoolOptions] = useState<{ id: string; name: string }[]>([]);
   const [stats, setStats] = useState({
     totalUsers: null as number | null,
     totalTeachers: null as number | null,
@@ -109,6 +119,85 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     }
   };
 
+  const loadSchoolRequests = useCallback(async () => {
+    setSchoolRequestsLoading(true);
+    setSchoolRequestsError(null);
+    try {
+      const statusFilter = schoolRequestStatus === 'all' ? null : schoolRequestStatus;
+      const result = await SchoolRequestService.listSchoolRequests(statusFilter, 200);
+      if (!result.success) {
+        setSchoolRequestsError(result.error || 'Failed to load school requests.');
+        setSchoolRequests([]);
+        return;
+      }
+      setSchoolRequests(result.requests);
+    } catch (err: any) {
+      setSchoolRequestsError(err?.message || 'Failed to load school requests.');
+      setSchoolRequests([]);
+    } finally {
+      setSchoolRequestsLoading(false);
+    }
+  }, [schoolRequestStatus]);
+
+  const loadSchoolOptions = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('schools')
+      .select('id, name')
+      .eq('status', 'active')
+      .order('name', { ascending: true });
+
+    if (error) {
+      console.warn('Failed to load schools for duplicate selection:', error.message);
+      return;
+    }
+
+    setSchoolOptions(data || []);
+  }, []);
+
+  const handleSchoolRequestAction = async (
+    requestId: string,
+    action: 'approve' | 'reject' | 'mark_duplicate' | 'needs_more_info'
+  ) => {
+    setSchoolRequestActionLoading(requestId);
+    const notes = schoolRequestNotes[requestId]?.trim() || undefined;
+    const existingSchoolId = schoolRequestDuplicates[requestId] || undefined;
+
+    if (action === 'mark_duplicate' && !existingSchoolId) {
+      addToast('Select the existing school before marking duplicate.', 'error');
+      setSchoolRequestActionLoading(null);
+      return;
+    }
+
+    const result = await SchoolRequestService.reviewSchoolRequest(
+      requestId,
+      action,
+      notes,
+      existingSchoolId
+    );
+
+    if (!result.success) {
+      addToast(result.error || 'Failed to update request.', 'error');
+      setSchoolRequestActionLoading(null);
+      return;
+    }
+
+    if (action === 'approve') {
+      addToast(`Approved request. Invite code: ${result.inviteCode || 'generated'}`, 'success');
+    } else {
+      addToast(result.message || 'Request updated.', 'success');
+    }
+
+    await loadSchoolRequests();
+    setSchoolRequestActionLoading(null);
+  };
+
+  useEffect(() => {
+    if (activeTab === 'applications') {
+      loadSchoolRequests();
+      loadSchoolOptions();
+    }
+  }, [activeTab, loadSchoolRequests, loadSchoolOptions]);
+
   // Helper to calculate quiz stats
   const calculateQuizStats = (scores: any[]) => {
     if (scores.length > 0) {
@@ -158,12 +247,30 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     return true;
   });
 
+  const filteredSchoolRequests = schoolRequests.filter((request) => {
+    if (!schoolRequestSearch.trim()) return true;
+    const query = schoolRequestSearch.trim().toLowerCase();
+    return (
+      request.requested_name?.toLowerCase().includes(query) ||
+      request.requester_email?.toLowerCase().includes(query) ||
+      request.requester_role?.toLowerCase().includes(query)
+    );
+  });
+
   // Format time taken
   const formatTime = (seconds: number) => {
     if (!seconds) return '-';
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}m ${secs}s`;
+  };
+
+  const requestStatusStyles: Record<string, string> = {
+    pending: 'bg-amber-500/20 text-amber-200 border-amber-400/40',
+    needs_more_info: 'bg-orange-500/20 text-orange-200 border-orange-400/40',
+    approved: 'bg-emerald-500/20 text-emerald-200 border-emerald-400/40',
+    rejected: 'bg-red-500/20 text-red-200 border-red-400/40',
+    duplicate: 'bg-purple-500/20 text-purple-200 border-purple-400/40',
   };
 
   const resolveUserLabel = (user: any) => user?.username ?? user?.email ?? 'Unknown';
@@ -873,7 +980,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         {/* Tab Navigation - Epic Style */}
         <div className="max-w-6xl mx-auto mb-6">
           <div className="flex flex-wrap gap-2 justify-center">
-            {(['dashboard', 'users', 'game', 'clans', 'analytics', 'cambridge', 'ielts', 'system'] as AdminTab[]).map((tab) => (
+            {(['dashboard', 'users', 'applications', 'game', 'clans', 'analytics', 'cambridge', 'ielts', 'system'] as AdminTab[]).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -1270,6 +1377,159 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                           className="bg-red-900/40 hover:bg-red-900/60 border border-red-600 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_18px_rgba(220,38,38,0.5)]"
                         >
                           🗑️ Delete User
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'applications' && (
+            <div className="space-y-6">
+              <div className="card-glass p-6 border-2 border-cyan-400/50">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <h3 className="text-3xl font-heading font-bold text-cyan-300">🏫 School Applications</h3>
+                    <p className="text-sm text-gray-400">Review school requests and keep duplicates down.</p>
+                  </div>
+                  <button
+                    onClick={loadSchoolRequests}
+                    className="rounded-lg border border-cyan-400/60 bg-cyan-500/20 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-500/30"
+                  >
+                    🔄 Refresh
+                  </button>
+                </div>
+
+                <div className="mt-4 grid gap-3 md:grid-cols-3">
+                  <input
+                    type="text"
+                    value={schoolRequestSearch}
+                    onChange={(event) => setSchoolRequestSearch(event.target.value)}
+                    placeholder="Search by name or email..."
+                    className="w-full rounded-lg border border-cyan-400/30 bg-black/40 px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                  />
+                  <select
+                    value={schoolRequestStatus}
+                    onChange={(event) => setSchoolRequestStatus(event.target.value as typeof schoolRequestStatus)}
+                    className="w-full rounded-lg border border-cyan-400/30 bg-black/40 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="needs_more_info">Needs more info</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="duplicate">Duplicate</option>
+                    <option value="all">All statuses</option>
+                  </select>
+                  <div className="flex items-center justify-center rounded-lg border border-cyan-400/30 bg-black/40 px-4 py-2 text-sm text-cyan-100">
+                    Showing {filteredSchoolRequests.length} requests
+                  </div>
+                </div>
+
+                {schoolRequestsError && (
+                  <div className="mt-4 rounded-lg border border-red-400/40 bg-red-500/10 px-4 py-2 text-sm text-red-200">
+                    {schoolRequestsError}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                {schoolRequestsLoading && (
+                  <div className="rounded-lg border border-cyan-400/30 bg-black/40 p-6 text-center text-sm text-cyan-100">
+                    Loading applications...
+                  </div>
+                )}
+
+                {!schoolRequestsLoading && filteredSchoolRequests.length === 0 && (
+                  <div className="rounded-lg border border-white/10 bg-black/30 p-6 text-center text-sm text-gray-400">
+                    No school requests match your filters.
+                  </div>
+                )}
+
+                {filteredSchoolRequests.map((request) => {
+                  const status = request.status || 'pending';
+                  const isActionLoading = schoolRequestActionLoading === request.id;
+                  const noteValue = schoolRequestNotes[request.id] ?? request.admin_notes ?? '';
+                  return (
+                    <div key={request.id} className="card-glass p-6 border border-white/10">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <h4 className="text-xl font-semibold text-white">{request.requested_name}</h4>
+                          <p className="text-xs text-gray-400">
+                            Requested by {request.requester_email || 'Unknown'} • {request.requester_role || 'student'}
+                          </p>
+                          {request.created_at && (
+                            <p className="text-xs text-gray-500">
+                              {new Date(request.created_at).toLocaleString()}
+                            </p>
+                          )}
+                        </div>
+                        <span className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${requestStatusStyles[status] || 'border-white/20 text-white/60'}`}>
+                          {status.replace(/_/g, ' ')}
+                        </span>
+                      </div>
+
+                      <div className="mt-4 grid gap-4 md:grid-cols-2">
+                        <div>
+                          <label className="text-xs text-gray-400">Admin notes / message</label>
+                          <textarea
+                            value={noteValue}
+                            onChange={(event) =>
+                              setSchoolRequestNotes((prev) => ({ ...prev, [request.id]: event.target.value }))
+                            }
+                            rows={3}
+                            className="mt-1 w-full rounded-lg border border-white/10 bg-black/40 p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                            placeholder="Share reason or request more info..."
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-400">Duplicate school (if needed)</label>
+                          <select
+                            value={schoolRequestDuplicates[request.id] || ''}
+                            onChange={(event) =>
+                              setSchoolRequestDuplicates((prev) => ({ ...prev, [request.id]: event.target.value }))
+                            }
+                            className="mt-1 w-full rounded-lg border border-white/10 bg-black/40 p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                          >
+                            <option value="">Select existing school</option>
+                            {schoolOptions.map((school) => (
+                              <option key={school.id} value={school.id}>
+                                {school.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <button
+                          onClick={() => handleSchoolRequestAction(request.id, 'approve')}
+                          disabled={isActionLoading}
+                          className="rounded-lg border border-emerald-400/50 bg-emerald-500/20 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-emerald-500/30 disabled:opacity-60"
+                        >
+                          ✅ Approve
+                        </button>
+                        <button
+                          onClick={() => handleSchoolRequestAction(request.id, 'reject')}
+                          disabled={isActionLoading}
+                          className="rounded-lg border border-red-400/50 bg-red-500/20 px-4 py-2 text-sm font-semibold text-red-100 hover:bg-red-500/30 disabled:opacity-60"
+                        >
+                          ❌ Reject
+                        </button>
+                        <button
+                          onClick={() => handleSchoolRequestAction(request.id, 'mark_duplicate')}
+                          disabled={isActionLoading}
+                          className="rounded-lg border border-purple-400/50 bg-purple-500/20 px-4 py-2 text-sm font-semibold text-purple-100 hover:bg-purple-500/30 disabled:opacity-60"
+                        >
+                          🧩 Mark duplicate
+                        </button>
+                        <button
+                          onClick={() => handleSchoolRequestAction(request.id, 'needs_more_info')}
+                          disabled={isActionLoading}
+                          className="rounded-lg border border-amber-400/50 bg-amber-500/20 px-4 py-2 text-sm font-semibold text-amber-100 hover:bg-amber-500/30 disabled:opacity-60"
+                        >
+                          📩 Request more info
                         </button>
                       </div>
                     </div>

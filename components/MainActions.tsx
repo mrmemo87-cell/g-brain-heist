@@ -11,9 +11,9 @@ interface MainActionsProps {
   onStartPvp: () => void;
   onOpenRaid?: () => void;
   onVisitShop: () => void;
-  onGoToClan: () => void;
+  onGoToClan?: () => void;
   onVisitInventory: () => void;
-  onViewLeaderboard: () => void;
+  onViewLeaderboard?: () => void;
   onViewAchievements: () => void;
   onOpenRaidAdmin?: () => void;
   onOpenTeacherPortal?: () => void;
@@ -160,13 +160,14 @@ const MainActions: React.FC<MainActionsProps> = ({
   onOpenIeltsPrep,
   onOpenLockdown,
   onOpenCambridgeTests,
+  profile,
   hasPendingAssignment,
   clanBadgeCount,
   schoolName,
   schoolLogoUrl,
 }) => {
   const { isLightMode: isLiteMode } = useLightMode();
-  const displaySchoolName = schoolName || 'My School';
+  const displaySchoolName = schoolName || 'Individuals';
   const displaySchoolLogo = schoolLogoUrl || defaultSchoolIcon;
   const xpStatus = profile?.xp_status;
   const xpPercent = Math.min(100, Math.round((xpStatus?.progress ?? 0) * 100));
@@ -451,14 +452,16 @@ const MainActions: React.FC<MainActionsProps> = ({
                 glowClass="glow-warn"
               />
             )}
-            <ActionButton
-              onClick={onGoToClan}
-              icon={<SyndicateRune className="w-8 h-8 text-amber-400" aria-hidden />}
-              label="Clan"
-              color="255, 176, 32"
-              glowClass="glow-warn"
-              badgeText={clanBadgeCount && clanBadgeCount > 0 ? String(Math.min(clanBadgeCount, 99)) : undefined}
-            />
+            {onGoToClan && (
+              <ActionButton
+                onClick={onGoToClan}
+                icon={<SyndicateRune className="w-8 h-8 text-amber-400" aria-hidden />}
+                label="Clan"
+                color="255, 176, 32"
+                glowClass="glow-warn"
+                badgeText={clanBadgeCount && clanBadgeCount > 0 ? String(Math.min(clanBadgeCount, 99)) : undefined}
+              />
+            )}
             <ActionButton
               onClick={onVisitInventory}
               icon={<span aria-hidden className="text-3xl">🎒</span>}
@@ -466,13 +469,15 @@ const MainActions: React.FC<MainActionsProps> = ({
               color="158, 93, 255"
               glowClass="glow-purple"
             />
-            <ActionButton
-              onClick={onViewLeaderboard}
-              icon={<TrophyIcon className="w-8 h-8 animate-float" aria-hidden />}
-              label="Leaderboard"
-              color="255, 215, 0"
-              glowClass="glow-warn"
-            />
+            {onViewLeaderboard && (
+              <ActionButton
+                onClick={onViewLeaderboard}
+                icon={<TrophyIcon className="w-8 h-8 animate-float" aria-hidden />}
+                label="Leaderboard"
+                color="255, 215, 0"
+                glowClass="glow-warn"
+              />
+            )}
             <ActionButton
               onClick={onViewAchievements}
               icon={<span aria-hidden className="text-3xl animate-float">🎖️</span>}

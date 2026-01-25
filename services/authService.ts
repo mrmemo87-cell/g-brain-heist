@@ -37,6 +37,13 @@ export interface ProfileBootstrapResult {
     username?: string;
 }
 
+export interface IndividualSetupPayload {
+    role: 'student' | 'teacher';
+    grade?: Grade;
+    batch?: Batch;
+    username?: string;
+}
+
 export interface InviteCodeResult {
     valid: boolean;
     error?: string;
@@ -391,6 +398,47 @@ export const bootstrapProfile = async (
     }
     
     return result;
+};
+
+/**
+ * Complete setup without school membership (Individuals mode)
+ */
+export const completeIndividualSetup = async (
+    payload: IndividualSetupPayload
+): Promise<ProfileBootstrapResult> => {
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData?.user) {
+        return { success: false, error: 'Not authenticated' };
+    }
+
+    const updates: Record<string, unknown> = {
+        role: payload.role,
+        needs_setup: false,
+        updated_at: new Date().toISOString(),
+    };
+
+    if (payload.username) {
+        updates.username = payload.username;
+    }
+
+    if (payload.role === 'student') {
+        updates.grade = payload.grade ?? null;
+        updates.batch = payload.batch ?? null;
+    } else {
+        updates.grade = null;
+        updates.batch = null;
+    }
+
+    const { error } = await supabase
+        .from('users')
+        .update(updates)
+        .eq('id', authData.user.id);
+
+    if (error) {
+        return { success: false, error: error.message || 'Failed to complete setup.' };
+    }
+
+    return { success: true, user_id: authData.user.id, role: payload.role };
 };
 
 /**

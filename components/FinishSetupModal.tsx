@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import * as AuthService from '../services/authService';
 import type { School } from '../services/authService';
 import type { Batch, Grade } from '../types';
+import SchoolRequestModal from './SchoolRequestModal';
 
 interface FinishSetupModalProps {
     onComplete: () => void;
@@ -14,6 +15,14 @@ const FinishSetupModal: React.FC<FinishSetupModalProps> = ({
     onLogout,
     initialUsername 
 }) => {
+    const individualSchoolOption: School = {
+        id: 'individuals',
+        name: 'Individuals (no school yet)',
+        slug: 'individuals',
+        logo_url: null,
+        allow_student_signup: true,
+        allow_teacher_signup: true,
+    };
     const [step, setStep] = useState<'school' | 'role' | 'details'>('school');
     const [schools, setSchools] = useState<School[]>([]);
     const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
@@ -26,6 +35,8 @@ const FinishSetupModal: React.FC<FinishSetupModalProps> = ({
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingSchools, setIsLoadingSchools] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [showSchoolRequest, setShowSchoolRequest] = useState(false);
+    const isIndividual = selectedSchool?.id === individualSchoolOption.id;
 
     // Fetch available schools on mount
     useEffect(() => {
@@ -33,11 +44,12 @@ const FinishSetupModal: React.FC<FinishSetupModalProps> = ({
             setIsLoadingSchools(true);
             try {
                 const schoolList = await AuthService.getAvailableSchools();
-                setSchools(schoolList);
+                const mergedSchools = [individualSchoolOption, ...schoolList];
+                setSchools(mergedSchools);
                 
                 // Auto-select if only one school
-                if (schoolList.length === 1) {
-                    setSelectedSchool(schoolList[0]);
+                if (mergedSchools.length === 1) {
+                    setSelectedSchool(mergedSchools[0]);
                 }
             } catch (err) {
                 console.error('Failed to load schools:', err);
@@ -120,11 +132,11 @@ const FinishSetupModal: React.FC<FinishSetupModalProps> = ({
 
     const handleRoleSelect = (selectedRole: 'student' | 'teacher') => {
         // Check if school allows this role
-        if (selectedRole === 'student' && !selectedSchool?.allow_student_signup) {
+        if (!isIndividual && selectedRole === 'student' && !selectedSchool?.allow_student_signup) {
             setError('This school is not accepting student signups');
             return;
         }
-        if (selectedRole === 'teacher' && !selectedSchool?.allow_teacher_signup) {
+        if (!isIndividual && selectedRole === 'teacher' && !selectedSchool?.allow_teacher_signup) {
             setError('This school is not accepting teacher signups');
             return;
         }
@@ -148,7 +160,7 @@ const FinishSetupModal: React.FC<FinishSetupModalProps> = ({
             return;
         }
         
-        if (roleToUse === 'student' && (!grade || !batch)) {
+        if (!isIndividual && roleToUse === 'student' && (!grade || !batch)) {
             setError('Please select your grade and class');
             return;
         }
@@ -157,13 +169,20 @@ const FinishSetupModal: React.FC<FinishSetupModalProps> = ({
         setError(null);
         
         try {
-            const result = await AuthService.bootstrapProfile(
-                selectedSchool.id,
-                roleToUse,
-                roleToUse === 'student' ? grade! : undefined,
-                roleToUse === 'student' ? batch as Batch : undefined,
-                username || undefined
-            );
+            const result = isIndividual
+                ? await AuthService.completeIndividualSetup({
+                    role: roleToUse,
+                    grade: roleToUse === 'student' ? grade ?? undefined : undefined,
+                    batch: roleToUse === 'student' ? (batch as Batch) || undefined : undefined,
+                    username: username || undefined,
+                })
+                : await AuthService.bootstrapProfile(
+                    selectedSchool.id,
+                    roleToUse,
+                    roleToUse === 'student' ? grade! : undefined,
+                    roleToUse === 'student' ? batch as Batch : undefined,
+                    username || undefined
+                );
             
             if (!result.success) {
                 setError(result.error || 'Failed to complete setup');
@@ -219,11 +238,13 @@ const FinishSetupModal: React.FC<FinishSetupModalProps> = ({
                                             {school.name}
                                         </div>
                                         <div className="text-xs text-gray-500">
-                                            {school.allow_student_signup && school.allow_teacher_signup 
-                                                ? 'Students & Teachers'
-                                                : school.allow_student_signup 
-                                                    ? 'Students only'
-                                                    : 'Teachers only'
+                                            {school.id === individualSchoolOption.id
+                                                ? 'Solo play until you join a school'
+                                                : school.allow_student_signup && school.allow_teacher_signup 
+                                                    ? 'Students & Teachers'
+                                                    : school.allow_student_signup 
+                                                        ? 'Students only'
+                                                        : 'Teachers only'
                                             }
                                         </div>
                                     </div>
@@ -231,6 +252,13 @@ const FinishSetupModal: React.FC<FinishSetupModalProps> = ({
                             </button>
                         ))}
                     </div>
+
+                    <button
+                        onClick={() => setShowSchoolRequest(true)}
+                        className="w-full rounded-lg border border-cyan-400/40 bg-cyan-400/10 py-2 text-center text-sm text-cyan-200 hover:border-cyan-300 hover:text-cyan-100"
+                    >
+                        My school isn’t listed → Apply
+                    </button>
 
                     {/* Invite Code Option */}
                     <div className="border-t border-gray-700 pt-4">
@@ -294,7 +322,10 @@ const FinishSetupModal: React.FC<FinishSetupModalProps> = ({
                 </button>
                 <h2 className="text-2xl font-bold text-white mb-2">What's your role?</h2>
                 <p className="text-gray-400">
-                    Joining <span className="text-cyan-400 font-semibold">{selectedSchool?.name}</span>
+                    {isIndividual
+                        ? 'Playing as an individual until you join a school.'
+                        : <>Joining <span className="text-cyan-400 font-semibold">{selectedSchool?.name}</span></>
+                    }
                 </p>
             </div>
 
@@ -407,7 +438,7 @@ const FinishSetupModal: React.FC<FinishSetupModalProps> = ({
             {/* Complete Button */}
             <button
                 onClick={() => handleComplete()}
-                disabled={isLoading || !grade || !batch}
+                disabled={isLoading || (!isIndividual && (!grade || !batch))}
                 className="w-full py-3 px-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg font-bold text-lg hover:from-cyan-400 hover:to-blue-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-cyan-500/25"
             >
                 {isLoading ? (
@@ -423,40 +454,51 @@ const FinishSetupModal: React.FC<FinishSetupModalProps> = ({
     );
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <div className="w-full max-w-md bg-gray-900 border border-gray-700 rounded-2xl p-6 shadow-2xl shadow-cyan-500/10">
-                {/* Logo */}
-                <div className="text-center mb-6">
-                    <img 
-                        src="/logo.png" 
-                        alt="Brains Heist" 
-                        className="w-16 h-16 mx-auto mb-2 drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]"
-                    />
-                </div>
-
-                {/* Error Display */}
-                {error && (
-                    <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm text-center">
-                        {error}
+        <>
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                <div className="w-full max-w-md bg-gray-900 border border-gray-700 rounded-2xl p-6 shadow-2xl shadow-cyan-500/10">
+                    {/* Logo */}
+                    <div className="text-center mb-6">
+                        <img 
+                            src="/logo.png" 
+                            alt="Brains Heist" 
+                            className="w-16 h-16 mx-auto mb-2 drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                        />
                     </div>
-                )}
 
-                {/* Step Content */}
-                {step === 'school' && renderSchoolStep()}
-                {step === 'role' && renderRoleStep()}
-                {step === 'details' && renderDetailsStep()}
+                    {/* Error Display */}
+                    {error && (
+                        <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm text-center">
+                            {error}
+                        </div>
+                    )}
 
-                {/* Logout Option */}
-                <div className="mt-6 text-center border-t border-gray-700 pt-4">
-                    <button
-                        onClick={onLogout}
-                        className="text-gray-500 hover:text-gray-400 text-sm"
-                    >
-                        Sign out and use a different account
-                    </button>
+                    {/* Step Content */}
+                    {step === 'school' && renderSchoolStep()}
+                    {step === 'role' && renderRoleStep()}
+                    {step === 'details' && renderDetailsStep()}
+
+                    {/* Logout Option */}
+                    <div className="mt-6 text-center border-t border-gray-700 pt-4">
+                        <button
+                            onClick={onLogout}
+                            className="text-gray-500 hover:text-gray-400 text-sm"
+                        >
+                            Sign out and use a different account
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
+            <SchoolRequestModal
+                isOpen={showSchoolRequest}
+                onClose={() => setShowSchoolRequest(false)}
+                requesterRole={role}
+                onUseSuggestion={(code) => {
+                    setInviteCode(code);
+                    setUseInviteCode(true);
+                }}
+            />
+        </>
     );
 };
 

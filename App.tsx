@@ -155,6 +155,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     profile?.school_name?.trim().toLowerCase() === IELTS_ONLY_SCHOOL_NAME.toLowerCase();
   const isPlayerMode = appMode === 'player';
   const isAdminMode = appMode === 'admin';
+  const hasSchool = Boolean(profile?.school_id);
 
   const SkeletonBlock: React.FC<{ className?: string }> = ({ className }) => (
     <div className={`animate-pulse rounded-xl bg-white/10 ${className ?? ''}`} />
@@ -245,6 +246,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, []);
 
   const handleViewChange = (nextView: typeof view) => {
+    if (!hasSchool && ['clan', 'leaderboard', 'phase1_play', 'phase1_leaderboard', 'phase1_admin', 'school_admin'].includes(nextView)) {
+      addToast('Join a school to access school-based features.', 'info');
+      return;
+    }
     if (isAdminMode && nextView !== 'admin') {
       addToast('Admin mode is active. Gameplay screens are not available.', 'info');
       setView('admin');
@@ -1414,7 +1419,13 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               />
             );
         case 'leaderboard':
-            return renderLazy(<LeaderboardView onComplete={handleViewComplete} currentUserId={profile.id} />);
+            return renderLazy(
+              <LeaderboardView
+                onComplete={handleViewComplete}
+                currentUserId={profile.id}
+                schoolId={profile.school_id}
+              />
+            );
         case 'achievements':
             return renderLazy(<AchievementView onComplete={handleViewComplete} addToast={addToast} />);
         case 'raids':
@@ -1527,18 +1538,18 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                       onStartPvp={() => handleViewChange('pvp')}
                       onOpenRaid={!isStudent ? () => handleViewChange('raids') : undefined}
                       onVisitShop={() => handleViewChange('shop')}
-                      onGoToClan={() => handleViewChange('clan')}
+                      onGoToClan={hasSchool ? () => handleViewChange('clan') : undefined}
                       onVisitInventory={() => handleViewChange('inventory')}
-                      onViewLeaderboard={() => handleViewChange('leaderboard')}
+                      onViewLeaderboard={hasSchool ? () => handleViewChange('leaderboard') : undefined}
                       onViewAchievements={() => handleViewChange('achievements')}
                       onOpenRaidAdmin={isAdminUser ? () => handleViewChange('raid_admin') : undefined}
                       onOpenTournament={() => handleViewChange('tournament')}
                       onOpenAdminPortal={isAdminUser ? () => handleViewChange('admin') : undefined}
-                      onOpenSchoolAdmin={isUserSchoolAdmin ? () => handleViewChange('school_admin') : undefined}
+                      onOpenSchoolAdmin={isUserSchoolAdmin && hasSchool ? () => handleViewChange('school_admin') : undefined}
                       onOpenTournamentAdmin={isAdminUser ? () => handleViewChange('tournament_admin') : undefined}
-                      onOpenCompetitionPlay={!isStudent && profile?.grade && !profile?.is_banned ? () => handleViewChange('phase1_play') : undefined}
-                      onOpenCompetitionLeaderboard={() => handleViewChange('phase1_leaderboard')}
-                      onOpenCompetitionAdmin={profile?.is_admin ? () => handleViewChange('phase1_admin') : undefined}
+                      onOpenCompetitionPlay={!isStudent && profile?.grade && !profile?.is_banned && hasSchool ? () => handleViewChange('phase1_play') : undefined}
+                      onOpenCompetitionLeaderboard={hasSchool ? () => handleViewChange('phase1_leaderboard') : undefined}
+                      onOpenCompetitionAdmin={profile?.is_admin && hasSchool ? () => handleViewChange('phase1_admin') : undefined}
                       onOpenIeltsPrep={() => {
                         window.location.assign('https://www.brainsheist.com/ielts');
                       }}
