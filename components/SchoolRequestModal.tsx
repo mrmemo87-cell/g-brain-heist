@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import * as SchoolRequestService from '../services/schoolRequestService';
+import { supabase } from '../services/supabaseClient';
 
 interface SchoolRequestModalProps {
   isOpen: boolean;
@@ -22,9 +23,11 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
   requesterRole,
   onUseSuggestion,
 }) => {
+  const [activeView, setActiveView] = useState<'apply' | 'applications'>('apply');
   const [schoolName, setSchoolName] = useState('');
   const [city, setCity] = useState('');
   const [country, setCountry] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
   const [website, setWebsite] = useState('');
   const [notes, setNotes] = useState('');
   const [statusView, setStatusView] = useState(false);
@@ -36,6 +39,15 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [moreInfoMessage, setMoreInfoMessage] = useState('');
   const [sendingMoreInfo, setSendingMoreInfo] = useState(false);
+  const [requestsLoading, setRequestsLoading] = useState(false);
+  const [requestsError, setRequestsError] = useState<string | null>(null);
+  const [requests, setRequests] = useState<SchoolRequestService.SchoolRequestRecord[]>([]);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [requestMessages, setRequestMessages] = useState<SchoolRequestService.SchoolRequestMessage[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+  const [messagesUnavailable, setMessagesUnavailable] = useState(false);
+  const [replyMessage, setReplyMessage] = useState('');
+  const [replySending, setReplySending] = useState(false);
 
   const isFormValid = useMemo(
     () => schoolName.trim().length > 2 && city.trim().length > 1 && country.trim().length > 1,
@@ -43,9 +55,11 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
   );
 
   const resetForm = () => {
+    setActiveView('apply');
     setSchoolName('');
     setCity('');
     setCountry('');
+    setContactEmail('');
     setWebsite('');
     setNotes('');
     setSuggestions([]);
@@ -55,6 +69,12 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
     setRequestStatus('pending');
     setStatusView(false);
     setMoreInfoMessage('');
+    setRequests([]);
+    setRequestsError(null);
+    setSelectedRequestId(null);
+    setRequestMessages([]);
+    setMessagesUnavailable(false);
+    setReplyMessage('');
   };
 
   const handleClose = () => {
@@ -74,6 +94,7 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
       schoolName,
       city,
       country,
+      contactEmail: contactEmail.trim() || undefined,
       website: website.trim() || undefined,
       notes: notes.trim() || undefined,
       requesterRole,
@@ -120,7 +141,79 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
     setMoreInfoMessage('');
   };
 
+  const loadMyRequests = useCallback(async () => {
+    setRequestsLoading(true);
+    setRequestsError(null);
+    const result = await SchoolRequestService.listMySchoolRequests();
+    setRequestsLoading(false);
+
+    if (!result.success) {
+      setRequestsError(result.error || 'Unable to load applications.');
+      setRequests([]);
+      return;
+    }
+
+    setRequests(result.requests);
+    setSelectedRequestId(result.requests[0]?.id ?? null);
+  }, []);
+
+  const loadRequestMessages = useCallback(async (requestIdToLoad: string) => {
+    setMessagesLoading(true);
+    setMessagesUnavailable(false);
+    const result = await SchoolRequestService.listSchoolRequestMessages(requestIdToLoad);
+    setMessagesLoading(false);
+
+    if (!result.success) {
+      setRequestMessages([]);
+      setMessagesUnavailable(false);
+      setRequestsError(result.error || 'Unable to load request messages.');
+      return;
+    }
+
+    setRequestMessages(result.messages);
+    setMessagesUnavailable(Boolean(result.unavailable));
+  }, []);
+
+  const handleReply = async () => {
+    if (!selectedRequestId || !replyMessage.trim()) return;
+    setReplySending(true);
+    const result = await SchoolRequestService.sendSchoolRequestMessage(selectedRequestId, replyMessage.trim());
+    setReplySending(false);
+
+    if (!result.success) {
+      setRequestsError(result.error || 'Failed to send reply.');
+      return;
+    }
+
+    setReplyMessage('');
+    void loadRequestMessages(selectedRequestId);
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (data?.user?.email) {
+        setContactEmail(data.user.email);
+      }
+    });
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || activeView !== 'applications') return;
+    void loadMyRequests();
+  }, [activeView, isOpen, loadMyRequests]);
+
+  useEffect(() => {
+    if (!selectedRequestId) {
+      setRequestMessages([]);
+      setMessagesUnavailable(false);
+      return;
+    }
+    void loadRequestMessages(selectedRequestId);
+  }, [loadRequestMessages, selectedRequestId]);
+
   const suggestionButtons = suggestions.filter((suggestion) => suggestion?.name);
+  const selectedRequest = requests.find((request) => request.id === selectedRequestId) ?? requests[0] ?? null;
 
   if (!isOpen) return null;
 
@@ -129,8 +222,14 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
       <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-slate-900/90 p-6 shadow-2xl">
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-white">Apply to add your school</h2>
-            <p className="text-sm text-slate-300">We will review your request and email you once it is approved.</p>
+            <h2 className="text-xl font-semibold text-white">
+              {activeView === 'applications' ? 'My school applications' : 'Apply to add your school'}
+            </h2>
+            <p className="text-sm text-slate-300">
+              {activeView === 'applications'
+                ? 'Track status updates and respond if we need more info.'
+                : 'We will review your request and email you once it is approved.'}
+            </p>
           </div>
           <button
             type="button"
@@ -141,7 +240,157 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
           </button>
         </div>
 
-        {statusView ? (
+        <div className="mt-4 flex gap-2">
+          <button
+            type="button"
+            onClick={() => setActiveView('apply')}
+            className={`rounded-full px-4 py-1 text-xs font-semibold ${
+              activeView === 'apply'
+                ? 'bg-cyan-400 text-black'
+                : 'border border-white/10 text-white/70 hover:text-white'
+            }`}
+          >
+            Apply
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveView('applications')}
+            className={`rounded-full px-4 py-1 text-xs font-semibold ${
+              activeView === 'applications'
+                ? 'bg-cyan-400 text-black'
+                : 'border border-white/10 text-white/70 hover:text-white'
+            }`}
+          >
+            My applications
+          </button>
+        </div>
+
+        {activeView === 'applications' ? (
+          <div className="mt-6 space-y-4">
+            {requestsLoading ? (
+              <div className="rounded-lg border border-white/10 bg-black/30 p-4 text-sm text-slate-300">
+                Loading your applications...
+              </div>
+            ) : requestsError ? (
+              <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-300">
+                {requestsError}
+              </div>
+            ) : requests.length === 0 ? (
+              <div className="rounded-lg border border-white/10 bg-black/30 p-4 text-sm text-slate-300">
+                No applications yet. Submit a request to get started.
+              </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  {requests.map((request) => (
+                    <button
+                      key={request.id}
+                      type="button"
+                      onClick={() => setSelectedRequestId(request.id)}
+                      className={`w-full rounded-lg border px-3 py-3 text-left text-sm transition ${
+                        selectedRequestId === request.id
+                          ? 'border-cyan-400/70 bg-cyan-400/10 text-white'
+                          : 'border-white/10 bg-black/30 text-slate-300 hover:border-cyan-400/40'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold">{request.requested_name}</span>
+                        <span className="text-xs text-cyan-200">
+                          {statusLabels[(request.status as SchoolRequestService.SchoolRequestStatus) || 'pending'] ||
+                            request.status ||
+                            'Pending'}
+                        </span>
+                      </div>
+                      {request.created_at && (
+                        <p className="mt-1 text-xs text-slate-400">
+                          Submitted {new Date(request.created_at).toLocaleDateString()}
+                        </p>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {selectedRequest && (
+                  <div className="rounded-lg border border-white/10 bg-black/30 p-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm uppercase tracking-[0.2em] text-cyan-300">Latest status</p>
+                      <button
+                        type="button"
+                        onClick={loadMyRequests}
+                        className="text-xs text-cyan-200 hover:text-cyan-100"
+                      >
+                        Refresh
+                      </button>
+                    </div>
+                    <p className="mt-2 text-lg font-semibold text-white">
+                      {statusLabels[(selectedRequest.status as SchoolRequestService.SchoolRequestStatus) || 'pending'] ||
+                        selectedRequest.status ||
+                        'Pending'}
+                    </p>
+                    {selectedRequest.admin_notes && (
+                      <p className="mt-2 text-sm text-slate-300">{selectedRequest.admin_notes}</p>
+                    )}
+                  </div>
+                )}
+
+                {selectedRequest && (
+                  <div className="rounded-lg border border-white/10 bg-black/30 p-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold text-white">Request thread</p>
+                      {messagesUnavailable && (
+                        <span className="text-xs text-slate-400">Messaging unavailable</span>
+                      )}
+                    </div>
+                    {messagesLoading ? (
+                      <p className="mt-3 text-sm text-slate-400">Loading messages...</p>
+                    ) : requestMessages.length === 0 ? (
+                      <p className="mt-3 text-sm text-slate-400">
+                        {messagesUnavailable ? 'No message history available.' : 'No messages yet.'}
+                      </p>
+                    ) : (
+                      <div className="mt-3 space-y-2">
+                        {requestMessages.map((threadMessage) => (
+                          <div
+                            key={threadMessage.id}
+                            className="rounded-lg border border-white/10 bg-black/40 p-3 text-sm text-slate-200"
+                          >
+                            <div className="flex items-center justify-between text-xs text-slate-400">
+                              <span>{threadMessage.sender_role || 'Update'}</span>
+                              {threadMessage.created_at && (
+                                <span>{new Date(threadMessage.created_at).toLocaleString()}</span>
+                              )}
+                            </div>
+                            <p className="mt-2 whitespace-pre-wrap">{threadMessage.message}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {selectedRequest.status === 'needs_more_info' && (
+                      <div className="mt-4 space-y-3">
+                        <textarea
+                          value={replyMessage}
+                          onChange={(event) => setReplyMessage(event.target.value)}
+                          rows={3}
+                          className="w-full rounded-lg border border-amber-400/30 bg-black/30 p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-300"
+                          placeholder="Reply with the details we requested."
+                        />
+                        <button
+                          type="button"
+                          onClick={handleReply}
+                          disabled={replySending || !replyMessage.trim()}
+                          className="rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
+                        >
+                          {replySending ? 'Sending...' : 'Send reply'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        ) : statusView ? (
           <div className="mt-6 space-y-4">
             <div className="rounded-lg border border-white/10 bg-black/30 p-4">
               <p className="text-sm uppercase tracking-[0.2em] text-cyan-300">Status</p>
@@ -244,6 +493,16 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
                   required
                 />
               </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-slate-200">Contact email (optional)</label>
+              <input
+                type="email"
+                value={contactEmail}
+                onChange={(event) => setContactEmail(event.target.value)}
+                className="mt-1 w-full rounded-lg border border-white/10 bg-black/40 p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                placeholder="you@school.edu"
+              />
             </div>
             <div>
               <label className="text-sm font-medium text-slate-200">Website or domain (optional)</label>
