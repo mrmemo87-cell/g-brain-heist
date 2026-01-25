@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { RaidTarget, RaidAttackResult, Profile, XpStatus } from '../types';
 import * as GameService from '../services/gameService';
 import { supabase } from '../services/supabaseClient';
@@ -152,6 +152,11 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
   const [visibleNarrations, setVisibleNarrations] = useState<number>(0);
   const [clanModal, setClanModal] = useState<{ clanId: string; clanName: string; members: ClanMember[]; loading: boolean } | null>(null);
   const [filterTab, setFilterTab] = useState<TargetFilter>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [levelRange, setLevelRange] = useState<number | null>(null);
+  const [minCoins, setMinCoins] = useState<string>('');
+  const [hideCooldown, setHideCooldown] = useState(false);
 
   useEffect(() => {
     GameService.raid_targets().then(data => {
@@ -161,6 +166,32 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
       setStage('targets');
     });
   }, []);
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => {
+      setDebouncedSearch(searchTerm.trim().toLowerCase());
+    }, 250);
+    return () => window.clearTimeout(handle);
+  }, [searchTerm]);
+
+  const sortedTargets = useMemo(() => {
+    const stableTargets = targets.map((target, index) => ({ target, index }));
+    stableTargets.sort((a, b) => {
+      const levelDiffA = Math.abs(a.target.level - profile.level);
+      const levelDiffB = Math.abs(b.target.level - profile.level);
+      if (levelDiffA !== levelDiffB) return levelDiffA - levelDiffB;
+      if (a.target.coins !== b.target.coins) return b.target.coins - a.target.coins;
+      const nameCompare = a.target.username.localeCompare(b.target.username, undefined, { sensitivity: 'base' });
+      if (nameCompare !== 0) return nameCompare;
+      return a.index - b.index;
+    });
+    return stableTargets.map(({ target }) => target);
+  }, [targets, profile.level]);
+
+  const hasCooldownField = useMemo(
+    () => sortedTargets.some(target => Boolean(target.last_attacked_at)),
+    [sortedTargets]
+  );
 
   const openClanMembers = async (clanId: string, clanName: string) => {
     setClanModal({ clanId, clanName, members: [], loading: true });
@@ -211,22 +242,59 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
     };
   }, []);
 
+  const isTargetOnCooldown = (target: RaidTarget) => {
+    if (!target.last_attacked_at) return false;
+    return (Date.now() - new Date(target.last_attacked_at).getTime()) < 5 * 60 * 1000;
+  };
+
   const getFilteredTargets = () => {
+    const baseTargets = sortedTargets;
     switch (filterTab) {
       case 'nearby':
-        return targets.filter(t => Math.abs(t.level - profile.level) <= 2);
+        return baseTargets.filter(t => Math.abs(t.level - profile.level) <= 2);
       case 'easy':
-        return targets.filter(t => t.level < profile.level);
+        return baseTargets.filter(t => t.level < profile.level);
       case 'challenge':
-        return targets.filter(t => t.level > profile.level);
+        return baseTargets.filter(t => t.level > profile.level);
       case 'rivals':
-        return targets.filter(t => t.clan_name && t.clan_name !== profile.clan_name);
+        return baseTargets.filter(t => t.clan_name && t.clan_name !== profile.clan_name);
       default:
-        return targets;
+        return baseTargets;
     }
   };
 
-  const filteredTargets = getFilteredTargets();
+  const filteredTargets = useMemo(() => {
+    let nextTargets = getFilteredTargets();
+    if (levelRange !== null) {
+      nextTargets = nextTargets.filter(target => Math.abs(target.level - profile.level) <= levelRange);
+    }
+    if (minCoins !== '') {
+      const minCoinsValue = Number(minCoins);
+      if (!Number.isNaN(minCoinsValue)) {
+        nextTargets = nextTargets.filter(target => target.coins >= minCoinsValue);
+      }
+    }
+    if (hideCooldown) {
+      nextTargets = nextTargets.filter(target => !isTargetOnCooldown(target));
+    }
+    if (debouncedSearch) {
+      nextTargets = nextTargets.filter(target => {
+        const email = (target as RaidTarget & { email?: string }).email;
+        const haystack = `${target.username ?? ''} ${email ?? ''}`.toLowerCase();
+        return haystack.includes(debouncedSearch);
+      });
+    }
+    return nextTargets;
+  }, [debouncedSearch, hideCooldown, levelRange, minCoins, profile.level, filterTab, sortedTargets]);
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setDebouncedSearch('');
+    setLevelRange(null);
+    setMinCoins('');
+    setHideCooldown(false);
+    setFilterTab('all');
+  };
 
   const handleAttack = async (target: RaidTarget) => {
     if (profile.ap_now < RAID_AP_COST) {
@@ -344,7 +412,62 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
     <div className="w-full px-4 sm:px-6 py-6">
       <div className="max-w-full mx-auto">
         <h2 className="font-heading text-3xl text-center mb-6 flex items-center justify-center gap-2" style={{ color: 'var(--plasma-pink)' }}><BattleIcon className="w-8 h-8" /> Choose Your Target</h2>
-        
+
+        {/* Filter Bar */}
+        <div className="card-glass p-4 mb-6">
+          <div className="flex flex-col gap-3">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Search username or email"
+              className="w-full bg-black/40 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:border-pink-400"
+            />
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <label className="text-xs text-gray-400">
+                  Level range
+                  <select
+                    value={levelRange ?? ''}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setLevelRange(value === '' ? null : Number(value));
+                    }}
+                    className="mt-1 w-full sm:w-auto bg-black/40 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white"
+                  >
+                    <option value="">Any</option>
+                    <option value="5">±5</option>
+                    <option value="10">±10</option>
+                    <option value="15">±15</option>
+                  </select>
+                </label>
+                <label className="text-xs text-gray-400">
+                  Min coins
+                  <input
+                    type="number"
+                    min="0"
+                    value={minCoins}
+                    onChange={(event) => setMinCoins(event.target.value)}
+                    placeholder="0"
+                    className="mt-1 w-full sm:w-32 bg-black/40 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white"
+                  />
+                </label>
+              </div>
+              {hasCooldownField && (
+                <label className="flex items-center gap-2 text-xs text-gray-300">
+                  <input
+                    type="checkbox"
+                    checked={hideCooldown}
+                    onChange={(event) => setHideCooldown(event.target.checked)}
+                    className="h-4 w-4 accent-pink-400"
+                  />
+                  Hide cooldown targets
+                </label>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Filter Tabs */}
         <div className="flex justify-center gap-2 mb-8 flex-wrap px-2">
           <button
@@ -355,7 +478,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
                 : 'bg-black/20 border border-gray-600 text-gray-400 hover:text-white'
             }`}
           >
-            All ({targets.length})
+            All ({sortedTargets.length})
           </button>
           <button
             onClick={() => setFilterTab('nearby')}
@@ -365,7 +488,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
                 : 'bg-black/20 border border-gray-600 text-gray-400 hover:text-white'
             }`}
           >
-            ⚖️ Fair Fights ({targets.filter(t => Math.abs(t.level - profile.level) <= 2).length})
+            ⚖️ Fair Fights ({sortedTargets.filter(t => Math.abs(t.level - profile.level) <= 2).length})
           </button>
           <button
             onClick={() => setFilterTab('easy')}
@@ -375,7 +498,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
                 : 'bg-black/20 border border-gray-600 text-gray-400 hover:text-white'
             }`}
           >
-            ✅ Easy ({targets.filter(t => t.level < profile.level).length})
+            ✅ Easy ({sortedTargets.filter(t => t.level < profile.level).length})
           </button>
           <button
             onClick={() => setFilterTab('challenge')}
@@ -385,7 +508,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
                 : 'bg-black/20 border border-gray-600 text-gray-400 hover:text-white'
             }`}
           >
-            💪 Challenges ({targets.filter(t => t.level > profile.level).length})
+            💪 Challenges ({sortedTargets.filter(t => t.level > profile.level).length})
           </button>
           <button
             onClick={() => setFilterTab('rivals')}
@@ -395,15 +518,22 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
                 : 'bg-black/20 border border-gray-600 text-gray-400 hover:text-white'
             }`}
           >
-            ⚔️ Clan Rivals ({targets.filter(t => t.clan_name && t.clan_name !== profile.clan_name).length})
+            ⚔️ Clan Rivals ({sortedTargets.filter(t => t.clan_name && t.clan_name !== profile.clan_name).length})
           </button>
         </div>
         
         {/* Targets Grid */}
         {filteredTargets.length === 0 ? (
           <div className="text-center text-gray-400 py-12">
-            <p className="text-xl">No targets in this category</p>
-            <p className="text-sm mt-2">Try a different filter</p>
+            <p className="text-xl">No results found</p>
+            <p className="text-sm mt-2">Try adjusting your filters or search.</p>
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="mt-4 inline-flex items-center justify-center rounded-lg border border-pink-400 px-4 py-2 text-sm font-semibold text-white hover:bg-pink-500/20"
+            >
+              Clear filters
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
@@ -620,11 +750,22 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
   }
 
   return (
-    <div className="mt-6 mb-12">
+    <div className="mt-6 mb-12 pb-24">
       <BackButton onClick={onComplete} containerClassName="sticky top-4 z-40 mb-6" />
       <div className="mt-4">
         {renderContent()}
       </div>
+
+      {stage !== 'cinematic' && (
+        <button
+          type="button"
+          onClick={onComplete}
+          className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full bg-black/70 border border-cyan-400 px-4 py-2 text-sm font-semibold text-cyan-200 shadow-lg shadow-cyan-500/30 hover:bg-cyan-500/20"
+        >
+          <BattleIcon className="w-4 h-4" />
+          Dashboard
+        </button>
+      )}
       
       {/* Clan Members Modal */}
       {clanModal && (
