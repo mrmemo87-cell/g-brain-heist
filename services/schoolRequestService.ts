@@ -21,6 +21,7 @@ export interface SchoolRequestPayload {
   schoolName: string;
   city: string;
   country: string;
+  contactEmail?: string;
   website?: string;
   notes?: string;
   requesterRole: 'student' | 'teacher';
@@ -35,6 +36,14 @@ export interface SchoolRequestRecord {
   created_at?: string | null;
   admin_notes?: string | null;
   approved_school_id?: string | null;
+}
+
+export interface SchoolRequestMessage {
+  id: string;
+  request_id: string;
+  message: string;
+  sender_role?: string | null;
+  created_at?: string | null;
 }
 
 const parseRequestResponse = (data: any): SchoolRequestResponse => {
@@ -68,12 +77,13 @@ export const requestSchool = async (payload: SchoolRequestPayload): Promise<Scho
 
   const tryV2 = async () => {
     const { data, error } = await supabase.rpc('request_school_v2', {
-      p_school_name: trimmedName,
+      p_requested_name: trimmedName,
+      p_requester_role: payload.requesterRole,
       p_city: payload.city,
       p_country: payload.country,
       p_website: payload.website || null,
+      p_contact_email: payload.contactEmail || null,
       p_notes: payload.notes || null,
-      p_requester_role: payload.requesterRole,
     });
 
     if (error) {
@@ -155,31 +165,57 @@ export const sendSchoolRequestMessage = async (
   requestId: string,
   message: string
 ): Promise<{ success: boolean; error?: string }> => {
-  const tryRpc = async (rpcName: string) => {
-    const { error } = await supabase.rpc(rpcName, {
-      p_request_id: requestId,
-      p_message: message,
-    });
-    return error;
-  };
-
-  const v2Error = await tryRpc('request_school_message_v2');
-  if (!v2Error) {
-    return { success: true };
-  }
-  const isMissingV2 = v2Error.message?.includes('request_school_message_v2') || v2Error.code === 'PGRST202';
-  if (!isMissingV2) {
-    return { success: false, error: v2Error.message };
-  }
-
-  const { error } = await supabase
-    .from('school_requests')
-    .update({ requester_notes: message })
-    .eq('id', requestId);
+  const { error } = await supabase.rpc('school_request_reply', {
+    p_request_id: requestId,
+    p_message: message,
+  });
 
   if (error) {
-    return { success: false, error: 'Request messaging is not available yet.' };
+    return { success: false, error: error.message || 'Request messaging is not available yet.' };
   }
 
   return { success: true };
+};
+
+export const listMySchoolRequests = async (): Promise<{
+  success: boolean;
+  error?: string;
+  requests: SchoolRequestRecord[];
+}> => {
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  if (authError || !authData?.user) {
+    return { success: false, error: 'Log in to view applications.', requests: [] };
+  }
+
+  const { data, error } = await supabase
+    .from('school_requests')
+    .select('id, requested_name, requester_email, requester_role, status, created_at, admin_notes, approved_school_id')
+    .eq('requested_by', authData.user.id)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    return { success: false, error: error.message, requests: [] };
+  }
+
+  return { success: true, requests: data ?? [] };
+};
+
+export const listSchoolRequestMessages = async (
+  requestId: string
+): Promise<{ success: boolean; error?: string; unavailable?: boolean; messages: SchoolRequestMessage[] }> => {
+  const { data, error } = await supabase
+    .from('school_request_messages')
+    .select('id, request_id, message, sender_role, created_at')
+    .eq('request_id', requestId)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    const isMissingTable = error.code === '42P01' || error.message?.includes('school_request_messages');
+    if (isMissingTable) {
+      return { success: true, unavailable: true, messages: [] };
+    }
+    return { success: false, error: error.message, messages: [] };
+  }
+
+  return { success: true, messages: data ?? [] };
 };
