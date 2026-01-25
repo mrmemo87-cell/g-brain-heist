@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import * as SchoolRequestService from '../services/schoolRequestService';
-import { supabase } from '../services/supabaseClient';
+import { supabase, type Session } from '../services/supabaseClient';
 
 interface SchoolRequestModalProps {
   isOpen: boolean;
@@ -48,6 +48,8 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
   const [messagesUnavailable, setMessagesUnavailable] = useState(false);
   const [replyMessage, setReplyMessage] = useState('');
   const [replySending, setReplySending] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
+  const [sessionChecked, setSessionChecked] = useState(false);
 
   const isFormValid = useMemo(
     () => schoolName.trim().length > 2 && city.trim().length > 1 && country.trim().length > 1,
@@ -89,6 +91,13 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
     setIsSubmitting(true);
     setError(null);
     setMessage(null);
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData?.session) {
+      setIsSubmitting(false);
+      setError('Please log in to submit a school request.');
+      return;
+    }
 
     const response = await SchoolRequestService.requestSchool({
       schoolName,
@@ -191,17 +200,34 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
 
   useEffect(() => {
     if (!isOpen) return;
+    setSessionChecked(false);
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data?.session ?? null);
+      setSessionChecked(true);
+    });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+      setSessionChecked(true);
+    });
     void supabase.auth.getUser().then(({ data }) => {
       if (data?.user?.email) {
         setContactEmail(data.user.email);
       }
     });
+    return () => subscription.unsubscribe();
   }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen || activeView !== 'applications') return;
+    if (!session && sessionChecked) {
+      setRequests([]);
+      setRequestsError('Log in to view your applications.');
+      return;
+    }
     void loadMyRequests();
-  }, [activeView, isOpen, loadMyRequests]);
+  }, [activeView, isOpen, loadMyRequests, session, sessionChecked]);
 
   useEffect(() => {
     if (!selectedRequestId) {
@@ -214,6 +240,7 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
 
   const suggestionButtons = suggestions.filter((suggestion) => suggestion?.name);
   const selectedRequest = requests.find((request) => request.id === selectedRequestId) ?? requests[0] ?? null;
+  const isAuthenticated = Boolean(session);
 
   if (!isOpen) return null;
 
@@ -462,6 +489,11 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            {!isAuthenticated && (
+              <div className="rounded-lg border border-amber-400/40 bg-amber-500/10 p-3 text-sm text-amber-200">
+                Please log in to submit a school request.
+              </div>
+            )}
             <div>
               <label className="text-sm font-medium text-slate-200">School name</label>
               <input
@@ -532,13 +564,27 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                disabled={!isFormValid || isSubmitting}
-                className="rounded-lg bg-cyan-400 px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
-              >
-                {isSubmitting ? 'Submitting...' : 'Submit request'}
-              </button>
+              <div className="flex items-center gap-3">
+                {!isAuthenticated && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleClose();
+                      window.location.assign('/');
+                    }}
+                    className="text-sm font-semibold text-cyan-200 hover:text-cyan-100"
+                  >
+                    Log in to apply
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  disabled={!isFormValid || isSubmitting || !isAuthenticated}
+                  className="rounded-lg bg-cyan-400 px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit request'}
+                </button>
+              </div>
             </div>
           </form>
         )}

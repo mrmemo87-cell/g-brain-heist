@@ -46,6 +46,18 @@ export interface SchoolRequestMessage {
   created_at?: string | null;
 }
 
+const decodeTokenRole = (token?: string | null) => {
+  if (!token) return null;
+  const payload = token.split('.')[1];
+  if (!payload) return null;
+  try {
+    const decoded = JSON.parse(globalThis.atob(payload));
+    return decoded?.role ?? null;
+  } catch {
+    return null;
+  }
+};
+
 const parseRequestResponse = (data: any): SchoolRequestResponse => {
   if (!data) {
     return { success: false, error: 'No response from server.' };
@@ -73,6 +85,17 @@ const parseRequestResponse = (data: any): SchoolRequestResponse => {
 };
 
 export const requestSchool = async (payload: SchoolRequestPayload): Promise<SchoolRequestResponse> => {
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  const session = sessionData?.session ?? null;
+  if (import.meta.env.DEV) {
+    const role = decodeTokenRole(session?.access_token);
+    console.log('[SchoolRequest] session?', Boolean(session), session?.user?.id, role);
+  }
+
+  if (sessionError || !session) {
+    return { success: false, error: 'Please log in to submit a school request.' };
+  }
+
   const trimmedName = payload.schoolName.trim();
 
   const tryV2 = async () => {
@@ -98,7 +121,8 @@ export const requestSchool = async (payload: SchoolRequestPayload): Promise<Scho
     return parseRequestResponse(v2Result.data);
   }
   const v2Message = v2Result.error?.message || '';
-  const isMissingV2 = v2Message.includes('request_school_v2') || v2Result.error?.code === 'PGRST202';
+  const v2Status = (v2Result.error as { status?: number } | null)?.status;
+  const isMissingV2 = v2Status === 404 || v2Message.includes('request_school_v2') || v2Result.error?.code === 'PGRST202';
   if (!isMissingV2) {
     return { success: false, error: v2Message || 'Unable to submit school request.' };
   }
