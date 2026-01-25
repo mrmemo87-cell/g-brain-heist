@@ -11,6 +11,14 @@ type ClanViewStage = 'loading' | 'no_clan' | 'in_clan' | 'creating' | 'joining';
 type ClanTab = 'home' | 'chat' | 'management' | 'browse';
 type ModalType = null | 'deposit' | 'confirm_leave' | 'confirm_delete' | 'confirm_kick' | 'view_members';
 
+// Internal UX investigation report:
+// - Clans list/chat UI lives in components/ClanView.tsx (JoinClanView, BrowseClansTab, ClanChat).
+// - Data layer uses GameService.clan_list() (RPC get_school_clan_leaderboard + clans metadata),
+//   GameService.clan_details(), and chat helpers GameService.clan_chat_recent/clan_chat_post
+//   with Supabase realtime inserts on clan_chat.
+// - Scroll resets were caused by list/chat containers remounting during refresh/loading, and chat
+//   forcing scroll-to-bottom on every message update.
+
 interface ClanViewProps {
   profile: Profile;
   onComplete: () => void;
@@ -108,6 +116,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
   const [processingRequestId, setProcessingRequestId] = useState<string | null>(null);
   const [isCancelingRequest, setIsCancelingRequest] = useState(false);
+  const [isBioExpanded, setIsBioExpanded] = useState(false);
   
   const myMemberInfo = clan?.members.find(m => m.user_id === profile.id);
     const isPrivileged = !!myMemberInfo && ['leader', 'officer', 'moderator'].includes(myMemberInfo.role);
@@ -199,6 +208,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
 
     useEffect(() => {
             setNoticeDraft(clan?.notice || '');
+            setIsBioExpanded(false);
     }, [clan?.notice]);
 
     useEffect(() => {
@@ -467,8 +477,10 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
     const [clanList, setClanList] = useState<ClanSummary[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isJoining, setIsJoining] = useState<string | null>(null);
+    const listScrollRef = useRef<HTMLDivElement>(null);
 
     const fetchClans = async () => {
+        const scrollTop = listScrollRef.current?.scrollTop ?? 0;
         setIsLoading(true);
         try {
             const clans = await GameService.clan_list();
@@ -476,6 +488,13 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
         } catch (error) {
             addToast("Failed to fetch clan list.", "error");
         } finally {
+            if (listScrollRef.current && scrollTop > 0) {
+                requestAnimationFrame(() => {
+                    if (listScrollRef.current) {
+                        listScrollRef.current.scrollTop = scrollTop;
+                    }
+                });
+            }
             setIsLoading(false);
         }
     };
@@ -504,7 +523,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
         setIsJoining(null);
     };
 
-    if (isLoading) {
+    if (isLoading && clanList.length === 0) {
         return <div className="font-heading text-xl animate-pulse text-center" style={{color: 'var(--amber-warn)'}}>Scanning for Syndicates...</div>;
     }
 
@@ -531,7 +550,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                     <p>No clans available yet. Be the first to create one!</p>
                 </div>
             ) : (
-                <div className="space-y-4">
+                <div ref={listScrollRef} className="space-y-4">
                 {clanList.map(clan => (
                     <div key={clan.id} className="card-glass p-4 flex items-center justify-between">
                         <div className="flex items-center space-x-4 text-left">
@@ -664,13 +683,22 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
         isLoading: boolean;
         setIsLoading: (val: boolean) => void;
     }> = ({ currentClanId, addToast, onViewMembers, clanList, setClanList, hasFetched, setHasFetched, isLoading, setIsLoading }) => {
+    const listScrollRef = useRef<HTMLDivElement>(null);
 
     const fetchClans = async () => {
         setIsLoading(true);
         try {
+            const scrollTop = listScrollRef.current?.scrollTop ?? 0;
             const clans = await GameService.clan_list();
             setClanList(clans);
             setHasFetched(true);
+            if (listScrollRef.current && scrollTop > 0) {
+                requestAnimationFrame(() => {
+                    if (listScrollRef.current) {
+                        listScrollRef.current.scrollTop = scrollTop;
+                    }
+                });
+            }
         } catch (error) {
             addToast("Failed to fetch clan list.", "error");
         } finally {
@@ -685,7 +713,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
         }
     }, [hasFetched]);
 
-    if (isLoading) {
+    if (isLoading && clanList.length === 0) {
         return <div className="flex justify-center py-8"><img src="/BRAINS.svg" alt="Loading..." className="w-20 h-20 animate-pulse" style={{ filter: 'drop-shadow(0 0 20px rgba(0, 212, 255, 0.6))' }} /></div>;
     }
 
@@ -706,7 +734,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                     <p>No other clans found.</p>
                 </div>
             ) : (
-                <div className="space-y-3 max-h-[500px] overflow-y-auto">
+                <div ref={listScrollRef} className="space-y-3 max-h-[500px] overflow-y-auto">
                     {clanList.map(clanItem => (
                         <div 
                             key={clanItem.id} 
@@ -747,9 +775,56 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   };
   
   const ClanChat: React.FC<{ clanId: string }> = ({ clanId }) => {
-    const [messages, setMessages] = useState<ClanChatMessage[]>([]);
+    type ChatMessage = ClanChatMessage & { user_id?: string };
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [newMessage, setNewMessage] = useState('');
+    const [hasNewMessages, setHasNewMessages] = useState(false);
+    const [userLookup, setUserLookup] = useState<Record<string, string>>({});
     const chatScrollRef = useRef<HTMLDivElement>(null);
+    const userLookupRef = useRef<Record<string, string>>({});
+    const isAtBottomRef = useRef(true);
+    const hasLoadedRef = useRef(false);
+
+    useEffect(() => {
+        userLookupRef.current = userLookup;
+    }, [userLookup]);
+
+    useEffect(() => {
+        setUserLookup((prev) => (profile.id ? { ...prev, [profile.id]: profile.username } : prev));
+    }, [profile.id, profile.username]);
+
+    const isNearBottom = (container: HTMLDivElement) => {
+        const distance = container.scrollHeight - container.scrollTop - container.clientHeight;
+        return distance < 120;
+    };
+
+    const scrollToBottom = () => {
+        const container = chatScrollRef.current;
+        if (!container) return;
+        container.scrollTop = container.scrollHeight;
+        setHasNewMessages(false);
+        isAtBottomRef.current = true;
+    };
+
+    const ensureUsernames = async (userIds: string[]) => {
+        const missing = userIds.filter((id) => id && !userLookupRef.current[id]);
+        if (missing.length === 0) return;
+        const { data, error } = await supabase
+            .from('users')
+            .select('id, username, email')
+            .in('id', missing);
+
+        if (error || !data) {
+            console.warn('Failed to fetch chat usernames:', error);
+            return;
+        }
+
+        const updates: Record<string, string> = {};
+        data.forEach((row: any) => {
+            updates[row.id] = row.username || row.email || 'Unknown';
+        });
+        setUserLookup((prev) => ({ ...prev, ...updates }));
+    };
 
     useEffect(() => {
         let isMounted = true;
@@ -773,19 +848,28 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                         user_id?: string;
                         created_at?: string;
                     };
+                    if (newRow.user_id && !newRow.username) {
+                        void ensureUsernames([newRow.user_id]);
+                    }
 
                     setMessages((prev) => {
                         if (prev.some((msg) => msg.id === newRow.id)) {
                             return prev;
                         }
+                        const fallbackName =
+                            newRow.username ||
+                            (newRow.user_id ? userLookupRef.current[newRow.user_id] : undefined) ||
+                            (newRow.user_id === profile.id ? profile.username : undefined) ||
+                            'Unknown';
                         return [
                             ...prev,
                             {
                                 id: newRow.id,
-                                user: newRow.username || 'Unknown',
+                                user: fallbackName,
                                 message: newRow.message,
                                 created_at: 'Just now',
                                 is_self: newRow.user_id === profile.id,
+                                user_id: newRow.user_id,
                             },
                         ];
                     });
@@ -797,30 +881,45 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
             isMounted = false;
             void supabase.removeChannel(channel);
         };
-    }, [clanId, profile.id]);
+    }, [clanId, profile.id, profile.username]);
 
     useEffect(() => {
         const container = chatScrollRef.current;
         if (!container) return;
-        container.scrollTop = container.scrollHeight;
+        const shouldAutoScroll =
+            !hasLoadedRef.current ||
+            isAtBottomRef.current ||
+            (messages[messages.length - 1]?.is_self ?? false);
+        if (shouldAutoScroll) {
+            container.scrollTop = container.scrollHeight;
+            setHasNewMessages(false);
+            isAtBottomRef.current = true;
+        } else {
+            setHasNewMessages(true);
+        }
+        if (!hasLoadedRef.current && messages.length > 0) {
+            hasLoadedRef.current = true;
+        }
     }, [messages]);
 
     const handleSend = async () => {
         if (!newMessage.trim()) return;
         const tempId = `temp_${Date.now()}`;
-        const optimisticMessage: ClanChatMessage = {
+        const optimisticMessage: ChatMessage = {
             id: tempId,
             user: profile.username,
             message: newMessage,
             created_at: 'Sending...',
             is_self: true,
+            user_id: profile.id,
         };
         setMessages(prev => [...prev, optimisticMessage]);
         setNewMessage('');
         
         try {
             const sentMessage = await GameService.clan_chat_post(newMessage);
-            setMessages(prev => prev.map(m => m.id === tempId ? sentMessage : m));
+            const mergedMessage: ChatMessage = { ...sentMessage, user_id: profile.id };
+            setMessages(prev => prev.map(m => m.id === tempId ? mergedMessage : m));
         } catch {
             addToast("Failed to send message.", "error");
             setMessages(prev => prev.filter(m => m.id !== tempId));
@@ -829,18 +928,45 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
 
     return (
         <div className="h-full flex flex-col">
-            <div ref={chatScrollRef} className="flex-grow bg-black/20 p-4 rounded-t-lg overflow-y-auto h-[400px]">
+            <div
+                ref={chatScrollRef}
+                className="flex-grow bg-black/20 p-4 rounded-t-lg overflow-y-auto h-[400px] relative"
+                onScroll={() => {
+                    const container = chatScrollRef.current;
+                    if (!container) return;
+                    const isNear = isNearBottom(container);
+                    isAtBottomRef.current = isNear;
+                    if (isNear) {
+                        setHasNewMessages(false);
+                    }
+                }}
+            >
                 <div className="space-y-4">
                     {messages.map(msg => (
                         <div key={msg.id} className={`flex items-end gap-3 ${msg.is_self ? 'flex-row-reverse' : ''}`}>
                             <div className={`p-3 rounded-xl max-w-xs lg:max-w-md ${msg.is_self ? 'bg-ion-blue/20 rounded-br-none' : 'bg-gray-700/50 rounded-bl-none'}`}>
-                                {!msg.is_self && <p className="text-xs font-bold text-amber-300 mb-1">{msg.user}</p>}
+                                {!msg.is_self && (
+                                    <p className="text-xs font-bold text-amber-300 mb-1">
+                                        {msg.user_id ? userLookup[msg.user_id] ?? msg.user : msg.user}
+                                    </p>
+                                )}
                                 <p className="text-white">{msg.message}</p>
                                 <p className={`text-xs mt-1 ${msg.is_self ? 'text-cyan-200/70' : 'text-gray-400'}`}>{msg.created_at}</p>
                             </div>
                         </div>
                     ))}
                 </div>
+                {hasNewMessages && (
+                    <div className="absolute inset-x-0 bottom-4 flex justify-center pointer-events-none">
+                        <button
+                            type="button"
+                            onClick={scrollToBottom}
+                            className="pointer-events-auto px-3 py-1 text-xs font-semibold bg-amber-500/90 text-ink-900 rounded-full shadow-lg"
+                        >
+                            New messages • Jump to bottom
+                        </button>
+                    </div>
+                )}
             </div>
             <div className="flex p-4 bg-black/30 rounded-b-lg">
                 <input
@@ -896,6 +1022,8 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
 
         return acc;
     }, {}));
+    const bioText = clan.notice || 'No bio added yet. Let the world know what makes your clan special.';
+    const canExpandBio = bioText.length > 160;
 
     return (
         <div>
@@ -966,7 +1094,20 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                             </div>
                                         </div>
                                     ) : (
-                                        <p className="text-gray-200 leading-relaxed min-h-[64px]">{clan.notice || 'No bio added yet. Let the world know what makes your clan special.'}</p>
+                                        <div>
+                                            <p className={`text-gray-200 leading-relaxed min-h-[64px] ${!isBioExpanded && canExpandBio ? 'line-clamp-3' : ''}`}>
+                                                {bioText}
+                                            </p>
+                                            {canExpandBio && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsBioExpanded((prev) => !prev)}
+                                                    className="mt-2 text-xs text-cyan-300 hover:text-white"
+                                                >
+                                                    {isBioExpanded ? 'Show less' : 'Read full bio'}
+                                                </button>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
 
