@@ -165,7 +165,25 @@ export const reviewSchoolRequest = async (
   action: 'approve' | 'reject' | 'mark_duplicate' | 'needs_more_info',
   notes?: string,
   existingSchoolId?: string | null
-): Promise<{ success: boolean; error?: string; message?: string; inviteCode?: string | null }> => {
+): Promise<{ success: boolean; error?: string; message?: string; inviteCode?: string | null; schoolId?: string | null }> => {
+  if (action === 'needs_more_info') {
+    const { data, error } = await supabase.rpc('admin_school_request_need_more_info', {
+      p_request_id: requestId,
+      p_message: notes || null,
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    const result = data as { success?: boolean; error?: string; message?: string };
+    if (result?.success === false) {
+      return { success: false, error: result.error || 'Request update failed.' };
+    }
+
+    return { success: true, message: result?.message ?? 'Request updated.' };
+  }
+
   const { data, error } = await supabase.rpc('admin_review_school_request', {
     p_request_id: requestId,
     p_action: action,
@@ -177,12 +195,23 @@ export const reviewSchoolRequest = async (
     return { success: false, error: error.message };
   }
 
-  const result = data as { success?: boolean; error?: string; message?: string; invite_code?: string };
+  const result = data as {
+    success?: boolean;
+    error?: string;
+    message?: string;
+    invite_code?: string;
+    school_id?: string;
+  };
   if (result?.success === false) {
     return { success: false, error: result.error || 'Request update failed.' };
   }
 
-  return { success: true, message: result?.message, inviteCode: result?.invite_code ?? null };
+  return {
+    success: true,
+    message: result?.message,
+    inviteCode: result?.invite_code ?? null,
+    schoolId: result?.school_id ?? null,
+  };
 };
 
 export const sendSchoolRequestMessage = async (
