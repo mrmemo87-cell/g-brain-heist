@@ -104,6 +104,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
   const xpStatus = profile.xp_status;
   const xpPercent = Math.min(100, Math.round((xpStatus?.progress ?? 0) * 100));
+  const xpCurrent = xpStatus?.xp_into_level ?? profile.xp ?? 0;
 
   const avatarPresets = [
     'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
