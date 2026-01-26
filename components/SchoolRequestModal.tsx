@@ -16,6 +16,13 @@ const statusLabels: Record<SchoolRequestService.SchoolRequestStatus, string> = {
   rejected: 'Rejected',
   duplicate: 'Duplicate',
 };
+const statusTextStyles: Record<SchoolRequestService.SchoolRequestStatus, string> = {
+  pending: 'text-slate-100',
+  needs_more_info: 'text-amber-200',
+  approved: 'text-emerald-200',
+  rejected: 'text-rose-200',
+  duplicate: 'text-purple-200',
+};
 
 const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
   isOpen,
@@ -336,7 +343,12 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-semibold">{request.requested_name}</span>
-                        <span className="text-xs text-cyan-200">
+                        <span
+                          className={`text-xs font-semibold ${
+                            statusTextStyles[(request.status as SchoolRequestService.SchoolRequestStatus) || 'pending'] ||
+                            'text-slate-100'
+                          }`}
+                        >
                           {statusLabels[(request.status as SchoolRequestService.SchoolRequestStatus) || 'pending'] ||
                             request.status ||
                             'Pending'}

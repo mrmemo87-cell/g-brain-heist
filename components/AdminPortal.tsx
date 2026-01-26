@@ -36,6 +36,13 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   const [schoolRequestNotes, setSchoolRequestNotes] = useState<Record<string, string>>({});
   const [schoolRequestDuplicates, setSchoolRequestDuplicates] = useState<Record<string, string>>({});
   const [schoolRequestActionLoading, setSchoolRequestActionLoading] = useState<string | null>(null);
+  const [schoolRequestMessages, setSchoolRequestMessages] = useState<
+    Record<string, SchoolRequestService.SchoolRequestMessage[]>
+  >({});
+  const [schoolRequestMessagesLoading, setSchoolRequestMessagesLoading] = useState<Record<string, boolean>>({});
+  const [schoolRequestMessagesError, setSchoolRequestMessagesError] = useState<Record<string, string>>({});
+  const [schoolRequestMessagesUnavailable, setSchoolRequestMessagesUnavailable] = useState<Record<string, boolean>>({});
+  const [schoolRequestMessagesOpen, setSchoolRequestMessagesOpen] = useState<Record<string, boolean>>({});
   const [schoolOptions, setSchoolOptions] = useState<{ id: string; name: string }[]>([]);
   const [schoolAdminSchoolId, setSchoolAdminSchoolId] = useState('');
   const [schoolMemberSearch, setSchoolMemberSearch] = useState('');
@@ -145,6 +152,32 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       setSchoolRequestsLoading(false);
     }
   }, [schoolRequestStatus]);
+
+  const loadSchoolRequestMessages = useCallback(async (requestId: string) => {
+    setSchoolRequestMessagesLoading((prev) => ({ ...prev, [requestId]: true }));
+    setSchoolRequestMessagesError((prev) => {
+      if (!prev[requestId]) return prev;
+      const { [requestId]: _removed, ...rest } = prev;
+      return rest;
+    });
+    const result = await SchoolRequestService.listSchoolRequestMessages(requestId);
+    setSchoolRequestMessagesLoading((prev) => ({ ...prev, [requestId]: false }));
+
+    if (!result.success) {
+      setSchoolRequestMessagesError((prev) => ({
+        ...prev,
+        [requestId]: result.error || 'Unable to load conversation.',
+      }));
+      setSchoolRequestMessages((prev) => ({ ...prev, [requestId]: [] }));
+      return;
+    }
+
+    setSchoolRequestMessages((prev) => ({ ...prev, [requestId]: result.messages }));
+    setSchoolRequestMessagesUnavailable((prev) => ({
+      ...prev,
+      [requestId]: Boolean(result.unavailable),
+    }));
+  }, []);
 
   const loadSchoolOptions = useCallback(async () => {
     const { data, error } = await supabase
@@ -1531,6 +1564,11 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                   const status = request.status || 'pending';
                   const isActionLoading = schoolRequestActionLoading === request.id;
                   const noteValue = schoolRequestNotes[request.id] ?? request.admin_notes ?? '';
+                  const isMessagesOpen = Boolean(schoolRequestMessagesOpen[request.id]);
+                  const messages = schoolRequestMessages[request.id] ?? [];
+                  const isMessagesLoading = Boolean(schoolRequestMessagesLoading[request.id]);
+                  const messagesError = schoolRequestMessagesError[request.id];
+                  const messagesUnavailable = Boolean(schoolRequestMessagesUnavailable[request.id]);
                   return (
                     <div key={request.id} className="card-glass p-6 border border-white/10">
                       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1611,7 +1649,60 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                         >
                           📩 Request more info
                         </button>
+                        <button
+                          onClick={() => {
+                            const nextOpen = !isMessagesOpen;
+                            setSchoolRequestMessagesOpen((prev) => ({ ...prev, [request.id]: nextOpen }));
+                            if (nextOpen && !schoolRequestMessages[request.id] && !schoolRequestMessagesLoading[request.id]) {
+                              void loadSchoolRequestMessages(request.id);
+                            }
+                          }}
+                          className="rounded-lg border border-cyan-400/50 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-500/20"
+                        >
+                          {isMessagesOpen ? 'Hide conversation' : 'View conversation'}
+                        </button>
                       </div>
+
+                      {isMessagesOpen && (
+                        <div className="mt-4 rounded-lg border border-white/10 bg-black/40 p-4">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-semibold text-white">Conversation</p>
+                            <button
+                              type="button"
+                              onClick={() => loadSchoolRequestMessages(request.id)}
+                              className="text-xs text-cyan-200 hover:text-cyan-100"
+                            >
+                              Refresh
+                            </button>
+                          </div>
+                          {messagesUnavailable ? (
+                            <p className="mt-3 text-xs text-gray-400">Messaging is not available yet.</p>
+                          ) : isMessagesLoading ? (
+                            <p className="mt-3 text-sm text-gray-300">Loading messages...</p>
+                          ) : messagesError ? (
+                            <p className="mt-3 text-sm text-red-200">{messagesError}</p>
+                          ) : messages.length === 0 ? (
+                            <p className="mt-3 text-sm text-gray-400">No messages yet.</p>
+                          ) : (
+                            <div className="mt-3 space-y-2">
+                              {messages.map((message) => (
+                                <div
+                                  key={message.id}
+                                  className="rounded-lg border border-white/10 bg-black/50 p-3 text-sm text-gray-100"
+                                >
+                                  <div className="flex items-center justify-between text-xs text-gray-400">
+                                    <span>{message.sender_role?.toLowerCase() === 'admin' ? 'Admin' : 'Applicant'}</span>
+                                    {message.created_at && (
+                                      <span>{new Date(message.created_at).toLocaleString()}</span>
+                                    )}
+                                  </div>
+                                  <p className="mt-2 whitespace-pre-wrap">{message.message}</p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
