@@ -51,9 +51,14 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
   const [session, setSession] = useState<Session | null>(null);
   const [sessionChecked, setSessionChecked] = useState(false);
 
+  const isContactEmailValid = useMemo(() => /\S+@\S+\.\S+/.test(contactEmail.trim()), [contactEmail]);
   const isFormValid = useMemo(
-    () => schoolName.trim().length > 2 && city.trim().length > 1 && country.trim().length > 1,
-    [schoolName, city, country]
+    () =>
+      schoolName.trim().length > 2 &&
+      city.trim().length > 1 &&
+      country.trim().length > 1 &&
+      isContactEmailValid,
+    [schoolName, city, country, isContactEmailValid]
   );
 
   const resetForm = () => {
@@ -103,7 +108,7 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
       schoolName,
       city,
       country,
-      contactEmail: contactEmail.trim() || undefined,
+      contactEmail: contactEmail.trim(),
       website: website.trim() || undefined,
       notes: notes.trim() || undefined,
       requesterRole,
@@ -195,7 +200,7 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
     }
 
     setReplyMessage('');
-    void loadRequestMessages(selectedRequestId);
+    await Promise.all([loadRequestMessages(selectedRequestId), loadMyRequests()]);
   };
 
   useEffect(() => {
@@ -240,7 +245,16 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
 
   const suggestionButtons = suggestions.filter((suggestion) => suggestion?.name);
   const selectedRequest = requests.find((request) => request.id === selectedRequestId) ?? requests[0] ?? null;
+  const latestAdminMessage = useMemo(() => {
+    return [...requestMessages]
+      .reverse()
+      .find((threadMessage) => (threadMessage.sender_role || '').toLowerCase() === 'admin');
+  }, [requestMessages]);
   const isAuthenticated = Boolean(session);
+  const formatSenderLabel = (senderRole?: string | null) => {
+    if (!senderRole) return 'Update';
+    return senderRole.toLowerCase() === 'admin' ? 'Admin' : 'You';
+  };
 
   if (!isOpen) return null;
 
@@ -363,11 +377,24 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
                 {selectedRequest && (
                   <div className="rounded-lg border border-white/10 bg-black/30 p-4">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-white">Request thread</p>
+                      <p className="text-sm font-semibold text-white">Conversation</p>
                       {messagesUnavailable && (
                         <span className="text-xs text-slate-400">Messaging unavailable</span>
                       )}
                     </div>
+                    {selectedRequest.status === 'needs_more_info' && latestAdminMessage && (
+                      <div className="mt-3 rounded-lg border border-amber-400/40 bg-amber-500/10 p-3 text-sm text-amber-100">
+                        <div className="flex items-center justify-between text-xs text-amber-200">
+                          <span>Latest from Admin</span>
+                          {latestAdminMessage.created_at && (
+                            <span>{new Date(latestAdminMessage.created_at).toLocaleString()}</span>
+                          )}
+                        </div>
+                        <p className="mt-2 whitespace-pre-wrap text-amber-50">
+                          {latestAdminMessage.message}
+                        </p>
+                      </div>
+                    )}
                     {messagesLoading ? (
                       <p className="mt-3 text-sm text-slate-400">Loading messages...</p>
                     ) : requestMessages.length === 0 ? (
@@ -382,7 +409,7 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
                             className="rounded-lg border border-white/10 bg-black/40 p-3 text-sm text-slate-200"
                           >
                             <div className="flex items-center justify-between text-xs text-slate-400">
-                              <span>{threadMessage.sender_role || 'Update'}</span>
+                              <span>{formatSenderLabel(threadMessage.sender_role)}</span>
                               {threadMessage.created_at && (
                                 <span>{new Date(threadMessage.created_at).toLocaleString()}</span>
                               )}
@@ -527,13 +554,14 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium text-slate-200">Contact email (optional)</label>
+              <label className="text-sm font-medium text-slate-200">School admin email</label>
               <input
                 type="email"
                 value={contactEmail}
                 onChange={(event) => setContactEmail(event.target.value)}
                 className="mt-1 w-full rounded-lg border border-white/10 bg-black/40 p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
                 placeholder="you@school.edu"
+                required
               />
             </div>
             <div>
