@@ -185,7 +185,7 @@ const MainActions: React.FC<MainActionsProps> = ({
       { key: 'leaderboard', label: 'LEADERBOARD', icon: `${iconBaseUrl}leaderboard.png`, onClick: onViewLeaderboard },
       { key: 'achievements', label: 'Achievements', icon: `${iconBaseUrl}achievements.png`, onClick: onViewAchievements },
       { key: 'clan', label: 'Clan', icon: `${iconBaseUrl}clan.png`, onClick: onGoToClan },
-      { key: 'lockdown', label: 'Lockdown', icon: `${iconBaseUrl}lockdown.png`, onClick: onOpenLockdown },
+      { key: 'lockdown', label: 'Lockdown Mode', icon: `${iconBaseUrl}lockdown.png`, onClick: onOpenLockdown },
       { key: 'cambridge', label: 'Cambridge Tests', icon: `${iconBaseUrl}cambridge.png`, onClick: onOpenCambridgeTests },
     ].filter((action) => Boolean(action.onClick));
 
