@@ -246,7 +246,7 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-slate-900/90 p-6 shadow-2xl">
+      <div className="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-white/10 bg-slate-900/90 p-6 shadow-2xl overscroll-contain">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-xl font-semibold text-white">
