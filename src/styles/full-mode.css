@@ -325,7 +325,42 @@
   padding: 18px;
   backdrop-filter: blur(14px);
   isolation: isolate;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, #05060f 0%, #0a1324 42%, #070b16 100%);
   color: var(--fullMode-text-strong);
+}
+
+.fullMode-dashboard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.06), transparent 35%),
+    radial-gradient(circle at 85% 30%, rgba(255, 255, 255, 0.04), transparent 32%),
+    radial-gradient(circle at 40% 70%, rgba(255, 255, 255, 0.03), transparent 40%),
+    radial-gradient(circle at 70% 85%, rgba(255, 255, 255, 0.025), transparent 45%);
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.fullMode-dashboard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(44, 246, 200, 0.08), transparent 45%),
+    radial-gradient(circle at 80% 15%, rgba(124, 108, 255, 0.08), transparent 48%),
+    radial-gradient(circle at 50% 95%, rgba(57, 186, 255, 0.06), transparent 45%);
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.fullMode-dashboard > * {
+  position: relative;
+  z-index: 1;
 }
 
 .fullMode-dashboard-glow {
@@ -335,6 +370,7 @@
   filter: blur(24px);
   opacity: 0.85;
   pointer-events: none;
+  z-index: 0;
 }
 
 .fullMode-statusRow {
@@ -506,6 +542,154 @@
   gap: 16px;
   margin-top: 18px;
   position: relative;
+}
+
+.fullMode-mapShell {
+  position: relative;
+  border-radius: 22px;
+  padding: 18px;
+  background: linear-gradient(180deg, rgba(8, 14, 26, 0.82), rgba(6, 10, 20, 0.88));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 28px 60px -30px rgba(0, 0, 0, 0.85);
+}
+
+.fullMode-mapCanvas {
+  position: relative;
+  min-height: 72vh;
+  max-height: 85vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0 18px;
+}
+
+.fullMode-mapLinks {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.fullMode-mapLinks line {
+  stroke: rgba(112, 214, 255, 0.28);
+  stroke-width: 0.35;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 6px rgba(87, 219, 255, 0.25));
+}
+
+.fullMode-mapNode {
+  position: absolute;
+  left: var(--node-x);
+  top: var(--node-y);
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px 16px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(12, 18, 32, 0.92), rgba(8, 12, 22, 0.9));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--fullMode-text-strong);
+  min-width: 120px;
+  text-align: center;
+  box-shadow: 0 20px 36px -24px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: box-shadow 200ms ease, border-color 200ms ease, transform 200ms ease;
+  animation: fullMode-float 7s ease-in-out infinite;
+  animation-delay: var(--float-delay, 0s);
+}
+
+.fullMode-mapNode:hover,
+.fullMode-mapNode:focus-visible {
+  border-color: rgba(124, 231, 255, 0.5);
+  box-shadow: 0 26px 50px -26px rgba(76, 226, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transform: translate(-50%, -50%) scale(1.03);
+  animation-play-state: paused;
+}
+
+.fullMode-mapNode--center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  padding: 20px;
+  gap: 12px;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.12), transparent 45%), linear-gradient(180deg, rgba(16, 23, 38, 0.95), rgba(8, 13, 24, 0.92));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 40px 70px -38px rgba(44, 246, 200, 0.5);
+  z-index: 2;
+}
+
+.fullMode-mapNode--center:hover,
+.fullMode-mapNode--center:focus-visible {
+  transform: translate(-50%, -50%) scale(1.04);
+}
+
+.fullMode-mapNodeIcon {
+  width: 72px;
+  height: 72px;
+  border-radius: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(44, 246, 200, 0.2), rgba(124, 108, 255, 0.18));
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 18px 28px -20px rgba(44, 246, 200, 0.4);
+}
+
+.fullMode-mapNode--center .fullMode-mapNodeIcon {
+  width: 88px;
+  height: 88px;
+  border-radius: 28px;
+}
+
+.fullMode-mapNodeImg {
+  width: 70%;
+  height: 70%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 10px rgba(5, 10, 20, 0.6));
+}
+
+.fullMode-mapNodeLabel {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+}
+
+.fullMode-mapNodeSub {
+  font-size: 12px;
+  color: var(--fullMode-text-soft);
+  letter-spacing: 0.4px;
+}
+
+.fullMode-mapWarning {
+  position: absolute;
+  bottom: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(255, 200, 97, 0.12);
+  border: 1px solid rgba(255, 200, 97, 0.4);
+  color: #ffe8b5;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-align: center;
+}
+
+@keyframes fullMode-float {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) translateY(0);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(-3px);
+  }
 }
 
 .fullMode-heroAction {
@@ -760,6 +944,53 @@
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 1.4px;
+}
+
+@media (max-width: 900px) {
+  .fullMode-mapCanvas {
+    min-height: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+  }
+
+  .fullMode-mapLinks {
+    display: none;
+  }
+
+  .fullMode-mapNode {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+    animation: none;
+    width: 100%;
+  }
+
+  .fullMode-mapNode--center {
+    width: 100%;
+    height: auto;
+    border-radius: 28px;
+    grid-column: 1 / -1;
+    transform: none;
+  }
+
+  .fullMode-mapNode:hover,
+  .fullMode-mapNode:focus-visible {
+    transform: none;
+  }
+
+  .fullMode-mapWarning {
+    position: static;
+    transform: none;
+    margin-top: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fullMode-mapNode {
+    animation: none;
+  }
 }
 
 /* Profile Card Full Mode */
