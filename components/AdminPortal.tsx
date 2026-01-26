@@ -8,6 +8,7 @@ import * as CompetitionService from '../services/competitionService';
 import ClickableUsername from './ClickableUsername';
 import IeltsAdminDashboard from './IeltsAdminDashboard';
 import * as SchoolRequestService from '../services/schoolRequestService';
+import * as SchoolAdminService from '../services/schoolAdminService';
 
 interface AdminPortalProps {
   profile: Profile;
@@ -36,6 +37,12 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   const [schoolRequestDuplicates, setSchoolRequestDuplicates] = useState<Record<string, string>>({});
   const [schoolRequestActionLoading, setSchoolRequestActionLoading] = useState<string | null>(null);
   const [schoolOptions, setSchoolOptions] = useState<{ id: string; name: string }[]>([]);
+  const [schoolAdminSchoolId, setSchoolAdminSchoolId] = useState('');
+  const [schoolMemberSearch, setSchoolMemberSearch] = useState('');
+  const [schoolMembers, setSchoolMembers] = useState<SchoolAdminService.SchoolMember[]>([]);
+  const [schoolMembersLoading, setSchoolMembersLoading] = useState(false);
+  const [schoolMembersError, setSchoolMembersError] = useState<string | null>(null);
+  const [schoolAdminActionLoading, setSchoolAdminActionLoading] = useState<string | null>(null);
   const [stats, setStats] = useState({
     totalUsers: null as number | null,
     totalTeachers: null as number | null,
@@ -154,6 +161,58 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     setSchoolOptions(data || []);
   }, []);
 
+  const loadSchoolMembers = useCallback(
+    async (schoolId: string) => {
+      if (!schoolId) {
+        setSchoolMembers([]);
+        setSchoolMembersError('Select a school to load members.');
+        return;
+      }
+
+      setSchoolMembersLoading(true);
+      setSchoolMembersError(null);
+      try {
+        const { members } = await SchoolAdminService.listSchoolMembers(schoolId, { limit: 200 });
+        setSchoolMembers(members);
+      } catch (error) {
+        console.error('Failed to load school members:', error);
+        addToast('Failed to load school members.', 'error');
+        setSchoolMembers([]);
+        setSchoolMembersError('Failed to load school members.');
+      } finally {
+        setSchoolMembersLoading(false);
+      }
+    },
+    [addToast]
+  );
+
+  const handleSetSchoolAdmin = async (schoolId: string, userId: string) => {
+    if (!schoolId) {
+      addToast('Select a school before assigning an admin.', 'error');
+      return;
+    }
+
+    setSchoolAdminActionLoading(userId);
+    try {
+      const { error } = await supabase.rpc('admin_set_school_admin', {
+        p_school_id: schoolId,
+        p_user_id: userId,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      addToast('School admin updated.', 'success');
+      await loadSchoolMembers(schoolId);
+    } catch (error) {
+      console.error('Failed to set school admin:', error);
+      addToast('Failed to update school admin.', 'error');
+    } finally {
+      setSchoolAdminActionLoading(null);
+    }
+  };
+
   const handleSchoolRequestAction = async (
     requestId: string,
     action: 'approve' | 'reject' | 'mark_duplicate' | 'needs_more_info'
@@ -164,6 +223,12 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
     if (action === 'mark_duplicate' && !existingSchoolId) {
       addToast('Select the existing school before marking duplicate.', 'error');
+      setSchoolRequestActionLoading(null);
+      return;
+    }
+
+    if (action === 'needs_more_info' && !notes) {
+      addToast('Add a message before requesting more info.', 'error');
       setSchoolRequestActionLoading(null);
       return;
     }
@@ -182,12 +247,17 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     }
 
     if (action === 'approve') {
-      addToast(`Approved request. Invite code: ${result.inviteCode || 'generated'}`, 'success');
+      const inviteLabel = result.inviteCode || 'generated';
+      const schoolIdLabel = result.schoolId || 'created';
+      addToast(
+        `Approved request. Invite code: ${inviteLabel} • School ID: ${schoolIdLabel}. Requester joined as student/teacher. Assign a school admin separately.`,
+        'success'
+      );
     } else {
       addToast(result.message || 'Request updated.', 'success');
     }
 
-    await loadSchoolRequests();
+    await Promise.all([loadSchoolRequests(), fetchDashboardStats()]);
     setSchoolRequestActionLoading(null);
   };
 
@@ -254,6 +324,16 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       request.requested_name?.toLowerCase().includes(query) ||
       request.requester_email?.toLowerCase().includes(query) ||
       request.requester_role?.toLowerCase().includes(query)
+    );
+  });
+
+  const filteredSchoolMembers = schoolMembers.filter((member) => {
+    if (!schoolMemberSearch.trim()) return true;
+    const query = schoolMemberSearch.trim().toLowerCase();
+    return (
+      member.username?.toLowerCase().includes(query) ||
+      member.email?.toLowerCase().includes(query) ||
+      member.role?.toLowerCase().includes(query)
     );
   });
 
@@ -1535,6 +1615,98 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                     </div>
                   );
                 })}
+              </div>
+
+              <div className="card-glass border-2 border-indigo-400/50 p-6">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <h3 className="text-2xl font-heading font-bold text-indigo-200">🏫 School Members</h3>
+                    <p className="text-sm text-gray-400">
+                      Assign the single school admin for a school. Existing admins are replaced.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => loadSchoolMembers(schoolAdminSchoolId)}
+                    disabled={!schoolAdminSchoolId || schoolMembersLoading}
+                    className="rounded-lg border border-indigo-400/60 bg-indigo-500/20 px-4 py-2 text-sm font-semibold text-indigo-100 hover:bg-indigo-500/30 disabled:opacity-60"
+                  >
+                    {schoolMembersLoading ? 'Loading...' : 'Load members'}
+                  </button>
+                </div>
+
+                <div className="mt-4 grid gap-3 md:grid-cols-[2fr,1fr]">
+                  <select
+                    value={schoolAdminSchoolId}
+                    onChange={(event) => {
+                      const selectedId = event.target.value;
+                      setSchoolAdminSchoolId(selectedId);
+                      setSchoolMembers([]);
+                      setSchoolMembersError(null);
+                      if (selectedId) {
+                        loadSchoolMembers(selectedId);
+                      }
+                    }}
+                    className="w-full rounded-lg border border-indigo-400/30 bg-black/40 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  >
+                    <option value="">Select a school</option>
+                    {schoolOptions.map((school) => (
+                      <option key={school.id} value={school.id}>
+                        {school.name}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    value={schoolMemberSearch}
+                    onChange={(event) => setSchoolMemberSearch(event.target.value)}
+                    placeholder="Filter members..."
+                    className="w-full rounded-lg border border-indigo-400/30 bg-black/40 px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  />
+                </div>
+
+                {schoolMembersError && (
+                  <div className="mt-4 rounded-lg border border-red-400/40 bg-red-500/10 px-4 py-2 text-sm text-red-200">
+                    {schoolMembersError}
+                  </div>
+                )}
+
+                {!schoolMembersLoading && schoolAdminSchoolId && filteredSchoolMembers.length === 0 && (
+                  <div className="mt-4 rounded-lg border border-white/10 bg-black/30 p-4 text-center text-sm text-gray-400">
+                    No members found for this school.
+                  </div>
+                )}
+
+                {filteredSchoolMembers.length > 0 && (
+                  <div className="mt-4 space-y-3">
+                    {filteredSchoolMembers.map((member) => {
+                      const isAdmin = member.role === 'school_admin';
+                      return (
+                        <div
+                          key={member.user_id}
+                          className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white/10 bg-black/40 p-3"
+                        >
+                          <div>
+                            <p className="font-semibold text-white">
+                              {member.username || member.email || member.user_id}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {member.email || 'No email'} • {member.role.replace(/_/g, ' ')}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleSetSchoolAdmin(schoolAdminSchoolId, member.user_id)}
+                            disabled={isAdmin || schoolAdminActionLoading === member.user_id}
+                            className="rounded-lg border border-indigo-400/50 bg-indigo-500/20 px-3 py-2 text-xs font-semibold text-indigo-100 hover:bg-indigo-500/30 disabled:opacity-60"
+                          >
+                            {isAdmin ? 'Current admin' : 'Make School Admin'}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           )}
