@@ -174,15 +174,31 @@ const MainActions: React.FC<MainActionsProps> = ({
   const streakCount = profile?.streak ?? 0;
   const coins = profile?.coins ?? 0;
   const shieldActive = profile?.has_shield ?? false;
+  const iconBaseUrl = 'https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/menu_icons/';
 
   // If Full Mode is active, render the Neon Glass themed full-mode action panel
   if (!isLiteMode) {
-    const circleActions = [
-      { key: 'attack', label: 'ATTACK', icon: '⚔️', onClick: onStartPvp },
-      { key: 'shop', label: 'SHOP', icon: '🛍️', onClick: onVisitShop },
-      { key: 'inventory', label: 'INVENTORY', icon: '🎒', onClick: onVisitInventory },
-      { key: 'leaderboard', label: 'LEADERBOARD', icon: '🏆', onClick: onViewLeaderboard },
+    const mapNodes = [
+      { key: 'attack', label: 'ATTACK', icon: `${iconBaseUrl}attack.png`, onClick: onStartPvp },
+      { key: 'shop', label: 'SHOP', icon: `${iconBaseUrl}shop.png`, onClick: onVisitShop },
+      { key: 'inventory', label: 'INVENTORY', icon: `${iconBaseUrl}inventory.png`, onClick: onVisitInventory },
+      { key: 'leaderboard', label: 'LEADERBOARD', icon: `${iconBaseUrl}leaderboard.png`, onClick: onViewLeaderboard },
+      { key: 'achievements', label: 'Achievements', icon: `${iconBaseUrl}achievements.png`, onClick: onViewAchievements },
+      { key: 'clan', label: 'Clan', icon: `${iconBaseUrl}clan.png`, onClick: onGoToClan },
+      { key: 'lockdown', label: 'Lockdown', icon: `${iconBaseUrl}lockdown.png`, onClick: onOpenLockdown },
+      { key: 'cambridge', label: 'Cambridge Tests', icon: `${iconBaseUrl}cambridge.png`, onClick: onOpenCambridgeTests },
     ].filter((action) => Boolean(action.onClick));
+
+    const nodePositions: Record<string, { x: number; y: number }> = {
+      attack: { x: 18, y: 32 },
+      shop: { x: 78, y: 22 },
+      inventory: { x: 84, y: 58 },
+      leaderboard: { x: 68, y: 82 },
+      achievements: { x: 30, y: 84 },
+      clan: { x: 14, y: 58 },
+      lockdown: { x: 32, y: 12 },
+      cambridge: { x: 62, y: 12 },
+    };
 
     return (
       <section className="fullMode-dashboard theme-neon-glass" aria-label="Full Mode mission console">
@@ -233,83 +249,62 @@ const MainActions: React.FC<MainActionsProps> = ({
         </div>
 
         <div className="fullMode-actionsShell">
-          <div className="fullMode-heroAction">
-            <div className="fullMode-heroAurora" aria-hidden />
-            <button className="fullMode-questPrimary" onClick={onStartQuest} aria-label="Launch Quest">
-              <span className="fullMode-questGlow" aria-hidden />
-              <span className="fullMode-questLabel">QUEST</span>
-              <span className="fullMode-questSub">Primary objective</span>
-            </button>
-            {hasPendingAssignment && (
-              <span className="fullMode-warningPill">Complete assignment to unlock</span>
-            )}
-          </div>
-          <div className="fullMode-circleGrid">
-            {circleActions.map((action) => (
-              <button
-                key={action.key}
-                type="button"
-                className="fullMode-circleAction"
-                onClick={action.onClick}
-              >
-                <span className="fullMode-circleIcon" aria-hidden>{action.icon}</span>
-                <span className="fullMode-circleLabel">{action.label}</span>
+          <div className="fullMode-mapShell" aria-label="Quest map">
+            <div className="fullMode-mapCanvas">
+              <svg className="fullMode-mapLinks" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
+                {mapNodes.map((node) => {
+                  const position = nodePositions[node.key];
+                  if (!position) return null;
+                  return (
+                    <line
+                      key={`link-${node.key}`}
+                      x1="50"
+                      y1="50"
+                      x2={position.x}
+                      y2={position.y}
+                    />
+                  );
+                })}
+              </svg>
+              <button className="fullMode-mapNode fullMode-mapNode--center" onClick={onStartQuest} aria-label="Launch Quest">
+                <span className="fullMode-mapNodeIcon">
+                  <img
+                    src={`${iconBaseUrl}quest.png`}
+                    alt="QUEST"
+                    loading="lazy"
+                    className="fullMode-mapNodeImg"
+                  />
+                </span>
+                <span className="fullMode-mapNodeLabel">QUEST</span>
+                <span className="fullMode-mapNodeSub">Primary objective</span>
               </button>
-            ))}
+              {mapNodes.map((node, index) => {
+                const position = nodePositions[node.key];
+                if (!position) return null;
+                return (
+                  <button
+                    key={node.key}
+                    type="button"
+                    className="fullMode-mapNode"
+                    onClick={node.onClick}
+                    style={{
+                      ['--node-x' as string]: `${position.x}%`,
+                      ['--node-y' as string]: `${position.y}%`,
+                      ['--float-delay' as string]: `${index * 0.4}s`,
+                    }}
+                  >
+                    <span className="fullMode-mapNodeIcon">
+                      <img src={node.icon} alt={node.label} loading="lazy" className="fullMode-mapNodeImg" />
+                    </span>
+                    <span className="fullMode-mapNodeLabel">{node.label}</span>
+                  </button>
+                );
+              })}
+              {hasPendingAssignment && (
+                <span className="fullMode-mapWarning">Complete assignment to unlock</span>
+              )}
+            </div>
           </div>
-
-          {(onViewAchievements || onGoToClan) && (
-            <div className="fullMode-rowActions" aria-label="Progress and clan actions">
-              {onViewAchievements && (
-                <button type="button" className="fullMode-rectAction" onClick={onViewAchievements}>
-                  <span className="fullMode-rectIcon" aria-hidden>🎖️</span>
-                  <div className="fullMode-rectCopy">
-                    <span className="fullMode-rectLabel">Achievements</span>
-                    <span className="fullMode-rectSub">View medals and milestones</span>
-                  </div>
-                </button>
-              )}
-
-              {onGoToClan && (
-                <button type="button" className="fullMode-rectAction" onClick={onGoToClan}>
-                  <span className="fullMode-rectIcon" aria-hidden>🛡️</span>
-                  <div className="fullMode-rectCopy">
-                    <span className="fullMode-rectLabel">Clan</span>
-                    <span className="fullMode-rectSub">Coordinate with your squad</span>
-                  </div>
-                </button>
-              )}
-            </div>
-          )}
-
-          {(onOpenLockdown || onOpenCambridgeTests) && (
-            <div className="fullMode-footerActions" aria-label="Special operations">
-              {onOpenLockdown && (
-                <button type="button" className="fullMode-footerAction" onClick={onOpenLockdown}>
-                  <div className="fullMode-footerGlow" aria-hidden />
-                  <div className="fullMode-footerContent">
-                    <span className="fullMode-footerIcon" aria-hidden>🔒</span>
-                    <div className="fullMode-footerCopy">
-                      <span className="fullMode-footerLabel">Lockdown</span>
-                      <span className="fullMode-footerSub">Clan territory defenses</span>
-                    </div>
-                  </div>
-                </button>
-              )}
-              {onOpenCambridgeTests && (
-                <button type="button" className="fullMode-footerAction" onClick={onOpenCambridgeTests}>
-                  <div className="fullMode-footerGlow" aria-hidden />
-                  <div className="fullMode-footerContent">
-                    <span className="fullMode-footerIcon" aria-hidden>📚</span>
-                    <div className="fullMode-footerCopy">
-                      <span className="fullMode-footerLabel">Cambridge Tests</span>
-                      <span className="fullMode-footerSub">Reading & grammar drills</span>
-                    </div>
-                  </div>
-                </button>
-              )}
-            </div>
-          )}
         </div>
       </section>
     );
