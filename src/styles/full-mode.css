@@ -987,6 +987,41 @@
   }
 }
 
+@media (max-width: 540px) {
+  .fullMode-mapCanvas {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+    gap: 12px;
+    padding: 8px 0 12px;
+  }
+
+  .fullMode-mapNode {
+    min-width: 0;
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .fullMode-mapNodeIcon {
+    width: 60px;
+    height: 60px;
+    border-radius: 18px;
+  }
+
+  .fullMode-mapNode--center .fullMode-mapNodeIcon {
+    width: 72px;
+    height: 72px;
+    border-radius: 22px;
+  }
+
+  .fullMode-mapNodeLabel {
+    font-size: 11px;
+    letter-spacing: 1.4px;
+  }
+
+  .fullMode-mapNodeSub {
+    font-size: 11px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .fullMode-mapNode {
     animation: none;
