@@ -387,6 +387,26 @@
       20%, 60% { transform: translateX(-6px); }
       40%, 80% { transform: translateX(6px); }
     }
+  
+    .timer-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 14px 0 20px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #e2e8f0;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .timer-box.timer-expired {
+      border-color: rgba(239, 68, 68, 0.6);
+      color: #fecaca;
+    }
+
   </style>
 </head>
 <body>
@@ -418,12 +438,14 @@
       <span class="badge">🧪 Category: Science</span>
       <span class="badge">🎯 Difficulty: Advanced</span>
       <span class="badge">📝 Format: Multiple Choice (A–D)</span>
-      <span class="badge">⏱️ Suggested time: 70 min</span>
+      <span class="badge">⏱️ Suggested time: 75 min</span>
     </div>
 
     <div class="status">
       ⚠️ Answer key pending: submit to save your responses. Scores will update once the official answers are added.
     </div>
+    <div id="timer" class="timer-box">⏳ Time remaining: 75:00</div>
+
 
     <div class="student-info">
       <input type="text" id="studentName" placeholder="Student Name" autocomplete="name" />
@@ -1176,6 +1198,36 @@
     let hasSubmitted = false;
     let startTime = null;
 
+    const TEST_DURATION_SECONDS = 75 * 60;
+    let timerInterval = null;
+
+    function formatTimer(seconds) {
+      const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+      const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
+      return `${mins}:${secs}`;
+    }
+
+    function startTimer() {
+      const timerEl = document.getElementById('timer');
+      if (!timerEl) return;
+      startTime = Date.now();
+      if (timerInterval) {
+        clearInterval(timerInterval);
+      }
+      const update = () => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const remaining = Math.max(TEST_DURATION_SECONDS - elapsed, 0);
+        timerEl.textContent = `⏳ Time remaining: ${formatTimer(remaining)}`;
+        if (remaining === 0) {
+          timerEl.classList.add('timer-expired');
+          clearInterval(timerInterval);
+        }
+      };
+      update();
+      timerInterval = setInterval(update, 1000);
+    }
+
+
     function loadStudentInfoFromGame() {
       try {
         const stored = localStorage.getItem('cambridge_test_user');
@@ -1441,25 +1493,17 @@
     document.addEventListener('DOMContentLoaded', () => {
       // Prime Lock Logic
       const PRIME_CODE = 'primesris';
-      const PRIME_STORAGE_KEY = 'brains_heist_prime_unlocked';
       const overlay = document.getElementById('primeOverlay');
       const codeInput = document.getElementById('primeCodeInput');
       const unlockBtn = document.getElementById('primeUnlockBtn');
       const errorMsg = document.getElementById('primeError');
 
-      function checkPrimeStatus() {
-        const unlocked = localStorage.getItem(PRIME_STORAGE_KEY);
-        if (unlocked === 'true') {
-          overlay.classList.add('hidden');
-        }
-      }
-
       function handleUnlock() {
         const code = codeInput.value.trim().toLowerCase();
         if (code === PRIME_CODE.toLowerCase()) {
-          localStorage.setItem(PRIME_STORAGE_KEY, 'true');
           overlay.classList.add('hidden');
           errorMsg.classList.remove('show');
+          startTimer();
         } else {
           errorMsg.classList.add('show');
           codeInput.value = '';
@@ -1472,12 +1516,12 @@
         if (e.key === 'Enter') handleUnlock();
       });
 
-      checkPrimeStatus();
-
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
-      startTime = Date.now();
+      if (overlay.classList.contains('hidden')) {
+        startTimer();
+      }
       document.getElementById('submitBtn').addEventListener('click', handleSubmit);
     });
   </script>
