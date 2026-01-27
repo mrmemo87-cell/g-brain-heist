@@ -78,7 +78,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     id: 'as-chemistry-atomic-structure',
     name: 'AS Chemistry — Atomic Structure',
     description: 'Chapter 1 multiple-choice practice focusing on protons, neutrons, electrons, isotopes, and particle behaviour in fields.',
-    duration: '20 min',
+    duration: '75 min',
     totalQuestions: 49,
     difficulty: 'Advanced',
     category: 'Science',
@@ -89,7 +89,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     id: 'as-chemistry-ch2-atoms-molecules-stoichiometry',
     name: 'AS Chemistry Ch2 (Atoms, molecules and stoichiometry)',
     description: 'Chapter 2 multiple-choice practice covering Avogadro constant, empirical formulae, ionisation trends, and reacting masses.',
-    duration: '20 min',
+    duration: '75 min',
     totalQuestions: 64,
     difficulty: 'Advanced',
     category: 'Science',
@@ -100,7 +100,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     id: 'as-chemistry-ch3-chemical-bonding',
     name: 'AS Chemistry Ch3 (Chemical bonding)',
     description: 'Chapter 3 multiple-choice practice on metallic bonding, shapes, hybridisation, bonding energetics, and dative bonds.',
-    duration: '20 min',
+    duration: '75 min',
     totalQuestions: 55,
     difficulty: 'Advanced',
     category: 'Science',
@@ -111,7 +111,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     id: 'as-chemistry-ch4-states-of-matter',
     name: 'AS Chemistry Ch4 (States of matter)',
     description: 'Chapter 4 multiple-choice practice on gas laws, kinetic theory, real gas deviations, and quantitative gas questions.',
-    duration: '20 min',
+    duration: '75 min',
     totalQuestions: 32,
     difficulty: 'Advanced',
     category: 'Science',
@@ -122,7 +122,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     id: 'as-chemistry-ch5-chemical-energetics',
     name: 'AS Chemistry Ch5 (Chemical Energetics)',
     description: 'Chapter 5 multiple-choice practice on enthalpy terminology, energy profiles, Hess’ law reasoning, and calorimetry.',
-    duration: '55 min',
+    duration: '75 min',
     totalQuestions: 53,
     difficulty: 'Advanced',
     category: 'Science',
@@ -133,7 +133,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     id: 'as-chemistry-ch6-electrochemistry',
     name: 'AS Chemistry Ch6 (Electrochemistry)',
     description: 'Chapter 6 multiple-choice practice on electrochemical cells, electrode potentials, fuel cells, and redox processes.',
-    duration: '70 min',
+    duration: '75 min',
     totalQuestions: 56,
     difficulty: 'Advanced',
     category: 'Science',
@@ -144,7 +144,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     id: 'as-chemistry-ch7-equilibria',
     name: 'AS Chemistry Ch7 (Equilibria)',
     description: 'Le Chatelier shifts, Kp / Kc calculations, industrial processes, and equilibrium graphs.',
-    duration: '70 min',
+    duration: '75 min',
     totalQuestions: 73,
     difficulty: 'Advanced',
     category: 'Science',
@@ -155,7 +155,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     id: 'as-chemistry-ch8-reaction-kinetics',
     name: 'AS Chemistry Ch8 (Reaction kinetics)',
     description: 'Collision theory, Maxwell–Boltzmann curves, catalysts, half-life, and rate equation reasoning.',
-    duration: '60 min',
+    duration: '75 min',
     totalQuestions: 41,
     difficulty: 'Advanced',
     category: 'Science',
@@ -166,7 +166,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     id: 'as-chemistry-ch9-chemical-periodicity',
     name: 'AS Chemistry Ch9 (Chemical Periodicity)',
     description: 'Period 3 oxides, chlorides, structure trends, acid-base behaviour, and combustion stoichiometry.',
-    duration: '80 min',
+    duration: '75 min',
     totalQuestions: 85,
     difficulty: 'Advanced',
     category: 'Science',
@@ -177,7 +177,7 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     id: 'as-chemistry-ch10-group-2',
     name: 'AS Chemistry Ch10 (Group 2)',
     description: 'Group 2 trends practice on solubility, thermal stability, reactions, and qualitative analysis scenarios.',
-    duration: '70 min',
+    duration: '75 min',
     totalQuestions: 73,
     difficulty: 'Advanced',
     category: 'Science',
@@ -831,12 +831,13 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                             : 'linear-gradient(135deg, #667eea, #764ba2)',
                           padding: '20px',
                           position: 'relative',
+                          paddingRight: test.isCompleted ? '120px' : '20px',
                         }}>
                           {test.isCompleted && (
                             <div style={{
                               position: 'absolute',
-                              top: '10px',
-                              right: '10px',
+                              top: '12px',
+                              right: '12px',
                               background: '#fff',
                               color: '#22c55e',
                               padding: '4px 10px',
@@ -900,7 +901,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                             <span>📝 {test.category === 'Writing' ? '2 parts' : `${test.totalQuestions} questions`}</span>
                           </div>
 
-                          {test.isCompleted && test.score !== undefined && (
+                          {test.isCompleted && (
                             <div style={{
                               background: test.isAwaitingMarking 
                                 ? 'rgba(245,158,11,0.1)' 
@@ -911,16 +912,16 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                             }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-                                  {test.isAwaitingMarking ? 'Status:' : 'Your Score:'}
+                                  Status:
                                 </span>
                                 <span style={{
-                                  fontSize: test.isAwaitingMarking ? '14px' : '20px',
+                                  fontSize: '14px',
                                   fontWeight: 'bold',
                                   color: test.isAwaitingMarking 
                                     ? '#f59e0b' 
-                                    : (test.score >= 70 ? '#22c55e' : test.score >= 50 ? '#f59e0b' : '#ef4444'),
+                                    : '#22c55e',
                                 }}>
-                                  {test.isAwaitingMarking ? '⏳ Awaiting Marking' : `${test.score}%`}
+                                  {test.isAwaitingMarking ? '⏳ Awaiting Marking' : '✅ Completed'}
                                 </span>
                               </div>
                               {test.completedAt && (
