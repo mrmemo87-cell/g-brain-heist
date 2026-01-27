@@ -292,9 +292,162 @@
       body { padding: 12px; }
       .container { padding: 16px; }
     }
+
+    /* Prime Lock Overlay */
+    .prime-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.97);
+      backdrop-filter: blur(12px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 1;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+    .prime-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .prime-card {
+      background: linear-gradient(145deg, rgba(139, 92, 246, 0.15), rgba(56, 189, 248, 0.1));
+      border: 2px solid rgba(139, 92, 246, 0.5);
+      border-radius: 24px;
+      padding: 48px 42px;
+      text-align: center;
+      max-width: 420px;
+      box-shadow: 0 30px 80px rgba(139, 92, 246, 0.3), 0 0 60px rgba(56, 189, 248, 0.15), inset 0 1px 0 rgba(255,255,255,0.1);
+      animation: floatIn 0.6s ease-out;
+    }
+    @keyframes floatIn {
+      from { opacity: 0; transform: translateY(30px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .prime-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      filter: drop-shadow(0 4px 20px rgba(139, 92, 246, 0.5));
+    }
+    .prime-title {
+      font-size: 32px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #a78bfa, #38bdf8, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0 0 12px;
+      letter-spacing: -0.02em;
+    }
+    .prime-subtitle {
+      color: #94a3b8;
+      font-size: 15px;
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+    .prime-btn {
+      background: linear-gradient(135deg, #8b5cf6, #6366f1, #38bdf8);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      padding: 16px 36px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 12px 35px rgba(139, 92, 246, 0.4);
+      transition: all 0.3s ease;
+      margin-bottom: 20px;
+    }
+    .prime-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 18px 45px rgba(139, 92, 246, 0.5);
+    }
+    .prime-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+      color: #64748b;
+      font-size: 13px;
+    }
+    .prime-divider::before, .prime-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(100, 116, 139, 0.3);
+    }
+    .prime-code-input {
+      width: 100%;
+      padding: 14px 18px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: 12px;
+      color: #e2e8f0;
+      font-size: 16px;
+      text-align: center;
+      letter-spacing: 0.1em;
+      transition: all 0.2s ease;
+    }
+    .prime-code-input:focus {
+      outline: none;
+      border-color: #8b5cf6;
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+    }
+    .prime-code-input::placeholder {
+      color: #64748b;
+      letter-spacing: 0.05em;
+    }
+    .prime-unlock-btn {
+      margin-top: 14px;
+      background: rgba(139, 92, 246, 0.2);
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      color: #a78bfa;
+      padding: 12px 28px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .prime-unlock-btn:hover {
+      background: rgba(139, 92, 246, 0.3);
+      border-color: #8b5cf6;
+    }
+    .prime-error {
+      color: #f87171;
+      font-size: 13px;
+      margin-top: 10px;
+      display: none;
+    }
+    .prime-error.show {
+      display: block;
+      animation: shake 0.4s ease;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
   </style>
 </head>
 <body>
+  <!-- Prime Lock Overlay -->
+  <div class="prime-overlay" id="primeOverlay">
+    <div class="prime-card">
+      <div class="prime-icon">👑</div>
+      <h2 class="prime-title">GET PRIME</h2>
+      <p class="prime-subtitle">This AS Chemistry content is exclusive to Prime members. Upgrade to unlock all advanced materials.</p>
+      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">✨ Upgrade to Prime</button>
+      <div class="prime-divider">or enter activation code</div>
+      <input type="text" class="prime-code-input" id="primeCodeInput" placeholder="Enter code..." autocomplete="off" />
+      <button class="prime-unlock-btn" id="primeUnlockBtn">Unlock</button>
+      <div class="prime-error" id="primeError">Invalid activation code. Please try again.</div>
+    </div>
+  </div>
+
   <div class="container">
     <div class="header">
       <img src="/logo.png" alt="Brains Heist" onerror="this.style.display='none';" />
@@ -331,8 +484,8 @@
   </div>
 
   <script>
-    const SUPABASE_URL = window.__SUPABASE_ENV__?.VITE_SUPABASE_URL || '';
-    const SUPABASE_ANON_KEY = window.__SUPABASE_ENV__?.VITE_SUPABASE_ANON_KEY || '';
+    const SUPABASE_URL = window.__SUPABASE_ENV__?.VITE_SUPABASE_URL || 'https://sozodkxwhubespiedgxm.supabase.co';
+    const SUPABASE_ANON_KEY = window.__SUPABASE_ENV__?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvem9ka3h3aHViZXNwaWVkZ3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTUxNjYsImV4cCI6MjA3NzQ3MTE2Nn0.DBfFFWvVjpqXTga0uZcH5qR4ej6VOFBUm-CiCTgGLVA';
 
     function createSupabaseClient(url, key) {
       return {
@@ -1491,6 +1644,41 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      // Prime Lock Logic
+      const PRIME_CODE = 'primesris';
+      const PRIME_STORAGE_KEY = 'brains_heist_prime_unlocked';
+      const overlay = document.getElementById('primeOverlay');
+      const codeInput = document.getElementById('primeCodeInput');
+      const unlockBtn = document.getElementById('primeUnlockBtn');
+      const errorMsg = document.getElementById('primeError');
+
+      function checkPrimeStatus() {
+        const unlocked = localStorage.getItem(PRIME_STORAGE_KEY);
+        if (unlocked === 'true') {
+          overlay.classList.add('hidden');
+        }
+      }
+
+      function handleUnlock() {
+        const code = codeInput.value.trim().toLowerCase();
+        if (code === PRIME_CODE.toLowerCase()) {
+          localStorage.setItem(PRIME_STORAGE_KEY, 'true');
+          overlay.classList.add('hidden');
+          errorMsg.classList.remove('show');
+        } else {
+          errorMsg.classList.add('show');
+          codeInput.value = '';
+          codeInput.focus();
+        }
+      }
+
+      unlockBtn.addEventListener('click', handleUnlock);
+      codeInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleUnlock();
+      });
+
+      checkPrimeStatus();
+
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();

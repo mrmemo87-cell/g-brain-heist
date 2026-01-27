@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Get Prime — Brains Heist</title>
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1033 50%, #0b1033 100%);
+      --card-bg: rgba(255, 255, 255, 0.04);
+      --border: rgba(255, 255, 255, 0.1);
+      --accent: #8b5cf6;
+      --accent-2: #38bdf8;
+      --accent-3: #f472b6;
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+      --success: #22c55e;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated background */
+    .bg-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.4;
+      animation: float 20s ease-in-out infinite;
+    }
+    .bg-orb:nth-child(1) {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, #8b5cf6, transparent);
+      top: -150px;
+      right: -100px;
+      animation-delay: 0s;
+    }
+    .bg-orb:nth-child(2) {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, #38bdf8, transparent);
+      bottom: -100px;
+      left: -100px;
+      animation-delay: -7s;
+    }
+    .bg-orb:nth-child(3) {
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, #f472b6, transparent);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation-delay: -14s;
+    }
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(30px, -30px) scale(1.05); }
+      50% { transform: translate(-20px, 20px) scale(0.95); }
+      75% { transform: translate(20px, 10px) scale(1.02); }
+    }
+
+    /* Navigation */
+    .nav {
+      position: relative;
+      z-index: 10;
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: 20px;
+    }
+    .nav-logo img {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+    }
+    .nav-back {
+      color: var(--accent-2);
+      text-decoration: none;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+    .nav-back:hover {
+      color: #67e8f9;
+    }
+
+    /* Main content */
+    .container {
+      position: relative;
+      z-index: 10;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px 24px 60px;
+    }
+
+    /* Hero section */
+    .hero {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(244, 114, 182, 0.2));
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      border-radius: 50px;
+      padding: 8px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #c4b5fd;
+      margin-bottom: 24px;
+    }
+    .hero-title {
+      font-size: clamp(40px, 8vw, 64px);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #ffffff, #a78bfa, #38bdf8, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-subtitle {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* Features grid */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 50px;
+    }
+    .feature-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(139, 92, 246, 0.4);
+    }
+    .feature-icon {
+      font-size: 36px;
+      margin-bottom: 16px;
+    }
+    .feature-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .feature-desc {
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* Pricing section */
+    .pricing-section {
+      margin-bottom: 50px;
+    }
+    .pricing-title {
+      text-align: center;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 30px;
+    }
+    .pricing-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .pricing-card {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .pricing-card.popular {
+      border-color: var(--accent);
+      background: linear-gradient(145deg, rgba(139, 92, 246, 0.1), rgba(56, 189, 248, 0.05));
+    }
+    .pricing-card.popular::before {
+      content: 'BEST VALUE';
+      position: absolute;
+      top: 16px;
+      right: -30px;
+      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 40px;
+      transform: rotate(45deg);
+    }
+    .pricing-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 50px rgba(139, 92, 246, 0.2);
+    }
+    .pricing-name {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .pricing-period {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+    .pricing-price {
+      font-size: 48px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .pricing-price span {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    .pricing-original {
+      color: var(--text-muted);
+      text-decoration: line-through;
+      font-size: 16px;
+      margin-bottom: 24px;
+    }
+    .pricing-features {
+      list-style: none;
+      text-align: left;
+      margin-bottom: 28px;
+    }
+    .pricing-features li {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+    }
+    .pricing-features li::before {
+      content: '✓';
+      color: var(--success);
+      font-weight: 700;
+    }
+    .pricing-btn {
+      width: 100%;
+      padding: 16px 24px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .pricing-btn.primary {
+      background: linear-gradient(135deg, #8b5cf6, #6366f1, #38bdf8);
+      color: white;
+      box-shadow: 0 10px 30px rgba(139, 92, 246, 0.35);
+    }
+    .pricing-btn.primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 40px rgba(139, 92, 246, 0.45);
+    }
+    .pricing-btn.secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+    }
+    .pricing-btn.secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Activation code section */
+    .activation-section {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+      max-width: 500px;
+      margin: 0 auto 50px;
+    }
+    .activation-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .activation-desc {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    .activation-form {
+      display: flex;
+      gap: 12px;
+    }
+    .activation-input {
+      flex: 1;
+      padding: 14px 18px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: 12px;
+      color: var(--text-main);
+      font-size: 16px;
+      text-align: center;
+      letter-spacing: 0.1em;
+      transition: all 0.2s ease;
+    }
+    .activation-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.25);
+    }
+    .activation-input::placeholder {
+      color: #64748b;
+      letter-spacing: 0.05em;
+    }
+    .activation-btn {
+      padding: 14px 28px;
+      background: linear-gradient(135deg, var(--accent), #6366f1);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .activation-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+    }
+    .activation-status {
+      margin-top: 16px;
+      font-size: 14px;
+      display: none;
+    }
+    .activation-status.success {
+      display: block;
+      color: var(--success);
+    }
+    .activation-status.error {
+      display: block;
+      color: #f87171;
+      animation: shake 0.4s ease;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    /* What's included section */
+    .included-section {
+      margin-bottom: 50px;
+    }
+    .included-title {
+      text-align: center;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 30px;
+    }
+    .included-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .included-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .included-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(56, 189, 248, 0.1));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    .included-text {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    /* FAQ section */
+    .faq-section {
+      max-width: 700px;
+      margin: 0 auto 50px;
+    }
+    .faq-title {
+      text-align: center;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 30px;
+    }
+    .faq-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .faq-question {
+      padding: 20px 24px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .faq-question:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .faq-arrow {
+      transition: transform 0.3s ease;
+    }
+    .faq-item.open .faq-arrow {
+      transform: rotate(180deg);
+    }
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .faq-item.open .faq-answer {
+      max-height: 200px;
+    }
+    .faq-answer-content {
+      padding: 0 24px 20px;
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+      font-size: 13px;
+      border-top: 1px solid var(--border);
+    }
+    .footer a {
+      color: var(--accent-2);
+      text-decoration: none;
+    }
+
+    /* Success modal */
+    .success-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.4s ease;
+    }
+    .success-modal.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    .success-card {
+      background: linear-gradient(145deg, rgba(34, 197, 94, 0.15), rgba(56, 189, 248, 0.1));
+      border: 2px solid rgba(34, 197, 94, 0.5);
+      border-radius: 24px;
+      padding: 48px;
+      text-align: center;
+      max-width: 420px;
+      animation: popIn 0.5s ease;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .success-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+    .success-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--success);
+      margin-bottom: 12px;
+    }
+    .success-text {
+      color: var(--text-muted);
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+    .success-btn {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 32px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .success-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(34, 197, 94, 0.35);
+    }
+
+    @media (max-width: 640px) {
+      .nav { padding: 16px 20px; }
+      .container { padding: 16px; }
+      .activation-form { flex-direction: column; }
+      .pricing-cards { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-animation">
+    <div class="bg-orb"></div>
+    <div class="bg-orb"></div>
+    <div class="bg-orb"></div>
+  </div>
+
+  <nav class="nav">
+    <a href="/" class="nav-logo">
+      <img src="/logo.png" alt="Brains Heist" onerror="this.style.display='none';" />
+      <span>Brains Heist</span>
+    </a>
+    <a href="/" class="nav-back">← Back to Game</a>
+  </nav>
+
+  <div class="container">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-badge">👑 Premium Content</div>
+      <h1 class="hero-title">Unlock Prime</h1>
+      <p class="hero-subtitle">Get unlimited access to AS Chemistry practice tests, advanced materials, and exclusive content to boost your exam preparation.</p>
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+      <div class="feature-card">
+        <div class="feature-icon">🧪</div>
+        <h3 class="feature-title">10 AS Chemistry Tests</h3>
+        <p class="feature-desc">Complete coverage of all AS Chemistry chapters with 500+ exam-style questions.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3 class="feature-title">Detailed Analytics</h3>
+        <p class="feature-desc">Track your progress, identify weak areas, and see your improvement over time.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <h3 class="feature-title">Instant Marking</h3>
+        <p class="feature-desc">Get your scores immediately with detailed answer explanations.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔓</div>
+        <h3 class="feature-title">Lifetime Access</h3>
+        <p class="feature-desc">Pay once, access forever. No recurring subscriptions or hidden fees.</p>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="pricing-section">
+      <h2 class="pricing-title">Choose Your Plan</h2>
+      <div class="pricing-cards">
+        <div class="pricing-card popular">
+          <h3 class="pricing-name">Prime Lifetime</h3>
+          <p class="pricing-period">One-time payment</p>
+          <div class="pricing-price">$9.99</div>
+          <div class="pricing-original">$29.99</div>
+          <ul class="pricing-features">
+            <li>All 10 AS Chemistry Tests</li>
+            <li>500+ Exam Questions</li>
+            <li>Instant Auto-marking</li>
+            <li>Score Tracking</li>
+            <li>Lifetime Updates</li>
+            <li>Priority Support</li>
+          </ul>
+          <button class="pricing-btn primary" onclick="handlePurchase()">🚀 Get Prime Now</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Activation Code -->
+    <section class="activation-section">
+      <h3 class="activation-title">Have an Activation Code?</h3>
+      <p class="activation-desc">Enter your code from your teacher or school to unlock Prime instantly.</p>
+      <div class="activation-form">
+        <input type="text" class="activation-input" id="activationCode" placeholder="Enter code..." autocomplete="off" />
+        <button class="activation-btn" onclick="handleActivation()">Activate</button>
+      </div>
+      <div class="activation-status" id="activationStatus"></div>
+    </section>
+
+    <!-- What's Included -->
+    <section class="included-section">
+      <h2 class="included-title">What's Included</h2>
+      <div class="included-grid">
+        <div class="included-item">
+          <div class="included-icon">⚛️</div>
+          <span class="included-text">Ch1: Atomic Structure</span>
+        </div>
+        <div class="included-item">
+          <div class="included-icon">🔬</div>
+          <span class="included-text">Ch2: Atoms & Stoichiometry</span>
+        </div>
+        <div class="included-item">
+          <div class="included-icon">🔗</div>
+          <span class="included-text">Ch3: Chemical Bonding</span>
+        </div>
+        <div class="included-item">
+          <div class="included-icon">💨</div>
+          <span class="included-text">Ch4: States of Matter</span>
+        </div>
+        <div class="included-item">
+          <div class="included-icon">🔥</div>
+          <span class="included-text">Ch5: Chemical Energetics</span>
+        </div>
+        <div class="included-item">
+          <div class="included-icon">⚡</div>
+          <span class="included-text">Ch6: Electrochemistry</span>
+        </div>
+        <div class="included-item">
+          <div class="included-icon">⚖️</div>
+          <span class="included-text">Ch7: Equilibria</span>
+        </div>
+        <div class="included-item">
+          <div class="included-icon">⏱️</div>
+          <span class="included-text">Ch8: Reaction Kinetics</span>
+        </div>
+        <div class="included-item">
+          <div class="included-icon">📋</div>
+          <span class="included-text">Ch9: Chemical Periodicity</span>
+        </div>
+        <div class="included-item">
+          <div class="included-icon">🧲</div>
+          <span class="included-text">Ch10: Group 2 Elements</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq-section">
+      <h2 class="faq-title">Frequently Asked Questions</h2>
+      
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          How do I access Prime content after purchase?
+          <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-answer">
+          <div class="faq-answer-content">After completing your purchase, you'll receive an activation code. Enter this code on any locked test page or in the activation section above to unlock all Prime content instantly.</div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Is this a one-time payment or subscription?
+          <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-answer">
+          <div class="faq-answer-content">Prime is a one-time payment with lifetime access. There are no recurring charges, hidden fees, or subscription renewals. Pay once and enjoy forever!</div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Can I share my activation code?
+          <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-answer">
+          <div class="faq-answer-content">School-issued codes are meant for student use within that institution. Personal purchases are for individual use. Please respect our licensing terms to help us continue providing quality content.</div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          What if I need help or have issues?
+          <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-answer">
+          <div class="faq-answer-content">Contact us at support@brainsheist.com and we'll help you within 24 hours. Prime members get priority support!</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer class="footer">
+    <p>© 2026 Brains Heist. All rights reserved.</p>
+    <p style="margin-top: 8px;">
+      <a href="/terms">Terms of Service</a> · <a href="/privacy">Privacy Policy</a> · <a href="mailto:support@brainsheist.com">Contact</a>
+    </p>
+  </footer>
+
+  <!-- Success Modal -->
+  <div class="success-modal" id="successModal">
+    <div class="success-card">
+      <div class="success-icon">🎉</div>
+      <h2 class="success-title">Prime Activated!</h2>
+      <p class="success-text">You now have full access to all AS Chemistry tests and premium content. Happy studying!</p>
+      <button class="success-btn" onclick="goToTests()">Start Learning →</button>
+    </div>
+  </div>
+
+  <script>
+    const PRIME_CODE = 'primesris';
+    const PRIME_STORAGE_KEY = 'brains_heist_prime_unlocked';
+
+    // Check if already unlocked
+    function checkPrimeStatus() {
+      if (localStorage.getItem(PRIME_STORAGE_KEY) === 'true') {
+        document.getElementById('activationStatus').textContent = '✓ Prime is already activated on this device!';
+        document.getElementById('activationStatus').className = 'activation-status success';
+      }
+    }
+
+    // Handle activation code
+    function handleActivation() {
+      const input = document.getElementById('activationCode');
+      const status = document.getElementById('activationStatus');
+      const code = input.value.trim().toLowerCase();
+
+      if (code === PRIME_CODE.toLowerCase()) {
+        localStorage.setItem(PRIME_STORAGE_KEY, 'true');
+        status.textContent = '';
+        status.className = 'activation-status';
+        document.getElementById('successModal').classList.add('show');
+      } else if (code === '') {
+        status.textContent = 'Please enter an activation code.';
+        status.className = 'activation-status error';
+      } else {
+        status.textContent = 'Invalid activation code. Please check and try again.';
+        status.className = 'activation-status error';
+        input.value = '';
+        input.focus();
+      }
+    }
+
+    // Handle Enter key
+    document.getElementById('activationCode').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleActivation();
+    });
+
+    // Handle purchase button
+    function handlePurchase() {
+      // In production, this would redirect to a payment processor like Stripe
+      // For now, show a message or redirect to contact
+      alert('Payment integration coming soon! For now, contact your teacher or school administrator for an activation code.');
+    }
+
+    // Go to tests after successful activation
+    function goToTests() {
+      window.location.href = '/cambridge-tests/Chemistry/';
+    }
+
+    // Toggle FAQ items
+    function toggleFaq(element) {
+      const faqItem = element.parentElement;
+      faqItem.classList.toggle('open');
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', checkPrimeStatus);
+  </script>
+</body>
+</html>
