@@ -28,6 +28,9 @@ const FinishSetupModal: React.FC<FinishSetupModalProps> = ({
     const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
     const [inviteCode, setInviteCode] = useState('');
     const [useInviteCode, setUseInviteCode] = useState(false);
+    const [inviteCodeValidated, setInviteCodeValidated] = useState(false);
+    const [joinedViaInviteCode, setJoinedViaInviteCode] = useState(false);
+    const [inviteCodeError, setInviteCodeError] = useState<string | null>(null);
     const [role, setRole] = useState<'student' | 'teacher'>('student');
     const [grade, setGrade] = useState<Grade | null>(null);
     const [batch, setBatch] = useState<Batch | ''>('');
@@ -89,20 +92,26 @@ const FinishSetupModal: React.FC<FinishSetupModalProps> = ({
         }
     };
 
+    const normalizeInviteCode = (code: string) => code.replace(/\s+/g, '').toUpperCase();
+    const inviteCodeNormalized = normalizeInviteCode(inviteCode);
+    const inviteCodeReady = inviteCodeNormalized.length >= 10;
+
     const handleInviteCodeSubmit = async () => {
-        if (!inviteCode.trim()) {
+        if (!inviteCodeReady) {
             setError('Please enter an invite code');
             return;
         }
         
         setIsLoading(true);
         setError(null);
+        setInviteCodeError(null);
         
         try {
-            const result = await AuthService.validateInviteCode(inviteCode.trim());
+            const result = await AuthService.validateInviteCode(inviteCodeNormalized);
             
             if (!result.valid) {
-                setError(result.error || 'Invalid invite code');
+                setInviteCodeError('Invalid invite code');
+                setError('Invalid invite code');
                 return;
             }
             
@@ -117,9 +126,11 @@ const FinishSetupModal: React.FC<FinishSetupModalProps> = ({
             };
             
             setSelectedSchool(school);
+            setInviteCodeValidated(true);
             setStep('role');
         } catch (err) {
-            setError('Failed to validate invite code');
+            setInviteCodeError('Invalid invite code');
+            setError('Invalid invite code');
         } finally {
             setIsLoading(false);
         }
@@ -127,10 +138,15 @@ const FinishSetupModal: React.FC<FinishSetupModalProps> = ({
 
     const handleSchoolSelect = (school: School) => {
         setSelectedSchool(school);
+        setInviteCodeValidated(false);
+        setJoinedViaInviteCode(false);
+        setInviteCode('');
+        setInviteCodeError(null);
+        setError(null);
         setStep('role');
     };
 
-    const handleRoleSelect = (selectedRole: 'student' | 'teacher') => {
+    const handleRoleSelect = async (selectedRole: 'student' | 'teacher') => {
         // Check if school allows this role
         if (!isIndividual && selectedRole === 'student' && !selectedSchool?.allow_student_signup) {
             setError('This school is not accepting student signups');
@@ -143,6 +159,26 @@ const FinishSetupModal: React.FC<FinishSetupModalProps> = ({
         
         setRole(selectedRole);
         setError(null);
+        setInviteCodeError(null);
+
+        if (inviteCodeValidated) {
+            setIsLoading(true);
+            try {
+                const joinResult = await AuthService.joinSchoolByCode(inviteCodeNormalized, selectedRole);
+                if (!joinResult.success) {
+                    setInviteCodeError('Invalid invite code');
+                    setError('Invalid invite code');
+                    return;
+                }
+                setJoinedViaInviteCode(true);
+            } catch (err: any) {
+                setInviteCodeError(err?.message || 'Invalid invite code');
+                setError('Invalid invite code');
+                return;
+            } finally {
+                setIsLoading(false);
+            }
+        }
         
         // Teachers can skip to completion, students need grade/batch
         if (selectedRole === 'teacher') {
@@ -176,13 +212,20 @@ const FinishSetupModal: React.FC<FinishSetupModalProps> = ({
                     batch: roleToUse === 'student' ? (batch as Batch) || undefined : undefined,
                     username: username || undefined,
                 })
-                : await AuthService.bootstrapProfile(
-                    selectedSchool.id,
-                    roleToUse,
-                    roleToUse === 'student' ? grade! : undefined,
-                    roleToUse === 'student' ? batch as Batch : undefined,
-                    username || undefined
-                );
+                : joinedViaInviteCode
+                    ? await AuthService.completeProfileSetup({
+                        role: roleToUse,
+                        grade: roleToUse === 'student' ? grade ?? undefined : undefined,
+                        batch: roleToUse === 'student' ? (batch as Batch) || undefined : undefined,
+                        username: username || undefined,
+                    })
+                    : await AuthService.bootstrapProfile(
+                        selectedSchool.id,
+                        roleToUse,
+                        roleToUse === 'student' ? grade! : undefined,
+                        roleToUse === 'student' ? batch as Batch : undefined,
+                        username || undefined
+                    );
             
             if (!result.success) {
                 setError(result.error || 'Failed to complete setup');
@@ -278,23 +321,52 @@ const FinishSetupModal: React.FC<FinishSetupModalProps> = ({
                                     <input
                                         type="text"
                                         value={inviteCode}
-                                        onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                                        onChange={(e) => {
+                                            setInviteCode(normalizeInviteCode(e.target.value));
+                                            setInviteCodeError(null);
+                                        }}
                                         placeholder="XXXXXXXX"
                                         className="flex-1 bg-gray-800 border border-gray-600 rounded-md p-3 text-white uppercase tracking-widest text-center focus:outline-none focus:ring-2 focus:ring-cyan-400"
-                                        maxLength={8}
+                                        maxLength={10}
                                     />
                                     <button
                                         onClick={handleInviteCodeSubmit}
-                                        disabled={isLoading || !inviteCode.trim()}
+                                        disabled={isLoading || !inviteCodeReady}
                                         className="px-4 py-2 bg-cyan-400 text-gray-900 rounded-md font-semibold hover:bg-cyan-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                     >
                                         {isLoading ? '...' : 'Join'}
                                     </button>
                                 </div>
+                                <p className="text-xs text-gray-400">Invite codes are 10 characters.</p>
+                                {inviteCodeError && (
+                                    <div className="rounded-md border border-red-500/60 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+                                        Invalid invite code
+                                    </div>
+                                )}
+                                {inviteCodeError && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setSelectedSchool(individualSchoolOption);
+                                            setUseInviteCode(false);
+                                            setInviteCode('');
+                                            setInviteCodeValidated(false);
+                                            setInviteCodeError(null);
+                                            setError(null);
+                                            setStep('role');
+                                        }}
+                                        className="text-xs text-cyan-300 hover:text-cyan-200"
+                                    >
+                                        Continue as Individuals
+                                    </button>
+                                )}
                                 <button
                                     onClick={() => {
                                         setUseInviteCode(false);
                                         setInviteCode('');
+                                        setInviteCodeValidated(false);
+                                        setInviteCodeError(null);
+                                        setError(null);
                                     }}
                                     className="text-gray-500 hover:text-gray-400 text-xs"
                                 >
@@ -315,6 +387,11 @@ const FinishSetupModal: React.FC<FinishSetupModalProps> = ({
                     onClick={() => {
                         setStep('school');
                         setSelectedSchool(null);
+                        setInviteCodeValidated(false);
+                        setJoinedViaInviteCode(false);
+                        setInviteCode('');
+                        setInviteCodeError(null);
+                        setError(null);
                     }}
                     className="text-cyan-400 hover:text-cyan-300 text-sm mb-4"
                 >
@@ -494,7 +571,8 @@ const FinishSetupModal: React.FC<FinishSetupModalProps> = ({
                 onClose={() => setShowSchoolRequest(false)}
                 requesterRole={role}
                 onUseSuggestion={(code) => {
-                    setInviteCode(code);
+                    setInviteCode(normalizeInviteCode(code));
+                    setInviteCodeError(null);
                     setUseInviteCode(true);
                 }}
             />
