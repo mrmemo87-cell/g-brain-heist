@@ -1496,7 +1496,45 @@
       status.textContent = `You submitted this test on ${new Date(data.submittedAt).toLocaleString()}.`;
       const scoreDiv = document.getElementById('score');
       scoreDiv.style.display = 'block';
-      scoreDiv.textContent = `Stored score: ${data.score}/${data.total} (${Math.round((data.score / data.total) * 100)}%).`;
+      
+      // Check if score is released by teacher
+      checkScoreReleaseStatus(data);
+    }
+    
+    async function checkScoreReleaseStatus(savedData) {
+      const scoreDiv = document.getElementById('score');
+      const studentName = document.getElementById('studentName')?.value || localStorage.getItem(`quiz_student_${QUIZ_ID}`) || '';
+      const studentClass = document.getElementById('studentClass')?.value || localStorage.getItem(`quiz_class_${QUIZ_ID}`) || '';
+      
+      try {
+        // Query if score is released
+        const { data, error } = await supabaseClient
+          .from('quiz_scores')
+          .select('scores_released, score, total_questions, percentage')
+          .eq('quiz_name', QUIZ_NAME)
+          .eq('student_name', studentName)
+          .order('submitted_at', { ascending: false })
+          .limit(1)
+          .single();
+        
+        if (error || !data) {
+          scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+          scoreDiv.className = 'score-box pending';
+          return;
+        }
+        
+        if (data.scores_released) {
+          scoreDiv.textContent = `✅ Score: ${data.score}/${data.total_questions} (${data.percentage}%)`;
+          scoreDiv.className = 'score-box';
+        } else {
+          scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+          scoreDiv.className = 'score-box pending';
+        }
+      } catch (err) {
+        console.error('Failed to check score release status:', err);
+        scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+        scoreDiv.className = 'score-box pending';
+      }
     }
 
     function calculateScore(responses) {
@@ -1575,6 +1613,8 @@
       }
 
       hasSubmitted = true;
+      localStorage.setItem(`quiz_student_${QUIZ_ID}`, name);
+      localStorage.setItem(`quiz_class_${QUIZ_ID}`, cls);
       localStorage.setItem(`quiz_submitted_${QUIZ_ID}`, JSON.stringify({
         score: result.score,
         total: totalQuestions,
@@ -1583,15 +1623,12 @@
 
       document.querySelectorAll('input').forEach(i => i.disabled = true);
       btn.textContent = '✓ Submitted';
-      status.textContent = result.pending
-        ? '✅ Submitted. Scoring will be applied once the answer key is available.'
-        : '✅ Submitted successfully.';
+      status.textContent = '✅ Submitted successfully! Your teacher will release your score soon.';
 
       const scoreDiv = document.getElementById('score');
       scoreDiv.style.display = 'block';
-      scoreDiv.textContent = result.pending
-        ? 'Score pending official answer key.'
-        : `Score: ${result.score}/${totalQuestions} (${result.percentage}%).`;
+      scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+      scoreDiv.className = 'score-box pending';
 
       try {
         if (window.parent !== window) {

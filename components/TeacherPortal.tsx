@@ -174,6 +174,14 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     lowestScore: null,
     classStats: {}
   });
+  
+  // Score release state
+  const [releasingScores, setReleasingScores] = useState(false);
+  const [scoreReleaseStats, setScoreReleaseStats] = useState<{
+    quizName: string;
+    releasedCount: number;
+    unreleasedCount: number;
+  }[]>([]);
 
   const questionTopicLabel = useMemo(() => (
     topicMode === 'general' ? 'General' : (customTopicName.trim() || 'Custom Topic')
@@ -472,6 +480,108 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         lowestScore: null,
         classStats: {}
       });
+    }
+    
+    // Calculate score release stats
+    const releaseStatsMap = new Map<string, { released: number; unreleased: number }>();
+    scores.forEach(s => {
+      const qn = s.quiz_name;
+      if (!releaseStatsMap.has(qn)) {
+        releaseStatsMap.set(qn, { released: 0, unreleased: 0 });
+      }
+      const stat = releaseStatsMap.get(qn)!;
+      if (s.scores_released) {
+        stat.released++;
+      } else {
+        stat.unreleased++;
+      }
+    });
+    setScoreReleaseStats(
+      Array.from(releaseStatsMap.entries()).map(([quizName, { released, unreleased }]) => ({
+        quizName,
+        releasedCount: released,
+        unreleasedCount: unreleased
+      }))
+    );
+  };
+
+  // Release scores for a quiz (make visible to students)
+  const releaseScores = async (quizName: string, classFilter?: string) => {
+    setReleasingScores(true);
+    try {
+      // Try using the RPC function first
+      const { data, error } = await supabase.rpc('release_quiz_scores', {
+        p_quiz_name: quizName,
+        p_class: classFilter || null
+      });
+
+      if (error) {
+        // Fallback to direct update if RPC doesn't exist
+        console.warn('RPC not available, using direct update:', error.message);
+        const query = supabase
+          .from('quiz_scores')
+          .update({ 
+            scores_released: true, 
+            released_at: new Date().toISOString() 
+          })
+          .eq('quiz_name', quizName)
+          .eq('scores_released', false);
+        
+        if (classFilter) {
+          query.eq('student_class', classFilter);
+        }
+        
+        const { error: updateError } = await query;
+        if (updateError) throw updateError;
+      }
+
+      alert(`✅ Scores released for ${quizName}${classFilter ? ` (${classFilter})` : ''}!`);
+      loadCambridgeScores(); // Refresh the list
+    } catch (err) {
+      console.error('Failed to release scores:', err);
+      alert('❌ Failed to release scores. Please try again.');
+    } finally {
+      setReleasingScores(false);
+    }
+  };
+
+  // Hide scores for a quiz (make invisible to students again)
+  const hideScores = async (quizName: string, classFilter?: string) => {
+    setReleasingScores(true);
+    try {
+      // Try using the RPC function first
+      const { data, error } = await supabase.rpc('hide_quiz_scores', {
+        p_quiz_name: quizName,
+        p_class: classFilter || null
+      });
+
+      if (error) {
+        // Fallback to direct update if RPC doesn't exist
+        console.warn('RPC not available, using direct update:', error.message);
+        const query = supabase
+          .from('quiz_scores')
+          .update({ 
+            scores_released: false, 
+            released_at: null 
+          })
+          .eq('quiz_name', quizName)
+          .eq('scores_released', true);
+        
+        if (classFilter) {
+          query.eq('student_class', classFilter);
+        }
+        
+        const { error: updateError } = await query;
+        if (updateError) throw updateError;
+      }
+
+      alert(`✅ Scores hidden for ${quizName}${classFilter ? ` (${classFilter})` : ''}!`);
+      loadCambridgeScores(); // Refresh the list
+    } catch (err) {
+      console.error('Failed to hide scores:', err);
+      alert('❌ Failed to hide scores. Please try again.');
+    } finally {
+      setReleasingScores(false);
     }
   };
 
@@ -3696,6 +3806,49 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   </div>
                 ) : null;
               })()}
+              
+              {/* Score Release Controls - show when a specific test tab is selected */}
+              {cambridgeActiveTab !== 'all' && (() => {
+                const currentQuizScores = cambridgeScores.filter(s => s.quiz_name === cambridgeActiveTab);
+                const releasedCount = currentQuizScores.filter(s => s.scores_released).length;
+                const unreleasedCount = currentQuizScores.filter(s => !s.scores_released).length;
+                const classReleasedCount = cambridgeClassFilter !== 'all' 
+                  ? currentQuizScores.filter(s => s.student_class === cambridgeClassFilter && s.scores_released).length
+                  : releasedCount;
+                const classUnreleasedCount = cambridgeClassFilter !== 'all'
+                  ? currentQuizScores.filter(s => s.student_class === cambridgeClassFilter && !s.scores_released).length
+                  : unreleasedCount;
+                
+                return (
+                  <div className="flex items-center gap-2 ml-auto">
+                    <span className="text-xs text-gray-500">
+                      {classReleasedCount > 0 && <span className="text-green-600">✅ {classReleasedCount} released</span>}
+                      {classReleasedCount > 0 && classUnreleasedCount > 0 && ' • '}
+                      {classUnreleasedCount > 0 && <span className="text-orange-600">🔒 {classUnreleasedCount} hidden</span>}
+                    </span>
+                    {classUnreleasedCount > 0 && (
+                      <button
+                        onClick={() => releaseScores(cambridgeActiveTab, cambridgeClassFilter !== 'all' ? cambridgeClassFilter : undefined)}
+                        disabled={releasingScores}
+                        className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 flex items-center gap-1"
+                        title={`Release scores so students can see them${cambridgeClassFilter !== 'all' ? ` (${cambridgeClassFilter} only)` : ''}`}
+                      >
+                        {releasingScores ? '⏳' : '📢'} Release Scores{cambridgeClassFilter !== 'all' ? ` (${cambridgeClassFilter})` : ''}
+                      </button>
+                    )}
+                    {classReleasedCount > 0 && (
+                      <button
+                        onClick={() => hideScores(cambridgeActiveTab, cambridgeClassFilter !== 'all' ? cambridgeClassFilter : undefined)}
+                        disabled={releasingScores}
+                        className="px-3 py-1.5 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 disabled:opacity-50 flex items-center gap-1"
+                        title={`Hide scores from students${cambridgeClassFilter !== 'all' ? ` (${cambridgeClassFilter} only)` : ''}`}
+                      >
+                        {releasingScores ? '⏳' : '🔒'} Hide Scores
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Results Table - Compact */}
@@ -3708,6 +3861,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                     {cambridgeActiveTab === 'all' && <th className="px-4 py-2.5 text-left text-gray-700 font-semibold">Test</th>}
                     <th className="px-4 py-2.5 text-center text-gray-700 font-semibold">Score</th>
                     <th className="px-4 py-2.5 text-center text-gray-700 font-semibold">%</th>
+                    <th className="px-4 py-2.5 text-center text-gray-700 font-semibold">Status</th>
                     <th className="px-4 py-2.5 text-center text-gray-700 font-semibold">Time</th>
                     <th className="px-4 py-2.5 text-right text-gray-700 font-semibold">Actions</th>
                   </tr>
@@ -3717,7 +3871,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                     const isWritingTest = WRITING_TEST_NAMES.includes(score.quiz_name);
                     const needsMarking = isWritingTest && score.answers?.requires_marking;
                     return (
-                      <tr key={score.id} className={`hover:bg-gray-50 ${needsMarking ? 'bg-amber-50' : ''}`}>
+                      <tr key={score.id} className={`hover:bg-gray-50 ${needsMarking ? 'bg-amber-50' : ''} ${!score.scores_released ? 'opacity-75' : ''}`}>
                         <td className="px-4 py-2.5 text-gray-900 font-medium">{score.student_name}</td>
                         <td className="px-4 py-2.5 text-gray-600">{score.student_class || '-'}</td>
                         {cambridgeActiveTab === 'all' && (
@@ -3744,6 +3898,13 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                               score.percentage >= 70 ? 'text-green-600' :
                               score.percentage >= 50 ? 'text-amber-600' : 'text-red-600'
                             }`}>{score.percentage}%</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-2.5 text-center">
+                          {score.scores_released ? (
+                            <span className="inline-block px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium" title="Score visible to student">✅ Released</span>
+                          ) : (
+                            <span className="inline-block px-2 py-0.5 bg-orange-100 text-orange-700 rounded text-xs font-medium" title="Score hidden from student">🔒 Hidden</span>
                           )}
                         </td>
                         <td className="px-4 py-2.5 text-center text-gray-500 text-xs">{formatCambridgeTime(score.time_taken_seconds)}</td>
