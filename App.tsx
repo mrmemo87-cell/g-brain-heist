@@ -114,6 +114,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [showHelp, setShowHelp] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [tutorialChecked, setTutorialChecked] = useState(false); // Track if we've checked tutorial status
+  const tutorialCheckedRef = useRef(tutorialChecked);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [activeAnnouncement, setActiveAnnouncement] = useState<Announcement | null>(null);
   const previousViewRef = useRef(view);
@@ -482,6 +483,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     }
   }, []);
 
+  useEffect(() => {
+    tutorialCheckedRef.current = tutorialChecked;
+  }, [tutorialChecked]);
+
   const startCriticalBoot = useCallback(async () => {
     criticalAbortRef.current?.abort();
     const criticalController = new AbortController();
@@ -578,10 +583,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       logBootTiming('time to whoami resolved', whoamiMs);
 
       // Show tutorial if first time user (only check once on initial load)
-      if (!tutorialChecked && profileData && !profileData.tutorial_completed) {
+      if (!tutorialCheckedRef.current && profileData && !profileData.tutorial_completed) {
         setShowTutorial(true);
         setTutorialChecked(true);
-      } else if (!tutorialChecked) {
+      } else if (!tutorialCheckedRef.current) {
         setTutorialChecked(true);
       }
 
@@ -589,16 +594,16 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         setIsInteractive(true);
       });
     } catch (error: any) {
-      console.error('Failed to load critical boot data:', error);
-      if (criticalController.signal.aborted) {
+      if (error?.name === 'AbortError' || criticalController.signal.aborted) {
         return;
       }
+      console.error('Failed to load critical boot data:', error);
       setLoadError(classifyBootError(error));
       addToast(`Failed to load: ${error?.message || 'Unknown error'}`, 'error', startCriticalBoot);
     } finally {
       setCriticalLoading(false);
     }
-  }, [addToast, classifyBootError, logBootTiming, loadCachedData, tutorialChecked]);
+  }, [addToast, classifyBootError, logBootTiming, loadCachedData]);
 
   const runNonCriticalLoads = useCallback((targets?: NonCriticalKey[]) => {
     if (!profile) return;
