@@ -52,6 +52,17 @@ export interface InviteCodeResult {
     school_slug?: string;
 }
 
+export interface JoinSchoolByCodeResult {
+    success: boolean;
+    error?: string;
+    message?: string;
+    school?: {
+        id: string;
+        name: string;
+        slug: string;
+    };
+}
+
 export const login = async (email: string, password: string): Promise<{ success: boolean }> => {
     console.log(`Attempting login for ${email}`);
     
@@ -442,6 +453,47 @@ export const completeIndividualSetup = async (
 };
 
 /**
+ * Complete profile setup details without changing school membership.
+ */
+export const completeProfileSetup = async (
+    payload: IndividualSetupPayload
+): Promise<ProfileBootstrapResult> => {
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData?.user) {
+        return { success: false, error: 'Not authenticated' };
+    }
+
+    const updates: Record<string, unknown> = {
+        role: payload.role,
+        needs_setup: false,
+        updated_at: new Date().toISOString(),
+    };
+
+    if (payload.username) {
+        updates.username = payload.username;
+    }
+
+    if (payload.role === 'student') {
+        updates.grade = payload.grade ?? null;
+        updates.batch = payload.batch ?? null;
+    } else {
+        updates.grade = null;
+        updates.batch = null;
+    }
+
+    const { error } = await supabase
+        .from('users')
+        .update(updates)
+        .eq('id', authData.user.id);
+
+    if (error) {
+        return { success: false, error: error.message || 'Failed to complete setup.' };
+    }
+
+    return { success: true, user_id: authData.user.id, role: payload.role };
+};
+
+/**
  * Validate an invite code and get school info
  */
 export const validateInviteCode = async (code: string): Promise<InviteCodeResult> => {
@@ -455,6 +507,26 @@ export const validateInviteCode = async (code: string): Promise<InviteCodeResult
     }
     
     return data as InviteCodeResult;
+};
+
+/**
+ * Join a school by invite code.
+ */
+export const joinSchoolByCode = async (
+    code: string,
+    role: 'student' | 'teacher'
+): Promise<JoinSchoolByCodeResult> => {
+    const { data, error } = await supabase.rpc('join_school_by_code', {
+        p_invite_code: code,
+        p_role: role,
+    });
+
+    if (error) {
+        console.error('Error joining school by code:', error.message);
+        return { success: false, error: 'Failed to join school by code' };
+    }
+
+    return data as JoinSchoolByCodeResult;
 };
 
 /**

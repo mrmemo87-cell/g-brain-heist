@@ -27,6 +27,7 @@ interface MainActionsProps {
   onOpenIeltsPrep?: () => void;
   onOpenLockdown?: () => void;
   onOpenCambridgeTests?: () => void;
+  onJoinSchool?: () => void;
   profile?: Profile | null;
   hasPendingAssignment?: boolean;
   clanBadgeCount?: number;
@@ -160,6 +161,7 @@ const MainActions: React.FC<MainActionsProps> = ({
   onOpenIeltsPrep,
   onOpenLockdown,
   onOpenCambridgeTests,
+  onJoinSchool,
   profile,
   hasPendingAssignment,
   clanBadgeCount,
@@ -337,17 +339,28 @@ const MainActions: React.FC<MainActionsProps> = ({
               <p className="text-sm text-slate-400">Pick your next move. Everything fits comfortably on phones.</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/70 px-3 py-1 shadow-inner shadow-slate-900/40">
-            <img
-              src={displaySchoolLogo}
-              alt={`${displaySchoolName} logo`}
-              className="h-8 w-8 rounded-full object-cover bg-slate-800"
-              onError={(e) => { (e.target as HTMLImageElement).src = defaultSchoolIcon; }}
-            />
-            <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-100">
-              <span aria-hidden>✨</span>
-              <span>{displaySchoolName}</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/70 px-3 py-1 shadow-inner shadow-slate-900/40">
+              <img
+                src={displaySchoolLogo}
+                alt={`${displaySchoolName} logo`}
+                className="h-8 w-8 rounded-full object-cover bg-slate-800"
+                onError={(e) => { (e.target as HTMLImageElement).src = defaultSchoolIcon; }}
+              />
+              <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-100">
+                <span aria-hidden>✨</span>
+                <span>{displaySchoolName}</span>
+              </div>
             </div>
+            {onJoinSchool && (
+              <button
+                type="button"
+                onClick={onJoinSchool}
+                className="rounded-full border border-cyan-400/60 bg-cyan-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-cyan-100 hover:border-cyan-300 hover:text-cyan-50"
+              >
+                Join school
+              </button>
+            )}
           </div>
           {hasPendingAssignment && (
             <span className="inline-flex items-center justify-center rounded-full border border-amber-400/70 bg-amber-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-100 shadow shadow-amber-400/20">

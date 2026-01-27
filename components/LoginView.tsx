@@ -46,6 +46,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
     const [isLoadingSchools, setIsLoadingSchools] = useState(false);
     const [inviteCode, setInviteCode] = useState('');
+    const [inviteCodeError, setInviteCodeError] = useState<string | null>(null);
     const [showInviteCode, setShowInviteCode] = useState(false);
     const [showSchoolRequest, setShowSchoolRequest] = useState(false);
     const isIeltsSchool = selectedSchool?.slug === ieltsSchoolOption.slug;
@@ -91,14 +92,19 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     }, [role]);
 
     // Handle invite code validation
+    const normalizeInviteCode = (code: string) => code.replace(/\s+/g, '').toUpperCase();
+    const inviteCodeNormalized = normalizeInviteCode(inviteCode);
+    const inviteCodeReady = inviteCodeNormalized.length >= 10;
+
     const handleInviteCodeSubmit = async () => {
-        if (!inviteCode.trim()) return;
+        if (!inviteCodeReady) return;
         
         setIsLoading(true);
         setError(null);
+        setInviteCodeError(null);
         
         try {
-            const result = await AuthService.validateInviteCode(inviteCode.trim());
+            const result = await AuthService.validateInviteCode(inviteCodeNormalized);
             if (result.valid && result.school_id) {
                 const school = schools.find(s => s.id === result.school_id) || {
                     id: result.school_id,
@@ -111,11 +117,12 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 setSelectedSchool(school);
                 setShowInviteCode(false);
                 setSuccess(`Joined ${result.school_name}!`);
+                setInviteCodeError(null);
             } else {
-                setError(result.error || 'Invalid invite code');
+                setInviteCodeError('Invalid invite code');
             }
         } catch (err) {
-            setError('Failed to validate invite code');
+            setInviteCodeError('Invalid invite code');
         } finally {
             setIsLoading(false);
         }
@@ -416,15 +423,18 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                             <input
                                                 type="text"
                                                 value={inviteCode}
-                                                onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                                                onChange={(e) => {
+                                                    setInviteCode(normalizeInviteCode(e.target.value));
+                                                    setInviteCodeError(null);
+                                                }}
                                                 placeholder="Enter code"
                                                 className="flex-1 bg-gray-800 border border-gray-600 rounded-md p-2 text-white text-sm uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-cyan-400"
-                                                maxLength={8}
+                                                maxLength={10}
                                             />
                                             <button
                                                 type="button"
                                                 onClick={handleInviteCodeSubmit}
-                                                disabled={isLoading || !inviteCode.trim()}
+                                                disabled={isLoading || !inviteCodeReady}
                                                 className="px-3 py-2 bg-cyan-400 text-gray-900 rounded-md text-sm font-semibold hover:bg-cyan-300 disabled:opacity-50"
                                             >
                                                 Join
@@ -434,11 +444,37 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                                 onClick={() => {
                                                     setShowInviteCode(false);
                                                     setInviteCode('');
+                                                    setInviteCodeError(null);
                                                 }}
                                                 className="px-2 text-gray-500 hover:text-gray-400"
                                             >
                                                 ✕
                                             </button>
+                                        </div>
+                                    )}
+                                    {showInviteCode && (
+                                        <div className="mt-2 space-y-2">
+                                            <p className="text-xs text-gray-400">Invite codes are 10 characters.</p>
+                                            {inviteCodeError && (
+                                                <div className="rounded-md border border-red-500/60 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+                                                    Invalid invite code
+                                                </div>
+                                            )}
+                                            {inviteCodeError && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const individuals = schools.find(s => s.id === individualSchoolOption.id) || individualSchoolOption;
+                                                        setSelectedSchool(individuals);
+                                                        setShowInviteCode(false);
+                                                        setInviteCode('');
+                                                        setInviteCodeError(null);
+                                                    }}
+                                                    className="text-xs text-cyan-300 hover:text-cyan-200"
+                                                >
+                                                    Continue as Individuals
+                                                </button>
+                                            )}
                                         </div>
                                     )}
                                     
@@ -590,7 +626,8 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
             onClose={() => setShowSchoolRequest(false)}
             requesterRole={role}
             onUseSuggestion={(code) => {
-                setInviteCode(code);
+                setInviteCode(normalizeInviteCode(code));
+                setInviteCodeError(null);
                 setShowInviteCode(true);
             }}
         />

@@ -7,6 +7,7 @@ import { useLightMode } from './src/contexts/LightModeContext';
 import PlayerProfileCard from './components/PlayerProfileCard';
 import TaskList from './components/TaskList';
 import MainActions from './components/MainActions';
+import JoinSchoolModal from './components/JoinSchoolModal';
 import NewsFeed from './components/NewsFeed';
 import CapTracker from './components/CapTracker';
 import Toast from './components/Toast';
@@ -118,6 +119,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [activeAnnouncement, setActiveAnnouncement] = useState<Announcement | null>(null);
   const previousViewRef = useRef(view);
+  const [showJoinSchoolModal, setShowJoinSchoolModal] = useState(false);
   const previousSessionActiveRef = useRef<boolean | null>(null);
   const [showAcademicSetup, setShowAcademicSetup] = useState(false);
   const [pendingGrade, setPendingGrade] = useState<Grade | null>(null);
@@ -995,6 +997,13 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     }
   };
 
+  const handleJoinSchoolSuccess = useCallback(async () => {
+    await refreshProfile();
+    retryNonCritical('tasks');
+    retryNonCritical('caps');
+    retryNonCritical('news');
+  }, [refreshProfile, retryNonCritical]);
+
   const handleTasksRefresh = useCallback(() => {
     retryNonCritical('tasks');
     void refreshProfile();
@@ -1560,6 +1569,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                       }}
                       onOpenCambridgeTests={() => handleViewChange('cambridge')}
                       onOpenLockdown={() => handleViewChange('lockdown')}
+                      onJoinSchool={!hasSchool ? () => setShowJoinSchoolModal(true) : undefined}
                       profile={profile}
                       hasPendingAssignment={Boolean(activeAssignment)}
                       clanBadgeCount={pendingClanRequests}
@@ -1772,6 +1782,15 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         {/* Help Modal */}
         {showHelp && (
           <HelpModal onClose={() => setShowHelp(false)} />
+        )}
+
+        {profile && !profile.school_id && (
+          <JoinSchoolModal
+            isOpen={showJoinSchoolModal}
+            onClose={() => setShowJoinSchoolModal(false)}
+            role={profile.role === 'teacher' ? 'teacher' : 'student'}
+            onJoined={handleJoinSchoolSuccess}
+          />
         )}
 
         {/* Toast Notifications */}
