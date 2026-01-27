@@ -39,16 +39,43 @@ const hashToPaletteColor = (seed: string) => {
   return PLAYER_COLOR_PALETTE[index];
 };
 
+const hashToHslColor = (seed: string) => {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash << 5) - hash + seed.charCodeAt(i);
+    hash |= 0;
+  }
+  const normalized = Math.abs(hash);
+  const hue = normalized % 360;
+  const saturation = 65 + (normalized % 15);
+  const lightness = 48 + ((normalized >> 8) % 12);
+  return { hue, saturation, lightness };
+};
+
+const resolveUniqueClanColor = (clanId: string, usedColors: Set<string>) => {
+  const base = hashToHslColor(clanId);
+  let hue = base.hue;
+  let attempts = 0;
+  let color = `hsl(${hue} ${base.saturation}% ${base.lightness}%)`;
+  while (usedColors.has(color) && attempts < 12) {
+    hue = (hue + 37) % 360;
+    color = `hsl(${hue} ${base.saturation}% ${base.lightness}%)`;
+    attempts += 1;
+  }
+  return color;
+};
+
 const assignParticipantColor = (state: GameState, action: JoinGameAction) => {
   const existingPlayers = Object.values(state.players);
+  const usedColors = new Set(existingPlayers.map((player) => player.color).filter(Boolean));
   if (action.clanId) {
     const existingClanColor = existingPlayers.find((player) => player.clanId === action.clanId && player.color)?.color;
     if (existingClanColor) {
       return existingClanColor;
     }
+    return resolveUniqueClanColor(action.clanId, usedColors);
   }
 
-  const usedColors = new Set(existingPlayers.map((player) => player.color).filter(Boolean));
   const availableColor = PLAYER_COLOR_PALETTE.find((color) => !usedColors.has(color));
   if (availableColor) {
     return availableColor;

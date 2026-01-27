@@ -89,9 +89,16 @@ const CLAN_COLORS: Record<string, string> = {
 };
 
 const getColorForClan = (clanId: string): string => {
-  const hash = clanId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const colors = Object.values(CLAN_COLORS).slice(1); // Exclude default
-  return colors[hash % colors.length] || CLAN_COLORS.default;
+  let hash = 0;
+  for (let i = 0; i < clanId.length; i += 1) {
+    hash = (hash << 5) - hash + clanId.charCodeAt(i);
+    hash |= 0;
+  }
+  const normalized = Math.abs(hash);
+  const hue = normalized % 360;
+  const saturation = 65 + (normalized % 15);
+  const lightness = 48 + ((normalized >> 8) % 12);
+  return `hsl(${hue} ${saturation}% ${lightness}%)`;
 };
 
 const resolveClanColor = (stats: RegionStats, topClan?: RegionStats["topClan"]) => {
