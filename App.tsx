@@ -22,6 +22,7 @@ import { aiHostService } from './services/aiHostService';
 import { fetchNextAnnouncement, markAnnouncementSeen } from './services/competitionService';
 import { notificationService } from './services/notificationService';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './services/banMessage';
+import IeltsHome from './src/pages/ielts/IeltsHome';
 
 const QuestView = React.lazy(() => import('./components/QuestView'));
 const PvPView = React.lazy(() => import('./components/PvPView'));
@@ -40,7 +41,6 @@ const Phase1AdminDashboard = React.lazy(() => import('./components/phase1/Phase1
 const AnnouncementBanner = React.lazy(() => import('./components/phase1/AnnouncementBanner'));
 const RaidView = React.lazy(() => import('./src/features/raids/RaidView'));
 const RaidAdminView = React.lazy(() => import('./src/features/raids/RaidAdminView'));
-const IeltsHome = React.lazy(() => import('./src/pages/ielts/IeltsHome'));
 const ClanTerritoryManager = React.lazy(() => import('./src/features/clanTerritory/ClanTerritoryManager'));
 const CambridgeTestsHub = React.lazy(() => import('./components/CambridgeTestsHub'));
 const SchoolAdminPortal = React.lazy(() => import('./components/SchoolAdminPortal'));
