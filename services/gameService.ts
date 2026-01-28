@@ -61,6 +61,7 @@ import { fetchNeonFrameOwners, fetchFlickerThemeOwners, fetchGlitchEffectOwners 
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage';
 import { notificationService } from './notificationService';
 import { fetchMyXpStatus } from './xpStatus';
+import { audioService } from './audioService';
 import {
     regenerateUserAp,
     notifyApFull,
@@ -4814,7 +4815,6 @@ export const check_achievements = async (): Promise<Achievement[]> => {
     if (newlyEarned.length > 0) {
         // Import and play achievement sound
         try {
-            const { audioService } = await import('./audioService');
             audioService.play('achievement');
         } catch (audioErr) {
             console.warn('Failed to play achievement sound:', audioErr);
