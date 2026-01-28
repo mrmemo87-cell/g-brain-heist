@@ -281,7 +281,7 @@ export const postAnnouncement = async (text: string, expiresAt?: string | null):
   const payload: Record<string, string | null> = { p_text: text };
 
   if (expiresAt) {
-    payload.p_expires_at = expiresAt;
+    payload['p_expires_at'] = expiresAt;
   }
 
   const { error } = await supabase.rpc('rpc_announcement_post', payload);

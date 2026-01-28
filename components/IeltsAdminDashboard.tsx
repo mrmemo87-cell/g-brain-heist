@@ -69,6 +69,21 @@ const PRIME_PLAN_MONTHS: Record<string, number> = {
   annually: 12,
 };
 
+const ALLOWED_ADMIN_RPCS = new Set([
+  'admin_ielts_write_grade',
+  'admin_ielts_speaking_grade',
+  'admin_ielts_set_user_tags',
+  'admin_ielts_add_note',
+  'admin_ielts_note_delete',
+  'admin_ielts_membership_grant',
+  'admin_ielts_membership_extend',
+  'admin_ielts_membership_revoke',
+  'admin_ielts_reset_progress',
+  'admin_ielts_mark_notification_sent',
+  'admin_ielts_prime_approve_and_grant',
+  'admin_ielts_violation_set_status',
+]);
+
 const isMissingRpc = (error: { message?: string; code?: string }) => {
   const message = error?.message?.toLowerCase() ?? '';
   return error?.code === 'PGRST202' || message.includes('function') || message.includes('not found');
@@ -298,6 +313,10 @@ const IeltsAdminDashboard: React.FC = () => {
   };
 
   const handleRpc = async (rpcName: string, payload: Record<string, any>) => {
+    if (!ALLOWED_ADMIN_RPCS.has(rpcName)) {
+      addToast(`Blocked RPC: ${rpcName}`, 'error');
+      return null;
+    }
     try {
       const { data, error } = await supabase.rpc(rpcName, payload);
       if (error) {

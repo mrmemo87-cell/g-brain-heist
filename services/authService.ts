@@ -182,11 +182,11 @@ export const signup = async (
 
         // Only add batch for students
         if (role === 'student') {
-            profileData.grade = grade ?? 6;
-            profileData.batch = batch;
+            profileData['grade'] = grade ?? 6;
+            profileData['batch'] = batch;
         } else {
-            profileData.grade = null;
-            profileData.batch = null;
+            profileData['grade'] = null;
+            profileData['batch'] = null;
         }
         
         const { error: profileError } = await supabase
@@ -429,15 +429,15 @@ export const completeIndividualSetup = async (
     };
 
     if (payload.username) {
-        updates.username = payload.username;
+        updates['username'] = payload.username;
     }
 
     if (payload.role === 'student') {
-        updates.grade = payload.grade ?? null;
-        updates.batch = payload.batch ?? null;
+        updates['grade'] = payload.grade ?? null;
+        updates['batch'] = payload.batch ?? null;
     } else {
-        updates.grade = null;
-        updates.batch = null;
+        updates['grade'] = null;
+        updates['batch'] = null;
     }
 
     const { error } = await supabase
@@ -470,15 +470,15 @@ export const completeProfileSetup = async (
     };
 
     if (payload.username) {
-        updates.username = payload.username;
+        updates['username'] = payload.username;
     }
 
     if (payload.role === 'student') {
-        updates.grade = payload.grade ?? null;
-        updates.batch = payload.batch ?? null;
+        updates['grade'] = payload.grade ?? null;
+        updates['batch'] = payload.batch ?? null;
     } else {
-        updates.grade = null;
-        updates.batch = null;
+        updates['grade'] = null;
+        updates['batch'] = null;
     }
 
     const { error } = await supabase
