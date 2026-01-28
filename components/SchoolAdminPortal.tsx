@@ -2,7 +2,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import BackButton from './BackButton';
 import { ToastMessage } from '../types';
 import * as SchoolAdminService from '../services/schoolAdminService';
-import type { SchoolStats, SchoolMember, SchoolInfo } from '../services/schoolAdminService';
+import type {
+  SchoolStats,
+  SchoolMember,
+  SchoolInfo,
+  SchoolClass,
+  SchoolTeacher,
+  ClassTeacherAssignment,
+} from '../services/schoolAdminService';
 import type { SchoolRole } from '../types';
 
 interface SchoolAdminPortalProps {
@@ -10,7 +17,7 @@ interface SchoolAdminPortalProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
 }
 
-type AdminTab = 'dashboard' | 'members' | 'invites' | 'settings';
+type AdminTab = 'dashboard' | 'members' | 'classes' | 'teachers' | 'students' | 'invites' | 'settings';
 
 const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addToast }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
@@ -19,6 +26,38 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
   const [stats, setStats] = useState<SchoolStats | null>(null);
   const [members, setMembers] = useState<SchoolMember[]>([]);
   const [membersTotal, setMembersTotal] = useState(0);
+
+  // Classes manager state
+  const [classes, setClasses] = useState<SchoolClass[]>([]);
+  const [classesLoading, setClassesLoading] = useState(false);
+  const [classSaving, setClassSaving] = useState(false);
+  const [classForm, setClassForm] = useState({
+    id: '',
+    class_code: '',
+    class_name: '',
+    grade_level: '',
+    is_active: true,
+  });
+
+  // Teacher assignment state
+  const [teachers, setTeachers] = useState<SchoolTeacher[]>([]);
+  const [teacherAssignments, setTeacherAssignments] = useState<ClassTeacherAssignment[]>([]);
+  const [assignmentClassId, setAssignmentClassId] = useState('');
+  const [assignmentTeacherId, setAssignmentTeacherId] = useState('');
+  const [assignmentSubjectInput, setAssignmentSubjectInput] = useState('');
+  const [assignmentSubjects, setAssignmentSubjects] = useState<string[]>([]);
+  const [assignmentActive, setAssignmentActive] = useState(true);
+  const [assignmentFilterClassId, setAssignmentFilterClassId] = useState('');
+  const [assignmentFilterTeacherId, setAssignmentFilterTeacherId] = useState('');
+  const [assignmentSaving, setAssignmentSaving] = useState(false);
+
+  // Student enrollment state
+  const [students, setStudents] = useState<SchoolMember[]>([]);
+  const [studentSearch, setStudentSearch] = useState('');
+  const [selectedStudentId, setSelectedStudentId] = useState('');
+  const [selectedClassId, setSelectedClassId] = useState('');
+  const [studentAssignments, setStudentAssignments] = useState<Record<string, string | null>>({});
+  const [studentSaving, setStudentSaving] = useState(false);
   
   // Filters
   const [memberSearch, setMemberSearch] = useState('');
@@ -67,6 +106,36 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
     }
   };
 
+  const loadAdminTools = useCallback(async (schoolId: string) => {
+    setClassesLoading(true);
+    try {
+      const [classList, teacherList, assignmentsList, studentList] = await Promise.all([
+        SchoolAdminService.listSchoolClasses(schoolId),
+        SchoolAdminService.listSchoolTeachers(schoolId),
+        SchoolAdminService.listTeacherAssignments(schoolId),
+        SchoolAdminService.listSchoolMembers(schoolId, { role: 'student', limit: 200 }).then((res) => res.members),
+      ]);
+
+      setClasses(classList);
+      setTeachers(teacherList);
+      setTeacherAssignments(assignmentsList);
+      setStudents(studentList);
+
+      const classIds = classList.map((cls) => cls.id);
+      const studentRows = await SchoolAdminService.listClassStudents(classIds);
+      const assignmentMap: Record<string, string | null> = {};
+      studentRows.forEach((row) => {
+        assignmentMap[row.student_id] = row.class_id;
+      });
+      setStudentAssignments(assignmentMap);
+    } catch (err) {
+      console.error('Error loading admin tools:', err);
+      addToast('Failed to load classes and assignments', 'error');
+    } finally {
+      setClassesLoading(false);
+    }
+  }, [addToast]);
+
   const refreshSchool = async (schoolId: string) => {
     const details = await SchoolAdminService.getSchoolDetails(schoolId);
     if (!details) return;
@@ -94,6 +163,12 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
       loadMembers(school.id);
     }
   }, [school?.id, memberSearch, memberRoleFilter, loadMembers]);
+
+  useEffect(() => {
+    if (school?.id) {
+      loadAdminTools(school.id);
+    }
+  }, [school?.id, loadAdminTools]);
 
   // Member actions
   const handleUpdateRole = async (newRole: SchoolRole) => {
@@ -216,6 +291,134 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
     }
   };
 
+  const handleSaveClass = async () => {
+    if (!school) return;
+    const trimmedCode = classForm.class_code.trim();
+    const trimmedName = classForm.class_name.trim();
+    if (!trimmedCode || !trimmedName) {
+      addToast('Class code and name are required', 'error');
+      return;
+    }
+
+    const gradeValue = classForm.grade_level.trim() ? Number(classForm.grade_level) : null;
+    if (classForm.grade_level.trim() && Number.isNaN(gradeValue)) {
+      addToast('Grade level must be a number', 'error');
+      return;
+    }
+
+    setClassSaving(true);
+    const result = await SchoolAdminService.saveSchoolClass(school.id, {
+      id: classForm.id || undefined,
+      class_code: trimmedCode,
+      class_name: trimmedName,
+      grade_level: gradeValue,
+      is_active: classForm.is_active,
+    });
+    setClassSaving(false);
+
+    if (result.success) {
+      addToast(classForm.id ? 'Class updated' : 'Class created', 'success');
+      setClassForm({ id: '', class_code: '', class_name: '', grade_level: '', is_active: true });
+      await loadAdminTools(school.id);
+    } else {
+      addToast(result.error || 'Failed to save class', 'error');
+    }
+  };
+
+  const handleEditClass = (schoolClass: SchoolClass) => {
+    setClassForm({
+      id: schoolClass.id,
+      class_code: schoolClass.class_code,
+      class_name: schoolClass.class_name,
+      grade_level: schoolClass.grade_level ? String(schoolClass.grade_level) : '',
+      is_active: schoolClass.is_active,
+    });
+  };
+
+  const handleAddSubject = () => {
+    const subject = assignmentSubjectInput.trim();
+    if (!subject) return;
+    if (assignmentSubjects.includes(subject)) {
+      setAssignmentSubjectInput('');
+      return;
+    }
+    setAssignmentSubjects((prev) => [...prev, subject]);
+    setAssignmentSubjectInput('');
+  };
+
+  const handleAssignTeacher = async () => {
+    if (!school) return;
+    if (!assignmentClassId || !assignmentTeacherId) {
+      addToast('Select a class and teacher', 'error');
+      return;
+    }
+
+    const subjects = [...assignmentSubjects];
+    if (assignmentSubjectInput.trim()) {
+      subjects.push(assignmentSubjectInput.trim());
+    }
+
+    const uniqueSubjects = Array.from(new Set(subjects.filter((subject) => subject.length > 0)));
+    if (uniqueSubjects.length === 0) {
+      addToast('Enter at least one subject', 'error');
+      return;
+    }
+
+    setAssignmentSaving(true);
+    const results = await Promise.all(
+      uniqueSubjects.map((subject) =>
+        SchoolAdminService.assignTeacherToClassSubject(
+          school.id,
+          assignmentClassId,
+          assignmentTeacherId,
+          subject,
+          assignmentActive
+        )
+      )
+    );
+    setAssignmentSaving(false);
+
+    const failed = results.find((res) => !res.success);
+    if (failed) {
+      addToast(failed.error || 'Failed to assign teacher', 'error');
+      return;
+    }
+
+    addToast(`Assigned ${uniqueSubjects.length} subject${uniqueSubjects.length > 1 ? 's' : ''}`, 'success');
+    setAssignmentSubjects([]);
+    setAssignmentSubjectInput('');
+    await loadAdminTools(school.id);
+  };
+
+  const handleEnrollStudent = async () => {
+    if (!school) return;
+    if (!selectedStudentId || !selectedClassId) {
+      addToast('Select a student and class', 'error');
+      return;
+    }
+
+    const currentClassId = studentAssignments[selectedStudentId];
+    if (currentClassId === selectedClassId) {
+      addToast('Student already enrolled in this class', 'error');
+      return;
+    }
+
+    setStudentSaving(true);
+    const result = await SchoolAdminService.moveStudentToClass(
+      classes.map((cls) => cls.id),
+      selectedStudentId,
+      selectedClassId
+    );
+    setStudentSaving(false);
+
+    if (result.success) {
+      addToast('Student enrollment updated', 'success');
+      await loadAdminTools(school.id);
+    } else {
+      addToast(result.error || 'Failed to update enrollment', 'error');
+    }
+  };
+
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Never';
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -249,6 +452,23 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
       default: return 'bg-gray-500 text-white';
     }
   };
+
+  const classById = classes.reduce<Record<string, SchoolClass>>((acc, cls) => {
+    acc[cls.id] = cls;
+    return acc;
+  }, {});
+
+  const filteredTeacherAssignments = teacherAssignments.filter((assignment) => {
+    if (assignmentFilterClassId && assignment.class_id !== assignmentFilterClassId) return false;
+    if (assignmentFilterTeacherId && assignment.teacher_user_id !== assignmentFilterTeacherId) return false;
+    return true;
+  });
+
+  const filteredStudents = students.filter((student) => {
+    const term = studentSearch.trim().toLowerCase();
+    if (!term) return true;
+    return student.username.toLowerCase().includes(term) || student.email.toLowerCase().includes(term);
+  });
 
   if (loading) {
     return (
@@ -291,7 +511,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
 
       {/* Tab Navigation */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-        {(['dashboard', 'members', 'invites', 'settings'] as AdminTab[]).map((tab) => (
+        {(['dashboard', 'members', 'classes', 'teachers', 'students', 'invites', 'settings'] as AdminTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -303,6 +523,9 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
           >
             {tab === 'dashboard' && '📊 Dashboard'}
             {tab === 'members' && `👥 Members (${membersTotal})`}
+            {tab === 'classes' && '🏫 Classes'}
+            {tab === 'teachers' && '🧑‍🏫 Teacher Assignments'}
+            {tab === 'students' && '🎒 Student Enrollment'}
             {tab === 'invites' && '🔑 Invite Code'}
             {tab === 'settings' && '⚙️ Settings'}
           </button>
@@ -347,6 +570,12 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                 className="px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-lg transition-colors"
               >
                 👥 Manage Members
+              </button>
+              <button
+                onClick={() => setActiveTab('classes')}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors"
+              >
+                🏫 Manage Classes
               </button>
             </div>
           </div>
@@ -450,6 +679,403 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
               <div className="p-8 text-center text-gray-500">
                 No members found matching your criteria
               </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'classes' && (
+        <div className="space-y-6">
+          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <h3 className="text-lg font-semibold mb-4">{classForm.id ? 'Edit Class' : 'Create Class'}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Class Code</label>
+                <input
+                  type="text"
+                  value={classForm.class_code}
+                  onChange={(e) => setClassForm((prev) => ({ ...prev, class_code: e.target.value }))}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                  placeholder="e.g. 9A"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-400 mb-1">Class Name</label>
+                <input
+                  type="text"
+                  value={classForm.class_name}
+                  onChange={(e) => setClassForm((prev) => ({ ...prev, class_name: e.target.value }))}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                  placeholder="e.g. Grade 9 Blue"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Grade Level</label>
+                <input
+                  type="number"
+                  value={classForm.grade_level}
+                  onChange={(e) => setClassForm((prev) => ({ ...prev, grade_level: e.target.value }))}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                  placeholder="9"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-4 mt-4">
+              <label className="flex items-center gap-2 text-sm text-gray-300">
+                <input
+                  type="checkbox"
+                  checked={classForm.is_active}
+                  onChange={(e) => setClassForm((prev) => ({ ...prev, is_active: e.target.checked }))}
+                  className="rounded border-gray-600 bg-gray-700 text-cyan-500 focus:ring-cyan-500"
+                />
+                Active
+              </label>
+              <button
+                onClick={handleSaveClass}
+                disabled={classSaving}
+                className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 rounded-lg transition-colors font-medium"
+              >
+                {classSaving ? 'Saving...' : classForm.id ? 'Update Class' : 'Create Class'}
+              </button>
+              {classForm.id && (
+                <button
+                  onClick={() => setClassForm({ id: '', class_code: '', class_name: '', grade_level: '', is_active: true })}
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-sm"
+                >
+                  Cancel Edit
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+            <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+              <h4 className="text-sm font-semibold text-gray-300">Classes in School</h4>
+              {classesLoading && <span className="text-xs text-gray-500">Refreshing...</span>}
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-750 border-b border-gray-700">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Code</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Name</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Grade</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Status</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-400">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-700">
+                  {classes.map((schoolClass) => (
+                    <tr key={schoolClass.id} className="hover:bg-gray-750">
+                      <td className="px-4 py-3 text-sm text-white font-semibold">{schoolClass.class_code}</td>
+                      <td className="px-4 py-3 text-sm text-gray-200">{schoolClass.class_name}</td>
+                      <td className="px-4 py-3 text-sm text-gray-400">
+                        {schoolClass.grade_level ? `Grade ${schoolClass.grade_level}` : '-'}
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${schoolClass.is_active ? 'bg-green-500/20 text-green-300' : 'bg-gray-600/40 text-gray-300'}`}>
+                          {schoolClass.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => handleEditClass(schoolClass)}
+                          className="text-cyan-400 hover:text-cyan-300 text-sm"
+                        >
+                          Edit
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {classes.length === 0 && (
+              <div className="p-6 text-center text-gray-500">No classes created yet.</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'teachers' && (
+        <div className="space-y-6">
+          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <h3 className="text-lg font-semibold mb-4">Assign Teacher to Class + Subject</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Class</label>
+                <select
+                  value={assignmentClassId}
+                  onChange={(e) => setAssignmentClassId(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                >
+                  <option value="">Select class</option>
+                  {classes.map((cls) => (
+                    <option key={cls.id} value={cls.id}>
+                      {cls.class_code} — {cls.class_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Teacher</label>
+                <select
+                  value={assignmentTeacherId}
+                  onChange={(e) => setAssignmentTeacherId(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                >
+                  <option value="">Select teacher</option>
+                  {teachers.map((teacher) => (
+                    <option key={teacher.user_id} value={teacher.user_id}>
+                      {teacher.username}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="lg:col-span-2">
+                <label className="block text-sm font-medium text-gray-400 mb-1">Subjects</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={assignmentSubjectInput}
+                    onChange={(e) => setAssignmentSubjectInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddSubject();
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                    placeholder="e.g. Mathematics"
+                  />
+                  <button
+                    onClick={handleAddSubject}
+                    className="px-3 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg text-sm"
+                  >
+                    Add
+                  </button>
+                </div>
+                {assignmentSubjects.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {assignmentSubjects.map((subject) => (
+                      <span key={subject} className="px-2 py-1 rounded-full bg-gray-700 text-xs text-gray-200 flex items-center gap-2">
+                        {subject}
+                        <button
+                          onClick={() => setAssignmentSubjects((prev) => prev.filter((item) => item !== subject))}
+                          className="text-gray-400 hover:text-white"
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-4 mt-4">
+              <label className="flex items-center gap-2 text-sm text-gray-300">
+                <input
+                  type="checkbox"
+                  checked={assignmentActive}
+                  onChange={(e) => setAssignmentActive(e.target.checked)}
+                  className="rounded border-gray-600 bg-gray-700 text-cyan-500 focus:ring-cyan-500"
+                />
+                Active assignment
+              </label>
+              <button
+                onClick={handleAssignTeacher}
+                disabled={assignmentSaving}
+                className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 rounded-lg transition-colors font-medium"
+              >
+                {assignmentSaving ? 'Assigning...' : 'Assign Teacher'}
+              </button>
+            </div>
+            {teachers.length === 0 && (
+              <p className="text-xs text-gray-500 mt-3">No teachers found for this school yet.</p>
+            )}
+          </div>
+
+          <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+            <div className="p-4 border-b border-gray-700 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <h4 className="text-sm font-semibold text-gray-300">Current Assignments</h4>
+              <div className="flex flex-wrap gap-3">
+                <select
+                  value={assignmentFilterClassId}
+                  onChange={(e) => setAssignmentFilterClassId(e.target.value)}
+                  className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white"
+                >
+                  <option value="">All classes</option>
+                  {classes.map((cls) => (
+                    <option key={cls.id} value={cls.id}>
+                      {cls.class_code}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={assignmentFilterTeacherId}
+                  onChange={(e) => setAssignmentFilterTeacherId(e.target.value)}
+                  className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white"
+                >
+                  <option value="">All teachers</option>
+                  {teachers.map((teacher) => (
+                    <option key={teacher.user_id} value={teacher.user_id}>
+                      {teacher.username}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-750 border-b border-gray-700">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Class</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Teacher</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Subject</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-700">
+                  {filteredTeacherAssignments.map((assignment) => {
+                    const cls = classById[assignment.class_id];
+                    const teacher = teachers.find((t) => t.user_id === assignment.teacher_user_id);
+                    return (
+                      <tr key={assignment.id} className="hover:bg-gray-750">
+                        <td className="px-4 py-3 text-sm text-gray-200">
+                          {cls ? `${cls.class_code} — ${cls.class_name}` : assignment.class_id}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-200">
+                          {teacher?.username || assignment.teacher_user_id}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-300">{assignment.subject}</td>
+                        <td className="px-4 py-3 text-sm">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${assignment.active ? 'bg-green-500/20 text-green-300' : 'bg-gray-600/40 text-gray-300'}`}>
+                            {assignment.active ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {filteredTeacherAssignments.length === 0 && (
+              <div className="p-6 text-center text-gray-500">No assignments found.</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'students' && (
+        <div className="space-y-6">
+          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <h3 className="text-lg font-semibold mb-4">Enroll or Move Student</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Student</label>
+                <select
+                  value={selectedStudentId}
+                  onChange={(e) => {
+                    const studentId = e.target.value;
+                    setSelectedStudentId(studentId);
+                    setSelectedClassId(studentAssignments[studentId] || '');
+                  }}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                >
+                  <option value="">Select student</option>
+                  {students.map((student) => (
+                    <option key={student.user_id} value={student.user_id}>
+                      {student.username}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Class</label>
+                <select
+                  value={selectedClassId}
+                  onChange={(e) => setSelectedClassId(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                >
+                  <option value="">Select class</option>
+                  {classes.map((cls) => (
+                    <option key={cls.id} value={cls.id}>
+                      {cls.class_code} — {cls.class_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-end">
+                <button
+                  onClick={handleEnrollStudent}
+                  disabled={studentSaving}
+                  className="w-full px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 rounded-lg transition-colors font-medium"
+                >
+                  {studentSaving ? 'Saving...' : 'Save Enrollment'}
+                </button>
+              </div>
+            </div>
+            {selectedStudentId && (
+              <p className="text-xs text-gray-500 mt-2">
+                Current class:{' '}
+                {studentAssignments[selectedStudentId] && classById[studentAssignments[selectedStudentId] || '']
+                  ? `${classById[studentAssignments[selectedStudentId] || '']?.class_code}`
+                  : 'None'}
+              </p>
+            )}
+          </div>
+
+          <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+            <div className="p-4 border-b border-gray-700 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <h4 className="text-sm font-semibold text-gray-300">Students in School</h4>
+              <input
+                type="text"
+                value={studentSearch}
+                onChange={(e) => setStudentSearch(e.target.value)}
+                placeholder="Search students..."
+                className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white"
+              />
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-750 border-b border-gray-700">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Student</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Email</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Class</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-400">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-700">
+                  {filteredStudents.map((student) => {
+                    const classId = studentAssignments[student.user_id];
+                    const cls = classId ? classById[classId] : null;
+                    return (
+                      <tr key={student.user_id} className="hover:bg-gray-750">
+                        <td className="px-4 py-3 text-sm text-gray-200">{student.username}</td>
+                        <td className="px-4 py-3 text-sm text-gray-400">{student.email}</td>
+                        <td className="px-4 py-3 text-sm text-gray-300">
+                          {cls ? `${cls.class_code} — ${cls.class_name}` : 'Unassigned'}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={() => {
+                              setSelectedStudentId(student.user_id);
+                              setSelectedClassId(classId || '');
+                            }}
+                            className="text-cyan-400 hover:text-cyan-300 text-sm"
+                          >
+                            Select
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {filteredStudents.length === 0 && (
+              <div className="p-6 text-center text-gray-500">No students found.</div>
             )}
           </div>
         </div>
