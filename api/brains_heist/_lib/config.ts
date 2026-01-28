@@ -2,7 +2,7 @@ const readEnv = (key: string): string | undefined => {
   if (typeof process === 'undefined') {
     return undefined;
   }
-  return process.env[key] ?? process.env[`VITE_${key}`];
+  return process.env[key];
 };
 
 const requiredEnv = (key: string): string => {

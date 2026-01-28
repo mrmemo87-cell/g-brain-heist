@@ -501,16 +501,16 @@ export const ExamGuard = {
     state.storedUserSelect = config.promptContainer.style.userSelect;
     config.promptContainer.style.userSelect = 'none';
 
-    addListener(config.promptContainer, 'selectstart', handleSelectStart);
-    addListener(config.promptContainer, 'contextmenu', handleContextMenu);
-    addListener(config.editor, 'contextmenu', handleContextMenu);
+    addListener(config.promptContainer, 'selectstart', handleSelectStart as EventListener);
+    addListener(config.promptContainer, 'contextmenu', handleContextMenu as EventListener);
+    addListener(config.editor, 'contextmenu', handleContextMenu as EventListener);
 
-    addListener(document, 'copy', handleCopy);
-    addListener(document, 'cut', handleCut);
-    addListener(config.editor, 'paste', handlePaste);
-    addListener(config.editor, 'dragover', handleDragOver);
-    addListener(config.editor, 'drop', handleDrop);
-    addListener(document, 'keydown', handleShortcut, true);
+    addListener(document, 'copy', handleCopy as EventListener);
+    addListener(document, 'cut', handleCut as EventListener);
+    addListener(config.editor, 'paste', handlePaste as EventListener);
+    addListener(config.editor, 'dragover', handleDragOver as EventListener);
+    addListener(config.editor, 'drop', handleDrop as EventListener);
+    addListener(document, 'keydown', handleShortcut as EventListener, true);
 
     addListener(document, 'visibilitychange', handleVisibilityChange);
     addListener(window, 'blur', handleBlur);

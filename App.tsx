@@ -15,7 +15,7 @@ import LevelUpModal from './components/LevelUpModal';
 import TutorialModal from './components/TutorialModal';
 import HelpModal from './components/HelpModal';
 import { ToastContainer } from './components/ToastNotification';
-import { isAdmin } from './services/adminService';
+import { isSuperadmin } from './services/adminService';
 import { isSchoolAdmin } from './services/schoolAdminService';
 import { audioService } from './services/audioService';
 import { aiHostService } from './services/aiHostService';
@@ -100,6 +100,7 @@ const writeCache = <T,>(key: string, value: T) => {
 const App: React.FC<AppProps> = ({ onLogout }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [appMode, setAppMode] = useState<'pending' | 'player' | 'admin'>('pending');
+  const [isAdminMode, setIsAdminMode] = useState(false);
   const [tasks, setTasks] = useState<Task[]>(() => readCache<Task[]>(CACHE_KEYS.tasks) ?? []);
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>(DEFAULT_SESSION_STATUS);
   const [caps, setCaps] = useState<Caps | null>(() => readCache<Caps>(CACHE_KEYS.caps));
@@ -157,7 +158,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const isIeltsOnlyUser =
     profile?.school_name?.trim().toLowerCase() === IELTS_ONLY_SCHOOL_NAME.toLowerCase();
   const isPlayerMode = appMode === 'player';
-  const isAdminMode = appMode === 'admin';
   const hasSchool = Boolean(profile?.school_id);
 
   const SkeletonBlock: React.FC<{ className?: string }> = ({ className }) => (
@@ -251,6 +251,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const handleViewChange = (nextView: typeof view) => {
     if (!hasSchool && ['clan', 'leaderboard', 'phase1_play', 'phase1_leaderboard', 'phase1_admin', 'school_admin'].includes(nextView)) {
       addToast('Join a school to access school-based features.', 'info');
+      return;
+    }
+    if (!isAdminMode && nextView === 'admin') {
+      addToast('Admin access requires server verification.', 'error');
+      setView('dashboard');
       return;
     }
     if (isAdminMode && nextView !== 'admin') {
@@ -499,6 +504,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     setSessionMissing(false);
     setIsInteractive(false);
     setAppMode('pending');
+    setIsAdminMode(false);
 
     try {
       const { data, error: sessionError } = await supabase.auth.getSession();
@@ -511,57 +517,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         setSessionMissing(true);
         return;
       }
-
-      const { data: isSuperadmin, error: superadminError } = await supabase.rpc('rpc_is_superadmin');
-
-      if (!superadminError && isSuperadmin === true) {
-        console.info('[admin] Superadmin detected, entering admin mode');
-        const user = data.session.user;
-        const emailUsername = user.email?.split('@')[0] || 'admin';
-        const displayName = user.user_metadata?.['full_name'] || user.user_metadata?.['name'];
-        const username = displayName || emailUsername;
-
-        const adminProfile: Profile = {
-          id: user.id,
-          username,
-          grade: null,
-          batch: null,
-          role: 'admin',
-          school_id: null,
-          school_name: null,
-          school_logo_url: null,
-          needs_setup: false,
-          avatar_url:
-            user.user_metadata?.['avatar_url'] || `https://picsum.photos/seed/${username}/100/100`,
-          level: 0,
-          xp: 0,
-          coins: 0,
-          gemstones: 0,
-          streak: 0,
-          pvp_score: 0,
-          last_seen: new Date().toISOString(),
-          ap_now: 0,
-          ap_max: 0,
-          attack_power: 0,
-          defense_power: 0,
-          admin_visible: false,
-          is_admin: true,
-          is_banned: false,
-        };
-
-        setProfile(adminProfile);
-        setAppMode('admin');
-        setView('admin');
-        setIsInteractive(true);
-        return;
-      }
-
-      if (superadminError) {
-        console.warn('Failed to check superadmin status, continuing player boot.', superadminError);
-      }
-
-      setAppMode('player');
-      loadCachedData();
 
       const { session, profile: profileData } = await GameService.getCriticalBootData({
         signal: criticalController.signal,
@@ -590,6 +545,24 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         setTutorialChecked(true);
       } else if (!tutorialCheckedRef.current) {
         setTutorialChecked(true);
+      }
+
+      let isVerifiedAdmin = false;
+      try {
+        isVerifiedAdmin = await isSuperadmin();
+      } catch (adminError) {
+        console.warn('Failed to check superadmin status, continuing player boot.', adminError);
+      }
+
+      if (isVerifiedAdmin) {
+        console.info('[admin] Superadmin detected, entering admin mode');
+        setIsAdminMode(true);
+        setAppMode('admin');
+        setView('admin');
+      } else {
+        setIsAdminMode(false);
+        setAppMode('player');
+        loadCachedData();
       }
 
       requestAnimationFrame(() => {
@@ -759,6 +732,13 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     }
   }, [sessionStatus, isPlayerMode]);
 
+  useEffect(() => {
+    if (!isAdminMode && view === 'admin') {
+      addToast('Admin access requires server verification.', 'error');
+      setView('dashboard');
+    }
+  }, [addToast, isAdminMode, view]);
+
   const cinematicViewClass = useMemo(() => {
     if (sessionStatus?.active) {
       return 'cinematic-view cinematic-view--alert';
@@ -772,7 +752,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, [view, sessionStatus?.active]);
 
   const isStudent = profile?.role === 'student';
-  const isAdminUser = profile ? isAdmin(profile) : false;
+  const isAdminUser = isAdminMode;
 
   // Auto-refresh profile every 60 seconds to update AP regeneration
   useEffect(() => {
@@ -1449,7 +1429,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         case 'teacher':
             return renderLazy(<TeacherPortal profile={profile} onComplete={handleViewComplete} onLockdown={() => handleViewChange('lockdown')} />);
         case 'admin':
-            return renderLazy(<AdminPortal profile={profile} onComplete={handleViewComplete} addToast={addToast} />);
+            return isAdminMode
+              ? renderLazy(<AdminPortal profile={profile} onComplete={handleViewComplete} addToast={addToast} />)
+              : null;
         case 'tournament':
             return renderLazy(<TournamentHub profile={profile} onClose={handleViewComplete} addToast={addToast} />);
         case 'tournament_admin':
@@ -1687,6 +1669,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           profile ? (
             <Header
               profile={profile}
+              isAdminMode={isAdminMode}
               onLogout={onLogout}
               currentView={view}
               onBackToDashboard={() => handleViewChange('dashboard')}

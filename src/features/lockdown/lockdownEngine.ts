@@ -67,7 +67,9 @@ const resolveUniqueClanColor = (clanId: string, usedColors: Set<string>) => {
 
 const assignParticipantColor = (state: GameState, action: JoinGameAction) => {
   const existingPlayers = Object.values(state.players);
-  const usedColors = new Set(existingPlayers.map((player) => player.color).filter(Boolean));
+  const usedColors = new Set(
+    existingPlayers.map((player) => player.color).filter((color): color is string => Boolean(color))
+  );
   if (action.clanId) {
     const existingClanColor = existingPlayers.find((player) => player.clanId === action.clanId && player.color)?.color;
     if (existingClanColor) {

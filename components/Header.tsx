@@ -6,7 +6,6 @@ import { audioService } from '../services/audioService';
 import { NotificationCenter } from './NotificationCenter';
 import { notificationService } from '../services/notificationService';
 import { update_avatar, upload_avatar_file } from '../services/gameService';
-import { isAdmin } from '../services/adminService';
 import SettingsModal from './SettingsModal';
 import UserProfileModal from './UserProfileModal';
 import '../src/styles/full-mode.css';
@@ -77,6 +76,7 @@ const StatChip: React.FC<{ icon: React.ReactNode; value: number; 'data-testid': 
 
 interface HeaderProps {
   profile: Profile;
+  isAdminMode: boolean;
   onLogout: () => void;
   currentView: string;
   onBackToDashboard?: () => void;
@@ -88,7 +88,7 @@ interface HeaderProps {
   onProfileRefresh?: () => Promise<void>;
 }
 
-const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard, onShowHelp, onNavigate, liteMode, onToggleLiteMode, onProfileAvatarChange, onProfileRefresh }) => {
+const Header: React.FC<HeaderProps> = ({ profile, isAdminMode, onLogout, currentView, onBackToDashboard, onShowHelp, onNavigate, liteMode, onToggleLiteMode, onProfileAvatarChange, onProfileRefresh }) => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -390,7 +390,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
             <button className="fullMode-icon-btn" onClick={() => onShowHelp?.()} aria-label="Help">
               <span>❓</span>
             </button>
-            {isAdmin(profile) && (
+            {isAdminMode && (
               <button className="fullMode-icon-btn fullMode-icon-btn--admin" onClick={() => onNavigate?.('admin')} aria-label="Admin Portal">
                 <span>👑</span>
               </button>
@@ -528,7 +528,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                         <span className="text-lg">⚙️</span>
                         Settings
                       </button>
-                      {isAdmin(profile) && (
+                      {isAdminMode && (
                         <button
                           type="button"
                           onClick={() => {
@@ -758,7 +758,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
               </button>
 
               {/* Admin Button (only for admins) */}
-              {isAdmin(profile) && (
+              {isAdminMode && (
                 <button 
                   onClick={() => onNavigate?.('admin')}
                   className="p-2.5 rounded-xl bg-gradient-to-br from-amber-600/40 to-yellow-600/40 border border-amber-500/80 hover:border-amber-400 hover:bg-amber-500/20 transition-all hover:scale-110 backdrop-blur-sm shadow-lg shadow-amber-500/30 animate-pulse"
@@ -798,10 +798,11 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
 
       {/* Notification Center */}
       {showSettingsModal && (
-        <SettingsModal
-          onClose={() => setShowSettingsModal(false)}
-          profile={profile}
-          avatarPresets={avatarPresets}
+            <SettingsModal
+              onClose={() => setShowSettingsModal(false)}
+              profile={profile}
+              isAdminMode={isAdminMode}
+              avatarPresets={avatarPresets}
           selectedAvatar={selectedAvatar}
           uploadingAvatar={uploadingAvatar}
           avatarUploadError={avatarUploadError || ''}

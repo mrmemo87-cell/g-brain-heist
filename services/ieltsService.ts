@@ -700,7 +700,7 @@ export const fetchAllIeltsUsers = async () => {
 
 export const fetchIeltsContent = async () => {
   // Fetch each with error handling - some tables may not exist yet
-  const fetchWithFallback = async (query: Promise<any>) => {
+  const fetchWithFallback = async (query: PromiseLike<any>) => {
     try {
       const result = await query;
       if (result.error) {

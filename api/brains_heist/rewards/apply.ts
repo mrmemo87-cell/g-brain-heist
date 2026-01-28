@@ -54,8 +54,8 @@ const handler: NextApiHandler = async (req, res) => {
       }
     }
 
-    if (applyLevelMilestone && xpStatus && typeof xpStatus.level === 'number' && xpStatus.level > previousLevel) {
-      if (xpStatus.level % LEVEL_MILESTONE_INTERVAL === 0) {
+    if (applyLevelMilestone && xpStatus && typeof xpStatus['level'] === 'number' && xpStatus['level'] > previousLevel) {
+      if (xpStatus['level'] % LEVEL_MILESTONE_INTERVAL === 0) {
         nextGemstones += LEVEL_MILESTONE_GEMSTONE_REWARD;
       }
     }

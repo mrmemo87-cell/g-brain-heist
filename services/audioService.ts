@@ -59,6 +59,7 @@ class AudioManager {
     const soundFileMap: Record<SoundEffect, string> = {
       'achievement': 'tada',    // Use tada for achievement (no achievement.mp3)
       'activate': 'activate',
+      'bg': 'bg',
       'buy': 'buy',
       'collect': 'collect',
       'correct': 'correct',
