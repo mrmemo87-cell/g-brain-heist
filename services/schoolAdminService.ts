@@ -44,6 +44,37 @@ export interface SchoolAdminOverview {
   stats: SchoolStats;
 }
 
+export interface SchoolClass {
+  id: string;
+  school_id: string;
+  class_code: string;
+  class_name: string;
+  grade_level: number | null;
+  is_active: boolean;
+}
+
+export interface SchoolTeacher {
+  user_id: string;
+  username: string;
+  email: string;
+  subject_specializations: string[];
+  verified: boolean;
+}
+
+export interface ClassTeacherAssignment {
+  id: string;
+  school_id: string;
+  class_id: string;
+  teacher_user_id: string;
+  subject: string;
+  active: boolean;
+}
+
+export interface ClassStudentAssignment {
+  class_id: string;
+  student_id: string;
+}
+
 function getSettingBool(settings: Record<string, any> | null | undefined, key: string, defaultValue: boolean) {
   const raw = settings?.[key];
   if (typeof raw === 'boolean') return raw;
@@ -71,6 +102,7 @@ export async function isSchoolAdmin(): Promise<boolean> {
       .from('school_members')
       .select('role_in_school')
       .eq('user_id', user.id)
+      .eq('status', 'active')
       .eq('role_in_school', 'school_admin')
       .maybeSingle();
 
@@ -461,6 +493,250 @@ export async function updateSchoolSettings(
     return { success: true };
   } catch (err) {
     console.error('Exception updating school settings:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+// ============================================
+// School Admin Class + Assignment Tools
+// ============================================
+
+export async function listSchoolClasses(schoolId: string): Promise<SchoolClass[]> {
+  try {
+    const { data, error } = await supabase
+      .from('classes')
+      .select('id, school_id, class_code, class_name, grade_level, is_active')
+      .eq('school_id', schoolId)
+      .order('grade_level', { ascending: true })
+      .order('class_name', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching classes:', error);
+      return [];
+    }
+
+    return (data || []).map((row) => ({
+      id: row.id,
+      school_id: row.school_id,
+      class_code: row.class_code,
+      class_name: row.class_name,
+      grade_level: row.grade_level ?? null,
+      is_active: !!row.is_active,
+    }));
+  } catch (err) {
+    console.error('Exception fetching classes:', err);
+    return [];
+  }
+}
+
+export async function saveSchoolClass(
+  schoolId: string,
+  payload: {
+    id?: string;
+    class_code: string;
+    class_name: string;
+    grade_level: number | null;
+    is_active: boolean;
+  }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (payload.id) {
+      const { error } = await supabase
+        .from('classes')
+        .update({
+          class_code: payload.class_code,
+          class_name: payload.class_name,
+          grade_level: payload.grade_level,
+          is_active: payload.is_active,
+        })
+        .eq('id', payload.id)
+        .eq('school_id', schoolId);
+
+      if (error) {
+        console.error('Error updating class:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    }
+
+    const { error } = await supabase
+      .from('classes')
+      .insert({
+        school_id: schoolId,
+        class_code: payload.class_code,
+        class_name: payload.class_name,
+        grade_level: payload.grade_level,
+        is_active: payload.is_active,
+      });
+
+    if (error) {
+      console.error('Error creating class:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error('Exception saving class:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+export async function listSchoolTeachers(schoolId: string): Promise<SchoolTeacher[]> {
+  try {
+    const { members } = await listSchoolMembers(schoolId, { role: 'teacher', limit: 200 });
+    const teacherIds = members.map((member) => member.user_id);
+
+    if (teacherIds.length === 0) return [];
+
+    const { data: teacherRows, error } = await supabase
+      .from('teachers')
+      .select('user_id, subject_specializations, verified')
+      .in('user_id', teacherIds);
+
+    if (error) {
+      console.error('Error fetching teachers table:', error);
+    }
+
+    const teacherMap = new Map<string, { subject_specializations: string[]; verified: boolean }>();
+    (teacherRows || []).forEach((row) => {
+      teacherMap.set(row.user_id, {
+        subject_specializations: Array.isArray(row.subject_specializations) ? row.subject_specializations : [],
+        verified: !!row.verified,
+      });
+    });
+
+    return members.map((member) => {
+      const teacherMeta = teacherMap.get(member.user_id);
+      return {
+        user_id: member.user_id,
+        username: member.username,
+        email: member.email,
+        subject_specializations: teacherMeta?.subject_specializations ?? [],
+        verified: teacherMeta?.verified ?? false,
+      };
+    });
+  } catch (err) {
+    console.error('Exception fetching teachers:', err);
+    return [];
+  }
+}
+
+export async function listTeacherAssignments(schoolId: string): Promise<ClassTeacherAssignment[]> {
+  try {
+    const { data, error } = await supabase
+      .from('class_teacher_assignments')
+      .select('id, school_id, class_id, teacher_user_id, subject, active')
+      .eq('school_id', schoolId)
+      .order('class_id', { ascending: true })
+      .order('subject', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching teacher assignments:', error);
+      return [];
+    }
+
+    return (data || []).map((row) => ({
+      id: row.id,
+      school_id: row.school_id,
+      class_id: row.class_id,
+      teacher_user_id: row.teacher_user_id,
+      subject: row.subject,
+      active: !!row.active,
+    }));
+  } catch (err) {
+    console.error('Exception fetching teacher assignments:', err);
+    return [];
+  }
+}
+
+export async function assignTeacherToClassSubject(
+  schoolId: string,
+  classId: string,
+  teacherUserId: string,
+  subject: string,
+  active: boolean
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { data, error } = await supabase.rpc('admin_assign_teacher_to_class_subject', {
+      p_school_id: schoolId,
+      p_class_id: classId,
+      p_teacher_user_id: teacherUserId,
+      p_subject: subject,
+      p_active: active,
+    });
+
+    if (error) {
+      console.error('Error assigning teacher:', error);
+      return { success: false, error: error.message };
+    }
+
+    if (data && data.success === false) {
+      return { success: false, error: data.error || 'Failed to assign teacher' };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error('Exception assigning teacher:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+export async function listClassStudents(classIds: string[]): Promise<ClassStudentAssignment[]> {
+  try {
+    if (classIds.length === 0) return [];
+
+    const { data, error } = await supabase
+      .from('class_students')
+      .select('class_id, student_id')
+      .in('class_id', classIds);
+
+    if (error) {
+      console.error('Error fetching class students:', error);
+      return [];
+    }
+
+    return (data || []).map((row) => ({
+      class_id: row.class_id,
+      student_id: row.student_id,
+    }));
+  } catch (err) {
+    console.error('Exception fetching class students:', err);
+    return [];
+  }
+}
+
+export async function moveStudentToClass(
+  classIds: string[],
+  studentId: string,
+  newClassId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (classIds.length > 0) {
+      const { error: deleteError } = await supabase
+        .from('class_students')
+        .delete()
+        .eq('student_id', studentId)
+        .in('class_id', classIds);
+
+      if (deleteError) {
+        console.error('Error removing old class assignment:', deleteError);
+        return { success: false, error: deleteError.message };
+      }
+    }
+
+    const { error: insertError } = await supabase
+      .from('class_students')
+      .insert({ class_id: newClassId, student_id: studentId });
+
+    if (insertError) {
+      console.error('Error enrolling student:', insertError);
+      return { success: false, error: insertError.message };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error('Exception moving student:', err);
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
