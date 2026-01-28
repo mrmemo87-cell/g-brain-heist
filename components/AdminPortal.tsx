@@ -50,6 +50,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   const [schoolMembersLoading, setSchoolMembersLoading] = useState(false);
   const [schoolMembersError, setSchoolMembersError] = useState<string | null>(null);
   const [schoolAdminActionLoading, setSchoolAdminActionLoading] = useState<string | null>(null);
+  const [isSuperadmin, setIsSuperadmin] = useState(Boolean(profile.is_admin));
   const [stats, setStats] = useState({
     totalUsers: null as number | null,
     totalTeachers: null as number | null,
@@ -180,6 +181,31 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   }, []);
 
   const loadSchoolOptions = useCallback(async () => {
+    const mapSchoolOptions = (rows: any[]) =>
+      rows
+        .map((row) => ({ id: row.id, name: row.name }))
+        .filter((school) => school.id && school.name);
+
+    const { data: adminData, error: adminError } = await supabase.rpc('admin_list_schools');
+    if (!adminError && Array.isArray(adminData)) {
+      setSchoolOptions(mapSchoolOptions(adminData));
+      return;
+    }
+
+    if (adminError) {
+      console.warn('admin_list_schools not available, falling back:', adminError.message);
+    }
+
+    const { data: availableData, error: availableError } = await supabase.rpc('get_available_schools');
+    if (!availableError && Array.isArray(availableData)) {
+      setSchoolOptions(mapSchoolOptions(availableData));
+      return;
+    }
+
+    if (availableError) {
+      console.warn('get_available_schools not available, falling back:', availableError.message);
+    }
+
     const { data, error } = await supabase
       .from('schools')
       .select('id, name')
@@ -301,6 +327,27 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     }
   }, [activeTab, loadSchoolRequests, loadSchoolOptions]);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const checkSuperadmin = async () => {
+      const { data, error } = await supabase.rpc('rpc_is_superadmin');
+      if (error) {
+        console.warn('Failed to check superadmin status:', error.message);
+        return;
+      }
+      if (isMounted) {
+        setIsSuperadmin(Boolean(data));
+      }
+    };
+
+    void checkSuperadmin();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Helper to calculate quiz stats
   const calculateQuizStats = (scores: any[]) => {
     if (scores.length > 0) {
@@ -361,14 +408,17 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   });
 
   const filteredSchoolMembers = schoolMembers.filter((member) => {
+    const role = member.role;
+    const isEligibleRole = role === 'student' || role === 'teacher' || role === 'school_admin';
+    if (!isEligibleRole) return false;
     if (!schoolMemberSearch.trim()) return true;
     const query = schoolMemberSearch.trim().toLowerCase();
     return (
       member.username?.toLowerCase().includes(query) ||
-      member.email?.toLowerCase().includes(query) ||
-      member.role?.toLowerCase().includes(query)
+      member.email?.toLowerCase().includes(query)
     );
   });
+  const currentSchoolAdmin = schoolMembers.find((member) => member.role === 'school_admin');
 
   // Format time taken
   const formatTime = (seconds: number) => {
@@ -1708,97 +1758,128 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                 })}
               </div>
 
-              <div className="card-glass border-2 border-indigo-400/50 p-6">
-                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                  <div>
-                    <h3 className="text-2xl font-heading font-bold text-indigo-200">🏫 School Members</h3>
-                    <p className="text-sm text-gray-400">
-                      Assign the single school admin for a school. Existing admins are replaced.
-                    </p>
+              {isSuperadmin && (
+                <div className="card-glass border-2 border-indigo-400/50 p-6">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-2xl font-heading font-bold text-indigo-200">🏫 School Admin Management</h3>
+                        <span className="rounded-full border border-indigo-300/40 bg-indigo-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-indigo-100">
+                          Superadmin only
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-400">
+                        Assign the single school admin for a school. Existing admins are replaced.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => loadSchoolMembers(schoolAdminSchoolId)}
+                      disabled={!schoolAdminSchoolId || schoolMembersLoading}
+                      className="rounded-lg border border-indigo-400/60 bg-indigo-500/20 px-4 py-2 text-sm font-semibold text-indigo-100 hover:bg-indigo-500/30 disabled:opacity-60"
+                    >
+                      {schoolMembersLoading ? 'Loading...' : 'Load members'}
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => loadSchoolMembers(schoolAdminSchoolId)}
-                    disabled={!schoolAdminSchoolId || schoolMembersLoading}
-                    className="rounded-lg border border-indigo-400/60 bg-indigo-500/20 px-4 py-2 text-sm font-semibold text-indigo-100 hover:bg-indigo-500/30 disabled:opacity-60"
-                  >
-                    {schoolMembersLoading ? 'Loading...' : 'Load members'}
-                  </button>
-                </div>
 
-                <div className="mt-4 grid gap-3 md:grid-cols-[2fr,1fr]">
-                  <select
-                    value={schoolAdminSchoolId}
-                    onChange={(event) => {
-                      const selectedId = event.target.value;
-                      setSchoolAdminSchoolId(selectedId);
-                      setSchoolMembers([]);
-                      setSchoolMembersError(null);
-                      if (selectedId) {
-                        loadSchoolMembers(selectedId);
-                      }
-                    }}
-                    className="w-full rounded-lg border border-indigo-400/30 bg-black/40 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                  >
-                    <option value="">Select a school</option>
-                    {schoolOptions.map((school) => (
-                      <option key={school.id} value={school.id}>
-                        {school.name}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="text"
-                    value={schoolMemberSearch}
-                    onChange={(event) => setSchoolMemberSearch(event.target.value)}
-                    placeholder="Filter members..."
-                    className="w-full rounded-lg border border-indigo-400/30 bg-black/40 px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                  />
-                </div>
-
-                {schoolMembersError && (
-                  <div className="mt-4 rounded-lg border border-red-400/40 bg-red-500/10 px-4 py-2 text-sm text-red-200">
-                    {schoolMembersError}
+                  <div className="mt-4 grid gap-3 md:grid-cols-[2fr,1fr]">
+                    <select
+                      value={schoolAdminSchoolId}
+                      onChange={(event) => {
+                        const selectedId = event.target.value;
+                        setSchoolAdminSchoolId(selectedId);
+                        setSchoolMembers([]);
+                        setSchoolMembersError(null);
+                        if (selectedId) {
+                          loadSchoolMembers(selectedId);
+                        }
+                      }}
+                      className="w-full rounded-lg border border-indigo-400/30 bg-black/40 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                    >
+                      <option value="">Select a school</option>
+                      {schoolOptions.map((school) => (
+                        <option key={school.id} value={school.id}>
+                          {school.name}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      value={schoolMemberSearch}
+                      onChange={(event) => setSchoolMemberSearch(event.target.value)}
+                      placeholder="Search username or email..."
+                      className="w-full rounded-lg border border-indigo-400/30 bg-black/40 px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                    />
                   </div>
-                )}
 
-                {!schoolMembersLoading && schoolAdminSchoolId && filteredSchoolMembers.length === 0 && (
-                  <div className="mt-4 rounded-lg border border-white/10 bg-black/30 p-4 text-center text-sm text-gray-400">
-                    No members found for this school.
-                  </div>
-                )}
+                  {schoolAdminSchoolId && (
+                    <div className="mt-4 rounded-lg border border-indigo-400/20 bg-indigo-500/10 px-4 py-2 text-sm text-indigo-100">
+                      {currentSchoolAdmin ? (
+                        <span>
+                          Current school admin: <strong>{currentSchoolAdmin.username || currentSchoolAdmin.email}</strong>
+                          {currentSchoolAdmin.email ? ` (${currentSchoolAdmin.email})` : ''}
+                        </span>
+                      ) : (
+                        <span>No school admin assigned yet.</span>
+                      )}
+                    </div>
+                  )}
 
-                {filteredSchoolMembers.length > 0 && (
-                  <div className="mt-4 space-y-3">
-                    {filteredSchoolMembers.map((member) => {
-                      const isAdmin = member.role === 'school_admin';
-                      return (
-                        <div
-                          key={member.user_id}
-                          className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white/10 bg-black/40 p-3"
-                        >
-                          <div>
-                            <p className="font-semibold text-white">
-                              {member.username || member.email || member.user_id}
-                            </p>
-                            <p className="text-xs text-gray-400">
-                              {member.email || 'No email'} • {member.role.replace(/_/g, ' ')}
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleSetSchoolAdmin(schoolAdminSchoolId, member.user_id)}
-                            disabled={isAdmin || schoolAdminActionLoading === member.user_id}
-                            className="rounded-lg border border-indigo-400/50 bg-indigo-500/20 px-3 py-2 text-xs font-semibold text-indigo-100 hover:bg-indigo-500/30 disabled:opacity-60"
+                  {schoolMembersError && (
+                    <div className="mt-4 rounded-lg border border-red-400/40 bg-red-500/10 px-4 py-2 text-sm text-red-200">
+                      {schoolMembersError}
+                    </div>
+                  )}
+
+                  {!schoolMembersLoading && schoolAdminSchoolId && filteredSchoolMembers.length === 0 && (
+                    <div className="mt-4 rounded-lg border border-white/10 bg-black/30 p-4 text-center text-sm text-gray-400">
+                      No members found for this school.
+                    </div>
+                  )}
+
+                  {filteredSchoolMembers.length > 0 && (
+                    <div className="mt-4 space-y-3">
+                      {filteredSchoolMembers.map((member) => {
+                        const isAdmin = member.role === 'school_admin';
+                        return (
+                          <div
+                            key={member.user_id}
+                            className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3 ${
+                              isAdmin
+                                ? 'border-indigo-400/60 bg-indigo-500/15'
+                                : 'border-white/10 bg-black/40'
+                            }`}
                           >
-                            {isAdmin ? 'Current admin' : 'Make School Admin'}
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+                            <div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="font-semibold text-white">
+                                  {member.username || member.email || member.user_id}
+                                </p>
+                                {isAdmin && (
+                                  <span className="rounded-full border border-indigo-300/40 bg-indigo-500/20 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-indigo-100">
+                                    School admin
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-gray-400">
+                                {member.email || 'No email'} • {member.role.replace(/_/g, ' ')}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleSetSchoolAdmin(schoolAdminSchoolId, member.user_id)}
+                              disabled={isAdmin || schoolAdminActionLoading === member.user_id}
+                              className="rounded-lg border border-indigo-400/50 bg-indigo-500/20 px-3 py-2 text-xs font-semibold text-indigo-100 hover:bg-indigo-500/30 disabled:opacity-60"
+                            >
+                              {isAdmin ? 'Current admin' : 'Make School Admin'}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
