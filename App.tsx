@@ -1441,7 +1441,15 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         case 'raid_admin':
             return renderLazy(<RaidAdminView profile={profile} onComplete={handleViewComplete} addToast={addToast} />);
         case 'teacher':
-            return renderLazy(<TeacherPortal profile={profile} onComplete={handleViewComplete} onLockdown={() => handleViewChange('lockdown')} />);
+            return renderLazy(
+              <TeacherPortal
+                profile={profile}
+                onComplete={handleViewComplete}
+                onLockdown={() => handleViewChange('lockdown')}
+                isSchoolAdmin={isUserSchoolAdmin}
+                onOpenSchoolAdmin={isUserSchoolAdmin && hasSchool ? () => handleViewChange('school_admin') : undefined}
+              />
+            );
         case 'admin':
             return isAdminMode
               ? renderLazy(<AdminPortal profile={profile} onComplete={handleViewComplete} addToast={addToast} />)
@@ -1524,6 +1532,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         profile={profile}
                         onComplete={handleViewComplete}
                         onLockdown={() => handleViewChange('lockdown')}
+                        isSchoolAdmin={isUserSchoolAdmin}
+                        onOpenSchoolAdmin={isUserSchoolAdmin && hasSchool ? () => handleViewChange('school_admin') : undefined}
                     />
                 );
             }
