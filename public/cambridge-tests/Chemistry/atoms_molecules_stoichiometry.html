@@ -1911,6 +1911,10 @@
           return;
         }
 
+        // Hide prime overlay since student has already submitted
+        const overlay = document.getElementById('primeOverlay');
+        if (overlay) overlay.classList.add('hidden');
+
         localStorage.setItem(`quiz_submitted_${QUIZ_ID}`, JSON.stringify({
           score: data.score ?? 0,
           total: data.total_questions ?? totalQuestions,
@@ -2203,6 +2207,12 @@
       const codeInput = document.getElementById('primeCodeInput');
       const unlockBtn = document.getElementById('primeUnlockBtn');
       const errorMsg = document.getElementById('primeError');
+
+      // Check if student has already submitted - if so, skip prime lock
+      const savedSubmission = localStorage.getItem(`quiz_submitted_${QUIZ_ID}`);
+      if (savedSubmission) {
+        overlay.classList.add('hidden');
+      }
 
       function handleUnlock() {
         const code = codeInput.value.trim().toLowerCase();
