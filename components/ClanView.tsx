@@ -135,7 +135,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
           setBuffLoadError(null);
           return buffs;
       } catch (error) {
-          setBuffLoadError('Unable to load clan buffs right now. Please try again.');
+          setBuffLoadError('Unable to load clan buffs. Please try again.');
           throw error;
       } finally {
           setIsLoadingBuffs(false);
@@ -425,12 +425,17 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   const handleApproveJoinRequest = async (requestId: string) => {
       setProcessingRequestId(requestId);
       try {
-          const updatedClan = await GameService.clan_approve_join_request(requestId);
-          setClan(updatedClan);
+          await GameService.clan_approve_join_request(requestId);
+          setPendingApprovals((prev) => {
+              const next = prev.filter((request) => request.id !== requestId);
+              onPendingCountChange?.(next.length);
+              return next;
+          });
+          if (clan?.id) {
+              const members = await GameService.clan_get_members_by_id(clan.id);
+              setClan((prev) => (prev ? { ...prev, members } : prev));
+          }
           addToast("Join request approved.", "success");
-          // Refresh pending requests immediately
-          await new Promise(resolve => setTimeout(resolve, 500));
-          await loadPendingJoinRequests();
       } catch (error: any) {
           console.error('Error approving request:', error);
           addToast(error?.message || "Failed to approve request.", "error");
@@ -443,8 +448,12 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
       setProcessingRequestId(requestId);
       try {
           await GameService.clan_reject_join_request(requestId);
+          setPendingApprovals((prev) => {
+              const next = prev.filter((request) => request.id !== requestId);
+              onPendingCountChange?.(next.length);
+              return next;
+          });
           addToast("Join request rejected.", "info");
-          await loadPendingJoinRequests();
       } catch (error: any) {
           addToast(error?.message || "Failed to reject request.", "error");
       } finally {
