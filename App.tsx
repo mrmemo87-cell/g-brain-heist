@@ -1360,6 +1360,17 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   };
 
   const renderView = () => {
+    if (criticalLoading && !profile) {
+      return (
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="flex flex-col items-center gap-3 text-cyan-200">
+            <div className="h-10 w-10 rounded-full border-2 border-cyan-400/70 border-t-transparent animate-spin" />
+            <span className="text-sm">Loading portal…</span>
+          </div>
+        </div>
+      );
+    }
+
     if (isAdminMode) {
       if (!profile) {
         return (
