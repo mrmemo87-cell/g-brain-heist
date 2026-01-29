@@ -19,6 +19,7 @@ interface CambridgeTest {
   isAwaitingMarking?: boolean; // True if submitted but not yet marked
   feedbackReleased?: boolean; // True if teacher has released feedback
   isMarked?: boolean; // True if teacher has marked the test
+  scoresReleased?: boolean; // True if teacher released auto-marked score/report
 }
 
 interface CambridgeTestsHubProps {
@@ -399,7 +400,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       // Fetch completed tests from quiz_scores table (include answers for marking status)
       const { data: completedTests, error } = await supabase
         .from('quiz_scores')
-        .select('quiz_name, score, total_questions, percentage, submitted_at, answers')
+        .select('quiz_name, score, total_questions, percentage, submitted_at, answers, scores_released')
         .eq('student_name', profile.username)
         .order('submitted_at', { ascending: false });
 
@@ -424,6 +425,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
         const feedbackReleased = answers?.feedback?.releasedToStudent === true;
         // Test is marked if requires_marking is explicitly false (was true, now marked)
         const isMarked = test.requiresMarking && answers?.requires_marking === false && answers?.marks !== undefined;
+        const scoresReleased = completion?.scores_released === true;
         
         // DEBUG: Log writing test status
         if (test.requiresMarking) {
@@ -448,6 +450,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           isAwaitingMarking,
           feedbackReleased,
           isMarked,
+          scoresReleased,
         };
       });
 
@@ -471,6 +474,9 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
     }));
     
     const isChemistryTest = test.subject === 'AS Chemistry';
+    if (isChemistryTest && test.isCompleted && !test.scoresReleased) {
+      return;
+    }
     // If this is a retake, clear the previous submission lock from localStorage
     if (test.isCompleted && !isChemistryTest) {
       // Clear the submission lock for writing tests
@@ -922,7 +928,14 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                     gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
                     gap: '20px',
                   }}>
-                    {subjectTests.map(test => (
+                    {subjectTests.map(test => {
+                      const isChemistryTest = test.subject === 'AS Chemistry';
+                      const chemistryReportReady = isChemistryTest && test.isCompleted && test.scoresReleased;
+                      const chemistryLocked = isChemistryTest && test.isCompleted && !test.scoresReleased;
+                      const actionLabel = test.isCompleted
+                        ? (isChemistryTest ? (chemistryReportReady ? '📄 View Report' : '✅ Submitted') : '🔄 Retake Test')
+                        : '▶️ Start Test';
+                      return (
                       <div
                         key={test.id}
                         style={{
@@ -1028,11 +1041,17 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                                 <span style={{
                                   fontSize: '14px',
                                   fontWeight: 'bold',
-                                  color: test.isAwaitingMarking 
-                                    ? '#f59e0b' 
-                                    : '#22c55e',
+                                  color: test.isAwaitingMarking
+                                    ? '#f59e0b'
+                                    : chemistryLocked
+                                      ? '#f59e0b'
+                                      : '#22c55e',
                                 }}>
-                                  {test.isAwaitingMarking ? '⏳ Awaiting Marking' : '✅ Completed'}
+                                  {test.isAwaitingMarking
+                                    ? '⏳ Awaiting Marking'
+                                    : chemistryLocked
+                                      ? '🔒 Awaiting Release'
+                                      : '✅ Completed'}
                                 </span>
                               </div>
                               {test.completedAt && (
@@ -1042,6 +1061,11 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                                     month: 'short',
                                     year: 'numeric',
                                   })}
+                                </p>
+                              )}
+                              {chemistryLocked && (
+                                <p style={{ margin: '8px 0 0', fontSize: '11px', color: 'rgba(255,255,255,0.55)' }}>
+                                  Detailed report will unlock once your teacher releases the results.
                                 </p>
                               )}
                               
@@ -1074,12 +1098,13 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
 
                           <button
                             onClick={() => handleStartTest(test)}
+                            disabled={chemistryLocked}
                             style={{
                               width: '100%',
                               padding: '12px',
                               borderRadius: '10px',
                               border: 'none',
-                              cursor: 'pointer',
+                              cursor: chemistryLocked ? 'not-allowed' : 'pointer',
                               fontSize: '14px',
                               fontWeight: 600,
                               transition: 'all 0.2s',
@@ -1087,13 +1112,14 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                                 ? 'rgba(255,255,255,0.1)'
                                 : 'linear-gradient(135deg, #00f5ff, #00d4aa)',
                               color: test.isCompleted ? '#fff' : '#0f0c29',
+                              opacity: chemistryLocked ? 0.7 : 1,
                             }}
                           >
-                            {test.isCompleted ? '🔄 Retake Test' : '▶️ Start Test'}
+                            {actionLabel}
                           </button>
                         </div>
                       </div>
-                    ))}
+                    )})}
                   </div>
                 )}
               </div>
