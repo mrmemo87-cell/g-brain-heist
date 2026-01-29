@@ -534,6 +534,24 @@
       opacity: 1;
       transform: translateX(-50%) translateY(-6px);
     }
+    .anti-cheat-toast.warning {
+      background: rgba(220, 38, 38, 0.95);
+      border-color: rgba(248, 113, 113, 0.8);
+      color: #fff;
+    }
+    .anti-cheat-card {
+      border-color: rgba(239, 68, 68, 0.55);
+    }
+    .anti-cheat-rules {
+      margin: 12px 0 0;
+      padding-left: 18px;
+      color: #e2e8f0;
+      font-size: 14px;
+    }
+    .anti-cheat-rules li {
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
 
   </style>
 </head>
@@ -598,6 +616,22 @@
       <div class="modal-actions">
         <button class="modal-btn secondary" id="cancelSubmitBtn">Continue editing</button>
         <button class="modal-btn primary" id="confirmSubmitBtn">Submit now</button>
+      </div>
+    </div>
+  </div>
+  
+  <div id="antiCheatModal" class="modal-overlay">
+    <div class="modal-card anti-cheat-card">
+      <h3 class="modal-title">Anti-cheat rules</h3>
+      <p class="modal-body">This test uses anti-cheat protection. Please read before starting:</p>
+      <ul class="anti-cheat-rules">
+        <li>Stay on this tab. The first switch triggers a red warning.</li>
+        <li>A second tab switch will auto-submit your test.</li>
+        <li>Copying and cutting are disabled during the test.</li>
+        <li>Your timer starts only after you click “I understand”.</li>
+      </ul>
+      <div class="modal-actions">
+        <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
       </div>
     </div>
   </div>
@@ -676,10 +710,14 @@
       document.title = `${title} — Part ${part}`;
     }
 
-    function showToast(message) {
+    function showToast(message, options = {}) {
       const toast = document.getElementById('antiCheatToast');
       if (!toast) return;
       toast.textContent = message;
+      toast.classList.remove('warning');
+      if (options.variant === 'warning') {
+        toast.classList.add('warning');
+      }
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 2600);
     }
@@ -1403,6 +1441,8 @@
     const totalQuestions = QUESTIONS.length;
     let hasSubmitted = false;
     let startTime = null;
+    let antiCheatAcknowledged = false;
+    let timerStarted = false;
 
     const QUESTION_TIME_SECONDS = 2 * 60;
     const TEST_DURATION_SECONDS = totalQuestions * QUESTION_TIME_SECONDS;
@@ -1588,6 +1628,7 @@
     }
 
     function checkPreviousSubmission() {
+
       const saved = localStorage.getItem(`quiz_submitted_${QUIZ_ID}`);
       if (!saved) return;
       const data = JSON.parse(saved);
@@ -1607,6 +1648,37 @@
       checkScoreReleaseStatus(data);
     }
     
+    async function checkServerSubmission() {
+      if (hasSubmitted) return;
+      const name = document.getElementById('studentName')?.value.trim();
+      const cls = document.getElementById('studentClass')?.value.trim();
+      if (!name) return;
+      try {
+        const { data, error } = await supabaseClient
+          .from('quiz_scores')
+          .select('submitted_at, scores_released, score, total_questions, percentage')
+          .eq('quiz_name', QUIZ_NAME)
+          .eq('student_name', name)
+          .order('submitted_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (error || !data) {
+          return;
+        }
+
+        localStorage.setItem(`quiz_submitted_${QUIZ_ID}`, JSON.stringify({
+          score: data.score ?? 0,
+          total: data.total_questions ?? totalQuestions,
+          submittedAt: data.submitted_at || new Date().toISOString()
+        }));
+        if (name) localStorage.setItem(`quiz_student_${QUIZ_ID}`, name);
+        if (cls) localStorage.setItem(`quiz_class_${QUIZ_ID}`, cls);
+        checkPreviousSubmission();
+      } catch (err) {
+        console.error('Failed to check previous submission from server:', err);
+      }
+    }
     async function checkScoreReleaseStatus(savedData) {
       const scoreDiv = document.getElementById('score');
       const studentName = document.getElementById('studentName')?.value || localStorage.getItem(`quiz_student_${QUIZ_ID}`) || '';
@@ -1785,6 +1857,36 @@
       }
     }
 
+    function openAntiCheatModal() {
+      const modal = document.getElementById('antiCheatModal');
+      if (!modal) return;
+      modal.classList.add('show');
+    }
+
+    function closeAntiCheatModal() {
+      const modal = document.getElementById('antiCheatModal');
+      if (!modal) return;
+      modal.classList.remove('show');
+    }
+
+    function acknowledgeAntiCheat() {
+      antiCheatAcknowledged = true;
+      closeAntiCheatModal();
+      startTimerIfReady();
+    }
+
+    function startTimerIfReady() {
+      if (timerStarted || hasSubmitted) return;
+      const overlay = document.getElementById('primeOverlay');
+      if (overlay && !overlay.classList.contains('hidden')) return;
+      if (!antiCheatAcknowledged) {
+        openAntiCheatModal();
+        return;
+      }
+      timerStarted = true;
+      startTimer();
+    }
+
     function stopTimer() {
       if (timerInterval) {
         clearInterval(timerInterval);
@@ -1840,7 +1942,7 @@
         if (document.hidden && !hasSubmitted) {
           tabSwitches += 1;
           if (tabSwitches === 1) {
-            showToast('⚠️ Tab switch detected. Please stay on this test.');
+            showToast('🚨 Warning: You switched tabs once. Next switch will auto-submit this test.', { variant: 'warning' });
           } else {
             handleSubmit({ force: true, reason: 'Second tab switch detected. Auto-submit applied.' });
           }
@@ -1861,7 +1963,7 @@
         if (code === PRIME_CODE.toLowerCase()) {
           overlay.classList.add('hidden');
           errorMsg.classList.remove('show');
-          startTimer();
+          startTimerIfReady();
         } else {
           errorMsg.classList.add('show');
           codeInput.value = '';
@@ -1876,6 +1978,8 @@
 
       const confirmBtn = document.getElementById('confirmSubmitBtn');
       const cancelBtn = document.getElementById('cancelSubmitBtn');
+      const antiCheatAcceptBtn = document.getElementById('antiCheatAcceptBtn');
+      if (antiCheatAcceptBtn) antiCheatAcceptBtn.addEventListener('click', acknowledgeAntiCheat);
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
@@ -1884,9 +1988,8 @@
       setupAntiCheat();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
-      if (overlay.classList.contains('hidden')) {
-        startTimer();
-      }
+      checkServerSubmission();
+      startTimerIfReady();
       document.getElementById('submitBtn').addEventListener('click', openSubmitModal);
     });
   </script>
