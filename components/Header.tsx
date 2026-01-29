@@ -6,9 +6,9 @@ import { audioService } from '../services/audioService';
 import { NotificationCenter } from './NotificationCenter';
 import { notificationService } from '../services/notificationService';
 import { update_avatar, upload_avatar_file } from '../services/gameService';
+import { isAdmin } from '../services/adminService';
 import SettingsModal from './SettingsModal';
 import UserProfileModal from './UserProfileModal';
-import '../src/styles/full-mode.css';
 
 // Custom hook for animating number changes
 const useAnimatedValue = (endValue: number, duration: number = 500) => {
@@ -76,7 +76,6 @@ const StatChip: React.FC<{ icon: React.ReactNode; value: number; 'data-testid': 
 
 interface HeaderProps {
   profile: Profile;
-  isAdminMode: boolean;
   onLogout: () => void;
   currentView: string;
   onBackToDashboard?: () => void;
@@ -88,7 +87,7 @@ interface HeaderProps {
   onProfileRefresh?: () => Promise<void>;
 }
 
-const Header: React.FC<HeaderProps> = ({ profile, isAdminMode, onLogout, currentView, onBackToDashboard, onShowHelp, onNavigate, liteMode, onToggleLiteMode, onProfileAvatarChange, onProfileRefresh }) => {
+const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard, onShowHelp, onNavigate, liteMode, onToggleLiteMode, onProfileAvatarChange, onProfileRefresh }) => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -102,9 +101,6 @@ const Header: React.FC<HeaderProps> = ({ profile, isAdminMode, onLogout, current
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
-  const xpStatus = profile.xp_status;
-  const xpPercent = Math.min(100, Math.round((xpStatus?.progress ?? 0) * 100));
-  const xpCurrent = xpStatus?.xp_into_level ?? profile.xp ?? 0;
 
   const avatarPresets = [
     'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
@@ -124,8 +120,22 @@ const Header: React.FC<HeaderProps> = ({ profile, isAdminMode, onLogout, current
   };
 
   // Apply avatar change (for both preset selection and custom upload)
-  const applyAvatarChange = async (avatarUrl: string) => {
+  const applyAvatarChange = async (avatarUrlOrFile: string | File) => {
     try {
+      let avatarUrl: string;
+      
+      if (typeof avatarUrlOrFile === 'string') {
+        avatarUrl = avatarUrlOrFile;
+      } else {
+        // For file uploads, get the URL from the uploaded file
+        const file = avatarUrlOrFile;
+        const fileExt = file.name.split('.').pop();
+        avatarUrl = `${Date.now()}.${fileExt}`; // Will be replaced by actual upload URL
+        // The actual URL comes from upload_avatar_file, so we need to refetch
+        const updatedProfile = await update_avatar(avatarUrl);
+        avatarUrl = updatedProfile.avatar_url || avatarUrl;
+      }
+      
       // Update avatar in database
       const updatedProfile = await update_avatar(avatarUrl);
       
@@ -167,8 +177,8 @@ const Header: React.FC<HeaderProps> = ({ profile, isAdminMode, onLogout, current
     
     try {
       const file = input.files[0];
-      const avatarUrl = await upload_avatar_file(file);
-      await applyAvatarChange(avatarUrl);
+      await upload_avatar_file(file);
+      await applyAvatarChange(file);
       audioService.play('collect');
     } catch (error: any) {
       console.error('Failed to upload avatar:', error);
@@ -207,15 +217,6 @@ const Header: React.FC<HeaderProps> = ({ profile, isAdminMode, onLogout, current
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [currentView]);
-
-  const handleNotificationsOpen = () => {
-    setShowNotifications(true);
-    setUnreadCount(0);
-  };
-
-  const handleProfileModalOpen = () => {
-    setShowProfileModal(true);
-  };
 
   // Load and subscribe to notifications
   useEffect(() => {
@@ -285,130 +286,10 @@ const Header: React.FC<HeaderProps> = ({ profile, isAdminMode, onLogout, current
     }
   };
 
-  const headerContent = !liteMode ? (
-    <header className="fullMode-header">
-      <div className="fullMode-inner mx-auto max-w-6xl px-4 py-3">
-        <div className="fullMode-left">
-          <button onClick={handleBrandClick} className="fullMode-brand" aria-label="Go to dashboard">
-            <img src="/BRAINS.svg" alt="Brains Heist" className="fullMode-logo" />
-          </button>
-          <div className="fullMode-status" role="button" tabIndex={0} onClick={handleProfileModalOpen} onKeyDown={(event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault();
-              handleProfileModalOpen();
-            }
-          }}>
-            <div className="fullMode-avatar-ring">
-              <img src={profile.avatar_url || ''} alt={profile.username || 'Agent'} className="fullMode-avatar" />
-            </div>
-            <div className="fullMode-player">
-              <div className="fullMode-player-top">
-                <span className="fullMode-username">{profile.username}</span>
-                <span className="fullMode-level">Lv {xpStatus?.level ?? profile.level}</span>
-              </div>
-              <div className="fullMode-xp">
-                <div className="fullMode-xp-bar">
-                  <div className="fullMode-xp-fill" style={{ width: `${xpPercent}%` }} />
-                </div>
-                <div className="fullMode-xp-text">{xpPercent}%</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <nav className="fullMode-nav">
-          <button className="fullMode-action fullMode-action-quest" onClick={() => onNavigate?.('quest')}>
-            <span className="fullMode-action-icon">▶</span>
-            <span className="fullMode-action-label">QUEST</span>
-          </button>
-          <button className="fullMode-action" onClick={() => onNavigate?.('pvp')}>
-            <span className="fullMode-action-icon">⚔️</span>
-            <span className="fullMode-action-label">ATTACK</span>
-          </button>
-          <button className="fullMode-action" onClick={() => onNavigate?.('shop')}>
-            <span className="fullMode-action-icon">🛍️</span>
-            <span className="fullMode-action-label">SHOP</span>
-          </button>
-          <button className="fullMode-action" onClick={() => onNavigate?.('inventory')}>
-            <span className="fullMode-action-icon">🎒</span>
-            <span className="fullMode-action-label">INVENTORY</span>
-          </button>
-          <button className="fullMode-action" onClick={() => onNavigate?.('leaderboard')}>
-            <span className="fullMode-action-icon">🏆</span>
-            <span className="fullMode-action-label">LEADERBOARD</span>
-          </button>
-        </nav>
-
-        <div className="fullMode-right">
-          {profile.role !== 'teacher' && (
-            <div className="fullMode-stats">
-              <div className="fullMode-stat">
-                <div className="fullMode-statIcon"><CoinAnimation width={20} height={20} /></div>
-                <div className="fullMode-statBody">
-                  <div className="fullMode-statLabel">Coins</div>
-                  <div className="fullMode-stat-value">{profile.coins?.toLocaleString?.() ?? 0}</div>
-                </div>
-              </div>
-              <div className="fullMode-stat">
-                <div className="fullMode-statIcon"><GemIcon /></div>
-                <div className="fullMode-statBody">
-                  <div className="fullMode-statLabel">Gems</div>
-                  <div className="fullMode-stat-value">{profile.gemstones?.toLocaleString?.() ?? 0}</div>
-                </div>
-              </div>
-              <div className="fullMode-stat">
-                <div className="fullMode-statIcon text-cyan-300"><XPIcon /></div>
-                <div className="fullMode-statBody">
-                  <div className="fullMode-statLabel">XP</div>
-                  <div className="fullMode-stat-value">{xpCurrent?.toLocaleString?.() ?? 0}</div>
-                </div>
-              </div>
-              <div className="fullMode-stat">
-                <div className="fullMode-statIcon text-emerald-300"><APIcon /></div>
-                <div className="fullMode-statBody">
-                  <div className="fullMode-statLabel">AP</div>
-                  <div className="fullMode-stat-value">{calculatedAP}/{profile.ap_max}</div>
-                  <div className="fullMode-statSub">{apRegenCountdown || '--'} to +1</div>
-                </div>
-              </div>
-              <div className={`fullMode-stat ${profile.streak >= 7 ? 'fullMode-statHot' : ''}`}>
-                <div className={`fullMode-statIcon ${profile.streak >= 7 ? 'text-amber-300' : ''}`}><StreakIcon /></div>
-                <div className="fullMode-statBody">
-                  <div className="fullMode-statLabel">Streak</div>
-                  <div className="fullMode-stat-value">{profile.streak ?? 0}</div>
-                </div>
-              </div>
-            </div>
-          )}
-          <div className="fullMode-actions">
-            <button className="fullMode-icon-btn fullMode-icon-btn--alert" onClick={handleNotificationsOpen} aria-label="Notifications">
-              <span>🔔</span>
-              {unreadCount > 0 && (
-                <span className="fullMode-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
-              )}
-            </button>
-            <button className="fullMode-icon-btn" onClick={() => onShowHelp?.()} aria-label="Help">
-              <span>❓</span>
-            </button>
-            {isAdminMode && (
-              <button className="fullMode-icon-btn fullMode-icon-btn--admin" onClick={() => onNavigate?.('admin')} aria-label="Admin Portal">
-                <span>👑</span>
-              </button>
-            )}
-            <button className="fullMode-icon-btn" onClick={() => setShowSettingsModal(true)} aria-label="Settings">
-              <span>⚙️</span>
-            </button>
-            <button className="fullMode-icon-btn fullMode-icon-btn--danger" onClick={onLogout} aria-label="Log out">
-              <LogoutIcon className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
-  ) : (
-    // Lightweight mode - existing header UI (unchanged)
-    <header className="z-40 border-b border-slate-800/60 bg-slate-950/85 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-3 py-3 sm:px-6">
+  return (
+    <>
+      <header className="z-40 border-b border-slate-800/60 bg-slate-950/85 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-3 py-3 sm:px-6">
           
           {/* Mobile Layout (< 768px) */}
           <div className="md:hidden">
@@ -528,7 +409,7 @@ const Header: React.FC<HeaderProps> = ({ profile, isAdminMode, onLogout, current
                         <span className="text-lg">⚙️</span>
                         Settings
                       </button>
-                      {isAdminMode && (
+                      {isAdmin(profile) && (
                         <button
                           type="button"
                           onClick={() => {
@@ -582,7 +463,7 @@ const Header: React.FC<HeaderProps> = ({ profile, isAdminMode, onLogout, current
                     <XPIcon />
                   </div>
                   <span id="xp-hud" className="font-mono text-xs font-bold text-white">
-                    {(xpStatus?.xp ?? profile.xp).toLocaleString()}
+                    {profile.xp.toLocaleString()}
                   </span>
                 </div>
                 {/* AP */}
@@ -700,7 +581,7 @@ const Header: React.FC<HeaderProps> = ({ profile, isAdminMode, onLogout, current
                   <div className="w-5 h-5 text-cyan-400">
                     <XPIcon />
                   </div>
-                  <span id="xp-hud" className="font-mono font-bold text-sm text-white">{(xpStatus?.xp ?? profile.xp).toLocaleString()}</span>
+                  <span id="xp-hud" className="font-mono font-bold text-sm text-white">{profile.xp.toLocaleString()}</span>
                 </div>
 
                 {/* AP */}
@@ -758,7 +639,7 @@ const Header: React.FC<HeaderProps> = ({ profile, isAdminMode, onLogout, current
               </button>
 
               {/* Admin Button (only for admins) */}
-              {isAdminMode && (
+              {isAdmin(profile) && (
                 <button 
                   onClick={() => onNavigate?.('admin')}
                   className="p-2.5 rounded-xl bg-gradient-to-br from-amber-600/40 to-yellow-600/40 border border-amber-500/80 hover:border-amber-400 hover:bg-amber-500/20 transition-all hover:scale-110 backdrop-blur-sm shadow-lg shadow-amber-500/30 animate-pulse"
@@ -790,19 +671,13 @@ const Header: React.FC<HeaderProps> = ({ profile, isAdminMode, onLogout, current
           </div>
         </div>
       </header>
-  );
-
-  return (
-    <>
-      {headerContent}
 
       {/* Notification Center */}
       {showSettingsModal && (
-            <SettingsModal
-              onClose={() => setShowSettingsModal(false)}
-              profile={profile}
-              isAdminMode={isAdminMode}
-              avatarPresets={avatarPresets}
+        <SettingsModal
+          onClose={() => setShowSettingsModal(false)}
+          profile={profile}
+          avatarPresets={avatarPresets}
           selectedAvatar={selectedAvatar}
           uploadingAvatar={uploadingAvatar}
           avatarUploadError={avatarUploadError || ''}
