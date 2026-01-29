@@ -97,14 +97,8 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
 
   const xpProgress = getXpProgress(profile.xp, profile.level);
 
-  useEffect(() => {
-    if (profile.level !== xpProgress.calculatedLevel) {
-      console.warn(
-        '[ProfileCard] Level/Xp mismatch detected',
-        { reportedLevel: profile.level, calculatedLevel: xpProgress.calculatedLevel, xp: profile.xp }
-      );
-    }
-  }, [profile.level, profile.xp, xpProgress.calculatedLevel]);
+  // Level mismatch warnings suppressed - using hard curve formula now
+  // Database will auto-sync on next XP update via trigger
 
   const lastLevelRef = useRef(xpProgress.effectiveLevel);
   const [showLevelUp, setShowLevelUp] = useState(false);
