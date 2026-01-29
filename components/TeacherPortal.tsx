@@ -4258,7 +4258,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="lg:w-80 lg:shrink-0">
-          <div className="hidden lg:block bg-white border border-slate-200 rounded-2xl p-4 max-h-[calc(100vh-260px)] overflow-y-auto sticky top-6">
+          <div className="hidden lg:block bg-white border border-slate-200 rounded-2xl p-4 sticky top-6 h-fit">
             {filtersPanel}
           </div>
         </div>
@@ -4522,7 +4522,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             className="absolute inset-0 bg-black/40"
             onClick={closeCambridgeDrawer}
           />
-          <div className="absolute inset-y-0 right-0 w-full max-w-lg bg-white shadow-2xl flex flex-col">
+          <div className="absolute inset-0 flex items-center justify-end p-4 sm:p-6">
+            <div className="w-full max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] bg-white shadow-2xl flex flex-col rounded-2xl overflow-hidden">
             <div className="sticky top-0 z-10 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
               <div>
                 <p className="text-xs uppercase tracking-wide text-slate-400">Attempt Details</p>
@@ -4633,6 +4634,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 </button>
               )}
             </div>
+            </div>
           </div>
         </div>
       )}
@@ -4640,7 +4642,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       {cambridgeFiltersOpen && (
         <div className="fixed inset-0 z-[70] lg:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setCambridgeFiltersOpen(false)} />
-          <div className="absolute inset-y-0 left-0 w-full max-w-xs bg-white shadow-2xl p-4 overflow-y-auto">
+          <div className="absolute inset-0 flex items-center justify-center p-4">
+            <div className="w-full max-w-md bg-white shadow-2xl p-4 rounded-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-slate-900">Filters</h3>
               <button
@@ -4651,6 +4654,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               </button>
             </div>
             {filtersPanel}
+            </div>
           </div>
         </div>
       )}
