@@ -3634,36 +3634,6 @@ export const clan_get_pending_join_requests = async (): Promise<ClanJoinRequest[
     return mockApiCall(enrichedData.map(mapJoinRequest));
 };
 
-export const clan_approve_join_request = async (requestId: string): Promise<Clan> => {
-    const user = await getCurrentUser();
-    const { data: membership } = await supabase
-        .from('clan_members')
-        .select('clan_id, role')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-    if (!membership || !['leader', 'moderator'].includes(membership.role)) {
-        throw new Error('Only leaders or moderators can approve requests.');
-    }
-
-    const requests = Array.from(dedupedByUser.values());
-    await Promise.all(
-        requests.map(async (request) => {
-            if (request.username && request.avatar_url) return;
-            const profile = await getPublicProfile(request.user_id);
-            if (!profile) return;
-            request.username = request.username || profile.username;
-            request.avatar_url = request.avatar_url || profile.avatar_url || '';
-        })
-    );
-
-    console.log('Successfully fetched join requests:', requests.length);
-    if (requests.length > 0) {
-        console.log('First join request raw data:', JSON.stringify(requests[0], null, 2));
-    }
-    return mockApiCall(requests);
-};
-
 export const clan_approve_join_request = async (requestId: string): Promise<boolean> => {
     const user = await getCurrentUser();
     const { data: membership } = await supabase
