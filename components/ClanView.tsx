@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { Clan, ClanChatMessage, Profile, ToastMessage, ClanSummary, ClanBuff, ClanMember, ActiveClanBuff, ClanJoinRequest } from '../types';
 import * as GameService from '../services/gameService';
 import { supabase } from '../services/supabaseClient';
@@ -98,6 +98,8 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   const [clan, setClan] = useState<Clan | null>(null);
   const [activeTab, setActiveTab] = useState<ClanTab>('home');
   const [availableBuffs, setAvailableBuffs] = useState<ClanBuff[]>([]);
+  const [buffLoadError, setBuffLoadError] = useState<string | null>(null);
+  const [isLoadingBuffs, setIsLoadingBuffs] = useState(false);
   const [depositAmount, setDepositAmount] = useState('');
   const [modal, setModal] = useState<ModalType>(null);
   const [memberToKick, setMemberToKick] = useState<ClanMember | null>(null);
@@ -117,9 +119,36 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   const [processingRequestId, setProcessingRequestId] = useState<string | null>(null);
   const [isCancelingRequest, setIsCancelingRequest] = useState(false);
   const [isBioExpanded, setIsBioExpanded] = useState(false);
+  const approvalsScrollRef = useRef<HTMLUListElement | null>(null);
+  const approvalsScrollTop = useRef(0);
+  const membersScrollRef = useRef<HTMLUListElement | null>(null);
+  const membersScrollTop = useRef(0);
   
   const myMemberInfo = clan?.members.find(m => m.user_id === profile.id);
     const isPrivileged = !!myMemberInfo && ['leader', 'officer', 'moderator'].includes(myMemberInfo.role);
+
+  const fetchAvailableBuffs = async () => {
+      setIsLoadingBuffs(true);
+      try {
+          const buffs = await GameService.clan_get_available_buffs();
+          setAvailableBuffs(buffs);
+          setBuffLoadError(null);
+          return buffs;
+      } catch (error) {
+          setBuffLoadError('Unable to load clan buffs. Please try again.');
+          throw error;
+      } finally {
+          setIsLoadingBuffs(false);
+      }
+  };
+
+  const formatRequestName = (request: ClanJoinRequest) => {
+      const username = request.username?.trim();
+      if (username) return username;
+      const userId = request.user_id;
+      if (!userId) return 'Unknown agent';
+      return `${userId.slice(0, 8)}…`;
+  };
 
   const fetchClanDetails = async (options?: { showLoading?: boolean }) => {
     if (options?.showLoading) {
@@ -131,11 +160,10 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
         setStage(clanDetails ? 'in_clan' : 'no_clan');
 
         const results = await Promise.allSettled([
-            GameService.clan_get_available_buffs(),
+            fetchAvailableBuffs(),
             GameService.clan_get_my_pending_request(),
         ]);
 
-        const buffs = results[0].status === 'fulfilled' ? results[0].value : [];
         const pendingRequest = results[1].status === 'fulfilled' ? results[1].value : null;
 
         if (results[0].status === 'rejected') {
@@ -145,7 +173,6 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
             console.error('Failed to load pending request:', results[1].reason);
         }
 
-        setAvailableBuffs(buffs);
         setPendingJoinRequest(pendingRequest);
     } catch (error) {
         console.error('Failed to load clan details:', error);
@@ -219,27 +246,20 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
 
     useEffect(() => {
         if (!isPrivileged || !clan?.id) return;
-        
-        const checkPendingRequests = async () => {
-            try {
-                const requests = await GameService.clan_get_pending_join_requests();
-                setPendingApprovals(requests);
-                onPendingCountChange?.(requests.length);
-            } catch (error) {
-                // Silent fail - just don't update the badge
-            }
-        };
+        void loadPendingJoinRequests();
+    }, [isPrivileged, clan?.id]);
 
-        // Check immediately
-        void checkPendingRequests();
+    useLayoutEffect(() => {
+        if (approvalsScrollRef.current) {
+            approvalsScrollRef.current.scrollTop = approvalsScrollTop.current;
+        }
+    }, [pendingApprovals.length]);
 
-        // Then poll every 5 seconds
-        const interval = setInterval(() => {
-            void checkPendingRequests();
-        }, 5000);
-
-        return () => clearInterval(interval);
-    }, [isPrivileged, clan?.id, onPendingCountChange]);
+    useLayoutEffect(() => {
+        if (membersScrollRef.current) {
+            membersScrollRef.current.scrollTop = membersScrollTop.current;
+        }
+    }, [clan?.members?.length]);
   
   const handleDeposit = async () => {
     const amount = parseInt(depositAmount, 10);
@@ -405,12 +425,17 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   const handleApproveJoinRequest = async (requestId: string) => {
       setProcessingRequestId(requestId);
       try {
-          const updatedClan = await GameService.clan_approve_join_request(requestId);
-          setClan(updatedClan);
+          await GameService.clan_approve_join_request(requestId);
+          setPendingApprovals((prev) => {
+              const next = prev.filter((request) => request.id !== requestId);
+              onPendingCountChange?.(next.length);
+              return next;
+          });
+          if (clan?.id) {
+              const members = await GameService.clan_get_members_by_id(clan.id);
+              setClan((prev) => (prev ? { ...prev, members } : prev));
+          }
           addToast("Join request approved.", "success");
-          // Refresh pending requests immediately
-          await new Promise(resolve => setTimeout(resolve, 500));
-          await loadPendingJoinRequests();
       } catch (error: any) {
           console.error('Error approving request:', error);
           addToast(error?.message || "Failed to approve request.", "error");
@@ -423,8 +448,12 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
       setProcessingRequestId(requestId);
       try {
           await GameService.clan_reject_join_request(requestId);
+          setPendingApprovals((prev) => {
+              const next = prev.filter((request) => request.id !== requestId);
+              onPendingCountChange?.(next.length);
+              return next;
+          });
           addToast("Join request rejected.", "info");
-          await loadPendingJoinRequests();
       } catch (error: any) {
           addToast(error?.message || "Failed to reject request.", "error");
       } finally {
@@ -1178,6 +1207,19 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                                 </button>
                                             )}
                                         </div>
+                                        {buffLoadError && (
+                                            <div className="mb-4 rounded-lg border border-amber-400/40 bg-amber-500/10 p-3 text-sm text-amber-100">
+                                                <p className="mb-2">{buffLoadError}</p>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => void fetchAvailableBuffs()}
+                                                    disabled={isLoadingBuffs}
+                                                    className="rounded-md border border-amber-300 px-3 py-1 text-xs font-semibold text-amber-200 hover:bg-amber-500/10 disabled:opacity-50"
+                                                >
+                                                    {isLoadingBuffs ? 'Retrying...' : 'Retry'}
+                                                </button>
+                                            </div>
+                                        )}
                                         <div className="space-y-3">
                                             {availableBuffs.map(buff => (
                                                  <div key={buff.id} className="bg-black/20 p-3 rounded-lg flex justify-between items-center">
@@ -1280,16 +1322,32 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                      ) : pendingApprovals.length === 0 ? (
                                          <p className="text-gray-500">No pending join requests.</p>
                                      ) : (
-                                         <ul className="space-y-3">
+                                         <ul
+                                             className="space-y-3 max-h-80 overflow-y-auto pr-1"
+                                             ref={approvalsScrollRef}
+                                             onScroll={(event) => {
+                                                 approvalsScrollTop.current = (event.currentTarget as HTMLUListElement).scrollTop;
+                                             }}
+                                         >
                                              {pendingApprovals.map(request => (
                                                  <li key={request.id} className="flex items-center justify-between bg-black/20 p-3 rounded-lg">
                                                      <div className="flex items-center space-x-3">
-                                                         <img src={request.avatar_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${request.username || request.user_id}`}
-                                                              className="w-10 h-10 rounded-full"
-                                                              alt="Requester avatar" />
+                                                         {request.avatar_url ? (
+                                                             <img
+                                                                 src={request.avatar_url}
+                                                                 className="w-10 h-10 rounded-full"
+                                                                 alt="Requester avatar"
+                                                             />
+                                                         ) : (
+                                                             <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-xs font-semibold text-white">
+                                                                 {formatRequestName(request).slice(0, 2).toUpperCase()}
+                                                             </div>
+                                                         )}
                                                          <div>
-                                                             <p className="font-semibold text-white">{request.username || 'Unknown agent'}</p>
-                                                             <p className="text-xs text-gray-400">Requested at {request.created_at ? new Date(request.created_at).toLocaleString() : 'unknown time'}</p>
+                                                             <p className="font-semibold text-white">{formatRequestName(request)}</p>
+                                                             <p className="text-xs text-gray-400">
+                                                                 Requested at {request.requested_at ? new Date(request.requested_at).toLocaleString() : request.created_at ? new Date(request.created_at).toLocaleString() : 'unknown time'}
+                                                             </p>
                                                          </div>
                                                      </div>
                                                      <div className="flex items-center space-x-2">
@@ -1315,7 +1373,13 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                  </div>
                              )}
                              <h3 className="font-heading text-xl mb-3 text-amber-300">Member Management</h3>
-                             <ul className="space-y-3">
+                             <ul
+                                 className="space-y-3 max-h-[28rem] overflow-y-auto pr-1"
+                                 ref={membersScrollRef}
+                                 onScroll={(event) => {
+                                     membersScrollTop.current = (event.currentTarget as HTMLUListElement).scrollTop;
+                                 }}
+                             >
                                 {clan.members.map(member => {
                                     const targetPower = getRolePower(member.role);
                                     return (

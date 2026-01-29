@@ -3463,11 +3463,12 @@ const mapJoinRequest = (row: any): ClanJoinRequest => ({
     clan_id: row.clan_id,
     user_id: row.user_id,
     status: row.status,
-    created_at: row.created_at,
+    created_at: row.created_at ?? row.requested_at,
+    requested_at: row.requested_at ?? row.created_at,
     approver_id: row.approved_by ?? null,
     clan_name: row.clans?.name ?? row.clan_name,
-    username: row.users?.username ?? row.username,
-    avatar_url: row.users?.avatar_url ?? row.avatar_url,
+    username: row.username ?? row.users?.username,
+    avatar_url: row.avatar_url ?? row.users?.avatar_url,
 });
 
 export const clan_join = async (clan_id: string): Promise<ClanJoinResult> => {
@@ -3645,75 +3646,50 @@ export const clan_approve_join_request = async (requestId: string): Promise<Clan
         throw new Error('Only leaders or moderators can approve requests.');
     }
 
-    const { data: request, error: requestError } = await supabase
-        .from('clan_join_requests')
-        .select('*')
-        .eq('id', requestId)
-        .single();
+    const requests = Array.from(dedupedByUser.values());
+    await Promise.all(
+        requests.map(async (request) => {
+            if (request.username && request.avatar_url) return;
+            const profile = await getPublicProfile(request.user_id);
+            if (!profile) return;
+            request.username = request.username || profile.username;
+            request.avatar_url = request.avatar_url || profile.avatar_url || '';
+        })
+    );
 
-    if (requestError) {
-        console.error('Error fetching request:', requestError);
-        if (requestError.message?.includes('404') || requestError.code === 'PGRST116') {
-            throw new Error('clan_join_requests table not found. Please run the migration SQL.');
-        }
-        throw new Error('Join request not found.');
+    console.log('Successfully fetched join requests:', requests.length);
+    if (requests.length > 0) {
+        console.log('First join request raw data:', JSON.stringify(requests[0], null, 2));
     }
+    return mockApiCall(requests);
+};
 
-    if (!request) {
-        throw new Error('Join request not found.');
-    }
-
-    if (request.clan_id !== membership.clan_id) {
-        throw new Error('Cannot approve a request for another clan.');
-    }
-
-    if (request.status !== 'pending') {
-        throw new Error('Request has already been processed.');
-    }
-
-    const { data: existingMembership } = await supabase
+export const clan_approve_join_request = async (requestId: string): Promise<boolean> => {
+    const user = await getCurrentUser();
+    const { data: membership } = await supabase
         .from('clan_members')
-        .select('clan_id')
-        .eq('user_id', request.user_id)
+        .select('clan_id, role')
+        .eq('user_id', user.id)
         .maybeSingle();
 
-    if (existingMembership) {
-        throw new Error('User is already in a clan.');
+    if (!membership || !['leader', 'moderator'].includes(membership.role)) {
+        throw new Error('Only leaders or moderators can approve requests.');
     }
 
-    const { error: insertError } = await supabase.from('clan_members').insert({
-        clan_id: request.clan_id,
-        user_id: request.user_id,
-        role: 'member',
+    const { error } = await supabase.rpc('rpc_clan_join_request_decide', {
+        p_request_id: requestId,
+        p_action: 'approve',
     });
 
-    if (insertError) {
-        console.error('Failed to add member from request:', insertError);
+    if (error) {
+        console.error('Failed to approve join request:', error);
+        if (error.message?.includes('404') || error.code === 'PGRST116') {
+            throw new Error('clan_join_requests table not found. Please run the migration SQL.');
+        }
         throw new Error('Failed to approve request.');
     }
 
-    const { error: updateError } = await supabase
-        .from('clan_join_requests')
-        .update({ status: 'approved', approved_by: user.id, approved_at: new Date().toISOString() })
-        .eq('id', requestId);
-
-    if (updateError) {
-        console.error('Failed to finalize request approval:', updateError);
-        throw new Error('Failed to finalize approval.');
-    }
-
-    try {
-        const updatedClan = await clan_details();
-        if (!updatedClan) {
-            console.warn('clan_details returned null after approval, creating minimal response');
-            return { id: request.clan_id } as Clan;
-        }
-        return updatedClan;
-    } catch (error) {
-        console.error('Error fetching updated clan after approval:', error);
-        // Return a minimal clan object if clan_details fails
-        return { id: request.clan_id } as Clan;
-    }
+    return mockApiCall(true);
 };
 
 export const clan_reject_join_request = async (requestId: string): Promise<boolean> => {
@@ -3728,10 +3704,10 @@ export const clan_reject_join_request = async (requestId: string): Promise<boole
         throw new Error('Only leaders or moderators can reject requests.');
     }
 
-    const { error } = await supabase
-        .from('clan_join_requests')
-        .update({ status: 'rejected', approved_by: user.id, approved_at: new Date().toISOString() })
-        .eq('id', requestId);
+    const { error } = await supabase.rpc('rpc_clan_join_request_decide', {
+        p_request_id: requestId,
+        p_action: 'reject',
+    });
 
     if (error) {
         console.error('Failed to reject join request:', error);
