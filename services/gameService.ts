@@ -3592,7 +3592,7 @@ export const clan_get_pending_join_requests = async (): Promise<ClanJoinRequest[
 
     const { data, error } = await supabase
         .from('clan_join_requests')
-        .select('id, clan_id, user_id, status, created_at, users(username, avatar_url), clans(name)')
+        .select('id, clan_id, user_id, status, created_at, users!user_id(username, avatar_url), clans(name)')
         .eq('clan_id', membership.clan_id)
         .eq('status', 'pending')
         .order('created_at', { ascending: true });
