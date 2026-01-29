@@ -125,9 +125,17 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   // Cambridge Test Reports State
   const [cambridgeScores, setCambridgeScores] = useState<any[]>([]);
   const [cambridgeLoading, setCambridgeLoading] = useState(false);
-  const [cambridgeQuizFilter, setCambridgeQuizFilter] = useState<string>('all');
   const [cambridgeClassFilter, setCambridgeClassFilter] = useState<string>('all');
   const [cambridgeActiveTab, setCambridgeActiveTab] = useState<string>('all'); // Tab for test types
+  const [cambridgeStudentFilter, setCambridgeStudentFilter] = useState<string>('all');
+  const [cambridgeSearchTerm, setCambridgeSearchTerm] = useState('');
+  const [cambridgeStatusFilters, setCambridgeStatusFilters] = useState<string[]>([]);
+  const [cambridgeNeedsMarkingOnly, setCambridgeNeedsMarkingOnly] = useState(false);
+  const [cambridgeReleasedOnly, setCambridgeReleasedOnly] = useState(false);
+  const [cambridgeSort, setCambridgeSort] = useState('newest');
+  const [cambridgeFiltersOpen, setCambridgeFiltersOpen] = useState(false);
+  const [cambridgeTestSearch, setCambridgeTestSearch] = useState('');
+  const [cambridgeSelectedIds, setCambridgeSelectedIds] = useState<string[]>([]);
   const [showCambridgeReport, setShowCambridgeReport] = useState(false);
   const [showCambridgeAnswers, setShowCambridgeAnswers] = useState(false);
   const [selectedCambridgeStudent, setSelectedCambridgeStudent] = useState<any | null>(null);
@@ -629,16 +637,135 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     }
   };
 
+  const releaseScoresByIds = async (ids: string[], successMessage: string) => {
+    if (ids.length === 0) return;
+    setReleasingScores(true);
+    try {
+      const { error } = await supabase
+        .from('quiz_scores')
+        .update({ scores_released: true, released_at: new Date().toISOString() })
+        .in('id', ids);
+
+      if (error) throw error;
+      alert(successMessage);
+      setCambridgeSelectedIds([]);
+      loadCambridgeScores();
+    } catch (err) {
+      console.error('Failed to release selected scores:', err);
+      alert('❌ Failed to release selected scores. Please try again.');
+    } finally {
+      setReleasingScores(false);
+    }
+  };
+
   // Get unique quiz names and classes for filters
   const uniqueCambridgeQuizNames = [...new Set(cambridgeScores.map(s => s.quiz_name))];
   const uniqueCambridgeClasses = [...new Set(cambridgeScores.map(s => s.student_class || 'Unknown'))].sort();
+  const uniqueCambridgeStudents = useMemo(() => {
+    if (cambridgeClassFilter === 'all') return [];
+    const students = cambridgeScores
+      .filter(s => (s.student_class || 'Unknown') === cambridgeClassFilter)
+      .map(s => s.student_name)
+      .filter(Boolean);
+    return [...new Set(students)].sort();
+  }, [cambridgeClassFilter, cambridgeScores]);
 
   // Filter Cambridge scores
-  const filteredCambridgeScores = cambridgeScores.filter(s => {
-    if (cambridgeQuizFilter !== 'all' && s.quiz_name !== cambridgeQuizFilter) return false;
-    if (cambridgeClassFilter !== 'all' && (s.student_class || 'Unknown') !== cambridgeClassFilter) return false;
-    return true;
-  });
+  const filteredCambridgeScores = useMemo(() => {
+    const search = cambridgeSearchTerm.trim().toLowerCase();
+    return cambridgeScores.filter(s => {
+      const isWritingTest = WRITING_TEST_NAMES.includes(s.quiz_name);
+      const needsMarking = isWritingTest && s.answers?.requires_marking;
+      const isReleased = Boolean(s.scores_released);
+      const isMarked = !needsMarking;
+
+      if (cambridgeActiveTab !== 'all' && s.quiz_name !== cambridgeActiveTab) return false;
+      if (cambridgeClassFilter !== 'all' && (s.student_class || 'Unknown') !== cambridgeClassFilter) return false;
+      if (cambridgeStudentFilter !== 'all' && s.student_name !== cambridgeStudentFilter) return false;
+      if (cambridgeNeedsMarkingOnly && !needsMarking) return false;
+      if (cambridgeReleasedOnly && !isReleased) return false;
+
+      if (cambridgeStatusFilters.length > 0) {
+        const matchesStatus = cambridgeStatusFilters.some((status) => {
+          if (status === 'Pending') return needsMarking;
+          if (status === 'Marked') return isMarked;
+          if (status === 'Released') return isReleased;
+          return false;
+        });
+        if (!matchesStatus) return false;
+      }
+
+      if (search) {
+        const haystack = [
+          s.student_name,
+          s.student_class,
+          s.quiz_name,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+        if (!haystack.includes(search)) return false;
+      }
+
+      return true;
+    });
+  }, [
+    cambridgeScores,
+    cambridgeActiveTab,
+    cambridgeClassFilter,
+    cambridgeStudentFilter,
+    cambridgeNeedsMarkingOnly,
+    cambridgeReleasedOnly,
+    cambridgeSearchTerm,
+    cambridgeStatusFilters
+  ]);
+
+  const sortedCambridgeScores = useMemo(() => {
+    const scores = [...filteredCambridgeScores];
+    const getTimestamp = (score: any) => {
+      if (!score?.submitted_at) return 0;
+      const time = new Date(score.submitted_at).getTime();
+      return Number.isNaN(time) ? 0 : time;
+    };
+    switch (cambridgeSort) {
+      case 'highest':
+        return scores.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+      case 'lowest':
+        return scores.sort((a, b) => (a.percentage || 0) - (b.percentage || 0));
+      case 'student-asc':
+        return scores.sort((a, b) => (a.student_name || '').localeCompare(b.student_name || ''));
+      case 'student-desc':
+        return scores.sort((a, b) => (b.student_name || '').localeCompare(a.student_name || ''));
+      case 'oldest':
+        return scores.sort((a, b) => getTimestamp(a) - getTimestamp(b));
+      case 'newest':
+      default:
+        return scores.sort((a, b) => getTimestamp(b) - getTimestamp(a));
+    }
+  }, [filteredCambridgeScores, cambridgeSort]);
+
+  useEffect(() => {
+    setCambridgeStudentFilter('all');
+  }, [cambridgeClassFilter]);
+
+  useEffect(() => {
+    setCambridgeSelectedIds((prev) => prev.filter((id) => filteredCambridgeScores.some((score) => score.id === id)));
+  }, [filteredCambridgeScores]);
+
+  const toggleCambridgeSelection = (id: string) => {
+    setCambridgeSelectedIds((prev) => (
+      prev.includes(id) ? prev.filter((selectedId) => selectedId !== id) : [...prev, id]
+    ));
+  };
+
+  const toggleCambridgeSelectionAll = (ids: string[], checked: boolean) => {
+    setCambridgeSelectedIds((prev) => {
+      if (checked) {
+        return Array.from(new Set([...prev, ...ids]));
+      }
+      return prev.filter((selectedId) => !ids.includes(selectedId));
+    });
+  };
 
   // Format time taken
   const formatCambridgeTime = (seconds: number) => {
@@ -3864,472 +3991,685 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
   // Render Cambridge Reports View - Compact with Tabs
   const renderCambridgeReports = () => {
-    // Get scores for active tab
-    const getTabScores = () => {
-      let scores = cambridgeScores;
-      if (cambridgeActiveTab !== 'all') {
-        scores = scores.filter(s => s.quiz_name === cambridgeActiveTab);
-      }
-      if (cambridgeClassFilter !== 'all') {
-        scores = scores.filter(s => s.student_class === cambridgeClassFilter);
-      }
-      return scores;
-    };
-    const tabScores = getTabScores();
     const pendingWriting = cambridgeScores.filter(s => WRITING_TEST_NAMES.includes(s.quiz_name) && s.answers?.requires_marking).length;
     const drawerAttempt = cambridgeDrawerAttempt;
     const drawerIsWriting = drawerAttempt ? WRITING_TEST_NAMES.includes(drawerAttempt.quiz_name) : false;
     const drawerNeedsMarking = drawerIsWriting && drawerAttempt?.answers?.requires_marking;
     const canReleaseDrawerScores = Boolean(drawerAttempt && !drawerNeedsMarking && !drawerAttempt.scores_released);
+    const visibleScores = sortedCambridgeScores;
+    const allVisibleIds = visibleScores.map((score) => score.id);
+    const allVisibleSelected = allVisibleIds.length > 0 && allVisibleIds.every((id) => cambridgeSelectedIds.includes(id));
+    const selectedScores = visibleScores.filter((score) => cambridgeSelectedIds.includes(score.id));
+    const pendingCountForActiveTest = cambridgeActiveTab === 'all'
+      ? cambridgeScores.filter(s => WRITING_TEST_NAMES.includes(s.quiz_name) && s.answers?.requires_marking).length
+      : cambridgeScores.filter(s => s.quiz_name === cambridgeActiveTab && s.answers?.requires_marking).length;
+    const selectedReleaseIds = selectedScores
+      .filter((score) => {
+        const needsMarking = WRITING_TEST_NAMES.includes(score.quiz_name) && score.answers?.requires_marking;
+        return !needsMarking && !score.scores_released;
+      })
+      .map((score) => score.id);
+    const releaseMarkedIds = visibleScores
+      .filter((score) => {
+        const needsMarking = WRITING_TEST_NAMES.includes(score.quiz_name) && score.answers?.requires_marking;
+        return !needsMarking && !score.scores_released;
+      })
+      .map((score) => score.id);
+    const filteredTests = uniqueCambridgeQuizNames.filter((name) => name.toLowerCase().includes(cambridgeTestSearch.trim().toLowerCase()));
+    const statusOptions = ['Pending', 'Marked', 'Released'];
+    const canReleaseAll = cambridgeActiveTab !== 'all';
+    const hasRows = visibleScores.length > 0;
 
-    return (
-    <div className="space-y-4 text-black">
-      {/* Compact Header Row */}
-      <div className="flex items-center justify-between flex-wrap gap-3 bg-white border-b border-gray-200 pb-4">
-        <h2 className="text-xl font-bold">📝 Cambridge Test Results</h2>
-        <div className="flex items-center gap-2">
-          {pendingWriting > 0 && (
-            <span className="bg-amber-100 text-black px-3 py-1 rounded-full text-sm font-medium">
-              ⚠️ {pendingWriting} needs marking
-            </span>
-          )}
-          <button
-            onClick={loadCambridgeScores}
-            disabled={cambridgeLoading}
-            className="bg-blue-100 hover:bg-blue-200 text-black px-4 py-2 rounded-lg text-sm font-medium"
-          >
-            {cambridgeLoading ? '⏳' : '🔄'} Refresh
-          </button>
-          {cambridgeScores.length > 0 && (
-            <button onClick={exportCambridgeCSV} className="bg-green-100 hover:bg-green-200 text-black px-4 py-2 rounded-lg text-sm font-medium">
-              📥 CSV
-            </button>
-          )}
+    const filtersPanel = (
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Search</label>
+          <input
+            value={cambridgeSearchTerm}
+            onChange={(event) => setCambridgeSearchTerm(event.target.value)}
+            placeholder="Search student, test, class…"
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          />
         </div>
-      </div>
 
-      {cambridgeScores.length > 0 ? (
-        <>
-          {/* Compact Stats Row */}
-          <div className="grid grid-cols-4 gap-3">
-            <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold">{cambridgeStats.totalSubmissions}</p>
-              <p className="text-xs">Total</p>
-            </div>
-            <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold">{cambridgeStats.avgPercentage}%</p>
-              <p className="text-xs">Average</p>
-            </div>
-            <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-              <p className="text-lg font-bold truncate">{cambridgeStats.highestScore?.name || '-'}</p>
-              <p className="text-xs">Best: {cambridgeStats.highestScore?.percentage || 0}%</p>
-            </div>
-            <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-              <p className="text-lg font-bold truncate">{cambridgeStats.lowestScore?.name || '-'}</p>
-              <p className="text-xs">Lowest: {cambridgeStats.lowestScore?.percentage || 0}%</p>
-            </div>
-          </div>
-
-          {/* TEST TABS - Main Feature */}
-          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-            {/* Tab Navigation */}
-            <div className="flex border-b border-gray-200 bg-gray-50 overflow-x-auto">
+        <details open className="rounded-xl border border-slate-200 bg-slate-50/40">
+          <summary className="cursor-pointer px-3 py-2 text-sm font-semibold text-slate-700">Tests</summary>
+          <div className="px-3 pb-3 space-y-2">
+            <input
+              value={cambridgeTestSearch}
+              onChange={(event) => setCambridgeTestSearch(event.target.value)}
+              placeholder="Search tests"
+              className="w-full rounded-md border border-slate-200 px-2 py-1.5 text-xs text-slate-700"
+            />
+            <div className="space-y-1 max-h-40 overflow-y-auto pr-1">
               <button
                 onClick={() => setCambridgeActiveTab('all')}
-                className={`px-5 py-3 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
-                  cambridgeActiveTab === 'all' 
-                    ? 'border-blue-600 text-blue-600 bg-white' 
-                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                className={`w-full text-left px-2 py-1.5 rounded-md text-sm ${
+                  cambridgeActiveTab === 'all' ? 'bg-blue-600 text-white' : 'hover:bg-slate-100 text-slate-600'
                 }`}
               >
-                📊 All Tests ({cambridgeScores.length})
+                All Tests ({cambridgeScores.length})
               </button>
-              {uniqueCambridgeQuizNames.map(name => {
-                const count = cambridgeScores.filter(s => s.quiz_name === name).length;
-                const isWriting = WRITING_TEST_NAMES.includes(name);
-                const needsMarking = isWriting ? cambridgeScores.filter(s => s.quiz_name === name && s.answers?.requires_marking).length : 0;
+              {filteredTests.map((name) => {
+                const count = cambridgeScores.filter((s) => s.quiz_name === name).length;
                 return (
                   <button
                     key={name}
                     onClick={() => setCambridgeActiveTab(name)}
-                    className={`px-5 py-3 font-medium text-sm whitespace-nowrap border-b-2 transition-colors flex items-center gap-2 ${
-                      cambridgeActiveTab === name 
-                        ? `border-${isWriting ? 'purple' : 'blue'}-600 text-${isWriting ? 'purple' : 'blue'}-600 bg-white` 
-                        : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    className={`w-full text-left px-2 py-1.5 rounded-md text-sm ${
+                      cambridgeActiveTab === name ? 'bg-blue-600 text-white' : 'hover:bg-slate-100 text-slate-600'
                     }`}
                   >
-                    {isWriting ? '✍️' : '📝'} {name.replace('Cambridge ', '')} ({count})
-                    {needsMarking > 0 && (
-                      <span className="bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full">{needsMarking}</span>
-                    )}
+                    {name.replace('Cambridge ', '')} <span className="text-xs">({count})</span>
                   </button>
                 );
               })}
+              {filteredTests.length === 0 && (
+                <p className="text-xs text-slate-400">No tests found.</p>
+              )}
             </div>
+          </div>
+        </details>
 
-            {/* Filter Bar inside tabs */}
-            <div className="flex flex-wrap items-center gap-4 p-3 bg-gray-50 border-b border-gray-200">
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-600">Class:</label>
-                <select
-                  value={cambridgeClassFilter}
-                  onChange={(e) => setCambridgeClassFilter(e.target.value)}
-                  className="bg-white border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-800"
+        <details open className="rounded-xl border border-slate-200 bg-slate-50/40">
+          <summary className="cursor-pointer px-3 py-2 text-sm font-semibold text-slate-700">Classes</summary>
+          <div className="px-3 pb-3">
+            <select
+              value={cambridgeClassFilter}
+              onChange={(event) => setCambridgeClassFilter(event.target.value)}
+              className="w-full rounded-md border border-slate-200 px-2 py-2 text-sm text-slate-700 bg-white"
+            >
+              <option value="all">All Classes</option>
+              {uniqueCambridgeClasses.map((cls) => (
+                <option key={cls} value={cls}>{cls}</option>
+              ))}
+            </select>
+          </div>
+        </details>
+
+        <details open className="rounded-xl border border-slate-200 bg-slate-50/40">
+          <summary className="cursor-pointer px-3 py-2 text-sm font-semibold text-slate-700">Students</summary>
+          <div className="px-3 pb-3">
+            {cambridgeClassFilter === 'all' ? (
+              <p className="text-xs text-slate-400">Select a class to filter students.</p>
+            ) : (
+              <select
+                value={cambridgeStudentFilter}
+                onChange={(event) => setCambridgeStudentFilter(event.target.value)}
+                className="w-full rounded-md border border-slate-200 px-2 py-2 text-sm text-slate-700 bg-white"
+              >
+                <option value="all">All Students</option>
+                {uniqueCambridgeStudents.map((student) => (
+                  <option key={student} value={student}>{student}</option>
+                ))}
+              </select>
+            )}
+          </div>
+        </details>
+
+        <details open className="rounded-xl border border-slate-200 bg-slate-50/40">
+          <summary className="cursor-pointer px-3 py-2 text-sm font-semibold text-slate-700">Status</summary>
+          <div className="px-3 pb-3 flex flex-wrap gap-2">
+            {statusOptions.map((status) => {
+              const active = cambridgeStatusFilters.includes(status);
+              return (
+                <button
+                  key={status}
+                  onClick={() => {
+                    setCambridgeStatusFilters((prev) => (
+                      prev.includes(status)
+                        ? prev.filter((item) => item !== status)
+                        : [...prev, status]
+                    ));
+                  }}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold border ${
+                    active ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                  }`}
                 >
-                  <option value="all">All Classes</option>
-                  {uniqueCambridgeClasses.map(cls => (
-                    <option key={cls} value={cls}>{cls}</option>
-                  ))}
-                </select>
-              </div>
-              <span className="text-sm text-gray-500">
-                Showing <strong className="text-gray-800">{tabScores.length}</strong> results
-              </span>
-              
-              {/* Bulk AI Proofread buttons - only for Writing Test tab */}
-              {WRITING_TEST_NAMES.includes(cambridgeActiveTab) && (() => {
-                const pendingCount = cambridgeScores.filter(s => s.quiz_name === cambridgeActiveTab && s.answers?.requires_marking).length;
-                return pendingCount > 0 ? (
-                  <div className="flex items-center gap-2 ml-auto">
-                    {bulkProofreadLoading ? (
-                      <div className="flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-800 rounded-lg text-sm">
-                        <span className="animate-spin">⏳</span>
-                        <span>Processing {bulkProofreadProgress.current}/{bulkProofreadProgress.total}: {bulkProofreadProgress.currentStudent}</span>
-                      </div>
-                    ) : (
-                      <>
-                        <button
-                          onClick={() => bulkProofreadWriting(false)}
-                          className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-1"
-                          title="AI proofread all pending submissions and save as drafts"
-                        >
-                          🤖 AI Proofread All ({pendingCount}) - DRAFT
-                        </button>
-                        <button
-                          onClick={() => bulkProofreadWriting(true)}
-                          className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 flex items-center gap-1"
-                          title="AI proofread all pending submissions and release to students"
-                        >
-                          🤖 AI Proofread All ({pendingCount}) - RELEASE
-                        </button>
-                      </>
-                    )}
-                  </div>
-                ) : null;
-              })()}
-              
-              {/* Score Release Controls - show when a specific test tab is selected */}
-              {cambridgeActiveTab !== 'all' && (() => {
-                const currentQuizScores = cambridgeScores.filter(s => s.quiz_name === cambridgeActiveTab);
-                const releasedCount = currentQuizScores.filter(s => s.scores_released).length;
-                const unreleasedCount = currentQuizScores.filter(s => !s.scores_released).length;
-                const classReleasedCount = cambridgeClassFilter !== 'all' 
-                  ? currentQuizScores.filter(s => s.student_class === cambridgeClassFilter && s.scores_released).length
-                  : releasedCount;
-                const classUnreleasedCount = cambridgeClassFilter !== 'all'
-                  ? currentQuizScores.filter(s => s.student_class === cambridgeClassFilter && !s.scores_released).length
-                  : unreleasedCount;
-                
-                return (
-                  <div className="flex items-center gap-2 ml-auto">
-                    <span className="text-xs text-gray-500">
-                      {classReleasedCount > 0 && <span className="text-green-600">✅ {classReleasedCount} released</span>}
-                      {classReleasedCount > 0 && classUnreleasedCount > 0 && ' • '}
-                      {classUnreleasedCount > 0 && <span className="text-orange-600">⏳ {classUnreleasedCount} pending release</span>}
-                    </span>
-                    {classUnreleasedCount > 0 && (
-                      <button
-                        onClick={() => releaseScores(cambridgeActiveTab, cambridgeClassFilter !== 'all' ? cambridgeClassFilter : undefined)}
-                        disabled={releasingScores}
-                        className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 flex items-center gap-1"
-                        title={`Release scores so students can see them${cambridgeClassFilter !== 'all' ? ` (${cambridgeClassFilter} only)` : ''}`}
-                      >
-                        {releasingScores ? '⏳' : '📢'} Release Scores{cambridgeClassFilter !== 'all' ? ` (${cambridgeClassFilter})` : ''}
-                      </button>
-                    )}
-                    {classReleasedCount > 0 && (
-                      <button
-                        onClick={() => hideScores(cambridgeActiveTab, cambridgeClassFilter !== 'all' ? cambridgeClassFilter : undefined)}
-                        disabled={releasingScores}
-                        className="px-3 py-1.5 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 disabled:opacity-50 flex items-center gap-1"
-                        title={`Set scores to pending${cambridgeClassFilter !== 'all' ? ` (${cambridgeClassFilter} only)` : ''}`}
-                      >
-                        {releasingScores ? '⏳' : '⏳'} Set Pending
-                      </button>
-                    )}
-                  </div>
-                );
-              })()}
-            </div>
+                  {status}
+                </button>
+              );
+            })}
+          </div>
+        </details>
 
-            {/* Results Table - Compact */}
-            <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-4 py-2.5 text-left text-gray-700 font-semibold">Student</th>
-                    <th className="px-4 py-2.5 text-left text-gray-700 font-semibold">Class</th>
-                    {cambridgeActiveTab === 'all' && <th className="px-4 py-2.5 text-left text-gray-700 font-semibold">Test</th>}
-                    <th className="px-4 py-2.5 text-center text-gray-700 font-semibold">Score</th>
-                    <th className="px-4 py-2.5 text-center text-gray-700 font-semibold">%</th>
-                    <th className="px-4 py-2.5 text-center text-gray-700 font-semibold">Status</th>
-                    <th className="px-4 py-2.5 text-center text-gray-700 font-semibold">Time</th>
-                    <th className="px-4 py-2.5 text-right text-gray-700 font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {tabScores.map((score) => {
-                    const isWritingTest = WRITING_TEST_NAMES.includes(score.quiz_name);
-                    const needsMarking = isWritingTest && score.answers?.requires_marking;
-                    return (
-                      <tr
-                        key={score.id}
-                        className={`cursor-pointer hover:bg-gray-50 ${needsMarking ? 'bg-amber-50' : ''} ${!score.scores_released ? 'opacity-75' : ''}`}
-                        onClick={() => openCambridgeDrawer(score)}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault();
-                            openCambridgeDrawer(score);
-                          }
-                        }}
-                        role="button"
-                        tabIndex={0}
-                      >
-                        <td className="px-4 py-2.5 text-gray-900 font-medium">{score.student_name}</td>
-                        <td className="px-4 py-2.5 text-gray-600">{score.student_class || '-'}</td>
-                        {cambridgeActiveTab === 'all' && (
-                          <td className="px-4 py-2.5">
-                            <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
-                              isWritingTest ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
-                            }`}>
-                              {score.quiz_name.replace('Cambridge ', '')}
-                            </span>
-                          </td>
-                        )}
-                        <td className="px-4 py-2.5 text-center">
-                          {needsMarking ? (
-                            <span className="inline-block px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-medium">Pending</span>
-                          ) : (
-                            <span className="font-mono text-gray-800">{score.score}/{score.total_questions}</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-2.5 text-center">
-                          {needsMarking ? (
-                            <span className="text-amber-600">—</span>
-                          ) : (
-                            <span className={`font-bold ${
-                              score.percentage >= 70 ? 'text-green-600' :
-                              score.percentage >= 50 ? 'text-amber-600' : 'text-red-600'
-                            }`}>{score.percentage}%</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-2.5 text-center">
-                          {score.scores_released ? (
-                            <span className="inline-block px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium" title="Score visible to student">✅ Released</span>
-                          ) : (
-                            <span className="inline-block px-2 py-0.5 bg-orange-100 text-orange-700 rounded text-xs font-medium" title="Score pending release to student">⏳ Pending</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-2.5 text-center text-gray-500 text-xs">{formatCambridgeTime(score.time_taken_seconds)}</td>
-                        <td className="px-4 py-2.5 text-right">
-                          <div className="flex justify-end gap-1">
-                            {isWritingTest ? (
-                              <>
-                                <button
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    openCambridgeDrawer(score);
-                                    openWritingMarking(score);
-                                  }}
-                                  className={`px-2.5 py-1 rounded text-xs font-medium ${
-                                    needsMarking 
-                                      ? 'bg-amber-500 hover:bg-amber-600 text-white' 
-                                      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                                  }`}
-                                >
-                                  {needsMarking ? '✏️ Mark' : '👁️ View'}
-                                </button>
-                                <button
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    openCambridgeDrawer(score);
-                                    openCambridgeAnswers(score);
-                                  }}
-                                  className="px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded text-xs font-medium"
-                                >
-                                  📝
-                                </button>
-                              </>
-                            ) : (
-                              <>
-                                <button
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    openCambridgeDrawer(score);
-                                    openCambridgeAnswers(score);
-                                  }}
-                                  className="px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded text-xs font-medium"
-                                >
-                                  📝 Answers
-                                </button>
-                                <button
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    openCambridgeDrawer(score);
-                                    openCambridgeReport(score);
-                                  }}
-                                  className="px-2.5 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded text-xs font-medium"
-                                >
-                                  📄 Report
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+        <details open className="rounded-xl border border-slate-200 bg-slate-50/40">
+          <summary className="cursor-pointer px-3 py-2 text-sm font-semibold text-slate-700">Other</summary>
+          <div className="px-3 pb-3 space-y-2 text-sm text-slate-600">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={cambridgeNeedsMarkingOnly}
+                onChange={(event) => setCambridgeNeedsMarkingOnly(event.target.checked)}
+              />
+              Needs marking only
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={cambridgeReleasedOnly}
+                onChange={(event) => setCambridgeReleasedOnly(event.target.checked)}
+              />
+              Released only
+            </label>
+          </div>
+        </details>
+      </div>
+    );
+
+    return (
+    <div className="space-y-6 text-slate-900">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-tight">Cambridge Test Results</h2>
+              <p className="text-sm text-slate-500">Review student performance, release scores, and open detailed attempts.</p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm">
+                <p className="text-xs text-slate-500">Total attempts</p>
+                <p className="text-lg font-semibold text-slate-900">{cambridgeStats.totalSubmissions}</p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm">
+                <p className="text-xs text-slate-500">Average %</p>
+                <p className="text-lg font-semibold text-slate-900">{cambridgeStats.avgPercentage}%</p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm">
+                <p className="text-xs text-slate-500">Best student</p>
+                <p className="text-sm font-semibold text-slate-900 truncate">
+                  {cambridgeStats.highestScore?.name || '-'} · {cambridgeStats.highestScore?.percentage || 0}%
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm">
+                <p className="text-xs text-slate-500">Lowest student</p>
+                <p className="text-sm font-semibold text-slate-900 truncate">
+                  {cambridgeStats.lowestScore?.name || '-'} · {cambridgeStats.lowestScore?.percentage || 0}%
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col items-start gap-3 lg:items-end">
+            <div className="flex flex-wrap items-center gap-2 justify-end">
+              <details className="relative">
+                <summary className="list-none cursor-pointer select-none bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-blue-700">
+                  Release Scores ▾
+                </summary>
+                <div className="absolute right-0 mt-2 w-56 rounded-lg border border-slate-200 bg-white shadow-lg p-2 text-sm z-10">
+                  <button
+                    onClick={() => releaseScoresByIds(releaseMarkedIds, `✅ Released ${releaseMarkedIds.length} marked attempts.`)}
+                    disabled={releaseMarkedIds.length === 0 || releasingScores}
+                    className="w-full text-left px-3 py-2 rounded-md hover:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                    title={releaseMarkedIds.length === 0 ? 'No marked attempts available' : 'Release all marked attempts in the current view'}
+                  >
+                    Release all marked
+                  </button>
+                  <button
+                    onClick={() => releaseScoresByIds(selectedReleaseIds, `✅ Released ${selectedReleaseIds.length} selected attempts.`)}
+                    disabled={cambridgeSelectedIds.length === 0 || selectedReleaseIds.length === 0 || releasingScores}
+                    className="w-full text-left px-3 py-2 rounded-md hover:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                    title={cambridgeSelectedIds.length === 0 ? 'Select attempts to enable' : 'Release selected attempts'}
+                  >
+                    Release selected
+                  </button>
+                  <button
+                    onClick={() => releaseScores(cambridgeActiveTab, cambridgeClassFilter !== 'all' ? cambridgeClassFilter : undefined)}
+                    disabled={!canReleaseAll || releasingScores}
+                    className="w-full text-left px-3 py-2 rounded-md hover:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                    title={canReleaseAll ? 'Release all attempts for the current test/class' : 'Select a test to enable'}
+                  >
+                    Release all
+                  </button>
+                  {cambridgeActiveTab !== 'all' && (
+                    <button
+                      onClick={() => hideScores(cambridgeActiveTab, cambridgeClassFilter !== 'all' ? cambridgeClassFilter : undefined)}
+                      disabled={releasingScores}
+                      className="w-full text-left px-3 py-2 rounded-md hover:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                      title="Set scores to pending for the current test/class"
+                    >
+                      Set pending
+                    </button>
+                  )}
+                </div>
+              </details>
+              <button
+                onClick={exportCambridgeCSV}
+                disabled={cambridgeScores.length === 0}
+                className="border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+              >
+                CSV
+              </button>
+              <button
+                onClick={loadCambridgeScores}
+                disabled={cambridgeLoading}
+                className="border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+              >
+                {cambridgeLoading ? 'Refreshing…' : 'Refresh'}
+              </button>
+            </div>
+            {pendingWriting > 0 && (
+              <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-semibold">
+                {pendingWriting} needs marking
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className="lg:w-80 lg:shrink-0">
+          <div className="hidden lg:block bg-white border border-slate-200 rounded-2xl p-4 max-h-[calc(100vh-260px)] overflow-y-auto sticky top-6">
+            {filtersPanel}
+          </div>
+        </div>
+
+        <div className="flex-1 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => setCambridgeFiltersOpen(true)}
+                className="lg:hidden border border-slate-200 px-3 py-2 rounded-lg text-sm font-semibold text-slate-700"
+              >
+                Filters
+              </button>
+              <p className="text-sm text-slate-600">
+                Showing <strong className="text-slate-900">{visibleScores.length}</strong> results
+              </p>
+              {cambridgeSelectedIds.length > 0 && (
+                <span className="text-xs font-semibold text-blue-600">
+                  {cambridgeSelectedIds.length} selected
+                </span>
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {WRITING_TEST_NAMES.includes(cambridgeActiveTab) && pendingCountForActiveTest > 0 && (
+                bulkProofreadLoading ? (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-purple-50 text-purple-700 rounded-lg text-xs font-semibold">
+                    <span className="animate-spin">⏳</span>
+                    <span>Processing {bulkProofreadProgress.current}/{bulkProofreadProgress.total}</span>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => bulkProofreadWriting(false)}
+                      className="px-3 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700"
+                    >
+                      AI Proofread ({pendingCountForActiveTest}) Draft
+                    </button>
+                    <button
+                      onClick={() => bulkProofreadWriting(true)}
+                      className="px-3 py-2 bg-green-600 text-white rounded-lg text-xs font-semibold hover:bg-green-700"
+                    >
+                      AI Proofread ({pendingCountForActiveTest}) Release
+                    </button>
+                  </>
+                )
+              )}
+              <select
+                value={cambridgeSort}
+                onChange={(event) => setCambridgeSort(event.target.value)}
+                className="border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 bg-white"
+              >
+                <option value="newest">Sort: Newest</option>
+                <option value="oldest">Sort: Oldest</option>
+                <option value="highest">Sort: Highest %</option>
+                <option value="lowest">Sort: Lowest %</option>
+                <option value="student-asc">Sort: Student A–Z</option>
+                <option value="student-desc">Sort: Student Z–A</option>
+              </select>
             </div>
           </div>
 
-          {cambridgeDrawerOpen && drawerAttempt && (
-            <div className="fixed inset-0 z-[60]">
-              <div
-                className="absolute inset-0 bg-black/40"
-                onClick={closeCambridgeDrawer}
-              />
-              <div className="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl flex flex-col">
-                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-gray-500">Attempt Details</p>
-                    <h3 className="text-lg font-semibold text-gray-900">{drawerAttempt.student_name}</h3>
-                  </div>
+          {cambridgeScores.length === 0 ? (
+            cambridgeLoading ? (
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center">
+                <p className="text-slate-600">⏳ Loading submissions...</p>
+              </div>
+            ) : (
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center">
+                <div className="text-4xl mb-2">📭</div>
+                <p className="text-slate-600 font-medium">No test submissions yet</p>
+                <p className="text-sm text-slate-500">Click Refresh to check for new submissions</p>
+              </div>
+            )
+          ) : (
+            <>
+              {cambridgeSelectedIds.length > 0 && (
+                <div className="sticky top-4 z-20 bg-white border border-slate-200 rounded-xl px-4 py-3 flex flex-wrap items-center gap-3 shadow-sm">
+                  <span className="text-sm font-semibold text-slate-800">{cambridgeSelectedIds.length} selected</span>
                   <button
-                    onClick={closeCambridgeDrawer}
-                    className="text-gray-400 hover:text-gray-700 rounded-md px-2 py-1"
-                    aria-label="Close details"
+                    onClick={() => releaseScoresByIds(selectedReleaseIds, `✅ Released ${selectedReleaseIds.length} selected attempts.`)}
+                    disabled={selectedReleaseIds.length === 0 || releasingScores}
+                    className="px-3 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 disabled:opacity-50"
+                    title={selectedReleaseIds.length === 0 ? 'No eligible attempts selected' : 'Release selected attempts'}
                   >
-                    ✕
+                    Release selected
+                  </button>
+                  <button
+                    onClick={exportCambridgeCSV}
+                    className="px-3 py-2 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                  >
+                    Export CSV
+                  </button>
+                  <button
+                    onClick={() => setCambridgeSelectedIds([])}
+                    className="px-3 py-2 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                  >
+                    Clear selection
                   </button>
                 </div>
+              )}
 
-                <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-                  <div className="space-y-1">
-                    <p className="text-sm text-gray-500">Class</p>
-                    <p className="text-sm font-medium text-gray-900">{drawerAttempt.student_class || '—'}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-gray-500">Test</p>
-                    <p className="text-sm font-medium text-gray-900">{drawerAttempt.quiz_name}</p>
-                  </div>
+              <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-slate-50 text-slate-600">
+                      <tr>
+                        <th className="px-4 py-3 text-left font-semibold w-10">
+                          <input
+                            type="checkbox"
+                            checked={allVisibleSelected}
+                            onChange={(event) => toggleCambridgeSelectionAll(allVisibleIds, event.target.checked)}
+                            aria-label="Select all visible attempts"
+                          />
+                        </th>
+                        <th className="px-4 py-3 text-left font-semibold">Student</th>
+                        <th className="px-4 py-3 text-left font-semibold">Class</th>
+                        <th className="px-4 py-3 text-left font-semibold">Test</th>
+                        <th className="px-4 py-3 text-center font-semibold">Score</th>
+                        <th className="px-4 py-3 text-center font-semibold">%</th>
+                        <th className="px-4 py-3 text-center font-semibold">Status</th>
+                        <th className="px-4 py-3 text-center font-semibold">Time</th>
+                        <th className="px-4 py-3 text-right font-semibold">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {visibleScores.map((score) => {
+                        const isWritingTest = WRITING_TEST_NAMES.includes(score.quiz_name);
+                        const needsMarking = isWritingTest && score.answers?.requires_marking;
+                        const statusLabel = needsMarking ? 'Needs marking' : score.scores_released ? 'Released' : 'Pending';
+                        return (
+                          <tr
+                            key={score.id}
+                            className={`cursor-pointer hover:bg-slate-50 ${needsMarking ? 'bg-amber-50' : ''}`}
+                            onClick={() => openCambridgeDrawer(score)}
+                            onKeyDown={(event) => {
+                              if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                openCambridgeDrawer(score);
+                              }
+                            }}
+                            role="button"
+                            tabIndex={0}
+                          >
+                            <td className="px-4 py-3" onClick={(event) => event.stopPropagation()}>
+                              <input
+                                type="checkbox"
+                                checked={cambridgeSelectedIds.includes(score.id)}
+                                onClick={(event) => event.stopPropagation()}
+                                onChange={() => toggleCambridgeSelection(score.id)}
+                                aria-label={`Select ${score.student_name}`}
+                              />
+                            </td>
+                            <td className="px-4 py-3 font-medium text-slate-900">{score.student_name}</td>
+                            <td className="px-4 py-3 text-slate-500">{score.student_class || '-'}</td>
+                            <td className="px-4 py-3">
+                              <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
+                                {score.quiz_name.replace('Cambridge ', '')}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              {needsMarking ? (
+                                <span className="inline-flex px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">Pending</span>
+                              ) : (
+                                <span className="font-mono text-slate-800">{score.score}/{score.total_questions}</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              {needsMarking ? (
+                                <span className="text-amber-600">—</span>
+                              ) : (
+                                <span className={`font-semibold ${
+                                  score.percentage >= 70 ? 'text-green-600' :
+                                  score.percentage >= 50 ? 'text-amber-600' : 'text-red-600'
+                                }`}>{score.percentage}%</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${
+                                needsMarking ? 'bg-amber-100 text-amber-700' :
+                                score.scores_released ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                              }`}>
+                                {statusLabel}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-center text-slate-500 text-xs">{formatCambridgeTime(score.time_taken_seconds)}</td>
+                            <td className="px-4 py-3 text-right">
+                              <div className="flex justify-end gap-2">
+                                {isWritingTest ? (
+                                  <>
+                                    <button
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        openCambridgeDrawer(score);
+                                        openWritingMarking(score);
+                                      }}
+                                      className={`px-2.5 py-1 rounded-md text-xs font-semibold ${
+                                        needsMarking ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                      }`}
+                                    >
+                                      {needsMarking ? 'Mark' : 'View'}
+                                    </button>
+                                    <button
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        openCambridgeDrawer(score);
+                                        openCambridgeAnswers(score);
+                                      }}
+                                      className="px-2.5 py-1 rounded-md text-xs font-semibold bg-blue-100 text-blue-700 hover:bg-blue-200"
+                                    >
+                                      Answers
+                                    </button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <button
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        openCambridgeDrawer(score);
+                                        openCambridgeAnswers(score);
+                                      }}
+                                      className="px-2.5 py-1 rounded-md text-xs font-semibold bg-blue-100 text-blue-700 hover:bg-blue-200"
+                                    >
+                                      Answers
+                                    </button>
+                                    <button
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        openCambridgeDrawer(score);
+                                        openCambridgeReport(score);
+                                      }}
+                                      className="px-2.5 py-1 rounded-md text-xs font-semibold bg-purple-100 text-purple-700 hover:bg-purple-200"
+                                    >
+                                      Report
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      {!hasRows && (
+                        <tr>
+                          <td colSpan={9} className="px-4 py-8 text-center text-sm text-slate-500">
+                            No results match these filters.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
 
-                  <div className="grid grid-cols-2 gap-4 border border-gray-200 rounded-lg p-3 bg-gray-50">
-                    <div>
-                      <p className="text-xs uppercase text-gray-500">Score</p>
-                      <p className="text-lg font-semibold text-gray-900">
-                        {drawerNeedsMarking ? 'Pending' : `${drawerAttempt.score}/${drawerAttempt.total_questions}`}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs uppercase text-gray-500">Percentage</p>
-                      <p className="text-lg font-semibold text-gray-900">
-                        {drawerNeedsMarking ? '—' : `${drawerAttempt.percentage}%`}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs uppercase text-gray-500">Time</p>
-                      <p className="text-sm font-medium text-gray-700">{formatCambridgeTime(drawerAttempt.time_taken_seconds)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs uppercase text-gray-500">Status</p>
-                      <p className="text-sm font-medium text-gray-700">
-                        {drawerNeedsMarking ? 'Needs marking' : drawerAttempt.scores_released ? 'Released' : 'Pending'}
-                      </p>
-                    </div>
-                  </div>
+      {cambridgeDrawerOpen && drawerAttempt && (
+        <div className="fixed inset-0 z-[60]">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={closeCambridgeDrawer}
+          />
+          <div className="absolute inset-y-0 right-0 w-full max-w-lg bg-white shadow-2xl flex flex-col">
+            <div className="sticky top-0 z-10 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-slate-400">Attempt Details</p>
+                <h3 className="text-lg font-semibold text-slate-900">Attempt Details</h3>
+              </div>
+              <button
+                onClick={closeCambridgeDrawer}
+                className="text-slate-400 hover:text-slate-700 rounded-md px-2 py-1"
+                aria-label="Close details"
+              >
+                ✕
+              </button>
+            </div>
 
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => openCambridgeAnswers(drawerAttempt)}
-                      className="w-full px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700"
-                    >
-                      View detailed answers
-                    </button>
-                    {drawerIsWriting ? (
-                      <button
-                        onClick={() => openWritingMarking(drawerAttempt)}
-                        className="w-full px-4 py-2 rounded-md bg-amber-500 text-white text-sm font-medium hover:bg-amber-600"
-                      >
-                        {drawerNeedsMarking ? 'Open marking' : 'View marking'}
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => openCambridgeReport(drawerAttempt)}
-                        className="w-full px-4 py-2 rounded-md bg-purple-600 text-white text-sm font-medium hover:bg-purple-700"
-                      >
-                        Create report
-                      </button>
-                    )}
-                    {drawerAttempt.scores_released ? (
-                      <button
-                        className="w-full px-4 py-2 rounded-md border border-gray-200 text-sm font-medium text-gray-500 cursor-not-allowed"
-                        disabled
-                      >
-                        Scores released
-                      </button>
-                    ) : canReleaseDrawerScores ? (
-                      <button
-                        onClick={() => releaseScores(drawerAttempt.quiz_name, drawerAttempt.student_class || undefined)}
-                        className="w-full px-4 py-2 rounded-md border border-green-200 bg-green-50 text-sm font-medium text-green-700 hover:bg-green-100"
-                        title="Releases scores for this test and class"
-                      >
-                        Release scores
-                      </button>
-                    ) : (
-                      <button
-                        className="w-full px-4 py-2 rounded-md border border-gray-200 text-sm font-medium text-gray-400 cursor-not-allowed"
-                        disabled
-                        title="Not available yet"
-                      >
-                        Release scores
-                      </button>
-                    )}
-                  </div>
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              <div>
+                <h4 className="text-2xl font-semibold text-slate-900">{drawerAttempt.student_name}</h4>
+                <div className="flex flex-wrap items-center gap-2 mt-2 text-sm">
+                  <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                    {drawerAttempt.student_class || '—'}
+                  </span>
+                  <span className="text-slate-500">{drawerAttempt.quiz_name}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="border border-slate-200 rounded-xl p-3">
+                  <p className="text-xs uppercase text-slate-400">Score</p>
+                  <p className="text-lg font-semibold text-slate-900">
+                    {drawerNeedsMarking ? 'Pending' : `${drawerAttempt.score}/${drawerAttempt.total_questions}`}
+                  </p>
+                </div>
+                <div className="border border-slate-200 rounded-xl p-3">
+                  <p className="text-xs uppercase text-slate-400">Percentage</p>
+                  <p className="text-lg font-semibold text-slate-900">
+                    {drawerNeedsMarking ? '—' : `${drawerAttempt.percentage}%`}
+                  </p>
+                </div>
+                <div className="border border-slate-200 rounded-xl p-3">
+                  <p className="text-xs uppercase text-slate-400">Time taken</p>
+                  <p className="text-sm font-medium text-slate-700">{formatCambridgeTime(drawerAttempt.time_taken_seconds)}</p>
+                </div>
+                <div className="border border-slate-200 rounded-xl p-3">
+                  <p className="text-xs uppercase text-slate-400">Status</p>
+                  <p className="text-sm font-medium text-slate-700">
+                    {drawerNeedsMarking ? 'Needs marking' : drawerAttempt.scores_released ? 'Released' : 'Pending release'}
+                  </p>
+                </div>
+                <div className="border border-slate-200 rounded-xl p-3">
+                  <p className="text-xs uppercase text-slate-400">Submitted</p>
+                  <p className="text-sm font-medium text-slate-700">
+                    {drawerAttempt.submitted_at ? new Date(drawerAttempt.submitted_at).toLocaleString('en-GB') : '—'}
+                  </p>
+                </div>
+                <div className="border border-slate-200 rounded-xl p-3">
+                  <p className="text-xs uppercase text-slate-400">Released state</p>
+                  <p className="text-sm font-medium text-slate-700">
+                    {drawerAttempt.scores_released ? 'Released' : 'Pending'}
+                  </p>
                 </div>
               </div>
             </div>
-          )}
 
-          {/* Collapsible Class Performance */}
-          <details className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-            <summary className="px-4 py-3 cursor-pointer bg-gray-50 hover:bg-gray-100 font-medium text-gray-800 flex items-center gap-2">
-              📊 Class Performance Summary
-            </summary>
-            <div className="p-4 flex flex-wrap gap-2">
-              {Object.entries(cambridgeStats.classStats).sort((a, b) => b[1].avg - a[1].avg).map(([cls, stats]) => (
-                <div key={cls} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-                  <p className="font-semibold text-gray-800">{cls}</p>
-                  <p className="text-xs text-gray-600">
-                    {stats.count} students • <span className={`font-bold ${stats.avg >= 70 ? 'text-green-600' : stats.avg >= 50 ? 'text-amber-600' : 'text-red-600'}`}>{stats.avg}%</span>
-                  </p>
-                </div>
-              ))}
+            <div className="sticky bottom-0 bg-white border-t border-slate-200 px-6 py-4 space-y-2">
+              <button
+                onClick={() => openCambridgeAnswers(drawerAttempt)}
+                className="w-full px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700"
+              >
+                View detailed answers
+              </button>
+              {drawerIsWriting ? (
+                <button
+                  onClick={() => openWritingMarking(drawerAttempt)}
+                  className="w-full px-4 py-2 rounded-md bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600"
+                >
+                  {drawerNeedsMarking ? 'Open marking' : 'View marking'}
+                </button>
+              ) : (
+                <button
+                  onClick={() => openCambridgeReport(drawerAttempt)}
+                  className="w-full px-4 py-2 rounded-md bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700"
+                >
+                  Create report
+                </button>
+              )}
+              {drawerAttempt.scores_released ? (
+                <button
+                  className="w-full px-4 py-2 rounded-md border border-slate-200 text-sm font-semibold text-slate-400 cursor-not-allowed"
+                  disabled
+                >
+                  Scores released
+                </button>
+              ) : canReleaseDrawerScores ? (
+                <button
+                  onClick={() => releaseScores(drawerAttempt.quiz_name, drawerAttempt.student_class || undefined)}
+                  className="w-full px-4 py-2 rounded-md border border-green-200 bg-green-50 text-sm font-semibold text-green-700 hover:bg-green-100"
+                  title="Releases scores for this test and class"
+                >
+                  Release score
+                </button>
+              ) : (
+                <button
+                  className="w-full px-4 py-2 rounded-md border border-slate-200 text-sm font-semibold text-slate-400 cursor-not-allowed"
+                  disabled
+                  title="Not available yet"
+                >
+                  Release score
+                </button>
+              )}
             </div>
-          </details>
-        </>
-      ) : !cambridgeLoading ? (
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center">
-          <div className="text-4xl mb-2">📭</div>
-          <p className="text-gray-600 font-medium">No test submissions yet</p>
-          <p className="text-sm text-gray-500">Click Refresh to check for new submissions</p>
-        </div>
-      ) : (
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center">
-          <p className="text-gray-600">⏳ Loading submissions...</p>
+          </div>
         </div>
       )}
+
+      {cambridgeFiltersOpen && (
+        <div className="fixed inset-0 z-[70] lg:hidden">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setCambridgeFiltersOpen(false)} />
+          <div className="absolute inset-y-0 left-0 w-full max-w-xs bg-white shadow-2xl p-4 overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-slate-900">Filters</h3>
+              <button
+                onClick={() => setCambridgeFiltersOpen(false)}
+                className="text-slate-400 hover:text-slate-700"
+              >
+                ✕
+              </button>
+            </div>
+            {filtersPanel}
+          </div>
+        </div>
+      )}
+
+      <details className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <summary className="px-4 py-3 cursor-pointer bg-gray-50 hover:bg-gray-100 font-medium text-gray-800 flex items-center gap-2">
+          📊 Class Performance Summary
+        </summary>
+        <div className="p-4 flex flex-wrap gap-2">
+          {Object.entries(cambridgeStats.classStats).sort((a, b) => b[1].avg - a[1].avg).map(([cls, stats]) => (
+            <div key={cls} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+              <p className="font-semibold text-gray-800">{cls}</p>
+              <p className="text-xs text-gray-600">
+                {stats.count} students • <span className={`font-bold ${stats.avg >= 70 ? 'text-green-600' : stats.avg >= 50 ? 'text-amber-600' : 'text-red-600'}`}>{stats.avg}%</span>
+              </p>
+            </div>
+          ))}
+        </div>
+      </details>
 
       {/* Performance Report Modal - Professional Landscape Certificate */}
       {showCambridgeReport && selectedCambridgeStudent && (() => {
@@ -5454,6 +5794,24 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               <p className="teacher-header-subtitle">
                 Welcome back, <strong>{profile.username}</strong>. Review student progress, craft assignments, and keep your question bank organised — all in one focused hub.
               </p>
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1">
+                  <img
+                    src={profile.avatar_url || '/BRAINS.svg'}
+                    alt={`${profile.username} avatar`}
+                    className="h-8 w-8 rounded-full border border-white/20 object-cover"
+                  />
+                  <span className="text-sm font-semibold text-white">{profile.username}</span>
+                </div>
+                {isSchoolAdmin && onOpenSchoolAdmin && (
+                  <button
+                    onClick={onOpenSchoolAdmin}
+                    className="rounded-full border border-white/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white hover:bg-white/10"
+                  >
+                    School Admin
+                  </button>
+                )}
+              </div>
             </div>
             <div className="teacher-header-stats">
               <div className="teacher-stat-card">
