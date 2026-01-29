@@ -1,70 +1,29 @@
 -- Fix: Allow teachers assigned as school_admin to release Cambridge test scores
--- This fixes RLS policies so school_admin teachers can update quiz_scores table
+-- This follows the same pattern as the existing super admin (role='admin') policies
 
 -- 1. Drop existing policies if they exist and recreate them
-DROP POLICY IF EXISTS "Enable update quiz_scores if school_admin" ON quiz_scores;
-DROP POLICY IF EXISTS "Enable update quiz_scores if teacher" ON quiz_scores;
+DROP POLICY IF EXISTS "Admins and teachers can update quiz_scores" ON quiz_scores;
 
--- 2. Create policy for school admins to update quiz_scores
-CREATE POLICY "Enable update quiz_scores if school_admin" ON quiz_scores
+-- 2. Create unified policy for admins, school_admins, and teachers to update quiz_scores
+-- This follows the same pattern as other admin policies in the codebase
+CREATE POLICY "Admins and teachers can update quiz_scores" ON quiz_scores
 FOR UPDATE
 USING (
-  -- Check if user is school admin
-  (
-    SELECT role FROM users WHERE id = auth.uid()
-  ) = 'school_admin'
+  (SELECT role FROM users WHERE id = auth.uid()) IN ('admin', 'teacher', 'school_admin')
   OR
-  (
-    SELECT role_in_school FROM school_members 
-    WHERE user_id = auth.uid() 
-    AND status = 'active'
-  ) = 'school_admin'
+  (SELECT role_in_school FROM school_members WHERE user_id = auth.uid() AND status = 'active') IN ('teacher', 'school_admin')
 )
 WITH CHECK (
-  -- Check if user is school admin
-  (
-    SELECT role FROM users WHERE id = auth.uid()
-  ) = 'school_admin'
+  (SELECT role FROM users WHERE id = auth.uid()) IN ('admin', 'teacher', 'school_admin')
   OR
-  (
-    SELECT role_in_school FROM school_members 
-    WHERE user_id = auth.uid() 
-    AND status = 'active'
-  ) = 'school_admin'
+  (SELECT role_in_school FROM school_members WHERE user_id = auth.uid() AND status = 'active') IN ('teacher', 'school_admin')
 );
 
--- 3. Create policy for teachers to update scores for their school
-CREATE POLICY "Enable update quiz_scores if teacher" ON quiz_scores
-FOR UPDATE
-USING (
-  -- Check if user is teacher in their school
-  (
-    SELECT role FROM users WHERE id = auth.uid()
-  ) IN ('teacher', 'school_admin')
-  OR
-  (
-    SELECT role_in_school FROM school_members 
-    WHERE user_id = auth.uid() 
-    AND status = 'active'
-  ) IN ('teacher', 'school_admin')
-)
-WITH CHECK (
-  -- Check if user is teacher in their school
-  (
-    SELECT role FROM users WHERE id = auth.uid()
-  ) IN ('teacher', 'school_admin')
-  OR
-  (
-    SELECT role_in_school FROM school_members 
-    WHERE user_id = auth.uid() 
-    AND status = 'active'
-  ) IN ('teacher', 'school_admin')
-);
-
--- 4. Grant direct access to quiz_scores table for authenticated users
+-- 3. Grant direct access to quiz_scores table for authenticated users
 GRANT SELECT, UPDATE ON quiz_scores TO authenticated;
 
--- 5. Create RPC function for releasing quiz scores (with proper permissions)
+-- 4. Create RPC function for releasing quiz scores (with proper permissions)
+-- This checks for admin, teacher, or school_admin roles
 DROP FUNCTION IF EXISTS release_quiz_scores(text, text);
 CREATE OR REPLACE FUNCTION release_quiz_scores(p_quiz_name text, p_class text DEFAULT NULL)
 RETURNS json
@@ -105,7 +64,7 @@ BEGIN
 END;
 $$;
 
--- 6. Create RPC function for hiding quiz scores
+-- 5. Create RPC function for hiding quiz scores
 DROP FUNCTION IF EXISTS hide_quiz_scores(text, text);
 CREATE OR REPLACE FUNCTION hide_quiz_scores(p_quiz_name text, p_class text DEFAULT NULL)
 RETURNS json
@@ -122,11 +81,11 @@ BEGIN
     RETURN json_build_object('success', false, 'error', 'Not authenticated');
   END IF;
 
-  -- Check if user is a teacher or school_admin
+  -- Check if user is a teacher, school_admin, or super admin
   SELECT role INTO v_user_role FROM users WHERE id = auth.uid();
   
-  IF v_user_role NOT IN ('teacher', 'school_admin') THEN
-    RETURN json_build_object('success', false, 'error', 'Not authorized - teacher role required');
+  IF v_user_role NOT IN ('teacher', 'school_admin', 'admin') THEN
+    RETURN json_build_object('success', false, 'error', 'Not authorized - teacher/admin role required');
   END IF;
 
   -- Update quiz_scores
@@ -146,6 +105,6 @@ BEGIN
 END;
 $$;
 
--- Grant execute on RPC functions to authenticated users
+-- 6. Grant execute on RPC functions to authenticated users
 GRANT EXECUTE ON FUNCTION release_quiz_scores(text, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION hide_quiz_scores(text, text) TO authenticated;
