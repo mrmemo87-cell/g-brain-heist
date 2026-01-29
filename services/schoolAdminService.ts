@@ -108,10 +108,25 @@ export async function isSchoolAdmin(): Promise<boolean> {
 
     if (error) {
       console.error('Error checking school admin status:', error);
+      // Don't return yet - try fallback
+    }
+
+    if (data) return true;
+
+    // Fallback: check users.role column directly
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .eq('role', 'school_admin')
+      .maybeSingle();
+
+    if (userError) {
+      console.error('Error checking user role for school admin:', userError);
       return false;
     }
 
-    return !!data;
+    return !!userData;
   } catch (err) {
     console.error('Exception checking school admin status:', err);
     return false;
@@ -126,7 +141,10 @@ export async function getCurrentSchool(): Promise<SchoolAdminOverview | null> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
 
-    // Get membership first (canonical)
+    let schoolId: string | null = null;
+    let roleInSchool: SchoolRole = 'student';
+
+    // Try school_members table first (canonical)
     const { data: membership, error: membershipError } = await supabase
       .from('school_members')
       .select('school_id, role_in_school')
@@ -134,14 +152,41 @@ export async function getCurrentSchool(): Promise<SchoolAdminOverview | null> {
       .eq('status', 'active')
       .maybeSingle();
 
-    if (membershipError || !membership?.school_id) {
-      console.error('Error fetching current membership:', membershipError);
+    if (!membershipError && membership?.school_id) {
+      schoolId = membership.school_id;
+      roleInSchool = membership.role_in_school as SchoolRole;
+    } else {
+      // Fallback: check users table directly
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('school_id, role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (userError || !userData?.school_id) {
+        console.error('Error fetching school from users:', userError);
+        return null;
+      }
+
+      schoolId = userData.school_id;
+      // Map users.role to SchoolRole
+      if (userData.role === 'school_admin') {
+        roleInSchool = 'school_admin';
+      } else if (userData.role === 'teacher') {
+        roleInSchool = 'teacher';
+      } else {
+        roleInSchool = 'student';
+      }
+    }
+
+    if (!schoolId) {
+      console.error('No school_id found for user');
       return null;
     }
 
     // Prefer admin RPC (returns school + stats). Requires SCHOOL_ADMIN_FUNCTIONS.sql deployed.
     const { data: details, error: detailsError } = await supabase.rpc('get_school_details', {
-      p_school_id: membership.school_id,
+      p_school_id: schoolId,
     });
 
     if (detailsError || !details?.success) {
@@ -151,7 +196,7 @@ export async function getCurrentSchool(): Promise<SchoolAdminOverview | null> {
       const { data: schoolRow, error: schoolError } = await supabase
         .from('schools')
         .select('id, name, slug, logo_url, settings, invite_code')
-        .eq('id', membership.school_id)
+        .eq('id', schoolId)
         .maybeSingle();
 
       if (schoolError || !schoolRow) {
@@ -174,7 +219,7 @@ export async function getCurrentSchool(): Promise<SchoolAdminOverview | null> {
           allow_student_signup: allowStudent,
           allow_teacher_signup: allowTeacher,
         },
-        role: membership.role_in_school as SchoolRole,
+        role: roleInSchool,
         stats: { students: 0, teachers: 0, admins: 0, total: 0 },
       };
     }
@@ -196,7 +241,7 @@ export async function getCurrentSchool(): Promise<SchoolAdminOverview | null> {
         allow_student_signup: allowStudent,
         allow_teacher_signup: allowTeacher,
       },
-      role: membership.role_in_school as SchoolRole,
+      role: roleInSchool,
       stats: {
         students: Number(stats?.students ?? 0),
         teachers: Number(stats?.teachers ?? 0),

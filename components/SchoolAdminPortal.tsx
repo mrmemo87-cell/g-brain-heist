@@ -492,33 +492,58 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4 pb-24">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <BackButton onClick={onComplete} />
-          <div>
-            <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
-              {school.name}
-            </h1>
-            <p className="text-gray-400 text-sm">School Admin Portal</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-slate-900 text-white p-4 pb-24">
+      {/* Premium Header with Crown Badge */}
+      <div className="relative mb-8">
+        {/* Background Glow Effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-cyan-500/10 to-purple-600/10 blur-3xl -z-10" />
+        
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <BackButton onClick={onComplete} />
+            <div className="relative">
+              {/* Crown Badge */}
+              <div className="absolute -top-3 -left-2 text-2xl animate-pulse">👑</div>
+              <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-200 drop-shadow-lg">
+                {school.name}
+              </h1>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="px-2 py-0.5 bg-gradient-to-r from-purple-600 to-purple-500 text-white text-xs font-semibold rounded-full shadow-lg shadow-purple-500/25">
+                  ⭐ SCHOOL ADMIN
+                </span>
+                <span className="text-gray-400 text-sm">Premium Management Portal</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {school.logo_url ? (
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-xl blur-md opacity-50" />
+                <img 
+                  src={school.logo_url} 
+                  alt={school.name} 
+                  className="relative h-14 w-14 rounded-xl object-cover border-2 border-purple-400/50 shadow-lg" 
+                />
+              </div>
+            ) : (
+              <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-purple-600 to-cyan-600 flex items-center justify-center text-2xl shadow-lg shadow-purple-500/25">
+                🏫
+              </div>
+            )}
           </div>
         </div>
-        {school.logo_url && (
-          <img src={school.logo_url} alt={school.name} className="h-12 w-12 rounded-lg object-cover" />
-        )}
       </div>
 
-      {/* Tab Navigation */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+      {/* Premium Tab Navigation */}
+      <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
         {(['dashboard', 'members', 'classes', 'teachers', 'students', 'invites', 'settings'] as AdminTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
+            className={`px-5 py-3 rounded-xl font-medium transition-all whitespace-nowrap border ${
               activeTab === tab
-                ? 'bg-cyan-500 text-white'
-                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                ? 'bg-gradient-to-r from-purple-600 to-cyan-600 text-white border-transparent shadow-lg shadow-purple-500/25'
+                : 'bg-gray-800/50 text-gray-400 hover:bg-gray-700/50 border-gray-700/50 hover:text-white hover:border-gray-600'
             }`}
           >
             {tab === 'dashboard' && '📊 Dashboard'}
@@ -534,49 +559,136 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
 
       {/* Dashboard Tab */}
       {activeTab === 'dashboard' && stats && (
-        <div className="space-y-6">
-          {/* Stats Grid */}
+        <div className="space-y-8">
+          {/* Premium Stats Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-              <div className="text-3xl font-bold text-cyan-400">{stats.students}</div>
-              <div className="text-gray-400 text-sm">Students</div>
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity" />
+              <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-cyan-500/30 hover:border-cyan-500/50 transition-all">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-3xl">🎓</span>
+                  <span className="text-xs text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full">Active</span>
+                </div>
+                <div className="text-4xl font-bold text-cyan-400">{stats.students}</div>
+                <div className="text-gray-400 text-sm mt-1">Students Enrolled</div>
+              </div>
             </div>
-            <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-              <div className="text-3xl font-bold text-blue-400">{stats.teachers}</div>
-              <div className="text-gray-400 text-sm">Teachers</div>
+            
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-400 rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity" />
+              <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-blue-500/30 hover:border-blue-500/50 transition-all">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-3xl">👨‍🏫</span>
+                  <span className="text-xs text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full">Active</span>
+                </div>
+                <div className="text-4xl font-bold text-blue-400">{stats.teachers}</div>
+                <div className="text-gray-400 text-sm mt-1">Teachers</div>
+              </div>
             </div>
-            <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-              <div className="text-3xl font-bold text-purple-400">{stats.admins}</div>
-              <div className="text-gray-400 text-sm">Admins</div>
+            
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-purple-400 rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity" />
+              <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-purple-500/30 hover:border-purple-500/50 transition-all">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-3xl">👑</span>
+                  <span className="text-xs text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full">Admin</span>
+                </div>
+                <div className="text-4xl font-bold text-purple-400">{stats.admins}</div>
+                <div className="text-gray-400 text-sm mt-1">School Admins</div>
+              </div>
             </div>
-            <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-              <div className="text-3xl font-bold text-green-400">{stats.total}</div>
-              <div className="text-gray-400 text-sm">Total Members</div>
+            
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-400 rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity" />
+              <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-green-500/30 hover:border-green-500/50 transition-all">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-3xl">🌟</span>
+                  <span className="text-xs text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full">Total</span>
+                </div>
+                <div className="text-4xl font-bold text-green-400">{stats.total}</div>
+                <div className="text-gray-400 text-sm mt-1">Total Members</div>
+              </div>
             </div>
           </div>
 
-          {/* Quick Actions */}
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-            <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={() => setActiveTab('invites')}
-                className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors"
-              >
-                🔑 Invite Code
-              </button>
-              <button
-                onClick={() => setActiveTab('members')}
-                className="px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-lg transition-colors"
-              >
-                👥 Manage Members
-              </button>
-              <button
-                onClick={() => setActiveTab('classes')}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors"
-              >
-                🏫 Manage Classes
-              </button>
+          {/* Quick Actions - Premium Style */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-600/5 via-cyan-500/5 to-purple-600/5 rounded-2xl" />
+            <div className="relative bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
+              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <span className="text-2xl">⚡</span> Quick Actions
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button
+                  onClick={() => setActiveTab('invites')}
+                  className="group relative overflow-hidden p-4 rounded-xl bg-gradient-to-br from-cyan-600/20 to-cyan-500/10 border border-cyan-500/30 hover:border-cyan-500/60 transition-all hover:scale-[1.02]"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="relative flex items-center gap-3">
+                    <div className="text-3xl">🔑</div>
+                    <div className="text-left">
+                      <div className="font-semibold text-white">Invite Code</div>
+                      <div className="text-xs text-gray-400">Share school access</div>
+                    </div>
+                  </div>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('members')}
+                  className="group relative overflow-hidden p-4 rounded-xl bg-gradient-to-br from-purple-600/20 to-purple-500/10 border border-purple-500/30 hover:border-purple-500/60 transition-all hover:scale-[1.02]"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="relative flex items-center gap-3">
+                    <div className="text-3xl">👥</div>
+                    <div className="text-left">
+                      <div className="font-semibold text-white">Manage Members</div>
+                      <div className="text-xs text-gray-400">View & edit roles</div>
+                    </div>
+                  </div>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('classes')}
+                  className="group relative overflow-hidden p-4 rounded-xl bg-gradient-to-br from-blue-600/20 to-blue-500/10 border border-blue-500/30 hover:border-blue-500/60 transition-all hover:scale-[1.02]"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="relative flex items-center gap-3">
+                    <div className="text-3xl">🏫</div>
+                    <div className="text-left">
+                      <div className="font-semibold text-white">Manage Classes</div>
+                      <div className="text-xs text-gray-400">Create & organize</div>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Power User Tips */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-amber-600/5 via-orange-500/5 to-amber-600/5 rounded-2xl" />
+            <div className="relative bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-amber-500/30">
+              <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
+                <span className="text-xl">💡</span> Admin Power Tips
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                <div className="flex items-start gap-2 text-gray-300">
+                  <span className="text-amber-400">•</span>
+                  <span>Use <strong>Teacher Assignments</strong> to assign teachers to specific classes and subjects</span>
+                </div>
+                <div className="flex items-start gap-2 text-gray-300">
+                  <span className="text-amber-400">•</span>
+                  <span>Use <strong>Student Enrollment</strong> to move students between classes</span>
+                </div>
+                <div className="flex items-start gap-2 text-gray-300">
+                  <span className="text-amber-400">•</span>
+                  <span>Share the <strong>Invite Code</strong> to let new users join your school</span>
+                </div>
+                <div className="flex items-start gap-2 text-gray-300">
+                  <span className="text-amber-400">•</span>
+                  <span>Control signup permissions in <strong>Settings</strong> for security</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

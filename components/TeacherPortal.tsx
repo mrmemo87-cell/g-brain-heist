@@ -108,6 +108,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
   const [studentSearchTerm, setStudentSearchTerm] = useState('');
 
+  // Assignment Filtering State (Folder Organization)
+  const [assignmentSearchTerm, setAssignmentSearchTerm] = useState('');
+  const [assignmentSubjectFilter, setAssignmentSubjectFilter] = useState<'all' | Subject>('all');
+  const [assignmentStatusFilter, setAssignmentStatusFilter] = useState<'all' | 'in-progress' | 'completed'>('all');
+
   // Assignment Analysis State
   const [questionAnalysis, setQuestionAnalysis] = useState<AssignmentQuestionAnalysis[]>([]);
   const [studentAnswers, setStudentAnswers] = useState<StudentAssignmentAnswer[]>([]);
@@ -254,6 +259,41 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     });
     return Array.from(batches).sort();
   }, [availableStudents]);
+
+  // Get unique subjects from assignments for folder tabs
+  const assignmentSubjects = useMemo(() => {
+    const subjects = new Set<string>();
+    assignments.forEach(a => {
+      if (a.subject_name) subjects.add(a.subject_name);
+    });
+    return Array.from(subjects).sort();
+  }, [assignments]);
+
+  // Filtered assignments based on search, subject, and status filters
+  const filteredAssignments = useMemo(() => {
+    return assignments.filter(a => {
+      // Search filter
+      if (assignmentSearchTerm.trim()) {
+        const search = assignmentSearchTerm.toLowerCase();
+        const matchesSearch = 
+          (a.title?.toLowerCase().includes(search)) ||
+          a.topic_name.toLowerCase().includes(search) ||
+          a.subject_name.toLowerCase().includes(search);
+        if (!matchesSearch) return false;
+      }
+      // Subject filter
+      if (assignmentSubjectFilter !== 'all' && a.subject_name !== assignmentSubjectFilter) {
+        return false;
+      }
+      // Status filter
+      if (assignmentStatusFilter !== 'all') {
+        const isCompleted = a.completed_count >= a.student_count;
+        if (assignmentStatusFilter === 'completed' && !isCompleted) return false;
+        if (assignmentStatusFilter === 'in-progress' && isCompleted) return false;
+      }
+      return true;
+    });
+  }, [assignments, assignmentSearchTerm, assignmentSubjectFilter, assignmentStatusFilter]);
   
   const filteredStudents = useMemo(() => {
     if (!studentSearchTerm.trim()) return availableStudents;
@@ -575,11 +615,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         if (updateError) throw updateError;
       }
 
-      alert(`✅ Scores hidden for ${quizName}${classFilter ? ` (${classFilter})` : ''}!`);
+      alert(`✅ Scores set to pending for ${quizName}${classFilter ? ` (${classFilter})` : ''}! Students will no longer see their results.`);
       loadCambridgeScores(); // Refresh the list
     } catch (err) {
-      console.error('Failed to hide scores:', err);
-      alert('❌ Failed to hide scores. Please try again.');
+      console.error('Failed to set scores to pending:', err);
+      alert('❌ Failed to update score status. Please try again.');
     } finally {
       setReleasingScores(false);
     }
@@ -2914,7 +2954,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
   );
 
   const renderAssignments = () => (
-    <div>
+    <div className="space-y-6">
+      {/* Header with Title and Create Button */}
       <div className="teacher-section-header">
         <h2>🗂️ Assignments</h2>
         <button
@@ -2925,18 +2966,146 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         </button>
       </div>
 
+      {/* Folder Organization: Filters & Search */}
+      {assignments.length > 0 && (
+        <div className="teacher-card p-4">
+          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+            {/* Search Bar */}
+            <div className="flex-1 w-full lg:w-auto">
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+                <input
+                  type="text"
+                  placeholder="Search assignments..."
+                  value={assignmentSearchTerm}
+                  onChange={(e) => setAssignmentSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white text-slate-700"
+                />
+              </div>
+            </div>
+
+            {/* Subject Folder Tabs */}
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setAssignmentSubjectFilter('all')}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  assignmentSubjectFilter === 'all'
+                    ? 'bg-cyan-500 text-white shadow-md'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                📁 All Subjects
+              </button>
+              {assignmentSubjects.map(subject => (
+                <button
+                  key={subject}
+                  onClick={() => setAssignmentSubjectFilter(subject as Subject)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    assignmentSubjectFilter === subject
+                      ? 'bg-purple-500 text-white shadow-md'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  📂 {subject}
+                </button>
+              ))}
+            </div>
+
+            {/* Status Filter */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setAssignmentStatusFilter('all')}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  assignmentStatusFilter === 'all'
+                    ? 'bg-slate-700 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setAssignmentStatusFilter('in-progress')}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  assignmentStatusFilter === 'in-progress'
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                ⏳ In Progress
+              </button>
+              <button
+                onClick={() => setAssignmentStatusFilter('completed')}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  assignmentStatusFilter === 'completed'
+                    ? 'bg-green-500 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                ✅ Completed
+              </button>
+            </div>
+          </div>
+
+          {/* Results Summary */}
+          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+            <span className="text-sm text-slate-500">
+              Showing {filteredAssignments.length} of {assignments.length} assignments
+            </span>
+            {(assignmentSearchTerm || assignmentSubjectFilter !== 'all' || assignmentStatusFilter !== 'all') && (
+              <button
+                onClick={() => {
+                  setAssignmentSearchTerm('');
+                  setAssignmentSubjectFilter('all');
+                  setAssignmentStatusFilter('all');
+                }}
+                className="text-sm text-cyan-600 hover:text-cyan-700 font-medium"
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {assignments.length === 0 ? (
         <div className="teacher-card p-12 text-center">
           <div className="text-6xl mb-4">🧭</div>
           <p className="text-xl text-slate-500 mb-4">No assignments yet</p>
           <p className="text-slate-400">Create a mission to block normal quests until students finish.</p>
         </div>
+      ) : filteredAssignments.length === 0 ? (
+        <div className="teacher-card p-12 text-center">
+          <div className="text-5xl mb-4">🔍</div>
+          <p className="text-lg text-slate-500 mb-2">No assignments match your filters</p>
+          <button
+            onClick={() => {
+              setAssignmentSearchTerm('');
+              setAssignmentSubjectFilter('all');
+              setAssignmentStatusFilter('all');
+            }}
+            className="text-cyan-600 hover:text-cyan-700 font-medium"
+          >
+            Clear all filters
+          </button>
+        </div>
       ) : (
         <div className="space-y-4">
-          {assignments.map((assignment) => (
-            <div key={assignment.id} className="teacher-card">
+          {filteredAssignments.map((assignment) => (
+            <div key={assignment.id} className="teacher-card hover:shadow-lg transition-shadow">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                      assignment.completed_count >= assignment.student_count
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-amber-100 text-amber-700'
+                    }`}>
+                      {assignment.completed_count >= assignment.student_count ? '✅ Complete' : '⏳ In Progress'}
+                    </span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">
+                      {assignment.subject_name}
+                    </span>
+                  </div>
                   <h3 className="text-xl font-bold text-slate-800 mb-1">{assignment.title || assignment.topic_name}</h3>
                   <p className="text-sm text-slate-600">
                     {assignment.subject_name} · Topic: {assignment.topic_name}
@@ -3824,7 +3993,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                     <span className="text-xs text-gray-500">
                       {classReleasedCount > 0 && <span className="text-green-600">✅ {classReleasedCount} released</span>}
                       {classReleasedCount > 0 && classUnreleasedCount > 0 && ' • '}
-                      {classUnreleasedCount > 0 && <span className="text-orange-600">🔒 {classUnreleasedCount} hidden</span>}
+                      {classUnreleasedCount > 0 && <span className="text-orange-600">⏳ {classUnreleasedCount} pending release</span>}
                     </span>
                     {classUnreleasedCount > 0 && (
                       <button
@@ -3841,9 +4010,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                         onClick={() => hideScores(cambridgeActiveTab, cambridgeClassFilter !== 'all' ? cambridgeClassFilter : undefined)}
                         disabled={releasingScores}
                         className="px-3 py-1.5 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 disabled:opacity-50 flex items-center gap-1"
-                        title={`Hide scores from students${cambridgeClassFilter !== 'all' ? ` (${cambridgeClassFilter} only)` : ''}`}
+                        title={`Set scores to pending${cambridgeClassFilter !== 'all' ? ` (${cambridgeClassFilter} only)` : ''}`}
                       >
-                        {releasingScores ? '⏳' : '🔒'} Hide Scores
+                        {releasingScores ? '⏳' : '⏳'} Set Pending
                       </button>
                     )}
                   </div>
@@ -3904,7 +4073,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                           {score.scores_released ? (
                             <span className="inline-block px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium" title="Score visible to student">✅ Released</span>
                           ) : (
-                            <span className="inline-block px-2 py-0.5 bg-orange-100 text-orange-700 rounded text-xs font-medium" title="Score hidden from student">🔒 Hidden</span>
+                            <span className="inline-block px-2 py-0.5 bg-orange-100 text-orange-700 rounded text-xs font-medium" title="Score pending release to student">⏳ Pending</span>
                           )}
                         </td>
                         <td className="px-4 py-2.5 text-center text-gray-500 text-xs">{formatCambridgeTime(score.time_taken_seconds)}</td>
