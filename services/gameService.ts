@@ -1418,73 +1418,80 @@ export const whoami = async (): Promise<Profile> => {
       profile.total_score = calculateTotalScore(profile.xp ?? 0, profile.pvp_score ?? 0);
   
     // ====== AP REGENERATION LOGIC ======
-    // Call database function to regenerate AP
-    try {
-      const { data: regenData, error: regenError } = await regenerateUserAp(user.id);
-  
-      if (regenError) {
-        console.warn('Database AP regeneration function not available, using fallback:', regenError.message);
-        throw regenError; // Trigger fallback
-      }
-  
-      if (regenData && regenData.length > 0) {
-        const { new_ap, ap_regenerated, minutes_elapsed } = regenData[0];
-        console.log(`AP Regeneration: ${profile.ap_now} → ${new_ap} (+${ap_regenerated} AP, ${minutes_elapsed} min elapsed)`);
-        
-        profile.ap_now = new_ap;
-        profile.last_ap_update = new Date().toISOString();
-  
-        // ====== NOTIFICATION: AP FULL ======
-        // Only send AP notifications to students (not teachers/admins)
-        if (ap_regenerated > 0 && new_ap === profile.ap_max && profile.role === 'student') {
-          try {
-            await notifyApFull(user.id);
-          } catch (notifError) {
-            console.error('Failed to send AP full notification:', notifError);
+    // Only regenerate AP for students (teachers and admins don't use game mechanics)
+    if (profile.role === 'student') {
+      try {
+        const { data: regenData, error: regenError } = await regenerateUserAp(user.id);
+    
+        if (regenError) {
+          console.warn('Database AP regeneration function not available, using fallback:', regenError.message);
+          throw regenError; // Trigger fallback
+        }
+    
+        if (regenData && regenData.length > 0) {
+          const { new_ap, ap_regenerated, minutes_elapsed } = regenData[0];
+          console.log(`AP Regeneration: ${profile.ap_now} → ${new_ap} (+${ap_regenerated} AP, ${minutes_elapsed} min elapsed)`);
+          
+          profile.ap_now = new_ap;
+          profile.last_ap_update = new Date().toISOString();
+    
+          // ====== NOTIFICATION: AP FULL ======
+          // Only send AP notifications to students
+          if (ap_regenerated > 0 && new_ap === profile.ap_max) {
+            try {
+              await notifyApFull(user.id);
+            } catch (notifError) {
+              console.error('Failed to send AP full notification:', notifError);
+            }
           }
         }
-      }
-    } catch (apError) {
-      console.warn('AP regeneration function failed, using client-side fallback:', apError);
-      // Fallback to client-side calculation
-      const now = new Date();
-      const lastApUpdate = profile.last_ap_update ? new Date(profile.last_ap_update) : now;
-      const msElapsed = now.getTime() - lastApUpdate.getTime();
-      const minutesElapsed = Math.floor(msElapsed / (1000 * 60));
-      const apToRegen = Math.floor(minutesElapsed / 10);
-      
-      console.log(`Fallback AP Regen: Last update: ${lastApUpdate.toISOString()}, Minutes elapsed: ${minutesElapsed}, AP to regen: ${apToRegen}`);
-      
-      if (apToRegen > 0 && profile.ap_now < profile.ap_max) {
-        const newAP = Math.min(profile.ap_now + apToRegen, profile.ap_max);
+      } catch (apError) {
+        console.warn('AP regeneration function failed, using client-side fallback:', apError);
+        // Fallback to client-side calculation
+        const now = new Date();
+        const lastApUpdate = profile.last_ap_update ? new Date(profile.last_ap_update) : now;
+        const msElapsed = now.getTime() - lastApUpdate.getTime();
+        const minutesElapsed = Math.floor(msElapsed / (1000 * 60));
+        const apToRegen = Math.floor(minutesElapsed / 10);
         
-        // Calculate exact timestamp: set timer to when the LAST AP was earned (not now)
-        // Example: 35 minutes elapsed = 3 AP earned. Last AP was earned 5 minutes ago.
-        const remainderMinutes = minutesElapsed % 10;
-        const newLastUpdate = new Date(now.getTime() - (remainderMinutes * 60000));
+        console.log(`Fallback AP Regen: Last update: ${lastApUpdate.toISOString()}, Minutes elapsed: ${minutesElapsed}, AP to regen: ${apToRegen}`);
         
-        const updateData: any = { 
-          ap_now: newAP,
-          last_ap_update: newLastUpdate.toISOString()
-        };
-        
-        console.log(`Updating AP in DB: ${profile.ap_now} → ${newAP}, Timer: ${newLastUpdate.toISOString()}`);
-        
-        const { error: updateError } = await supabase
-          .from('users')
-          .update(updateData)
-          .eq('id', user.id);
+        if (apToRegen > 0 && profile.ap_now < profile.ap_max) {
+          const newAP = Math.min(profile.ap_now + apToRegen, profile.ap_max);
           
-        if (updateError) {
-          console.error('Failed to update AP in database:', updateError);
+          // Calculate exact timestamp: set timer to when the LAST AP was earned (not now)
+          // Example: 35 minutes elapsed = 3 AP earned. Last AP was earned 5 minutes ago.
+          const remainderMinutes = minutesElapsed % 10;
+          const newLastUpdate = new Date(now.getTime() - (remainderMinutes * 60000));
+          
+          const updateData: any = { 
+            ap_now: newAP,
+            last_ap_update: newLastUpdate.toISOString()
+          };
+          
+          console.log(`Updating AP in DB: ${profile.ap_now} → ${newAP}, Timer: ${newLastUpdate.toISOString()}`);
+          
+          const { error: updateError } = await supabase
+            .from('users')
+            .update(updateData)
+            .eq('id', user.id);
+            
+          if (updateError) {
+            console.error('Failed to update AP in database:', updateError);
+          } else {
+            console.log('✅ AP regenerated successfully');
+            profile.ap_now = newAP;
+            profile.last_ap_update = newLastUpdate.toISOString();
+          }
         } else {
-          console.log('✅ AP regenerated successfully');
-          profile.ap_now = newAP;
-          profile.last_ap_update = newLastUpdate.toISOString();
+          console.log(`No AP regeneration needed: current=${profile.ap_now}, max=${profile.ap_max}, toRegen=${apToRegen}`);
         }
-      } else {
-        console.log(`No AP regeneration needed: current=${profile.ap_now}, max=${profile.ap_max}, toRegen=${apToRegen}`);
       }
+    } else {
+      // Teachers and admins don't need AP regeneration - set to max
+      console.log(`[whoami] Skipping AP regeneration for ${profile.role}`);
+      profile.ap_now = profile.ap_max || 100;
+      profile.last_ap_update = new Date().toISOString();
     }
     
     // ====== STREAK TRACKING LOGIC ======

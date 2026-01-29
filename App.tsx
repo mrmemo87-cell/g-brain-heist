@@ -754,9 +754,12 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const isStudent = profile?.role === 'student';
   const isAdminUser = isAdminMode;
 
-  // Auto-refresh profile every 60 seconds to update AP regeneration
+  // Auto-refresh profile every 60 seconds (only for students who need AP regeneration)
   useEffect(() => {
-    if (!isPlayerMode) return;
+    // Only refresh profile for students who need AP regeneration
+    // Teachers and admins don't need this
+    if (!isPlayerMode || !profile || profile.role !== 'student') return;
+    
     const intervalId = setInterval(() => {
       if (navigator.onLine && profile) {
         refreshProfile();

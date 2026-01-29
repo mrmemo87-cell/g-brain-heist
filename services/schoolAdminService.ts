@@ -98,35 +98,32 @@ export async function isSchoolAdmin(): Promise<boolean> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
 
-    const { data, error } = await supabase
-      .from('school_members')
-      .select('role_in_school')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .eq('role_in_school', 'school_admin')
-      .maybeSingle();
-
-    if (error) {
-      console.error('Error checking school admin status:', error);
-      // Don't return yet - try fallback
-    }
-
-    if (data) return true;
-
-    // Fallback: check users.role column directly
+    // First check: user.role = 'school_admin' (highest priority - for teachers assigned as admins)
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('role')
       .eq('id', user.id)
-      .eq('role', 'school_admin')
       .maybeSingle();
 
-    if (userError) {
-      console.error('Error checking user role for school admin:', userError);
-      return false;
+    if (!userError && userData?.role === 'school_admin') {
+      console.log('[isSchoolAdmin] User has school_admin role in users table');
+      return true;
     }
 
-    return !!userData;
+    // Second check: school_members.role_in_school = 'school_admin'
+    const { data: membership, error: memberError } = await supabase
+      .from('school_members')
+      .select('role_in_school')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .maybeSingle();
+
+    if (!memberError && membership?.role_in_school === 'school_admin') {
+      console.log('[isSchoolAdmin] User has school_admin role in school_members table');
+      return true;
+    }
+
+    return false;
   } catch (err) {
     console.error('Exception checking school admin status:', err);
     return false;
