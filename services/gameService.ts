@@ -3463,11 +3463,12 @@ const mapJoinRequest = (row: any): ClanJoinRequest => ({
     clan_id: row.clan_id,
     user_id: row.user_id,
     status: row.status,
-    created_at: row.created_at,
+    created_at: row.created_at ?? row.requested_at,
+    requested_at: row.requested_at ?? row.created_at,
     approver_id: row.approved_by ?? null,
     clan_name: row.clans?.name ?? row.clan_name,
-    username: row.users?.username ?? row.username,
-    avatar_url: row.users?.avatar_url ?? row.avatar_url,
+    username: row.username ?? row.users?.username,
+    avatar_url: row.avatar_url ?? row.users?.avatar_url,
 });
 
 export const clan_join = async (clan_id: string): Promise<ClanJoinResult> => {
@@ -3590,12 +3591,9 @@ export const clan_get_pending_join_requests = async (): Promise<ClanJoinRequest[
 
     console.log('Fetching pending join requests for clan:', membership.clan_id);
 
-    const { data, error } = await supabase
-        .from('clan_join_requests')
-        .select('id, clan_id, user_id, status, created_at, users!user_id(username, avatar_url), clans(name)')
-        .eq('clan_id', membership.clan_id)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: true });
+    const { data, error } = await supabase.rpc('rpc_clan_join_requests', {
+        p_clan_id: membership.clan_id,
+    });
 
     if (error) {
         console.error('Failed to fetch join requests:', error);
@@ -4107,12 +4105,35 @@ export const clan_chat_post = async (message: string): Promise<ClanChatMessage> 
 };
 
 export const clan_get_available_buffs = async (): Promise<ClanBuffTemplate[]> => {
-    const { data, error } = await supabase
-        .from('clan_buff_templates')
-        .select('*')
-        .order('cost', { ascending: true });
+    const fetchOrdered = async () => {
+        return supabase
+            .from('clan_buff_templates')
+            .select('*')
+            .order('cost', { ascending: true });
+    };
+
+    const fetchUnordered = async () => {
+        return supabase
+            .from('clan_buff_templates')
+            .select('*');
+    };
+
+    const { data, error } = await fetchOrdered();
 
     if (error) {
+        const shouldRetryUnordered = error.code === '54001' || error.status === 500;
+        if (shouldRetryUnordered) {
+            const { data: fallbackData, error: fallbackError } = await fetchUnordered();
+            if (fallbackError) {
+                throw new Error('Unable to load clan buffs. Please try again.');
+            }
+            if (!fallbackData || fallbackData.length === 0) {
+                return mockApiCall(MOCK_AVAILABLE_BUFFS);
+            }
+            const sorted = [...fallbackData].sort((a, b) => Number(a.cost ?? 0) - Number(b.cost ?? 0));
+            return sorted.map(mapBuffTemplateRow);
+        }
+
         console.warn('Failed to load clan buff templates, using defaults:', error.message);
         return mockApiCall(MOCK_AVAILABLE_BUFFS);
     }
