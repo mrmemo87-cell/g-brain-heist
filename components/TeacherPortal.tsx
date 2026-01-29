@@ -11,6 +11,8 @@ interface TeacherPortalProps {
   profile: Profile;
   onComplete: () => void;
   onLockdown?: () => void;
+  isSchoolAdmin?: boolean;
+  onOpenSchoolAdmin?: () => void;
 }
 
 type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'geometry-diagrams' | 'cambridge-reports';
@@ -52,7 +54,7 @@ const WRITING_TEST_METADATA: Record<string, {
   },
 };
 
-const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLockdown }) => {
+const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLockdown, isSchoolAdmin, onOpenSchoolAdmin }) => {
   const [view, setView] = useState<PortalView>('dashboard');
   const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [questions, setQuestions] = useState<TeacherQuestion[]>([]);
@@ -129,6 +131,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [showCambridgeReport, setShowCambridgeReport] = useState(false);
   const [showCambridgeAnswers, setShowCambridgeAnswers] = useState(false);
   const [selectedCambridgeStudent, setSelectedCambridgeStudent] = useState<any | null>(null);
+  const [cambridgeDrawerOpen, setCambridgeDrawerOpen] = useState(false);
+  const [cambridgeDrawerAttempt, setCambridgeDrawerAttempt] = useState<any | null>(null);
   const [showWritingMarkingModal, setShowWritingMarkingModal] = useState(false);
   const [autoProofreadLoading, setAutoProofreadLoading] = useState(false);
   const [savingMarks, setSavingMarks] = useState(false);
@@ -750,6 +754,26 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     }
     setShowWritingMarkingModal(true);
   };
+
+  const openCambridgeDrawer = useCallback((attempt: any) => {
+    setCambridgeDrawerAttempt(attempt);
+    setCambridgeDrawerOpen(true);
+  }, []);
+
+  const closeCambridgeDrawer = useCallback(() => {
+    setCambridgeDrawerOpen(false);
+  }, []);
+
+  useEffect(() => {
+    if (!cambridgeDrawerOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setCambridgeDrawerOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [cambridgeDrawerOpen]);
 
   // Submit writing marks
   const submitWritingMarks = async (releaseToStudent: boolean = false) => {
@@ -2310,6 +2334,20 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               <p className="teacher-tool-desc">Mark writing tests & view results</p>
             </div>
           </button>
+
+          {/* Role source-of-truth: uses isSchoolAdmin derived from schoolAdminService checks (users + school_members). */}
+          {isSchoolAdmin && onOpenSchoolAdmin && (
+            <button
+              onClick={onOpenSchoolAdmin}
+              className="teacher-tool-card purple"
+            >
+              <div className="teacher-tool-icon">🏫</div>
+              <div>
+                <h4 className="teacher-tool-title">School Admin Portal</h4>
+                <p className="teacher-tool-desc">Manage school members & settings</p>
+              </div>
+            </button>
+          )}
         </div>
       </div>
 
@@ -3839,6 +3877,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     };
     const tabScores = getTabScores();
     const pendingWriting = cambridgeScores.filter(s => WRITING_TEST_NAMES.includes(s.quiz_name) && s.answers?.requires_marking).length;
+    const drawerAttempt = cambridgeDrawerAttempt;
+    const drawerIsWriting = drawerAttempt ? WRITING_TEST_NAMES.includes(drawerAttempt.quiz_name) : false;
+    const drawerNeedsMarking = drawerIsWriting && drawerAttempt?.answers?.requires_marking;
+    const canReleaseDrawerScores = Boolean(drawerAttempt && !drawerNeedsMarking && !drawerAttempt.scores_released);
 
     return (
     <div className="space-y-4 text-black">
@@ -4040,7 +4082,19 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                     const isWritingTest = WRITING_TEST_NAMES.includes(score.quiz_name);
                     const needsMarking = isWritingTest && score.answers?.requires_marking;
                     return (
-                      <tr key={score.id} className={`hover:bg-gray-50 ${needsMarking ? 'bg-amber-50' : ''} ${!score.scores_released ? 'opacity-75' : ''}`}>
+                      <tr
+                        key={score.id}
+                        className={`cursor-pointer hover:bg-gray-50 ${needsMarking ? 'bg-amber-50' : ''} ${!score.scores_released ? 'opacity-75' : ''}`}
+                        onClick={() => openCambridgeDrawer(score)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            openCambridgeDrawer(score);
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                      >
                         <td className="px-4 py-2.5 text-gray-900 font-medium">{score.student_name}</td>
                         <td className="px-4 py-2.5 text-gray-600">{score.student_class || '-'}</td>
                         {cambridgeActiveTab === 'all' && (
@@ -4082,7 +4136,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                             {isWritingTest ? (
                               <>
                                 <button
-                                  onClick={() => openWritingMarking(score)}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    openCambridgeDrawer(score);
+                                    openWritingMarking(score);
+                                  }}
                                   className={`px-2.5 py-1 rounded text-xs font-medium ${
                                     needsMarking 
                                       ? 'bg-amber-500 hover:bg-amber-600 text-white' 
@@ -4092,7 +4150,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                                   {needsMarking ? '✏️ Mark' : '👁️ View'}
                                 </button>
                                 <button
-                                  onClick={() => openCambridgeAnswers(score)}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    openCambridgeDrawer(score);
+                                    openCambridgeAnswers(score);
+                                  }}
                                   className="px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded text-xs font-medium"
                                 >
                                   📝
@@ -4101,13 +4163,21 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                             ) : (
                               <>
                                 <button
-                                  onClick={() => openCambridgeAnswers(score)}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    openCambridgeDrawer(score);
+                                    openCambridgeAnswers(score);
+                                  }}
                                   className="px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded text-xs font-medium"
                                 >
                                   📝 Answers
                                 </button>
                                 <button
-                                  onClick={() => openCambridgeReport(score)}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    openCambridgeDrawer(score);
+                                    openCambridgeReport(score);
+                                  }}
                                   className="px-2.5 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded text-xs font-medium"
                                 >
                                   📄 Report
@@ -4123,6 +4193,114 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               </table>
             </div>
           </div>
+
+          {cambridgeDrawerOpen && drawerAttempt && (
+            <div className="fixed inset-0 z-[60]">
+              <div
+                className="absolute inset-0 bg-black/40"
+                onClick={closeCambridgeDrawer}
+              />
+              <div className="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl flex flex-col">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-gray-500">Attempt Details</p>
+                    <h3 className="text-lg font-semibold text-gray-900">{drawerAttempt.student_name}</h3>
+                  </div>
+                  <button
+                    onClick={closeCambridgeDrawer}
+                    className="text-gray-400 hover:text-gray-700 rounded-md px-2 py-1"
+                    aria-label="Close details"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+                  <div className="space-y-1">
+                    <p className="text-sm text-gray-500">Class</p>
+                    <p className="text-sm font-medium text-gray-900">{drawerAttempt.student_class || '—'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-gray-500">Test</p>
+                    <p className="text-sm font-medium text-gray-900">{drawerAttempt.quiz_name}</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 border border-gray-200 rounded-lg p-3 bg-gray-50">
+                    <div>
+                      <p className="text-xs uppercase text-gray-500">Score</p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        {drawerNeedsMarking ? 'Pending' : `${drawerAttempt.score}/${drawerAttempt.total_questions}`}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-gray-500">Percentage</p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        {drawerNeedsMarking ? '—' : `${drawerAttempt.percentage}%`}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-gray-500">Time</p>
+                      <p className="text-sm font-medium text-gray-700">{formatCambridgeTime(drawerAttempt.time_taken_seconds)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-gray-500">Status</p>
+                      <p className="text-sm font-medium text-gray-700">
+                        {drawerNeedsMarking ? 'Needs marking' : drawerAttempt.scores_released ? 'Released' : 'Pending'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => openCambridgeAnswers(drawerAttempt)}
+                      className="w-full px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700"
+                    >
+                      View detailed answers
+                    </button>
+                    {drawerIsWriting ? (
+                      <button
+                        onClick={() => openWritingMarking(drawerAttempt)}
+                        className="w-full px-4 py-2 rounded-md bg-amber-500 text-white text-sm font-medium hover:bg-amber-600"
+                      >
+                        {drawerNeedsMarking ? 'Open marking' : 'View marking'}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => openCambridgeReport(drawerAttempt)}
+                        className="w-full px-4 py-2 rounded-md bg-purple-600 text-white text-sm font-medium hover:bg-purple-700"
+                      >
+                        Create report
+                      </button>
+                    )}
+                    {drawerAttempt.scores_released ? (
+                      <button
+                        className="w-full px-4 py-2 rounded-md border border-gray-200 text-sm font-medium text-gray-500 cursor-not-allowed"
+                        disabled
+                      >
+                        Scores released
+                      </button>
+                    ) : canReleaseDrawerScores ? (
+                      <button
+                        onClick={() => releaseScores(drawerAttempt.quiz_name, drawerAttempt.student_class || undefined)}
+                        className="w-full px-4 py-2 rounded-md border border-green-200 bg-green-50 text-sm font-medium text-green-700 hover:bg-green-100"
+                        title="Releases scores for this test and class"
+                      >
+                        Release scores
+                      </button>
+                    ) : (
+                      <button
+                        className="w-full px-4 py-2 rounded-md border border-gray-200 text-sm font-medium text-gray-400 cursor-not-allowed"
+                        disabled
+                        title="Not available yet"
+                      >
+                        Release scores
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Collapsible Class Performance */}
           <details className="bg-white border border-gray-200 rounded-xl overflow-hidden">
