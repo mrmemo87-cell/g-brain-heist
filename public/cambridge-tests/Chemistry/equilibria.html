@@ -684,7 +684,70 @@
     function createSupabaseClient(url, key) {
       return {
         from(table) {
-          return {
+          let queryParams = [];
+          let selectColumns = '*';
+          let orderColumn = null;
+          let orderAsc = true;
+          let limitCount = null;
+          let isSingle = false;
+
+          const builder = {
+            select(columns = '*') {
+              selectColumns = columns;
+              return builder;
+            },
+            eq(column, value) {
+              queryParams.push(`${column}=eq.${encodeURIComponent(value)}`);
+              return builder;
+            },
+            order(column, options = {}) {
+              orderColumn = column;
+              orderAsc = options.ascending !== false;
+              return builder;
+            },
+            limit(count) {
+              limitCount = count;
+              return builder;
+            },
+            single() {
+              isSingle = true;
+              limitCount = 1;
+              return builder;
+            },
+            async then(resolve) {
+              try {
+                let queryString = `select=${encodeURIComponent(selectColumns)}`;
+                if (queryParams.length > 0) {
+                  queryString += '&' + queryParams.join('&');
+                }
+                if (orderColumn) {
+                  queryString += `&order=${orderColumn}.${orderAsc ? 'asc' : 'desc'}`;
+                }
+                if (limitCount) {
+                  queryString += `&limit=${limitCount}`;
+                }
+                const response = await fetch(`${url}/rest/v1/${table}?${queryString}`, {
+                  method: 'GET',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': key,
+                    'Authorization': `Bearer ${key}`
+                  }
+                });
+                if (!response.ok) {
+                  const errorText = await response.text();
+                  resolve({ data: null, error: new Error(errorText || response.statusText) });
+                  return;
+                }
+                let data = await response.json();
+                if (isSingle) {
+                  data = data.length > 0 ? data[0] : null;
+                }
+                resolve({ data, error: null });
+              } catch (err) {
+                resolve({ data: null, error: err });
+              }
+            },
             async insert(data) {
               try {
                 const response = await fetch(`${url}/rest/v1/${table}`, {
@@ -707,6 +770,7 @@
               }
             }
           };
+          return builder;
         }
       };
     }
