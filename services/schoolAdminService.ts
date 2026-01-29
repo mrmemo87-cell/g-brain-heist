@@ -724,6 +724,25 @@ export async function assignTeacherToClassSubject(
   }
 }
 
+export async function deleteTeacherAssignment(assignmentId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase
+      .from('class_teacher_assignments')
+      .delete()
+      .eq('id', assignmentId);
+
+    if (error) {
+      console.error('Error deleting teacher assignment:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error('Exception deleting teacher assignment:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
 export async function listClassStudents(classIds: string[]): Promise<ClassStudentAssignment[]> {
   try {
     if (classIds.length === 0) return [];

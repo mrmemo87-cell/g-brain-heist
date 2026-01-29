@@ -17,7 +17,7 @@ interface SchoolAdminPortalProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
 }
 
-type AdminTab = 'dashboard' | 'members' | 'classes' | 'teachers' | 'students' | 'invites' | 'settings';
+type AdminTab = 'dashboard' | 'members' | 'classes' | 'subjects' | 'teachers' | 'students' | 'invites' | 'settings';
 
 const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addToast }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
@@ -38,6 +38,12 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
     grade_level: '',
     is_active: true,
   });
+
+  // Subjects manager state
+  const [subjects, setSubjects] = useState<string[]>([]);
+  const [subjectInput, setSubjectInput] = useState('');
+  const [editingSubject, setEditingSubject] = useState<string | null>(null);
+  const [editSubjectInput, setEditSubjectInput] = useState('');
 
   // Teacher assignment state
   const [teachers, setTeachers] = useState<SchoolTeacher[]>([]);
@@ -120,6 +126,18 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
       setTeachers(teacherList);
       setTeacherAssignments(assignmentsList);
       setStudents(studentList);
+
+      // Extract unique subjects from assignments and teacher specializations
+      const subjectsSet = new Set<string>();
+      assignmentsList.forEach((a) => {
+        if (a.subject?.trim()) subjectsSet.add(a.subject.trim());
+      });
+      teacherList.forEach((t) => {
+        t.subject_specializations?.forEach((s) => {
+          if (s?.trim()) subjectsSet.add(s.trim());
+        });
+      });
+      setSubjects(Array.from(subjectsSet).sort());
 
       const classIds = classList.map((cls) => cls.id);
       const studentRows = await SchoolAdminService.listClassStudents(classIds);
@@ -335,57 +353,31 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
     });
   };
 
-  const handleAddSubject = () => {
-    const subject = assignmentSubjectInput.trim();
-    if (!subject) return;
-    if (assignmentSubjects.includes(subject)) {
-      setAssignmentSubjectInput('');
-      return;
-    }
-    setAssignmentSubjects((prev) => [...prev, subject]);
-    setAssignmentSubjectInput('');
-  };
-
   const handleAssignTeacher = async () => {
     if (!school) return;
-    if (!assignmentClassId || !assignmentTeacherId) {
-      addToast('Select a class and teacher', 'error');
-      return;
-    }
-
-    const subjects = [...assignmentSubjects];
-    if (assignmentSubjectInput.trim()) {
-      subjects.push(assignmentSubjectInput.trim());
-    }
-
-    const uniqueSubjects = Array.from(new Set(subjects.filter((subject) => subject.length > 0)));
-    if (uniqueSubjects.length === 0) {
-      addToast('Enter at least one subject', 'error');
+    if (!assignmentClassId || !assignmentTeacherId || !assignmentSubjectInput.trim()) {
+      addToast('Select a class, teacher, and subject', 'error');
       return;
     }
 
     setAssignmentSaving(true);
-    const results = await Promise.all(
-      uniqueSubjects.map((subject) =>
-        SchoolAdminService.assignTeacherToClassSubject(
-          school.id,
-          assignmentClassId,
-          assignmentTeacherId,
-          subject,
-          assignmentActive
-        )
-      )
+    const result = await SchoolAdminService.assignTeacherToClassSubject(
+      school.id,
+      assignmentClassId,
+      assignmentTeacherId,
+      assignmentSubjectInput.trim(),
+      assignmentActive
     );
     setAssignmentSaving(false);
 
-    const failed = results.find((res) => !res.success);
-    if (failed) {
-      addToast(failed.error || 'Failed to assign teacher', 'error');
+    if (!result.success) {
+      addToast(result.error || 'Failed to assign teacher', 'error');
       return;
     }
 
-    addToast(`Assigned ${uniqueSubjects.length} subject${uniqueSubjects.length > 1 ? 's' : ''}`, 'success');
-    setAssignmentSubjects([]);
+    addToast('Teacher assigned successfully', 'success');
+    setAssignmentClassId('');
+    setAssignmentTeacherId('');
     setAssignmentSubjectInput('');
     await loadAdminTools(school.id);
   };
@@ -493,50 +485,43 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-slate-900 text-white p-4 pb-24">
-      {/* Premium Header with Crown Badge */}
-      <div className="relative mb-8">
+      {/* Premium Header - Fixed and Clean */}
+      <div className="relative mb-6">
         {/* Background Glow Effect */}
         <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-cyan-500/10 to-purple-600/10 blur-3xl -z-10" />
         
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <BackButton onClick={onComplete} />
-            <div className="relative">
-              {/* Crown Badge */}
-              <div className="absolute -top-3 -left-2 text-2xl animate-pulse">👑</div>
-              <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-200 drop-shadow-lg">
-                {school.name}
-              </h1>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="px-2 py-0.5 bg-gradient-to-r from-purple-600 to-purple-500 text-white text-xs font-semibold rounded-full shadow-lg shadow-purple-500/25">
-                  ⭐ SCHOOL ADMIN
-                </span>
-                <span className="text-gray-400 text-sm">Premium Management Portal</span>
-              </div>
-            </div>
-          </div>
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-3">
+            <BackButton onClick={onComplete} />
             {school.logo_url ? (
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-xl blur-md opacity-50" />
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-lg blur-sm opacity-40" />
                 <img 
                   src={school.logo_url} 
                   alt={school.name} 
-                  className="relative h-14 w-14 rounded-xl object-cover border-2 border-purple-400/50 shadow-lg" 
+                  className="relative h-12 w-12 rounded-lg object-cover border-2 border-purple-400/50 shadow-lg" 
                 />
               </div>
             ) : (
-              <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-purple-600 to-cyan-600 flex items-center justify-center text-2xl shadow-lg shadow-purple-500/25">
+              <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-purple-600 to-cyan-600 flex items-center justify-center text-xl shadow-lg">
                 🏫
               </div>
             )}
+            <div>
+              <h1 className="text-2xl font-bold text-white drop-shadow-md">
+                {school.name}
+              </h1>
+              <span className="px-2 py-0.5 bg-gradient-to-r from-purple-600 to-purple-500 text-white text-xs font-semibold rounded-full shadow-lg inline-block">
+                ⭐ SCHOOL ADMIN
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Premium Tab Navigation */}
       <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
-        {(['dashboard', 'members', 'classes', 'teachers', 'students', 'invites', 'settings'] as AdminTab[]).map((tab) => (
+        {(['dashboard', 'members', 'classes', 'subjects', 'teachers', 'students', 'invites', 'settings'] as AdminTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -549,6 +534,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
             {tab === 'dashboard' && '📊 Dashboard'}
             {tab === 'members' && `👥 Members (${membersTotal})`}
             {tab === 'classes' && '🏫 Classes'}
+            {tab === 'subjects' && '📚 Subjects'}
             {tab === 'teachers' && '🧑‍🏫 Teacher Assignments'}
             {tab === 'students' && '🎒 Student Enrollment'}
             {tab === 'invites' && '🔑 Invite Code'}
@@ -909,6 +895,135 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
         </div>
       )}
 
+      {/* Subjects Tab */}
+      {activeTab === 'subjects' && (
+        <div className="space-y-6">
+          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <h3 className="text-lg font-semibold mb-4">Manage Subjects</h3>
+            <p className="text-sm text-gray-400 mb-4">
+              Add subjects that teachers can teach. These will be available when assigning teachers to classes.
+            </p>
+            <div className="flex gap-4">
+              <input
+                type="text"
+                value={subjectInput}
+                onChange={(e) => setSubjectInput(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && subjectInput.trim()) {
+                    const newSubject = subjectInput.trim();
+                    if (!subjects.includes(newSubject)) {
+                      setSubjects([...subjects, newSubject].sort());
+                      setSubjectInput('');
+                      addToast(`Subject "${newSubject}" added`, 'success');
+                    } else {
+                      addToast('Subject already exists', 'error');
+                    }
+                  }
+                }}
+                className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                placeholder="Enter subject name (e.g., Mathematics, Physics, English)"
+              />
+              <button
+                onClick={() => {
+                  if (subjectInput.trim()) {
+                    const newSubject = subjectInput.trim();
+                    if (!subjects.includes(newSubject)) {
+                      setSubjects([...subjects, newSubject].sort());
+                      setSubjectInput('');
+                      addToast(`Subject "${newSubject}" added`, 'success');
+                    } else {
+                      addToast('Subject already exists', 'error');
+                    }
+                  }
+                }}
+                className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors font-medium"
+              >
+                Add Subject
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+            <div className="p-4 border-b border-gray-700">
+              <h4 className="text-sm font-semibold text-gray-300">Available Subjects ({subjects.length})</h4>
+            </div>
+            <div className="p-4">
+              {subjects.length === 0 ? (
+                <div className="text-center text-gray-500 py-8">
+                  No subjects added yet. Add some subjects to assign teachers.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {subjects.map((subject) => (
+                    <div
+                      key={subject}
+                      className="flex items-center justify-between bg-gray-750 p-3 rounded-lg border border-gray-700 hover:border-cyan-500/50 transition-colors"
+                    >
+                      {editingSubject === subject ? (
+                        <>
+                          <input
+                            type="text"
+                            value={editSubjectInput}
+                            onChange={(e) => setEditSubjectInput(e.target.value)}
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') {
+                                const newName = editSubjectInput.trim();
+                                if (newName && newName !== subject) {
+                                  if (!subjects.includes(newName)) {
+                                    setSubjects(subjects.map((s) => (s === subject ? newName : s)).sort());
+                                    addToast(`Subject renamed to "${newName}"`, 'success');
+                                  } else {
+                                    addToast('Subject name already exists', 'error');
+                                  }
+                                }
+                                setEditingSubject(null);
+                                setEditSubjectInput('');
+                              }
+                            }}
+                            onBlur={() => {
+                              setEditingSubject(null);
+                              setEditSubjectInput('');
+                            }}
+                            autoFocus
+                            className="flex-1 px-2 py-1 bg-gray-700 border border-cyan-500 rounded text-white text-sm focus:outline-none"
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-gray-200 font-medium">📚 {subject}</span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => {
+                                setEditingSubject(subject);
+                                setEditSubjectInput(subject);
+                              }}
+                              className="text-cyan-400 hover:text-cyan-300 text-xs"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm(`Are you sure you want to delete the subject "${subject}"? This will not delete existing teacher assignments.`)) {
+                                  setSubjects(subjects.filter((s) => s !== subject));
+                                  addToast(`Subject "${subject}" deleted`, 'success');
+                                }
+                              }}
+                              className="text-red-400 hover:text-red-300 text-xs"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {activeTab === 'teachers' && (
         <div className="space-y-6">
           <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
@@ -945,42 +1060,23 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                 </select>
               </div>
               <div className="lg:col-span-2">
-                <label className="block text-sm font-medium text-gray-400 mb-1">Subjects</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={assignmentSubjectInput}
-                    onChange={(e) => setAssignmentSubjectInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleAddSubject();
-                      }
-                    }}
-                    className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
-                    placeholder="e.g. Mathematics"
-                  />
-                  <button
-                    onClick={handleAddSubject}
-                    className="px-3 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg text-sm"
-                  >
-                    Add
-                  </button>
-                </div>
-                {assignmentSubjects.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {assignmentSubjects.map((subject) => (
-                      <span key={subject} className="px-2 py-1 rounded-full bg-gray-700 text-xs text-gray-200 flex items-center gap-2">
-                        {subject}
-                        <button
-                          onClick={() => setAssignmentSubjects((prev) => prev.filter((item) => item !== subject))}
-                          className="text-gray-400 hover:text-white"
-                        >
-                          ✕
-                        </button>
-                      </span>
-                    ))}
-                  </div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Subject</label>
+                <select
+                  value={assignmentSubjectInput}
+                  onChange={(e) => setAssignmentSubjectInput(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                >
+                  <option value="">Select subject</option>
+                  {subjects.map((subject) => (
+                    <option key={subject} value={subject}>
+                      {subject}
+                    </option>
+                  ))}
+                </select>
+                {subjects.length === 0 && (
+                  <p className="text-xs text-yellow-500 mt-1">
+                    ⚠️ No subjects available. Go to the Subjects tab to add some.
+                  </p>
                 )}
               </div>
             </div>
@@ -996,7 +1092,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
               </label>
               <button
                 onClick={handleAssignTeacher}
-                disabled={assignmentSaving}
+                disabled={assignmentSaving || !assignmentClassId || !assignmentTeacherId || !assignmentSubjectInput}
                 className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 rounded-lg transition-colors font-medium"
               >
                 {assignmentSaving ? 'Assigning...' : 'Assign Teacher'}
@@ -1045,6 +1141,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Teacher</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Subject</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Status</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-400">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-700">
@@ -1057,13 +1154,38 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                           {cls ? `${cls.class_code} — ${cls.class_name}` : assignment.class_id}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-200">
-                          {teacher?.username || assignment.teacher_user_id}
+                          {teacher ? (
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{teacher.username}</span>
+                              {teacher.verified && <span className="text-cyan-400 text-xs">✓</span>}
+                            </div>
+                          ) : (
+                            <span className="text-gray-500 text-xs">User ID: {assignment.teacher_user_id}</span>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-300">{assignment.subject}</td>
                         <td className="px-4 py-3 text-sm">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${assignment.active ? 'bg-green-500/20 text-green-300' : 'bg-gray-600/40 text-gray-300'}`}>
                             {assignment.active ? 'Active' : 'Inactive'}
                           </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={async () => {
+                              if (confirm(`Remove ${teacher?.username || 'this teacher'} from teaching ${assignment.subject} in ${cls?.class_code || 'this class'}?`)) {
+                                const result = await SchoolAdminService.deleteTeacherAssignment(assignment.id);
+                                if (result.success) {
+                                  addToast('Assignment deleted successfully', 'success');
+                                  if (school) await loadAdminTools(school.id);
+                                } else {
+                                  addToast(`Failed to delete: ${result.error}`, 'error');
+                                }
+                              }
+                            }}
+                            className="text-red-400 hover:text-red-300 text-sm font-medium"
+                          >
+                            Delete
+                          </button>
                         </td>
                       </tr>
                     );
