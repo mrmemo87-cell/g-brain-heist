@@ -16,7 +16,7 @@ interface AdminPortalProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
 }
 
-type AdminTab = 'dashboard' | 'users' | 'applications' | 'game' | 'clans' | 'analytics' | 'cambridge' | 'ielts' | 'system';
+type AdminTab = 'dashboard' | 'users' | 'schools' | 'applications' | 'game' | 'clans' | 'analytics' | 'cambridge' | 'ielts' | 'system';
 
 const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast }) => {
   const PAGE_SIZE = 50;
@@ -1143,7 +1143,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         {/* Tab Navigation - Epic Style */}
         <div className="max-w-6xl mx-auto mb-6">
           <div className="flex flex-wrap gap-2 justify-center">
-            {(['dashboard', 'users', 'applications', 'game', 'clans', 'analytics', 'cambridge', 'ielts', 'system'] as AdminTab[]).map((tab) => (
+            {(['dashboard', 'users', 'schools', 'applications', 'game', 'clans', 'analytics', 'cambridge', 'ielts', 'system'] as AdminTab[]).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -1549,6 +1549,179 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
             </div>
           )}
 
+          {activeTab === 'schools' && (
+            <div className="space-y-6">
+              {isSuperadmin && (
+                <div className="card-glass border-2 border-indigo-400/50 p-6">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-2xl font-heading font-bold text-indigo-200">🏫 School Admin Management</h3>
+                        <span className="rounded-full border border-indigo-300/40 bg-indigo-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-indigo-100">
+                          Superadmin only
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-400">
+                        Assign school admin role to users within a school. School admins can manage their school's members, classes, and settings.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => loadSchoolMembers(schoolAdminSchoolId)}
+                      disabled={!schoolAdminSchoolId || schoolMembersLoading}
+                      className="rounded-lg border border-indigo-400/60 bg-indigo-500/20 px-4 py-2 text-sm font-semibold text-indigo-100 hover:bg-indigo-500/30 disabled:opacity-60"
+                    >
+                      {schoolMembersLoading ? 'Loading...' : '🔄 Refresh Members'}
+                    </button>
+                  </div>
+
+                  <div className="mt-4 grid gap-3 md:grid-cols-[2fr,1fr]">
+                    <select
+                      value={schoolAdminSchoolId}
+                      onChange={(event) => {
+                        const selectedId = event.target.value;
+                        setSchoolAdminSchoolId(selectedId);
+                        setSchoolMembers([]);
+                        setSchoolMembersError(null);
+                        if (selectedId) {
+                          loadSchoolMembers(selectedId);
+                        }
+                      }}
+                      className="w-full rounded-lg border border-indigo-400/30 bg-black/40 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                    >
+                      <option value="">Select a school to manage</option>
+                      {schoolOptions.map((school) => (
+                        <option key={school.id} value={school.id}>
+                          {school.name}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      value={schoolMemberSearch}
+                      onChange={(event) => setSchoolMemberSearch(event.target.value)}
+                      placeholder="Search username or email..."
+                      className="w-full rounded-lg border border-indigo-400/30 bg-black/40 px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                    />
+                  </div>
+
+                  {schoolAdminSchoolId && (
+                    <div className="mt-4 rounded-lg border border-indigo-400/20 bg-indigo-500/10 px-4 py-2 text-sm text-indigo-100">
+                      {currentSchoolAdmin ? (
+                        <span>
+                          📌 Current school admin: <strong>{currentSchoolAdmin.username || currentSchoolAdmin.email}</strong>
+                          {currentSchoolAdmin.email && ` (${currentSchoolAdmin.email})`}
+                        </span>
+                      ) : (
+                        <span>⚠️ No school admin assigned yet. Select a member below to make them school admin.</span>
+                      )}
+                    </div>
+                  )}
+
+                  {schoolMembersError && (
+                    <div className="mt-4 rounded-lg border border-red-400/40 bg-red-500/10 px-4 py-2 text-sm text-red-200">
+                      ❌ {schoolMembersError}
+                    </div>
+                  )}
+
+                  {schoolMembersLoading && (
+                    <div className="mt-4 rounded-lg border border-white/10 bg-black/30 p-8 text-center">
+                      <div className="inline-block animate-spin h-8 w-8 border-4 border-indigo-400 border-t-transparent rounded-full"></div>
+                      <p className="text-sm text-gray-400 mt-3">Loading school members...</p>
+                    </div>
+                  )}
+
+                  {!schoolMembersLoading && schoolAdminSchoolId && filteredSchoolMembers.length === 0 && (
+                    <div className="mt-4 rounded-lg border border-white/10 bg-black/30 p-8 text-center text-sm text-gray-400">
+                      <p className="text-4xl mb-2">🔍</p>
+                      <p>No members found for this school.</p>
+                      {schoolMemberSearch && <p className="text-xs mt-2">Try adjusting your search.</p>}
+                    </div>
+                  )}
+
+                  {filteredSchoolMembers.length > 0 && (
+                    <div className="mt-4 space-y-3">
+                      <p className="text-xs text-gray-400">
+                        Showing {filteredSchoolMembers.length} member{filteredSchoolMembers.length !== 1 ? 's' : ''}
+                      </p>
+                      {filteredSchoolMembers.map((member) => {
+                        const isAdmin = member.role === 'school_admin';
+                        return (
+                          <div
+                            key={member.user_id}
+                            className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4 transition-all ${
+                              isAdmin
+                                ? 'border-indigo-400/60 bg-indigo-500/15 shadow-[0_0_20px_rgba(99,102,241,0.3)]'
+                                : 'border-white/10 bg-black/40 hover:bg-black/50'
+                            }`}
+                          >
+                            <div className="flex-1">
+                              <div className="flex flex-wrap items-center gap-2 mb-1">
+                                <p className="font-semibold text-white text-lg">
+                                  {member.username || member.email || member.user_id}
+                                </p>
+                                {isAdmin && (
+                                  <span className="rounded-full border border-indigo-300/40 bg-indigo-500/30 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-indigo-100 shadow-lg">
+                                    👑 School Admin
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap gap-3 text-xs text-gray-400">
+                                <span>📧 {member.email || 'No email'}</span>
+                                <span>•</span>
+                                <span>👤 {member.role.replace(/_/g, ' ')}</span>
+                                {member.grade && (
+                                  <>
+                                    <span>•</span>
+                                    <span>📚 Grade {member.grade}</span>
+                                  </>
+                                )}
+                                {member.level > 0 && (
+                                  <>
+                                    <span>•</span>
+                                    <span>⭐ Level {member.level}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleSetSchoolAdmin(schoolAdminSchoolId, member.user_id)}
+                              disabled={isAdmin || schoolAdminActionLoading === member.user_id}
+                              className={`rounded-lg border px-4 py-2 text-sm font-semibold transition-all ${
+                                isAdmin
+                                  ? 'border-indigo-300/40 bg-indigo-500/20 text-indigo-200 cursor-not-allowed'
+                                  : schoolAdminActionLoading === member.user_id
+                                    ? 'border-indigo-400/50 bg-indigo-500/30 text-indigo-100 cursor-wait'
+                                    : 'border-indigo-400/50 bg-indigo-500/20 text-indigo-100 hover:bg-indigo-500/40 hover:border-indigo-400'
+                              }`}
+                            >
+                              {schoolAdminActionLoading === member.user_id ? (
+                                <>⏳ Setting...</>
+                              ) : isAdmin ? (
+                                <>✓ Current Admin</>
+                              ) : (
+                                <>👑 Make School Admin</>
+                              )}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!isSuperadmin && (
+                <div className="card-glass border-2 border-red-400/50 p-8 text-center">
+                  <p className="text-4xl mb-4">🔒</p>
+                  <h3 className="text-2xl font-bold text-red-300 mb-2">Access Restricted</h3>
+                  <p className="text-gray-400">Only superadmins can manage schools and school admins.</p>
+                </div>
+              )}
+            </div>
+          )}
+
           {activeTab === 'applications' && (
             <div className="space-y-6">
               <div className="card-glass p-6 border-2 border-cyan-400/50">
@@ -1758,128 +1931,6 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                 })}
               </div>
 
-              {isSuperadmin && (
-                <div className="card-glass border-2 border-indigo-400/50 p-6">
-                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-2xl font-heading font-bold text-indigo-200">🏫 School Admin Management</h3>
-                        <span className="rounded-full border border-indigo-300/40 bg-indigo-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-indigo-100">
-                          Superadmin only
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-400">
-                        Assign the single school admin for a school. Existing admins are replaced.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => loadSchoolMembers(schoolAdminSchoolId)}
-                      disabled={!schoolAdminSchoolId || schoolMembersLoading}
-                      className="rounded-lg border border-indigo-400/60 bg-indigo-500/20 px-4 py-2 text-sm font-semibold text-indigo-100 hover:bg-indigo-500/30 disabled:opacity-60"
-                    >
-                      {schoolMembersLoading ? 'Loading...' : 'Load members'}
-                    </button>
-                  </div>
-
-                  <div className="mt-4 grid gap-3 md:grid-cols-[2fr,1fr]">
-                    <select
-                      value={schoolAdminSchoolId}
-                      onChange={(event) => {
-                        const selectedId = event.target.value;
-                        setSchoolAdminSchoolId(selectedId);
-                        setSchoolMembers([]);
-                        setSchoolMembersError(null);
-                        if (selectedId) {
-                          loadSchoolMembers(selectedId);
-                        }
-                      }}
-                      className="w-full rounded-lg border border-indigo-400/30 bg-black/40 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                    >
-                      <option value="">Select a school</option>
-                      {schoolOptions.map((school) => (
-                        <option key={school.id} value={school.id}>
-                          {school.name}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      type="text"
-                      value={schoolMemberSearch}
-                      onChange={(event) => setSchoolMemberSearch(event.target.value)}
-                      placeholder="Search username or email..."
-                      className="w-full rounded-lg border border-indigo-400/30 bg-black/40 px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                    />
-                  </div>
-
-                  {schoolAdminSchoolId && (
-                    <div className="mt-4 rounded-lg border border-indigo-400/20 bg-indigo-500/10 px-4 py-2 text-sm text-indigo-100">
-                      {currentSchoolAdmin ? (
-                        <span>
-                          Current school admin: <strong>{currentSchoolAdmin.username || currentSchoolAdmin.email}</strong>
-                          {currentSchoolAdmin.email ? ` (${currentSchoolAdmin.email})` : ''}
-                        </span>
-                      ) : (
-                        <span>No school admin assigned yet.</span>
-                      )}
-                    </div>
-                  )}
-
-                  {schoolMembersError && (
-                    <div className="mt-4 rounded-lg border border-red-400/40 bg-red-500/10 px-4 py-2 text-sm text-red-200">
-                      {schoolMembersError}
-                    </div>
-                  )}
-
-                  {!schoolMembersLoading && schoolAdminSchoolId && filteredSchoolMembers.length === 0 && (
-                    <div className="mt-4 rounded-lg border border-white/10 bg-black/30 p-4 text-center text-sm text-gray-400">
-                      No members found for this school.
-                    </div>
-                  )}
-
-                  {filteredSchoolMembers.length > 0 && (
-                    <div className="mt-4 space-y-3">
-                      {filteredSchoolMembers.map((member) => {
-                        const isAdmin = member.role === 'school_admin';
-                        return (
-                          <div
-                            key={member.user_id}
-                            className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3 ${
-                              isAdmin
-                                ? 'border-indigo-400/60 bg-indigo-500/15'
-                                : 'border-white/10 bg-black/40'
-                            }`}
-                          >
-                            <div>
-                              <div className="flex flex-wrap items-center gap-2">
-                                <p className="font-semibold text-white">
-                                  {member.username || member.email || member.user_id}
-                                </p>
-                                {isAdmin && (
-                                  <span className="rounded-full border border-indigo-300/40 bg-indigo-500/20 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-indigo-100">
-                                    School admin
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-xs text-gray-400">
-                                {member.email || 'No email'} • {member.role.replace(/_/g, ' ')}
-                              </p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleSetSchoolAdmin(schoolAdminSchoolId, member.user_id)}
-                              disabled={isAdmin || schoolAdminActionLoading === member.user_id}
-                              className="rounded-lg border border-indigo-400/50 bg-indigo-500/20 px-3 py-2 text-xs font-semibold text-indigo-100 hover:bg-indigo-500/30 disabled:opacity-60"
-                            >
-                              {isAdmin ? 'Current admin' : 'Make School Admin'}
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           )}
 
@@ -1991,6 +2042,31 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                     className="bg-green-600/30 hover:bg-green-600/50 border border-green-400 text-white font-semibold px-6 py-3 rounded-lg transition-all hover:shadow-[0_0_20px_rgba(34,197,94,0.6)]"
                   >
                     📥 Export CSV
+                  </button>
+                )}
+                {/* Bulk Release Scores for Chemistry tests */}
+                {quizFilter !== 'all' && quizFilter.toLowerCase().includes('chemistry') && (
+                  <button
+                    onClick={async () => {
+                      if (!window.confirm(`Release all unreleased scores for "${quizFilter}"${classFilter !== 'all' ? ` in class ${classFilter}` : ''}? Students will be able to see their results.`)) {
+                        return;
+                      }
+                      try {
+                        const { data, error } = await supabase.rpc('bulk_release_quiz_scores', {
+                          p_quiz_name: quizFilter,
+                          p_student_class: classFilter !== 'all' ? classFilter : null
+                        });
+                        if (error) throw error;
+                        if (!data?.success) throw new Error(data?.error || 'Failed to release scores');
+                        addToast(`✅ ${data.affected || 0} scores released`, 'success');
+                        fetchQuizScores();
+                      } catch (error: any) {
+                        reportRpcError('Failed to bulk release scores:', error, 'Failed to bulk release scores');
+                      }
+                    }}
+                    className="bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400 text-white font-semibold px-6 py-3 rounded-lg transition-all hover:shadow-[0_0_20px_rgba(168,85,247,0.6)]"
+                  >
+                    🔓 Bulk Release Scores
                   </button>
                 )}
               </div>
@@ -2117,8 +2193,32 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                                   onClick={() => deleteQuizScore(score.id, score.student_name)}
                                   className="bg-red-600/30 hover:bg-red-600/50 border border-red-400 text-white text-xs px-3 py-1 rounded"
                                 >
-                                  🗑️
+                                  🗑️ Delete
                                 </button>
+                                {/* Show Release Score button for Chemistry tests */}
+                                {score.quiz_name && score.quiz_name.toLowerCase().includes('chemistry') && !score.score_released && (
+                                  <button
+                                    onClick={async () => {
+                                      try {
+                                        const { data, error } = await supabase.rpc('release_quiz_score', {
+                                          p_quiz_score_id: score.id
+                                        });
+                                        if (error) throw error;
+                                        if (!data?.success) throw new Error(data?.error || 'Failed to release score');
+                                        addToast(`✅ Score released for ${score.student_name}`, 'success');
+                                        fetchQuizScores();
+                                      } catch (error: any) {
+                                        reportRpcError('Failed to release score:', error, 'Failed to release score');
+                                      }
+                                    }}
+                                    className="bg-green-600/30 hover:bg-green-600/50 border border-green-400 text-white text-xs px-3 py-1 rounded"
+                                  >
+                                    🔓 Release Score
+                                  </button>
+                                )}
+                                {score.score_released && score.quiz_name && score.quiz_name.toLowerCase().includes('chemistry') && (
+                                  <span className="text-xs text-green-400 px-2 py-1">✓ Released</span>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -2257,8 +2357,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       {showReportModal && reportStudent && (() => {
         const skillPerf = analyzeSkillPerformance(reportStudent);
         const sortedSkills = Object.entries(skillPerf).sort((a, b) => a[1].percentage - b[1].percentage);
-        const weakAreas = sortedSkills.filter(([_, data]) => data.percentage < 70);
         const grade = getGrade(reportStudent.percentage);
+        // For F grade, show areas below 70%; for others use grade-appropriate threshold
+        const threshold = grade === 'F' ? 70 : grade === 'D' ? 65 : 60;
+        const weakAreas = sortedSkills.filter(([_, data]) => data.percentage < threshold);
         const encouragement = getEncouragement(grade);
         
         return (
