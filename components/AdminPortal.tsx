@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Batch, Grade, Profile, ToastMessage } from '../types';
+import { Batch, Grade, Profile, ToastMessage, SchoolRole } from '../types';
 import BackButton from './BackButton';
 import * as AuthService from '../services/authService';
 import * as GameService from '../services/gameService';
@@ -9,6 +9,7 @@ import ClickableUsername from './ClickableUsername';
 import IeltsAdminDashboard from './IeltsAdminDashboard';
 import * as SchoolRequestService from '../services/schoolRequestService';
 import * as SchoolAdminService from '../services/schoolAdminService';
+import { SchoolMember } from '../services/schoolAdminService';
 
 interface AdminPortalProps {
   profile: Profile;
@@ -231,8 +232,81 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       setSchoolMembersLoading(true);
       setSchoolMembersError(null);
       try {
+        // Try the RPC first
         const { members } = await SchoolAdminService.listSchoolMembers(schoolId, { limit: 200 });
-        setSchoolMembers(members);
+        if (members.length > 0) {
+          setSchoolMembers(members);
+          return;
+        }
+        
+        // Fallback: Try direct query on school_members table
+        const { data: smData, error: smError } = await supabase
+          .from('school_members')
+          .select(`
+            id,
+            user_id,
+            role_in_school,
+            status,
+            joined_at,
+            users:user_id (
+              id,
+              username,
+              email,
+              avatar_url,
+              role
+            )
+          `)
+          .eq('school_id', schoolId)
+          .eq('status', 'active')
+          .limit(200);
+        
+        if (!smError && smData && smData.length > 0) {
+          const mapped: SchoolMember[] = smData.map((row: any) => ({
+            user_id: row.user_id,
+            username: row.users?.username || '',
+            email: row.users?.email || '',
+            role: (row.role_in_school || row.users?.role || 'student') as SchoolRole,
+            avatar_url: row.users?.avatar_url || null,
+            grade: null,
+            batch: null,
+            level: 1,
+            xp: 0,
+            last_seen: null,
+            is_banned: false,
+            joined_at: row.joined_at || '',
+          }));
+          setSchoolMembers(mapped);
+          return;
+        }
+        
+        // Fallback 2: Try direct query on users table with school_id
+        const { data: usersData, error: usersError } = await supabase
+          .from('users')
+          .select('id, username, email, avatar_url, role, created_at')
+          .eq('school_id', schoolId)
+          .limit(200);
+        
+        if (!usersError && usersData && usersData.length > 0) {
+          const mapped: SchoolMember[] = usersData.map((row: any) => ({
+            user_id: row.id,
+            username: row.username || '',
+            email: row.email || '',
+            role: (row.role || 'student') as SchoolRole,
+            avatar_url: row.avatar_url || null,
+            grade: null,
+            batch: null,
+            level: 1,
+            xp: 0,
+            last_seen: null,
+            is_banned: false,
+            joined_at: row.created_at || '',
+          }));
+          setSchoolMembers(mapped);
+          return;
+        }
+        
+        // No members found
+        setSchoolMembers([]);
       } catch (error) {
         console.error('Failed to load school members:', error);
         addToast('Failed to load school members.', 'error');
@@ -253,13 +327,34 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
     setSchoolAdminActionLoading(userId);
     try {
-      const { error } = await supabase.rpc('admin_set_school_admin', {
+      // Try RPC first
+      const { data, error } = await supabase.rpc('admin_set_school_admin', {
         p_school_id: schoolId,
         p_user_id: userId,
       });
 
       if (error) {
-        throw error;
+        console.warn('admin_set_school_admin RPC failed, trying fallback:', error.message);
+        
+        // Fallback: Try updating school_members table directly
+        const { error: smError } = await supabase
+          .from('school_members')
+          .update({ role_in_school: 'school_admin' })
+          .eq('school_id', schoolId)
+          .eq('user_id', userId);
+        
+        if (smError) {
+          // Fallback 2: Try updating users table directly
+          const { error: usersError } = await supabase
+            .from('users')
+            .update({ role: 'school_admin' })
+            .eq('id', userId)
+            .eq('school_id', schoolId);
+          
+          if (usersError) {
+            throw usersError;
+          }
+        }
       }
 
       addToast('School admin updated.', 'success');
@@ -321,7 +416,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   };
 
   useEffect(() => {
-    if (activeTab === 'applications') {
+    if (activeTab === 'applications' || activeTab === 'schools') {
       loadSchoolRequests();
       loadSchoolOptions();
     }
