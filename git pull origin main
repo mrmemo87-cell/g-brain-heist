@@ -1,0 +1,159 @@
+[1mdiff --cc services/gameService.ts[m
+[1mindex 7133423,17107cc..0000000[m
+[1m--- a/services/gameService.ts[m
+[1m+++ b/services/gameService.ts[m
+[36m@@@ -3590,130 -3591,133 +3591,177 @@@[m [mexport const clan_get_pending_join_requ[m
+  [m
+      console.log('Fetching pending join requests for clan:', membership.clan_id);[m
+  [m
+[32m++<<<<<<< HEAD[m
+[32m +    // Try query without embedding users first to avoid PGRST201 ambiguous relationship error[m
+[32m +    // (clan_join_requests has multiple FKs to users: user_id and approved_by)[m
+[32m +    const { data, error } = await supabase[m
+[32m +        .from('clan_join_requests')[m
+[32m +        .select('id, clan_id, user_id, status, created_at, clans(name)')[m
+[32m +        .eq('clan_id', membership.clan_id)[m
+[32m +        .eq('status', 'pending')[m
+[32m +        .order('created_at', { ascending: true });[m
+[32m +[m
+[32m +    if (error) {[m
+[32m +        console.error('Failed to fetch join requests:', error);[m
+[32m +        // If table doesn't exist (404/PGRST116), return empty array instead of throwing[m
+[32m +        if (error.code === 'PGRST116' || error.code === '42P01' || error.message?.includes('404') || error.message?.includes('not found')) {[m
+[32m +            console.warn('clan_join_requests table may not exist. Please run the migration SQL: FIX_CLAN_JOIN_REQUESTS_RLS.sql');[m
+[32m +            return mockApiCall([]);[m
+[32m +        }[m
+[32m +        // For RLS or other errors, return empty instead of crashing[m
+[32m +        console.warn('Returning empty join requests due to error:', error.message);[m
+[32m +        return mockApiCall([]);[m
+[32m +    }[m
+[32m +[m
+[32m +    if (!data || data.length === 0) {[m
+[32m +        return mockApiCall([]);[m
+[32m +    }[m
+[32m +[m
+[32m +    // Fetch usernames separately to avoid ambiguous relationship[m
+[32m +    const userIds = [...new Set(data.map(r => r.user_id))];[m
+[32m +    const { data: usersData } = await supabase[m
+[32m +        .from('users')[m
+[32m +        .select('id, username, avatar_url')[m
+[32m +        .in('id', userIds);[m
+[32m +[m
+[32m +    const usersMap = new Map((usersData || []).map(u => [u.id, u]));[m
+[32m +[m
+[32m +    const enrichedData = data.map(r => ({[m
+[32m +        ...r,[m
+[32m +        users: usersMap.get(r.user_id) || null,[m
+[32m +    }));[m
+[32m +[m
+[32m +    console.log('Successfully fetched join requests:', enrichedData.length);[m
+[32m +    return mockApiCall(enrichedData.map(mapJoinRequest));[m
+[31m- };[m
+[31m- [m
+[31m- export const clan_approve_join_request = async (requestId: string): Promise<Clan> => {[m
+[31m-     const user = await getCurrentUser();[m
+[31m-     const { data: membership } = await supabase[m
+[32m++=======[m
+[32m+     const { data: memberRows, error: memberError } = await supabase[m
+          .from('clan_members')[m
+[31m-         .select('clan_id, role')[m
+[31m-         .eq('user_id', user.id)[m
+[31m-         .maybeSingle();[m
+[32m+         .select('user_id')[m
+[32m+         .eq('clan_id', membership.clan_id);[m
+  [m
+[31m-     if (!membership || !['leader', 'moderator'].includes(membership.role)) {[m
+[31m-         throw new Error('Only leaders or moderators can approve requests.');[m
+[32m+     if (memberError) {[m
+[32m+         console.error('Failed to fetch clan members for join request filtering:', memberError);[m
+[32m+         throw new Error('Unable to load join requests.');[m
+      }[m
+  [m
+[31m-     const { data: request, error: requestError } = await supabase[m
+[31m-         .from('clan_join_requests')[m
+[31m-         .select('*')[m
+[31m-         .eq('id', requestId)[m
+[31m-         .single();[m
+[32m+     const memberIds = new Set((memberRows || []).map((member: any) => member.user_id));[m
+  [m
+[31m-     if (requestError) {[m
+[31m-         console.error('Error fetching request:', requestError);[m
+[31m-         if (requestError.message?.includes('404') || requestError.code === 'PGRST116') {[m
+[31m-             throw new Error('clan_join_requests table not found. Please run the migration SQL.');[m
+[32m+     const fetchWithUsernames = async () => {[m
+[32m+         return supabase[m
+[32m+             .from('clan_join_requests')[m
+[32m+             .select('id, clan_id, user_id, status, created_at, requested_at, users(username, avatar_url)')[m
+[32m+             .eq('clan_id', membership.clan_id)[m
+[32m+             .eq('status', 'pending')[m
+[32m+             .order('created_at', { ascending: false });[m
+[32m+     };[m
+[32m+ [m
+[32m+     const fetchWithoutUsernames = async () => {[m
+[32m+         return supabase[m
+[32m+             .from('clan_join_requests')[m
+[32m+             .select('id, clan_id, user_id, status, created_at, requested_at')[m
+[32m+             .eq('clan_id', membership.clan_id)[m
+[32m+             .eq('status', 'pending')[m
+[32m+             .order('created_at', { ascending: false });[m
+[32m+     };[m
+[32m+ [m
+[32m+     let data: any[] | null = null;[m
+[32m+     const { data: withUsernames, error: joinError } = await fetchWithUsernames();[m
+[32m+ [m
+[32m+     if (joinError) {[m
+[32m+         if (joinError.code === 'PGRST116' || joinError.message?.includes('404') || joinError.message?.includes('not found')) {[m
+[32m+             console.warn('clan_join_requests table may not exist. Please run the migration SQL: FIX_CLAN_JOIN_REQUESTS_RLS.sql');[m
+[32m+             return mockApiCall([]);[m
+          }[m
+[31m-         throw new Error('Join request not found.');[m
+[32m+         console.warn('Failed to fetch join requests with usernames (RLS likely), retrying without usernames:', joinError);[m
+[32m+         const { data: fallbackData, error: fallbackError } = await fetchWithoutUsernames();[m
+[32m+         if (fallbackError) {[m
+[32m+             if (fallbackError.code === 'PGRST116' || fallbackError.message?.includes('404') || fallbackError.message?.includes('not found')) {[m
+[32m+                 console.warn('clan_join_requests table may not exist. Please run the migration SQL: FIX_CLAN_JOIN_REQUESTS_RLS.sql');[m
+[32m+                 return mockApiCall([]);[m
+[32m+             }[m
+[32m+             console.error('Failed to fetch join requests:', fallbackError);[m
+[32m+             throw new Error('Unable to load join requests.');[m
+[32m+         }[m
+[32m+         data = fallbackData;[m
+[32m+     } else {[m
+[32m+         data = withUsernames;[m
+      }[m
+  [m
+[31m-     if (!request) {[m
+[31m-         throw new Error('Join request not found.');[m
+[32m+     if (!data || data.length === 0) {[m
+[32m+         return mockApiCall([]);[m
+      }[m
+  [m
+[31m-     if (request.clan_id !== membership.clan_id) {[m
+[31m-         throw new Error('Cannot approve a request for another clan.');[m
+[32m+     const pendingRows = data.filter((row) => !memberIds.has(row.user_id));[m
+[32m+     if (pendingRows.length === 0) {[m
+[32m+         return mockApiCall([]);[m
+      }[m
+  [m
+[31m-     if (request.status !== 'pending') {[m
+[31m-         throw new Error('Request has already been processed.');[m
+[31m-     }[m
+[32m+     const sortedRows = [...pendingRows].sort((a, b) => {[m
+[32m+         const dateA = new Date(a.requested_at ?? a.created_at ?? 0).getTime();[m
+[32m+         const dateB = new Date(b.requested_at ?? b.created_at ?? 0).getTime();[m
+[32m+         return dateB - dateA;[m
+[32m+     });[m
+  [m
+[31m-     const { data: existingMembership } = await supabase[m
+[31m-         .from('clan_members')[m
+[31m-         .select('clan_id')[m
+[31m-         .eq('user_id', request.user_id)[m
+[31m-         .maybeSingle();[m
+[32m+     const dedupedByUser = new Map<string, ClanJoinRequest>();[m
+[32m+     const seenRequestIds = new Set<string>();[m
+  [m
+[31m-     if (existingMembership) {[m
+[31m-         throw new Error('User is already in a clan.');[m
+[32m+     for (const row of sortedRows) {[m
+[32m+         if (!row?.user_id) continue;[m
+[32m+         if (row.id && seenRequestIds.has(row.id)) contin
