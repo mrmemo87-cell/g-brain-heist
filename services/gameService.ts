@@ -3590,30 +3590,47 @@ export const clan_get_pending_join_requests = async (): Promise<ClanJoinRequest[
 
     console.log('Fetching pending join requests for clan:', membership.clan_id);
 
+    // Try query without embedding users first to avoid PGRST201 ambiguous relationship error
+    // (clan_join_requests has multiple FKs to users: user_id and approved_by)
     const { data, error } = await supabase
         .from('clan_join_requests')
-        .select('id, clan_id, user_id, status, created_at, users!user_id(username, avatar_url), clans(name)')
+        .select('id, clan_id, user_id, status, created_at, clans(name)')
         .eq('clan_id', membership.clan_id)
         .eq('status', 'pending')
         .order('created_at', { ascending: true });
 
     if (error) {
         console.error('Failed to fetch join requests:', error);
-        console.error('Error code:', error.code);
-        console.error('Error message:', error.message);
-        // If table doesn't exist (404), return empty array instead of throwing
-        if (error.code === 'PGRST116' || error.message?.includes('404') || error.message?.includes('not found')) {
+        // If table doesn't exist (404/PGRST116), return empty array instead of throwing
+        if (error.code === 'PGRST116' || error.code === '42P01' || error.message?.includes('404') || error.message?.includes('not found')) {
             console.warn('clan_join_requests table may not exist. Please run the migration SQL: FIX_CLAN_JOIN_REQUESTS_RLS.sql');
             return mockApiCall([]);
         }
-        throw new Error('Unable to load join requests.');
+        // For RLS or other errors, return empty instead of crashing
+        console.warn('Returning empty join requests due to error:', error.message);
+        return mockApiCall([]);
     }
 
-    console.log('Successfully fetched join requests:', data?.length || 0);
-    if (data && data.length > 0) {
-        console.log('First join request raw data:', JSON.stringify(data[0], null, 2));
+    if (!data || data.length === 0) {
+        return mockApiCall([]);
     }
-    return mockApiCall((data || []).map(mapJoinRequest));
+
+    // Fetch usernames separately to avoid ambiguous relationship
+    const userIds = [...new Set(data.map(r => r.user_id))];
+    const { data: usersData } = await supabase
+        .from('users')
+        .select('id, username, avatar_url')
+        .in('id', userIds);
+
+    const usersMap = new Map((usersData || []).map(u => [u.id, u]));
+
+    const enrichedData = data.map(r => ({
+        ...r,
+        users: usersMap.get(r.user_id) || null,
+    }));
+
+    console.log('Successfully fetched join requests:', enrichedData.length);
+    return mockApiCall(enrichedData.map(mapJoinRequest));
 };
 
 export const clan_approve_join_request = async (requestId: string): Promise<Clan> => {
@@ -4107,21 +4124,29 @@ export const clan_chat_post = async (message: string): Promise<ClanChatMessage> 
 };
 
 export const clan_get_available_buffs = async (): Promise<ClanBuffTemplate[]> => {
-    const { data, error } = await supabase
-        .from('clan_buff_templates')
-        .select('*')
-        .order('cost', { ascending: true });
+    try {
+        const { data, error } = await supabase
+            .from('clan_buff_templates')
+            .select('*')
+            .order('cost', { ascending: true });
 
-    if (error) {
-        console.warn('Failed to load clan buff templates, using defaults:', error.message);
-        return mockApiCall(MOCK_AVAILABLE_BUFFS);
+        if (error) {
+            // Log but don't crash - return mock data as fallback
+            console.warn('Failed to load clan buff templates:', error.code, error.message);
+            // If it's a table not found or RLS issue, silently return defaults
+            return MOCK_AVAILABLE_BUFFS;
+        }
+
+        if (!data || !data.length) {
+            // No templates in database - return defaults
+            return MOCK_AVAILABLE_BUFFS;
+        }
+
+        return data.map(mapBuffTemplateRow);
+    } catch (err) {
+        console.warn('Exception loading clan buff templates, using defaults:', err);
+        return MOCK_AVAILABLE_BUFFS;
     }
-
-    if (!data || !data.length) {
-        return mockApiCall(MOCK_AVAILABLE_BUFFS);
-    }
-
-    return data.map(mapBuffTemplateRow);
 };
 
 export const clan_deposit_coins = async (amount: number): Promise<{ new_clan_vault: number; new_user_coins: number }> => {
