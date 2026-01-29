@@ -119,6 +119,9 @@ GRANT EXECUTE ON FUNCTION bulk_release_quiz_scores(TEXT, TEXT) TO authenticated;
 -- ============================================
 -- RPC: Get unreleased quiz scores (for admin view)
 -- ============================================
+-- Drop existing function first (required when changing return type)
+DROP FUNCTION IF EXISTS get_unreleased_quiz_scores(TEXT);
+
 CREATE OR REPLACE FUNCTION get_unreleased_quiz_scores(
     p_quiz_name TEXT DEFAULT NULL
 )
