@@ -3592,7 +3592,7 @@ export const clan_get_pending_join_requests = async (): Promise<ClanJoinRequest[
 
     const { data, error } = await supabase
         .from('clan_join_requests')
-        .select('id, clan_id, user_id, status, created_at, users!clan_join_requests_user_id_fkey(username, avatar_url), clans(name)')
+        .select('id, clan_id, user_id, status, created_at, users(username, avatar_url), clans(name)')
         .eq('clan_id', membership.clan_id)
         .eq('status', 'pending')
         .order('created_at', { ascending: true });
@@ -3610,6 +3610,9 @@ export const clan_get_pending_join_requests = async (): Promise<ClanJoinRequest[
     }
 
     console.log('Successfully fetched join requests:', data?.length || 0);
+    if (data && data.length > 0) {
+        console.log('First join request raw data:', JSON.stringify(data[0], null, 2));
+    }
     return mockApiCall((data || []).map(mapJoinRequest));
 };
 
