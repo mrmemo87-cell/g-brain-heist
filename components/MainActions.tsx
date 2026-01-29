@@ -1,7 +1,5 @@
 import React from 'react';
-import { Profile } from '../types';
-import { useLightMode } from '../src/contexts/LightModeContext';
-import { TrophyIcon, SyndicateRune } from './icons';
+import { BattleIcon, TrophyIcon, SyndicateRune } from './icons';
 
 // Default school icon as SVG data URL
 const defaultSchoolIcon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMjIgMTBWNkwxMiAyIDIgNnY0Yy4zNC0uMDguNjUtLjEgMS0uMWg1LjFsMi40NSAzLjA2YTEgMSAwIDAgMCAxLjU2IDBMMTQuNTUgOS45SDE5Ljljey4zNSAwIC42Ny4wMiAxIC4xWiIvPjxwYXRoIGQ9Ik0xMiAyMnYtNiIvPjxwYXRoIGQ9Ik00IDEwdjEwYzAgLjU1LjQ1IDEgMSAxaDE0Yy41NSAwIDEtLjQ1IDEtMVYxMCIvPjwvc3ZnPg==';
@@ -11,9 +9,9 @@ interface MainActionsProps {
   onStartPvp: () => void;
   onOpenRaid?: () => void;
   onVisitShop: () => void;
-  onGoToClan?: () => void;
+  onGoToClan: () => void;
   onVisitInventory: () => void;
-  onViewLeaderboard?: () => void;
+  onViewLeaderboard: () => void;
   onViewAchievements: () => void;
   onOpenRaidAdmin?: () => void;
   onOpenTeacherPortal?: () => void;
@@ -27,8 +25,6 @@ interface MainActionsProps {
   onOpenIeltsPrep?: () => void;
   onOpenLockdown?: () => void;
   onOpenCambridgeTests?: () => void;
-  onJoinSchool?: () => void;
-  profile?: Profile | null;
   hasPendingAssignment?: boolean;
   clanBadgeCount?: number;
   schoolName?: string | null;
@@ -161,158 +157,15 @@ const MainActions: React.FC<MainActionsProps> = ({
   onOpenIeltsPrep,
   onOpenLockdown,
   onOpenCambridgeTests,
-  onJoinSchool,
-  profile,
   hasPendingAssignment,
   clanBadgeCount,
   schoolName,
   schoolLogoUrl,
 }) => {
-  const { isLightMode: isLiteMode } = useLightMode();
-  const displaySchoolName = schoolName || 'Individuals';
+  const displaySchoolName = schoolName || 'My School';
   const displaySchoolLogo = schoolLogoUrl || defaultSchoolIcon;
-  const xpStatus = profile?.xp_status;
-  const xpPercent = Math.min(100, Math.round((xpStatus?.progress ?? 0) * 100));
-  const streakCount = profile?.streak ?? 0;
-  const coins = profile?.coins ?? 0;
-  const shieldActive = profile?.has_shield ?? false;
-  const iconBaseUrl = 'https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/menu_icons/';
-
-  // If Full Mode is active, render the Neon Glass themed full-mode action panel
-  if (!isLiteMode) {
-    const mapNodes = [
-      { key: 'attack', label: 'ATTACK', icon: `${iconBaseUrl}attack.png`, onClick: onStartPvp },
-      { key: 'shop', label: 'SHOP', icon: `${iconBaseUrl}shop.png`, onClick: onVisitShop },
-      { key: 'inventory', label: 'INVENTORY', icon: `${iconBaseUrl}inventory.png`, onClick: onVisitInventory },
-      { key: 'leaderboard', label: 'LEADERBOARD', icon: `${iconBaseUrl}leaderboard.png`, onClick: onViewLeaderboard },
-      { key: 'achievements', label: 'Achievements', icon: `${iconBaseUrl}achievements.png`, onClick: onViewAchievements },
-      { key: 'clan', label: 'Clan', icon: `${iconBaseUrl}clan.png`, onClick: onGoToClan },
-      { key: 'lockdown', label: 'Lockdown Mode', icon: `${iconBaseUrl}lockdown.png`, onClick: onOpenLockdown },
-      { key: 'cambridge', label: 'Cambridge Tests', icon: `${iconBaseUrl}cambridge.png`, onClick: onOpenCambridgeTests },
-    ].filter((action) => Boolean(action.onClick));
-
-    const nodePositions: Record<string, { x: number; y: number }> = {
-      attack: { x: 18, y: 32 },
-      shop: { x: 78, y: 22 },
-      inventory: { x: 84, y: 58 },
-      leaderboard: { x: 68, y: 82 },
-      achievements: { x: 30, y: 84 },
-      clan: { x: 14, y: 58 },
-      lockdown: { x: 32, y: 12 },
-      cambridge: { x: 62, y: 12 },
-    };
-
-    return (
-      <section className="fullMode-dashboard theme-neon-glass" aria-label="Full Mode mission console">
-        <div className="fullMode-dashboard-glow" aria-hidden />
-
-        <div className="fullMode-statusRow">
-          <div className="fullMode-agentBlock">
-            <div className="fullMode-avatarWrap">
-              <span className="fullMode-avatarHalo" aria-hidden />
-              <img
-                src={profile?.avatar_url || displaySchoolLogo}
-                alt={profile?.username || 'Agent avatar'}
-                className="fullMode-avatarImage"
-                onError={(e) => { (e.target as HTMLImageElement).src = defaultSchoolIcon; }}
-              />
-              <span className="fullMode-levelBadge">LV {xpStatus?.level ?? profile?.level ?? 1}</span>
-            </div>
-            <div className="fullMode-agentMeta">
-              <p className="fullMode-agentLabel">ACTIVE OPERATIVE</p>
-              <h3 className="fullMode-agentName">{profile?.username || 'Agent'}</h3>
-              <div className="fullMode-xpTrack">
-                <div className="fullMode-xpMeter" role="progressbar" aria-valuenow={xpPercent} aria-valuemin={0} aria-valuemax={100}>
-                  <span className="fullMode-xpFill" style={{ width: `${xpPercent}%` }} />
-                </div>
-                <span className="fullMode-xpText">
-                  {(xpStatus?.xp_into_level ?? 0).toLocaleString()} / {(xpStatus ? xpStatus.xp_into_level + xpStatus.xp_to_next : 0).toLocaleString()} XP
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="fullMode-indicators" aria-label="Status indicators">
-            <div className="fullMode-indicator">
-              <span className="fullMode-indicatorIcon">🪙</span>
-              <div className="fullMode-indicatorLabel">Coins</div>
-              <div className="fullMode-indicatorValue">{coins.toLocaleString()}</div>
-            </div>
-            <div className="fullMode-indicator">
-              <span className="fullMode-indicatorIcon">🔥</span>
-              <div className="fullMode-indicatorLabel">Streak</div>
-              <div className="fullMode-indicatorValue">{streakCount}</div>
-            </div>
-            <div className={`fullMode-indicator ${shieldActive ? 'is-active' : 'is-idle'}`}>
-              <span className="fullMode-indicatorIcon">🛡️</span>
-              <div className="fullMode-indicatorLabel">Shield</div>
-              <div className="fullMode-indicatorValue">{shieldActive ? 'ONLINE' : 'OFFLINE'}</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="fullMode-actionsShell">
-          <div className="fullMode-mapShell" aria-label="Quest map">
-            <div className="fullMode-mapCanvas">
-              <svg className="fullMode-mapLinks" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
-                {mapNodes.map((node) => {
-                  const position = nodePositions[node.key];
-                  if (!position) return null;
-                  return (
-                    <line
-                      key={`link-${node.key}`}
-                      x1="50"
-                      y1="50"
-                      x2={position.x}
-                      y2={position.y}
-                    />
-                  );
-                })}
-              </svg>
-              <button className="fullMode-mapNode fullMode-mapNode--center" onClick={onStartQuest} aria-label="Launch Quest">
-                <span className="fullMode-mapNodeIcon">
-                  <img
-                    src={`${iconBaseUrl}quest.png`}
-                    alt="QUEST"
-                    loading="lazy"
-                    className="fullMode-mapNodeImg"
-                  />
-                </span>
-                <span className="fullMode-mapNodeLabel">QUEST</span>
-                <span className="fullMode-mapNodeSub">Primary objective</span>
-              </button>
-              {mapNodes.map((node, index) => {
-                const position = nodePositions[node.key];
-                if (!position) return null;
-                return (
-                  <button
-                    key={node.key}
-                    type="button"
-                    className="fullMode-mapNode"
-                    onClick={node.onClick}
-                    style={{
-                      ['--node-x' as string]: `${position.x}%`,
-                      ['--node-y' as string]: `${position.y}%`,
-                      ['--float-delay' as string]: `${index * 0.4}s`,
-                    }}
-                  >
-                    <span className="fullMode-mapNodeIcon">
-                      <img src={node.icon} alt={node.label} loading="lazy" className="fullMode-mapNodeImg" />
-                    </span>
-                    <span className="fullMode-mapNodeLabel">{node.label}</span>
-                  </button>
-                );
-              })}
-              {hasPendingAssignment && (
-                <span className="fullMode-mapWarning">Complete assignment to unlock</span>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Lightweight / existing UI preserved below
+  
+  console.log('MainActions render - onOpenCambridgeTests:', !!onOpenCambridgeTests);
   return (
     <section className="dashboard-panel relative overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-950/60 p-4 shadow-2xl shadow-slate-950/50 backdrop-blur sm:p-6">
       <span
@@ -339,28 +192,17 @@ const MainActions: React.FC<MainActionsProps> = ({
               <p className="text-sm text-slate-400">Pick your next move. Everything fits comfortably on phones.</p>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/70 px-3 py-1 shadow-inner shadow-slate-900/40">
-              <img
-                src={displaySchoolLogo}
-                alt={`${displaySchoolName} logo`}
-                className="h-8 w-8 rounded-full object-cover bg-slate-800"
-                onError={(e) => { (e.target as HTMLImageElement).src = defaultSchoolIcon; }}
-              />
-              <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-100">
-                <span aria-hidden>✨</span>
-                <span>{displaySchoolName}</span>
-              </div>
+          <div className="flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/70 px-3 py-1 shadow-inner shadow-slate-900/40">
+            <img
+              src={displaySchoolLogo}
+              alt={`${displaySchoolName} logo`}
+              className="h-8 w-8 rounded-full object-cover bg-slate-800"
+              onError={(e) => { (e.target as HTMLImageElement).src = defaultSchoolIcon; }}
+            />
+            <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-100">
+              <span aria-hidden>✨</span>
+              <span>{displaySchoolName}</span>
             </div>
-            {onJoinSchool && (
-              <button
-                type="button"
-                onClick={onJoinSchool}
-                className="rounded-full border border-cyan-400/60 bg-cyan-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-cyan-100 hover:border-cyan-300 hover:text-cyan-50"
-              >
-                Join school
-              </button>
-            )}
           </div>
           {hasPendingAssignment && (
             <span className="inline-flex items-center justify-center rounded-full border border-amber-400/70 bg-amber-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-100 shadow shadow-amber-400/20">
@@ -460,16 +302,14 @@ const MainActions: React.FC<MainActionsProps> = ({
                 glowClass="glow-warn"
               />
             )}
-            {onGoToClan && (
-              <ActionButton
-                onClick={onGoToClan}
-                icon={<SyndicateRune className="w-8 h-8 text-amber-400" aria-hidden />}
-                label="Clan"
-                color="255, 176, 32"
-                glowClass="glow-warn"
-                badgeText={clanBadgeCount && clanBadgeCount > 0 ? String(Math.min(clanBadgeCount, 99)) : undefined}
-              />
-            )}
+            <ActionButton
+              onClick={onGoToClan}
+              icon={<SyndicateRune className="w-8 h-8 text-amber-400" aria-hidden />}
+              label="Clan"
+              color="255, 176, 32"
+              glowClass="glow-warn"
+              badgeText={clanBadgeCount && clanBadgeCount > 0 ? String(Math.min(clanBadgeCount, 99)) : undefined}
+            />
             <ActionButton
               onClick={onVisitInventory}
               icon={<span aria-hidden className="text-3xl">🎒</span>}
@@ -477,15 +317,13 @@ const MainActions: React.FC<MainActionsProps> = ({
               color="158, 93, 255"
               glowClass="glow-purple"
             />
-            {onViewLeaderboard && (
-              <ActionButton
-                onClick={onViewLeaderboard}
-                icon={<TrophyIcon className="w-8 h-8 animate-float" aria-hidden />}
-                label="Leaderboard"
-                color="255, 215, 0"
-                glowClass="glow-warn"
-              />
-            )}
+            <ActionButton
+              onClick={onViewLeaderboard}
+              icon={<TrophyIcon className="w-8 h-8 animate-float" aria-hidden />}
+              label="Leaderboard"
+              color="255, 215, 0"
+              glowClass="glow-warn"
+            />
             <ActionButton
               onClick={onViewAchievements}
               icon={<span aria-hidden className="text-3xl animate-float">🎖️</span>}
