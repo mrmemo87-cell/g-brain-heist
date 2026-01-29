@@ -1417,145 +1417,398 @@ export const whoami = async (): Promise<Profile> => {
       profile.is_banned = banned;
       profile.total_score = calculateTotalScore(profile.xp ?? 0, profile.pvp_score ?? 0);
   
-    // ====== AP REGENERATION LOGIC ======
-    // Only regenerate AP for students (teachers and admins don't use game mechanics)
-    if (profile.role === 'student') {
+    const runOptional = async <T,>(
+      label: string,
+      action: () => Promise<T>,
+      timeoutMs: number,
+      fallback: T
+    ): Promise<T> => {
       try {
-        const { data: regenData, error: regenError } = await regenerateUserAp(user.id);
-    
-        if (regenError) {
-          console.warn('Database AP regeneration function not available, using fallback:', regenError.message);
-          throw regenError; // Trigger fallback
+        return await withTimeout(action(), timeoutMs, undefined, label);
+      } catch (error) {
+        console.warn(`[whoami] ${label} failed:`, error);
+        return fallback;
+      }
+    };
+
+    const apUpdate = runOptional(
+      'ap_regen',
+      async () => {
+        if (profile.role !== 'student') {
+          console.log(`[whoami] Skipping AP regeneration for ${profile.role}`);
+          return {
+            ap_now: profile.ap_max || 100,
+            last_ap_update: new Date().toISOString(),
+          };
         }
-    
-        if (regenData && regenData.length > 0) {
-          const { new_ap, ap_regenerated, minutes_elapsed } = regenData[0];
-          console.log(`AP Regeneration: ${profile.ap_now} → ${new_ap} (+${ap_regenerated} AP, ${minutes_elapsed} min elapsed)`);
-          
-          profile.ap_now = new_ap;
-          profile.last_ap_update = new Date().toISOString();
-    
-          // ====== NOTIFICATION: AP FULL ======
-          // Only send AP notifications to students
-          if (ap_regenerated > 0 && new_ap === profile.ap_max) {
-            try {
-              await notifyApFull(user.id);
-            } catch (notifError) {
-              console.error('Failed to send AP full notification:', notifError);
-            }
+
+        try {
+          const { data: regenData, error: regenError } = await regenerateUserAp(user.id);
+
+          if (regenError) {
+            console.warn('Database AP regeneration function not available, using fallback:', regenError.message);
+            throw regenError;
           }
+
+          if (regenData && regenData.length > 0) {
+            const { new_ap, ap_regenerated, minutes_elapsed } = regenData[0];
+            console.log(`AP Regeneration: ${profile.ap_now} → ${new_ap} (+${ap_regenerated} AP, ${minutes_elapsed} min elapsed)`);
+
+            if (ap_regenerated > 0 && new_ap === profile.ap_max) {
+              try {
+                await notifyApFull(user.id);
+              } catch (notifError) {
+                console.error('Failed to send AP full notification:', notifError);
+              }
+            }
+
+            return { ap_now: new_ap, last_ap_update: new Date().toISOString() };
+          }
+        } catch (apError) {
+          console.warn('AP regeneration function failed, using client-side fallback:', apError);
         }
-      } catch (apError) {
-        console.warn('AP regeneration function failed, using client-side fallback:', apError);
-        // Fallback to client-side calculation
+
         const now = new Date();
         const lastApUpdate = profile.last_ap_update ? new Date(profile.last_ap_update) : now;
         const msElapsed = now.getTime() - lastApUpdate.getTime();
         const minutesElapsed = Math.floor(msElapsed / (1000 * 60));
         const apToRegen = Math.floor(minutesElapsed / 10);
-        
+
         console.log(`Fallback AP Regen: Last update: ${lastApUpdate.toISOString()}, Minutes elapsed: ${minutesElapsed}, AP to regen: ${apToRegen}`);
-        
+
         if (apToRegen > 0 && profile.ap_now < profile.ap_max) {
           const newAP = Math.min(profile.ap_now + apToRegen, profile.ap_max);
-          
-          // Calculate exact timestamp: set timer to when the LAST AP was earned (not now)
-          // Example: 35 minutes elapsed = 3 AP earned. Last AP was earned 5 minutes ago.
           const remainderMinutes = minutesElapsed % 10;
           const newLastUpdate = new Date(now.getTime() - (remainderMinutes * 60000));
-          
-          const updateData: any = { 
+          const updateData: any = {
             ap_now: newAP,
-            last_ap_update: newLastUpdate.toISOString()
+            last_ap_update: newLastUpdate.toISOString(),
           };
-          
+
           console.log(`Updating AP in DB: ${profile.ap_now} → ${newAP}, Timer: ${newLastUpdate.toISOString()}`);
-          
+
           const { error: updateError } = await supabase
             .from('users')
             .update(updateData)
             .eq('id', user.id);
-            
+
           if (updateError) {
             console.error('Failed to update AP in database:', updateError);
           } else {
             console.log('✅ AP regenerated successfully');
-            profile.ap_now = newAP;
-            profile.last_ap_update = newLastUpdate.toISOString();
+          }
+
+          return { ap_now: newAP, last_ap_update: newLastUpdate.toISOString() };
+        }
+
+        console.log(`No AP regeneration needed: current=${profile.ap_now}, max=${profile.ap_max}, toRegen=${apToRegen}`);
+        return { ap_now: profile.ap_now, last_ap_update: profile.last_ap_update || now.toISOString() };
+      },
+      4000,
+      null
+    );
+
+    const streakUpdate = runOptional(
+      'streak',
+      async () => {
+        const now = new Date();
+        const lastSeen = profile.last_seen ? new Date(profile.last_seen) : null;
+        let newStreak = profile.streak || 0;
+
+        if (lastSeen) {
+          const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          const lastSeenStart = new Date(lastSeen.getFullYear(), lastSeen.getMonth(), lastSeen.getDate());
+          const daysDiff = Math.floor((todayStart.getTime() - lastSeenStart.getTime()) / (1000 * 60 * 60 * 24));
+
+          if (daysDiff === 1) {
+            newStreak = (profile.streak || 0) + 1;
+          } else if (daysDiff > 1) {
+            newStreak = 1;
           }
         } else {
-          console.log(`No AP regeneration needed: current=${profile.ap_now}, max=${profile.ap_max}, toRegen=${apToRegen}`);
+          newStreak = 1;
         }
-      }
-    } else {
-      // Teachers and admins don't need AP regeneration - set to max
-      console.log(`[whoami] Skipping AP regeneration for ${profile.role}`);
-      profile.ap_now = profile.ap_max || 100;
-      profile.last_ap_update = new Date().toISOString();
-    }
-    
-    // ====== STREAK TRACKING LOGIC ======
-    const now = new Date();
-    const lastSeen = profile.last_seen ? new Date(profile.last_seen) : null;
-    let newStreak = profile.streak || 0;
-    
-    if (lastSeen) {
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const lastSeenStart = new Date(lastSeen.getFullYear(), lastSeen.getMonth(), lastSeen.getDate());
-      const daysDiff = Math.floor((todayStart.getTime() - lastSeenStart.getTime()) / (1000 * 60 * 60 * 24));
-      
-      if (daysDiff === 1) {
-        // User logged in the next day - increment streak
-        newStreak = (profile.streak || 0) + 1;
-      } else if (daysDiff > 1) {
-        // User missed a day - reset streak
-        newStreak = 1;
-      }
-      // If daysDiff === 0, same day login - don't change streak
-    } else {
-      // First time user
-      newStreak = 1;
-    }
-    
-    const updateData: any = { last_seen: now.toISOString() };
-    
-    if (newStreak !== profile.streak) {
-      updateData.streak = newStreak;
-      profile.streak = newStreak;
-  
-      // ====== NOTIFICATION: STREAK DANGER ======
-      // If streak was broken (reset to 1 after having a streak)
-      if (profile.streak > 1 && newStreak === 1) {
-        try {
-          await notificationService.createNotification(
-            user.id,
-            'streak_danger',
-            '🔥 Streak Broken!',
-            `You lost your ${profile.streak} day streak! Log in daily to rebuild it.`,
-            'medium'
-          );
-        } catch (notifError) {
-          console.error('Failed to send streak notification:', notifError);
+
+        const updateData: any = { last_seen: now.toISOString() };
+
+        if (newStreak !== profile.streak) {
+          updateData.streak = newStreak;
+
+          if (profile.streak && profile.streak > 1 && newStreak === 1) {
+            try {
+              await notificationService.createNotification(
+                user.id,
+                'streak_danger',
+                '🔥 Streak Broken!',
+                `You lost your ${profile.streak} day streak! Log in daily to rebuild it.`,
+                'medium'
+              );
+            } catch (notifError) {
+              console.error('Failed to send streak notification:', notifError);
+            }
+          }
         }
-      }
+
+        await supabase
+          .from('users')
+          .update(updateData)
+          .eq('id', user.id);
+
+        return { last_seen: now.toISOString(), streak: newStreak };
+      },
+      3000,
+      null
+    );
+
+    const shieldStatus = runOptional(
+      'inventory_shield',
+      async () => {
+        const { data: activeShields } = await supabase
+          .from('inventory')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('kind', 'shield')
+          .eq('state', 'unused')
+          .limit(1);
+        return (activeShields?.length ?? 0) > 0;
+      },
+      3000,
+      false
+    );
+
+    const clanUpdate = runOptional(
+      'clan',
+      async () => {
+        const existingClanInfo = {
+          id: profile.clan_id ?? null,
+          role: profile.clan_role,
+          customTitle: profile.clan_custom_title ?? null,
+          name: profile.clan_name ?? null,
+          score: profile.clan_total_score ?? null,
+          buffs: profile.active_clan_buffs ?? [],
+        };
+
+        let resolvedClanId: string | null = profile.clan_id ?? null;
+        let resolvedClanRole: ClanRole | undefined = profile.clan_role;
+        let resolvedCustomTitle: string | null = profile.clan_custom_title ?? null;
+        let resolvedClanName: string | null = profile.clan_name ?? null;
+
+        const { data: membership, error: membershipError } = await supabase
+          .from('clan_members')
+          .select('clan_id, role, custom_title, clans(name)')
+          .eq('user_id', profile.id)
+          .maybeSingle();
+
+        if (membershipError && membershipError.code !== 'PGRST116') {
+          console.warn('Failed to fetch clan membership:', membershipError.message);
+        }
+
+        let resolvedMembership = membership;
+
+        if (!resolvedMembership || !resolvedMembership.clan_id) {
+          const { data: membershipFromScores, error: membershipScoresError } = await supabase
+            .from('clan_member_scores')
+            .select('clan_id, role, custom_title')
+            .eq('user_id', profile.id)
+            .maybeSingle();
+
+          if (membershipScoresError && membershipScoresError.code !== 'PGRST116') {
+            console.warn('Fallback clan membership lookup failed:', membershipScoresError.message);
+          }
+
+          if (membershipFromScores?.clan_id) {
+            resolvedMembership = membershipFromScores as unknown as typeof membership;
+          }
+        }
+
+        if (resolvedMembership && resolvedMembership.clan_id) {
+          resolvedClanId = resolvedMembership.clan_id;
+          resolvedClanRole = resolvedMembership.role as ClanRole;
+          resolvedCustomTitle = resolvedMembership.custom_title;
+          const clanRecord = Array.isArray(resolvedMembership.clans) ? resolvedMembership.clans[0] : resolvedMembership.clans;
+          resolvedClanName = clanRecord?.name ?? null;
+        }
+
+        if (resolvedClanId) {
+          if (!resolvedClanName) {
+            const { data: clanRow, error: clanError } = await supabase
+              .from('clans')
+              .select('name')
+              .eq('id', resolvedClanId)
+              .maybeSingle();
+
+            if (clanError && clanError.code !== 'PGRST116') {
+              console.warn('Failed to load clan name from clans table:', clanError.message);
+            }
+
+            resolvedClanName = clanRow?.name ?? resolvedClanName;
+          }
+
+          let clanScore: number | null = null;
+          let activeBuffs: ActiveClanBuff[] = [];
+
+          try {
+            const [score, buffs] = await Promise.all([
+              fetchClanScoreValue(resolvedClanId),
+              fetchClanActiveBuffs(resolvedClanId),
+            ]);
+            clanScore = score;
+            activeBuffs = buffs;
+          } catch (e) {
+            console.warn('Failed to fetch clan score or buffs for dashboard (using defaults):', e);
+            clanScore = null;
+            activeBuffs = [];
+          }
+
+          return {
+            updates: {
+              clan_id: resolvedClanId,
+              clan_role: resolvedClanRole,
+              clan_custom_title: resolvedCustomTitle,
+              clan_name: resolvedClanName,
+              clan_total_score: clanScore,
+            },
+            buffs: activeBuffs,
+          };
+        }
+
+        if (existingClanInfo.id || existingClanInfo.name) {
+          return {
+            updates: {
+              clan_id: existingClanInfo.id,
+              clan_role: existingClanInfo.role,
+              clan_custom_title: existingClanInfo.customTitle,
+              clan_name: existingClanInfo.name,
+              clan_total_score: existingClanInfo.score,
+            },
+            buffs: existingClanInfo.buffs,
+          };
+        }
+
+        return {
+          updates: {
+            clan_id: null,
+            clan_role: undefined,
+            clan_custom_title: null,
+            clan_name: null,
+            clan_total_score: null,
+          },
+          buffs: [],
+        };
+      },
+      5000,
+      null
+    );
+
+    const cosmeticUpdate = runOptional(
+      'cosmetics',
+      async () => {
+        const [frame, theme, effect] = await Promise.all([
+          getActiveCosmeticFrame(profile.id),
+          getActiveCosmeticTheme(profile.id),
+          getActiveCosmeticEffect(profile.id),
+        ]);
+
+        return { frame, theme, effect };
+      },
+      3000,
+      null
+    );
+
+    const schoolUpdate = runOptional(
+      'school',
+      async () => {
+        if (!profile.school_id) {
+          return null;
+        }
+
+        const { data: schoolData, error: schoolError } = await supabase
+          .from('schools')
+          .select('name, logo_url')
+          .eq('id', profile.school_id)
+          .single();
+
+        if (!schoolError && schoolData) {
+          return { name: schoolData.name, logo_url: schoolData.logo_url };
+        }
+
+        return null;
+      },
+      3000,
+      null
+    );
+
+    const xpUpdate = runOptional(
+      'xp_status',
+      async () =>
+        fetchMyXpStatus(supabase, {
+          xp: profile.xp,
+          level: profile.level,
+        }),
+      3000,
+      null
+    );
+
+    const [
+      resolvedApUpdate,
+      resolvedStreakUpdate,
+      resolvedShieldStatus,
+      resolvedClanUpdate,
+      resolvedCosmetics,
+      resolvedSchool,
+      resolvedXpStatus,
+    ] = await Promise.all([
+      apUpdate,
+      streakUpdate,
+      shieldStatus,
+      clanUpdate,
+      cosmeticUpdate,
+      schoolUpdate,
+      xpUpdate,
+    ]);
+
+    if (resolvedApUpdate) {
+      profile.ap_now = resolvedApUpdate.ap_now;
+      profile.last_ap_update = resolvedApUpdate.last_ap_update;
     }
-    
-    // Update database with all changes
-    await supabase
-      .from('users')
-      .update(updateData)
-      .eq('id', user.id);
-  
-    // Check inventory for active shields
-    const { data: activeShields } = await supabase
-      .from('inventory')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('kind', 'shield')
-      .eq('state', 'unused')
-      .limit(1);
-    const userHasShield = (activeShields?.length ?? 0) > 0;
-  
+
+    if (resolvedStreakUpdate) {
+      profile.last_seen = resolvedStreakUpdate.last_seen;
+      profile.streak = resolvedStreakUpdate.streak;
+    }
+
+    if (resolvedClanUpdate) {
+      profile.clan_id = resolvedClanUpdate.updates.clan_id ?? null;
+      profile.clan_role = resolvedClanUpdate.updates.clan_role;
+      profile.clan_custom_title = resolvedClanUpdate.updates.clan_custom_title ?? null;
+      profile.clan_name = resolvedClanUpdate.updates.clan_name ?? null;
+      profile.clan_total_score = resolvedClanUpdate.updates.clan_total_score ?? null;
+      applyClanBuffsToProfile(profile, resolvedClanUpdate.buffs);
+    } else {
+      applyClanBuffsToProfile(profile, profile.active_clan_buffs ?? []);
+    }
+
+    if (resolvedCosmetics) {
+      profile.active_cosmetic_frame = resolvedCosmetics.frame ?? null;
+      profile.active_cosmetic_theme = resolvedCosmetics.theme ?? null;
+      profile.active_cosmetic_effect = resolvedCosmetics.effect ?? null;
+    } else {
+      profile.active_cosmetic_frame = profile.active_cosmetic_frame ?? null;
+      profile.active_cosmetic_theme = profile.active_cosmetic_theme ?? null;
+      profile.active_cosmetic_effect = profile.active_cosmetic_effect ?? null;
+    }
+
+    if (resolvedSchool) {
+      profile.school_name = resolvedSchool.name;
+      profile.school_logo_url = resolvedSchool.logo_url;
+    }
+
+    profile.total_score = calculateTotalScore(profile.xp ?? 0, profile.pvp_score ?? 0);
+
+    if (resolvedXpStatus) {
+      profile.xp_status = resolvedXpStatus;
+    }
+
     // Register in shared player list for multiplayer features
     addPlayerToSharedList({
       id: profile.id,
@@ -1565,169 +1818,10 @@ export const whoami = async (): Promise<Profile> => {
       gemstones: profile.gemstones,
       batch: profile.batch,
       avatar_url: profile.avatar_url,
-          active_cosmetic_frame: profile.active_cosmetic_frame,
-      has_shield: userHasShield,
+      active_cosmetic_frame: profile.active_cosmetic_frame,
+      has_shield: resolvedShieldStatus,
     });
-  
-      const existingClanInfo = {
-          id: profile.clan_id ?? null,
-          role: profile.clan_role,
-          customTitle: profile.clan_custom_title ?? null,
-          name: profile.clan_name ?? null,
-          score: profile.clan_total_score ?? null,
-          buffs: profile.active_clan_buffs ?? [],
-      };
-  
-      // Clear transient buff effects before rehydrating clan data
-      applyClanBuffsToProfile(profile, []);
-  
-      let resolvedClanId: string | null = profile.clan_id ?? null;
-      let resolvedClanRole: ClanRole | undefined = profile.clan_role;
-      let resolvedCustomTitle: string | null = profile.clan_custom_title ?? null;
-      let resolvedClanName: string | null = profile.clan_name ?? null;
-  
-      const { data: membership, error: membershipError } = await supabase
-          .from('clan_members')
-          .select('clan_id, role, custom_title, clans(name)')
-          .eq('user_id', profile.id)
-          .maybeSingle();
-  
-      if (membershipError && membershipError.code !== 'PGRST116') {
-          console.warn('Failed to fetch clan membership:', membershipError.message);
-      }
-  
-      let resolvedMembership = membership;
-  
-      // Fallback: use clan_member_scores view if the direct table query fails (e.g., RLS
-      // restrictions or table issues) OR if it returns no rows. This keeps clan info
-      // visible on the dashboard even when the primary table query is blocked.
-      if (!resolvedMembership || !resolvedMembership.clan_id) {
-          const { data: membershipFromScores, error: membershipScoresError } = await supabase
-              .from('clan_member_scores')
-              .select('clan_id, role, custom_title')
-              .eq('user_id', profile.id)
-              .maybeSingle();
-  
-          if (membershipScoresError && membershipScoresError.code !== 'PGRST116') {
-              console.warn('Fallback clan membership lookup failed:', membershipScoresError.message);
-          }
-  
-          if (membershipFromScores?.clan_id) {
-              resolvedMembership = membershipFromScores as unknown as typeof membership;
-          }
-      }
-  
-      if (resolvedMembership && resolvedMembership.clan_id) {
-          resolvedClanId = resolvedMembership.clan_id;
-          resolvedClanRole = resolvedMembership.role as ClanRole;
-          resolvedCustomTitle = resolvedMembership.custom_title;
-          const clanRecord = Array.isArray(resolvedMembership.clans) ? resolvedMembership.clans[0] : resolvedMembership.clans;
-          resolvedClanName = clanRecord?.name ?? null;
-      }
-  
-      if (resolvedClanId) {
-          if (!resolvedClanName) {
-              const { data: clanRow, error: clanError } = await supabase
-                  .from('clans')
-                  .select('name')
-                  .eq('id', resolvedClanId)
-                  .maybeSingle();
-  
-              if (clanError && clanError.code !== 'PGRST116') {
-                  console.warn('Failed to load clan name from clans table:', clanError.message);
-              }
-  
-              resolvedClanName = clanRow?.name ?? resolvedClanName;
-          }
-  
-          let clanScore: number | null = null;
-          let activeBuffs: ActiveClanBuff[] = [];
-          
-          try {
-              const [score, buffs] = await Promise.all([
-                  fetchClanScoreValue(resolvedClanId),
-                  fetchClanActiveBuffs(resolvedClanId),
-              ]);
-              clanScore = score;
-              activeBuffs = buffs;
-          } catch (e) {
-              console.warn('Failed to fetch clan score or buffs for dashboard (using defaults):', e);
-              clanScore = null;
-              activeBuffs = [];
-          }
-  
-          profile.clan_id = resolvedClanId;
-          profile.clan_role = resolvedClanRole;
-          profile.clan_custom_title = resolvedCustomTitle;
-          profile.clan_name = resolvedClanName;
-          profile.clan_total_score = clanScore;
-          applyClanBuffsToProfile(profile, activeBuffs);
-      } else if (existingClanInfo.id || existingClanInfo.name) {
-          // Preserve already-known clan metadata when refresh lookups fail
-          profile.clan_id = existingClanInfo.id;
-          profile.clan_role = existingClanInfo.role;
-          profile.clan_custom_title = existingClanInfo.customTitle;
-          profile.clan_name = existingClanInfo.name;
-          profile.clan_total_score = existingClanInfo.score;
-          applyClanBuffsToProfile(profile, existingClanInfo.buffs);
-      } else {
-          profile.clan_id = null;
-          profile.clan_role = undefined;
-          profile.clan_custom_title = null;
-          profile.clan_name = null;
-          profile.clan_total_score = null;
-      }
-  
-    try {
-      profile.active_cosmetic_frame = await getActiveCosmeticFrame(profile.id);
-    } catch (cosmeticError) {
-      console.warn('Failed to attach cosmetic frame to profile:', cosmeticError);
-      profile.active_cosmetic_frame = null;
-    }
-  
-    try {
-      profile.active_cosmetic_theme = await getActiveCosmeticTheme(profile.id);
-    } catch (cosmeticError) {
-      console.warn('Failed to attach cosmetic theme to profile:', cosmeticError);
-      profile.active_cosmetic_theme = null;
-    }
-  
-    try {
-      profile.active_cosmetic_effect = await getActiveCosmeticEffect(profile.id);
-    } catch (cosmeticError) {
-      console.warn('Failed to attach cosmetic effect to profile:', cosmeticError);
-      profile.active_cosmetic_effect = null;
-    }
-  
-    // Fetch school info for display (name and logo)
-    if (profile.school_id) {
-      try {
-        const { data: schoolData, error: schoolError } = await supabase
-          .from('schools')
-          .select('name, logo_url')
-          .eq('id', profile.school_id)
-          .single();
-        
-        if (!schoolError && schoolData) {
-          profile.school_name = schoolData.name;
-          profile.school_logo_url = schoolData.logo_url;
-        }
-      } catch (schoolErr) {
-        console.warn('Failed to fetch school info:', schoolErr);
-      }
-    }
-  
-      profile.total_score = calculateTotalScore(profile.xp ?? 0, profile.pvp_score ?? 0);
-  
-      try {
-          profile.xp_status = await fetchMyXpStatus(supabase, {
-              xp: profile.xp,
-              level: profile.level,
-          });
-      } catch (error) {
-          console.warn('[whoami] Failed to fetch XP status:', error);
-      }
-  
+
     return profile;
   })();
 
