@@ -677,6 +677,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
         <SettingsModal
           onClose={() => setShowSettingsModal(false)}
           profile={profile}
+          isAdminMode={isAdmin(profile)}
           avatarPresets={avatarPresets}
           selectedAvatar={selectedAvatar}
           uploadingAvatar={uploadingAvatar}
