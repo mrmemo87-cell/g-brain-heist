@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { SupabaseClanTerritoryTransport } from "./clanTerritorySupabaseTransport";
 import { ClanTerritoryTeacherView } from "./components/ClanTerritoryTeacherView";
 import { ClanTerritoryStudentView } from "./components/ClanTerritoryStudentView";
@@ -7,8 +7,6 @@ import { ClanTerritoryErrorBoundary } from "./components/ClanTerritoryErrorBound
 import { ClanTerritoryGameState, ClanId, getClanColor } from "./clanTerritoryTypes";
 import { INITIAL_STATE } from "./clanTerritoryEngine";
 import { supabase } from "../../../services/supabaseClient";
-import { audioService } from "../../../services/audioService";
-import { fetchSchoolBatches, type SchoolBatchInfo } from "../../../services/competitionService";
 
 interface ClanTerritoryManagerProps {
   onExit: () => void;
@@ -23,64 +21,9 @@ interface ClanTerritoryManagerProps {
 const CLANLESS_CLAN_ID_PREFIX = "clanless-agent";
 const CLANLESS_CLAN_LABEL = "Independent Agents";
 const CLANLESS_CLAN_NAME = "Independent Agent";
-const AUTO_START_DELAY_MS = 2 * 60 * 1000;
-const FINISHED_ARENA_TTL_MS = 24 * 60 * 60 * 1000;
 
-type DiscoveredRoom = {
-  id: string;
-  allowClanlessPlayers?: boolean;
-  teacherName?: string;
-  classCode?: string;
-  scheduledStartAt?: string;
-  phase?: ClanTerritoryGameState["phase"];
-  timer?: number;
-  gameEndTime?: number;
-  lastSeen: number;
-};
-
-type StoredHostRoom = {
-  roomId: string;
-  state: ClanTerritoryGameState;
-  selectedMap: string;
-  durationMinutes: number;
-  allowClanlessPlayers: boolean;
-  selectedQuestions: any[];
-  selectedBatch: string;
-  teacherName?: string;
-  scheduledStartAt?: string | null;
-  lastUpdatedAt: number;
-};
-
-const formatTimer = (seconds: number) => {
-  const minutes = Math.floor(seconds / 60)
-    .toString()
-    .padStart(2, "0");
-  const secs = Math.floor(seconds % 60)
-    .toString()
-    .padStart(2, "0");
-  return `${minutes}:${secs}`;
-};
-
-const getRemainingSeconds = (input: {
-  phase?: ClanTerritoryGameState["phase"];
-  timer?: number;
-  gameEndTime?: number;
-}) => {
-  if (input.phase !== "ACTIVE") return null;
-  if (typeof input.gameEndTime === "number") {
-    return Math.max(0, Math.floor((input.gameEndTime - Date.now()) / 1000));
-  }
-  if (typeof input.timer === "number") {
-    return Math.max(0, input.timer);
-  }
-  return null;
-};
-
-const createClanlessIdentity = (playerName: string, playerId?: string | null) => {
-  const stableId = playerId
-    ? `${CLANLESS_CLAN_ID_PREFIX}-${playerId}`
-    : `${CLANLESS_CLAN_ID_PREFIX}-${crypto.randomUUID()}`;
-  const clanId = stableId as ClanId;
+const createClanlessIdentity = (playerName: string) => {
+  const clanId = `${CLANLESS_CLAN_ID_PREFIX}-${crypto.randomUUID()}` as ClanId;
   return {
     clanId,
     clanName: `${CLANLESS_CLAN_NAME} (${playerName})`,
@@ -106,7 +49,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   // Game configuration settings
   const [durationMinutes, setDurationMinutes] = useState(5);
   const [selectedMap, setSelectedMap] = useState('default');
-  const [discoveredRooms, setDiscoveredRooms] = useState<Record<string, DiscoveredRoom>>({});
+  const [discoveredRoom, setDiscoveredRoom] = useState<{ id: string; allowClanlessPlayers?: boolean } | null>(null);
   const [resolvedClanId, setResolvedClanId] = useState<ClanId | null>(clanId ?? null);
   const [resolvedClanName, setResolvedClanName] = useState<string | null>(clanName ?? null);
   const [playerFallback, setPlayerFallback] = useState<{
@@ -121,108 +64,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const [isRefreshingProfile, setIsRefreshingProfile] = useState(false);
   const [allowClanlessPlayers, setAllowClanlessPlayers] = useState(false);
   const [userSchoolId, setUserSchoolId] = useState<string | null>(null);
-  const [studentBatch, setStudentBatch] = useState<string | null>(null);
-  const [availableBatches, setAvailableBatches] = useState<SchoolBatchInfo[]>([]);
-  const [selectedBatch, setSelectedBatch] = useState<string>("");
-  const [teacherName, setTeacherName] = useState<string>("");
-  const [scheduleEnabled, setScheduleEnabled] = useState(false);
-  const [scheduledStartAt, setScheduledStartAt] = useState<string>("");
-  const [activeScheduledStartAt, setActiveScheduledStartAt] = useState<string | null>(null);
-  const [roomCodeInput, setRoomCodeInput] = useState("");
-  const [teacherUserId, setTeacherUserId] = useState<string | null>(null);
-  const [storedHostRooms, setStoredHostRooms] = useState<StoredHostRoom[]>([]);
-  const previousBgMusicEnabled = useRef<boolean | null>(null);
-  const discoveredRoomsRef = useRef<Record<string, DiscoveredRoom>>({});
-  const autoStartTriggeredRef = useRef(false);
 
   const durationPercentage = ((durationMinutes - 2) / 18) * 100;
-
-  const formatScheduleTime = (value?: string | null) => {
-    if (!value) return null;
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return null;
-    return date.toLocaleString();
-  };
-
-  useEffect(() => {
-    if (!teacherName && playerName) {
-      setTeacherName(playerName);
-    }
-  }, [playerName, teacherName]);
-
-  useEffect(() => {
-    if (!isTeacher) return;
-
-    const loadTeacherId = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        setTeacherUserId(user?.id ?? null);
-      } catch (error) {
-        console.warn("Failed to resolve teacher identity for host recovery:", error);
-      }
-    };
-
-    loadTeacherId();
-  }, [isTeacher]);
-
-  const pruneExpiredHostRooms = useCallback((rooms: StoredHostRoom[]) => {
-    const now = Date.now();
-    return rooms.filter((room) => {
-      if (room.state.phase !== "ENDED") return true;
-      return now - room.lastUpdatedAt <= FINISHED_ARENA_TTL_MS;
-    });
-  }, []);
-
-  const persistHostRooms = useCallback(
-    (rooms: StoredHostRoom[]) => {
-      if (teacherUserId && typeof window !== "undefined") {
-        localStorage.setItem(
-          `clan-territory-host-rooms:${teacherUserId}`,
-          JSON.stringify(rooms)
-        );
-      }
-    },
-    [teacherUserId]
-  );
-
-  useEffect(() => {
-    if (!isTeacher || !teacherUserId || typeof window === "undefined") {
-      setStoredHostRooms([]);
-      return;
-    }
-
-    const raw = localStorage.getItem(`clan-territory-host-rooms:${teacherUserId}`);
-    if (!raw) {
-      setStoredHostRooms([]);
-      return;
-    }
-
-    try {
-      const parsed = JSON.parse(raw) as StoredHostRoom[];
-      const cleaned = pruneExpiredHostRooms(Array.isArray(parsed) ? parsed : []);
-      setStoredHostRooms(cleaned);
-      if (cleaned.length !== parsed.length) {
-        persistHostRooms(cleaned);
-      }
-    } catch (error) {
-      console.warn("Failed to parse stored host rooms:", error);
-      setStoredHostRooms([]);
-    }
-  }, [isTeacher, teacherUserId, persistHostRooms, pruneExpiredHostRooms]);
-
-  useEffect(() => {
-    if (!isTeacher || !teacherUserId) return;
-    const interval = setInterval(() => {
-      setStoredHostRooms((prev) => {
-        const cleaned = pruneExpiredHostRooms(prev);
-        if (cleaned.length !== prev.length) {
-          persistHostRooms(cleaned);
-        }
-        return cleaned;
-      });
-    }, 60 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, [isTeacher, teacherUserId, persistHostRooms, pruneExpiredHostRooms]);
 
   const handleRefreshProfile = async () => {
     setIsRefreshingProfile(true);
@@ -240,29 +83,6 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     } finally {
       setIsRefreshingProfile(false);
     }
-  };
-
-  const upsertHostRoom = (room: StoredHostRoom) => {
-    setStoredHostRooms((prev) => {
-      const next = [...prev];
-      const index = next.findIndex((item) => item.roomId === room.roomId);
-      if (index >= 0) {
-        next[index] = room;
-      } else {
-        next.unshift(room);
-      }
-      const cleaned = pruneExpiredHostRooms(next);
-      persistHostRooms(cleaned);
-      return cleaned;
-    });
-  };
-
-  const removeHostRoom = (targetRoomId: string) => {
-    setStoredHostRooms((prev) => {
-      const next = prev.filter((room) => room.roomId !== targetRoomId);
-      persistHostRooms(next);
-      return next;
-    });
   };
 
   // Fetch clan data directly from database on mount and when refreshing
@@ -346,7 +166,6 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     fetchClanDataDirectly();
     // Also fetch the user's school_id for room isolation
     fetchUserSchoolId();
-    fetchUserProfile();
   }, []);
 
   const fetchUserSchoolId = async () => {
@@ -368,53 +187,6 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     }
   };
 
-  const fetchUserProfile = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('username, batch')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.warn('Failed to fetch user profile:', error.message ?? error);
-        return;
-      }
-
-      if (data?.username) {
-        setTeacherName(data.username);
-      }
-
-      if (data?.batch) {
-        setStudentBatch(data.batch);
-      }
-    } catch (error) {
-      console.warn('Failed to fetch user profile:', error);
-    }
-  };
-
-  useEffect(() => {
-    if (!isTeacher) return;
-
-    const loadBatches = async () => {
-      const batches = await fetchSchoolBatches();
-      setAvailableBatches(batches);
-
-      if (!selectedBatch) {
-        if (studentBatch) {
-          setSelectedBatch(studentBatch);
-        } else if (batches.length > 0) {
-          setSelectedBatch(batches[0].batch);
-        }
-      }
-    };
-
-    loadBatches();
-  }, [isTeacher, selectedBatch, studentBatch]);
-
   useEffect(() => {
     // Reactive update: whenever props change, update the resolved clan data
     // This prevents students from getting stuck on "Waiting for profile clan assignment"
@@ -425,10 +197,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
   // If student is waiting too long for clan assignment, show timeout message
   useEffect(() => {
-    const discoveredList = Object.values(discoveredRooms);
-    const allowIndependentAgents =
-      allowClanlessPlayers || gameState.allowClanlessPlayers || discoveredList.some((room) => room.allowClanlessPlayers);
-    if (!isTeacher && discoveredList.length > 0 && !resolvedClanId && !resolvedClanName && !allowIndependentAgents) {
+    const allowIndependentAgents = allowClanlessPlayers || gameState.allowClanlessPlayers || discoveredRoom?.allowClanlessPlayers;
+    if (!isTeacher && discoveredRoom && !resolvedClanId && !resolvedClanName && !allowIndependentAgents) {
       const timer = setTimeout(() => {
         setClanLoadTimeout(true);
       }, 8000); // Show timeout after 8 seconds of waiting
@@ -436,7 +206,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     }
   }, [
     isTeacher,
-    discoveredRooms,
+    discoveredRoom,
     resolvedClanId,
     resolvedClanName,
     allowClanlessPlayers,
@@ -448,47 +218,11 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     if (!isTeacher && mode === "menu") {
       // Pass userSchoolId to only discover rooms from the same school
       transport.startDiscovery(userSchoolId, (id, metadata) => {
-        setDiscoveredRooms((prev) => ({
-          ...prev,
-          [id]: {
-            id,
-            allowClanlessPlayers: metadata?.allowClanlessPlayers,
-            teacherName: metadata?.teacherName,
-            classCode: metadata?.classCode,
-            scheduledStartAt: metadata?.scheduledStartAt,
-            phase: metadata?.phase,
-            timer: metadata?.timer,
-            gameEndTime: metadata?.gameEndTime,
-            lastSeen: Date.now(),
-          },
-        }));
+        setDiscoveredRoom({ id, allowClanlessPlayers: metadata?.allowClanlessPlayers });
       });
       return () => transport.stopDiscovery();
     }
   }, [isTeacher, mode, transport, userSchoolId]);
-
-  useEffect(() => {
-    discoveredRoomsRef.current = discoveredRooms;
-  }, [discoveredRooms]);
-
-  useEffect(() => {
-    if (isTeacher || mode !== "menu") return;
-
-    const interval = setInterval(() => {
-      setDiscoveredRooms((prev) => {
-        const now = Date.now();
-        const next: Record<string, DiscoveredRoom> = {};
-        Object.values(prev).forEach((room) => {
-          if (now - room.lastSeen < 7000) {
-            next[room.id] = room;
-          }
-        });
-        return next;
-      });
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [isTeacher, mode]);
 
   useEffect(() => {
     // Set up state listener for all roles when roomId is available
@@ -499,31 +233,6 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       return () => unsubscribe();
     }
   }, [roomId, transport]);
-
-  const shouldPlayMusic =
-    Boolean(roomId) &&
-    (mode === "host" || mode === "player") &&
-    gameState.phase !== "ENDED";
-
-  useEffect(() => {
-    if (shouldPlayMusic) {
-      if (previousBgMusicEnabled.current === null) {
-        previousBgMusicEnabled.current = audioService.isBgMusicEnabled();
-      }
-      if (!audioService.isBgMusicEnabled()) {
-        audioService.setBgMusicEnabled(true);
-      } else {
-        audioService.playBackgroundMusic();
-      }
-    }
-
-    return () => {
-      if (previousBgMusicEnabled.current !== null) {
-        audioService.setBgMusicEnabled(previousBgMusicEnabled.current);
-        previousBgMusicEnabled.current = null;
-      }
-    };
-  }, [shouldPlayMusic]);
 
   // Cleanup on unmount - prevent memory leaks
   useEffect(() => {
@@ -540,18 +249,10 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const handleQuestionsSelected = async (questions: any[]) => {
     setSelectedQuestions(questions);
     setShowQuestionSelection(false);
-    const scheduledStartIso =
-      scheduleEnabled && scheduledStartAt ? new Date(scheduledStartAt).toISOString() : null;
     
     // If we're in configure mode, create room after questions selected
     if (mode === 'configure') {
-      const id = await transport.createRoom({
-        allowClanlessPlayers,
-        schoolId: userSchoolId || undefined,
-        teacherName: teacherName || playerName,
-        classCode: selectedBatch || undefined,
-        scheduledStartAt: scheduledStartIso || undefined,
-      });
+      const id = await transport.createRoom({ allowClanlessPlayers, schoolId: userSchoolId || undefined });
       
       // Set up state listener BEFORE sending any actions
       transport.onGameState(id, setGameState);
@@ -560,35 +261,15 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       // This ensures zones are created for the correct map before any other state changes
       await transport.sendAction(id, { type: "SET_MAP", payload: { mapId: selectedMap } });
       await transport.sendAction(id, { type: "SET_ALLOW_CLANLESS", payload: { allow: allowClanlessPlayers } });
-      await transport.sendAction(id, { type: "SET_DURATION", payload: { duration: durationMinutes * 60 } });
       await transport.sendAction(id, { type: "SET_QUESTIONS", payload: { questions } });
       
       setRoomId(id);
-      setActiveScheduledStartAt(scheduledStartIso);
       setMode("host");
-      upsertHostRoom({
-        roomId: id,
-        state: gameState,
-        selectedMap,
-        durationMinutes,
-        allowClanlessPlayers,
-        selectedQuestions: questions,
-        selectedBatch,
-        teacherName: teacherName || playerName,
-        scheduledStartAt: scheduledStartIso,
-        lastUpdatedAt: Date.now(),
-      });
       return;
     }
     
     // Otherwise proceed with room creation (legacy flow)
-    const id = await transport.createRoom({
-      allowClanlessPlayers,
-      schoolId: userSchoolId || undefined,
-      teacherName: teacherName || playerName,
-      classCode: selectedBatch || undefined,
-      scheduledStartAt: scheduledStartIso || undefined,
-    });
+    const id = await transport.createRoom({ allowClanlessPlayers, schoolId: userSchoolId || undefined });
     
     // IMPORTANT: Set up state listener BEFORE sending any actions or setting roomId
     // This prevents race conditions where JOIN actions are processed before the callback is set
@@ -596,66 +277,17 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     
     // Send questions to game state
     await transport.sendAction(id, { type: "SET_ALLOW_CLANLESS", payload: { allow: allowClanlessPlayers } });
-    await transport.sendAction(id, { type: "SET_DURATION", payload: { duration: durationMinutes * 60 } });
     await transport.sendAction(id, { type: "SET_QUESTIONS", payload: { questions } });
     setRoomId(id);
-    setActiveScheduledStartAt(scheduledStartIso);
     setMode("host");
-    upsertHostRoom({
-      roomId: id,
-      state: gameState,
-      selectedMap,
-      durationMinutes,
-      allowClanlessPlayers,
-      selectedQuestions: questions,
-      selectedBatch,
-      teacherName: teacherName || playerName,
-      scheduledStartAt: scheduledStartIso,
-      lastUpdatedAt: Date.now(),
-    });
   };
 
-  const handleJoinRoom = async (targetRoomId: string) => {
-    if (!targetRoomId) return;
-    const waitForDiscovery = async () => {
-      const initialRoom = discoveredRoomsRef.current[targetRoomId];
-      if (initialRoom && Date.now() - initialRoom.lastSeen < 10000) {
-        return true;
-      }
-      return new Promise<boolean>((resolve) => {
-        const interval = setInterval(() => {
-          const room = discoveredRoomsRef.current[targetRoomId];
-          if (room && Date.now() - room.lastSeen < 10000) {
-            clearInterval(interval);
-            clearTimeout(timeout);
-            resolve(true);
-          }
-        }, 200);
-        const timeout = setTimeout(() => {
-          clearInterval(interval);
-          resolve(false);
-        }, 3000);
-      });
-    };
-
-    const roomAvailable = await waitForDiscovery();
-    if (!roomAvailable) {
-      alert("No active arena found with that code. Ask your teacher for a fresh code and try again.");
-      return;
-    }
-
-    const roomMetadata = discoveredRoomsRef.current[targetRoomId];
-    const allowClanless = roomMetadata?.allowClanlessPlayers ?? gameState.allowClanlessPlayers ?? false;
+  const handleJoinRoom = async () => {
+    if (!discoveredRoom) return;
+    const allowClanless = discoveredRoom.allowClanlessPlayers || gameState.allowClanlessPlayers;
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      const storageKey = `clan-territory-player:${targetRoomId}`;
-      const storedPlayerId = typeof window !== "undefined" ? sessionStorage.getItem(storageKey) : null;
-      const stablePlayerId = user?.id ?? storedPlayerId ?? crypto.randomUUID();
-      if (typeof window !== "undefined" && !storedPlayerId) {
-        sessionStorage.setItem(storageKey, stablePlayerId);
-      }
       const clanlessAssigned = allowClanless && (!resolvedClanId || !resolvedClanName);
-      const clanlessIdentity = clanlessAssigned ? createClanlessIdentity(playerName, stablePlayerId) : null;
+      const clanlessIdentity = clanlessAssigned ? createClanlessIdentity(playerName) : null;
       if (!resolvedClanId || !resolvedClanName) {
         if (!clanlessAssigned) {
           throw new Error("You must be in a clan to join the Arena. Go to the Clans section to join a clan first.");
@@ -665,16 +297,13 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       const activeClanName = clanlessAssigned ? clanlessIdentity!.clanName : (resolvedClanName as string);
       const activeClanColor = clanlessAssigned ? clanlessIdentity!.clanColor : undefined;
       const pid = await transport.joinRoom(
-        targetRoomId,
+        discoveredRoom.id,
         playerName,
         activeClanId,
         activeClanName,
-        {
-          clanColor: activeClanColor,
-          playerId: stablePlayerId,
-        }
+        activeClanColor ? { clanColor: activeClanColor } : undefined
       );
-      setRoomId(targetRoomId);
+      setRoomId(discoveredRoom.id);
       setPlayerId(pid);
       setPlayerFallback({
         id: pid,
@@ -697,113 +326,12 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     if (roomId) transport.sendAction(roomId, { type: "END_GAME" });
   };
 
-  const handleTeacherExit = async () => {
-    if (roomId) {
-      try {
-        await transport.sendAction(roomId, { type: "DISMISS_ARENA" });
-      } catch (error) {
-        console.warn("Failed to dismiss arena:", error);
-      }
-    }
-    if (roomId) {
-      removeHostRoom(roomId);
-    }
-    onExit();
-  };
-
   const handleKickPlayer = (pid: string) => {
     if (roomId) transport.sendAction(roomId, { type: "KICK_PLAYER", payload: { playerId: pid } });
   };
 
+  const allowClanlessEntry = allowClanlessPlayers || gameState.allowClanlessPlayers || discoveredRoom?.allowClanlessPlayers;
   const missingClanAssignment = !resolvedClanId || !resolvedClanName;
-  const canCreateRoom = Boolean(selectedBatch) && (!scheduleEnabled || Boolean(scheduledStartAt));
-  const filteredRooms = useMemo(() => {
-    const rooms = Object.values(discoveredRooms);
-    if (!studentBatch) {
-      return rooms;
-    }
-    return rooms.filter((room) => room.classCode === studentBatch);
-  }, [discoveredRooms, studentBatch]);
-
-  useEffect(() => {
-    if (!roomId || !activeScheduledStartAt || gameState.phase !== "LOBBY") {
-      autoStartTriggeredRef.current = false;
-      return;
-    }
-    const startAt = new Date(activeScheduledStartAt);
-    if (Number.isNaN(startAt.getTime())) return;
-    const autoStartAt = startAt.getTime() + AUTO_START_DELAY_MS;
-    autoStartTriggeredRef.current = false;
-
-    const checkAutoStart = () => {
-      if (autoStartTriggeredRef.current) return;
-      if (Date.now() >= autoStartAt) {
-        autoStartTriggeredRef.current = true;
-        transport.sendAction(roomId, { type: "START_GAME", payload: { duration: durationMinutes * 60 } });
-      }
-    };
-
-    checkAutoStart();
-    const interval = setInterval(checkAutoStart, 1000);
-    return () => clearInterval(interval);
-  }, [activeScheduledStartAt, durationMinutes, gameState.phase, roomId, transport]);
-
-  useEffect(() => {
-    if (!isTeacher || mode !== "host" || !roomId) return;
-    if (!teacherUserId) return;
-
-    upsertHostRoom({
-      roomId,
-      state: gameState,
-      selectedMap,
-      durationMinutes,
-      allowClanlessPlayers,
-      selectedQuestions,
-      selectedBatch,
-      teacherName: teacherName || playerName,
-      scheduledStartAt: activeScheduledStartAt,
-      lastUpdatedAt: Date.now(),
-    });
-  }, [
-    allowClanlessPlayers,
-    durationMinutes,
-    gameState,
-    isTeacher,
-    mode,
-    roomId,
-    selectedBatch,
-    selectedMap,
-    selectedQuestions,
-    teacherName,
-    playerName,
-    teacherUserId,
-    activeScheduledStartAt,
-  ]);
-
-  const handleResumeHostRoom = async (room: StoredHostRoom) => {
-    try {
-      await transport.resumeRoom(room.roomId, {
-        state: room.state,
-        allowClanlessPlayers: room.allowClanlessPlayers,
-        schoolId: userSchoolId || undefined,
-        teacherName: room.teacherName || teacherName || playerName,
-        classCode: room.selectedBatch || undefined,
-        scheduledStartAt: room.scheduledStartAt || undefined,
-      });
-      transport.onGameState(room.roomId, setGameState);
-      setRoomId(room.roomId);
-      setSelectedMap(room.selectedMap);
-      setDurationMinutes(room.durationMinutes);
-      setAllowClanlessPlayers(room.allowClanlessPlayers);
-      setSelectedQuestions(room.selectedQuestions);
-      setSelectedBatch(room.selectedBatch);
-      setActiveScheduledStartAt(room.scheduledStartAt ?? null);
-      setMode("host");
-    } catch (error) {
-      console.error("Failed to resume host room:", error);
-      alert("Unable to resume this arena. Please create a new one.");
-    }
-  };
 
   // --- RENDER ---
 
@@ -900,90 +428,32 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                   </div>
                 </button>
                 <button
-                  onClick={() => setSelectedMap('usa')}
+                  onClick={() => setSelectedMap('fortress')}
                   className={`p-4 rounded-xl border-2 transition ${
-                    selectedMap === 'usa'
+                    selectedMap === 'fortress'
                       ? 'border-cyan-400 bg-cyan-500/20'
                       : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
                   }`}
                 >
                   <div className="text-left space-y-1">
-                    <p className="font-bold text-white">🇺🇸 USA</p>
-                    <p className="text-xs text-gray-400">States + DC, 51 zones</p>
+                    <p className="font-bold text-white">🏰 Fortress</p>
+                    <p className="text-xs text-gray-400">Defensive stronghold, 6 layers</p>
                   </div>
                 </button>
                 <button
-                  onClick={() => setSelectedMap('unitedkingdom')}
+                  onClick={() => setSelectedMap('islands')}
                   className={`p-4 rounded-xl border-2 transition ${
-                    selectedMap === 'unitedkingdom'
+                    selectedMap === 'islands'
                       ? 'border-cyan-400 bg-cyan-500/20'
                       : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
                   }`}
                 >
                   <div className="text-left space-y-1">
-                    <p className="font-bold text-white">🇬🇧 United Kingdom</p>
-                    <p className="text-xs text-gray-400">UK regions + isles, 16 zones</p>
+                    <p className="font-bold text-white">🏝️ Islands</p>
+                    <p className="text-xs text-gray-400">Archipelago, 12 territories</p>
                   </div>
                 </button>
               </div>
-            </div>
-
-            {/* Class Selection */}
-            <div className="space-y-3">
-              <label className="block text-sm font-bold text-white">Target Class</label>
-              {availableBatches.length > 0 ? (
-                <select
-                  value={selectedBatch}
-                  onChange={(e) => setSelectedBatch(e.target.value)}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-900/60 px-4 py-3 text-white"
-                >
-                  <option value="" disabled>
-                    Select a class
-                  </option>
-                  {availableBatches.map((batch) => (
-                    <option key={batch.batch} value={batch.batch}>
-                      {batch.batch}
-                      {batch.grade !== null ? ` · Grade ${batch.grade}` : ""} · {batch.player_count} students
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  type="text"
-                  value={selectedBatch}
-                  onChange={(e) => setSelectedBatch(e.target.value)}
-                  placeholder="Enter class code (e.g. 9A)"
-                  className="w-full rounded-xl border border-slate-700 bg-slate-900/60 px-4 py-3 text-white"
-                />
-              )}
-              <p className="text-xs text-gray-400">Only students in the selected class can see this arena.</p>
-            </div>
-
-            {/* Schedule Start */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-bold text-white">Schedule Start</p>
-                  <p className="text-xs text-gray-400">Set a future time to auto-start the battle (starts 2 minutes after).</p>
-                </div>
-                <label className="inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={scheduleEnabled}
-                    onChange={(e) => setScheduleEnabled(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="peer relative h-6 w-11 rounded-full bg-slate-600 after:absolute after:left-1 after:top-1 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition after:content-[''] peer-checked:bg-emerald-500 peer-checked:after:translate-x-full"></div>
-                </label>
-              </div>
-              {scheduleEnabled && (
-                <input
-                  type="datetime-local"
-                  value={scheduledStartAt}
-                  onChange={(e) => setScheduledStartAt(e.target.value)}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-900/60 px-4 py-3 text-white"
-                />
-              )}
             </div>
 
             {/* Clanless Participation */}
@@ -1017,16 +487,6 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                   <p className="text-white font-bold capitalize">{selectedMap}</p>
                 </div>
                 <div className="bg-slate-800/50 rounded-lg p-3">
-                  <p className="text-gray-400 text-xs mb-1">Class</p>
-                  <p className="text-white font-bold">{selectedBatch || "Not selected"}</p>
-                </div>
-                <div className="bg-slate-800/50 rounded-lg p-3">
-                  <p className="text-gray-400 text-xs mb-1">Start</p>
-                  <p className="text-white font-bold">
-                    {scheduleEnabled ? formatScheduleTime(scheduledStartAt) ?? "Set time" : "Immediate"}
-                  </p>
-                </div>
-                <div className="bg-slate-800/50 rounded-lg p-3">
                   <p className="text-gray-400 text-xs mb-1">Questions</p>
                   <p className="text-white font-bold">{selectedQuestions.length || 'To be selected'}</p>
                 </div>
@@ -1045,16 +505,10 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
             <button
               onClick={() => setShowQuestionSelection(true)}
-              disabled={!canCreateRoom}
-              className="w-full font-heading font-bold rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400 py-4 text-lg text-white transition disabled:bg-slate-800/60 disabled:border-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed"
+              className="w-full font-heading font-bold rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400 py-4 text-lg text-white transition"
             >
               {selectedQuestions.length ? 'Change Questions & Create' : 'Select Questions & Create'}
             </button>
-            {!canCreateRoom && (
-              <p className="text-xs text-amber-300 text-center">
-                {selectedBatch ? "Pick a scheduled start time before creating the arena." : "Select a class before creating the arena."}
-              </p>
-            )}
           </div>
         </div>
       </div>
@@ -1076,31 +530,13 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                 <span className="text-gray-400 text-xs uppercase tracking-wider block">Map</span>
                 <div className="text-sm font-bold text-cyan-400 capitalize">{selectedMap}</div>
               </div>
-              <div className="text-left">
-                <span className="text-gray-400 text-xs uppercase tracking-wider block">Class</span>
-                <div className="text-sm font-bold text-emerald-300">{selectedBatch}</div>
-              </div>
-              {activeScheduledStartAt && (
-                <div className="text-left">
-                  <span className="text-gray-400 text-xs uppercase tracking-wider block">Scheduled Start</span>
-                  <div className="text-sm font-bold text-amber-200">{formatScheduleTime(activeScheduledStartAt)}</div>
-                </div>
-              )}
             </div>
-            <button
-              onClick={() => {
-                void handleTeacherExit();
-              }}
-              className="text-gray-400 hover:text-white font-heading"
-            >
-              Exit
-            </button>
+            <button onClick={onExit} className="text-gray-400 hover:text-white font-heading">Exit</button>
           </div>
           <div className="flex-1 overflow-y-auto">
             <ClanTerritoryTeacherView
               gameState={gameState}
               selectedQuestions={selectedQuestions}
-              scheduledStartAt={activeScheduledStartAt}
               onStartGame={handleStartGame}
               onEndGame={handleEndGame}
               onKickPlayer={handleKickPlayer}
@@ -1133,7 +569,6 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
           gameState={gameState}
           playerId={playerId}
           fallbackPlayer={playerFallback ?? undefined}
-          onRewardsClaimed={handleRefreshProfile}
           onSelectZone={(zoneId) => {
             console.log('[ClanTerritoryManager] onSelectZone called:', { zoneId, roomId, playerId });
             if (!roomId) {
@@ -1183,90 +618,27 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
         <div className="grid gap-4">
           {isTeacher && (
-            <>
-              {storedHostRooms.length > 0 && (
-                <div className="card-glass p-5 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h2 className="font-heading text-lg text-white">Your Active Arenas</h2>
-                    <span className="text-xs text-gray-400">{storedHostRooms.length} saved</span>
-                  </div>
-                  <div className="space-y-3">
-                    {storedHostRooms.map((room) => (
-                      <div
-                        key={room.roomId}
-                        className="rounded-xl border border-slate-700 bg-slate-900/60 p-4 space-y-2"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs uppercase tracking-wide text-gray-400">Room Code</p>
-                            <p className="text-2xl font-mono font-bold text-amber-400">{room.roomId}</p>
-                          </div>
-                          <button
-                            onClick={() => handleResumeHostRoom(room)}
-                            className="px-4 py-2 font-heading font-bold rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white transition-colors text-sm"
-                          >
-                            Open Host View
-                          </button>
-                        </div>
-                        {(() => {
-                          const remainingSeconds = getRemainingSeconds({
-                            phase: room.state.phase,
-                            timer: room.state.timer,
-                            gameEndTime: room.state.gameEndTime,
-                          });
-                          if (remainingSeconds === null) return null;
-                          return (
-                            <div className="flex items-center gap-2 text-xs text-emerald-300 font-semibold">
-                              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                              Live · {formatTimer(remainingSeconds)} remaining
-                            </div>
-                          );
-                        })()}
-                        <div className="text-xs text-gray-400 space-y-1">
-                          <p>
-                            Map: <span className="text-white capitalize">{room.selectedMap}</span>
-                          </p>
-                          <p>
-                            Class: <span className="text-white">{room.selectedBatch || "—"}</span>
-                          </p>
-                          {room.scheduledStartAt && (
-                            <p>
-                              Scheduled:{" "}
-                              <span className="text-white">{formatScheduleTime(room.scheduledStartAt)}</span>
-                            </p>
-                          )}
-                          <p>
-                            Updated:{" "}
-                            <span className="text-white">{new Date(room.lastUpdatedAt).toLocaleString()}</span>
-                          </p>
-                        </div>
-                        <div className="flex justify-end">
-                          <button
-                            onClick={() => removeHostRoom(room.roomId)}
-                            className="text-xs text-gray-400 hover:text-gray-200"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              <button
-                onClick={handleCreateRoom}
-                className="w-full font-heading font-bold py-4 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400 text-white rounded-xl text-lg transition-all"
-              >
-                HOST NEW BATTLE
-              </button>
-            </>
+            <button
+              onClick={handleCreateRoom}
+              className="w-full font-heading font-bold py-4 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400 text-white rounded-xl text-lg transition-all"
+            >
+              HOST NEW BATTLE
+            </button>
           )}
 
-          {!isTeacher && (
+          {!isTeacher && !discoveredRoom && (
+            <div className="text-center p-8 card-glass animate-pulse">
+              <div className="text-4xl mb-4">📡</div>
+              <h3 className="font-heading text-xl text-white mb-2">Scanning for Signals...</h3>
+              <p className="text-gray-400">Waiting for a teacher to open an arena.</p>
+            </div>
+          )}
+
+          {!isTeacher && discoveredRoom && (
             <div className="card-glass p-6 space-y-4">
               <h2 className="font-heading text-xl text-white flex items-center gap-2">
-                <span className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse"></span>
-                Agent Briefing
+                <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
+                Arena Detected
               </h2>
 
               <div className="space-y-3">
@@ -1291,6 +663,10 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                       }}
                     >
                       {resolvedClanName}
+                    </div>
+                  ) : allowClanlessEntry ? (
+                    <div className="p-3 rounded-xl border border-emerald-500/50 bg-emerald-500/10 text-center text-emerald-200 text-sm">
+                      Teacher enabled independent agents. You can join as {CLANLESS_CLAN_LABEL} without a clan.
                     </div>
                   ) : clanLoadTimeout ? (
                     <div className="space-y-3">
@@ -1323,99 +699,14 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                     </div>
                   )}
                 </div>
-              </div>
-            </div>
-          )}
 
-          {!isTeacher && (
-            <div className="card-glass p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="font-heading text-xl text-white flex items-center gap-2">
-                  <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
-                  Open Arenas
-                </h2>
-                <span className="text-xs text-gray-400">{filteredRooms.length} available</span>
-              </div>
-
-              {filteredRooms.length > 0 ? (
-                <div className="space-y-3">
-                  {filteredRooms.map((room) => {
-                    const allowIndependent = Boolean(room.allowClanlessPlayers);
-                    const remainingSeconds = getRemainingSeconds({
-                      phase: room.phase,
-                      timer: room.timer,
-                      gameEndTime: room.gameEndTime,
-                    });
-                    return (
-                      <div key={room.id} className="rounded-xl border border-slate-700 bg-slate-900/60 p-4 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs uppercase tracking-wide text-gray-400">Room Code</p>
-                            <p className="text-2xl font-mono font-bold text-amber-400">{room.id}</p>
-                          </div>
-                          <button
-                            onClick={() => handleJoinRoom(room.id)}
-                            disabled={!allowIndependent && missingClanAssignment}
-                            className="px-4 py-2 font-heading font-bold rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 disabled:bg-gray-600/30 disabled:border-gray-600 disabled:cursor-not-allowed text-white transition-colors text-sm"
-                          >
-                            {allowIndependent && missingClanAssignment ? "Join as Independent" : "Enter Arena"}
-                          </button>
-                        </div>
-                        {remainingSeconds !== null && (
-                          <div className="flex items-center gap-2 text-xs text-emerald-300 font-semibold">
-                            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                            Live · {formatTimer(remainingSeconds)} remaining
-                          </div>
-                        )}
-                        <div className="text-xs text-gray-400 space-y-1">
-                          <p>Teacher: <span className="text-white">{room.teacherName || "Teacher"}</span></p>
-                          <p>Class: <span className="text-white">{room.classCode || "—"}</span></p>
-                          {room.scheduledStartAt && (
-                            <p>Scheduled: <span className="text-white">{formatScheduleTime(room.scheduledStartAt)}</span></p>
-                          )}
-                          {allowIndependent && (
-                            <p className="text-emerald-300">Independent agents allowed.</p>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center p-6 rounded-xl border border-dashed border-slate-700 bg-black/20">
-                  <div className="text-3xl mb-2">📡</div>
-                  {Object.keys(discoveredRooms).length > 0 && studentBatch ? (
-                    <>
-                      <p className="text-white font-semibold">No arenas for class {studentBatch} yet.</p>
-                      <p className="text-gray-400 text-sm">Ask your teacher to open a battle for your class.</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-white font-semibold">Scanning for signals...</p>
-                      <p className="text-gray-400 text-sm">Waiting for a teacher to open an arena.</p>
-                    </>
-                  )}
-                </div>
-              )}
-
-              <div className="pt-3 border-t border-slate-700 space-y-2">
-                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide">Join with Room Code</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={roomCodeInput}
-                    onChange={(e) => setRoomCodeInput(e.target.value)}
-                    placeholder="Enter 4-digit code"
-                    className="flex-1 rounded-xl border border-slate-700 bg-black/30 px-3 py-2 text-white"
-                  />
-                  <button
-                    onClick={() => handleJoinRoom(roomCodeInput.trim())}
-                    disabled={!roomCodeInput.trim()}
-                    className="px-4 py-2 font-heading font-bold rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400 disabled:bg-gray-600/30 disabled:border-gray-600 disabled:cursor-not-allowed text-white transition-colors text-sm"
-                  >
-                    Join
-                  </button>
-                </div>
+                <button
+                  onClick={handleJoinRoom}
+                  disabled={!allowClanlessEntry && missingClanAssignment}
+                  className="w-full font-heading font-bold py-3 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 disabled:bg-gray-600/30 disabled:border-gray-600 disabled:cursor-not-allowed text-white rounded-xl transition-colors mt-4"
+                >
+                  {allowClanlessEntry && missingClanAssignment ? "ENTER AS INDEPENDENT AGENT" : "ENTER ARENA"}
+                </button>
               </div>
             </div>
           )}
