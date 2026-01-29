@@ -411,6 +411,130 @@
       color: #fecaca;
     }
 
+  
+    /* === Anti-cheat, review, and modal enhancements === */
+    .timer-box.floating {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 60;
+      padding: 14px 18px;
+      border-radius: 16px;
+      border: 1px solid rgba(56, 189, 248, 0.55);
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 45px rgba(0,0,0,0.35), 0 0 0 1px rgba(56,189,248,0.2);
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      animation: floatPulse 3s ease-in-out infinite;
+    }
+    @keyframes floatPulse {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    .question-code { display: none; }
+    .review-mode .question-code { display: inline; }
+    .review-mode .question-card { border-color: rgba(56, 189, 248, 0.4); }
+    .review-answer {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.35);
+      color: #bbf7d0;
+      font-size: 13px;
+    }
+    .review-answer.incorrect {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: rgba(239, 68, 68, 0.35);
+      color: #fecaca;
+    }
+    .option.correct,
+    .option-label.correct,
+    td.correct {
+      border-color: rgba(34, 197, 94, 0.7) !important;
+      background: rgba(34, 197, 94, 0.12) !important;
+    }
+    .option.incorrect,
+    .option-label.incorrect,
+    td.incorrect {
+      border-color: rgba(239, 68, 68, 0.7) !important;
+      background: rgba(239, 68, 68, 0.12) !important;
+    }
+    .hidden { display: none !important; }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.72);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 80;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .modal-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-card {
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      border-radius: 18px;
+      padding: 20px 22px;
+      width: min(480px, 90vw);
+      box-shadow: 0 30px 70px rgba(0,0,0,0.45);
+    }
+    .modal-title { font-size: 18px; font-weight: 700; margin: 0 0 8px; }
+    .modal-body { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 18px;
+    }
+    .modal-btn {
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .modal-btn.primary {
+      background: linear-gradient(135deg, #38bdf8, #8b5cf6);
+      color: #fff;
+    }
+    .modal-btn.secondary {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.2);
+      color: var(--text-main);
+    }
+    .anti-cheat-toast {
+      position: fixed;
+      left: 50%;
+      bottom: 30px;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(245, 158, 11, 0.6);
+      padding: 12px 18px;
+      border-radius: 12px;
+      color: #fde68a;
+      font-size: 14px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      z-index: 90;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .anti-cheat-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-6px);
+    }
+
   </style>
 </head>
 <body>
@@ -433,8 +557,8 @@
       <img src="/logo.png" alt="Brains Heist" onerror="this.style.display='none';" />
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
-        <h1 style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch4 (States of matter)</h1>
-        <div style="color: var(--text-muted); font-size: 14px;">Chapter 4 • 61 multiple-choice questions</div>
+        <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch4 (States of matter)</h1>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 4 • 61 multiple-choice questions</div>
       </div>
     </div>
 
@@ -442,13 +566,14 @@
       <span class="badge">🧪 Category: Science</span>
       <span class="badge">🎯 Difficulty: Advanced</span>
       <span class="badge">📝 Format: Multiple Choice (A–D)</span>
-      <span class="badge">⏱️ Suggested time: 75 min</span>
+      <span class="badge" id="partBadge"></span>
+      <span class="badge" id="timeBadge"></span>
     </div>
 
     <div class="status">
-      ✅ Auto-marked: correct answers are loaded. Submit once to see your score and share it with your teacher.
+      ✅ Auto-marked: your score stays hidden until your teacher releases it.
     </div>
-    <div id="timer" class="timer-box">⏳ Time remaining: 75:00</div>
+    <div id="timer" class="timer-box floating">⏳ Time remaining: 00:00</div>
 
 
     <div class="student-info">
@@ -464,6 +589,19 @@
     </div>
     <div id="score" class="score-box" style="display:none;"></div>
   </div>
+
+
+  <div id="submitModal" class="modal-overlay">
+    <div class="modal-card">
+      <h3 class="modal-title">Submit AS Chemistry Test</h3>
+      <p class="modal-body" id="submitModalBody">You're about to submit your answers. Once submitted, you cannot retake this test. Your score will stay hidden until your teacher releases it.</p>
+      <div class="modal-actions">
+        <button class="modal-btn secondary" id="cancelSubmitBtn">Continue editing</button>
+        <button class="modal-btn primary" id="confirmSubmitBtn">Submit now</button>
+      </div>
+    </div>
+  </div>
+  <div id="antiCheatToast" class="anti-cheat-toast">⚠️ Tab switching detected. Please stay on this test.</div>
 
   <script>
     // Supabase helpers (fetch-based, no external SDK)
@@ -502,10 +640,59 @@
 
     const supabaseClient = createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const QUIZ_ID = 'as_chemistry_ch4_states_of_matter';
-    const QUIZ_NAME = 'AS Chemistry Ch4 (States of matter)';
+    function getQuizPart() {
+      const params = new URLSearchParams(window.location.search);
+      const part = params.get('part') === '2' ? 2 : 1;
+      return { part };
+    }
 
-    const QUESTIONS = [
+    function splitQuiz(questions, answerKey, part) {
+      const splitIndex = Math.ceil(questions.length / 2);
+      const slice = part === 1 ? questions.slice(0, splitIndex) : questions.slice(splitIndex);
+      const numbers = new Set(slice.map(q => q.number));
+      const filteredKey = {};
+      Object.entries(answerKey).forEach(([num, ans]) => {
+        if (numbers.has(Number(num))) {
+          filteredKey[num] = ans;
+        }
+      });
+      return { questions: slice, answerKey: filteredKey, splitIndex };
+    }
+
+    function formatDuration(seconds) {
+      const mins = Math.ceil(seconds / 60);
+      return `${mins} min`;
+    }
+
+    function updateQuizMeta(title, subtitle, part, totalQuestions, durationSeconds) {
+      const titleEl = document.getElementById('quizTitle');
+      const subtitleEl = document.getElementById('quizSubtitle');
+      const timeBadge = document.getElementById('timeBadge');
+      const partBadge = document.getElementById('partBadge');
+      if (titleEl) titleEl.textContent = `${title} — Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} • ${totalQuestions} questions`;
+      if (timeBadge) timeBadge.textContent = `⏱️ Suggested time: ${formatDuration(durationSeconds)}`;
+      if (partBadge) partBadge.textContent = `📌 Part ${part} of 2`;
+      document.title = `${title} — Part ${part}`;
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('antiCheatToast');
+      if (!toast) return;
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2600);
+    }
+
+
+    const QUIZ_BASE_ID = 'as_chemistry_ch4_states_of_matter';
+    const QUIZ_PART = getQuizPart();
+
+    const QUIZ_BASE_NAME = 'AS Chemistry Ch4 (States of matter)';
+    const QUIZ_ID = `${QUIZ_BASE_ID}_part${QUIZ_PART.part}`;
+    const QUIZ_NAME = `${QUIZ_BASE_NAME} (Part ${QUIZ_PART.part})`;
+
+    let QUESTIONS = [
       {
         number: 1,
         code: '9701_m21_qp_12 Q: 6',
@@ -1195,7 +1382,7 @@
       },
     ];
 
-    const ANSWER_KEY = {
+    let ANSWER_KEY = {
       1: 'D', 2: 'A', 3: 'A', 4: 'D', 5: 'A',
       6: 'B', 7: 'D', 8: 'A', 9: 'A', 10: 'C',
       11: 'B', 12: 'B', 13: 'D', 14: 'C', 15: 'D',
@@ -1209,11 +1396,16 @@
       59: 'D', 60: 'C', 61: 'D',
     };
 
+    const quizSplit = splitQuiz(QUESTIONS, ANSWER_KEY, QUIZ_PART.part);
+    QUESTIONS = quizSplit.questions;
+    ANSWER_KEY = quizSplit.answerKey;
+
     const totalQuestions = QUESTIONS.length;
     let hasSubmitted = false;
     let startTime = null;
 
-    const TEST_DURATION_SECONDS = 75 * 60;
+    const QUESTION_TIME_SECONDS = 2 * 60;
+    const TEST_DURATION_SECONDS = totalQuestions * QUESTION_TIME_SECONDS;
     let timerInterval = null;
 
     function formatTimer(seconds) {
@@ -1324,6 +1516,7 @@
         try {
           const card = document.createElement('div');
           card.className = 'question-card';
+        card.dataset.questionNumber = q.number;
 
           const meta = document.createElement('div');
           meta.className = 'question-meta';
@@ -1407,7 +1600,9 @@
       status.textContent = `You submitted this test on ${new Date(data.submittedAt).toLocaleString()}.`;
       const scoreDiv = document.getElementById('score');
       scoreDiv.style.display = 'block';
-      
+      lockQuestions();
+      stopTimer();
+
       // Check if score is released by teacher
       checkScoreReleaseStatus(data);
     }
@@ -1419,7 +1614,7 @@
       try {
         const { data, error } = await supabaseClient
           .from('quiz_scores')
-          .select('scores_released, score, total_questions, percentage')
+          .select('scores_released, score, total_questions, percentage, answers')
           .eq('quiz_name', QUIZ_NAME)
           .eq('student_name', studentName)
           .order('submitted_at', { ascending: false })
@@ -1435,6 +1630,8 @@
         if (data.scores_released) {
           scoreDiv.textContent = `✅ Score: ${data.score}/${data.total_questions} (${data.percentage}%)`;
           scoreDiv.className = 'score-box';
+          const responses = (data.answers && typeof data.answers === "string" ? JSON.parse(data.answers) : data.answers)?.responses || {};
+          applyReviewMode(responses);
         } else {
           scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
           scoreDiv.className = 'score-box pending';
@@ -1464,20 +1661,30 @@
       };
     }
 
-    async function handleSubmit() {
+    async function handleSubmit(options = {}) {
       if (hasSubmitted) return;
       const status = document.getElementById('status');
       const btn = document.getElementById('submitBtn');
-      const name = document.getElementById('studentName').value.trim();
-      const cls = document.getElementById('studentClass').value.trim();
+      let name = document.getElementById('studentName').value.trim();
+      let cls = document.getElementById('studentClass').value.trim();
 
+      const isForced = options.force === true;
+      const autoSubmitReason = options.reason || '';
       if (!name) {
-        status.textContent = '⚠️ Please enter your name.';
-        return;
+        if (isForced) {
+          name = 'Unknown Student';
+        } else {
+          status.textContent = '⚠️ Please enter your name.';
+          return;
+        }
       }
       if (!cls) {
-        status.textContent = '⚠️ Please enter your class.';
-        return;
+        if (isForced) {
+          cls = 'Unknown Class';
+        } else {
+          status.textContent = '⚠️ Please enter your class.';
+          return;
+        }
       }
 
       const responses = {};
@@ -1486,12 +1693,8 @@
         responses[i] = selected ? selected.value : '';
       }
 
-      const confirmSubmit = confirm(
-        'Submit answers now?\n\n• Your current selections will be saved.\n• Score will remain pending until the official answer key is added.'
-      );
-      if (!confirmSubmit) return;
-
       const timeTaken = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+      stopTimer();
       const result = calculateScore(responses);
 
       btn.disabled = true;
@@ -1508,7 +1711,7 @@
           responses,
           answer_key_ready: !result.pending,
           pending_answer_key: result.pending,
-          quiz_version: 'v1-61q'
+          quiz_version: `v1-${totalQuestions}q-part${QUIZ_PART.part}`
         },
         time_taken_seconds: timeTaken
       };
@@ -1532,10 +1735,11 @@
 
       document.querySelectorAll('input').forEach(i => i.disabled = true);
       btn.textContent = '✓ Submitted';
-      status.textContent = '✅ Submitted successfully! Your teacher will release your score soon.';
+      status.textContent = isForced ? `⚠️ Auto-submitted: ${autoSubmitReason}` : '✅ Submitted successfully! Your teacher will release your score soon.';
 
       const scoreDiv = document.getElementById('score');
       scoreDiv.style.display = 'block';
+      lockQuestions();
       scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
       scoreDiv.className = 'score-box pending';
 
@@ -1552,6 +1756,96 @@
       } catch (e) {
         console.log('Parent notification unavailable');
       }
+    }
+
+
+    function openSubmitModal() {
+      const modal = document.getElementById('submitModal');
+      if (!modal) return;
+      modal.classList.add('show');
+    }
+
+    function closeSubmitModal() {
+      const modal = document.getElementById('submitModal');
+      if (!modal) return;
+      modal.classList.remove('show');
+    }
+
+    function lockQuestions() {
+      const questionWrap = document.getElementById('questions');
+      if (questionWrap) {
+        questionWrap.classList.add('hidden');
+      }
+    }
+
+    function unlockQuestions() {
+      const questionWrap = document.getElementById('questions');
+      if (questionWrap) {
+        questionWrap.classList.remove('hidden');
+      }
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+
+    function applyReviewMode(responses) {
+      document.body.classList.add('review-mode');
+      unlockQuestions();
+      QUESTIONS.forEach((q) => {
+        const card = document.querySelector(`[data-question-number="${q.number}"]`);
+        if (!card) return;
+        const studentAnswer = responses?.[q.number] || '';
+        const correctAnswer = ANSWER_KEY[q.number] || '';
+        if (correctAnswer) {
+          const correctInput = card.querySelector(`input[value="${correctAnswer}"]`);
+          if (correctInput) {
+            const wrap = correctInput.closest('label') || correctInput.closest('td') || correctInput.parentElement;
+            if (wrap) wrap.classList.add('correct');
+          }
+        }
+        if (studentAnswer && studentAnswer !== correctAnswer) {
+          const studentInput = card.querySelector(`input[value="${studentAnswer}"]`);
+          if (studentInput) {
+            const wrap = studentInput.closest('label') || studentInput.closest('td') || studentInput.parentElement;
+            if (wrap) wrap.classList.add('incorrect');
+          }
+        }
+        const review = document.createElement('div');
+        review.className = 'review-answer';
+        if (studentAnswer && studentAnswer === correctAnswer) {
+          review.textContent = `✅ Correct: ${correctAnswer}`;
+        } else {
+          review.classList.add('incorrect');
+          review.textContent = `❌ Your answer: ${studentAnswer || '—'} | ✅ Correct: ${correctAnswer}`;
+        }
+        card.appendChild(review);
+      });
+    }
+
+    function setupAntiCheat() {
+      let tabSwitches = 0;
+      document.addEventListener('copy', (e) => {
+        e.preventDefault();
+        showToast('Copying is disabled during this test.');
+      });
+      document.addEventListener('cut', (e) => {
+        e.preventDefault();
+        showToast('Cutting text is disabled during this test.');
+      });
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden && !hasSubmitted) {
+          tabSwitches += 1;
+          if (tabSwitches === 1) {
+            showToast('⚠️ Tab switch detected. Please stay on this test.');
+          } else {
+            handleSubmit({ force: true, reason: 'Second tab switch detected. Auto-submit applied.' });
+          }
+        }
+      });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -1580,13 +1874,20 @@
         if (e.key === 'Enter') handleUnlock();
       });
 
+      const confirmBtn = document.getElementById('confirmSubmitBtn');
+      const cancelBtn = document.getElementById('cancelSubmitBtn');
+      if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
+      if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
+
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('•')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
+      setupAntiCheat();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
       if (overlay.classList.contains('hidden')) {
         startTimer();
       }
-      document.getElementById('submitBtn').addEventListener('click', handleSubmit);
+      document.getElementById('submitBtn').addEventListener('click', openSubmitModal);
     });
   </script>
 </body>
