@@ -558,23 +558,50 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     "Speaker Matching": {
       title: "Identify Speakers",
       tips: ["Listen for different voices", "Focus on main ideas per speaker", "Match opinions to statements"]
+    },
+    "Overall Performance": {
+      title: "Improve Your Chemistry Knowledge",
+      tips: ["Review the questions you got wrong", "Study the relevant chapter in your textbook", "Practice more past paper questions", "Ask your teacher for help with difficult concepts"]
     }
   };
 
   // Analyze skill performance
   const analyzeSkillPerformance = (result: any) => {
-    const quizName = result.quiz_name;
-    const answers = result.answers || {};
-    const correct = correctAnswers[quizName] || {};
+    const quizName = result.quiz_name || '';
+    const rawAnswers = result.answers || {};
     const categories = skillCategories[quizName] || {};
+    const correctAnswersForQuiz = correctAnswers[quizName] || {};
+    
+    // Check if this is a Chemistry test (no predefined skill categories)
+    const isChemistryTest = quizName.toLowerCase().includes('chemistry');
+    
+    // For Chemistry tests, create a simple overall performance entry
+    if (isChemistryTest || Object.keys(categories).length === 0) {
+      // Parse the answers structure - Chemistry tests store responses inside answers.responses
+      const responses = rawAnswers.responses || rawAnswers || {};
+      const totalQuestions = result.total_questions || Object.keys(responses).length || 1;
+      const actualScore = result.score || 0;
+      const percentage = result.percentage || Math.round((actualScore / totalQuestions) * 100);
+      
+      // Create a single "Overall Performance" entry for Chemistry tests
+      return {
+        "Overall Performance": {
+          correct: actualScore,
+          total: totalQuestions,
+          percentage: percentage,
+          icon: "🧪"
+        }
+      };
+    }
 
+    // For English tests with defined skill categories
     const skillPerformance: Record<string, { correct: number; total: number; percentage: number; icon: string }> = {};
     
     Object.entries(categories).forEach(([skill, data]) => {
       let correctCount = 0;
       data.questions.forEach(q => {
-        const studentAns = (answers[q] || '').toString().trim().toLowerCase();
-        const correctAns = (correct[q] || '').toString().toLowerCase();
+        const studentAns = (rawAnswers[q] || '').toString().trim().toLowerCase();
+        const correctAns = (correctAnswersForQuiz[q] || '').toString().toLowerCase();
         if (studentAns === correctAns) correctCount++;
       });
       skillPerformance[skill] = {
@@ -2196,7 +2223,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                                   🗑️ Delete
                                 </button>
                                 {/* Show Release Score button for Chemistry tests */}
-                                {score.quiz_name && score.quiz_name.toLowerCase().includes('chemistry') && !score.score_released && (
+                                {score.quiz_name && score.quiz_name.toLowerCase().includes('chemistry') && !score.scores_released && (
                                   <button
                                     onClick={async () => {
                                       try {
@@ -2216,7 +2243,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                                     🔓 Release Score
                                   </button>
                                 )}
-                                {score.score_released && score.quiz_name && score.quiz_name.toLowerCase().includes('chemistry') && (
+                                {score.scores_released && score.quiz_name && score.quiz_name.toLowerCase().includes('chemistry') && (
                                   <span className="text-xs text-green-400 px-2 py-1">✓ Released</span>
                                 )}
                               </div>
@@ -2475,29 +2502,48 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
       {/* Answer Reflection Modal */}
       {showAnswerReflection && reportStudent && (() => {
-        const answers = reportStudent.answers || {};
-        const quizName = reportStudent.quiz_name;
-        const correct = correctAnswers[quizName] || {};
+        const rawAnswers = reportStudent.answers || {};
+        const quizName = reportStudent.quiz_name || '';
+        const isChemistryTest = quizName.toLowerCase().includes('chemistry');
+        
+        // For Chemistry tests, extract responses from answers.responses
+        const studentResponses = isChemistryTest 
+          ? (rawAnswers.responses || rawAnswers || {})
+          : rawAnswers;
+        
+        // Get correct answers - for Chemistry, they're NOT in the frontend
+        const correctAnswersForQuiz = correctAnswers[quizName] || {};
         const sections = testSections[quizName] || [];
         
-        let correctCount = 0, wrongCount = 0, unansweredCount = 0;
+        let correctCount = reportStudent.score || 0;
+        let wrongCount = 0;
+        let unansweredCount = 0;
         const mistakes: Array<{ q: number; studentAns: string; correctAns: string; unanswered: boolean }> = [];
         
-        Object.keys(correct).forEach(qStr => {
-          const q = parseInt(qStr);
-          const studentAns = (answers[q] || '').toString().trim();
-          const correctAns = correct[q] || '';
-          
-          if (!studentAns) {
-            unansweredCount++;
-            mistakes.push({ q, studentAns: '(No answer)', correctAns, unanswered: true });
-          } else if (studentAns.toLowerCase() === correctAns.toLowerCase()) {
-            correctCount++;
-          } else {
-            wrongCount++;
-            mistakes.push({ q, studentAns, correctAns, unanswered: false });
-          }
-        });
+        // For non-Chemistry tests with defined correct answers
+        if (Object.keys(correctAnswersForQuiz).length > 0) {
+          correctCount = 0;
+          Object.keys(correctAnswersForQuiz).forEach(qStr => {
+            const q = parseInt(qStr);
+            const studentAns = (studentResponses[q] || '').toString().trim();
+            const correctAns = correctAnswersForQuiz[q] || '';
+            
+            if (!studentAns) {
+              unansweredCount++;
+              mistakes.push({ q, studentAns: '(No answer)', correctAns, unanswered: true });
+            } else if (studentAns.toLowerCase() === correctAns.toLowerCase()) {
+              correctCount++;
+            } else {
+              wrongCount++;
+              mistakes.push({ q, studentAns, correctAns, unanswered: false });
+            }
+          });
+        } else {
+          // For Chemistry tests, use the stored score
+          const totalQ = reportStudent.total_questions || 0;
+          wrongCount = totalQ - correctCount;
+          // We don't have detailed answer breakdown for Chemistry in frontend
+        }
         
         return (
           <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/90 p-4 overflow-y-auto no-print">
@@ -2552,7 +2598,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                 </div>
 
                 {/* Sections with Answers */}
-                {sections.map(section => {
+                {sections.length > 0 ? sections.map(section => {
                   let sectionCorrect = 0;
                   return (
                     <div key={section.name}>
@@ -2560,8 +2606,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                         <span className="font-semibold text-gray-800">{section.icon} {section.name}</span>
                         <span className="text-blue-600 text-sm">
                           {section.questions.filter(q => {
-                            const studentAns = (answers[q] || '').toString().trim().toLowerCase();
-                            const correctAns = (correct[q] || '').toLowerCase();
+                            const studentAns = (studentResponses[q] || '').toString().trim().toLowerCase();
+                            const correctAns = (correctAnswersForQuiz[q] || '').toLowerCase();
                             const isCorrect = studentAns === correctAns;
                             if (isCorrect) sectionCorrect++;
                             return isCorrect;
@@ -2570,8 +2616,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-4">
                         {section.questions.map(q => {
-                          const studentAns = (answers[q] || '').toString().trim();
-                          const correctAns = correct[q] || '';
+                          const studentAns = (studentResponses[q] || '').toString().trim();
+                          const correctAns = correctAnswersForQuiz[q] || '';
                           const isCorrect = studentAns.toLowerCase() === correctAns.toLowerCase();
                           const isUnanswered = !studentAns;
                           
@@ -2589,7 +2635,19 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                       </div>
                     </div>
                   );
-                })}
+                }) : (
+                  /* For Chemistry tests without predefined sections, show a simple summary */
+                  <div className="bg-blue-50 border-2 border-blue-400 rounded-xl p-5">
+                    <h3 className="text-lg font-semibold text-blue-700 mb-4">🧪 Chemistry Test Results</h3>
+                    <p className="text-gray-700 mb-3">
+                      Score: <strong>{reportStudent.score}</strong> out of <strong>{reportStudent.total_questions}</strong> ({reportStudent.percentage}%)
+                    </p>
+                    <p className="text-gray-600 text-sm">
+                      For detailed answer review with correct answers, please check the test page directly. 
+                      The student can view their answers when you release the score.
+                    </p>
+                  </div>
+                )}
 
                 {/* Key Mistakes Section */}
                 {mistakes.length > 0 && (
