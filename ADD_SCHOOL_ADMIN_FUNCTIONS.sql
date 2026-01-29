@@ -6,23 +6,13 @@
 -- 2. Assign/remove school admin role (admin_set_school_admin)
 -- ============================================
 
--- Helper function to check if user is superadmin
-CREATE OR REPLACE FUNCTION is_superadmin(p_user_id UUID)
-RETURNS BOOLEAN
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-BEGIN
-    RETURN EXISTS (
-        SELECT 1 FROM users 
-        WHERE id = p_user_id 
-        AND role = 'admin'
-    );
-END;
-$$;
+-- Drop ALL existing versions of admin_set_school_admin to avoid ambiguity
+DROP FUNCTION IF EXISTS admin_list_schools();
+DROP FUNCTION IF EXISTS admin_set_school_admin(UUID, UUID);
+DROP FUNCTION IF EXISTS admin_set_school_admin(UUID, UUID, BOOLEAN);
 
-GRANT EXECUTE ON FUNCTION is_superadmin(UUID) TO authenticated;
+-- NOTE: is_superadmin(UUID) already exists in your database with dependent policies.
+-- We will use the existing function instead of recreating it.
 
 -- ============================================
 -- Function: admin_list_schools

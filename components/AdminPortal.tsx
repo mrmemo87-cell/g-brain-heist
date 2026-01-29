@@ -319,7 +319,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     [addToast]
   );
 
-  const handleSetSchoolAdmin = async (schoolId: string, userId: string) => {
+  const handleSetSchoolAdmin = async (schoolId: string, userId: string, makeAdmin: boolean = true) => {
     if (!schoolId) {
       addToast('Select a school before assigning an admin.', 'error');
       return;
@@ -327,19 +327,22 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
     setSchoolAdminActionLoading(userId);
     try {
-      // Try RPC first
+      // Try RPC first - always pass p_is_admin to avoid ambiguity
       const { data, error } = await supabase.rpc('admin_set_school_admin', {
         p_school_id: schoolId,
         p_user_id: userId,
+        p_is_admin: makeAdmin,
       });
 
       if (error) {
         console.warn('admin_set_school_admin RPC failed, trying fallback:', error.message);
         
+        const newRole = makeAdmin ? 'school_admin' : 'student';
+        
         // Fallback: Try updating school_members table directly
         const { error: smError } = await supabase
           .from('school_members')
-          .update({ role_in_school: 'school_admin' })
+          .update({ role_in_school: newRole })
           .eq('school_id', schoolId)
           .eq('user_id', userId);
         
@@ -347,7 +350,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
           // Fallback 2: Try updating users table directly
           const { error: usersError } = await supabase
             .from('users')
-            .update({ role: 'school_admin' })
+            .update({ role: newRole })
             .eq('id', userId)
             .eq('school_id', schoolId);
           
@@ -357,10 +360,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         }
       }
 
-      addToast('School admin updated.', 'success');
+      addToast(makeAdmin ? 'School admin assigned.' : 'School admin removed.', 'success');
       await loadSchoolMembers(schoolId);
     } catch (error) {
-      console.error('Failed to set school admin:', error);
+      console.error('Failed to update school admin:', error);
       addToast('Failed to update school admin.', 'error');
     } finally {
       setSchoolAdminActionLoading(null);
@@ -1808,20 +1811,22 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                             </div>
                             <button
                               type="button"
-                              onClick={() => handleSetSchoolAdmin(schoolAdminSchoolId, member.user_id)}
-                              disabled={isAdmin || schoolAdminActionLoading === member.user_id}
+                              onClick={() => handleSetSchoolAdmin(schoolAdminSchoolId, member.user_id, !isAdmin)}
+                              disabled={schoolAdminActionLoading === member.user_id}
                               className={`rounded-lg border px-4 py-2 text-sm font-semibold transition-all ${
                                 isAdmin
-                                  ? 'border-indigo-300/40 bg-indigo-500/20 text-indigo-200 cursor-not-allowed'
+                                  ? schoolAdminActionLoading === member.user_id
+                                    ? 'border-red-400/50 bg-red-500/30 text-red-100 cursor-wait'
+                                    : 'border-red-400/50 bg-red-500/20 text-red-100 hover:bg-red-500/40 hover:border-red-400'
                                   : schoolAdminActionLoading === member.user_id
                                     ? 'border-indigo-400/50 bg-indigo-500/30 text-indigo-100 cursor-wait'
                                     : 'border-indigo-400/50 bg-indigo-500/20 text-indigo-100 hover:bg-indigo-500/40 hover:border-indigo-400'
                               }`}
                             >
                               {schoolAdminActionLoading === member.user_id ? (
-                                <>⏳ Setting...</>
+                                <>⏳ Updating...</>
                               ) : isAdmin ? (
-                                <>✓ Current Admin</>
+                                <>❌ Remove Admin</>
                               ) : (
                                 <>👑 Make School Admin</>
                               )}
