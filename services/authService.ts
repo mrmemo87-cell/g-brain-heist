@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
 import { createTeacherProfile } from './rpcGateway';
-import { getAuthRedirectUrl } from './env';
+import { getAuthRedirectUrl, getEnvVar } from './env';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage';
 import type { Batch, Grade } from '../types';
 
@@ -306,7 +306,10 @@ export const createOAuthProfile = async (): Promise<void> => {
 export const sendPasswordResetEmail = async (email: string): Promise<void> => {
     console.log(`Sending password reset email to ${email}`);
     
-    const redirectTo = getAuthRedirectUrl();
+    // Use production URL or current origin for password reset
+    const siteUrl = getEnvVar('VITE_SITE_URL') || 
+                    (typeof window !== 'undefined' ? window.location.origin : 'https://www.brainsheist.com');
+    const redirectTo = `${siteUrl}/auth/reset`;
     
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo,
@@ -317,7 +320,7 @@ export const sendPasswordResetEmail = async (email: string): Promise<void> => {
         throw new Error(error.message);
     }
     
-    console.log('Password reset email sent successfully');
+    console.log('Password reset email sent successfully to redirect:', redirectTo);
 };
 
 // Update password (after clicking reset link)
