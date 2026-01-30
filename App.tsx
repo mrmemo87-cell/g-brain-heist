@@ -15,6 +15,8 @@ import LevelUpModal from './components/LevelUpModal';
 import TutorialModal from './components/TutorialModal';
 import HelpModal from './components/HelpModal';
 import { ToastContainer } from './components/ToastNotification';
+import { isSuperadmin } from './services/adminService';
+import { isSchoolAdmin } from './services/schoolAdminService';
 import { audioService } from './services/audioService';
 import { aiHostService } from './services/aiHostService';
 import { fetchNextAnnouncement, markAnnouncementSeen } from './services/competitionService';
@@ -134,10 +136,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [isUserSchoolAdmin, setIsUserSchoolAdmin] = useState(false);
   const [sessionMissing, setSessionMissing] = useState(false);
   const [isInteractive, setIsInteractive] = useState(false);
-  const [optionalHydrationWarning, setOptionalHydrationWarning] = useState<{
-    message: string;
-    errorCount: number;
-  } | null>(null);
   const [nonCriticalStatus, setNonCriticalStatus] = useState({
     tasks: 'idle' as NonCriticalLoadState,
     caps: 'idle' as NonCriticalLoadState,
@@ -153,20 +151,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     sessionStatus: null,
   });
   const bootStartRef = useRef<number>(performance.now());
-  const bootTimingsRef = useRef<{ firstRender?: number; mandatory?: number; optional?: number; nonCritical?: number }>({});
+  const bootTimingsRef = useRef<{ firstRender?: number; whoami?: number; nonCritical?: number }>({});
   const criticalAbortRef = useRef<AbortController | null>(null);
   const nonCriticalAbortRef = useRef<AbortController | null>(null);
-  const optionalHydrationRef = useRef<{
-    runId: number;
-    controller: AbortController | null;
-    profileId: string | null;
-    inFlight: boolean;
-  }>({
-    runId: 0,
-    controller: null,
-    profileId: null,
-    inFlight: false,
-  });
   const isCambridgeView = view === 'cambridge';
   const isIeltsOnlyUser =
     profile?.school_name?.trim().toLowerCase() === IELTS_ONLY_SCHOOL_NAME.toLowerCase();
@@ -512,19 +499,26 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     const criticalController = new AbortController();
     criticalAbortRef.current = criticalController;
     nonCriticalAbortRef.current?.abort();
-    optionalHydrationRef.current.controller?.abort();
-    optionalHydrationRef.current.inFlight = false;
-    optionalHydrationRef.current.profileId = null;
     setCriticalLoading(true);
     setLoadError(null);
     setSessionMissing(false);
     setIsInteractive(false);
     setAppMode('pending');
     setIsAdminMode(false);
-    setOptionalHydrationWarning(null);
 
     try {
-      const { session, profile: profileData, roleFlags } = await GameService.getCriticalBootData({
+      const { data, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        throw sessionError;
+      }
+
+      if (!data.session) {
+        setSessionMissing(true);
+        return;
+      }
+
+      const { session, profile: profileData } = await GameService.getCriticalBootData({
         signal: criticalController.signal,
         timeoutMs: 12000,
         retryOnTimeout: 1,
@@ -540,11 +534,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       }
 
       setProfile(profileData);
-      setIsUserSchoolAdmin(roleFlags.isSchoolAdmin);
 
-      const mandatoryMs = performance.now() - bootStartRef.current;
-      bootTimingsRef.current.mandatory = mandatoryMs;
-      logBootTiming('time to mandatory boot resolved', mandatoryMs);
+      const whoamiMs = performance.now() - bootStartRef.current;
+      bootTimingsRef.current.whoami = whoamiMs;
+      logBootTiming('time to whoami resolved', whoamiMs);
 
       // Show tutorial if first time user (only check once on initial load)
       if (!tutorialCheckedRef.current && profileData && !profileData.tutorial_completed) {
@@ -554,7 +547,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         setTutorialChecked(true);
       }
 
-      if (roleFlags.isSuperadmin) {
+      let isVerifiedAdmin = false;
+      try {
+        isVerifiedAdmin = await isSuperadmin();
+      } catch (adminError) {
+        console.warn('Failed to check superadmin status, continuing player boot.', adminError);
+      }
+
+      if (isVerifiedAdmin) {
         console.info('[admin] Superadmin detected, entering admin mode');
         setIsAdminMode(true);
         setAppMode('admin');
@@ -654,73 +654,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         bootTimingsRef.current.nonCritical = nonCriticalMs;
         logBootTiming('time to non-critical resolved', nonCriticalMs);
       });
+
+      void isSchoolAdmin().then(setIsUserSchoolAdmin).catch(() => setIsUserSchoolAdmin(false));
     });
   }, [profile, scheduleAfterPaint, logBootTiming]);
-
-  const startOptionalHydration = useCallback(
-    (currentProfile: Profile) => {
-      const hydrationState = optionalHydrationRef.current;
-      if (hydrationState.inFlight && hydrationState.profileId === currentProfile.id) {
-        return;
-      }
-
-      hydrationState.controller?.abort();
-      hydrationState.inFlight = true;
-      hydrationState.profileId = currentProfile.id;
-      hydrationState.runId += 1;
-      const runId = hydrationState.runId;
-      const controller = new AbortController();
-      hydrationState.controller = controller;
-      setOptionalHydrationWarning(null);
-
-      const hydrationStart = performance.now();
-      scheduleAfterPaint(() => {
-        GameService.hydrateOptionalProfile({
-          profile: currentProfile,
-          signal: controller.signal,
-          concurrency: 3,
-        })
-          .then((result) => {
-            if (controller.signal.aborted || optionalHydrationRef.current.runId !== runId) {
-              return;
-            }
-            optionalHydrationRef.current.inFlight = false;
-            setProfile((prev) => {
-              if (!prev || prev.id !== result.profile.id) return prev;
-              return { ...prev, ...result.profile };
-            });
-            if (result.errors.length) {
-              setOptionalHydrationWarning({
-                message: 'Some data may be stale. We are refreshing in the background.',
-                errorCount: result.errors.length,
-              });
-            } else {
-              setOptionalHydrationWarning(null);
-            }
-
-            if (import.meta.env.DEV) {
-              const optionalMs = performance.now() - hydrationStart;
-              bootTimingsRef.current.optional = optionalMs;
-              logBootTiming('time to optional hydration resolved', optionalMs);
-              console.info(`[Boot diagnostics] optional tasks launched: ${result.tasksLaunched}`);
-              console.info('[Boot diagnostics] optional hydration failures by status:', result.failureCounts);
-            }
-          })
-          .catch((error) => {
-            if (controller.signal.aborted || optionalHydrationRef.current.runId !== runId) {
-              return;
-            }
-            optionalHydrationRef.current.inFlight = false;
-            console.warn('Optional hydration failed:', error);
-            setOptionalHydrationWarning({
-              message: 'Some data may be stale. We are refreshing in the background.',
-              errorCount: 1,
-            });
-          });
-      });
-    },
-    [scheduleAfterPaint, logBootTiming]
-  );
 
   const retryNonCritical = useCallback(
     (target: NonCriticalKey) => {
@@ -745,15 +682,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, [profile?.id, isInteractive, runNonCriticalLoads, isPlayerMode]);
 
   useEffect(() => {
-    if (!isPlayerMode || !profile || !isInteractive) return;
-    startOptionalHydration(profile);
-  }, [profile?.id, isInteractive, isPlayerMode, startOptionalHydration]);
-
-  useEffect(() => {
     return () => {
       criticalAbortRef.current?.abort();
       nonCriticalAbortRef.current?.abort();
-      optionalHydrationRef.current.controller?.abort();
     };
   }, []);
 
@@ -1760,26 +1691,19 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       <div className="relative z-10">
         {!isCambridgeView && isPlayerMode && (
           profile ? (
-            <>
-              <Header
-                profile={profile}
-                isAdminMode={isAdminMode}
-                onLogout={onLogout}
-                currentView={view}
-                onBackToDashboard={() => handleViewChange('dashboard')}
-                onShowHelp={() => setShowHelp(true)}
-                onNavigate={(targetView) => handleViewChange(targetView)}
-                liteMode={isLiteMode}
-                onToggleLiteMode={toggleLightMode}
-                onProfileAvatarChange={(avatarUrl) => setProfile((p) => p ? { ...p, avatar_url: avatarUrl } : p)}
-                onProfileRefresh={refreshProfile}
-              />
-              {optionalHydrationWarning && (
-                <div className="mt-3 rounded-lg border border-amber-400/50 bg-amber-500/10 px-4 py-2 text-xs text-amber-200">
-                  ⚠️ {optionalHydrationWarning.message}
-                </div>
-              )}
-            </>
+            <Header
+              profile={profile}
+              isAdminMode={isAdminMode}
+              onLogout={onLogout}
+              currentView={view}
+              onBackToDashboard={() => handleViewChange('dashboard')}
+              onShowHelp={() => setShowHelp(true)}
+              onNavigate={(targetView) => handleViewChange(targetView)}
+              liteMode={isLiteMode}
+              onToggleLiteMode={toggleLightMode}
+              onProfileAvatarChange={(avatarUrl) => setProfile((p) => p ? { ...p, avatar_url: avatarUrl } : p)}
+              onProfileRefresh={refreshProfile}
+            />
           ) : (
             <HeaderShell />
           )
