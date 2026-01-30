@@ -123,14 +123,14 @@ const QuestPlayButton: React.FC<QuestPlayButtonProps> = ({
       <div className="quest-play-button__copy">
         <span className="quest-play-button__text">PLAY</span>
         <span className="quest-play-button__status">
-          {hasPendingAssignment ? 'Complete your assignment first' : 'Launch a new quest'}
+          {hasPendingAssignment ? 'Assignments pending — choose now or play quests' : 'Launch a new quest'}
         </span>
       </div>
       <span className="quest-play-button__arrow" aria-hidden>
         ▶
       </span>
       {hasPendingAssignment && (
-        <span className="quest-play-button__warning">Assignment Required</span>
+        <span className="quest-play-button__warning">Assignments Pending</span>
       )}
     </button>
   );

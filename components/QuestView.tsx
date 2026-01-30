@@ -179,6 +179,8 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [particles, setParticles] = useState<Omit<RewardParticleProps, 'onComplete'>[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeAssignment, setActiveAssignment] = useState<StudentAssignmentTask | null>(null);
+  const [pendingAssignments, setPendingAssignments] = useState<StudentAssignmentTask[]>([]);
+  const [preferredAssignmentId, setPreferredAssignmentId] = useState<string | null>(initialAssignment?.assignment_id ?? null);
   const [isAssignmentLate, setIsAssignmentLate] = useState(false);
   const [lastCompletedAssignment, setLastCompletedAssignment] = useState<StudentAssignmentTask | null>(null);
   const [assignmentStartTime, setAssignmentStartTime] = useState<number | null>(null);
@@ -527,16 +529,16 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     setAssignmentStartTime(null);
   };
 
-  const hydrateAssignment = async (options: { showLoading?: boolean } = {}) => {
+  const hydrateAssignment = async (options: { showLoading?: boolean; preferredId?: string | null } = {}) => {
     const { showLoading = false } = options;
     if (showLoading) {
       setStage('loading');
     }
     try {
       console.log('[QuestView] Checking for active assignment...');
-      
+
       // Add timeout to prevent infinite loading
-      const assignmentPromise = GameService.get_student_active_assignment();
+      const assignmentPromise = GameService.get_student_pending_assignments();
       const timeoutPromise = new Promise<null>((resolve) => 
         setTimeout(() => {
           console.warn('[QuestView] Assignment fetch timed out after 15s');
@@ -545,16 +547,24 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       );
       
       const assignment = await Promise.race([assignmentPromise, timeoutPromise]);
-      console.log('[QuestView] Active assignment result:', assignment ? { 
-        id: assignment.assignment_id, 
-        title: assignment.title,
-        questions: assignment.questions?.length || 0 
+      const assignments = Array.isArray(assignment) ? assignment : assignment ? [assignment] : [];
+      setPendingAssignments(assignments);
+      const preferredId = options.preferredId ?? preferredAssignmentId ?? initialAssignment?.assignment_id ?? null;
+      const selectedAssignment = preferredId
+        ? assignments.find((item) => item.assignment_id === preferredId) ?? assignments[0]
+        : assignments[0];
+
+      console.log('[QuestView] Active assignment result:', selectedAssignment ? {
+        id: selectedAssignment.assignment_id,
+        title: selectedAssignment.title,
+        questions: selectedAssignment.questions?.length || 0
       } : 'null');
-      
-      if (assignment) {
+
+      if (selectedAssignment) {
+        setPreferredAssignmentId(selectedAssignment.assignment_id);
         applyAssignmentState({
-          ...assignment,
-          questions: (assignment.questions || []).map(normalizeAssignmentQuestion),
+          ...selectedAssignment,
+          questions: (selectedAssignment.questions || []).map(normalizeAssignmentQuestion),
         });
         await refreshAssignment?.();
       } else {
@@ -573,6 +583,37 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       // Ensure we exit loading state on error
       await loadSubjects();
     }
+  };
+
+  const handleSelectAssignment = (assignment: StudentAssignmentTask) => {
+    setPreferredAssignmentId(assignment.assignment_id);
+    applyAssignmentState({
+      ...assignment,
+      questions: (assignment.questions || []).map(normalizeAssignmentQuestion),
+    });
+  };
+
+  const handleDeferAssignment = async () => {
+    setMode('practice');
+    setSelectedSubject(null);
+    setSelectedTopic(null);
+    setSelectedDifficulty(null);
+    setQuestions([]);
+    setTeacherQuestions([]);
+    setCurrentQuestionIndex(0);
+    setSelectedOption(null);
+    setAnswerResponse(null);
+    setQuestionScores([]);
+    setQuestionPerformances([]);
+    setSoloStreak(0);
+    setMissionSummary(null);
+    setTopicSummary(null);
+    setQuestionStartTime(null);
+    setNextAction(null);
+    setNextActionLabel('');
+    setFreeformAnswer('');
+    await loadSubjects();
+    setStage('subject_selection');
   };
 
   const handleSubjectSelect = async (subject: SubjectData) => {
@@ -724,13 +765,11 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   }, [stage, currentQuestionIndex, mode, questions, teacherQuestions]);
 
   useEffect(() => {
-    if (initialAssignment) {
-      applyAssignmentState(initialAssignment);
-      // Ensure we have the freshest data in case the parent state is stale
-      hydrateAssignment();
-    } else {
-      hydrateAssignment({ showLoading: true });
+    const preferredId = initialAssignment?.assignment_id ?? null;
+    if (preferredId) {
+      setPreferredAssignmentId(preferredId);
     }
+    hydrateAssignment({ showLoading: true, preferredId });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialAssignment?.assignment_id]);
 
@@ -1298,7 +1337,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           
           <div className="bg-slate-900/60 rounded-xl p-4 border border-purple-500/30 mb-4">
             <p className="text-gray-200 leading-relaxed">
-              <span className="text-amber-400 font-semibold">⚠️ Practice mode is paused</span> until this assignment is completed.
+              <span className="text-amber-400 font-semibold">Assignments are ready.</span> You can complete one now or jump into quests and return later.
             </p>
           </div>
           
@@ -1309,6 +1348,46 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             </div>
           )}
         </div>
+
+        {pendingAssignments.length > 1 && (
+          <div className="card-glass p-5 mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-heading text-lg text-cyan-200">Choose your next assignment</h3>
+              <span className="text-xs uppercase tracking-wide text-slate-400">{pendingAssignments.length} pending</span>
+            </div>
+            <div className="space-y-3">
+              {pendingAssignments.map((assignment) => {
+                const isSelected = assignment.assignment_id === activeAssignment.assignment_id;
+                return (
+                  <button
+                    key={assignment.assignment_id}
+                    type="button"
+                    onClick={() => handleSelectAssignment(assignment)}
+                    className={`w-full rounded-xl border px-4 py-3 text-left transition ${
+                      isSelected
+                        ? 'border-cyan-400/70 bg-cyan-500/10 shadow-[0_0_18px_rgba(34,211,238,0.15)]'
+                        : 'border-slate-700/60 bg-slate-900/40 hover:border-cyan-500/50'
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-white">
+                          {assignment.title || assignment.subject_name}
+                          {isSelected && <span className="ml-2 text-xs text-cyan-300">(Selected)</span>}
+                        </p>
+                        <p className="text-xs text-slate-400">{assignment.subject_name} · {assignment.topic_name}</p>
+                      </div>
+                      <div className="text-xs text-slate-300 text-right">
+                        <p>{assignment.questions?.length || 0} questions</p>
+                        <p>Due {assignment.due_at ? new Date(assignment.due_at).toLocaleDateString() : 'anytime'}</p>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Assignment Details Card */}
         <div className="card-glass p-6">
@@ -1343,16 +1422,24 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             </div>
           )}
           
-          <button
-            onClick={handleAssignmentBegin}
-            className={`w-full px-6 py-4 rounded-xl text-white font-heading text-lg hover:scale-[1.02] transition-all shadow-lg ${
-              isLate 
-                ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400' 
-                : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400'
-            }`}
-          >
-            {isLate ? '⏰ Complete Late Assignment' : '▶️ Start Assignment'}
-          </button>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <button
+              onClick={handleAssignmentBegin}
+              className={`w-full px-6 py-4 rounded-xl text-white font-heading text-lg hover:scale-[1.02] transition-all shadow-lg ${
+                isLate
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400'
+                  : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400'
+              }`}
+            >
+              {isLate ? '⏰ Complete Late Assignment' : '▶️ Start Assignment'}
+            </button>
+            <button
+              onClick={handleDeferAssignment}
+              className="w-full px-6 py-4 rounded-xl border border-cyan-400/40 bg-cyan-500/10 text-cyan-100 font-heading text-lg transition-all hover:border-cyan-300/70 hover:bg-cyan-500/20"
+            >
+              🧭 Play quests for now
+            </button>
+          </div>
         </div>
       </div>
     );

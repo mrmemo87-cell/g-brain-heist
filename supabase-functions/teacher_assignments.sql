@@ -511,6 +511,93 @@ END;
 $$;
 
 -- ============================================================
+-- RPC: Pending assignments for student
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION rpc_get_student_pending_assignments()
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_student_id uuid := auth.uid();
+BEGIN
+  IF v_student_id IS NULL THEN
+    RAISE EXCEPTION 'NOT_AUTHENTICATED';
+  END IF;
+
+  RETURN (
+    SELECT COALESCE(jsonb_agg(payload ORDER BY assigned_at), '[]'::jsonb)
+    FROM (
+      SELECT
+        jsonb_build_object(
+          'assignment_id', a.id,
+          'subject_id', a.subject_id,
+          'subject_name', a.subject_name,
+          'topic_name', a.topic_name,
+          'batch', a.batch,
+          'teacher_username', u.username,
+          'assigned_at', a.assigned_at,
+          'due_at', a.due_at,
+          'title', a.title,
+          'instructions', a.instructions,
+          'questions', (
+            SELECT COALESCE(
+              jsonb_agg(
+                jsonb_build_object(
+                  'id', q.id,
+                  'teacher_id', q.teacher_id,
+                  'subject', q.subject,
+                  'subject_id', q.subject_id,
+                  'topic', q.topic,
+                  'topic_name', q.topic_name,
+                  'difficulty', q.difficulty,
+                  'question_text', q.question_text,
+                  'image_url', q.image_url,
+                  'question_type', q.question_type,
+                  'options', q.options,
+                  'correct_answer', q.correct_answer,
+                  'explanation', q.explanation,
+                  'hints', q.hints,
+                  'time_limit', q.time_limit,
+                  'points', q.points,
+                  'tags', q.tags,
+                  'grade_level', q.grade_level,
+                  'is_public', q.is_public,
+                  'is_active', q.is_active,
+                  'times_answered', q.times_answered,
+                  'times_correct', q.times_correct,
+                  'created_at', q.created_at,
+                  'updated_at', q.updated_at
+                )
+                ORDER BY aq.order_index
+              ),
+              '[]'::jsonb
+            )
+            FROM assignment_questions aq
+            JOIN questions q ON q.id = aq.question_id
+            WHERE aq.assignment_id = a.id
+          )
+        ) AS payload,
+        sa.assigned_at
+      FROM student_assignments sa
+      JOIN assignments a ON a.id = sa.assignment_id
+      JOIN teachers t ON t.id = a.teacher_id
+      JOIN users u ON u.id = t.user_id
+      WHERE sa.student_id = v_student_id
+        AND sa.status = 'pending'
+        AND EXISTS (
+          SELECT 1 FROM assignment_questions aq
+          WHERE aq.assignment_id = a.id
+        )
+      ORDER BY sa.assigned_at
+    ) pending;
+  );
+END;
+$$;
+
+-- ============================================================
 -- RPC: Submit assignment result
 -- ============================================================
 

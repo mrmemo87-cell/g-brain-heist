@@ -73,6 +73,7 @@ import {
     getAssignmentsForTeacher as rpcGetAssignmentsForTeacher,
     getStudentsForAssignment as rpcGetStudentsForAssignment,
     getStudentActiveAssignment as rpcGetStudentActiveAssignment,
+    getStudentPendingAssignments as rpcGetStudentPendingAssignments,
     submitAssignmentResult as rpcSubmitAssignmentResult,
     teacherAssignmentReport as rpcTeacherAssignmentReport,
     submitAssignmentAnswer as rpcSubmitAssignmentAnswer,
@@ -5370,6 +5371,31 @@ export const get_student_active_assignment = async (): Promise<StudentAssignment
         ...parsedRow,
         questions: normalizedQuestions,
     };
+};
+
+export const get_student_pending_assignments = async (): Promise<StudentAssignmentTask[]> => {
+    console.log('[gameService] Calling rpc_get_student_pending_assignments...');
+    const { data, error } = await rpcGetStudentPendingAssignments();
+
+    if (error) {
+        console.error('[gameService] Error from rpc_get_student_pending_assignments:', error);
+        throw new Error(error.message || 'Failed to load assignments');
+    }
+
+    const rows = Array.isArray(data) ? data : data ? [data] : [];
+    if (!rows.length) {
+        console.log('[gameService] No pending assignments found (data is null/empty)');
+        return [];
+    }
+
+    return rows.map((row) => {
+        const parsedRow = row as StudentAssignmentTask;
+        const normalizedQuestions = ((parsedRow.questions ?? []) as TeacherQuestion[]).map(normalizeTeacherQuestionPayload);
+        return {
+            ...parsedRow,
+            questions: normalizedQuestions,
+        };
+    });
 };
 
 export const submit_assignment_result = async (payload: AssignmentResultInput): Promise<void> => {
