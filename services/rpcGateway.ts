@@ -99,6 +99,10 @@ export const getStudentActiveAssignment = (client?: RpcClient): RpcResult<unknow
   return execute('rpc_get_student_active_assignment', {}, client);
 };
 
+export const getStudentPendingAssignments = (client?: RpcClient): RpcResult<unknown> => {
+  return execute('rpc_get_student_pending_assignments', {}, client);
+};
+
 export const submitAssignmentResult = (
   payload: Record<string, unknown>,
   client?: RpcClient
