@@ -426,9 +426,8 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
           {showAssignments && (
             <div className="mt-4 space-y-3">
               {completedAssignments.map((assignment) => {
-                const scorePercent = assignment.total_questions > 0 
-                  ? Math.round((assignment.score / assignment.total_questions) * 100) 
-                  : 0;
+                // accuracy is already a percentage (0-100), don't recalculate
+                const scorePercent = assignment.accuracy || 0;
                 const isExcellent = scorePercent >= 90;
                 const isGood = scorePercent >= 70 && scorePercent < 90;
 
@@ -485,14 +484,14 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
                   </div>
                   <div className="bg-black/20 rounded-lg p-3">
                     <div className="text-3xl font-heading text-yellow-400">
-                      {completedAssignments.filter(a => (a.correct / a.total_questions) >= 0.9).length}
+                      {completedAssignments.filter(a => (a.accuracy || 0) >= 90).length}
                     </div>
                     <div className="text-xs text-gray-400">90%+ Scores</div>
                   </div>
                   <div className="bg-black/20 rounded-lg p-3">
                     <div className="text-3xl font-heading text-green-400">
                       {completedAssignments.length > 0 
-                        ? Math.round(completedAssignments.reduce((sum, a) => sum + (a.correct / a.total_questions) * 100, 0) / completedAssignments.length)
+                        ? Math.round(completedAssignments.reduce((sum, a) => sum + (a.accuracy || 0), 0) / completedAssignments.length)
                         : 0}%
                     </div>
                     <div className="text-xs text-gray-400">Avg Score</div>
