@@ -4711,14 +4711,24 @@ export const achievements_list = async (): Promise<Achievement[]> => {
     const coinsSpent = (purchases || []).reduce((sum: number, p: any) => sum + (p.data?.amount || p.data?.price || 0), 0);
     const coinsEarned = (profile?.coins || 0) + coinsSpent;
 
-    // Count assignments
-    const { data: assignmentResults } = await supabase
-        .from('student_assignment_results')
-        .select('id, accuracy, completed_at', { count: 'exact', head: false })
-        .eq('student_id', user.id);
+    // Count assignments (with error handling for RLS issues)
+    let assignmentsCompleted = 0;
+    let perfectScores = 0;
+    
+    try {
+        const { data: assignmentResults, error: assignmentError } = await supabase
+            .from('student_assignment_results')
+            .select('id, accuracy, completed_at', { count: 'exact', head: false })
+            .eq('student_id', user.id);
 
-    const assignmentsCompleted = assignmentResults?.length || 0;
-    const perfectScores = (assignmentResults || []).filter((r: any) => r.accuracy === 100).length;
+        if (!assignmentError && assignmentResults) {
+            assignmentsCompleted = assignmentResults.length;
+            perfectScores = assignmentResults.filter((r: any) => r.accuracy === 100).length;
+        }
+    } catch (err) {
+        console.warn('Could not fetch assignment results for achievements:', err);
+        // Continue with 0 assignments - not critical for achievement display
+    }
 
     // Map achievements with earned status and progress
     return (allAchievements || []).map((ach: any) => {

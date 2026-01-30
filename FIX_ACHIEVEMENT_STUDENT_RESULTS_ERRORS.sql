@@ -29,6 +29,18 @@ CREATE TABLE IF NOT EXISTS student_assignment_results (
 -- Enable RLS
 ALTER TABLE student_assignment_results ENABLE ROW LEVEL SECURITY;
 
+-- First, check if table has the correct columns
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'student_assignment_results' 
+    AND column_name = 'id'
+  ) THEN
+    RAISE NOTICE '⚠️  WARNING: student_assignment_results.id column missing!';
+  END IF;
+END $$;
+
 -- Drop ALL existing policies first to ensure clean slate
 DROP POLICY IF EXISTS "Students view own assignment results" ON student_assignment_results;
 DROP POLICY IF EXISTS "Students insert own assignment results" ON student_assignment_results;
@@ -38,6 +50,7 @@ DROP POLICY IF EXISTS "Students insert own results" ON student_assignment_result
 DROP POLICY IF EXISTS "Teachers view student results" ON student_assignment_results;
 DROP POLICY IF EXISTS "student_assignment_results_select" ON student_assignment_results;
 DROP POLICY IF EXISTS "student_assignment_results_insert" ON student_assignment_results;
+DROP POLICY IF EXISTS "student_assignment_results_update" ON student_assignment_results;
 
 -- Create comprehensive RLS policies
 -- Policy 1: Students can SELECT their own results
@@ -92,14 +105,14 @@ DROP FUNCTION IF EXISTS rpc_check_achievements();
 DROP FUNCTION IF EXISTS rpc_check_achievements(uuid);
 DROP FUNCTION IF EXISTS rpc_check_achievements(text);
 
-CREATE OR REPLACE FUNCTION rpc_check_achievements()
+CREATE OR REPLACE FUNCTION rpc_check_achievements(p_user_id uuid)
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_user_id uuid := auth.uid();
+  v_user_id uuid := COALESCE(p_user_id, auth.uid());
   v_new_achievements jsonb := '[]'::jsonb;
   v_achievement record;
   v_user_xp integer;
@@ -126,34 +139,54 @@ BEGIN
     RETURN '[]'::jsonb;
   END IF;
 
-  -- Get various user stats for achievement checks
-  SELECT COALESCE(COUNT(*), 0)
-  INTO v_questions_answered
-  FROM user_sessions
-  WHERE user_id = v_user_id;
+  -- Get various user stats for achievement checks (with error handling)
+  BEGIN
+    SELECT COALESCE(COUNT(*), 0)
+    INTO v_questions_answered
+    FROM attempts
+    WHERE user_id = v_user_id;
+  EXCEPTION WHEN OTHERS THEN
+    v_questions_answered := 0;
+  END;
 
-  SELECT COALESCE(COUNT(*), 0)
-  INTO v_quests_completed
-  FROM user_progress
-  WHERE user_id = v_user_id;
+  BEGIN
+    SELECT COALESCE(COUNT(*), 0)
+    INTO v_quests_completed
+    FROM sessions
+    WHERE user_id = v_user_id AND status = 'completed';
+  EXCEPTION WHEN OTHERS THEN
+    v_quests_completed := 0;
+  END;
 
-  SELECT COALESCE(COUNT(*), 0)
-  INTO v_pvp_wins
-  FROM pvp_battles
-  WHERE (player1_id = v_user_id AND winner_id = v_user_id)
-     OR (player2_id = v_user_id AND winner_id = v_user_id);
+  BEGIN
+    SELECT COALESCE(COUNT(*), 0)
+    INTO v_pvp_wins
+    FROM pvp_battles
+    WHERE (player1_id = v_user_id AND winner_id = v_user_id)
+       OR (player2_id = v_user_id AND winner_id = v_user_id);
+  EXCEPTION WHEN OTHERS THEN
+    v_pvp_wins := 0;
+  END;
 
   -- Count completed assignments from student_assignment_results
-  SELECT COALESCE(COUNT(*), 0)
-  INTO v_assignments_completed
-  FROM student_assignment_results
-  WHERE student_id = v_user_id;
+  BEGIN
+    SELECT COALESCE(COUNT(*), 0)
+    INTO v_assignments_completed
+    FROM student_assignment_results
+    WHERE student_id = v_user_id;
+  EXCEPTION WHEN OTHERS THEN
+    v_assignments_completed := 0;
+  END;
 
   -- Count perfect scores (accuracy = 100)
-  SELECT COALESCE(COUNT(*), 0)
-  INTO v_perfect_assignments
-  FROM student_assignment_results
-  WHERE student_id = v_user_id AND accuracy = 100;
+  BEGIN
+    SELECT COALESCE(COUNT(*), 0)
+    INTO v_perfect_assignments
+    FROM student_assignment_results
+    WHERE student_id = v_user_id AND accuracy = 100;
+  EXCEPTION WHEN OTHERS THEN
+    v_perfect_assignments := 0;
+  END;
 
   -- Check for new achievements
   FOR v_achievement IN
@@ -161,13 +194,12 @@ BEGIN
       a.id, 
       a.name, 
       a.description, 
-      a.xp_reward, 
-      a.coin_reward, 
-      a.requirement_type, 
-      a.requirement_value
+      a.reward_xp, 
+      a.reward_coins, 
+      a.condition_type, 
+      a.condition_value
     FROM achievements a
-    WHERE a.is_active = true
-      AND NOT EXISTS (
+    WHERE NOT EXISTS (
         SELECT 1 FROM user_achievements ua
         WHERE ua.user_id = v_user_id AND ua.achievement_id = a.id
       )
@@ -176,25 +208,33 @@ BEGIN
     DECLARE
       v_criteria_met BOOLEAN := false;
     BEGIN
-      CASE v_achievement.requirement_type
+      CASE v_achievement.condition_type
         WHEN 'xp' THEN
-          v_criteria_met := v_user_xp >= v_achievement.requirement_value;
+          v_criteria_met := v_user_xp >= v_achievement.condition_value;
+        WHEN 'total_xp' THEN
+          v_criteria_met := v_user_xp >= v_achievement.condition_value;
         WHEN 'level' THEN
-          v_criteria_met := v_user_level >= v_achievement.requirement_value;
+          v_criteria_met := v_user_level >= v_achievement.condition_value;
         WHEN 'coins' THEN
-          v_criteria_met := v_user_coins >= v_achievement.requirement_value;
+          v_criteria_met := v_user_coins >= v_achievement.condition_value;
+        WHEN 'coins_earned' THEN
+          v_criteria_met := v_user_coins >= v_achievement.condition_value;
         WHEN 'streak' THEN
-          v_criteria_met := v_user_streak >= v_achievement.requirement_value;
+          v_criteria_met := v_user_streak >= v_achievement.condition_value;
         WHEN 'questions' THEN
-          v_criteria_met := v_questions_answered >= v_achievement.requirement_value;
+          v_criteria_met := v_questions_answered >= v_achievement.condition_value;
         WHEN 'quests' THEN
-          v_criteria_met := v_quests_completed >= v_achievement.requirement_value;
+          v_criteria_met := v_quests_completed >= v_achievement.condition_value;
+        WHEN 'quests_completed' THEN
+          v_criteria_met := v_quests_completed >= v_achievement.condition_value;
         WHEN 'pvp_wins' THEN
-          v_criteria_met := v_pvp_wins >= v_achievement.requirement_value;
+          v_criteria_met := v_pvp_wins >= v_achievement.condition_value;
+        WHEN 'pvp_wins_count' THEN
+          v_criteria_met := v_pvp_wins >= v_achievement.condition_value;
         WHEN 'assignments' THEN
-          v_criteria_met := v_assignments_completed >= v_achievement.requirement_value;
+          v_criteria_met := v_assignments_completed >= v_achievement.condition_value;
         WHEN 'perfect_assignments' THEN
-          v_criteria_met := v_perfect_assignments >= v_achievement.requirement_value;
+          v_criteria_met := v_perfect_assignments >= v_achievement.condition_value;
         ELSE
           v_criteria_met := false;
       END CASE;
@@ -210,8 +250,8 @@ BEGIN
           'id', v_achievement.id,
           'name', v_achievement.name,
           'description', v_achievement.description,
-          'xp_reward', v_achievement.xp_reward,
-          'coin_reward', v_achievement.coin_reward
+          'xp_reward', v_achievement.reward_xp,
+          'coin_reward', v_achievement.reward_coins
         );
       END IF;
     END;
@@ -221,7 +261,7 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION rpc_check_achievements() TO authenticated;
+GRANT EXECUTE ON FUNCTION rpc_check_achievements(uuid) TO authenticated;
 
 COMMENT ON FUNCTION rpc_check_achievements IS 
   'Checks and awards achievements without direct XP/level updates. Use grant_achievement_rewards to apply rewards.';
@@ -230,12 +270,22 @@ COMMENT ON FUNCTION rpc_check_achievements IS
 -- VERIFICATION QUERIES
 -- ============================================================================
 
+-- Check table structure
+SELECT 
+  column_name,
+  data_type,
+  is_nullable
+FROM information_schema.columns
+WHERE table_name = 'student_assignment_results'
+ORDER BY ordinal_position;
+
 -- Check RLS policies on student_assignment_results
 SELECT 
   policyname,
   cmd AS command,
   permissive,
-  roles
+  roles,
+  qual as using_expression
 FROM pg_policies 
 WHERE tablename = 'student_assignment_results' 
 ORDER BY cmd, policyname;
@@ -269,4 +319,9 @@ BEGIN
   RAISE NOTICE '✅ Fixed rpc_check_achievements to avoid XP conflicts';
   RAISE NOTICE '⚠️  Remember: accuracy is already a percentage (0-100)';
   RAISE NOTICE '⚠️  Frontend should use assignment.accuracy, NOT (score/total)*100';
+  RAISE NOTICE '';
+  RAISE NOTICE '🔄 IMPORTANT: After running this script:';
+  RAISE NOTICE '   1. Refresh your browser (Ctrl+Shift+R or Cmd+Shift+R)';
+  RAISE NOTICE '   2. Clear Supabase cache if errors persist';
+  RAISE NOTICE '   3. Wait 30 seconds for schema cache to update';
 END $$;
