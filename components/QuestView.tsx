@@ -181,6 +181,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   const [activeAssignment, setActiveAssignment] = useState<StudentAssignmentTask | null>(null);
   const [pendingAssignments, setPendingAssignments] = useState<StudentAssignmentTask[]>([]);
   const [preferredAssignmentId, setPreferredAssignmentId] = useState<string | null>(initialAssignment?.assignment_id ?? null);
+  const [hasDeferredAssignments, setHasDeferredAssignments] = useState(false);
   const [isAssignmentLate, setIsAssignmentLate] = useState(false);
   const [lastCompletedAssignment, setLastCompletedAssignment] = useState<StudentAssignmentTask | null>(null);
   const [assignmentStartTime, setAssignmentStartTime] = useState<number | null>(null);
@@ -314,7 +315,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
   // Load subjects and go directly to selection (unified flow)
   const loadSubjects = async () => {
-    if (activeAssignment) {
+    if (activeAssignment && !hasDeferredAssignments) {
       setMode('assignment');
       setStage('assignment_blocked');
       return;
@@ -507,6 +508,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     setIsAssignmentLate(isExpired);
     setLastCompletedAssignment(null);
     setMode('assignment');
+    setHasDeferredAssignments(false);
     setTeacherQuestions(normalizedQuestions);
     setSelectedSubject({
       id: assignment.subject_id || assignment.subject_name,
@@ -572,6 +574,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         setActiveAssignment(null);
         setTeacherQuestions([]);
         setSelectedSubject(null);
+        setHasDeferredAssignments(false);
         if (mode === 'assignment') {
           setMode('practice');
         }
@@ -587,6 +590,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
   const handleSelectAssignment = (assignment: StudentAssignmentTask) => {
     setPreferredAssignmentId(assignment.assignment_id);
+    setHasDeferredAssignments(false);
     applyAssignmentState({
       ...assignment,
       questions: (assignment.questions || []).map(normalizeAssignmentQuestion),
@@ -594,6 +598,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   };
 
   const handleDeferAssignment = async () => {
+    setHasDeferredAssignments(true);
     setMode('practice');
     setSelectedSubject(null);
     setSelectedTopic(null);
@@ -700,7 +705,6 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     setNextAction(null);
     setNextActionLabel('');
     setFreeformAnswer('');
-    setActiveAssignment(null);
     setLastCompletedAssignment(null);
     setIsAssignmentLate(false);
     setStage('in_progress');
@@ -737,6 +741,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
   const handleAssignmentBegin = () => {
     if (!activeAssignment) return;
+    setHasDeferredAssignments(false);
     if (!teacherQuestions.length && activeAssignment.questions?.length) {
       setTeacherQuestions(activeAssignment.questions);
     }
@@ -1048,6 +1053,33 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
 
   const renderSubjectSelection = () => (
     <div className="space-y-6">
+      {pendingAssignments.length > 0 && (
+        <div className="max-w-5xl mx-auto rounded-2xl border border-amber-400/50 bg-amber-500/10 p-4 shadow-[0_0_24px_rgba(251,191,36,0.18)]">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-amber-200">Assignments pending</p>
+              <p className="text-xs text-amber-100/80">
+                {pendingAssignments.length} teacher assignment{pendingAssignments.length === 1 ? '' : 's'} waiting. You can keep questing now and return later.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setHasDeferredAssignments(false);
+                if (!activeAssignment) {
+                  hydrateAssignment({ showLoading: true });
+                  return;
+                }
+                setMode('assignment');
+                setStage('assignment_blocked');
+              }}
+              className="rounded-xl border border-amber-300/60 bg-amber-500/20 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-amber-100 transition hover:border-amber-200/80 hover:bg-amber-500/30"
+            >
+              Review assignments
+            </button>
+          </div>
+        </div>
+      )}
       <div className="max-w-5xl mx-auto p-6 rounded-2xl bg-gradient-to-r from-slate-900/70 via-indigo-900/50 to-fuchsia-900/50 border border-cyan-400/30 shadow-[0_0_32px_rgba(34,211,238,0.18)]">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -1330,14 +1362,14 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           <div className="flex items-center gap-4 mb-4">
             <div className="text-5xl">🎯</div>
             <div className="flex-1">
-              <h2 className="font-heading text-2xl text-purple-300">Teacher Assignment</h2>
+              <h2 className="font-heading text-2xl text-purple-300">Priority Assignment</h2>
               <p className="text-purple-200 text-sm font-semibold">(Required)</p>
             </div>
           </div>
           
           <div className="bg-slate-900/60 rounded-xl p-4 border border-purple-500/30 mb-4">
             <p className="text-gray-200 leading-relaxed">
-              <span className="text-amber-400 font-semibold">Assignments are ready.</span> You can complete one now or jump into quests and return later.
+              <span className="text-amber-400 font-semibold">Priority assignments are ready.</span> You can complete one now or jump into quests and return later.
             </p>
           </div>
           
