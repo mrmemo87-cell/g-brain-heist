@@ -8,14 +8,14 @@ export interface ClanMetadata {
 }
 
 const CLAN_COLOR_PALETTE = [
-  "#f97316",
-  "#0ea5e9",
-  "#10b981",
-  "#a855f7",
-  "#f43f5e",
-  "#14b8a6",
-  "#6366f1",
-  "#eab308",
+  "#e11d48", // rose
+  "#2563eb", // blue
+  "#16a34a", // green
+  "#f59e0b", // amber
+  "#9333ea", // purple
+  "#0d9488", // teal
+  "#db2777", // pink
+  "#06b6d4", // cyan
 ];
 
 export const getClanColor = (clanId: string): string => {
@@ -71,13 +71,88 @@ export const KYRGYZSTAN_ZONES: Zone[] = [
   { id: "zone-7", name: "Ysyk-Köl", baseValue: 160 },
 ];
 
+// USA map states + DC
+export const USA_ZONES: Zone[] = [
+  { id: "zone-1", name: "Alabama", baseValue: 150 },
+  { id: "zone-2", name: "Alaska", baseValue: 150 },
+  { id: "zone-3", name: "Arizona", baseValue: 150 },
+  { id: "zone-4", name: "Arkansas", baseValue: 150 },
+  { id: "zone-5", name: "California", baseValue: 150 },
+  { id: "zone-6", name: "Colorado", baseValue: 150 },
+  { id: "zone-7", name: "Connecticut", baseValue: 150 },
+  { id: "zone-8", name: "District of Columbia", baseValue: 150 },
+  { id: "zone-9", name: "Delaware", baseValue: 150 },
+  { id: "zone-10", name: "Florida", baseValue: 150 },
+  { id: "zone-11", name: "Georgia", baseValue: 150 },
+  { id: "zone-12", name: "Hawaii", baseValue: 150 },
+  { id: "zone-13", name: "Idaho", baseValue: 150 },
+  { id: "zone-14", name: "Illinois", baseValue: 150 },
+  { id: "zone-15", name: "Indiana", baseValue: 150 },
+  { id: "zone-16", name: "Iowa", baseValue: 150 },
+  { id: "zone-17", name: "Kansas", baseValue: 150 },
+  { id: "zone-18", name: "Kentucky", baseValue: 150 },
+  { id: "zone-19", name: "Louisiana", baseValue: 150 },
+  { id: "zone-20", name: "Maine", baseValue: 150 },
+  { id: "zone-21", name: "Maryland", baseValue: 150 },
+  { id: "zone-22", name: "Massachusetts", baseValue: 150 },
+  { id: "zone-23", name: "Michigan", baseValue: 150 },
+  { id: "zone-24", name: "Minnesota", baseValue: 150 },
+  { id: "zone-25", name: "Mississippi", baseValue: 150 },
+  { id: "zone-26", name: "Missouri", baseValue: 150 },
+  { id: "zone-27", name: "Montana", baseValue: 150 },
+  { id: "zone-28", name: "Nebraska", baseValue: 150 },
+  { id: "zone-29", name: "Nevada", baseValue: 150 },
+  { id: "zone-30", name: "New Hampshire", baseValue: 150 },
+  { id: "zone-31", name: "New Jersey", baseValue: 150 },
+  { id: "zone-32", name: "New Mexico", baseValue: 150 },
+  { id: "zone-33", name: "New York", baseValue: 150 },
+  { id: "zone-34", name: "North Carolina", baseValue: 150 },
+  { id: "zone-35", name: "North Dakota", baseValue: 150 },
+  { id: "zone-36", name: "Ohio", baseValue: 150 },
+  { id: "zone-37", name: "Oklahoma", baseValue: 150 },
+  { id: "zone-38", name: "Oregon", baseValue: 150 },
+  { id: "zone-39", name: "Pennsylvania", baseValue: 150 },
+  { id: "zone-40", name: "Rhode Island", baseValue: 150 },
+  { id: "zone-41", name: "South Carolina", baseValue: 150 },
+  { id: "zone-42", name: "South Dakota", baseValue: 150 },
+  { id: "zone-43", name: "Tennessee", baseValue: 150 },
+  { id: "zone-44", name: "Texas", baseValue: 150 },
+  { id: "zone-45", name: "Utah", baseValue: 150 },
+  { id: "zone-46", name: "Vermont", baseValue: 150 },
+  { id: "zone-47", name: "Virginia", baseValue: 150 },
+  { id: "zone-48", name: "Washington", baseValue: 150 },
+  { id: "zone-49", name: "West Virginia", baseValue: 150 },
+  { id: "zone-50", name: "Wisconsin", baseValue: 150 },
+  { id: "zone-51", name: "Wyoming", baseValue: 150 },
+];
+
+// United Kingdom map regions
+export const UNITED_KINGDOM_ZONES: Zone[] = [
+  { id: "zone-1", name: "Ireland", baseValue: 150 },
+  { id: "zone-2", name: "Isle of Man", baseValue: 150 },
+  { id: "zone-3", name: "Jersey", baseValue: 150 },
+  { id: "zone-4", name: "Guernsey", baseValue: 150 },
+  { id: "zone-5", name: "Northern Ireland", baseValue: 150 },
+  { id: "zone-6", name: "Scotland", baseValue: 150 },
+  { id: "zone-7", name: "Wales", baseValue: 150 },
+  { id: "zone-8", name: "South West", baseValue: 150 },
+  { id: "zone-9", name: "South East", baseValue: 150 },
+  { id: "zone-10", name: "Greater London", baseValue: 150 },
+  { id: "zone-11", name: "East of England", baseValue: 150 },
+  { id: "zone-12", name: "West Midlands", baseValue: 150 },
+  { id: "zone-13", name: "East Midlands", baseValue: 150 },
+  { id: "zone-14", name: "Yorkshire and the Humber", baseValue: 150 },
+  { id: "zone-15", name: "North West", baseValue: 150 },
+  { id: "zone-16", name: "North East", baseValue: 150 },
+];
+
 // Map-specific zone configurations
 export const MAP_ZONES: Record<string, Zone[]> = {
   default: ZONES,
   city: CITY_ZONES,
   kyrgyzstan: KYRGYZSTAN_ZONES,
-  fortress: ZONES, // Use default for now
-  islands: ZONES, // Use default for now
+  usa: USA_ZONES,
+  unitedkingdom: UNITED_KINGDOM_ZONES,
 };
 
 // Helper to get zones for a specific map
@@ -150,6 +225,7 @@ export interface ClanTerritoryGameState {
   timer: number; // Remaining seconds (computed from gameEndTime - now)
   gameStartTime?: number; // Unix timestamp when game started
   gameEndTime?: number; // Unix timestamp when game should end
+  endReason?: "TIME_UP" | "TEACHER_ENDED" | "TEACHER_DISMISSED";
   players: Record<string, PlayerStats>;
   zones: Record<ZoneId, ZoneState>;
   clans: Record<ClanId, ClanMetadata>;
@@ -169,6 +245,7 @@ export type GameAction =
   | { type: "SET_QUESTIONS"; payload: { questions: BattleQuestion[] } }
   | { type: "SET_MAP"; payload: { mapId: string } }
   | { type: "SET_ALLOW_CLANLESS"; payload: { allow: boolean } }
+  | { type: "SET_DURATION"; payload: { duration: number } }
   | { type: "START_GAME"; payload: { duration: number } }
   | { type: "TICK" }
   | { type: "SELECT_ZONE"; payload: { playerId: string; zoneId: ZoneId | null } }
@@ -177,6 +254,7 @@ export type GameAction =
       payload: { playerId: string; isCorrect: boolean; durationMs: number };
     }
   | { type: "END_GAME" }
+  | { type: "DISMISS_ARENA" }
   | { type: "KICK_PLAYER"; payload: { playerId: string } }
   | { type: "REQUEST_STATE" };
 

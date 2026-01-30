@@ -11,7 +11,6 @@ import {
 } from "../clanTerritoryTypes";
 import { ClanTerritoryMap } from "./ClanTerritoryMap";
 import { calculateClanTerritoryResults } from "../clanTerritoryRewards";
-import { audioService } from "../../../../services/audioService";
 
 // Helper to get option text (handles both string and BattleQuestionOption formats)
 const getOptionText = (option: string | BattleQuestionOption): string => {
@@ -55,6 +54,16 @@ const shuffleAnswersWithSeed = <T,>(answers: T[], seed: string): T[] => {
   return result;
 };
 
+const formatTimer = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, "0");
+  const secs = Math.floor(seconds % 60)
+    .toString()
+    .padStart(2, "0");
+  return `${minutes}:${secs}`;
+};
+
 interface ClanTerritoryStudentViewProps {
   gameState: ClanTerritoryGameState;
   playerId: string;
@@ -67,6 +76,7 @@ interface ClanTerritoryStudentViewProps {
   onSelectZone: (zoneId: ZoneId | null) => void;
   onSubmitAnswer: (isCorrect: boolean, durationMs: number) => void;
   onRewardsClaimed?: () => Promise<void> | void;
+  onExit?: () => void;
 }
 
 export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> = ({
@@ -76,6 +86,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   onSelectZone,
   onSubmitAnswer,
   onRewardsClaimed,
+  onExit,
 }) => {
   const player = gameState.players[playerId];
   const hydratedPlayer: PlayerStats | undefined = player
@@ -219,6 +230,14 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
     }
   }, [gameState.phase]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const frame = requestAnimationFrame(() => {
+      window.dispatchEvent(new Event("resize"));
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
   // Initialize first question when entering active phase
   useEffect(() => {
     if (gameState.phase === "ACTIVE" && gameState.questions.length > 0) {
@@ -234,28 +253,14 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
     return map;
   }, [clanList]);
 
-  // Start/stop music based on game phase
   useEffect(() => {
-    if (gameState.phase === "ACTIVE") {
-      // Start background music when game becomes active
-      if (audioService.isAudioEnabled() && audioService.isBgMusicEnabled()) {
-        audioService.playBackgroundMusic();
-      }
-    } else if (gameState.phase === "ENDED" || gameState.phase === "LOBBY") {
-      // Stop music when game ends or returns to lobby
-      audioService.stopBackgroundMusic();
-    }
-
-    // Cleanup: stop music when component unmounts
-    return () => {
-      if (gameState.phase === "ACTIVE") {
-        audioService.stopBackgroundMusic();
-      }
-    };
-  }, [gameState.phase]);
-
-  useEffect(() => {
-    if (gameState.phase === "ENDED" && !rewardsClaimed && !claimingRewards && hydratedPlayer) {
+    if (
+      gameState.phase === "ENDED" &&
+      gameState.endReason !== "TEACHER_DISMISSED" &&
+      !rewardsClaimed &&
+      !claimingRewards &&
+      hydratedPlayer
+    ) {
       const results = calculateClanTerritoryResults(gameState);
       const myReward = results.playerRewards.find((r) => r.playerId === playerId);
       if (myReward && (myReward.coins > 0 || myReward.xp > 0 || myReward.gems > 0)) {
@@ -298,7 +303,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
         setRewardsClaimed(true);
       }
     }
-  }, [gameState.phase, playerId, rewardsClaimed, claimingRewards, hydratedPlayer]);
+  }, [gameState.phase, gameState.endReason, playerId, rewardsClaimed, claimingRewards, hydratedPlayer]);
 
   const handleAnswerClick = (selectedAnswer: string) => {
     if (!currentQuestion) return;
@@ -324,6 +329,16 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   const myClan =
     clanList.find((c) => c.id === hydratedPlayer.clanId) ?? gameState.clans[hydratedPlayer.clanId];
 
+  const handleBackToArenas = React.useCallback(() => {
+    if (onExit) {
+      onExit();
+      return;
+    }
+    if (typeof window !== "undefined") {
+      window.location.reload();
+    }
+  }, [onExit]);
+
   // 1. Lobby Phase
   if (gameState.phase === "LOBBY") {
     return (
@@ -336,7 +351,13 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           <p className="text-slate-500 text-sm">Awaiting teacher to arm the arena...</p>
         </div>
         <div className="flex-1 min-h-0">
-          <ClanTerritoryMap zones={gameState.zones} clans={clansWithColors} mapId={gameState.mapId} containerClassName="w-full h-full" />
+          <ClanTerritoryMap
+            zones={gameState.zones}
+            clans={clansWithColors}
+            mapId={gameState.mapId}
+            containerClassName="w-full h-full"
+            showControls={false}
+          />
         </div>
         <div className="grid grid-cols-2 gap-4 text-center shrink-0">
           <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4">
@@ -421,12 +442,13 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
         {/* Bottom Map Preview */}
         <div className="shrink-0 border-t border-gray-800 bg-gray-900/50 p-3">
           <div className="max-w-md mx-auto">
-            <ClanTerritoryMap 
-              zones={gameState.zones} 
-              clans={clansWithColors} 
+            <ClanTerritoryMap
+              zones={gameState.zones}
+              clans={clansWithColors}
               mapId={gameState.mapId}
               hideHeader
               hideLegend
+              showControls={false}
             />
           </div>
         </div>
@@ -460,15 +482,23 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
               <div className="font-bold text-cyan-400">{hydratedPlayer.battleScore}</div>
             </div>
           </div>
-          <button
-            onClick={() => {
-              console.log('[StudentView] SWITCH ZONE clicked - deselecting zone');
-              onSelectZone(null as any);
-            }}
-            className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold transition cursor-pointer"
-          >
-            SWITCH ZONE
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <div className="text-[10px] text-gray-500 uppercase tracking-wider">Time Left</div>
+              <div className="font-mono text-sm text-emerald-300">
+                {formatTimer(gameState.timer)}
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                console.log('[StudentView] SWITCH ZONE clicked - deselecting zone');
+                onSelectZone(null as any);
+              }}
+              className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold transition cursor-pointer"
+            >
+              SWITCH ZONE
+            </button>
+          </div>
         </div>
 
         {/* Main Content Area - Optimized for Mobile & Desktop */}
@@ -477,7 +507,10 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           {/* Mobile: Map + Zone Info (Full width, stacked) */}
           <div className="lg:hidden flex flex-col gap-2 bg-gray-900/50 border-b border-gray-800 p-3 shrink-0 h-auto">
             {/* Map - Fit to available space with aspect ratio */}
-            <div className="w-full bg-slate-950 rounded-lg overflow-hidden" style={{ aspectRatio: "16/9", maxHeight: "300px" }}>
+            <div
+              className="w-full min-h-[45vh] bg-slate-950 rounded-lg overflow-hidden"
+              style={{ aspectRatio: "16/9", maxHeight: "300px" }}
+            >
               <ClanTerritoryMap 
                 zones={gameState.zones} 
                 clans={clansWithColors} 
@@ -485,6 +518,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                 hideHeader
                 hideLegend
                 containerClassName="w-full h-full"
+                showControls={false}
               />
             </div>
             
@@ -537,6 +571,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
                   hideHeader
                   hideLegend
                   containerClassName="w-full h-full"
+                  showControls={false}
                 />
               </div>
               
@@ -731,6 +766,29 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   }
 
   // 4. Ended Phase
+  if (gameState.phase === "ENDED" && gameState.endReason === "TEACHER_DISMISSED") {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-6">
+        <div className="w-full max-w-3xl">
+          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 text-center space-y-4">
+            <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Session Update</p>
+            <h1 className="text-4xl font-black tracking-tight text-white">Arena dismissed</h1>
+            <p className="text-lg text-slate-300">The arena was dismissed by the teacher.</p>
+            <p className="text-sm text-slate-500">Please return to the menu to join another arena.</p>
+            <div className="pt-2">
+              <button
+                onClick={handleBackToArenas}
+                className="px-6 py-3 bg-white text-slate-900 font-bold rounded-xl hover:bg-slate-200 transition"
+              >
+                Back to Arenas
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const results = gameState.phase === "ENDED" ? calculateClanTerritoryResults(gameState) : null;
   const myReward = results?.playerRewards.find((r) => r.playerId === playerId);
   const wonRewards = myReward && (myReward.coins > 0 || myReward.xp > 0 || myReward.gems > 0);
