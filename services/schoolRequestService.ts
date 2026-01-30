@@ -96,6 +96,12 @@ export const requestSchool = async (payload: SchoolRequestPayload): Promise<Scho
     return { success: false, error: 'Please log in to submit a school request.' };
   }
 
+  // Check email verification
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user?.email_confirmed_at) {
+    return { success: false, error: 'Please verify your email before requesting a school' };
+  }
+
   const trimmedName = payload.schoolName.trim();
 
   const tryV2 = async () => {

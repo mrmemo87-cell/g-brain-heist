@@ -390,6 +390,12 @@ export const bootstrapProfile = async (
 ): Promise<ProfileBootstrapResult> => {
     console.log(`Bootstrapping profile: school=${schoolId}, role=${role}`);
     
+    // Check email verification
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.email_confirmed_at) {
+        return { success: false, error: 'Please verify your email before joining a school' };
+    }
+    
     const { data, error } = await supabase.rpc('profile_bootstrap', {
         p_school_id: schoolId,
         p_role: role,
@@ -519,6 +525,12 @@ export const joinSchoolByCode = async (
     code: string,
     role: 'student' | 'teacher'
 ): Promise<JoinSchoolByCodeResult> => {
+    // Check email verification
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.email_confirmed_at) {
+        return { success: false, error: 'Please verify your email before joining a school' };
+    }
+
     const { data, error } = await supabase.rpc('join_school_by_code', {
         p_invite_code: code,
         p_role: role,

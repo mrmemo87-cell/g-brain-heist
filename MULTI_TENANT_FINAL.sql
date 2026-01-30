@@ -313,6 +313,7 @@ AS $$
 DECLARE
     v_user_id UUID := auth.uid();
     v_user_email TEXT;
+    v_email_confirmed_at TIMESTAMPTZ;
     v_school RECORD;
     v_existing_user RECORD;
     v_final_username TEXT;
@@ -322,7 +323,11 @@ BEGIN
         RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
     END IF;
 
-    SELECT email INTO v_user_email FROM auth.users WHERE id = v_user_id;
+    -- Check email verification
+    SELECT email, email_confirmed_at INTO v_user_email, v_email_confirmed_at FROM auth.users WHERE id = v_user_id;
+    IF v_email_confirmed_at IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Please verify your email before joining a school');
+    END IF;
 
     IF p_role NOT IN ('student', 'teacher') THEN
         RETURN jsonb_build_object('success', false, 'error', 'Invalid role. Must be student or teacher.');
@@ -552,6 +557,7 @@ AS $$
 DECLARE
     v_user_id UUID := auth.uid();
     v_user RECORD;
+    v_email_confirmed_at TIMESTAMPTZ;
     v_school RECORD;
     v_existing RECORD;
     v_rate_check JSONB;
@@ -559,6 +565,12 @@ DECLARE
 BEGIN
     IF v_user_id IS NULL THEN
         RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
+    END IF;
+
+    -- Check email verification
+    SELECT email_confirmed_at INTO v_email_confirmed_at FROM auth.users WHERE id = v_user_id;
+    IF v_email_confirmed_at IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Please verify your email before joining a school');
     END IF;
 
     SELECT * INTO v_user FROM users WHERE id = v_user_id;
@@ -650,6 +662,7 @@ AS $$
 DECLARE
     v_user_id UUID := auth.uid();
     v_user RECORD;
+    v_email_confirmed_at TIMESTAMPTZ;
     v_normalized TEXT;
     v_slug TEXT;
     v_school_id UUID;
@@ -660,6 +673,12 @@ DECLARE
 BEGIN
     IF v_user_id IS NULL THEN
         RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
+    END IF;
+
+    -- Check email verification
+    SELECT email_confirmed_at INTO v_email_confirmed_at FROM auth.users WHERE id = v_user_id;
+    IF v_email_confirmed_at IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Please verify your email before creating a school');
     END IF;
 
     SELECT * INTO v_user FROM users WHERE id = v_user_id;
@@ -784,6 +803,7 @@ AS $$
 DECLARE
     v_user_id UUID := auth.uid();
     v_user RECORD;
+    v_email_confirmed_at TIMESTAMPTZ;
     v_normalized TEXT;
     v_existing_school RECORD;
     v_existing_request RECORD;
@@ -793,6 +813,12 @@ DECLARE
 BEGIN
     IF v_user_id IS NULL THEN
         RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
+    END IF;
+
+    -- Check email verification
+    SELECT email_confirmed_at INTO v_email_confirmed_at FROM auth.users WHERE id = v_user_id;
+    IF v_email_confirmed_at IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Please verify your email before requesting a school');
     END IF;
 
     SELECT * INTO v_user FROM users WHERE id = v_user_id;

@@ -22,6 +22,8 @@ import { aiHostService } from './services/aiHostService';
 import { fetchNextAnnouncement, markAnnouncementSeen } from './services/competitionService';
 import { notificationService } from './services/notificationService';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './services/banMessage';
+import { isEmailVerified } from './services/emailVerification';
+import EmailVerificationGate from './components/EmailVerificationGate';
 import IeltsHome from './src/pages/ielts/IeltsHome';
 
 const QuestView = React.lazy(() => import('./components/QuestView'));
@@ -118,6 +120,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [tutorialChecked, setTutorialChecked] = useState(false); // Track if we've checked tutorial status
   const tutorialCheckedRef = useRef(tutorialChecked);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [emailVerified, setEmailVerified] = useState<boolean | null>(null);
   const [activeAnnouncement, setActiveAnnouncement] = useState<Announcement | null>(null);
   const previousViewRef = useRef(view);
   const [showJoinSchoolModal, setShowJoinSchoolModal] = useState(false);
@@ -534,6 +537,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       }
 
       setProfile(profileData);
+
+      // Check email verification status
+      const verified = await isEmailVerified();
+      setEmailVerified(verified);
 
       const whoamiMs = performance.now() - bootStartRef.current;
       bootTimingsRef.current.whoami = whoamiMs;
@@ -1372,6 +1379,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           </div>
         </div>
       );
+    }
+
+    // Block unverified users (except for IELTS-only users)
+    if (emailVerified === false && profile && profile.school_name?.trim().toLowerCase() !== IELTS_ONLY_SCHOOL_NAME.toLowerCase()) {
+      return <EmailVerificationGate />;
     }
 
     if (isAdminMode) {
