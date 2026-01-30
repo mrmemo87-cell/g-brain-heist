@@ -10,6 +10,7 @@ import {
 } from "../clanTerritoryTypes";
 import { calculateClanTerritoryResults } from "../clanTerritoryRewards";
 import { ClanTerritoryMap } from "./ClanTerritoryMap";
+import { audioService } from "../../../../services/audioService";
 
 interface ClanTerritoryTeacherViewProps {
   gameState: ClanTerritoryGameState;
@@ -247,6 +248,26 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
 
   const [warfeed, setWarfeed] = React.useState<WarEvent[]>([]);
   const previousState = React.useRef<ClanTerritoryGameState | null>(null);
+
+  // Start/stop music based on game phase
+  React.useEffect(() => {
+    if (gameState.phase === "ACTIVE") {
+      // Start background music when game becomes active
+      if (audioService.isAudioEnabled() && audioService.isBgMusicEnabled()) {
+        audioService.playBackgroundMusic();
+      }
+    } else if (gameState.phase === "ENDED" || gameState.phase === "LOBBY") {
+      // Stop music when game ends or returns to lobby
+      audioService.stopBackgroundMusic();
+    }
+
+    // Cleanup: stop music when component unmounts
+    return () => {
+      if (gameState.phase === "ACTIVE") {
+        audioService.stopBackgroundMusic();
+      }
+    };
+  }, [gameState.phase]);
 
   React.useEffect(() => {
     const prev = previousState.current;

@@ -11,6 +11,7 @@ import {
 } from "../clanTerritoryTypes";
 import { ClanTerritoryMap } from "./ClanTerritoryMap";
 import { calculateClanTerritoryResults } from "../clanTerritoryRewards";
+import { audioService } from "../../../../services/audioService";
 
 // Helper to get option text (handles both string and BattleQuestionOption formats)
 const getOptionText = (option: string | BattleQuestionOption): string => {
@@ -232,6 +233,26 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
     });
     return map;
   }, [clanList]);
+
+  // Start/stop music based on game phase
+  useEffect(() => {
+    if (gameState.phase === "ACTIVE") {
+      // Start background music when game becomes active
+      if (audioService.isAudioEnabled() && audioService.isBgMusicEnabled()) {
+        audioService.playBackgroundMusic();
+      }
+    } else if (gameState.phase === "ENDED" || gameState.phase === "LOBBY") {
+      // Stop music when game ends or returns to lobby
+      audioService.stopBackgroundMusic();
+    }
+
+    // Cleanup: stop music when component unmounts
+    return () => {
+      if (gameState.phase === "ACTIVE") {
+        audioService.stopBackgroundMusic();
+      }
+    };
+  }, [gameState.phase]);
 
   useEffect(() => {
     if (gameState.phase === "ENDED" && !rewardsClaimed && !claimingRewards && hydratedPlayer) {
