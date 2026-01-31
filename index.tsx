@@ -4,6 +4,8 @@ import BrainsLoader from './components/BrainsLoader';
 import App from './App';
 import LoginView from './components/LoginView';
 import FinishSetupModal from './components/FinishSetupModal';
+import EntryScreen from './components/onboarding/EntryScreen';
+import SetupWizard from './components/onboarding/SetupWizard';
 import IELTSApp from './components/ielts/IELTSApp';
 import IELTSLoginView from './components/ielts/IELTSLoginView';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -92,6 +94,8 @@ const Main: React.FC = () => {
   const [setupUsername, setSetupUsername] = useState<string | undefined>();
   const [initError, setInitError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [showEntryScreen, setShowEntryScreen] = useState(false);
+  const [selectedApp, setSelectedApp] = useState<'brains-heist' | 'ielts' | null>(null);
   const MAX_RETRIES = 3;
 
   // Check authentication and setup status with robust timeout handling
@@ -243,14 +247,32 @@ const Main: React.FC = () => {
     );
   }
 
+  // Entry screen for first-time visitors (before auth)
+  if (!isAuthenticated && showEntryScreen && !selectedApp) {
+    return (
+      <EntryScreen
+        onSelectBrainsHeist={() => {
+          setSelectedApp('brains-heist');
+          setShowEntryScreen(false);
+        }}
+        onSelectIELTS={() => {
+          setSelectedApp('ielts');
+          setShowEntryScreen(false);
+          // Redirect to IELTS app
+          window.location.href = '/ielts';
+        }}
+      />
+    );
+  }
+
   if (!isAuthenticated) {
     return <LoginView onLogin={handleLogin} />;
   }
 
-  // Show setup modal for OAuth users who haven't completed profile
+  // Show NEW setup wizard for users who need setup
   if (needsSetup) {
     return (
-      <FinishSetupModal 
+      <SetupWizard 
         onComplete={handleSetupComplete}
         onLogout={handleLogout}
         initialUsername={setupUsername}

@@ -7,7 +7,7 @@ import { useLightMode } from './src/contexts/LightModeContext';
 import PlayerProfileCard from './components/PlayerProfileCard';
 import TaskList from './components/TaskList';
 import MainActions from './components/MainActions';
-import JoinSchoolModal from './components/JoinSchoolModal';
+import JoinSchoolCard from './components/JoinSchoolCard';
 import NewsFeed from './components/NewsFeed';
 import CapTracker from './components/CapTracker';
 import Toast from './components/Toast';
@@ -1587,13 +1587,17 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                       }}
                       onOpenCambridgeTests={() => handleViewChange('cambridge')}
                       onOpenLockdown={() => handleViewChange('lockdown')}
-                      onJoinSchool={!hasSchool ? () => setShowJoinSchoolModal(true) : undefined}
+                      onJoinSchool={undefined}
                       profile={profile}
                       hasPendingAssignment={Boolean(activeAssignment)}
                       clanBadgeCount={pendingClanRequests}
                       schoolName={profile?.school_name}
                       schoolLogoUrl={profile?.school_logo_url}
                     />
+                    {/* Join School Card - replaces the annoying banner */}
+                    {!hasSchool && (
+                      <JoinSchoolCard onJoined={handleJoinSchoolSuccess} />
+                    )}
                     {renderTasksSection()}
                   </div>
 
@@ -1801,15 +1805,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         {/* Help Modal */}
         {showHelp && (
           <HelpModal onClose={() => setShowHelp(false)} />
-        )}
-
-        {profile && !profile.school_id && (
-          <JoinSchoolModal
-            isOpen={showJoinSchoolModal}
-            onClose={() => setShowJoinSchoolModal(false)}
-            role={profile.role === 'teacher' ? 'teacher' : 'student'}
-            onJoined={handleJoinSchoolSuccess}
-          />
         )}
 
         {/* Toast Notifications */}
