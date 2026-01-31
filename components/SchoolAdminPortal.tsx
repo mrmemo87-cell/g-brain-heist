@@ -457,26 +457,6 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
     addToast(`Subject "${subjectName}" deleted`, 'success');
     await loadAdminTools(school.id);
   };
-    if (currentClassId === selectedClassId) {
-      addToast('Student already enrolled in this class', 'error');
-      return;
-    }
-
-    setStudentSaving(true);
-    const result = await SchoolAdminService.moveStudentToClass(
-      classes.map((cls) => cls.id),
-      selectedStudentId,
-      selectedClassId
-    );
-    setStudentSaving(false);
-
-    if (result.success) {
-      addToast('Student enrollment updated', 'success');
-      await loadAdminTools(school.id);
-    } else {
-      addToast(result.error || 'Failed to update enrollment', 'error');
-    }
-  };
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Never';
