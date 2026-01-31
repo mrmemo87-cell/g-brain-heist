@@ -152,8 +152,20 @@ export const signup = async (
     }
     
     if (data.user) {
-        // Wait a moment for auth to propagate
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Ensure session is established by getting it explicitly
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !sessionData.session) {
+            console.error('Session not established:', sessionError);
+            // Wait longer and retry
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const { data: retrySession } = await supabase.auth.getSession();
+            if (!retrySession.session) {
+                throw new Error('Authentication session not established. Please try logging in.');
+            }
+        }
+        
+        console.log('Session established for user:', data.user.id);
         
         // If schoolId provided, use the profile_bootstrap RPC for proper multi-tenant setup
         if (schoolId) {

@@ -15,13 +15,19 @@ DECLARE
     v_user_email TEXT;
     v_existing_user RECORD;
 BEGIN
+    -- Log for debugging
+    RAISE NOTICE 'create_user_profile called with username: %, role: %, auth.uid: %', p_username, p_role, v_user_id;
+    
     -- Must be authenticated
     IF v_user_id IS NULL THEN
+        RAISE NOTICE 'Auth UID is NULL - user not authenticated';
         RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
     END IF;
 
     -- Get email from auth.users
     SELECT email INTO v_user_email FROM auth.users WHERE id = v_user_id;
+    
+    RAISE NOTICE 'Found email: % for user: %', v_user_email, v_user_id;
     
     IF v_user_email IS NULL THEN
         RETURN jsonb_build_object('success', false, 'error', 'User email not found');
@@ -36,6 +42,7 @@ BEGIN
     SELECT * INTO v_existing_user FROM users WHERE id = v_user_id;
     
     IF v_existing_user IS NOT NULL THEN
+        RAISE NOTICE 'Profile already exists for user: %', v_user_id;
         RETURN jsonb_build_object('success', false, 'error', 'Profile already exists');
     END IF;
 
@@ -62,6 +69,8 @@ BEGIN
         NOW()
     );
 
+    RAISE NOTICE 'Successfully created profile for user: %', v_user_id;
+
     RETURN jsonb_build_object(
         'success', true,
         'user_id', v_user_id,
@@ -69,6 +78,7 @@ BEGIN
     );
     
 EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'Error creating profile: %', SQLERRM;
     RETURN jsonb_build_object(
         'success', false,
         'error', SQLERRM
