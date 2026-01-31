@@ -174,54 +174,19 @@ export const signup = async (
             return { success: true };
         }
         
-        // Legacy fallback: Create user profile directly (for backwards compatibility)
-        const profileData: Record<string, unknown> = {
-            id: data.user.id,
-            email,
-            username,
-            role,
-            avatar_url: `https://picsum.photos/seed/${username}/100/100`,
-        };
-
-        // Only add batch for students
-        if (role === 'student') {
-            profileData['grade'] = grade ?? 6;
-            profileData['batch'] = batch;
-        } else {
-            profileData['grade'] = null;
-            profileData['batch'] = null;
-        }
+        // Use RPC function to create profile (bypasses RLS with SECURITY DEFINER)
+        const { data: rpcData, error: rpcError } = await supabase
+            .rpc('create_user_profile', {
+                p_username: username,
+                p_role: role
+            });
         
-        const { error: profileError } = await supabase
-            .from('users')
-            .insert(profileData);
-        
-        if (profileError) {
-            console.error('Profile creation error:', profileError);
-            throw new Error(`Failed to create user profile: ${profileError.message} (${profileError.code})`);
+        if (rpcError || !rpcData?.success) {
+            console.error('Profile creation error:', rpcError || rpcData);
+            throw new Error(rpcData?.error || rpcError?.message || 'Failed to create user profile');
         }
 
-        // If teacher, try to create teacher profile automatically
-        // Note: This requires the teacher_question_system.sql to be run first
-        if (role === 'teacher') {
-            try {
-                const { error: teacherError } = await createTeacherProfile({
-                    school_name: school ?? null,
-                    subject_specializations: [],
-                    bio: null
-                });
-
-                if (teacherError) {
-                    console.warn('Teacher profile will be created on first portal access:', teacherError.message);
-                    // Don't throw error - profile will be created when they open teacher portal
-                }
-            } catch (err) {
-                console.warn('Teacher profile setup pending - will be created on first portal access');
-                // Ignore - not critical for signup
-            }
-        }
-        
-        console.log('Signup successful:', data.user.email);
+        console.log('Signup successful with RPC:', data.user.email);
         return { success: true };
     }
     
