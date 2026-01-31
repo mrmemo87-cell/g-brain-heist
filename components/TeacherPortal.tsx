@@ -279,6 +279,16 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     return Array.from(batches).sort();
   }, [availableStudents]);
 
+  // Get unique subjects teacher is assigned to teach (from class assignments)
+  const teacherAssignedSubjects = useMemo(() => {
+    const subjects = new Set<string>();
+    assignedClasses.forEach(cls => {
+      if (cls.subject) subjects.add(cls.subject);
+    });
+    // Sort alphabetically
+    return Array.from(subjects).sort();
+  }, [assignedClasses]);
+
   // Get unique subjects from assignments for folder tabs
   const assignmentSubjects = useMemo(() => {
     const subjects = new Set<string>();
@@ -374,6 +384,19 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     
     initializePortal();
   }, []);
+
+  // Set default subject to first assigned subject when teacher has class assignments
+  useEffect(() => {
+    if (teacherAssignedSubjects.length > 0) {
+      // Only update if current subject is not in the assigned subjects list
+      if (!teacherAssignedSubjects.includes(subject)) {
+        setSubject(teacherAssignedSubjects[0] as Subject);
+      }
+      if (!teacherAssignedSubjects.includes(assignmentSubject)) {
+        setAssignmentSubject(teacherAssignedSubjects[0] as Subject);
+      }
+    }
+  }, [teacherAssignedSubjects]);
 
   useEffect(() => {
     setAssignmentQuestionIds([]);
@@ -2668,16 +2691,27 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 className="teacher-select"
                 required
               >
-                <option value="Maths">Maths</option>
-                <option value="Science">Science</option>
-                <option value="English">English</option>
-                <option value="Russian Language">Russian Language</option>
-                <option value="Kyrgyz Language">Kyrgyz Language</option>
-                <option value="German Language">German Language</option>
-                <option value="Geography">Geography</option>
-                <option value="Global Perspective">Global Perspective</option>
-                <option value="ICT">ICT</option>
+                {teacherAssignedSubjects.length > 0 ? (
+                  teacherAssignedSubjects.map(subj => (
+                    <option key={subj} value={subj}>{subj}</option>
+                  ))
+                ) : (
+                  <>
+                    <option value="Maths">Maths</option>
+                    <option value="Science">Science</option>
+                    <option value="English">English</option>
+                    <option value="Russian Language">Russian Language</option>
+                    <option value="Kyrgyz Language">Kyrgyz Language</option>
+                    <option value="German Language">German Language</option>
+                    <option value="Geography">Geography</option>
+                    <option value="Global Perspective">Global Perspective</option>
+                    <option value="ICT">ICT</option>
+                  </>
+                )}
               </select>
+              {teacherAssignedSubjects.length > 0 && (
+                <p className="text-xs text-slate-500 mt-1">Only subjects assigned to your classes</p>
+              )}
             </div>
 
             <div className="teacher-form-group">
@@ -3514,16 +3548,27 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 onChange={(e) => setAssignmentSubject(e.target.value as Subject)}
                 className="teacher-select-premium"
               >
-                <option value="Maths">Maths</option>
-                <option value="Science">Science</option>
-                <option value="English">English</option>
-                <option value="Russian Language">Russian Language</option>
-                <option value="Kyrgyz Language">Kyrgyz Language</option>
-                <option value="German Language">German Language</option>
-                <option value="Geography">Geography</option>
-                <option value="Global Perspective">Global Perspective</option>
-                <option value="ICT">ICT</option>
+                {teacherAssignedSubjects.length > 0 ? (
+                  teacherAssignedSubjects.map(subj => (
+                    <option key={subj} value={subj}>{subj}</option>
+                  ))
+                ) : (
+                  <>
+                    <option value="Maths">Maths</option>
+                    <option value="Science">Science</option>
+                    <option value="English">English</option>
+                    <option value="Russian Language">Russian Language</option>
+                    <option value="Kyrgyz Language">Kyrgyz Language</option>
+                    <option value="German Language">German Language</option>
+                    <option value="Geography">Geography</option>
+                    <option value="Global Perspective">Global Perspective</option>
+                    <option value="ICT">ICT</option>
+                  </>
+                )}
               </select>
+              {teacherAssignedSubjects.length > 0 && (
+                <p className="text-xs text-slate-500 mt-1">Only subjects assigned to your classes</p>
+              )}
             </div>
 
             <div className="teacher-form-group-premium">
@@ -5945,6 +5990,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 setEditingQuestion(null);
                 setView('create-question');
               }}
+              restrictedSubjects={teacherAssignedSubjects.length > 0 ? teacherAssignedSubjects : undefined}
             />
           )}
           {view === 'csv-upload' && renderCSVUpload()}

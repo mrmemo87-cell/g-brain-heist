@@ -34,6 +34,8 @@ interface QuestionBankProps {
   onDeleteQuestion?: (questionId: string) => void;
   onCreateQuestion?: () => void;
   useActionLabel?: string;
+  /** If provided, only show questions/sets with these subjects */
+  restrictedSubjects?: string[];
 }
 
 // ============================================================================
@@ -408,6 +410,7 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
   onDeleteQuestion,
   onCreateQuestion,
   useActionLabel = 'Host',
+  restrictedSubjects,
 }) => {
   // State
   const [activeTab, setActiveTab] = useState<TabFilter>('discover');
@@ -417,18 +420,26 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(new Set());
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
-  // Get unique subjects for filter
+  // Filter questions by restricted subjects if provided
+  const filteredQuestionsBySubject = useMemo(() => {
+    if (!restrictedSubjects || restrictedSubjects.length === 0) {
+      return questions;
+    }
+    return questions.filter(q => restrictedSubjects.includes(q.subject));
+  }, [questions, restrictedSubjects]);
+
+  // Get unique subjects for filter (respecting restricted subjects)
   const subjects = useMemo(() => {
     const subjectSet = new Set<Subject>();
-    questions.forEach(q => subjectSet.add(normalizeSubject(q.subject)));
+    filteredQuestionsBySubject.forEach(q => subjectSet.add(normalizeSubject(q.subject)));
     return Array.from(subjectSet).sort();
-  }, [questions]);
+  }, [filteredQuestionsBySubject]);
 
   // Group questions into virtual sets
   const questionSets = useMemo(() => {
     const setMap = new Map<string, QuestionSet>();
 
-    questions.forEach(question => {
+    filteredQuestionsBySubject.forEach(question => {
       const topic = question.topic_name || question.topic || 'General';
       const normalizedSubject = normalizeSubject(question.subject);
       const setId = `${normalizedSubject}_${topic}`;
