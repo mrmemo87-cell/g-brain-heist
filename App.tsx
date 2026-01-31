@@ -1774,6 +1774,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         {/* Tutorial Modal */}
         {showTutorial && (
           <TutorialModal
+            profile={profile}
             onComplete={() => {
               setShowTutorial(false);
               // Don't refetch data - tutorial already updated DB
