@@ -4,6 +4,9 @@ import { getAuthRedirectUrl, getEnvVar } from './env';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage';
 import type { Batch, Grade } from '../types';
 
+// Export supabase for use in components
+export { supabase };
+
 // ============================================
 // Multi-Tenant Types
 // ============================================
