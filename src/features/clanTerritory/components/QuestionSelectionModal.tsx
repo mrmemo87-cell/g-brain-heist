@@ -15,11 +15,13 @@ interface Question {
 interface QuestionSelectionModalProps {
   onConfirm: (questions: Question[]) => void;
   onCancel: () => void;
+  restrictedSubjects?: string[];
 }
 
 export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
   onConfirm,
   onCancel,
+  restrictedSubjects,
 }) => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -69,17 +71,33 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
         console.log("🔐 Current user:", user?.id, user?.email);
       }
 
-      setQuestions(data || []);
+      // Filter questions by restricted subjects if provided
+      let filteredData = data || [];
+      if (restrictedSubjects && restrictedSubjects.length > 0) {
+        filteredData = filteredData.filter((q: Question) => 
+          restrictedSubjects.some(s => s.toLowerCase() === q.subject?.toLowerCase())
+        );
+        console.log(`🔒 Filtered to ${filteredData.length} questions for subjects:`, restrictedSubjects);
+      }
       
-      // Extract unique subjects
-      const uniqueSubjects = [...new Set((data || []).map((q: Question) => q.subject).filter(Boolean))] as string[];
+      setQuestions(filteredData);
+      
+      // Extract unique subjects (only from filtered questions)
+      let uniqueSubjects = [...new Set(filteredData.map((q: Question) => q.subject).filter(Boolean))] as string[];
+      
+      // If restricted, ensure only those subjects appear
+      if (restrictedSubjects && restrictedSubjects.length > 0) {
+        uniqueSubjects = uniqueSubjects.filter(s => 
+          restrictedSubjects.some(rs => rs.toLowerCase() === s.toLowerCase())
+        );
+      }
       setSubjects(uniqueSubjects);
       
-      // Extract unique topics
-      const uniqueTopics = [...new Set((data || []).map((q: Question) => q.topic).filter(Boolean))] as string[];
+      // Extract unique topics from filtered questions
+      const uniqueTopics = [...new Set(filteredData.map((q: Question) => q.topic).filter(Boolean))] as string[];
       setTopics(uniqueTopics);
       
-      console.log(`✅ Loaded ${data?.length || 0} questions`);
+      console.log(`✅ Loaded ${filteredData.length} questions (filtered from ${data?.length || 0} total)`);
       console.log(`📚 Subjects:`, uniqueSubjects);
       console.log(`🏷️ Topics:`, uniqueTopics);
     } catch (error) {
