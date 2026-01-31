@@ -152,23 +152,23 @@ export const signup = async (
     }
     
     if (data.user) {
-        // Ensure session is established by getting it explicitly
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        console.log('User created:', data.user.id, 'Email:', data.user.email);
         
-        if (sessionError || !sessionData.session) {
-            console.error('Session not established:', sessionError);
-            // Wait longer and retry
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            const { data: retrySession } = await supabase.auth.getSession();
-            if (!retrySession.session) {
-                throw new Error('Authentication session not established. Please try logging in.');
-            }
-        }
+        // Profile will be created automatically by database trigger
+        // No need to call RPC or wait for session
         
-        console.log('Session established for user:', data.user.id);
-        
-        // If schoolId provided, use the profile_bootstrap RPC for proper multi-tenant setup
+        // If schoolId provided, we still need to use profile_bootstrap for school joining
         if (schoolId) {
+            // Wait for profile to be created by trigger
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            const { data: sessionData } = await supabase.auth.getSession();
+            if (!sessionData.session) {
+                // No session means email confirmation required
+                console.log('Email confirmation required. Profile created, but school join will happen after confirmation.');
+                return { success: true };
+            }
+            
             const bootstrapResult = await bootstrapProfile(
                 schoolId,
                 role,
@@ -179,26 +179,14 @@ export const signup = async (
             
             if (!bootstrapResult.success) {
                 console.error('Profile bootstrap failed:', bootstrapResult.error);
-                throw new Error(bootstrapResult.error || 'Failed to create user profile');
+                throw new Error(bootstrapResult.error || 'Failed to join school');
             }
             
-            console.log('Signup successful with multi-tenant bootstrap:', data.user.email);
+            console.log('Signup successful with school join:', data.user.email);
             return { success: true };
         }
         
-        // Use RPC function to create profile (bypasses RLS with SECURITY DEFINER)
-        const { data: rpcData, error: rpcError } = await supabase
-            .rpc('create_user_profile', {
-                p_username: username,
-                p_role: role
-            });
-        
-        if (rpcError || !rpcData?.success) {
-            console.error('Profile creation error:', rpcError || rpcData);
-            throw new Error(rpcData?.error || rpcError?.message || 'Failed to create user profile');
-        }
-
-        console.log('Signup successful with RPC:', data.user.email);
+        console.log('Signup successful, profile will be created automatically:', data.user.email);
         return { success: true };
     }
     
