@@ -435,13 +435,20 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       let batches = await fetchSchoolBatches();
       
       // Filter batches for teachers - only show their assigned classes
-      if (isTeacher && loadedAssignedClasses.length > 0) {
-        const assignedClassCodes = loadedAssignedClasses.map((cls) => cls.class_code);
-        batches = batches.filter((batch) => assignedClassCodes.includes(batch.batch));
-        console.log(`🔒 Teacher class filtering: showing ${batches.length} of total batches`, {
-          assignedClasses: assignedClassCodes,
-          filteredBatches: batches.map((b) => b.batch),
-        });
+      // If teacher has NO assignments, show empty list (not all classes)
+      if (isTeacher) {
+        if (loadedAssignedClasses.length > 0) {
+          const assignedClassCodes = loadedAssignedClasses.map((cls) => cls.class_code);
+          batches = batches.filter((batch) => assignedClassCodes.includes(batch.batch));
+          console.log(`🔒 Teacher class filtering: showing ${batches.length} of total batches`, {
+            assignedClasses: assignedClassCodes,
+            filteredBatches: batches.map((b) => b.batch),
+          });
+        } else {
+          // No assignments = no access to any classes
+          console.log(`⚠️ Teacher has no assigned classes - showing empty list`);
+          batches = [];
+        }
       }
       
       setAvailableBatches(batches);
@@ -859,11 +866,11 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
             onCancel={() => setShowQuestionSelection(false)}
             restrictedSubjects={isTeacher && loadedAssignedClasses.length > 0 
               ? [...new Set(loadedAssignedClasses.map(cls => cls.subject))] 
-              : undefined}
+              : []}
           />
         )}
-        <div className="fixed inset-0 flex items-center justify-center px-4 py-6 overflow-y-auto bg-slate-950/95">
-          <div className="w-full max-w-2xl max-h-[95vh] overflow-y-auto space-y-8">
+        <div className="min-h-screen bg-slate-950 flex items-start justify-center px-4 py-10 overflow-y-auto">
+          <div className="w-full max-w-2xl space-y-8">
           <div className="space-y-3 text-center">
             <button
               onClick={() => setMode('menu')}
@@ -1215,7 +1222,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
         <QuestionSelectionModal
           onConfirm={handleQuestionsSelected}
           onCancel={() => setShowQuestionSelection(false)}
-          restrictedSubjects={isTeacher && loadedAssignedClasses.length > 0 
+          restrictedSubjects={isTeacher 
             ? [...new Set(loadedAssignedClasses.map(cls => cls.subject))] 
             : undefined}
         />

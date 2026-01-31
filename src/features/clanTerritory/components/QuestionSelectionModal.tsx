@@ -73,11 +73,19 @@ export const QuestionSelectionModal: React.FC<QuestionSelectionModalProps> = ({
 
       // Filter questions by restricted subjects if provided
       let filteredData = data || [];
-      if (restrictedSubjects && restrictedSubjects.length > 0) {
-        filteredData = filteredData.filter((q: Question) => 
-          restrictedSubjects.some(s => s.toLowerCase() === q.subject?.toLowerCase())
-        );
-        console.log(`🔒 Filtered to ${filteredData.length} questions for subjects:`, restrictedSubjects);
+      
+      // If restrictedSubjects is defined (even if empty), apply filtering
+      // Empty array = teacher has no assignments = show nothing
+      if (restrictedSubjects !== undefined) {
+        if (restrictedSubjects.length === 0) {
+          console.log(`⚠️ No assigned subjects - showing empty question list`);
+          filteredData = [];
+        } else {
+          filteredData = filteredData.filter((q: Question) => 
+            restrictedSubjects.some(s => s.toLowerCase() === q.subject?.toLowerCase())
+          );
+          console.log(`🔒 Filtered to ${filteredData.length} questions for subjects:`, restrictedSubjects);
+        }
       }
       
       setQuestions(filteredData);

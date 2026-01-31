@@ -421,10 +421,17 @@ const QuestionBank: React.FC<QuestionBankProps> = ({
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
   // Filter questions by restricted subjects if provided
+  // If restrictedSubjects is empty array, teacher has no assignments = show nothing
   const filteredQuestionsBySubject = useMemo(() => {
-    if (!restrictedSubjects || restrictedSubjects.length === 0) {
+    // undefined = no restrictions (e.g., admin mode)
+    if (restrictedSubjects === undefined) {
       return questions;
     }
+    // empty array = teacher has no assignments = show nothing
+    if (restrictedSubjects.length === 0) {
+      return [];
+    }
+    // filter to only assigned subjects
     return questions.filter(q => restrictedSubjects.includes(q.subject));
   }, [questions, restrictedSubjects]);
 

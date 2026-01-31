@@ -5990,7 +5990,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 setEditingQuestion(null);
                 setView('create-question');
               }}
-              restrictedSubjects={teacherAssignedSubjects.length > 0 ? teacherAssignedSubjects : undefined}
+              restrictedSubjects={teacherHasClassAssignments ? teacherAssignedSubjects : []}
             />
           )}
           {view === 'csv-upload' && renderCSVUpload()}
