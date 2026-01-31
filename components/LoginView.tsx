@@ -52,7 +52,12 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     username.trim(),
                     'student' // Default, will be changed in SetupWizard
                 );
-                // Auth flow will redirect to SetupWizard automatically
+                // Show success and reload to trigger auth check
+                setSuccess('Account created! Loading your profile...');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+                return; // Don't set isLoading to false, keep loading state
             } else {
                 await onLogin(email.trim(), password);
             }
@@ -210,7 +215,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                         </button>
                     </form>
 
-                    {mode === 'login' && (
+                    {(mode === 'login' || mode === 'signup') && (
                         <>
                             <div className="relative my-6">
                                 <div className="absolute inset-0 flex items-center">
@@ -228,7 +233,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                 className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-md border-2 border-gray-600 hover:border-gray-500 text-white transition-all disabled:opacity-50"
                             >
                                 <GoogleIcon />
-                                {isGoogleLoading ? 'Loading...' : 'Sign in with Google'}
+                                {isGoogleLoading ? 'Loading...' : mode === 'signup' ? 'Sign up with Google' : 'Sign in with Google'}
                             </button>
                         </>
                     )}
