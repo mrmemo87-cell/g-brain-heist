@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
+import type { Profile } from '../types';
 
 interface TutorialStep {
   title: string;
@@ -11,45 +12,82 @@ interface TutorialStep {
 interface TutorialModalProps {
   onComplete: () => void;
   onSkip: () => void;
+  profile?: Profile | null;
 }
 
-const TUTORIAL_STEPS: TutorialStep[] = [
-  {
-    title: 'Welcome to G-Brains Heist!',
-    description: 'Complete quests to earn XP and level up your hacker skills. Each quest tests your knowledge and rewards you with coins.',
-    action: 'Try completing a quest from the main dashboard',
-    icon: '📚',
-  },
-  {
-    title: 'Upgrade Your Arsenal',
-    description: 'Visit the shop to buy powerful items like encryption keys, shields, and exploit kits. These items give you an edge in battles.',
-    action: 'Purchase an item from the shop',
-    icon: '🛒',
-  },
-  {
-    title: 'Challenge Your Rivals',
-    description: 'Test your skills in PvP battles! Hack rivals to steal their coins. Use shields to defend and exploit kits to attack.',
-    action: 'Try a PvP attack (requires 5 AP)',
-    icon: '⚔️',
-  },
-  {
-    title: "You're Ready!",
-    description: 'Join a clan, complete daily tasks, unlock achievements, and climb the leaderboards. Good luck, hacker!',
-    action: 'Start your journey',
-    icon: '🚀',
-  },
-];
+const buildTutorialSteps = (profile?: Profile | null): TutorialStep[] => {
+  const displayName = profile?.full_name ?? profile?.username ?? 'there';
+  const schoolName = profile?.school_name ?? 'your school';
+  const isTeacher = profile?.role === 'teacher' || profile?.role === 'admin';
 
-const TutorialModal: React.FC<TutorialModalProps> = ({ onComplete, onSkip }) => {
+  if (isTeacher) {
+    return [
+      {
+        title: `Welcome, ${displayName}!`,
+        description: `Thanks for joining ${schoolName}. Your educator workspace is ready to go — let’s set you up for an amazing first day.`,
+        action: 'Head to the educator dashboard to explore your tools',
+        icon: '🍎',
+      },
+      {
+        title: 'Build your first assignment',
+        description: 'Use the Question Bank to craft curriculum-aligned quizzes and instantly assign them to your classes.',
+        action: 'Open Question Bank and draft an assignment',
+        icon: '📝',
+      },
+      {
+        title: 'See student progress in real time',
+        description: 'Review responses, spot learning gaps fast, and celebrate wins with your students.',
+        action: 'Check Reports or My Responses for early insights',
+        icon: '📊',
+      },
+      {
+        title: 'Grow your classroom',
+        description: 'Invite students, organize groups, and keep everything in one focused hub built for teachers.',
+        action: 'Add a class or share your invite code',
+        icon: '🤝',
+      },
+    ];
+  }
+
+  return [
+    {
+      title: `Welcome, ${displayName}!`,
+      description: `We’re excited to have you at ${schoolName}. Your learning journey starts now — we’ll help you rack up wins fast.`,
+      action: 'Start on the main dashboard and pick a quest',
+      icon: '🎒',
+    },
+    {
+      title: 'Complete your first quest',
+      description: 'Quests boost your XP and help you level up. Each one is built to sharpen your skills.',
+      action: 'Finish a quest from the dashboard',
+      icon: '📚',
+    },
+    {
+      title: 'Stay on top of assignments',
+      description: 'Check your assignments tab to see what your teacher has queued up for you.',
+      action: 'Open Assignments to view what’s due',
+      icon: '✅',
+    },
+    {
+      title: 'Track your growth',
+      description: 'Watch your streak, XP, and achievements climb as you keep showing up.',
+      action: 'Visit your profile to see your progress',
+      icon: '🚀',
+    },
+  ];
+};
+
+const TutorialModal: React.FC<TutorialModalProps> = ({ onComplete, onSkip, profile }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [fadeIn, setFadeIn] = useState(false);
+  const tutorialSteps = useMemo(() => buildTutorialSteps(profile), [profile]);
 
   useEffect(() => {
     setFadeIn(true);
   }, [currentStep]);
 
   const handleNext = () => {
-    if (currentStep < TUTORIAL_STEPS.length - 1) {
+    if (currentStep < tutorialSteps.length - 1) {
       setFadeIn(false);
       setTimeout(() => {
         setCurrentStep(currentStep + 1);
@@ -75,8 +113,8 @@ const TutorialModal: React.FC<TutorialModalProps> = ({ onComplete, onSkip }) => 
     onComplete();
   };
 
-  const step = TUTORIAL_STEPS[currentStep];
-  const progress = ((currentStep + 1) / TUTORIAL_STEPS.length) * 100;
+  const step = tutorialSteps[currentStep];
+  const progress = ((currentStep + 1) / tutorialSteps.length) * 100;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
@@ -89,7 +127,7 @@ const TutorialModal: React.FC<TutorialModalProps> = ({ onComplete, onSkip }) => 
         <div className="mb-6">
           <div className="flex justify-between text-sm text-gray-400 mb-2">
             <span>Tutorial Progress</span>
-            <span>Step {currentStep + 1} of {TUTORIAL_STEPS.length}</span>
+            <span>Step {currentStep + 1} of {tutorialSteps.length}</span>
           </div>
           <div className="h-2 bg-black/50 rounded-full overflow-hidden">
             <div 
@@ -136,7 +174,7 @@ const TutorialModal: React.FC<TutorialModalProps> = ({ onComplete, onSkip }) => 
               currentStep === 0 ? 'flex-1' : 'w-full'
             }`}
           >
-            {currentStep < TUTORIAL_STEPS.length - 1 ? 'Next' : "Let's Go!"}
+            {currentStep < tutorialSteps.length - 1 ? 'Next' : "Let's Go!"}
           </button>
         </div>
       </div>
