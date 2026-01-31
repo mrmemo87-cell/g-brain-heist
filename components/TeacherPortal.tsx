@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, TeacherAssignmentSummary, TeacherAssignmentReportRow, AssignmentBatch, StudentForAssignment, QuestionOption, StudentAssignmentAnswer, AssignmentQuestionAnalysis } from '../types';
 import * as GameService from '../services/gameService';
 import * as AuthService from '../services/authService';
+import * as SchoolAdminService from '../services/schoolAdminService';
 import { supabase } from '../services/supabaseClient';
 import BackButton from './BackButton';
 import DiagramBuilder from './geometry/DiagramBuilder';
@@ -68,6 +69,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [questionTopicFilter, setQuestionTopicFilter] = useState<string>('all');
   const [questionDifficultyFilter, setQuestionDifficultyFilter] = useState<'all' | QuestionDifficulty>('all');
   const [questionTypeFilter, setQuestionTypeFilter] = useState<'all' | 'multiple_choice' | 'true_false' | 'short_answer'>('all');
+
+  // Teacher class assignments state
+  const [assignedClasses, setAssignedClasses] = useState<SchoolAdminService.TeacherAssignedClass[]>([]);
+  const [teacherHasClassAssignments, setTeacherHasClassAssignments] = useState(false);
+  const [selectedClassFilter, setSelectedClassFilter] = useState<string>('all');
 
   // Question form state
   const [questionText, setQuestionText] = useState('');
@@ -1830,6 +1836,18 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         setTeacher(teacherProfile);
       }
 
+      // Load teacher's assigned classes
+      try {
+        const classes = await SchoolAdminService.getTeacherAssignedClasses(profile.id);
+        setAssignedClasses(classes);
+        setTeacherHasClassAssignments(classes.length > 0);
+        console.log('Loaded assigned classes:', classes);
+      } catch (classError) {
+        console.error('Error loading assigned classes:', classError);
+        setAssignedClasses([]);
+        setTeacherHasClassAssignments(false);
+      }
+
       // Load ALL questions from global bank (not just teacher's own)
       // Content = shared: Teachers see all questions from all schools
       const allQuestions = await GameService.get_all_questions();
@@ -3389,6 +3407,13 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           {assignmentMode === 'custom' && (
             <div className="teacher-form-group-premium">
               <label className="teacher-label-premium">Select Students</label>
+              
+              {teacherHasClassAssignments && (
+                <div className="mb-3 rounded-lg border border-cyan-400/30 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-100">
+                  ✓ Showing only students from your {assignedClasses.length} assigned class{assignedClasses.length !== 1 ? 'es' : ''}
+                </div>
+              )}
+              
               <div className="teacher-student-selector">
                 <div className="teacher-student-selector-header">
                   <span className="teacher-student-selector-title">
@@ -4089,6 +4114,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         <details open className="rounded-xl border border-slate-200 bg-slate-50/40">
           <summary className="cursor-pointer px-3 py-2 text-sm font-semibold text-slate-700">Classes</summary>
           <div className="px-3 pb-3">
+            {teacherHasClassAssignments && (
+              <p className="text-xs text-slate-500 mb-2">
+                ✓ Showing only students from your {assignedClasses.length} assigned class{assignedClasses.length !== 1 ? 'es' : ''}
+              </p>
+            )}
             <select
               value={cambridgeClassFilter}
               onChange={(event) => setCambridgeClassFilter(event.target.value)}
@@ -5813,6 +5843,38 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               <p className="teacher-header-subtitle">
                 Welcome back, <strong>{profile.username}</strong>. Review student progress, craft assignments, and keep your question bank organised — all in one focused hub.
               </p>
+              
+              {/* Display Assigned Classes */}
+              {teacherHasClassAssignments && assignedClasses.length > 0 && (
+                <div className="mt-3 rounded-lg border border-white/20 bg-white/5 px-4 py-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-cyan-400 font-semibold text-sm">📚 Your Assigned Classes ({assignedClasses.length})</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {assignedClasses.slice(0, 6).map((cls, index) => (
+                      <div key={index} className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/20 border border-cyan-400/30 px-3 py-1 text-xs">
+                        <span className="font-semibold text-cyan-100">{cls.class_code}</span>
+                        <span className="text-cyan-200/70">•</span>
+                        <span className="text-cyan-200/90">{cls.subject}</span>
+                      </div>
+                    ))}
+                    {assignedClasses.length > 6 && (
+                      <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs text-white/70">
+                        +{assignedClasses.length - 6} more
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {!teacherHasClassAssignments && (
+                <div className="mt-3 rounded-lg border border-amber-400/30 bg-amber-500/10 px-4 py-3">
+                  <p className="text-sm text-amber-200">
+                    ⚠️ No classes assigned yet. Contact your school admin to assign you to classes.
+                  </p>
+                </div>
+              )}
+
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1">
                   <img

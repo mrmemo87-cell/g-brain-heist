@@ -75,6 +75,36 @@ export interface ClassStudentAssignment {
   student_id: string;
 }
 
+export interface TeacherAssignedClass {
+  class_id: string;
+  class_code: string;
+  class_name: string;
+  grade_level: number | null;
+  subject: string;
+  is_active: boolean;
+  school_id: string;
+  school_name: string;
+}
+
+export interface TeacherProfileWithClasses {
+  success: boolean;
+  profile: {
+    user_id: string;
+    username: string;
+    email: string;
+    role: string;
+    avatar_url: string | null;
+    school_id: string | null;
+  };
+  assigned_classes: TeacherAssignedClass[];
+  school: {
+    id: string;
+    name: string;
+    logo_url: string | null;
+  } | null;
+  total_classes: number;
+}
+
 function getSettingBool(settings: Record<string, any> | null | undefined, key: string, defaultValue: boolean) {
   const raw = settings?.[key];
   if (typeof raw === 'boolean') return raw;
@@ -799,5 +829,115 @@ export async function moveStudentToClass(
   } catch (err) {
     console.error('Exception moving student:', err);
     return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+// ============================================
+// Teacher Class Access Functions
+// ============================================
+
+/**
+ * Get teacher's assigned classes
+ */
+export async function getTeacherAssignedClasses(teacherUserId?: string): Promise<TeacherAssignedClass[]> {
+  try {
+    const { data, error } = await supabase.rpc('get_teacher_assigned_classes', {
+      p_teacher_user_id: teacherUserId || null,
+    });
+
+    if (error) {
+      console.error('Error fetching teacher assigned classes:', error);
+      return [];
+    }
+
+    return (data || []).map((row: any) => ({
+      class_id: row.class_id,
+      class_code: row.class_code,
+      class_name: row.class_name,
+      grade_level: row.grade_level ?? null,
+      subject: row.subject,
+      is_active: !!row.is_active,
+      school_id: row.school_id,
+      school_name: row.school_name,
+    }));
+  } catch (err) {
+    console.error('Exception fetching teacher assigned classes:', err);
+    return [];
+  }
+}
+
+/**
+ * Get teacher profile with assigned classes
+ */
+export async function getTeacherProfileWithClasses(teacherUserId?: string): Promise<TeacherProfileWithClasses | null> {
+  try {
+    const { data, error } = await supabase.rpc('get_teacher_profile_with_classes', {
+      p_teacher_user_id: teacherUserId || null,
+    });
+
+    if (error) {
+      console.error('Error fetching teacher profile with classes:', error);
+      return null;
+    }
+
+    if (!data || !data.success) {
+      return null;
+    }
+
+    return data as TeacherProfileWithClasses;
+  } catch (err) {
+    console.error('Exception fetching teacher profile with classes:', err);
+    return null;
+  }
+}
+
+/**
+ * Check if teacher has access to a specific class
+ */
+export async function teacherHasClassAccess(teacherUserId: string, classId: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.rpc('teacher_has_class_access', {
+      p_teacher_user_id: teacherUserId,
+      p_class_id: classId,
+    });
+
+    if (error) {
+      console.error('Error checking teacher class access:', error);
+      return false;
+    }
+
+    return !!data;
+  } catch (err) {
+    console.error('Exception checking teacher class access:', err);
+    return false;
+  }
+}
+
+/**
+ * Get classes available for teacher (for dropdown filtering)
+ */
+export async function filterClassesForTeacher(teacherUserId?: string, schoolId?: string): Promise<SchoolClass[]> {
+  try {
+    const { data, error } = await supabase.rpc('filter_classes_for_teacher', {
+      p_teacher_user_id: teacherUserId || null,
+      p_school_id: schoolId || null,
+    });
+
+    if (error) {
+      console.error('Error filtering classes for teacher:', error);
+      return [];
+    }
+
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      school_id: schoolId || '',
+      class_code: row.class_code,
+      class_name: row.class_name,
+      grade_level: row.grade_level ?? null,
+      is_active: true,
+    }));
+  } catch (err) {
+    console.error('Exception filtering classes for teacher:', err);
+    return [];
   }
 }
