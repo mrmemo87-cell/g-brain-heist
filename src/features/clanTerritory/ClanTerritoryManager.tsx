@@ -9,6 +9,7 @@ import { INITIAL_STATE } from "./clanTerritoryEngine";
 import { supabase } from "../../../services/supabaseClient";
 import { audioService } from "../../../services/audioService";
 import { fetchSchoolBatches, type SchoolBatchInfo } from "../../../services/competitionService";
+import * as SchoolAdminService from "../../../services/schoolAdminService";
 
 interface ClanTerritoryManagerProps {
   onExit: () => void;
@@ -18,6 +19,7 @@ interface ClanTerritoryManagerProps {
   clanName?: string | null;
   onRefreshProfile?: () => Promise<void>;
   onGoToClan?: () => void;
+  assignedClasses?: SchoolAdminService.TeacherAssignedClass[];
 }
 
 const CLANLESS_CLAN_ID_PREFIX = "clanless-agent";
@@ -25,6 +27,15 @@ const CLANLESS_CLAN_LABEL = "Independent Agents";
 const CLANLESS_CLAN_NAME = "Independent Agent";
 const AUTO_START_DELAY_MS = 2 * 60 * 1000;
 const FINISHED_ARENA_TTL_MS = 24 * 60 * 60 * 1000;
+
+// Map configuration with zone/territory counts
+const MAP_ZONE_CONFIG: Record<string, number> = {
+  default: 8,
+  city: 10,
+  kyrgyzstan: 7,
+  unitedkingdom: 16,
+  usa: 51,
+};
 
 type DiscoveredRoom = {
   id: string;
@@ -96,6 +107,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   clanName,
   onRefreshProfile,
   onGoToClan,
+  assignedClasses = [],
 }) => {
   const [transport] = useState(() => new SupabaseClanTerritoryTransport());
   const [gameState, setGameState] = useState<ClanTerritoryGameState>(INITIAL_STATE);
@@ -131,6 +143,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const [teacherUserId, setTeacherUserId] = useState<string | null>(null);
   const [storedHostRooms, setStoredHostRooms] = useState<StoredHostRoom[]>([]);
+  const [loadedAssignedClasses, setLoadedAssignedClasses] = useState<SchoolAdminService.TeacherAssignedClass[]>(assignedClasses || []);
   const previousBgMusicEnabled = useRef<boolean | null>(null);
   const discoveredRoomsRef = useRef<Record<string, DiscoveredRoom>>({});
   const autoStartTriggeredRef = useRef(false);
@@ -164,6 +177,25 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
     loadTeacherId();
   }, [isTeacher]);
+
+  // Load teacher's assigned classes if not provided
+  useEffect(() => {
+    if (!isTeacher || (assignedClasses && assignedClasses.length > 0)) return;
+
+    const loadAssignedClasses = async () => {
+      try {
+        console.log("📚 Loading teacher assigned classes...");
+        const classes = await SchoolAdminService.getTeacherAssignedClasses();
+        setLoadedAssignedClasses(classes);
+        console.log("✅ Loaded assigned classes:", classes);
+      } catch (error) {
+        console.warn("Failed to load assigned classes:", error);
+        setLoadedAssignedClasses([]);
+      }
+    };
+
+    loadAssignedClasses();
+  }, [isTeacher, assignedClasses]);
 
   const pruneExpiredHostRooms = useCallback((rooms: StoredHostRoom[]) => {
     const now = Date.now();
@@ -400,7 +432,18 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     if (!isTeacher) return;
 
     const loadBatches = async () => {
-      const batches = await fetchSchoolBatches();
+      let batches = await fetchSchoolBatches();
+      
+      // Filter batches for teachers - only show their assigned classes
+      if (isTeacher && loadedAssignedClasses.length > 0) {
+        const assignedClassCodes = loadedAssignedClasses.map((cls) => cls.class_code);
+        batches = batches.filter((batch) => assignedClassCodes.includes(batch.batch));
+        console.log(`🔒 Teacher class filtering: showing ${batches.length} of total batches`, {
+          assignedClasses: assignedClassCodes,
+          filteredBatches: batches.map((b) => b.batch),
+        });
+      }
+      
       setAvailableBatches(batches);
 
       if (!selectedBatch) {
@@ -413,7 +456,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     };
 
     loadBatches();
-  }, [isTeacher, selectedBatch, studentBatch]);
+  }, [isTeacher, selectedBatch, studentBatch, loadedAssignedClasses]);
 
   useEffect(() => {
     // Reactive update: whenever props change, update the resolved clan data
@@ -1032,7 +1075,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                 </div>
                 <div className="bg-slate-800/50 rounded-lg p-3">
                   <p className="text-gray-400 text-xs mb-1">Total Zones</p>
-                  <p className="text-white font-bold">8 territories</p>
+                  <p className="text-white font-bold">{MAP_ZONE_CONFIG[selectedMap] || 8} territories</p>
                 </div>
                 <div className="bg-slate-800/50 rounded-lg p-3">
                   <p className="text-gray-400 text-xs mb-1">Access</p>
