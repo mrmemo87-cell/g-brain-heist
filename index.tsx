@@ -6,6 +6,7 @@ import LoginView from './components/LoginView';
 import FinishSetupModal from './components/FinishSetupModal';
 import EntryScreen from './components/onboarding/EntryScreen';
 import SetupWizard from './components/onboarding/SetupWizard';
+import EmailVerificationScreen from './components/EmailVerificationScreen';
 import IELTSApp from './components/ielts/IELTSApp';
 import IELTSLoginView from './components/ielts/IELTSLoginView';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -96,6 +97,8 @@ const Main: React.FC = () => {
   const [retryCount, setRetryCount] = useState(0);
   const [showEntryScreen, setShowEntryScreen] = useState(false);
   const [selectedApp, setSelectedApp] = useState<'brains-heist' | 'ielts' | null>(null);
+  const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | undefined>();
   const MAX_RETRIES = 3;
 
   // Check authentication and setup status with robust timeout handling
@@ -126,21 +129,40 @@ const Main: React.FC = () => {
       setIsAuthenticated(!!session);
       
       if (session) {
-        // Check if user needs to complete profile setup - use short timeout
+        // Check email verification status first
         try {
-          const status = await withTimeout(AuthService.checkUserSetupStatus(), 3000, 'check_user_setup_status');
-          setNeedsSetup(status.needs_setup);
-          if (status.has_username) {
-            setSetupUsername(status.username);
+          const verificationStatus = await AuthService.checkEmailVerification();
+          setUserEmail(verificationStatus.email);
+          
+          if (!verificationStatus.isVerified) {
+            console.log('Email not verified, showing verification screen');
+            setNeedsEmailVerification(true);
+            setNeedsSetup(false);
+          } else {
+            setNeedsEmailVerification(false);
+            
+            // Check if user needs to complete profile setup - use short timeout
+            try {
+              const status = await withTimeout(AuthService.checkUserSetupStatus(), 3000, 'check_user_setup_status');
+              setNeedsSetup(status.needs_setup);
+              if (status.has_username) {
+                setSetupUsername(status.username);
+              }
+            } catch (setupErr) {
+              // If setup check fails but we have a valid session, DON'T assume needs setup
+              // Instead, let them proceed and the app will handle missing data gracefully
+              console.warn('Setup check failed, proceeding with session:', setupErr);
+              setNeedsSetup(false); // Changed: Don't force setup on timeout
+            }
           }
-        } catch (setupErr) {
-          // If setup check fails but we have a valid session, DON'T assume needs setup
-          // Instead, let them proceed and the app will handle missing data gracefully
-          console.warn('Setup check failed, proceeding with session:', setupErr);
-          setNeedsSetup(false); // Changed: Don't force setup on timeout
+        } catch (verifyErr) {
+          console.error('Email verification check failed:', verifyErr);
+          // If check fails, proceed without blocking
+          setNeedsEmailVerification(false);
         }
       } else {
         setNeedsSetup(false);
+        setNeedsEmailVerification(false);
       }
       setRetryCount(0); // Reset on success
     } catch (err) {
@@ -172,18 +194,34 @@ const Main: React.FC = () => {
         setIsAuthenticated(!!session);
 
         if (session) {
-          // Setup check happens in background - don't block UI
-          setNeedsSetup(false); // Default to no setup required
-          AuthService.checkUserSetupStatus().then(status => {
-            setNeedsSetup(status.needs_setup);
-            if (status.has_username) {
-              setSetupUsername(status.username);
+          // Check email verification first
+          AuthService.checkEmailVerification().then(verificationStatus => {
+            setUserEmail(verificationStatus.email);
+            
+            if (!verificationStatus.isVerified) {
+              setNeedsEmailVerification(true);
+              setNeedsSetup(false);
+            } else {
+              setNeedsEmailVerification(false);
+              
+              // Setup check happens in background - don't block UI
+              setNeedsSetup(false); // Default to no setup required
+              AuthService.checkUserSetupStatus().then(status => {
+                setNeedsSetup(status.needs_setup);
+                if (status.has_username) {
+                  setSetupUsername(status.username);
+                }
+              }).catch(() => {
+                // Silently fail - user can proceed without setup check
+              });
             }
           }).catch(() => {
-            // Silently fail - user can proceed without setup check
+            // If verification check fails, proceed without blocking
+            setNeedsEmailVerification(false);
           });
         } else {
           setNeedsSetup(false);
+          setNeedsEmailVerification(false);
         }
       } catch (err) {
         console.error('Auth state change check failed:', err);
@@ -267,6 +305,20 @@ const Main: React.FC = () => {
 
   if (!isAuthenticated) {
     return <LoginView onLogin={handleLogin} />;
+  }
+
+  // Show email verification screen if email is not verified
+  if (isAuthenticated && needsEmailVerification && userEmail) {
+    return (
+      <EmailVerificationScreen
+        email={userEmail}
+        onVerified={() => {
+          setNeedsEmailVerification(false);
+          // Trigger auth check to continue to setup or app
+          checkAuthAndSetup();
+        }}
+      />
+    );
   }
 
   // Show NEW setup wizard for users who need setup

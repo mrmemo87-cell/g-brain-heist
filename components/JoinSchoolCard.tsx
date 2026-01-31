@@ -27,6 +27,14 @@ const JoinSchoolCard: React.FC<JoinSchoolCardProps> = ({ onJoined }) => {
     setError(null);
 
     try {
+      // Check email verification first
+      const verificationStatus = await AuthService.checkEmailVerification();
+      if (!verificationStatus.isVerified) {
+        setError('Please verify your email before joining a school. Check your inbox for the verification link.');
+        setIsLoading(false);
+        return;
+      }
+
       // Validate the code first
       const validateResult = await AuthService.validateInviteCode(inviteCodeNormalized);
       

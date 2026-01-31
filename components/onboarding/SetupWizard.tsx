@@ -85,6 +85,14 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onLogout, initial
     setError(null);
 
     try {
+      // Check email verification before allowing school join
+      const verificationStatus = await AuthService.checkEmailVerification();
+      if (!verificationStatus.isVerified) {
+        setError('Please verify your email before joining a school. Check your inbox for the verification link.');
+        setIsLoading(false);
+        return;
+      }
+
       const result = await AuthService.validateInviteCode(inviteCodeNormalized);
       
       if (!result.valid) {

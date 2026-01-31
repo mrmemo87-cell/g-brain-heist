@@ -202,6 +202,31 @@ export const logout = async (): Promise<void> => {
     }
 };
 
+/**
+ * Check if the current user's email is verified
+ * @returns {Promise<{isVerified: boolean, email: string | undefined}>}
+ */
+export const checkEmailVerification = async (): Promise<{
+    isVerified: boolean;
+    email: string | undefined;
+    user: any;
+}> => {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    
+    if (error || !user) {
+        return { isVerified: false, email: undefined, user: null };
+    }
+
+    // Check if email_confirmed_at exists and is not null
+    const isVerified = !!user.email_confirmed_at;
+    
+    return {
+        isVerified,
+        email: user.email,
+        user,
+    };
+};
+
 export const loginWithGoogle = async (): Promise<void> => {
     const redirectTo = getAuthRedirectUrl();
 

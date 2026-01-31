@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, TeacherAssignmentSummary, TeacherAssignmentReportRow, AssignmentBatch, StudentForAssignment, QuestionOption, StudentAssignmentAnswer, AssignmentQuestionAnalysis } from '../types';
 import * as GameService from '../services/gameService';
+import * as AuthService from '../services/authService';
 import { supabase } from '../services/supabaseClient';
 import BackButton from './BackButton';
 import DiagramBuilder from './geometry/DiagramBuilder';
@@ -351,7 +352,21 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   };
 
   useEffect(() => {
-    loadTeacherData();
+    // Check email verification before loading teacher data
+    const initializePortal = async () => {
+      try {
+        const verificationStatus = await AuthService.checkEmailVerification();
+        if (!verificationStatus.isVerified) {
+          console.warn('Email not verified in TeacherPortal');
+          // Don't block here - let parent component handle verification screen
+        }
+      } catch (err) {
+        console.error('Verification check failed:', err);
+      }
+      loadTeacherData();
+    };
+    
+    initializePortal();
   }, []);
 
   useEffect(() => {
