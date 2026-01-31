@@ -86,6 +86,16 @@ export interface TeacherAssignedClass {
   school_name: string;
 }
 
+export interface SchoolSubject {
+  id: string;
+  school_id: string;
+  name: string;
+  code: string | null;
+  is_active: boolean;
+  created_at: string;
+  created_by: string | null;
+}
+
 export interface TeacherProfileWithClasses {
   success: boolean;
   profile: {
@@ -939,5 +949,202 @@ export async function filterClassesForTeacher(teacherUserId?: string, schoolId?:
   } catch (err) {
     console.error('Exception filtering classes for teacher:', err);
     return [];
+  }
+}
+
+// ============================================
+// School Subjects Management
+// ============================================
+
+/**
+ * List all active subjects for a school
+ */
+export async function listSchoolSubjects(schoolId: string): Promise<SchoolSubject[]> {
+  try {
+    const { data, error } = await supabase
+      .from('school_subjects')
+      .select('*')
+      .eq('school_id', schoolId)
+      .eq('is_active', true)
+      .order('name', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching school subjects:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (err) {
+    console.error('Exception fetching school subjects:', err);
+    return [];
+  }
+}
+
+/**
+ * Create a new subject
+ */
+export async function createSchoolSubject(
+  schoolId: string,
+  name: string,
+  code?: string
+): Promise<{ success: boolean; error?: string; subject?: SchoolSubject }> {
+  try {
+    const { data: user } = await supabase.auth.getUser();
+    
+    const { data, error } = await supabase
+      .from('school_subjects')
+      .insert({
+        school_id: schoolId,
+        name: name.trim(),
+        code: code?.trim() || null,
+        is_active: true,
+        created_by: user.user?.id || null,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating subject:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, subject: data };
+  } catch (err) {
+    console.error('Exception creating subject:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Update a subject
+ */
+export async function updateSchoolSubject(
+  subjectId: string,
+  updates: { name?: string; code?: string; is_active?: boolean }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase
+      .from('school_subjects')
+      .update(updates)
+      .eq('id', subjectId);
+
+    if (error) {
+      console.error('Error updating subject:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error('Exception updating subject:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Delete (soft delete) a subject
+ */
+export async function deleteSchoolSubject(subjectId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Soft delete by setting is_active = false
+    const { error } = await supabase
+      .from('school_subjects')
+      .update({ is_active: false })
+      .eq('id', subjectId);
+
+    if (error) {
+      console.error('Error deleting subject:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error('Exception deleting subject:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * List members via new RPC (with search)
+ */
+export async function listMembersViaRPC(search?: string): Promise<Array<{
+  user_id: string;
+  username: string;
+  email: string;
+  role_in_school: string;
+  status: string;
+  batch: string | null;
+}>> {
+  try {
+    const { data, error } = await supabase.rpc('school_admin_list_members', {
+      p_search: search || null,
+    });
+
+    if (error) {
+      console.error('Error listing members via RPC:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (err) {
+    console.error('Exception listing members via RPC:', err);
+    return [];
+  }
+}
+
+/**
+ * Set member role via RPC (student/teacher)
+ */
+export async function setMemberRoleViaRPC(
+  memberUserId: string,
+  newRole: 'student' | 'teacher'
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { data, error } = await supabase.rpc('school_admin_set_member_role', {
+      p_member_user_id: memberUserId,
+      p_new_role: newRole,
+    });
+
+    if (error) {
+      console.error('Error setting member role via RPC:', error);
+      return { success: false, error: error.message };
+    }
+
+    if (data && typeof data === 'object' && 'success' in data) {
+      return data as { success: boolean; error?: string };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error('Exception setting member role via RPC:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Move student to class via RPC
+ */
+export async function moveStudentToClassViaRPC(
+  studentId: string,
+  classId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { data, error } = await supabase.rpc('school_admin_move_student_to_class', {
+      p_student_id: studentId,
+      p_class_id: classId,
+    });
+
+    if (error) {
+      console.error('Error moving student via RPC:', error);
+      return { success: false, error: error.message };
+    }
+
+    if (data && typeof data === 'object' && 'success' in data) {
+      return data as { success: boolean; error?: string };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error('Exception moving student via RPC:', err);
+    return { success: false, error: 'An unexpected error occurred' };
   }
 }
