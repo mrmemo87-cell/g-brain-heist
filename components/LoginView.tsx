@@ -34,41 +34,30 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
         try {
             if (mode === 'reset') {
                 await AuthService.sendPasswordResetEmail(email);
-                setSuccess('Password reset email sent! ⚠️ Note: In development, check your Supabase dashboard Email Templates or configure SMTP for real emails.');
-                console.log('Password reset requested for:', email);
-                console.log('📧 IMPORTANT: Configure SMTP in Supabase Dashboard → Settings → Auth → SMTP Settings to receive actual emails');
+                setSuccess('Password reset email sent!');
                 setMode('login');
             } else if (mode === 'signup') {
                 if (!username.trim()) {
-                    setError('Pick a codename so other agents can recognize you.');
+                    setError('Pick a codename!');
                     return;
                 }
-
                 if (!email.trim()) {
-                    setError('Enter a valid email to receive mission updates.');
+                    setError('Enter your email');
                     return;
                 }
-
-                // Simplified signup - only username/email/password
-                // SetupWizard handles school/role/grade after authentication
+                // Create account with minimal info - SetupWizard will complete the profile
                 await AuthService.signup(
                     email.trim(),
                     password,
-                    username.trim()
+                    username.trim(),
+                    'student' // Default, will be changed in SetupWizard
                 );
-                // User will be redirected to SetupWizard automatically by auth flow
-                await AuthService.signup(
-                    email.trim(),
-                    password,
-                    username.trim()
-                );
-                // After signup, user will be redirected to SetupWizard automatically
-                // No need to set success message or switch to login
+                // Auth flow will redirect to SetupWizard automatically
             } else {
                 await onLogin(email.trim(), password);
             }
         } catch (err: any) {
-            setError(err.message || 'Operation failed. Please try again.');
+            setError(err.message || 'Operation failed');
         } finally {
             setIsLoading(false);
         }
@@ -76,24 +65,17 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
 
     const handleGoogleSignIn = async () => {
         setError(null);
-        setSuccess(null);
         setIsGoogleLoading(true);
-
         try {
             await AuthService.loginWithGoogle();
         } catch (err: any) {
-            setError(err.message || 'Google sign-in failed. Please try again.');
+            setError(err.message || 'Google sign-in failed');
         } finally {
             setIsGoogleLoading(false);
         }
     };
 
-    const isSignupIncomplete =
-        mode === 'signup' &&
-        (!username.trim() || !email.trim() || !password);
-
     return (
-        <>
         <div className="min-h-screen flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">
@@ -108,20 +90,25 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     <p className="text-mist-400 mt-2">Agent Access Terminal</p>
                     <a
                         href="/ielts"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            window.history.pushState({}, '', '/ielts');
-                            window.dispatchEvent(new PopStateEvent('popstate'));
-                        }}
-                        className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 border-emerald-500/70 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400 text-sm font-bold transition-all shadow-lg hover:shadow-emerald-500/50 cursor-pointer"
+                        className="inline-flex items-center gap-1 text-xs text-ion-green mt-3 px-3 py-1.5 border border-ion-green rounded-full hover:bg-ion-green/10 transition-colors"
                     >
                         📚 IELTS PREPARATION
                     </a>
                 </div>
 
-                <div className="card-glass glow-ion p-8">
-                    {/* Toggle Tabs */}
-                    <div className="flex mb-6 bg-black/30 rounded-lg p-1">
+                <div className="bg-ink-900/50 backdrop-blur-sm border border-mist-800 rounded-lg p-8 shadow-xl">
+                    {error && (
+                        <div className="mb-4 rounded-md border border-red-500/60 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                            ⚠️ {error}
+                        </div>
+                    )}
+                    {success && (
+                        <div className="mb-4 rounded-md border border-green-500/60 bg-green-500/10 px-4 py-3 text-sm text-green-200">
+                            ✓ {success}
+                        </div>
+                    )}
+
+                    <div className="flex gap-4 mb-6">
                         <button
                             onClick={() => setMode('login')}
                             className={`flex-1 py-2 px-4 rounded-md font-semibold transition-all ${
@@ -155,223 +142,30 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                     ← Back to Login
                                 </button>
                                 <h3 className="text-xl font-bold text-white mt-2">Reset Password</h3>
-                                <p className="text-gray-400 text-sm mt-1">Enter your email to receive a reset link</p>
                             </div>
                         )}
-                        
+
                         {mode === 'signup' && (
-                            <>
-                                <div>
-                                    <label htmlFor="username" className="block text-sm font-medium text-gray-300">Username</label>
-                                    <input
-                                        id="username"
-                                        name="username"
-                                        type="text"
-                                        required
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
-                                        className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
-                                        placeholder="ChooseYourName"
-                                    />
-                                </div>
-                                
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-3">I am a...</label>
-                                    <div className="flex gap-4">
-                                        <button
-                                            type="button"
-                                            onClick={() => setRole('student')}
-                                            className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${
-                                                role === 'student'
-                                                    ? 'border-cyan-400 bg-cyan-400/10 text-cyan-400'
-                                                    : 'border-gray-600 bg-gray-800/50 text-gray-300 hover:border-gray-500'
-                                            }`}
-                                        >
-                                            <div className="text-2xl mb-1">🎓</div>
-                                            <div className="font-semibold">Student</div>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setRole('teacher')}
-                                            className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${
-                                                role === 'teacher'
-                                                    ? 'border-purple-400 bg-purple-400/10 text-purple-400'
-                                                    : 'border-gray-600 bg-gray-800/50 text-gray-300 hover:border-gray-500'
-                                            }`}
-                                        >
-                                            <div className="text-2xl mb-1">👨‍🏫</div>
-                                            <div className="font-semibold">Teacher</div>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* School Selection - Multi-Tenant */}
-                                <div>
-                                    <label htmlFor="school" className="block text-sm font-medium text-gray-300">School</label>
-                                    {isLoadingSchools ? (
-                                        <div className="mt-1 flex items-center gap-2 p-3 text-gray-400">
-                                            <div className="animate-spin h-4 w-4 border-2 border-cyan-400 border-t-transparent rounded-full" />
-                                            Loading schools...
-                                        </div>
-                                    ) : (
-                                        <select
-                                            id="school"
-                                            name="school"
-                                            value={selectedSchool?.id || ''}
-                                            onChange={(e) => {
-                                                const school = schools.find(s => s.id === e.target.value);
-                                                setSelectedSchool(school || null);
-                                            }}
-                                            className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
-                                        >
-                                            <option value="">Select your school</option>
-                                            {schools.map((school) => (
-                                                <option key={school.id} value={school.id}>
-                                                    {school.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    )}
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowSchoolRequest(true)}
-                                        className="mt-2 text-xs text-cyan-300 hover:text-cyan-200"
-                                    >
-                                        My school isn’t listed → Apply
-                                    </button>
-                                    
-                                    {/* Invite Code Section */}
-                                    {!showInviteCode ? (
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowInviteCode(true)}
-                                            className="mt-2 text-xs text-cyan-400 hover:text-cyan-300"
-                                        >
-                                            Have an invite code?
-                                        </button>
-                                    ) : (
-                                        <div className="mt-2 flex gap-2">
-                                            <input
-                                                type="text"
-                                                value={inviteCode}
-                                                onChange={(e) => {
-                                                    setInviteCode(normalizeInviteCode(e.target.value));
-                                                    setInviteCodeError(null);
-                                                }}
-                                                placeholder="Enter code"
-                                                className="flex-1 bg-gray-800 border border-gray-600 rounded-md p-2 text-white text-sm uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-cyan-400"
-                                                maxLength={10}
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={handleInviteCodeSubmit}
-                                                disabled={isLoading || !inviteCodeReady}
-                                                className="px-3 py-2 bg-cyan-400 text-gray-900 rounded-md text-sm font-semibold hover:bg-cyan-300 disabled:opacity-50"
-                                            >
-                                                Join
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setShowInviteCode(false);
-                                                    setInviteCode('');
-                                                    setInviteCodeError(null);
-                                                }}
-                                                className="px-2 text-gray-500 hover:text-gray-400"
-                                            >
-                                                ✕
-                                            </button>
-                                        </div>
-                                    )}
-                                    {showInviteCode && (
-                                        <div className="mt-2 space-y-2">
-                                            <p className="text-xs text-gray-400">Invite codes are 10 characters.</p>
-                                            {inviteCodeError && (
-                                                <div className="rounded-md border border-red-500/60 bg-red-500/10 px-3 py-2 text-xs text-red-200">
-                                                    Invalid invite code
-                                                </div>
-                                            )}
-                                            {inviteCodeError && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const individuals = schools.find(s => s.id === individualSchoolOption.id) || individualSchoolOption;
-                                                        setSelectedSchool(individuals);
-                                                        setShowInviteCode(false);
-                                                        setInviteCode('');
-                                                        setInviteCodeError(null);
-                                                    }}
-                                                    className="text-xs text-cyan-300 hover:text-cyan-200"
-                                                >
-                                                    Continue as Individuals
-                                                </button>
-                                            )}
-                                        </div>
-                                    )}
-                                    
-                                    {/* Show selected school signup restrictions */}
-                                    {selectedSchool && (
-                                        <p className="mt-1 text-xs text-gray-400">
-                                            {isIndividual
-                                                ? 'Play solo until you join a school'
-                                                : selectedSchool.allow_student_signup && selectedSchool.allow_teacher_signup 
-                                                    ? 'Open for students and teachers'
-                                                    : selectedSchool.allow_student_signup 
-                                                        ? 'Open for students only'
-                                                        : 'Open for teachers only'
-                                            }
-                                        </p>
-                                    )}
-                                </div>
-
-                                {role === 'student' && !isIeltsSchool && !isIndividual && (
-                                    <>
-                                        <div>
-                                            <label htmlFor="grade" className="block text-sm font-medium text-gray-300">Grade</label>
-                                            <select
-                                                id="grade"
-                                                value={grade ?? ''}
-                                                onChange={(e) => handleGradeChange(e.target.value)}
-                                                className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
-                                            >
-                                                <option value="">Select your grade</option>
-                                                {gradeChoices.map((option) => (
-                                                    <option key={option} value={option}>{`Grade ${option}`}</option>
-                                                ))}
-                                            </select>
-                                            <p className="mt-1 text-xs text-gray-400">Your missions will be tailored to this grade.</p>
-                                        </div>
-                                        <div>
-                                            <label htmlFor="batch" className="block text-sm font-medium text-gray-300">Class</label>
-                                            <select
-                                                id="batch"
-                                                value={batch}
-                                                onChange={(e) => setBatch(e.target.value as Batch)}
-                                                disabled={!grade}
-                                                className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                <option value="">{grade ? 'Select your class' : 'Choose a grade first'}</option>
-                                                {availableBatches.map((option) => {
-                                                    const classLetter = option.replace(String(grade ?? ''), '');
-                                                    return (
-                                                        <option key={option} value={option}>{`Class ${classLetter || option} (${option})`}</option>
-                                                    );
-                                                })}
-                                            </select>
-                                            <p className="mt-1 text-xs text-gray-400">Pick the exact batch you attend in school.</p>
-                                        </div>
-                                    </>
-                                )}
-                            </>
+                            <div>
+                                <label htmlFor="username" className="block text-sm font-medium text-gray-300">Username</label>
+                                <input
+                                    id="username"
+                                    type="text"
+                                    required
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+                                    placeholder="ChooseYourName"
+                                />
+                                <p className="mt-1 text-xs text-gray-400">You'll complete your profile in the next step</p>
+                            </div>
                         )}
                         
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-300">Email</label>
                             <input
                                 id="email"
-                                name="email"
                                 type="email"
-                                autoComplete="email"
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -385,9 +179,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                 <label htmlFor="password" className="block text-sm font-medium text-gray-300">Password</label>
                                 <input
                                     id="password"
-                                    name="password"
                                     type="password"
-                                    autoComplete="current-password"
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -398,71 +190,51 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                         )}
 
                         {mode === 'login' && (
-                            <div className="text-right">
+                            <div className="flex justify-end">
                                 <button
                                     type="button"
                                     onClick={() => setMode('reset')}
-                                    className="text-sm text-cyan-400 hover:text-cyan-300"
+                                    className="text-xs text-cyan-300 hover:text-cyan-200"
                                 >
                                     Forgot password?
                                 </button>
                             </div>
                         )}
 
-                        {error && <p className="text-sm text-danger-red text-center">{error}</p>}
-                        {success && <p className="text-sm text-success-teal text-center">{success}</p>}
-
-                        <div>
-                            <button
-                                type="submit"
-                                disabled={isLoading || isGoogleLoading || isSignupIncomplete}
-                                className="w-full flex justify-center py-3 px-4 rounded-md text-lg font-bold text-black bg-gradient-to-r from-amber-500 to-orange-500 shadow-lg shadow-amber-500/20 transition-all hover:from-amber-400 hover:to-orange-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-400 disabled:cursor-wait disabled:opacity-50"
-                            >
-                                {isLoading ? 'Processing...' : mode === 'reset' ? 'Send Reset Link' : mode === 'login' ? 'Access System' : 'Create Account'}
-                            </button>
-                        </div>
+                        <button
+                            type="submit"
+                            disabled={isLoading || (mode === 'signup' && !username.trim())}
+                            className="w-full py-3 px-4 rounded-md font-bold transition-all bg-ion-blue text-ink-900 hover:bg-cyan-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isLoading ? 'Loading...' : mode === 'login' ? 'Login' : mode === 'signup' ? 'Create Account' : 'Send Reset Link'}
+                        </button>
                     </form>
 
-                    {mode !== 'reset' && (
-                        <div className="mt-8 space-y-4">
-                            <div className="flex items-center gap-4 text-gray-500 text-xs uppercase tracking-[0.35em]">
-                                <span className="flex-1 h-px bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
-                                or
-                                <span className="flex-1 h-px bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
+                    {mode === 'login' && (
+                        <>
+                            <div className="relative my-6">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-gray-600"></div>
+                                </div>
+                                <div className="relative flex justify-center text-sm">
+                                    <span className="px-2 bg-ink-900/50 text-gray-400">or</span>
+                                </div>
                             </div>
 
                             <button
                                 type="button"
                                 onClick={handleGoogleSignIn}
-                                disabled={isGoogleLoading || isLoading}
-                                className="group relative w-full overflow-hidden rounded-xl border border-white/10 bg-white/5 py-3 px-4 font-semibold text-white shadow-lg shadow-cyan-500/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-cyan-400/40 focus:outline-none focus:ring-2 focus:ring-cyan-400 disabled:cursor-wait disabled:opacity-60"
+                                disabled={isGoogleLoading}
+                                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-md border-2 border-gray-600 hover:border-gray-500 text-white transition-all disabled:opacity-50"
                             >
-                                <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/10 via-cyan-400/20 to-white/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                                <span className="relative flex items-center justify-center gap-3 text-base">
-                                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
-                                        <GoogleIcon className="h-5 w-5" />
-                                    </span>
-                                    <span className="text-lg font-semibold tracking-wide text-white">
-                                        {isGoogleLoading ? 'Contacting Google...' : 'Continue with Google'}
-                                    </span>
-                                </span>
+                                <GoogleIcon />
+                                {isGoogleLoading ? 'Loading...' : 'Sign in with Google'}
                             </button>
-                        </div>
+                        </>
                     )}
                 </div>
             </div>
         </div>
-        <SchoolRequestModal
-            isOpen={showSchoolRequest}
-            onClose={() => setShowSchoolRequest(false)}
-            requesterRole={role}
-            onUseSuggestion={(code) => {
-                setInviteCode(normalizeInviteCode(code));
-                setInviteCodeError(null);
-                setShowInviteCode(true);
-            }}
-        />
-        </>
     );
 };
 
