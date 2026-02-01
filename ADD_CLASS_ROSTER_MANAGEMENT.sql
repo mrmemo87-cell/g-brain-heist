@@ -39,7 +39,7 @@ BEGIN
         COALESCE(u.xp, 0)::INT AS xp,
         u.last_seen,
         COALESCE(u.is_banned, false) AS is_banned,
-        cs.created_at AS enrolled_at
+        cs.joined_at AS enrolled_at
     FROM class_students cs
     JOIN users u ON u.id = cs.student_id
     WHERE cs.class_id = p_class_id
