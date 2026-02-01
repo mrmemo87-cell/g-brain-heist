@@ -2574,7 +2574,33 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
   );
 
   // Render Create Question Form
-  const renderCreateQuestion = () => (
+  const renderCreateQuestion = () => {
+    // If teacher has no assigned classes/subjects, show access denied
+    if (!teacherHasClassAssignments) {
+      return (
+        <div className="max-w-3xl mx-auto">
+          <button
+            onClick={() => setView('dashboard')}
+            className="teacher-back-btn"
+          >
+            <span>←</span> Back to Dashboard
+          </button>
+          
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-8 text-center mt-6">
+            <div className="text-4xl mb-4">🔒</div>
+            <h2 className="text-xl font-bold text-amber-800 mb-2">No Class Assignments</h2>
+            <p className="text-amber-700 mb-4">
+              You need to be assigned to at least one class and subject by your school admin before you can create questions.
+            </p>
+            <p className="text-sm text-amber-600">
+              Please contact your school administrator to assign you to classes.
+            </p>
+          </div>
+        </div>
+      );
+    }
+    
+    return (
     <div className="max-w-3xl mx-auto">
       <button
         onClick={() => {
@@ -3069,7 +3095,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         </form>
       </div>
     </div>
-  );
+    );
+  };
 
   // Render CSV Upload View
   const renderCSVUpload = () => (
@@ -3372,7 +3399,33 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     </div>
   );
 
-  const renderCreateAssignment = () => (
+  const renderCreateAssignment = () => {
+    // If teacher has no assigned classes/subjects, show access denied
+    if (!teacherHasClassAssignments) {
+      return (
+        <div className="max-w-3xl mx-auto">
+          <button
+            onClick={() => setView('dashboard')}
+            className="teacher-back-link mb-6"
+          >
+            <span>←</span> Back to Dashboard
+          </button>
+          
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-8 text-center mt-6">
+            <div className="text-4xl mb-4">🔒</div>
+            <h2 className="text-xl font-bold text-amber-800 mb-2">No Class Assignments</h2>
+            <p className="text-amber-700 mb-4">
+              You need to be assigned to at least one class and subject by your school admin before you can create assignments.
+            </p>
+            <p className="text-sm text-amber-600">
+              Please contact your school administrator to assign you to classes.
+            </p>
+          </div>
+        </div>
+      );
+    }
+    
+    return (
     <div className="max-w-3xl mx-auto">
       <button
         onClick={() => setView('assignments')}
@@ -3720,7 +3773,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
   const renderReports = () => (
     <div>
