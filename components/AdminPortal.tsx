@@ -1220,7 +1220,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="admin-portal min-h-screen relative overflow-hidden">
       {/* Epic Animated Background */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-pink-900/20 to-red-900/20 animate-pulse-slow"></div>
@@ -1229,11 +1229,11 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         </div>
       </div>
 
-      <div className="relative z-10 p-6">
+      <div className="admin-portal-content relative z-10 p-6">
         <BackButton onClick={handleLogout} label={isLoggingOut ? 'Logging out…' : 'Log out'} />
 
         {/* Godly Admin Header */}
-        <div className="text-center mb-8 relative">
+        <div className="admin-portal-hero text-center mb-8 relative">
           <div className="inline-block relative">
             {/* Rotating Glow Effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 blur-3xl opacity-50 animate-spin-slow"></div>
@@ -1270,7 +1270,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
             
-            <div className="relative flex items-center justify-between">
+            <div className="admin-portal-visibility-content relative flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className={`text-5xl ${adminVisible ? 'animate-pulse-glow' : ''}`}>
                   {adminVisible ? '👁️' : '👻'}
@@ -1295,13 +1295,13 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         </div>
 
         {/* Tab Navigation - Epic Style */}
-        <div className="max-w-6xl mx-auto mb-6">
-          <div className="flex flex-wrap gap-2 justify-center">
+        <div className="admin-portal-tabs max-w-6xl mx-auto mb-6">
+          <div className="admin-portal-tablist flex flex-wrap gap-2 justify-center">
             {(['dashboard', 'users', 'schools', 'applications', 'game', 'clans', 'analytics', 'cambridge', 'ielts', 'system'] as AdminTab[]).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`relative px-6 py-3 rounded-xl font-heading text-lg font-bold transition-all duration-300 ${
+                className={`admin-portal-tab relative px-6 py-3 rounded-xl font-heading text-lg font-bold transition-all duration-300 ${
                   activeTab === tab
                     ? 'bg-gradient-to-r from-yellow-400 to-pink-500 text-black shadow-[0_0_30px_rgba(255,215,0,0.8)] scale-110'
                     : 'bg-black/40 text-gray-400 hover:text-white border border-gray-600 hover:border-yellow-400'
@@ -2483,6 +2483,54 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
           25% { background-position: 100% 0%; }
           50% { background-position: 100% 100%; }
           75% { background-position: 0% 100%; }
+        }
+
+        @media (max-width: 768px) {
+          .admin-portal-content {
+            padding: 1rem;
+          }
+
+          .admin-portal-hero h1 {
+            font-size: 2.25rem;
+            line-height: 1.1;
+          }
+
+          .admin-portal-hero .text-2xl {
+            font-size: 1.25rem;
+          }
+
+          .admin-portal-hero .text-sm {
+            font-size: 0.75rem;
+          }
+
+          .admin-portal-visibility-content {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+          }
+
+          .admin-portal-visibility-content .text-4xl {
+            align-self: flex-end;
+          }
+
+          .admin-portal-tabs {
+            margin-bottom: 1rem;
+          }
+
+          .admin-portal-tablist {
+            flex-wrap: nowrap;
+            justify-content: flex-start;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+            scroll-snap-type: x mandatory;
+          }
+
+          .admin-portal-tab {
+            flex: 0 0 auto;
+            font-size: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            scroll-snap-align: start;
+          }
         }
 
         /* Print styles - only print the modal content */
