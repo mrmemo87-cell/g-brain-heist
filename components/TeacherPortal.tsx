@@ -796,6 +796,21 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     setCambridgeSelectedIds((prev) => prev.filter((id) => filteredCambridgeScores.some((score) => score.id === id)));
   }, [filteredCambridgeScores]);
 
+  // Handle escape key to close modals
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (showCambridgeReport) setShowCambridgeReport(false);
+        if (showCambridgeAnswers) setShowCambridgeAnswers(false);
+        if (cambridgeDrawerOpen) setCambridgeDrawerOpen(false);
+        if (showWritingMarkingModal) setShowWritingMarkingModal(false);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showCambridgeReport, showCambridgeAnswers, cambridgeDrawerOpen, showWritingMarkingModal]);
+
   const toggleCambridgeSelection = (id: string) => {
     setCambridgeSelectedIds((prev) => (
       prev.includes(id) ? prev.filter((selectedId) => selectedId !== id) : [...prev, id]
@@ -4302,34 +4317,36 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     );
 
     return (
-    <div className="space-y-6 text-slate-900">
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-          <div className="space-y-4">
+    <div className="space-y-6 text-slate-900 max-w-full overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-sm">
+        <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4 sm:gap-6">
+          <div className="space-y-4 min-w-0 flex-1">
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">Cambridge Test Results</h2>
-              <p className="text-sm text-slate-500">Review student performance, release scores, and open detailed attempts.</p>
+              <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">Cambridge Test Results</h2>
+              <p className="text-xs sm:text-sm text-slate-500">Review student performance, release scores, and open detailed attempts.</p>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm">
-                <p className="text-xs text-slate-500">Total attempts</p>
-                <p className="text-lg font-semibold text-slate-900">{cambridgeStats.totalSubmissions}</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 auto-rows-fr">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 sm:px-4 py-3 text-sm">
+                <p className="text-xs text-slate-500 font-medium">Total attempts</p>
+                <p className="text-lg sm:text-xl font-bold text-slate-900 mt-1">{cambridgeStats.totalSubmissions}</p>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm">
-                <p className="text-xs text-slate-500">Average %</p>
-                <p className="text-lg font-semibold text-slate-900">{cambridgeStats.avgPercentage}%</p>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 sm:px-4 py-3 text-sm">
+                <p className="text-xs text-slate-500 font-medium">Average %</p>
+                <p className="text-lg sm:text-xl font-bold text-slate-900 mt-1">{cambridgeStats.avgPercentage}%</p>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm">
-                <p className="text-xs text-slate-500">Best student</p>
-                <p className="text-sm font-semibold text-slate-900 truncate">
-                  {cambridgeStats.highestScore?.name || '-'} · {cambridgeStats.highestScore?.percentage || 0}%
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 sm:px-4 py-3 text-sm min-w-0">
+                <p className="text-xs text-slate-500 font-medium">Best student</p>
+                <p className="text-xs sm:text-sm font-bold text-slate-900 truncate max-w-full mt-1" title={cambridgeStats.highestScore?.name || '-'}>
+                  {cambridgeStats.highestScore?.name || '-'}
                 </p>
+                <p className="text-xs text-green-600 font-semibold mt-0.5">{cambridgeStats.highestScore?.percentage || 0}%</p>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm">
-                <p className="text-xs text-slate-500">Lowest student</p>
-                <p className="text-sm font-semibold text-slate-900 truncate">
-                  {cambridgeStats.lowestScore?.name || '-'} · {cambridgeStats.lowestScore?.percentage || 0}%
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 sm:px-4 py-3 text-sm min-w-0">
+                <p className="text-xs text-slate-500 font-medium">Lowest student</p>
+                <p className="text-xs sm:text-sm font-bold text-slate-900 truncate max-w-full mt-1" title={cambridgeStats.lowestScore?.name || '-'}>
+                  {cambridgeStats.lowestScore?.name || '-'}
                 </p>
+                <p className="text-xs text-red-600 font-semibold mt-0.5">{cambridgeStats.lowestScore?.percentage || 0}%</p>
               </div>
             </div>
           </div>
@@ -4505,8 +4522,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               )}
 
               <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                <div className="overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100 scroll-smooth" style={{ maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}>
+                  <table className="w-full text-sm border-collapse" style={{ minWidth: '1000px' }}>
                     <thead className="bg-slate-50 text-slate-600">
                       <tr>
                         <th className="px-4 py-3 text-left font-semibold w-10">
@@ -4661,13 +4678,13 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       </div>
 
       {cambridgeDrawerOpen && drawerAttempt && (
-        <div className="fixed inset-0 z-[60]">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center">
           <div
             className="absolute inset-0 bg-black/40"
             onClick={closeCambridgeDrawer}
           />
-          <div className="absolute inset-0 flex items-center justify-end p-4 sm:p-6">
-            <div className="w-full max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] bg-white shadow-2xl flex flex-col rounded-2xl overflow-hidden">
+          <div className="relative flex items-center justify-center p-4 sm:p-6 w-full max-w-lg">
+            <div className="w-full max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] bg-white shadow-2xl flex flex-col rounded-2xl overflow-hidden">
             <div className="sticky top-0 z-10 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
               <div>
                 <p className="text-xs uppercase tracking-wide text-slate-400">Attempt Details</p>
@@ -4832,7 +4849,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         };
         
         return (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-2 overflow-y-auto print:p-0 print:bg-white print:overflow-visible print:block">
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-2 sm:p-4 overflow-y-auto print:p-0 print:bg-white print:overflow-visible print:block" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {/* Print Styles - Optimized for Single Landscape Page */}
             <style>{`
               @media print {
@@ -5058,9 +5075,10 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   </button>
                   <button 
                     onClick={() => setShowCambridgeReport(false)} 
-                    className="px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg font-semibold text-xs hover:bg-gray-300"
+                    className="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg font-semibold text-xs hover:bg-red-200 transition-all"
+                    title="Close (Press Esc)"
                   >
-                    Close
+                    ✕ Close
                   </button>
                 </div>
               </div>
@@ -5080,8 +5098,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           const feedback = answers.feedback || {};
           
           return (
-            <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4 overflow-y-auto">
-              <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[95vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
+            <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-2 sm:p-4 overflow-y-auto" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div className="bg-white rounded-2xl max-w-4xl sm:max-w-5xl w-full max-h-[90vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
                 {/* Header */}
                 <div className="p-6 border-b-4 border-blue-600">
                   <div className="flex justify-between items-start">
@@ -5094,7 +5112,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                     </div>
                     <button
                       onClick={() => setShowCambridgeAnswers(false)}
-                      className="p-2 hover:bg-gray-200 rounded-full text-xl"
+                      className="p-2 hover:bg-red-100 rounded-full text-xl text-gray-600 hover:text-red-600 transition-all font-bold w-10 h-10 flex items-center justify-center"
+                      title="Close (Esc key also works)"
                     >
                       ✕
                     </button>
@@ -5246,7 +5265,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                         ✏️ {answers.requires_marking ? 'Mark This' : 'Edit Feedback'}
                       </button>
                     )}
-                    <button onClick={() => setShowCambridgeAnswers(false)} className="px-4 py-2 bg-gray-200 text-black rounded-lg font-semibold hover:bg-gray-300">Close</button>
+                    <button onClick={() => setShowCambridgeAnswers(false)} className="px-4 py-2 bg-red-100 text-red-700 rounded-lg font-semibold hover:bg-red-200 transition-all" title="Close (Press Esc)">✕ Close</button>
                   </div>
                 </div>
               </div>
@@ -5278,8 +5297,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         });
         
         return (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4 overflow-y-auto">
-            <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[95vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-2 sm:p-4 overflow-y-auto" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="bg-white rounded-2xl max-w-4xl sm:max-w-5xl w-full max-h-[90vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
               {/* Header */}
               <div className="p-6 border-b-4 border-blue-600">
                 <div className="flex justify-between items-start">
@@ -5397,7 +5416,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 <span>Confidential — For Student & Teacher Use Only</span>
                 <div className="flex gap-3">
                   <button onClick={() => window.print()} className="px-4 py-2 bg-green-100 text-black rounded-lg font-semibold hover:bg-green-200">🖨️ Print</button>
-                  <button onClick={() => setShowCambridgeAnswers(false)} className="px-4 py-2 bg-gray-200 text-black rounded-lg font-semibold hover:bg-gray-300">Close</button>
+                  <button onClick={() => setShowCambridgeAnswers(false)} className="px-4 py-2 bg-red-100 text-red-700 rounded-lg font-semibold hover:bg-red-200 transition-all" title="Close (Press Esc)">✕ Close</button>
                 </div>
               </div>
             </div>
