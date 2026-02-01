@@ -27,6 +27,12 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
   const [stats, setStats] = useState<SchoolStats | null>(null);
   const [members, setMembers] = useState<SchoolMember[]>([]);
   const [membersTotal, setMembersTotal] = useState(0);
+  const [memberPage, setMemberPage] = useState(1);
+  const [memberPageSize, setMemberPageSize] = useState(25);
+  const [memberSortKey, setMemberSortKey] = useState<'username' | 'role' | 'grade' | 'level' | 'last_seen' | 'status'>('username');
+  const [memberSortDirection, setMemberSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [selectedMemberIds, setSelectedMemberIds] = useState<Set<string>>(new Set());
+  const [bulkMemberAction, setBulkMemberAction] = useState('');
 
   // Classes manager state
   const [classes, setClasses] = useState<SchoolClass[]>([]);
@@ -63,6 +69,8 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
   const [assignmentFilterClassId, setAssignmentFilterClassId] = useState('');
   const [assignmentFilterTeacherId, setAssignmentFilterTeacherId] = useState('');
   const [assignmentSaving, setAssignmentSaving] = useState(false);
+  const [assignmentPage, setAssignmentPage] = useState(1);
+  const [assignmentPageSize, setAssignmentPageSize] = useState(10);
 
   // Student enrollment state
   const [students, setStudents] = useState<SchoolMember[]>([]);
@@ -71,6 +79,8 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
   const [selectedClassId, setSelectedClassId] = useState('');
   const [studentAssignments, setStudentAssignments] = useState<Record<string, string | null>>({});
   const [studentSaving, setStudentSaving] = useState(false);
+  const [studentPage, setStudentPage] = useState(1);
+  const [studentPageSize, setStudentPageSize] = useState(25);
   
   // Filters
   const [memberSearch, setMemberSearch] = useState('');
@@ -80,6 +90,16 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
   const [showMemberActionModal, setShowMemberActionModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState<SchoolMember | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    title: string;
+    description: string;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    isDestructive?: boolean;
+    requiresReason?: boolean;
+    onConfirm: (reason?: string) => Promise<void> | void;
+  } | null>(null);
+  const [confirmReason, setConfirmReason] = useState('');
 
   // Settings state
   const [settingsName, setSettingsName] = useState('');
@@ -178,11 +198,13 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
     const { members: memberList, total } = await SchoolAdminService.listSchoolMembers(schoolId, {
       role: memberRoleFilter || undefined,
       search: memberSearch || undefined,
-      limit: 50,
+      limit: memberPageSize,
+      offset: (memberPage - 1) * memberPageSize,
     });
     setMembers(memberList);
     setMembersTotal(total);
-  }, [memberRoleFilter, memberSearch]);
+    setSelectedMemberIds(new Set());
+  }, [memberRoleFilter, memberSearch, memberPage, memberPageSize]);
 
   // Reload members when filters change
   useEffect(() => {
@@ -190,6 +212,10 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
       loadMembers(school.id);
     }
   }, [school?.id, memberSearch, memberRoleFilter, loadMembers]);
+
+  useEffect(() => {
+    setMemberPage(1);
+  }, [memberSearch, memberRoleFilter, memberPageSize]);
 
   useEffect(() => {
     if (school?.id) {
@@ -220,42 +246,53 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
 
   const handleRemoveMember = async () => {
     if (!school || !selectedMember) return;
-    
-    if (!confirm(`Are you sure you want to remove ${selectedMember.username} from the school?`)) {
-      return;
-    }
-
-    setActionLoading(true);
-    const result = await SchoolAdminService.removeMember(school.id, selectedMember.user_id);
-    setActionLoading(false);
-
-    if (result.success) {
-      addToast(`Removed ${selectedMember.username} from the school`, 'success');
-      await loadMembers(school.id);
-      await refreshSchool(school.id);
-      setShowMemberActionModal(false);
-    } else {
-      addToast(result.error || 'Failed to remove member', 'error');
-    }
+    setConfirmReason('');
+    setConfirmDialog({
+      title: 'Remove member',
+      description: `Remove ${selectedMember.username} from the school? This action cannot be undone.`,
+      confirmLabel: 'Remove member',
+      cancelLabel: 'Cancel',
+      isDestructive: true,
+      onConfirm: async () => {
+        setActionLoading(true);
+        const result = await SchoolAdminService.removeMember(school.id, selectedMember.user_id);
+        setActionLoading(false);
+        if (result.success) {
+          addToast(`Removed ${selectedMember.username} from the school`, 'success');
+          await loadMembers(school.id);
+          await refreshSchool(school.id);
+          setShowMemberActionModal(false);
+        } else {
+          addToast(result.error || 'Failed to remove member', 'error');
+        }
+      },
+    });
   };
 
   const handleBanMember = async () => {
     if (!school || !selectedMember) return;
-    
-    const reason = prompt('Enter ban reason (optional):');
-    
-    setActionLoading(true);
-    const result = await SchoolAdminService.banMember(school.id, selectedMember.user_id, reason || undefined);
-    setActionLoading(false);
-
-    if (result.success) {
-      addToast(`Banned ${selectedMember.username}`, 'success');
-      await loadMembers(school.id);
-      await refreshSchool(school.id);
-      setShowMemberActionModal(false);
-    } else {
-      addToast(result.error || 'Failed to ban member', 'error');
-    }
+    setConfirmReason('');
+    setConfirmDialog({
+      title: 'Ban member',
+      description: `Ban ${selectedMember.username}? They will lose access to the school.`,
+      confirmLabel: 'Ban member',
+      cancelLabel: 'Cancel',
+      isDestructive: true,
+      requiresReason: true,
+      onConfirm: async (reason) => {
+        setActionLoading(true);
+        const result = await SchoolAdminService.banMember(school.id, selectedMember.user_id, reason || undefined);
+        setActionLoading(false);
+        if (result.success) {
+          addToast(`Banned ${selectedMember.username}`, 'success');
+          await loadMembers(school.id);
+          await refreshSchool(school.id);
+          setShowMemberActionModal(false);
+        } else {
+          addToast(result.error || 'Failed to ban member', 'error');
+        }
+      },
+    });
   };
 
   const handleUnbanMember = async () => {
@@ -278,19 +315,25 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
   // Invite code actions (single code per school)
   const handleRotateInviteCode = async () => {
     if (!school) return;
-
-    if (!confirm('Rotate invite code? Old code will stop working immediately.')) return;
-
-    setActionLoading(true);
-    const result = await SchoolAdminService.rotateInviteCode(school.id);
-    setActionLoading(false);
-
-    if (result.success && result.code) {
-      addToast(`New invite code: ${result.code}`, 'success');
-      await refreshSchool(school.id);
-    } else {
-      addToast(result.error || 'Failed to rotate invite code', 'error');
-    }
+    setConfirmReason('');
+    setConfirmDialog({
+      title: 'Rotate invite code',
+      description: 'Rotate invite code? The old code will stop working immediately.',
+      confirmLabel: 'Rotate code',
+      cancelLabel: 'Cancel',
+      isDestructive: true,
+      onConfirm: async () => {
+        setActionLoading(true);
+        const result = await SchoolAdminService.rotateInviteCode(school.id);
+        setActionLoading(false);
+        if (result.success && result.code) {
+          addToast(`New invite code: ${result.code}`, 'success');
+          await refreshSchool(school.id);
+        } else {
+          addToast(result.error || 'Failed to rotate invite code', 'error');
+        }
+      },
+    });
   };
 
   const copyToClipboard = (text: string) => {
@@ -447,16 +490,23 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
 
   const handleDeleteSubject = async (subjectId: string, subjectName: string) => {
     if (!school) return;
-    if (!confirm(`Delete subject "${subjectName}"? This will mark it as inactive.`)) return;
-
-    const result = await SchoolAdminService.deleteSchoolSubject(subjectId);
-    if (!result.success) {
-      addToast(result.error || 'Failed to delete subject', 'error');
-      return;
-    }
-
-    addToast(`Subject "${subjectName}" deleted`, 'success');
-    await loadAdminTools(school.id);
+    setConfirmReason('');
+    setConfirmDialog({
+      title: 'Delete subject',
+      description: `Delete subject "${subjectName}"? This will mark it as inactive.`,
+      confirmLabel: 'Delete subject',
+      cancelLabel: 'Cancel',
+      isDestructive: true,
+      onConfirm: async () => {
+        const result = await SchoolAdminService.deleteSchoolSubject(subjectId);
+        if (!result.success) {
+          addToast(result.error || 'Failed to delete subject', 'error');
+          return;
+        }
+        addToast(`Subject "${subjectName}" deleted`, 'success');
+        await loadAdminTools(school.id);
+      },
+    });
   };
 
   const formatDate = (dateString: string | null) => {
@@ -493,6 +543,131 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
     }
   };
 
+  const toggleMemberSort = (key: typeof memberSortKey) => {
+    if (memberSortKey === key) {
+      setMemberSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+      return;
+    }
+    setMemberSortKey(key);
+    setMemberSortDirection('asc');
+  };
+
+  const toggleMemberSelection = (memberId: string) => {
+    setSelectedMemberIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(memberId)) {
+        next.delete(memberId);
+      } else {
+        next.add(memberId);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAllMembers = (memberIds: string[], shouldSelect: boolean) => {
+    setSelectedMemberIds((prev) => {
+      const next = new Set(prev);
+      memberIds.forEach((id) => {
+        if (shouldSelect) {
+          next.add(id);
+        } else {
+          next.delete(id);
+        }
+      });
+      return next;
+    });
+  };
+
+  const handleBulkMemberAction = async () => {
+    if (!school || selectedMemberIds.size === 0 || !bulkMemberAction) return;
+    const selectedMembers = members.filter((member) => selectedMemberIds.has(member.user_id));
+    const namesPreview = selectedMembers.slice(0, 3).map((m) => m.username).join(', ');
+    const moreCount = selectedMembers.length > 3 ? ` +${selectedMembers.length - 3} more` : '';
+
+    if (bulkMemberAction === 'ban') {
+      setConfirmReason('');
+      setConfirmDialog({
+        title: 'Ban selected members',
+        description: `Ban ${selectedMembers.length} members? (${namesPreview}${moreCount})`,
+        confirmLabel: 'Ban members',
+        cancelLabel: 'Cancel',
+        isDestructive: true,
+        requiresReason: true,
+        onConfirm: async (reason) => {
+          setActionLoading(true);
+          for (const member of selectedMembers) {
+            await SchoolAdminService.banMember(school.id, member.user_id, reason || undefined);
+          }
+          setActionLoading(false);
+          addToast('Selected members banned', 'success');
+          await loadMembers(school.id);
+          await refreshSchool(school.id);
+        },
+      });
+      return;
+    }
+
+    if (bulkMemberAction === 'unban') {
+      setConfirmDialog({
+        title: 'Unban selected members',
+        description: `Unban ${selectedMembers.length} members? (${namesPreview}${moreCount})`,
+        confirmLabel: 'Unban members',
+        cancelLabel: 'Cancel',
+        onConfirm: async () => {
+          setActionLoading(true);
+          for (const member of selectedMembers) {
+            await SchoolAdminService.unbanMember(school.id, member.user_id);
+          }
+          setActionLoading(false);
+          addToast('Selected members unbanned', 'success');
+          await loadMembers(school.id);
+          await refreshSchool(school.id);
+        },
+      });
+      return;
+    }
+
+    if (bulkMemberAction === 'remove') {
+      setConfirmDialog({
+        title: 'Remove selected members',
+        description: `Remove ${selectedMembers.length} members from the school? (${namesPreview}${moreCount})`,
+        confirmLabel: 'Remove members',
+        cancelLabel: 'Cancel',
+        isDestructive: true,
+        onConfirm: async () => {
+          setActionLoading(true);
+          for (const member of selectedMembers) {
+            await SchoolAdminService.removeMember(school.id, member.user_id);
+          }
+          setActionLoading(false);
+          addToast('Selected members removed', 'success');
+          await loadMembers(school.id);
+          await refreshSchool(school.id);
+        },
+      });
+      return;
+    }
+
+    if (bulkMemberAction.startsWith('role:')) {
+      const role = bulkMemberAction.replace('role:', '') as SchoolRole;
+      setConfirmDialog({
+        title: 'Change roles for selected members',
+        description: `Change ${selectedMembers.length} members to ${role.replace('_', ' ')}? (${namesPreview}${moreCount})`,
+        confirmLabel: 'Change roles',
+        cancelLabel: 'Cancel',
+        onConfirm: async () => {
+          setActionLoading(true);
+          for (const member of selectedMembers) {
+            await SchoolAdminService.updateMemberRole(school.id, member.user_id, role);
+          }
+          setActionLoading(false);
+          addToast('Roles updated for selected members', 'success');
+          await loadMembers(school.id);
+        },
+      });
+    }
+  };
+
   const classById = classes.reduce<Record<string, SchoolClass>>((acc, cls) => {
     acc[cls.id] = cls;
     return acc;
@@ -509,6 +684,69 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
     if (!term) return true;
     return student.username.toLowerCase().includes(term) || student.email.toLowerCase().includes(term);
   });
+
+  useEffect(() => {
+    setAssignmentPage(1);
+  }, [assignmentFilterClassId, assignmentFilterTeacherId, assignmentPageSize]);
+
+  useEffect(() => {
+    setStudentPage(1);
+  }, [studentSearch, studentPageSize]);
+
+  const sortedMembers = [...members].sort((a, b) => {
+    const direction = memberSortDirection === 'asc' ? 1 : -1;
+    const valueA = (() => {
+      switch (memberSortKey) {
+        case 'role':
+          return a.role;
+        case 'grade':
+          return a.grade ?? 0;
+        case 'level':
+          return a.level ?? 0;
+        case 'last_seen':
+          return a.last_seen ? new Date(a.last_seen).getTime() : 0;
+        case 'status':
+          return a.is_banned ? 1 : 0;
+        case 'username':
+        default:
+          return a.username.toLowerCase();
+      }
+    })();
+    const valueB = (() => {
+      switch (memberSortKey) {
+        case 'role':
+          return b.role;
+        case 'grade':
+          return b.grade ?? 0;
+        case 'level':
+          return b.level ?? 0;
+        case 'last_seen':
+          return b.last_seen ? new Date(b.last_seen).getTime() : 0;
+        case 'status':
+          return b.is_banned ? 1 : 0;
+        case 'username':
+        default:
+          return b.username.toLowerCase();
+      }
+    })();
+    if (valueA < valueB) return -1 * direction;
+    if (valueA > valueB) return 1 * direction;
+    return 0;
+  });
+
+  const memberTotalPages = Math.max(1, Math.ceil(membersTotal / memberPageSize));
+  const assignmentTotalPages = Math.max(1, Math.ceil(filteredTeacherAssignments.length / assignmentPageSize));
+  const studentTotalPages = Math.max(1, Math.ceil(filteredStudents.length / studentPageSize));
+
+  const pagedTeacherAssignments = filteredTeacherAssignments.slice(
+    (assignmentPage - 1) * assignmentPageSize,
+    assignmentPage * assignmentPageSize
+  );
+
+  const pagedStudents = filteredStudents.slice(
+    (studentPage - 1) * studentPageSize,
+    studentPage * studentPageSize
+  );
 
   if (loading) {
     return (
@@ -534,10 +772,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-slate-900 text-white p-4 pb-24">
       {/* Premium Header - Fixed and Clean */}
-      <div className="relative mb-6">
-        {/* Background Glow Effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-cyan-500/10 to-purple-600/10 blur-3xl -z-10" />
-        
+      <div className="mb-6">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-3">
             <BackButton onClick={onComplete} />
@@ -568,11 +803,13 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
       </div>
 
       {/* Premium Tab Navigation */}
-      <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide" role="tablist" aria-label="School admin navigation">
         {(['dashboard', 'members', 'classes', 'roster', 'subjects', 'teachers', 'students', 'invites', 'settings'] as AdminTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
+            role="tab"
+            aria-selected={activeTab === tab}
             className={`px-5 py-3 rounded-xl font-medium transition-all whitespace-nowrap border ${
               activeTab === tab
                 ? 'bg-gradient-to-r from-purple-600 to-cyan-600 text-white border-transparent shadow-lg shadow-purple-500/25'
@@ -597,62 +834,48 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
         <div className="space-y-8">
           {/* Premium Stats Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity" />
-              <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-cyan-500/30 hover:border-cyan-500/50 transition-all">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-3xl">🎓</span>
-                  <span className="text-xs text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full">Active</span>
-                </div>
-                <div className="text-4xl font-bold text-cyan-400">{stats.students}</div>
-                <div className="text-gray-400 text-sm mt-1">Students Enrolled</div>
+            <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-cyan-500/30 hover:border-cyan-500/50 transition-all">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-3xl">🎓</span>
+                <span className="text-xs text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full">Active</span>
               </div>
+              <div className="text-4xl font-bold text-cyan-400">{stats.students}</div>
+              <div className="text-gray-400 text-sm mt-1">Students Enrolled</div>
             </div>
-            
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-400 rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity" />
-              <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-blue-500/30 hover:border-blue-500/50 transition-all">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-3xl">👨‍🏫</span>
-                  <span className="text-xs text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full">Active</span>
-                </div>
-                <div className="text-4xl font-bold text-blue-400">{stats.teachers}</div>
-                <div className="text-gray-400 text-sm mt-1">Teachers</div>
+
+            <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-blue-500/30 hover:border-blue-500/50 transition-all">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-3xl">👨‍🏫</span>
+                <span className="text-xs text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full">Active</span>
               </div>
+              <div className="text-4xl font-bold text-blue-400">{stats.teachers}</div>
+              <div className="text-gray-400 text-sm mt-1">Teachers</div>
             </div>
-            
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-purple-400 rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity" />
-              <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-purple-500/30 hover:border-purple-500/50 transition-all">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-3xl">👑</span>
-                  <span className="text-xs text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full">Admin</span>
-                </div>
-                <div className="text-4xl font-bold text-purple-400">{stats.admins}</div>
-                <div className="text-gray-400 text-sm mt-1">School Admins</div>
+
+            <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-purple-500/30 hover:border-purple-500/50 transition-all">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-3xl">👑</span>
+                <span className="text-xs text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full">Admin</span>
               </div>
+              <div className="text-4xl font-bold text-purple-400">{stats.admins}</div>
+              <div className="text-gray-400 text-sm mt-1">School Admins</div>
             </div>
-            
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-400 rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity" />
-              <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-green-500/30 hover:border-green-500/50 transition-all">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-3xl">🌟</span>
-                  <span className="text-xs text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full">Total</span>
-                </div>
-                <div className="text-4xl font-bold text-green-400">{stats.total}</div>
-                <div className="text-gray-400 text-sm mt-1">Total Members</div>
+
+            <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-green-500/30 hover:border-green-500/50 transition-all">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-3xl">🌟</span>
+                <span className="text-xs text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full">Total</span>
               </div>
+              <div className="text-4xl font-bold text-green-400">{stats.total}</div>
+              <div className="text-gray-400 text-sm mt-1">Total Members</div>
             </div>
           </div>
 
           {/* Quick Actions - Premium Style */}
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-600/5 via-cyan-500/5 to-purple-600/5 rounded-2xl" />
-            <div className="relative bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
-              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <span className="text-2xl">⚡</span> Quick Actions
-              </h3>
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
+            <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <span className="text-2xl">⚡</span> Quick Actions
+            </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <button
                   onClick={() => setActiveTab('invites')}
@@ -696,13 +919,10 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                   </div>
                 </button>
               </div>
-            </div>
           </div>
           
           {/* Power User Tips */}
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-amber-600/5 via-orange-500/5 to-amber-600/5 rounded-2xl" />
-            <div className="relative bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-amber-500/30">
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-amber-500/30">
               <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
                 <span className="text-xl">💡</span> Admin Power Tips
               </h3>
@@ -724,7 +944,6 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                   <span>Control signup permissions in <strong>Settings</strong> for security</span>
                 </div>
               </div>
-            </div>
           </div>
         </div>
       )}
@@ -734,23 +953,70 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
         <div className="space-y-4">
           {/* Filters */}
           <div className="flex flex-wrap gap-4 items-center">
+            <label htmlFor="member-search" className="sr-only">
+              Search members
+            </label>
             <input
+              id="member-search"
               type="text"
               placeholder="Search by username or email..."
               value={memberSearch}
               onChange={(e) => setMemberSearch(e.target.value)}
-              className="flex-1 min-w-[200px] px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500"
+              className="flex-1 min-w-[200px] px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40"
             />
+            <label htmlFor="member-role-filter" className="sr-only">
+              Filter by role
+            </label>
             <select
+              id="member-role-filter"
               value={memberRoleFilter}
               onChange={(e) => setMemberRoleFilter(e.target.value as SchoolRole | '')}
-              className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+              className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40"
             >
               <option value="">All Roles</option>
               <option value="student">Students</option>
               <option value="teacher">Teachers</option>
               <option value="school_admin">Admins</option>
             </select>
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              <span>Rows:</span>
+              <select
+                value={memberPageSize}
+                onChange={(e) => setMemberPageSize(Number(e.target.value))}
+                className="px-2 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Bulk Actions */}
+          <div className="flex flex-wrap items-center gap-3 bg-gray-800/60 border border-gray-700 rounded-lg px-4 py-3">
+            <span className="text-sm text-gray-400">
+              {selectedMemberIds.size} selected
+            </span>
+            <select
+              value={bulkMemberAction}
+              onChange={(e) => setBulkMemberAction(e.target.value)}
+              className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-500"
+            >
+              <option value="">Bulk actions</option>
+              <option value="role:student">Change role → Student</option>
+              <option value="role:teacher">Change role → Teacher</option>
+              <option value="role:school_admin">Change role → Admin</option>
+              <option value="ban">Ban selected</option>
+              <option value="unban">Unban selected</option>
+              <option value="remove">Remove from school</option>
+            </select>
+            <button
+              onClick={handleBulkMemberAction}
+              disabled={!bulkMemberAction || selectedMemberIds.size === 0 || actionLoading}
+              className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 rounded-lg text-sm font-medium"
+            >
+              Apply
+            </button>
           </div>
 
           {/* Members List */}
@@ -759,20 +1025,90 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
               <table className="w-full">
                 <thead className="bg-gray-750 border-b border-gray-700">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">User</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Role</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 hidden md:table-cell">Grade</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 hidden lg:table-cell">Level</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 hidden lg:table-cell">Last Seen</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Status</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">
+                      <label className="inline-flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={members.length > 0 && members.every((member) => selectedMemberIds.has(member.user_id))}
+                          onChange={(e) => toggleSelectAllMembers(members.map((m) => m.user_id), e.target.checked)}
+                          className="rounded border-gray-600 bg-gray-700 text-cyan-500 focus:ring-cyan-500"
+                          aria-label="Select all members on this page"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => toggleMemberSort('username')}
+                          className="inline-flex items-center gap-1 hover:text-white"
+                        >
+                          User
+                          <span className="text-xs">{memberSortKey === 'username' ? (memberSortDirection === 'asc' ? '▲' : '▼') : ''}</span>
+                        </button>
+                      </label>
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">
+                      <button
+                        type="button"
+                        onClick={() => toggleMemberSort('role')}
+                        className="inline-flex items-center gap-1 hover:text-white"
+                      >
+                        Role
+                        <span className="text-xs">{memberSortKey === 'role' ? (memberSortDirection === 'asc' ? '▲' : '▼') : ''}</span>
+                      </button>
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 hidden md:table-cell">
+                      <button
+                        type="button"
+                        onClick={() => toggleMemberSort('grade')}
+                        className="inline-flex items-center gap-1 hover:text-white"
+                      >
+                        Grade
+                        <span className="text-xs">{memberSortKey === 'grade' ? (memberSortDirection === 'asc' ? '▲' : '▼') : ''}</span>
+                      </button>
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 hidden lg:table-cell">
+                      <button
+                        type="button"
+                        onClick={() => toggleMemberSort('level')}
+                        className="inline-flex items-center gap-1 hover:text-white"
+                      >
+                        Level
+                        <span className="text-xs">{memberSortKey === 'level' ? (memberSortDirection === 'asc' ? '▲' : '▼') : ''}</span>
+                      </button>
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 hidden lg:table-cell">
+                      <button
+                        type="button"
+                        onClick={() => toggleMemberSort('last_seen')}
+                        className="inline-flex items-center gap-1 hover:text-white"
+                      >
+                        Last Seen
+                        <span className="text-xs">{memberSortKey === 'last_seen' ? (memberSortDirection === 'asc' ? '▲' : '▼') : ''}</span>
+                      </button>
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">
+                      <button
+                        type="button"
+                        onClick={() => toggleMemberSort('status')}
+                        className="inline-flex items-center gap-1 hover:text-white"
+                      >
+                        Status
+                        <span className="text-xs">{memberSortKey === 'status' ? (memberSortDirection === 'asc' ? '▲' : '▼') : ''}</span>
+                      </button>
+                    </th>
                     <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-700">
-                  {members.map((member) => (
+                  {sortedMembers.map((member) => (
                     <tr key={member.user_id} className="hover:bg-gray-750">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedMemberIds.has(member.user_id)}
+                            onChange={() => toggleMemberSelection(member.user_id)}
+                            className="rounded border-gray-600 bg-gray-700 text-cyan-500 focus:ring-cyan-500"
+                            aria-label={`Select ${member.username}`}
+                          />
                           <img
                             src={member.avatar_url || '/avatars/default.png'}
                             alt={member.username}
@@ -822,6 +1158,29 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                 </tbody>
               </table>
             </div>
+            {members.length > 0 && (
+              <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-gray-700 text-sm text-gray-400">
+                <span>
+                  Page {memberPage} of {memberTotalPages}
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setMemberPage((prev) => Math.max(1, prev - 1))}
+                    disabled={memberPage === 1}
+                    className="px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => setMemberPage((prev) => Math.min(memberTotalPages, prev + 1))}
+                    disabled={memberPage >= memberTotalPages}
+                    className="px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
             {members.length === 0 && (
               <div className="p-8 text-center text-gray-500">
                 No members found matching your criteria
@@ -1132,6 +1491,15 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
               <h4 className="text-sm font-semibold text-gray-300">Current Assignments</h4>
               <div className="flex flex-wrap gap-3">
                 <select
+                  value={assignmentPageSize}
+                  onChange={(e) => setAssignmentPageSize(Number(e.target.value))}
+                  className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                </select>
+                <select
                   value={assignmentFilterClassId}
                   onChange={(e) => setAssignmentFilterClassId(e.target.value)}
                   className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white"
@@ -1169,7 +1537,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-700">
-                  {filteredTeacherAssignments.map((assignment) => {
+                  {pagedTeacherAssignments.map((assignment) => {
                     const cls = classById[assignment.class_id];
                     const teacher = teachers.find((t) => t.user_id === assignment.teacher_user_id);
                     return (
@@ -1195,16 +1563,24 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                         </td>
                         <td className="px-4 py-3 text-right">
                           <button
-                            onClick={async () => {
-                              if (confirm(`Remove ${teacher?.username || 'this teacher'} from teaching ${assignment.subject} in ${cls?.class_code || 'this class'}?`)) {
-                                const result = await SchoolAdminService.deleteTeacherAssignment(assignment.id);
-                                if (result.success) {
-                                  addToast('Assignment deleted successfully', 'success');
-                                  if (school) await loadAdminTools(school.id);
-                                } else {
-                                  addToast(`Failed to delete: ${result.error}`, 'error');
-                                }
-                              }
+                            onClick={() => {
+                              setConfirmReason('');
+                              setConfirmDialog({
+                                title: 'Delete assignment',
+                                description: `Remove ${teacher?.username || 'this teacher'} from teaching ${assignment.subject} in ${cls?.class_code || 'this class'}?`,
+                                confirmLabel: 'Delete assignment',
+                                cancelLabel: 'Cancel',
+                                isDestructive: true,
+                                onConfirm: async () => {
+                                  const result = await SchoolAdminService.deleteTeacherAssignment(assignment.id);
+                                  if (result.success) {
+                                    addToast('Assignment deleted successfully', 'success');
+                                    if (school) await loadAdminTools(school.id);
+                                  } else {
+                                    addToast(`Failed to delete: ${result.error}`, 'error');
+                                  }
+                                },
+                              });
                             }}
                             className="text-red-400 hover:text-red-300 text-sm font-medium"
                           >
@@ -1217,6 +1593,29 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                 </tbody>
               </table>
             </div>
+            {filteredTeacherAssignments.length > 0 && (
+              <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-gray-700 text-sm text-gray-400">
+                <span>
+                  Page {assignmentPage} of {assignmentTotalPages}
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setAssignmentPage((prev) => Math.max(1, prev - 1))}
+                    disabled={assignmentPage === 1}
+                    className="px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => setAssignmentPage((prev) => Math.min(assignmentTotalPages, prev + 1))}
+                    disabled={assignmentPage >= assignmentTotalPages}
+                    className="px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
             {filteredTeacherAssignments.length === 0 && (
               <div className="p-6 text-center text-gray-500">No assignments found.</div>
             )}
@@ -1286,13 +1685,28 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
           <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
             <div className="p-4 border-b border-gray-700 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <h4 className="text-sm font-semibold text-gray-300">Students in School</h4>
-              <input
-                type="text"
-                value={studentSearch}
-                onChange={(e) => setStudentSearch(e.target.value)}
-                placeholder="Search students..."
-                className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white"
-              />
+              <div className="flex flex-wrap items-center gap-2">
+                <label htmlFor="student-search" className="sr-only">
+                  Search students
+                </label>
+                <input
+                  id="student-search"
+                  type="text"
+                  value={studentSearch}
+                  onChange={(e) => setStudentSearch(e.target.value)}
+                  placeholder="Search students..."
+                  className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white"
+                />
+                <select
+                  value={studentPageSize}
+                  onChange={(e) => setStudentPageSize(Number(e.target.value))}
+                  className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -1305,7 +1719,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-700">
-                  {filteredStudents.map((student) => {
+                  {pagedStudents.map((student) => {
                     const classId = studentAssignments[student.user_id];
                     const cls = classId ? classById[classId] : null;
                     return (
@@ -1332,6 +1746,29 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                 </tbody>
               </table>
             </div>
+            {filteredStudents.length > 0 && (
+              <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-gray-700 text-sm text-gray-400">
+                <span>
+                  Page {studentPage} of {studentTotalPages}
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setStudentPage((prev) => Math.max(1, prev - 1))}
+                    disabled={studentPage === 1}
+                    className="px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => setStudentPage((prev) => Math.min(studentTotalPages, prev + 1))}
+                    disabled={studentPage >= studentTotalPages}
+                    className="px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
             {filteredStudents.length === 0 && (
               <div className="p-6 text-center text-gray-500">No students found.</div>
             )}
@@ -1346,13 +1783,14 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
             <h3 className="text-lg font-semibold mb-4">Current Invite Code</h3>
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div
-                  className="font-mono text-2xl font-bold text-cyan-400 cursor-pointer hover:text-cyan-300"
+                <button
+                  type="button"
+                  className="font-mono text-2xl font-bold text-cyan-400 hover:text-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-500/40 rounded-lg"
                   onClick={() => copyToClipboard(school.invite_code || '')}
-                  title="Click to copy"
+                  aria-label="Copy invite code"
                 >
                   {school.invite_code || 'No code'}
-                </div>
+                </button>
                 <div className="text-sm text-gray-400">
                   Share this with teachers/students to join.
                 </div>
@@ -1456,7 +1894,13 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
       {/* Member Action Modal */}
       {showMemberActionModal && selectedMember && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-700">
+          <div
+            className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-700"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="member-action-title"
+            aria-describedby="member-action-description"
+          >
             <div className="flex items-center gap-4 mb-4">
               <img
                 src={selectedMember.avatar_url || '/avatars/default.png'}
@@ -1464,8 +1908,8 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                 className="w-12 h-12 rounded-full bg-gray-700"
               />
               <div>
-                <h3 className="text-xl font-bold">{selectedMember.username}</h3>
-                <p className="text-gray-400 text-sm">{selectedMember.email}</p>
+                <h3 id="member-action-title" className="text-xl font-bold">{selectedMember.username}</h3>
+                <p id="member-action-description" className="text-gray-400 text-sm">{selectedMember.email}</p>
               </div>
             </div>
 
@@ -1526,9 +1970,69 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
             <button
               onClick={() => { setShowMemberActionModal(false); setSelectedMember(null); }}
               className="w-full mt-4 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+              autoFocus
             >
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {confirmDialog && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div
+            className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-700"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirm-dialog-title"
+            aria-describedby="confirm-dialog-description"
+          >
+            <h3 id="confirm-dialog-title" className="text-xl font-bold mb-2">
+              {confirmDialog.title}
+            </h3>
+            <p id="confirm-dialog-description" className="text-sm text-gray-400 mb-4">
+              {confirmDialog.description}
+            </p>
+            {confirmDialog.requiresReason && (
+              <div className="mb-4">
+                <label htmlFor="confirm-reason" className="block text-sm font-medium text-gray-300 mb-1">
+                  Reason (optional)
+                </label>
+                <input
+                  id="confirm-reason"
+                  type="text"
+                  value={confirmReason}
+                  onChange={(e) => setConfirmReason(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                  placeholder="Add a reason for this action"
+                />
+              </div>
+            )}
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => {
+                  setConfirmDialog(null);
+                  setConfirmReason('');
+                }}
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+              >
+                {confirmDialog.cancelLabel || 'Cancel'}
+              </button>
+              <button
+                onClick={async () => {
+                  await confirmDialog.onConfirm(confirmReason.trim() || undefined);
+                  setConfirmDialog(null);
+                  setConfirmReason('');
+                }}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  confirmDialog.isDestructive
+                    ? 'bg-red-600 hover:bg-red-500 text-white'
+                    : 'bg-cyan-600 hover:bg-cyan-500 text-white'
+                }`}
+              >
+                {confirmDialog.confirmLabel || 'Confirm'}
+              </button>
+            </div>
           </div>
         </div>
       )}
