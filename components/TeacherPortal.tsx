@@ -8,6 +8,7 @@ import BackButton from './BackButton';
 import DiagramBuilder from './geometry/DiagramBuilder';
 import QuestionBank from './teacher/QuestionBank';
 import '../src/styles/teacher-theme.css';
+import { chemistryAnswerKeys, chemistryQuestionRanges } from './chemistryAnswerKeys';
 
 interface TeacherPortalProps {
   profile: Profile;
@@ -428,28 +429,6 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       16:"B", 17:"C", 18:"C", 19:"A", 20:"A",
       21:"H", 22:"E", 23:"D", 24:"C", 25:"B"
     }
-  };
-
-  const chemistryAnswerKeys: Record<string, Record<number, string>> = {
-    'AS Chemistry Ch2 (Atoms, molecules and stoichiometry)': {
-      1: 'C', 2: 'C', 3: 'C', 4: 'C', 5: 'C',
-      6: 'C', 7: 'C', 8: 'A', 9: 'B', 10: 'C',
-      11: 'D', 12: 'A', 13: 'A', 14: 'D', 15: 'D',
-      16: 'B', 17: 'A', 18: 'C', 19: 'C', 20: 'B',
-      21: 'C', 22: 'C', 23: 'A', 24: 'A', 25: 'C',
-      26: 'D', 27: 'B', 28: 'B', 29: 'C', 30: 'B',
-      31: 'C', 32: 'D', 33: 'B', 34: 'B', 35: 'D',
-      36: 'B', 37: 'B', 38: 'C', 39: 'B', 40: 'B',
-      41: 'B', 42: 'C', 43: 'C', 44: 'C', 45: 'D',
-      46: 'B', 47: 'A', 48: 'B', 49: 'C', 50: 'D',
-      51: 'A', 52: 'A', 53: 'B', 54: 'D', 55: 'C',
-      56: 'A', 57: 'C', 58: 'B', 59: 'B', 60: 'C',
-      61: 'C', 62: 'B', 63: 'C', 64: 'A',
-    }
-  };
-
-  const chemistryQuestionRanges: Record<string, { total: number; splitIndex: number }> = {
-    'AS Chemistry Ch2 (Atoms, molecules and stoichiometry)': { total: 64, splitIndex: 32 }
   };
 
   // Skill categories for analysis

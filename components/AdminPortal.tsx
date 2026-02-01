@@ -10,6 +10,7 @@ import IeltsAdminDashboard from './IeltsAdminDashboard';
 import * as SchoolRequestService from '../services/schoolRequestService';
 import * as SchoolAdminService from '../services/schoolAdminService';
 import { SchoolMember } from '../services/schoolAdminService';
+import { chemistryAnswerKeys, chemistryQuestionRanges } from './chemistryAnswerKeys';
 
 interface AdminPortalProps {
   profile: Profile;
@@ -576,7 +577,35 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       11:"Thursdays", 12:"flute", 13:"dance studio", 14:"restaurant", 15:"DRASTLE",
       16:"B", 17:"C", 18:"C", 19:"A", 20:"A",
       21:"H", 22:"E", 23:"D", 24:"C", 25:"B"
+    },
+    ...chemistryAnswerKeys
+  };
+
+  const getChemistryAnswerKey = (quizName: string | undefined) => {
+    if (!quizName) return {};
+    const baseName = quizName.replace(/\s*\(Part\s+\d+\)\s*/i, '').trim();
+    const partMatch = quizName.match(/\(Part\s+(\d+)\)/i);
+    const baseKey = chemistryAnswerKeys[quizName] || chemistryAnswerKeys[baseName] || {};
+    const range = chemistryQuestionRanges[baseName];
+
+    if (!partMatch || !range) {
+      return baseKey;
     }
+
+    const part = Number(partMatch[1]);
+    const { splitIndex } = range;
+    const lowerBound = part === 1 ? 1 : splitIndex + 1;
+    const upperBound = part === 1 ? splitIndex : range.total;
+    const filtered: Record<number, string> = {};
+
+    Object.entries(baseKey).forEach(([q, ans]) => {
+      const questionNumber = Number(q);
+      if (questionNumber >= lowerBound && questionNumber <= upperBound) {
+        filtered[questionNumber] = ans;
+      }
+    });
+
+    return filtered;
   };
 
   // Skill categories for analysis
@@ -2611,8 +2640,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
           ? (rawAnswers.responses || rawAnswers || {})
           : rawAnswers;
         
-        // Get correct answers - for Chemistry, they're NOT in the frontend
-        const correctAnswersForQuiz = correctAnswers[quizName] || {};
+        // Get correct answers for tests that ship an answer key in the frontend
+        const correctAnswersForQuiz = isChemistryTest ? getChemistryAnswerKey(quizName) : (correctAnswers[quizName] || {});
         const sections = testSections[quizName] || [];
         
         let correctCount = reportStudent.score || 0;
@@ -2620,7 +2649,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         let unansweredCount = 0;
         const mistakes: Array<{ q: number; studentAns: string; correctAns: string; unanswered: boolean }> = [];
         
-        // For non-Chemistry tests with defined correct answers
+        // For tests with defined correct answers
         if (Object.keys(correctAnswersForQuiz).length > 0) {
           correctCount = 0;
           Object.keys(correctAnswersForQuiz).forEach(qStr => {
@@ -2639,10 +2668,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
             }
           });
         } else {
-          // For Chemistry tests, use the stored score
+          // For tests without an answer key, use the stored score
           const totalQ = reportStudent.total_questions || 0;
           wrongCount = totalQ - correctCount;
-          // We don't have detailed answer breakdown for Chemistry in frontend
+          // Detailed answer breakdown is unavailable without a key
         }
         
         return (
