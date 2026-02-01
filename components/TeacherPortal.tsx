@@ -5091,6 +5091,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       {showCambridgeAnswers && selectedCambridgeStudent && (() => {
         const answers = selectedCambridgeStudent.answers || {};
         const quizName = selectedCambridgeStudent.quiz_name;
+        const isChemistryTest = quizName?.toLowerCase().includes('chemistry');
+
+        const studentResponses = isChemistryTest
+          ? (answers.responses || answers || {})
+          : answers;
         
         // Special handling for Writing Test
         if (WRITING_TEST_NAMES.includes(quizName)) {
@@ -5277,24 +5282,32 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         const correct = correctAnswers[quizName] || {};
         const sections = testSections[quizName] || [];
         
-        let correctCount = 0, wrongCount = 0, unansweredCount = 0;
+        let correctCount = selectedCambridgeStudent.score || 0;
+        let wrongCount = 0;
+        let unansweredCount = 0;
         const mistakes: Array<{ q: number; studentAns: string; correctAns: string; unanswered: boolean }> = [];
         
-        Object.keys(correct).forEach(qStr => {
-          const q = parseInt(qStr);
-          const studentAns = (answers[q] || '').toString().trim();
-          const correctAns = correct[q] || '';
-          
-          if (!studentAns) {
-            unansweredCount++;
-            mistakes.push({ q, studentAns: '(No answer)', correctAns, unanswered: true });
-          } else if (studentAns.toLowerCase() === correctAns.toLowerCase()) {
-            correctCount++;
-          } else {
-            wrongCount++;
-            mistakes.push({ q, studentAns, correctAns, unanswered: false });
-          }
-        });
+        if (Object.keys(correct).length > 0) {
+          correctCount = 0;
+          Object.keys(correct).forEach(qStr => {
+            const q = parseInt(qStr);
+            const studentAns = (studentResponses[q] || '').toString().trim();
+            const correctAns = correct[q] || '';
+            
+            if (!studentAns) {
+              unansweredCount++;
+              mistakes.push({ q, studentAns: '(No answer)', correctAns, unanswered: true });
+            } else if (studentAns.toLowerCase() === correctAns.toLowerCase()) {
+              correctCount++;
+            } else {
+              wrongCount++;
+              mistakes.push({ q, studentAns, correctAns, unanswered: false });
+            }
+          });
+        } else {
+          const totalQ = selectedCambridgeStudent.total_questions || 0;
+          wrongCount = totalQ - correctCount;
+        }
         
         return (
           <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-2 sm:p-4 overflow-y-auto" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -5377,7 +5390,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                         <div className="p-4">
                           <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
                             {section.questions.map((q) => {
-                              const studentAns = (answers[q] || '').toString().trim();
+                              const studentAns = (studentResponses[q] || '').toString().trim();
                               const correctAns = correct[q] || '';
                               const isCorrect = studentAns.toLowerCase() === correctAns.toLowerCase();
                               const isEmpty = !studentAns;
@@ -5406,6 +5419,18 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+                {sections.length === 0 && (
+                  <div className="bg-blue-50 border-2 border-blue-400 rounded-xl p-5">
+                    <h3 className="text-lg font-semibold text-blue-700 mb-4">🧪 Cambridge Test Results</h3>
+                    <p className="text-gray-700 mb-3">
+                      Score: <strong>{selectedCambridgeStudent.score}</strong> out of <strong>{selectedCambridgeStudent.total_questions}</strong> ({selectedCambridgeStudent.percentage}%)
+                    </p>
+                    <p className="text-gray-600 text-sm">
+                      Detailed answer review is not available for this test in the teacher portal.
+                      Students can review their answers once the score is released.
+                    </p>
                   </div>
                 )}
               </div>
