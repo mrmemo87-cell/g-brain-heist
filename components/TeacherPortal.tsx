@@ -8,6 +8,7 @@ import BackButton from './BackButton';
 import DiagramBuilder from './geometry/DiagramBuilder';
 import QuestionBank from './teacher/QuestionBank';
 import '../src/styles/teacher-theme.css';
+import { chemistryAnswerKeys, chemistryQuestionRanges } from './chemistryAnswerKeys';
 
 interface TeacherPortalProps {
   profile: Profile;
@@ -859,6 +860,139 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     });
     
     return result;
+  };
+
+  const normalizeAnswer = (value: unknown) => (value ?? '').toString().trim();
+
+  const getStudentResponses = (student: any) => {
+    const answers = student?.answers || {};
+    if (student?.quiz_name?.toLowerCase().includes('chemistry')) {
+      const responses = answers.responses || answers || {};
+      if (typeof responses === 'string') {
+        try {
+          return JSON.parse(responses);
+        } catch (error) {
+          console.warn('Failed to parse chemistry responses:', error);
+          return {};
+        }
+      }
+      return responses;
+    }
+    return answers;
+  };
+
+  const getChemistryAnswerKey = (quizName: string | undefined) => {
+    if (!quizName) return {};
+    const baseName = quizName.replace(/\s*\(Part\s+\d+\)\s*/i, '').trim();
+    const partMatch = quizName.match(/\(Part\s+(\d+)\)/i);
+    const baseKey = chemistryAnswerKeys[quizName] || chemistryAnswerKeys[baseName] || {};
+    const range = chemistryQuestionRanges[baseName];
+
+    if (!partMatch || !range) {
+      return baseKey;
+    }
+
+    const part = Number(partMatch[1]);
+    const { splitIndex } = range;
+    const lowerBound = part === 1 ? 1 : splitIndex + 1;
+    const upperBound = part === 1 ? splitIndex : range.total;
+    const filtered: Record<number, string> = {};
+
+    Object.entries(baseKey).forEach(([q, ans]) => {
+      const questionNumber = Number(q);
+      if (questionNumber >= lowerBound && questionNumber <= upperBound) {
+        filtered[questionNumber] = ans;
+      }
+    });
+
+    return filtered;
+  };
+
+  const buildResponseSummary = (student: any, answerKey: Record<number, string>) => {
+    const responses = getStudentResponses(student);
+    const totalQuestions = student?.total_questions || Object.keys(answerKey).length || 0;
+    let correctCount = student?.score || 0;
+    let unansweredCount = 0;
+    let wrongCount = 0;
+    const details: Array<{ q: number; studentAns: string; correctAns: string; status: 'correct' | 'wrong' | 'unanswered' | 'answered' }> = [];
+
+    if (Object.keys(answerKey).length > 0) {
+      correctCount = 0;
+      Object.entries(answerKey).forEach(([qStr, correctAns]) => {
+        const q = Number(qStr);
+        const studentAns = normalizeAnswer(responses[q] ?? '');
+        const normalizedCorrect = normalizeAnswer(correctAns);
+
+        if (!studentAns) {
+          unansweredCount++;
+          details.push({ q, studentAns: '—', correctAns: correctAns || '—', status: 'unanswered' });
+          return;
+        }
+
+        if (studentAns.toLowerCase() === normalizedCorrect.toLowerCase()) {
+          correctCount++;
+          details.push({ q, studentAns, correctAns: correctAns || '—', status: 'correct' });
+          return;
+        }
+
+        wrongCount++;
+        details.push({ q, studentAns, correctAns: correctAns || '—', status: 'wrong' });
+      });
+    } else if (totalQuestions > 0) {
+      for (let q = 1; q <= totalQuestions; q += 1) {
+        const studentAns = normalizeAnswer(responses[q] ?? '');
+        if (!studentAns) {
+          unansweredCount++;
+        }
+      }
+      wrongCount = Math.max(totalQuestions - correctCount - unansweredCount, 0);
+      for (let q = 1; q <= totalQuestions; q += 1) {
+        const studentAns = normalizeAnswer(responses[q] ?? '');
+        const status = !studentAns ? 'unanswered' : 'answered';
+        details.push({ q, studentAns: studentAns || '—', correctAns: '—', status });
+      }
+    }
+
+    return { correctCount, wrongCount, unansweredCount, totalQuestions, details };
+  };
+
+  const getGeneralActionPlan = (student: any, summary: { correctCount: number; wrongCount: number; unansweredCount: number; totalQuestions: number }) => {
+    const percentage = student?.percentage ?? 0;
+    const name = student?.student_name || 'this student';
+    const total = summary.totalQuestions || student?.total_questions || 0;
+    const unanswered = summary.unansweredCount;
+    const wrong = summary.wrongCount;
+
+    if (percentage < 40) {
+      return {
+        title: `Start with the foundations, ${name.split(' ')[0] || name}`,
+        tips: [
+          `Revisit the key concepts from the chapter notes before retrying (${wrong} incorrect).`,
+          unanswered > 0 ? `Complete the ${unanswered} unanswered questions and check each option carefully.` : 'Attempt every question and avoid leaving blanks.',
+          `Practice 10–15 mixed questions daily until accuracy improves.`
+        ]
+      };
+    }
+
+    if (percentage < 60) {
+      return {
+        title: 'Strengthen core understanding',
+        tips: [
+          `Review the most missed ideas and summarize them in your own words.`,
+          unanswered > 0 ? `Focus on completing all questions (you skipped ${unanswered}/${total}).` : 'Work on speed so you can attempt every question.',
+          'Redo similar questions and check why each option is correct or incorrect.'
+        ]
+      };
+    }
+
+    return {
+      title: 'Keep building momentum',
+      tips: [
+        'Target the remaining weak topics with focused practice.',
+        'Explain each answer aloud to confirm the reasoning.',
+        'Maintain a steady revision schedule before the next test.'
+      ]
+    };
   };
 
   // Get grade based on percentage
@@ -4521,9 +4655,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 </div>
               )}
 
-              <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+              <div className="bg-white border border-slate-200 rounded-2xl shadow-sm">
                 <div className="overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100 scroll-smooth" style={{ maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}>
-                  <table className="w-full text-sm border-collapse" style={{ minWidth: '1000px' }}>
+                  <table className="w-full text-sm border-collapse min-w-[1100px]">
                     <thead className="bg-slate-50 text-slate-600">
                       <tr>
                         <th className="px-4 py-3 text-left font-semibold w-10">
@@ -4839,6 +4973,16 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       {/* Performance Report Modal - Professional Landscape Certificate */}
       {showCambridgeReport && selectedCambridgeStudent && (() => {
         const skillPerf = analyzeSkillPerformance(selectedCambridgeStudent);
+        const reportAnswerKey = selectedCambridgeStudent.quiz_name?.toLowerCase().includes('chemistry')
+          ? getChemistryAnswerKey(selectedCambridgeStudent.quiz_name)
+          : (correctAnswers[selectedCambridgeStudent.quiz_name] || {});
+        const responseSummary = buildResponseSummary(selectedCambridgeStudent, reportAnswerKey);
+        const fallbackPlan = getGeneralActionPlan(selectedCambridgeStudent, responseSummary);
+        const studentFirstName = selectedCambridgeStudent.student_name?.split(' ')[0] || selectedCambridgeStudent.student_name || 'Student';
+        const accuracy = responseSummary.totalQuestions > 0
+          ? Math.round((responseSummary.correctCount / responseSummary.totalQuestions) * 100)
+          : selectedCambridgeStudent.percentage;
+        const personalizedNote = `You answered ${responseSummary.correctCount}/${responseSummary.totalQuestions || selectedCambridgeStudent.total_questions} correctly (${accuracy}%). ${responseSummary.unansweredCount > 0 ? `There were ${responseSummary.unansweredCount} unanswered questions—aim to attempt every item next time.` : 'Great job attempting every question.'}`;
         const sortedSkills = Object.entries(skillPerf).sort((a, b) => a[1].percentage - b[1].percentage);
         const weakAreas = sortedSkills.filter(([_, data]) => data.percentage < 70);
         const grade = getGrade(selectedCambridgeStudent.percentage);
@@ -5038,14 +5182,31 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                         })}
                       </div>
                     ) : (
-                      <div className="flex gap-2 p-2 bg-green-50 rounded border border-green-200">
-                        <div className="w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0">✓</div>
-                        <div>
-                          <h4 className="font-semibold text-gray-800 text-xs">Excellent!</h4>
-                          <p className="text-[10px] text-gray-600">Keep up the great work!</p>
+                      <div className="space-y-2">
+                        <div className="flex gap-2 p-2 bg-white rounded border border-purple-100">
+                          <div className="w-5 h-5 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-[10px] flex-shrink-0">1</div>
+                          <div>
+                            <h4 className="font-semibold text-gray-800 text-xs">{fallbackPlan.title}</h4>
+                            <p className="text-[10px] text-gray-600">{fallbackPlan.tips[0]}</p>
+                          </div>
                         </div>
+                        {fallbackPlan.tips.slice(1).map((tip, idx) => (
+                          <div key={tip} className="flex gap-2 p-2 bg-white rounded border border-purple-100">
+                            <div className="w-5 h-5 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-[10px] flex-shrink-0">{idx + 2}</div>
+                            <div>
+                              <p className="text-[10px] text-gray-600">{tip}</p>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     )}
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <h3 className="text-sm font-bold text-blue-800 mb-2">🎯 Personal Coaching Note</h3>
+                    <p className="text-[11px] text-blue-900">
+                      {studentFirstName}, {personalizedNote}
+                    </p>
                   </div>
 
                   {/* Encouragement - Compact */}
@@ -5091,6 +5252,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       {showCambridgeAnswers && selectedCambridgeStudent && (() => {
         const answers = selectedCambridgeStudent.answers || {};
         const quizName = selectedCambridgeStudent.quiz_name;
+        const isChemistryTest = quizName?.toLowerCase().includes('chemistry');
+
+        const studentResponses = getStudentResponses(selectedCambridgeStudent);
         
         // Special handling for Writing Test
         if (WRITING_TEST_NAMES.includes(quizName)) {
@@ -5274,27 +5438,18 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         }
         
         // Regular test handling
-        const correct = correctAnswers[quizName] || {};
+        const answerKey = isChemistryTest ? getChemistryAnswerKey(quizName) : (correctAnswers[quizName] || {});
         const sections = testSections[quizName] || [];
-        
-        let correctCount = 0, wrongCount = 0, unansweredCount = 0;
-        const mistakes: Array<{ q: number; studentAns: string; correctAns: string; unanswered: boolean }> = [];
-        
-        Object.keys(correct).forEach(qStr => {
-          const q = parseInt(qStr);
-          const studentAns = (answers[q] || '').toString().trim();
-          const correctAns = correct[q] || '';
-          
-          if (!studentAns) {
-            unansweredCount++;
-            mistakes.push({ q, studentAns: '(No answer)', correctAns, unanswered: true });
-          } else if (studentAns.toLowerCase() === correctAns.toLowerCase()) {
-            correctCount++;
-          } else {
-            wrongCount++;
-            mistakes.push({ q, studentAns, correctAns, unanswered: false });
-          }
-        });
+        const summary = buildResponseSummary(selectedCambridgeStudent, answerKey);
+        const mistakes = summary.details
+          .filter((detail) => detail.status === 'wrong' || detail.status === 'unanswered')
+          .map((detail) => ({
+            q: detail.q,
+            studentAns: detail.status === 'unanswered' ? '(No answer)' : detail.studentAns,
+            correctAns: detail.correctAns,
+            unanswered: detail.status === 'unanswered'
+          }));
+        const hasAnswerKey = Object.keys(answerKey).length > 0;
         
         return (
           <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-2 sm:p-4 overflow-y-auto" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -5333,17 +5488,17 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-green-100 p-4 rounded-xl text-center">
                     <div className="text-3xl">✓</div>
-                    <div className="text-3xl font-bold text-green-700">{correctCount}</div>
+                    <div className="text-3xl font-bold text-green-700">{summary.correctCount}</div>
                     <div className="text-sm text-gray-600">Correct</div>
                   </div>
                   <div className="bg-red-100 p-4 rounded-xl text-center">
                     <div className="text-3xl">✗</div>
-                    <div className="text-3xl font-bold text-red-700">{wrongCount}</div>
+                    <div className="text-3xl font-bold text-red-700">{summary.wrongCount}</div>
                     <div className="text-sm text-gray-600">Wrong</div>
                   </div>
                   <div className="bg-amber-100 p-4 rounded-xl text-center">
                     <div className="text-3xl">⚠️</div>
-                    <div className="text-3xl font-bold text-amber-700">{unansweredCount}</div>
+                    <div className="text-3xl font-bold text-amber-700">{summary.unansweredCount}</div>
                     <div className="text-sm text-gray-600">Unanswered</div>
                   </div>
                 </div>
@@ -5377,9 +5532,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                         <div className="p-4">
                           <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
                             {section.questions.map((q) => {
-                              const studentAns = (answers[q] || '').toString().trim();
-                              const correctAns = correct[q] || '';
-                              const isCorrect = studentAns.toLowerCase() === correctAns.toLowerCase();
+                              const studentAns = normalizeAnswer(studentResponses[q] ?? '');
+                              const correctAns = answerKey[q] || '';
+                              const isCorrect = studentAns.toLowerCase() === normalizeAnswer(correctAns).toLowerCase();
                               const isEmpty = !studentAns;
                               
                               return (
@@ -5406,6 +5561,68 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+                {summary.details.length > 0 && (
+                  <div className="border border-slate-200 rounded-xl overflow-hidden">
+                    <div className="bg-slate-50 px-4 py-3 flex items-center justify-between">
+                      <h4 className="font-semibold text-slate-800">🧾 Full Answer Review</h4>
+                      {hasAnswerKey ? (
+                        <span className="text-xs text-green-600 font-semibold">Answer key verified</span>
+                      ) : (
+                        <span className="text-xs text-amber-600 font-semibold">Answer key unavailable</span>
+                      )}
+                    </div>
+                    <div className="max-h-[320px] overflow-y-auto divide-y divide-slate-100">
+                      {summary.details.map((detail) => (
+                        <div key={detail.q} className="px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs font-semibold text-slate-500">Q{detail.q}</span>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                              detail.status === 'correct' ? 'bg-green-100 text-green-700' :
+                              detail.status === 'wrong' ? 'bg-red-100 text-red-700' :
+                              detail.status === 'answered' ? 'bg-blue-100 text-blue-700' :
+                              'bg-amber-100 text-amber-700'
+                            }`}>
+                              {detail.status === 'correct'
+                                ? 'Correct'
+                                : detail.status === 'wrong'
+                                  ? 'Wrong'
+                                  : detail.status === 'answered'
+                                    ? 'Answered'
+                                    : 'Unanswered'}
+                            </span>
+                          </div>
+                          <div className="flex flex-col md:flex-row gap-2 md:items-center text-xs text-slate-600">
+                            <span>Student: <strong className="text-slate-800">{detail.studentAns || '—'}</strong></span>
+                            <span className="hidden md:inline">•</span>
+                            <span>Correct: <strong className="text-emerald-600">{detail.correctAns || '—'}</strong></span>
+                          </div>
+                          <div className="text-[11px] text-slate-500">
+                            {detail.status === 'correct'
+                              ? 'Matched the official answer key.'
+                              : detail.status === 'answered'
+                                ? 'Answer submitted. Official key not available for verification yet.'
+                                : detail.status === 'unanswered'
+                                  ? 'No answer submitted. Review the concept and attempt this question again.'
+                                  : `Correct answer is ${detail.correctAns || '—'}. Revisit the related concept.`}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {sections.length === 0 && summary.details.length === 0 && (
+                  <div className="bg-blue-50 border-2 border-blue-400 rounded-xl p-5">
+                    <h3 className="text-lg font-semibold text-blue-700 mb-4">🧪 Cambridge Test Results</h3>
+                    <p className="text-gray-700 mb-3">
+                      Score: <strong>{selectedCambridgeStudent.score}</strong> out of <strong>{selectedCambridgeStudent.total_questions}</strong> ({selectedCambridgeStudent.percentage}%)
+                    </p>
+                    <p className="text-gray-600 text-sm">
+                      Detailed answer review is not available for this test in the teacher portal yet.
+                      Students will be able to review their answers once the score is released.
+                    </p>
                   </div>
                 )}
               </div>
