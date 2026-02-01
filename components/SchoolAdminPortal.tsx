@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import BackButton from './BackButton';
 import { ToastMessage } from '../types';
 import * as SchoolAdminService from '../services/schoolAdminService';
+import ClassRoster from './ClassRoster';
 import type {
   SchoolStats,
   SchoolMember,
@@ -17,7 +18,7 @@ interface SchoolAdminPortalProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
 }
 
-type AdminTab = 'dashboard' | 'members' | 'classes' | 'subjects' | 'teachers' | 'students' | 'invites' | 'settings';
+type AdminTab = 'dashboard' | 'members' | 'classes' | 'roster' | 'subjects' | 'teachers' | 'students' | 'invites' | 'settings';
 
 const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addToast }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
@@ -568,7 +569,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
 
       {/* Premium Tab Navigation */}
       <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
-        {(['dashboard', 'members', 'classes', 'subjects', 'teachers', 'students', 'invites', 'settings'] as AdminTab[]).map((tab) => (
+        {(['dashboard', 'members', 'classes', 'roster', 'subjects', 'teachers', 'students', 'invites', 'settings'] as AdminTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -581,6 +582,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
             {tab === 'dashboard' && '📊 Dashboard'}
             {tab === 'members' && `👥 Members (${membersTotal})`}
             {tab === 'classes' && '🏫 Classes'}
+            {tab === 'roster' && '📋 Class Roster'}
             {tab === 'subjects' && '📚 Subjects'}
             {tab === 'teachers' && '🧑‍🏫 Teacher Assignments'}
             {tab === 'students' && '🎒 Student Enrollment'}
@@ -940,6 +942,15 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
             )}
           </div>
         </div>
+      )}
+
+      {/* Class Roster Tab - Full Student Management */}
+      {activeTab === 'roster' && school && (
+        <ClassRoster
+          schoolId={school.id}
+          addToast={addToast}
+          onRefresh={() => loadAdminTools(school.id)}
+        />
       )}
 
       {/* Subjects Tab - DB-DRIVEN */}

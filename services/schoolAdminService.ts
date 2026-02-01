@@ -1148,3 +1148,316 @@ export async function moveStudentToClassViaRPC(
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
+
+// ============================================
+// Class Roster Management Functions
+// ============================================
+
+export interface ClassRosterStudent {
+  student_id: string;
+  username: string;
+  email: string;
+  avatar_url: string | null;
+  grade: string;
+  batch: string;
+  level: number;
+  xp: number;
+  last_seen: string | null;
+  is_banned: boolean;
+  enrolled_at: string;
+}
+
+export interface ClassWithRosterInfo {
+  class_id: string;
+  class_code: string;
+  class_name: string;
+  grade_level: string | null;
+  is_active: boolean;
+  student_count: number;
+  teacher_count: number;
+}
+
+export interface ClassStatistics {
+  success: boolean;
+  class_id: string;
+  class_code: string;
+  class_name: string;
+  grade_level: string | null;
+  student_count: number;
+  teacher_count: number;
+  avg_level: number;
+  avg_xp: number;
+  total_xp: number;
+  teachers: Array<{ user_id: string; username: string; subject: string }>;
+  error?: string;
+}
+
+/**
+ * Get all students enrolled in a specific class
+ */
+export async function getClassRoster(classId: string): Promise<ClassRosterStudent[]> {
+  try {
+    const { data, error } = await supabase.rpc('get_class_roster', {
+      p_class_id: classId,
+    });
+
+    if (error) {
+      console.error('Error fetching class roster:', error);
+      return [];
+    }
+
+    return (data || []).map((row: any) => ({
+      student_id: row.student_id,
+      username: row.username,
+      email: row.email,
+      avatar_url: row.avatar_url,
+      grade: row.grade || '',
+      batch: row.batch || '',
+      level: row.level ?? 1,
+      xp: row.xp ?? 0,
+      last_seen: row.last_seen,
+      is_banned: !!row.is_banned,
+      enrolled_at: row.enrolled_at,
+    }));
+  } catch (err) {
+    console.error('Exception fetching class roster:', err);
+    return [];
+  }
+}
+
+/**
+ * Get all classes in a school with student and teacher counts
+ */
+export async function getSchoolClassRosters(schoolId: string): Promise<ClassWithRosterInfo[]> {
+  try {
+    const { data, error } = await supabase.rpc('get_school_class_rosters', {
+      p_school_id: schoolId,
+    });
+
+    if (error) {
+      console.error('Error fetching school class rosters:', error);
+      return [];
+    }
+
+    return (data || []).map((row: any) => ({
+      class_id: row.class_id,
+      class_code: row.class_code,
+      class_name: row.class_name,
+      grade_level: row.grade_level,
+      is_active: !!row.is_active,
+      student_count: Number(row.student_count || 0),
+      teacher_count: Number(row.teacher_count || 0),
+    }));
+  } catch (err) {
+    console.error('Exception fetching school class rosters:', err);
+    return [];
+  }
+}
+
+/**
+ * Get students who are not enrolled in any class
+ */
+export async function getUnassignedStudents(schoolId: string): Promise<ClassRosterStudent[]> {
+  try {
+    const { data, error } = await supabase.rpc('get_unassigned_students', {
+      p_school_id: schoolId,
+    });
+
+    if (error) {
+      console.error('Error fetching unassigned students:', error);
+      return [];
+    }
+
+    return (data || []).map((row: any) => ({
+      student_id: row.student_id,
+      username: row.username,
+      email: row.email,
+      avatar_url: row.avatar_url,
+      grade: row.grade || '',
+      batch: row.batch || '',
+      level: row.level ?? 1,
+      xp: row.xp ?? 0,
+      last_seen: null,
+      is_banned: false,
+      enrolled_at: '',
+    }));
+  } catch (err) {
+    console.error('Exception fetching unassigned students:', err);
+    return [];
+  }
+}
+
+/**
+ * Add a student to a class
+ */
+export async function addStudentToClass(
+  classId: string,
+  studentId: string
+): Promise<{ success: boolean; error?: string; message?: string }> {
+  try {
+    const { data, error } = await supabase.rpc('add_student_to_class', {
+      p_class_id: classId,
+      p_student_id: studentId,
+    });
+
+    if (error) {
+      console.error('Error adding student to class:', error);
+      return { success: false, error: error.message };
+    }
+
+    return data as { success: boolean; error?: string; message?: string };
+  } catch (err) {
+    console.error('Exception adding student to class:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Remove a student from a class
+ */
+export async function removeStudentFromClass(
+  classId: string,
+  studentId: string
+): Promise<{ success: boolean; error?: string; message?: string }> {
+  try {
+    const { data, error } = await supabase.rpc('remove_student_from_class', {
+      p_class_id: classId,
+      p_student_id: studentId,
+    });
+
+    if (error) {
+      console.error('Error removing student from class:', error);
+      return { success: false, error: error.message };
+    }
+
+    return data as { success: boolean; error?: string; message?: string };
+  } catch (err) {
+    console.error('Exception removing student from class:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Move a student from one class to another
+ */
+export async function moveStudentBetweenClasses(
+  studentId: string,
+  fromClassId: string | null,
+  toClassId: string
+): Promise<{ success: boolean; error?: string; message?: string }> {
+  try {
+    const { data, error } = await supabase.rpc('move_student_between_classes', {
+      p_student_id: studentId,
+      p_from_class_id: fromClassId,
+      p_to_class_id: toClassId,
+    });
+
+    if (error) {
+      console.error('Error moving student between classes:', error);
+      return { success: false, error: error.message };
+    }
+
+    return data as { success: boolean; error?: string; message?: string };
+  } catch (err) {
+    console.error('Exception moving student between classes:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Bulk add students to a class
+ */
+export async function bulkAddStudentsToClass(
+  classId: string,
+  studentIds: string[]
+): Promise<{ success: boolean; added?: number; skipped?: number; error?: string; message?: string }> {
+  try {
+    const { data, error } = await supabase.rpc('bulk_add_students_to_class', {
+      p_class_id: classId,
+      p_student_ids: studentIds,
+    });
+
+    if (error) {
+      console.error('Error bulk adding students to class:', error);
+      return { success: false, error: error.message };
+    }
+
+    return data as { success: boolean; added?: number; skipped?: number; error?: string; message?: string };
+  } catch (err) {
+    console.error('Exception bulk adding students to class:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Bulk remove students from a class
+ */
+export async function bulkRemoveStudentsFromClass(
+  classId: string,
+  studentIds: string[]
+): Promise<{ success: boolean; removed?: number; error?: string; message?: string }> {
+  try {
+    const { data, error } = await supabase.rpc('bulk_remove_students_from_class', {
+      p_class_id: classId,
+      p_student_ids: studentIds,
+    });
+
+    if (error) {
+      console.error('Error bulk removing students from class:', error);
+      return { success: false, error: error.message };
+    }
+
+    return data as { success: boolean; removed?: number; error?: string; message?: string };
+  } catch (err) {
+    console.error('Exception bulk removing students from class:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Get detailed statistics for a class
+ */
+export async function getClassStatistics(classId: string): Promise<ClassStatistics | null> {
+  try {
+    const { data, error } = await supabase.rpc('get_class_statistics', {
+      p_class_id: classId,
+    });
+
+    if (error) {
+      console.error('Error fetching class statistics:', error);
+      return null;
+    }
+
+    if (!data || !data.success) {
+      return null;
+    }
+
+    return data as ClassStatistics;
+  } catch (err) {
+    console.error('Exception fetching class statistics:', err);
+    return null;
+  }
+}
+
+/**
+ * Auto-enroll students by grade level
+ */
+export async function autoEnrollStudentsByGrade(
+  classId: string
+): Promise<{ success: boolean; enrolled?: number; error?: string; message?: string }> {
+  try {
+    const { data, error } = await supabase.rpc('auto_enroll_students_by_grade', {
+      p_class_id: classId,
+    });
+
+    if (error) {
+      console.error('Error auto-enrolling students:', error);
+      return { success: false, error: error.message };
+    }
+
+    return data as { success: boolean; enrolled?: number; error?: string; message?: string };
+  } catch (err) {
+    console.error('Exception auto-enrolling students:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
