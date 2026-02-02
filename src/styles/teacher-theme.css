@@ -782,7 +782,8 @@
   background: var(--teacher-bg-alt);
   border-radius: var(--teacher-radius-lg);
   border: 1px solid var(--teacher-border);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .teacher-table {
