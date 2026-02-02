@@ -4476,7 +4476,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     );
 
     return (
-    <div className="flex min-h-0 flex-col space-y-6 text-slate-900 max-w-full overflow-hidden">
+    <div className="flex min-h-0 flex-col space-y-6 text-slate-900 max-w-full overflow-y-auto">
       <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-sm">
         <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4 sm:gap-6">
           <div className="space-y-4 min-w-0 flex-1">
@@ -4576,14 +4576,14 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-col lg:flex-row gap-6">
+      <div className="flex min-h-0 flex-col lg:flex-row gap-6 flex-1">
         <div className="lg:w-80 lg:shrink-0 min-h-0">
           <div className="hidden lg:block bg-white border border-slate-200 rounded-2xl p-4 sticky top-6 h-fit flex flex-col min-h-0">
             {filtersPanel}
           </div>
         </div>
 
-        <div className="flex-1 space-y-4">
+        <div className="flex-1 space-y-4 min-h-0 flex flex-col">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-3">
               <button
@@ -4680,8 +4680,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 </div>
               )}
 
-              <div className="bg-white border border-slate-200 rounded-2xl shadow-sm">
-                <div className="overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100 scroll-smooth" style={{ maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}>
+              <div className="bg-white border border-slate-200 rounded-2xl shadow-sm flex-1 min-h-0 flex flex-col">
+                <div className="overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100 scroll-smooth flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
                   <table className="w-full text-sm border-collapse min-w-[1100px]">
                     <thead className="bg-slate-50 text-slate-600">
                       <tr>
