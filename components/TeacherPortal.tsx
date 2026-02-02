@@ -4334,7 +4334,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     const hasRows = visibleScores.length > 0;
 
     const filtersPanel = (
-      <div className="space-y-4">
+      <div className="flex min-h-0 flex-col space-y-4">
         <div className="space-y-2">
           <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Search</label>
           <input
@@ -4345,16 +4345,16 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           />
         </div>
 
-        <details open className="rounded-xl border border-slate-200 bg-slate-50/40">
+        <details open className="rounded-xl border border-slate-200 bg-slate-50/40 flex flex-col min-h-0">
           <summary className="cursor-pointer px-3 py-2 text-sm font-semibold text-slate-700">Tests</summary>
-          <div className="px-3 pb-3 space-y-2">
+          <div className="px-3 pb-3 flex min-h-0 flex-col gap-2">
             <input
               value={cambridgeTestSearch}
               onChange={(event) => setCambridgeTestSearch(event.target.value)}
               placeholder="Search tests"
               className="w-full rounded-md border border-slate-200 px-2 py-1.5 text-xs text-slate-700"
             />
-            <div className="space-y-1 max-h-40 overflow-y-auto pr-1">
+            <div className="flex-1 min-h-0 overflow-y-auto space-y-1 pr-1">
               <button
                 onClick={() => setCambridgeActiveTab('all')}
                 className={`w-full text-left px-2 py-1.5 rounded-md text-sm ${
@@ -4384,7 +4384,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </div>
         </details>
 
-        <details open className="rounded-xl border border-slate-200 bg-slate-50/40">
+        <details open className="rounded-xl border border-slate-200 bg-slate-50/40 flex flex-col min-h-0">
           <summary className="cursor-pointer px-3 py-2 text-sm font-semibold text-slate-700">Classes</summary>
           <div className="px-3 pb-3">
             {teacherHasClassAssignments && (
@@ -4405,7 +4405,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </div>
         </details>
 
-        <details open className="rounded-xl border border-slate-200 bg-slate-50/40">
+        <details open className="rounded-xl border border-slate-200 bg-slate-50/40 flex flex-col min-h-0">
           <summary className="cursor-pointer px-3 py-2 text-sm font-semibold text-slate-700">Students</summary>
           <div className="px-3 pb-3">
             {cambridgeClassFilter === 'all' ? (
@@ -4425,7 +4425,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </div>
         </details>
 
-        <details open className="rounded-xl border border-slate-200 bg-slate-50/40">
+        <details open className="rounded-xl border border-slate-200 bg-slate-50/40 flex flex-col min-h-0">
           <summary className="cursor-pointer px-3 py-2 text-sm font-semibold text-slate-700">Status</summary>
           <div className="px-3 pb-3 flex flex-wrap gap-2">
             {statusOptions.map((status) => {
@@ -4451,7 +4451,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </div>
         </details>
 
-        <details open className="rounded-xl border border-slate-200 bg-slate-50/40">
+        <details open className="rounded-xl border border-slate-200 bg-slate-50/40 flex flex-col min-h-0">
           <summary className="cursor-pointer px-3 py-2 text-sm font-semibold text-slate-700">Other</summary>
           <div className="px-3 pb-3 space-y-2 text-sm text-slate-600">
             <label className="flex items-center gap-2">
@@ -4476,7 +4476,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     );
 
     return (
-    <div className="space-y-6 text-slate-900 max-w-full overflow-hidden">
+    <div className="flex min-h-0 flex-col space-y-6 text-slate-900 max-w-full overflow-hidden">
       <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-sm">
         <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4 sm:gap-6">
           <div className="space-y-4 min-w-0 flex-1">
@@ -4576,9 +4576,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        <div className="lg:w-80 lg:shrink-0">
-          <div className="hidden lg:block bg-white border border-slate-200 rounded-2xl p-4 sticky top-6 h-fit">
+      <div className="flex min-h-0 flex-col lg:flex-row gap-6">
+        <div className="lg:w-80 lg:shrink-0 min-h-0">
+          <div className="hidden lg:block bg-white border border-slate-200 rounded-2xl p-4 sticky top-6 h-fit flex flex-col min-h-0">
             {filtersPanel}
           </div>
         </div>
@@ -6291,7 +6291,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         </div>
 
         {/* Main Content Panel */}
-        <div className="teacher-main-panel">
+        <div className="teacher-main-panel min-h-0">
           {view === 'dashboard' && renderDashboard()}
           {view === 'create-question' && renderCreateQuestion()}
           {view === 'question-bank' && (
