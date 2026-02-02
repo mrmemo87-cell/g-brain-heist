@@ -533,8 +533,33 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       }
 
       const scores = data || [];
-      setCambridgeScores(scores);
-      calculateCambridgeStats(scores);
+      let resolvedScores = scores;
+
+      if (scores.length > 0 && !('scores_released' in scores[0])) {
+        const ids = scores.map((score) => score.id).filter(Boolean);
+        if (ids.length > 0) {
+          const { data: releaseRows, error: releaseError } = await supabase
+            .from('quiz_scores')
+            .select('id, scores_released')
+            .in('id', ids);
+
+          if (!releaseError && releaseRows) {
+            const releaseMap = new Map(releaseRows.map((row) => [row.id, row.scores_released]));
+            resolvedScores = scores.map((score) => ({
+              ...score,
+              scores_released: releaseMap.get(score.id) ?? false,
+            }));
+          } else {
+            resolvedScores = scores.map((score) => ({
+              ...score,
+              scores_released: false,
+            }));
+          }
+        }
+      }
+
+      setCambridgeScores(resolvedScores);
+      calculateCambridgeStats(resolvedScores);
     } catch (error) {
       console.error('Failed to fetch Cambridge scores:', error);
     } finally {

@@ -1784,7 +1784,7 @@
       try {
         const { data, error } = await supabaseClient
           .from('quiz_scores')
-          .select('scores_released, score, total_questions, percentage, answers')
+          .select('scores_released, score, total_questions, percentage, answers, time_taken_seconds')
           .eq('quiz_name', QUIZ_NAME)
           .eq('student_name', studentName)
           .order('submitted_at', { ascending: false })
@@ -1802,8 +1802,12 @@
         if (overlay) overlay.classList.add('hidden');
         
         if (data.scores_released) {
-          scoreDiv.textContent = `✅ Score: ${data.score}/${data.total_questions} (${data.percentage}%)`;
+          const timeTaken = typeof data.time_taken_seconds === 'number'
+            ? ` • ⏱️ Time: ${formatTimer(data.time_taken_seconds)}`
+            : '';
+          scoreDiv.textContent = `✅ Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
+          hideTimer();
           const responses = (data.answers && typeof data.answers === "string" ? JSON.parse(data.answers) : data.answers)?.responses || {};
           applyReviewMode(responses);
         } else {
@@ -1975,6 +1979,14 @@
       if (timerInterval) {
         clearInterval(timerInterval);
         timerInterval = null;
+      }
+    }
+
+    function hideTimer() {
+      const timerEl = document.getElementById('timer');
+      if (timerEl) {
+        timerEl.classList.remove('floating');
+        timerEl.style.display = 'none';
       }
     }
 
