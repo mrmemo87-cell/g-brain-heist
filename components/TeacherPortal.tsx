@@ -4656,7 +4656,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               )}
 
               <div className="bg-white border border-slate-200 rounded-2xl shadow-sm">
-                <div className="overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100 scroll-smooth" style={{ maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}>
+                <div className="overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100 scroll-smooth" style={{ maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}>
                   <table className="w-full text-sm border-collapse min-w-[1100px]">
                     <thead className="bg-slate-50 text-slate-600">
                       <tr>
