@@ -30,6 +30,17 @@ interface CambridgeTestsHubProps {
 // Available Cambridge tests - add new tests here
 const AVAILABLE_TESTS: CambridgeTest[] = [
   {
+    id: 'cambridge-end-unit-4',
+    name: 'End of Unit 4 Test',
+    description: 'Stage 9 end-of-unit assessment focusing on vocabulary and grammar skills.',
+    duration: '40 min',
+    totalQuestions: 40,
+    difficulty: 'Intermediate',
+    category: 'Grammar',
+    subject: 'English stage 9',
+    url: '/cambridge-tests/English%20stage%209/cambridge_end_unit_4_test.html',
+  },
+  {
     id: 'cambridge-reading-25',
     name: 'Cambridge Reading Test 25',
     description: 'Comprehensive reading comprehension test covering vocabulary, matching, and detailed analysis.',
