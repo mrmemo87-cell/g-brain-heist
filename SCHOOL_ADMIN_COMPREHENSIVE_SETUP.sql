@@ -260,7 +260,8 @@ GRANT EXECUTE ON FUNCTION public.school_admin_set_member_role(UUID,TEXT) TO auth
 -- RPC: Move student to a class (admin-only)
 CREATE OR REPLACE FUNCTION public.school_admin_move_student_to_class(
     p_student_id UUID,
-    p_class_id UUID
+    p_class_id UUID,
+    p_grade SMALLINT DEFAULT NULL
 )
 RETURNS JSONB
 LANGUAGE plpgsql
@@ -270,6 +271,7 @@ AS $$
 DECLARE
     v_school_id UUID := public.my_school_id();
     v_class_code TEXT;
+    v_grade_level INT;
 BEGIN
     IF auth.uid() IS NULL THEN
         RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
@@ -300,22 +302,25 @@ BEGIN
     VALUES (p_class_id, p_student_id)
     ON CONFLICT DO NOTHING;
 
-    -- Get class code
-    SELECT class_code INTO v_class_code
+    -- Get class code and grade level
+    SELECT class_code, grade_level INTO v_class_code, v_grade_level
     FROM public.classes
     WHERE id = p_class_id;
 
-    -- Keep users.batch in sync for display (optional but recommended)
+    -- Update student's grade and batch
+    -- If grade provided, use it; otherwise use class's grade_level
     UPDATE public.users
-    SET batch = v_class_code
+    SET 
+        grade = COALESCE(p_grade, v_grade_level, grade),
+        batch = v_class_code
     WHERE id = p_student_id;
 
     RETURN jsonb_build_object('success', true);
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.school_admin_move_student_to_class(UUID,UUID) FROM public;
-GRANT EXECUTE ON FUNCTION public.school_admin_move_student_to_class(UUID,UUID) TO authenticated;
+REVOKE ALL ON FUNCTION public.school_admin_move_student_to_class(UUID,UUID,SMALLINT) FROM public;
+GRANT EXECUTE ON FUNCTION public.school_admin_move_student_to_class(UUID,UUID,SMALLINT) TO authenticated;
 
 -- ============================================
 -- PART 5: TEACHER ASSIGNMENT RPC (MISSING!)

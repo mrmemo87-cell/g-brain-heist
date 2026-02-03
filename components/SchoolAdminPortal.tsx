@@ -76,6 +76,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
   const [students, setStudents] = useState<SchoolMember[]>([]);
   const [studentSearch, setStudentSearch] = useState('');
   const [selectedStudentId, setSelectedStudentId] = useState('');
+  const [selectedGrade, setSelectedGrade] = useState<number | ''>('');
   const [selectedClassId, setSelectedClassId] = useState('');
   const [studentAssignments, setStudentAssignments] = useState<Record<string, string | null>>({});
   const [studentSaving, setStudentSaving] = useState(false);
@@ -443,9 +444,13 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
 
     const currentClassId = studentAssignments[selectedStudentId];
 
-    // Use the new RPC
+    // Use the new RPC with optional grade
     setStudentSaving(true);
-    const result = await SchoolAdminService.moveStudentToClassViaRPC(selectedStudentId, selectedClassId);
+    const result = await SchoolAdminService.moveStudentToClassViaRPC(
+      selectedStudentId,
+      selectedClassId,
+      selectedGrade ? Number(selectedGrade) : undefined
+    );
     setStudentSaving(false);
 
     if (!result.success) {
@@ -455,6 +460,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
 
     addToast('Student enrolled successfully', 'success');
     setSelectedStudentId('');
+    setSelectedGrade('');
     setSelectedClassId('');
     await loadAdminTools(school.id);
   };
@@ -1627,7 +1633,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
         <div className="space-y-6">
           <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
             <h3 className="text-lg font-semibold mb-4">Enroll or Move Student</h3>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Student</label>
                 <select
@@ -1635,6 +1641,9 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                   onChange={(e) => {
                     const studentId = e.target.value;
                     setSelectedStudentId(studentId);
+                    // Auto-fill grade from student's current grade
+                    const student = students.find(s => s.user_id === studentId);
+                    setSelectedGrade(student?.grade ? Number(student.grade) : '');
                     setSelectedClassId(studentAssignments[studentId] || '');
                   }}
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
@@ -1642,7 +1651,27 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                   <option value="">Select student</option>
                   {students.map((student) => (
                     <option key={student.user_id} value={student.user_id}>
-                      {student.username}
+                      {student.username} (Grade {student.grade || 'N/A'})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Grade</label>
+                <select
+                  value={selectedGrade}
+                  onChange={(e) => {
+                    const grade = e.target.value ? Number(e.target.value) : '';
+                    setSelectedGrade(grade);
+                    // Reset class selection when grade changes
+                    setSelectedClassId('');
+                  }}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                >
+                  <option value="">Select grade</option>
+                  {[6, 7, 8, 9, 10, 11, 12].map((grade) => (
+                    <option key={grade} value={grade}>
+                      Grade {grade}
                     </option>
                   ))}
                 </select>
@@ -1655,11 +1684,13 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
                 >
                   <option value="">Select class</option>
-                  {classes.map((cls) => (
-                    <option key={cls.id} value={cls.id}>
-                      {cls.class_code} — {cls.class_name}
-                    </option>
-                  ))}
+                  {classes
+                    .filter((cls) => !selectedGrade || cls.grade_level === Number(selectedGrade))
+                    .map((cls) => (
+                      <option key={cls.id} value={cls.id}>
+                        {cls.class_code} — {cls.class_name}
+                      </option>
+                    ))}
                 </select>
               </div>
               <div className="flex items-end">

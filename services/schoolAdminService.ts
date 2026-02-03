@@ -1125,12 +1125,14 @@ export async function setMemberRoleViaRPC(
  */
 export async function moveStudentToClassViaRPC(
   studentId: string,
-  classId: string
+  classId: string,
+  grade?: number
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const { data, error } = await supabase.rpc('school_admin_move_student_to_class', {
       p_student_id: studentId,
       p_class_id: classId,
+      p_grade: grade || null,
     });
 
     if (error) {

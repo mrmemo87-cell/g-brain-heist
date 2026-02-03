@@ -16,8 +16,8 @@ DROP FUNCTION IF EXISTS admin_set_school_admin(UUID, UUID, BOOLEAN);
 
 -- ============================================
 -- Function: admin_list_schools
--- Lists all schools for superadmin management
--- ============================================
+-- Lists all schools for superadmin management      
+-               - ============================================
 CREATE OR REPLACE FUNCTION admin_list_schools()
 RETURNS TABLE (
     id UUID,
