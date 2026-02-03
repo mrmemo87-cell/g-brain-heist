@@ -459,9 +459,19 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
     }
 
     addToast('Student enrolled successfully', 'success');
+    
+    // Update local state immediately
+    setStudentAssignments(prev => ({
+      ...prev,
+      [selectedStudentId]: selectedClassId
+    }));
+    
+    // Reset form
     setSelectedStudentId('');
     setSelectedGrade('');
     setSelectedClassId('');
+    
+    // Reload all data to ensure sync
     await loadAdminTools(school.id);
   };
 

@@ -308,10 +308,10 @@ BEGIN
     WHERE id = p_class_id;
 
     -- Update student's grade and batch
-    -- If grade provided, use it; otherwise use class's grade_level
+    -- Cast everything to TEXT to match users.grade column type
     UPDATE public.users
     SET 
-        grade = COALESCE(p_grade, v_grade_level, grade),
+        grade = COALESCE(p_grade::TEXT, v_grade_level::TEXT, grade),
         batch = v_class_code
     WHERE id = p_student_id;
 
