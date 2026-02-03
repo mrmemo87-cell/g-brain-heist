@@ -9,6 +9,7 @@
 <title>Cambridge Reading 25 — Answer Form</title>
 
 <!-- No external Supabase library needed - using fetch API directly -->
+<script src="../examguard.js"></script>
 
 <style>
   * {
@@ -318,6 +319,61 @@
       padding-bottom: max(20px, env(safe-area-inset-bottom));
     }
   }
+
+  /* Anti-cheat modal styles */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.72);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 80;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  .modal-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .modal-card {
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    border-radius: 18px;
+    padding: 20px 22px;
+    width: min(480px, 90vw);
+    box-shadow: 0 30px 70px rgba(0,0,0,0.45);
+  }
+  .modal-title { font-size: 18px; font-weight: 700; margin: 0 0 8px; color: #e2e8f0; }
+  .modal-body { font-size: 14px; color: #94a3b8; line-height: 1.5; }
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 18px;
+  }
+  .modal-btn {
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .modal-btn.primary {
+    background: linear-gradient(135deg, #38bdf8, #8b5cf6);
+    color: #0b1033;
+    border: none;
+  }
+  .anti-cheat-rules {
+    margin: 12px 0;
+    padding-left: 20px;
+    color: #cbd5e1;
+  }
+  .anti-cheat-rules li {
+    margin: 8px 0;
+    line-height: 1.4;
+  }
 </style>
 </head>
 <body>
@@ -377,6 +433,23 @@
 <!-- Floating Submit Button for Mobile -->
 <div class="floating-submit show" id="floatingSubmit">
   <button id="floatingSubmitBtn" onclick="submitScore()">📤 Submit Answers</button>
+</div>
+
+<!-- Anti-cheat modal -->
+<div id="antiCheatModal" class="modal-overlay">
+  <div class="modal-card anti-cheat-card">
+    <h3 class="modal-title">Anti-cheat rules</h3>
+    <p class="modal-body">This test uses anti-cheat protection. Please read before starting:</p>
+    <ul class="anti-cheat-rules">
+      <li>Stay on this tab. The first violation triggers a warning.</li>
+      <li>Three violations (tab switches, copying, etc.) will auto-submit your test.</li>
+      <li>Copying and cutting are disabled during the test.</li>
+      <li>Your timer starts only after you click "I understand".</li>
+    </ul>
+    <div class="modal-actions">
+      <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -813,6 +886,26 @@
     }
   });
 
+  // Anti-cheat modal functions
+  function openAntiCheatModal() {
+    const modal = document.getElementById('antiCheatModal');
+    if (modal) {
+      modal.classList.add('show');
+    }
+  }
+
+  function closeAntiCheatModal() {
+    const modal = document.getElementById('antiCheatModal');
+    if (modal) {
+      modal.classList.remove('show');
+    }
+  }
+
+  function acknowledgeAntiCheat() {
+    closeAntiCheatModal();
+    // Timer logic should already be handled by startTimer() in each test
+  }
+
   // Allow Enter key to move to next input
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
@@ -830,6 +923,49 @@
   
   // Load student info from game if available
   loadStudentInfoFromGame();
+  
+  // Anti-cheat modal event listener
+  const antiCheatAcceptBtn = document.getElementById('antiCheatAcceptBtn');
+  if (antiCheatAcceptBtn) antiCheatAcceptBtn.addEventListener('click', acknowledgeAntiCheat);
+  
+  // Show anti-cheat modal on page load
+  openAntiCheatModal();
+  
+  // Start ExamGuard after initialization
+  setTimeout(() => {
+    const hasSubmitted = localStorage.getItem(`quiz_submitted_reading_25`);
+    if (!hasSubmitted && typeof window.ExamGuard !== 'undefined') {
+      let autoSubmitTriggered = false;
+      window.ExamGuard.start({
+        promptContainer: document.querySelector('.container'),
+        editor: [],
+        onSubmit: () => {
+          if (autoSubmitTriggered) return;
+          autoSubmitTriggered = true;
+          submitScore();
+        },
+        onViolation: (event) => {
+          console.warn('ExamGuard violation (English test):', event);
+          if (event.violationsCount >= 3) {
+            if (!autoSubmitTriggered) {
+              autoSubmitTriggered = true;
+              submitScore();
+            }
+          }
+        },
+        testId: 'reading_25',
+        maxViolations: 3,
+        blurGraceMs: 300,
+        actions: {
+          warn: true,
+          showBanner: true,
+          autosubmit: true,
+          disableEditor: false,
+          blockSelectAll: false,
+        }
+      });
+    }
+  }, 500);
 </script>
 
 </body>

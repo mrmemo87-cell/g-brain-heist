@@ -76,6 +76,17 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     requiresMarking: true,
   },
   {
+    id: 'cambridge-end-unit-4-stage-8',
+    name: 'End of Unit 4 Test (Stage 8 English)',
+    description: 'Comprehensive test covering vocabulary, grammar, and language skills. 40 questions total: vocabulary matching, passive voice, present perfect continuous, and multiple-choice sections.',
+    duration: '60 min',
+    totalQuestions: 40,
+    difficulty: 'Intermediate',
+    category: 'Vocabulary' as const,
+    subject: 'English stage 9',
+    url: '/cambridge-tests/English%20stage%209/cambridge_end_unit_4_test.html',
+  },
+  {
     id: 'as-chemistry-atomic-structure-part-1',
     name: 'AS Chemistry — Atomic Structure (Part 1)',
     description: 'Chapter 1 multiple-choice practice focusing on protons, neutrons, electrons, isotopes, and particle behaviour in fields.',

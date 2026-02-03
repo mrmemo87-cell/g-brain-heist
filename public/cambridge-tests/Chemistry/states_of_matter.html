@@ -625,8 +625,8 @@
       <h3 class="modal-title">Anti-cheat rules</h3>
       <p class="modal-body">This test uses anti-cheat protection. Please read before starting:</p>
       <ul class="anti-cheat-rules">
-        <li>Stay on this tab. The first switch triggers a red warning.</li>
-        <li>A second tab switch will auto-submit your test.</li>
+        <li>Stay on this tab. The first violation triggers a warning.</li>
+        <li>Three violations (tab switches, copying, etc.) will auto-submit your test.</li>
         <li>Copying and cutting are disabled during the test.</li>
         <li>Your timer starts only after you click “I understand”.</li>
       </ul>
@@ -2077,6 +2077,41 @@
       checkServerSubmission();
       startTimerIfReady();
       document.getElementById('submitBtn').addEventListener('click', openSubmitModal);
+      
+      // Start ExamGuard after initialization
+      setTimeout(() => {
+        if (!hasSubmitted && typeof window.ExamGuard !== 'undefined') {
+          let autoSubmitTriggered = false;
+          window.ExamGuard.start({
+            promptContainer: document.querySelector('.container'),
+            editor: [],
+            onSubmit: () => {
+              if (autoSubmitTriggered || hasSubmitted) return;
+              autoSubmitTriggered = true;
+              handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'ExamGuard violation limit reached' });
+            },
+            onViolation: (event) => {
+              console.warn('ExamGuard violation (AS Chemistry - States of Matter):', event);
+              if (event.violationsCount >= 3) {
+                if (!autoSubmitTriggered && !hasSubmitted) {
+                  autoSubmitTriggered = true;
+                  handleSubmit({ force: true, skipModal: true, autoSubmitReason: `ExamGuard: ${event.violationsCount} violations` });
+                }
+              }
+            },
+            testId: QUIZ_ID,
+            maxViolations: 3,
+            blurGraceMs: 300,
+            actions: {
+              warn: true,
+              showBanner: true,
+              autosubmit: true,
+              disableEditor: false,
+              blockSelectAll: false,
+            }
+          });
+        }
+      }, 500);
     });
   </script>
 </body>

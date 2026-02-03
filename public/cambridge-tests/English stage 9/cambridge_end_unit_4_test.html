@@ -211,7 +211,64 @@
   @media (max-width: 768px) {
     body { padding-bottom: 120px; }
   }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.72);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .modal-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-card {
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      border-radius: 18px;
+      padding: 20px 22px;
+      width: min(480px, 90vw);
+      box-shadow: 0 30px 70px rgba(0,0,0,0.45);
+    }
+    .modal-title { font-size: 18px; font-weight: 700; margin: 0 0 8px; color: #e2e8f0; }
+    .modal-body { font-size: 14px; color: #94a3b8; line-height: 1.5; }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 18px;
+    }
+    .modal-btn {
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .modal-btn.primary {
+      background: linear-gradient(135deg, #38bdf8, #8b5cf6);
+      color: #0b1033;
+      border: none;
+    }
+    .anti-cheat-rules {
+      margin: 12px 0;
+      padding-left: 20px;
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+    .anti-cheat-rules li {
+      margin: 8px 0;
+      line-height: 1.4;
+    }
 </style>
+<script src="../examguard.js"></script>
 </head>
 <body>
 
@@ -225,6 +282,7 @@
       <li>Answer all questions.</li>
       <li>Write only ONE answer for each gap.</li>
       <li>You can submit once — check your work carefully.</li>
+      <li>ExamGuard is active: avoid switching tabs or copying answers.</li>
     </ul>
   </div>
 
@@ -247,7 +305,7 @@
       <li>The complete set of human genetic material.</li>
       <li>Not the same as anything else.</li>
       <li>A period of staying away from others to stop illness spreading.</li>
-      <li>The unique line patterns on a person’s fingertip.</li>
+      <li>The unique line patterns on a person's fingertip.</li>
       <li>The chemical in cells that carries genetic information.</li>
       <li>An illness that spreads across many countries.</li>
       <li>A section of DNA that affects how a living thing develops.</li>
@@ -368,7 +426,7 @@
     <div class="section-instructions">Read the sentences about animals and plants. Circle the correct letter, A, B or C, to complete each sentence.</div>
 
     <div class="question">
-      <p><strong>21.</strong> If an animal is ………… , it means there aren’t many of them left in the world.</p>
+      <p><strong>21.</strong> If an animal is ………… , it means there aren't many of them left in the world.</p>
       <div class="options">
         <label><input type="radio" name="q21" value="A" oninput="startTimer()" />A endangered</label>
         <label><input type="radio" name="q21" value="B" oninput="startTimer()" />B livestock</label>
@@ -509,6 +567,64 @@
   const supabaseClient = {
     from: function(table) {
       return {
+        select: function(columns) {
+          const selectChain = {
+            _table: table,
+            _select: columns,
+            _filters: [],
+            _order: null,
+            _limit: null,
+            _single: false,
+            eq: function(column, value) {
+              this._filters.push({ column, op: 'eq', value });
+              return this;
+            },
+            order: function(column, opts) {
+              this._order = { column, ascending: opts?.ascending !== false };
+              return this;
+            },
+            limit: function(count) {
+              this._limit = count;
+              return this;
+            },
+            single: function() {
+              this._single = true;
+              return this;
+            },
+            then: async function(resolve, reject) {
+              try {
+                let url = `${SUPABASE_URL}/rest/v1/${this._table}?select=${this._select || '*'}`;
+                this._filters.forEach(f => {
+                  url += `&${f.column}=${f.op}.${encodeURIComponent(f.value)}`;
+                });
+                if (this._order) {
+                  url += `&order=${this._order.column}.${this._order.ascending ? 'asc' : 'desc'}`;
+                }
+                if (this._limit) {
+                  url += `&limit=${this._limit}`;
+                }
+                const response = await fetch(url, {
+                  headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                  }
+                });
+                if (!response.ok) {
+                  const error = new Error(response.statusText);
+                  return resolve({ data: null, error });
+                }
+                const data = await response.json();
+                if (this._single) {
+                  return resolve({ data: data[0] || null, error: data[0] ? null : new Error('No rows found') });
+                }
+                return resolve({ data, error: null });
+              } catch (err) {
+                return resolve({ data: null, error: err });
+              }
+            }
+          };
+          return selectChain;
+        },
         insert: async function(data) {
           try {
             const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
@@ -535,13 +651,27 @@
   };
 
   const QUIZ_ID = 'cambridge_end_unit_4_stage_8';
+  const QUIZ_NAME = 'End of Unit 4 Test (Stage 8 English)';
   const total = 40;
   let hasSubmitted = false;
   let startTime = null;
   let timerInterval = null;
-  const existingSubmission = localStorage.getItem(`quiz_submitted_${QUIZ_ID}`);
-  if (existingSubmission) {
-    hasSubmitted = true;
+
+  // Load student info and check submission status when page loads
+  window.addEventListener('DOMContentLoaded', function() {
+    loadStudentInfoFromGame();
+    checkServerSubmission();
+  });
+  
+  // Also try to load immediately in case DOMContentLoaded already fired
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      loadStudentInfoFromGame();
+      checkServerSubmission();
+    });
+  } else {
+    loadStudentInfoFromGame();
+    checkServerSubmission();
   }
 
   const correct = {
@@ -664,6 +794,98 @@
     finalScore.innerHTML = `<h3>✅ ${studentName}</h3><p>Score: <strong>${score}/${total}</strong> (${percentage}%)</p><p>Time taken: ${Math.floor(timeTaken / 60)}m ${timeTaken % 60}s</p>`;
   }
 
+  function loadStudentInfoFromGame() {
+    try {
+      const stored = localStorage.getItem('cambridge_test_user');
+      if (stored) {
+        const user = JSON.parse(stored);
+        if (user.name) {
+          const nameInput = document.getElementById('studentName');
+          nameInput.value = user.name;
+          nameInput.readOnly = true;
+          nameInput.style.backgroundColor = '#f0f0f0';
+          nameInput.style.borderColor = '#28a745';
+        }
+        if (user.class) {
+          const classInput = document.getElementById('studentClass');
+          classInput.value = user.class;
+          classInput.readOnly = true;
+          classInput.style.backgroundColor = '#f0f0f0';
+          classInput.style.borderColor = '#28a745';
+        }
+      }
+    } catch (e) {
+      console.log('Could not load game user info');
+    }
+  }
+
+  async function checkServerSubmission() {
+    const name = document.getElementById('studentName')?.value?.trim();
+    if (!name) {
+      // Try again after a short delay if name isn't loaded yet
+      setTimeout(checkServerSubmission, 100);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabaseClient
+        .from('quiz_scores')
+        .select('submitted_at, score, total_questions, percentage')
+        .eq('quiz_name', QUIZ_NAME)
+        .eq('student_name', name)
+        .order('submitted_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error || !data) {
+        // No submission found in database - clear any stale localStorage
+        localStorage.removeItem(`quiz_submitted_${QUIZ_ID}`);
+        return;
+      }
+
+      // Submission exists in database - lock the test
+      hasSubmitted = true;
+      localStorage.setItem(`quiz_submitted_${QUIZ_ID}`, JSON.stringify({
+        score: data.score ?? 0,
+        total: data.total_questions ?? total,
+        submittedAt: data.submitted_at || new Date().toISOString()
+      }));
+      
+      lockTestAfterSubmission(data);
+    } catch (err) {
+      console.error('Failed to check previous submission:', err);
+      // On error, don't lock the test
+      localStorage.removeItem(`quiz_submitted_${QUIZ_ID}`);
+    }
+  }
+
+  function lockTestAfterSubmission(data) {
+    hasSubmitted = true;
+    document.querySelectorAll('input').forEach(i => i.disabled = true);
+    document.querySelectorAll('input[type="radio"]').forEach(input => input.disabled = true);
+    
+    const btn = document.getElementById('submitBtn');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '✓ Submitted';
+    }
+    
+    const statusDiv = document.getElementById('submitStatus');
+    if (statusDiv) {
+      statusDiv.className = 'submit-status submit-success';
+      statusDiv.textContent = `You submitted this test on ${new Date(data.submitted_at).toLocaleString()}.`;
+    }
+    
+    const finalScore = document.getElementById('finalScore');
+    if (finalScore && data.score !== undefined) {
+      finalScore.style.display = 'block';
+      const percentage = data.percentage ?? Math.round((data.score / data.total_questions) * 100);
+      finalScore.innerHTML = `<h3>✅ Test Completed</h3><p>Score: <strong>${data.score}/${data.total_questions}</strong> (${percentage}%)</p><p>Submitted: ${new Date(data.submitted_at).toLocaleString()}</p>`;
+    }
+    
+    if (timerInterval) clearInterval(timerInterval);
+  }
+
   async function submitScore() {
     const studentName = document.getElementById('studentName').value.trim();
     const studentClass = document.getElementById('studentClass').value.trim();
@@ -721,6 +943,18 @@
     statusDiv.textContent = '📤 Submitting your answers...';
 
     try {
+      // Get school_id from localStorage if available
+      let schoolId = null;
+      try {
+        const stored = localStorage.getItem('cambridge_test_user');
+        if (stored) {
+          const user = JSON.parse(stored);
+          schoolId = user.schoolId || null;
+        }
+      } catch (e) {
+        console.log('Could not retrieve school_id');
+      }
+
       const { error } = await supabaseClient
         .from('quiz_scores')
         .insert([{
@@ -731,7 +965,8 @@
           total_questions: total,
           percentage: percentage,
           answers: answers,
-          time_taken_seconds: timeTaken
+          time_taken_seconds: timeTaken,
+          school_id: schoolId
         }]);
 
       if (error) throw error;
@@ -756,6 +991,88 @@
       document.querySelectorAll('input').forEach(input => input.disabled = false);
     }
   }
+
+  // Initialize ExamGuard for anti-cheat protection
+  function startExamGuard() {
+    if (typeof window.ExamGuard === 'undefined') {
+      console.warn('ExamGuard not loaded');
+      return;
+    }
+
+    let autoSubmitTriggered = false;
+    const handleAutoSubmit = (violationCount = null) => {
+      if (autoSubmitTriggered || hasSubmitted) return;
+      autoSubmitTriggered = true;
+      
+      // Automatically trigger submission
+      const statusDiv = document.getElementById('submitStatus');
+      if (statusDiv) {
+        statusDiv.className = 'submit-status submit-error';
+        statusDiv.textContent = `⚠️ ExamGuard: Auto-submitting due to ${violationCount || 3} violations.`;
+      }
+      
+      // Force submit without confirmation
+      setTimeout(() => submitScore(), 500);
+    };
+
+    const container = document.querySelector('.container');
+    const allInputs = document.querySelectorAll('input[type="text"]');
+
+    window.ExamGuard.start({
+      promptContainer: container,
+      editor: Array.from(allInputs),
+      onSubmit: () => handleAutoSubmit(),
+      onViolation: (event) => {
+        console.warn('ExamGuard violation (End of Unit 4 Test):', event);
+        if (event.violationsCount >= 3) {
+          handleAutoSubmit(event.violationsCount);
+        }
+      },
+      testId: 'cambridge-end-unit-4-stage-8',
+      maxViolations: 3,
+      blurGraceMs: 300,
+      actions: {
+        warn: true,
+        showBanner: true,
+        autosubmit: true,
+        disableEditor: false, // Don't disable inputs, let submit handle locking
+        blockSelectAll: false, // Allow select all for this type of test
+      }
+    });
+  }
+
+  function closeAntiCheatModal() {
+    const modal = document.getElementById('antiCheatModal');
+    if (modal) {
+      modal.classList.remove('show');
+    }
+  }
+
+  // Add event listener for anti-cheat button
+  document.getElementById('antiCheatAcceptBtn')?.addEventListener('click', closeAntiCheatModal);
+
+  // Start ExamGuard after checking submission status
+  setTimeout(() => {
+    if (!hasSubmitted) {
+      startExamGuard();
+    }
+  }, 500);
 </script>
+
+  <div id="antiCheatModal" class="modal-overlay show">
+    <div class="modal-card anti-cheat-card">
+      <h3 class="modal-title">Anti-cheat rules</h3>
+      <p class="modal-body">This test uses anti-cheat protection. Please read before starting:</p>
+      <ul class="anti-cheat-rules">
+        <li>Stay on this tab. The first violation triggers a warning.</li>
+        <li>Three violations (tab switches, copying, etc.) will auto-submit your test.</li>
+        <li>Copying and cutting are disabled during the test.</li>
+        <li>Your timer starts only after you click "I understand".</li>
+      </ul>
+      <div class="modal-actions">
+        <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

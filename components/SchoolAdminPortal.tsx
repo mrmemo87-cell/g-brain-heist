@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import BackButton from './BackButton';
 import { ToastMessage } from '../types';
 import * as SchoolAdminService from '../services/schoolAdminService';
+import { supabase } from '../services/supabaseClient';
 import ClassRoster from './ClassRoster';
 import type {
   SchoolStats,
@@ -18,7 +19,7 @@ interface SchoolAdminPortalProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
 }
 
-type AdminTab = 'dashboard' | 'members' | 'classes' | 'roster' | 'subjects' | 'teachers' | 'students' | 'invites' | 'settings';
+type AdminTab = 'dashboard' | 'members' | 'classes' | 'roster' | 'subjects' | 'teachers' | 'students' | 'invites' | 'settings' | 'cambridge';
 
 const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addToast }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
@@ -107,6 +108,12 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
   const [settingsAllowStudent, setSettingsAllowStudent] = useState(true);
   const [settingsAllowTeacher, setSettingsAllowTeacher] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
+
+  // Cambridge Tests Reports State
+  const [quizScores, setQuizScores] = useState<any[]>([]);
+  const [quizScoresLoading, setQuizScoresLoading] = useState(false);
+  const [quizFilter, setQuizFilter] = useState<string>('all');
+  const [classFilter, setClassFilter] = useState<string>('all');
 
   // Load initial data
   useEffect(() => {
@@ -223,6 +230,91 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
       loadAdminTools(school.id);
     }
   }, [school?.id, loadAdminTools]);
+
+  // Cambridge Tests functions
+  const fetchQuizScores = async () => {
+    setQuizScoresLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('get_school_cambridge_scores', { p_limit: 500 });
+
+      if (error) {
+        console.error('Failed to fetch Cambridge scores:', error);
+        addToast('Failed to load Cambridge test scores', 'error');
+        setQuizScores([]);
+        return;
+      }
+
+      setQuizScores(data || []);
+    } catch (error) {
+      console.error('Exception fetching quiz scores:', error);
+      addToast('Failed to fetch Cambridge test scores', 'error');
+    } finally {
+      setQuizScoresLoading(false);
+    }
+  };
+
+  const deleteQuizSubmission = async (scoreId: string, studentName: string) => {
+    if (!window.confirm(`Delete submission from ${studentName}? This will allow them to retake the test.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('quiz_scores')
+        .delete()
+        .eq('id', scoreId);
+
+      if (error) throw error;
+
+      addToast(`✅ Deleted submission for ${studentName}`, 'success');
+      fetchQuizScores();
+    } catch (error: any) {
+      console.error('Failed to delete submission:', error);
+      addToast(`Failed to delete submission: ${error.message}`, 'error');
+    }
+  };
+
+  const exportCSV = () => {
+    const filtered = filteredQuizScores;
+    if (filtered.length === 0) {
+      addToast('No data to export', 'error');
+      return;
+    }
+
+    const headers = ['Student Name', 'Class', 'Quiz Name', 'Score', 'Total', 'Percentage', 'Time (seconds)', 'Submitted At'];
+    const rows = filtered.map(s => [
+      s.student_name || '',
+      s.student_class || '',
+      s.quiz_name || '',
+      s.score || 0,
+      s.total_questions || 0,
+      s.percentage || 0,
+      s.time_taken_seconds || 0,
+      s.submitted_at || ''
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `cambridge_scores_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+
+    addToast('✅ CSV exported successfully', 'success');
+  };
+
+  const filteredQuizScores = quizScores.filter(s => {
+    if (quizFilter !== 'all' && s.quiz_name !== quizFilter) return false;
+    if (classFilter !== 'all' && (s.student_class || 'Unknown') !== classFilter) return false;
+    return true;
+  });
+
+  const uniqueQuizNames = Array.from(new Set(quizScores.map(s => s.quiz_name).filter(Boolean)));
+  const uniqueClasses = Array.from(new Set(quizScores.map(s => s.student_class || 'Unknown')));
 
   // Member actions
   const handleUpdateRole = async (newRole: SchoolRole) => {
@@ -817,7 +909,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
 
       {/* Premium Tab Navigation */}
       <div className="school-admin-tabs flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide" role="tablist" aria-label="School admin navigation">
-        {(['dashboard', 'members', 'classes', 'roster', 'subjects', 'teachers', 'students', 'invites', 'settings'] as AdminTab[]).map((tab) => (
+        {(['dashboard', 'members', 'classes', 'roster', 'subjects', 'teachers', 'students', 'invites', 'settings', 'cambridge'] as AdminTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -838,6 +930,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
             {tab === 'students' && '🎒 Student Enrollment'}
             {tab === 'invites' && '🔑 Invite Code'}
             {tab === 'settings' && '⚙️ Settings'}
+            {tab === 'cambridge' && '📚 Cambridge Reports'}
           </button>
         ))}
       </div>
@@ -1936,6 +2029,148 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
             >
               Delete School (Coming Soon)
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Cambridge Reports Tab */}
+      {activeTab === 'cambridge' && (
+        <div className="space-y-6">
+          <div className="bg-gray-800 rounded-xl p-6 border border-cyan-600/50">
+            <h3 className="text-2xl font-bold text-cyan-300 mb-6">📚 Cambridge Test Reports</h3>
+            
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-3 mb-6">
+              <button
+                onClick={fetchQuizScores}
+                disabled={quizScoresLoading}
+                className="bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-400 text-white font-semibold px-6 py-3 rounded-lg transition-all hover:shadow-lg disabled:opacity-50"
+              >
+                {quizScoresLoading ? '⏳ Loading...' : '🔄 Load/Refresh Reports'}
+              </button>
+              {quizScores.length > 0 && (
+                <button
+                  onClick={exportCSV}
+                  className="bg-green-600/30 hover:bg-green-600/50 border border-green-400 text-white font-semibold px-6 py-3 rounded-lg transition-all hover:shadow-lg"
+                >
+                  📥 Export CSV
+                </button>
+              )}
+            </div>
+
+            {quizScores.length > 0 && (
+              <>
+                {/* Filters */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Filter by Test</label>
+                    <select
+                      value={quizFilter}
+                      onChange={(e) => setQuizFilter(e.target.value)}
+                      className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                    >
+                      <option value="all">All Tests ({quizScores.length})</option>
+                      {uniqueQuizNames.map(name => (
+                        <option key={name} value={name}>
+                          {name} ({quizScores.filter(s => s.quiz_name === name).length})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Filter by Class</label>
+                    <select
+                      value={classFilter}
+                      onChange={(e) => setClassFilter(e.target.value)}
+                      className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                    >
+                      <option value="all">All Classes ({quizScores.length})</option>
+                      {uniqueClasses.map(cls => (
+                        <option key={cls} value={cls}>
+                          {cls} ({quizScores.filter(s => (s.student_class || 'Unknown') === cls).length})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Results Table */}
+                <div className="bg-gray-900/50 rounded-lg border border-gray-700 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-800 border-b border-gray-700">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Student</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Class</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Test</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase">Score</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase">Percentage</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase">Time</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase">Submitted</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-700">
+                        {filteredQuizScores.length === 0 ? (
+                          <tr>
+                            <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
+                              No submissions found with current filters
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredQuizScores.map((score) => (
+                            <tr key={score.id} className="hover:bg-gray-800/50 transition-colors">
+                              <td className="px-4 py-3 text-sm text-white">{score.student_name || 'Unknown'}</td>
+                              <td className="px-4 py-3 text-sm text-gray-300">{score.student_class || 'Unknown'}</td>
+                              <td className="px-4 py-3 text-sm text-gray-300 max-w-xs truncate">{score.quiz_name || 'Unknown'}</td>
+                              <td className="px-4 py-3 text-sm text-center font-semibold text-cyan-300">
+                                {score.score}/{score.total_questions}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-center">
+                                <span className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${
+                                  score.percentage >= 80 ? 'bg-green-500/20 text-green-300' :
+                                  score.percentage >= 60 ? 'bg-yellow-500/20 text-yellow-300' :
+                                  'bg-red-500/20 text-red-300'
+                                }`}>
+                                  {score.percentage}%
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-center text-gray-300">
+                                {Math.floor((score.time_taken_seconds || 0) / 60)}m
+                              </td>
+                              <td className="px-4 py-3 text-sm text-center text-gray-400">
+                                {score.submitted_at ? new Date(score.submitted_at).toLocaleDateString() : 'N/A'}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-center">
+                                <button
+                                  onClick={() => deleteQuizSubmission(score.id, score.student_name)}
+                                  className="text-red-400 hover:text-red-300 transition-colors font-medium text-xs"
+                                  title="Delete submission (allows retake)"
+                                >
+                                  🗑️ Delete
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <p className="text-sm text-gray-400 mt-4">
+                  Showing {filteredQuizScores.length} of {quizScores.length} total submissions
+                </p>
+              </>
+            )}
+
+            {quizScores.length === 0 && !quizScoresLoading && (
+              <div className="text-center py-12 text-gray-400">
+                <p className="text-lg mb-2">📋 No Cambridge test submissions yet</p>
+                <p className="text-sm">Click "Load/Refresh Reports" to check for new submissions</p>
+              </div>
+            )}
           </div>
         </div>
       )}
