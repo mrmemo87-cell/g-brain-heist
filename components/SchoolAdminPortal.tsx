@@ -1659,9 +1659,10 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Grade</label>
                 <select
-                  value={selectedGrade}
+                  value={selectedGrade || ''}
                   onChange={(e) => {
-                    const grade = e.target.value ? Number(e.target.value) : '';
+                    const gradeValue = e.target.value.trim();
+                    const grade = gradeValue ? Number(gradeValue) : '';
                     setSelectedGrade(grade);
                     // Reset class selection when grade changes
                     setSelectedClassId('');
@@ -1670,7 +1671,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                 >
                   <option value="">Select grade</option>
                   {[6, 7, 8, 9, 10, 11, 12].map((grade) => (
-                    <option key={grade} value={grade}>
+                    <option key={grade} value={String(grade)}>
                       Grade {grade}
                     </option>
                   ))}
@@ -1685,7 +1686,11 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                 >
                   <option value="">Select class</option>
                   {classes
-                    .filter((cls) => !selectedGrade || cls.grade_level === Number(selectedGrade))
+                    .filter((cls) => {
+                      if (!selectedGrade) return true; // Show all if no grade selected
+                      const gradeNum = typeof selectedGrade === 'string' ? Number(selectedGrade) : selectedGrade;
+                      return cls.grade_level === gradeNum;
+                    })
                     .map((cls) => (
                       <option key={cls.id} value={cls.id}>
                         {cls.class_code} — {cls.class_name}
