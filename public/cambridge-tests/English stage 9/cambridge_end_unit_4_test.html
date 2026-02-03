@@ -46,15 +46,44 @@
   .warning-box h3 { color: #856404; margin: 0 0 10px 0; font-size: 16px; text-align: center; }
   .warning-box ul { margin: 0; padding-left: 20px; color: #856404; font-size: 14px; }
   .timer-box {
-    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 8px;
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 18px;
-    font-weight: bold;
-    display: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 14px 0 20px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.92);
+    border: 1px solid rgba(56, 189, 248, 0.45);
+    color: #e2e8f0;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .timer-box.timer-expired {
+    border-color: rgba(239, 68, 68, 0.6);
+    color: #fecaca;
+  }
+  .timer-box.floating {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 60;
+    padding: 14px 18px;
+    border-radius: 16px;
+    border: 1px solid rgba(56, 189, 248, 0.55);
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 18px 45px rgba(0,0,0,0.35), 0 0 0 1px rgba(56,189,248,0.2);
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    animation: floatPulse 3s ease-in-out infinite;
+  }
+  @keyframes floatPulse {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
   }
   .section {
     margin-bottom: 30px;
@@ -111,6 +140,21 @@
     font-size: 14px;
   }
   .question input[type="text"]:focus {
+    outline: none;
+    border-color: #6366f1;
+  }
+  .inline-input {
+    display: inline-block;
+    width: 140px;
+    max-width: 45%;
+    margin: 0 6px;
+    padding: 6px 8px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+    vertical-align: baseline;
+  }
+  .inline-input:focus {
     outline: none;
     border-color: #6366f1;
   }
@@ -207,6 +251,85 @@
   }
   .score-card h3 { margin: 0 0 6px 0; color: #0f172a; }
   .score-card p { margin: 0; color: #0f172a; }
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.72);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 80;
+  }
+  .modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+  }
+  .modal-card {
+    width: min(520px, 90%);
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  }
+  .modal-title {
+    margin: 0 0 10px 0;
+    font-size: 20px;
+    color: #111827;
+  }
+  .modal-body {
+    margin: 0 0 16px 0;
+    color: #4b5563;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .anti-cheat-rules {
+    margin: 0 0 18px 18px;
+    color: #374151;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+  .modal-btn {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .modal-btn.primary {
+    background: linear-gradient(135deg, #38bdf8, #8b5cf6);
+    color: #0b1033;
+  }
+  .anti-cheat-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: rgba(15, 23, 42, 0.92);
+    color: #e2e8f0;
+    border: 1px solid rgba(56, 189, 248, 0.45);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 14px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 90;
+  }
+  .anti-cheat-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .anti-cheat-toast.warning {
+    border-color: rgba(245, 158, 11, 0.6);
+    color: #fde68a;
+  }
 
   @media (max-width: 768px) {
     body { padding-bottom: 120px; }
@@ -214,6 +337,8 @@
 </style>
 </head>
 <body>
+
+<div id="timer" class="timer-box floating">⏳ Time remaining: 40:00</div>
 
 <div class="container">
   <h1>📘 End of Unit 4 Test</h1>
@@ -226,10 +351,6 @@
       <li>Write only ONE answer for each gap.</li>
       <li>You can submit once — check your work carefully.</li>
     </ul>
-  </div>
-
-  <div id="timerBox" class="timer-box">
-    ⏱️ Time: <span id="timer">00:00</span>
   </div>
 
   <div class="student-info">
@@ -456,12 +577,20 @@
 
     <div class="question">
       <p><strong>High winds cause damage to the country</strong></p>
-      <p>Hundreds of people (0) have lost their homes after strong winds swept across the country during the night. Fortunately, no one (31) …………………………………. (die) as a result of the storm, which continues to affect regions in the north of the country. However, many farm animals (32) …………………………………. (kill) in some areas. Rescue workers (33) …………………………………. (start) clearing up the wreckage of some houses that (34) …………………………………. (destroy) by the storm since yesterday evening. The president (35) …………………………………. (keep) up to date with news of the damage by government workers in affected areas.</p>
-      <input type="text" id="q31" oninput="startTimer()" />
-      <input type="text" id="q32" oninput="startTimer()" />
-      <input type="text" id="q33" oninput="startTimer()" />
-      <input type="text" id="q34" oninput="startTimer()" />
-      <input type="text" id="q35" oninput="startTimer()" />
+      <p>
+        Hundreds of people (0) have lost their homes after strong winds swept across the country during the night.
+        Fortunately, no one (31)
+        <input type="text" id="q31" class="inline-input" oninput="startTimer()" aria-label="Question 31" />
+        (die) as a result of the storm, which continues to affect regions in the north of the country. However, many farm animals (32)
+        <input type="text" id="q32" class="inline-input" oninput="startTimer()" aria-label="Question 32" />
+        (kill) in some areas. Rescue workers (33)
+        <input type="text" id="q33" class="inline-input" oninput="startTimer()" aria-label="Question 33" />
+        (start) clearing up the wreckage of some houses that (34)
+        <input type="text" id="q34" class="inline-input" oninput="startTimer()" aria-label="Question 34" />
+        (destroy) by the storm since yesterday evening. The president (35)
+        <input type="text" id="q35" class="inline-input" oninput="startTimer()" aria-label="Question 35" />
+        (keep) up to date with news of the damage by government workers in affected areas.
+      </p>
     </div>
     <p><strong>[Total: 5 marks]</strong></p>
   </div>
@@ -502,6 +631,22 @@
   <div id="finalScore" class="score-card" style="display:none;"></div>
 </div>
 
+<div id="antiCheatModal" class="modal-overlay">
+  <div class="modal-card">
+    <h3 class="modal-title">Anti-cheat rules</h3>
+    <p class="modal-body">This test uses anti-cheat protection. Please read before starting:</p>
+    <ul class="anti-cheat-rules">
+      <li>Stay on this tab. The first switch triggers a warning.</li>
+      <li>A second tab switch will auto-submit your test.</li>
+      <li>Your timer starts only after you click “I understand”.</li>
+    </ul>
+    <div class="modal-actions">
+      <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
+    </div>
+  </div>
+</div>
+<div id="antiCheatToast" class="anti-cheat-toast">⚠️ Tab switching detected. Please stay on this test.</div>
+
 <script>
   const SUPABASE_URL = window.__SUPABASE_ENV__?.VITE_SUPABASE_URL || 'https://sozodkxwhubespiedgxm.supabase.co';
   const SUPABASE_ANON_KEY = window.__SUPABASE_ENV__?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvem9ka3h3aHViZXNwaWVkZ3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTUxNjYsImV4cCI6MjA3NzQ3MTE2Nn0.DBfFFWvVjpqXTga0uZcH5qR4ej6VOFBUm-CiCTgGLVA';
@@ -539,6 +684,9 @@
   let hasSubmitted = false;
   let startTime = null;
   let timerInterval = null;
+  let antiCheatAcknowledged = false;
+  let timerStarted = false;
+  const TEST_DURATION_SECONDS = 40 * 60;
   const existingSubmission = localStorage.getItem(`quiz_submitted_${QUIZ_ID}`);
   if (existingSubmission) {
     hasSubmitted = true;
@@ -587,17 +735,60 @@
     40: 'with'
   };
 
+  function formatTimer(seconds) {
+    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
+    return `${mins}:${secs}`;
+  }
+
+  function beginTimer() {
+    const timerEl = document.getElementById('timer');
+    if (!timerEl) return;
+    startTime = Date.now();
+    if (timerInterval) {
+      clearInterval(timerInterval);
+    }
+    const update = () => {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const remaining = Math.max(TEST_DURATION_SECONDS - elapsed, 0);
+      timerEl.textContent = `⏳ Time remaining: ${formatTimer(remaining)}`;
+      if (remaining === 0) {
+        timerEl.classList.add('timer-expired');
+        clearInterval(timerInterval);
+      }
+    };
+    update();
+    timerInterval = setInterval(update, 1000);
+  }
+
   function startTimer() {
-    if (startTime) return;
-    startTime = new Date();
-    const timerBox = document.getElementById('timerBox');
-    timerBox.style.display = 'block';
-    timerInterval = setInterval(() => {
-      const elapsed = Math.floor((new Date() - startTime) / 1000);
-      const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
-      const seconds = (elapsed % 60).toString().padStart(2, '0');
-      document.getElementById('timer').textContent = `${minutes}:${seconds}`;
-    }, 1000);
+    startTimerIfReady();
+  }
+
+  function openAntiCheatModal() {
+    const modal = document.getElementById('antiCheatModal');
+    if (modal) modal.classList.add('show');
+  }
+
+  function closeAntiCheatModal() {
+    const modal = document.getElementById('antiCheatModal');
+    if (modal) modal.classList.remove('show');
+  }
+
+  function acknowledgeAntiCheat() {
+    antiCheatAcknowledged = true;
+    closeAntiCheatModal();
+    startTimerIfReady();
+  }
+
+  function startTimerIfReady() {
+    if (timerStarted || hasSubmitted) return;
+    if (!antiCheatAcknowledged) {
+      openAntiCheatModal();
+      return;
+    }
+    timerStarted = true;
+    beginTimer();
   }
 
   function getAnswerValue(questionId) {
@@ -638,6 +829,40 @@
     finalScore.innerHTML = `<h3>✅ ${studentName}</h3><p>Score submitted. Waiting for teacher release.</p>`;
   }
 
+  function showToast(message, options = {}) {
+    const toast = document.getElementById('antiCheatToast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.add('show');
+    toast.classList.toggle('warning', options.variant === 'warning');
+    clearTimeout(toast.hideTimeout);
+    toast.hideTimeout = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3500);
+  }
+
+  function setupAntiCheat() {
+    let tabSwitches = 0;
+    document.addEventListener('copy', (e) => {
+      e.preventDefault();
+      showToast('Copying is disabled during this test.');
+    });
+    document.addEventListener('cut', (e) => {
+      e.preventDefault();
+      showToast('Cutting text is disabled during this test.');
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && !hasSubmitted) {
+        tabSwitches += 1;
+        if (tabSwitches === 1) {
+          showToast('🚨 Warning: You switched tabs once. Next switch will auto-submit this test.', { variant: 'warning' });
+        } else {
+          submitScore({ force: true, reason: 'Second tab switch detected. Auto-submit applied.' });
+        }
+      }
+    });
+  }
+
   function loadStudentInfoFromGame() {
     try {
       const gameUser = localStorage.getItem('cambridge_test_user');
@@ -671,9 +896,11 @@
     }
   }
 
-  async function submitScore() {
-    const studentName = document.getElementById('studentName').value.trim();
-    const studentClass = document.getElementById('studentClass').value.trim();
+  async function submitScore(options = {}) {
+    const isForced = options.force === true;
+    const autoSubmitReason = options.reason || '';
+    let studentName = document.getElementById('studentName').value.trim();
+    let studentClass = document.getElementById('studentClass').value.trim();
     const statusDiv = document.getElementById('submitStatus');
     const submitBtn = document.getElementById('submitBtn');
 
@@ -684,37 +911,47 @@
     }
 
     if (!studentName || studentName.length < 2) {
-      document.getElementById('studentName').classList.add('required-field');
-      statusDiv.className = 'submit-status submit-error';
-      statusDiv.textContent = '⚠️ Please enter your full name (at least 2 characters).';
-      return;
+      if (isForced) {
+        studentName = 'Unknown Student';
+      } else {
+        document.getElementById('studentName').classList.add('required-field');
+        statusDiv.className = 'submit-status submit-error';
+        statusDiv.textContent = '⚠️ Please enter your full name (at least 2 characters).';
+        return;
+      }
     }
     document.getElementById('studentName').classList.remove('required-field');
 
     if (!studentClass || studentClass.length < 1) {
-      document.getElementById('studentClass').classList.add('required-field');
-      statusDiv.className = 'submit-status submit-error';
-      statusDiv.textContent = '⚠️ Please enter your class.';
-      return;
+      if (isForced) {
+        studentClass = 'Unknown Class';
+      } else {
+        document.getElementById('studentClass').classList.add('required-field');
+        statusDiv.className = 'submit-status submit-error';
+        statusDiv.textContent = '⚠️ Please enter your class.';
+        return;
+      }
     }
     document.getElementById('studentClass').classList.remove('required-field');
 
-    const confirmSubmit = confirm(
-      '⚠️ ARE YOU SURE?\n\n' +
-      '• You can only submit ONCE\n' +
-      '• Your answers CANNOT be changed after this\n' +
-      '• Your score will be sent to your teacher\n\n' +
-      'Click OK to submit, or Cancel to review your answers.'
-    );
+    if (!isForced) {
+      const confirmSubmit = confirm(
+        '⚠️ ARE YOU SURE?\n\n' +
+        '• You can only submit ONCE\n' +
+        '• Your answers CANNOT be changed after this\n' +
+        '• Your score will be sent to your teacher\n\n' +
+        'Click OK to submit, or Cancel to review your answers.'
+      );
 
-    if (!confirmSubmit) return;
+      if (!confirmSubmit) return;
+    }
 
     const answers = {};
     for (let i = 1; i <= total; i++) {
       answers[i] = getAnswerValue(i);
     }
 
-    const timeTaken = startTime ? Math.floor((new Date() - startTime) / 1000) : 0;
+    const timeTaken = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
     const score = calculateScore();
     const percentage = Math.round((score / total) * 100);
 
@@ -752,7 +989,9 @@
       }));
 
       statusDiv.className = 'submit-status submit-success';
-      statusDiv.textContent = '✅ Submitted successfully! Your teacher will release your score soon.';
+      statusDiv.textContent = isForced
+        ? `⚠️ Auto-submitted: ${autoSubmitReason}`
+        : '✅ Submitted successfully! Your teacher will release your score soon.';
       submitBtn.textContent = '✓ Submitted';
 
       document.querySelectorAll('input').forEach(input => input.disabled = true);
@@ -767,6 +1006,10 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     loadStudentInfoFromGame();
+    setupAntiCheat();
+    startTimerIfReady();
+    const antiCheatAcceptBtn = document.getElementById('antiCheatAcceptBtn');
+    if (antiCheatAcceptBtn) antiCheatAcceptBtn.addEventListener('click', acknowledgeAntiCheat);
   });
 </script>
 </body>
