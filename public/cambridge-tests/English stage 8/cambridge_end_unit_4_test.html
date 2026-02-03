@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="format-detection" content="telephone=no" />
+<title>End of Unit 4 Test — English Stage 8</title>
+
+<style>
+  * { box-sizing: border-box; }
+  html {
+    height: 100%;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+  }
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    padding-bottom: 150px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100%;
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+    position: relative;
+  }
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+  h1 { color: #333; text-align: center; margin-bottom: 10px; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 20px; }
+  .warning-box {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 25px;
+  }
+  .warning-box h3 { color: #856404; margin: 0 0 10px 0; font-size: 16px; text-align: center; }
+  .warning-box ul { margin: 0; padding-left: 20px; color: #856404; font-size: 14px; }
+  .timer-box {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    display: none;
+  }
+  .section {
+    margin-bottom: 30px;
+    padding: 25px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border-left: 4px solid #6366f1;
+  }
+  .section h2 { color: #6366f1; margin: 0 0 15px 0; font-size: 20px; }
+  .section-instructions {
+    background: #e0e7ff;
+    padding: 15px 18px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #4338ca;
+    line-height: 1.6;
+  }
+  .student-info {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+  }
+  .student-info input {
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    flex: 1;
+    min-width: 200px;
+  }
+  .student-info input:focus {
+    outline: none;
+    border-color: #6366f1;
+  }
+  .question {
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 12px;
+  }
+  .question p {
+    margin: 0 0 10px 0;
+    color: #333;
+    line-height: 1.6;
+  }
+  .question input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+  }
+  .question input[type="text"]:focus {
+    outline: none;
+    border-color: #6366f1;
+  }
+  .options {
+    display: grid;
+    gap: 6px;
+    font-size: 14px;
+    color: #333;
+  }
+  .options label {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .match-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+  }
+  .match-item {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 12px;
+  }
+  .match-item strong {
+    display: block;
+    margin-bottom: 8px;
+  }
+  .definition-list {
+    margin: 0 0 16px 0;
+    padding-left: 18px;
+    color: #333;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .btn-container {
+    text-align: center;
+    margin-top: 30px;
+  }
+  button {
+    padding: 15px 40px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 5px 20px rgba(40,167,69,0.4);
+  }
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(40,167,69,0.5);
+  }
+  button:active { transform: translateY(0); }
+  .submit-status {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: center;
+  }
+  .submit-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+  .submit-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+  .submit-loading {
+    background: #cce5ff;
+    color: #004085;
+    border: 1px solid #b8daff;
+  }
+  .required-field { border-color: #dc3545 !important; }
+  .correction {
+    font-size: 11px;
+    color: #28a745;
+    font-weight: bold;
+    margin-top: 6px;
+  }
+  .score-card {
+    background: #e0f2fe;
+    border: 1px solid #38bdf8;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 20px;
+    text-align: center;
+  }
+  .score-card h3 { margin: 0 0 6px 0; color: #0f172a; }
+  .score-card p { margin: 0; color: #0f172a; }
+
+  @media (max-width: 768px) {
+    body { padding-bottom: 120px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>📘 End of Unit 4 Test</h1>
+  <p class="subtitle">English Stage 8 — Vocabulary & Grammar</p>
+
+  <div class="warning-box">
+    <h3>⚠️ Before you start</h3>
+    <ul>
+      <li>Answer all questions.</li>
+      <li>Write only ONE answer for each gap.</li>
+      <li>You can submit once — check your work carefully.</li>
+    </ul>
+  </div>
+
+  <div id="timerBox" class="timer-box">
+    ⏱️ Time: <span id="timer">00:00</span>
+  </div>
+
+  <div class="student-info">
+    <input type="text" id="studentName" placeholder="Student name" />
+    <input type="text" id="studentClass" placeholder="Class" />
+  </div>
+
+  <div class="section">
+    <h2>Vocabulary 1</h2>
+    <div class="section-instructions">Match the medical and scientific words (1–10) to the definitions (A–K). Write the letter in each box. Example: 0 = G.</div>
+
+    <ol class="definition-list" type="A">
+      <li>A medicine that fights bacterial infections.</li>
+      <li>A test carried out to discover something or check if something works.</li>
+      <li>The complete set of human genetic material.</li>
+      <li>Not the same as anything else.</li>
+      <li>A period of staying away from others to stop illness spreading.</li>
+      <li>The unique line patterns on a person’s fingertip.</li>
+      <li>The chemical in cells that carries genetic information.</li>
+      <li>An illness that spreads across many countries.</li>
+      <li>A section of DNA that affects how a living thing develops.</li>
+      <li>The study of how characteristics pass from parents to children.</li>
+      <li>A small, weakened form of a disease used to protect people.</li>
+    </ol>
+
+    <div class="match-grid">
+      <div class="match-item">
+        <strong>0. DNA</strong>
+        <input type="text" value="G" disabled />
+      </div>
+      <div class="match-item">
+        <strong>1. unique</strong>
+        <input type="text" id="q1" placeholder="Letter" oninput="startTimer()" />
+      </div>
+      <div class="match-item">
+        <strong>2. genetics</strong>
+        <input type="text" id="q2" placeholder="Letter" oninput="startTimer()" />
+      </div>
+      <div class="match-item">
+        <strong>3. fingerprint</strong>
+        <input type="text" id="q3" placeholder="Letter" oninput="startTimer()" />
+      </div>
+      <div class="match-item">
+        <strong>4. antibiotic</strong>
+        <input type="text" id="q4" placeholder="Letter" oninput="startTimer()" />
+      </div>
+      <div class="match-item">
+        <strong>5. pandemic</strong>
+        <input type="text" id="q5" placeholder="Letter" oninput="startTimer()" />
+      </div>
+      <div class="match-item">
+        <strong>6. human genome</strong>
+        <input type="text" id="q6" placeholder="Letter" oninput="startTimer()" />
+      </div>
+      <div class="match-item">
+        <strong>7. inoculation</strong>
+        <input type="text" id="q7" placeholder="Letter" oninput="startTimer()" />
+      </div>
+      <div class="match-item">
+        <strong>8. quarantine</strong>
+        <input type="text" id="q8" placeholder="Letter" oninput="startTimer()" />
+      </div>
+      <div class="match-item">
+        <strong>9. gene</strong>
+        <input type="text" id="q9" placeholder="Letter" oninput="startTimer()" />
+      </div>
+      <div class="match-item">
+        <strong>10. experiment</strong>
+        <input type="text" id="q10" placeholder="Letter" oninput="startTimer()" />
+      </div>
+    </div>
+    <p><strong>[Total: 10 marks]</strong></p>
+  </div>
+
+  <div class="section">
+    <h2>Grammar 1</h2>
+    <div class="section-instructions">Use the present or past simple passive to complete the sentences. Use the verb in brackets.</div>
+
+    <div class="question">
+      <p><strong>11.</strong> Every year, millions of people …………………… (inoculate) with the latest flu vaccine.</p>
+      <input type="text" id="q11" oninput="startTimer()" />
+    </div>
+    <div class="question">
+      <p><strong>12.</strong> In the early 20th century, many people …………………… (kill) by a severe flu outbreak.</p>
+      <input type="text" id="q12" oninput="startTimer()" />
+    </div>
+    <div class="question">
+      <p><strong>13.</strong> Flu …………………… (cause) by a virus that changes form regularly.</p>
+      <input type="text" id="q13" oninput="startTimer()" />
+    </div>
+    <div class="question">
+      <p><strong>14.</strong> A vaccine against flu …………………… (create) in the 1930s.</p>
+      <input type="text" id="q14" oninput="startTimer()" />
+    </div>
+    <div class="question">
+      <p><strong>15.</strong> Flu …………………… (believe) to be responsible for hundreds of thousands of deaths worldwide each year.</p>
+      <input type="text" id="q15" oninput="startTimer()" />
+    </div>
+    <p><strong>[Total: 5 marks]</strong></p>
+  </div>
+
+  <div class="section">
+    <h2>Grammar 2</h2>
+    <div class="section-instructions">Use the present perfect continuous to complete the second sentence so that it has a similar meaning to the first. Use no more than three words.</div>
+
+    <div class="question">
+      <p><strong>16.</strong> Our sports lessons this week were about learning to play hockey.</p>
+      <p>We …………………………………. how to play hockey in sports lessons this week.</p>
+      <input type="text" id="q16" oninput="startTimer()" />
+    </div>
+    <div class="question">
+      <p><strong>17.</strong> I went to my first science club meeting three weeks ago.</p>
+      <p>I …………………………………. to science club meetings for three weeks.</p>
+      <input type="text" id="q17" oninput="startTimer()" />
+    </div>
+    <div class="question">
+      <p><strong>18.</strong> She played her first football match for the school team two weeks ago.</p>
+      <p>She …………………………………. for the school football team for two weeks.</p>
+      <input type="text" id="q18" oninput="startTimer()" />
+    </div>
+    <div class="question">
+      <p><strong>19.</strong> I started reading a really enjoyable book at the weekend.</p>
+      <p>I …………………………………. a really enjoyable book since the weekend.</p>
+      <input type="text" id="q19" oninput="startTimer()" />
+    </div>
+    <div class="question">
+      <p><strong>20.</strong> Martin learned to ski when he was 14 years old.</p>
+      <p>Martin …………………………………. since he was 14 years old.</p>
+      <input type="text" id="q20" oninput="startTimer()" />
+    </div>
+    <p><strong>[Total: 5 marks]</strong></p>
+  </div>
+
+  <div class="section">
+    <h2>Vocabulary 2</h2>
+    <div class="section-instructions">Read the sentences about animals and plants. Circle the correct letter, A, B or C, to complete each sentence.</div>
+
+    <div class="question">
+      <p><strong>21.</strong> If an animal is ………… , it means there aren’t many of them left in the world.</p>
+      <div class="options">
+        <label><input type="radio" name="q21" value="A" oninput="startTimer()" />A endangered</label>
+        <label><input type="radio" name="q21" value="B" oninput="startTimer()" />B livestock</label>
+        <label><input type="radio" name="q21" value="C" oninput="startTimer()" />C released</label>
+      </div>
+    </div>
+    <div class="question">
+      <p><strong>22.</strong> Sharks are ………… because they hunt and eat other animals.</p>
+      <div class="options">
+        <label><input type="radio" name="q22" value="A" oninput="startTimer()" />A prey</label>
+        <label><input type="radio" name="q22" value="B" oninput="startTimer()" />B pollinators</label>
+        <label><input type="radio" name="q22" value="C" oninput="startTimer()" />C predators</label>
+      </div>
+    </div>
+    <div class="question">
+      <p><strong>23.</strong> Farms often keep a range of ………… , such as sheep, cows and goats.</p>
+      <div class="options">
+        <label><input type="radio" name="q23" value="A" oninput="startTimer()" />A crops</label>
+        <label><input type="radio" name="q23" value="B" oninput="startTimer()" />B livestock</label>
+        <label><input type="radio" name="q23" value="C" oninput="startTimer()" />C wildlife</label>
+      </div>
+    </div>
+    <div class="question">
+      <p><strong>24.</strong> ………… like cows and sheep eat grass and other plants, and not meat.</p>
+      <div class="options">
+        <label><input type="radio" name="q24" value="A" oninput="startTimer()" />A Predators</label>
+        <label><input type="radio" name="q24" value="B" oninput="startTimer()" />B Herbivores</label>
+        <label><input type="radio" name="q24" value="C" oninput="startTimer()" />C Crops</label>
+      </div>
+    </div>
+    <div class="question">
+      <p><strong>25.</strong> Farms grow ………… like wheat, fruit and vegetables, as well as keeping animals.</p>
+      <div class="options">
+        <label><input type="radio" name="q25" value="A" oninput="startTimer()" />A crops</label>
+        <label><input type="radio" name="q25" value="B" oninput="startTimer()" />B livestock</label>
+        <label><input type="radio" name="q25" value="C" oninput="startTimer()" />C cattle</label>
+      </div>
+    </div>
+    <div class="question">
+      <p><strong>26.</strong> Animals called giant sloths lived in South America but died out completely and are now ………… .</p>
+      <div class="options">
+        <label><input type="radio" name="q26" value="A" oninput="startTimer()" />A prey</label>
+        <label><input type="radio" name="q26" value="B" oninput="startTimer()" />B endangered</label>
+        <label><input type="radio" name="q26" value="C" oninput="startTimer()" />C extinct</label>
+      </div>
+    </div>
+    <div class="question">
+      <p><strong>27.</strong> Animals that other animals catch and then eat are known as ………… .</p>
+      <div class="options">
+        <label><input type="radio" name="q27" value="A" oninput="startTimer()" />A prey</label>
+        <label><input type="radio" name="q27" value="B" oninput="startTimer()" />B predators</label>
+        <label><input type="radio" name="q27" value="C" oninput="startTimer()" />C wildlife</label>
+      </div>
+    </div>
+    <div class="question">
+      <p><strong>28.</strong> People can get milk from the ………… that they keep.</p>
+      <div class="options">
+        <label><input type="radio" name="q28" value="A" oninput="startTimer()" />A pollinators</label>
+        <label><input type="radio" name="q28" value="B" oninput="startTimer()" />B cattle</label>
+        <label><input type="radio" name="q28" value="C" oninput="startTimer()" />C predators</label>
+      </div>
+    </div>
+    <div class="question">
+      <p><strong>29.</strong> A ………… feeds on flowers, which allows flowers and then fruit and vegetables to grow.</p>
+      <div class="options">
+        <label><input type="radio" name="q29" value="A" oninput="startTimer()" />A pollinator</label>
+        <label><input type="radio" name="q29" value="B" oninput="startTimer()" />B predator</label>
+        <label><input type="radio" name="q29" value="C" oninput="startTimer()" />C prey</label>
+      </div>
+    </div>
+    <div class="question">
+      <p><strong>30.</strong> Rainforests are diverse environments, which means thousands of different ………… of plants and animals live there.</p>
+      <div class="options">
+        <label><input type="radio" name="q30" value="A" oninput="startTimer()" />A herbivores</label>
+        <label><input type="radio" name="q30" value="B" oninput="startTimer()" />B wildlife</label>
+        <label><input type="radio" name="q30" value="C" oninput="startTimer()" />C species</label>
+      </div>
+    </div>
+    <p><strong>[Total: 10 marks]</strong></p>
+  </div>
+
+  <div class="section">
+    <h2>Grammar 3</h2>
+    <div class="section-instructions">Complete the text with the present perfect active or passive using the verbs in brackets.</div>
+
+    <div class="question">
+      <p><strong>High winds cause damage to the country</strong></p>
+      <p>Hundreds of people (0) have lost their homes after strong winds swept across the country during the night. Fortunately, no one (31) …………………………………. (die) as a result of the storm, which continues to affect regions in the north of the country. However, many farm animals (32) …………………………………. (kill) in some areas. Rescue workers (33) …………………………………. (start) clearing up the wreckage of some houses that (34) …………………………………. (destroy) by the storm since yesterday evening. The president (35) …………………………………. (keep) up to date with news of the damage by government workers in affected areas.</p>
+      <input type="text" id="q31" oninput="startTimer()" />
+      <input type="text" id="q32" oninput="startTimer()" />
+      <input type="text" id="q33" oninput="startTimer()" />
+      <input type="text" id="q34" oninput="startTimer()" />
+      <input type="text" id="q35" oninput="startTimer()" />
+    </div>
+    <p><strong>[Total: 5 marks]</strong></p>
+  </div>
+
+  <div class="section">
+    <h2>Grammar 4</h2>
+    <div class="section-instructions">Use a preposition from the box to complete each sentence.</div>
+    <p><strong>in · from · on · with · of · to</strong></p>
+
+    <div class="question">
+      <p><strong>36.</strong> The penguins at the zoo are suffering …………… a form of bird flu.</p>
+      <input type="text" id="q36" oninput="startTimer()" />
+    </div>
+    <div class="question">
+      <p><strong>37.</strong> I think zoos should concentrate …………… helping to save rare animals.</p>
+      <input type="text" id="q37" oninput="startTimer()" />
+    </div>
+    <div class="question">
+      <p><strong>38.</strong> Elephants belong …………… a group of animals called mammals.</p>
+      <input type="text" id="q38" oninput="startTimer()" />
+    </div>
+    <div class="question">
+      <p><strong>39.</strong> Some of the animals at the zoo died …………… a mysterious illness.</p>
+      <input type="text" id="q39" oninput="startTimer()" />
+    </div>
+    <div class="question">
+      <p><strong>40.</strong> I agree …………… people who think zoos are generally a good idea.</p>
+      <input type="text" id="q40" oninput="startTimer()" />
+    </div>
+    <p><strong>[Total: 5 marks]</strong></p>
+  </div>
+
+  <div class="btn-container">
+    <button id="submitBtn" onclick="submitScore()">📤 Submit Test</button>
+    <div id="submitStatus"></div>
+  </div>
+
+  <div id="finalScore" class="score-card" style="display:none;"></div>
+</div>
+
+<script>
+  const SUPABASE_URL = window.__SUPABASE_ENV__?.VITE_SUPABASE_URL || 'https://sozodkxwhubespiedgxm.supabase.co';
+  const SUPABASE_ANON_KEY = window.__SUPABASE_ENV__?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvem9ka3h3aHViZXNwaWVkZ3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTUxNjYsImV4cCI6MjA3NzQ3MTE2Nn0.DBfFFWvVjpqXTga0uZcH5qR4ej6VOFBUm-CiCTgGLVA';
+
+  const supabaseClient = {
+    from: function(table) {
+      return {
+        insert: async function(data) {
+          try {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Prefer': 'return=minimal'
+              },
+              body: JSON.stringify(Array.isArray(data) ? data : [data])
+            });
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(errorText || response.statusText);
+            }
+            return { data: null, error: null };
+          } catch (err) {
+            return { data: null, error: err };
+          }
+        }
+      };
+    }
+  };
+
+  const QUIZ_ID = 'cambridge_end_unit_4_stage_8';
+  const total = 40;
+  let hasSubmitted = false;
+  let startTime = null;
+  let timerInterval = null;
+  const existingSubmission = localStorage.getItem(`quiz_submitted_${QUIZ_ID}`);
+  if (existingSubmission) {
+    hasSubmitted = true;
+  }
+
+  const correct = {
+    1: 'D',
+    2: 'J',
+    3: 'F',
+    4: 'A',
+    5: 'H',
+    6: 'C',
+    7: 'K',
+    8: 'E',
+    9: 'I',
+    10: 'B',
+    11: 'are inoculated',
+    12: 'were killed',
+    13: 'is caused',
+    14: 'was created',
+    15: 'is believed',
+    16: 'have been learning',
+    17: 'have been going',
+    18: 'has been playing',
+    19: 'have been reading',
+    20: 'has been skiing',
+    21: 'A',
+    22: 'C',
+    23: 'B',
+    24: 'B',
+    25: 'A',
+    26: 'C',
+    27: 'A',
+    28: 'B',
+    29: 'A',
+    30: 'C',
+    31: 'has died',
+    32: 'have been killed',
+    33: 'have started',
+    34: 'have been destroyed',
+    35: 'has been kept',
+    36: 'from',
+    37: 'on',
+    38: 'to',
+    39: ['of', 'from'],
+    40: 'with'
+  };
+
+  function startTimer() {
+    if (startTime) return;
+    startTime = new Date();
+    const timerBox = document.getElementById('timerBox');
+    timerBox.style.display = 'block';
+    timerInterval = setInterval(() => {
+      const elapsed = Math.floor((new Date() - startTime) / 1000);
+      const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+      const seconds = (elapsed % 60).toString().padStart(2, '0');
+      document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+    }, 1000);
+  }
+
+  function getAnswerValue(questionId) {
+    if (questionId >= 21 && questionId <= 30) {
+      const selected = document.querySelector(`input[name="q${questionId}"]:checked`);
+      return selected ? selected.value : '';
+    }
+    const input = document.getElementById(`q${questionId}`);
+    return input ? input.value.trim() : '';
+  }
+
+  function normalizeAnswer(value) {
+    return value
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\\s]/g, '')
+      .replace(/\\s+/g, ' ');
+  }
+
+  function setCorrection(questionId, correctAnswer) {
+    if (questionId >= 21 && questionId <= 30) {
+      const container = document.querySelector(`input[name="q${questionId}"]`)?.closest('.question');
+      if (container) {
+        const correction = document.createElement('div');
+        correction.className = 'correction';
+        const displayAnswer = Array.isArray(correctAnswer) ? correctAnswer.join(' / ') : correctAnswer;
+        correction.textContent = `✓ ${displayAnswer}`;
+        container.appendChild(correction);
+      }
+      return;
+    }
+    const input = document.getElementById(`q${questionId}`);
+    if (!input) return;
+    const correction = document.createElement('div');
+    correction.className = 'correction';
+    const displayAnswer = Array.isArray(correctAnswer) ? correctAnswer.join(' / ') : correctAnswer;
+    correction.textContent = `✓ ${displayAnswer}`;
+    input.parentNode.appendChild(correction);
+  }
+
+  function calculateScore() {
+    let score = 0;
+    for (let i = 1; i <= total; i++) {
+      const userAns = normalizeAnswer(getAnswerValue(i));
+      const expected = correct[i];
+      const expectedValues = Array.isArray(expected) ? expected : [expected];
+      const normalizedExpected = expectedValues.map(value => normalizeAnswer(value));
+
+      if (normalizedExpected.includes(userAns)) {
+        score++;
+      } else {
+        setCorrection(i, expected);
+      }
+      const input = document.getElementById(`q${i}`);
+      if (input) input.disabled = true;
+    }
+    document.querySelectorAll('input[type="radio"]').forEach(input => input.disabled = true);
+    return score;
+  }
+
+  function showFinalScore(studentName, score, percentage, timeTaken) {
+    const finalScore = document.getElementById('finalScore');
+    finalScore.style.display = 'block';
+    finalScore.innerHTML = `<h3>✅ ${studentName}</h3><p>Score: <strong>${score}/${total}</strong> (${percentage}%)</p><p>Time taken: ${Math.floor(timeTaken / 60)}m ${timeTaken % 60}s</p>`;
+  }
+
+  async function submitScore() {
+    const studentName = document.getElementById('studentName').value.trim();
+    const studentClass = document.getElementById('studentClass').value.trim();
+    const statusDiv = document.getElementById('submitStatus');
+    const submitBtn = document.getElementById('submitBtn');
+
+    if (hasSubmitted) {
+      statusDiv.className = 'submit-status submit-error';
+      statusDiv.textContent = '⚠️ You have already submitted. Contact your teacher to retake.';
+      return;
+    }
+
+    if (!studentName || studentName.length < 2) {
+      document.getElementById('studentName').classList.add('required-field');
+      statusDiv.className = 'submit-status submit-error';
+      statusDiv.textContent = '⚠️ Please enter your full name (at least 2 characters).';
+      return;
+    }
+    document.getElementById('studentName').classList.remove('required-field');
+
+    if (!studentClass || studentClass.length < 1) {
+      document.getElementById('studentClass').classList.add('required-field');
+      statusDiv.className = 'submit-status submit-error';
+      statusDiv.textContent = '⚠️ Please enter your class.';
+      return;
+    }
+    document.getElementById('studentClass').classList.remove('required-field');
+
+    const confirmSubmit = confirm(
+      '⚠️ ARE YOU SURE?\n\n' +
+      '• You can only submit ONCE\n' +
+      '• Your answers CANNOT be changed after this\n' +
+      '• Your score will be sent to your teacher\n\n' +
+      'Click OK to submit, or Cancel to review your answers.'
+    );
+
+    if (!confirmSubmit) return;
+
+    const answers = {};
+    for (let i = 1; i <= total; i++) {
+      answers[i] = getAnswerValue(i);
+    }
+
+    const timeTaken = startTime ? Math.floor((new Date() - startTime) / 1000) : 0;
+    const score = calculateScore();
+    const percentage = Math.round((score / total) * 100);
+
+    if (timerInterval) clearInterval(timerInterval);
+
+    document.getElementById('studentName').disabled = true;
+    document.getElementById('studentClass').disabled = true;
+
+    submitBtn.disabled = true;
+    statusDiv.className = 'submit-status submit-loading';
+    statusDiv.textContent = '📤 Submitting your answers...';
+
+    try {
+      const { error } = await supabaseClient
+        .from('quiz_scores')
+        .insert([{
+          student_name: studentName,
+          student_class: studentClass,
+          quiz_name: 'End of Unit 4 Test (Stage 8 English)',
+          score: score,
+          total_questions: total,
+          percentage: percentage,
+          answers: answers,
+          time_taken_seconds: timeTaken
+        }]);
+
+      if (error) throw error;
+
+      hasSubmitted = true;
+      localStorage.setItem(`quiz_submitted_${QUIZ_ID}`, JSON.stringify({
+        score: score,
+        total: total,
+        studentName: studentName,
+        submittedAt: new Date().toISOString()
+      }));
+
+      statusDiv.className = 'submit-status submit-success';
+      statusDiv.textContent = '✅ Submitted successfully! Your teacher can now see your result.';
+      submitBtn.textContent = '✓ Submitted';
+
+      showFinalScore(studentName, score, percentage, timeTaken);
+    } catch (error) {
+      statusDiv.className = 'submit-status submit-error';
+      statusDiv.textContent = `❌ Failed to submit: ${error.message}. Please try again.`;
+      submitBtn.disabled = false;
+      document.querySelectorAll('input').forEach(input => input.disabled = false);
+    }
+  }
+</script>
+</body>
+</html>
