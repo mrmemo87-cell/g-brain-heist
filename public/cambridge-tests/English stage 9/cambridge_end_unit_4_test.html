@@ -617,27 +617,6 @@
       .replace(/\\s+/g, ' ');
   }
 
-  function setCorrection(questionId, correctAnswer) {
-    if (questionId >= 21 && questionId <= 30) {
-      const container = document.querySelector(`input[name="q${questionId}"]`)?.closest('.question');
-      if (container) {
-        const correction = document.createElement('div');
-        correction.className = 'correction';
-        const displayAnswer = Array.isArray(correctAnswer) ? correctAnswer.join(' / ') : correctAnswer;
-        correction.textContent = `✓ ${displayAnswer}`;
-        container.appendChild(correction);
-      }
-      return;
-    }
-    const input = document.getElementById(`q${questionId}`);
-    if (!input) return;
-    const correction = document.createElement('div');
-    correction.className = 'correction';
-    const displayAnswer = Array.isArray(correctAnswer) ? correctAnswer.join(' / ') : correctAnswer;
-    correction.textContent = `✓ ${displayAnswer}`;
-    input.parentNode.appendChild(correction);
-  }
-
   function calculateScore() {
     let score = 0;
     for (let i = 1; i <= total; i++) {
@@ -648,20 +627,48 @@
 
       if (normalizedExpected.includes(userAns)) {
         score++;
-      } else {
-        setCorrection(i, expected);
       }
-      const input = document.getElementById(`q${i}`);
-      if (input) input.disabled = true;
     }
-    document.querySelectorAll('input[type="radio"]').forEach(input => input.disabled = true);
     return score;
   }
 
-  function showFinalScore(studentName, score, percentage, timeTaken) {
+  function showFinalScore(studentName) {
     const finalScore = document.getElementById('finalScore');
     finalScore.style.display = 'block';
-    finalScore.innerHTML = `<h3>✅ ${studentName}</h3><p>Score: <strong>${score}/${total}</strong> (${percentage}%)</p><p>Time taken: ${Math.floor(timeTaken / 60)}m ${timeTaken % 60}s</p>`;
+    finalScore.innerHTML = `<h3>✅ ${studentName}</h3><p>Score submitted. Waiting for teacher release.</p>`;
+  }
+
+  function loadStudentInfoFromGame() {
+    try {
+      const gameUser = localStorage.getItem('cambridge_test_user');
+      if (!gameUser) return;
+      const user = JSON.parse(gameUser);
+      const nameInput = document.getElementById('studentName');
+      const classInput = document.getElementById('studentClass');
+
+      if (user.name && nameInput) {
+        nameInput.value = user.name;
+        nameInput.readOnly = true;
+        nameInput.style.backgroundColor = '#e8f5e9';
+        nameInput.style.borderColor = '#4caf50';
+      }
+      if (user.class && classInput) {
+        classInput.value = user.class;
+        classInput.readOnly = true;
+        classInput.style.backgroundColor = '#e8f5e9';
+        classInput.style.borderColor = '#4caf50';
+      }
+
+      const infoDiv = document.querySelector('.student-info');
+      if (infoDiv && user.name) {
+        const badge = document.createElement('div');
+        badge.style.cssText = 'width: 100%; text-align: center; color: #4caf50; font-size: 12px; margin-top: -10px; margin-bottom: 10px;';
+        badge.innerHTML = '✅ Logged in as <strong>' + user.name + '</strong> from Brains Heist';
+        infoDiv.parentNode.insertBefore(badge, infoDiv.nextSibling);
+      }
+    } catch (e) {
+      console.log('No game user info found');
+    }
   }
 
   async function submitScore() {
@@ -745,10 +752,11 @@
       }));
 
       statusDiv.className = 'submit-status submit-success';
-      statusDiv.textContent = '✅ Submitted successfully! Your teacher can now see your result.';
+      statusDiv.textContent = '✅ Submitted successfully! Your teacher will release your score soon.';
       submitBtn.textContent = '✓ Submitted';
 
-      showFinalScore(studentName, score, percentage, timeTaken);
+      document.querySelectorAll('input').forEach(input => input.disabled = true);
+      showFinalScore(studentName);
     } catch (error) {
       statusDiv.className = 'submit-status submit-error';
       statusDiv.textContent = `❌ Failed to submit: ${error.message}. Please try again.`;
@@ -756,6 +764,10 @@
       document.querySelectorAll('input').forEach(input => input.disabled = false);
     }
   }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadStudentInfoFromGame();
+  });
 </script>
 </body>
 </html>
