@@ -1719,6 +1719,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               onToggleLiteMode={toggleLightMode}
               onProfileAvatarChange={(avatarUrl) => setProfile((p) => p ? { ...p, avatar_url: avatarUrl } : p)}
               onProfileRefresh={refreshProfile}
+              isSchoolAdmin={isUserSchoolAdmin}
+              onOpenSchoolAdmin={() => setShowSchoolAdminPortal(true)}
             />
           ) : (
             <HeaderShell />

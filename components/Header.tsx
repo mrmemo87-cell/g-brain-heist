@@ -85,9 +85,11 @@ interface HeaderProps {
   onToggleLiteMode?: () => void;
   onProfileAvatarChange?: (avatarUrl: string) => void;
   onProfileRefresh?: () => Promise<void>;
+  isSchoolAdmin?: boolean;
+  onOpenSchoolAdmin?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard, onShowHelp, onNavigate, liteMode, onToggleLiteMode, onProfileAvatarChange, onProfileRefresh }) => {
+const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard, onShowHelp, onNavigate, liteMode, onToggleLiteMode, onProfileAvatarChange, onProfileRefresh, isSchoolAdmin, onOpenSchoolAdmin }) => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -647,6 +649,18 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                   title="Admin Portal - God Mode Active 👑"
                 >
                   <span className="text-xl">👑</span>
+                </button>
+              )}
+
+              {/* School Admin Button (only for school admins) */}
+              {isSchoolAdmin && onOpenSchoolAdmin && (
+                <button 
+                  onClick={onOpenSchoolAdmin}
+                  className="p-2.5 rounded-xl bg-gradient-to-br from-purple-600/40 to-indigo-600/40 border border-purple-500/80 hover:border-purple-400 hover:bg-purple-500/20 transition-all hover:scale-110 backdrop-blur-sm shadow-lg shadow-purple-500/30"
+                  aria-label="School Admin Portal"
+                  title="School Admin Portal 🏫"
+                >
+                  <span className="text-xl">🏫</span>
                 </button>
               )}
 
