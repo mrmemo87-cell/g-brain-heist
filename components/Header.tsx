@@ -85,11 +85,12 @@ interface HeaderProps {
   onToggleLiteMode?: () => void;
   onProfileAvatarChange?: (avatarUrl: string) => void;
   onProfileRefresh?: () => Promise<void>;
+  isAdminMode?: boolean;
   isSchoolAdmin?: boolean;
   onOpenSchoolAdmin?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard, onShowHelp, onNavigate, liteMode, onToggleLiteMode, onProfileAvatarChange, onProfileRefresh, isSchoolAdmin, onOpenSchoolAdmin }) => {
+const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackToDashboard, onShowHelp, onNavigate, liteMode, onToggleLiteMode, onProfileAvatarChange, onProfileRefresh, isAdminMode, isSchoolAdmin, onOpenSchoolAdmin }) => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);

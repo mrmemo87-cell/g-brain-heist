@@ -443,6 +443,8 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
     }
 
     const currentClassId = studentAssignments[selectedStudentId];
+    const enrolledStudentId = selectedStudentId;
+    const enrolledClassId = selectedClassId;
 
     // Use the new RPC with optional grade
     setStudentSaving(true);
@@ -460,18 +462,13 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
 
     addToast('Student enrolled successfully', 'success');
     
-    // Update local state immediately
-    setStudentAssignments(prev => ({
-      ...prev,
-      [selectedStudentId]: selectedClassId
-    }));
-    
     // Reset form
     setSelectedStudentId('');
     setSelectedGrade('');
     setSelectedClassId('');
     
-    // Reload all data to ensure sync
+    // Wait briefly for DB commit to complete, then reload
+    await new Promise(resolve => setTimeout(resolve, 300));
     await loadAdminTools(school.id);
   };
 
