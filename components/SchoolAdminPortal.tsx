@@ -1683,19 +1683,24 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                   value={selectedClassId}
                   onChange={(e) => setSelectedClassId(e.target.value)}
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-cyan-500"
-                  disabled={!selectedGrade}
                 >
-                  <option value="">{!selectedGrade ? 'Select grade first' : 'Select class'}</option>
+                  <option value="">Select class</option>
                   {classes
                     .filter((cls) => {
-                      // Only show classes if grade is selected AND grade_level matches
-                      if (!selectedGrade && selectedGrade !== 0) return false;
+                      // Show all classes if no grade selected
+                      if (!selectedGrade && selectedGrade !== 0) return true;
+                      
+                      // Convert selectedGrade to number for comparison
                       const gradeNum = typeof selectedGrade === 'number' ? selectedGrade : Number(selectedGrade);
+                      
+                      // Debug logging
+                      console.log('Class:', cls.class_code, 'Grade Level:', cls.grade_level, 'Selected Grade:', gradeNum, 'Match:', cls.grade_level === gradeNum);
+                      
                       return cls.grade_level === gradeNum;
                     })
                     .map((cls) => (
                       <option key={cls.id} value={cls.id}>
-                        {cls.class_code} — {cls.class_name} (Grade {cls.grade_level})
+                        {cls.class_code} — {cls.class_name} {cls.grade_level ? `(Grade ${cls.grade_level})` : ''}
                       </option>
                     ))}
                 </select>
