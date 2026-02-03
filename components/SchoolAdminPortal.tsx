@@ -1690,17 +1690,16 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                       // Show all classes if no grade selected
                       if (!selectedGrade && selectedGrade !== 0) return true;
                       
-                      // Convert selectedGrade to number for comparison
-                      const gradeNum = typeof selectedGrade === 'number' ? selectedGrade : Number(selectedGrade);
+                      // Convert both to numbers for comparison (handles string/number mismatch)
+                      const selectedGradeNum = Number(selectedGrade);
+                      const classGradeNum = Number(cls.grade_level);
                       
-                      // Debug logging
-                      console.log('Class:', cls.class_code, 'Grade Level:', cls.grade_level, 'Selected Grade:', gradeNum, 'Match:', cls.grade_level === gradeNum);
-                      
-                      return cls.grade_level === gradeNum;
+                      // Use loose equality to compare numbers
+                      return classGradeNum == selectedGradeNum;
                     })
                     .map((cls) => (
                       <option key={cls.id} value={cls.id}>
-                        {cls.class_code} — {cls.class_name} {cls.grade_level ? `(Grade ${cls.grade_level})` : ''}
+                        {cls.class_code} — {cls.class_name}
                       </option>
                     ))}
                 </select>
