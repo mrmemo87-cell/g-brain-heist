@@ -965,6 +965,26 @@
     statusDiv.textContent = '📤 Submitting your answers...';
 
     try {
+      // Fetch school_id from authenticated user
+      let schoolId = null;
+      try {
+        const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+        if (user && !authError) {
+          const { data: userData, error: userError } = await supabaseClient
+            .from('users')
+            .select('school_id')
+            .eq('id', user.id)
+            .single();
+          
+          if (userData && userData.school_id) {
+            schoolId = userData.school_id;
+            console.log('✅ Fetched school_id:', schoolId);
+          }
+        }
+      } catch (e) {
+        console.log('ℹ️ Could not fetch school_id (student may be unauthenticated)');
+      }
+
       const { error } = await supabaseClient
         .from('quiz_scores')
         .insert([{
@@ -975,7 +995,8 @@
           total_questions: total,
           percentage: percentage,
           answers: answers,
-          time_taken_seconds: timeTaken
+          time_taken_seconds: timeTaken,
+          ...(schoolId && { school_id: schoolId })
         }]);
 
       if (error) throw error;
