@@ -565,9 +565,36 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
     setSelectedGrade('');
     setSelectedClassId('');
     
-    // Wait briefly for DB commit to complete, then reload
-    await new Promise(resolve => setTimeout(resolve, 300));
-    await loadAdminTools(school.id);
+    // Wait longer for DB replication, then refresh with race condition protection
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Refresh data but preserve optimistic update if DB hasn't caught up yet
+    setClassesLoading(true);
+    try {
+      const classIds = classes.map((cls) => cls.id);
+      const studentRows = await SchoolAdminService.listClassStudents(classIds);
+      const assignmentMap: Record<string, string | null> = {};
+      studentRows.forEach((row) => {
+        assignmentMap[row.student_id] = row.class_id;
+      });
+      
+      // Only update with fresh data if it contains our new assignment
+      // Otherwise keep the optimistic update to avoid race condition flicker
+      if (assignmentMap[enrolledStudentId]) {
+        setStudentAssignments(assignmentMap);
+      } else {
+        // Database hasn't replicated yet, keep optimistic update
+        setStudentAssignments((prev) => ({
+          ...assignmentMap,
+          [enrolledStudentId]: enrolledClassId, // Preserve optimistic update
+        }));
+      }
+    } catch (err) {
+      console.error('Error refreshing student assignments:', err);
+      // Keep optimistic update on error
+    } finally {
+      setClassesLoading(false);
+    }
   };
 
   // ============================================
