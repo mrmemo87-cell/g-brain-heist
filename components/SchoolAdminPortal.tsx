@@ -554,6 +554,12 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
 
     addToast('Student enrolled successfully', 'success');
     
+    // Immediately update local state to reflect the assignment
+    setStudentAssignments((prev) => ({
+      ...prev,
+      [enrolledStudentId]: enrolledClassId,
+    }));
+    
     // Reset form
     setSelectedStudentId('');
     setSelectedGrade('');
@@ -908,14 +914,14 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
       </div>
 
       {/* Premium Tab Navigation */}
-      <div className="school-admin-tabs flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide" role="tablist" aria-label="School admin navigation">
+      <div className="school-admin-tabs flex flex-wrap gap-2 mb-8 pb-2" role="tablist" aria-label="School admin navigation">
         {(['dashboard', 'members', 'classes', 'roster', 'subjects', 'teachers', 'students', 'invites', 'settings', 'cambridge'] as AdminTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             role="tab"
             aria-selected={activeTab === tab}
-            className={`px-5 py-3 rounded-xl font-medium transition-all whitespace-nowrap border ${
+            className={`px-4 py-2 sm:px-5 sm:py-3 rounded-xl font-medium transition-all text-sm sm:text-base border ${
               activeTab === tab
                 ? 'bg-gradient-to-r from-purple-600 to-cyan-600 text-white border-transparent shadow-lg shadow-purple-500/25'
                 : 'bg-gray-800/50 text-gray-400 hover:bg-gray-700/50 border-gray-700/50 hover:text-white hover:border-gray-600'
@@ -924,13 +930,13 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
             {tab === 'dashboard' && '📊 Dashboard'}
             {tab === 'members' && `👥 Members (${membersTotal})`}
             {tab === 'classes' && '🏫 Classes'}
-            {tab === 'roster' && '📋 Class Roster'}
+            {tab === 'roster' && '📋 Roster'}
             {tab === 'subjects' && '📚 Subjects'}
-            {tab === 'teachers' && '🧑‍🏫 Teacher Assignments'}
-            {tab === 'students' && '🎒 Student Enrollment'}
-            {tab === 'invites' && '🔑 Invite Code'}
+            {tab === 'teachers' && '🧑‍🏫 Teachers'}
+            {tab === 'students' && '🎒 Students'}
+            {tab === 'invites' && '🔑 Invites'}
             {tab === 'settings' && '⚙️ Settings'}
-            {tab === 'cambridge' && '📚 Cambridge Reports'}
+            {tab === 'cambridge' && '📚 Cambridge'}
           </button>
         ))}
       </div>
