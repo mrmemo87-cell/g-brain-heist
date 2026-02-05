@@ -419,7 +419,6 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
   useEffect(() => {
     loadTestProgress();
   }, [profile.username, visibleTestIds]);
-  }, [profile.username]);
 
   useEffect(() => {
     if (!showFeedbackModal) {
