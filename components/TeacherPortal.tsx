@@ -149,6 +149,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [selectedCambridgeStudent, setSelectedCambridgeStudent] = useState<any | null>(null);
   const [cambridgeDrawerOpen, setCambridgeDrawerOpen] = useState(false);
   const [cambridgeDrawerAttempt, setCambridgeDrawerAttempt] = useState<any | null>(null);
+
+  // Test Visibility Management State
+  const [testVisibilitySettings, setTestVisibilitySettings] = useState<Map<string, boolean>>(new Map());
+  const [visibilityLoading, setVisibilityLoading] = useState(false);
+  const [showVisibilityManager, setShowVisibilityManager] = useState(false);
   const [showWritingMarkingModal, setShowWritingMarkingModal] = useState(false);
   const [autoProofreadLoading, setAutoProofreadLoading] = useState(false);
   const [savingMarks, setSavingMarks] = useState(false);
@@ -625,6 +630,102 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         unreleasedCount: unreleased
       }))
     );
+  };
+
+  // Load test visibility settings for the teacher
+  const loadTestVisibilitySettings = async () => {
+    setVisibilityLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('get_teacher_test_visibility_settings');
+
+      if (error) {
+        console.error('Error loading test visibility settings:', error);
+        return;
+      }
+
+      const visMap = new Map<string, boolean>();
+      if (data) {
+        data.forEach((row: { test_id: string; is_visible: boolean }) => {
+          visMap.set(row.test_id, row.is_visible);
+        });
+      }
+      setTestVisibilitySettings(visMap);
+    } catch (error) {
+      console.error('Exception loading visibility settings:', error);
+    } finally {
+      setVisibilityLoading(false);
+    }
+  };
+
+  // Toggle visibility for a single test
+  const toggleTestVisibility = async (testId: string, subject: string, gradeLevel: number, currentVisibility: boolean) => {
+    try {
+      const newVisibility = !currentVisibility;
+      const { data, error } = await supabase.rpc('toggle_cambridge_test_visibility', {
+        p_test_id: testId,
+        p_subject: subject,
+        p_grade_level: gradeLevel,
+        p_is_visible: newVisibility
+      });
+
+      if (error) {
+        console.error('Error toggling test visibility:', error);
+        alert('Failed to update test visibility: ' + error.message);
+        return;
+      }
+
+      if (data && data.error) {
+        alert('Error: ' + data.error);
+        return;
+      }
+
+      // Update local state
+      setTestVisibilitySettings(prev => {
+        const newMap = new Map(prev);
+        newMap.set(testId, newVisibility);
+        return newMap;
+      });
+
+      console.log('Test visibility updated:', data);
+    } catch (error) {
+      console.error('Exception toggling test visibility:', error);
+      alert('An error occurred while updating test visibility.');
+    }
+  };
+
+  // Bulk set visibility for multiple tests
+  const bulkSetTestVisibility = async (testIds: string[], subject: string, gradeLevel: number, visibility: boolean) => {
+    try {
+      const { data, error } = await supabase.rpc('bulk_set_cambridge_test_visibility', {
+        p_test_ids: testIds,
+        p_subject: subject,
+        p_grade_level: gradeLevel,
+        p_is_visible: visibility
+      });
+
+      if (error) {
+        console.error('Error bulk updating test visibility:', error);
+        alert('Failed to update test visibility: ' + error.message);
+        return;
+      }
+
+      if (data && data.error) {
+        alert('Error: ' + data.error);
+        return;
+      }
+
+      // Update local state
+      setTestVisibilitySettings(prev => {
+        const newMap = new Map(prev);
+        testIds.forEach(id => newMap.set(id, visibility));
+        return newMap;
+      });
+
+      alert(`✅ ${data.message || 'Tests updated successfully'}`);
+    } catch (error) {
+      console.error('Exception bulk updating visibility:', error);
+      alert('An error occurred while updating test visibility.');
+    }
   };
 
   // Release scores for a quiz (make visible to students)
@@ -4566,6 +4667,16 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               >
                 {cambridgeLoading ? 'Refreshing…' : 'Refresh'}
               </button>
+              <button
+                onClick={() => {
+                  setShowVisibilityManager(true);
+                  loadTestVisibilitySettings();
+                }}
+                className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-purple-700"
+                title="Manage which tests students can see"
+              >
+                👁️ Test Visibility
+              </button>
             </div>
             {pendingWriting > 0 && (
               <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-semibold">
@@ -6162,6 +6273,189 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 <p className="text-xs text-gray-400 mt-2 text-center">
                   💡 "Save (Draft)" keeps feedback hidden. "Save & Release" makes marks and feedback visible to the student.
                 </p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Test Visibility Manager Modal */}
+      {showVisibilityManager && (() => {
+        // Define Cambridge tests grouped by grade and subject
+        interface TestVisibilityItem {
+          id: string;
+          name: string;
+          subject: string;
+          gradeLevel: number;
+        }
+
+        const allTestsForVisibility: TestVisibilityItem[] = [
+          // Grade 8 - English stage 9
+          { id: 'cambridge-end-unit-4', name: 'End of Unit 4 Test', subject: 'English stage 9', gradeLevel: 8 },
+          { id: 'cambridge-reading-25', name: 'Cambridge Reading Test 25', subject: 'English stage 9', gradeLevel: 8 },
+          { id: 'cambridge-listening-1', name: 'Cambridge Listening Test 1', subject: 'English stage 9', gradeLevel: 8 },
+          { id: 'cambridge-writing-1', name: 'Cambridge Writing Test 1', subject: 'English stage 9', gradeLevel: 8 },
+          { id: 'cambridge-writing-2', name: 'Cambridge Writing Test 2', subject: 'English stage 9', gradeLevel: 8 },
+          { id: 'cambridge-end-unit-4-stage-8', name: 'End of Unit 4 Test (Stage 8)', subject: 'English stage 9', gradeLevel: 8 },
+          
+          // Grade 11 - AS Chemistry
+          { id: 'as-chemistry-ch1-atomic-structure-part-1', name: 'AS Chemistry Ch1 (Atomic Structure) Part 1', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch1-atomic-structure-part-2', name: 'AS Chemistry Ch1 (Atomic Structure) Part 2', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch2-bonding-part-1', name: 'AS Chemistry Ch2 (Bonding) Part 1', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch2-bonding-part-2', name: 'AS Chemistry Ch2 (Bonding) Part 2', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch3-states-of-matter-part-1', name: 'AS Chemistry Ch3 (States of Matter) Part 1', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch3-states-of-matter-part-2', name: 'AS Chemistry Ch3 (States of Matter) Part 2', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch4-stoichiometry-part-1', name: 'AS Chemistry Ch4 (Stoichiometry) Part 1', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch4-stoichiometry-part-2', name: 'AS Chemistry Ch4 (Stoichiometry) Part 2', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch5-chemical-energetics-part-1', name: 'AS Chemistry Ch5 (Chemical Energetics) Part 1', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch5-chemical-energetics-part-2', name: 'AS Chemistry Ch5 (Chemical Energetics) Part 2', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch6-electrochemistry-part-1', name: 'AS Chemistry Ch6 (Electrochemistry) Part 1', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch6-electrochemistry-part-2', name: 'AS Chemistry Ch6 (Electrochemistry) Part 2', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch7-equilibria-part-1', name: 'AS Chemistry Ch7 (Equilibria) Part 1', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch7-equilibria-part-2', name: 'AS Chemistry Ch7 (Equilibria) Part 2', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch8-reaction-kinetics-part-1', name: 'AS Chemistry Ch8 (Reaction kinetics) Part 1', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch8-reaction-kinetics-part-2', name: 'AS Chemistry Ch8 (Reaction kinetics) Part 2', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch9-chemical-periodicity-part-1', name: 'AS Chemistry Ch9 (Chemical Periodicity) Part 1', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch9-chemical-periodicity-part-2', name: 'AS Chemistry Ch9 (Chemical Periodicity) Part 2', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch10-group-2-part-1', name: 'AS Chemistry Ch10 (Group 2) Part 1', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch10-group-2-part-2', name: 'AS Chemistry Ch10 (Group 2) Part 2', subject: 'AS Chemistry', gradeLevel: 11 },
+        ];
+
+        // Group tests by grade and subject
+        const testsByGradeSubject = allTestsForVisibility.reduce((acc, test) => {
+          const key = `${test.gradeLevel}-${test.subject}`;
+          if (!acc[key]) {
+            acc[key] = {
+              gradeLevel: test.gradeLevel,
+              subject: test.subject,
+              tests: []
+            };
+          }
+          acc[key].tests.push(test);
+          return acc;
+        }, {} as Record<string, { gradeLevel: number; subject: string; tests: TestVisibilityItem[] }>);
+
+        const groups = Object.values(testsByGradeSubject);
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold">👁️ Test Visibility Manager</h2>
+                    <p className="text-purple-100 text-sm mt-1">Control which Cambridge tests students can see</p>
+                  </div>
+                  <button
+                    onClick={() => setShowVisibilityManager(false)}
+                    className="text-white/80 hover:text-white text-3xl font-bold"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                {visibilityLoading ? (
+                  <div className="text-center py-12 text-gray-500">
+                    <div className="text-4xl mb-4">⏳</div>
+                    Loading visibility settings...
+                  </div>
+                ) : (
+                  groups.map(group => {
+                    const groupTests = group.tests;
+                    const allVisible = groupTests.every(t => testVisibilitySettings.get(t.id) === true);
+                    const someVisible = groupTests.some(t => testVisibilitySettings.get(t.id) === true);
+                    const noneVisible = !someVisible;
+
+                    return (
+                      <div key={`${group.gradeLevel}-${group.subject}`} className="border border-gray-200 rounded-xl overflow-hidden">
+                        {/* Group Header */}
+                        <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="font-bold text-gray-900">
+                                Grade {group.gradeLevel} - {group.subject}
+                              </h3>
+                              <p className="text-xs text-gray-500 mt-0.5">
+                                {groupTests.filter(t => testVisibilitySettings.get(t.id) === true).length} / {groupTests.length} visible
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => bulkSetTestVisibility(
+                                  groupTests.map(t => t.id),
+                                  group.subject,
+                                  group.gradeLevel,
+                                  true
+                                )}
+                                disabled={allVisible}
+                                className="px-3 py-1 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                ✅ Show All
+                              </button>
+                              <button
+                                onClick={() => bulkSetTestVisibility(
+                                  groupTests.map(t => t.id),
+                                  group.subject,
+                                  group.gradeLevel,
+                                  false
+                                )}
+                                disabled={noneVisible}
+                                className="px-3 py-1 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                🚫 Hide All
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Tests List */}
+                        <div className="divide-y divide-gray-100">
+                          {groupTests.map(test => {
+                            const isVisible = testVisibilitySettings.get(test.id) === true;
+                            
+                            return (
+                              <div key={test.id} className="px-4 py-3 hover:bg-gray-50 flex items-center justify-between">
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium text-gray-900">{test.name}</p>
+                                  <p className="text-xs text-gray-500 mt-0.5">ID: {test.id}</p>
+                                </div>
+                                <button
+                                  onClick={() => toggleTestVisibility(test.id, test.subject, test.gradeLevel, isVisible)}
+                                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                                    isVisible
+                                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                  }`}
+                                >
+                                  {isVisible ? '👁️ Visible' : '🔒 Hidden'}
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="border-t border-gray-200 bg-gray-50 px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-gray-600">
+                    💡 Students will only see tests marked as "Visible" for their grade
+                  </p>
+                  <button
+                    onClick={() => setShowVisibilityManager(false)}
+                    className="px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
+                  >
+                    Done
+                  </button>
+                </div>
               </div>
             </div>
           </div>

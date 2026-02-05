@@ -375,9 +375,50 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [activeFeedbackPart, setActiveFeedbackPart] = useState<'part1' | 'part2'>('part1');
   const [collapsedSubjects, setCollapsedSubjects] = useState<Record<string, boolean>>({});
+  const [visibleTestIds, setVisibleTestIds] = useState<Set<string>>(new Set());
+
+  // Fetch visible tests based on teacher visibility settings
+  const loadVisibleTests = async () => {
+    if (!profile.school_id || profile.grade === null) {
+      // If no school or grade, show all available tests
+      setVisibleTestIds(new Set(AVAILABLE_TESTS.map(t => t.id)));
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.rpc('get_visible_cambridge_tests_for_student', {
+        p_student_grade: profile.grade,
+        p_school_id: profile.school_id
+      });
+
+      if (error) {
+        console.error('Error fetching visible tests:', error);
+        // Fallback: If visibility system not set up or error, show all tests
+        setVisibleTestIds(new Set(AVAILABLE_TESTS.map(t => t.id)));
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        // No visibility settings found - show no tests (teachers need to enable them)
+        setVisibleTestIds(new Set());
+      } else {
+        const visibleIds = new Set(data.map((row: { test_id: string }) => row.test_id));
+        setVisibleTestIds(visibleIds);
+      }
+    } catch (err) {
+      console.error('Exception loading visible tests:', err);
+      // Fallback on error
+      setVisibleTestIds(new Set(AVAILABLE_TESTS.map(t => t.id)));
+    }
+  };
+
+  useEffect(() => {
+    loadVisibleTests();
+  }, [profile.school_id, profile.grade]);
 
   useEffect(() => {
     loadTestProgress();
+  }, [profile.username, visibleTestIds]);
   }, [profile.username]);
 
   useEffect(() => {
@@ -428,8 +469,13 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
 
       if (error) throw error;
 
+      // Filter tests by visibility settings first
+      const availableTests = AVAILABLE_TESTS.filter(test => 
+        visibleTestIds.size === 0 ? true : visibleTestIds.has(test.id)
+      );
+
       // Map test completion status
-      const testsWithProgress = AVAILABLE_TESTS.map(test => {
+      const testsWithProgress = availableTests.map(test => {
         const completion = completedTests?.find(c => 
           c.quiz_name.toLowerCase().includes(test.id.replace(/-/g, ' ').replace('cambridge ', ''))
           || test.name.toLowerCase().includes(c.quiz_name.toLowerCase().replace('cambridge ', ''))
@@ -479,7 +525,11 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       setTests(testsWithProgress);
     } catch (err) {
       console.error('Error loading test progress:', err);
-      setTests(AVAILABLE_TESTS);
+      // Filter by visibility even on error
+      const availableTests = AVAILABLE_TESTS.filter(test => 
+        visibleTestIds.size === 0 ? true : visibleTestIds.has(test.id)
+      );
+      setTests(availableTests);
     } finally {
       setLoading(false);
     }
@@ -903,9 +953,11 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
         ) : filteredTests.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: 'rgba(255,255,255,0.7)' }}>
             <div style={{ fontSize: '40px', marginBottom: '15px' }}>
-              {filter === 'completed' ? '📭' : '🎉'}
+              {filter === 'completed' ? '📭' : visibleTestIds.size === 0 && tests.length === 0 ? '🔒' : '🎉'}
             </div>
-            {filter === 'completed' 
+            {visibleTestIds.size === 0 && tests.length === 0 
+              ? "No tests are currently available. Your teacher will make tests visible soon!"
+              : filter === 'completed' 
               ? "You haven't completed any tests yet. Start one below!"
               : filter === 'pending'
               ? "Great job! You've completed all available tests!"
