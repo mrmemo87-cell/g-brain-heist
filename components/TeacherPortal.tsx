@@ -155,6 +155,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [testVisibilitySettings, setTestVisibilitySettings] = useState<Map<string, boolean>>(new Map());
   const [visibilityLoading, setVisibilityLoading] = useState(false);
   const [showVisibilityManager, setShowVisibilityManager] = useState(false);
+  const [visibilityTestsData, setVisibilityTestsData] = useState<any[]>([]);
   const [showWritingMarkingModal, setShowWritingMarkingModal] = useState(false);
   const [autoProofreadLoading, setAutoProofreadLoading] = useState(false);
   const [savingMarks, setSavingMarks] = useState(false);
@@ -404,6 +405,40 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       }
     }
   }, [teacherAssignedSubjects]);
+
+  // Load visibility tests when visibility manager opens
+  useEffect(() => {
+    if (!showVisibilityManager) return;
+
+    const loadVisibilityTests = async () => {
+      setVisibilityLoading(true);
+      try {
+        // Load Grade 8 English tests
+        const { data: grade8Tests } = await supabase.rpc('get_all_cambridge_tests', {
+          p_grade_level: 8,
+          p_subject: 'English stage 9'
+        });
+
+        // Load Grade 11 Chemistry tests
+        const { data: grade11Tests } = await supabase.rpc('get_all_cambridge_tests', {
+          p_grade_level: 11,
+          p_subject: 'AS Chemistry'
+        });
+
+        const allTests = [
+          ...(grade8Tests || []).map((t: any) => ({ ...t, grade_level: 8 })),
+          ...(grade11Tests || []).map((t: any) => ({ ...t, grade_level: 11 }))
+        ];
+        setVisibilityTestsData(allTests);
+      } catch (error) {
+        console.error('Error loading visibility tests:', error);
+      } finally {
+        setVisibilityLoading(false);
+      }
+    };
+
+    loadVisibilityTests();
+  }, [showVisibilityManager]);
 
   useEffect(() => {
     setAssignmentQuestionIds([]);
@@ -6282,50 +6317,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
       {/* Test Visibility Manager Modal */}
       {showVisibilityManager && (() => {
-        // Fetch tests dynamically from database (no hardcoding needed)
-        interface TestVisibilityItem {
-          test_id: string;
-          test_name: string;
-          subject: string;
-          grade_level: number;
-        }
-
-        // Load tests for all teacher-assigned grades
-        // For now, show Grade 8 English and Grade 11 Chemistry
-        // In production, fetch based on teacher's actual class assignments
-        const [tests, setTests] = React.useState<TestVisibilityItem[]>([]);
-        const [testsLoading, setTestsLoading] = React.useState(true);
-
-        React.useEffect(() => {
-          const loadTests = async () => {
-            setTestsLoading(true);
-            try {
-              // Load Grade 8 English tests
-              const { data: grade8Tests } = await supabase.rpc('get_all_cambridge_tests', {
-                p_grade_level: 8,
-                p_subject: 'English stage 9'
-              });
-
-              // Load Grade 11 Chemistry tests
-              const { data: grade11Tests } = await supabase.rpc('get_all_cambridge_tests', {
-                p_grade_level: 11,
-                p_subject: 'AS Chemistry'
-              });
-
-              const allTests = [
-                ...(grade8Tests || []).map((t: any) => ({ ...t, grade_level: 8 })),
-                ...(grade11Tests || []).map((t: any) => ({ ...t, grade_level: 11 }))
-              ];
-              setTests(allTests);
-            } catch (error) {
-              console.error('Error loading tests:', error);
-            } finally {
-              setTestsLoading(false);
-            }
-          };
-
-          loadTests();
-        }, []);
+        // Use component-level state to avoid hook violations
+        const tests = visibilityTestsData;
 
         // Group tests by grade and subject
         const testsByGradeSubject = tests.reduce((acc, test) => {
@@ -6364,7 +6357,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
               {/* Content */}
               <div className="flex-1 overflow-y-auto p-6 space-y-6" style={{ overflowX: 'hidden' }}>
-                {visibilityLoading || testsLoading ? (
+                {visibilityLoading ? (
                   <div className="text-center py-12 text-gray-500">
                     <div className="text-4xl mb-4">⏳</div>
                     Loading tests and visibility settings...
