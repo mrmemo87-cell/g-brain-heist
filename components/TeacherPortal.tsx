@@ -6289,18 +6289,38 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           gradeLevel: number;
         }
 
-        // Dynamically build test list from CambridgeTestsHub AVAILABLE_TESTS
-        // Import tests dynamically to ensure IDs always match
-        const CambridgeTestsHubModule = await import('./CambridgeTestsHub');
-        const AVAILABLE_TESTS: any[] = (CambridgeTestsHubModule as any).AVAILABLE_TESTS;
-        
-        // If import fails, use fallback empty list
-        const allTestsForVisibility: TestVisibilityItem[] = (AVAILABLE_TESTS || []).map(test => ({
-          id: test.id,
-          name: test.name,
-          subject: test.subject,
-          gradeLevel: test.subject === 'English stage 9' ? 8 : (test.subject === 'AS Chemistry' ? 11 : 0)
-        }));
+        // Build test list matching actual AVAILABLE_TESTS from CambridgeTestsHub.tsx
+        const allTestsForVisibility: TestVisibilityItem[] = [
+          // Grade 8 - English stage 9
+          { id: 'cambridge-end-unit-4', name: 'End of Unit 4 Test', subject: 'English stage 9', gradeLevel: 8 },
+          { id: 'cambridge-reading-25', name: 'Cambridge Reading Test 25', subject: 'English stage 9', gradeLevel: 8 },
+          { id: 'cambridge-listening-1', name: 'Cambridge Listening Test 1', subject: 'English stage 9', gradeLevel: 8 },
+          { id: 'cambridge-writing-1', name: 'Cambridge Writing Test 1', subject: 'English stage 9', gradeLevel: 8 },
+          { id: 'cambridge-writing-2', name: 'Cambridge Writing Test 2', subject: 'English stage 9', gradeLevel: 8 },
+          { id: 'cambridge-end-unit-4-stage-8', name: 'End of Unit 4 Test (Stage 8 English)', subject: 'English stage 9', gradeLevel: 8 },
+          
+          // Grade 11 - AS Chemistry (Match exact IDs from CambridgeTestsHub.tsx)
+          { id: 'as-chemistry-atomic-structure-part-1', name: 'AS Chemistry — Atomic Structure (Part 1)', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-atomic-structure-part-2', name: 'AS Chemistry — Atomic Structure (Part 2)', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch2-atoms-molecules-stoichiometry-part-1', name: 'AS Chemistry Ch2 (Atoms, molecules and stoichiometry) (Part 1)', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch2-atoms-molecules-stoichiometry-part-2', name: 'AS Chemistry Ch2 (Atoms, molecules and stoichiometry) (Part 2)', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch3-chemical-bonding-part-1', name: 'AS Chemistry Ch3 (Chemical bonding) (Part 1)', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch3-chemical-bonding-part-2', name: 'AS Chemistry Ch3 (Chemical bonding) (Part 2)', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch4-states-of-matter-part-1', name: 'AS Chemistry Ch4 (States of matter) (Part 1)', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch4-states-of-matter-part-2', name: 'AS Chemistry Ch4 (States of matter) (Part 2)', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch5-chemical-energetics-part-1', name: 'AS Chemistry Ch5 (Chemical Energetics) (Part 1)', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch5-chemical-energetics-part-2', name: 'AS Chemistry Ch5 (Chemical Energetics) (Part 2)', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch6-electrochemistry-part-1', name: 'AS Chemistry Ch6 (Electrochemistry) (Part 1)', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch6-electrochemistry-part-2', name: 'AS Chemistry Ch6 (Electrochemistry) (Part 2)', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch7-equilibria-part-1', name: 'AS Chemistry Ch7 (Equilibria) (Part 1)', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch7-equilibria-part-2', name: 'AS Chemistry Ch7 (Equilibria) (Part 2)', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch8-reaction-kinetics-part-1', name: 'AS Chemistry Ch8 (Reaction kinetics) (Part 1)', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch8-reaction-kinetics-part-2', name: 'AS Chemistry Ch8 (Reaction kinetics) (Part 2)', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch9-chemical-periodicity-part-1', name: 'AS Chemistry Ch9 (Chemical Periodicity) (Part 1)', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch9-chemical-periodicity-part-2', name: 'AS Chemistry Ch9 (Chemical Periodicity) (Part 2)', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch10-group-2-part-1', name: 'AS Chemistry Ch10 (Group 2) (Part 1)', subject: 'AS Chemistry', gradeLevel: 11 },
+          { id: 'as-chemistry-ch10-group-2-part-2', name: 'AS Chemistry Ch10 (Group 2) (Part 2)', subject: 'AS Chemistry', gradeLevel: 11 },
+        ];
 
         // Group tests by grade and subject
         const testsByGradeSubject = allTestsForVisibility.reduce((acc, test) => {
