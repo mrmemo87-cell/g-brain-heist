@@ -6339,8 +6339,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         const groups = Object.values(testsByGradeSubject);
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="fixed inset-0 z-50 bg-black/50 p-4" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full" style={{ maxWidth: '1000px', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
               {/* Header */}
               <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6">
                 <div className="flex items-center justify-between">
@@ -6358,7 +6358,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               </div>
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              <div className="flex-1 overflow-y-auto p-6 space-y-6" style={{ overflowX: 'hidden' }}>
                 {visibilityLoading ? (
                   <div className="text-center py-12 text-gray-500">
                     <div className="text-4xl mb-4">⏳</div>
