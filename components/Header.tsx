@@ -172,14 +172,23 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   };
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const input = event.target as HTMLInputElement;
-    if (!input.files?.length) return;
+    // Use currentTarget for reliable access on mobile devices
+    const input = event.currentTarget;
+    // Capture file immediately before any async operations (fixes mobile file selection issues)
+    const file = input.files?.[0];
+    
+    if (!file) {
+      // On mobile, show error if file selection appeared to fail
+      if (input.value) {
+        setAvatarUploadError('Failed to read selected file. Please try again.');
+      }
+      return;
+    }
 
     setUploadingAvatar(true);
     setAvatarUploadError(null);
     
     try {
-      const file = input.files[0];
       await upload_avatar_file(file);
       await applyAvatarChange(file);
       audioService.play('collect');
@@ -189,7 +198,8 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
       audioService.play('wrong');
     } finally {
       setUploadingAvatar(false);
-      input.value = '';
+      // Clear input value to allow re-selecting the same file
+      try { input.value = ''; } catch (_) { /* ignore on mobile */ }
     }
   };
 
