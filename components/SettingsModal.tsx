@@ -149,8 +149,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               <label className="block text-sm text-gray-300 mb-2">Upload custom avatar</label>
               <input
                 type="file"
-                accept="image/png,image/jpeg,image/webp,image/*"
-                capture="environment"
+                accept="image/png,image/jpeg,image/webp"
                 onChange={onAvatarUpload}
                 disabled={uploadingAvatar}
                 className="w-full text-sm text-gray-300 file:mr-3 file:rounded-md file:border-0 file:bg-cyan-500/20 file:px-3 file:py-2 file:text-white hover:file:bg-cyan-500/30 disabled:opacity-60"
