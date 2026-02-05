@@ -48,6 +48,11 @@ COMMENT ON TABLE cambridge_test_visibility IS
 
 ALTER TABLE cambridge_test_visibility ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Teachers can view own visibility settings" ON cambridge_test_visibility;
+DROP POLICY IF EXISTS "Teachers can manage own visibility settings" ON cambridge_test_visibility;
+DROP POLICY IF EXISTS "School admins can view school visibility settings" ON cambridge_test_visibility;
+
 -- Teachers can view their own visibility settings
 CREATE POLICY "Teachers can view own visibility settings" 
   ON cambridge_test_visibility
@@ -162,6 +167,7 @@ BEGIN
   
   -- Check if teacher is assigned to this grade/subject
   -- Teachers can manage visibility for grades they teach
+  -- Use flexible subject matching (e.g., "English" matches "English stage 9")
   SELECT EXISTS (
     SELECT 1 
     FROM class_teacher_assignments cta
@@ -169,8 +175,12 @@ BEGIN
     WHERE cta.teacher_user_id = v_teacher_user_id
       AND cta.school_id = v_school_id
       AND cta.active = TRUE
-      AND c.grade_level = p_grade_level
-      AND (cta.subject = p_subject OR v_role = 'admin')
+      AND c.grade_level::INTEGER = p_grade_level
+      AND (
+        cta.subject ILIKE '%' || SPLIT_PART(p_subject, ' ', 1) || '%'
+        OR p_subject ILIKE '%' || cta.subject || '%'
+        OR v_role = 'admin'
+      )
   ) INTO v_has_assignment;
   
   IF NOT v_has_assignment AND v_role != 'admin' THEN
@@ -313,7 +323,7 @@ BEGIN
     RETURN jsonb_build_object('error', 'No school membership');
   END IF;
   
-  -- Check assignment
+  -- Check assignment (flexible subject matching)
   SELECT EXISTS (
     SELECT 1 
     FROM class_teacher_assignments cta
@@ -321,8 +331,12 @@ BEGIN
     WHERE cta.teacher_user_id = v_teacher_user_id
       AND cta.school_id = v_school_id
       AND cta.active = TRUE
-      AND c.grade_level = p_grade_level
-      AND (cta.subject = p_subject OR v_role = 'admin')
+      AND c.grade_level::INTEGER = p_grade_level
+      AND (
+        cta.subject ILIKE '%' || SPLIT_PART(p_subject, ' ', 1) || '%'
+        OR p_subject ILIKE '%' || cta.subject || '%'
+        OR v_role = 'admin'
+      )
   ) INTO v_has_assignment;
   
   IF NOT v_has_assignment AND v_role != 'admin' THEN

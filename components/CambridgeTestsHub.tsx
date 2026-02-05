@@ -469,8 +469,9 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       if (error) throw error;
 
       // Filter tests by visibility settings first
+      // Only show tests that teachers have explicitly made visible
       const availableTests = AVAILABLE_TESTS.filter(test => 
-        visibleTestIds.size === 0 ? true : visibleTestIds.has(test.id)
+        visibleTestIds.has(test.id)
       );
 
       // Map test completion status
@@ -525,8 +526,9 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
     } catch (err) {
       console.error('Error loading test progress:', err);
       // Filter by visibility even on error
+      // Only show tests that are in the visible set
       const availableTests = AVAILABLE_TESTS.filter(test => 
-        visibleTestIds.size === 0 ? true : visibleTestIds.has(test.id)
+        visibleTestIds.has(test.id)
       );
       setTests(availableTests);
     } finally {
