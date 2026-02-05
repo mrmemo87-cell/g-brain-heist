@@ -6339,8 +6339,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         const groups = Object.values(testsByGradeSubject);
 
         return (
-          <div className="fixed inset-0 z-50 bg-black/50" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div className="bg-white rounded-2xl shadow-2xl" style={{ width: '90%', maxWidth: '1000px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', margin: 'auto' }}>
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ backgroundColor: 'white', borderRadius: '1rem', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)', width: '90%', maxWidth: '1000px', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}>
               {/* Header */}
               <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6">
                 <div className="flex items-center justify-between">
