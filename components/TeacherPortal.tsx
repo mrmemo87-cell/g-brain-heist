@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, TeacherAssignmentSummary, TeacherAssignmentReportRow, AssignmentBatch, StudentForAssignment, QuestionOption, StudentAssignmentAnswer, AssignmentQuestionAnalysis } from '../types';
 import * as GameService from '../services/gameService';
 import * as AuthService from '../services/authService';
@@ -6338,8 +6339,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
         const groups = Object.values(testsByGradeSubject);
 
-        return (
-          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        return createPortal(
+          <div style={{ position: 'fixed', inset: 0, zIndex: 9999, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ backgroundColor: 'white', borderRadius: '1rem', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)', width: '90%', maxWidth: '1000px', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}>
               {/* Header */}
               <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6">
@@ -6459,7 +6460,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 </div>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         );
       })()}
     </div>
