@@ -6282,53 +6282,57 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
       {/* Test Visibility Manager Modal */}
       {showVisibilityManager && (() => {
-        // Define Cambridge tests grouped by grade and subject
+        // Fetch tests dynamically from database (no hardcoding needed)
         interface TestVisibilityItem {
-          id: string;
-          name: string;
+          test_id: string;
+          test_name: string;
           subject: string;
-          gradeLevel: number;
+          grade_level: number;
         }
 
-        // Build test list matching actual AVAILABLE_TESTS from CambridgeTestsHub.tsx
-        const allTestsForVisibility: TestVisibilityItem[] = [
-          // Grade 8 - English stage 9
-          { id: 'cambridge-end-unit-4', name: 'End of Unit 4 Test', subject: 'English stage 9', gradeLevel: 8 },
-          { id: 'cambridge-reading-25', name: 'Cambridge Reading Test 25', subject: 'English stage 9', gradeLevel: 8 },
-          { id: 'cambridge-listening-1', name: 'Cambridge Listening Test 1', subject: 'English stage 9', gradeLevel: 8 },
-          { id: 'cambridge-writing-1', name: 'Cambridge Writing Test 1', subject: 'English stage 9', gradeLevel: 8 },
-          { id: 'cambridge-writing-2', name: 'Cambridge Writing Test 2', subject: 'English stage 9', gradeLevel: 8 },
-          { id: 'cambridge-end-unit-4-stage-8', name: 'End of Unit 4 Test (Stage 8 English)', subject: 'English stage 9', gradeLevel: 8 },
-          
-          // Grade 11 - AS Chemistry (Match exact IDs from CambridgeTestsHub.tsx)
-          { id: 'as-chemistry-atomic-structure-part-1', name: 'AS Chemistry — Atomic Structure (Part 1)', subject: 'AS Chemistry', gradeLevel: 11 },
-          { id: 'as-chemistry-atomic-structure-part-2', name: 'AS Chemistry — Atomic Structure (Part 2)', subject: 'AS Chemistry', gradeLevel: 11 },
-          { id: 'as-chemistry-ch2-atoms-molecules-stoichiometry-part-1', name: 'AS Chemistry Ch2 (Atoms, molecules and stoichiometry) (Part 1)', subject: 'AS Chemistry', gradeLevel: 11 },
-          { id: 'as-chemistry-ch2-atoms-molecules-stoichiometry-part-2', name: 'AS Chemistry Ch2 (Atoms, molecules and stoichiometry) (Part 2)', subject: 'AS Chemistry', gradeLevel: 11 },
-          { id: 'as-chemistry-ch3-chemical-bonding-part-1', name: 'AS Chemistry Ch3 (Chemical bonding) (Part 1)', subject: 'AS Chemistry', gradeLevel: 11 },
-          { id: 'as-chemistry-ch3-chemical-bonding-part-2', name: 'AS Chemistry Ch3 (Chemical bonding) (Part 2)', subject: 'AS Chemistry', gradeLevel: 11 },
-          { id: 'as-chemistry-ch4-states-of-matter-part-1', name: 'AS Chemistry Ch4 (States of matter) (Part 1)', subject: 'AS Chemistry', gradeLevel: 11 },
-          { id: 'as-chemistry-ch4-states-of-matter-part-2', name: 'AS Chemistry Ch4 (States of matter) (Part 2)', subject: 'AS Chemistry', gradeLevel: 11 },
-          { id: 'as-chemistry-ch5-chemical-energetics-part-1', name: 'AS Chemistry Ch5 (Chemical Energetics) (Part 1)', subject: 'AS Chemistry', gradeLevel: 11 },
-          { id: 'as-chemistry-ch5-chemical-energetics-part-2', name: 'AS Chemistry Ch5 (Chemical Energetics) (Part 2)', subject: 'AS Chemistry', gradeLevel: 11 },
-          { id: 'as-chemistry-ch6-electrochemistry-part-1', name: 'AS Chemistry Ch6 (Electrochemistry) (Part 1)', subject: 'AS Chemistry', gradeLevel: 11 },
-          { id: 'as-chemistry-ch6-electrochemistry-part-2', name: 'AS Chemistry Ch6 (Electrochemistry) (Part 2)', subject: 'AS Chemistry', gradeLevel: 11 },
-          { id: 'as-chemistry-ch7-equilibria-part-1', name: 'AS Chemistry Ch7 (Equilibria) (Part 1)', subject: 'AS Chemistry', gradeLevel: 11 },
-          { id: 'as-chemistry-ch7-equilibria-part-2', name: 'AS Chemistry Ch7 (Equilibria) (Part 2)', subject: 'AS Chemistry', gradeLevel: 11 },
-          { id: 'as-chemistry-ch8-reaction-kinetics-part-1', name: 'AS Chemistry Ch8 (Reaction kinetics) (Part 1)', subject: 'AS Chemistry', gradeLevel: 11 },
-          { id: 'as-chemistry-ch8-reaction-kinetics-part-2', name: 'AS Chemistry Ch8 (Reaction kinetics) (Part 2)', subject: 'AS Chemistry', gradeLevel: 11 },
-          { id: 'as-chemistry-ch9-chemical-periodicity-part-1', name: 'AS Chemistry Ch9 (Chemical Periodicity) (Part 1)', subject: 'AS Chemistry', gradeLevel: 11 },
-          { id: 'as-chemistry-ch9-chemical-periodicity-part-2', name: 'AS Chemistry Ch9 (Chemical Periodicity) (Part 2)', subject: 'AS Chemistry', gradeLevel: 11 },
-          { id: 'as-chemistry-ch10-group-2-part-1', name: 'AS Chemistry Ch10 (Group 2) (Part 1)', subject: 'AS Chemistry', gradeLevel: 11 },
-          { id: 'as-chemistry-ch10-group-2-part-2', name: 'AS Chemistry Ch10 (Group 2) (Part 2)', subject: 'AS Chemistry', gradeLevel: 11 },
-        ];
+        // Load tests for all teacher-assigned grades
+        // For now, show Grade 8 English and Grade 11 Chemistry
+        // In production, fetch based on teacher's actual class assignments
+        const [tests, setTests] = React.useState<TestVisibilityItem[]>([]);
+        const [testsLoading, setTestsLoading] = React.useState(true);
+
+        React.useEffect(() => {
+          const loadTests = async () => {
+            setTestsLoading(true);
+            try {
+              // Load Grade 8 English tests
+              const { data: grade8Tests } = await supabase.rpc('get_all_cambridge_tests', {
+                p_grade_level: 8,
+                p_subject: 'English stage 9'
+              });
+
+              // Load Grade 11 Chemistry tests
+              const { data: grade11Tests } = await supabase.rpc('get_all_cambridge_tests', {
+                p_grade_level: 11,
+                p_subject: 'AS Chemistry'
+              });
+
+              const allTests = [
+                ...(grade8Tests || []).map((t: any) => ({ ...t, grade_level: 8 })),
+                ...(grade11Tests || []).map((t: any) => ({ ...t, grade_level: 11 }))
+              ];
+              setTests(allTests);
+            } catch (error) {
+              console.error('Error loading tests:', error);
+            } finally {
+              setTestsLoading(false);
+            }
+          };
+
+          loadTests();
+        }, []);
 
         // Group tests by grade and subject
-        const testsByGradeSubject = allTestsForVisibility.reduce((acc, test) => {
-          const key = `${test.gradeLevel}-${test.subject}`;
+        const testsByGradeSubject = tests.reduce((acc, test) => {
+          const key = `${test.grade_level}-${test.subject}`;
           if (!acc[key]) {
             acc[key] = {
-              gradeLevel: test.gradeLevel,
+              gradeLevel: test.grade_level,
               subject: test.subject,
               tests: []
             };
@@ -6360,16 +6364,16 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
               {/* Content */}
               <div className="flex-1 overflow-y-auto p-6 space-y-6" style={{ overflowX: 'hidden' }}>
-                {visibilityLoading ? (
+                {visibilityLoading || testsLoading ? (
                   <div className="text-center py-12 text-gray-500">
                     <div className="text-4xl mb-4">⏳</div>
-                    Loading visibility settings...
+                    Loading tests and visibility settings...
                   </div>
                 ) : (
                   groups.map(group => {
                     const groupTests = group.tests;
-                    const allVisible = groupTests.every(t => testVisibilitySettings.get(t.id) === true);
-                    const someVisible = groupTests.some(t => testVisibilitySettings.get(t.id) === true);
+                    const allVisible = groupTests.every(t => testVisibilitySettings.get(t.test_id) === true);
+                    const someVisible = groupTests.some(t => testVisibilitySettings.get(t.test_id) === true);
                     const noneVisible = !someVisible;
 
                     return (
@@ -6382,13 +6386,13 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                                 Grade {group.gradeLevel} - {group.subject}
                               </h3>
                               <p className="text-xs text-gray-500 mt-0.5">
-                                {groupTests.filter(t => testVisibilitySettings.get(t.id) === true).length} / {groupTests.length} visible
+                                {groupTests.filter(t => testVisibilitySettings.get(t.test_id) === true).length} / {groupTests.length} visible
                               </p>
                             </div>
                             <div className="flex gap-2">
                               <button
                                 onClick={() => bulkSetTestVisibility(
-                                  groupTests.map(t => t.id),
+                                  groupTests.map(t => t.test_id),
                                   group.subject,
                                   group.gradeLevel,
                                   true
@@ -6400,7 +6404,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                               </button>
                               <button
                                 onClick={() => bulkSetTestVisibility(
-                                  groupTests.map(t => t.id),
+                                  groupTests.map(t => t.test_id),
                                   group.subject,
                                   group.gradeLevel,
                                   false
@@ -6417,16 +6421,16 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                         {/* Tests List */}
                         <div className="divide-y divide-gray-100">
                           {groupTests.map(test => {
-                            const isVisible = testVisibilitySettings.get(test.id) === true;
+                            const isVisible = testVisibilitySettings.get(test.test_id) === true;
                             
                             return (
-                              <div key={test.id} className="px-4 py-3 hover:bg-gray-50 flex items-center justify-between">
+                              <div key={test.test_id} className="px-4 py-3 hover:bg-gray-50 flex items-center justify-between">
                                 <div className="flex-1">
-                                  <p className="text-sm font-medium text-gray-900">{test.name}</p>
-                                  <p className="text-xs text-gray-500 mt-0.5">ID: {test.id}</p>
+                                  <p className="text-sm font-medium text-gray-900">{test.test_name}</p>
+                                  <p className="text-xs text-gray-500 mt-0.5">ID: {test.test_id}</p>
                                 </div>
                                 <button
-                                  onClick={() => toggleTestVisibility(test.id, test.subject, test.gradeLevel, isVisible)}
+                                  onClick={() => toggleTestVisibility(test.test_id, test.subject, test.grade_level, isVisible)}
                                   className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
                                     isVisible
                                       ? 'bg-green-100 text-green-700 hover:bg-green-200'
