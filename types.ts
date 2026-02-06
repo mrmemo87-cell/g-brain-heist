@@ -1079,3 +1079,32 @@ export interface QuestionAttemptResult {
   explanation?: string;
   final_profile_values?: { xp: number; coins: number; level: number; gemstones: number; xp_status?: XpStatus };
 }
+
+// ============================================================================
+// ASSIGNMENT ANALYSIS TYPES
+// ============================================================================
+
+export interface TopicPerformance {
+  topic: string;
+  rating: 'Excellent' | 'Good' | 'Fair' | 'Needs Work';
+  reason: string;
+}
+
+export interface StudentAssignmentAnalysis {
+  assignment_id: string;
+  student_id: string;
+  analysis: {
+    strengths: string[];
+    improvements: string[];
+    recommendations: string[];
+    overallAssessment: string;
+    topicsBreakdown: Record<string, TopicPerformance> | TopicPerformance[];
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AssignmentAnalysisRequest {
+  assignmentId: string;
+  studentId: string;
+}

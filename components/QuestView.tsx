@@ -1447,6 +1447,13 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             </div>
           </div>
           
+          {activeAssignment.description && (
+            <div className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-lg p-5 mb-6 border border-blue-400/40">
+              <p className="text-blue-300 text-xs uppercase tracking-wide font-semibold mb-2">📚 About This Assignment</p>
+              <p className="text-gray-100 leading-relaxed">{activeAssignment.description}</p>
+            </div>
+          )}
+          
           {activeAssignment.instructions && (
             <div className="bg-slate-800/50 rounded-lg p-4 mb-6 border border-gray-600/30">
               <p className="text-gray-400 text-xs uppercase tracking-wide mb-2">Instructions</p>

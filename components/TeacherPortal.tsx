@@ -106,6 +106,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [assignmentTopicMode, setAssignmentTopicMode] = useState<'general' | 'custom'>('general');
   const [assignmentTopicName, setAssignmentTopicName] = useState('');
   const [assignmentTitle, setAssignmentTitle] = useState('');
+  const [assignmentDescription, setAssignmentDescription] = useState('');
   const [assignmentInstructions, setAssignmentInstructions] = useState('');
   const [assignmentQuestionIds, setAssignmentQuestionIds] = useState<string[]>([]);
   const [assignmentDueAt, setAssignmentDueAt] = useState('');
@@ -130,6 +131,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [selectedAnalysisStudent, setSelectedAnalysisStudent] = useState<TeacherAssignmentReportRow | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [analysisTab, setAnalysisTab] = useState<'overview' | 'questions' | 'student'>('overview');
+  const [studentAssignmentAnalysis, setStudentAssignmentAnalysis] = useState<any | null>(null);
+  const [analysisModalOpen, setAnalysisModalOpen] = useState(false);
 
   // Cambridge Test Reports State
   const [cambridgeScores, setCambridgeScores] = useState<any[]>([]);
@@ -2479,6 +2482,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         assigned_at: toIso(assignmentAssignedAt) ?? new Date().toISOString(),
         due_at: toIso(assignmentDueAt),
         title: assignmentTitle || undefined,
+        description: assignmentDescription || undefined,
         instructions: assignmentInstructions || undefined,
         difficulty: assignmentDifficulty,
         assignment_mode: assignmentMode,
@@ -2488,6 +2492,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       alert('📌 Assignment created and sent to students!');
       setAssignmentQuestionIds([]);
       setAssignmentTitle('');
+      setAssignmentDescription('');
       setAssignmentInstructions('');
       setSelectedStudentIds([]);
       setStudentSearchTerm('');
@@ -2541,6 +2546,20 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         student.student_id
       );
       setStudentAnswers(answers);
+      
+      // Generate AI analysis in parallel
+      try {
+        const analysis = await GameService.generate_assignment_analysis(
+          selectedReportAssignment.id,
+          student.student_id
+        );
+        setStudentAssignmentAnalysis(analysis);
+        setAnalysisModalOpen(true);
+      } catch (analysisError) {
+        console.warn('Could not generate AI analysis:', analysisError);
+        // Continue without AI analysis - it's optional
+      }
+      
       setView('report-analysis');
     } catch (error) {
       console.error('Error loading student answers:', error);
@@ -3996,6 +4015,19 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 placeholder="e.g., Show your work"
               />
             </div>
+          </div>
+
+          <div className="teacher-form-group-premium">
+            <label className="teacher-label-premium">📝 Assignment Description (optional)</label>
+            <textarea
+              value={assignmentDescription}
+              onChange={(e) => setAssignmentDescription(e.target.value)}
+              className="teacher-input-premium"
+              placeholder="Explain what this assignment is about, what skills it covers, and why it matters. Students will see this before starting the assignment."
+              rows={3}
+              style={{ resize: 'vertical', fontFamily: 'inherit' }}
+            />
+            <p className="text-xs text-slate-400 mt-1">💡 Tips: Explain the learning goal, topic relevance, and any real-world application. This helps students understand the assignment purpose.</p>
           </div>
 
           <div className="teacher-form-group-premium">

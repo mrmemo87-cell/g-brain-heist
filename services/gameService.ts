@@ -5759,3 +5759,55 @@ export const updatePvPScore = async (
         return { newPvpScore: 0, newTotalScore: 0, success: false, error: (err as Error).message };
     }
 };
+// ============================================================================
+// ASSIGNMENT AI ANALYSIS
+// ============================================================================
+
+/**
+ * Generate AI-powered analysis of student assignment performance
+ * Uses OpenAI to analyze answers and provide personalized feedback
+ */
+export const generate_assignment_analysis = async (
+    assignmentId: string,
+    studentId?: string
+): Promise<any> => {
+    try {
+        const user = await getCurrentUser();
+        const targetStudentId = studentId || user.id;
+
+        // Get the session to extract auth token
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData?.session?.access_token;
+
+        if (!accessToken) {
+            throw new Error('No authentication token available');
+        }
+
+        // Call the edge function
+        const response = await fetch(
+            `${supabase.supabaseUrl}/functions/v1/analyze_assignment_answers`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`,
+                },
+                body: JSON.stringify({
+                    assignmentId,
+                    studentId: targetStudentId,
+                }),
+            }
+        );
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `Analysis failed with status ${response.status}`);
+        }
+
+        const result = await response.json();
+        return result.analysis || result;
+    } catch (err) {
+        console.error('Failed to generate assignment analysis:', err);
+        throw err;
+    }
+};
