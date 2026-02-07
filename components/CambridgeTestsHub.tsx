@@ -317,6 +317,28 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     subject: 'AS Chemistry',
     url: '/cambridge-tests/Chemistry/group_2.html?part=2',
   },
+  {
+    id: 'as-chemistry-ch11-group-17-part-1',
+    name: 'AS Chemistry Ch11 ( Group 17 ) (Part 1)',
+    description: 'Chapter 11 part 1 practice on halogen trends, volatility, redox reactions, and halide tests.',
+    duration: '41 min',
+    totalQuestions: 41,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'AS Chemistry',
+    url: '/cambridge-tests/Chemistry/group_17.html?part=1',
+  },
+  {
+    id: 'as-chemistry-ch11-group-17-part-2',
+    name: 'AS Chemistry Ch11 ( Group 17 ) (Part 2)',
+    description: 'Chapter 11 part 2 practice on hydrogen halides, stability trends, and halogen displacement.',
+    duration: '40 min',
+    totalQuestions: 40,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'AS Chemistry',
+    url: '/cambridge-tests/Chemistry/group_17.html?part=2',
+  },
   // Add more tests here as they become available
 ];
 
