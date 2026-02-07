@@ -54,6 +54,7 @@ export const chemistryAnswerKeys: Record<string, Record<number, string>> = {
     61: 'A', 62: 'C', 63: 'A', 64: 'C', 65: 'C', 66: 'C', 67: 'B', 68: 'D', 69: 'B', 70: 'A',
     71: 'B', 72: 'D', 73: 'C', 74: 'A', 75: 'A', 76: 'C', 77: 'D', 78: 'B', 79: 'B', 80: 'D',
     81: 'B', 82: 'A',
+  },
   'AS Chemistry Ch17 ( Carbonyl compounds )': {
     1: 'D', 2: 'D', 3: 'A', 4: 'B', 5: 'D', 6: 'A', 7: 'D', 8: 'D', 9: 'A', 10: 'C',
     11: 'D', 12: 'A', 13: 'D', 14: 'B', 15: 'C', 16: 'A', 17: 'A', 18: 'A', 19: 'A', 20: 'B',
@@ -62,6 +63,7 @@ export const chemistryAnswerKeys: Record<string, Record<number, string>> = {
     41: 'B', 42: 'B', 43: 'D', 44: 'D', 45: 'A', 46: 'B', 47: 'B', 48: 'A', 49: 'B', 50: 'D',
     51: 'D', 52: 'B', 53: 'D', 54: 'B', 55: 'C', 56: 'A', 57: 'B', 58: 'A', 59: 'D', 60: 'B',
     61: 'A', 62: 'B', 63: 'C',
+  },
   'AS Chemistry Ch16 ( Hydroxy compounds )': {
     1: 'B', 2: 'C', 3: 'A', 4: 'C', 5: 'A', 6: 'C', 7: 'B', 8: 'D', 9: 'A', 10: 'B',
     11: 'C', 12: 'A', 13: 'D', 14: 'A', 15: 'A', 16: 'B', 17: 'C', 18: 'B', 19: 'C', 20: 'A',
