@@ -8,7 +8,7 @@ export const chemistryAnswerKeys: Record<string, Record<number, string>> = {
     51: 'A',     52: 'C',     53: 'D',     54: 'A',     55: 'D',     56: 'B',     57: 'A',     58: 'D',     59: 'B',     60: 'A',
     61: 'D',     62: 'D',     63: 'C',     64: 'C',     65: 'D',     66: 'B',     67: 'C',     68: 'D',     69: 'D',     70: 'C',
     71: 'C',     72: 'A',     73: 'C',     74: 'C',     75: 'A',     76: 'D',     77: 'A',     78: 'D',     79: 'A',     80: 'C',
-    81: 'A'
+    81: 'A',
   },
   
   'AS Chemistry Ch12 ( Nitrogen and sulfur )': {
@@ -54,6 +54,16 @@ export const chemistryAnswerKeys: Record<string, Record<number, string>> = {
     61: 'A', 62: 'C', 63: 'A', 64: 'C', 65: 'C', 66: 'C', 67: 'B', 68: 'D', 69: 'B', 70: 'A',
     71: 'B', 72: 'D', 73: 'C', 74: 'A', 75: 'A', 76: 'C', 77: 'D', 78: 'B', 79: 'B', 80: 'D',
     81: 'B', 82: 'A',
+  'AS Chemistry Ch16 ( Hydroxy compounds )': {
+    1: 'B', 2: 'C', 3: 'A', 4: 'C', 5: 'A', 6: 'C', 7: 'B', 8: 'D', 9: 'A', 10: 'B',
+    11: 'C', 12: 'A', 13: 'D', 14: 'A', 15: 'A', 16: 'B', 17: 'C', 18: 'B', 19: 'C', 20: 'A',
+    21: 'C', 22: 'C', 23: 'B', 24: 'C', 25: 'B', 26: 'D', 27: 'A', 28: 'D', 29: 'C', 30: 'C',
+    31: 'A', 32: 'D', 33: 'B', 34: 'C', 35: 'C', 36: 'C', 37: 'C', 38: 'C', 39: 'A', 40: 'C',
+    41: 'B', 42: 'B', 43: 'A', 44: 'A', 45: 'B', 46: 'B', 47: 'A', 48: 'B', 49: 'B', 50: 'D',
+    51: 'D', 52: 'C', 53: 'C', 54: 'B', 55: 'C', 56: 'B', 57: 'D', 58: 'C', 59: 'D', 60: 'A',
+    61: 'C', 62: 'B', 63: 'C', 64: 'A', 65: 'A', 66: 'C', 67: 'B', 68: 'C', 69: 'C', 70: 'D',
+    71: 'D', 72: 'D', 73: 'C', 74: 'B', 75: 'B', 76: 'C', 77: 'C', 78: 'B', 79: 'C', 80: 'B',
+    81: 'B', 82: 'C', 83: 'B', 84: 'A', 85: 'C', 86: 'B', 87: 'C', 88: 'D',
   },
   'AS Chemistry Ch10 (Group 2)': {
     1: 'D', 2: 'D', 3: 'B', 4: 'A', 5: 'A', 6: 'C', 7: 'D', 8: 'C', 9: 'B', 10: 'C', 11: 'C', 12: 'B', 13: 'C',
@@ -137,6 +147,7 @@ export const chemistryQuestionRanges: Record<string, { total: number; splitIndex
   'AS Chemistry Ch14 ( Hydrocarbons )': { total: 60, splitIndex: 30 },
   'AS Chemistry Ch15 ( Halogen compounds )': { total: 56, splitIndex: 28 },
   'AS Chemistry Ch18 ( Carboxylic acids and derivatives )': { total: 82, splitIndex: 41 },
+  'AS Chemistry Ch16 ( Hydroxy compounds )': { total: 88, splitIndex: 44 },
   'AS Chemistry Ch10 (Group 2)': { total: 73, splitIndex: 37 },
   'AS Chemistry Ch2 (Atoms, molecules and stoichiometry)': { total: 64, splitIndex: 32 },
   'AS Chemistry Ch3 (Chemical bonding)': { total: 55, splitIndex: 28 },
