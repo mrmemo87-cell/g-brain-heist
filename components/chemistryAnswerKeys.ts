@@ -8,7 +8,7 @@ export const chemistryAnswerKeys: Record<string, Record<number, string>> = {
     51: 'A',     52: 'C',     53: 'D',     54: 'A',     55: 'D',     56: 'B',     57: 'A',     58: 'D',     59: 'B',     60: 'A',
     61: 'D',     62: 'D',     63: 'C',     64: 'C',     65: 'D',     66: 'B',     67: 'C',     68: 'D',     69: 'D',     70: 'C',
     71: 'C',     72: 'A',     73: 'C',     74: 'C',     75: 'A',     76: 'D',     77: 'A',     78: 'D',     79: 'A',     80: 'C',
-    81: 'A'
+    81: 'A',
   },
   
   'AS Chemistry Ch12 ( Nitrogen and sulfur )': {
