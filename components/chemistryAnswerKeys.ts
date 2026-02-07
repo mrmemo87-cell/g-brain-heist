@@ -1,4 +1,15 @@
 export const chemistryAnswerKeys: Record<string, Record<number, string>> = {
+  'AS Chemistry Ch11 ( Group 17 )': {
+    1: 'C',     2: 'B',     3: 'B',     4: 'D',     5: 'A',     6: 'C',     7: 'A',     8: 'A',     9: 'A',     10: 'B',
+    11: 'C',     12: 'B',     13: 'D',     14: 'B',     15: 'D',     16: 'D',     17: 'D',     18: 'B',     19: 'C',     20: 'D',
+    21: 'B',     22: 'C',     23: 'D',     24: 'A',     25: 'C',     26: 'D',     27: 'D',     28: 'D',     29: 'A',     30: 'C',
+    31: 'D',     32: 'A',     33: 'A',     34: 'D',     35: 'D',     36: 'A',     37: 'C',     38: 'D',     39: 'C',     40: 'C',
+    41: 'C',     42: 'A',     43: 'A',     44: 'D',     45: 'D',     46: 'B',     47: 'C',     48: 'A',     49: 'D',     50: 'C',
+    51: 'A',     52: 'C',     53: 'D',     54: 'A',     55: 'D',     56: 'B',     57: 'A',     58: 'D',     59: 'B',     60: 'A',
+    61: 'D',     62: 'D',     63: 'C',     64: 'C',     65: 'D',     66: 'B',     67: 'C',     68: 'D',     69: 'D',     70: 'C',
+    71: 'C',     72: 'A',     73: 'C',     74: 'C',     75: 'A',     76: 'D',     77: 'A',     78: 'D',     79: 'A',     80: 'C',
+    81: 'A'
+  },
   'AS Chemistry Ch10 (Group 2)': {
     1: 'D', 2: 'D', 3: 'B', 4: 'A', 5: 'A', 6: 'C', 7: 'D', 8: 'C', 9: 'B', 10: 'C', 11: 'C', 12: 'B', 13: 'C',
     14: 'A', 15: 'C', 16: 'A', 17: 'C', 18: 'A', 19: 'B', 20: 'B', 21: 'C', 22: 'D', 23: 'B', 24: 'B', 25: 'A',
@@ -75,6 +86,7 @@ export const chemistryAnswerKeys: Record<string, Record<number, string>> = {
 };
 
 export const chemistryQuestionRanges: Record<string, { total: number; splitIndex: number }> = {
+  'AS Chemistry Ch11 ( Group 17 )': { total: 81, splitIndex: 41 },
   'AS Chemistry Ch10 (Group 2)': { total: 73, splitIndex: 37 },
   'AS Chemistry Ch2 (Atoms, molecules and stoichiometry)': { total: 64, splitIndex: 32 },
   'AS Chemistry Ch3 (Chemical bonding)': { total: 55, splitIndex: 28 },
