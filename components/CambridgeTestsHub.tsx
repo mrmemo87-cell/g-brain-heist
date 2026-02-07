@@ -28,7 +28,7 @@ interface CambridgeTestsHubProps {
 }
 
 // Available Cambridge tests - add new tests here
-const AVAILABLE_TESTS: CambridgeTest[] = [
+const ENGLISH_TESTS: CambridgeTest[] = [
   {
     id: 'cambridge-end-unit-4',
     name: 'End of Unit 4 Test',
@@ -97,6 +97,9 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     subject: 'English stage 9',
     url: '/cambridge-tests/English%20stage%209/cambridge_end_unit_4_test.html',
   },
+];
+
+const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
   {
     id: 'as-chemistry-atomic-structure-part-1',
     name: 'AS Chemistry — Atomic Structure (Part 1)',
@@ -450,6 +453,11 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     url: '/cambridge-tests/Chemistry/group_17.html?part=2',
   },
   // Add more tests here as they become available
+];
+
+const AVAILABLE_TESTS: CambridgeTest[] = [
+  ...ENGLISH_TESTS,
+  ...AS_CHEMISTRY_TESTS,
 ];
 
 interface MistakeItem {
