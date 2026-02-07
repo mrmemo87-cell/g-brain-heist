@@ -409,29 +409,51 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     }
   }, [teacherAssignedSubjects]);
 
-  // Load visibility tests when visibility manager opens
+  // Load visibility tests when visibility manager opens - dynamically based on teacher's assignments
   useEffect(() => {
     if (!showVisibilityManager) return;
 
     const loadVisibilityTests = async () => {
       setVisibilityLoading(true);
       try {
-        // Load Grade 8 English tests
-        const { data: grade8Tests } = await supabase.rpc('get_all_cambridge_tests', {
-          p_grade_level: 8,
-          p_subject: 'English stage 9'
+        // Get unique grade/subject combinations from teacher's assigned classes
+        const gradeSubjectCombos = new Map<string, { gradeLevel: number; subject: string }>();
+        
+        assignedClasses.forEach(cls => {
+          if (cls.grade_level && cls.subject) {
+            const key = `${cls.grade_level}-${cls.subject}`;
+            gradeSubjectCombos.set(key, {
+              gradeLevel: parseInt(cls.grade_level.toString()),
+              subject: cls.subject
+            });
+          }
         });
 
-        // Load Grade 11 Chemistry tests
-        const { data: grade11Tests } = await supabase.rpc('get_all_cambridge_tests', {
-          p_grade_level: 11,
-          p_subject: 'AS Chemistry'
-        });
+        // If no assigned classes, show nothing
+        if (gradeSubjectCombos.size === 0) {
+          setVisibilityTestsData([]);
+          setVisibilityLoading(false);
+          return;
+        }
 
-        const allTests = [
-          ...(grade8Tests || []).map((t: any) => ({ ...t, grade_level: 8 })),
-          ...(grade11Tests || []).map((t: any) => ({ ...t, grade_level: 11 }))
-        ];
+        // Fetch tests for each grade/subject combination
+        const allTests: any[] = [];
+        
+        for (const { gradeLevel, subject } of gradeSubjectCombos.values()) {
+          try {
+            const { data: tests } = await supabase.rpc('get_all_cambridge_tests', {
+              p_grade_level: gradeLevel,
+              p_subject: subject
+            });
+
+            if (tests) {
+              allTests.push(...tests.map((t: any) => ({ ...t, grade_level: gradeLevel })));
+            }
+          } catch (error) {
+            console.error(`Error loading tests for Grade ${gradeLevel} ${subject}:`, error);
+          }
+        }
+
         setVisibilityTestsData(allTests);
       } catch (error) {
         console.error('Error loading visibility tests:', error);
@@ -441,7 +463,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     };
 
     loadVisibilityTests();
-  }, [showVisibilityManager]);
+  }, [showVisibilityManager, assignedClasses]);
 
   useEffect(() => {
     setAssignmentQuestionIds([]);
