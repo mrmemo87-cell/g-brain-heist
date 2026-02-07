@@ -44,6 +44,14 @@ export const chemistryAnswerKeys: Record<string, Record<number, string>> = {
     41: 'B', 42: 'B', 43: 'B', 44: 'B', 45: 'A', 46: 'D', 47: 'B', 48: 'D', 49: 'D', 50: 'C',
     51: 'D', 52: 'B', 53: 'C', 54: 'A', 55: 'C', 56: 'A',
   },
+  'AS Chemistry Ch17 ( Carbonyl compounds )': {
+    1: 'D', 2: 'D', 3: 'A', 4: 'B', 5: 'D', 6: 'A', 7: 'D', 8: 'D', 9: 'A', 10: 'C',
+    11: 'D', 12: 'A', 13: 'D', 14: 'B', 15: 'C', 16: 'A', 17: 'A', 18: 'A', 19: 'A', 20: 'B',
+    21: 'C', 22: 'A', 23: 'A', 24: 'D', 25: 'D', 26: 'A', 27: 'C', 28: 'B', 29: 'D', 30: 'A',
+    31: 'A', 32: 'A', 33: 'A', 34: 'B', 35: 'B', 36: 'D', 37: 'A', 38: 'D', 39: 'D', 40: 'D',
+    41: 'B', 42: 'B', 43: 'D', 44: 'D', 45: 'A', 46: 'B', 47: 'B', 48: 'A', 49: 'B', 50: 'D',
+    51: 'D', 52: 'B', 53: 'D', 54: 'B', 55: 'C', 56: 'A', 57: 'B', 58: 'A', 59: 'D', 60: 'B',
+    61: 'A', 62: 'B', 63: 'C',
   'AS Chemistry Ch16 ( Hydroxy compounds )': {
     1: 'B', 2: 'C', 3: 'A', 4: 'C', 5: 'A', 6: 'C', 7: 'B', 8: 'D', 9: 'A', 10: 'B',
     11: 'C', 12: 'A', 13: 'D', 14: 'A', 15: 'A', 16: 'B', 17: 'C', 18: 'B', 19: 'C', 20: 'A',
@@ -136,6 +144,7 @@ export const chemistryQuestionRanges: Record<string, { total: number; splitIndex
   'AS Chemistry Ch13 ( An introduction to AS Level organic chemistry )': { total: 76, splitIndex: 38 },
   'AS Chemistry Ch14 ( Hydrocarbons )': { total: 60, splitIndex: 30 },
   'AS Chemistry Ch15 ( Halogen compounds )': { total: 56, splitIndex: 28 },
+  'AS Chemistry Ch17 ( Carbonyl compounds )': { total: 63, splitIndex: 32 },
   'AS Chemistry Ch16 ( Hydroxy compounds )': { total: 88, splitIndex: 44 },
   'AS Chemistry Ch10 (Group 2)': { total: 73, splitIndex: 37 },
   'AS Chemistry Ch2 (Atoms, molecules and stoichiometry)': { total: 64, splitIndex: 32 },
