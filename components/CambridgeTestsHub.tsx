@@ -231,6 +231,8 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     category: 'Science',
     subject: 'AS Chemistry',
     url: '/cambridge-tests/Chemistry/carboxylic_acids_derivatives.html?part=2',
+  },
+  {
     id: 'as-chemistry-ch17-carbonyl-compounds-part-1',
     name: 'AS Chemistry Ch17 ( Carbonyl compounds ) (Part 1)',
     description: 'Chapter 17 part 1 - multiple-choice practice on aldehydes, ketones, carbonyl tests, and nucleophilic addition.',
@@ -251,6 +253,8 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     category: 'Science',
     subject: 'AS Chemistry',
     url: '/cambridge-tests/Chemistry/carbonyl_compounds.html?part=2',
+  },
+  {
     id: 'as-chemistry-ch16-hydroxy-compounds-part-1',
     name: 'AS Chemistry Ch16 ( Hydroxy compounds ) (Part 1)',
     description: 'Chapter 16 part 1 - multiple-choice practice on hydroxy compounds, oxidation, and alcohol reactions.',
