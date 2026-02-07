@@ -127,7 +127,7 @@ export const chemistryAnswerKeys: Record<string, Record<number, string>> = {
     14: 'A', 15: 'C', 16: 'A', 17: 'D', 18: 'C', 19: 'C', 20: 'B', 21: 'B', 22: 'A', 23: 'B', 24: 'D', 25: 'A',
     26: 'C', 27: 'D', 28: 'A', 29: 'D', 30: 'C', 31: 'D', 32: 'D', 33: 'D', 34: 'B', 35: 'C', 36: 'D', 37: 'B',
     38: 'A', 39: 'A', 40: 'C', 41: 'D', 42: 'A', 43: 'C', 44: 'C', 45: 'D', 46: 'C', 47: 'A', 48: 'D', 49: 'A',
-  },
+  }
 };
 
 export const chemistryQuestionRanges: Record<string, { total: number; splitIndex: number }> = {
