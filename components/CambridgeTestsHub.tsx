@@ -28,7 +28,7 @@ interface CambridgeTestsHubProps {
 }
 
 // Available Cambridge tests - add new tests here
-const AVAILABLE_TESTS: CambridgeTest[] = [
+const ENGLISH_TESTS: CambridgeTest[] = [
   {
     id: 'cambridge-end-unit-4',
     name: 'End of Unit 4 Test',
@@ -97,6 +97,9 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     subject: 'English stage 9',
     url: '/cambridge-tests/English%20stage%209/cambridge_end_unit_4_test.html',
   },
+];
+
+const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
   {
     id: 'as-chemistry-atomic-structure-part-1',
     name: 'AS Chemistry — Atomic Structure (Part 1)',
@@ -228,6 +231,26 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     category: 'Science',
     subject: 'AS Chemistry',
     url: '/cambridge-tests/Chemistry/carboxylic_acids_derivatives.html?part=2',
+    id: 'as-chemistry-ch17-carbonyl-compounds-part-1',
+    name: 'AS Chemistry Ch17 ( Carbonyl compounds ) (Part 1)',
+    description: 'Chapter 17 part 1 - multiple-choice practice on aldehydes, ketones, carbonyl tests, and nucleophilic addition.',
+    duration: '65 min',
+    totalQuestions: 32,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'AS Chemistry',
+    url: '/cambridge-tests/Chemistry/carbonyl_compounds.html?part=1',
+  },
+  {
+    id: 'as-chemistry-ch17-carbonyl-compounds-part-2',
+    name: 'AS Chemistry Ch17 ( Carbonyl compounds ) (Part 2)',
+    description: 'Chapter 17 part 2 - multiple-choice practice on oxidation, carbonyl mechanisms, and analytical tests.',
+    duration: '62 min',
+    totalQuestions: 31,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'AS Chemistry',
+    url: '/cambridge-tests/Chemistry/carbonyl_compounds.html?part=2',
     id: 'as-chemistry-ch16-hydroxy-compounds-part-1',
     name: 'AS Chemistry Ch16 ( Hydroxy compounds ) (Part 1)',
     description: 'Chapter 16 part 1 - multiple-choice practice on hydroxy compounds, oxidation, and alcohol reactions.',
@@ -470,6 +493,11 @@ const AVAILABLE_TESTS: CambridgeTest[] = [
     url: '/cambridge-tests/Chemistry/group_17.html?part=2',
   },
   // Add more tests here as they become available
+];
+
+const AVAILABLE_TESTS: CambridgeTest[] = [
+  ...ENGLISH_TESTS,
+  ...AS_CHEMISTRY_TESTS,
 ];
 
 interface MistakeItem {
