@@ -36,6 +36,14 @@ export const chemistryAnswerKeys: Record<string, Record<number, string>> = {
     41: 'B', 42: 'C', 43: 'A', 44: 'D', 45: 'C', 46: 'C', 47: 'B', 48: 'D', 49: 'A', 50: 'D',
     51: 'B', 52: 'A', 53: 'A', 54: 'C', 55: 'C', 56: 'B', 57: 'D', 58: 'C', 59: 'A', 60: 'D',
   },
+  'AS Chemistry Ch15 ( Halogen compounds )': {
+    1: 'A', 2: 'A', 3: 'A', 4: 'C', 5: 'A', 6: 'A', 7: 'D', 8: 'B', 9: 'B', 10: 'B',
+    11: 'D', 12: 'D', 13: 'C', 14: 'B', 15: 'D', 16: 'D', 17: 'B', 18: 'D', 19: 'C', 20: 'C',
+    21: 'C', 22: 'B', 23: 'A', 24: 'D', 25: 'A', 26: 'B', 27: 'C', 28: 'D', 29: 'B', 30: 'C',
+    31: 'B', 32: 'A', 33: 'B', 34: 'A', 35: 'C', 36: 'A', 37: 'B', 38: 'D', 39: 'B', 40: 'D',
+    41: 'B', 42: 'B', 43: 'B', 44: 'B', 45: 'A', 46: 'D', 47: 'B', 48: 'D', 49: 'D', 50: 'C',
+    51: 'D', 52: 'B', 53: 'C', 54: 'A', 55: 'C', 56: 'A',
+  },
   'AS Chemistry Ch10 (Group 2)': {
     1: 'D', 2: 'D', 3: 'B', 4: 'A', 5: 'A', 6: 'C', 7: 'D', 8: 'C', 9: 'B', 10: 'C', 11: 'C', 12: 'B', 13: 'C',
     14: 'A', 15: 'C', 16: 'A', 17: 'C', 18: 'A', 19: 'B', 20: 'B', 21: 'C', 22: 'D', 23: 'B', 24: 'B', 25: 'A',
@@ -116,6 +124,7 @@ export const chemistryQuestionRanges: Record<string, { total: number; splitIndex
   'AS Chemistry Ch12 ( Nitrogen and sulfur )': { total: 50, splitIndex: 25 },
   'AS Chemistry Ch13 ( An introduction to AS Level organic chemistry )': { total: 76, splitIndex: 38 },
   'AS Chemistry Ch14 ( Hydrocarbons )': { total: 60, splitIndex: 30 },
+  'AS Chemistry Ch15 ( Halogen compounds )': { total: 56, splitIndex: 28 },
   'AS Chemistry Ch10 (Group 2)': { total: 73, splitIndex: 37 },
   'AS Chemistry Ch2 (Atoms, molecules and stoichiometry)': { total: 64, splitIndex: 32 },
   'AS Chemistry Ch3 (Chemical bonding)': { total: 55, splitIndex: 28 },
