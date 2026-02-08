@@ -1027,7 +1027,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           zIndex: 10,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '24px' }}>рџЋ§</span>
+            <span style={{ fontSize: '24px' }}>🏧</span>
             <div>
               <h2 style={{ margin: 0, color: '#fff', fontSize: '14px', fontWeight: 600 }}>
                 {activeTest.name}
@@ -1219,7 +1219,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
         {/* Tests Grid */}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: 'rgba(255,255,255,0.7)' }}>
-            <div style={{ fontSize: '40px', marginBottom: '15px' }}>вЏі</div>
+            <div style={{ fontSize: '40px', marginBottom: '15px' }}>⏳</div>
             Loading tests...
           </div>
         ) : filteredTests.length === 0 ? (
@@ -1482,7 +1482,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           borderRadius: '16px',
           border: '1px dashed rgba(255,255,255,0.2)',
         }}>
-          <span style={{ fontSize: '32px' }}>рџљЂ</span>
+          <span style={{ fontSize: '32px' }}>🚀</span>
           <h4 style={{ margin: '10px 0 5px', color: '#fff', fontSize: '16px' }}>More Tests Coming Soon!</h4>
           <p style={{ margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
             We're adding new Cambridge tests regularly. Check back for more practice opportunities!
@@ -1788,7 +1788,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                     marginBottom: '15px',
                     color: '#000',
                   }}>
-                    <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>вњЏпёЏ Your Original Writing</h5>
+                    <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>✏️ Your Original Writing</h5>
                     <div style={{
                       background: '#fff',
                       borderRadius: '8px',
@@ -1833,7 +1833,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       border: '1px solid #bbf7d0',
                       color: '#000',
                     }}>
-                      <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>вњЁ Improved Version</h5>
+                      <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>✨ Improved Version</h5>
                       <div style={{
                         background: '#fff',
                         borderRadius: '8px',
