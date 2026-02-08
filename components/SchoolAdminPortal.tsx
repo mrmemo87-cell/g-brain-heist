@@ -259,19 +259,35 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
     }
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('quiz_scores')
         .delete()
-        .eq('id', scoreId);
+        .eq('id', scoreId)
+        .select('id');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Delete error details:', error);
+        throw error;
+      }
 
-      // Remove from local state immediately - deletion is confirmed on server
+      // Check if any rows were actually deleted
+      if (!data || data.length === 0) {
+        console.warn('No rows deleted - RLS policy may be blocking deletion');
+        addToast('Failed to delete: Permission denied. This may be an RLS policy issue.', 'error');
+        return;
+      }
+
+      // Remove from local state immediately - deletion confirmed by server
       setQuizScores(prev => prev.filter(score => score.id !== scoreId));
       
       addToast(`✅ Deleted submission for ${studentName}`, 'success');
     } catch (error: any) {
-      console.error('Failed to delete submission:', error);
+      console.error('Failed to delete submission:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      });
       addToast(`Failed to delete submission: ${error.message}`, 'error');
     }
   };
