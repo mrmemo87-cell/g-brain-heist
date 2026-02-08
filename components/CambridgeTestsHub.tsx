@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 import type { Profile } from '../types';
 
@@ -100,10 +100,10 @@ const ENGLISH_TESTS: CambridgeTest[] = [
 ];
 
 const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
-  // Ch1 — Atomic Structure
+  // Ch1 � Atomic Structure
   {
     id: 'as-chemistry-atomic-structure-part-1',
-    name: 'AS Chemistry — Atomic Structure (Part 1)',
+    name: 'AS Chemistry � Atomic Structure (Part 1)',
     description: 'Chapter 1 multiple-choice practice focusing on protons, neutrons, electrons, isotopes, and particle behaviour in fields.',
     duration: '50 min',
     totalQuestions: 25,
@@ -114,7 +114,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
   },
   {
     id: 'as-chemistry-atomic-structure-part-2',
-    name: 'AS Chemistry — Atomic Structure (Part 2)',
+    name: 'AS Chemistry � Atomic Structure (Part 2)',
     description: 'Chapter 1 multiple-choice practice focusing on protons, neutrons, electrons, isotopes, and particle behaviour in fields.',
     duration: '48 min',
     totalQuestions: 24,
@@ -123,7 +123,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/atomic_structure.html?part=2',
   },
-  // Ch2 — Atoms, molecules and stoichiometry
+  // Ch2 � Atoms, molecules and stoichiometry
   {
     id: 'as-chemistry-ch2-atoms-molecules-stoichiometry-part-1',
     name: 'AS Chemistry Ch2 (Atoms, molecules and stoichiometry) (Part 1)',
@@ -146,7 +146,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/atoms_molecules_stoichiometry.html?part=2',
   },
-  // Ch3 — Chemical bonding
+  // Ch3 � Chemical bonding
   {
     id: 'as-chemistry-ch3-chemical-bonding-part-1',
     name: 'AS Chemistry Ch3 (Chemical bonding) (Part 1)',
@@ -169,7 +169,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/chemical_bonding.html?part=2',
   },
-  // Ch4 — States of matter
+  // Ch4 � States of matter
   {
     id: 'as-chemistry-ch4-states-of-matter-part-1',
     name: 'AS Chemistry Ch4 (States of matter) (Part 1)',
@@ -192,7 +192,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/states_of_matter.html?part=2',
   },
-  // Ch5 — Chemical Energetics
+  // Ch5 � Chemical Energetics
   {
     id: 'as-chemistry-ch5-chemical-energetics-part-1',
     name: 'AS Chemistry Ch5 (Chemical Energetics) (Part 1)',
@@ -215,7 +215,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/chemical_energetics.html?part=2',
   },
-  // Ch6 — Electrochemistry
+  // Ch6 � Electrochemistry
   {
     id: 'as-chemistry-ch6-electrochemistry-part-1',
     name: 'AS Chemistry Ch6 (Electrochemistry) (Part 1)',
@@ -238,7 +238,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/electrochemistry.html?part=2',
   },
-  // Ch7 — Equilibria
+  // Ch7 � Equilibria
   {
     id: 'as-chemistry-ch7-equilibria-part-1',
     name: 'AS Chemistry Ch7 (Equilibria) (Part 1)',
@@ -261,7 +261,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/equilibria.html?part=2',
   },
-  // Ch8 — Reaction kinetics
+  // Ch8 � Reaction kinetics
   {
     id: 'as-chemistry-ch8-reaction-kinetics-part-1',
     name: 'AS Chemistry Ch8 (Reaction kinetics) (Part 1)',
@@ -284,7 +284,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/reaction_kinetics.html?part=2',
   },
-  // Ch9 — Chemical Periodicity
+  // Ch9 � Chemical Periodicity
   {
     id: 'as-chemistry-ch9-chemical-periodicity-part-1',
     name: 'AS Chemistry Ch9 (Chemical Periodicity) (Part 1)',
@@ -307,7 +307,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/chemical_periodicity.html?part=2',
   },
-  // Ch10 — Group 2
+  // Ch10 � Group 2
   {
     id: 'as-chemistry-ch10-group-2-part-1',
     name: 'AS Chemistry Ch10 (Group 2) (Part 1)',
@@ -330,7 +330,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/group_2.html?part=2',
   },
-  // Ch11 — Group 17
+  // Ch11 � Group 17
   {
     id: 'as-chemistry-ch11-group-17-part-1',
     name: 'AS Chemistry Ch11 ( Group 17 ) (Part 1)',
@@ -353,7 +353,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/group_17.html?part=2',
   },
-  // Ch12 — Nitrogen and sulfur
+  // Ch12 � Nitrogen and sulfur
   {
     id: 'as-chemistry-ch12-nitrogen-sulfur-part-1',
     name: 'AS Chemistry Ch12 ( Nitrogen and sulfur ) (Part 1)',
@@ -376,7 +376,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/nitrogen_sulfur.html?part=2',
   },
-  // Ch13 — An introduction to AS Level organic chemistry
+  // Ch13 � An introduction to AS Level organic chemistry
   {
     id: 'as-chemistry-ch13-introduction-as-level-organic-chemistry-part-1',
     name: 'AS Chemistry Ch13 ( An introduction to AS Level organic chemistry ) (Part 1)',
@@ -399,7 +399,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/intro_as_level_organic_chemistry.html?part=2',
   },
-  // Ch14 — Hydrocarbons
+  // Ch14 � Hydrocarbons
   {
     id: 'as-chemistry-ch14-hydrocarbons-part-1',
     name: 'AS Chemistry Ch14 ( Hydrocarbons ) (Part 1)',
@@ -422,7 +422,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/hydrocarbons.html?part=2',
   },
-  // Ch15 — Halogen compounds
+  // Ch15 � Halogen compounds
   {
     id: 'as-chemistry-ch15-halogen-compounds-part-1',
     name: 'AS Chemistry Ch15 ( Halogen compounds ) (Part 1)',
@@ -445,7 +445,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/halogen_compounds.html?part=2',
   },
-  // Ch16 — Hydroxy compounds
+  // Ch16 � Hydroxy compounds
   {
     id: 'as-chemistry-ch16-hydroxy-compounds-part-1',
     name: 'AS Chemistry Ch16 ( Hydroxy compounds ) (Part 1)',
@@ -468,7 +468,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/hydroxy_compounds.html?part=2',
   },
-  // Ch17 — Carbonyl compounds
+  // Ch17 � Carbonyl compounds
   {
     id: 'as-chemistry-ch17-carbonyl-compounds-part-1',
     name: 'AS Chemistry Ch17 ( Carbonyl compounds ) (Part 1)',
@@ -491,7 +491,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/carbonyl_compounds.html?part=2',
   },
-  // Ch18 — Carboxylic acids and derivatives
+  // Ch18 � Carboxylic acids and derivatives
   {
     id: 'as-chemistry-ch18-carboxylic-acids-derivatives-part-1',
     name: 'AS Chemistry Ch18 ( Carboxylic acids and derivatives ) (Part 1)',
@@ -514,7 +514,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/carboxylic_acids_derivatives.html?part=2',
   },
-  // Ch19 — Nitrogen compounds
+  // Ch19 � Nitrogen compounds
   {
     id: 'as-chemistry-ch19-nitrogen-compounds-part-1',
     name: 'AS Chemistry Ch19 ( Nitrogen compounds ) (Part 1)',
@@ -537,7 +537,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/nitrogen_compounds.html?part=2',
   },
-  // Ch20 — Polymerisation
+  // Ch20 � Polymerisation
   {
     id: 'as-chemistry-ch20-polymerisation-part-1',
     name: 'AS Chemistry Ch20 ( Polymerisation ) (Part 1)',
@@ -560,7 +560,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/polymerisation.html?part=2',
   },
-  // Ch21 — Analytical techniques
+  // Ch21 � Analytical techniques
   {
     id: 'as-chemistry-ch21-analytical-techniques-part-1',
     name: 'AS Chemistry Ch21 ( Analytical techniques ) (Part 1)',
@@ -989,13 +989,13 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'Reading': return 'рџ“–';
-      case 'Listening': return 'рџЋ§';
-      case 'Grammar': return 'вњЌпёЏ';
-      case 'Vocabulary': return 'рџ“љ';
-      case 'Writing': return 'вњЏпёЏ';
-      case 'Science': return 'рџ§Є';
-      default: return 'рџ“ќ';
+      case 'Reading': return '📖';
+      case 'Listening': return '🏧';
+      case 'Grammar': return '✌️';
+      case 'Vocabulary': return '📚';
+      case 'Writing': return '✏️';
+      case 'Science': return '🧪';
+      default: return '📝';
     }
   };
 
@@ -1027,7 +1027,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           zIndex: 10,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '24px' }}>🏧</span>
+            <span style={{ fontSize: '24px' }}>??</span>
             <div>
               <h2 style={{ margin: 0, color: '#fff', fontSize: '14px', fontWeight: 600 }}>
                 {activeTest.name}
@@ -1050,7 +1050,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
               fontWeight: 600,
             }}
           >
-            вњ• Exit
+            ✕ Exit
           </button>
         </div>
         
@@ -1124,7 +1124,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
               transition: 'all 0.2s',
             }}
           >
-            в†ђ Back to Game
+            ← Back to Game
           </button>
         </div>
 
@@ -1179,7 +1179,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
             borderLeft: '3px solid #00f5ff',
           }}>
             <p style={{ margin: 0, fontSize: '14px', color: 'rgba(255,255,255,0.9)' }}>
-              рџ‘‹ Welcome, <strong>{profile.username}</strong>! Take your time with each test. 
+              👋 Welcome, <strong>{profile.username}</strong>! Take your time with each test. 
               Your progress is automatically saved.
             </p>
           </div>
@@ -1209,9 +1209,9 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                 color: filter === f ? '#0f0c29' : '#fff',
               }}
             >
-              {f === 'all' && `рџ“‹ All (${totalCount})`}
-              {f === 'pending' && `вЏі Pending (${totalCount - completedCount})`}
-              {f === 'completed' && `вњ… Completed (${completedCount})`}
+              {f === 'all' && `📋 All (${totalCount})`}
+              {f === 'pending' && `⏳ Pending (${totalCount - completedCount})`}
+              {f === 'completed' && `✅ Completed (${completedCount})`}
             </button>
           ))}
         </div>
@@ -1219,13 +1219,13 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
         {/* Tests Grid */}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: 'rgba(255,255,255,0.7)' }}>
-            <div style={{ fontSize: '40px', marginBottom: '15px' }}>⏳</div>
+            <div style={{ fontSize: '40px', marginBottom: '15px' }}>?</div>
             Loading tests...
           </div>
         ) : filteredTests.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: 'rgba(255,255,255,0.7)' }}>
             <div style={{ fontSize: '40px', marginBottom: '15px' }}>
-              {filter === 'completed' ? 'рџ“­' : visibleTestIds.size === 0 && tests.length === 0 ? 'рџ”’' : 'рџЋ‰'}
+              {filter === 'completed' ? '📭' : visibleTestIds.size === 0 && tests.length === 0 ? '🔒' : '🎉'}
             </div>
             {visibleTestIds.size === 0 && tests.length === 0 
               ? "No tests are currently available. Your teacher will make tests visible soon!"
@@ -1255,7 +1255,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginBottom: '14px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontSize: '22px' }}>рџ“Ѓ</span>
+                      <span style={{ fontSize: '22px' }}>�</span>
                       <div>
                         <h3 style={{ margin: 0, fontSize: '16px', color: '#fff' }}>{subject}</h3>
                         <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>
@@ -1264,7 +1264,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       </div>
                     </div>
                     <span style={{ fontSize: '16px', color: 'rgba(255,255,255,0.8)' }}>
-                      {collapsedSubjects[subject] ? 'в–ё' : 'в–ѕ'}
+                      {collapsedSubjects[subject] ? '▼' : '▲'}
                     </span>
                   </div>
                 </button>
@@ -1279,8 +1279,8 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       const chemistryReportReady = isChemistryTest && test.isCompleted && test.scoresReleased;
                       const chemistryLocked = isChemistryTest && test.isCompleted && !test.scoresReleased;
                       const actionLabel = test.isCompleted
-                        ? (isChemistryTest ? (chemistryReportReady ? 'рџ“„ View Report' : 'вњ… Submitted') : 'рџ”„ Retake Test')
-                        : 'в–¶пёЏ Start Test';
+                        ? (isChemistryTest ? (chemistryReportReady ? '📄 View Report' : '✅ Submitted') : '📄 Retake Test')
+                        : '▶️ Start Test';
                       return (
                       <div
                         key={test.id}
@@ -1315,7 +1315,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                               fontSize: '11px',
                               fontWeight: 'bold',
                             }}>
-                              вњ“ COMPLETED
+                              ✓ COMPLETED
                             </div>
                           )}
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -1367,8 +1367,8 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                             fontSize: '12px',
                             color: 'rgba(255,255,255,0.6)',
                           }}>
-                            <span>вЏ±пёЏ {test.duration}</span>
-                            <span>рџ“ќ {test.category === 'Writing' ? '2 parts' : `${test.totalQuestions} questions`}</span>
+                            <span>?? {test.duration}</span>
+                            <span>📝 {test.category === 'Writing' ? '2 parts' : `${test.totalQuestions} questions`}</span>
                           </div>
 
                           {test.isCompleted && (
@@ -1394,10 +1394,10 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                                       : '#22c55e',
                                 }}>
                                   {test.isAwaitingMarking
-                                    ? 'вЏі Awaiting Marking'
+                                    ? '⏳ Awaiting Marking'
                                     : chemistryLocked
-                                      ? 'рџ”’ Awaiting Release'
-                                      : 'вњ… Completed'}
+                                      ? '🔒 Awaiting Release'
+                                      : '✅ Completed'}
                                 </span>
                               </div>
                               {test.completedAt && (
@@ -1436,7 +1436,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                                     transition: 'all 0.2s',
                                   }}
                                 >
-                                  рџ“ќ View Teacher Feedback
+                                  📝 View Teacher Feedback
                                 </button>
                               )}
                             </div>
@@ -1482,7 +1482,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           borderRadius: '16px',
           border: '1px dashed rgba(255,255,255,0.2)',
         }}>
-          <span style={{ fontSize: '32px' }}>🚀</span>
+          <span style={{ fontSize: '32px' }}>??</span>
           <h4 style={{ margin: '10px 0 5px', color: '#fff', fontSize: '16px' }}>More Tests Coming Soon!</h4>
           <p style={{ margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
             We're adding new Cambridge tests regularly. Check back for more practice opportunities!
@@ -1525,7 +1525,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
               alignItems: 'center',
             }}>
               <h3 style={{ margin: 0, color: '#fff', fontSize: '18px' }}>
-                рџ“ќ Writing Test Feedback
+                📝 Writing Test Feedback
               </h3>
               <button
                 onClick={() => {
@@ -1543,7 +1543,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                   cursor: 'pointer',
                 }}
               >
-                Г—
+                ×
               </button>
             </div>
 
@@ -1551,12 +1551,12 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
             <div style={{ padding: '20px', overflowY: 'auto' }}>
               {feedbackLoading ? (
                 <div style={{ textAlign: 'center', padding: '40px' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '15px' }}>вЏі</div>
+                  <div style={{ fontSize: '32px', marginBottom: '15px' }}>⏳</div>
                   <p style={{ color: 'rgba(255,255,255,0.7)' }}>Loading feedback...</p>
                 </div>
               ) : !feedbackData ? (
                 <div style={{ textAlign: 'center', padding: '40px' }}>
-                  <div style={{ fontSize: '48px', marginBottom: '15px' }}>рџ“‹</div>
+                  <div style={{ fontSize: '48px', marginBottom: '15px' }}>📋</div>
                   <h4 style={{ color: '#fff', marginBottom: '10px' }}>Feedback Not Yet Available</h4>
                   <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px' }}>
                     Your teacher has marked your work but hasn't released the detailed feedback yet.
@@ -1637,7 +1637,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       border: '1px solid #fecaca',
                     }}>
                       <h5 style={{ margin: '0 0 12px', color: '#991b1b', fontSize: '14px', fontWeight: 'bold' }}>
-                        рџ”¤ Spelling Mistakes ({(activeFeedbackPart === 'part1' ? feedbackData.part1.spellingMistakes : feedbackData.part2.spellingMistakes)?.length || 0})
+                        🔤 Spelling Mistakes ({(activeFeedbackPart === 'part1' ? feedbackData.part1.spellingMistakes : feedbackData.part2.spellingMistakes)?.length || 0})
                       </h5>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {(activeFeedbackPart === 'part1' ? feedbackData.part1.spellingMistakes : feedbackData.part2.spellingMistakes)?.map((m, i) => (
@@ -1649,7 +1649,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                           }}>
                             <div style={{ marginBottom: '4px' }}>
                               <span style={{ color: '#dc2626', textDecoration: 'line-through', fontWeight: 500 }}>{m.wrong}</span>
-                              <span style={{ margin: '0 8px', color: '#6b7280' }}>в†’</span>
+                              <span style={{ margin: '0 8px', color: '#6b7280' }}>→</span>
                               <span style={{ color: '#16a34a', fontWeight: 600 }}>{m.correct}</span>
                             </div>
                             <p style={{ margin: 0, fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>{m.explanation}</p>
@@ -1669,7 +1669,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       border: '1px solid #fde047',
                     }}>
                       <h5 style={{ margin: '0 0 12px', color: '#854d0e', fontSize: '14px', fontWeight: 'bold' }}>
-                        рџ“ќ Grammar Mistakes ({(activeFeedbackPart === 'part1' ? feedbackData.part1.grammarMistakes : feedbackData.part2.grammarMistakes)?.length || 0})
+                        📝 Grammar Mistakes ({(activeFeedbackPart === 'part1' ? feedbackData.part1.grammarMistakes : feedbackData.part2.grammarMistakes)?.length || 0})
                       </h5>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {(activeFeedbackPart === 'part1' ? feedbackData.part1.grammarMistakes : feedbackData.part2.grammarMistakes)?.map((m, i) => (
@@ -1681,7 +1681,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                           }}>
                             <div style={{ marginBottom: '4px' }}>
                               <span style={{ color: '#dc2626', textDecoration: 'line-through', fontWeight: 500 }}>{m.wrong}</span>
-                              <span style={{ margin: '0 8px', color: '#6b7280' }}>в†’</span>
+                              <span style={{ margin: '0 8px', color: '#6b7280' }}>→</span>
                               <span style={{ color: '#16a34a', fontWeight: 600 }}>{m.correct}</span>
                             </div>
                             <p style={{ margin: 0, fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>{m.explanation}</p>
@@ -1701,7 +1701,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       border: '1px solid #bfdbfe',
                     }}>
                       <h5 style={{ margin: '0 0 12px', color: '#1e40af', fontSize: '14px', fontWeight: 'bold' }}>
-                        рџ“Љ Why You Received These Marks
+                        📊 Why You Received These Marks
                       </h5>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
                         <div style={{ background: '#fff', padding: '10px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
@@ -1742,7 +1742,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                     marginBottom: '20px',
                     color: '#000',
                   }}>
-                    <h5 style={{ margin: '0 0 12px', color: '#000', fontSize: '14px' }}>рџ“€ Score Breakdown</h5>
+                    <h5 style={{ margin: '0 0 12px', color: '#000', fontSize: '14px' }}>📈 Score Breakdown</h5>
                     {activeFeedbackPart === 'part1' ? (
                       <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
                         <div style={{ flex: 1, minWidth: '80px', textAlign: 'center' }}>
@@ -1788,7 +1788,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                     marginBottom: '15px',
                     color: '#000',
                   }}>
-                    <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>✏️ Your Original Writing</h5>
+                    <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>?? Your Original Writing</h5>
                     <div style={{
                       background: '#fff',
                       borderRadius: '8px',
@@ -1812,7 +1812,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       border: '1px solid #fed7aa',
                       color: '#000',
                     }}>
-                      <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>рџ’¬ Teacher's Comments</h5>
+                      <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>💬 Teacher's Comments</h5>
                       <div style={{
                         fontSize: '13px',
                         lineHeight: 1.6,
@@ -1833,7 +1833,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       border: '1px solid #bbf7d0',
                       color: '#000',
                     }}>
-                      <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>✨ Improved Version</h5>
+                      <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>? Improved Version</h5>
                       <div style={{
                         background: '#fff',
                         borderRadius: '8px',
@@ -1851,7 +1851,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                         color: '#000',
                         fontStyle: 'italic',
                       }}>
-                        рџ’Ў Compare this with your original to see how you can improve your writing!
+                        💡 Compare this with your original to see how you can improve your writing!
                       </p>
                     </div>
                   )}
@@ -1866,7 +1866,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       border: '1px solid #bae6fd',
                       color: '#000',
                     }}>
-                      <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>рџ“ќ Overall Comments</h5>
+                      <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>📝 Overall Comments</h5>
                       <div style={{
                         fontSize: '13px',
                         lineHeight: 1.6,
