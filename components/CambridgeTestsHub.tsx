@@ -10,7 +10,7 @@ interface CambridgeTest {
   totalQuestions: number;
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
   category: 'Reading' | 'Listening' | 'Grammar' | 'Vocabulary' | 'Writing' | 'Science';
-  subject: 'English stage 9' | 'AS Chemistry';
+  subject: 'English stage 9' | 'Chemistry';
   url: string;
   isCompleted?: boolean;
   score?: number;
@@ -100,6 +100,7 @@ const ENGLISH_TESTS: CambridgeTest[] = [
 ];
 
 const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
+  // Ch1 — Atomic Structure
   {
     id: 'as-chemistry-atomic-structure-part-1',
     name: 'AS Chemistry — Atomic Structure (Part 1)',
@@ -108,7 +109,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     totalQuestions: 25,
     difficulty: 'Advanced',
     category: 'Science',
-    subject: 'AS Chemistry',
+    subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/atomic_structure.html?part=1',
   },
   {
@@ -119,227 +120,10 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     totalQuestions: 24,
     difficulty: 'Advanced',
     category: 'Science',
-    subject: 'AS Chemistry',
+    subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/atomic_structure.html?part=2',
   },
-  {
-    id: 'as-chemistry-ch21-analytical-techniques-part-1',
-    name: 'AS Chemistry Ch21 ( Analytical techniques ) (Part 1)',
-    description: 'Chapter 21 part 1 - multiple-choice practice covering infrared spectroscopy, mass spectrometry, and analytical interpretation.',
-    duration: '35 min',
-    totalQuestions: 17,
-    difficulty: 'Advanced',
-    category: 'Science',
-    subject: 'AS Chemistry',
-    url: '/cambridge-tests/Chemistry/analytical_techniques.html?part=1',
-  },
-  {
-    id: 'as-chemistry-ch21-analytical-techniques-part-2',
-    name: 'AS Chemistry Ch21 ( Analytical techniques ) (Part 2)',
-    description: 'Chapter 21 part 2 - multiple-choice practice covering infrared spectroscopy, mass spectrometry, and analytical interpretation.',
-    duration: '35 min',
-    totalQuestions: 17,
-    difficulty: 'Advanced',
-    category: 'Science',
-    subject: 'AS Chemistry',
-    url: '/cambridge-tests/Chemistry/analytical_techniques.html?part=2',
-    id: 'as-chemistry-ch20-polymerisation-part-1',
-    name: 'AS Chemistry Ch20 ( Polymerisation) (Part 1)',
-    description: 'Chapter 20 part 1 - multiple-choice practice covering addition polymers, PVC properties, and monomer identification.',
-    duration: '16 min',
-    totalQuestions: 8,
-    difficulty: 'Advanced',
-    category: 'Science',
-    subject: 'AS Chemistry',
-    url: '/cambridge-tests/Chemistry/polymerisation.html?part=1',
-  },
-  {
-    id: 'as-chemistry-ch20-polymerisation-part-2',
-    name: 'AS Chemistry Ch20 ( Polymerisation) (Part 2)',
-    description: 'Chapter 20 part 2 - multiple-choice practice covering polymer structures, combustion, and disposal considerations.',
-    duration: '16 min',
-    totalQuestions: 8,
-    difficulty: 'Advanced',
-    category: 'Science',
-    subject: 'AS Chemistry',
-    url: '/cambridge-tests/Chemistry/polymerisation.html?part=2',
-  },
-  {
-    id: 'as-chemistry-ch12-nitrogen-sulfur-part-1',
-    name: 'AS Chemistry Ch12 ( Nitrogen and sulfur ) (Part 1)',
-    description: 'Chapter 12 part 1 - multiple-choice practice covering nitrogen oxides, ammonia, fertilisers, and atmospheric pollution.',
-    duration: '50 min',
-    totalQuestions: 25,
-    difficulty: 'Advanced',
-    category: 'Science',
-    subject: 'AS Chemistry',
-    url: '/cambridge-tests/Chemistry/nitrogen_sulfur.html?part=1',
-  },
-  {
-    id: 'as-chemistry-ch12-nitrogen-sulfur-part-2',
-    name: 'AS Chemistry Ch12 ( Nitrogen and sulfur ) (Part 2)',
-    description: 'Chapter 12 part 2 - multiple-choice practice covering nitrogen oxides, ammonia, fertilisers, and atmospheric pollution.',
-    duration: '50 min',
-    totalQuestions: 25,
-    difficulty: 'Advanced',
-    category: 'Science',
-    subject: 'AS Chemistry',
-    url: '/cambridge-tests/Chemistry/nitrogen_sulfur.html?part=2',
-  },
-  {
-    id: 'as-chemistry-ch13-introduction-as-level-organic-chemistry-part-1',
-    name: 'AS Chemistry Ch13 ( An introduction to AS Level organic chemistry ) (Part 1)',
-    description: 'Chapter 13 part 1 - multiple-choice practice on introductory organic chemistry structures, formulae, and bonding.',
-    duration: '76 min',
-    totalQuestions: 38,
-    difficulty: 'Advanced',
-    category: 'Science',
-    subject: 'AS Chemistry',
-    url: '/cambridge-tests/Chemistry/intro_as_level_organic_chemistry.html?part=1',
-  },
-  {
-    id: 'as-chemistry-ch13-introduction-as-level-organic-chemistry-part-2',
-    name: 'AS Chemistry Ch13 ( An introduction to AS Level organic chemistry ) (Part 2)',
-    description: 'Chapter 13 part 2 - multiple-choice practice on reaction types, stereochemistry, and organic analysis fundamentals.',
-    duration: '76 min',
-    totalQuestions: 38,
-    difficulty: 'Advanced',
-    category: 'Science',
-    subject: 'AS Chemistry',
-    url: '/cambridge-tests/Chemistry/intro_as_level_organic_chemistry.html?part=2',
-  },
-  {
-    id: 'as-chemistry-ch14-hydrocarbons-part-1',
-    name: 'AS Chemistry Ch14 ( Hydrocarbons ) (Part 1)',
-    description: 'Chapter 14 part 1 - multiple-choice practice on hydrocarbons, combustion, and free radical substitution basics.',
-    duration: '60 min',
-    totalQuestions: 30,
-    difficulty: 'Advanced',
-    category: 'Science',
-    subject: 'AS Chemistry',
-    url: '/cambridge-tests/Chemistry/hydrocarbons.html?part=1',
-  },
-  {
-    id: 'as-chemistry-ch14-hydrocarbons-part-2',
-    name: 'AS Chemistry Ch14 ( Hydrocarbons ) (Part 2)',
-    description: 'Chapter 14 part 2 - multiple-choice practice on catalytic converters, alkenes, and reaction mechanisms.',
-    duration: '60 min',
-    totalQuestions: 30,
-    difficulty: 'Advanced',
-    category: 'Science',
-    subject: 'AS Chemistry',
-    url: '/cambridge-tests/Chemistry/hydrocarbons.html?part=2',
-  },
-  {
-    id: 'as-chemistry-ch15-halogen-compounds-part-1',
-    name: 'AS Chemistry Ch15 ( Halogen compounds ) (Part 1)',
-    description: 'Chapter 15 part 1 - multiple-choice practice on halogenoalkanes, reaction rates, and nucleophilic substitution.',
-    duration: '56 min',
-    totalQuestions: 28,
-    difficulty: 'Advanced',
-    category: 'Science',
-    subject: 'AS Chemistry',
-    url: '/cambridge-tests/Chemistry/halogen_compounds.html?part=1',
-  },
-  {
-    id: 'as-chemistry-ch15-halogen-compounds-part-2',
-    name: 'AS Chemistry Ch15 ( Halogen compounds ) (Part 2)',
-    description: 'Chapter 15 part 2 - multiple-choice practice on elimination, mechanisms, and halogen compound synthesis.',
-    duration: '56 min',
-    totalQuestions: 28,
-    difficulty: 'Advanced',
-    category: 'Science',
-    subject: 'AS Chemistry',
-    url: '/cambridge-tests/Chemistry/halogen_compounds.html?part=2',
-  },
-  {
-    id: 'as-chemistry-ch18-carboxylic-acids-derivatives-part-1',
-    name: 'AS Chemistry Ch18 ( Carboxylic acids and derivatives ) (Part 1)',
-    description: 'Chapter 18 part 1 - multiple-choice practice on carboxylic acid properties, derivatives, and reactions.',
-    duration: '82 min',
-    totalQuestions: 41,
-    difficulty: 'Advanced',
-    category: 'Science',
-    subject: 'AS Chemistry',
-    url: '/cambridge-tests/Chemistry/carboxylic_acids_derivatives.html?part=1',
-  },
-  {
-    id: 'as-chemistry-ch18-carboxylic-acids-derivatives-part-2',
-    name: 'AS Chemistry Ch18 ( Carboxylic acids and derivatives ) (Part 2)',
-    description: 'Chapter 18 part 2 - multiple-choice practice on carboxylic acid properties, derivatives, and reactions.',
-    duration: '82 min',
-    totalQuestions: 41,
-    difficulty: 'Advanced',
-    category: 'Science',
-    subject: 'AS Chemistry',
-    url: '/cambridge-tests/Chemistry/carboxylic_acids_derivatives.html?part=2',
-  },
-  {
-    id: 'as-chemistry-ch19-nitrogen-compounds-part-1',
-    name: 'AS Chemistry Ch19 ( Nitrogen compounds ) (Part 1)',
-    description: 'Chapter 19 part 1 - multiple-choice practice on nitrogen compounds, nitriles, and reaction pathways.',
-    duration: '6 min',
-    totalQuestions: 3,
-    difficulty: 'Advanced',
-    category: 'Science',
-    subject: 'AS Chemistry',
-    url: '/cambridge-tests/Chemistry/nitrogen_compounds.html?part=1',
-  },
-  {
-    id: 'as-chemistry-ch19-nitrogen-compounds-part-2',
-    name: 'AS Chemistry Ch19 ( Nitrogen compounds ) (Part 2)',
-    description: 'Chapter 19 part 2 - multiple-choice practice on nitrogen compounds, nitriles, and reaction pathways.',
-    duration: '6 min',
-    totalQuestions: 3,
-    difficulty: 'Advanced',
-    category: 'Science',
-    subject: 'AS Chemistry',
-    url: '/cambridge-tests/Chemistry/nitrogen_compounds.html?part=2',
-  },
-  {
-    id: 'as-chemistry-ch17-carbonyl-compounds-part-1',
-    name: 'AS Chemistry Ch17 ( Carbonyl compounds ) (Part 1)',
-    description: 'Chapter 17 part 1 - multiple-choice practice on aldehydes, ketones, carbonyl tests, and nucleophilic addition.',
-    duration: '65 min',
-    totalQuestions: 32,
-    difficulty: 'Advanced',
-    category: 'Science',
-    subject: 'AS Chemistry',
-    url: '/cambridge-tests/Chemistry/carbonyl_compounds.html?part=1',
-  },
-  {
-    id: 'as-chemistry-ch17-carbonyl-compounds-part-2',
-    name: 'AS Chemistry Ch17 ( Carbonyl compounds ) (Part 2)',
-    description: 'Chapter 17 part 2 - multiple-choice practice on oxidation, carbonyl mechanisms, and analytical tests.',
-    duration: '62 min',
-    totalQuestions: 31,
-    difficulty: 'Advanced',
-    category: 'Science',
-    subject: 'AS Chemistry',
-    url: '/cambridge-tests/Chemistry/carbonyl_compounds.html?part=2',
-  },
-  {
-    id: 'as-chemistry-ch16-hydroxy-compounds-part-1',
-    name: 'AS Chemistry Ch16 ( Hydroxy compounds ) (Part 1)',
-    description: 'Chapter 16 part 1 - multiple-choice practice on hydroxy compounds, oxidation, and alcohol reactions.',
-    duration: '88 min',
-    totalQuestions: 44,
-    difficulty: 'Advanced',
-    category: 'Science',
-    subject: 'AS Chemistry',
-    url: '/cambridge-tests/Chemistry/hydroxy_compounds.html?part=1',
-  },
-  {
-    id: 'as-chemistry-ch16-hydroxy-compounds-part-2',
-    name: 'AS Chemistry Ch16 ( Hydroxy compounds ) (Part 2)',
-    description: 'Chapter 16 part 2 - multiple-choice practice on hydroxy compound synthesis, esterification, and reaction pathways.',
-    duration: '88 min',
-    totalQuestions: 44,
-    difficulty: 'Advanced',
-    category: 'Science',
-    subject: 'AS Chemistry',
-    url: '/cambridge-tests/Chemistry/hydroxy_compounds.html?part=2',
-  },
+  // Ch2 — Atoms, molecules and stoichiometry
   {
     id: 'as-chemistry-ch2-atoms-molecules-stoichiometry-part-1',
     name: 'AS Chemistry Ch2 (Atoms, molecules and stoichiometry) (Part 1)',
@@ -348,7 +132,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     totalQuestions: 32,
     difficulty: 'Advanced',
     category: 'Science',
-    subject: 'AS Chemistry',
+    subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/atoms_molecules_stoichiometry.html?part=1',
   },
   {
@@ -359,9 +143,10 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     totalQuestions: 32,
     difficulty: 'Advanced',
     category: 'Science',
-    subject: 'AS Chemistry',
+    subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/atoms_molecules_stoichiometry.html?part=2',
   },
+  // Ch3 — Chemical bonding
   {
     id: 'as-chemistry-ch3-chemical-bonding-part-1',
     name: 'AS Chemistry Ch3 (Chemical bonding) (Part 1)',
@@ -370,7 +155,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     totalQuestions: 28,
     difficulty: 'Advanced',
     category: 'Science',
-    subject: 'AS Chemistry',
+    subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/chemical_bonding.html?part=1',
   },
   {
@@ -381,9 +166,10 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     totalQuestions: 27,
     difficulty: 'Advanced',
     category: 'Science',
-    subject: 'AS Chemistry',
+    subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/chemical_bonding.html?part=2',
   },
+  // Ch4 — States of matter
   {
     id: 'as-chemistry-ch4-states-of-matter-part-1',
     name: 'AS Chemistry Ch4 (States of matter) (Part 1)',
@@ -392,7 +178,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     totalQuestions: 31,
     difficulty: 'Advanced',
     category: 'Science',
-    subject: 'AS Chemistry',
+    subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/states_of_matter.html?part=1',
   },
   {
@@ -403,31 +189,33 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     totalQuestions: 30,
     difficulty: 'Advanced',
     category: 'Science',
-    subject: 'AS Chemistry',
+    subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/states_of_matter.html?part=2',
   },
+  // Ch5 — Chemical Energetics
   {
     id: 'as-chemistry-ch5-chemical-energetics-part-1',
     name: 'AS Chemistry Ch5 (Chemical Energetics) (Part 1)',
-    description: 'Chapter 5 multiple-choice practice on enthalpy terminology, energy profiles, Hess’ law reasoning, and calorimetry.',
+    description: 'Chapter 5 multiple-choice practice on enthalpy terminology, energy profiles, Hess\u2019 law reasoning, and calorimetry.',
     duration: '54 min',
     totalQuestions: 27,
     difficulty: 'Advanced',
     category: 'Science',
-    subject: 'AS Chemistry',
+    subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/chemical_energetics.html?part=1',
   },
   {
     id: 'as-chemistry-ch5-chemical-energetics-part-2',
     name: 'AS Chemistry Ch5 (Chemical Energetics) (Part 2)',
-    description: 'Chapter 5 multiple-choice practice on enthalpy terminology, energy profiles, Hess’ law reasoning, and calorimetry.',
+    description: 'Chapter 5 multiple-choice practice on enthalpy terminology, energy profiles, Hess\u2019 law reasoning, and calorimetry.',
     duration: '52 min',
     totalQuestions: 26,
     difficulty: 'Advanced',
     category: 'Science',
-    subject: 'AS Chemistry',
+    subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/chemical_energetics.html?part=2',
   },
+  // Ch6 — Electrochemistry
   {
     id: 'as-chemistry-ch6-electrochemistry-part-1',
     name: 'AS Chemistry Ch6 (Electrochemistry) (Part 1)',
@@ -436,7 +224,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     totalQuestions: 28,
     difficulty: 'Advanced',
     category: 'Science',
-    subject: 'AS Chemistry',
+    subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/electrochemistry.html?part=1',
   },
   {
@@ -447,9 +235,10 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     totalQuestions: 28,
     difficulty: 'Advanced',
     category: 'Science',
-    subject: 'AS Chemistry',
+    subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/electrochemistry.html?part=2',
   },
+  // Ch7 — Equilibria
   {
     id: 'as-chemistry-ch7-equilibria-part-1',
     name: 'AS Chemistry Ch7 (Equilibria) (Part 1)',
@@ -458,7 +247,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     totalQuestions: 37,
     difficulty: 'Advanced',
     category: 'Science',
-    subject: 'AS Chemistry',
+    subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/equilibria.html?part=1',
   },
   {
@@ -469,31 +258,33 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     totalQuestions: 36,
     difficulty: 'Advanced',
     category: 'Science',
-    subject: 'AS Chemistry',
+    subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/equilibria.html?part=2',
   },
+  // Ch8 — Reaction kinetics
   {
     id: 'as-chemistry-ch8-reaction-kinetics-part-1',
     name: 'AS Chemistry Ch8 (Reaction kinetics) (Part 1)',
-    description: 'Collision theory, Maxwell–Boltzmann curves, catalysts, half-life, and rate equation reasoning.',
+    description: 'Collision theory, Maxwell\u2013Boltzmann curves, catalysts, half-life, and rate equation reasoning.',
     duration: '42 min',
     totalQuestions: 21,
     difficulty: 'Advanced',
     category: 'Science',
-    subject: 'AS Chemistry',
+    subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/reaction_kinetics.html?part=1',
   },
   {
     id: 'as-chemistry-ch8-reaction-kinetics-part-2',
     name: 'AS Chemistry Ch8 (Reaction kinetics) (Part 2)',
-    description: 'Collision theory, Maxwell–Boltzmann curves, catalysts, half-life, and rate equation reasoning.',
+    description: 'Collision theory, Maxwell\u2013Boltzmann curves, catalysts, half-life, and rate equation reasoning.',
     duration: '40 min',
     totalQuestions: 20,
     difficulty: 'Advanced',
     category: 'Science',
-    subject: 'AS Chemistry',
+    subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/reaction_kinetics.html?part=2',
   },
+  // Ch9 — Chemical Periodicity
   {
     id: 'as-chemistry-ch9-chemical-periodicity-part-1',
     name: 'AS Chemistry Ch9 (Chemical Periodicity) (Part 1)',
@@ -502,7 +293,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     totalQuestions: 43,
     difficulty: 'Advanced',
     category: 'Science',
-    subject: 'AS Chemistry',
+    subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/chemical_periodicity.html?part=1',
   },
   {
@@ -513,9 +304,10 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     totalQuestions: 42,
     difficulty: 'Advanced',
     category: 'Science',
-    subject: 'AS Chemistry',
+    subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/chemical_periodicity.html?part=2',
   },
+  // Ch10 — Group 2
   {
     id: 'as-chemistry-ch10-group-2-part-1',
     name: 'AS Chemistry Ch10 (Group 2) (Part 1)',
@@ -524,7 +316,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     totalQuestions: 37,
     difficulty: 'Advanced',
     category: 'Science',
-    subject: 'AS Chemistry',
+    subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/group_2.html?part=1',
   },
   {
@@ -535,9 +327,10 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     totalQuestions: 36,
     difficulty: 'Advanced',
     category: 'Science',
-    subject: 'AS Chemistry',
+    subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/group_2.html?part=2',
   },
+  // Ch11 — Group 17
   {
     id: 'as-chemistry-ch11-group-17-part-1',
     name: 'AS Chemistry Ch11 ( Group 17 ) (Part 1)',
@@ -546,7 +339,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     totalQuestions: 41,
     difficulty: 'Advanced',
     category: 'Science',
-    subject: 'AS Chemistry',
+    subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/group_17.html?part=1',
   },
   {
@@ -557,10 +350,239 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     totalQuestions: 40,
     difficulty: 'Advanced',
     category: 'Science',
-    subject: 'AS Chemistry',
+    subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/group_17.html?part=2',
   },
-  // Add more tests here as they become available
+  // Ch12 — Nitrogen and sulfur
+  {
+    id: 'as-chemistry-ch12-nitrogen-sulfur-part-1',
+    name: 'AS Chemistry Ch12 ( Nitrogen and sulfur ) (Part 1)',
+    description: 'Chapter 12 part 1 - multiple-choice practice covering nitrogen oxides, ammonia, fertilisers, and atmospheric pollution.',
+    duration: '50 min',
+    totalQuestions: 25,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Chemistry',
+    url: '/cambridge-tests/Chemistry/nitrogen_sulfur.html?part=1',
+  },
+  {
+    id: 'as-chemistry-ch12-nitrogen-sulfur-part-2',
+    name: 'AS Chemistry Ch12 ( Nitrogen and sulfur ) (Part 2)',
+    description: 'Chapter 12 part 2 - multiple-choice practice covering nitrogen oxides, ammonia, fertilisers, and atmospheric pollution.',
+    duration: '50 min',
+    totalQuestions: 25,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Chemistry',
+    url: '/cambridge-tests/Chemistry/nitrogen_sulfur.html?part=2',
+  },
+  // Ch13 — An introduction to AS Level organic chemistry
+  {
+    id: 'as-chemistry-ch13-introduction-as-level-organic-chemistry-part-1',
+    name: 'AS Chemistry Ch13 ( An introduction to AS Level organic chemistry ) (Part 1)',
+    description: 'Chapter 13 part 1 - multiple-choice practice on introductory organic chemistry structures, formulae, and bonding.',
+    duration: '76 min',
+    totalQuestions: 38,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Chemistry',
+    url: '/cambridge-tests/Chemistry/intro_as_level_organic_chemistry.html?part=1',
+  },
+  {
+    id: 'as-chemistry-ch13-introduction-as-level-organic-chemistry-part-2',
+    name: 'AS Chemistry Ch13 ( An introduction to AS Level organic chemistry ) (Part 2)',
+    description: 'Chapter 13 part 2 - multiple-choice practice on reaction types, stereochemistry, and organic analysis fundamentals.',
+    duration: '76 min',
+    totalQuestions: 38,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Chemistry',
+    url: '/cambridge-tests/Chemistry/intro_as_level_organic_chemistry.html?part=2',
+  },
+  // Ch14 — Hydrocarbons
+  {
+    id: 'as-chemistry-ch14-hydrocarbons-part-1',
+    name: 'AS Chemistry Ch14 ( Hydrocarbons ) (Part 1)',
+    description: 'Chapter 14 part 1 - multiple-choice practice on hydrocarbons, combustion, and free radical substitution basics.',
+    duration: '60 min',
+    totalQuestions: 30,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Chemistry',
+    url: '/cambridge-tests/Chemistry/hydrocarbons.html?part=1',
+  },
+  {
+    id: 'as-chemistry-ch14-hydrocarbons-part-2',
+    name: 'AS Chemistry Ch14 ( Hydrocarbons ) (Part 2)',
+    description: 'Chapter 14 part 2 - multiple-choice practice on catalytic converters, alkenes, and reaction mechanisms.',
+    duration: '60 min',
+    totalQuestions: 30,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Chemistry',
+    url: '/cambridge-tests/Chemistry/hydrocarbons.html?part=2',
+  },
+  // Ch15 — Halogen compounds
+  {
+    id: 'as-chemistry-ch15-halogen-compounds-part-1',
+    name: 'AS Chemistry Ch15 ( Halogen compounds ) (Part 1)',
+    description: 'Chapter 15 part 1 - multiple-choice practice on halogenoalkanes, reaction rates, and nucleophilic substitution.',
+    duration: '56 min',
+    totalQuestions: 28,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Chemistry',
+    url: '/cambridge-tests/Chemistry/halogen_compounds.html?part=1',
+  },
+  {
+    id: 'as-chemistry-ch15-halogen-compounds-part-2',
+    name: 'AS Chemistry Ch15 ( Halogen compounds ) (Part 2)',
+    description: 'Chapter 15 part 2 - multiple-choice practice on elimination, mechanisms, and halogen compound synthesis.',
+    duration: '56 min',
+    totalQuestions: 28,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Chemistry',
+    url: '/cambridge-tests/Chemistry/halogen_compounds.html?part=2',
+  },
+  // Ch16 — Hydroxy compounds
+  {
+    id: 'as-chemistry-ch16-hydroxy-compounds-part-1',
+    name: 'AS Chemistry Ch16 ( Hydroxy compounds ) (Part 1)',
+    description: 'Chapter 16 part 1 - multiple-choice practice on hydroxy compounds, oxidation, and alcohol reactions.',
+    duration: '88 min',
+    totalQuestions: 44,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Chemistry',
+    url: '/cambridge-tests/Chemistry/hydroxy_compounds.html?part=1',
+  },
+  {
+    id: 'as-chemistry-ch16-hydroxy-compounds-part-2',
+    name: 'AS Chemistry Ch16 ( Hydroxy compounds ) (Part 2)',
+    description: 'Chapter 16 part 2 - multiple-choice practice on hydroxy compound synthesis, esterification, and reaction pathways.',
+    duration: '88 min',
+    totalQuestions: 44,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Chemistry',
+    url: '/cambridge-tests/Chemistry/hydroxy_compounds.html?part=2',
+  },
+  // Ch17 — Carbonyl compounds
+  {
+    id: 'as-chemistry-ch17-carbonyl-compounds-part-1',
+    name: 'AS Chemistry Ch17 ( Carbonyl compounds ) (Part 1)',
+    description: 'Chapter 17 part 1 - multiple-choice practice on aldehydes, ketones, carbonyl tests, and nucleophilic addition.',
+    duration: '65 min',
+    totalQuestions: 32,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Chemistry',
+    url: '/cambridge-tests/Chemistry/carbonyl_compounds.html?part=1',
+  },
+  {
+    id: 'as-chemistry-ch17-carbonyl-compounds-part-2',
+    name: 'AS Chemistry Ch17 ( Carbonyl compounds ) (Part 2)',
+    description: 'Chapter 17 part 2 - multiple-choice practice on oxidation, carbonyl mechanisms, and analytical tests.',
+    duration: '62 min',
+    totalQuestions: 31,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Chemistry',
+    url: '/cambridge-tests/Chemistry/carbonyl_compounds.html?part=2',
+  },
+  // Ch18 — Carboxylic acids and derivatives
+  {
+    id: 'as-chemistry-ch18-carboxylic-acids-derivatives-part-1',
+    name: 'AS Chemistry Ch18 ( Carboxylic acids and derivatives ) (Part 1)',
+    description: 'Chapter 18 part 1 - multiple-choice practice on carboxylic acid properties, derivatives, and reactions.',
+    duration: '82 min',
+    totalQuestions: 41,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Chemistry',
+    url: '/cambridge-tests/Chemistry/carboxylic_acids_derivatives.html?part=1',
+  },
+  {
+    id: 'as-chemistry-ch18-carboxylic-acids-derivatives-part-2',
+    name: 'AS Chemistry Ch18 ( Carboxylic acids and derivatives ) (Part 2)',
+    description: 'Chapter 18 part 2 - multiple-choice practice on carboxylic acid properties, derivatives, and reactions.',
+    duration: '82 min',
+    totalQuestions: 41,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Chemistry',
+    url: '/cambridge-tests/Chemistry/carboxylic_acids_derivatives.html?part=2',
+  },
+  // Ch19 — Nitrogen compounds
+  {
+    id: 'as-chemistry-ch19-nitrogen-compounds-part-1',
+    name: 'AS Chemistry Ch19 ( Nitrogen compounds ) (Part 1)',
+    description: 'Chapter 19 part 1 - multiple-choice practice on nitrogen compounds, nitriles, and reaction pathways.',
+    duration: '6 min',
+    totalQuestions: 3,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Chemistry',
+    url: '/cambridge-tests/Chemistry/nitrogen_compounds.html?part=1',
+  },
+  {
+    id: 'as-chemistry-ch19-nitrogen-compounds-part-2',
+    name: 'AS Chemistry Ch19 ( Nitrogen compounds ) (Part 2)',
+    description: 'Chapter 19 part 2 - multiple-choice practice on nitrogen compounds, nitriles, and reaction pathways.',
+    duration: '6 min',
+    totalQuestions: 3,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Chemistry',
+    url: '/cambridge-tests/Chemistry/nitrogen_compounds.html?part=2',
+  },
+  // Ch20 — Polymerisation
+  {
+    id: 'as-chemistry-ch20-polymerisation-part-1',
+    name: 'AS Chemistry Ch20 ( Polymerisation ) (Part 1)',
+    description: 'Chapter 20 part 1 - multiple-choice practice covering addition polymers, PVC properties, and monomer identification.',
+    duration: '16 min',
+    totalQuestions: 8,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Chemistry',
+    url: '/cambridge-tests/Chemistry/polymerisation.html?part=1',
+  },
+  {
+    id: 'as-chemistry-ch20-polymerisation-part-2',
+    name: 'AS Chemistry Ch20 ( Polymerisation ) (Part 2)',
+    description: 'Chapter 20 part 2 - multiple-choice practice covering polymer structures, combustion, and disposal considerations.',
+    duration: '16 min',
+    totalQuestions: 8,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Chemistry',
+    url: '/cambridge-tests/Chemistry/polymerisation.html?part=2',
+  },
+  // Ch21 — Analytical techniques
+  {
+    id: 'as-chemistry-ch21-analytical-techniques-part-1',
+    name: 'AS Chemistry Ch21 ( Analytical techniques ) (Part 1)',
+    description: 'Chapter 21 part 1 - multiple-choice practice covering infrared spectroscopy, mass spectrometry, and analytical interpretation.',
+    duration: '35 min',
+    totalQuestions: 17,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Chemistry',
+    url: '/cambridge-tests/Chemistry/analytical_techniques.html?part=1',
+  },
+  {
+    id: 'as-chemistry-ch21-analytical-techniques-part-2',
+    name: 'AS Chemistry Ch21 ( Analytical techniques ) (Part 2)',
+    description: 'Chapter 21 part 2 - multiple-choice practice covering infrared spectroscopy, mass spectrometry, and analytical interpretation.',
+    duration: '35 min',
+    totalQuestions: 17,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Chemistry',
+    url: '/cambridge-tests/Chemistry/analytical_techniques.html?part=2',
+  },
 ];
 
 const AVAILABLE_TESTS: CambridgeTest[] = [
@@ -794,7 +816,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       userId: profile.id,
     }));
     
-    const isChemistryTest = test.subject === 'AS Chemistry';
+    const isChemistryTest = test.subject === 'Chemistry';
     if (isChemistryTest && test.isCompleted && !test.scoresReleased) {
       return;
     }
@@ -907,7 +929,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
 
   const gradeSubjectMap: Record<number, CambridgeTest['subject'][]> = {
     8: ['English stage 9'],
-    11: ['AS Chemistry'],
+    11: ['Chemistry'],
   };
 
   const eligibleSubjects = profile.grade === null
@@ -966,13 +988,13 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'Reading': return '📖';
-      case 'Listening': return '🎧';
-      case 'Grammar': return '✍️';
-      case 'Vocabulary': return '📚';
-      case 'Writing': return '✏️';
-      case 'Science': return '🧪';
-      default: return '📝';
+      case 'Reading': return 'рџ“–';
+      case 'Listening': return 'рџЋ§';
+      case 'Grammar': return 'вњЌпёЏ';
+      case 'Vocabulary': return 'рџ“љ';
+      case 'Writing': return 'вњЏпёЏ';
+      case 'Science': return 'рџ§Є';
+      default: return 'рџ“ќ';
     }
   };
 
@@ -1004,7 +1026,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           zIndex: 10,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '24px' }}>🎧</span>
+            <span style={{ fontSize: '24px' }}>рџЋ§</span>
             <div>
               <h2 style={{ margin: 0, color: '#fff', fontSize: '14px', fontWeight: 600 }}>
                 {activeTest.name}
@@ -1027,7 +1049,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
               fontWeight: 600,
             }}
           >
-            ✕ Exit
+            вњ• Exit
           </button>
         </div>
         
@@ -1101,7 +1123,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
               transition: 'all 0.2s',
             }}
           >
-            ← Back to Game
+            в†ђ Back to Game
           </button>
         </div>
 
@@ -1156,7 +1178,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
             borderLeft: '3px solid #00f5ff',
           }}>
             <p style={{ margin: 0, fontSize: '14px', color: 'rgba(255,255,255,0.9)' }}>
-              👋 Welcome, <strong>{profile.username}</strong>! Take your time with each test. 
+              рџ‘‹ Welcome, <strong>{profile.username}</strong>! Take your time with each test. 
               Your progress is automatically saved.
             </p>
           </div>
@@ -1186,9 +1208,9 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                 color: filter === f ? '#0f0c29' : '#fff',
               }}
             >
-              {f === 'all' && `📋 All (${totalCount})`}
-              {f === 'pending' && `⏳ Pending (${totalCount - completedCount})`}
-              {f === 'completed' && `✅ Completed (${completedCount})`}
+              {f === 'all' && `рџ“‹ All (${totalCount})`}
+              {f === 'pending' && `вЏі Pending (${totalCount - completedCount})`}
+              {f === 'completed' && `вњ… Completed (${completedCount})`}
             </button>
           ))}
         </div>
@@ -1196,13 +1218,13 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
         {/* Tests Grid */}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: 'rgba(255,255,255,0.7)' }}>
-            <div style={{ fontSize: '40px', marginBottom: '15px' }}>⏳</div>
+            <div style={{ fontSize: '40px', marginBottom: '15px' }}>вЏі</div>
             Loading tests...
           </div>
         ) : filteredTests.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: 'rgba(255,255,255,0.7)' }}>
             <div style={{ fontSize: '40px', marginBottom: '15px' }}>
-              {filter === 'completed' ? '📭' : visibleTestIds.size === 0 && tests.length === 0 ? '🔒' : '🎉'}
+              {filter === 'completed' ? 'рџ“­' : visibleTestIds.size === 0 && tests.length === 0 ? 'рџ”’' : 'рџЋ‰'}
             </div>
             {visibleTestIds.size === 0 && tests.length === 0 
               ? "No tests are currently available. Your teacher will make tests visible soon!"
@@ -1232,7 +1254,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginBottom: '14px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontSize: '22px' }}>📁</span>
+                      <span style={{ fontSize: '22px' }}>рџ“Ѓ</span>
                       <div>
                         <h3 style={{ margin: 0, fontSize: '16px', color: '#fff' }}>{subject}</h3>
                         <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>
@@ -1241,7 +1263,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       </div>
                     </div>
                     <span style={{ fontSize: '16px', color: 'rgba(255,255,255,0.8)' }}>
-                      {collapsedSubjects[subject] ? '▸' : '▾'}
+                      {collapsedSubjects[subject] ? 'в–ё' : 'в–ѕ'}
                     </span>
                   </div>
                 </button>
@@ -1252,12 +1274,12 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                     gap: '20px',
                   }}>
                     {subjectTests.map(test => {
-                      const isChemistryTest = test.subject === 'AS Chemistry';
+                      const isChemistryTest = test.subject === 'Chemistry';
                       const chemistryReportReady = isChemistryTest && test.isCompleted && test.scoresReleased;
                       const chemistryLocked = isChemistryTest && test.isCompleted && !test.scoresReleased;
                       const actionLabel = test.isCompleted
-                        ? (isChemistryTest ? (chemistryReportReady ? '📄 View Report' : '✅ Submitted') : '🔄 Retake Test')
-                        : '▶️ Start Test';
+                        ? (isChemistryTest ? (chemistryReportReady ? 'рџ“„ View Report' : 'вњ… Submitted') : 'рџ”„ Retake Test')
+                        : 'в–¶пёЏ Start Test';
                       return (
                       <div
                         key={test.id}
@@ -1292,7 +1314,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                               fontSize: '11px',
                               fontWeight: 'bold',
                             }}>
-                              ✓ COMPLETED
+                              вњ“ COMPLETED
                             </div>
                           )}
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -1344,8 +1366,8 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                             fontSize: '12px',
                             color: 'rgba(255,255,255,0.6)',
                           }}>
-                            <span>⏱️ {test.duration}</span>
-                            <span>📝 {test.category === 'Writing' ? '2 parts' : `${test.totalQuestions} questions`}</span>
+                            <span>вЏ±пёЏ {test.duration}</span>
+                            <span>рџ“ќ {test.category === 'Writing' ? '2 parts' : `${test.totalQuestions} questions`}</span>
                           </div>
 
                           {test.isCompleted && (
@@ -1371,10 +1393,10 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                                       : '#22c55e',
                                 }}>
                                   {test.isAwaitingMarking
-                                    ? '⏳ Awaiting Marking'
+                                    ? 'вЏі Awaiting Marking'
                                     : chemistryLocked
-                                      ? '🔒 Awaiting Release'
-                                      : '✅ Completed'}
+                                      ? 'рџ”’ Awaiting Release'
+                                      : 'вњ… Completed'}
                                 </span>
                               </div>
                               {test.completedAt && (
@@ -1413,7 +1435,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                                     transition: 'all 0.2s',
                                   }}
                                 >
-                                  📝 View Teacher Feedback
+                                  рџ“ќ View Teacher Feedback
                                 </button>
                               )}
                             </div>
@@ -1459,7 +1481,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           borderRadius: '16px',
           border: '1px dashed rgba(255,255,255,0.2)',
         }}>
-          <span style={{ fontSize: '32px' }}>🚀</span>
+          <span style={{ fontSize: '32px' }}>рџљЂ</span>
           <h4 style={{ margin: '10px 0 5px', color: '#fff', fontSize: '16px' }}>More Tests Coming Soon!</h4>
           <p style={{ margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
             We're adding new Cambridge tests regularly. Check back for more practice opportunities!
@@ -1502,7 +1524,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
               alignItems: 'center',
             }}>
               <h3 style={{ margin: 0, color: '#fff', fontSize: '18px' }}>
-                📝 Writing Test Feedback
+                рџ“ќ Writing Test Feedback
               </h3>
               <button
                 onClick={() => {
@@ -1520,7 +1542,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                   cursor: 'pointer',
                 }}
               >
-                ×
+                Г—
               </button>
             </div>
 
@@ -1528,12 +1550,12 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
             <div style={{ padding: '20px', overflowY: 'auto' }}>
               {feedbackLoading ? (
                 <div style={{ textAlign: 'center', padding: '40px' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '15px' }}>⏳</div>
+                  <div style={{ fontSize: '32px', marginBottom: '15px' }}>вЏі</div>
                   <p style={{ color: 'rgba(255,255,255,0.7)' }}>Loading feedback...</p>
                 </div>
               ) : !feedbackData ? (
                 <div style={{ textAlign: 'center', padding: '40px' }}>
-                  <div style={{ fontSize: '48px', marginBottom: '15px' }}>📋</div>
+                  <div style={{ fontSize: '48px', marginBottom: '15px' }}>рџ“‹</div>
                   <h4 style={{ color: '#fff', marginBottom: '10px' }}>Feedback Not Yet Available</h4>
                   <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px' }}>
                     Your teacher has marked your work but hasn't released the detailed feedback yet.
@@ -1614,7 +1636,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       border: '1px solid #fecaca',
                     }}>
                       <h5 style={{ margin: '0 0 12px', color: '#991b1b', fontSize: '14px', fontWeight: 'bold' }}>
-                        🔤 Spelling Mistakes ({(activeFeedbackPart === 'part1' ? feedbackData.part1.spellingMistakes : feedbackData.part2.spellingMistakes)?.length || 0})
+                        рџ”¤ Spelling Mistakes ({(activeFeedbackPart === 'part1' ? feedbackData.part1.spellingMistakes : feedbackData.part2.spellingMistakes)?.length || 0})
                       </h5>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {(activeFeedbackPart === 'part1' ? feedbackData.part1.spellingMistakes : feedbackData.part2.spellingMistakes)?.map((m, i) => (
@@ -1626,7 +1648,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                           }}>
                             <div style={{ marginBottom: '4px' }}>
                               <span style={{ color: '#dc2626', textDecoration: 'line-through', fontWeight: 500 }}>{m.wrong}</span>
-                              <span style={{ margin: '0 8px', color: '#6b7280' }}>→</span>
+                              <span style={{ margin: '0 8px', color: '#6b7280' }}>в†’</span>
                               <span style={{ color: '#16a34a', fontWeight: 600 }}>{m.correct}</span>
                             </div>
                             <p style={{ margin: 0, fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>{m.explanation}</p>
@@ -1646,7 +1668,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       border: '1px solid #fde047',
                     }}>
                       <h5 style={{ margin: '0 0 12px', color: '#854d0e', fontSize: '14px', fontWeight: 'bold' }}>
-                        📝 Grammar Mistakes ({(activeFeedbackPart === 'part1' ? feedbackData.part1.grammarMistakes : feedbackData.part2.grammarMistakes)?.length || 0})
+                        рџ“ќ Grammar Mistakes ({(activeFeedbackPart === 'part1' ? feedbackData.part1.grammarMistakes : feedbackData.part2.grammarMistakes)?.length || 0})
                       </h5>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {(activeFeedbackPart === 'part1' ? feedbackData.part1.grammarMistakes : feedbackData.part2.grammarMistakes)?.map((m, i) => (
@@ -1658,7 +1680,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                           }}>
                             <div style={{ marginBottom: '4px' }}>
                               <span style={{ color: '#dc2626', textDecoration: 'line-through', fontWeight: 500 }}>{m.wrong}</span>
-                              <span style={{ margin: '0 8px', color: '#6b7280' }}>→</span>
+                              <span style={{ margin: '0 8px', color: '#6b7280' }}>в†’</span>
                               <span style={{ color: '#16a34a', fontWeight: 600 }}>{m.correct}</span>
                             </div>
                             <p style={{ margin: 0, fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>{m.explanation}</p>
@@ -1678,7 +1700,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       border: '1px solid #bfdbfe',
                     }}>
                       <h5 style={{ margin: '0 0 12px', color: '#1e40af', fontSize: '14px', fontWeight: 'bold' }}>
-                        📊 Why You Received These Marks
+                        рџ“Љ Why You Received These Marks
                       </h5>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
                         <div style={{ background: '#fff', padding: '10px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
@@ -1719,7 +1741,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                     marginBottom: '20px',
                     color: '#000',
                   }}>
-                    <h5 style={{ margin: '0 0 12px', color: '#000', fontSize: '14px' }}>📈 Score Breakdown</h5>
+                    <h5 style={{ margin: '0 0 12px', color: '#000', fontSize: '14px' }}>рџ“€ Score Breakdown</h5>
                     {activeFeedbackPart === 'part1' ? (
                       <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
                         <div style={{ flex: 1, minWidth: '80px', textAlign: 'center' }}>
@@ -1765,7 +1787,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                     marginBottom: '15px',
                     color: '#000',
                   }}>
-                    <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>✏️ Your Original Writing</h5>
+                    <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>вњЏпёЏ Your Original Writing</h5>
                     <div style={{
                       background: '#fff',
                       borderRadius: '8px',
@@ -1789,7 +1811,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       border: '1px solid #fed7aa',
                       color: '#000',
                     }}>
-                      <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>💬 Teacher's Comments</h5>
+                      <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>рџ’¬ Teacher's Comments</h5>
                       <div style={{
                         fontSize: '13px',
                         lineHeight: 1.6,
@@ -1810,7 +1832,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       border: '1px solid #bbf7d0',
                       color: '#000',
                     }}>
-                      <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>✨ Improved Version</h5>
+                      <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>вњЁ Improved Version</h5>
                       <div style={{
                         background: '#fff',
                         borderRadius: '8px',
@@ -1828,7 +1850,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                         color: '#000',
                         fontStyle: 'italic',
                       }}>
-                        💡 Compare this with your original to see how you can improve your writing!
+                        рџ’Ў Compare this with your original to see how you can improve your writing!
                       </p>
                     </div>
                   )}
@@ -1843,7 +1865,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       border: '1px solid #bae6fd',
                       color: '#000',
                     }}>
-                      <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>📝 Overall Comments</h5>
+                      <h5 style={{ margin: '0 0 10px', color: '#000', fontSize: '14px' }}>рџ“ќ Overall Comments</h5>
                       <div style={{
                         fontSize: '13px',
                         lineHeight: 1.6,
