@@ -710,7 +710,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
     };
   }, [showFeedbackModal]);
 
-  // Listen for test completion messages from iframe
+  // Listen for test completion and deletion messages from iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'CAMBRIDGE_TEST_COMPLETE') {
@@ -719,6 +719,12 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
         setTimeout(() => {
           loadTestProgress();
         }, 1000);
+      } else if (event.data?.type === 'CAMBRIDGE_TEST_DELETED') {
+        console.log('Test submission deleted:', event.data);
+        // Refresh the test list to show reset status (no longer marked as completed)
+        setTimeout(() => {
+          loadTestProgress();
+        }, 500);
       }
     };
 

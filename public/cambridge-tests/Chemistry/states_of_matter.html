@@ -1799,6 +1799,17 @@
           // Re-enable all questions
           document.querySelectorAll('input').forEach(i => i.disabled = false);
           
+          // Notify parent component to refresh test list UI
+          try {
+            window.parent.postMessage({
+              type: 'CAMBRIDGE_TEST_DELETED',
+              testId: QUIZ_ID,
+              testName: QUIZ_NAME
+            }, '*');
+          } catch (e) {
+            console.error('Failed to notify parent of test deletion:', e);
+          }
+          
           return;
         }
 
