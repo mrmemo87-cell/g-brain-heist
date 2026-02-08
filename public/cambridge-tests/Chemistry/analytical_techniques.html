@@ -1484,10 +1484,26 @@
           .single();
 
         if (error || !data) {
-          // Submission was deleted - clear cache and allow retake
+          // Submission was deleted - reset UI to allow retake
           localStorage.removeItem(`quiz_submitted_${QUIZ_ID}`);
           localStorage.removeItem(`quiz_student_${QUIZ_ID}`);
           localStorage.removeItem(`quiz_class_${QUIZ_ID}`);
+          
+          // Reset UI state
+          hasSubmitted = false;
+          const submitBtn = document.getElementById('submitBtn');
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Answers';
+          }
+          const statusDiv = document.getElementById('status');
+          if (statusDiv) statusDiv.textContent = '';
+          const scoreDiv = document.getElementById('score');
+          if (scoreDiv) scoreDiv.style.display = 'none';
+          
+          // Re-enable all questions
+          document.querySelectorAll('input').forEach(i => i.disabled = false);
+          
           return;
         }
 
