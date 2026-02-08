@@ -1,0 +1,66 @@
+-- ============================================================================
+-- FIX: Ensure HTML Test Files Validate Server State on Load
+-- ============================================================================
+-- The issue: When an admin deletes a submission, the student's localStorage
+-- still has the cached submission data, so the test shows as completed.
+--
+-- Solution: The HTML test files should validate with the server that the
+-- submission still exists BEFORE showing the "already submitted" UI.
+--
+-- Changes needed in all Chemistry HTML test files:
+-- In the checkServerSubmission() function, change the logic:
+--
+-- BEFORE:
+--   if (error || !data) {
+--     return;  // <-- Silently returns, keeps showing localStorage data
+--   }
+--
+-- AFTER:
+--   if (error || !data) {
+--     // Submission was deleted - clear cache and allow retake
+--     localStorage.removeItem(`quiz_submitted_${QUIZ_ID}`);
+--     localStorage.removeItem(`quiz_student_${QUIZ_ID}`);
+--     localStorage.removeItem(`quiz_class_${QUIZ_ID}`);
+--     return;  // <-- Now returns after clearing cache
+--   }
+--
+-- This ensures that if the admin deletes a submission, when the student
+-- reloads the page, the server returns "no data", we clear the cache,
+-- and the test becomes available to retake.
+--
+-- ============================================================================
+-- FILES TO UPDATE (All Chemistry Tests):
+-- ============================================================================
+-- public/cambridge-tests/Chemistry/
+--   - atomic_structure.html
+--   - atoms_molecules_stoichiometry.html
+--   - chemical_bonding.html
+--   - states_of_matter.html
+--   - chemical_energetics.html
+--   - electrochemistry.html
+--   - equilibria.html
+--   - reaction_kinetics.html
+--   - chemical_periodicity.html
+--   - group_2.html
+--   - group_17.html
+--   - nitrogen_sulfur.html
+--   - intro_as_level_organic_chemistry.html
+--   - hydrocarbons.html
+--   - halogen_compounds.html
+--   - hydroxy_compounds.html
+--   - carbonyl_compounds.html
+--   - carboxylic_acids_derivatives.html
+--   - nitrogen_compounds.html
+--   - polymerisation.html
+--   - analytical_techniques.html
+--
+-- ============================================================================
+-- TESTING:
+-- ============================================================================
+-- 1. Student takes a Chemistry test and submits
+-- 2. Admin deletes the submission from Cambridge Test Reports
+-- 3. Student refreshes their browser
+-- 4. Student should now see "Start Test" button instead of "Submitted"
+-- 5. Student can now retake the test
+--
+-- ============================================================================

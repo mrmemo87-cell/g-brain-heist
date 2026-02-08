@@ -1684,6 +1684,10 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
           .single();
 
         if (error || !data) {
+          // Submission was deleted - clear cache and allow retake
+          localStorage.removeItem(`quiz_submitted_${QUIZ_ID}`);
+          localStorage.removeItem(`quiz_student_${QUIZ_ID}`);
+          localStorage.removeItem(`quiz_class_${QUIZ_ID}`);
           return;
         }
 
