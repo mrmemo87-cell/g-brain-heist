@@ -147,6 +147,12 @@ export const chemistryAnswerKeys: Record<string, Record<number, string>> = {
     14: 'A', 15: 'C', 16: 'A', 17: 'D', 18: 'C', 19: 'C', 20: 'B', 21: 'B', 22: 'A', 23: 'B', 24: 'D', 25: 'A',
     26: 'C', 27: 'D', 28: 'A', 29: 'D', 30: 'C', 31: 'D', 32: 'D', 33: 'D', 34: 'B', 35: 'C', 36: 'D', 37: 'B',
     38: 'A', 39: 'A', 40: 'C', 41: 'D', 42: 'A', 43: 'C', 44: 'C', 45: 'D', 46: 'C', 47: 'A', 48: 'D', 49: 'A',
+  },
+  'AS Chemistry Ch21 ( Analytical techniques )': {
+    1: 'B', 2: 'B', 3: 'D', 4: 'A', 5: 'D', 6: 'D', 7: 'B', 8: 'B', 9: 'B', 10: 'C',
+    11: 'A', 12: 'C', 13: 'C', 14: 'C', 15: 'C', 16: 'C', 17: 'D', 18: 'B', 19: 'B', 20: 'C',
+    21: 'C', 22: 'D', 23: 'A', 24: 'B', 25: 'C', 26: 'C', 27: 'B', 28: 'C', 29: 'D', 30: 'C',
+    31: 'C', 32: 'A', 33: 'A', 34: 'A',
   }
 };
 
@@ -169,4 +175,5 @@ export const chemistryQuestionRanges: Record<string, { total: number; splitIndex
   'AS Chemistry Ch8 (Reaction kinetics)': { total: 41, splitIndex: 21 },
   'AS Chemistry Ch9 (Chemical Periodicity)': { total: 85, splitIndex: 43 },
   'AS Chemistry — Atomic Structure': { total: 49, splitIndex: 25 },
+  'AS Chemistry Ch21 ( Analytical techniques )': { total: 34, splitIndex: 17 },
 };
