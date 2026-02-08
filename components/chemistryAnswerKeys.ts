@@ -55,6 +55,9 @@ export const chemistryAnswerKeys: Record<string, Record<number, string>> = {
     71: 'B', 72: 'D', 73: 'C', 74: 'A', 75: 'A', 76: 'C', 77: 'D', 78: 'B', 79: 'B', 80: 'D',
     81: 'B', 82: 'A',
   },
+  'AS Chemistry Ch19 ( Nitrogen compounds )': {
+    1: 'D', 2: 'C', 3: 'C', 4: 'A', 5: 'D', 6: 'C',
+  },
   'AS Chemistry Ch17 ( Carbonyl compounds )': {
     1: 'D', 2: 'D', 3: 'A', 4: 'B', 5: 'D', 6: 'A', 7: 'D', 8: 'D', 9: 'A', 10: 'C',
     11: 'D', 12: 'A', 13: 'D', 14: 'B', 15: 'C', 16: 'A', 17: 'A', 18: 'A', 19: 'A', 20: 'B',
@@ -74,6 +77,10 @@ export const chemistryAnswerKeys: Record<string, Record<number, string>> = {
     61: 'C', 62: 'B', 63: 'C', 64: 'A', 65: 'A', 66: 'C', 67: 'B', 68: 'C', 69: 'C', 70: 'D',
     71: 'D', 72: 'D', 73: 'C', 74: 'B', 75: 'B', 76: 'C', 77: 'C', 78: 'B', 79: 'C', 80: 'B',
     81: 'B', 82: 'C', 83: 'B', 84: 'A', 85: 'C', 86: 'B', 87: 'C', 88: 'D',
+  },
+  'AS Chemistry Ch20 ( Polymerisation)': {
+    1: 'B', 2: 'A', 3: 'D', 4: 'A', 5: 'B', 6: 'D', 7: 'B', 8: 'D',
+    9: 'B', 10: 'B', 11: 'B', 12: 'B', 13: 'B', 14: 'A', 15: 'B', 16: 'D',
   },
   'AS Chemistry Ch10 (Group 2)': {
     1: 'D', 2: 'D', 3: 'B', 4: 'A', 5: 'A', 6: 'C', 7: 'D', 8: 'C', 9: 'B', 10: 'C', 11: 'C', 12: 'B', 13: 'C',
@@ -163,8 +170,10 @@ export const chemistryQuestionRanges: Record<string, { total: number; splitIndex
   'AS Chemistry Ch14 ( Hydrocarbons )': { total: 60, splitIndex: 30 },
   'AS Chemistry Ch15 ( Halogen compounds )': { total: 56, splitIndex: 28 },
   'AS Chemistry Ch18 ( Carboxylic acids and derivatives )': { total: 82, splitIndex: 41 },
+  'AS Chemistry Ch19 ( Nitrogen compounds )': { total: 6, splitIndex: 3 },
   'AS Chemistry Ch17 ( Carbonyl compounds )': { total: 63, splitIndex: 32 },
   'AS Chemistry Ch16 ( Hydroxy compounds )': { total: 88, splitIndex: 44 },
+  'AS Chemistry Ch20 ( Polymerisation)': { total: 16, splitIndex: 8 },
   'AS Chemistry Ch10 (Group 2)': { total: 73, splitIndex: 37 },
   'AS Chemistry Ch2 (Atoms, molecules and stoichiometry)': { total: 64, splitIndex: 32 },
   'AS Chemistry Ch3 (Chemical bonding)': { total: 55, splitIndex: 28 },
