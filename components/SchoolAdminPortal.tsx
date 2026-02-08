@@ -266,13 +266,10 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
 
       if (error) throw error;
 
-      addToast(`✅ Deleted submission for ${studentName}`, 'success');
-      
-      // Remove from local state immediately for instant feedback
+      // Remove from local state immediately - deletion is confirmed on server
       setQuizScores(prev => prev.filter(score => score.id !== scoreId));
       
-      // Refresh from server to ensure consistency
-      await fetchQuizScores();
+      addToast(`✅ Deleted submission for ${studentName}`, 'success');
     } catch (error: any) {
       console.error('Failed to delete submission:', error);
       addToast(`Failed to delete submission: ${error.message}`, 'error');
