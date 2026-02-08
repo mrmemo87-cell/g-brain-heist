@@ -55,6 +55,9 @@ export const chemistryAnswerKeys: Record<string, Record<number, string>> = {
     71: 'B', 72: 'D', 73: 'C', 74: 'A', 75: 'A', 76: 'C', 77: 'D', 78: 'B', 79: 'B', 80: 'D',
     81: 'B', 82: 'A',
   },
+  'AS Chemistry Ch19 ( Nitrogen compounds )': {
+    1: 'D', 2: 'C', 3: 'C', 4: 'A', 5: 'D', 6: 'C',
+  },
   'AS Chemistry Ch17 ( Carbonyl compounds )': {
     1: 'D', 2: 'D', 3: 'A', 4: 'B', 5: 'D', 6: 'A', 7: 'D', 8: 'D', 9: 'A', 10: 'C',
     11: 'D', 12: 'A', 13: 'D', 14: 'B', 15: 'C', 16: 'A', 17: 'A', 18: 'A', 19: 'A', 20: 'B',
@@ -157,6 +160,7 @@ export const chemistryQuestionRanges: Record<string, { total: number; splitIndex
   'AS Chemistry Ch14 ( Hydrocarbons )': { total: 60, splitIndex: 30 },
   'AS Chemistry Ch15 ( Halogen compounds )': { total: 56, splitIndex: 28 },
   'AS Chemistry Ch18 ( Carboxylic acids and derivatives )': { total: 82, splitIndex: 41 },
+  'AS Chemistry Ch19 ( Nitrogen compounds )': { total: 6, splitIndex: 3 },
   'AS Chemistry Ch17 ( Carbonyl compounds )': { total: 63, splitIndex: 32 },
   'AS Chemistry Ch16 ( Hydroxy compounds )': { total: 88, splitIndex: 44 },
   'AS Chemistry Ch10 (Group 2)': { total: 73, splitIndex: 37 },
