@@ -18,39 +18,56 @@ const getEventIconAndColor = (kind: NewsEvent['kind']) => {
     }
 };
 
+const normalizeDisplayName = (name: string | undefined, fallback: string) => {
+    const trimmedName = name?.trim();
+    if (!trimmedName || trimmedName.toUpperCase() === 'UNKNOWN') {
+        return fallback;
+    }
+    return trimmedName;
+};
+
 const formatEventText = (event: NewsEvent) => {
     const actorStyle = { color: 'var(--paper-50)', fontWeight: '600' };
+    const actorName = normalizeDisplayName(event.actor, 'Someone');
+    const targetName = normalizeDisplayName(event.target, 'a rival');
+    const details = event.data.details?.trim();
     
     // Static messages - no randomization to keep feed stable
     switch (event.kind) {
         case 'pvp_win':
-            return <><span style={{...actorStyle, color: 'var(--success-teal)'}}>{event.actor}</span> hacked <span style={{...actorStyle, color: 'var(--danger-red)'}}>{event.target}</span>. {event.data.details} 💪</>;
+            return (
+                <>
+                    <span style={{...actorStyle, color: 'var(--success-teal)'}}>{actorName}</span> hacked{' '}
+                    <span style={{...actorStyle, color: 'var(--danger-red)'}}>{targetName}</span>
+                    {details ? `. ${details}` : ''} 💪
+                </>
+            );
         
         case 'pvp_blocked':
-            return <><span style={{...actorStyle, color: 'var(--danger-red)'}}>{event.actor}</span> was blocked by <span style={{...actorStyle, color: 'var(--success-teal)'}}>{event.target}</span>'s shield! 🛡️</>;
+            return <><span style={{...actorStyle, color: 'var(--danger-red)'}}>{actorName}</span> was blocked by <span style={{...actorStyle, color: 'var(--success-teal)'}}>{targetName}</span>'s shield! 🛡️</>;
         
         case 'pvp_loss':
-            return <><span style={{...actorStyle, color: 'var(--danger-red)'}}>{event.actor}</span> failed to hack <span style={{...actorStyle, color: 'var(--success-teal)'}}>{event.target}</span> 😅</>;
+            return <><span style={{...actorStyle, color: 'var(--danger-red)'}}>{actorName}</span> failed to hack <span style={{...actorStyle, color: 'var(--success-teal)'}}>{targetName}</span> 😅</>;
         
         case 'level_up':
-            return <><span style={{...actorStyle, color: 'var(--amber-warn)'}}>{event.actor}</span> leveled up to <span className="font-bold">{event.data.details}</span>! 🎉</>;
+            return <><span style={{...actorStyle, color: 'var(--amber-warn)'}}>{actorName}</span> leveled up to <span className="font-bold">{event.data.details}</span>! 🎉</>;
     case 'clan_create':
-      return <><span style={{...actorStyle, color: 'var(--ion-blue)'}}>{event.actor}</span> created a clan <span className="font-bold">{event.data.details}</span>. Welcome! 🛡️</>;
+      return <><span style={{...actorStyle, color: 'var(--ion-blue)'}}>{actorName}</span> created a clan <span className="font-bold">{event.data.details}</span>. Welcome! 🛡️</>;
         
         case 'quest_cleared':
-            return <><span style={{...actorStyle, color: 'var(--ion-blue)'}}>{event.actor}</span> aced <span className="font-bold">"{event.data.details}"</span>! <img src="/logo.png" alt="" className="inline-block w-4 h-4" /></>;
+            return <><span style={{...actorStyle, color: 'var(--ion-blue)'}}>{actorName}</span> aced <span className="font-bold">"{event.data.details}"</span>! <img src="/logo.png" alt="" className="inline-block w-4 h-4" /></>;
         
         case 'purchase':
-            return <><span style={{...actorStyle, color: 'var(--success-teal)'}}>{event.actor}</span> bought a <span className="font-bold">{event.data.item}</span> 🛒</>;
+            return <><span style={{...actorStyle, color: 'var(--success-teal)'}}>{actorName}</span> bought a <span className="font-bold">{event.data.item}</span> 🛒</>;
         
         case 'weekly_claim':
-            return <><span style={{...actorStyle, color: 'var(--amber-warn)'}}>{event.actor}</span> claimed weekly rewards! 💰</>;
+            return <><span style={{...actorStyle, color: 'var(--amber-warn)'}}>{actorName}</span> claimed weekly rewards! 💰</>;
         
         case 'achievement_earned':
-            return <><span style={{...actorStyle, color: '#fbbf24'}}>{event.actor}</span> unlocked <span className="font-bold">{event.data.achievement_icon || '🏆'} {event.data.achievement_name}</span>! 🎉</>;
+            return <><span style={{...actorStyle, color: '#fbbf24'}}>{actorName}</span> unlocked <span className="font-bold">{event.data.achievement_icon || '🏆'} {event.data.achievement_name}</span>! 🎉</>;
         
         default:
-            return <><span style={actorStyle}>{event.actor}</span> is up to something... 🤔</>;
+            return <><span style={actorStyle}>{actorName}</span> is up to something... 🤔</>;
     }
 };
 

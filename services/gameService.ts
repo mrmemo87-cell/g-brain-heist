@@ -2196,6 +2196,33 @@ export const news_feed = async (): Promise<NewsEvent[]> => {
 
     // RPC already filters out teacher activities
     const studentActivities = (activities || []).slice(0, 20);
+    const missingUserIds = new Set<string>();
+
+    studentActivities.forEach((activity: any) => {
+        if (!activity.actor_username && activity.actor_id) {
+            missingUserIds.add(activity.actor_id);
+        }
+        if (!activity.target_username && activity.target_id) {
+            missingUserIds.add(activity.target_id);
+        }
+    });
+
+    let userLookup: Record<string, string> = {};
+    if (missingUserIds.size > 0) {
+        const { data: userRows, error: userError } = await supabase
+            .from('users')
+            .select('id, username, email')
+            .in('id', Array.from(missingUserIds));
+
+        if (userError) {
+            console.warn('Failed to resolve activity usernames:', userError);
+        } else {
+            userLookup = (userRows || []).reduce<Record<string, string>>((acc, row: any) => {
+                acc[row.id] = row.username || row.email || 'Unknown';
+                return acc;
+            }, {});
+        }
+    }
 
     const activityIds = studentActivities.map((a: any) => a.id);
 
@@ -2236,8 +2263,8 @@ export const news_feed = async (): Promise<NewsEvent[]> => {
         return {
             id: activity.id,
             kind: activity.kind,
-            actor: activity.actor_username || 'Unknown',
-            target: activity.target_username,
+            actor: activity.actor_username || userLookup[activity.actor_id] || 'Unknown',
+            target: activity.target_username || userLookup[activity.target_id] || undefined,
             data: activity.data || {},
             created_at: timeAgo,
             reactions: activityReactions.reactions,
