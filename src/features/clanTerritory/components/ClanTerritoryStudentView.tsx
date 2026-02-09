@@ -6,6 +6,8 @@ import {
   PlayerStats,
   ZoneId,
   getClanColor,
+  assignSessionClanColor,
+  getUsedSessionColors,
   getZonesForMap,
   BattleQuestionOption,
 } from "../clanTerritoryTypes";
@@ -114,6 +116,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   const [claimingRewards, setClaimingRewards] = useState(false);
   const lastQuestionKeyRef = useRef<string | null>(null);
   const clanList = React.useMemo(() => {
+    // Prefer clans from engine state (session-assigned colors)
     const known = Object.values(gameState.clans).map((clan) => ({
       ...clan,
       color: clan.color || getClanColor(clan.id),
@@ -122,26 +125,24 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
       return [...known].sort((a, b) => a.name.localeCompare(b.name));
     }
 
+    // Fallback: derive from players/zones with session-aware unique colors
     const derived = new Map<ClanId, ClanMetadata>();
+    const usedColors = new Set<string>();
+
+    const addClan = (clanId: ClanId, name: string) => {
+      if (derived.has(clanId)) return;
+      const color = assignSessionClanColor(clanId, usedColors);
+      usedColors.add(color);
+      derived.set(clanId, { id: clanId, name, color });
+    };
+
     Object.values(gameState.players).forEach((p) => {
-      if (!derived.has(p.clanId)) {
-        derived.set(p.clanId, {
-          id: p.clanId,
-          name: p.clanName,
-          color: getClanColor(p.clanId),
-        });
-      }
+      addClan(p.clanId, p.clanName);
     });
 
     Object.values(gameState.zones).forEach((zone) => {
       Object.keys(zone.influence).forEach((clanId) => {
-        if (!derived.has(clanId as ClanId)) {
-          derived.set(clanId as ClanId, {
-            id: clanId as ClanId,
-            name: clanId,
-            color: getClanColor(clanId),
-          });
-        }
+        addClan(clanId as ClanId, clanId);
       });
     });
 
@@ -248,7 +249,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   const clansWithColors = React.useMemo(() => {
     const map: Record<ClanId, ClanMetadata> = {};
     clanList.forEach((c) => {
-      map[c.id] = { ...c, color: c.color || getClanColor(c.id) };
+      map[c.id] = c; // color already assigned in clanList
     });
     return map;
   }, [clanList]);

@@ -1935,6 +1935,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
     function acknowledgeAntiCheat() {
       antiCheatAcknowledged = true;
       closeAntiCheatModal();
+      setupAntiCheat();
       startTimerIfReady();
     }
 
@@ -2064,7 +2065,6 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
 
       updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('•')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
-      setupAntiCheat();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
       checkServerSubmission();
@@ -2105,6 +2105,13 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
           });
         }
       }, 500);
+
+      // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
+      window.addEventListener('message', (e) => {
+        if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
+        }
+      });
     });
   </script>
 </body>

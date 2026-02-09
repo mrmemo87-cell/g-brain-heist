@@ -5,6 +5,8 @@ import {
   ClanTerritoryGameState,
   PlayerStats,
   getClanColor,
+  assignSessionClanColor,
+  getUsedSessionColors,
   CONFIG,
   getZonesForMap,
 } from "../clanTerritoryTypes";
@@ -70,6 +72,7 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
   } | null>(null);
   const [mapWidthPct, setMapWidthPct] = React.useState(100);
   const clanList = React.useMemo(() => {
+    // Prefer clans from engine state (session-assigned colors)
     const knownClans = Object.values(gameState.clans).map((clan) => ({
       ...clan,
       color: clan.color || getClanColor(clan.id),
@@ -78,26 +81,24 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
       return [...knownClans].sort((a, b) => a.name.localeCompare(b.name));
     }
 
+    // Fallback: derive from players/zones with session-aware unique colors
     const derived = new Map<ClanId, ClanMetadata>();
+    const usedColors = new Set<string>();
+
+    const addClan = (clanId: ClanId, name: string) => {
+      if (derived.has(clanId)) return;
+      const color = assignSessionClanColor(clanId, usedColors);
+      usedColors.add(color);
+      derived.set(clanId, { id: clanId, name, color });
+    };
+
     Object.values(gameState.players).forEach((player) => {
-      if (!derived.has(player.clanId)) {
-        derived.set(player.clanId, {
-          id: player.clanId,
-          name: player.clanName,
-          color: getClanColor(player.clanId),
-        });
-      }
+      addClan(player.clanId, player.clanName);
     });
 
     Object.values(gameState.zones).forEach((zone) => {
       Object.keys(zone.influence).forEach((clanId) => {
-        if (!derived.has(clanId as ClanId)) {
-          derived.set(clanId as ClanId, {
-            id: clanId as ClanId,
-            name: clanId,
-            color: getClanColor(clanId),
-          });
-        }
+        addClan(clanId as ClanId, clanId);
       });
     });
 
@@ -107,7 +108,7 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
   const clansWithColors = React.useMemo(() => {
     const map: Record<ClanId, ClanMetadata> = {};
     clanList.forEach((clan) => {
-      map[clan.id] = { ...clan, color: clan.color || getClanColor(clan.id) };
+      map[clan.id] = clan; // color already assigned in clanList
     });
     return map;
   }, [clanList]);
@@ -165,7 +166,7 @@ export const ClanTerritoryTeacherView: React.FC<ClanTerritoryTeacherViewProps> =
           clanList.find((c) => c.id === clanId) || {
             id: clanId as ClanId,
             name: clanId,
-            color: getClanColor(clanId),
+            color: clansWithColors[clanId as ClanId]?.color || getClanColor(clanId),
           },
         count,
       }))

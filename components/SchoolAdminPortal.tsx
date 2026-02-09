@@ -115,6 +115,13 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
   const [quizFilter, setQuizFilter] = useState<string>('all');
   const [classFilter, setClassFilter] = useState<string>('all');
 
+  // School-level Cambridge visibility state
+  const [showSchoolVisibility, setShowSchoolVisibility] = useState(false);
+  const [schoolVisibility, setSchoolVisibility] = useState<{test_id: string; test_name: string; subject: string; category: string; is_visible: boolean; updated_by: string | null; updated_at: string | null}[]>([]);
+  const [schoolVisibilityLoading, setSchoolVisibilityLoading] = useState(false);
+  const [schoolVisibilitySubjectFilter, setSchoolVisibilitySubjectFilter] = useState<string>('all');
+  const [selectedSchoolTests, setSelectedSchoolTests] = useState<Set<string>>(new Set());
+
   // Load initial data
   useEffect(() => {
     loadSchoolData();
@@ -333,6 +340,83 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
 
   const uniqueQuizNames = Array.from(new Set(quizScores.map(s => s.quiz_name).filter(Boolean)));
   const uniqueClasses = Array.from(new Set(quizScores.map(s => s.student_class || 'Unknown')));
+
+  // School-level Cambridge visibility functions
+  const loadSchoolVisibility = async () => {
+    setSchoolVisibilityLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('get_school_cambridge_test_visibility_settings');
+      if (error) {
+        console.error('Failed to load school visibility:', error);
+        addToast('Failed to load test visibility settings', 'error');
+        return;
+      }
+      setSchoolVisibility(data || []);
+    } catch (err) {
+      console.error('Exception loading school visibility:', err);
+      addToast('Failed to load test visibility settings', 'error');
+    } finally {
+      setSchoolVisibilityLoading(false);
+    }
+  };
+
+  const toggleSchoolTestVisibility = async (testId: string, currentlyVisible: boolean) => {
+    try {
+      const { data, error } = await supabase.rpc('set_school_cambridge_test_visibility', {
+        p_test_id: testId,
+        p_is_visible: !currentlyVisible,
+      });
+      if (error) {
+        console.error('Toggle error:', error);
+        addToast('Failed to update test visibility', 'error');
+        return;
+      }
+      if (data && !data.success) {
+        addToast(data.error || 'Failed to update', 'error');
+        return;
+      }
+      // Update local state optimistically
+      setSchoolVisibility(prev => prev.map(t =>
+        t.test_id === testId ? { ...t, is_visible: !currentlyVisible } : t
+      ));
+      addToast(data?.message || 'Updated', 'success');
+    } catch (err) {
+      console.error('Exception toggling visibility:', err);
+      addToast('Failed to update test visibility', 'error');
+    }
+  };
+
+  const bulkSetSchoolVisibility = async (testIds: string[], isVisible: boolean) => {
+    try {
+      const { data, error } = await supabase.rpc('bulk_set_school_cambridge_test_visibility', {
+        p_test_ids: testIds,
+        p_is_visible: isVisible,
+      });
+      if (error) {
+        console.error('Bulk toggle error:', error);
+        addToast('Failed to bulk update visibility', 'error');
+        return;
+      }
+      if (data && !data.success) {
+        addToast(data.error || 'Failed to update', 'error');
+        return;
+      }
+      // Update local state
+      const idSet = new Set(testIds);
+      setSchoolVisibility(prev => prev.map(t =>
+        idSet.has(t.test_id) ? { ...t, is_visible: isVisible } : t
+      ));
+      addToast(data?.message || `${testIds.length} test(s) updated`, 'success');
+    } catch (err) {
+      console.error('Exception in bulk visibility:', err);
+      addToast('Failed to bulk update visibility', 'error');
+    }
+  };
+
+  const schoolVisibilitySubjects = Array.from(new Set(schoolVisibility.map(t => t.subject).filter(Boolean))).sort();
+  const filteredSchoolVisibility = schoolVisibilitySubjectFilter === 'all'
+    ? schoolVisibility
+    : schoolVisibility.filter(t => t.subject === schoolVisibilitySubjectFilter);
 
   // Member actions
   const handleUpdateRole = async (newRole: SchoolRole) => {
@@ -2088,8 +2172,188 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
       {activeTab === 'cambridge' && (
         <div className="space-y-6">
           <div className="bg-gray-800 rounded-xl p-6 border border-cyan-600/50">
-            <h3 className="text-2xl font-bold text-cyan-300 mb-6">📚 Cambridge Test Reports</h3>
-            
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-cyan-300">📚 Cambridge Test Reports</h3>
+              <button
+                onClick={() => {
+                  setShowSchoolVisibility(!showSchoolVisibility);
+                  if (!showSchoolVisibility && schoolVisibility.length === 0) {
+                    loadSchoolVisibility();
+                  }
+                }}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  showSchoolVisibility
+                    ? 'bg-purple-600 text-white hover:bg-purple-700'
+                    : 'bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400 text-white'
+                }`}
+              >
+                👁️ {showSchoolVisibility ? 'Hide' : 'Test'} Visibility Manager
+              </button>
+            </div>
+
+            {/* School-Level Visibility Manager Panel */}
+            {showSchoolVisibility && (
+              <div className="bg-gray-900/70 rounded-xl p-5 border border-purple-500/50 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 className="text-lg font-bold text-purple-300">🏫 School-Level Test Visibility</h4>
+                    <p className="text-xs text-gray-400 mt-1">Hide or show Cambridge tests for your entire school. Hidden tests are invisible to all teachers and students.</p>
+                  </div>
+                  <button
+                    onClick={loadSchoolVisibility}
+                    disabled={schoolVisibilityLoading}
+                    className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {schoolVisibilityLoading ? '⏳' : '🔄'} Refresh
+                  </button>
+                </div>
+
+                {schoolVisibilityLoading ? (
+                  <div className="text-center py-8 text-gray-400">
+                    <div className="text-3xl mb-2">⏳</div>
+                    Loading test visibility settings...
+                  </div>
+                ) : schoolVisibility.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">
+                    <div className="text-3xl mb-2">📋</div>
+                    No Cambridge tests found in the catalog.
+                  </div>
+                ) : (
+                  <>
+                    {/* Subject filter + selection + bulk actions */}
+                    <div className="flex flex-wrap items-center gap-3 mb-4">
+                      <select
+                        value={schoolVisibilitySubjectFilter}
+                        onChange={(e) => {
+                          setSchoolVisibilitySubjectFilter(e.target.value);
+                          setSelectedSchoolTests(new Set());
+                        }}
+                        className="px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+                      >
+                        <option value="all">All Subjects ({schoolVisibility.length})</option>
+                        {schoolVisibilitySubjects.map(subj => (
+                          <option key={subj} value={subj}>
+                            {subj} ({schoolVisibility.filter(t => t.subject === subj).length})
+                          </option>
+                        ))}
+                      </select>
+
+                      {/* Select All / Deselect All */}
+                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={selectedSchoolTests.size === filteredSchoolVisibility.length && filteredSchoolVisibility.length > 0}
+                          ref={el => { if (el) el.indeterminate = selectedSchoolTests.size > 0 && selectedSchoolTests.size < filteredSchoolVisibility.length; }}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedSchoolTests(new Set(filteredSchoolVisibility.map(t => t.test_id)));
+                            } else {
+                              setSelectedSchoolTests(new Set());
+                            }
+                          }}
+                          className="w-4 h-4 rounded border-gray-500 bg-gray-700 text-purple-500 focus:ring-purple-500"
+                        />
+                        <span className="text-xs text-gray-300 font-medium">
+                          {selectedSchoolTests.size === filteredSchoolVisibility.length && filteredSchoolVisibility.length > 0
+                            ? 'Deselect All'
+                            : 'Select All'} ({filteredSchoolVisibility.length})
+                        </span>
+                      </label>
+
+                      {/* Bulk actions for selected tests */}
+                      {selectedSchoolTests.size > 0 && (
+                        <>
+                          <button
+                            onClick={() => setConfirmDialog({
+                              title: '✅ Show Selected Tests?',
+                              description: `This will make ${selectedSchoolTests.size} test(s) visible to all teachers and students in your school.`,
+                              confirmLabel: 'Show Tests',
+                              onConfirm: async () => {
+                                await bulkSetSchoolVisibility(Array.from(selectedSchoolTests), true);
+                                setSelectedSchoolTests(new Set());
+                              }
+                            })}
+                            disabled={Array.from(selectedSchoolTests).every(id => filteredSchoolVisibility.find(t => t.test_id === id)?.is_visible)}
+                            className="px-3 py-1.5 bg-green-600/30 hover:bg-green-600/50 border border-green-500 text-green-300 text-xs font-semibold rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                          >
+                            ✅ Show Selected ({selectedSchoolTests.size})
+                          </button>
+                          <button
+                            onClick={() => setConfirmDialog({
+                              title: '🔒 Hide Selected Tests?',
+                              description: `This will hide ${selectedSchoolTests.size} test(s) from ALL teachers and students in your school. They can be shown again later.`,
+                              confirmLabel: 'Hide Tests',
+                              isDestructive: true,
+                              onConfirm: async () => {
+                                await bulkSetSchoolVisibility(Array.from(selectedSchoolTests), false);
+                                setSelectedSchoolTests(new Set());
+                              }
+                            })}
+                            disabled={Array.from(selectedSchoolTests).every(id => !filteredSchoolVisibility.find(t => t.test_id === id)?.is_visible)}
+                            className="px-3 py-1.5 bg-red-600/30 hover:bg-red-600/50 border border-red-500 text-red-300 text-xs font-semibold rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                          >
+                            🚫 Hide Selected ({selectedSchoolTests.size})
+                          </button>
+                        </>
+                      )}
+
+                      <span className="text-xs text-gray-500 ml-auto">
+                        {selectedSchoolTests.size > 0 ? `${selectedSchoolTests.size} selected · ` : ''}
+                        {filteredSchoolVisibility.filter(t => t.is_visible).length} / {filteredSchoolVisibility.length} visible
+                      </span>
+                    </div>
+
+                    {/* Tests list with checkboxes */}
+                    <div className="bg-gray-800/50 rounded-lg border border-gray-700 divide-y divide-gray-700/50 max-h-96 overflow-y-auto">
+                      {filteredSchoolVisibility.map(test => (
+                        <div key={test.test_id} className="px-4 py-3 flex items-center gap-3 hover:bg-gray-700/30 transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={selectedSchoolTests.has(test.test_id)}
+                            onChange={(e) => {
+                              const next = new Set(selectedSchoolTests);
+                              if (e.target.checked) next.add(test.test_id);
+                              else next.delete(test.test_id);
+                              setSelectedSchoolTests(next);
+                            }}
+                            className="w-4 h-4 rounded border-gray-500 bg-gray-700 text-purple-500 focus:ring-purple-500 flex-shrink-0"
+                          />
+                          <div className="flex-1 min-w-0 mr-3">
+                            <p className="text-sm font-medium text-white truncate">{test.test_name}</p>
+                            <p className="text-xs text-gray-500">{test.subject} · {test.category || 'N/A'}</p>
+                          </div>
+                          <button
+                            onClick={() => setConfirmDialog({
+                              title: test.is_visible ? '🔒 Hide This Test?' : '👁️ Show This Test?',
+                              description: test.is_visible
+                                ? `"${test.test_name}" will be hidden from all teachers and students in your school.`
+                                : `"${test.test_name}" will become visible to teachers and students in your school.`,
+                              confirmLabel: test.is_visible ? 'Hide Test' : 'Show Test',
+                              isDestructive: test.is_visible,
+                              onConfirm: async () => {
+                                await toggleSchoolTestVisibility(test.test_id, test.is_visible);
+                              }
+                            })}
+                            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors flex-shrink-0 ${
+                              test.is_visible
+                                ? 'bg-green-600/20 text-green-300 border border-green-500/50 hover:bg-green-600/40'
+                                : 'bg-red-600/20 text-red-300 border border-red-500/50 hover:bg-red-600/40'
+                            }`}
+                          >
+                            {test.is_visible ? '👁️ Visible' : '🔒 Hidden'}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <p className="text-xs text-gray-500 mt-3">
+                      💡 Hidden tests won't appear for any teacher or student in your school. Tests default to visible if not overridden.
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
+
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-3 mb-6">
               <button

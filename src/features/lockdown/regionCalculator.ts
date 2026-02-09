@@ -1,4 +1,5 @@
 import { GameState, RegionStats, ClanStats, PlayerState } from "./lockdownTypes.js";
+import { getClanColor } from "../../utils/clanColors.js";
 
 const REGION_IDS = [
   "region_1",
@@ -25,18 +26,7 @@ export const REGION_NAMES: Record<string, string> = REGION_IDS.reduce(
 // Region mapping based on entry routes or questions
 const REGIONS = [...REGION_IDS];
 
-const getClanColor = (clanId: string): string => {
-  let hash = 0;
-  for (let i = 0; i < clanId.length; i += 1) {
-    hash = (hash << 5) - hash + clanId.charCodeAt(i);
-    hash |= 0; // Convert to 32bit integer
-  }
-  const normalized = Math.abs(hash);
-  const hue = normalized % 360;
-  const saturation = 65 + (normalized % 15);
-  const lightness = 48 + ((normalized >> 8) % 12);
-  return `hsl(${hue} ${saturation}% ${lightness}%)`;
-};
+// getClanColor imported from ../../utils/clanColors.js
 
 /**
  * Calculate region statistics based on player answers and clan membership

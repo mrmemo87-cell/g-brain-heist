@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { RegionStats } from "./lockdownTypes";
 import { REGION_NAMES } from "./regionCalculator";
+import { getClanColor, NEUTRAL_COLOR } from "../../utils/clanColors";
 // @ts-expect-error - Vite injects raw SVG strings for ?raw imports
 import territoryMapSvgRaw from "./assets/territory_map.svg?raw";
 
@@ -76,37 +77,13 @@ interface LockdownMapProps {
   mapId?: string;
 }
 
-// Color palette for clans (can be extended)
-const CLAN_COLORS: Record<string, string> = {
-  default: "#10b981", // emerald-500
-  clan1: "#3b82f6", // blue-500
-  clan2: "#ef4444", // red-500
-  clan3: "#f59e0b", // amber-500
-  clan4: "#8b5cf6", // violet-500
-  clan5: "#ec4899", // pink-500
-  clan6: "#06b6d4", // cyan-500
-  clan7: "#f97316", // orange-500
-};
-
-const getColorForClan = (clanId: string): string => {
-  let hash = 0;
-  for (let i = 0; i < clanId.length; i += 1) {
-    hash = (hash << 5) - hash + clanId.charCodeAt(i);
-    hash |= 0;
-  }
-  const normalized = Math.abs(hash);
-  const hue = normalized % 360;
-  const saturation = 65 + (normalized % 15);
-  const lightness = 48 + ((normalized >> 8) % 12);
-  return `hsl(${hue} ${saturation}% ${lightness}%)`;
-};
-
+// Color resolution: prefer session-assigned color from state, fallback to shared utility
 const resolveClanColor = (stats: RegionStats, topClan?: RegionStats["topClan"]) => {
-  if (!topClan) return CLAN_COLORS.default;
+  if (!topClan) return NEUTRAL_COLOR;
   return (
     topClan.color
     ?? stats.clanStats.find((clan) => clan.clanId === topClan.clanId)?.color
-    ?? getColorForClan(topClan.clanId)
+    ?? getClanColor(topClan.clanId)
   );
 };
 

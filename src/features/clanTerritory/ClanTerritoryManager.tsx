@@ -4,7 +4,7 @@ import { ClanTerritoryTeacherView } from "./components/ClanTerritoryTeacherView"
 import { ClanTerritoryStudentView } from "./components/ClanTerritoryStudentView";
 import { QuestionSelectionModal } from "./components/QuestionSelectionModal";
 import { ClanTerritoryErrorBoundary } from "./components/ClanTerritoryErrorBoundary";
-import { ClanTerritoryGameState, ClanId, getClanColor } from "./clanTerritoryTypes";
+import { ClanTerritoryGameState, ClanId, getClanColor, assignSessionClanColor, getUsedSessionColors } from "./clanTerritoryTypes";
 import { INITIAL_STATE } from "./clanTerritoryEngine";
 import { supabase } from "../../../services/supabaseClient";
 import { audioService } from "../../../services/audioService";
@@ -95,7 +95,7 @@ const createClanlessIdentity = (playerName: string, playerId?: string | null) =>
   return {
     clanId,
     clanName: `${CLANLESS_CLAN_NAME} (${playerName})`,
-    clanColor: getClanColor(clanId),
+    clanColor: getClanColor(clanId), // session-level dedup happens in engine on JOIN
   };
 };
 
@@ -1342,8 +1342,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                     <div
                       className="p-3 rounded-xl border bg-black/30 text-center font-bold"
                       style={{
-                        borderColor: getClanColor(resolvedClanId),
-                        color: getClanColor(resolvedClanId),
+                        borderColor: gameState.clans[resolvedClanId]?.color || getClanColor(resolvedClanId),
+                        color: gameState.clans[resolvedClanId]?.color || getClanColor(resolvedClanId),
                       }}
                     >
                       {resolvedClanName}

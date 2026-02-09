@@ -7,26 +7,8 @@ export interface ClanMetadata {
   color: string;
 }
 
-const CLAN_COLOR_PALETTE = [
-  "#e11d48", // rose
-  "#2563eb", // blue
-  "#16a34a", // green
-  "#f59e0b", // amber
-  "#9333ea", // purple
-  "#0d9488", // teal
-  "#db2777", // pink
-  "#06b6d4", // cyan
-];
-
-export const getClanColor = (clanId: string): string => {
-  let hash = 0;
-  for (let i = 0; i < clanId.length; i += 1) {
-    hash = (hash << 5) - hash + clanId.charCodeAt(i);
-    hash |= 0; // Convert to 32bit integer
-  }
-  const index = Math.abs(hash) % CLAN_COLOR_PALETTE.length;
-  return CLAN_COLOR_PALETTE[index];
-};
+// Re-export from shared utility — single source of truth for clan colors
+export { getClanColor, assignSessionClanColor, getUsedSessionColors, SESSION_COLOR_PALETTE } from "../../utils/clanColors";
 
 export interface Zone {
   id: ZoneId;

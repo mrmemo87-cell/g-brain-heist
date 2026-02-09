@@ -11,7 +11,8 @@ import unitedKingdomMapSvgRaw from "../assets/unitedkingdom.svg?raw";
 let cityMapSvgRaw = "";
 let usaMapSvgRaw = "";
 
-import { ClanId, ClanMetadata, ZoneId, ZoneState, getClanColor } from "../clanTerritoryTypes";
+import { ClanId, ClanMetadata, ZoneId, ZoneState } from "../clanTerritoryTypes";
+import { getClanColor } from "../../../utils/clanColors";
 
 type MapConfig = {
   svg: string;

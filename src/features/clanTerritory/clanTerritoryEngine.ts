@@ -4,7 +4,8 @@ import {
   PlayerStats,
   ZoneId,
   CONFIG,
-  getClanColor,
+  assignSessionClanColor,
+  getUsedSessionColors,
   getZonesForMap,
 } from "./clanTerritoryTypes";
 
@@ -87,10 +88,11 @@ export function clanTerritoryReducer(
         bestStreak: 0,
       };
 
+      const usedColors = getUsedSessionColors(state.clans);
       const clanMeta = state.clans[player.clanId] ?? {
         id: player.clanId,
         name: player.clanName,
-        color: player.clanColor || getClanColor(player.clanId),
+        color: assignSessionClanColor(player.clanId, usedColors, player.clanColor),
       };
 
       return {

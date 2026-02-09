@@ -1113,6 +1113,13 @@
     loadDraft();
     startExamGuard();
   }
+
+  // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
+  window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'FORCE_SUBMIT') {
+      submitWriting();
+    }
+  });
 </script>
 
 </body>

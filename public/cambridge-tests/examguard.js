@@ -8,6 +8,7 @@
 
   const state = {
     active: false,
+    pending: false,
     config: null,
     violationsCount: 0,
     violationTimestamps: [],
@@ -369,9 +370,11 @@
     state.listeners = [];
   };
 
-  const start = (config) => {
+  // Internal: actually attach all listeners and activate ExamGuard
+  const doStart = (config) => {
     if (state.active) return;
     state.active = true;
+    state.pending = false;
     state.config = {
       ...config,
       actions: {
@@ -413,6 +416,26 @@
     addListener(window, 'focus', handleFocus);
   };
 
+  const start = (config) => {
+    if (state.active || state.pending) return;
+
+    // If the anti-cheat modal is currently showing, defer activation
+    // until the student clicks "I understand"
+    const antiCheatModal = document.getElementById('antiCheatModal');
+    if (antiCheatModal && antiCheatModal.classList.contains('show')) {
+      const acceptBtn = document.getElementById('antiCheatAcceptBtn');
+      if (acceptBtn) {
+        state.pending = true;
+        acceptBtn.addEventListener('click', () => {
+          doStart(config);
+        }, { once: true });
+        return;
+      }
+    }
+
+    doStart(config);
+  };
+
   const stop = () => {
     if (!state.active) return;
     stopAllListeners();
@@ -431,6 +454,7 @@
     restoreEditors(editors);
 
     state.active = false;
+    state.pending = false;
     state.config = null;
     state.blurTimer = null;
     state.inputState = new WeakMap();

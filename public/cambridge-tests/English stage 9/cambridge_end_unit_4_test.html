@@ -778,6 +778,7 @@
   function acknowledgeAntiCheat() {
     antiCheatAcknowledged = true;
     closeAntiCheatModal();
+    setupAntiCheat();
     startTimerIfReady();
   }
 
@@ -1027,10 +1028,16 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     loadStudentInfoFromGame();
-    setupAntiCheat();
     startTimerIfReady();
     const antiCheatAcceptBtn = document.getElementById('antiCheatAcceptBtn');
     if (antiCheatAcceptBtn) antiCheatAcceptBtn.addEventListener('click', acknowledgeAntiCheat);
+  });
+
+  // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
+  window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
+      submitScore();
+    }
   });
 </script>
 </body>

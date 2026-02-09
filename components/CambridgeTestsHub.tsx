@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../services/supabaseClient';
 import type { Profile } from '../types';
 
@@ -646,6 +646,8 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
   const [activeFeedbackPart, setActiveFeedbackPart] = useState<'part1' | 'part2'>('part1');
   const [collapsedSubjects, setCollapsedSubjects] = useState<Record<string, boolean>>({});
   const [visibleTestIds, setVisibleTestIds] = useState<Set<string>>(new Set());
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Fetch visible tests based on teacher visibility settings
   const loadVisibleTests = async () => {
@@ -841,7 +843,28 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
 
   const handleTestComplete = () => {
     setActiveTest(null);
+    setShowExitConfirm(false);
     loadTestProgress(); // Refresh completion status
+  };
+
+  // Show exit confirmation before leaving an active test
+  const handleExitClick = () => {
+    setShowExitConfirm(true);
+  };
+
+  // Confirm exit: auto-submit via postMessage, then close
+  const handleConfirmExit = () => {
+    try {
+      if (iframeRef.current?.contentWindow) {
+        iframeRef.current.contentWindow.postMessage({ type: 'FORCE_SUBMIT' }, '*');
+      }
+    } catch (e) {
+      console.error('Failed to send FORCE_SUBMIT to test iframe:', e);
+    }
+    // Give the iframe a moment to process the auto-submit, then close
+    setTimeout(() => {
+      handleTestComplete();
+    }, 1200);
   };
 
   // Function to view writing test feedback
@@ -1044,7 +1067,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
             </div>
           </div>
           <button
-            onClick={handleTestComplete}
+            onClick={handleExitClick}
             style={{
               padding: '6px 16px',
               backgroundColor: 'rgba(255,255,255,0.15)',
@@ -1062,6 +1085,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
         
         {/* Test iframe - absolute positioning for reliable sizing */}
         <iframe
+          ref={iframeRef}
           src={activeTest.url}
           style={{
             position: 'absolute',
@@ -1074,6 +1098,76 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           title={activeTest.name}
           allow="autoplay"
         />
+
+        {/* Exit Confirmation Modal */}
+        {showExitConfirm && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+          }}>
+            <div style={{
+              background: 'linear-gradient(145deg, #1e1b4b, #1a1a2e)',
+              borderRadius: '16px',
+              padding: '30px',
+              maxWidth: '420px',
+              width: '90%',
+              border: '1px solid rgba(255,100,100,0.3)',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+              textAlign: 'center',
+            }}>
+              <div style={{ fontSize: '48px', marginBottom: '15px' }}>⚠️</div>
+              <h3 style={{ margin: '0 0 10px', color: '#fff', fontSize: '20px', fontWeight: 700 }}>
+                Exit Test?
+              </h3>
+              <p style={{ margin: '0 0 25px', color: 'rgba(255,255,255,0.8)', fontSize: '14px', lineHeight: '1.6' }}>
+                Exiting now will <strong style={{ color: '#ff6b6b' }}>automatically submit</strong> your current answers. 
+                You will not be able to retake this test.
+              </p>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                <button
+                  onClick={() => setShowExitConfirm(false)}
+                  style={{
+                    padding: '10px 24px',
+                    backgroundColor: 'rgba(255,255,255,0.1)',
+                    color: '#fff',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  Continue Test
+                </button>
+                <button
+                  onClick={handleConfirmExit}
+                  style={{
+                    padding: '10px 24px',
+                    background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  Exit & Submit
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

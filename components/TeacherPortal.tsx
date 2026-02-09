@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, TeacherAssignmentSummary, TeacherAssignmentReportRow, AssignmentBatch, StudentForAssignment, QuestionOption, StudentAssignmentAnswer, AssignmentQuestionAnalysis } from '../types';
+import { Profile, TeacherQuestion, Teacher, Subject, QuestionDifficulty, TeacherAssignmentSummary, TeacherAssignmentReportRow, StudentForAssignment, QuestionOption, StudentAssignmentAnswer, AssignmentQuestionAnalysis } from '../types';
 import * as GameService from '../services/gameService';
 import * as AuthService from '../services/authService';
 import * as SchoolAdminService from '../services/schoolAdminService';
@@ -101,7 +101,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   // Assignment state
   const [assignments, setAssignments] = useState<TeacherAssignmentSummary[]>([]);
   const [assignmentMode, setAssignmentMode] = useState<'batch' | 'custom'>('batch');
-  const [assignmentBatch, setAssignmentBatch] = useState<AssignmentBatch>('All');
+  const [assignmentBatches, setAssignmentBatches] = useState<string[]>([]);
+  const questionBankSubjectRef = useRef(false);
   const [assignmentSubject, setAssignmentSubject] = useState<Subject>('Maths');
   const [assignmentTopicMode, setAssignmentTopicMode] = useState<'general' | 'custom'>('general');
   const [assignmentTopicName, setAssignmentTopicName] = useState('');
@@ -159,6 +160,15 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [visibilityLoading, setVisibilityLoading] = useState(false);
   const [showVisibilityManager, setShowVisibilityManager] = useState(false);
   const [visibilityTestsData, setVisibilityTestsData] = useState<any[]>([]);
+
+  // School-Level Visibility State
+  const [showSchoolLevelVisibility, setShowSchoolLevelVisibility] = useState(false);
+  const [schoolVisibility, setSchoolVisibility] = useState<{test_id: string; test_name: string; subject: string; category: string; is_visible: boolean; updated_by: string | null; updated_at: string | null}[]>([]);
+  const [schoolVisibilityLoading, setSchoolVisibilityLoading] = useState(false);
+  const [schoolVisibilitySubjectFilter, setSchoolVisibilitySubjectFilter] = useState<string>('all');
+  const [selectedSchoolTests, setSelectedSchoolTests] = useState<Set<string>>(new Set());
+  const [schoolVisConfirmDialog, setSchoolVisConfirmDialog] = useState<{title: string; description: string; confirmLabel: string; isDestructive?: boolean; onConfirm: () => Promise<void>} | null>(null);
+
   const [showWritingMarkingModal, setShowWritingMarkingModal] = useState(false);
   const [autoProofreadLoading, setAutoProofreadLoading] = useState(false);
   const [savingMarks, setSavingMarks] = useState(false);
@@ -466,6 +476,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   }, [showVisibilityManager, assignedClasses]);
 
   useEffect(() => {
+    // Don't clear questions when subject was set from the Question Bank "Host" flow
+    if (questionBankSubjectRef.current) {
+      questionBankSubjectRef.current = false;
+      return;
+    }
     setAssignmentQuestionIds([]);
   }, [assignmentSubject]);
 
@@ -788,6 +803,97 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       alert('An error occurred while updating test visibility.');
     }
   };
+
+  // ── School-Level Visibility Handlers ──────────────────────────────────
+
+  const loadSchoolVisibility = async () => {
+    setSchoolVisibilityLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('get_school_cambridge_test_visibility_settings');
+      if (error) {
+        console.error('Failed to load school visibility:', error);
+        alert('Failed to load school test visibility settings');
+        return;
+      }
+      setSchoolVisibility(data || []);
+    } catch (err) {
+      console.error('Exception loading school visibility:', err);
+      alert('Failed to load school test visibility settings');
+    } finally {
+      setSchoolVisibilityLoading(false);
+    }
+  };
+
+  const toggleSchoolTestVisibility = async (testId: string, currentlyVisible: boolean) => {
+    try {
+      const { data, error } = await supabase.rpc('set_school_cambridge_test_visibility', {
+        p_test_id: testId,
+        p_is_visible: !currentlyVisible,
+      });
+      if (error) {
+        console.error('Toggle error:', error);
+        alert('Failed to update test visibility: ' + error.message);
+        return;
+      }
+      if (data && !data.success) {
+        alert(data.error || 'Failed to update');
+        return;
+      }
+      setSchoolVisibility(prev => prev.map(t =>
+        t.test_id === testId ? { ...t, is_visible: !currentlyVisible } : t
+      ));
+    } catch (err) {
+      console.error('Exception toggling school visibility:', err);
+      alert('Failed to update test visibility');
+    }
+  };
+
+  const bulkSetSchoolVisibility = async (testIds: string[], isVisible: boolean) => {
+    try {
+      const { data, error } = await supabase.rpc('bulk_set_school_cambridge_test_visibility', {
+        p_test_ids: testIds,
+        p_is_visible: isVisible,
+      });
+      if (error) {
+        console.error('Bulk toggle error:', error);
+        alert('Failed to bulk update visibility: ' + error.message);
+        return;
+      }
+      if (data && !data.success) {
+        alert(data.error || 'Failed to update');
+        return;
+      }
+      const idSet = new Set(testIds);
+      setSchoolVisibility(prev => prev.map(t =>
+        idSet.has(t.test_id) ? { ...t, is_visible: isVisible } : t
+      ));
+    } catch (err) {
+      console.error('Exception in bulk school visibility:', err);
+      alert('Failed to bulk update visibility');
+    }
+  };
+
+  // Filter school visibility to teacher's assigned subjects (flexible matching)
+  const teacherFilteredSchoolVisibility = useMemo(() => {
+    if (schoolVisibility.length === 0) return [];
+    const lowerSubjects = teacherAssignedSubjects.map(s => s.toLowerCase());
+    return schoolVisibility.filter(test => {
+      const testSubj = (test.subject || '').toLowerCase();
+      return lowerSubjects.some(s =>
+        testSubj.includes(s) || s.includes(testSubj) || testSubj.includes(s.split(' ')[0])
+      );
+    });
+  }, [schoolVisibility, teacherAssignedSubjects]);
+
+  const schoolVisSubjectOptions = useMemo(() =>
+    Array.from(new Set(teacherFilteredSchoolVisibility.map(t => t.subject).filter(Boolean))).sort()
+  , [teacherFilteredSchoolVisibility]);
+
+  const displayedSchoolVisibility = schoolVisibilitySubjectFilter === 'all'
+    ? teacherFilteredSchoolVisibility
+    : teacherFilteredSchoolVisibility.filter(t => t.subject === schoolVisibilitySubjectFilter);
+
+  // ── End School-Level Visibility Handlers ──────────────────────────────
 
   // Release scores for a quiz (make visible to students)
   const releaseScores = async (quizName: string, classFilter?: string) => {
@@ -2444,6 +2550,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   // Handle "Use Set" from the Blooket-style QuestionBank
   const handleUseQuestionSet = useCallback((questionIds: string[], subject: Subject, topic: string) => {
     // Pre-select the questions and set subject/topic from the selected set
+    questionBankSubjectRef.current = true; // Prevent the subject-change useEffect from clearing these IDs
     setAssignmentQuestionIds(questionIds);
     setAssignmentSubject(subject);
     if (topic && topic !== 'General') {
@@ -2477,8 +2584,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       return;
     }
 
-    if (assignmentMode === 'batch' && !assignmentBatch) {
-      alert('Please select a batch for this assignment.');
+    if (assignmentMode === 'batch' && assignmentBatches.length === 0) {
+      alert('Please select at least one class/batch for this assignment.');
       return;
     }
 
@@ -2496,27 +2603,63 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
     try {
       setAssignmentSubmitting(true);
-      await GameService.create_assignment({
-        subject: assignmentSubject,
-        topic_name: assignmentTopicLabel,
-        batch: assignmentMode === 'batch' ? assignmentBatch : undefined,
-        question_ids: assignmentQuestionIds,
-        assigned_at: toIso(assignmentAssignedAt) ?? new Date().toISOString(),
-        due_at: toIso(assignmentDueAt),
-        title: assignmentTitle || undefined,
-        description: assignmentDescription || undefined,
-        instructions: assignmentInstructions || undefined,
-        difficulty: assignmentDifficulty,
-        assignment_mode: assignmentMode,
-        student_ids: assignmentMode === 'custom' ? selectedStudentIds : undefined,
-      });
 
-      alert('📌 Assignment created and sent to students!');
+      if (assignmentMode === 'batch') {
+        // Create one assignment per selected batch/class
+        const batchesToAssign = assignmentBatches;
+        const results: string[] = [];
+        const errors: string[] = [];
+
+        for (const batch of batchesToAssign) {
+          try {
+            await GameService.create_assignment({
+              subject: assignmentSubject,
+              topic_name: assignmentTopicLabel,
+              batch: batch,
+              question_ids: assignmentQuestionIds,
+              assigned_at: toIso(assignmentAssignedAt) ?? new Date().toISOString(),
+              due_at: toIso(assignmentDueAt),
+              title: assignmentTitle || undefined,
+              description: assignmentDescription || undefined,
+              instructions: assignmentInstructions || undefined,
+              difficulty: assignmentDifficulty,
+              assignment_mode: 'batch',
+            });
+            results.push(batch);
+          } catch (err) {
+            errors.push(`${batch}: ${(err as Error).message}`);
+          }
+        }
+
+        if (errors.length > 0) {
+          alert(`⚠️ Created for ${results.length} class(es), but failed for:\n${errors.join('\n')}`);
+        }
+      } else {
+        // Custom mode — single creation for selected students
+        await GameService.create_assignment({
+          subject: assignmentSubject,
+          topic_name: assignmentTopicLabel,
+          batch: undefined,
+          question_ids: assignmentQuestionIds,
+          assigned_at: toIso(assignmentAssignedAt) ?? new Date().toISOString(),
+          due_at: toIso(assignmentDueAt),
+          title: assignmentTitle || undefined,
+          description: assignmentDescription || undefined,
+          instructions: assignmentInstructions || undefined,
+          difficulty: assignmentDifficulty,
+          assignment_mode: 'custom',
+          student_ids: selectedStudentIds,
+        });
+      }
+
+      const classCount = assignmentMode === 'batch' ? assignmentBatches.length : 1;
+      alert(`📌 Assignment created and sent to ${assignmentMode === 'batch' ? `${classCount} class${classCount !== 1 ? 'es' : ''}` : `${selectedStudentIds.length} student${selectedStudentIds.length !== 1 ? 's' : ''}`}!`);
       setAssignmentQuestionIds([]);
       setAssignmentTitle('');
       setAssignmentDescription('');
       setAssignmentInstructions('');
       setSelectedStudentIds([]);
+      setAssignmentBatches([]);
       setStudentSearchTerm('');
       setAssignmentTopicMode('general');
       setAssignmentTopicName('');
@@ -3806,7 +3949,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 <div className="teacher-mode-btn-icon">📚</div>
                 <div className="teacher-mode-btn-text">
                   <h4>Assign to Batch</h4>
-                  <p>Send to an entire class</p>
+                  <p>Send to one or more classes</p>
                 </div>
               </button>
               <button
@@ -3823,22 +3966,79 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </div>
           </div>
 
-          {/* Batch Selection (only shown in batch mode) */}
+          {/* Batch Selection (only shown in batch mode) — multi-select */}
           {assignmentMode === 'batch' && (
             <div className="teacher-form-group-premium">
-              <label className="teacher-label-premium">Class / Batch</label>
-              <select
-                value={assignmentBatch}
-                onChange={(e) => setAssignmentBatch(e.target.value as AssignmentBatch)}
-                className="teacher-select-premium"
-              >
-                <option value="All">All Students ({availableStudents.length})</option>
-                {availableBatches.map(batch => (
-                  <option key={batch} value={batch}>
-                    {batch} ({availableStudents.filter(s => s.batch === batch).length} students)
-                  </option>
-                ))}
-              </select>
+              <label className="teacher-label-premium">Class / Batch <span style={{ fontSize: '0.8em', fontWeight: 'normal', opacity: 0.7 }}>(select one or more)</span></label>
+              <div className="teacher-student-selector" style={{ maxHeight: 'none' }}>
+                <div className="teacher-student-selector-header">
+                  <span className="teacher-student-selector-title">
+                    {assignmentBatches.length === 0
+                      ? 'No class selected'
+                      : `${assignmentBatches.length} class${assignmentBatches.length !== 1 ? 'es' : ''} selected`}
+                  </span>
+                  <div className="teacher-student-selector-actions">
+                    <button
+                      type="button"
+                      onClick={() => setAssignmentBatches(['All', ...availableBatches])}
+                      className="teacher-student-select-all"
+                    >
+                      Select All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAssignmentBatches([])}
+                      className="teacher-student-clear"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+                <div className="teacher-student-list" style={{ maxHeight: '220px' }}>
+                  {/* "All Students" option */}
+                  <label
+                    className={`teacher-student-item ${assignmentBatches.includes('All') ? 'selected' : ''}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={assignmentBatches.includes('All')}
+                      onChange={() => {
+                        setAssignmentBatches(prev =>
+                          prev.includes('All') ? prev.filter(b => b !== 'All') : [...prev, 'All']
+                        );
+                      }}
+                    />
+                    <div className="teacher-student-info">
+                      <div className="teacher-student-name">All Students</div>
+                      <div className="teacher-student-meta">{availableStudents.length} students total</div>
+                    </div>
+                  </label>
+                  {/* Individual batches */}
+                  {availableBatches.map(batch => {
+                    const count = availableStudents.filter(s => s.batch === batch).length;
+                    return (
+                      <label
+                        key={batch}
+                        className={`teacher-student-item ${assignmentBatches.includes(batch) ? 'selected' : ''}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={assignmentBatches.includes(batch)}
+                          onChange={() => {
+                            setAssignmentBatches(prev =>
+                              prev.includes(batch) ? prev.filter(b => b !== batch) : [...prev, batch]
+                            );
+                          }}
+                        />
+                        <div className="teacher-student-info">
+                          <div className="teacher-student-name">{batch}</div>
+                          <div className="teacher-student-meta">{count} student{count !== 1 ? 's' : ''}</div>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           )}
 
@@ -4129,10 +4329,14 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
           <button
             type="submit"
-            disabled={assignmentSubmitting || assignmentQuestionIds.length === 0}
+            disabled={assignmentSubmitting || assignmentQuestionIds.length === 0 || (assignmentMode === 'batch' && assignmentBatches.length === 0)}
             className="teacher-submit-premium"
           >
-            {assignmentSubmitting ? 'Creating Assignment...' : `Create Assignment (${assignmentQuestionIds.length} questions)`}
+            {assignmentSubmitting
+              ? 'Creating Assignment...'
+              : assignmentMode === 'batch' && assignmentBatches.length > 1
+                ? `Create Assignment for ${assignmentBatches.length} Classes (${assignmentQuestionIds.length} questions)`
+                : `Create Assignment (${assignmentQuestionIds.length} questions)`}
           </button>
         </form>
         </div>
@@ -4767,6 +4971,24 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               >
                 👁️ Test Visibility
               </button>
+              {teacherAssignedSubjects.length > 0 && (
+                <button
+                  onClick={() => {
+                    setShowSchoolLevelVisibility(!showSchoolLevelVisibility);
+                    if (!showSchoolLevelVisibility && schoolVisibility.length === 0) {
+                      loadSchoolVisibility();
+                    }
+                  }}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                    showSchoolLevelVisibility
+                      ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                      : 'border border-indigo-400 text-indigo-700 hover:bg-indigo-50'
+                  }`}
+                  title="Manage school-wide test visibility for your subjects"
+                >
+                  🏫 School Visibility
+                </button>
+              )}
             </div>
             {pendingWriting > 0 && (
               <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-semibold">
@@ -4776,6 +4998,201 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </div>
         </div>
       </div>
+
+      {/* School-Level Visibility Collapsible Panel */}
+      {showSchoolLevelVisibility && (
+        <div className="bg-white rounded-2xl p-5 border-2 border-indigo-200 shadow-sm mb-2">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h4 className="text-lg font-bold text-indigo-700">🏫 School-Level Test Visibility</h4>
+              <p className="text-xs text-slate-500 mt-1">Hide or show Cambridge tests school-wide for your assigned subjects. Hidden tests are invisible to all students.</p>
+            </div>
+            <button
+              onClick={loadSchoolVisibility}
+              disabled={schoolVisibilityLoading}
+              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
+            >
+              {schoolVisibilityLoading ? '⏳' : '🔄'} Refresh
+            </button>
+          </div>
+
+          {schoolVisibilityLoading ? (
+            <div className="text-center py-8 text-slate-400">
+              <div className="text-3xl mb-2">⏳</div>
+              Loading school visibility settings...
+            </div>
+          ) : teacherFilteredSchoolVisibility.length === 0 ? (
+            <div className="text-center py-8 text-slate-400">
+              <div className="text-3xl mb-2">📋</div>
+              No Cambridge tests found for your assigned subjects.
+            </div>
+          ) : (
+            <>
+              {/* Subject filter + selection + bulk actions */}
+              <div className="flex flex-wrap items-center gap-3 mb-4">
+                <select
+                  value={schoolVisibilitySubjectFilter}
+                  onChange={(e) => {
+                    setSchoolVisibilitySubjectFilter(e.target.value);
+                    setSelectedSchoolTests(new Set());
+                  }}
+                  className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-slate-700 text-sm focus:outline-none focus:border-indigo-500"
+                >
+                  <option value="all">All Subjects ({teacherFilteredSchoolVisibility.length})</option>
+                  {schoolVisSubjectOptions.map(subj => (
+                    <option key={subj} value={subj}>
+                      {subj} ({teacherFilteredSchoolVisibility.filter(t => t.subject === subj).length})
+                    </option>
+                  ))}
+                </select>
+
+                {/* Select All / Deselect All */}
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={selectedSchoolTests.size === displayedSchoolVisibility.length && displayedSchoolVisibility.length > 0}
+                    ref={el => { if (el) el.indeterminate = selectedSchoolTests.size > 0 && selectedSchoolTests.size < displayedSchoolVisibility.length; }}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedSchoolTests(new Set(displayedSchoolVisibility.map(t => t.test_id)));
+                      } else {
+                        setSelectedSchoolTests(new Set());
+                      }
+                    }}
+                    className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <span className="text-xs text-slate-600 font-medium">
+                    {selectedSchoolTests.size === displayedSchoolVisibility.length && displayedSchoolVisibility.length > 0
+                      ? 'Deselect All'
+                      : 'Select All'} ({displayedSchoolVisibility.length})
+                  </span>
+                </label>
+
+                {/* Bulk actions for selected tests */}
+                {selectedSchoolTests.size > 0 && (
+                  <>
+                    <button
+                      onClick={() => setSchoolVisConfirmDialog({
+                        title: '✅ Show Selected Tests?',
+                        description: `This will make ${selectedSchoolTests.size} test(s) visible to all students in your school.`,
+                        confirmLabel: 'Show Tests',
+                        onConfirm: async () => {
+                          await bulkSetSchoolVisibility(Array.from(selectedSchoolTests), true);
+                          setSelectedSchoolTests(new Set());
+                        }
+                      })}
+                      disabled={Array.from(selectedSchoolTests).every(id => displayedSchoolVisibility.find(t => t.test_id === id)?.is_visible)}
+                      className="px-3 py-1.5 bg-green-50 hover:bg-green-100 border border-green-400 text-green-700 text-xs font-semibold rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      ✅ Show Selected ({selectedSchoolTests.size})
+                    </button>
+                    <button
+                      onClick={() => setSchoolVisConfirmDialog({
+                        title: '🔒 Hide Selected Tests?',
+                        description: `This will hide ${selectedSchoolTests.size} test(s) from ALL students in your school. They can be shown again later.`,
+                        confirmLabel: 'Hide Tests',
+                        isDestructive: true,
+                        onConfirm: async () => {
+                          await bulkSetSchoolVisibility(Array.from(selectedSchoolTests), false);
+                          setSelectedSchoolTests(new Set());
+                        }
+                      })}
+                      disabled={Array.from(selectedSchoolTests).every(id => !displayedSchoolVisibility.find(t => t.test_id === id)?.is_visible)}
+                      className="px-3 py-1.5 bg-red-50 hover:bg-red-100 border border-red-400 text-red-700 text-xs font-semibold rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      🚫 Hide Selected ({selectedSchoolTests.size})
+                    </button>
+                  </>
+                )}
+
+                <span className="text-xs text-slate-500 ml-auto">
+                  {selectedSchoolTests.size > 0 ? `${selectedSchoolTests.size} selected · ` : ''}
+                  {displayedSchoolVisibility.filter(t => t.is_visible).length} / {displayedSchoolVisibility.length} visible
+                </span>
+              </div>
+
+              {/* Tests list with checkboxes */}
+              <div className="bg-slate-50 rounded-lg border border-slate-200 divide-y divide-slate-200 max-h-80 overflow-y-auto">
+                {displayedSchoolVisibility.map(test => (
+                  <div key={test.test_id} className="px-4 py-3 flex items-center gap-3 hover:bg-slate-100 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={selectedSchoolTests.has(test.test_id)}
+                      onChange={(e) => {
+                        const next = new Set(selectedSchoolTests);
+                        if (e.target.checked) next.add(test.test_id);
+                        else next.delete(test.test_id);
+                        setSelectedSchoolTests(next);
+                      }}
+                      className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0 mr-3">
+                      <p className="text-sm font-medium text-slate-900 truncate">{test.test_name}</p>
+                      <p className="text-xs text-slate-500">{test.subject} · {test.category || 'N/A'}</p>
+                    </div>
+                    <button
+                      onClick={() => setSchoolVisConfirmDialog({
+                        title: test.is_visible ? '🔒 Hide This Test?' : '👁️ Show This Test?',
+                        description: test.is_visible
+                          ? `"${test.test_name}" will be hidden from all students school-wide.`
+                          : `"${test.test_name}" will become visible to all students school-wide.`,
+                        confirmLabel: test.is_visible ? 'Hide Test' : 'Show Test',
+                        isDestructive: test.is_visible,
+                        onConfirm: async () => {
+                          await toggleSchoolTestVisibility(test.test_id, test.is_visible);
+                        }
+                      })}
+                      className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors flex-shrink-0 ${
+                        test.is_visible
+                          ? 'bg-green-100 text-green-700 border border-green-300 hover:bg-green-200'
+                          : 'bg-red-100 text-red-700 border border-red-300 hover:bg-red-200'
+                      }`}
+                    >
+                      {test.is_visible ? '👁️ Visible' : '🔒 Hidden'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <p className="text-xs text-slate-500 mt-3">
+                💡 Hidden tests won't appear for any student in your school. Only tests matching your assigned subjects are shown here.
+              </p>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* School Visibility Confirmation Dialog */}
+      {schoolVisConfirmDialog && createPortal(
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl border border-slate-200 mx-4">
+            <h3 className="text-xl font-bold text-slate-900 mb-2">{schoolVisConfirmDialog.title}</h3>
+            <p className="text-sm text-slate-600 mb-6">{schoolVisConfirmDialog.description}</p>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => setSchoolVisConfirmDialog(null)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  await schoolVisConfirmDialog.onConfirm();
+                  setSchoolVisConfirmDialog(null);
+                }}
+                className={`px-4 py-2 rounded-lg font-semibold text-white transition-colors ${
+                  schoolVisConfirmDialog.isDestructive
+                    ? 'bg-red-600 hover:bg-red-500'
+                    : 'bg-indigo-600 hover:bg-indigo-500'
+                }`}
+              >
+                {schoolVisConfirmDialog.confirmLabel}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
       <div className="flex min-h-0 flex-col lg:flex-row gap-6 flex-1">
         <div className="lg:w-80 lg:shrink-0 min-h-0">
