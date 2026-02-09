@@ -751,11 +751,23 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       );
 
       // Map test completion status
+      const normalizeTestName = (value: string) => value
+        .toLowerCase()
+        .replace(/cambridge/g, '')
+        .replace(/&/g, 'and')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
       const testsWithProgress = availableTests.map(test => {
-        const completion = completedTests?.find(c => 
-          c.quiz_name.toLowerCase().includes(test.id.replace(/-/g, ' ').replace('cambridge ', ''))
-          || test.name.toLowerCase().includes(c.quiz_name.toLowerCase().replace('cambridge ', ''))
-        );
+        const normalizedTestId = normalizeTestName(test.id.replace(/-/g, ' '));
+        const normalizedTestName = normalizeTestName(test.name);
+        const completion = completedTests?.find(c => {
+          const normalizedQuizName = normalizeTestName(c.quiz_name);
+          return normalizedQuizName.includes(normalizedTestId)
+            || normalizedQuizName.includes(normalizedTestName)
+            || normalizedTestName.includes(normalizedQuizName);
+        });
         
         // Check if this is a writing test awaiting marking
         // Parse answers if it's a string (Supabase sometimes returns JSONB as string)
