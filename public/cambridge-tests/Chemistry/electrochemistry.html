@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry Ch6 (Electrochemistry)</title>
   <script src="../examguard.js"></script>
+  <script src="chemistry_master_answer_key.js"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -1470,21 +1471,7 @@
         }
       },
     ];
-
-    let ANSWER_KEY = {
-      1: 'A', 2: 'C', 3: 'D', 4: 'A', 5: 'C',
-      6: 'D', 7: 'D', 8: 'D', 9: 'C', 10: 'B',
-      11: 'D', 12: 'B', 13: 'C', 14: 'A', 15: 'B',
-      16: 'A', 17: 'C', 18: 'B', 19: 'B', 20: 'C',
-      21: 'D', 22: 'A', 23: 'A', 24: 'D', 25: 'C',
-      26: 'C', 27: 'D', 28: 'C', 29: 'B', 30: 'A',
-      31: 'B', 32: 'D', 33: 'D', 34: 'B', 35: 'C',
-      36: 'B', 37: 'A', 38: 'C', 39: 'B', 40: 'C',
-      41: 'B', 42: 'A', 43: 'B', 44: 'A', 45: 'D',
-      46: 'A', 47: 'C', 48: 'C', 49: 'D', 50: 'B',
-      51: 'B', 52: 'A', 53: 'C', 54: 'D', 55: 'A',
-      56: 'D',
-    };
+    let ANSWER_KEY = window.CHEMISTRY_MASTER_ANSWER_KEY.getAnswerKeyForQuestions(QUESTIONS);
 
     const quizSplit = splitQuiz(QUESTIONS, ANSWER_KEY, QUIZ_PART.part);
     QUESTIONS = quizSplit.questions;
