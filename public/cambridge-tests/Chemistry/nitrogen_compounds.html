@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry Ch19 ( Nitrogen compounds )</title>
   <script src="../examguard.js"></script>
+  <script src="chemistry_master_answer_key.js"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -862,11 +863,7 @@
         }
       },
     ];
-
-    // Placeholder answer key (awaiting official answers)
-    let ANSWER_KEY = {
-      1: 'D', 2: 'C', 3: 'C', 4: 'A', 5: 'D', 6: 'C',
-    };
+    let ANSWER_KEY = window.CHEMISTRY_MASTER_ANSWER_KEY.getAnswerKeyForQuestions(QUESTIONS);
 
     const quizSplit = splitQuiz(QUESTIONS, ANSWER_KEY, QUIZ_PART.part);
     QUESTIONS = quizSplit.questions;
