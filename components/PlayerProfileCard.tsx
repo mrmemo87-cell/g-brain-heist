@@ -90,11 +90,6 @@ const groupActiveBuffs = (buffs: ActiveClanBuff[]) => Object.values(
 
 
 const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
-  console.log('[ProfileCard] Rendering with cosmetics:', {
-    active_cosmetic_frame: profile.active_cosmetic_frame,
-    active_cosmetic_theme: profile.active_cosmetic_theme
-  });
-
   const xpProgress = getXpProgress(profile.xp, profile.level);
 
   // Level mismatch warnings suppressed - using hard curve formula now
@@ -309,4 +304,4 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
   );
 };
 
-export default PlayerProfileCard;
+export default React.memo(PlayerProfileCard);

@@ -2139,6 +2139,212 @@
 }
 
 /* ============================================================
+   PRO / FREE BADGES & LOCKED STATES
+   ============================================================ */
+
+/* PRO badge on Quick Action cards */
+.teacher-pro-badge {
+  position: absolute;
+  top: 0.625rem;
+  right: 0.625rem;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #ffffff;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.35);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* FREE badge on Lockdown card */
+.teacher-free-badge {
+  position: absolute;
+  top: 0.625rem;
+  right: 0.625rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.35);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Smaller PRO badge on tool cards */
+.teacher-pro-badge-sm {
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #ffffff;
+  font-size: 0.5625rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 0.15rem 0.45rem;
+  border-radius: 5px;
+  text-transform: uppercase;
+  box-shadow: 0 1px 4px rgba(245, 158, 11, 0.3);
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Tool card info wrapper (title + desc) */
+.teacher-tool-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+/* PRO tag in navigation labels */
+.teacher-nav-pro-tag {
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #ffffff;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  margin-left: 0.375rem;
+  vertical-align: middle;
+  box-shadow: 0 1px 3px rgba(245, 158, 11, 0.25);
+}
+
+/* Locked nav tab styling */
+.teacher-nav-btn.teacher-nav-locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+  filter: grayscale(0.3);
+}
+
+.teacher-nav-btn.teacher-nav-locked:hover {
+  transform: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* Disabled action card styling */
+.teacher-action-card:disabled,
+.teacher-action-card[disabled] {
+  pointer-events: none;
+}
+
+.teacher-action-card:disabled::before,
+.teacher-action-card[disabled]::before {
+  opacity: 0 !important;
+}
+
+/* Disabled tool card styling */
+.teacher-tool-card:disabled,
+.teacher-tool-card[disabled] {
+  pointer-events: none;
+  filter: grayscale(0.15);
+}
+
+/* Plan banner styles */
+.teacher-plan-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  border-radius: var(--teacher-radius-md);
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.teacher-plan-banner.info {
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border: 1px solid #93c5fd;
+  color: #1e40af;
+}
+
+.teacher-plan-banner.warning {
+  background: linear-gradient(135deg, #fefce8, #fef9c3);
+  border: 1px solid #fcd34d;
+  color: #92400e;
+}
+
+.teacher-plan-banner.success {
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  border: 1px solid #86efac;
+  color: #166534;
+}
+
+/* ============================================================
+   LAYOUT FIX — Prevent overlapping on small screens
+   ============================================================ */
+
+/* Ensure nav container doesn't overlap content */
+.teacher-nav-container {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin-bottom: 1.5rem;
+}
+
+/* Make action cards not overlap on mobile */
+@media (max-width: 639px) {
+  .teacher-actions-grid {
+    grid-template-columns: 1fr;
+    gap: 0.875rem;
+  }
+
+  .teacher-action-card {
+    padding: 1.25rem;
+  }
+
+  .teacher-action-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .teacher-tools-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .teacher-tool-card {
+    padding: 1rem;
+  }
+
+  .teacher-pro-badge,
+  .teacher-free-badge {
+    font-size: 0.5625rem;
+    padding: 0.15rem 0.4rem;
+  }
+}
+
+/* Fix action grid at tablet size — 2 cols max */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .teacher-actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .teacher-tools-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Ensure buttons inside cards don't overflow */
+.teacher-action-card,
+.teacher-tool-card {
+  overflow: hidden;
+  word-break: break-word;
+}
+
+/* ============================================================
    PRINT STYLES
    ============================================================ */
 @media print {

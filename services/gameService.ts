@@ -1303,6 +1303,62 @@ export const resetGameData = (): void => {
 
 let whoamiInFlight: Promise<Profile> | null = null;
 
+/**
+ * Lightweight whoami for teachers — only fetches profile + school info.
+ * Skips: AP regen, streak, inventory, clan, cosmetics, XP status, shared player list.
+ * Cuts boot from ~9s to <2s.
+ */
+export const whoamiTeacher = async (): Promise<Profile> => {
+  const user = await getCurrentUser();
+  console.log(`[whoami-teacher] Fetching profile for user ${user.id}`);
+
+  const { data: profile, error: profileError } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !profile) {
+    throw new Error(`Failed to load teacher profile: ${profileError?.message || 'null'}`);
+  }
+
+  console.log(`[whoami-teacher] Got teacher profile: ${profile.username}`);
+
+  // Minimal fixes
+  if (typeof profile.gemstones !== 'number') profile.gemstones = 0;
+  profile.is_admin = typeof profile.is_admin === 'boolean' ? profile.is_admin : profile.role === 'admin';
+  profile.is_banned = isBannedFlag(profile.is_banned);
+  if (profile.is_banned) {
+    storeBanMessage(BAN_MESSAGE);
+    await supabase.auth.signOut();
+    throw new Error(BAN_MESSAGE);
+  }
+
+  profile.ap_now = profile.ap_max || 100;
+  profile.last_ap_update = new Date().toISOString();
+  profile.total_score = 0;
+
+  // School info (needed for display)
+  if (profile.school_id) {
+    try {
+      const { data: schoolData } = await supabase
+        .from('schools')
+        .select('name, logo_url')
+        .eq('id', profile.school_id)
+        .single();
+      if (schoolData) {
+        profile.school_name = schoolData.name;
+        profile.school_logo_url = schoolData.logo_url;
+      }
+    } catch { /* non-critical */ }
+  }
+
+  // Update last_seen
+  supabase.from('users').update({ last_seen: new Date().toISOString() }).eq('id', user.id).then(() => {});
+
+  return profile;
+};
+
 export const whoami = async (): Promise<Profile> => {
   if (whoamiInFlight) {
     return whoamiInFlight;

@@ -9,6 +9,7 @@ import { update_avatar, upload_avatar_file } from '../services/gameService';
 import { isAdmin } from '../services/adminService';
 import SettingsModal from './SettingsModal';
 import UserProfileModal from './UserProfileModal';
+import { fetchSchoolPlanDetails, type SchoolPlanDetails, type SchoolPlan } from '../services/tierService';
 
 // Custom hook for animating number changes
 const useAnimatedValue = (endValue: number, duration: number = 500) => {
@@ -103,7 +104,45 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   const [calculatedAP, setCalculatedAP] = useState<number>(profile.ap_now);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [planDetails, setPlanDetails] = useState<SchoolPlanDetails | null>(null);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
+
+  // Fetch school plan on mount
+  useEffect(() => {
+    let cancelled = false;
+    fetchSchoolPlanDetails().then((d) => {
+      if (!cancelled) setPlanDetails(d);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Calculate pilot countdown
+  const getPlanBadgeInfo = () => {
+    if (!planDetails || !planDetails.success) return null;
+    const plan = planDetails.plan;
+    if (plan === 'none') return { label: 'FREE', color: 'gray', countdown: null };
+    if (plan === 'pilot') {
+      let countdown: string | null = null;
+      if (planDetails.trial_ends_at) {
+        const end = new Date(planDetails.trial_ends_at).getTime();
+        const now = Date.now();
+        const diff = end - now;
+        if (diff > 0) {
+          const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+          countdown = `${days}d left`;
+        } else {
+          countdown = 'Expired';
+        }
+      }
+      return { label: 'PILOT', color: 'cyan', countdown };
+    }
+    const colorMap: Record<string, string> = {
+      core: 'blue', standard: 'emerald', pro: 'amber', enterprise: 'purple'
+    };
+    return { label: plan.toUpperCase(), color: colorMap[plan] || 'blue', countdown: null };
+  };
+
+  const badgeInfo = getPlanBadgeInfo();
 
   const avatarPresets = [
     'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
@@ -294,22 +333,22 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   return (
     <>
       <header className="z-40 border-b border-slate-800/60 bg-slate-950/85 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-3 py-3 sm:px-6">
+        <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-2 px-3 py-2 sm:px-4 lg:px-6">
           
           {/* Mobile Layout (< 768px) */}
           <div className="md:hidden">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 min-w-0">
                 <img 
                   src="/logo.png" 
                   alt="Brains Heist Logo" 
-                  className="w-8 h-8 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)] cursor-pointer"
+                  className="w-8 h-8 flex-shrink-0 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)] cursor-pointer"
                   onClick={handleBrandClick}
                 />
                 <button
                   type="button"
                   onClick={handleBrandClick}
-                  className="font-heading text-lg font-black tracking-wider select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70"
+                  className="font-heading text-lg font-black tracking-wider select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 truncate"
                   aria-label="Go to dashboard"
                 >
                   <span
@@ -334,6 +373,17 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                   </span>
                 </button>
               </div>
+              {/* Plan Badge - Mobile */}
+              {badgeInfo && badgeInfo.label !== 'FREE' && (
+                <div className="plan-badge-mobile flex-shrink-0 mx-1">
+                  <div className={`plan-badge plan-badge--${badgeInfo.color}`}>
+                    <span className="plan-badge__label">{badgeInfo.label}</span>
+                    {badgeInfo.countdown && (
+                      <span className="plan-badge__countdown">{badgeInfo.countdown}</span>
+                    )}
+                  </div>
+                </div>
+              )}
               <div className="relative flex items-center gap-2" ref={mobileMenuRef}>
                 <button
                   type="button"
@@ -495,196 +545,200 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
             )}
           </div>
 
-          {/* Desktop Layout (>= 768px) */}
-          <div className="hidden md:flex items-center justify-between gap-4">
+          {/* Desktop Layout (>= 768px) — Two rows */}
+          <div className="hidden md:flex flex-col gap-1.5">
             
-            {/* Left: BRAIN HEIST Brand */}
-            <div className="flex items-center space-x-4">
-              <div className="relative group flex items-center gap-3">
-                <img 
-                  src="/logo.png" 
-                  alt="Brains Heist Logo" 
-                  className="w-10 h-10 lg:w-12 lg:h-12 drop-shadow-[0_0_10px_rgba(59,130,246,0.6)] cursor-pointer hover:scale-110 transition-transform"
-                  onClick={handleBrandClick}
-                />
-                <button
-                  type="button"
-                  onClick={handleBrandClick}
-                  className="font-heading text-2xl sm:text-3xl lg:text-4xl font-black tracking-widest select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 rounded"
-                  aria-label="Go to dashboard"
-                >
-                  <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]" 
-                        style={{ 
-                          backgroundImage: 'linear-gradient(90deg, #22d3ee 0%, #3b82f6 25%, #8b5cf6 50%, #3b82f6 75%, #22d3ee 100%)',
-                          animation: 'shimmer 3s linear infinite'
-                        }}>
-                    BRAINS
-                  </span>
-                  {' '}
-                  <span className="bg-gradient-to-r from-pink-500 via-red-500 to-orange-500 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]"
-                        style={{ 
-                          backgroundImage: 'linear-gradient(90deg, #ec4899 0%, #ef4444 25%, #f97316 50%, #ef4444 75%, #ec4899 100%)',
-                          animation: 'shimmer 3s linear infinite',
-                          animationDelay: '1.5s'
-                        }}>
-                    HEIST
-                  </span>
-                </button>
-                <div className="absolute -bottom-1 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-500 via-pink-500 to-cyan-500 opacity-50 blur-sm"></div>
-              </div>
-              
-              {/* Username badge */}
-              <div
-                className="flex items-center space-x-2 px-4 py-2 bg-black/40 rounded-full border border-cyan-500/30 backdrop-blur-sm cursor-pointer"
-                role="button"
-                tabIndex={0}
-                onClick={() => setShowProfileModal(true)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    setShowProfileModal(true);
-                  }
-                }}
-              >
-                <div
-                  className={`flex-shrink-0 rounded-full transition-transform duration-200 hover:scale-110 ${hasFlickerTheme ? 'glitch-frame glitch-frame-sm' : hasNeonFrame ? 'neon-frame neon-frame-sm' : 'border-2 border-pink-500'}`}
-                >
-                  <img
-                    src={profile.avatar_url}
-                    alt={profile.username}
-                    className={`w-8 h-8 rounded-full object-cover ${hasFlickerTheme ? 'glitch-frame-avatar' : hasNeonFrame ? 'neon-frame-avatar' : ''}`}
+            {/* Row 1: Brand + Username + Plan Badge + Actions */}
+            <div className="flex items-center justify-between">
+              {/* Left: Brand + Username */}
+              <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+                <div className="relative group flex items-center gap-1.5 lg:gap-2 flex-shrink-0">
+                  <img 
+                    src="/logo.png" 
+                    alt="Brains Heist Logo" 
+                    className="w-8 h-8 lg:w-10 lg:h-10 drop-shadow-[0_0_10px_rgba(59,130,246,0.6)] cursor-pointer hover:scale-110 transition-transform"
+                    onClick={handleBrandClick}
                   />
+                  <button
+                    type="button"
+                    onClick={handleBrandClick}
+                    className="font-heading text-xl lg:text-2xl xl:text-3xl font-black tracking-wider select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 rounded"
+                    aria-label="Go to dashboard"
+                  >
+                    <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]" 
+                          style={{ 
+                            backgroundImage: 'linear-gradient(90deg, #22d3ee 0%, #3b82f6 25%, #8b5cf6 50%, #3b82f6 75%, #22d3ee 100%)',
+                            animation: 'shimmer 3s linear infinite'
+                          }}>
+                      BRAINS
+                    </span>
+                    {' '}
+                    <span className="bg-gradient-to-r from-pink-500 via-red-500 to-orange-500 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]"
+                          style={{ 
+                            backgroundImage: 'linear-gradient(90deg, #ec4899 0%, #ef4444 25%, #f97316 50%, #ef4444 75%, #ec4899 100%)',
+                            animation: 'shimmer 3s linear infinite',
+                            animationDelay: '1.5s'
+                          }}>
+                      HEIST
+                    </span>
+                  </button>
+                  <div className="absolute -bottom-1 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-500 via-pink-500 to-cyan-500 opacity-50 blur-sm"></div>
                 </div>
-                <span className="font-bold text-white text-sm underline decoration-dotted decoration-cyan-400/70 underline-offset-4">
-                  {profile.username}
-                </span>
+                
+                {/* Username badge */}
+                <div
+                  className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-black/40 rounded-full border border-cyan-500/30 backdrop-blur-sm cursor-pointer min-w-0"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setShowProfileModal(true)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      setShowProfileModal(true);
+                    }
+                  }}
+                >
+                  <div
+                    className={`flex-shrink-0 rounded-full transition-transform duration-200 hover:scale-110 ${hasFlickerTheme ? 'glitch-frame glitch-frame-sm' : hasNeonFrame ? 'neon-frame neon-frame-sm' : 'border-2 border-pink-500'}`}
+                  >
+                    <img
+                      src={profile.avatar_url}
+                      alt={profile.username}
+                      className={`w-7 h-7 rounded-full object-cover ${hasFlickerTheme ? 'glitch-frame-avatar' : hasNeonFrame ? 'neon-frame-avatar' : ''}`}
+                    />
+                  </div>
+                  <span className="font-bold text-white text-sm underline decoration-dotted decoration-cyan-400/70 underline-offset-4 truncate max-w-[100px] lg:max-w-[140px] xl:max-w-none">
+                    {profile.username}
+                  </span>
+                </div>
+
+                {/* Plan Badge */}
+                {badgeInfo && badgeInfo.label !== 'FREE' && (
+                  <div className={`plan-badge plan-badge--${badgeInfo.color} flex-shrink-0`}>
+                    <span className="plan-badge__icon">
+                      {badgeInfo.color === 'cyan' ? '🚀' : badgeInfo.color === 'amber' ? '👑' : badgeInfo.color === 'purple' ? '💎' : '⚡'}
+                    </span>
+                    <span className="plan-badge__label">{badgeInfo.label}</span>
+                    {badgeInfo.countdown && (
+                      <span className="plan-badge__countdown">{badgeInfo.countdown}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Right: Action Buttons */}
+              <div className="flex items-center gap-1 lg:gap-1.5 flex-shrink-0">
+                {/* Notification Bell */}
+                <button 
+                  onClick={() => {
+                    setShowNotifications(!showNotifications);
+                    if (!showNotifications) setUnreadCount(0);
+                  }}
+                  className="relative p-1.5 lg:p-2 rounded-lg bg-black/40 border border-gray-600 hover:border-purple-500 hover:bg-purple-500/10 transition-all backdrop-blur-sm"
+                  aria-label="Notifications"
+                >
+                  <span className="text-sm lg:text-base">🔔</span>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full min-w-[18px] text-center">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Help Button */}
+                <button 
+                  onClick={() => onShowHelp?.()}
+                  className="p-1.5 lg:p-2 rounded-lg bg-black/40 border border-gray-600 hover:border-cyan-500 hover:bg-cyan-500/10 transition-all backdrop-blur-sm"
+                  aria-label="Help"
+                  title="Help & Guide"
+                >
+                  <span className="text-sm lg:text-base">❓</span>
+                </button>
+
+                {/* Admin Button */}
+                {isAdmin(profile) && (
+                  <button 
+                    onClick={() => onNavigate?.('admin')}
+                    className="p-1.5 lg:p-2 rounded-lg bg-gradient-to-br from-amber-600/40 to-yellow-600/40 border border-amber-500/80 hover:border-amber-400 hover:bg-amber-500/20 transition-all backdrop-blur-sm shadow-md shadow-amber-500/20 animate-pulse"
+                    aria-label="Admin Portal"
+                    title="Admin Portal 👑"
+                  >
+                    <span className="text-sm lg:text-base">👑</span>
+                  </button>
+                )}
+
+                {/* School Admin Button */}
+                {isSchoolAdmin && onOpenSchoolAdmin && (
+                  <button 
+                    onClick={onOpenSchoolAdmin}
+                    className="p-1.5 lg:p-2 rounded-lg bg-gradient-to-br from-purple-600/40 to-indigo-600/40 border border-purple-500/80 hover:border-purple-400 hover:bg-purple-500/20 transition-all backdrop-blur-sm shadow-md shadow-purple-500/20"
+                    aria-label="School Admin Portal"
+                    title="School Admin Portal 🏫"
+                  >
+                    <span className="text-sm lg:text-base">🏫</span>
+                  </button>
+                )}
+
+                {/* Settings Button */}
+                <button 
+                  onClick={() => setShowSettingsModal(true)}
+                  className="p-1.5 lg:p-2 rounded-lg bg-black/40 border border-gray-600 hover:border-yellow-500 hover:bg-yellow-500/10 transition-all backdrop-blur-sm"
+                  aria-label="Settings"
+                >
+                  <span className="text-sm lg:text-base">⚙️</span>
+                </button>
+
+                {/* Logout Button */}
+                <button 
+                  onClick={onLogout}
+                  className="flex p-1.5 lg:p-2 rounded-lg bg-black/40 border border-gray-600 hover:border-red-500 hover:bg-red-500/10 transition-all backdrop-blur-sm items-center justify-center"
+                  aria-label="Log Out"
+                >
+                  <LogoutIcon className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-red-400" />
+                </button>
               </div>
             </div>
 
-            {/* Right: Stats and Actions */}
-            <div className="flex items-center gap-2">
-              
-              {/* Stats Row - Only for students */}
-              {profile.role !== 'teacher' && (
-              <div className="flex items-center gap-2">
+            {/* Row 2: Stats — only for students */}
+            {profile.role !== 'teacher' && (
+              <div className="flex items-center justify-center gap-1.5 lg:gap-2">
                 {/* Coins */}
-                <div className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-br from-yellow-600/20 to-orange-600/20 rounded-xl border border-yellow-500/50 backdrop-blur-sm hover:scale-105 transition-transform">
-                  <CoinAnimation width={22} height={22} />
-                  <span id="coin-hud" className="font-mono font-bold text-sm text-white">{profile.coins.toLocaleString()}</span>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-br from-yellow-600/20 to-orange-600/20 rounded-lg border border-yellow-500/50 backdrop-blur-sm">
+                  <CoinAnimation width={16} height={16} />
+                  <span id="coin-hud" className="font-mono font-bold text-xs text-white">{profile.coins.toLocaleString()}</span>
                 </div>
 
                 {/* Gemstones */}
-                <div className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-br from-rose-700/25 to-pink-600/20 rounded-xl border border-rose-500/60 backdrop-blur-sm hover:scale-105 transition-transform">
-                  <div className="w-5 h-5">
-                    <GemIcon />
-                  </div>
-                  <span id="gem-hud" className="font-mono font-bold text-sm text-white">{profile.gemstones.toLocaleString()}</span>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-br from-rose-700/25 to-pink-600/20 rounded-lg border border-rose-500/60 backdrop-blur-sm">
+                  <div className="w-4 h-4"><GemIcon /></div>
+                  <span id="gem-hud" className="font-mono font-bold text-xs text-white">{profile.gemstones.toLocaleString()}</span>
                 </div>
 
                 {/* XP */}
-                <div className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-br from-blue-600/20 to-cyan-600/20 rounded-xl border border-cyan-500/50 backdrop-blur-sm hover:scale-105 transition-transform">
-                  <div className="w-5 h-5 text-cyan-400">
-                    <XPIcon />
-                  </div>
-                  <span id="xp-hud" className="font-mono font-bold text-sm text-white">{profile.xp.toLocaleString()}</span>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-br from-blue-600/20 to-cyan-600/20 rounded-lg border border-cyan-500/50 backdrop-blur-sm">
+                  <div className="w-4 h-4 text-cyan-400"><XPIcon /></div>
+                  <span id="xp-hud" className="font-mono font-bold text-xs text-white">{profile.xp.toLocaleString()}</span>
                 </div>
 
                 {/* AP */}
-                <div className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-br from-green-600/20 to-emerald-600/20 rounded-xl border border-green-500/50 backdrop-blur-sm hover:scale-105 transition-transform">
-                  <div className="w-5 h-5 text-green-400">
-                    <APIcon />
-                  </div>
-                  <span id="ap-hud" className="font-mono font-bold text-sm text-white">{calculatedAP}<span className="text-xs text-gray-400">/{profile.ap_max}</span></span>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-br from-green-600/20 to-emerald-600/20 rounded-lg border border-green-500/50 backdrop-blur-sm">
+                  <div className="w-4 h-4 text-green-400"><APIcon /></div>
+                  <span id="ap-hud" className="font-mono font-bold text-xs text-white">{calculatedAP}<span className="text-[10px] text-gray-400">/{profile.ap_max}</span></span>
                 </div>
 
                 {/* Streak */}
-                <div className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border backdrop-blur-sm hover:scale-105 transition-transform ${
+                <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border backdrop-blur-sm ${
                   profile.streak >= 7 
                     ? 'bg-gradient-to-br from-orange-600/30 to-red-600/30 border-orange-500/60' 
                     : 'bg-gradient-to-br from-gray-700/20 to-gray-600/20 border-gray-500/30'
                 }`}>
-                  <div className={`w-5 h-5 ${profile.streak >= 7 ? 'text-orange-400' : 'text-gray-400'}`}>
-                    <StreakIcon />
-                  </div>
-                  <span id="streak-hud" className={`font-mono font-bold text-sm ${profile.streak >= 7 ? 'text-orange-300' : 'text-white'}`}>
+                  <div className={`w-4 h-4 ${profile.streak >= 7 ? 'text-orange-400' : 'text-gray-400'}`}><StreakIcon /></div>
+                  <span id="streak-hud" className={`font-mono font-bold text-xs ${profile.streak >= 7 ? 'text-orange-300' : 'text-white'}`}>
                     {profile.streak || 0}
                   </span>
                 </div>
               </div>
-              )}
-
-              {/* Notification Bell */}
-              <button 
-                onClick={() => {
-                  setShowNotifications(!showNotifications);
-                  // Clear badge immediately when opening
-                  if (!showNotifications) {
-                    setUnreadCount(0);
-                  }
-                }}
-                className="relative p-2.5 rounded-xl bg-black/40 border border-gray-600 hover:border-purple-500 hover:bg-purple-500/10 transition-all hover:scale-110 backdrop-blur-sm"
-                aria-label="Notifications"
-              >
-                <span className="text-xl">🔔</span>
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full min-w-[20px] text-center">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
-              </button>
-
-              {/* Help Button */}
-              <button 
-                onClick={() => onShowHelp?.()}
-                className="p-2.5 rounded-xl bg-black/40 border border-gray-600 hover:border-cyan-500 hover:bg-cyan-500/10 transition-all hover:scale-110 backdrop-blur-sm"
-                aria-label="Help"
-                title="Help & Guide"
-              >
-                <span className="text-xl">❓</span>
-              </button>
-
-              {/* Admin Button (only for admins) */}
-              {isAdmin(profile) && (
-                <button 
-                  onClick={() => onNavigate?.('admin')}
-                  className="p-2.5 rounded-xl bg-gradient-to-br from-amber-600/40 to-yellow-600/40 border border-amber-500/80 hover:border-amber-400 hover:bg-amber-500/20 transition-all hover:scale-110 backdrop-blur-sm shadow-lg shadow-amber-500/30 animate-pulse"
-                  aria-label="Admin Portal"
-                  title="Admin Portal - God Mode Active 👑"
-                >
-                  <span className="text-xl">👑</span>
-                </button>
-              )}
-
-              {/* School Admin Button (only for school admins) */}
-              {isSchoolAdmin && onOpenSchoolAdmin && (
-                <button 
-                  onClick={onOpenSchoolAdmin}
-                  className="p-2.5 rounded-xl bg-gradient-to-br from-purple-600/40 to-indigo-600/40 border border-purple-500/80 hover:border-purple-400 hover:bg-purple-500/20 transition-all hover:scale-110 backdrop-blur-sm shadow-lg shadow-purple-500/30"
-                  aria-label="School Admin Portal"
-                  title="School Admin Portal 🏫"
-                >
-                  <span className="text-xl">🏫</span>
-                </button>
-              )}
-
-              {/* Settings Button */}
-              <button 
-                onClick={() => setShowSettingsModal(true)}
-                className="p-2.5 rounded-xl bg-black/40 border border-gray-600 hover:border-yellow-500 hover:bg-yellow-500/10 transition-all hover:scale-110 backdrop-blur-sm"
-                aria-label="Settings"
-              >
-                <span className="text-xl">⚙️</span>
-              </button>
-
-              {/* Logout Button */}
-              <button 
-                onClick={onLogout}
-                className="flex p-2.5 rounded-xl bg-black/40 border border-gray-600 hover:border-red-500 hover:bg-red-500/10 transition-all hover:scale-110 backdrop-blur-sm items-center justify-center"
-                aria-label="Log Out"
-              >
-                <LogoutIcon className="w-5 h-5 text-red-400" />
-              </button>
-            </div>
+            )}
           </div>
         </div>
       </header>

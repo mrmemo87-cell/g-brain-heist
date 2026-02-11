@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry Ch13 ( An introduction to AS Level organic chemistry )</title>
   <script src="../examguard.js"></script>
-  <script src="chemistry_master_answer_key.js"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -1751,7 +1750,86 @@
         explanation: '1,2-dichloropropane has a chiral centre and shows optical isomerism.'
       },
     ];
-    let ANSWER_KEY = window.CHEMISTRY_MASTER_ANSWER_KEY.getAnswerKeyForQuestions(QUESTIONS);
+
+    // Placeholder answer key (awaiting official answers)
+    let ANSWER_KEY = {
+      1: 'C',
+      2: 'D',
+      3: 'A',
+      4: 'A',
+      5: 'A',
+      6: 'A',
+      7: 'A',
+      8: 'D',
+      9: 'A',
+      10: 'C',
+      11: 'D',
+      12: 'B',
+      13: 'A',
+      14: 'D',
+      15: 'B',
+      16: 'B',
+      17: 'B',
+      18: 'C',
+      19: 'A',
+      20: 'D',
+      21: 'D',
+      22: 'B',
+      23: 'B',
+      24: 'D',
+      25: 'C',
+      26: 'C',
+      27: 'A',
+      28: 'B',
+      29: 'C',
+      30: 'A',
+      31: 'D',
+      32: 'B',
+      33: 'B',
+      34: 'B',
+      35: 'D',
+      36: 'C',
+      37: 'C',
+      38: 'B',
+      39: 'D',
+      40: 'C',
+      41: 'D',
+      42: 'B',
+      43: 'C',
+      44: 'C',
+      45: 'D',
+      46: 'D',
+      47: 'B',
+      48: 'C',
+      49: 'D',
+      50: 'C',
+      51: 'A',
+      52: 'B',
+      53: 'C',
+      54: 'C',
+      55: 'A',
+      56: 'C',
+      57: 'A',
+      58: 'D',
+      59: 'D',
+      60: 'D',
+      61: 'D',
+      62: 'C',
+      63: 'C',
+      64: 'C',
+      65: 'C',
+      66: 'B',
+      67: 'D',
+      68: 'B',
+      69: 'A',
+      70: 'C',
+      71: 'B',
+      72: 'A',
+      73: 'B',
+      74: 'C',
+      75: 'B',
+      76: 'B',
+    };
 ;
 
     const quizSplit = splitQuiz(QUESTIONS, ANSWER_KEY, QUIZ_PART.part);
@@ -1979,6 +2057,7 @@
           
           // Re-enable all questions
           document.querySelectorAll('input').forEach(i => i.disabled = false);
+          unlockQuestions();
           
           return;
         }
@@ -2030,6 +2109,7 @@
           
           // Re-enable all questions
           document.querySelectorAll('input').forEach(i => i.disabled = false);
+          unlockQuestions();
           
           // Notify parent component to refresh test list UI
           try {
@@ -2227,7 +2307,6 @@
     function acknowledgeAntiCheat() {
       antiCheatAcknowledged = true;
       closeAntiCheatModal();
-      setupAntiCheat();
       startTimerIfReady();
     }
 
@@ -2292,27 +2371,7 @@
       });
     }
 
-    function setupAntiCheat() {
-      let tabSwitches = 0;
-      document.addEventListener('copy', (e) => {
-        e.preventDefault();
-        showToast('Copying is disabled during this test.');
-      });
-      document.addEventListener('cut', (e) => {
-        e.preventDefault();
-        showToast('Cutting text is disabled during this test.');
-      });
-      document.addEventListener('visibilitychange', () => {
-        if (document.hidden && !hasSubmitted) {
-          tabSwitches += 1;
-          if (tabSwitches === 1) {
-            showToast('🚨 Warning: You switched tabs once. Next switch will auto-submit this test.', { variant: 'warning' });
-          } else {
-            handleSubmit({ force: true, reason: 'Second tab switch detected. Auto-submit applied.' });
-          }
-        }
-      });
-    }
+
 
     document.addEventListener('DOMContentLoaded', () => {
       /*

@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry Ch12 ( Nitrogen and sulfur )</title>
   <script src="../examguard.js"></script>
-  <script src="chemistry_master_answer_key.js"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -1380,7 +1379,20 @@
         }
       },
     ];
-    let ANSWER_KEY = window.CHEMISTRY_MASTER_ANSWER_KEY.getAnswerKeyForQuestions(QUESTIONS);
+    // Placeholder answer key (awaiting official answers)
+
+    let ANSWER_KEY = {
+      1: 'C', 2: 'B', 3: 'C', 4: 'B', 5: 'C',
+      6: 'B', 7: 'D', 8: 'A', 9: 'D', 10: 'C',
+      11: 'B', 12: 'C', 13: 'B', 14: 'D', 15: 'B',
+      16: 'A', 17: 'D', 18: 'D', 19: 'D', 20: 'B',
+      21: 'A', 22: 'D', 23: 'B', 24: 'D', 25: 'A',
+      26: 'D', 27: 'C', 28: 'B', 29: 'A', 30: 'D',
+      31: 'B', 32: 'D', 33: 'C', 34: 'D', 35: 'C',
+      36: 'D', 37: 'B', 38: 'C', 39: 'D', 40: 'B',
+      41: 'A', 42: 'C', 43: 'C', 44: 'C', 45: 'B',
+      46: 'B', 47: 'D', 48: 'A', 49: 'D', 50: 'C',
+    };
 
 
     const quizSplit = splitQuiz(QUESTIONS, ANSWER_KEY, QUIZ_PART.part);
@@ -1608,6 +1620,7 @@
           
           // Re-enable all questions
           document.querySelectorAll('input').forEach(i => i.disabled = false);
+          unlockQuestions();
           
           return;
         }
@@ -1659,6 +1672,7 @@
           
           // Re-enable all questions
           document.querySelectorAll('input').forEach(i => i.disabled = false);
+          unlockQuestions();
           
           // Notify parent component to refresh test list UI
           try {
@@ -1856,7 +1870,6 @@
     function acknowledgeAntiCheat() {
       antiCheatAcknowledged = true;
       closeAntiCheatModal();
-      setupAntiCheat();
       startTimerIfReady();
     }
 
@@ -1921,27 +1934,7 @@
       });
     }
 
-    function setupAntiCheat() {
-      let tabSwitches = 0;
-      document.addEventListener('copy', (e) => {
-        e.preventDefault();
-        showToast('Copying is disabled during this test.');
-      });
-      document.addEventListener('cut', (e) => {
-        e.preventDefault();
-        showToast('Cutting text is disabled during this test.');
-      });
-      document.addEventListener('visibilitychange', () => {
-        if (document.hidden && !hasSubmitted) {
-          tabSwitches += 1;
-          if (tabSwitches === 1) {
-            showToast('🚨 Warning: You switched tabs once. Next switch will auto-submit this test.', { variant: 'warning' });
-          } else {
-            handleSubmit({ force: true, reason: 'Second tab switch detected. Auto-submit applied.' });
-          }
-        }
-      });
-    }
+
 
     document.addEventListener('DOMContentLoaded', () => {
       /*

@@ -3,6 +3,8 @@ import { SupabaseLockdownTransport } from '../../lib/lockdownSupabaseTransport';
 import { LockdownTeacherView } from './LockdownTeacherView';
 import { LockdownStudentView } from './LockdownStudentView';
 import { RoomId, PlayerId } from '../../lib/lockdownTransport';
+import { fetchLockdownLimits, type LockdownLimits, FREE_LOCKDOWN_LIMITS } from '../../../services/tierService';
+import { FreeTierWatermark } from '../../../components/FreeTierWatermark';
 
 export const LockdownManager: React.FC<{ onExit: () => void; isTeacher?: boolean; playerName?: string; clanId?: string | null; clanName?: string | null; clanAvatarUrl?: string | null }> = ({ onExit, isTeacher = false, playerName: initialPlayerName = '', clanId = null, clanName = null, clanAvatarUrl = null }) => {
   const [mode, setMode] = useState<'lobby' | 'host' | 'player' | 'configure'>('lobby');
@@ -19,6 +21,22 @@ export const LockdownManager: React.FC<{ onExit: () => void; isTeacher?: boolean
   const [selectedMap, setSelectedMap] = useState('default');
   const [coinGoal, setCoinGoal] = useState(600);
   const [alarmMax, setAlarmMax] = useState(100);
+  const [lockdownLimits, setLockdownLimits] = useState<LockdownLimits>(FREE_LOCKDOWN_LIMITS);
+  const isMapLocked = (mapId: string) => lockdownLimits.allowed_maps !== null && !lockdownLimits.allowed_maps.includes(mapId);
+  const effectiveDurationMax = lockdownLimits.max_duration_minutes ?? 30;
+
+  React.useEffect(() => {
+    let m = true;
+    fetchLockdownLimits().then(l => { if (m) setLockdownLimits(l); });
+    return () => { m = false; };
+  }, []);
+
+  React.useEffect(() => {
+    if (lockdownLimits.max_duration_minutes && durationMinutes > lockdownLimits.max_duration_minutes) {
+      setDurationMinutes(lockdownLimits.max_duration_minutes);
+    }
+    if (isMapLocked(selectedMap)) setSelectedMap('default');
+  }, [lockdownLimits]);
 
   React.useEffect(() => {
     return () => {
@@ -86,6 +104,13 @@ export const LockdownManager: React.FC<{ onExit: () => void; isTeacher?: boolean
             <p className="text-sm text-gray-400">Customize the countdown timer, map, and objectives for your lockdown session.</p>
           </div>
 
+          {lockdownLimits.tier === 'free' && (
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-200 flex items-center gap-2">
+              <span className="text-base">⚡</span>
+              <span>Free plan — {lockdownLimits.max_duration_minutes}min max, limited maps, up to {lockdownLimits.max_students} students.</span>
+            </div>
+          )}
+
           <div className="card-glass p-8 space-y-6">
             {/* Duration Setting */}
             <div className="space-y-3">
@@ -94,7 +119,7 @@ export const LockdownManager: React.FC<{ onExit: () => void; isTeacher?: boolean
                 <input
                   type="range"
                   min="3"
-                  max="30"
+                  max={effectiveDurationMax}
                   step="1"
                   value={durationMinutes}
                   onChange={(e) => setDurationMinutes(Number(e.target.value))}
@@ -104,65 +129,40 @@ export const LockdownManager: React.FC<{ onExit: () => void; isTeacher?: boolean
                   {durationMinutes}m
                 </div>
               </div>
-              <p className="text-xs text-gray-400">How long agents have to complete the heist (3-30 minutes)</p>
+              <p className="text-xs text-gray-400">How long agents have to complete the heist (3-{effectiveDurationMax} minutes)</p>
             </div>
 
             {/* Map Selection */}
             <div className="space-y-3">
               <label className="block text-sm font-bold text-white">Territory Map</label>
               <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => setSelectedMap('default')}
-                  className={`p-4 rounded-xl border-2 transition ${
-                    selectedMap === 'default'
-                      ? 'border-cyan-400 bg-cyan-500/20'
-                      : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
-                  }`}
-                >
-                  <div className="text-left space-y-1">
-                    <p className="font-bold text-white">🗺️ Default</p>
-                    <p className="text-xs text-gray-400">Standard 8-region layout</p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setSelectedMap('downtown')}
-                  className={`p-4 rounded-xl border-2 transition ${
-                    selectedMap === 'downtown'
-                      ? 'border-cyan-400 bg-cyan-500/20'
-                      : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
-                  }`}
-                >
-                  <div className="text-left space-y-1">
-                    <p className="font-bold text-white">🏙️ Downtown</p>
-                    <p className="text-xs text-gray-400">Urban grid with 12 sectors</p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setSelectedMap('compound')}
-                  className={`p-4 rounded-xl border-2 transition ${
-                    selectedMap === 'compound'
-                      ? 'border-cyan-400 bg-cyan-500/20'
-                      : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
-                  }`}
-                >
-                  <div className="text-left space-y-1">
-                    <p className="font-bold text-white">🏢 Compound</p>
-                    <p className="text-xs text-gray-400">Facility with 6 zones</p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setSelectedMap('vault')}
-                  className={`p-4 rounded-xl border-2 transition ${
-                    selectedMap === 'vault'
-                      ? 'border-cyan-400 bg-cyan-500/20'
-                      : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
-                  }`}
-                >
-                  <div className="text-left space-y-1">
-                    <p className="font-bold text-white">🔐 Vault</p>
-                    <p className="text-xs text-gray-400">High security, 4 chambers</p>
-                  </div>
-                </button>
+                {[
+                  { id: 'default', emoji: '🗺️', label: 'Default', desc: 'Standard 8-region layout' },
+                  { id: 'downtown', emoji: '🏙️', label: 'Downtown', desc: 'Urban grid with 12 sectors' },
+                  { id: 'compound', emoji: '🏢', label: 'Compound', desc: 'Facility with 6 zones' },
+                  { id: 'vault', emoji: '🔐', label: 'Vault', desc: 'High security, 4 chambers' },
+                ].map(({ id, emoji, label, desc }) => {
+                  const locked = isMapLocked(id);
+                  return (
+                    <button
+                      key={id}
+                      onClick={() => !locked && setSelectedMap(id)}
+                      disabled={locked}
+                      className={`p-4 rounded-xl border-2 transition relative ${
+                        locked ? 'opacity-40 cursor-not-allowed border-slate-800 bg-slate-900/30' :
+                        selectedMap === id ? 'border-cyan-400 bg-cyan-500/20' : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
+                      }`}
+                    >
+                      <div className="text-left space-y-1">
+                        <p className="font-bold text-white">{emoji} {label}</p>
+                        <p className="text-xs text-gray-400">{desc}</p>
+                      </div>
+                      {locked && (
+                        <span className="absolute top-2 right-2 text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">PRO</span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -230,7 +230,12 @@ export const LockdownManager: React.FC<{ onExit: () => void; isTeacher?: boolean
   }
 
   if (mode === 'player' && roomId && playerId) {
-    return <LockdownStudentView transport={transport} roomId={roomId} playerId={playerId} onExit={onExit} />;
+    return (
+      <>
+        <FreeTierWatermark />
+        <LockdownStudentView transport={transport} roomId={roomId} playerId={playerId} onExit={onExit} />
+      </>
+    );
   }
 
   return (

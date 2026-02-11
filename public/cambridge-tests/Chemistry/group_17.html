@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry Ch11 ( Group 17 )</title>
   <script src="../examguard.js"></script>
-  <script src="chemistry_master_answer_key.js"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -1699,7 +1698,17 @@
         }
       },
     ];
-    let ANSWER_KEY = window.CHEMISTRY_MASTER_ANSWER_KEY.getAnswerKeyForQuestions(QUESTIONS);
+    let ANSWER_KEY = {
+      1: 'C',       2: 'B',       3: 'B',       4: 'D',       5: 'A',       6: 'C',       7: 'A',       8: 'A',       9: 'A',       10: 'B',
+      11: 'C',       12: 'B',       13: 'D',       14: 'B',       15: 'D',       16: 'D',       17: 'D',       18: 'B',       19: 'C',       20: 'D',
+      21: 'B',       22: 'C',       23: 'D',       24: 'A',       25: 'C',       26: 'D',       27: 'D',       28: 'D',       29: 'A',       30: 'C',
+      31: 'D',       32: 'A',       33: 'A',       34: 'D',       35: 'D',       36: 'A',       37: 'C',       38: 'D',       39: 'C',       40: 'C',
+      41: 'C',       42: 'A',       43: 'A',       44: 'D',       45: 'D',       46: 'B',       47: 'C',       48: 'A',       49: 'D',       50: 'C',
+      51: 'A',       52: 'C',       53: 'D',       54: 'A',       55: 'D',       56: 'B',       57: 'A',       58: 'D',       59: 'B',       60: 'A',
+      61: 'D',       62: 'D',       63: 'C',       64: 'C',       65: 'D',       66: 'B',       67: 'C',       68: 'D',       69: 'D',       70: 'C',
+      71: 'C',       72: 'A',       73: 'C',       74: 'C',       75: 'A',       76: 'D',       77: 'A',       78: 'D',       79: 'A',       80: 'C',
+      81: 'A'
+    };
 
     const quizSplit = splitQuiz(QUESTIONS, ANSWER_KEY, QUIZ_PART.part);
     QUESTIONS = quizSplit.questions;
@@ -1919,6 +1928,7 @@
           
           // Re-enable all questions
           document.querySelectorAll('input').forEach(i => i.disabled = false);
+          unlockQuestions();
           
           return;
         }
@@ -1968,6 +1978,7 @@
           
           // Re-enable all questions
           document.querySelectorAll('input').forEach(i => i.disabled = false);
+          unlockQuestions();
           
           // Notify parent component to refresh test list UI
           try {
@@ -2034,10 +2045,10 @@
       }
 
       const responses = {};
-      for (let i = 1; i <= totalQuestions; i++) {
-        const selected = document.querySelector(`input[name='q${i}']:checked`);
-        responses[i] = selected ? selected.value : '';
-      }
+      QUESTIONS.forEach((q) => {
+        const selected = document.querySelector(`input[name='q${q.number}']:checked`);
+        responses[q.number] = selected ? selected.value : '';
+      });
 
       const timeTaken = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
       stopTimer();
@@ -2146,7 +2157,6 @@
     function acknowledgeAntiCheat() {
       antiCheatAcknowledged = true;
       closeAntiCheatModal();
-      setupAntiCheat();
       startTimerIfReady();
     }
 
@@ -2211,27 +2221,7 @@
       });
     }
 
-    function setupAntiCheat() {
-      let tabSwitches = 0;
-      document.addEventListener('copy', (e) => {
-        e.preventDefault();
-        showToast('Copying is disabled during this test.');
-      });
-      document.addEventListener('cut', (e) => {
-        e.preventDefault();
-        showToast('Cutting text is disabled during this test.');
-      });
-      document.addEventListener('visibilitychange', () => {
-        if (document.hidden && !hasSubmitted) {
-          tabSwitches += 1;
-          if (tabSwitches === 1) {
-            showToast('🚨 Warning: You switched tabs once. Next switch will auto-submit this test.', { variant: 'warning' });
-          } else {
-            handleSubmit({ force: true, reason: 'Second tab switch detected. Auto-submit applied.' });
-          }
-        }
-      });
-    }
+
 
     document.addEventListener('DOMContentLoaded', () => {
       /*

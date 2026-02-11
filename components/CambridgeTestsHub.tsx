@@ -647,13 +647,20 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
   const [collapsedSubjects, setCollapsedSubjects] = useState<Record<string, boolean>>({});
   const [visibleTestIds, setVisibleTestIds] = useState<Set<string>>(new Set());
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [testSubmittedInSession, setTestSubmittedInSession] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const initialLoadDone = useRef(false);
 
   // Fetch visible tests based on teacher visibility settings
+  const [visibilityLoaded, setVisibilityLoaded] = useState(false);
+
   const loadVisibleTests = async () => {
     if (!profile.school_id || profile.grade === null) {
-      // If no school or grade, show all available tests
-      setVisibleTestIds(new Set(AVAILABLE_TESTS.map(t => t.id)));
+      // If no school or grade, show no tests — student profile needs to be set up
+      console.warn('Student has no school_id or grade — hiding all tests until profile is configured');
+      setVisibleTestIds(new Set());
+      setVisibilityLoaded(true);
       return;
     }
 
@@ -665,8 +672,9 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
 
       if (error) {
         console.error('Error fetching visible tests:', error);
-        // Fallback: If visibility system not set up or error, show all tests
-        setVisibleTestIds(new Set(AVAILABLE_TESTS.map(t => t.id)));
+        // On error, hide all tests — never expose tests on failure
+        setVisibleTestIds(new Set());
+        setVisibilityLoaded(true);
         return;
       }
 
@@ -679,18 +687,27 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       }
     } catch (err) {
       console.error('Exception loading visible tests:', err);
-      // Fallback on error
-      setVisibleTestIds(new Set(AVAILABLE_TESTS.map(t => t.id)));
+      // On exception, hide all tests — never expose tests on failure
+      setVisibleTestIds(new Set());
+    } finally {
+      setVisibilityLoaded(true);
     }
   };
 
   useEffect(() => {
-    loadVisibleTests();
+    const initialLoad = async () => {
+      await loadVisibleTests();
+    };
+    initialLoad();
   }, [profile.school_id, profile.grade]);
 
+  // Load test progress once visible tests are known (initial load only)
   useEffect(() => {
-    loadTestProgress();
-  }, [profile.username, visibleTestIds]);
+    if (!initialLoadDone.current && visibilityLoaded) {
+      initialLoadDone.current = true;
+      loadTestProgress();
+    }
+  }, [visibilityLoaded, visibleTestIds]);
 
   useEffect(() => {
     if (!showFeedbackModal) {
@@ -717,6 +734,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'CAMBRIDGE_TEST_COMPLETE') {
         console.log('Test completed:', event.data);
+        setTestSubmittedInSession(true);
         // Refresh the test list to show updated completion status
         setTimeout(() => {
           loadTestProgress();
@@ -734,8 +752,19 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  const loadTestProgress = async () => {
-    setLoading(true);
+  // Manual refresh: re-fetch visibility + progress without full loading spinner
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await loadVisibleTests();
+      await loadTestProgress(true);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const loadTestProgress = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       // Fetch completed tests from quiz_scores table (include answers for marking status)
       const { data: completedTests, error } = await supabase
@@ -822,7 +851,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       );
       setTests(availableTests);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -856,11 +885,17 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
   const handleTestComplete = () => {
     setActiveTest(null);
     setShowExitConfirm(false);
+    setTestSubmittedInSession(false);
     loadTestProgress(); // Refresh completion status
   };
 
   // Show exit confirmation before leaving an active test
   const handleExitClick = () => {
+    if (testSubmittedInSession) {
+      // Test already submitted, just exit without confirmation
+      handleTestComplete();
+      return;
+    }
     setShowExitConfirm(true);
   };
 
@@ -1297,11 +1332,12 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           </div>
         </div>
 
-        {/* Filters */}
+        {/* Filters + Refresh */}
         <div style={{
           display: 'flex',
           gap: '10px',
           marginBottom: '20px',
+          alignItems: 'center',
         }}>
           {(['all', 'pending', 'completed'] as const).map(f => (
             <button
@@ -1326,6 +1362,25 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
               {f === 'completed' && `✅ Completed (${completedCount})`}
             </button>
           ))}
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            style={{
+              marginLeft: 'auto',
+              padding: '8px 18px',
+              borderRadius: '20px',
+              border: '1px solid rgba(0,245,255,0.4)',
+              cursor: refreshing ? 'default' : 'pointer',
+              fontSize: '13px',
+              fontWeight: 600,
+              transition: 'all 0.2s',
+              background: 'rgba(0,245,255,0.1)',
+              color: '#00f5ff',
+              opacity: refreshing ? 0.6 : 1,
+            }}
+          >
+            {refreshing ? '↻ Refreshing...' : '↻ Refresh'}
+          </button>
         </div>
 
         {/* Tests Grid */}

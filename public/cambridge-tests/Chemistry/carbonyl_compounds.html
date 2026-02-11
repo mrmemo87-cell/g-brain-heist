@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry Ch17 ( Carbonyl compounds )</title>
   <script src="../examguard.js"></script>
-  <script src="chemistry_master_answer_key.js"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -1574,7 +1573,16 @@
         explanation: 'NaBH<sub>4</sub> reduces the ketone menthone to the alcohol menthol.'
       },
     ];
-    let ANSWER_KEY = window.CHEMISTRY_MASTER_ANSWER_KEY.getAnswerKeyForQuestions(QUESTIONS);
+
+    let ANSWER_KEY = {
+      1: 'D', 2: 'D', 3: 'A', 4: 'B', 5: 'D', 6: 'A', 7: 'D', 8: 'D', 9: 'A', 10: 'C',
+      11: 'D', 12: 'A', 13: 'D', 14: 'B', 15: 'C', 16: 'A', 17: 'A', 18: 'A', 19: 'A', 20: 'B',
+      21: 'C', 22: 'A', 23: 'A', 24: 'D', 25: 'D', 26: 'A', 27: 'C', 28: 'B', 29: 'D', 30: 'A',
+      31: 'A', 32: 'A', 33: 'A', 34: 'B', 35: 'B', 36: 'D', 37: 'A', 38: 'D', 39: 'D', 40: 'D',
+      41: 'B', 42: 'B', 43: 'D', 44: 'D', 45: 'A', 46: 'B', 47: 'B', 48: 'A', 49: 'B', 50: 'D',
+      51: 'D', 52: 'B', 53: 'D', 54: 'B', 55: 'C', 56: 'A', 57: 'B', 58: 'A', 59: 'D', 60: 'B',
+      61: 'A', 62: 'B', 63: 'C',
+    };
     const quizSplit = splitQuiz(QUESTIONS, ANSWER_KEY, QUIZ_PART.part);
     QUESTIONS = quizSplit.questions;
     ANSWER_KEY = quizSplit.answerKey;
@@ -1800,6 +1808,7 @@
           
           // Re-enable all questions
           document.querySelectorAll('input').forEach(i => i.disabled = false);
+          unlockQuestions();
           
           return;
         }
@@ -1851,6 +1860,7 @@
           
           // Re-enable all questions
           document.querySelectorAll('input').forEach(i => i.disabled = false);
+          unlockQuestions();
           
           // Notify parent component to refresh test list UI
           try {
@@ -2048,7 +2058,6 @@
     function acknowledgeAntiCheat() {
       antiCheatAcknowledged = true;
       closeAntiCheatModal();
-      setupAntiCheat();
       startTimerIfReady();
     }
 
@@ -2113,27 +2122,7 @@
       });
     }
 
-    function setupAntiCheat() {
-      let tabSwitches = 0;
-      document.addEventListener('copy', (e) => {
-        e.preventDefault();
-        showToast('Copying is disabled during this test.');
-      });
-      document.addEventListener('cut', (e) => {
-        e.preventDefault();
-        showToast('Cutting text is disabled during this test.');
-      });
-      document.addEventListener('visibilitychange', () => {
-        if (document.hidden && !hasSubmitted) {
-          tabSwitches += 1;
-          if (tabSwitches === 1) {
-            showToast('🚨 Warning: You switched tabs once. Next switch will auto-submit this test.', { variant: 'warning' });
-          } else {
-            handleSubmit({ force: true, reason: 'Second tab switch detected. Auto-submit applied.' });
-          }
-        }
-      });
-    }
+
 
     document.addEventListener('DOMContentLoaded', () => {
       /*

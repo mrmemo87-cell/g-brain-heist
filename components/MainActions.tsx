@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BattleIcon, TrophyIcon, SyndicateRune } from './icons';
+import { fetchPilotQuotas, getQuotaForFeature, QUOTA_LABELS, FEATURE_TO_QUOTA, type PilotQuotaStatus, type PilotQuota } from '../services/tierService';
 
 // Default school icon as SVG data URL
 const defaultSchoolIcon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMjIgMTBWNkwxMiAyIDIgNnY0Yy4zNC0uMDguNjUtLjEgMS0uMWg1LjFsMi40NSAzLjA2YTEgMSAwIDAgMCAxLjU2IDBMMTQuNTUgOS45SDE5Ljljey4zNSAwIC42Ny4wMiAxIC4xWiIvPjxwYXRoIGQ9Ik0xMiAyMnYtNiIvPjxwYXRoIGQ9Ik00IDEwdjEwYzAgLjU1LjQ1IDEgMSAxaDE0Yy41NSAwIDEtLjQ1IDEtMVYxMCIvPjwvc3ZnPg==';
@@ -29,6 +30,9 @@ interface MainActionsProps {
   clanBadgeCount?: number;
   schoolName?: string | null;
   schoolLogoUrl?: string | null;
+  isPro?: boolean;
+  isPilot?: boolean;
+  onUpgrade?: (featureLabel?: string) => void;
 }
 
 type ActionButtonProps = {
@@ -40,6 +44,9 @@ type ActionButtonProps = {
   className?: string;
   badgeText?: string;
   subtitle?: string;
+  locked?: boolean;
+  quotaInfo?: PilotQuota | null;
+  quotaLabel?: string;
 };
 
 const ActionButton: React.FC<ActionButtonProps> = ({
@@ -51,17 +58,24 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   className,
   badgeText,
   subtitle,
+  locked,
+  quotaInfo,
+  quotaLabel,
 }) => {
+  const quotaExhausted = quotaInfo?.exhausted === true;
+  const isLocked = locked || quotaExhausted;
   const accent = `rgba(${color}, 1)`;
-  const panel = `rgba(${color}, 0.2)`;
-  const border = `rgba(${color}, 0.5)`;
-  const iconPanel = `linear-gradient(135deg, rgba(${color}, 0.6), rgba(${color}, 0.22))`;
+  const panel = isLocked ? 'rgba(100, 116, 139, 0.15)' : `rgba(${color}, 0.2)`;
+  const border = isLocked ? 'rgba(100, 116, 139, 0.3)' : `rgba(${color}, 0.5)`;
+  const iconPanel = isLocked
+    ? 'linear-gradient(135deg, rgba(100, 116, 139, 0.4), rgba(100, 116, 139, 0.15))'
+    : `linear-gradient(135deg, rgba(${color}, 0.6), rgba(${color}, 0.22))`;
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`dashboard-action group relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-2xl border px-4 py-5 text-center transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_-22px_rgba(0,0,0,0.75)] active:scale-[0.99] sm:px-5 sm:py-6 ${glowClass} ${className ?? ''}`}
+      className={`dashboard-action group relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-2xl border px-4 py-5 text-center transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_-22px_rgba(0,0,0,0.75)] active:scale-[0.99] sm:px-5 sm:py-6 ${isLocked ? '' : glowClass} ${className ?? ''}`}
       style={{
         background: `radial-gradient(circle at 18% 16%, rgba(255,255,255,0.06), transparent 30%), radial-gradient(circle at 82% 12%, rgba(255,255,255,0.05), transparent 26%), linear-gradient(150deg, ${panel}, rgba(15, 23, 42, 0.7))`,
         borderColor: border,
@@ -76,7 +90,35 @@ const ActionButton: React.FC<ActionButtonProps> = ({
             'radial-gradient(circle at 20% 40%, rgba(255,255,255,0.04) 0 30%, transparent 45%), radial-gradient(circle at 80% 60%, rgba(255,255,255,0.04) 0 26%, transparent 50%)',
         }}
       />
-      {badgeText && (
+      {/* PRO lock badge (not on pilot — pilot users see quota badge instead) */}
+      {locked && !quotaInfo && (
+        <>
+          <span className="absolute top-2 right-2 z-10 inline-flex items-center gap-1 rounded-full border border-amber-400/40 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300 shadow-sm shadow-amber-400/10">
+            ✦ PRO
+          </span>
+          <span className="pointer-events-none absolute inset-0 z-[2] flex items-center justify-center bg-slate-950/30">
+            <span className="text-2xl opacity-60">🔒</span>
+          </span>
+        </>
+      )}
+      {/* Quota exhausted badge (pilot users who ran out) */}
+      {quotaExhausted && (
+        <>
+          <span className="absolute top-2 right-2 z-10 inline-flex items-center gap-1 rounded-full border border-red-400/40 bg-gradient-to-r from-red-500/20 to-orange-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-300 shadow-sm shadow-red-400/10">
+            ⚡ UPGRADE
+          </span>
+          <span className="pointer-events-none absolute inset-0 z-[2] flex items-center justify-center bg-slate-950/30">
+            <span className="text-2xl opacity-60">🔒</span>
+          </span>
+        </>
+      )}
+      {/* Quota remaining badge (pilot users with quota left) */}
+      {quotaInfo && !quotaExhausted && (
+        <span className="absolute top-2 right-2 z-10 inline-flex items-center gap-1 rounded-full border border-cyan-400/40 bg-gradient-to-r from-cyan-500/15 to-blue-500/15 px-2 py-0.5 text-[10px] font-bold tracking-wider text-cyan-300 shadow-sm shadow-cyan-400/10">
+          {quotaInfo.remaining}/{quotaInfo.limit} {quotaLabel || ''}
+        </span>
+      )}
+      {!isLocked && badgeText && (
         <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white shadow-lg animate-pulse">
           {badgeText}
         </span>
@@ -161,11 +203,50 @@ const MainActions: React.FC<MainActionsProps> = ({
   clanBadgeCount,
   schoolName,
   schoolLogoUrl,
+  isPro: isProUser = false,
+  isPilot: isPilotPlan = false,
+  onUpgrade,
 }) => {
+  const [pilotQuotas, setPilotQuotas] = useState<PilotQuotaStatus | null>(null);
+
+  // Fetch pilot quotas on mount (only if on pilot plan)
+  useEffect(() => {
+    if (!isPilotPlan) { setPilotQuotas(null); return; }
+    let cancelled = false;
+    fetchPilotQuotas().then((q) => { if (!cancelled) setPilotQuotas(q); });
+    return () => { cancelled = true; };
+  }, [isPilotPlan]);
+
+  const locked = !isProUser;
+
+  // Get quota info for a feature label (only relevant for pilot)
+  const q = (featureLabel: string): PilotQuota | null => {
+    if (!isPilotPlan || !pilotQuotas) return null;
+    return getQuotaForFeature(featureLabel, pilotQuotas);
+  };
+
+  // Get short label for quota badge
+  const ql = (featureLabel: string): string => {
+    const fid = FEATURE_TO_QUOTA[featureLabel];
+    return fid ? (QUOTA_LABELS[fid] || '') : '';
+  };
+
+  const handleLocked = (featureLabel: string) => () => {
+    if (onUpgrade) onUpgrade(featureLabel);
+  };
+
+  // For pilot: if quota exhausted, show upgrade modal; otherwise allow through
+  const handlePilotClick = (featureLabel: string, realHandler?: () => void) => () => {
+    const quota = q(featureLabel);
+    if (quota?.exhausted) {
+      if (onUpgrade) onUpgrade(`${featureLabel} — pilot quota used up`);
+      return;
+    }
+    realHandler?.();
+  };
   const displaySchoolName = schoolName || 'My School';
   const displaySchoolLogo = schoolLogoUrl || defaultSchoolIcon;
   
-  console.log('MainActions render - onOpenCambridgeTests:', !!onOpenCambridgeTests);
   return (
     <section className="dashboard-panel relative overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-950/60 p-4 shadow-2xl shadow-slate-950/50 backdrop-blur sm:p-6">
       <span
@@ -260,11 +341,14 @@ const MainActions: React.FC<MainActionsProps> = ({
               className="col-span-2 sm:col-span-3"
             />
             <ActionButton
-              onClick={onStartPvp}
+              onClick={locked ? handleLocked('Launch Attack') : handlePilotClick('Launch Attack', onStartPvp)}
               icon={<span aria-hidden className="text-3xl">⚔️</span>}
               label="Launch Attack"
               color="255, 45, 145"
               glowClass="glow-plasma animate-pulse-glow"
+              locked={locked}
+              quotaInfo={q('Launch Attack')}
+              quotaLabel={ql('Launch Attack')}
             />
             {onOpenRaid && (
               <ActionButton
@@ -277,81 +361,101 @@ const MainActions: React.FC<MainActionsProps> = ({
             )}
             {onOpenLockdown && (
               <ActionButton
-                onClick={onOpenLockdown}
+                onClick={handlePilotClick('Lockdown Mode', onOpenLockdown)}
                 icon={<span aria-hidden className="text-3xl">🔒</span>}
                 label="Lockdown Mode"
                 color="255, 69, 58"
                 glowClass="glow-plasma"
                 subtitle="Countdown ops sandbox"
                 className="col-span-2"
+                quotaInfo={q('Lockdown Mode')}
+                quotaLabel={ql('Lockdown Mode')}
               />
             )}
             <ActionButton
-              onClick={onVisitShop}
+              onClick={locked ? handleLocked('Visit Shop') : handlePilotClick('Visit Shop', onVisitShop)}
               icon={<span aria-hidden className="text-3xl">🛍️</span>}
               label="Visit Shop"
               color="22, 226, 161"
               glowClass="glow-success"
+              locked={locked}
+              quotaInfo={q('Visit Shop')}
+              quotaLabel={ql('Visit Shop')}
             />
-            {onOpenTournament && (
-              <ActionButton
-                onClick={onOpenTournament}
-                icon={<span aria-hidden className="text-3xl animate-bounce">🥇</span>}
-                label="Tournament"
-                color="255, 140, 0"
-                glowClass="glow-warn"
-              />
-            )}
             <ActionButton
-              onClick={onGoToClan}
+              onClick={locked ? handleLocked('Tournaments') : handlePilotClick('Tournament', onOpenTournament)}
+              icon={<span aria-hidden className="text-3xl animate-bounce">🥇</span>}
+              label="Tournament"
+              color="255, 140, 0"
+              glowClass="glow-warn"
+              locked={locked}
+              quotaInfo={q('Tournament')}
+              quotaLabel={ql('Tournament')}
+            />
+            <ActionButton
+              onClick={locked ? handleLocked('Clans') : handlePilotClick('Clan', onGoToClan)}
               icon={<SyndicateRune className="w-8 h-8 text-amber-400" aria-hidden />}
               label="Clan"
               color="255, 176, 32"
               glowClass="glow-warn"
-              badgeText={clanBadgeCount && clanBadgeCount > 0 ? String(Math.min(clanBadgeCount, 99)) : undefined}
+              badgeText={!locked && clanBadgeCount && clanBadgeCount > 0 ? String(Math.min(clanBadgeCount, 99)) : undefined}
+              locked={locked}
+              quotaInfo={q('Clan')}
+              quotaLabel={ql('Clan')}
             />
             <ActionButton
-              onClick={onVisitInventory}
+              onClick={locked ? handleLocked('Inventory') : handlePilotClick('Inventory', onVisitInventory)}
               icon={<span aria-hidden className="text-3xl">🎒</span>}
               label="Inventory"
               color="158, 93, 255"
               glowClass="glow-purple"
+              locked={locked}
+              quotaInfo={q('Inventory')}
+              quotaLabel={ql('Inventory')}
             />
             <ActionButton
-              onClick={onViewLeaderboard}
+              onClick={locked ? handleLocked('Leaderboard') : handlePilotClick('Leaderboard', onViewLeaderboard)}
               icon={<TrophyIcon className="w-8 h-8 animate-float" aria-hidden />}
               label="Leaderboard"
               color="255, 215, 0"
               glowClass="glow-warn"
+              locked={locked}
+              quotaInfo={q('Leaderboard')}
+              quotaLabel={ql('Leaderboard')}
             />
             <ActionButton
-              onClick={onViewAchievements}
+              onClick={locked ? handleLocked('Achievements') : handlePilotClick('Achievements', onViewAchievements)}
               icon={<span aria-hidden className="text-3xl animate-float">🎖️</span>}
               label="Achievements"
               color="255, 100, 200"
               glowClass="glow-plasma"
+              locked={locked}
+              quotaInfo={q('Achievements')}
+              quotaLabel={ql('Achievements')}
             />
-            {onOpenIeltsPrep && (
-              <ActionButton
-                onClick={onOpenIeltsPrep}
-                icon={<span aria-hidden className="text-3xl">🎯</span>}
-                label="IELTS Prep"
-                color="0, 191, 255"
-                glowClass="glow-ion"
-                className="col-span-2"
-              />
-            )}
-            {onOpenCambridgeTests && (
-              <ActionButton
-                onClick={onOpenCambridgeTests}
-                icon={<span aria-hidden className="text-3xl">📚</span>}
-                label="Cambridge Tests"
-                subtitle="Practice reading & grammar"
-                color="102, 126, 234"
-                glowClass="glow-ion"
-                className="col-span-2"
-              />
-            )}
+            <ActionButton
+              onClick={locked ? handleLocked('IELTS Prep') : handlePilotClick('IELTS Prep', onOpenIeltsPrep)}
+              icon={<span aria-hidden className="text-3xl">🎯</span>}
+              label="IELTS Prep"
+              color="0, 191, 255"
+              glowClass="glow-ion"
+              className="col-span-2"
+              locked={locked}
+              quotaInfo={q('IELTS Prep')}
+              quotaLabel={ql('IELTS Prep')}
+            />
+            <ActionButton
+              onClick={locked ? handleLocked('Cambridge Tests') : handlePilotClick('Cambridge Tests', onOpenCambridgeTests)}
+              icon={<span aria-hidden className="text-3xl">📚</span>}
+              label="Cambridge Tests"
+              subtitle="Practice reading & grammar"
+              color="102, 126, 234"
+              glowClass="glow-ion"
+              className="col-span-2"
+              locked={locked}
+              quotaInfo={q('Cambridge Tests')}
+              quotaLabel={ql('Cambridge Tests')}
+            />
             {onOpenAdminPortal && (
               <ActionButton
                 onClick={onOpenAdminPortal}
@@ -427,4 +531,4 @@ const MainActions: React.FC<MainActionsProps> = ({
     );
   };
 
-export default MainActions;
+export default React.memo(MainActions);

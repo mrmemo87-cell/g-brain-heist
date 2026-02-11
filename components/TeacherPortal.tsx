@@ -10,6 +10,7 @@ import DiagramBuilder from './geometry/DiagramBuilder';
 import QuestionBank from './teacher/QuestionBank';
 import '../src/styles/teacher-theme.css';
 import { chemistryAnswerKeys, chemistryQuestionRanges } from './chemistryAnswerKeys';
+import { fetchSchoolPlanDetails, fetchEffectiveTier, isPro, fetchPilotQuotas, getQuotaForFeature, QUOTA_LABELS, FEATURE_TO_QUOTA, type SchoolPlanDetails, type AccountTier, type PilotQuotaStatus, type PilotQuota } from '../services/tierService';
 
 interface TeacherPortalProps {
   profile: Profile;
@@ -18,6 +19,10 @@ interface TeacherPortalProps {
   isSchoolAdmin?: boolean;
   onOpenSchoolAdmin?: () => void;
 }
+
+// Plan details state (fetched once)
+let _cachedPlanDetails: SchoolPlanDetails | null = null;
+let _cachedTeacherTier: AccountTier | null = null;
 
 type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'geometry-diagrams' | 'cambridge-reports';
 
@@ -63,9 +68,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [questions, setQuestions] = useState<TeacherQuestion[]>([]);
   const [loading, setLoading] = useState(true);
+  const initCalledRef = useRef(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
   const [editingQuestion, setEditingQuestion] = useState<TeacherQuestion | null>(null);
+  const [isProPlan, setIsProPlan] = useState(() => isPro(_cachedTeacherTier));
+  const [pilotQuotas, setPilotQuotas] = useState<PilotQuotaStatus | null>(null);
   const [questionSearchTerm, setQuestionSearchTerm] = useState('');
   const [questionSubjectFilter, setQuestionSubjectFilter] = useState<'all' | Subject>('all');
   const [questionTopicFilter, setQuestionTopicFilter] = useState<string>('all');
@@ -389,21 +397,24 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   };
 
   useEffect(() => {
-    // Check email verification before loading teacher data
-    const initializePortal = async () => {
-      try {
-        const verificationStatus = await AuthService.checkEmailVerification();
-        if (!verificationStatus.isVerified) {
-          console.warn('Email not verified in TeacherPortal');
-          // Don't block here - let parent component handle verification screen
-        }
-      } catch (err) {
-        console.error('Verification check failed:', err);
-      }
-      loadTeacherData();
-    };
-    
-    initializePortal();
+    // Guard against StrictMode double-mount
+    if (initCalledRef.current) return;
+    initCalledRef.current = true;
+
+    loadTeacherData();
+
+    // Fetch tier in parallel (non-blocking)
+    if (_cachedTeacherTier) {
+      setIsProPlan(isPro(_cachedTeacherTier));
+    } else {
+      fetchEffectiveTier().then(tier => {
+        _cachedTeacherTier = tier;
+        setIsProPlan(isPro(tier));
+      }).catch(() => {});
+    }
+
+    // Fetch pilot quotas (non-blocking)
+    fetchPilotQuotas().then(q => { if (q) setPilotQuotas(q); }).catch(() => {});
   }, []);
 
   // Set default subject to first assigned subject when teacher has class assignments
@@ -2916,58 +2927,103 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           <span>⚡</span> Quick Actions
         </h3>
         <div className="teacher-actions-grid">
+          {(() => {
+            // Pilot quota helper
+            const tq = (label: string): PilotQuota | null => getQuotaForFeature(label, pilotQuotas);
+            const isPilot = pilotQuotas?.is_pilot && !pilotQuotas?.expired;
+            const isExhausted = (label: string) => tq(label)?.exhausted === true;
+            const isDisabled = (label: string) => !isProPlan || (isPilot && isExhausted(label));
+            const quotaBadge = (label: string) => {
+              if (!isPilot) return null;
+              const q = tq(label);
+              if (!q) return null;
+              const fid = FEATURE_TO_QUOTA[label];
+              const ql = fid ? QUOTA_LABELS[fid] : '';
+              if (q.exhausted) return <span className="teacher-pro-badge" style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', borderColor: '#ef4444' }}>⚡ UPGRADE</span>;
+              return <span className="teacher-pro-badge" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)', borderColor: '#22d3ee' }}>{q.remaining}/{q.limit} {ql}</span>;
+            };
+            return <>
           <button
-            onClick={() => setView('create-question')}
-            className="teacher-action-card"
+            onClick={() => !isDisabled('Create Question') ? setView('create-question') : undefined}
+            className={`teacher-action-card ${isDisabled('Create Question') ? 'opacity-50 cursor-not-allowed' : ''}`}
             data-color="pink"
+            disabled={isDisabled('Create Question')}
           >
+            {!isProPlan && !isPilot && <span className="teacher-pro-badge">PRO</span>}
+            {quotaBadge('Create Question')}
             <div className="teacher-action-icon">➕</div>
             <h4 className="teacher-action-title">Create Question</h4>
             <p className="teacher-action-desc">Add a new question to your library</p>
           </button>
 
           <button
-            onClick={() => setView('question-bank')}
-            className="teacher-action-card"
+            onClick={() => !isDisabled('Question Bank') ? setView('question-bank') : undefined}
+            className={`teacher-action-card ${isDisabled('Question Bank') ? 'opacity-50 cursor-not-allowed' : ''}`}
             data-color="cyan"
+            disabled={isDisabled('Question Bank')}
           >
+            {!isProPlan && !isPilot && <span className="teacher-pro-badge">PRO</span>}
+            {quotaBadge('Question Bank')}
             <div className="teacher-action-icon">📚</div>
             <h4 className="teacher-action-title">Question Bank</h4>
             <p className="teacher-action-desc">View and manage all questions</p>
           </button>
 
           <button
-            onClick={() => setView('csv-upload')}
-            className="teacher-action-card"
+            onClick={() => !isDisabled('Bulk Upload') ? setView('csv-upload') : undefined}
+            className={`teacher-action-card ${isDisabled('Bulk Upload') ? 'opacity-50 cursor-not-allowed' : ''}`}
             data-color="green"
+            disabled={isDisabled('Bulk Upload')}
           >
+            {!isProPlan && !isPilot && <span className="teacher-pro-badge">PRO</span>}
+            {quotaBadge('Bulk Upload')}
             <div className="teacher-action-icon">📤</div>
             <h4 className="teacher-action-title">Bulk Upload</h4>
             <p className="teacher-action-desc">Import questions via CSV</p>
           </button>
 
           <button
-            onClick={() => setView('create-assignment')}
-            className="teacher-action-card"
+            onClick={() => !isDisabled('New Assignment') ? setView('create-assignment') : undefined}
+            className={`teacher-action-card ${isDisabled('New Assignment') ? 'opacity-50 cursor-not-allowed' : ''}`}
             data-color="purple"
+            disabled={isDisabled('New Assignment')}
           >
+            {!isProPlan && !isPilot && <span className="teacher-pro-badge">PRO</span>}
+            {quotaBadge('New Assignment')}
             <div className="teacher-action-icon">📋</div>
             <h4 className="teacher-action-title">New Assignment</h4>
             <p className="teacher-action-desc">Assign work to students</p>
           </button>
+            </>;
+          })()}
 
-          {/* Lockdown Mode - Premium Feature */}
-          {onLockdown && (
-            <button
-              onClick={onLockdown}
-              className="teacher-action-card teacher-action-card-lockdown"
-              data-color="emerald"
-            >
-              <div className="teacher-action-icon">🔒</div>
-              <h4 className="teacher-action-title">Lockdown Mode</h4>
-              <p className="teacher-action-desc">Host a live classroom session</p>
-            </button>
-          )}
+          {/* Lockdown Mode - Free for non-pilot, quota-tracked for pilot */}
+          {onLockdown && (() => {
+            const isPilotLd = pilotQuotas?.is_pilot && !pilotQuotas?.expired;
+            const ldQuota = getQuotaForFeature('Lockdown Mode', pilotQuotas);
+            const ldExhausted = isPilotLd && ldQuota?.exhausted === true;
+            return (
+              <button
+                onClick={() => !ldExhausted ? onLockdown() : undefined}
+                className={`teacher-action-card teacher-action-card-lockdown ${ldExhausted ? 'opacity-50 cursor-not-allowed' : ''}`}
+                data-color="emerald"
+                disabled={ldExhausted}
+              >
+                {!isPilotLd && <span className="teacher-free-badge">FREE</span>}
+                {isPilotLd && ldQuota && !ldQuota.exhausted && (
+                  <span className="teacher-pro-badge" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)', borderColor: '#22d3ee' }}>
+                    {ldQuota.remaining}/{ldQuota.limit} sessions
+                  </span>
+                )}
+                {ldExhausted && (
+                  <span className="teacher-pro-badge" style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', borderColor: '#ef4444' }}>⚡ UPGRADE</span>
+                )}
+                <div className="teacher-action-icon">🔒</div>
+                <h4 className="teacher-action-title">Lockdown Mode</h4>
+                <p className="teacher-action-desc">Host a live classroom session</p>
+              </button>
+            );
+          })()}
         </div>
       </div>
 
@@ -2977,50 +3033,76 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           <span>🛠️</span> Teaching Tools
         </h3>
         <div className="teacher-tools-grid">
+          {(() => {
+            const tq = (label: string): PilotQuota | null => getQuotaForFeature(label, pilotQuotas);
+            const isPilot = pilotQuotas?.is_pilot && !pilotQuotas?.expired;
+            const isExhausted = (label: string) => tq(label)?.exhausted === true;
+            const isDisabledT = (label: string) => !isProPlan || (isPilot && isExhausted(label));
+            const quotaBadgeSm = (label: string) => {
+              if (!isPilot) return null;
+              const q = tq(label);
+              if (!q) return null;
+              const fid = FEATURE_TO_QUOTA[label];
+              const ql = fid ? QUOTA_LABELS[fid] : '';
+              if (q.exhausted) return <span className="teacher-pro-badge-sm" style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', borderColor: '#ef4444' }}>⚡ UPGRADE</span>;
+              return <span className="teacher-pro-badge-sm" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)', borderColor: '#22d3ee', color: '#e0f2fe' }}>{q.remaining}/{q.limit} {ql}</span>;
+            };
+            return <>
           <button
-            onClick={() => setView('geometry-diagrams')}
-            className="teacher-tool-card orange"
+            onClick={() => !isDisabledT('Geometry Builder') ? setView('geometry-diagrams') : undefined}
+            className={`teacher-tool-card orange ${isDisabledT('Geometry Builder') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={isDisabledT('Geometry Builder')}
           >
             <div className="teacher-tool-icon">📐</div>
-            <div>
+            <div className="teacher-tool-info">
               <h4 className="teacher-tool-title">Geometry Builder</h4>
               <p className="teacher-tool-desc">Create interactive diagram questions</p>
             </div>
+            {!isProPlan && !isPilot && <span className="teacher-pro-badge-sm">PRO</span>}
+            {quotaBadgeSm('Geometry Builder')}
           </button>
 
           <button
-            onClick={() => setView('reports')}
-            className="teacher-tool-card blue"
+            onClick={() => !isDisabledT('Performance Reports') ? setView('reports') : undefined}
+            className={`teacher-tool-card blue ${isDisabledT('Performance Reports') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={isDisabledT('Performance Reports')}
           >
             <div className="teacher-tool-icon">📊</div>
-            <div>
+            <div className="teacher-tool-info">
               <h4 className="teacher-tool-title">Performance Reports</h4>
               <p className="teacher-tool-desc">Track student accuracy & completion</p>
             </div>
+            {!isProPlan && !isPilot && <span className="teacher-pro-badge-sm">PRO</span>}
+            {quotaBadgeSm('Performance Reports')}
           </button>
 
           <button
             onClick={() => {
+              if (isDisabledT('Cambridge Marking')) return;
               setView('cambridge-reports');
               loadCambridgeScores();
             }}
-            className="teacher-tool-card teal"
+            className={`teacher-tool-card teal ${isDisabledT('Cambridge Marking') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={isDisabledT('Cambridge Marking')}
           >
             <div className="teacher-tool-icon">✍️</div>
-            <div>
+            <div className="teacher-tool-info">
               <h4 className="teacher-tool-title">Cambridge Tests</h4>
               <p className="teacher-tool-desc">Mark writing tests & view results</p>
             </div>
+            {!isProPlan && !isPilot && <span className="teacher-pro-badge-sm">PRO</span>}
+            {quotaBadgeSm('Cambridge Marking')}
           </button>
+            </>;
+          })()}
 
-          {/* Role source-of-truth: uses isSchoolAdmin derived from schoolAdminService checks (users + school_members). */}
           {isSchoolAdmin && onOpenSchoolAdmin && (
             <button
               onClick={onOpenSchoolAdmin}
               className="teacher-tool-card purple"
             >
               <div className="teacher-tool-icon">🏫</div>
-              <div>
+              <div className="teacher-tool-info">
                 <h4 className="teacher-tool-title">School Admin Portal</h4>
                 <p className="teacher-tool-desc">Manage school members & settings</p>
               </div>
@@ -3197,10 +3279,6 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       </div>
 
       <div className="teacher-card">
-        <h2 className="text-2xl font-bold text-slate-800 mb-6">
-          {editingQuestion ? '✏️ Edit Question' : '✨ Create New Question'}
-        </h2>
-
         <form onSubmit={handleCreateQuestion} className="space-y-6">
           {/* Subject & Difficulty */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -5164,7 +5242,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
       {/* School Visibility Confirmation Dialog */}
       {schoolVisConfirmDialog && createPortal(
-        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center">
           <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl border border-slate-200 mx-4">
             <h3 className="text-xl font-bold text-slate-900 mb-2">{schoolVisConfirmDialog.title}</h3>
             <p className="text-sm text-slate-600 mb-6">{schoolVisConfirmDialog.description}</p>
@@ -5454,8 +5532,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         </div>
       </div>
 
-      {cambridgeDrawerOpen && drawerAttempt && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center">
+      {cambridgeDrawerOpen && drawerAttempt && createPortal(
+        <div className="fixed inset-0 z-[50] flex items-center justify-center">
           <div
             className="absolute inset-0 bg-black/40"
             onClick={closeCambridgeDrawer}
@@ -5574,11 +5652,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {cambridgeFiltersOpen && (
-        <div className="fixed inset-0 z-[70] lg:hidden">
+      {cambridgeFiltersOpen && createPortal(
+        <div className="fixed inset-0 z-[50] lg:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setCambridgeFiltersOpen(false)} />
           <div className="absolute inset-0 flex items-center justify-center p-4">
             <div className="w-full max-w-md bg-white shadow-2xl p-4 rounded-2xl max-h-[90vh] overflow-y-auto">
@@ -5594,7 +5673,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             {filtersPanel}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <details className="bg-white border border-gray-200 rounded-xl overflow-hidden">
@@ -5635,7 +5715,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           window.print();
         };
         
-        return (
+        return createPortal(
           <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-2 sm:p-4 overflow-y-auto print:p-0 print:bg-white print:overflow-visible print:block" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {/* Print Styles - Optimized for Single Landscape Page */}
             <style>{`
@@ -5887,7 +5967,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 </div>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         );
       })()}
 
@@ -5904,7 +5985,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           const writingMeta = WRITING_TEST_METADATA[quizName] ?? WRITING_TEST_METADATA['Cambridge Writing Test 1'];
           const feedback = answers.feedback || {};
           
-          return (
+          return createPortal(
             <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-2 sm:p-4 overflow-y-auto" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div className="bg-white rounded-2xl max-w-4xl sm:max-w-5xl w-full max-h-[90vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
                 {/* Header */}
@@ -6076,7 +6157,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   </div>
                 </div>
               </div>
-            </div>
+            </div>,
+            document.body
           );
         }
         
@@ -6094,7 +6176,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           }));
         const hasAnswerKey = Object.keys(answerKey).length > 0;
         
-        return (
+        return createPortal(
           <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-2 sm:p-4 overflow-y-auto" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div className="bg-white rounded-2xl max-w-4xl sm:max-w-5xl w-full max-h-[90vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
               {/* Header */}
@@ -6280,7 +6362,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 </div>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         );
       })()}
 
@@ -6294,8 +6377,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         const percentage = Math.round((totalScore / 35) * 100);
         const writingMeta = WRITING_TEST_METADATA[selectedCambridgeStudent.quiz_name] ?? WRITING_TEST_METADATA['Cambridge Writing Test 1'];
         
-        return (
-          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/90 p-4 overflow-y-auto">
+        return createPortal(
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4 overflow-y-auto">
             <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[95vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
               {/* Header */}
               <div className="p-6 border-b-4 border-purple-600 bg-gradient-to-r from-purple-50 to-indigo-50">
@@ -6782,7 +6865,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 </p>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         );
       })()}
 
@@ -6808,8 +6892,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         const groups = Object.values(testsByGradeSubject);
 
         return createPortal(
-          <div style={{ position: 'fixed', inset: 0, zIndex: 9999, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ backgroundColor: 'white', borderRadius: '1rem', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)', width: '90%', maxWidth: '1000px', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}>
+          <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center">
+            <div className="bg-white rounded-2xl shadow-xl w-[90%] max-w-[1000px] max-h-[85vh] flex flex-col">
               {/* Header */}
               <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6">
                 <div className="flex items-center justify-between">
@@ -6944,12 +7028,12 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     );
   }
 
-  const navTabs: Array<{ id: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge'; label: string; icon: string; description: string }> = [
+  const navTabs: Array<{ id: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge'; label: string; icon: string; description: string; proOnly?: boolean }> = [
     { id: 'dashboard', label: 'Dashboard', icon: '🏠', description: 'Overview & Quick Actions' },
-    { id: 'questions', label: 'Question Bank', icon: '📚', description: 'Create & Manage Questions' },
-    { id: 'assignments', label: 'Assignments', icon: '📋', description: 'Assign Work to Students' },
-    { id: 'reports', label: 'Reports', icon: '📊', description: 'Student Performance' },
-    { id: 'cambridge', label: 'Cambridge Tests', icon: '✍️', description: 'Writing & Test Results' },
+    { id: 'questions', label: 'Question Bank', icon: '📚', description: 'Create & Manage Questions', proOnly: true },
+    { id: 'assignments', label: 'Assignments', icon: '📋', description: 'Assign Work to Students', proOnly: true },
+    { id: 'reports', label: 'Reports', icon: '📊', description: 'Student Performance', proOnly: true },
+    { id: 'cambridge', label: 'Cambridge Tests', icon: '✍️', description: 'Writing & Test Results', proOnly: true },
   ];
 
   return (
@@ -7036,22 +7120,48 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           </div>
         </div>
 
+        {/* Plan Status Banner */}
+        <TeacherPlanBanner
+          isSchoolAdmin={isSchoolAdmin}
+          onOpenSchoolAdmin={onOpenSchoolAdmin}
+        />
+
         {/* Navigation */}
         <div className="teacher-nav-container">
           <div className="teacher-nav-grid">
-            {navTabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => changeSection(tab.id)}
-                className={`teacher-nav-btn ${primarySection === tab.id ? 'active' : ''}`}
-              >
-                <span className="teacher-nav-icon">{tab.icon}</span>
-                <div className="teacher-nav-text">
-                  <span className="teacher-nav-label">{tab.label}</span>
-                  <span className="teacher-nav-desc">{tab.description}</span>
-                </div>
-              </button>
-            ))}
+            {navTabs.map((tab) => {
+              const isPilot = pilotQuotas?.is_pilot && !pilotQuotas?.expired;
+              // Map nav tab IDs to feature labels for quota lookup
+              const tabQuotaMap: Record<string, string> = {
+                questions: 'Question Bank',
+                assignments: 'New Assignment',
+                reports: 'Performance Reports',
+                cambridge: 'Cambridge Marking',
+              };
+              const featureLabel = tabQuotaMap[tab.id];
+              const tq = featureLabel ? getQuotaForFeature(featureLabel, pilotQuotas) : null;
+              const pilotExhausted = isPilot && tq?.exhausted === true;
+              const locked = (tab.proOnly && !isProPlan) || pilotExhausted;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => !locked && changeSection(tab.id)}
+                  disabled={locked}
+                  className={`teacher-nav-btn ${primarySection === tab.id ? 'active' : ''} ${locked ? 'teacher-nav-locked' : ''}`}
+                >
+                  <span className="teacher-nav-icon">{tab.icon}</span>
+                  <div className="teacher-nav-text">
+                    <span className="teacher-nav-label">
+                      {tab.label}
+                      {locked && !isPilot && <span className="teacher-nav-pro-tag">PRO</span>}
+                      {pilotExhausted && <span className="teacher-nav-pro-tag" style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)' }}>⚡ UPGRADE</span>}
+                      {isPilot && tq && !tq.exhausted && <span className="teacher-nav-pro-tag" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)' }}>{tq.remaining}/{tq.limit}</span>}
+                    </span>
+                    <span className="teacher-nav-desc">{tab.description}</span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -7091,5 +7201,102 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     </div>
   );
 };
+
+
+// ============================================================================
+// TeacherPlanBanner — shows school plan status to teachers
+// ============================================================================
+
+const TeacherPlanBanner: React.FC<{
+  isSchoolAdmin?: boolean;
+  onOpenSchoolAdmin?: () => void;
+}> = ({ isSchoolAdmin, onOpenSchoolAdmin }) => {
+  const [details, setDetails] = useState<SchoolPlanDetails | null>(_cachedPlanDetails);
+
+  useEffect(() => {
+    if (!details) {
+      fetchSchoolPlanDetails().then(d => {
+        _cachedPlanDetails = d;
+        setDetails(d);
+      }).catch(() => {});
+    }
+  }, []);
+
+  if (!details) return null;
+
+  const { plan, is_active, trial_expired, trial_ends_at } = details;
+
+  // Don't show banner for active paid plans — everything works
+  if (['core', 'standard', 'pro', 'enterprise'].includes(plan)) return null;
+
+  // Active pilot — show countdown
+  if (plan === 'pilot' && is_active && trial_ends_at) {
+    const daysLeft = Math.max(0, Math.ceil(
+      (new Date(trial_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+    ));
+    return (
+      <div className="mx-4 my-2 rounded-lg border border-cyan-500/30 bg-cyan-500/5 px-4 py-2.5 flex items-center justify-between flex-wrap gap-2">
+        <span className="text-sm text-cyan-200">
+          🚀 <strong>Pilot Trial</strong> — {daysLeft} day{daysLeft !== 1 ? 's' : ''} remaining.
+          {' '}All features unlocked.
+        </span>
+        {isSchoolAdmin && onOpenSchoolAdmin && (
+          <button
+            onClick={onOpenSchoolAdmin}
+            className="text-xs font-semibold text-cyan-300 hover:text-cyan-200 transition-colors"
+          >
+            Upgrade to keep access →
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // Expired pilot
+  if (trial_expired) {
+    return (
+      <div className="mx-4 my-2 rounded-lg border border-red-500/30 bg-red-500/5 px-4 py-2.5 flex items-center justify-between flex-wrap gap-2">
+        <span className="text-sm text-red-200">
+          ⏰ <strong>Pilot trial expired.</strong> Some features are now locked.
+        </span>
+        {isSchoolAdmin && onOpenSchoolAdmin ? (
+          <button
+            onClick={onOpenSchoolAdmin}
+            className="text-xs font-semibold text-red-300 hover:text-red-200 transition-colors"
+          >
+            Subscribe to restore access →
+          </button>
+        ) : (
+          <span className="text-xs text-red-400">Ask your school admin to subscribe.</span>
+        )}
+      </div>
+    );
+  }
+
+  // No plan (free lockdown only)
+  if (plan === 'none') {
+    return (
+      <div className="mx-4 my-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-2.5 flex items-center justify-between flex-wrap gap-2">
+        <span className="text-sm text-amber-200">
+          🔓 <strong>Free plan</strong> — Lockdown mode only.
+          {' '}Upgrade to unlock Cambridge tests, IELTS, assignments & more.
+        </span>
+        {isSchoolAdmin && onOpenSchoolAdmin ? (
+          <button
+            onClick={onOpenSchoolAdmin}
+            className="text-xs font-semibold text-amber-300 hover:text-amber-200 transition-colors"
+          >
+            View plans →
+          </button>
+        ) : (
+          <span className="text-xs text-amber-400">Ask your school admin about upgrading.</span>
+        )}
+      </div>
+    );
+  }
+
+  return null;
+};
+
 
 export default TeacherPortal;

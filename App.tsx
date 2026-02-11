@@ -24,6 +24,8 @@ import { notificationService } from './services/notificationService';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './services/banMessage';
 import { isEmailVerified } from './services/emailVerification';
 import EmailVerificationGate from './components/EmailVerificationGate';
+import UpgradeModal from './components/UpgradeModal';
+import { fetchEffectiveTier, isPro as isProTier, invalidateTierCache, fetchSchoolPlanDetails, type AccountTier } from './services/tierService';
 import IeltsHome from './src/pages/ielts/IeltsHome';
 
 const QuestView = React.lazy(() => import('./components/QuestView'));
@@ -139,6 +141,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [isUserSchoolAdmin, setIsUserSchoolAdmin] = useState(false);
   const [sessionMissing, setSessionMissing] = useState(false);
   const [isInteractive, setIsInteractive] = useState(false);
+  const [accountTier, setAccountTier] = useState<AccountTier>('free');
+  const [isPilotPlan, setIsPilotPlan] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeFeatureLabel, setUpgradeFeatureLabel] = useState<string | undefined>(undefined);
   const [nonCriticalStatus, setNonCriticalStatus] = useState({
     tasks: 'idle' as NonCriticalLoadState,
     caps: 'idle' as NonCriticalLoadState,
@@ -158,10 +164,13 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const criticalAbortRef = useRef<AbortController | null>(null);
   const nonCriticalAbortRef = useRef<AbortController | null>(null);
   const isCambridgeView = view === 'cambridge';
+  const isFullScreenView = view === 'school_admin' || view === 'teacher' || view === 'admin';
   const isIeltsOnlyUser =
     profile?.school_name?.trim().toLowerCase() === IELTS_ONLY_SCHOOL_NAME.toLowerCase();
   const isPlayerMode = appMode === 'player';
   const hasSchool = Boolean(profile?.school_id);
+  const isProUser = isProTier(accountTier);
+  const isTeacherRole = profile?.role === 'teacher';
 
   const SkeletonBlock: React.FC<{ className?: string }> = ({ className }) => (
     <div className={`animate-pulse rounded-xl bg-white/10 ${className ?? ''}`} />
@@ -254,6 +263,18 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const handleViewChange = (nextView: typeof view) => {
     if (!hasSchool && ['clan', 'leaderboard', 'phase1_play', 'phase1_leaderboard', 'phase1_admin', 'school_admin'].includes(nextView)) {
       addToast('Join a school to access school-based features.', 'info');
+      return;
+    }
+    // Pro-gated views: free users see upgrade modal instead
+    const proOnlyViews = ['pvp', 'shop', 'clan', 'inventory', 'leaderboard', 'achievements', 'tournament', 'raids', 'cambridge', 'ielts'];
+    if (!isProUser && proOnlyViews.includes(nextView)) {
+      const labels: Record<string, string> = {
+        pvp: 'Launch Attack', shop: 'Shop', clan: 'Clans', inventory: 'Inventory',
+        leaderboard: 'Leaderboard', achievements: 'Achievements', tournament: 'Tournaments',
+        raids: 'Raids', cambridge: 'Cambridge Tests', ielts: 'IELTS Prep',
+      };
+      setUpgradeFeatureLabel(labels[nextView] || nextView);
+      setShowUpgradeModal(true);
       return;
     }
     if (!isAdminMode && nextView === 'admin') {
@@ -376,14 +397,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   };
 
   useEffect(() => {
-    if (!isPlayerMode) {
+    if (!isPlayerMode || isTeacherRole) {
       return;
     }
     return aiHostService.init();
-  }, [isPlayerMode]);
+  }, [isPlayerMode, isTeacherRole]);
 
   useEffect(() => {
-    if (!isPlayerMode) {
+    if (!isPlayerMode || isTeacherRole) {
       return;
     }
 
@@ -521,15 +542,33 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         return;
       }
 
-      const { session, profile: profileData } = await GameService.getCriticalBootData({
-        signal: criticalController.signal,
-        timeoutMs: 12000,
-        retryOnTimeout: 1,
-      });
+      // ── FAST TEACHER PATH ──
+      // Peek at user role from a lightweight query before running the full whoami.
+      // Teachers skip AP regen, streak, clan, cosmetics, inventory, XP status.
+      let profileData: Profile | null = null;
+      try {
+        const { data: peekRow } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', data.session.user.id)
+          .single();
+        if (peekRow?.role === 'teacher') {
+          profileData = await GameService.whoamiTeacher();
+        }
+      } catch { /* fall through to normal boot */ }
 
-      if (!session) {
-        setSessionMissing(true);
-        return;
+      if (!profileData) {
+        const { session, profile: fullProfile } = await GameService.getCriticalBootData({
+          signal: criticalController.signal,
+          timeoutMs: 12000,
+          retryOnTimeout: 1,
+        });
+
+        if (!session) {
+          setSessionMissing(true);
+          return;
+        }
+        profileData = fullProfile;
       }
 
       if (!profileData) {
@@ -538,13 +577,51 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
       setProfile(profileData);
 
-      // Check email verification status
-      const verified = await isEmailVerified();
-      setEmailVerified(verified);
-
       const whoamiMs = performance.now() - bootStartRef.current;
       bootTimingsRef.current.whoami = whoamiMs;
       logBootTiming('time to whoami resolved', whoamiMs);
+
+      // ── TEACHER: minimal remaining boot ──
+      if (profileData.role === 'teacher') {
+        // Fetch tier in parallel (non-blocking)
+        fetchEffectiveTier().then(tier => setAccountTier(tier)).catch(() => {});
+        // Detect pilot plan
+        fetchSchoolPlanDetails().then(d => setIsPilotPlan(d.plan === 'pilot' && d.is_active)).catch(() => {});
+        // Check school admin status in parallel (non-blocking)
+        isSchoolAdmin().then(setIsUserSchoolAdmin).catch(() => setIsUserSchoolAdmin(false));
+
+        setIsAdminMode(false);
+        setAppMode('player');
+        setCriticalLoading(false);
+        requestAnimationFrame(() => setIsInteractive(true));
+        return;
+      }
+
+      // ── STUDENT / ADMIN PATH (unchanged) ──
+      // Fetch payment tier (non-blocking, defaults to 'free')
+      fetchEffectiveTier().then(tier => setAccountTier(tier)).catch(() => {});
+      // Detect pilot plan
+      fetchSchoolPlanDetails().then(d => setIsPilotPlan(d.plan === 'pilot' && d.is_active)).catch(() => {});
+
+      // Handle post-Stripe-checkout redirect
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('upgrade') === 'success') {
+        // Clear URL param, refresh tier
+        window.history.replaceState({}, '', window.location.pathname);
+        invalidateTierCache();
+        fetchEffectiveTier().then(tier => {
+          setAccountTier(tier);
+          if (tier === 'pro') {
+            addToast('🎉 Welcome to Brain Heist Pro! All features unlocked.', 'success');
+          }
+        }).catch(() => {});
+      } else if (urlParams.get('upgrade') === 'cancelled') {
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+
+      // Check email verification status
+      const verified = await isEmailVerified();
+      setEmailVerified(verified);
 
       // Show tutorial if first time user (only check once on initial load)
       if (!tutorialCheckedRef.current && profileData && !profileData.tutorial_completed) {
@@ -572,23 +649,36 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         loadCachedData();
       }
 
+      setCriticalLoading(false);
+
       requestAnimationFrame(() => {
         setIsInteractive(true);
       });
     } catch (error: any) {
       if (error?.name === 'AbortError' || criticalController.signal.aborted) {
+        // Aborted by a newer boot call (e.g. StrictMode double-mount).
+        // Do NOT clear criticalLoading — the newer call owns that flag.
         return;
       }
       console.error('Failed to load critical boot data:', error);
       setLoadError(classifyBootError(error));
       addToast(`Failed to load: ${error?.message || 'Unknown error'}`, 'error', startCriticalBoot);
-    } finally {
       setCriticalLoading(false);
     }
   }, [addToast, classifyBootError, logBootTiming, loadCachedData]);
 
   const runNonCriticalLoads = useCallback((targets?: NonCriticalKey[]) => {
     if (!profile) return;
+
+    // Teachers don't need student game data (tasks, caps, news, assignments)
+    if (profile.role === 'teacher') {
+      // Only load session status for teachers
+      const teacherTargets: NonCriticalKey[] = targets
+        ? targets.filter(t => t === 'sessionStatus')
+        : ['sessionStatus'];
+      if (!teacherTargets.length) return;
+      targets = teacherTargets;
+    }
 
     const isStudentRole = profile.role === 'student';
     const resolvedTargets = targets
@@ -801,7 +891,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
   // Real-time subscription for activity feed
   useEffect(() => {
-    if (!isPlayerMode || !profile || !isInteractive) return;
+    if (!isPlayerMode || !profile || !isInteractive || isTeacherRole) return;
     
     const activityChannel = supabase
       .channel('activities')
@@ -1537,8 +1627,19 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           );
         case 'dashboard':
         default:
+            // Still loading — don't flash student dashboard
+            if (!profile) {
+              return (
+                <div className="flex min-h-[60vh] items-center justify-center">
+                  <div className="flex flex-col items-center gap-3 text-cyan-200">
+                    <div className="h-10 w-10 rounded-full border-2 border-cyan-400/70 border-t-transparent animate-spin" />
+                    <span className="text-sm">Loading portal…</span>
+                  </div>
+                </div>
+              );
+            }
             // Teacher goes directly to TeacherPortal - unified experience
-            if (profile?.role === 'teacher') {
+            if (profile.role === 'teacher') {
                 return renderLazy(
                     <TeacherPortal
                         profile={profile}
@@ -1593,6 +1694,12 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                       clanBadgeCount={pendingClanRequests}
                       schoolName={profile?.school_name}
                       schoolLogoUrl={profile?.school_logo_url}
+                      isPro={isProUser}
+                      isPilot={isPilotPlan}
+                      onUpgrade={(featureLabel) => {
+                        setUpgradeFeatureLabel(featureLabel);
+                        setShowUpgradeModal(true);
+                      }}
                     />
                     {/* Join School Card - replaces the annoying banner */}
                     {!hasSchool && (
@@ -1621,7 +1728,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           : 'relative min-h-screen overflow-hidden p-4 md:p-6 lg:p-8 max-w-screen-2xl mx-auto'
       }
     >
-      {attackAlert && isPlayerMode && (
+      {attackAlert && isPlayerMode && !isTeacherRole && (
         <div className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center">
           <div className="absolute inset-0 bg-red-700/40 backdrop-blur-sm transition-opacity duration-300 animate-pulse" />
           <div className="pointer-events-none relative rounded-xl border border-red-500/80 bg-red-950/70 px-6 py-4 text-center shadow-2xl">
@@ -1631,7 +1738,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           </div>
         </div>
       )}
-      {showAcademicSetup && isPlayerMode && (
+      {showAcademicSetup && isPlayerMode && !isTeacherRole && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4">
           <div className="w-full max-w-xl rounded-2xl bg-slate-900 p-8 shadow-2xl ring-2 ring-amber-400/40">
             <h2 className="font-heading text-2xl text-white mb-2">Almost ready!</h2>
@@ -1705,7 +1812,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         </div>
       )}
       <div className="relative z-10">
-        {!isCambridgeView && isPlayerMode && (
+        {!isCambridgeView && !isFullScreenView && isPlayerMode && (
           profile ? (
             <Header
               profile={profile}
@@ -1720,7 +1827,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               onProfileAvatarChange={(avatarUrl) => setProfile((p) => p ? { ...p, avatar_url: avatarUrl } : p)}
               onProfileRefresh={refreshProfile}
               isSchoolAdmin={isUserSchoolAdmin}
-              onOpenSchoolAdmin={() => setShowSchoolAdminPortal(true)}
+              onOpenSchoolAdmin={() => handleViewChange('school_admin')}
             />
           ) : (
             <HeaderShell />
@@ -1809,6 +1916,23 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         {showHelp && (
           <HelpModal onClose={() => setShowHelp(false)} />
         )}
+
+        {/* Upgrade Modal */}
+        <UpgradeModal
+          isOpen={showUpgradeModal}
+          onClose={() => {
+            setShowUpgradeModal(false);
+            setUpgradeFeatureLabel(undefined);
+          }}
+          featureLabel={upgradeFeatureLabel}
+          onPilotStarted={() => {
+            invalidateTierCache();
+            fetchEffectiveTier().then(tier => setAccountTier(tier));
+            setShowUpgradeModal(false);
+            setUpgradeFeatureLabel(undefined);
+            addToast('🚀 30-day pilot activated! All features unlocked.', 'success');
+          }}
+        />
 
         {/* Toast Notifications */}
         <ToastContainer />

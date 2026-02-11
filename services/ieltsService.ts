@@ -570,13 +570,24 @@ export const submitReadingAttempt = async (
   return data;
 };
 
-// Get user's tier
+// Get user's tier (unified: checks school subscription first, then IELTS-specific tier)
 export const getUserTier = async () => {
   const { data: session } = await supabase.auth.getSession();
   if (!session?.session?.user) {
     return 'free';
   }
 
+  // Check school-based subscription tier first
+  try {
+    const { data: effectiveTier, error: rpcError } = await supabase.rpc('get_effective_tier');
+    if (!rpcError && effectiveTier === 'pro') {
+      return 'prime_prep_user'; // School subscription grants full IELTS access
+    }
+  } catch {
+    // RPC not available (migration not yet applied) — fall through to legacy check
+  }
+
+  // Legacy: check ielts_users.tier directly
   const { data, error } = await supabase
     .from('ielts_users')
     .select('tier')
@@ -592,7 +603,7 @@ export const getUserTier = async () => {
 };
 
 export const isIeltsPrime = (user?: { tier?: string | null } | null) =>
-  user?.tier === 'prime_prep_user' || user?.tier === 'admin';
+  user?.tier === 'prime_prep_user' || user?.tier === 'admin' || user?.tier === 'pro';
 
 // ============================================================
 // NOTIFICATION PREFERENCES

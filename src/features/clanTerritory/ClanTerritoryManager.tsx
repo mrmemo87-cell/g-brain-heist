@@ -10,6 +10,8 @@ import { supabase } from "../../../services/supabaseClient";
 import { audioService } from "../../../services/audioService";
 import { fetchSchoolBatches, type SchoolBatchInfo } from "../../../services/competitionService";
 import * as SchoolAdminService from "../../../services/schoolAdminService";
+import { fetchLockdownLimits, type LockdownLimits, FREE_LOCKDOWN_LIMITS } from "../../../services/tierService";
+import { FreeTierWatermark } from "../../../components/FreeTierWatermark";
 
 interface ClanTerritoryManagerProps {
   onExit: () => void;
@@ -148,7 +150,11 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const discoveredRoomsRef = useRef<Record<string, DiscoveredRoom>>({});
   const autoStartTriggeredRef = useRef(false);
 
-  const durationPercentage = ((durationMinutes - 2) / 18) * 100;
+  const [lockdownLimits, setLockdownLimits] = useState<LockdownLimits>(FREE_LOCKDOWN_LIMITS);
+  const isMapLocked = (mapId: string) => lockdownLimits.allowed_maps !== null && !lockdownLimits.allowed_maps.includes(mapId);
+  const effectiveDurationMax = lockdownLimits.max_duration_minutes ?? 20;
+
+  const durationPercentage = ((durationMinutes - 2) / (effectiveDurationMax - 2)) * 100;
 
   const formatScheduleTime = (value?: string | null) => {
     if (!value) return null;
@@ -162,6 +168,20 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       setTeacherName(playerName);
     }
   }, [playerName, teacherName]);
+
+  useEffect(() => {
+    if (!isTeacher) return;
+    let m = true;
+    fetchLockdownLimits().then(l => { if (m) setLockdownLimits(l); });
+    return () => { m = false; };
+  }, [isTeacher]);
+
+  useEffect(() => {
+    if (lockdownLimits.max_duration_minutes && durationMinutes > lockdownLimits.max_duration_minutes) {
+      setDurationMinutes(lockdownLimits.max_duration_minutes);
+    }
+    if (isMapLocked(selectedMap)) setSelectedMap('default');
+  }, [lockdownLimits]);
 
   useEffect(() => {
     if (!isTeacher) return;
@@ -885,6 +905,13 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
             <p className="text-sm text-gray-400">Customize the battle duration, map, and objectives for your clan war.</p>
           </div>
 
+          {lockdownLimits.tier === 'free' && (
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-200 flex items-center gap-2">
+              <span className="text-base">⚡</span>
+              <span>Free plan — {lockdownLimits.max_duration_minutes}min max, limited maps, up to {lockdownLimits.max_students} students.</span>
+            </div>
+          )}
+
           <div className="card-glass p-8 space-y-6">
             {/* Duration Setting */}
             <div className="space-y-3">
@@ -894,7 +921,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                   <input
                     type="range"
                     min="2"
-                    max="20"
+                    max={effectiveDurationMax}
                     step="1"
                     value={durationMinutes}
                     onChange={(e) => setDurationMinutes(Number(e.target.value))}
@@ -906,78 +933,41 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                   {durationMinutes}m
                 </div>
               </div>
-              <p className="text-xs text-gray-400">How long clans battle for territory control (2-20 minutes)</p>
+              <p className="text-xs text-gray-400">How long clans battle for territory control (2-{effectiveDurationMax} minutes)</p>
             </div>
 
             {/* Map Selection */}
             <div className="space-y-3">
               <label className="block text-sm font-bold text-white">Territory Map</label>
               <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => setSelectedMap('default')}
-                  className={`p-4 rounded-xl border-2 transition ${
-                    selectedMap === 'default'
-                      ? 'border-cyan-400 bg-cyan-500/20'
-                      : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
-                  }`}
-                >
-                  <div className="text-left space-y-1">
-                    <p className="font-bold text-white">🗺️ Default</p>
-                    <p className="text-xs text-gray-400">Standard 8-zone battlefield</p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setSelectedMap('city')}
-                  className={`p-4 rounded-xl border-2 transition ${
-                    selectedMap === 'city'
-                      ? 'border-cyan-400 bg-cyan-500/20'
-                      : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
-                  }`}
-                >
-                  <div className="text-left space-y-1">
-                    <p className="font-bold text-white">🏙️ City</p>
-                    <p className="text-xs text-gray-400">Urban warfare, 10 districts</p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setSelectedMap('kyrgyzstan')}
-                  className={`p-4 rounded-xl border-2 transition ${
-                    selectedMap === 'kyrgyzstan'
-                      ? 'border-cyan-400 bg-cyan-500/20'
-                      : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
-                  }`}
-                >
-                  <div className="text-left space-y-1">
-                    <p className="font-bold text-white">🇰🇬 Kyrgyzstan</p>
-                    <p className="text-xs text-gray-400">Regional conquest, 7 oblasts</p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setSelectedMap('usa')}
-                  className={`p-4 rounded-xl border-2 transition ${
-                    selectedMap === 'usa'
-                      ? 'border-cyan-400 bg-cyan-500/20'
-                      : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
-                  }`}
-                >
-                  <div className="text-left space-y-1">
-                    <p className="font-bold text-white">🇺🇸 USA</p>
-                    <p className="text-xs text-gray-400">States + DC, 51 zones</p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setSelectedMap('unitedkingdom')}
-                  className={`p-4 rounded-xl border-2 transition ${
-                    selectedMap === 'unitedkingdom'
-                      ? 'border-cyan-400 bg-cyan-500/20'
-                      : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
-                  }`}
-                >
-                  <div className="text-left space-y-1">
-                    <p className="font-bold text-white">🇬🇧 United Kingdom</p>
-                    <p className="text-xs text-gray-400">UK regions + isles, 16 zones</p>
-                  </div>
-                </button>
+                {[
+                  { id: 'default', emoji: '🗺️', label: 'Default', desc: 'Standard 8-zone battlefield' },
+                  { id: 'city', emoji: '🏙️', label: 'City', desc: 'Urban warfare, 10 districts' },
+                  { id: 'kyrgyzstan', emoji: '🇰🇬', label: 'Kyrgyzstan', desc: 'Regional conquest, 7 oblasts' },
+                  { id: 'usa', emoji: '🇺🇸', label: 'USA', desc: 'States + DC, 51 zones' },
+                  { id: 'unitedkingdom', emoji: '🇬🇧', label: 'United Kingdom', desc: 'UK regions + isles, 16 zones' },
+                ].map(({ id, emoji, label, desc }) => {
+                  const locked = isMapLocked(id);
+                  return (
+                    <button
+                      key={id}
+                      onClick={() => !locked && setSelectedMap(id)}
+                      disabled={locked}
+                      className={`p-4 rounded-xl border-2 transition relative ${
+                        locked ? 'opacity-40 cursor-not-allowed border-slate-800 bg-slate-900/30' :
+                        selectedMap === id ? 'border-cyan-400 bg-cyan-500/20' : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
+                      }`}
+                    >
+                      <div className="text-left space-y-1">
+                        <p className="font-bold text-white">{emoji} {label}</p>
+                        <p className="text-xs text-gray-400">{desc}</p>
+                      </div>
+                      {locked && (
+                        <span className="absolute top-2 right-2 text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">PRO</span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -1181,6 +1171,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     }
 
     return (
+      <>
+      <FreeTierWatermark />
       <ClanTerritoryErrorBoundary onExit={onExit} fallbackTitle="Player View Error">
         <ClanTerritoryStudentView
           gameState={gameState}
@@ -1212,6 +1204,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
           }}
         />
       </ClanTerritoryErrorBoundary>
+      </>
     );
   }
 

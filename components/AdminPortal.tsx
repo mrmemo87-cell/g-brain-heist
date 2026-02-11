@@ -12,6 +12,8 @@ import * as SchoolAdminService from '../services/schoolAdminService';
 import { SchoolMember } from '../services/schoolAdminService';
 import { chemistryAnswerKeys, chemistryQuestionRanges } from './chemistryAnswerKeys';
 
+const SCHOOL_PLANS = ['none', 'pilot', 'core', 'standard', 'pro', 'enterprise'] as const;
+
 interface AdminPortalProps {
   profile: Profile;
   onComplete: () => void;
@@ -45,7 +47,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   const [schoolRequestMessagesError, setSchoolRequestMessagesError] = useState<Record<string, string>>({});
   const [schoolRequestMessagesUnavailable, setSchoolRequestMessagesUnavailable] = useState<Record<string, boolean>>({});
   const [schoolRequestMessagesOpen, setSchoolRequestMessagesOpen] = useState<Record<string, boolean>>({});
-  const [schoolOptions, setSchoolOptions] = useState<{ id: string; name: string }[]>([]);
+  const [schoolOptions, setSchoolOptions] = useState<{ id: string; name: string; school_plan?: string }[]>([]);
   const [schoolAdminSchoolId, setSchoolAdminSchoolId] = useState('');
   const [schoolMemberSearch, setSchoolMemberSearch] = useState('');
   const [schoolMembers, setSchoolMembers] = useState<SchoolAdminService.SchoolMember[]>([]);
@@ -53,6 +55,14 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   const [schoolMembersError, setSchoolMembersError] = useState<string | null>(null);
   const [schoolAdminActionLoading, setSchoolAdminActionLoading] = useState<string | null>(null);
   const [isSuperadmin, setIsSuperadmin] = useState(Boolean(profile.is_admin));
+  // Pilot quota admin state
+  const [schoolQuotas, setSchoolQuotas] = useState<Record<string, { used: number; limit: number; remaining: number; exhausted: boolean }> | null>(null);
+  const [schoolQuotasLoading, setSchoolQuotasLoading] = useState(false);
+  const [quotaEditFeature, setQuotaEditFeature] = useState<string | null>(null);
+  const [quotaEditValue, setQuotaEditValue] = useState('');
+  const [quotaActionLoading, setQuotaActionLoading] = useState(false);
+  const [pilotTrialEnd, setPilotTrialEnd] = useState<string | null>(null);
+  const [extendDays, setExtendDays] = useState(30);
   const [stats, setStats] = useState({
     totalUsers: null as number | null,
     totalTeachers: null as number | null,
@@ -70,6 +80,55 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false);
   const [isResettingAll, setIsResettingAll] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  // Custom grant amounts
+  const [customCoinAmount, setCustomCoinAmount] = useState<Record<string, string>>({});
+  const [customXpAmount, setCustomXpAmount] = useState<Record<string, string>>({});
+  const [customLevelAmount, setCustomLevelAmount] = useState<Record<string, string>>({});
+  const [showCustomGrant, setShowCustomGrant] = useState<Record<string, boolean>>({});
+
+  // Role management
+  const [roleChangeLoading, setRoleChangeLoading] = useState<string | null>(null);
+
+  // Analytics state
+  const [analyticsData, setAnalyticsData] = useState<{
+    playersToday: number;
+    attemptsToday: number;
+    activeNow: number;
+    totalClans: number;
+    totalQuestions: number;
+    recentErrors: string[];
+    batchStats: Array<{ batch: string; playerCount: number; totalXp: number }>;
+    gradeDistribution: Record<string, number>;
+    roleDistribution: Record<string, number>;
+  } | null>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+
+  // Enhanced clan state
+  const [selectedClan, setSelectedClan] = useState<any | null>(null);
+  const [clanMembers, setClanMembers] = useState<any[]>([]);
+  const [clanMembersLoading, setClanMembersLoading] = useState(false);
+  const [clanEditName, setClanEditName] = useState('');
+  const [clanEditDescription, setClanEditDescription] = useState('');
+
+  // System feature toggles
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [featureToggles, setFeatureToggles] = useState<Record<string, boolean>>({
+    pvp_enabled: true,
+    shop_enabled: true,
+    clans_enabled: true,
+    leaderboard_enabled: true,
+    tournaments_enabled: true,
+    quests_enabled: true,
+    raids_enabled: true,
+    cambridge_tests_enabled: true,
+    ielts_enabled: true,
+    announcements_enabled: true,
+  });
+
+  // Announcement management
+  const [existingAnnouncements, setExistingAnnouncements] = useState<any[]>([]);
+  const [announcementsLoading, setAnnouncementsLoading] = useState(false);
   
   // Cambridge Tests Reports State
   const [quizScores, setQuizScores] = useState<any[]>([]);
@@ -185,7 +244,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   const loadSchoolOptions = useCallback(async () => {
     const mapSchoolOptions = (rows: any[]) =>
       rows
-        .map((row) => ({ id: row.id, name: row.name }))
+        .map((row) => ({ id: row.id, name: row.name, school_plan: row.school_plan }))
         .filter((school) => school.id && school.name);
 
     const { data: adminData, error: adminError } = await supabase.rpc('admin_list_schools');
@@ -210,7 +269,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
     const { data, error } = await supabase
       .from('schools')
-      .select('id, name')
+      .select('id, name, school_plan')
       .eq('status', 'active')
       .order('name', { ascending: true });
 
@@ -319,6 +378,86 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     },
     [addToast]
   );
+
+  // Load pilot quotas for a selected school
+  const loadSchoolQuotas = useCallback(async (schoolId: string) => {
+    if (!schoolId) { setSchoolQuotas(null); return; }
+    setSchoolQuotasLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('admin_get_school_pilot_quotas', { p_school_id: schoolId });
+      if (error || !data?.success) {
+        setSchoolQuotas(null);
+        setPilotTrialEnd(null);
+        return;
+      }
+      setSchoolQuotas(data.quotas || null);
+      setPilotTrialEnd(data.trial_ends_at || null);
+    } catch {
+      setSchoolQuotas(null);
+    } finally {
+      setSchoolQuotasLoading(false);
+    }
+  }, []);
+
+  const handleResetQuotas = async (schoolId: string) => {
+    setQuotaActionLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('admin_reset_school_quotas', { p_school_id: schoolId });
+      if (error || !data?.success) {
+        addToast(error?.message || data?.error || 'Failed to reset quotas', 'error');
+        return;
+      }
+      addToast(`✅ All quotas reset to 0 for this school`, 'success');
+      loadSchoolQuotas(schoolId);
+    } catch {
+      addToast('Failed to reset quotas', 'error');
+    } finally {
+      setQuotaActionLoading(false);
+    }
+  };
+
+  const handleSetQuota = async (schoolId: string, featureId: string, newUsed: number) => {
+    setQuotaActionLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('admin_set_school_quota', {
+        p_school_id: schoolId,
+        p_feature_id: featureId,
+        p_used_count: newUsed,
+      });
+      if (error || !data?.success) {
+        addToast(error?.message || data?.error || 'Failed to set quota', 'error');
+        return;
+      }
+      addToast(`✅ ${featureId} set to ${newUsed}/${data.limit}`, 'success');
+      setQuotaEditFeature(null);
+      loadSchoolQuotas(schoolId);
+    } catch {
+      addToast('Failed to set quota', 'error');
+    } finally {
+      setQuotaActionLoading(false);
+    }
+  };
+
+  const handleExtendTrial = async (schoolId: string, days: number) => {
+    setQuotaActionLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('admin_extend_pilot_trial', {
+        p_school_id: schoolId,
+        p_extra_days: days,
+      });
+      if (error || !data?.success) {
+        addToast(error?.message || data?.error || 'Failed to extend trial', 'error');
+        return;
+      }
+      const newEnd = new Date(data.new_trial_ends_at).toLocaleDateString();
+      addToast(`✅ Trial extended by ${days} days — new end: ${newEnd}`, 'success');
+      setPilotTrialEnd(data.new_trial_ends_at);
+    } catch {
+      addToast('Failed to extend trial', 'error');
+    } finally {
+      setQuotaActionLoading(false);
+    }
+  };
 
   const handleSetSchoolAdmin = async (schoolId: string, userId: string, makeAdmin: boolean = true) => {
     if (!schoolId) {
@@ -1185,6 +1324,172 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     }
   };
 
+  // Custom grant with any amount
+  const grantCustomCoins = async (userId: string, amount: number) => {
+    if (!amount || amount <= 0) { addToast('Enter a positive amount', 'error'); return; }
+    try {
+      const user = users.find(u => u.id === userId);
+      if (!user) return;
+      const { error } = await supabase.rpc('rpc_admin_grant', { p_user_id: userId, p_xp_delta: 0, p_coins_delta: amount });
+      if (error) throw error;
+      updateUserInState(userId, { coins: Number(user.coins ?? 0) + amount });
+      addToast(`✨ Granted ${amount.toLocaleString()} coins to ${resolveUserLabel(user)}`, 'success');
+      setCustomCoinAmount(prev => ({ ...prev, [userId]: '' }));
+    } catch (error) { reportRpcError('Failed to grant coins:', error, 'Failed to grant coins'); }
+  };
+
+  const grantCustomXP = async (userId: string, amount: number) => {
+    if (!amount || amount <= 0) { addToast('Enter a positive amount', 'error'); return; }
+    try {
+      const user = users.find(u => u.id === userId);
+      if (!user) return;
+      const { error } = await supabase.rpc('rpc_admin_grant', { p_user_id: userId, p_xp_delta: amount, p_coins_delta: 0 });
+      if (error) throw error;
+      updateUserInState(userId, { xp: Number(user.xp ?? 0) + amount });
+      addToast(`⚡ Granted ${amount.toLocaleString()} XP to ${resolveUserLabel(user)}`, 'success');
+      setCustomXpAmount(prev => ({ ...prev, [userId]: '' }));
+    } catch (error) { reportRpcError('Failed to grant XP:', error, 'Failed to grant XP'); }
+  };
+
+  const setCustomLevel = async (userId: string, level: number) => {
+    if (!level || level < 1) { addToast('Level must be at least 1', 'error'); return; }
+    try {
+      const user = users.find(u => u.id === userId);
+      if (!user) return;
+      const { error } = await supabase.rpc('rpc_admin_set_level', { p_user_id: userId, p_level: level });
+      if (error) throw error;
+      updateUserInState(userId, { level });
+      addToast(`📈 Set level to ${level} for ${resolveUserLabel(user)}`, 'success');
+      setCustomLevelAmount(prev => ({ ...prev, [userId]: '' }));
+    } catch (error) { reportRpcError('Failed to set level:', error, 'Failed to set level'); }
+  };
+
+  // Role management
+  const changeUserRole = async (userId: string, newRole: string) => {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+    const confirmMsg = `Change ${resolveUserLabel(user)}'s role to "${newRole}"?`;
+    if (!window.confirm(confirmMsg)) return;
+    setRoleChangeLoading(userId);
+    try {
+      const { error } = await supabase.from('users').update({ role: newRole }).eq('id', userId);
+      if (error) throw error;
+      updateUserInState(userId, { role: newRole, is_admin: newRole === 'admin' || newRole === 'superadmin' });
+      addToast(`👤 Role updated to "${newRole}" for ${resolveUserLabel(user)}`, 'success');
+    } catch (error) { reportRpcError('Failed to change role:', error, 'Failed to change role'); }
+    finally { setRoleChangeLoading(null); }
+  };
+
+  // Analytics
+  const fetchAnalytics = useCallback(async () => {
+    setAnalyticsLoading(true);
+    try {
+      const stats = await CompetitionService.fetchAdminOverviewStats();
+      const batchStats = await CompetitionService.fetchSchoolBatches();
+      
+      // Fetch grade & role distribution from current users
+      const gradeDistribution: Record<string, number> = {};
+      const roleDistribution: Record<string, number> = {};
+      
+      // Get a larger set of users for analytics
+      const { data: allUsers } = await supabase.from('users').select('grade, role, is_admin').limit(5000);
+      (allUsers || []).forEach((u: any) => {
+        const grade = u.grade ? `Grade ${u.grade}` : 'Unset';
+        gradeDistribution[grade] = (gradeDistribution[grade] || 0) + 1;
+        const role = u.is_admin ? 'admin' : (u.role || 'student');
+        roleDistribution[role] = (roleDistribution[role] || 0) + 1;
+      });
+
+      // Clan count
+      const { count: clanCount } = await supabase.from('clans').select('id', { head: true, count: 'exact' });
+
+      // Question count
+      const { count: questionCount } = await supabase.from('questions').select('id', { head: true, count: 'exact' });
+
+      setAnalyticsData({
+        playersToday: stats.players_today ?? 0,
+        attemptsToday: stats.attempts_last_5min ?? 0,
+        activeNow: stats.attempts_last_5min ?? 0,
+        totalClans: clanCount ?? 0,
+        totalQuestions: questionCount ?? 0,
+        recentErrors: stats.recent_errors ? [stats.recent_errors] : [],
+        batchStats: batchStats.map(b => ({ batch: b.batch, playerCount: b.player_count, totalXp: b.total_xp })),
+        gradeDistribution,
+        roleDistribution,
+      });
+    } catch (error) {
+      reportRpcError('Failed to fetch analytics:', error, 'Failed to fetch analytics');
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  }, []);
+
+  // Enhanced clan management
+  const loadClanMembers = async (clanId: string) => {
+    setClanMembersLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('clan_members')
+        .select('*, users:user_id(id, username, email, avatar_url, level, xp, role)')
+        .eq('clan_id', clanId);
+      if (error) throw error;
+      setClanMembers(data || []);
+    } catch (error) {
+      reportRpcError('Failed to load clan members:', error, 'Failed to load clan members');
+      setClanMembers([]);
+    } finally {
+      setClanMembersLoading(false);
+    }
+  };
+
+  const removeClanMember = async (clanId: string, userId: string, username: string) => {
+    if (!confirm(`Remove ${username} from the clan?`)) return;
+    try {
+      const { error } = await supabase.from('clan_members').delete().eq('clan_id', clanId).eq('user_id', userId);
+      if (error) throw error;
+      addToast(`Removed ${username} from clan`, 'success');
+      setClanMembers(prev => prev.filter(m => m.user_id !== userId));
+    } catch (error) { reportRpcError('Failed to remove member:', error, 'Failed to remove clan member'); }
+  };
+
+  const transferClanLeadership = async (clanId: string, newLeaderId: string, newLeaderName: string) => {
+    if (!confirm(`Transfer clan leadership to ${newLeaderName}?`)) return;
+    try {
+      // Update clan leader
+      const { error: clanError } = await supabase.from('clans').update({ leader_id: newLeaderId }).eq('id', clanId);
+      if (clanError) throw clanError;
+      // Update member roles
+      await supabase.from('clan_members').update({ role: 'member' }).eq('clan_id', clanId).eq('role', 'leader');
+      await supabase.from('clan_members').update({ role: 'leader' }).eq('clan_id', clanId).eq('user_id', newLeaderId);
+      addToast(`👑 Leadership transferred to ${newLeaderName}`, 'success');
+      loadClanMembers(clanId);
+    } catch (error) { reportRpcError('Failed to transfer leadership:', error, 'Failed to transfer leadership'); }
+  };
+
+  // Fetch existing announcements
+  const fetchAnnouncements = async () => {
+    setAnnouncementsLoading(true);
+    try {
+      const { data, error } = await supabase.from('announcements').select('*').order('created_at', { ascending: false }).limit(20);
+      if (error) throw error;
+      setExistingAnnouncements(data || []);
+    } catch (error) {
+      reportRpcError('Failed to fetch announcements:', error, 'Failed to fetch announcements');
+    } finally {
+      setAnnouncementsLoading(false);
+    }
+  };
+
+  const deleteAnnouncement = async (id: string) => {
+    if (!confirm('Delete this announcement?')) return;
+    try {
+      const { error } = await supabase.from('announcements').delete().eq('id', id);
+      if (error) throw error;
+      setExistingAnnouncements(prev => prev.filter(a => a.id !== id));
+      addToast('🗑️ Announcement deleted', 'success');
+    } catch (error) { reportRpcError('Failed to delete:', error, 'Failed to delete announcement'); }
+  };
+
   const setUserBanState = async (userId: string, username: string, shouldBan: boolean) => {
     const confirmMessage = shouldBan
       ? `Ban ${username}? They will be kicked immediately.`
@@ -1245,8 +1550,12 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
             </h1>
             
             <div className="flex items-center justify-center gap-3 mt-4">
-              <div className="w-16 h-16 rounded-full border-4 border-yellow-400 animate-pulse-glow overflow-hidden">
-                <img src={profile.avatar_url} alt="Admin" className="w-full h-full object-cover" />
+              <div className="w-16 h-16 rounded-full border-4 border-yellow-400 animate-pulse-glow overflow-hidden bg-gray-800 flex items-center justify-center">
+                {profile.avatar_url ? (
+                  <img src={profile.avatar_url} alt="Admin" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                ) : (
+                  <span className="text-2xl">👑</span>
+                )}
               </div>
               <div className="text-left">
                 <p className="text-2xl font-bold text-yellow-300 drop-shadow-[0_0_10px_rgba(255,215,0,1)]">
@@ -1296,11 +1605,13 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
         {/* Tab Navigation - Epic Style */}
         <div className="admin-portal-tabs max-w-6xl mx-auto mb-6">
-          <div className="admin-portal-tablist flex flex-wrap gap-2 justify-center">
+          <div className="admin-portal-tablist flex flex-wrap gap-2 justify-center" role="tablist" aria-label="Admin portal navigation">
             {(['dashboard', 'users', 'schools', 'applications', 'game', 'clans', 'analytics', 'cambridge', 'ielts', 'system'] as AdminTab[]).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
+                role="tab"
+                aria-selected={activeTab === tab}
                 className={`admin-portal-tab relative px-6 py-3 rounded-xl font-heading text-lg font-bold transition-all duration-300 ${
                   activeTab === tab
                     ? 'bg-gradient-to-r from-yellow-400 to-pink-500 text-black shadow-[0_0_30px_rgba(255,215,0,0.8)] scale-110'
@@ -1395,7 +1706,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                       {statsLoading && stat.key !== 'godMode' ? (
                         <div className="h-10 w-24 rounded-lg bg-white/10 animate-pulse" />
                       ) : (
-                        <p className={`text-4xl font-bold font-mono ${stat.valueClass}`}>{resolvedValue}</p>
+                        <p className={`text-3xl font-bold font-mono ${stat.valueClass}`}>{resolvedValue}</p>
                       )}
                     </div>
                   </div>
@@ -1573,7 +1884,13 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                       <div className="flex items-start justify-between flex-wrap gap-4">
                         {/* User Info */}
                         <div className="flex items-center gap-3 flex-1">
-                          <img src={user.avatar_url} alt={resolveUserLabel(user)} className="w-16 h-16 rounded-full border-2 border-purple-400" />
+                          <div className="w-16 h-16 rounded-full border-2 border-purple-400 overflow-hidden bg-gray-800 flex items-center justify-center">
+                            {user.avatar_url ? (
+                              <img src={user.avatar_url} alt={resolveUserLabel(user)} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.innerHTML = '<span class="text-2xl">👤</span>'; }} />
+                            ) : (
+                              <span className="text-2xl">👤</span>
+                            )}
+                          </div>
                           <div>
                             <p className="font-bold text-white text-lg">
                               <ClickableUsername userId={user.id} username={resolveUserLabel(user)}>
@@ -1612,7 +1929,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
                         <div>
                           <label className="text-xs text-gray-400 mb-1 block">Grade</label>
                           <select
@@ -1639,9 +1956,23 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                             ))}
                           </select>
                         </div>
+                        <div>
+                          <label className="text-xs text-gray-400 mb-1 block">Role</label>
+                          <select
+                            value={user.role || 'student'}
+                            onChange={(e) => changeUserRole(user.id, e.target.value)}
+                            disabled={roleChangeLoading === user.id}
+                            className="w-full bg-black/40 border border-amber-400/50 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-300"
+                          >
+                            <option value="student">Student</option>
+                            <option value="teacher">Teacher</option>
+                            <option value="school_admin">School Admin</option>
+                            <option value="admin">Admin</option>
+                          </select>
+                        </div>
                       </div>
 
-                      {/* Action Buttons */}
+                      {/* Quick Action Buttons */}
                       <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-700">
                         <button
                           onClick={() => grantCoins(user.id, 1000)}
@@ -1695,7 +2026,34 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                         >
                           🗑️ Delete User
                         </button>
+                        <button
+                          onClick={() => setShowCustomGrant(prev => ({ ...prev, [user.id]: !prev[user.id] }))}
+                          className="bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-400 text-white text-sm px-3 py-2 rounded transition-all hover:shadow-[0_0_15px_rgba(6,182,212,0.5)]"
+                        >
+                          🎛️ Custom
+                        </button>
                       </div>
+
+                      {/* Custom Grant Panel */}
+                      {showCustomGrant[user.id] && (
+                        <div className="mt-3 p-3 bg-black/30 border border-cyan-400/30 rounded-lg">
+                          <p className="text-xs text-cyan-300 font-semibold mb-2">🎛️ Custom Grants & Level Set</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <div className="flex gap-1">
+                              <input type="number" placeholder="Coins" value={customCoinAmount[user.id] || ''} onChange={(e) => setCustomCoinAmount(prev => ({ ...prev, [user.id]: e.target.value }))} className="flex-1 bg-black/50 border border-yellow-400/40 rounded px-2 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400" />
+                              <button onClick={() => grantCustomCoins(user.id, parseInt(customCoinAmount[user.id]) || 0)} className="bg-yellow-600/40 hover:bg-yellow-600/60 border border-yellow-400 text-white text-xs px-2 py-1.5 rounded">💰 Grant</button>
+                            </div>
+                            <div className="flex gap-1">
+                              <input type="number" placeholder="XP" value={customXpAmount[user.id] || ''} onChange={(e) => setCustomXpAmount(prev => ({ ...prev, [user.id]: e.target.value }))} className="flex-1 bg-black/50 border border-blue-400/40 rounded px-2 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-400" />
+                              <button onClick={() => grantCustomXP(user.id, parseInt(customXpAmount[user.id]) || 0)} className="bg-blue-600/40 hover:bg-blue-600/60 border border-blue-400 text-white text-xs px-2 py-1.5 rounded">⚡ Grant</button>
+                            </div>
+                            <div className="flex gap-1">
+                              <input type="number" placeholder="Level" value={customLevelAmount[user.id] || ''} onChange={(e) => setCustomLevelAmount(prev => ({ ...prev, [user.id]: e.target.value }))} className="flex-1 bg-black/50 border border-purple-400/40 rounded px-2 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-purple-400" />
+                              <button onClick={() => setCustomLevel(user.id, parseInt(customLevelAmount[user.id]) || 0)} className="bg-purple-600/40 hover:bg-purple-600/60 border border-purple-400 text-white text-xs px-2 py-1.5 rounded">📈 Set</button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -1739,6 +2097,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                         setSchoolMembersError(null);
                         if (selectedId) {
                           loadSchoolMembers(selectedId);
+                          loadSchoolQuotas(selectedId);
+                        } else {
+                          setSchoolQuotas(null);
+                          setPilotTrialEnd(null);
                         }
                       }}
                       className="w-full rounded-lg border border-indigo-400/30 bg-black/40 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
@@ -1769,6 +2131,152 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                       ) : (
                         <span>⚠️ No school admin assigned yet. Select a member below to make them school admin.</span>
                       )}
+                    </div>
+                  )}
+
+                  {/* Plan Management */}
+                  {schoolAdminSchoolId && (
+                    <div className="mt-4 rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-4 py-3">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <span className="text-sm font-semibold text-emerald-200">💳 School Plan:</span>
+                        <select
+                          defaultValue={schoolOptions.find(s => s.id === schoolAdminSchoolId)?.school_plan || 'none'}
+                          onChange={async (e) => {
+                            const newPlan = e.target.value;
+                            const { data, error } = await supabase.rpc('admin_set_school_plan', {
+                              p_school_id: schoolAdminSchoolId,
+                              p_plan: newPlan,
+                            });
+                            if (error || !data?.success) {
+                              addToast(error?.message || data?.error || 'Failed to set plan', 'error');
+                              return;
+                            }
+                            addToast(`✅ School plan set to ${newPlan}`, 'success');
+                          }}
+                          className="rounded-lg border border-emerald-400/30 bg-black/40 px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                        >
+                          {SCHOOL_PLANS.map(p => (
+                            <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ── Pilot Quota Management Panel ── */}
+                  {schoolAdminSchoolId && schoolQuotas && (
+                    <div className="mt-4 rounded-lg border border-amber-400/30 bg-amber-500/5 p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                        <h4 className="text-sm font-bold text-amber-200">⚡ Pilot Quota Usage</h4>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {pilotTrialEnd && (
+                            <span className="text-xs text-amber-300/80">
+                              Trial ends: {new Date(pilotTrialEnd).toLocaleDateString()}
+                              {new Date(pilotTrialEnd) <= new Date() && <span className="ml-1 text-red-400 font-bold">(EXPIRED)</span>}
+                              {new Date(pilotTrialEnd) > new Date() && (
+                                <span className="ml-1">({Math.ceil((new Date(pilotTrialEnd).getTime() - Date.now()) / 86400000)}d left)</span>
+                              )}
+                            </span>
+                          )}
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              min={1}
+                              max={365}
+                              value={extendDays}
+                              onChange={(e) => setExtendDays(Math.max(1, parseInt(e.target.value) || 30))}
+                              className="w-14 rounded border border-amber-400/30 bg-black/40 px-1.5 py-1 text-xs text-white text-center focus:outline-none focus:ring-1 focus:ring-amber-400"
+                            />
+                            <button
+                              onClick={() => handleExtendTrial(schoolAdminSchoolId, extendDays)}
+                              disabled={quotaActionLoading}
+                              className="rounded border border-amber-400/40 bg-amber-500/20 px-2 py-1 text-xs font-semibold text-amber-100 hover:bg-amber-500/30 disabled:opacity-50"
+                            >
+                              ➕ Extend
+                            </button>
+                          </div>
+                          <button
+                            onClick={() => { if (confirm('Reset ALL quotas to 0? Students will get full usage back.')) handleResetQuotas(schoolAdminSchoolId); }}
+                            disabled={quotaActionLoading}
+                            className="rounded border border-red-400/40 bg-red-500/20 px-2.5 py-1 text-xs font-semibold text-red-100 hover:bg-red-500/30 disabled:opacity-50"
+                          >
+                            🔄 Reset All
+                          </button>
+                          <button
+                            onClick={() => loadSchoolQuotas(schoolAdminSchoolId)}
+                            disabled={schoolQuotasLoading}
+                            className="rounded border border-amber-400/40 bg-amber-500/20 px-2.5 py-1 text-xs font-semibold text-amber-100 hover:bg-amber-500/30 disabled:opacity-50"
+                          >
+                            {schoolQuotasLoading ? '⏳' : '🔄'} Refresh
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid gap-2 md:grid-cols-2">
+                        {Object.entries(schoolQuotas).map(([fid, q]) => {
+                          const pct = q.limit > 0 ? Math.min((q.used / q.limit) * 100, 100) : 0;
+                          const barColor = q.exhausted ? 'bg-red-500' : pct > 75 ? 'bg-amber-500' : 'bg-emerald-500';
+                          const label = fid.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                          const isEditing = quotaEditFeature === fid;
+                          return (
+                            <div key={fid} className="rounded-lg border border-white/10 bg-black/30 px-3 py-2">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-xs font-semibold text-white/80">{label}</span>
+                                <div className="flex items-center gap-1.5">
+                                  {isEditing ? (
+                                    <>
+                                      <input
+                                        type="number"
+                                        min={0}
+                                        max={9999}
+                                        value={quotaEditValue}
+                                        onChange={(e) => setQuotaEditValue(e.target.value)}
+                                        className="w-16 rounded border border-cyan-400/40 bg-black/60 px-1.5 py-0.5 text-xs text-white text-center focus:outline-none focus:ring-1 focus:ring-cyan-400"
+                                        autoFocus
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') handleSetQuota(schoolAdminSchoolId, fid, parseInt(quotaEditValue) || 0);
+                                          if (e.key === 'Escape') setQuotaEditFeature(null);
+                                        }}
+                                      />
+                                      <button
+                                        onClick={() => handleSetQuota(schoolAdminSchoolId, fid, parseInt(quotaEditValue) || 0)}
+                                        disabled={quotaActionLoading}
+                                        className="text-xs text-emerald-400 hover:text-emerald-300 font-bold"
+                                      >✓</button>
+                                      <button
+                                        onClick={() => setQuotaEditFeature(null)}
+                                        className="text-xs text-gray-400 hover:text-gray-300"
+                                      >✕</button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className={`text-xs font-bold ${q.exhausted ? 'text-red-400' : 'text-white/90'}`}>
+                                        {q.used}/{q.limit}
+                                      </span>
+                                      {q.exhausted && <span className="text-[10px] text-red-400 font-bold">EXHAUSTED</span>}
+                                      <button
+                                        onClick={() => { setQuotaEditFeature(fid); setQuotaEditValue(String(q.used)); }}
+                                        className="text-xs text-cyan-400 hover:text-cyan-300 ml-1"
+                                        title="Edit usage count"
+                                      >✏️</button>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                                <div className={`h-full rounded-full transition-all ${barColor}`} style={{ width: `${pct}%` }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {schoolAdminSchoolId && schoolQuotasLoading && !schoolQuotas && (
+                    <div className="mt-4 rounded-lg border border-amber-400/20 bg-amber-500/5 p-4 text-center">
+                      <div className="inline-block animate-spin h-5 w-5 border-2 border-amber-400 border-t-transparent rounded-full"></div>
+                      <p className="text-xs text-amber-200 mt-2">Loading quotas...</p>
                     </div>
                   )}
 
@@ -2091,91 +2599,402 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
           )}
 
           {activeTab === 'game' && (
-            <div className="card-glass p-6 border-2 border-green-400/50">
-              <h3 className="text-3xl font-heading font-bold text-green-300 mb-6">🎮 Game Management</h3>
-                        <div className="space-y-3">
-                          <button onClick={async () => {
-                              try {
-                                  const affected = await CompetitionService.refillAllAp();
-                                  addToast(`⚡ Refilled AP for ${affected} players`, 'success');
-                                  await refreshAdminData();
-                              } catch (error) {
-                                reportRpcError('Failed to refill AP:', error, 'Failed to refill AP');
-                              }
-                          }} className="w-full bg-green-500/20 hover:bg-green-500/30 border border-green-400 text-white px-4 py-2 rounded">Refill AP for all players</button>
+            <div className="space-y-6">
+              <div className="card-glass p-6 border-2 border-green-400/50">
+                <h3 className="text-3xl font-heading font-bold text-green-300 mb-6">🎮 Game Management</h3>
+                
+                {/* Bulk Actions */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <button onClick={async () => {
+                    try {
+                      const affected = await CompetitionService.refillAllAp();
+                      addToast(`⚡ Refilled AP for ${affected} players`, 'success');
+                      await refreshAdminData();
+                    } catch (error) { reportRpcError('Failed to refill AP:', error, 'Failed to refill AP'); }
+                  }} className="bg-green-500/20 hover:bg-green-500/30 border-2 border-green-400 text-white px-4 py-4 rounded-xl font-semibold transition-all hover:shadow-[0_0_20px_rgba(34,197,94,0.5)]">
+                    ⚡ Refill AP for All Players
+                  </button>
+                  <button onClick={async () => {
+                    if (!confirm('Grant coins to ALL players? Enter amount in the next prompt.')) return;
+                    const amount = prompt('Enter coin amount to grant to all players:');
+                    if (!amount) return;
+                    try {
+                      const { data, error } = await supabase.rpc('rpc_admin_grant_all', { p_xp_delta: 0, p_coins_delta: parseInt(amount) || 0 });
+                      if (error) {
+                        // Fallback: just notify
+                        addToast('Bulk grant RPC not available. Use per-user grants instead.', 'error');
+                        return;
+                      }
+                      addToast(`💰 Granted ${amount} coins to all players`, 'success');
+                    } catch (error) { addToast('Bulk grant not available', 'error'); }
+                  }} className="bg-yellow-500/20 hover:bg-yellow-500/30 border-2 border-yellow-400 text-white px-4 py-4 rounded-xl font-semibold transition-all hover:shadow-[0_0_20px_rgba(234,179,8,0.5)]">
+                    💰 Bulk Grant Coins
+                  </button>
+                  <button onClick={async () => {
+                    if (!confirm('Grant XP to ALL players? Enter amount in the next prompt.')) return;
+                    const amount = prompt('Enter XP amount to grant to all players:');
+                    if (!amount) return;
+                    try {
+                      const { data, error } = await supabase.rpc('rpc_admin_grant_all', { p_xp_delta: parseInt(amount) || 0, p_coins_delta: 0 });
+                      if (error) {
+                        addToast('Bulk grant RPC not available. Use per-user grants instead.', 'error');
+                        return;
+                      }
+                      addToast(`⚡ Granted ${amount} XP to all players`, 'success');
+                    } catch (error) { addToast('Bulk grant not available', 'error'); }
+                  }} className="bg-blue-500/20 hover:bg-blue-500/30 border-2 border-blue-400 text-white px-4 py-4 rounded-xl font-semibold transition-all hover:shadow-[0_0_20px_rgba(59,130,246,0.5)]">
+                    ⚡ Bulk Grant XP
+                  </button>
+                  <button onClick={async () => {
+                    if (!confirm('Reset PvP Champions leaderboard? This removes all PvP win records.')) return;
+                    try {
+                      const affected = await CompetitionService.resetPvpWinsLeaderboard();
+                      addToast(`🏆 Cleared ${affected} PvP win records`, 'success');
+                    } catch (error) { reportRpcError('Failed to reset PvP:', error, 'Failed to reset PvP'); }
+                  }} className="bg-purple-500/20 hover:bg-purple-500/30 border-2 border-purple-400 text-white px-4 py-4 rounded-xl font-semibold transition-all hover:shadow-[0_0_20px_rgba(168,85,247,0.5)]">
+                    🏆 Reset PvP Leaderboard
+                  </button>
+                </div>
 
-                          <button onClick={async () => {
-                              try {
-                                  const affected = await CompetitionService.resetAllPlayerProgress();
-                                  addToast(`Reset progress for ${affected} players`, 'success');
-                                  await refreshAdminData();
-                              } catch (error) {
-                                reportRpcError('Failed to reset all progress:', error, 'Failed to reset all progress');
-                              }
-                          }} className="w-full bg-red-500/20 hover:bg-red-500/30 border border-red-400 text-white px-4 py-2 rounded">Reset ALL player progress</button>
+                {/* Announcement Management */}
+                <div className="border-t border-green-400/30 pt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-xl font-heading font-bold text-green-200">📢 Announcements</h4>
+                    <div className="flex gap-2">
+                      <button onClick={() => setShowAnnouncementComposer(true)} className="bg-green-500/20 hover:bg-green-500/30 border border-green-400 text-white text-sm px-4 py-2 rounded-lg">
+                        ➕ New Announcement
+                      </button>
+                      <button onClick={fetchAnnouncements} disabled={announcementsLoading} className="bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white text-sm px-4 py-2 rounded-lg">
+                        {announcementsLoading ? '⏳' : '🔄'} Load
+                      </button>
+                    </div>
+                  </div>
+                  {existingAnnouncements.length > 0 ? (
+                    <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                      {existingAnnouncements.map(a => (
+                        <div key={a.id} className="flex items-start justify-between bg-black/30 border border-green-400/20 rounded-lg p-3">
+                          <div className="flex-1">
+                            <p className="text-sm text-white">{a.text || a.message || a.content || JSON.stringify(a).substring(0, 100)}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {a.created_at && new Date(a.created_at).toLocaleString()}
+                              {a.expires_at && ` • Expires: ${new Date(a.expires_at).toLocaleString()}`}
+                            </p>
+                          </div>
+                          <button onClick={() => deleteAnnouncement(a.id)} className="text-red-400 hover:text-red-300 text-sm ml-2">🗑️</button>
                         </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">Click "Load" to fetch existing announcements.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Danger Zone */}
+              <div className="card-glass p-6 border-2 border-red-500/50">
+                <h4 className="text-xl font-heading font-bold text-red-400 mb-4">⚠️ Danger Zone</h4>
+                <button onClick={async () => {
+                  if (!confirm('⚠️ DANGER: Reset ALL player progress (XP, level, coins, inventory, etc.)? This CANNOT be undone!')) return;
+                  if (!confirm('Are you ABSOLUTELY sure? Type "RESET" in the next prompt to confirm.')) return;
+                  const typed = prompt('Type RESET to confirm:');
+                  if (typed !== 'RESET') { addToast('Cancelled — text did not match', 'info'); return; }
+                  try {
+                    setIsResettingAll(true);
+                    const affected = await CompetitionService.resetAllPlayerProgress();
+                    addToast(`🧨 Reset progress for ${affected} players`, 'success');
+                    await refreshAdminData();
+                  } catch (error) { reportRpcError('Failed to reset:', error, 'Failed to reset'); }
+                  finally { setIsResettingAll(false); }
+                }} disabled={isResettingAll} className={`w-full border-2 border-red-500 text-white font-bold px-4 py-4 rounded-xl transition-all ${isResettingAll ? 'bg-red-600/20 cursor-not-allowed' : 'bg-red-600/30 hover:bg-red-600/50 hover:shadow-[0_0_30px_rgba(239,68,68,0.6)]'}`}>
+                  {isResettingAll ? '⏳ Resetting...' : '🧨 Reset ALL Player Progress'}
+                </button>
+              </div>
             </div>
           )}
 
           {activeTab === 'clans' && (
-            <div className="card-glass p-6 border-2 border-blue-400/50">
-              <h3 className="text-3xl font-heading font-bold text-blue-300 mb-6">🛡️ Clan Management</h3>
-                        <div className="space-y-4">
-                          <button onClick={async () => {
-                            try {
-                              const { data, error } = await supabase.from('clans').select('*').order('name');
-                              if (error) throw error;
-                              setClanList(data || []);
-                              addToast(`Loaded ${data?.length ?? 0} clans`, 'success');
-                            } catch (error) {
-                              reportRpcError('Failed to load clans:', error, 'Failed to load clans');
-                            }
-                          }} className="w-full bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white px-4 py-2 rounded">Refresh Clans</button>
+            <div className="space-y-6">
+              <div className="card-glass p-6 border-2 border-blue-400/50">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-3xl font-heading font-bold text-blue-300">🛡️ Clan Management</h3>
+                  <button onClick={async () => {
+                    try {
+                      const { data, error } = await supabase.from('clans').select('*').order('name');
+                      if (error) throw error;
+                      setClanList(data || []);
+                      addToast(`Loaded ${data?.length ?? 0} clans`, 'success');
+                    } catch (error) { reportRpcError('Failed to load clans:', error, 'Failed to load clans'); }
+                  }} className="bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white px-4 py-2 rounded-lg font-semibold">
+                    🔄 Refresh Clans
+                  </button>
+                </div>
 
-                          <div className="text-sm text-gray-400">Tip: Click 'Refresh Clans' then choose a clan from the list to disband it.</div>
-                          {clanList.length > 0 && (
-                            <div className="mt-4 space-y-2">
-                              {clanList.map(c => (
-                                <div key={c.id} className="flex items-center justify-between bg-black/20 p-2 rounded">
-                                  <div>
-                                    <p className="font-semibold text-white">{c.name}</p>
-                                    <p className="text-xs text-gray-400">{c.member_count ?? 0} members</p>
-                                  </div>
-                                  <div>
-                                    <button onClick={async () => {
-                                      try {
-                                        if (!confirm(`Disband ${c.name}? This will delete the clan.`)) return;
-                                        await CompetitionService.disbandClan(c.id);
-                                        addToast(`${c.name} disbanded`, 'success');
-                                        setClanList(prev => prev.filter(x => x.id !== c.id));
-                                        await refreshAdminData();
-                                      } catch (error) {
-                                        reportRpcError('Failed to disband clan:', error, 'Failed to disband clan');
-                                      }
-                                    }} className="bg-red-500/20 hover:bg-red-500/30 border border-red-400 text-white px-3 py-1 rounded">Disband</button>
-                                  </div>
-                                </div>
-                              ))}
+                {clanList.length === 0 && (
+                  <div className="text-center py-8 text-gray-400">
+                    <p className="text-5xl mb-3">🛡️</p>
+                    <p>Click "Refresh Clans" to load all clans</p>
+                  </div>
+                )}
+
+                {clanList.length > 0 && (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {clanList.map(c => (
+                      <div key={c.id} className={`rounded-xl border-2 p-4 transition-all ${selectedClan?.id === c.id ? 'border-blue-400 bg-blue-500/10 shadow-[0_0_20px_rgba(59,130,246,0.4)]' : 'border-gray-600 bg-black/30 hover:border-blue-400/50'}`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            {c.crest_url && <img src={c.crest_url} alt="" className="w-8 h-8 rounded" />}
+                            <div>
+                              <p className="font-bold text-white text-lg">{c.name}</p>
+                              <p className="text-xs text-gray-400">{c.member_count ?? 0} members • Created {c.created_at ? new Date(c.created_at).toLocaleDateString() : 'N/A'}</p>
                             </div>
-                          )}
+                          </div>
+                          <div className="flex gap-2">
+                            <button onClick={() => {
+                              setSelectedClan(c);
+                              setClanEditName(c.name || '');
+                              setClanEditDescription(c.description || '');
+                              loadClanMembers(c.id);
+                            }} className="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400 text-white text-xs px-3 py-1.5 rounded">
+                              👁️ Manage
+                            </button>
+                            <button onClick={async () => {
+                              if (!confirm(`Disband "${c.name}"? This permanently deletes the clan and all its data.`)) return;
+                              try {
+                                await CompetitionService.disbandClan(c.id);
+                                addToast(`${c.name} disbanded`, 'success');
+                                setClanList(prev => prev.filter(x => x.id !== c.id));
+                                if (selectedClan?.id === c.id) setSelectedClan(null);
+                              } catch (error) { reportRpcError('Failed to disband:', error, 'Failed to disband clan'); }
+                            }} className="bg-red-500/20 hover:bg-red-500/30 border border-red-400 text-white text-xs px-3 py-1.5 rounded">
+                              💣 Disband
+                            </button>
+                          </div>
                         </div>
+                        {c.description && <p className="text-xs text-gray-400 mt-1">{c.description}</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Selected Clan Detail Panel */}
+              {selectedClan && (
+                <div className="card-glass p-6 border-2 border-blue-400/50">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-2xl font-heading font-bold text-blue-200">
+                      🛡️ {selectedClan.name} — Members
+                    </h4>
+                    <button onClick={() => { setSelectedClan(null); setClanMembers([]); }} className="text-gray-400 hover:text-white text-sm">✕ Close</button>
+                  </div>
+
+                  {/* Edit Clan Details */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">Clan Name</label>
+                      <div className="flex gap-2">
+                        <input type="text" value={clanEditName} onChange={(e) => setClanEditName(e.target.value)} className="flex-1 bg-black/40 border border-blue-400/40 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-400" />
+                        <button onClick={async () => {
+                          if (!clanEditName.trim()) return;
+                          try {
+                            const { error } = await supabase.from('clans').update({ name: clanEditName.trim() }).eq('id', selectedClan.id);
+                            if (error) throw error;
+                            addToast('Clan name updated', 'success');
+                            setClanList(prev => prev.map(c => c.id === selectedClan.id ? { ...c, name: clanEditName.trim() } : c));
+                            setSelectedClan((prev: any) => prev ? { ...prev, name: clanEditName.trim() } : prev);
+                          } catch (error) { reportRpcError('Failed to update:', error, 'Failed'); }
+                        }} className="bg-blue-500/30 hover:bg-blue-500/50 border border-blue-400 text-white text-xs px-3 rounded">Save</button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">Description</label>
+                      <div className="flex gap-2">
+                        <input type="text" value={clanEditDescription} onChange={(e) => setClanEditDescription(e.target.value)} className="flex-1 bg-black/40 border border-blue-400/40 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-400" />
+                        <button onClick={async () => {
+                          try {
+                            const { error } = await supabase.from('clans').update({ description: clanEditDescription }).eq('id', selectedClan.id);
+                            if (error) throw error;
+                            addToast('Description updated', 'success');
+                          } catch (error) { reportRpcError('Failed to update:', error, 'Failed'); }
+                        }} className="bg-blue-500/30 hover:bg-blue-500/50 border border-blue-400 text-white text-xs px-3 rounded">Save</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {clanMembersLoading ? (
+                    <div className="text-center py-6">
+                      <div className="inline-block animate-spin h-6 w-6 border-2 border-blue-400 border-t-transparent rounded-full"></div>
+                      <p className="text-sm text-gray-400 mt-2">Loading members...</p>
+                    </div>
+                  ) : clanMembers.length === 0 ? (
+                    <p className="text-sm text-gray-400 text-center py-4">No members found.</p>
+                  ) : (
+                    <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                      {clanMembers.map(m => {
+                        const memberInfo = m.users || {};
+                        return (
+                          <div key={m.user_id} className="flex items-center justify-between bg-black/30 border border-blue-400/20 rounded-lg p-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-gray-700 overflow-hidden flex items-center justify-center">
+                                {memberInfo.avatar_url ? <img src={memberInfo.avatar_url} className="w-full h-full object-cover" /> : <span>👤</span>}
+                              </div>
+                              <div>
+                                <p className="font-semibold text-white">{memberInfo.username || memberInfo.email || m.user_id}</p>
+                                <div className="flex gap-2 text-xs text-gray-400">
+                                  <span className={`px-1.5 py-0.5 rounded ${m.role === 'leader' ? 'bg-yellow-600/30 text-yellow-300' : 'bg-gray-600/30 text-gray-400'}`}>
+                                    {m.role === 'leader' ? '👑 Leader' : m.role || 'Member'}
+                                  </span>
+                                  {memberInfo.level && <span>Lvl {memberInfo.level}</span>}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              {m.role !== 'leader' && (
+                                <button onClick={() => transferClanLeadership(selectedClan.id, m.user_id, memberInfo.username || 'this member')} className="bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-400 text-white text-xs px-2.5 py-1 rounded">
+                                  👑 Make Leader
+                                </button>
+                              )}
+                              <button onClick={() => removeClanMember(selectedClan.id, m.user_id, memberInfo.username || 'member')} className="bg-red-500/20 hover:bg-red-500/30 border border-red-400 text-white text-xs px-2.5 py-1 rounded">
+                                ❌ Remove
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
           {activeTab === 'analytics' && (
-            <div className="card-glass p-6 border-2 border-pink-400/50">
-              <h3 className="text-3xl font-heading font-bold text-pink-300 mb-6">📊 Analytics</h3>
-                        <div>
-                          <button className="w-full bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white px-4 py-2 rounded" onClick={async () => {
-                            try {
-                              const stats = await CompetitionService.fetchAdminOverviewStats();
-                              addToast(`Players today: ${stats.players_today}`, 'success');
-                            } catch (error) {
-                              reportRpcError('Failed to fetch analytics:', error, 'Failed to fetch analytics');
-                            }
-                          }}>Refresh Analytics</button>
-                          <p className="text-gray-400 mt-2">Quick analytics and health checks for the server</p>
+            <div className="space-y-6">
+              <div className="card-glass p-6 border-2 border-pink-400/50">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-3xl font-heading font-bold text-pink-300">📊 Analytics Dashboard</h3>
+                  <button onClick={fetchAnalytics} disabled={analyticsLoading} className="bg-pink-500/20 hover:bg-pink-500/30 border border-pink-400 text-white px-4 py-2 rounded-lg font-semibold transition-all hover:shadow-[0_0_20px_rgba(236,72,153,0.5)]">
+                    {analyticsLoading ? '⏳ Loading...' : '🔄 Refresh Analytics'}
+                  </button>
+                </div>
+
+                {!analyticsData && !analyticsLoading && (
+                  <div className="text-center py-12 text-gray-400">
+                    <p className="text-6xl mb-4">📊</p>
+                    <p className="text-xl">Click "Refresh Analytics" to load the dashboard</p>
+                  </div>
+                )}
+
+                {analyticsLoading && (
+                  <div className="text-center py-12">
+                    <div className="inline-block animate-spin h-8 w-8 border-4 border-pink-400 border-t-transparent rounded-full"></div>
+                    <p className="text-sm text-gray-400 mt-3">Crunching numbers...</p>
+                  </div>
+                )}
+
+                {analyticsData && !analyticsLoading && (
+                  <div className="space-y-6">
+                    {/* Key Metrics */}
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                      {[
+                        { label: 'Players Today', value: analyticsData.playersToday, icon: '🎮', containerClass: 'bg-gradient-to-br from-pink-600/20 to-pink-900/20 border-2 border-pink-400', valueClass: 'text-pink-300' },
+                        { label: 'Active Now', value: analyticsData.activeNow, icon: '🟢', containerClass: 'bg-gradient-to-br from-green-600/20 to-green-900/20 border-2 border-green-400', valueClass: 'text-green-300' },
+                        { label: 'Total Clans', value: analyticsData.totalClans, icon: '🛡️', containerClass: 'bg-gradient-to-br from-blue-600/20 to-blue-900/20 border-2 border-blue-400', valueClass: 'text-blue-300' },
+                        { label: 'Total Questions', value: analyticsData.totalQuestions, icon: '❓', containerClass: 'bg-gradient-to-br from-purple-600/20 to-purple-900/20 border-2 border-purple-400', valueClass: 'text-purple-300' },
+                        { label: 'Recent Errors', value: analyticsData.recentErrors.length, icon: analyticsData.recentErrors.length > 0 ? '⚠️' : '✅', containerClass: analyticsData.recentErrors.length > 0 ? 'bg-gradient-to-br from-red-600/20 to-red-900/20 border-2 border-red-400' : 'bg-gradient-to-br from-green-600/20 to-green-900/20 border-2 border-green-400', valueClass: analyticsData.recentErrors.length > 0 ? 'text-red-300' : 'text-green-300' },
+                      ].map((metric, i) => (
+                        <div key={i} className={`${metric.containerClass} rounded-xl p-4 text-center`}>
+                          <p className="text-3xl mb-1">{metric.icon}</p>
+                          <p className={`text-2xl font-bold font-mono ${metric.valueClass}`}>{metric.value}</p>
+                          <p className="text-xs text-gray-400">{metric.label}</p>
                         </div>
+                      ))}
+                    </div>
+
+                    {/* Grade Distribution */}
+                    <div className="card-glass border border-pink-400/30 p-4 rounded-xl">
+                      <h4 className="text-lg font-heading font-bold text-pink-200 mb-3">📚 Grade Distribution</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                        {Object.entries(analyticsData.gradeDistribution)
+                          .sort(([a], [b]) => a.localeCompare(b))
+                          .map(([grade, count]) => (
+                            <div key={grade} className="bg-black/30 border border-pink-400/20 rounded-lg p-3 text-center">
+                              <p className="text-sm font-semibold text-white">{grade}</p>
+                              <p className="text-2xl font-bold text-pink-300">{count}</p>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+
+                    {/* Role Distribution */}
+                    <div className="card-glass border border-purple-400/30 p-4 rounded-xl">
+                      <h4 className="text-lg font-heading font-bold text-purple-200 mb-3">👥 Role Distribution</h4>
+                      <div className="flex flex-wrap gap-3">
+                        {Object.entries(analyticsData.roleDistribution)
+                          .sort(([, a], [, b]) => b - a)
+                          .map(([role, count]) => {
+                            const total = Object.values(analyticsData.roleDistribution).reduce((s, v) => s + v, 0);
+                            const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                            return (
+                              <div key={role} className="bg-black/30 border border-purple-400/20 rounded-lg px-4 py-3 flex-1 min-w-[120px]">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-sm font-semibold text-white capitalize">{role}</span>
+                                  <span className="text-xs text-purple-300">{pct}%</span>
+                                </div>
+                                <p className="text-xl font-bold text-purple-300">{count}</p>
+                                <div className="h-1.5 rounded-full bg-white/10 overflow-hidden mt-1">
+                                  <div className="h-full rounded-full bg-purple-500 transition-all" style={{ width: `${pct}%` }} />
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </div>
+
+                    {/* Batch/Class Stats */}
+                    {analyticsData.batchStats.length > 0 && (
+                      <div className="card-glass border border-cyan-400/30 p-4 rounded-xl">
+                        <h4 className="text-lg font-heading font-bold text-cyan-200 mb-3">🏫 Class/Batch Stats</h4>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left text-sm">
+                            <thead>
+                              <tr className="border-b border-cyan-400/30">
+                                <th className="px-3 py-2 text-cyan-300">Class</th>
+                                <th className="px-3 py-2 text-cyan-300">Players</th>
+                                <th className="px-3 py-2 text-cyan-300">Total XP</th>
+                                <th className="px-3 py-2 text-cyan-300">Avg XP</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {analyticsData.batchStats
+                                .sort((a, b) => b.totalXp - a.totalXp)
+                                .map((b, i) => (
+                                  <tr key={i} className="border-b border-gray-700/50 hover:bg-cyan-500/5">
+                                    <td className="px-3 py-2 text-white font-semibold">{b.batch}</td>
+                                    <td className="px-3 py-2 text-gray-300">{b.playerCount}</td>
+                                    <td className="px-3 py-2 text-cyan-300 font-mono">{b.totalXp.toLocaleString()}</td>
+                                    <td className="px-3 py-2 text-gray-400 font-mono">{b.playerCount > 0 ? Math.round(b.totalXp / b.playerCount).toLocaleString() : 0}</td>
+                                  </tr>
+                                ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Error Log */}
+                    {analyticsData.recentErrors.length > 0 && (
+                      <div className="card-glass border border-red-400/30 p-4 rounded-xl">
+                        <h4 className="text-lg font-heading font-bold text-red-300 mb-3">⚠️ Recent Errors</h4>
+                        {analyticsData.recentErrors.map((err, i) => (
+                          <div key={i} className="bg-red-500/10 border border-red-400/20 rounded-lg p-3 text-sm text-red-200 font-mono">
+                            {err}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -2403,43 +3222,127 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
           )}
 
           {activeTab === 'system' && (
-            <div className="card-glass p-6 border-2 border-red-400/50">
-              <h3 className="text-3xl font-heading font-bold text-red-300 mb-6">⚙️ System Control</h3>
-                        <div className="space-y-2">
-                          <button className="w-full bg-gray-700/20 hover:bg-gray-700/30 border border-gray-600 text-white px-4 py-2 rounded" onClick={async () => {
-                            try {
-                              if (!confirm('This will wipe EVERY player\'s XP, level, AP, PvP stats/champions, tasks, inventory, clans, and activity feed. This cannot be undone. Proceed?')) {
-                                return;
-                              }
-                              const affected = await CompetitionService.resetAllPlayerProgress();
-                              addToast(`System: reset applied to ${affected} accounts`, 'success');
-                              await refreshAdminData();
-                            } catch (error) {
-                              reportRpcError('Failed system reset:', error, 'Failed system reset');
-                            }
-                          }}>Reset Player Progress (System)</button>
-                          <button className="w-full bg-gray-700/20 hover:bg-gray-700/30 border border-gray-600 text-white px-4 py-2 rounded" onClick={async () => {
-                            try {
-                              const affected = await CompetitionService.refillAllAp();
-                              addToast(`System: Refilled AP for ${affected} players`, 'success');
-                              await refreshAdminData();
-                            } catch (error) {
-                              reportRpcError('Failed system AP refill:', error, 'Failed system AP refill');
-                            }
-                          }}>Refill AP (System)</button>
-                          <button className="w-full bg-gray-700/20 hover:bg-gray-700/30 border border-gray-600 text-white px-4 py-2 rounded" onClick={async () => {
-                            try {
-                              if (!confirm('Reset PvP Champions leaderboard? This removes all recorded PvP wins.')) {
-                                return;
-                              }
-                              const affected = await CompetitionService.resetPvpWinsLeaderboard();
-                              addToast(`System: Cleared ${affected} PvP win records`, 'success');
-                              await refreshAdminData();
-                            } catch (error) {
-                              reportRpcError('Failed to reset PvP leaderboard:', error, 'Failed to reset PvP leaderboard');
-                            }
-                          }}>Reset PvP Champions Leaderboard</button>
-                        </div>
+            <div className="space-y-6">
+              {/* Feature Toggles */}
+              <div className="card-glass p-6 border-2 border-cyan-400/50">
+                <h3 className="text-2xl font-heading font-bold text-cyan-300 mb-4">🎛️ Feature Toggles</h3>
+                <p className="text-sm text-gray-400 mb-4">Enable or disable features across the platform. Note: These are client-side toggles stored in the admin's session. For persistent server-side toggles, store them in a database table.</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {Object.entries(featureToggles).map(([key, enabled]) => (
+                    <button
+                      key={key}
+                      onClick={() => setFeatureToggles(prev => ({ ...prev, [key]: !prev[key] }))}
+                      className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all ${
+                        enabled
+                          ? 'border-green-400 bg-green-500/10 hover:bg-green-500/20'
+                          : 'border-red-400/50 bg-red-500/10 hover:bg-red-500/20'
+                      }`}
+                    >
+                      <span className="text-sm font-semibold text-white capitalize">{key.replace(/_/g, ' ')}</span>
+                      <span className={`text-lg ${enabled ? '🟢' : '🔴'}`}>{enabled ? '✅' : '❌'}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* System Operations */}
+              <div className="card-glass p-6 border-2 border-amber-400/50">
+                <h3 className="text-2xl font-heading font-bold text-amber-300 mb-4">🔧 System Operations</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <button onClick={async () => {
+                    try {
+                      const affected = await CompetitionService.refillAllAp();
+                      addToast(`⚡ Refilled AP for ${affected} players`, 'success');
+                      await refreshAdminData();
+                    } catch (error) { reportRpcError('Failed:', error, 'Failed'); }
+                  }} className="bg-green-500/20 hover:bg-green-500/30 border-2 border-green-400 text-white font-semibold px-4 py-4 rounded-xl transition-all hover:shadow-[0_0_20px_rgba(34,197,94,0.5)]">
+                    ⚡ Refill AP for All Players
+                  </button>
+                  <button onClick={async () => {
+                    try {
+                      if (!confirm('Reset PvP Champions leaderboard?')) return;
+                      const affected = await CompetitionService.resetPvpWinsLeaderboard();
+                      addToast(`🏆 Cleared ${affected} PvP win records`, 'success');
+                      await refreshAdminData();
+                    } catch (error) { reportRpcError('Failed:', error, 'Failed'); }
+                  }} className="bg-purple-500/20 hover:bg-purple-500/30 border-2 border-purple-400 text-white font-semibold px-4 py-4 rounded-xl transition-all hover:shadow-[0_0_20px_rgba(168,85,247,0.5)]">
+                    🏆 Reset PvP Champions Leaderboard
+                  </button>
+                  <button onClick={async () => {
+                    try {
+                      // Purge expired announcements
+                      const { error } = await supabase.from('announcements').delete().lt('expires_at', new Date().toISOString()).not('expires_at', 'is', null);
+                      if (error) throw error;
+                      addToast('🧹 Expired announcements purged', 'success');
+                    } catch (error) { reportRpcError('Failed:', error, 'Failed to purge'); }
+                  }} className="bg-cyan-500/20 hover:bg-cyan-500/30 border-2 border-cyan-400 text-white font-semibold px-4 py-4 rounded-xl transition-all hover:shadow-[0_0_20px_rgba(6,182,212,0.5)]">
+                    🧹 Purge Expired Announcements
+                  </button>
+                  <button onClick={async () => {
+                    try {
+                      // Clear all quiz scores (with confirmation)
+                      if (!confirm('Clear ALL Cambridge test scores? Students will need to retake tests.')) return;
+                      const { error } = await supabase.from('quiz_scores').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+                      if (error) throw error;
+                      addToast('🗑️ All quiz scores cleared', 'success');
+                    } catch (error) { reportRpcError('Failed:', error, 'Failed to clear scores'); }
+                  }} className="bg-orange-500/20 hover:bg-orange-500/30 border-2 border-orange-400 text-white font-semibold px-4 py-4 rounded-xl transition-all hover:shadow-[0_0_20px_rgba(249,115,22,0.5)]">
+                    🗑️ Clear All Quiz Scores
+                  </button>
+                </div>
+              </div>
+
+              {/* Database Info */}
+              <div className="card-glass p-6 border-2 border-indigo-400/50">
+                <h3 className="text-2xl font-heading font-bold text-indigo-300 mb-4">🗄️ Database Quick Stats</h3>
+                <button onClick={async () => {
+                  try {
+                    const tables = ['users', 'clans', 'clan_members', 'questions', 'competition_attempts', 'quiz_scores', 'announcements', 'schools', 'school_members'];
+                    const counts: Record<string, number> = {};
+                    for (const table of tables) {
+                      const { count, error } = await supabase.from(table).select('id', { head: true, count: 'exact' });
+                      counts[table] = error ? -1 : (count ?? 0);
+                    }
+                    const statsDiv = document.getElementById('db-stats-output');
+                    if (statsDiv) {
+                      statsDiv.innerHTML = Object.entries(counts).map(([t, c]) => 
+                        `<div class="flex justify-between items-center bg-black/30 border border-indigo-400/20 rounded-lg px-4 py-2"><span class="text-sm text-white font-semibold">${t}</span><span class="text-sm font-mono ${c < 0 ? 'text-red-400' : 'text-indigo-300'}">${c < 0 ? 'ERROR' : c.toLocaleString()} rows</span></div>`
+                      ).join('');
+                    }
+                    addToast('📊 Database stats loaded', 'success');
+                  } catch (error) { reportRpcError('Failed:', error, 'Failed to load DB stats'); }
+                }} className="bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400 text-white px-4 py-2 rounded-lg font-semibold mb-4">
+                  📊 Load Database Stats
+                </button>
+                <div id="db-stats-output" className="space-y-2"></div>
+              </div>
+
+              {/* Danger Zone */}
+              <div className="card-glass p-6 border-2 border-red-500">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-4xl">☠️</span>
+                  <div>
+                    <h3 className="text-2xl font-heading font-bold text-red-400">Danger Zone</h3>
+                    <p className="text-sm text-red-300/70">These actions are destructive and cannot be undone.</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <button onClick={async () => {
+                    if (!confirm('⚠️ CRITICAL: This will wipe EVERY player\'s XP, level, AP, PvP stats/champions, tasks, inventory, clans, and activity feed. This cannot be undone.')) return;
+                    const typed = prompt('Type "DESTROY ALL PROGRESS" to confirm:');
+                    if (typed !== 'DESTROY ALL PROGRESS') { addToast('Cancelled — confirmation text did not match', 'info'); return; }
+                    try {
+                      setIsResettingAll(true);
+                      const affected = await CompetitionService.resetAllPlayerProgress();
+                      addToast(`☠️ System reset applied to ${affected} accounts`, 'success');
+                      await refreshAdminData();
+                    } catch (error) { reportRpcError('Failed:', error, 'Failed system reset'); }
+                    finally { setIsResettingAll(false); }
+                  }} disabled={isResettingAll} className={`w-full border-2 border-red-500 text-white font-bold px-4 py-4 rounded-xl transition-all ${isResettingAll ? 'bg-red-700/30 cursor-not-allowed' : 'bg-red-600/40 hover:bg-red-600/60 hover:shadow-[0_0_30px_rgba(239,68,68,0.8)]'}`}>
+                    {isResettingAll ? '⏳ Resetting Everything...' : '☠️ NUCLEAR RESET — Wipe All Player Progress'}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -2568,8 +3471,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         const encouragement = getEncouragement(grade);
         
         return (
-          <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/90 p-4 overflow-y-auto no-print">
-            <div className="bg-white rounded-2xl max-w-4xl w-full my-8 print-content" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
+          <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/90 p-4 overflow-y-auto no-print" role="dialog" aria-modal="true" aria-label="Student Performance Report">
+            <div className="bg-white rounded-2xl max-w-4xl w-full my-8 print-content font-sans">
               {/* Report Header */}
               <div className="p-6 border-b-4 border-purple-600 no-print-hide">
                 <div className="flex justify-between items-start">
@@ -2723,8 +3626,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         }
         
         return (
-          <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/90 p-4 overflow-y-auto no-print">
-            <div className="bg-white rounded-2xl max-w-5xl w-full my-8 print-content" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
+          <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/90 p-4 overflow-y-auto no-print" role="dialog" aria-modal="true" aria-label="Test Answer Reflection">
+            <div className="bg-white rounded-2xl max-w-5xl w-full my-8 print-content font-sans">
               {/* Header */}
               <div className="p-6 border-b-4 border-blue-600 no-print-hide">
                 <div className="flex justify-between items-start">
@@ -2867,9 +3770,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       })()}
 
       {showAnnouncementComposer && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4" role="dialog" aria-modal="true" aria-labelledby="announcement-title">
           <div className="bg-gray-900 border border-green-400/60 rounded-2xl max-w-xl w-full p-6 space-y-4">
-            <h3 className="text-2xl font-heading text-green-300">📢 Broadcast Announcement</h3>
+            <h3 id="announcement-title" className="text-2xl font-heading text-green-300">📢 Broadcast Announcement</h3>
             <p className="text-sm text-gray-400">
               This message appears for every player until they dismiss it or it expires.
             </p>

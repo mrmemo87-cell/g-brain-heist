@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry Ch19 ( Nitrogen compounds )</title>
   <script src="../examguard.js"></script>
-  <script src="chemistry_master_answer_key.js"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -863,7 +862,11 @@
         }
       },
     ];
-    let ANSWER_KEY = window.CHEMISTRY_MASTER_ANSWER_KEY.getAnswerKeyForQuestions(QUESTIONS);
+
+    // Placeholder answer key (awaiting official answers)
+    let ANSWER_KEY = {
+      1: 'D', 2: 'C', 3: 'C', 4: 'A', 5: 'D', 6: 'C',
+    };
 
     const quizSplit = splitQuiz(QUESTIONS, ANSWER_KEY, QUIZ_PART.part);
     QUESTIONS = quizSplit.questions;
@@ -1090,6 +1093,7 @@
           
           // Re-enable all questions
           document.querySelectorAll('input').forEach(i => i.disabled = false);
+          unlockQuestions();
           
           return;
         }
@@ -1141,6 +1145,7 @@
           
           // Re-enable all questions
           document.querySelectorAll('input').forEach(i => i.disabled = false);
+          unlockQuestions();
           
           // Notify parent component to refresh test list UI
           try {
@@ -1338,7 +1343,6 @@
     function acknowledgeAntiCheat() {
       antiCheatAcknowledged = true;
       closeAntiCheatModal();
-      setupAntiCheat();
       startTimerIfReady();
     }
 
@@ -1403,27 +1407,7 @@
       });
     }
 
-    function setupAntiCheat() {
-      let tabSwitches = 0;
-      document.addEventListener('copy', (e) => {
-        e.preventDefault();
-        showToast('Copying is disabled during this test.');
-      });
-      document.addEventListener('cut', (e) => {
-        e.preventDefault();
-        showToast('Cutting text is disabled during this test.');
-      });
-      document.addEventListener('visibilitychange', () => {
-        if (document.hidden && !hasSubmitted) {
-          tabSwitches += 1;
-          if (tabSwitches === 1) {
-            showToast('🚨 Warning: You switched tabs once. Next switch will auto-submit this test.', { variant: 'warning' });
-          } else {
-            handleSubmit({ force: true, reason: 'Second tab switch detected. Auto-submit applied.' });
-          }
-        }
-      });
-    }
+
 
     document.addEventListener('DOMContentLoaded', () => {
       /*

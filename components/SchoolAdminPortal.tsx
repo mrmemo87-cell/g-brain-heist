@@ -1,9 +1,20 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import BackButton from './BackButton';
 import { ToastMessage } from '../types';
 import * as SchoolAdminService from '../services/schoolAdminService';
 import { supabase } from '../services/supabaseClient';
 import ClassRoster from './ClassRoster';
+import {
+  fetchSchoolPlanDetails,
+  startPilot,
+  createCheckoutSession,
+  invalidateTierCache,
+  PAID_PLANS,
+  PILOT_PLAN,
+  type SchoolPlanDetails,
+  type PlanInfo,
+} from '../services/tierService';
 import type {
   SchoolStats,
   SchoolMember,
@@ -19,7 +30,7 @@ interface SchoolAdminPortalProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
 }
 
-type AdminTab = 'dashboard' | 'members' | 'classes' | 'roster' | 'subjects' | 'teachers' | 'students' | 'invites' | 'settings' | 'cambridge';
+type AdminTab = 'dashboard' | 'members' | 'classes' | 'roster' | 'subjects' | 'teachers' | 'students' | 'invites' | 'settings' | 'billing' | 'cambridge';
 
 const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addToast }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
@@ -27,6 +38,12 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
   const [school, setSchool] = useState<SchoolInfo | null>(null);
   const [stats, setStats] = useState<SchoolStats | null>(null);
   const [members, setMembers] = useState<SchoolMember[]>([]);
+
+  // Billing / Plan state
+  const [planDetails, setPlanDetails] = useState<SchoolPlanDetails | null>(null);
+  const [billingLoading, setBillingLoading] = useState(false);
+  const [billingAction, setBillingAction] = useState<string | null>(null);
+  const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('yearly');
   const [membersTotal, setMembersTotal] = useState(0);
   const [memberPage, setMemberPage] = useState(1);
   const [memberPageSize, setMemberPageSize] = useState(25);
@@ -146,6 +163,9 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
 
       // Load members
       await loadMembers(schoolData.school.id);
+
+      // Load plan details (non-blocking)
+      fetchSchoolPlanDetails().then(d => setPlanDetails(d)).catch(() => {});
     } catch (err) {
       console.error('Error loading school data:', err);
       addToast('Failed to load school data', 'error');
@@ -261,42 +281,43 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
   };
 
   const deleteQuizSubmission = async (scoreId: string, studentName: string) => {
-    if (!window.confirm(`Delete submission from ${studentName}? This will allow them to retake the test.`)) {
-      return;
-    }
+    setConfirmDialog({
+      title: 'Delete Submission',
+      description: `Delete submission from ${studentName}? This will allow them to retake the test.`,
+      confirmLabel: 'Delete',
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          const { data, error } = await supabase
+            .from('quiz_scores')
+            .delete()
+            .eq('id', scoreId)
+            .select('id');
 
-    try {
-      const { data, error } = await supabase
-        .from('quiz_scores')
-        .delete()
-        .eq('id', scoreId)
-        .select('id');
+          if (error) {
+            console.error('Delete error details:', error);
+            throw error;
+          }
 
-      if (error) {
-        console.error('Delete error details:', error);
-        throw error;
-      }
+          if (!data || data.length === 0) {
+            console.warn('No rows deleted - RLS policy may be blocking deletion');
+            addToast('Failed to delete: Permission denied. This may be an RLS policy issue.', 'error');
+            return;
+          }
 
-      // Check if any rows were actually deleted
-      if (!data || data.length === 0) {
-        console.warn('No rows deleted - RLS policy may be blocking deletion');
-        addToast('Failed to delete: Permission denied. This may be an RLS policy issue.', 'error');
-        return;
-      }
-
-      // Remove from local state immediately - deletion confirmed by server
-      setQuizScores(prev => prev.filter(score => score.id !== scoreId));
-      
-      addToast(`✅ Deleted submission for ${studentName}`, 'success');
-    } catch (error: any) {
-      console.error('Failed to delete submission:', {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint
-      });
-      addToast(`Failed to delete submission: ${error.message}`, 'error');
-    }
+          setQuizScores(prev => prev.filter(score => score.id !== scoreId));
+          addToast(`Deleted submission for ${studentName}`, 'success');
+        } catch (error: any) {
+          console.error('Failed to delete submission:', {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint
+          });
+          addToast(`Failed to delete submission: ${error.message}`, 'error');
+        }
+      },
+    });
   };
 
   const exportCSV = () => {
@@ -1044,7 +1065,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
 
       {/* Premium Tab Navigation */}
       <div className="school-admin-tabs flex flex-wrap gap-2 mb-8 pb-2" role="tablist" aria-label="School admin navigation">
-        {(['dashboard', 'members', 'classes', 'roster', 'subjects', 'teachers', 'students', 'invites', 'settings', 'cambridge'] as AdminTab[]).map((tab) => (
+        {(['dashboard', 'members', 'classes', 'roster', 'subjects', 'teachers', 'students', 'invites', 'billing', 'settings', 'cambridge'] as AdminTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -1064,6 +1085,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
             {tab === 'teachers' && '🧑‍🏫 Teachers'}
             {tab === 'students' && '🎒 Students'}
             {tab === 'invites' && '🔑 Invites'}
+            {tab === 'billing' && '💳 Plan & Billing'}
             {tab === 'settings' && '⚙️ Settings'}
             {tab === 'cambridge' && '📚 Cambridge'}
           </button>
@@ -1266,7 +1288,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
               <table className="w-full">
                 <thead className="bg-gray-750 border-b border-gray-700">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">
                       <label className="inline-flex items-center gap-2">
                         <input
                           type="checkbox"
@@ -1285,7 +1307,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                         </button>
                       </label>
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">
                       <button
                         type="button"
                         onClick={() => toggleMemberSort('role')}
@@ -1295,7 +1317,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                         <span className="text-xs">{memberSortKey === 'role' ? (memberSortDirection === 'asc' ? '▲' : '▼') : ''}</span>
                       </button>
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 hidden md:table-cell">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 hidden md:table-cell">
                       <button
                         type="button"
                         onClick={() => toggleMemberSort('grade')}
@@ -1305,7 +1327,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                         <span className="text-xs">{memberSortKey === 'grade' ? (memberSortDirection === 'asc' ? '▲' : '▼') : ''}</span>
                       </button>
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 hidden lg:table-cell">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 hidden lg:table-cell">
                       <button
                         type="button"
                         onClick={() => toggleMemberSort('level')}
@@ -1315,7 +1337,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                         <span className="text-xs">{memberSortKey === 'level' ? (memberSortDirection === 'asc' ? '▲' : '▼') : ''}</span>
                       </button>
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 hidden lg:table-cell">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 hidden lg:table-cell">
                       <button
                         type="button"
                         onClick={() => toggleMemberSort('last_seen')}
@@ -1325,7 +1347,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                         <span className="text-xs">{memberSortKey === 'last_seen' ? (memberSortDirection === 'asc' ? '▲' : '▼') : ''}</span>
                       </button>
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">
                       <button
                         type="button"
                         onClick={() => toggleMemberSort('status')}
@@ -1335,7 +1357,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                         <span className="text-xs">{memberSortKey === 'status' ? (memberSortDirection === 'asc' ? '▲' : '▼') : ''}</span>
                       </button>
                     </th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">Actions</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-400">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-700">
@@ -1538,7 +1560,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
               </table>
             </div>
             {classes.length === 0 && (
-              <div className="p-6 text-center text-gray-500">No classes created yet.</div>
+              <div className="p-8 text-center text-gray-400">No classes created yet.</div>
             )}
           </div>
         </div>
@@ -1569,7 +1591,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                   type="text"
                   value={subjectName}
                   onChange={(e) => setSubjectName(e.target.value)}
-                  onKeyPress={(e) => {
+                  onKeyDown={(e) => {
                     if (e.key === 'Enter' && !subjectSaving) {
                       handleAddSubject();
                     }
@@ -1584,7 +1606,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                   type="text"
                   value={subjectCode}
                   onChange={(e) => setSubjectCode(e.target.value)}
-                  onKeyPress={(e) => {
+                  onKeyDown={(e) => {
                     if (e.key === 'Enter' && !subjectSaving) {
                       handleAddSubject();
                     }
@@ -1640,7 +1662,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
               </table>
             </div>
             {dbSubjects.length === 0 && (
-              <div className="p-6 text-center text-gray-500">
+              <div className="p-8 text-center text-gray-400">
                 No subjects added yet. Add subjects to enable teacher assignments.
               </div>
             )}
@@ -1858,7 +1880,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
               </div>
             )}
             {filteredTeacherAssignments.length === 0 && (
-              <div className="p-6 text-center text-gray-500">No assignments found.</div>
+              <div className="p-8 text-center text-gray-400">No assignments found.</div>
             )}
           </div>
         </div>
@@ -2047,7 +2069,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
               </div>
             )}
             {filteredStudents.length === 0 && (
-              <div className="p-6 text-center text-gray-500">No students found.</div>
+              <div className="p-8 text-center text-gray-400">No students found.</div>
             )}
           </div>
         </div>
@@ -2085,6 +2107,49 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
             </p>
           </div>
         </div>
+      )}
+
+      {/* Billing & Plan Tab */}
+      {activeTab === 'billing' && (
+        <BillingTab
+          planDetails={planDetails}
+          loading={billingLoading}
+          billingAction={billingAction}
+          billingInterval={billingInterval}
+          setBillingInterval={setBillingInterval}
+          onRefreshPlan={async () => {
+            setBillingLoading(true);
+            const details = await fetchSchoolPlanDetails();
+            setPlanDetails(details);
+            setBillingLoading(false);
+          }}
+          onStartPilot={async () => {
+            setBillingAction('pilot');
+            const result = await startPilot();
+            if (result.success) {
+              addToast('🚀 30-day pilot activated! All features unlocked.', 'success');
+              invalidateTierCache();
+              const details = await fetchSchoolPlanDetails();
+              setPlanDetails(details);
+            } else {
+              addToast(result.error || 'Failed to start pilot', 'error');
+            }
+            setBillingAction(null);
+          }}
+          onSubscribe={async (plan: PlanInfo) => {
+            setBillingAction(plan.id);
+            const result = await createCheckoutSession({
+              plan: plan.id as 'core' | 'standard' | 'pro',
+              interval: billingInterval,
+            });
+            if ('checkout_url' in result) {
+              window.location.href = result.checkout_url;
+            } else {
+              addToast(result.error || 'Checkout failed', 'error');
+              setBillingAction(null);
+            }
+          }}
+        />
       )}
 
       {/* Settings Tab */}
@@ -2359,14 +2424,14 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
               <button
                 onClick={fetchQuizScores}
                 disabled={quizScoresLoading}
-                className="bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-400 text-white font-semibold px-6 py-3 rounded-lg transition-all hover:shadow-lg disabled:opacity-50"
+                className="bg-cyan-600 hover:bg-cyan-500 text-white font-medium px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
               >
                 {quizScoresLoading ? '⏳ Loading...' : '🔄 Load/Refresh Reports'}
               </button>
               {quizScores.length > 0 && (
                 <button
                   onClick={exportCSV}
-                  className="bg-green-600/30 hover:bg-green-600/50 border border-green-400 text-white font-semibold px-6 py-3 rounded-lg transition-all hover:shadow-lg"
+                  className="bg-green-600 hover:bg-green-500 text-white font-medium px-4 py-2 rounded-lg transition-colors"
                 >
                   📥 Export CSV
                 </button>
@@ -2411,19 +2476,19 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                 </div>
 
                 {/* Results Table */}
-                <div className="bg-gray-900/50 rounded-lg border border-gray-700 overflow-hidden">
+                <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead className="bg-gray-800 border-b border-gray-700">
                         <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Student</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Class</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Test</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase">Score</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase">Percentage</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase">Time</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase">Submitted</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase">Actions</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Student</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Class</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">Test</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-400">Score</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-400">Percentage</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-400">Time</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-400">Submitted</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-400">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-700">
@@ -2481,7 +2546,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
             )}
 
             {quizScores.length === 0 && !quizScoresLoading && (
-              <div className="text-center py-12 text-gray-400">
+              <div className="text-center p-8 text-gray-400">
                 <p className="text-lg mb-2">📋 No Cambridge test submissions yet</p>
                 <p className="text-sm">Click "Load/Refresh Reports" to check for new submissions</p>
               </div>
@@ -2491,8 +2556,8 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
       )}
 
       {/* Member Action Modal */}
-      {showMemberActionModal && selectedMember && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+      {showMemberActionModal && selectedMember && ReactDOM.createPortal(
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] p-4">
           <div
             className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-700"
             role="dialog"
@@ -2574,11 +2639,12 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
               Close
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {confirmDialog && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+      {confirmDialog && ReactDOM.createPortal(
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] p-4">
           <div
             className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-700"
             role="dialog"
@@ -2633,10 +2699,265 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
 };
+
+
+// ============================================================================
+// BillingTab — Plan status + upgrade UI (inside SchoolAdminPortal)
+// ============================================================================
+
+interface BillingTabProps {
+  planDetails: SchoolPlanDetails | null;
+  loading: boolean;
+  billingAction: string | null;
+  billingInterval: 'monthly' | 'yearly';
+  setBillingInterval: (v: 'monthly' | 'yearly') => void;
+  onRefreshPlan: () => void;
+  onStartPilot: () => void;
+  onSubscribe: (plan: PlanInfo) => void;
+}
+
+const BillingTab: React.FC<BillingTabProps> = ({
+  planDetails,
+  loading,
+  billingAction,
+  billingInterval,
+  setBillingInterval,
+  onRefreshPlan,
+  onStartPilot,
+  onSubscribe,
+}) => {
+  useEffect(() => {
+    if (!planDetails) onRefreshPlan();
+  }, []);
+
+  if (loading || !planDetails) {
+    return (
+      <div className="flex items-center justify-center py-12 text-gray-400">
+        <svg className="h-5 w-5 animate-spin mr-2" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+        Loading plan details…
+      </div>
+    );
+  }
+
+  const plan = planDetails.plan;
+  const isActive = planDetails.is_active;
+  const trialExpired = planDetails.trial_expired;
+  const isNone = plan === 'none';
+  const isPilot = plan === 'pilot';
+  const isPaid = ['core', 'standard', 'pro', 'enterprise'].includes(plan);
+
+  // Trial days remaining
+  const trialDaysLeft = isPilot && planDetails.trial_ends_at
+    ? Math.max(0, Math.ceil((new Date(planDetails.trial_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : 0;
+
+  const planLabel: Record<string, string> = {
+    none: 'Free (Lockdown Only)',
+    pilot: 'Pilot Trial',
+    core: 'Core',
+    standard: 'Standard',
+    pro: 'Pro',
+    enterprise: 'Enterprise',
+  };
+
+  return (
+    <div className="max-w-3xl space-y-6">
+      {/* Current Plan Status */}
+      <div className={`rounded-xl p-6 border ${
+        isPaid ? 'bg-emerald-900/20 border-emerald-500/30' :
+        isPilot && isActive ? 'bg-cyan-900/20 border-cyan-500/30' :
+        trialExpired ? 'bg-red-900/20 border-red-500/30' :
+        'bg-gray-800 border-gray-700'
+      }`}>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h3 className="text-lg font-semibold text-white">
+              {isPaid && '✅ '}{isPilot && isActive && '🚀 '}{trialExpired && '⏰ '}{isNone && '🔓 '}
+              {planLabel[plan] || plan}
+            </h3>
+            <p className="text-sm text-gray-400 mt-1">
+              {isNone && 'Your school is using the free Lockdown mode. Start a pilot or subscribe to unlock everything.'}
+              {isPilot && isActive && `${trialDaysLeft} day${trialDaysLeft !== 1 ? 's' : ''} remaining. Subscribe to keep access after the trial.`}
+              {trialExpired && 'Your pilot trial has expired. Subscribe to restore full access.'}
+              {isPaid && 'All features are unlocked for your school.'}
+            </p>
+          </div>
+          {planDetails.seats && (isPaid || (isPilot && isActive)) && (
+            <div className="flex gap-3 text-xs">
+              <span className="bg-gray-800 rounded-lg px-3 py-1.5 border border-gray-700">
+                📚 {planDetails.seats.cambridge ?? '∞'} Cambridge
+              </span>
+              <span className="bg-gray-800 rounded-lg px-3 py-1.5 border border-gray-700">
+                🎧 {planDetails.seats.ielts ?? '∞'} IELTS
+              </span>
+              <span className="bg-gray-800 rounded-lg px-3 py-1.5 border border-gray-700">
+                🎮 {planDetails.seats.game ?? '∞'} Game
+              </span>
+            </div>
+          )}
+        </div>
+        {planDetails.current_members > 0 && (
+          <p className="text-xs text-gray-500 mt-3">
+            Current members: {planDetails.current_members}
+          </p>
+        )}
+      </div>
+
+      {/* Pilot CTA (only show for 'none') */}
+      {isNone && (
+        <div className="rounded-xl p-5 border border-cyan-500/20 bg-cyan-500/5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <div className="text-sm font-semibold text-cyan-300">🚀 {PILOT_PLAN.label} — {PILOT_PLAN.days} Days Free</div>
+              <p className="text-xs text-gray-400 mt-1">
+                {PILOT_PLAN.seats.cambridge} Cambridge · {PILOT_PLAN.seats.ielts} IELTS · {PILOT_PLAN.seats.game} Game seats. No credit card needed.
+              </p>
+            </div>
+            <button
+              onClick={onStartPilot}
+              disabled={billingAction !== null}
+              className="shrink-0 rounded-lg bg-cyan-600 hover:bg-cyan-500 px-4 py-2 text-sm font-medium text-white transition-colors active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {billingAction === 'pilot' ? 'Starting…' : 'Start Free Pilot'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Paid plans (show when not on a paid plan, or on pilot/expired) */}
+      {!isPaid && (
+        <>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-white">
+              {isNone ? 'Or subscribe now' : trialExpired ? 'Choose a plan to restore access' : 'Upgrade to a paid plan'}
+            </h3>
+            <div className="inline-flex rounded-xl border border-gray-700 bg-gray-800/50 p-1">
+              <button
+                onClick={() => setBillingInterval('monthly')}
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                  billingInterval === 'monthly' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-gray-300'
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBillingInterval('yearly')}
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                  billingInterval === 'yearly' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-gray-300'
+                }`}
+              >
+                Annual
+                <span className="ml-1 rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-[10px] text-emerald-300">Save ~17%</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            {PAID_PLANS.map((p) => {
+              const price = billingInterval === 'yearly' ? p.yearly : p.monthly;
+              return (
+                <div
+                  key={p.id}
+                  className={`relative rounded-2xl border p-5 ${
+                    p.popular
+                      ? 'border-emerald-500/40 bg-emerald-500/5 ring-1 ring-emerald-500/20'
+                      : 'border-gray-700 bg-gray-800/40'
+                  }`}
+                >
+                  {p.popular && (
+                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-emerald-500 px-3 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
+                      Most Popular
+                    </div>
+                  )}
+                  <h4 className={`text-lg font-bold ${p.popular ? 'text-emerald-300' : 'text-white'}`}>
+                    {p.label}
+                  </h4>
+                  <div className="mt-1 text-2xl font-bold text-white">
+                    ${price.toLocaleString()}
+                    <span className="text-sm font-normal text-gray-400">/{billingInterval === 'yearly' ? 'yr' : 'mo'}</span>
+                  </div>
+                  {billingInterval === 'yearly' && (
+                    <p className="text-xs text-emerald-400/70">${Math.round(p.yearly / 12).toLocaleString()}/mo billed annually</p>
+                  )}
+
+                  <div className="mt-3 space-y-1.5 text-xs">
+                    <div className="flex justify-between rounded-lg bg-gray-900/50 px-2.5 py-1.5">
+                      <span className="text-gray-400">📚 Cambridge</span>
+                      <span className="font-semibold text-white">up to {p.seats.cambridge}</span>
+                    </div>
+                    <div className="flex justify-between rounded-lg bg-gray-900/50 px-2.5 py-1.5">
+                      <span className="text-gray-400">🎧 IELTS</span>
+                      <span className="font-semibold text-white">up to {p.seats.ielts}</span>
+                    </div>
+                    <div className="flex justify-between rounded-lg bg-gray-900/50 px-2.5 py-1.5">
+                      <span className="text-gray-400">🎮 Game</span>
+                      <span className="font-semibold text-white">up to {p.seats.game}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => onSubscribe(p)}
+                    disabled={billingAction !== null}
+                    className={`mt-4 w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed ${
+                      p.popular
+                        ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-white shadow-lg shadow-emerald-500/20 hover:brightness-110'
+                        : 'bg-gray-700 text-white hover:bg-gray-600'
+                    }`}
+                  >
+                    {billingAction === p.id ? 'Redirecting…' : 'Subscribe'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Enterprise */}
+          <div className="rounded-xl border border-gray-700/40 bg-gray-800/20 p-4 text-center">
+            <p className="text-sm text-gray-300">
+              <span className="font-semibold text-white">🏢 Enterprise</span> — Unlimited seats · Multi-campus · Custom pricing
+            </p>
+            <a
+              href="mailto:sales@brainsheist.com?subject=Enterprise%20Plan%20Inquiry"
+              className="mt-1 inline-block text-sm font-medium text-emerald-400 hover:text-emerald-300 transition-colors"
+            >
+              Contact sales@brainsheist.com →
+            </a>
+          </div>
+        </>
+      )}
+
+      {/* Already on paid — show manage link */}
+      {isPaid && (
+        <div className="rounded-xl p-5 border border-gray-700 bg-gray-800/40">
+          <h4 className="font-semibold text-white mb-2">Manage Subscription</h4>
+          <p className="text-sm text-gray-400 mb-3">
+            To change plans, update payment details, or cancel, visit the Stripe customer portal.
+          </p>
+          <p className="text-xs text-gray-500">
+            Contact <a href="mailto:support@brainsheist.com" className="text-cyan-400 hover:underline">support@brainsheist.com</a> if you need help managing your subscription.
+          </p>
+        </div>
+      )}
+
+      {/* Trust / FAQ */}
+      <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-gray-500 pt-2">
+        <span>🔒 Secure payment via Stripe</span>
+        <span>↩️ Cancel anytime</span>
+        <span>⚡ Instant activation</span>
+        <span>👥 Covers all teachers & students</span>
+      </div>
+    </div>
+  );
+};
+
 
 export default SchoolAdminPortal;

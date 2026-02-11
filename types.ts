@@ -76,6 +76,7 @@ export interface Profile {
   admin_visible?: boolean; // Whether admin is visible in leaderboards/PvP (default: false)
   is_admin?: boolean;
   is_banned?: boolean;
+  account_tier?: 'free' | 'pro';  // Payment tier: free=lockdown only, pro=full access
   clan_id?: string | null;
   clan_name?: string | null;
   clan_role?: ClanRole;
