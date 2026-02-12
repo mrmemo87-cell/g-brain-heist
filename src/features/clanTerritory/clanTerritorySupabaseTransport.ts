@@ -70,6 +70,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
       `end=${s.gameEndTime ?? ""}`,
       `map=${s.mapId ?? ""}`,
       `allowClanless=${s.allowClanlessPlayers ? "1" : "0"}`,
+      `allowedClans=${(s.allowedClanIds ?? []).join(",")}`,
       `zones=${zonesSig}`,
       `players=${playersSig}`,
       `clans=${clansSig}`,

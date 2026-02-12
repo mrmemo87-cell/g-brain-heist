@@ -737,14 +737,13 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
         const timeout = setTimeout(() => {
           clearInterval(interval);
           resolve(false);
-        }, 3000);
+        }, 8000);
       });
     };
 
     const roomAvailable = await waitForDiscovery();
     if (!roomAvailable) {
-      alert("No active arena found with that code. Ask your teacher for a fresh code and try again.");
-      return;
+      console.warn(`[ClanTerritory] Discovery did not confirm room ${targetRoomId} — attempting direct join`);
     }
 
     const roomMetadata = discoveredRoomsRef.current[targetRoomId];
