@@ -43,7 +43,7 @@ type DiscoveredRoom = {
   id: string;
   allowClanlessPlayers?: boolean;
   teacherName?: string;
-  classCode?: string;
+  classCodes?: string[];
   scheduledStartAt?: string;
   phase?: ClanTerritoryGameState["phase"];
   timer?: number;
@@ -58,7 +58,7 @@ type StoredHostRoom = {
   durationMinutes: number;
   allowClanlessPlayers: boolean;
   selectedQuestions: any[];
-  selectedBatch: string;
+  selectedBatches: string[];
   teacherName?: string;
   scheduledStartAt?: string | null;
   lastUpdatedAt: number;
@@ -137,7 +137,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const [userSchoolId, setUserSchoolId] = useState<string | null>(null);
   const [studentBatch, setStudentBatch] = useState<string | null>(null);
   const [availableBatches, setAvailableBatches] = useState<SchoolBatchInfo[]>([]);
-  const [selectedBatch, setSelectedBatch] = useState<string>("");
+  const [selectedBatches, setSelectedBatches] = useState<string[]>([]);
   const [teacherName, setTeacherName] = useState<string>("");
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
   const [scheduledStartAt, setScheduledStartAt] = useState<string>("");
@@ -473,17 +473,17 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       
       setAvailableBatches(batches);
 
-      if (!selectedBatch) {
+      if (selectedBatches.length === 0) {
         if (studentBatch) {
-          setSelectedBatch(studentBatch);
+          setSelectedBatches([studentBatch]);
         } else if (batches.length > 0) {
-          setSelectedBatch(batches[0].batch);
+          setSelectedBatches([batches[0].batch]);
         }
       }
     };
 
     loadBatches();
-  }, [isTeacher, selectedBatch, studentBatch, loadedAssignedClasses]);
+  }, [isTeacher, selectedBatches.length, studentBatch, loadedAssignedClasses]);
 
   useEffect(() => {
     // Reactive update: whenever props change, update the resolved clan data
@@ -524,7 +524,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
             id,
             allowClanlessPlayers: metadata?.allowClanlessPlayers,
             teacherName: metadata?.teacherName,
-            classCode: metadata?.classCode,
+            classCodes: metadata?.classCodes,
             scheduledStartAt: metadata?.scheduledStartAt,
             phase: metadata?.phase,
             timer: metadata?.timer,
@@ -619,7 +619,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
         allowClanlessPlayers,
         schoolId: userSchoolId || undefined,
         teacherName: teacherName || playerName,
-        classCode: selectedBatch || undefined,
+        classCodes: selectedBatches.length > 0 ? selectedBatches : undefined,
         scheduledStartAt: scheduledStartIso || undefined,
       });
       
@@ -643,7 +643,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
         durationMinutes,
         allowClanlessPlayers,
         selectedQuestions: questions,
-        selectedBatch,
+        selectedBatches,
         teacherName: teacherName || playerName,
         scheduledStartAt: scheduledStartIso,
         lastUpdatedAt: Date.now(),
@@ -656,7 +656,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       allowClanlessPlayers,
       schoolId: userSchoolId || undefined,
       teacherName: teacherName || playerName,
-      classCode: selectedBatch || undefined,
+      classCodes: selectedBatches.length > 0 ? selectedBatches : undefined,
       scheduledStartAt: scheduledStartIso || undefined,
     });
     
@@ -678,7 +678,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       durationMinutes,
       allowClanlessPlayers,
       selectedQuestions: questions,
-      selectedBatch,
+      selectedBatches,
       teacherName: teacherName || playerName,
       scheduledStartAt: scheduledStartIso,
       lastUpdatedAt: Date.now(),
@@ -786,13 +786,14 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   };
 
   const missingClanAssignment = !resolvedClanId || !resolvedClanName;
-  const canCreateRoom = Boolean(selectedBatch) && (!scheduleEnabled || Boolean(scheduledStartAt));
+  const canCreateRoom = selectedBatches.length > 0 && (!scheduleEnabled || Boolean(scheduledStartAt));
   const filteredRooms = useMemo(() => {
     const rooms = Object.values(discoveredRooms);
     if (!studentBatch) {
       return rooms;
     }
-    return rooms.filter((room) => room.classCode === studentBatch);
+    // Student can see rooms if their batch is in the room's classCodes array
+    return rooms.filter((room) => room.classCodes?.includes(studentBatch));
   }, [discoveredRooms, studentBatch]);
 
   useEffect(() => {
@@ -829,7 +830,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       durationMinutes,
       allowClanlessPlayers,
       selectedQuestions,
-      selectedBatch,
+      selectedBatches,
       teacherName: teacherName || playerName,
       scheduledStartAt: activeScheduledStartAt,
       lastUpdatedAt: Date.now(),
@@ -841,7 +842,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     isTeacher,
     mode,
     roomId,
-    selectedBatch,
+    selectedBatches,
     selectedMap,
     selectedQuestions,
     teacherName,
@@ -857,7 +858,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
         allowClanlessPlayers: room.allowClanlessPlayers,
         schoolId: userSchoolId || undefined,
         teacherName: room.teacherName || teacherName || playerName,
-        classCode: room.selectedBatch || undefined,
+        classCodes: room.selectedBatches?.length > 0 ? room.selectedBatches : undefined,
         scheduledStartAt: room.scheduledStartAt || undefined,
       });
       transport.onGameState(room.roomId, setGameState);
@@ -866,7 +867,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       setDurationMinutes(room.durationMinutes);
       setAllowClanlessPlayers(room.allowClanlessPlayers);
       setSelectedQuestions(room.selectedQuestions);
-      setSelectedBatch(room.selectedBatch);
+      setSelectedBatches(room.selectedBatches || []);
       setActiveScheduledStartAt(room.scheduledStartAt ?? null);
       setMode("host");
     } catch (error) {
@@ -973,33 +974,66 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
             {/* Class Selection */}
             <div className="space-y-3">
-              <label className="block text-sm font-bold text-white">Target Class</label>
+              <label className="block text-sm font-bold text-white">Target Classes</label>
+              <p className="text-xs text-gray-400 -mt-1">Select one or more classes to compete against each other</p>
               {availableBatches.length > 0 ? (
-                <select
-                  value={selectedBatch}
-                  onChange={(e) => setSelectedBatch(e.target.value)}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-900/60 px-4 py-3 text-white"
-                >
-                  <option value="" disabled>
-                    Select a class
-                  </option>
-                  {availableBatches.map((batch) => (
-                    <option key={batch.batch} value={batch.batch}>
-                      {batch.batch}
-                      {batch.grade !== null ? ` · Grade ${batch.grade}` : ""} · {batch.player_count} students
-                    </option>
-                  ))}
-                </select>
+                <div className="space-y-2 max-h-48 overflow-y-auto rounded-xl border border-slate-700 bg-slate-900/60 p-3">
+                  {availableBatches.map((batch) => {
+                    const isSelected = selectedBatches.includes(batch.batch);
+                    return (
+                      <label
+                        key={batch.batch}
+                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all ${
+                          isSelected 
+                            ? 'bg-emerald-500/20 border border-emerald-500/50' 
+                            : 'bg-slate-800/50 border border-slate-700 hover:border-slate-600'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedBatches([...selectedBatches, batch.batch]);
+                              } else {
+                                setSelectedBatches(selectedBatches.filter(b => b !== batch.batch));
+                              }
+                            }}
+                            className="w-5 h-5 rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0"
+                          />
+                          <div>
+                            <span className="text-white font-medium">{batch.batch}</span>
+                            {batch.grade !== null && (
+                              <span className="text-slate-400 ml-2">Grade {batch.grade}</span>
+                            )}
+                          </div>
+                        </div>
+                        <span className="text-xs text-slate-400">{batch.player_count} students</span>
+                      </label>
+                    );
+                  })}
+                </div>
               ) : (
                 <input
                   type="text"
-                  value={selectedBatch}
-                  onChange={(e) => setSelectedBatch(e.target.value)}
-                  placeholder="Enter class code (e.g. 9A)"
+                  value={selectedBatches.join(', ')}
+                  onChange={(e) => setSelectedBatches(e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
+                  placeholder="Enter class codes (e.g. 9A, 9B)"
                   className="w-full rounded-xl border border-slate-700 bg-slate-900/60 px-4 py-3 text-white"
                 />
               )}
-              <p className="text-xs text-gray-400">Only students in the selected class can see this arena.</p>
+              {selectedBatches.length > 1 && (
+                <p className="text-xs text-emerald-400 flex items-center gap-1">
+                  <span>⚔️</span> {selectedBatches.length} classes will compete against each other!
+                </p>
+              )}
+              {selectedBatches.length === 1 && (
+                <p className="text-xs text-gray-400">Only students from {selectedBatches[0]} can join this arena.</p>
+              )}
+              {selectedBatches.length === 0 && (
+                <p className="text-xs text-amber-400">Please select at least one class to continue.</p>
+              )}
             </div>
 
             {/* Schedule Start */}
@@ -1418,7 +1452,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                         )}
                         <div className="text-xs text-gray-400 space-y-1">
                           <p>Teacher: <span className="text-white">{room.teacherName || "Teacher"}</span></p>
-                          <p>Class: <span className="text-white">{room.classCode || "—"}</span></p>
+                          <p>Classes: <span className="text-white">{room.classCodes?.join(', ') || "—"}</span></p>
                           {room.scheduledStartAt && (
                             <p>Scheduled: <span className="text-white">{formatScheduleTime(room.scheduledStartAt)}</span></p>
                           )}

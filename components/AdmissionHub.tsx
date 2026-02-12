@@ -87,6 +87,9 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   const [reportData, setReportData] = useState<CandidateReport | null>(null);
   const [reportLoading, setReportLoading] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [showAnswers, setShowAnswers] = useState(false);
+  const [generatingAiReport, setGeneratingAiReport] = useState(false);
+  const [reportAttemptId, setReportAttemptId] = useState<string | null>(null);
 
   // ── Bootstrap ──
 
@@ -225,6 +228,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   const handleViewReport = async (attemptId: string) => {
     setReportLoading(true);
     setShowReport(true);
+    setReportAttemptId(attemptId);
+    setShowAnswers(false);
     try {
       const report = await AdmService.getCandidateReport(attemptId);
       setReportData(report);
@@ -233,6 +238,41 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       setShowReport(false);
     } finally {
       setReportLoading(false);
+    }
+  };
+
+  const handleGenerateAiReport = async (attemptId: string) => {
+    if (!attemptId) return;
+    setGeneratingAiReport(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) throw new Error('Not authenticated');
+
+      const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL;
+      const response = await fetch(`${supabaseUrl}/functions/v1/adm_generate_report`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ attempt_id: attemptId }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.ai_summary && reportData) {
+        setReportData({ ...reportData, ai_summary: data.ai_summary, answers: data.answers ?? reportData.answers });
+      }
+      addToast('AI report generated', 'success');
+    } catch (err: any) {
+      addToast(`AI report failed: ${err.message}`, 'error');
+    } finally {
+      setGeneratingAiReport(false);
     }
   };
 
@@ -850,7 +890,109 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   </div>
                 </div>
 
-                <button onClick={() => { setShowReport(false); setReportData(null); }} className={`${btnPrimary} w-full`}>
+                {/* AI Summary */}
+                {reportData.ai_summary && (
+                  <div className="rounded-xl border border-purple-500/30 bg-purple-900/20 p-4">
+                    <h4 className="text-sm font-semibold text-purple-300 mb-2 flex items-center gap-2">
+                      <span>🤖</span> AI Assessment
+                    </h4>
+                    <p className="text-sm text-gray-300 whitespace-pre-wrap">{reportData.ai_summary}</p>
+                  </div>
+                )}
+
+                {/* Generate AI Report Button */}
+                {!reportData.ai_summary && (
+                  <button
+                    onClick={() => handleGenerateAiReport(reportAttemptId!)}
+                    disabled={generatingAiReport || !reportAttemptId}
+                    className="w-full rounded-lg border border-purple-500/40 bg-purple-600/20 hover:bg-purple-600/30 px-4 py-2 text-sm text-purple-200 transition flex items-center justify-center gap-2 disabled:opacity-40"
+                  >
+                    {generatingAiReport ? (
+                      <><span className="animate-spin">🔄</span> Generating AI Report...</>
+                    ) : (
+                      <><span>🤖</span> Generate AI Report</>
+                    )}
+                  </button>
+                )}
+
+                {/* Detailed Answers Section */}
+                <div>
+                  <button
+                    onClick={() => setShowAnswers(!showAnswers)}
+                    className="w-full flex items-center justify-between text-sm font-semibold text-gray-300 hover:text-white py-2 transition"
+                  >
+                    <span>📝 Detailed Answers ({(reportData.answers ?? []).length} questions)</span>
+                    <span className="text-lg">{showAnswers ? '▲' : '▼'}</span>
+                  </button>
+                  
+                  {showAnswers && (
+                    <div className="space-y-3 mt-2 max-h-[50vh] overflow-y-auto pr-1">
+                      {(reportData.answers ?? []).map((ans, i) => (
+                        <div
+                          key={ans.question_id || i}
+                          className={`rounded-lg border p-3 ${
+                            ans.is_correct
+                              ? 'border-emerald-500/30 bg-emerald-900/10'
+                              : ans.question_type === 'email_writing' || ans.question_type === 'essay_writing'
+                              ? 'border-amber-500/30 bg-amber-900/10'
+                              : 'border-red-500/30 bg-red-900/10'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <span className="text-xs px-2 py-0.5 rounded bg-slate-700 text-gray-300 capitalize">
+                              {ans.question_type.replace(/_/g, ' ')}
+                            </span>
+                            <span className={`text-xs font-bold ${
+                              ans.is_correct ? 'text-emerald-400' : 'text-red-400'
+                            }`}>
+                              {ans.marks_awarded}/{ans.marks_possible}
+                            </span>
+                          </div>
+                          <p className="text-sm text-white mb-2">{ans.stem}</p>
+                          
+                          {/* Student Response */}
+                          <div className="text-xs">
+                            <span className="text-gray-400">Student answered: </span>
+                            <span className={ans.is_correct ? 'text-emerald-300' : 'text-red-300'}>
+                              {typeof ans.response === 'object'
+                                ? (ans.response?.text || ans.response?.index) ?? JSON.stringify(ans.response)
+                                : ans.response || '(no answer)'}
+                            </span>
+                          </div>
+                          
+                          {/* Correct Answer (for non-writing) */}
+                          {!['email_writing', 'essay_writing'].includes(ans.question_type) && !ans.is_correct && (
+                            <div className="text-xs mt-1">
+                              <span className="text-gray-400">Correct: </span>
+                              <span className="text-emerald-300">
+                                {typeof ans.correct_answer === 'object'
+                                  ? JSON.stringify(ans.correct_answer)
+                                  : ans.correct_answer}
+                              </span>
+                            </div>
+                          )}
+                          
+                          {/* AI Feedback for writing */}
+                          {ans.ai_feedback && (
+                            <div className="mt-2 p-2 rounded bg-purple-900/20 border border-purple-500/20">
+                              <span className="text-xs text-purple-300 font-semibold">🤖 AI Feedback:</span>
+                              <p className="text-xs text-gray-300 mt-1 whitespace-pre-wrap">{ans.ai_feedback}</p>
+                            </div>
+                          )}
+                          
+                          {/* Explanation */}
+                          {ans.explanation && (
+                            <div className="text-xs text-gray-500 mt-2 italic">
+                              💡 {ans.explanation}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <button onClick={() => { setShowReport(false); setReportData(null); setShowAnswers(false); }} className={`${btnPrimary} w-full`}>
                   Close Report
                 </button>
               </div>

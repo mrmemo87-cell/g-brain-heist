@@ -197,6 +197,44 @@ Today, billions of people rely on digital platforms for communication, education
  '"Excessive screen time and misinformation"', 1, 2, 'hard', 'reasoning', 'detail_retrieval', 'reading', 'Explicitly stated: ''excessive screen time and the spread of misinformation''.', 'published');
 
 -- ═══════════════════════════════
+-- EMAIL WRITING — 2 questions (using open_cloze type with writing skill_tag)
+-- ═══════════════════════════════
+
+INSERT INTO adm_questions (pool_id, question_type, stem, correct_answer, marks, difficulty, cognitive_level, topic, skill_tag, explanation, status) VALUES
+(v_pool_id, 'open_cloze', 'You recently visited a local museum with your family. Write an email to your English-speaking friend telling them about your visit.
+
+In your email:
+• describe what you saw at the museum
+• explain what you enjoyed most
+• suggest that your friend visits the museum
+
+Write 80-150 words.', '"AI_GRADED"', 10, 'medium', 'reasoning', 'email_writing', 'writing', 'Email should include all three bullet points with appropriate friendly tone and register.', 'published'),
+(v_pool_id, 'open_cloze', 'Your school is organising a charity event. Write an email to the head teacher suggesting an idea for the event.
+
+In your email:
+• explain your idea for the charity event
+• say why students would enjoy participating
+• suggest how the money raised could be used
+
+Write 80-150 words.', '"AI_GRADED"', 10, 'hard', 'reasoning', 'email_writing', 'writing', 'Email should be semi-formal with clear suggestions and reasoning.', 'published');
+
+-- ═══════════════════════════════
+-- ESSAY WRITING — 2 questions (using open_cloze type with writing skill_tag)
+-- ═══════════════════════════════
+
+INSERT INTO adm_questions (pool_id, question_type, stem, correct_answer, marks, difficulty, cognitive_level, topic, skill_tag, explanation, status) VALUES
+(v_pool_id, 'open_cloze', 'Some people believe that students should wear school uniforms, while others think students should be free to choose their own clothes.
+
+Write an essay discussing both views and give your own opinion.
+
+Write 150-300 words.', '"AI_GRADED"', 15, 'hard', 'reasoning', 'essay_writing', 'writing', 'Essay should present both viewpoints with supporting arguments and a clear personal conclusion.', 'published'),
+(v_pool_id, 'open_cloze', '"Technology has made our lives easier but also more complicated."
+
+Do you agree or disagree with this statement? Give reasons and examples to support your answer.
+
+Write 150-300 words.', '"AI_GRADED"', 15, 'hard', 'reasoning', 'essay_writing', 'writing', 'Essay should present a clear argument with relevant examples from technology use.', 'published');
+
+-- ═══════════════════════════════
 -- DONE — Create a default blueprint
 -- ═══════════════════════════════
 -- This creates a global blueprint (school_id NULL)

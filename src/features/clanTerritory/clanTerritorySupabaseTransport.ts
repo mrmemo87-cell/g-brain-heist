@@ -20,7 +20,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
   private allowClanlessPlayers: boolean = false;
   private schoolId: string | null = null;
   private teacherName: string | null = null;
-  private classCode: string | null = null;
+  private classCodes: string[] = [];
   private scheduledStartAt: string | null = null;
 
   private onStateUpdate: ((state: ClanTerritoryGameState) => void) | null = null;
@@ -100,7 +100,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     allowClanlessPlayers?: boolean;
     schoolId?: string;
     teacherName?: string;
-    classCode?: string;
+    classCodes?: string[];
     scheduledStartAt?: string;
   }): Promise<RoomId> {
     const roomId = Math.floor(1000 + Math.random() * 9000).toString();
@@ -109,7 +109,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     this.allowClanlessPlayers = Boolean(options?.allowClanlessPlayers);
     this.schoolId = options?.schoolId || null;
     this.teacherName = options?.teacherName || null;
-    this.classCode = options?.classCode || null;
+    this.classCodes = options?.classCodes || [];
     this.scheduledStartAt = options?.scheduledStartAt || null;
 
     this.state = { ...INITIAL_STATE, allowClanlessPlayers: this.allowClanlessPlayers };
@@ -128,7 +128,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
       allowClanlessPlayers?: boolean;
       schoolId?: string;
       teacherName?: string;
-      classCode?: string;
+      classCodes?: string[];
       scheduledStartAt?: string;
     }
   ): Promise<void> {
@@ -136,7 +136,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     this.allowClanlessPlayers = Boolean(options?.allowClanlessPlayers);
     this.schoolId = options?.schoolId || null;
     this.teacherName = options?.teacherName || null;
-    this.classCode = options?.classCode || null;
+    this.classCodes = options?.classCodes || [];
     this.scheduledStartAt = options?.scheduledStartAt || null;
 
     const restoredState = options?.state ?? {
@@ -158,7 +158,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
       metadata?: {
         allowClanlessPlayers?: boolean;
         teacherName?: string;
-        classCode?: string;
+        classCodes?: string[];
         scheduledStartAt?: string;
         phase?: ClanTerritoryGameState["phase"];
         timer?: number;
@@ -186,7 +186,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
           onRoomFound(roomPayload.roomId, {
             allowClanlessPlayers: roomPayload.allowClanlessPlayers,
             teacherName: roomPayload.teacherName,
-            classCode: roomPayload.classCode,
+            classCodes: roomPayload.classCodes,
             scheduledStartAt: roomPayload.scheduledStartAt,
             phase: roomPayload.phase,
             timer: roomPayload.timer,
@@ -458,7 +458,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
                     allowClanlessPlayers: this.allowClanlessPlayers,
                     schoolId: this.schoolId,
                     teacherName: this.teacherName,
-                    classCode: this.classCode,
+                    classCodes: this.classCodes,
                     scheduledStartAt: this.scheduledStartAt,
                     phase: this.state.phase,
                     timer: this.state.timer,

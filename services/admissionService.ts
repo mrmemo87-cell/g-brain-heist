@@ -142,6 +142,20 @@ export interface AdmPlacementResult {
   created_at: string;
 }
 
+export interface CandidateReportAnswer {
+  question_id: string;
+  question_type: string;
+  stem: string;
+  topic: string | null;
+  response: any;
+  correct_answer: any;
+  is_correct: boolean;
+  marks_awarded: number;
+  marks_possible: number;
+  explanation: string | null;
+  ai_feedback?: string | null;
+}
+
 export interface CandidateReport {
   candidate_name: string;
   form_code: string;
@@ -155,6 +169,8 @@ export interface CandidateReport {
   by_type: Array<{ question_type: string; correct: number; total: number; pct: number }>;
   strengths: string[];
   weaknesses: string[];
+  answers: CandidateReportAnswer[];
+  ai_summary?: string | null;
 }
 
 export interface GradeStageMap {
@@ -394,6 +410,20 @@ export async function getCandidateReport(attemptId: string): Promise<CandidateRe
     })),
     strengths: raw.strengths ?? [],
     weaknesses: raw.weaknesses ?? [],
+    answers: (raw.answers ?? []).map((a: any) => ({
+      question_id: a.question_id,
+      question_type: a.question_type,
+      stem: a.stem,
+      topic: a.topic,
+      response: a.response,
+      correct_answer: a.correct_answer,
+      is_correct: a.is_correct,
+      marks_awarded: a.marks_awarded ?? 0,
+      marks_possible: a.marks_possible ?? 0,
+      explanation: a.explanation,
+      ai_feedback: a.ai_feedback ?? null,
+    })),
+    ai_summary: raw.ai_summary ?? null,
   };
 }
 

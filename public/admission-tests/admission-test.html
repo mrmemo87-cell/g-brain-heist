@@ -160,6 +160,30 @@
     }
     .text-answer:focus { border-color: var(--accent); }
 
+    /* ── Writing task ── */
+    .writing-task {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .writing-guidelines {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 13px; color: var(--text-muted);
+    }
+    .word-count {
+      font-weight: 600; color: var(--accent);
+    }
+    .word-count.warning { color: var(--warning); }
+    .word-count.success { color: var(--success); }
+    .writing-answer {
+      width: 100%; padding: 16px; border-radius: 12px; font-size: 15px;
+      background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+      color: var(--text-main); outline: none; resize: vertical;
+      min-height: 220px; line-height: 1.6; font-family: inherit;
+    }
+    .writing-answer:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(56,189,248,0.15); }
+    .writing-hint {
+      font-size: 12px; color: var(--text-muted); opacity: 0.7; padding-left: 4px;
+    }
+
     /* ── Navigation ── */
     .nav-bar {
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
@@ -528,6 +552,7 @@ function buildQuestionHTML(q, idx) {
     'sentence_transformation': 'Sentence Transformation', 'word_formation': 'Word Formation',
     'open_cloze': 'Open Cloze', 'reading_comprehension': 'Reading Comprehension',
     'short_answer': 'Short Answer', 'structured': 'Structured',
+    'email_writing': '📧 Email Writing', 'essay_writing': '📝 Essay Writing',
   };
 
   let html = `
@@ -565,6 +590,22 @@ function buildQuestionHTML(q, idx) {
       `;
     });
     html += `</div>`;
+  } else if (q.question_type === 'email_writing' || q.question_type === 'essay_writing') {
+    // Writing task with larger textarea
+    const minWords = q.question_type === 'email_writing' ? 80 : 150;
+    const maxWords = q.question_type === 'email_writing' ? 150 : 300;
+    html += `
+      <div class="writing-task" data-qidx="${idx}">
+        <div class="writing-guidelines">
+          <span>📝 Write ${minWords}-${maxWords} words</span>
+          <span class="word-count" id="wc-${idx}">0 words</span>
+        </div>
+        <textarea class="writing-answer" data-qidx="${idx}" rows="12"
+                  placeholder="Write your ${q.question_type === 'email_writing' ? 'email' : 'essay'} here..."
+                  oninput="handleWritingInput(${idx}, this.value)"></textarea>
+        <div class="writing-hint">ℹ️ Your writing will be evaluated by AI for content, organisation, and language.</div>
+      </div>
+    `;
   } else {
     // Text input for all other types
     html += `<input type="text" class="text-answer" data-qidx="${idx}"
@@ -600,6 +641,36 @@ function handleTextInput(qIdx, value) {
   // Debounced autosave
   clearTimeout(q._saveTimer);
   q._saveTimer = setTimeout(() => autoSave(q.id, value.trim()), 800);
+}
+
+// ── WRITING INPUT ──
+function handleWritingInput(qIdx, value) {
+  const q = STATE.questions[qIdx];
+  const qId = q.id;
+  STATE.answers[qId] = { text: value.trim(), type: q.question_type };
+  
+  // Update word count
+  const words = value.trim().split(/\s+/).filter(w => w.length > 0).length;
+  const wcEl = document.getElementById(`wc-${qIdx}`);
+  if (wcEl) {
+    wcEl.textContent = `${words} words`;
+    const isEmail = q.question_type === 'email_writing';
+    const minWords = isEmail ? 80 : 150;
+    const maxWords = isEmail ? 150 : 300;
+    wcEl.classList.remove('warning', 'success');
+    if (words >= minWords && words <= maxWords) {
+      wcEl.classList.add('success');
+    } else if (words > maxWords) {
+      wcEl.classList.add('warning');
+    }
+  }
+  
+  if (value.trim()) markAnswered(qIdx);
+  else document.getElementById(`dot-${qIdx}`)?.classList.remove('answered');
+
+  // Debounced autosave
+  clearTimeout(q._saveTimer);
+  q._saveTimer = setTimeout(() => autoSave(qId, STATE.answers[qId]), 1200);
 }
 
 function markAnswered(qIdx) {
@@ -739,40 +810,54 @@ async function handleSubmit(expired = false) {
 function scoreOffline() {
   let totalScore = 0;
   let maxScore = 0;
+  let writingPendingCount = 0;
   const perQuestion = [];
   const topicStats = {};
 
   STATE.questions.forEach(q => {
     const marks = q.marks || 1;
-    maxScore += marks;
     const answer = STATE.answers[q.id];
     let isCorrect = false;
+    let marksAwarded = 0;
+    let needsAiGrading = false;
 
-    if (q.question_type === 'mcq' || q.question_type === 'reading_comprehension') {
+    // Writing tasks need AI grading - don't auto-score
+    if (q.question_type === 'email_writing' || q.question_type === 'essay_writing') {
+      needsAiGrading = true;
+      writingPendingCount++;
+      // Don't count toward maxScore for now - will be added after AI grading
+      marksAwarded = 0;
+      isCorrect = null; // Unknown until AI grades
+    } else if (q.question_type === 'mcq' || q.question_type === 'reading_comprehension') {
+      maxScore += marks;
       if (answer && typeof answer === 'object' && 'index' in answer) {
         isCorrect = answer.index === q.correct_index;
       }
+      if (isCorrect) { totalScore += marks; marksAwarded = marks; }
     } else {
+      maxScore += marks;
       const correct = typeof q.correct_answer === 'string' ? q.correct_answer : (q.correct_answer || '');
       const given = (typeof answer === 'string' ? answer : '').trim().toLowerCase();
       // Allow some flexibility: trim, lowercase, ignore trailing punctuation
       const cleanCorrect = String(correct).trim().toLowerCase().replace(/[.!?]+$/, '');
       const cleanGiven = given.replace(/[.!?]+$/, '');
       isCorrect = cleanGiven === cleanCorrect;
+      if (isCorrect) { totalScore += marks; marksAwarded = marks; }
     }
 
-    if (isCorrect) totalScore += marks;
-
     const topic = q.topic || 'general';
-    if (!topicStats[topic]) topicStats[topic] = { correct: 0, total: 0 };
-    topicStats[topic].total++;
-    if (isCorrect) topicStats[topic].correct++;
+    if (!needsAiGrading) {
+      if (!topicStats[topic]) topicStats[topic] = { correct: 0, total: 0 };
+      topicStats[topic].total++;
+      if (isCorrect) topicStats[topic].correct++;
+    }
 
     perQuestion.push({
       id: q.id, question_type: q.question_type, stem: q.stem, topic: q.topic,
       response: answer, correct_answer: q.correct_answer, correct_index: q.correct_index,
-      options: q.options, is_correct: isCorrect, marks_awarded: isCorrect ? marks : 0,
+      options: q.options, is_correct: isCorrect, marks_awarded: marksAwarded,
       marks_possible: marks, explanation: q.explanation, keyword: q.keyword, base_word: q.base_word,
+      needs_ai_grading: needsAiGrading,
     });
   });
 
@@ -792,6 +877,7 @@ function scoreOffline() {
     percentage, band, candidate_name: STATE.candidateName,
     answers: perQuestion, topic_breakdown: topicBreakdown,
     strengths, weaknesses,
+    writing_pending: writingPendingCount,
   };
 }
 
@@ -815,6 +901,13 @@ function showResults(r) {
     <p style="color:var(--text-muted);font-size:14px;margin-bottom:32px">
       ${r.band === 'A' ? 'Excellent performance!' : r.band === 'B' ? 'Good performance.' : r.band === 'C' ? 'Satisfactory performance.' : r.band === 'D' ? 'Below expectations.' : 'Needs significant improvement.'}
     </p>
+
+    ${r.writing_pending ? `
+      <div style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);border-radius:12px;padding:16px;margin-bottom:20px;text-align:left">
+        <div style="color:#c084fc;font-weight:600;margin-bottom:4px">🤖 Writing Tasks Pending AI Review</div>
+        <div style="color:var(--text-muted);font-size:13px">${r.writing_pending} writing task${r.writing_pending > 1 ? 's' : ''} will be graded by AI. Final scores will be updated by the school.</div>
+      </div>
+    ` : ''}
 
     ${r.strengths && r.strengths.length ? `
       <div style="text-align:left;margin-bottom:12px">

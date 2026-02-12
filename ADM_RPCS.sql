@@ -240,6 +240,7 @@ DECLARE
     v_correct JSONB;
     v_is_correct BOOLEAN;
     v_marks SMALLINT;
+    v_writing_pending INT := 0;
 BEGIN
     -- Validate
     SELECT * INTO v_candidate FROM adm_candidates WHERE token = p_token;
@@ -272,6 +273,13 @@ BEGIN
 
         -- Scoring logic by question type
         CASE v_ans.question_type
+            WHEN 'email_writing', 'essay_writing' THEN
+                -- Writing tasks: cannot auto-score, needs AI grading
+                -- Mark as NULL (unknown) until AI grades it
+                v_is_correct := NULL;
+                v_marks := 0;
+                v_writing_pending := v_writing_pending + 1;
+                -- Don't add to max_score here - will be added after AI grading
             WHEN 'mcq', 'reading_comprehension' THEN
                 -- Compare selected index or text
                 IF v_ans.response IS NOT NULL THEN
@@ -288,16 +296,19 @@ BEGIN
                 END IF;
         END CASE;
 
-        IF v_is_correct THEN
-            v_marks := v_ans.marks_possible;
+        -- Only add marks for non-writing questions
+        IF v_ans.question_type NOT IN ('email_writing', 'essay_writing') THEN
+            IF v_is_correct THEN
+                v_marks := v_ans.marks_possible;
+            END IF;
+            v_max_score := v_max_score + v_ans.marks_possible;
         END IF;
+
+        v_total_score := v_total_score + v_marks;
 
         UPDATE adm_answers
         SET is_correct = v_is_correct, marks_awarded = v_marks
         WHERE id = v_ans.answer_id;
-
-        v_total_score := v_total_score + v_marks;
-        v_max_score := v_max_score + v_ans.marks_possible;
     END LOOP;
 
     -- Also count unanswered questions toward max
@@ -349,7 +360,8 @@ BEGIN
         'max_score', v_max_score,
         'percentage', v_pct,
         'band', v_band,
-        'candidate_name', v_candidate.full_name
+        'candidate_name', v_candidate.full_name,
+        'writing_pending', v_writing_pending
     );
 END;
 $$;

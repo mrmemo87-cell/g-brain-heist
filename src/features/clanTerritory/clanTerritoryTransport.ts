@@ -8,7 +8,7 @@ export interface ClanTerritoryTransport {
     allowClanlessPlayers?: boolean;
     schoolId?: string;
     teacherName?: string;
-    classCode?: string;
+    classCodes?: string[];
     scheduledStartAt?: string;
   }): Promise<RoomId>;
   resumeRoom(
@@ -18,7 +18,7 @@ export interface ClanTerritoryTransport {
       allowClanlessPlayers?: boolean;
       schoolId?: string;
       teacherName?: string;
-      classCode?: string;
+      classCodes?: string[];
       scheduledStartAt?: string;
     }
   ): Promise<void>;
@@ -38,7 +38,7 @@ export interface ClanTerritoryTransport {
       metadata?: {
         allowClanlessPlayers?: boolean;
         teacherName?: string;
-        classCode?: string;
+        classCodes?: string[];
         scheduledStartAt?: string;
       }
     ) => void
