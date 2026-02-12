@@ -63,20 +63,21 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   const [generatingForm, setGeneratingForm] = useState(false);
 
   // Blueprint form
-  const [bpLabel, setBpLabel] = useState('');
-  const [bpPoolId, setBpPoolId] = useState('');
-  const [bpDuration, setBpDuration] = useState(60);
-  const [bpTotalMarks, setBpTotalMarks] = useState(50);
-  const [bpPassThreshold, setBpPassThreshold] = useState(50);
+  const [bpName, setBpName] = useState('');
+  const [bpSubject, setBpSubject] = useState('english');
+  const [bpTargetStage, setBpTargetStage] = useState(9);
+  const [bpDuration, setBpDuration] = useState(45);
+  const [bpTotalMarks, setBpTotalMarks] = useState(27);
+  const [bpPassPercentage, setBpPassPercentage] = useState(50);
   const [bpDelivery, setBpDelivery] = useState<'practice' | 'exam'>('exam');
-  const [bpDistribution, setBpDistribution] = useState('{"mcq": 15, "gap_fill": 5, "sentence_transformation": 5}');
+  const [bpDistribution, setBpDistribution] = useState('{"mcq": {"easy": 5, "medium": 8, "hard": 1}, "gap_fill": {"easy": 1, "medium": 2, "hard": 1}, "sentence_transformation": {"medium": 2, "hard": 1}}');
 
   // Candidate form
   const [candName, setCandName] = useState('');
   const [candEmail, setCandEmail] = useState('');
-  const [candDob, setCandDob] = useState('');
-  const [candGuardian, setCandGuardian] = useState('');
   const [candPhone, setCandPhone] = useState('');
+  const [candAppliedGrade, setCandAppliedGrade] = useState('');
+  const [candNotes, setCandNotes] = useState('');
 
   // Form generation
   const [genBlueprintId, setGenBlueprintId] = useState('');
@@ -141,24 +142,27 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   // ── Handlers ──
 
   const handleCreateBlueprint = async () => {
-    if (!schoolId || !bpPoolId || !bpLabel) return;
+    if (!schoolId || !bpName) return;
     setCreatingBlueprint(true);
     try {
-      let dist: Record<string, number>;
+      let dist: Record<string, any>;
       try { dist = JSON.parse(bpDistribution); } catch { addToast('Invalid JSON for distribution', 'error'); return; }
       await AdmService.createBlueprint({
         school_id: schoolId,
-        pool_id: bpPoolId,
-        label: bpLabel,
+        name: bpName,
+        subject: bpSubject,
+        target_grade: null,
+        target_stage: bpTargetStage,
         total_marks: bpTotalMarks,
         duration_minutes: bpDuration,
         question_distribution: dist,
         delivery_mode: bpDelivery,
-        pass_threshold: bpPassThreshold,
-        metadata: {},
+        pass_percentage: bpPassPercentage,
+        is_active: true,
+        created_by: null,
       });
       addToast('Blueprint created', 'success');
-      setBpLabel(''); setBpDistribution('{"mcq": 15, "gap_fill": 5, "sentence_transformation": 5}');
+      setBpName(''); setBpDistribution('{"mcq": {"easy": 5, "medium": 8, "hard": 1}, "gap_fill": {"easy": 1, "medium": 2, "hard": 1}, "sentence_transformation": {"medium": 2, "hard": 1}}');
       await loadAll();
     } catch (err: any) {
       addToast(err.message || 'Failed to create blueprint', 'error');
@@ -204,13 +208,12 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
         school_id: schoolId,
         full_name: candName,
         email: candEmail || null,
-        dob: candDob || null,
-        guardian_name: candGuardian || null,
-        guardian_phone: candPhone || null,
-        metadata: {},
+        parent_phone: candPhone || null,
+        applied_grade: candAppliedGrade ? parseInt(candAppliedGrade, 10) : null,
+        notes: candNotes || null,
       });
       addToast('Candidate registered', 'success');
-      setCandName(''); setCandEmail(''); setCandDob(''); setCandGuardian(''); setCandPhone('');
+      setCandName(''); setCandEmail(''); setCandPhone(''); setCandAppliedGrade(''); setCandNotes('');
       await loadAll();
     } catch (err: any) {
       addToast(err.message || 'Failed to create candidate', 'error');
@@ -374,7 +377,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {statCard('Active Tests', forms.filter(f => f.status === 'published').length, '✅', 'border-emerald-500/30')}
             {statCard('Attempts', attempts.length, '📊', 'border-amber-500/30')}
-            {statCard('Scored', attempts.filter(a => a.band).length, '🏆', 'border-yellow-500/30')}
+            {statCard('Scored', attempts.filter(a => a.status === 'scored').length, '🏆', 'border-yellow-500/30')}
             {statCard('Placed', placements.length, '🎯', 'border-pink-500/30')}
           </div>
 
@@ -412,7 +415,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
               {pools.map((p) => (
                 <div key={p.id} className="rounded-xl border border-gray-700 bg-slate-800/60 p-4 flex items-center justify-between">
                   <div>
-                    <div className="font-semibold text-white">{p.label}</div>
+                    <div className="font-semibold text-white">{p.name}</div>
                     <div className="text-xs text-gray-400">{p.subject} · Stage {p.stage} {p.school_id ? '' : '· 🌐 Global'}</div>
                   </div>
                   <div className="text-xs text-gray-500">{new Date(p.created_at).toLocaleDateString()}</div>
@@ -435,17 +438,23 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
           {creatingBlueprint && (
             <div className="rounded-xl border border-cyan-500/30 bg-slate-800/80 p-5 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Label</label>
-                  <input className={inputClass} value={bpLabel} onChange={e => setBpLabel(e.target.value)} placeholder="e.g. English Stage 9 – Standard" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Name</label>
+                  <input className={inputClass} value={bpName} onChange={e => setBpName(e.target.value)} placeholder="e.g. English Stage 9 — Standard Admission Test" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Question Pool</label>
-                  <select className={inputClass} value={bpPoolId} onChange={e => setBpPoolId(e.target.value)}>
-                    <option value="">Select pool…</option>
-                    {pools.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Subject</label>
+                  <select className={inputClass} value={bpSubject} onChange={e => setBpSubject(e.target.value)}>
+                    <option value="english">English</option>
+                    <option value="math">Math</option>
+                    <option value="science">Science</option>
+                    <option value="chemistry">Chemistry</option>
                   </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Target Stage</label>
+                  <input type="number" className={inputClass} value={bpTargetStage} onChange={e => setBpTargetStage(+e.target.value)} />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-300 mb-1">Duration (min)</label>
@@ -456,8 +465,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   <input type="number" className={inputClass} value={bpTotalMarks} onChange={e => setBpTotalMarks(+e.target.value)} />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Pass Threshold (%)</label>
-                  <input type="number" className={inputClass} value={bpPassThreshold} onChange={e => setBpPassThreshold(+e.target.value)} />
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Pass Percentage (%)</label>
+                  <input type="number" className={inputClass} value={bpPassPercentage} onChange={e => setBpPassPercentage(+e.target.value)} />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-300 mb-1">Mode</label>
@@ -468,11 +477,11 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">Question Distribution (JSON)</label>
+                <label className="block text-xs font-semibold text-gray-300 mb-1">Question Distribution (JSON — nested by difficulty)</label>
                 <textarea className={`${inputClass} h-20 font-mono text-xs`} value={bpDistribution} onChange={e => setBpDistribution(e.target.value)} />
-                <p className="text-xs text-gray-500 mt-1">e.g. {`{"mcq": 15, "gap_fill": 5, "reading_comprehension": 3}`}</p>
+                <p className="text-xs text-gray-500 mt-1">e.g. {`{"mcq": {"easy": 5, "medium": 8, "hard": 1}, "gap_fill": {"medium": 2}}`}</p>
               </div>
-              <button onClick={handleCreateBlueprint} disabled={creatingBlueprint && !bpLabel} className={btnPrimary}>
+              <button onClick={handleCreateBlueprint} disabled={creatingBlueprint && !bpName} className={btnPrimary}>
                 Create Blueprint
               </button>
             </div>
@@ -488,19 +497,24 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 <div key={bp.id} className="rounded-xl border border-gray-700 bg-slate-800/60 p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-semibold text-white">{bp.label}</div>
+                      <div className="font-semibold text-white">{bp.name}</div>
                       <div className="text-xs text-gray-400">
-                        {bp.duration_minutes}min · {bp.total_marks} marks · {bp.delivery_mode} · pass ≥ {bp.pass_threshold}%
+                        {bp.duration_minutes}min · {bp.total_marks} marks · {bp.delivery_mode} · pass ≥ {bp.pass_percentage}%
                       </div>
                     </div>
                     <div className="text-xs text-gray-500 font-mono">{bp.id.slice(0, 8)}</div>
                   </div>
                   <div className="mt-2 flex flex-wrap gap-1">
-                    {Object.entries(bp.question_distribution).map(([type, count]) => (
-                      <span key={type} className="px-2 py-0.5 rounded bg-slate-700 text-xs text-gray-300">
-                        {type}: {String(count)}
-                      </span>
-                    ))}
+                    {Object.entries(bp.question_distribution).map(([type, val]) => {
+                      const total = typeof val === 'object' && val !== null
+                        ? Object.values(val as Record<string, number>).reduce((s, n) => s + n, 0)
+                        : val;
+                      return (
+                        <span key={type} className="px-2 py-0.5 rounded bg-slate-700 text-xs text-gray-300">
+                          {type}: {String(total)}
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
@@ -526,7 +540,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   <label className="block text-xs font-semibold text-gray-300 mb-1">Blueprint</label>
                   <select className={inputClass} value={genBlueprintId} onChange={e => setGenBlueprintId(e.target.value)}>
                     <option value="">Select blueprint…</option>
-                    {blueprints.map(bp => <option key={bp.id} value={bp.id}>{bp.label}</option>)}
+                    {blueprints.map(bp => <option key={bp.id} value={bp.id}>{bp.name}</option>)}
                   </select>
                 </div>
                 <div>
@@ -599,16 +613,16 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   <input type="email" className={inputClass} value={candEmail} onChange={e => setCandEmail(e.target.value)} placeholder="parent@email.com" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Date of Birth</label>
-                  <input type="date" className={inputClass} value={candDob} onChange={e => setCandDob(e.target.value)} />
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Parent Phone</label>
+                  <input className={inputClass} value={candPhone} onChange={e => setCandPhone(e.target.value)} placeholder="+971 50 123 4567" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Guardian Name</label>
-                  <input className={inputClass} value={candGuardian} onChange={e => setCandGuardian(e.target.value)} />
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Applied Grade</label>
+                  <input type="number" className={inputClass} value={candAppliedGrade} onChange={e => setCandAppliedGrade(e.target.value)} placeholder="9" />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Guardian Phone</label>
-                  <input className={inputClass} value={candPhone} onChange={e => setCandPhone(e.target.value)} />
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Notes</label>
+                  <input className={inputClass} value={candNotes} onChange={e => setCandNotes(e.target.value)} placeholder="Any additional notes…" />
                 </div>
               </div>
               <button onClick={handleCreateCandidate} disabled={!candName} className={btnPrimary}>
@@ -692,7 +706,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                               Score: {a.total_score}/{a.max_score} ({a.percentage}%)
                             </span>
                           )}
-                          {a.band && <span className="ml-2">{bandBadge(a.band)}</span>}
+                          {placement && <span className="ml-2">{bandBadge(placement.band)}</span>}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -701,7 +715,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                             📊 Report
                           </button>
                         )}
-                        {a.band && !placement && (
+                        {a.status === 'scored' && !placement && (
                           <div className="flex items-center gap-1">
                             {(['A', 'B', 'C', 'D', 'E'] as PlacementBand[]).map(b => (
                               <button

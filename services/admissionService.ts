@@ -30,44 +30,55 @@ export interface AdmQuestionPool {
   id: string;
   school_id: string | null;
   subject: string;
-  stage: string;
-  label: string;
-  metadata: Record<string, any>;
+  stage: number | null;
+  grade_level: number | null;
+  name: string;
+  description: string | null;
+  is_active: boolean;
+  created_by: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 export interface AdmQuestion {
   id: string;
   pool_id: string;
-  external_id: string;
   question_type: QuestionType;
   stem: string;
+  stem_image_url: string | null;
+  passage: string | null;
   options: any | null;
-  correct_answer: string;
-  explanation: string | null;
-  difficulty: string;
+  correct_answer: any;
+  correct_index: number | null;
+  keyword: string | null;
+  base_word: string | null;
   marks: number;
+  difficulty: string;
+  cognitive_level: string | null;
   topic: string | null;
   skill_tag: string | null;
-  cognitive_level: string | null;
-  image_url: string | null;
+  explanation: string | null;
   status: QuestionStatus;
-  metadata: Record<string, any>;
   created_at: string;
+  updated_at: string;
 }
 
 export interface AdmBlueprint {
   id: string;
-  school_id: string;
-  pool_id: string;
-  label: string;
+  school_id: string | null;
+  name: string;
+  subject: string;
+  target_grade: number | null;
+  target_stage: number | null;
   total_marks: number;
   duration_minutes: number;
-  question_distribution: Record<string, number>;
+  question_distribution: Record<string, any>;
+  pass_percentage: number;
   delivery_mode: DeliveryMode;
-  pass_threshold: number;
-  metadata: Record<string, any>;
+  is_active: boolean;
+  created_by: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 export interface AdmTestForm {
@@ -76,11 +87,11 @@ export interface AdmTestForm {
   school_id: string;
   form_code: string;
   status: FormStatus;
-  opens_at: string | null;
-  closes_at: string | null;
-  created_by: string | null;
   published_at: string | null;
+  closed_at: string | null;
+  created_by: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 export interface AdmCandidate {
@@ -88,19 +99,21 @@ export interface AdmCandidate {
   school_id: string;
   full_name: string;
   email: string | null;
-  dob: string | null;
-  guardian_name: string | null;
-  guardian_phone: string | null;
+  parent_phone: string | null;
+  applied_grade: number | null;
   token: string;
   status: CandidateStatus;
-  metadata: Record<string, any>;
+  notes: string | null;
+  created_by: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 export interface AdmAttempt {
   id: string;
   candidate_id: string;
   form_id: string;
+  school_id: string;
   started_at: string;
   submitted_at: string | null;
   expires_at: string;
@@ -108,8 +121,7 @@ export interface AdmAttempt {
   total_score: number | null;
   max_score: number | null;
   percentage: number | null;
-  band: PlacementBand | null;
-  anti_cheat_flags: Record<string, any>;
+  anti_cheat_flags: any;
   created_at: string;
 }
 
@@ -118,13 +130,13 @@ export interface AdmPlacementResult {
   attempt_id: string;
   candidate_id: string;
   school_id: string;
+  subject: string;
   band: PlacementBand;
-  percentage: number;
-  recommended_stage: string | null;
-  recommended_grade: string | null;
+  recommended_grade: number | null;
+  recommended_stage: number | null;
   strengths: string[];
   weaknesses: string[];
-  teacher_notes: string | null;
+  notes: string | null;
   decided_by: string | null;
   decided_at: string | null;
   created_at: string;
@@ -166,7 +178,7 @@ export async function fetchQuestionPools(schoolId: string): Promise<AdmQuestionP
 }
 
 export async function createQuestionPool(
-  pool: Pick<AdmQuestionPool, 'school_id' | 'subject' | 'stage' | 'label' | 'metadata'>
+  pool: Pick<AdmQuestionPool, 'school_id' | 'subject' | 'stage' | 'name' | 'description' | 'grade_level'>
 ): Promise<AdmQuestionPool> {
   const { data, error } = await supabase
     .from('adm_question_pools')
@@ -184,7 +196,8 @@ export async function fetchQuestions(poolId: string): Promise<AdmQuestion[]> {
     .from('adm_questions')
     .select('*')
     .eq('pool_id', poolId)
-    .order('external_id');
+    .order('question_type')
+    .order('difficulty');
   if (error) throw error;
   return data ?? [];
 }
@@ -225,14 +238,14 @@ export async function fetchBlueprints(schoolId: string): Promise<AdmBlueprint[]>
   const { data, error } = await supabase
     .from('adm_blueprints')
     .select('*')
-    .eq('school_id', schoolId)
+    .or(`school_id.eq.${schoolId},school_id.is.null`)
     .order('created_at', { ascending: false });
   if (error) throw error;
   return data ?? [];
 }
 
 export async function createBlueprint(
-  bp: Omit<AdmBlueprint, 'id' | 'created_at'>
+  bp: Omit<AdmBlueprint, 'id' | 'created_at' | 'updated_at'>
 ): Promise<AdmBlueprint> {
   const { data, error } = await supabase
     .from('adm_blueprints')
@@ -245,7 +258,7 @@ export async function createBlueprint(
 
 export async function updateBlueprint(
   bpId: string,
-  updates: Partial<Pick<AdmBlueprint, 'label' | 'total_marks' | 'duration_minutes' | 'question_distribution' | 'delivery_mode' | 'pass_threshold'>>
+  updates: Partial<Pick<AdmBlueprint, 'name' | 'total_marks' | 'duration_minutes' | 'question_distribution' | 'delivery_mode' | 'pass_percentage' | 'is_active'>>
 ): Promise<void> {
   const { error } = await supabase
     .from('adm_blueprints')
@@ -304,7 +317,7 @@ export async function fetchCandidates(schoolId: string): Promise<AdmCandidate[]>
 }
 
 export async function createCandidate(
-  candidate: Pick<AdmCandidate, 'school_id' | 'full_name' | 'email' | 'dob' | 'guardian_name' | 'guardian_phone' | 'metadata'>
+  candidate: Pick<AdmCandidate, 'school_id' | 'full_name' | 'email' | 'parent_phone' | 'applied_grade' | 'notes'>
 ): Promise<AdmCandidate> {
   const { data, error } = await supabase
     .from('adm_candidates')
@@ -316,7 +329,7 @@ export async function createCandidate(
 }
 
 export async function bulkCreateCandidates(
-  candidates: Pick<AdmCandidate, 'school_id' | 'full_name' | 'email' | 'dob' | 'guardian_name' | 'guardian_phone' | 'metadata'>[]
+  candidates: Pick<AdmCandidate, 'school_id' | 'full_name' | 'email' | 'parent_phone' | 'applied_grade' | 'notes'>[]
 ): Promise<AdmCandidate[]> {
   const { data, error } = await supabase
     .from('adm_candidates')
@@ -328,7 +341,7 @@ export async function bulkCreateCandidates(
 
 export async function updateCandidate(
   candidateId: string,
-  updates: Partial<Pick<AdmCandidate, 'full_name' | 'email' | 'dob' | 'guardian_name' | 'guardian_phone' | 'status' | 'metadata'>>
+  updates: Partial<Pick<AdmCandidate, 'full_name' | 'email' | 'parent_phone' | 'applied_grade' | 'status' | 'notes'>>
 ): Promise<void> {
   const { error } = await supabase
     .from('adm_candidates')
@@ -340,17 +353,13 @@ export async function updateCandidate(
 // ── Attempt / Report RPCs ──
 
 export async function fetchAttempts(schoolId: string): Promise<AdmAttempt[]> {
-  // Attempts link candidate -> form; we join through candidates belonging to this school
   const { data, error } = await supabase
     .from('adm_attempts')
-    .select('*, adm_candidates!inner(school_id)')
-    .eq('adm_candidates.school_id', schoolId)
+    .select('*')
+    .eq('school_id', schoolId)
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return (data ?? []).map((row: any) => {
-    const { adm_candidates, ...attempt } = row;
-    return attempt as AdmAttempt;
-  });
+  return data ?? [];
 }
 
 export async function getCandidateReport(attemptId: string): Promise<CandidateReport | null> {
@@ -376,8 +385,8 @@ export async function fetchPlacementResults(schoolId: string): Promise<AdmPlacem
 export async function recordPlacement(
   attemptId: string,
   band: PlacementBand,
-  stage: string | null,
-  grade: string | null,
+  stage: number | null,
+  grade: number | null,
   notes: string | null
 ): Promise<{ success: boolean; error?: string }> {
   const { data, error } = await supabase.rpc('rpc_adm_record_placement', {
@@ -385,7 +394,7 @@ export async function recordPlacement(
     p_band: band,
     p_recommended_stage: stage,
     p_recommended_grade: grade,
-    p_teacher_notes: notes,
+    p_notes: notes,
   });
   if (error) return { success: false, error: error.message };
   return data;
