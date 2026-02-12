@@ -330,12 +330,20 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       {/* Header */}
       <div className="flex items-center gap-4">
         <BackButton onClick={onComplete} label="Back" />
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-heading text-white flex items-center gap-2">
             <span className="text-3xl">🎓</span> Admission Hub
           </h1>
           <p className="text-xs text-gray-400 mt-0.5">Manage entrance tests, candidates, and placements</p>
         </div>
+        <button
+          onClick={() => loadAll()}
+          disabled={loading}
+          className="rounded-lg border border-gray-600 hover:border-cyan-500 bg-slate-800/60 hover:bg-slate-700/60 px-3 py-2 text-sm text-gray-300 hover:text-cyan-200 transition flex items-center gap-1.5 disabled:opacity-40"
+          title="Refresh data"
+        >
+          <span className={loading ? 'animate-spin' : ''}>🔄</span> Refresh
+        </button>
       </div>
 
       {/* Tabs */}
@@ -792,7 +800,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 <div>
                   <h4 className="text-sm font-semibold text-gray-300 mb-2">Performance by Topic</h4>
                   <div className="space-y-1.5">
-                    {reportData.by_topic.map((t, i) => (
+                    {(reportData.by_topic ?? []).map((t, i) => (
                       <div key={i} className="flex items-center gap-2">
                         <span className="text-xs text-gray-400 w-40 truncate">{t.topic}</span>
                         <div className="flex-1 h-3 rounded bg-slate-700 overflow-hidden">
@@ -811,7 +819,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 <div>
                   <h4 className="text-sm font-semibold text-gray-300 mb-2">Performance by Question Type</h4>
                   <div className="space-y-1.5">
-                    {reportData.by_type.map((t, i) => (
+                    {(reportData.by_type ?? []).map((t, i) => (
                       <div key={i} className="flex items-center gap-2">
                         <span className="text-xs text-gray-400 w-40 truncate capitalize">{t.question_type.replace('_', ' ')}</span>
                         <div className="flex-1 h-3 rounded bg-slate-700 overflow-hidden">
@@ -831,13 +839,13 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   <div>
                     <h4 className="text-sm font-semibold text-emerald-300 mb-1">Strengths</h4>
                     <ul className="text-xs text-gray-300 space-y-0.5">
-                      {reportData.strengths.map((s, i) => <li key={i}>✓ {s}</li>)}
+                      {(reportData.strengths ?? []).map((s, i) => <li key={i}>✓ {s}</li>)}
                     </ul>
                   </div>
                   <div>
                     <h4 className="text-sm font-semibold text-red-300 mb-1">Areas for Improvement</h4>
                     <ul className="text-xs text-gray-300 space-y-0.5">
-                      {reportData.weaknesses.map((w, i) => <li key={i}>△ {w}</li>)}
+                      {(reportData.weaknesses ?? []).map((w, i) => <li key={i}>△ {w}</li>)}
                     </ul>
                   </div>
                 </div>

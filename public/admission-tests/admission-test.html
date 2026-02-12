@@ -683,7 +683,7 @@ async function autoSave(questionId, response) {
         p_token: STATE.token,
         p_attempt_id: STATE.attemptId,
         p_question_id: questionId,
-        p_response: JSON.stringify(response),
+        p_response: response,
       }),
     });
   } catch (e) {

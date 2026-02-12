@@ -367,7 +367,34 @@ export async function getCandidateReport(attemptId: string): Promise<CandidateRe
     p_attempt_id: attemptId,
   });
   if (error) throw error;
-  return data;
+  if (!data || !data.success) return null;
+
+  // Transform RPC shape → CandidateReport shape
+  const raw = data as any;
+  return {
+    candidate_name: raw.candidate?.name ?? 'Unknown',
+    form_code: raw.form_code ?? '',
+    total_score: raw.attempt?.total_score ?? 0,
+    max_score: raw.attempt?.max_score ?? 0,
+    percentage: raw.attempt?.percentage ?? 0,
+    band: raw.band ?? 'E',
+    started_at: raw.attempt?.started_at ?? '',
+    submitted_at: raw.attempt?.submitted_at ?? '',
+    by_topic: (raw.topic_breakdown ?? []).map((t: any) => ({
+      topic: t.topic,
+      correct: t.correct,
+      total: t.total,
+      pct: t.percentage ?? t.pct ?? 0,
+    })),
+    by_type: (raw.type_breakdown ?? []).map((t: any) => ({
+      question_type: t.type ?? t.question_type,
+      correct: t.correct,
+      total: t.total,
+      pct: t.max_marks ? Math.round((t.marks / t.max_marks) * 100) : 0,
+    })),
+    strengths: raw.strengths ?? [],
+    weaknesses: raw.weaknesses ?? [],
+  };
 }
 
 // ── Placement ──
