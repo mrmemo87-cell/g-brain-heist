@@ -18,6 +18,7 @@ interface TeacherPortalProps {
   onLockdown?: () => void;
   isSchoolAdmin?: boolean;
   onOpenSchoolAdmin?: () => void;
+  onOpenAdmissions?: () => void;
 }
 
 // Plan details state (fetched once)
@@ -63,7 +64,7 @@ const WRITING_TEST_METADATA: Record<string, {
   },
 };
 
-const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLockdown, isSchoolAdmin, onOpenSchoolAdmin }) => {
+const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLockdown, isSchoolAdmin, onOpenSchoolAdmin, onOpenAdmissions }) => {
   const [view, setView] = useState<PortalView>('dashboard');
   const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [questions, setQuestions] = useState<TeacherQuestion[]>([]);
@@ -3105,6 +3106,18 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               <div className="teacher-tool-info">
                 <h4 className="teacher-tool-title">School Admin Portal</h4>
                 <p className="teacher-tool-desc">Manage school members & settings</p>
+              </div>
+            </button>
+          )}
+          {isSchoolAdmin && onOpenAdmissions && (
+            <button
+              onClick={onOpenAdmissions}
+              className="teacher-tool-card purple"
+            >
+              <div className="teacher-tool-icon">🎓</div>
+              <div className="teacher-tool-info">
+                <h4 className="teacher-tool-title">Admission Hub</h4>
+                <p className="teacher-tool-desc">Entrance tests & candidate placement</p>
               </div>
             </button>
           )}

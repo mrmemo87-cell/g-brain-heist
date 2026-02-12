@@ -85,7 +85,8 @@ export type PilotFeatureId =
   | 'questions_created'
   | 'assignments_created'
   | 'lockdown_sessions'
-  | 'reports_generated';
+  | 'reports_generated'
+  | 'admission_tests';
 
 export interface PilotQuota {
   used: number;
@@ -123,6 +124,8 @@ export const FEATURE_TO_QUOTA: Record<string, PilotFeatureId> = {
   'Performance Reports': 'reports_generated',
   'Cambridge Marking': 'cambridge_tests',
   'Geometry Builder': 'reports_generated',
+  'Admission Tests': 'admission_tests',
+  'Admissions': 'admission_tests',
 };
 
 /** Short display labels for quota badges */
@@ -137,6 +140,7 @@ export const QUOTA_LABELS: Record<PilotFeatureId, string> = {
   assignments_created: 'assignments',
   lockdown_sessions: 'sessions',
   reports_generated: 'reports',
+  admission_tests: 'tests',
 };
 
 // ── Fetch effective tier (cached, calls get_effective_tier RPC) ──

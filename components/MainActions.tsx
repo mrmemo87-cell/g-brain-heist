@@ -18,6 +18,7 @@ interface MainActionsProps {
   onOpenTeacherPortal?: () => void;
   onOpenAdminPortal?: () => void;
   onOpenSchoolAdmin?: () => void;
+  onOpenAdmissions?: () => void;
   onOpenTournament?: () => void;
   onOpenTournamentAdmin?: () => void;
   onOpenCompetitionPlay?: () => void;
@@ -191,6 +192,7 @@ const MainActions: React.FC<MainActionsProps> = ({
   onOpenTeacherPortal,
   onOpenAdminPortal,
   onOpenSchoolAdmin,
+  onOpenAdmissions,
   onOpenTournament,
   onOpenTournamentAdmin,
   onOpenCompetitionPlay,
@@ -474,6 +476,17 @@ const MainActions: React.FC<MainActionsProps> = ({
                 subtitle="Manage your school"
                 color="168, 85, 247"
                 glowClass="glow-ion"
+                className="col-span-2"
+              />
+            )}
+            {onOpenAdmissions && (
+              <ActionButton
+                onClick={onOpenAdmissions}
+                icon={<span aria-hidden className="text-4xl">🎓</span>}
+                label="Admissions"
+                subtitle="Entrance tests & placement"
+                color="234, 179, 8"
+                glowClass="glow-warn"
                 className="col-span-2"
               />
             )}

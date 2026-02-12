@@ -48,6 +48,7 @@ const RaidAdminView = React.lazy(() => import('./src/features/raids/RaidAdminVie
 const ClanTerritoryManager = React.lazy(() => import('./src/features/clanTerritory/ClanTerritoryManager'));
 const CambridgeTestsHub = React.lazy(() => import('./components/CambridgeTestsHub'));
 const SchoolAdminPortal = React.lazy(() => import('./components/SchoolAdminPortal'));
+const AdmissionHub = React.lazy(() => import('./components/AdmissionHub'));
 
 const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
   6: ['6A', '6B', '6C', 'N/A'],
@@ -111,7 +112,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [news, setNews] = useState<NewsEvent[]>(() => readCache<NewsEvent[]>(CACHE_KEYS.news) ?? []);
   const [activeAssignment, setActiveAssignment] = useState<StudentAssignmentTask | null>(null);
   const [criticalLoading, setCriticalLoading] = useState(true);
-  const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'lockdown' | 'cambridge' | 'school_admin'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'quest' | 'pvp' | 'shop' | 'clan' | 'inventory' | 'leaderboard' | 'achievements' | 'teacher' | 'admin' | 'tournament' | 'tournament_admin' | 'phase1_play' | 'phase1_leaderboard' | 'phase1_admin' | 'raids' | 'raid_admin' | 'ielts' | 'lockdown' | 'cambridge' | 'school_admin' | 'admissions'>('dashboard');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [levelUpData, setLevelUpData] = useState<{ newLevel: number; rewards: any } | null>(null);
@@ -164,7 +165,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const criticalAbortRef = useRef<AbortController | null>(null);
   const nonCriticalAbortRef = useRef<AbortController | null>(null);
   const isCambridgeView = view === 'cambridge';
-  const isFullScreenView = view === 'school_admin' || view === 'teacher' || view === 'admin';
+  const isFullScreenView = view === 'school_admin' || view === 'teacher' || view === 'admin' || view === 'admissions';
   const isIeltsOnlyUser =
     profile?.school_name?.trim().toLowerCase() === IELTS_ONLY_SCHOOL_NAME.toLowerCase();
   const isPlayerMode = appMode === 'player';
@@ -261,7 +262,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, []);
 
   const handleViewChange = (nextView: typeof view) => {
-    if (!hasSchool && ['clan', 'leaderboard', 'phase1_play', 'phase1_leaderboard', 'phase1_admin', 'school_admin'].includes(nextView)) {
+    if (!hasSchool && ['clan', 'leaderboard', 'phase1_play', 'phase1_leaderboard', 'phase1_admin', 'school_admin', 'admissions'].includes(nextView)) {
       addToast('Join a school to access school-based features.', 'info');
       return;
     }
@@ -1550,6 +1551,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                 onLockdown={() => handleViewChange('lockdown')}
                 isSchoolAdmin={isUserSchoolAdmin}
                 onOpenSchoolAdmin={isUserSchoolAdmin && hasSchool ? () => handleViewChange('school_admin') : undefined}
+                onOpenAdmissions={isUserSchoolAdmin && hasSchool ? () => handleViewChange('admissions') : undefined}
               />
             );
         case 'admin':
@@ -1625,6 +1627,13 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               addToast={addToast}
             />
           );
+        case 'admissions':
+          return renderLazy(
+            <AdmissionHub
+              onComplete={handleViewComplete}
+              addToast={addToast}
+            />
+          );
         case 'dashboard':
         default:
             // Still loading — don't flash student dashboard
@@ -1647,6 +1656,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         onLockdown={() => handleViewChange('lockdown')}
                         isSchoolAdmin={isUserSchoolAdmin}
                         onOpenSchoolAdmin={isUserSchoolAdmin && hasSchool ? () => handleViewChange('school_admin') : undefined}
+                        onOpenAdmissions={isUserSchoolAdmin && hasSchool ? () => handleViewChange('admissions') : undefined}
                     />
                 );
             }
@@ -1679,6 +1689,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                       onOpenTournament={() => handleViewChange('tournament')}
                       onOpenAdminPortal={isAdminUser ? () => handleViewChange('admin') : undefined}
                       onOpenSchoolAdmin={isUserSchoolAdmin && hasSchool ? () => handleViewChange('school_admin') : undefined}
+                      onOpenAdmissions={isUserSchoolAdmin && hasSchool ? () => handleViewChange('admissions') : undefined}
                       onOpenTournamentAdmin={isAdminUser ? () => handleViewChange('tournament_admin') : undefined}
                       onOpenCompetitionPlay={!isStudent && profile?.grade && !profile?.is_banned && hasSchool ? () => handleViewChange('phase1_play') : undefined}
                       onOpenCompetitionLeaderboard={hasSchool ? () => handleViewChange('phase1_leaderboard') : undefined}
