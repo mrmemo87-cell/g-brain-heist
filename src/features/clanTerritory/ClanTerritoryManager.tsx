@@ -9,6 +9,8 @@ import { INITIAL_STATE } from "./clanTerritoryEngine";
 import { supabase } from "../../../services/supabaseClient";
 import { audioService } from "../../../services/audioService";
 import { fetchSchoolBatches, type SchoolBatchInfo } from "../../../services/competitionService";
+import { clan_list } from "../../../services/gameService";
+import { ClanSummary } from "../../../types";
 import * as SchoolAdminService from "../../../services/schoolAdminService";
 import { fetchLockdownLimits, type LockdownLimits, FREE_LOCKDOWN_LIMITS } from "../../../services/tierService";
 import { FreeTierWatermark } from "../../../components/FreeTierWatermark";
@@ -44,6 +46,7 @@ type DiscoveredRoom = {
   allowClanlessPlayers?: boolean;
   teacherName?: string;
   classCodes?: string[];
+  allowedClanIds?: string[];
   scheduledStartAt?: string;
   phase?: ClanTerritoryGameState["phase"];
   timer?: number;
@@ -59,6 +62,7 @@ type StoredHostRoom = {
   allowClanlessPlayers: boolean;
   selectedQuestions: any[];
   selectedBatches: string[];
+  selectedClanIds: string[];
   teacherName?: string;
   scheduledStartAt?: string | null;
   lastUpdatedAt: number;
@@ -138,6 +142,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const [studentBatch, setStudentBatch] = useState<string | null>(null);
   const [availableBatches, setAvailableBatches] = useState<SchoolBatchInfo[]>([]);
   const [selectedBatches, setSelectedBatches] = useState<string[]>([]);
+  const [availableClans, setAvailableClans] = useState<ClanSummary[]>([]);
+  const [selectedClanIds, setSelectedClanIds] = useState<string[]>([]);
   const [teacherName, setTeacherName] = useState<string>("");
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
   const [scheduledStartAt, setScheduledStartAt] = useState<string>("");
@@ -485,6 +491,22 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     loadBatches();
   }, [isTeacher, selectedBatches.length, studentBatch, loadedAssignedClasses]);
 
+  // Fetch available clans for the teacher's school
+  useEffect(() => {
+    if (!isTeacher) return;
+    let cancelled = false;
+    const loadClans = async () => {
+      try {
+        const clans = await clan_list();
+        if (!cancelled) setAvailableClans(clans);
+      } catch (err) {
+        console.warn("Failed to load clan list:", err);
+      }
+    };
+    loadClans();
+    return () => { cancelled = true; };
+  }, [isTeacher]);
+
   useEffect(() => {
     // Reactive update: whenever props change, update the resolved clan data
     // This prevents students from getting stuck on "Waiting for profile clan assignment"
@@ -525,6 +547,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
             allowClanlessPlayers: metadata?.allowClanlessPlayers,
             teacherName: metadata?.teacherName,
             classCodes: metadata?.classCodes,
+            allowedClanIds: metadata?.allowedClanIds,
             scheduledStartAt: metadata?.scheduledStartAt,
             phase: metadata?.phase,
             timer: metadata?.timer,
@@ -620,6 +643,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
         schoolId: userSchoolId || undefined,
         teacherName: teacherName || playerName,
         classCodes: selectedBatches.length > 0 ? selectedBatches : undefined,
+        allowedClanIds: selectedClanIds.length > 0 ? selectedClanIds : undefined,
         scheduledStartAt: scheduledStartIso || undefined,
       });
       
@@ -630,6 +654,9 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       // This ensures zones are created for the correct map before any other state changes
       await transport.sendAction(id, { type: "SET_MAP", payload: { mapId: selectedMap } });
       await transport.sendAction(id, { type: "SET_ALLOW_CLANLESS", payload: { allow: allowClanlessPlayers } });
+      if (selectedClanIds.length > 0) {
+        await transport.sendAction(id, { type: "SET_ALLOWED_CLANS", payload: { clanIds: selectedClanIds } });
+      }
       await transport.sendAction(id, { type: "SET_DURATION", payload: { duration: durationMinutes * 60 } });
       await transport.sendAction(id, { type: "SET_QUESTIONS", payload: { questions } });
       
@@ -644,6 +671,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
         allowClanlessPlayers,
         selectedQuestions: questions,
         selectedBatches,
+        selectedClanIds,
         teacherName: teacherName || playerName,
         scheduledStartAt: scheduledStartIso,
         lastUpdatedAt: Date.now(),
@@ -657,6 +685,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       schoolId: userSchoolId || undefined,
       teacherName: teacherName || playerName,
       classCodes: selectedBatches.length > 0 ? selectedBatches : undefined,
+      allowedClanIds: selectedClanIds.length > 0 ? selectedClanIds : undefined,
       scheduledStartAt: scheduledStartIso || undefined,
     });
     
@@ -666,6 +695,9 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     
     // Send questions to game state
     await transport.sendAction(id, { type: "SET_ALLOW_CLANLESS", payload: { allow: allowClanlessPlayers } });
+    if (selectedClanIds.length > 0) {
+      await transport.sendAction(id, { type: "SET_ALLOWED_CLANS", payload: { clanIds: selectedClanIds } });
+    }
     await transport.sendAction(id, { type: "SET_DURATION", payload: { duration: durationMinutes * 60 } });
     await transport.sendAction(id, { type: "SET_QUESTIONS", payload: { questions } });
     setRoomId(id);
@@ -679,6 +711,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       allowClanlessPlayers,
       selectedQuestions: questions,
       selectedBatches,
+      selectedClanIds,
       teacherName: teacherName || playerName,
       scheduledStartAt: scheduledStartIso,
       lastUpdatedAt: Date.now(),
@@ -789,12 +822,16 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const canCreateRoom = selectedBatches.length > 0 && (!scheduleEnabled || Boolean(scheduledStartAt));
   const filteredRooms = useMemo(() => {
     const rooms = Object.values(discoveredRooms);
-    if (!studentBatch) {
-      return rooms;
-    }
-    // Student can see rooms if their batch is in the room's classCodes array
-    return rooms.filter((room) => room.classCodes?.includes(studentBatch));
-  }, [discoveredRooms, studentBatch]);
+    return rooms.filter((room) => {
+      // Filter by class / batch
+      if (studentBatch && !room.classCodes?.includes(studentBatch)) return false;
+      // Filter by allowed clans (if the room restricts clans)
+      if (room.allowedClanIds && room.allowedClanIds.length > 0 && resolvedClanId) {
+        if (!room.allowedClanIds.includes(resolvedClanId)) return false;
+      }
+      return true;
+    });
+  }, [discoveredRooms, studentBatch, resolvedClanId]);
 
   useEffect(() => {
     if (!roomId || !activeScheduledStartAt || gameState.phase !== "LOBBY") {
@@ -831,6 +868,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       allowClanlessPlayers,
       selectedQuestions,
       selectedBatches,
+      selectedClanIds,
       teacherName: teacherName || playerName,
       scheduledStartAt: activeScheduledStartAt,
       lastUpdatedAt: Date.now(),
@@ -843,6 +881,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     mode,
     roomId,
     selectedBatches,
+    selectedClanIds,
     selectedMap,
     selectedQuestions,
     teacherName,
@@ -859,6 +898,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
         schoolId: userSchoolId || undefined,
         teacherName: room.teacherName || teacherName || playerName,
         classCodes: room.selectedBatches?.length > 0 ? room.selectedBatches : undefined,
+        allowedClanIds: room.selectedClanIds?.length > 0 ? room.selectedClanIds : undefined,
         scheduledStartAt: room.scheduledStartAt || undefined,
       });
       transport.onGameState(room.roomId, setGameState);
@@ -868,6 +908,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       setAllowClanlessPlayers(room.allowClanlessPlayers);
       setSelectedQuestions(room.selectedQuestions);
       setSelectedBatches(room.selectedBatches || []);
+      setSelectedClanIds(room.selectedClanIds || []);
       setActiveScheduledStartAt(room.scheduledStartAt ?? null);
       setMode("host");
     } catch (error) {
@@ -1036,6 +1077,59 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
               )}
             </div>
 
+            {/* Clan Selection (optional) */}
+            {availableClans.length > 0 && (
+              <div className="space-y-3">
+                <label className="block text-sm font-bold text-white">Restrict to Specific Clans <span className="text-xs text-gray-400 font-normal">(optional)</span></label>
+                <p className="text-xs text-gray-400 -mt-1">Leave empty to allow all clans. Select clans to restrict who can join.</p>
+                <div className="space-y-2 max-h-48 overflow-y-auto rounded-xl border border-slate-700 bg-slate-900/60 p-3">
+                  {availableClans.map((clan) => {
+                    const isSelected = selectedClanIds.includes(clan.id);
+                    return (
+                      <label
+                        key={clan.id}
+                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all ${
+                          isSelected
+                            ? 'bg-purple-500/20 border border-purple-500/50'
+                            : 'bg-slate-800/50 border border-slate-700 hover:border-slate-600'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedClanIds([...selectedClanIds, clan.id]);
+                              } else {
+                                setSelectedClanIds(selectedClanIds.filter(id => id !== clan.id));
+                              }
+                            }}
+                            className="w-5 h-5 rounded border-slate-600 bg-slate-800 text-purple-500 focus:ring-purple-500 focus:ring-offset-0"
+                          />
+                          <div className="flex items-center gap-2">
+                            {clan.crest_url && (
+                              <img src={clan.crest_url} alt="" className="w-6 h-6 rounded-full object-cover" />
+                            )}
+                            <span className="text-white font-medium">{clan.name}</span>
+                          </div>
+                        </div>
+                        <span className="text-xs text-slate-400">{clan.member_count} members</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                {selectedClanIds.length > 0 && (
+                  <p className="text-xs text-purple-400 flex items-center gap-1">
+                    <span>🛡️</span> Only {selectedClanIds.length} clan{selectedClanIds.length !== 1 ? 's' : ''} allowed to compete
+                  </p>
+                )}
+                {selectedClanIds.length === 0 && (
+                  <p className="text-xs text-gray-400">All clans can join — no restriction applied.</p>
+                )}
+              </div>
+            )}
+
             {/* Schedule Start */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -1117,6 +1211,17 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                     {allowClanlessPlayers ? "Clans + Independent agents" : "Clan members only"}
                   </p>
                 </div>
+                {selectedClanIds.length > 0 && (
+                  <div className="bg-slate-800/50 rounded-lg p-3 col-span-2">
+                    <p className="text-gray-400 text-xs mb-1">Allowed Clans</p>
+                    <p className="text-white font-bold">
+                      {availableClans
+                        .filter(c => selectedClanIds.includes(c.id))
+                        .map(c => c.name)
+                        .join(', ')}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 

@@ -214,6 +214,7 @@ export interface ClanTerritoryGameState {
   questions: BattleQuestion[];
   mapId?: string;
   allowClanlessPlayers: boolean;
+  allowedClanIds?: string[]; // If set, only players from these clans can join
 }
 
 // Actions
@@ -227,6 +228,7 @@ export type GameAction =
   | { type: "SET_QUESTIONS"; payload: { questions: BattleQuestion[] } }
   | { type: "SET_MAP"; payload: { mapId: string } }
   | { type: "SET_ALLOW_CLANLESS"; payload: { allow: boolean } }
+  | { type: "SET_ALLOWED_CLANS"; payload: { clanIds: string[] } }
   | { type: "SET_DURATION"; payload: { duration: number } }
   | { type: "START_GAME"; payload: { duration: number } }
   | { type: "TICK" }

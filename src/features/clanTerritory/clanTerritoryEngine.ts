@@ -29,6 +29,7 @@ export const INITIAL_STATE: ClanTerritoryGameState = {
   questions: [],
   mapId: "default",
   allowClanlessPlayers: false,
+  allowedClanIds: undefined,
   endReason: undefined,
 };
 
@@ -58,6 +59,11 @@ export function clanTerritoryReducer(
       return { ...state, allowClanlessPlayers: action.payload.allow };
     }
 
+    case "SET_ALLOWED_CLANS": {
+      const ids = action.payload.clanIds;
+      return { ...state, allowedClanIds: ids.length > 0 ? ids : undefined };
+    }
+
     case "SET_DURATION": {
       if (state.phase === "ACTIVE") return state;
       return {
@@ -72,6 +78,14 @@ export function clanTerritoryReducer(
     case "JOIN": {
       const { player } = action.payload;
       if (state.players[player.id]) return state; // Already joined
+
+      // Filter by allowed clans if set
+      if (state.allowedClanIds && state.allowedClanIds.length > 0) {
+        if (!player.clanId || !state.allowedClanIds.includes(player.clanId)) {
+          console.log(`[clanTerritoryEngine] JOIN rejected: clan ${player.clanId} not in allowedClanIds`);
+          return state;
+        }
+      }
 
       const newPlayer: PlayerStats = {
         id: player.id,

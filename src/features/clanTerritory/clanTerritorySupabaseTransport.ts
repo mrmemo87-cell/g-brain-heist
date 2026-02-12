@@ -21,6 +21,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
   private schoolId: string | null = null;
   private teacherName: string | null = null;
   private classCodes: string[] = [];
+  private allowedClanIds: string[] = [];
   private scheduledStartAt: string | null = null;
 
   private onStateUpdate: ((state: ClanTerritoryGameState) => void) | null = null;
@@ -101,6 +102,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     schoolId?: string;
     teacherName?: string;
     classCodes?: string[];
+    allowedClanIds?: string[];
     scheduledStartAt?: string;
   }): Promise<RoomId> {
     const roomId = Math.floor(1000 + Math.random() * 9000).toString();
@@ -110,6 +112,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     this.schoolId = options?.schoolId || null;
     this.teacherName = options?.teacherName || null;
     this.classCodes = options?.classCodes || [];
+    this.allowedClanIds = options?.allowedClanIds || [];
     this.scheduledStartAt = options?.scheduledStartAt || null;
 
     this.state = { ...INITIAL_STATE, allowClanlessPlayers: this.allowClanlessPlayers };
@@ -129,6 +132,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
       schoolId?: string;
       teacherName?: string;
       classCodes?: string[];
+      allowedClanIds?: string[];
       scheduledStartAt?: string;
     }
   ): Promise<void> {
@@ -137,6 +141,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
     this.schoolId = options?.schoolId || null;
     this.teacherName = options?.teacherName || null;
     this.classCodes = options?.classCodes || [];
+    this.allowedClanIds = options?.allowedClanIds || [];
     this.scheduledStartAt = options?.scheduledStartAt || null;
 
     const restoredState = options?.state ?? {
@@ -159,6 +164,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
         allowClanlessPlayers?: boolean;
         teacherName?: string;
         classCodes?: string[];
+        allowedClanIds?: string[];
         scheduledStartAt?: string;
         phase?: ClanTerritoryGameState["phase"];
         timer?: number;
@@ -187,6 +193,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
             allowClanlessPlayers: roomPayload.allowClanlessPlayers,
             teacherName: roomPayload.teacherName,
             classCodes: roomPayload.classCodes,
+            allowedClanIds: roomPayload.allowedClanIds,
             scheduledStartAt: roomPayload.scheduledStartAt,
             phase: roomPayload.phase,
             timer: roomPayload.timer,
@@ -459,6 +466,7 @@ export class SupabaseClanTerritoryTransport implements ClanTerritoryTransport {
                     schoolId: this.schoolId,
                     teacherName: this.teacherName,
                     classCodes: this.classCodes,
+                    allowedClanIds: this.allowedClanIds,
                     scheduledStartAt: this.scheduledStartAt,
                     phase: this.state.phase,
                     timer: this.state.timer,
