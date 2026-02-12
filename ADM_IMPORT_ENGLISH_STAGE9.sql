@@ -12,7 +12,7 @@
 -- Step 1: Create the pool
 INSERT INTO adm_question_pools (id, school_id, subject, stage, grade_level, name, description, is_active)
 VALUES (
-    '00000000-0000-0000-0000-english9pool'::uuid,
+    '00000000-0000-0000-0000-e09119000001'::uuid,
     NULL,  -- global pool
     'english',
     9,
@@ -31,7 +31,7 @@ ON CONFLICT (id) DO UPDATE SET
 
 DO $$
 DECLARE
-    v_pool_id UUID := '00000000-0000-0000-0000-english9pool'::uuid;
+    v_pool_id UUID := '00000000-0000-0000-0000-e09119000001'::uuid;
 BEGIN
 
 -- ═══════════════════════════════
@@ -212,7 +212,7 @@ INSERT INTO adm_blueprints (
     id, school_id, name, subject, target_stage, total_marks, duration_minutes,
     question_distribution, pass_percentage, delivery_mode, is_active
 ) VALUES (
-    '00000000-0000-0000-0000-eng9blueprint'::uuid,
+    '00000000-0000-0000-0000-e09119000002'::uuid,
     NULL,  -- global
     'English Stage 9 — Standard Admission Test',
     'english',
@@ -240,6 +240,6 @@ END $$;
 -- VERIFICATION
 -- ============================================================
 -- Run these to confirm the import:
--- SELECT count(*) FROM adm_questions WHERE pool_id = '00000000-0000-0000-0000-english9pool'::uuid;
+-- SELECT count(*) FROM adm_questions WHERE pool_id = '00000000-0000-0000-0000-e09119000001'::uuid;
 -- → should return 96
--- SELECT question_type, difficulty, count(*) FROM adm_questions WHERE pool_id = '00000000-0000-0000-0000-english9pool'::uuid GROUP BY 1,2 ORDER BY 1,2;
+-- SELECT question_type, difficulty, count(*) FROM adm_questions WHERE pool_id = '00000000-0000-0000-0000-e09119000001'::uuid GROUP BY 1,2 ORDER BY 1,2;
