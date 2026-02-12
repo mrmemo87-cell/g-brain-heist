@@ -343,16 +343,16 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   };
 
   // Share via WhatsApp
-  const shareViaWhatsApp = (phone: string | null, link: string, candidateName: string) => {
-    const msg = encodeURIComponent(`Hi! Here is ${candidateName}'s admission test link:\n\n${link}\n\nPlease complete the test before the deadline. Good luck!`);
+  const shareViaWhatsApp = (phone: string | null, link: string, candidateName: string, testName: string) => {
+    const msg = encodeURIComponent(`Hi! Here is ${candidateName}'s *${testName}* admission test link:\n\n${link}\n\nPlease complete the test before the deadline. Good luck!`);
     const cleanPhone = (phone || '').replace(/[^0-9+]/g, '');
     window.open(`https://wa.me/${cleanPhone}?text=${msg}`, '_blank');
   };
 
   // Share via Email
-  const shareViaEmail = (email: string | null, link: string, candidateName: string) => {
-    const subject = encodeURIComponent(`Admission Test Link for ${candidateName}`);
-    const body = encodeURIComponent(`Dear Parent/Guardian,\n\nHere is the admission test link for ${candidateName}:\n\n${link}\n\nPlease ensure the test is completed before the deadline.\n\nBest regards,\nAdmissions Office`);
+  const shareViaEmail = (email: string | null, link: string, candidateName: string, testName: string) => {
+    const subject = encodeURIComponent(`${testName} Admission Test Link for ${candidateName}`);
+    const body = encodeURIComponent(`Dear Parent/Guardian,\n\nHere is the ${testName} admission test link for ${candidateName}:\n\n${link}\n\nPlease ensure the test is completed before the deadline.\n\nBest regards,\nAdmissions Office`);
     window.open(`mailto:${email || ''}?subject=${subject}&body=${body}`, '_blank');
   };
 
@@ -489,6 +489,9 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       in_progress: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
       submitted: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
       scored: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+      pending: 'bg-gray-500/20 text-gray-400 border-gray-500/40',
+      'not sent': 'bg-gray-500/20 text-gray-500 border-gray-600/40',
+      expired: 'bg-red-500/20 text-red-300 border-red-500/40',
     };
     return (
       <span className={`inline-flex px-2 py-0.5 rounded-md border text-xs font-semibold capitalize ${map[status] || 'bg-gray-500/20 text-gray-300'}`}>
@@ -1078,7 +1081,29 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                           {!c.email && !c.parent_phone && <span className="text-gray-600">—</span>}
                         </td>
                         <td className="py-3 pr-4 text-xs">{c.applied_grade || '—'}</td>
-                        <td className="py-3 pr-4">{statusPill(c.status)}</td>
+                        <td className="py-3 pr-4">
+                          {(() => {
+                            const publishedFormsForStatus = forms.filter(f => f.status === 'published');
+                            if (publishedFormsForStatus.length === 0) return statusPill(c.status);
+                            return (
+                              <div className="flex flex-col gap-1">
+                                {publishedFormsForStatus.map(f => {
+                                  const attempt = attempts.find(a => a.candidate_id === c.id && a.form_id === f.id);
+                                  const formLabel = f.form_code.split('-')[0]; // e.g. "ENG9" or "MAT9"
+                                  let status = 'not sent';
+                                  if (attempt) status = attempt.status;
+                                  else if (c.status === 'registered') status = 'pending';
+                                  return (
+                                    <div key={f.id} className="flex items-center gap-1">
+                                      <span className="text-[10px] text-gray-500 w-10">{formLabel}</span>
+                                      {statusPill(status)}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            );
+                          })()}
+                        </td>
                         <td className="py-3">
                           <div className="flex items-center gap-1 flex-wrap">
                             {publishedForms.map(f => {
@@ -1094,7 +1119,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                                   </button>
                                   {c.parent_phone && (
                                     <button
-                                      onClick={() => shareViaWhatsApp(c.parent_phone, link, c.full_name)}
+                                      onClick={() => shareViaWhatsApp(c.parent_phone, link, c.full_name, f.form_code)}
                                       className="text-xs px-2 py-1 rounded bg-green-600/30 text-green-300 hover:bg-green-600/50 transition"
                                       title="Send via WhatsApp"
                                     >
@@ -1103,7 +1128,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                                   )}
                                   {c.email && (
                                     <button
-                                      onClick={() => shareViaEmail(c.email, link, c.full_name)}
+                                      onClick={() => shareViaEmail(c.email, link, c.full_name, f.form_code)}
                                       className="text-xs px-2 py-1 rounded bg-blue-600/30 text-blue-300 hover:bg-blue-600/50 transition"
                                       title="Send via Email"
                                     >

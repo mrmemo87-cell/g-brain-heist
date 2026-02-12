@@ -35,8 +35,8 @@ BEGIN
         RETURN jsonb_build_object('success', false, 'error', 'Invalid access token');
     END IF;
 
-    IF v_candidate.status = 'completed' OR v_candidate.status = 'placed' THEN
-        RETURN jsonb_build_object('success', false, 'error', 'This candidate has already completed testing');
+    IF v_candidate.status = 'placed' THEN
+        RETURN jsonb_build_object('success', false, 'error', 'This candidate has already been placed');
     END IF;
 
     -- 2. Find the test form
@@ -344,8 +344,24 @@ BEGIN
         percentage = v_pct
     WHERE id = p_attempt_id;
 
-    -- Update candidate status
-    UPDATE adm_candidates SET status = 'completed' WHERE id = v_candidate.id;
+    -- Update candidate status:
+    -- Set 'completed' only if ALL published forms for this school have scored attempts
+    IF NOT EXISTS (
+        SELECT 1 FROM adm_test_forms tf
+        WHERE tf.school_id = v_candidate.school_id
+          AND tf.status = 'published'
+          AND NOT EXISTS (
+            SELECT 1 FROM adm_attempts a
+            WHERE a.candidate_id = v_candidate.id
+              AND a.form_id = tf.id
+              AND a.status IN ('scored', 'submitted')
+          )
+    ) THEN
+        UPDATE adm_candidates SET status = 'completed' WHERE id = v_candidate.id;
+    ELSE
+        -- At least one test done, mark as 'testing' (still has more to do)
+        UPDATE adm_candidates SET status = 'testing' WHERE id = v_candidate.id;
+    END IF;
 
     -- Audit
     INSERT INTO adm_audit_log (school_id, action, target_type, target_id, details)

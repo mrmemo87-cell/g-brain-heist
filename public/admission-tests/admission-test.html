@@ -36,7 +36,8 @@
       backdrop-filter: blur(12px);
     }
     .topbar-left { display: flex; align-items: center; gap: 14px; }
-    .topbar-left .logo { font-size: 18px; font-weight: 700; color: var(--accent); }
+    .topbar-left .logo { font-size: 18px; font-weight: 700; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+    .topbar-left .logo img { height: 28px; width: auto; }
     .topbar-left .subject-badge {
       padding: 4px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;
       background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); color: #c4b5fd;
@@ -273,16 +274,38 @@
 <!-- LOGIN SCREEN                               -->
 <!-- ═══════════════════════════════════════════ -->
 <div id="loginScreen" class="login-screen">
+  <img src="../logo.png" alt="Brains Heist" style="height:48px;margin-bottom:12px" />
   <h1>📝 Admission Test</h1>
-  <p>Enter your access token and test code to begin</p>
-  <div class="field">
-    <label>Access Token</label>
-    <input type="text" id="tokenInput" placeholder="Paste your access token..." autocomplete="off" />
+
+  <!-- Smart welcome (shown when URL has token+form params) -->
+  <div id="smartWelcome" class="hidden" style="text-align:center">
+    <p style="color:var(--text-muted);margin-bottom:16px">Welcome! Your test is ready to begin.</p>
+    <div style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:12px;padding:16px;margin-bottom:16px;text-align:left">
+      <div style="font-size:13px;color:var(--text-muted)">
+        <strong style="color:white">⚠️ Before you start:</strong>
+        <ul style="margin:8px 0 0 16px;padding:0;list-style:disc">
+          <li>This test is <strong>timed</strong> — the timer begins once you click Start.</li>
+          <li><strong>Do not switch tabs</strong> or leave this window. Tab switches are monitored and recorded.</li>
+          <li>Your answers are saved automatically as you go.</li>
+          <li>Once submitted, you cannot retake this test.</li>
+        </ul>
+      </div>
+    </div>
   </div>
-  <div class="field">
-    <label>Test Code</label>
-    <input type="text" id="formCodeInput" placeholder="e.g. ENG9-2026-A" autocomplete="off" />
+
+  <!-- Manual login (shown when no URL params) -->
+  <div id="manualLogin">
+    <p>Enter your access token and test code to begin</p>
+    <div class="field">
+      <label>Access Token</label>
+      <input type="text" id="tokenInput" placeholder="Paste your access token..." autocomplete="off" />
+    </div>
+    <div class="field">
+      <label>Test Code</label>
+      <input type="text" id="formCodeInput" placeholder="e.g. ENG9-2026-A" autocomplete="off" />
+    </div>
   </div>
+
   <div class="error" id="loginError"></div>
   <button class="btn btn-primary" id="startBtn" style="width:100%;margin-top:8px">Start Test</button>
 </div>
@@ -293,7 +316,7 @@
 <div id="testScreen" class="hidden">
   <div class="topbar">
     <div class="topbar-left">
-      <span class="logo">⚡ Brains Heist</span>
+      <span class="logo"><img src="../logo.png" alt="Brains Heist"> Brains Heist</span>
       <span class="subject-badge" id="subjectBadge">English</span>
     </div>
     <div class="topbar-center">
@@ -315,36 +338,19 @@
 </div>
 
 <!-- ═══════════════════════════════════════════ -->
-<!-- RESULTS SCREEN                             -->
+<!-- RESULTS SCREEN (Thank You)                -->
 <!-- ═══════════════════════════════════════════ -->
 <div id="resultsScreen" class="hidden">
   <div class="topbar">
     <div class="topbar-left">
-      <span class="logo">⚡ Brains Heist</span>
-      <span class="subject-badge">Results</span>
-    </div>
-    <div>
-      <button class="btn btn-secondary" id="reviewBtn" style="padding:8px 16px;font-size:13px">Review Answers</button>
+      <span class="logo"><img src="../logo.png" alt="Brains Heist"> Brains Heist</span>
+      <span class="subject-badge">Submitted</span>
     </div>
   </div>
   <div class="container results-screen" id="resultsContainer"></div>
 </div>
 
-<!-- ═══════════════════════════════════════════ -->
-<!-- REVIEW SCREEN                              -->
-<!-- ═══════════════════════════════════════════ -->
-<div id="reviewScreen" class="hidden">
-  <div class="topbar">
-    <div class="topbar-left">
-      <span class="logo">⚡ Brains Heist</span>
-      <span class="subject-badge">Review</span>
-    </div>
-    <div>
-      <button class="btn btn-secondary" id="backToResultsBtn" style="padding:8px 16px;font-size:13px">← Back to Results</button>
-    </div>
-  </div>
-  <div class="container" id="reviewContainer"></div>
-</div>
+<!-- Review screen removed — results are for admin eyes only -->
 
 <!-- ═══════════════════════════════════════════ -->
 <!-- ANTI-CHEAT WARNING                         -->
@@ -392,19 +398,32 @@ const $ = id => document.getElementById(id);
 document.addEventListener('DOMContentLoaded', () => {
   // Check URL params for token/form
   const params = new URLSearchParams(window.location.search);
-  if (params.get('token')) $('tokenInput').value = params.get('token');
-  if (params.get('form')) $('formCodeInput').value = params.get('form');
+  const hasToken = !!params.get('token');
+  const hasForm = !!params.get('form');
+
+  if (hasToken && hasForm) {
+    // Smart mode: hide manual inputs, show welcome message
+    $('manualLogin').classList.add('hidden');
+    $('smartWelcome').classList.remove('hidden');
+    $('startBtn').textContent = '🚀 Start Test';
+    // Store params in hidden state (no visible inputs needed)
+    STATE.token = params.get('token');
+    STATE.formCode = params.get('form');
+  } else {
+    // Manual mode: show input fields, populate if partial
+    if (params.get('token')) $('tokenInput').value = params.get('token');
+    if (params.get('form')) $('formCodeInput').value = params.get('form');
+  }
 
   $('startBtn').addEventListener('click', handleStart);
   $('submitTestBtn').addEventListener('click', handleSubmit);
   $('prevBtn').addEventListener('click', () => navigateTo(STATE.currentIndex - 1));
-  $('nextBtn').addEventListener('click', () => navigateTo(STATE.currentIndex + 1));
-  $('reviewBtn').addEventListener('click', showReview);
-  $('backToResultsBtn').addEventListener('click', () => { $('reviewScreen').classList.add('hidden'); $('resultsScreen').classList.remove('hidden'); });
+  // NOTE: nextBtn is handled inside navigateTo() which sets .onclick dynamically
+  //       do NOT add addEventListener here to avoid double-navigation (skip bug)
 
-  // Enter key on inputs
-  $('tokenInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('formCodeInput').focus(); });
-  $('formCodeInput').addEventListener('keydown', e => { if (e.key === 'Enter') handleStart(); });
+  // Enter key on inputs (only if visible)
+  if ($('tokenInput')) $('tokenInput').addEventListener('keydown', e => { if (e.key === 'Enter') { if ($('formCodeInput')) $('formCodeInput').focus(); else handleStart(); } });
+  if ($('formCodeInput')) $('formCodeInput').addEventListener('keydown', e => { if (e.key === 'Enter') handleStart(); });
 
   // Anti-cheat: tab visibility
   document.addEventListener('visibilitychange', () => {
@@ -419,8 +438,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ── START TEST ──
 async function handleStart() {
-  const token = $('tokenInput').value.trim();
-  const formCode = $('formCodeInput').value.trim();
+  // Read from STATE if smart mode (URL params), otherwise from input fields
+  const token = STATE.token || ($('tokenInput') ? $('tokenInput').value.trim() : '');
+  const formCode = STATE.formCode || ($('formCodeInput') ? $('formCodeInput').value.trim() : '');
   $('loginError').textContent = '';
 
   if (!token || !formCode) {
@@ -883,109 +903,38 @@ function scoreOffline() {
   };
 }
 
-// ── SHOW RESULTS ──
+// ── SHOW RESULTS (Thank You — no scores shown to candidate) ──
 function showResults(r) {
   $('testScreen').classList.add('hidden');
   $('resultsScreen').classList.remove('hidden');
 
   const c = $('resultsContainer');
   c.innerHTML = `
-    <h2 style="margin-bottom:4px">${escapeHtml(r.candidate_name || 'Candidate')}</h2>
-    <p style="color:var(--text-muted);margin-bottom:24px">${STATE.subject.charAt(0).toUpperCase() + STATE.subject.slice(1)} Admission Test</p>
-
-    <div class="score-circle">
-      <span class="pct">${Math.round(r.percentage)}%</span>
-      <span class="label">${r.total_score} / ${r.max_score}</span>
-    </div>
-
-    <div class="band-badge band-${r.band}">Band ${r.band}</div>
-
-    <p style="color:var(--text-muted);font-size:14px;margin-bottom:32px">
-      ${r.band === 'A' ? 'Excellent performance!' : r.band === 'B' ? 'Good performance.' : r.band === 'C' ? 'Satisfactory performance.' : r.band === 'D' ? 'Below expectations.' : 'Needs significant improvement.'}
-    </p>
-
-    ${r.writing_pending ? `
-      <div style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);border-radius:12px;padding:16px;margin-bottom:20px;text-align:left">
-        <div style="color:#c084fc;font-weight:600;margin-bottom:4px">🤖 Writing Tasks Pending AI Review</div>
-        <div style="color:var(--text-muted);font-size:13px">${r.writing_pending} writing task${r.writing_pending > 1 ? 's' : ''} will be graded by AI. Final scores will be updated by the school.</div>
-      </div>
-    ` : ''}
-
-    ${r.strengths && r.strengths.length ? `
-      <div style="text-align:left;margin-bottom:12px">
-        <span style="color:var(--success);font-weight:600">✓ Strengths:</span>
-        <span style="color:var(--text-muted);font-size:14px">${r.strengths.map(s => s.replace(/_/g, ' ')).join(', ')}</span>
-      </div>
-    ` : ''}
-    ${r.weaknesses && r.weaknesses.length ? `
-      <div style="text-align:left;margin-bottom:20px">
-        <span style="color:var(--danger);font-weight:600">✗ Areas to improve:</span>
-        <span style="color:var(--text-muted);font-size:14px">${r.weaknesses.map(s => s.replace(/_/g, ' ')).join(', ')}</span>
-      </div>
-    ` : ''}
-
-    <div class="breakdown">
-      <h3>Topic Breakdown</h3>
-      ${(r.topic_breakdown || []).sort((a, b) => b.percentage - a.percentage).map(t => `
-        <div class="breakdown-row">
-          <span class="br-label">${t.topic.replace(/_/g, ' ')}</span>
-          <div class="br-bar"><div class="br-fill" style="width:${t.percentage}%;background:${t.percentage >= 70 ? 'var(--success)' : t.percentage >= 50 ? 'var(--warning)' : 'var(--danger)'}"></div></div>
-          <span class="br-score">${t.correct}/${t.total} (${t.percentage}%)</span>
+    <div style="text-align:center;padding:40px 0">
+      <div style="font-size:64px;margin-bottom:16px">✅</div>
+      <h2 style="margin-bottom:8px;font-size:24px">Test Submitted Successfully!</h2>
+      <p style="color:var(--text-muted);margin-bottom:24px;max-width:400px;margin-left:auto;margin-right:auto">
+        Thank you, <strong>${escapeHtml(r.candidate_name || STATE.candidateName || 'Candidate')}</strong>. 
+        Your <strong>${STATE.subject.charAt(0).toUpperCase() + STATE.subject.slice(1)}</strong> test has been submitted.
+      </p>
+      ${r.writing_pending ? `
+        <div style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);border-radius:12px;padding:16px;margin-bottom:20px;max-width:400px;margin-left:auto;margin-right:auto">
+          <div style="color:#c084fc;font-weight:600;margin-bottom:4px">🤖 Writing Tasks</div>
+          <div style="color:var(--text-muted);font-size:13px">${r.writing_pending} writing task${r.writing_pending > 1 ? 's' : ''} will be reviewed separately.</div>
         </div>
-      `).join('')}
+      ` : ''}
+      <div style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:12px;padding:20px;max-width:400px;margin:0 auto">
+        <p style="color:var(--text-muted);font-size:14px;margin:0">
+          📋 Your results will be reviewed by the admissions team.<br>
+          You will be contacted with the outcome soon.
+        </p>
+      </div>
+      <p style="color:var(--text-muted);font-size:12px;margin-top:24px;opacity:0.6">You may now close this window.</p>
     </div>
   `;
 }
 
-// ── REVIEW ANSWERS ──
-function showReview() {
-  $('resultsScreen').classList.add('hidden');
-  $('reviewScreen').classList.remove('hidden');
-
-  const c = $('reviewContainer');
-  const answers = STATE.results?.answers || [];
-
-  c.innerHTML = `<h2 style="margin-bottom:20px">Answer Review</h2>`;
-
-  answers.forEach((a, idx) => {
-    const card = document.createElement('div');
-    card.className = `question-card ${a.is_correct ? 'correct' : 'incorrect'}`;
-
-    let answerHtml = '';
-    if (a.options) {
-      const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-      answerHtml = `<div class="options" style="pointer-events:none">`;
-      a.options.forEach((opt, oi) => {
-        let cls = 'option-btn';
-        if (oi === a.correct_index) cls += ' correct-answer';
-        if (a.response && typeof a.response === 'object' && a.response.index === oi && !a.is_correct) cls += ' wrong-answer';
-        if (a.response && typeof a.response === 'object' && a.response.index === oi && a.is_correct) cls += ' correct-answer selected';
-        answerHtml += `<div class="${cls}"><span class="opt-letter">${letters[oi]}</span><span>${escapeHtml(opt)}</span></div>`;
-      });
-      answerHtml += `</div>`;
-    } else {
-      const given = typeof a.response === 'string' ? a.response : (a.response || '—');
-      answerHtml = `
-        <div style="margin-bottom:8px">
-          <span style="color:var(--text-muted);font-size:13px">Your answer: </span>
-          <span style="color:${a.is_correct ? 'var(--success)' : 'var(--danger)'};font-weight:600">${escapeHtml(String(given))}</span>
-        </div>
-        <div class="correct-text">Correct answer: ${escapeHtml(String(a.correct_answer))}</div>
-      `;
-    }
-
-    card.innerHTML = `
-      <div class="q-header">
-        <span class="q-number">${a.is_correct ? '✓' : '✗'} Q${idx + 1}</span>
-        <span class="q-marks">${a.marks_awarded}/${a.marks_possible}</span>
-      </div>
-      <div class="q-stem">${escapeHtml(a.stem)}${a.keyword ? ` <span class="q-keyword">${escapeHtml(a.keyword)}</span>` : ''}${a.base_word ? ` <span class="q-keyword">${escapeHtml(a.base_word)}</span>` : ''}</div>
-      ${answerHtml}
-      ${a.explanation ? `<div class="explanation-text">💡 ${escapeHtml(a.explanation)}</div>` : ''}
-    `;
-    c.appendChild(card);
-  });
-}
+// ── REVIEW ANSWERS removed — candidates should not see answers/scores ──
 
 // ── UTILS ──
 function escapeHtml(text) {
