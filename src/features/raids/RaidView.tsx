@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Profile } from '../../../types';
 import * as GameService from '../../../services/gameService';
+import { tryConsumePilotQuota } from '../../../services/tierService';
 import {
   BossUnlockState,
   RaidMode,
@@ -446,6 +447,14 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
       addToast?.('Meet the unlock requirements before launching a raid.', 'error');
       return;
     }
+
+    // Consume pilot quota if applicable
+    const quota = await tryConsumePilotQuota('raid_attempts');
+    if (!quota.proceed) {
+      addToast?.(quota.error || 'Raid quota exhausted. Upgrade your plan to continue.', 'error');
+      return;
+    }
+
     setLaunching(true);
     try {
       const scheduled = await GameService.startRaidEncounter('obsidian_sentinel');

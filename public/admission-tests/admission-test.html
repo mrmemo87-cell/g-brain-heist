@@ -489,9 +489,11 @@ async function handleStart() {
 // ── OFFLINE loader: pick questions from local JSON ──
 async function loadOfflineTest(formCode) {
   try {
-    const poolPath = formCode.toLowerCase().startsWith('eng')
-      ? '../pools/english_stage9_pool.json'
-      : '../pools/math_stage9_pool.json';
+    const code = formCode.toLowerCase();
+    let poolPath;
+    if (code.startsWith('eng')) poolPath = '../pools/english_stage9_pool.json';
+    else if (code.startsWith('mat') || code.startsWith('math')) poolPath = '../pools/math_stage9_pool.json';
+    else poolPath = '../pools/math_stage9_pool.json'; // fallback
 
     const res = await fetch(poolPath);
     if (!res.ok) throw new Error('Pool file not found');

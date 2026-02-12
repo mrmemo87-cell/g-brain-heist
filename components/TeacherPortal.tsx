@@ -10,7 +10,9 @@ import DiagramBuilder from './geometry/DiagramBuilder';
 import QuestionBank from './teacher/QuestionBank';
 import '../src/styles/teacher-theme.css';
 import { chemistryAnswerKeys, chemistryQuestionRanges } from './chemistryAnswerKeys';
-import { fetchSchoolPlanDetails, fetchEffectiveTier, isPro, fetchPilotQuotas, getQuotaForFeature, QUOTA_LABELS, FEATURE_TO_QUOTA, type SchoolPlanDetails, type AccountTier, type PilotQuotaStatus, type PilotQuota } from '../services/tierService';
+import { fetchSchoolPlanDetails, fetchEffectiveTier, isPro, fetchPilotQuotas, getQuotaForFeature, QUOTA_LABELS, FEATURE_TO_QUOTA, tryConsumePilotQuota, type SchoolPlanDetails, type AccountTier, type PilotQuotaStatus, type PilotQuota } from '../services/tierService';
+import ProfessionalCambridgeReport, { generateSerialNumber } from './ProfessionalCambridgeReport';
+import type { ProfessionalReportData } from './ProfessionalCambridgeReport';
 
 interface TeacherPortalProps {
   profile: Profile;
@@ -2350,6 +2352,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const handleCreateQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Consume pilot quota if applicable
+    const quota = await tryConsumePilotQuota('questions_created');
+    if (!quota.proceed) {
+      alert(quota.error || 'Question creation quota exhausted. Upgrade your plan to continue.');
+      return;
+    }
+
     if (topicMode === 'custom' && !customTopicName.trim()) {
       alert('Please enter a topic name for your question.');
       return;
@@ -2616,6 +2625,14 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     try {
       setAssignmentSubmitting(true);
 
+      // Consume pilot quota if applicable
+      const assignQuota = await tryConsumePilotQuota('assignments_created');
+      if (!assignQuota.proceed) {
+        alert(assignQuota.error || 'Assignment creation quota exhausted. Upgrade your plan to continue.');
+        setAssignmentSubmitting(false);
+        return;
+      }
+
       if (assignmentMode === 'batch') {
         // Create one assignment per selected batch/class
         const batchesToAssign = assignmentBatches;
@@ -2746,8 +2763,16 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     }
   };
 
-  const handleExportReport = () => {
+  const handleExportReport = async () => {
     if (!selectedReportAssignment || assignmentReport.length === 0) return;
+
+    // Consume pilot quota if applicable
+    const quota = await tryConsumePilotQuota('reports_generated');
+    if (!quota.proceed) {
+      alert(quota.error || 'Report generation quota exhausted. Upgrade your plan to continue.');
+      return;
+    }
+
     const header = 'Student,Batch,Score,Correct,Incorrect,Accuracy (%),Completed At';
     const rows = assignmentReport.map((row) => (
       [
@@ -5706,7 +5731,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         </div>
       </details>
 
-      {/* Performance Report Modal - Professional Landscape Certificate */}
+      {/* Performance Report Modal - Professional Report with Serial Number */}
       {showCambridgeReport && selectedCambridgeStudent && (() => {
         const skillPerf = analyzeSkillPerformance(selectedCambridgeStudent);
         const reportAnswerKey = selectedCambridgeStudent.quiz_name?.toLowerCase().includes('chemistry')
@@ -5718,271 +5743,37 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         const accuracy = responseSummary.totalQuestions > 0
           ? Math.round((responseSummary.correctCount / responseSummary.totalQuestions) * 100)
           : selectedCambridgeStudent.percentage;
-        const personalizedNote = `You answered ${responseSummary.correctCount}/${responseSummary.totalQuestions || selectedCambridgeStudent.total_questions} correctly (${accuracy}%). ${responseSummary.unansweredCount > 0 ? `There were ${responseSummary.unansweredCount} unanswered questions—aim to attempt every item next time.` : 'Great job attempting every question.'}`;
+        const personalizedNote = `${studentFirstName}, you answered ${responseSummary.correctCount}/${responseSummary.totalQuestions || selectedCambridgeStudent.total_questions} correctly (${accuracy}%). ${responseSummary.unansweredCount > 0 ? `There were ${responseSummary.unansweredCount} unanswered questions—aim to attempt every item next time.` : 'Great job attempting every question.'}`;
         const sortedSkills = Object.entries(skillPerf).sort((a, b) => a[1].percentage - b[1].percentage);
         const weakAreas = sortedSkills.filter(([_, data]) => data.percentage < 70);
         const grade = getGrade(selectedCambridgeStudent.percentage);
         const encouragement = getEncouragement(grade);
         
-        const handlePrint = () => {
-          window.print();
+        const reportData: ProfessionalReportData = {
+          id: selectedCambridgeStudent.id || '',
+          studentName: selectedCambridgeStudent.student_name || 'Student',
+          studentClass: selectedCambridgeStudent.student_class,
+          quizName: selectedCambridgeStudent.quiz_name,
+          score: selectedCambridgeStudent.score,
+          totalQuestions: selectedCambridgeStudent.total_questions,
+          percentage: selectedCambridgeStudent.percentage,
+          submittedAt: selectedCambridgeStudent.submitted_at,
+          timeTakenSeconds: selectedCambridgeStudent.time_taken_seconds,
+          skillPerformance: skillPerf,
+          correctCount: responseSummary.correctCount,
+          wrongCount: responseSummary.wrongCount,
+          unansweredCount: responseSummary.unansweredCount,
+          grade,
+          encouragement,
+          actionPlanItems: weakAreas.slice(0, 3).map(([skill, data]) => {
+            const plan = actionPlans[skill];
+            return plan ? { skill, title: plan.title, tips: plan.tips, percentage: data.percentage } : { skill, title: skill, tips: [], percentage: data.percentage };
+          }).filter(item => item.tips.length > 0),
+          fallbackPlan: weakAreas.length === 0 ? fallbackPlan : undefined,
+          personalizedNote,
         };
         
-        return createPortal(
-          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-2 sm:p-4 overflow-y-auto print:p-0 print:bg-white print:overflow-visible print:block" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {/* Print Styles - Optimized for Single Landscape Page */}
-            <style>{`
-              @media print {
-                @page {
-                  size: A4 landscape;
-                  margin: 8mm;
-                }
-                
-                html, body {
-                  margin: 0 !important;
-                  padding: 0 !important;
-                  overflow: visible !important;
-                }
-                
-                body * {
-                  visibility: hidden;
-                }
-                
-                .print-certificate,
-                .print-certificate * {
-                  visibility: visible !important;
-                }
-                
-                .print-certificate {
-                  position: fixed !important;
-                  left: 0 !important;
-                  top: 0 !important;
-                  width: 100% !important;
-                  height: auto !important;
-                  max-height: none !important;
-                  overflow: visible !important;
-                  background: white !important;
-                  margin: 0 !important;
-                  padding: 0 !important;
-                  border-radius: 0 !important;
-                  box-shadow: none !important;
-                  -webkit-print-color-adjust: exact !important;
-                  print-color-adjust: exact !important;
-                  color-adjust: exact !important;
-                }
-                
-                .no-print {
-                  display: none !important;
-                }
-                
-                .print-certificate .print-header {
-                  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%) !important;
-                  -webkit-print-color-adjust: exact !important;
-                  print-color-adjust: exact !important;
-                  padding: 8px 16px !important;
-                }
-                
-                .print-certificate .print-student-banner {
-                  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%) !important;
-                  -webkit-print-color-adjust: exact !important;
-                  print-color-adjust: exact !important;
-                  padding: 8px 16px !important;
-                }
-                
-                .print-certificate .skill-bar-fill {
-                  -webkit-print-color-adjust: exact !important;
-                  print-color-adjust: exact !important;
-                }
-
-                .print-certificate .print-content {
-                  padding: 10px 16px !important;
-                  gap: 12px !important;
-                }
-
-                .print-certificate .print-footer {
-                  padding: 6px 16px !important;
-                }
-              }
-            `}</style>
-
-            <div className="print-certificate bg-white rounded-xl max-w-5xl w-full shadow-2xl print:rounded-none print:shadow-none print:max-w-none" style={{ fontFamily: "'Segoe UI', 'Arial', sans-serif" }}>
-              {/* Compact Header */}
-              <div className="print-header bg-gradient-to-r from-purple-700 via-purple-600 to-indigo-600 text-white px-4 py-2">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white rounded-lg p-1.5 shadow">
-                      <img src="/logo.png" alt="Brains Heist" className="w-full h-full object-contain" />
-                    </div>
-                    <div>
-                      <h1 className="text-lg font-bold tracking-wide">BRAINS HEIST</h1>
-                      <p className="text-purple-200 text-xs">Student Performance Certificate</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <h2 className="text-sm font-semibold">{selectedCambridgeStudent.quiz_name}</h2>
-                    <p className="text-purple-200 text-xs">{new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Compact Student Banner */}
-              <div className="print-student-banner bg-gradient-to-r from-indigo-900 to-purple-900 text-white px-4 py-2 flex justify-between items-center">
-                <div>
-                  <h2 className="text-lg font-bold">{selectedCambridgeStudent.student_name}</h2>
-                  <p className="text-indigo-200 text-xs">
-                    Class: <span className="font-semibold text-white">{selectedCambridgeStudent.student_class || 'N/A'}</span>
-                    <span className="mx-2">•</span>
-                    {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString('en-GB')}
-                    <span className="mx-2">•</span>
-                    {formatCambridgeTime(selectedCambridgeStudent.time_taken_seconds)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="text-right">
-                    <p className="text-indigo-200 text-[10px] uppercase">Score</p>
-                    <p className="text-xl font-bold">{selectedCambridgeStudent.score}/{selectedCambridgeStudent.total_questions}</p>
-                  </div>
-                  <div className={`w-14 h-14 rounded-xl flex flex-col items-center justify-center shadow ${
-                    selectedCambridgeStudent.percentage >= 85 ? 'bg-gradient-to-br from-green-400 to-emerald-500' :
-                    selectedCambridgeStudent.percentage >= 70 ? 'bg-gradient-to-br from-blue-400 to-cyan-500' :
-                    selectedCambridgeStudent.percentage >= 55 ? 'bg-gradient-to-br from-yellow-400 to-amber-500' :
-                    'bg-gradient-to-br from-red-400 to-rose-500'
-                  }`}>
-                    <span className="text-xl font-black text-white drop-shadow">{grade}</span>
-                    <span className="text-[10px] text-white/90 font-semibold">{selectedCambridgeStudent.percentage}%</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Main Content - Compact Two Column Layout */}
-              <div className="print-content px-4 py-3 grid grid-cols-2 gap-3">
-                {/* Left Column - Skills */}
-                <div className="space-y-2">
-                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                    <h3 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-1">
-                      📊 Skills Performance
-                    </h3>
-                    <div className="space-y-1.5">
-                      {sortedSkills.map(([skill, data]) => (
-                        <div key={skill} className="flex items-center gap-1.5">
-                          <span className="w-28 text-[10px] font-medium text-gray-600 truncate">{data.icon} {skill}</span>
-                          <div className="flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
-                            <div 
-                              className={`skill-bar-fill h-full rounded-full flex items-center justify-end pr-1 ${
-                                data.percentage >= 80 ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 
-                                data.percentage >= 65 ? 'bg-gradient-to-r from-blue-400 to-cyan-500' : 
-                                data.percentage >= 50 ? 'bg-gradient-to-r from-yellow-400 to-amber-500' : 
-                                'bg-gradient-to-r from-red-400 to-rose-500'
-                              }`}
-                              style={{ width: `${Math.max(data.percentage, 20)}%` }}
-                            >
-                              <span className="text-[9px] font-bold text-white drop-shadow">{data.percentage}%</span>
-                            </div>
-                          </div>
-                          <span className="w-8 text-[10px] font-bold text-gray-600 text-right">{data.correct}/{data.total}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Focus Areas - Compact */}
-                  {weakAreas.length > 0 && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-2">
-                      <h4 className="font-bold text-amber-800 text-xs mb-1">⚠️ Focus Areas</h4>
-                      <ul className="text-[10px] text-amber-900 space-y-0.5">
-                        {weakAreas.slice(0, 3).map(([skill, data]) => (
-                          <li key={skill}>• <strong>{skill}</strong> — {data.percentage}%</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-
-                {/* Right Column - Action Plan & Encouragement */}
-                <div className="space-y-2">
-                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                    <h3 className="text-sm font-bold text-purple-800 mb-2">📋 Action Plan</h3>
-                    {weakAreas.length > 0 ? (
-                      <div className="space-y-1.5">
-                        {weakAreas.slice(0, 3).map(([skill, data], idx) => {
-                          const plan = actionPlans[skill];
-                          return plan ? (
-                            <div key={skill} className="flex gap-2 p-2 bg-white rounded border border-purple-100">
-                              <div className="w-5 h-5 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-[10px] flex-shrink-0">{idx + 1}</div>
-                              <div className="min-w-0">
-                                <h4 className="font-semibold text-gray-800 text-xs">{plan.title} ({data.percentage}%)</h4>
-                                <p className="text-[10px] text-gray-600 leading-tight">{plan.tips.slice(0, 2).join(' • ')}</p>
-                              </div>
-                            </div>
-                          ) : null;
-                        })}
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <div className="flex gap-2 p-2 bg-white rounded border border-purple-100">
-                          <div className="w-5 h-5 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-[10px] flex-shrink-0">1</div>
-                          <div>
-                            <h4 className="font-semibold text-gray-800 text-xs">{fallbackPlan.title}</h4>
-                            <p className="text-[10px] text-gray-600">{fallbackPlan.tips[0]}</p>
-                          </div>
-                        </div>
-                        {fallbackPlan.tips.slice(1).map((tip, idx) => (
-                          <div key={tip} className="flex gap-2 p-2 bg-white rounded border border-purple-100">
-                            <div className="w-5 h-5 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-[10px] flex-shrink-0">{idx + 2}</div>
-                            <div>
-                              <p className="text-[10px] text-gray-600">{tip}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <h3 className="text-sm font-bold text-blue-800 mb-2">🎯 Personal Coaching Note</h3>
-                    <p className="text-[11px] text-blue-900">
-                      {studentFirstName}, {personalizedNote}
-                    </p>
-                  </div>
-
-                  {/* Encouragement - Compact */}
-                  <div className={`rounded-lg p-3 text-center ${
-                    selectedCambridgeStudent.percentage >= 85 ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
-                    selectedCambridgeStudent.percentage >= 70 ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
-                    selectedCambridgeStudent.percentage >= 55 ? 'bg-gradient-to-r from-amber-500 to-yellow-500' :
-                    'bg-gradient-to-r from-purple-500 to-indigo-500'
-                  } text-white`}>
-                    <h3 className="text-sm font-bold">{encouragement.title}</h3>
-                    <p className="text-[11px] opacity-95">{encouragement.message}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Compact Footer */}
-              <div className="print-footer px-4 py-2 border-t border-gray-200 flex justify-between items-center bg-gray-50">
-                <div className="text-[10px] text-gray-500">
-                  <span className="font-medium">Brains Heist</span> • ID: {selectedCambridgeStudent.id?.substring(0, 8).toUpperCase() || 'N/A'}
-                </div>
-                <div className="flex gap-2 no-print">
-                  <button 
-                    onClick={handlePrint} 
-                    className="px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-semibold text-xs hover:from-green-600 hover:to-emerald-600 transition-all shadow flex items-center gap-1"
-                  >
-                    🖨️ Print / PDF
-                  </button>
-                  <button 
-                    onClick={() => setShowCambridgeReport(false)} 
-                    className="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg font-semibold text-xs hover:bg-red-200 transition-all"
-                    title="Close (Press Esc)"
-                  >
-                    ✕ Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>,
-          document.body
-        );
+        return <ProfessionalCambridgeReport data={reportData} onClose={() => setShowCambridgeReport(false)} isTeacherView={true} />;
       })()}
 
       {/* Answer Reflection Modal */}
@@ -6156,7 +5947,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
                 {/* Footer */}
                 <div className="p-4 border-t flex justify-between items-center">
-                  <span className="text-xs text-gray-400">Report ID: {selectedCambridgeStudent.id?.substring(0, 8) || 'N/A'}</span>
+                  <span className="text-xs text-gray-400" style={{ fontFamily: "'Courier New', Courier, monospace" }}>Serial: {generateSerialNumber(selectedCambridgeStudent.id || '', selectedCambridgeStudent.student_name || '', selectedCambridgeStudent.submitted_at || '')}</span>
                   <div className="flex gap-3">
                     {(answers.requires_marking || !feedback.releasedToStudent) && (
                       <button
@@ -6367,7 +6158,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
               {/* Footer */}
               <div className="p-4 border-t flex justify-between items-center text-xs text-gray-400">
-                <span>Report ID: {selectedCambridgeStudent.id?.substring(0, 8) || 'N/A'}</span>
+                <span style={{ fontFamily: "'Courier New', Courier, monospace" }}>Serial: {generateSerialNumber(selectedCambridgeStudent.id || '', selectedCambridgeStudent.student_name || '', selectedCambridgeStudent.submitted_at || '')}</span>
                 <span>Confidential — For Student & Teacher Use Only</span>
                 <div className="flex gap-3">
                   <button onClick={() => window.print()} className="px-4 py-2 bg-green-100 text-black rounded-lg font-semibold hover:bg-green-200">🖨️ Print</button>

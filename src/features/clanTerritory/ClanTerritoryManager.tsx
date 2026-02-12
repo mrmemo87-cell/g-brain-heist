@@ -12,7 +12,7 @@ import { fetchSchoolBatches, type SchoolBatchInfo } from "../../../services/comp
 import { clan_list } from "../../../services/gameService";
 import { ClanSummary } from "../../../types";
 import * as SchoolAdminService from "../../../services/schoolAdminService";
-import { fetchLockdownLimits, type LockdownLimits, FREE_LOCKDOWN_LIMITS } from "../../../services/tierService";
+import { fetchLockdownLimits, type LockdownLimits, FREE_LOCKDOWN_LIMITS, tryConsumePilotQuota } from "../../../services/tierService";
 import { FreeTierWatermark } from "../../../components/FreeTierWatermark";
 
 interface ClanTerritoryManagerProps {
@@ -638,6 +638,13 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     
     // If we're in configure mode, create room after questions selected
     if (mode === 'configure') {
+      // Consume pilot quota if applicable
+      const quota = await tryConsumePilotQuota('lockdown_sessions');
+      if (!quota.proceed) {
+        alert(quota.error || 'Lockdown session quota exhausted. Upgrade your plan to continue.');
+        return;
+      }
+
       const id = await transport.createRoom({
         allowClanlessPlayers,
         schoolId: userSchoolId || undefined,

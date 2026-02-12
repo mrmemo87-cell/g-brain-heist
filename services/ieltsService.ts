@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { tryConsumePilotQuota } from './tierService';
 import type {
   IELTSUserProfile,
   IELTSReadingSet,
@@ -535,6 +536,12 @@ export const submitReadingAttempt = async (
   answers: Record<number, string>,
   timeSpent: number
 ) => {
+  // Consume pilot quota if applicable
+  const quota = await tryConsumePilotQuota('ielts_tests');
+  if (!quota.proceed) {
+    throw new Error(quota.error || 'IELTS test quota exhausted. Upgrade your plan to continue.');
+  }
+
   const { data: session } = await supabase.auth.getSession();
   if (!session?.session?.user) {
     throw new Error('Not authenticated');

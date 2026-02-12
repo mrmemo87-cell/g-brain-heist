@@ -4,6 +4,7 @@ import * as GameService from '../services/gameService';
 import { audioService } from '../services/audioService';
 import BackButton from './BackButton';
 import CoinAnimation from './CoinAnimation';
+import { tryConsumePilotQuota } from '../services/tierService';
 import {
   BoosterIcon,
   CoinIcon,
@@ -303,6 +304,13 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
   }, []);
 
   const handleBuy = async (item: ShopItem, quantity: number) => {
+    // Consume pilot quota if applicable
+    const quota = await tryConsumePilotQuota('shop_purchases');
+    if (!quota.proceed) {
+      addToast(quota.error || 'Shop purchase quota exhausted. Upgrade your plan to continue.', 'error');
+      return;
+    }
+
     try {
         const receipt = await GameService.shop_buy(item.id, quantity);
         audioService.play('buy');

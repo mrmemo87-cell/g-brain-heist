@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import BackButton from './BackButton';
 import type { ToastMessage } from '../types';
 import * as AdmService from '../services/admissionService';
-import { tryConsumePilotQuota } from '../services/tierService';
 import type {
   AdmQuestionPool,
   AdmBlueprint,
@@ -42,49 +41,6 @@ const BAND_LABELS: Record<PlacementBand, string> = {
   E: 'Requires Support',
 };
 
-// ── Blueprint Presets (auto-fill for each subject) ──
-
-const BLUEPRINT_PRESETS: Record<string, { label: string; icon: string; marks: number; duration: number; distribution: string }> = {
-  english: {
-    label: 'English',
-    icon: '📖',
-    marks: 27,
-    duration: 45,
-    distribution: JSON.stringify({ mcq: { easy: 5, medium: 8, hard: 1 }, gap_fill: { easy: 1, medium: 2, hard: 1 }, sentence_transformation: { medium: 2, hard: 1 } }),
-  },
-  math: {
-    label: 'Mathematics',
-    icon: '🔢',
-    marks: 30,
-    duration: 60,
-    distribution: JSON.stringify({ mcq: { easy: 6, medium: 8, hard: 2 }, short_answer: { easy: 2, medium: 3, hard: 1 }, structured: { medium: 3, hard: 2 }, gap_fill: { easy: 1, medium: 1, hard: 1 } }),
-  },
-  science: {
-    label: 'Science',
-    icon: '🔬',
-    marks: 25,
-    duration: 50,
-    distribution: JSON.stringify({ mcq: { easy: 5, medium: 7, hard: 2 }, short_answer: { easy: 2, medium: 3 }, structured: { medium: 2, hard: 1 } }),
-  },
-  chemistry: {
-    label: 'Chemistry',
-    icon: '⚗️',
-    marks: 25,
-    duration: 50,
-    distribution: JSON.stringify({ mcq: { easy: 4, medium: 6, hard: 2 }, short_answer: { easy: 2, medium: 3 }, structured: { medium: 2, hard: 2 } }),
-  },
-};
-
-// ── Pipeline Steps ──
-
-const PIPELINE_STEPS = [
-  { key: 'pools', icon: '📝', label: 'Question Pool', desc: 'Import questions' },
-  { key: 'blueprints', icon: '📐', label: 'Blueprint', desc: 'Define test structure' },
-  { key: 'forms', icon: '📋', label: 'Test Form', desc: 'Generate & publish' },
-  { key: 'candidates', icon: '👤', label: 'Candidates', desc: 'Register & send links' },
-  { key: 'results', icon: '🏆', label: 'Results', desc: 'Score & place' },
-] as const;
-
 // ── Main Component ──
 
 const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => {
@@ -114,7 +70,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   const [bpTotalMarks, setBpTotalMarks] = useState(27);
   const [bpPassPercentage, setBpPassPercentage] = useState(50);
   const [bpDelivery, setBpDelivery] = useState<'practice' | 'exam'>('exam');
-  const [bpDistribution, setBpDistribution] = useState(BLUEPRINT_PRESETS.english.distribution);
+  const [bpDistribution, setBpDistribution] = useState('{"mcq": {"easy": 5, "medium": 8, "hard": 1}, "gap_fill": {"easy": 1, "medium": 2, "hard": 1}, "sentence_transformation": {"medium": 2, "hard": 1}}');
 
   // Candidate form
   const [candName, setCandName] = useState('');
@@ -122,20 +78,10 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   const [candPhone, setCandPhone] = useState('');
   const [candAppliedGrade, setCandAppliedGrade] = useState('');
   const [candNotes, setCandNotes] = useState('');
-  const [bulkMode, setBulkMode] = useState(false);
-  const [bulkText, setBulkText] = useState('');
 
   // Form generation
   const [genBlueprintId, setGenBlueprintId] = useState('');
   const [genFormCode, setGenFormCode] = useState('');
-
-  // Candidate search
-  const [candSearch, setCandSearch] = useState('');
-  const [candStatusFilter, setCandStatusFilter] = useState<string>('all');
-
-  // Share modal
-  const [shareModalCandidate, setShareModalCandidate] = useState<AdmCandidate | null>(null);
-  const [shareModalForm, setShareModalForm] = useState<AdmTestForm | null>(null);
 
   // Report modal
   const [reportData, setReportData] = useState<CandidateReport | null>(null);
@@ -198,30 +144,6 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
   // ── Handlers ──
 
-  // Auto-apply preset when subject changes
-  const applySubjectPreset = (subject: string) => {
-    setBpSubject(subject);
-    const preset = BLUEPRINT_PRESETS[subject];
-    if (preset) {
-      setBpTotalMarks(preset.marks);
-      setBpDuration(preset.duration);
-      setBpDistribution(preset.distribution);
-      setBpName(`${preset.label} Stage ${bpTargetStage} — Admission Test`);
-    }
-  };
-
-  // Auto-generate form code
-  const generateFormCode = (blueprintId: string) => {
-    setGenBlueprintId(blueprintId);
-    const bp = blueprints.find(b => b.id === blueprintId);
-    if (bp) {
-      const subCode = bp.subject.slice(0, 3).toUpperCase();
-      const year = new Date().getFullYear();
-      const letter = String.fromCharCode(65 + forms.filter(f => f.blueprint_id === blueprintId).length);
-      setGenFormCode(`${subCode}${bp.target_stage || 9}-${year}-${letter}`);
-    }
-  };
-
   const handleCreateBlueprint = async () => {
     if (!schoolId || !bpName) return;
     setCreatingBlueprint(true);
@@ -243,7 +165,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
         created_by: null,
       });
       addToast('Blueprint created', 'success');
-      setBpName(''); setBpDistribution(BLUEPRINT_PRESETS[bpSubject]?.distribution || '{}');
+      setBpName(''); setBpDistribution('{"mcq": {"easy": 5, "medium": 8, "hard": 1}, "gap_fill": {"easy": 1, "medium": 2, "hard": 1}, "sentence_transformation": {"medium": 2, "hard": 1}}');
       await loadAll();
     } catch (err: any) {
       addToast(err.message || 'Failed to create blueprint', 'error');
@@ -254,14 +176,6 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
   const handleGenerateForm = async () => {
     if (!genBlueprintId || !genFormCode) return;
-
-    // Consume pilot quota if applicable
-    const quota = await tryConsumePilotQuota('admission_tests');
-    if (!quota.proceed) {
-      addToast(quota.error || 'Admission test quota exhausted. Upgrade your plan to continue.', 'error');
-      return;
-    }
-
     setGeneratingForm(true);
     try {
       const res = await AdmService.generateTestForm(genBlueprintId, genFormCode);
@@ -309,51 +223,6 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
     } finally {
       setCreatingCandidate(false);
     }
-  };
-
-  // Bulk import candidates from pasted text (name, email, phone per line)
-  const handleBulkImport = async () => {
-    if (!schoolId || !bulkText.trim()) return;
-    setCreatingCandidate(true);
-    try {
-      const lines = bulkText.trim().split('\n').filter(l => l.trim());
-      const parsed = lines.map(line => {
-        const parts = line.split(/[,\t]/).map(p => p.trim());
-        return {
-          school_id: schoolId!,
-          full_name: parts[0] || '',
-          email: parts[1] || null,
-          parent_phone: parts[2] || null,
-          applied_grade: parts[3] ? parseInt(parts[3], 10) : null,
-          notes: null,
-        };
-      }).filter(c => c.full_name);
-
-      if (parsed.length === 0) { addToast('No valid entries found', 'error'); return; }
-      await AdmService.bulkCreateCandidates(parsed);
-      addToast(`${parsed.length} candidate(s) imported`, 'success');
-      setBulkText('');
-      setBulkMode(false);
-      await loadAll();
-    } catch (err: any) {
-      addToast(err.message || 'Bulk import failed', 'error');
-    } finally {
-      setCreatingCandidate(false);
-    }
-  };
-
-  // Share via WhatsApp
-  const shareViaWhatsApp = (phone: string | null, link: string, candidateName: string) => {
-    const msg = encodeURIComponent(`Hi! Here is ${candidateName}'s admission test link:\n\n${link}\n\nPlease complete the test before the deadline. Good luck!`);
-    const cleanPhone = (phone || '').replace(/[^0-9+]/g, '');
-    window.open(`https://wa.me/${cleanPhone}?text=${msg}`, '_blank');
-  };
-
-  // Share via Email
-  const shareViaEmail = (email: string | null, link: string, candidateName: string) => {
-    const subject = encodeURIComponent(`Admission Test Link for ${candidateName}`);
-    const body = encodeURIComponent(`Dear Parent/Guardian,\n\nHere is the admission test link for ${candidateName}:\n\n${link}\n\nPlease ensure the test is completed before the deadline.\n\nBest regards,\nAdmissions Office`);
-    window.open(`mailto:${email || ''}?subject=${subject}&body=${body}`, '_blank');
   };
 
   const handleViewReport = async (attemptId: string) => {
@@ -413,6 +282,11 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
     else addToast(res.error || 'Failed', 'error');
   };
 
+  const copyTestLink = (token: string, formCode: string) => {
+    const link = AdmService.buildTestLink(window.location.origin, token, formCode);
+    navigator.clipboard.writeText(link).then(() => addToast('Link copied', 'success'));
+  };
+
   // ── Tab config ──
 
   const tabs: { key: AdmTab; label: string; icon: string }[] = [
@@ -424,40 +298,6 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
     { key: 'results', label: 'Results', icon: '🏆' },
     { key: 'audit', label: 'Audit Log', icon: '📜' },
   ];
-
-  // ── Computed data ──
-
-  const filteredCandidates = useMemo(() => {
-    let list = candidates;
-    if (candSearch.trim()) {
-      const q = candSearch.toLowerCase();
-      list = list.filter(c =>
-        c.full_name.toLowerCase().includes(q) ||
-        (c.email || '').toLowerCase().includes(q) ||
-        c.token.toLowerCase().includes(q)
-      );
-    }
-    if (candStatusFilter !== 'all') {
-      list = list.filter(c => c.status === candStatusFilter);
-    }
-    return list;
-  }, [candidates, candSearch, candStatusFilter]);
-
-  const bandDistribution = useMemo(() => {
-    const counts: Record<string, number> = { A: 0, B: 0, C: 0, D: 0, E: 0 };
-    placements.forEach(p => { if (counts[p.band] !== undefined) counts[p.band]++; });
-    return counts;
-  }, [placements]);
-
-  const pipelineProgress = useMemo(() => {
-    return {
-      pools: pools.length > 0,
-      blueprints: blueprints.length > 0,
-      forms: forms.some(f => f.status === 'published'),
-      candidates: candidates.length > 0,
-      results: attempts.some(a => a.status === 'scored'),
-    };
-  }, [pools, blueprints, forms, candidates, attempts]);
 
   // ── Render helpers ──
 
@@ -576,179 +416,59 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       {/*  ━━━ OVERVIEW TAB ━━━  */}
       {activeTab === 'overview' && !loading && (
         <div className="space-y-6">
-          {/* Admission Pipeline - Visual Step Tracker */}
-          <div className="rounded-2xl border border-cyan-500/20 bg-gradient-to-r from-slate-800/80 via-slate-800/60 to-slate-800/80 p-5">
-            <h3 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-              <span className="text-lg">🚀</span> Admission Pipeline
-            </h3>
-            <div className="flex items-center justify-between gap-1">
-              {PIPELINE_STEPS.map((step, i) => {
-                const done = pipelineProgress[step.key as keyof typeof pipelineProgress];
-                return (
-                  <React.Fragment key={step.key}>
-                    <button
-                      onClick={() => setActiveTab(step.key as AdmTab)}
-                      className={`flex-1 rounded-xl p-3 text-center transition-all cursor-pointer border ${
-                        done
-                          ? 'border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20'
-                          : 'border-gray-700 bg-slate-800/40 hover:bg-slate-700/40'
-                      }`}
-                    >
-                      <div className={`text-2xl mb-1 ${done ? 'grayscale-0' : 'grayscale opacity-50'}`}>{step.icon}</div>
-                      <div className={`text-xs font-semibold ${done ? 'text-emerald-300' : 'text-gray-400'}`}>{step.label}</div>
-                      <div className="text-[10px] text-gray-500 mt-0.5">{step.desc}</div>
-                      {done && <div className="text-emerald-400 text-xs mt-1">✓</div>}
-                    </button>
-                    {i < PIPELINE_STEPS.length - 1 && (
-                      <div className={`w-6 h-0.5 shrink-0 ${done ? 'bg-emerald-500/50' : 'bg-gray-700'}`} />
-                    )}
-                  </React.Fragment>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {statCard('Question Pools', pools.length, '📝', 'border-cyan-500/30')}
             {statCard('Blueprints', blueprints.length, '📐', 'border-blue-500/30')}
             {statCard('Test Forms', forms.length, '📋', 'border-indigo-500/30')}
             {statCard('Candidates', candidates.length, '👤', 'border-purple-500/30')}
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {statCard('Active Tests', forms.filter(f => f.status === 'published').length, '✅', 'border-emerald-500/30')}
             {statCard('Attempts', attempts.length, '📊', 'border-amber-500/30')}
             {statCard('Scored', attempts.filter(a => a.status === 'scored').length, '🏆', 'border-yellow-500/30')}
             {statCard('Placed', placements.length, '🎯', 'border-pink-500/30')}
           </div>
 
-          {/* Band Distribution Chart */}
-          {placements.length > 0 && (
-            <div className="rounded-xl border border-gray-700 bg-slate-800/60 p-5">
-              <h3 className="text-sm font-semibold text-gray-300 mb-3">Band Distribution</h3>
-              <div className="flex items-end gap-3 h-32">
-                {(['A', 'B', 'C', 'D', 'E'] as PlacementBand[]).map(band => {
-                  const count = bandDistribution[band];
-                  const maxBand = Math.max(...Object.values(bandDistribution), 1);
-                  const heightPct = (count / maxBand) * 100;
-                  return (
-                    <div key={band} className="flex-1 flex flex-col items-center gap-1">
-                      <span className="text-xs text-gray-300 font-bold">{count}</span>
-                      <div className="w-full rounded-t-lg relative" style={{ height: `${Math.max(heightPct, 4)}%` }}>
-                        <div className={`absolute inset-0 rounded-t-lg ${BAND_COLORS[band].split(' ')[0]} opacity-70`} />
-                      </div>
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded ${BAND_COLORS[band]}`}>
-                        {band}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Quick Action Cards */}
+          {/* Quick actions */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button onClick={() => setActiveTab('candidates')} className="group rounded-xl border border-purple-500/30 bg-slate-800/60 p-5 hover:bg-purple-900/20 hover:border-purple-500/50 transition-all text-left">
-              <span className="text-3xl block mb-2 group-hover:scale-110 transition-transform">➕</span>
-              <div className="text-sm font-semibold text-white">Register Candidates</div>
-              <div className="text-xs text-gray-400 mt-1">Add one or bulk import from CSV</div>
-              {candidates.length > 0 && <div className="text-xs text-purple-400 mt-2">{candidates.filter(c => c.status === 'registered').length} awaiting test</div>}
+            <button onClick={() => setActiveTab('candidates')} className="rounded-xl border border-purple-500/30 bg-slate-800/60 p-4 hover:bg-slate-700/60 transition text-left">
+              <span className="text-2xl">➕</span>
+              <div className="text-sm font-semibold text-white mt-2">Register Candidates</div>
+              <div className="text-xs text-gray-400">Add new applicants for testing</div>
             </button>
-            <button onClick={() => setActiveTab('forms')} className="group rounded-xl border border-indigo-500/30 bg-slate-800/60 p-5 hover:bg-indigo-900/20 hover:border-indigo-500/50 transition-all text-left">
-              <span className="text-3xl block mb-2 group-hover:scale-110 transition-transform">📋</span>
-              <div className="text-sm font-semibold text-white">Manage Tests</div>
-              <div className="text-xs text-gray-400 mt-1">Generate, publish, or close test forms</div>
-              {forms.filter(f => f.status === 'published').length > 0 && <div className="text-xs text-indigo-400 mt-2">{forms.filter(f => f.status === 'published').length} active</div>}
+            <button onClick={() => setActiveTab('forms')} className="rounded-xl border border-indigo-500/30 bg-slate-800/60 p-4 hover:bg-slate-700/60 transition text-left">
+              <span className="text-2xl">📋</span>
+              <div className="text-sm font-semibold text-white mt-2">Manage Test Forms</div>
+              <div className="text-xs text-gray-400">Generate, publish, or close tests</div>
             </button>
-            <button onClick={() => setActiveTab('results')} className="group rounded-xl border border-amber-500/30 bg-slate-800/60 p-5 hover:bg-amber-900/20 hover:border-amber-500/50 transition-all text-left">
-              <span className="text-3xl block mb-2 group-hover:scale-110 transition-transform">🏆</span>
-              <div className="text-sm font-semibold text-white">View Results</div>
-              <div className="text-xs text-gray-400 mt-1">Review scores, AI analysis & placements</div>
-              {attempts.filter(a => a.status === 'scored' && !placements.find(p => p.attempt_id === a.id)).length > 0 && (
-                <div className="text-xs text-amber-400 mt-2 animate-pulse">{attempts.filter(a => a.status === 'scored' && !placements.find(p => p.attempt_id === a.id)).length} need placement</div>
-              )}
+            <button onClick={() => setActiveTab('results')} className="rounded-xl border border-amber-500/30 bg-slate-800/60 p-4 hover:bg-slate-700/60 transition text-left">
+              <span className="text-2xl">🏆</span>
+              <div className="text-sm font-semibold text-white mt-2">View Results</div>
+              <div className="text-xs text-gray-400">Review scores and decide placements</div>
             </button>
           </div>
-
-          {/* Recent Activity */}
-          {attempts.length > 0 && (
-            <div className="rounded-xl border border-gray-700 bg-slate-800/60 p-4">
-              <h3 className="text-sm font-semibold text-gray-300 mb-3">Recent Activity</h3>
-              <div className="space-y-2">
-                {attempts.slice(0, 5).map(a => {
-                  const cand = candidates.find(c => c.id === a.candidate_id);
-                  return (
-                    <div key={a.id} className="flex items-center gap-3 text-xs">
-                      <span className="text-gray-500 w-28 shrink-0">{new Date(a.created_at).toLocaleDateString()}</span>
-                      <span className="text-white font-medium">{cand?.full_name || 'Unknown'}</span>
-                      {statusPill(a.status)}
-                      {a.percentage !== null && <span className="text-cyan-300 ml-auto">{a.percentage}%</span>}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
       )}
 
       {/*  ━━━ POOLS TAB ━━━  */}
       {activeTab === 'pools' && !loading && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">Question Pools</h2>
-            <div className="text-xs text-gray-400">
-              {pools.length} pool{pools.length !== 1 ? 's' : ''} loaded
-            </div>
-          </div>
-
-          {/* Available subjects */}
-          <div className="rounded-xl border border-gray-700 bg-slate-800/60 p-4">
-            <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Available Subjects</h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {Object.entries(BLUEPRINT_PRESETS).map(([key, preset]) => {
-                const poolExists = pools.some(p => p.subject.toLowerCase() === key);
-                return (
-                  <div key={key} className={`rounded-lg border p-3 text-center ${poolExists ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-gray-700 bg-slate-800/40 opacity-50'}`}>
-                    <div className="text-2xl mb-1">{preset.icon}</div>
-                    <div className="text-sm font-semibold text-white">{preset.label}</div>
-                    <div className="text-xs text-gray-400 mt-0.5">
-                      {poolExists ? '✓ Pool ready' : 'Not imported yet'}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
+          <h2 className="text-lg font-semibold text-white">Question Pools</h2>
           {pools.length === 0 ? (
-            <div className="card-glass p-8 text-center">
-              <span className="text-4xl block mb-3">📝</span>
-              <p className="text-gray-400 text-sm">No question pools yet.</p>
-              <p className="text-gray-500 text-xs mt-1">Run the import script or upload pool JSON to get started.</p>
+            <div className="card-glass p-6 text-center text-gray-400 text-sm">
+              No question pools yet. Run the import script or upload pool JSON to get started.
             </div>
           ) : (
             <div className="space-y-3">
-              {pools.map((p) => {
-                const subjectKey = p.subject.toLowerCase();
-                const preset = BLUEPRINT_PRESETS[subjectKey];
-                return (
-                  <div key={p.id} className="rounded-xl border border-gray-700 bg-slate-800/60 p-4 flex items-center justify-between hover:border-gray-600 transition">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{preset?.icon || '📄'}</span>
-                      <div>
-                        <div className="font-semibold text-white">{p.name}</div>
-                        <div className="text-xs text-gray-400">{p.subject} · Stage {p.stage} {p.school_id ? '' : '· 🌐 Global'}</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs text-gray-500">{new Date(p.created_at).toLocaleDateString()}</div>
-                      {p.is_active && <div className="text-[10px] text-emerald-400 mt-0.5">Active</div>}
-                    </div>
+              {pools.map((p) => (
+                <div key={p.id} className="rounded-xl border border-gray-700 bg-slate-800/60 p-4 flex items-center justify-between">
+                  <div>
+                    <div className="font-semibold text-white">{p.name}</div>
+                    <div className="text-xs text-gray-400">{p.subject} · Stage {p.stage} {p.school_id ? '' : '· 🌐 Global'}</div>
                   </div>
-                );
-              })}
+                  <div className="text-xs text-gray-500">{new Date(p.created_at).toLocaleDateString()}</div>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -766,36 +486,16 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
           {creatingBlueprint && (
             <div className="rounded-xl border border-cyan-500/30 bg-slate-800/80 p-5 space-y-4">
-              {/* Subject Preset Buttons */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-2">Quick Preset — click to auto-fill</label>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(BLUEPRINT_PRESETS).map(([key, preset]) => (
-                    <button
-                      key={key}
-                      onClick={() => applySubjectPreset(key)}
-                      className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm transition ${
-                        bpSubject === key
-                          ? 'border-cyan-500 bg-cyan-600/20 text-cyan-200'
-                          : 'border-gray-600 bg-slate-700/60 text-gray-300 hover:border-gray-500'
-                      }`}
-                    >
-                      <span>{preset.icon}</span> {preset.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="md:col-span-2">
                   <label className="block text-xs font-semibold text-gray-300 mb-1">Name</label>
-                  <input className={inputClass} value={bpName} onChange={e => setBpName(e.target.value)} placeholder="e.g. English Stage 9 — Admission Test" />
+                  <input className={inputClass} value={bpName} onChange={e => setBpName(e.target.value)} placeholder="e.g. English Stage 9 — Standard Admission Test" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-300 mb-1">Subject</label>
-                  <select className={inputClass} value={bpSubject} onChange={e => applySubjectPreset(e.target.value)}>
+                  <select className={inputClass} value={bpSubject} onChange={e => setBpSubject(e.target.value)}>
                     <option value="english">English</option>
-                    <option value="math">Mathematics</option>
+                    <option value="math">Math</option>
                     <option value="science">Science</option>
                     <option value="chemistry">Chemistry</option>
                   </select>
@@ -886,13 +586,13 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-gray-300 mb-1">Blueprint</label>
-                  <select className={inputClass} value={genBlueprintId} onChange={e => generateFormCode(e.target.value)}>
+                  <select className={inputClass} value={genBlueprintId} onChange={e => setGenBlueprintId(e.target.value)}>
                     <option value="">Select blueprint…</option>
                     {blueprints.map(bp => <option key={bp.id} value={bp.id}>{bp.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Form Code (auto-generated, editable)</label>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Form Code</label>
                   <input className={inputClass} value={genFormCode} onChange={e => setGenFormCode(e.target.value)} placeholder="e.g. ENG9-2026-A" />
                 </div>
               </div>
@@ -942,53 +642,14 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       {/*  ━━━ CANDIDATES TAB ━━━  */}
       {activeTab === 'candidates' && !loading && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-white">Candidates</h2>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => { setBulkMode(false); setCreatingCandidate(!creatingCandidate); }}
-                className={`${btnSecondary} ${!bulkMode && creatingCandidate ? 'border-cyan-500 text-cyan-300' : ''}`}
-              >
-                {creatingCandidate && !bulkMode ? 'Cancel' : '+ Add One'}
-              </button>
-              <button
-                onClick={() => { setBulkMode(true); setCreatingCandidate(!creatingCandidate || !bulkMode); }}
-                className={`${btnSecondary} ${bulkMode && creatingCandidate ? 'border-cyan-500 text-cyan-300' : ''}`}
-              >
-                {creatingCandidate && bulkMode ? 'Cancel' : '📋 Bulk Import'}
-              </button>
-            </div>
+            <button onClick={() => setCreatingCandidate(!creatingCandidate)} className={btnSecondary}>
+              {creatingCandidate ? 'Cancel' : '+ Register Candidate'}
+            </button>
           </div>
 
-          {/* Bulk import */}
-          {creatingCandidate && bulkMode && (
-            <div className="rounded-xl border border-amber-500/30 bg-slate-800/80 p-5 space-y-3">
-              <div className="flex items-start gap-3">
-                <span className="text-2xl">📋</span>
-                <div className="flex-1">
-                  <h4 className="text-sm font-semibold text-white mb-1">Paste candidate list</h4>
-                  <p className="text-xs text-gray-400 mb-3">One candidate per line. Format: <span className="font-mono text-cyan-400">Name, Email, Phone, Grade</span> (comma or tab separated)</p>
-                  <textarea
-                    className={`${inputClass} h-32 font-mono text-xs`}
-                    value={bulkText}
-                    onChange={e => setBulkText(e.target.value)}
-                    placeholder={`Ahmed Al-Rashid, parent@email.com, +971501234567, 9\nFatima Hassan, fatima@school.com, +971509876543, 9\nOmar Khalid, , +971507654321, 8`}
-                  />
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-xs text-gray-500">
-                      {bulkText.trim() ? `${bulkText.trim().split('\n').filter(l => l.trim()).length} candidate(s) detected` : 'Paste from spreadsheet or type manually'}
-                    </span>
-                    <button onClick={handleBulkImport} disabled={!bulkText.trim()} className={btnPrimary}>
-                      Import All
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Single candidate form */}
-          {creatingCandidate && !bulkMode && (
+          {creatingCandidate && (
             <div className="rounded-xl border border-purple-500/30 bg-slate-800/80 p-5 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -1018,38 +679,9 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
             </div>
           )}
 
-          {/* Search & Filter Bar */}
-          {candidates.length > 0 && (
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="relative flex-1 min-w-[200px]">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">🔍</span>
-                <input
-                  className={`${inputClass} pl-9`}
-                  value={candSearch}
-                  onChange={e => setCandSearch(e.target.value)}
-                  placeholder="Search by name, email, or token…"
-                />
-              </div>
-              <select
-                className={`${inputClass} w-auto`}
-                value={candStatusFilter}
-                onChange={e => setCandStatusFilter(e.target.value)}
-              >
-                <option value="all">All Status</option>
-                <option value="registered">Registered</option>
-                <option value="testing">Testing</option>
-                <option value="completed">Completed</option>
-                <option value="placed">Placed</option>
-              </select>
-              <span className="text-xs text-gray-500">{filteredCandidates.length} of {candidates.length}</span>
-            </div>
-          )}
-
           {candidates.length === 0 && !creatingCandidate ? (
-            <div className="card-glass p-8 text-center">
-              <span className="text-4xl block mb-3">👤</span>
-              <p className="text-gray-400 text-sm">No candidates registered yet.</p>
-              <p className="text-gray-500 text-xs mt-1">Click "+ Add One" or "Bulk Import" to get started.</p>
+            <div className="card-glass p-6 text-center text-gray-400 text-sm">
+              No candidates registered yet.
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -1057,66 +689,33 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 <thead>
                   <tr className="text-left text-xs text-gray-400 border-b border-gray-700">
                     <th className="pb-2 pr-4">Name</th>
-                    <th className="pb-2 pr-4">Contact</th>
-                    <th className="pb-2 pr-4">Grade</th>
+                    <th className="pb-2 pr-4">Email</th>
                     <th className="pb-2 pr-4">Status</th>
-                    <th className="pb-2">Send Test</th>
+                    <th className="pb-2 pr-4">Token</th>
+                    <th className="pb-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800">
-                  {filteredCandidates.map((c) => {
+                  {candidates.map((c) => {
                     const publishedForms = forms.filter(f => f.status === 'published');
                     return (
                       <tr key={c.id} className="text-gray-300 hover:bg-slate-700/30 transition">
-                        <td className="py-3 pr-4">
-                          <div className="font-medium text-white">{c.full_name}</div>
-                          <div className="text-[10px] text-gray-500 font-mono mt-0.5">{c.token.slice(0, 12)}…</div>
-                        </td>
-                        <td className="py-3 pr-4 text-xs">
-                          {c.email && <div>{c.email}</div>}
-                          {c.parent_phone && <div className="text-gray-500">{c.parent_phone}</div>}
-                          {!c.email && !c.parent_phone && <span className="text-gray-600">—</span>}
-                        </td>
-                        <td className="py-3 pr-4 text-xs">{c.applied_grade || '—'}</td>
-                        <td className="py-3 pr-4">{statusPill(c.status)}</td>
-                        <td className="py-3">
-                          <div className="flex items-center gap-1 flex-wrap">
-                            {publishedForms.map(f => {
-                              const link = AdmService.buildTestLink(window.location.origin, c.token, f.form_code);
-                              return (
-                                <div key={f.id} className="flex items-center gap-1">
-                                  <button
-                                    onClick={() => { navigator.clipboard.writeText(link); addToast('Link copied!', 'success'); }}
-                                    className="text-xs px-2 py-1 rounded bg-cyan-600/30 text-cyan-300 hover:bg-cyan-600/50 transition"
-                                    title="Copy link"
-                                  >
-                                    📋
-                                  </button>
-                                  {c.parent_phone && (
-                                    <button
-                                      onClick={() => shareViaWhatsApp(c.parent_phone, link, c.full_name)}
-                                      className="text-xs px-2 py-1 rounded bg-green-600/30 text-green-300 hover:bg-green-600/50 transition"
-                                      title="Send via WhatsApp"
-                                    >
-                                      💬
-                                    </button>
-                                  )}
-                                  {c.email && (
-                                    <button
-                                      onClick={() => shareViaEmail(c.email, link, c.full_name)}
-                                      className="text-xs px-2 py-1 rounded bg-blue-600/30 text-blue-300 hover:bg-blue-600/50 transition"
-                                      title="Send via Email"
-                                    >
-                                      ✉️
-                                    </button>
-                                  )}
-                                  <span className="text-[10px] text-gray-500">{f.form_code}</span>
-                                </div>
-                              );
-                            })}
-                            {publishedForms.length === 0 && (
-                              <span className="text-xs text-gray-600 italic">No published tests</span>
-                            )}
+                        <td className="py-2 pr-4 font-medium text-white">{c.full_name}</td>
+                        <td className="py-2 pr-4 text-xs">{c.email || '—'}</td>
+                        <td className="py-2 pr-4">{statusPill(c.status)}</td>
+                        <td className="py-2 pr-4 font-mono text-xs">{c.token.slice(0, 12)}…</td>
+                        <td className="py-2">
+                          <div className="flex items-center gap-1">
+                            {publishedForms.map(f => (
+                              <button
+                                key={f.id}
+                                onClick={() => copyTestLink(c.token, f.form_code)}
+                                className="text-xs px-2 py-1 rounded bg-cyan-600/30 text-cyan-300 hover:bg-cyan-600/50 transition"
+                                title={`Copy test link for ${f.form_code}`}
+                              >
+                                📋 {f.form_code}
+                              </button>
+                            ))}
                           </div>
                         </td>
                       </tr>
@@ -1132,88 +731,53 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       {/*  ━━━ RESULTS TAB ━━━  */}
       {activeTab === 'results' && !loading && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">Test Results</h2>
-            {attempts.filter(a => a.status === 'scored').length > 0 && (
-              <div className="flex items-center gap-3 text-xs text-gray-400">
-                <span>Avg: <strong className="text-cyan-300">{Math.round(attempts.filter(a => a.percentage != null).reduce((s, a) => s + (a.percentage || 0), 0) / Math.max(attempts.filter(a => a.percentage != null).length, 1))}%</strong></span>
-                <span>Scored: <strong className="text-emerald-300">{attempts.filter(a => a.status === 'scored').length}</strong></span>
-                <span>Placed: <strong className="text-purple-300">{placements.length}</strong></span>
-              </div>
-            )}
-          </div>
+          <h2 className="text-lg font-semibold text-white">Test Results</h2>
 
           {attempts.length === 0 ? (
-            <div className="card-glass p-8 text-center">
-              <span className="text-4xl block mb-3">🏆</span>
-              <p className="text-gray-400 text-sm">No test attempts yet.</p>
-              <p className="text-gray-500 text-xs mt-1">Results will appear here once candidates complete their tests.</p>
+            <div className="card-glass p-6 text-center text-gray-400 text-sm">
+              No test attempts yet.
             </div>
           ) : (
             <div className="space-y-3">
               {attempts.map((a) => {
                 const cand = candidates.find(c => c.id === a.candidate_id);
                 const placement = placements.find(p => p.attempt_id === a.id);
-                const scorePct = a.percentage ?? 0;
-                const scoreColor = scorePct >= 80 ? 'text-emerald-400' : scorePct >= 60 ? 'text-cyan-400' : scorePct >= 40 ? 'text-amber-400' : 'text-red-400';
-                const barColor = scorePct >= 80 ? 'bg-emerald-500' : scorePct >= 60 ? 'bg-cyan-500' : scorePct >= 40 ? 'bg-amber-500' : 'bg-red-500';
                 return (
-                  <div key={a.id} className="rounded-xl border border-gray-700 bg-slate-800/60 p-4 hover:border-gray-600 transition">
+                  <div key={a.id} className="rounded-xl border border-gray-700 bg-slate-800/60 p-4">
                     <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-lg font-bold text-white">
-                          {(cand?.full_name || 'U')[0].toUpperCase()}
-                        </div>
-                        <div>
-                          <div className="font-semibold text-white">{cand?.full_name || 'Unknown'}</div>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            {statusPill(a.status)}
-                            <span className="text-xs text-gray-500">{new Date(a.created_at).toLocaleDateString()}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        {a.percentage !== null && (
-                          <div className="text-right">
-                            <div className={`text-2xl font-bold ${scoreColor}`}>{a.percentage}%</div>
-                            <div className="text-xs text-gray-500">{a.total_score}/{a.max_score}</div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Score bar */}
-                    {a.percentage !== null && (
-                      <div className="mt-3 h-2 rounded-full bg-slate-700 overflow-hidden">
-                        <div className={`h-full rounded-full ${barColor} transition-all`} style={{ width: `${scorePct}%` }} />
-                      </div>
-                    )}
-
-                    {/* Actions row */}
-                    <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-700/50">
                       <div>
-                        {placement && <span className="mr-2">{bandBadge(placement.band)}</span>}
+                        <div className="font-semibold text-white">{cand?.full_name || 'Unknown'}</div>
+                        <div className="text-xs text-gray-400">
+                          {statusPill(a.status)}
+                          {a.percentage !== null && (
+                            <span className="ml-2">
+                              Score: {a.total_score}/{a.max_score} ({a.percentage}%)
+                            </span>
+                          )}
+                          {placement && <span className="ml-2">{bandBadge(placement.band)}</span>}
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         {a.status === 'scored' && (
-                          <button onClick={() => handleViewReport(a.id)} className="text-xs px-3 py-1.5 rounded-lg bg-blue-600/30 text-blue-300 hover:bg-blue-600/50 transition flex items-center gap-1">
-                            📊 View Report
+                          <button onClick={() => handleViewReport(a.id)} className="text-xs px-2 py-1 rounded bg-blue-600/30 text-blue-300 hover:bg-blue-600/50 transition">
+                            📊 Report
                           </button>
                         )}
                         {a.status === 'scored' && !placement && (
-                          <div className="flex items-center gap-1 ml-2">
-                            <span className="text-xs text-gray-500 mr-1">Place:</span>
+                          <div className="flex items-center gap-1">
                             {(['A', 'B', 'C', 'D', 'E'] as PlacementBand[]).map(b => (
                               <button
                                 key={b}
                                 onClick={() => handleRecordPlacement(a.id, b)}
-                                className={`text-xs px-2 py-1 rounded-lg border ${BAND_COLORS[b]} hover:opacity-80 transition font-bold`}
-                                title={`Band ${b} — ${BAND_LABELS[b]}`}
+                                className={`text-xs px-1.5 py-0.5 rounded border ${BAND_COLORS[b]} hover:opacity-80 transition`}
                               >
                                 {b}
                               </button>
                             ))}
                           </div>
+                        )}
+                        {placement && (
+                          <span className="text-xs text-gray-400">Placed: {bandBadge(placement.band)}</span>
                         )}
                       </div>
                     </div>

@@ -3,12 +3,12 @@
     "subject": "English",
     "stage": 9,
     "grade_equivalents": [7, 8],
-    "framework": "Cambridge Lower Secondary Style",
+    "framework": "Lower Secondary English Assessment",
     "total_questions": 96,
     "version": "1.0",
     "created_at": "2026-02-11",
     "language": "en",
-    "note": "Original Cambridge-style questions. Not actual Cambridge content."
+    "note": "Original questions aligned to Lower Secondary English curriculum. Covers grammar, vocabulary, reading comprehension, and writing."
   },
   "questions": [
     {

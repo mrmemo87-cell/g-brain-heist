@@ -371,16 +371,16 @@ export async function checkPilotQuota(featureId: PilotFeatureId): Promise<{
     const { data, error } = await supabase.rpc('check_pilot_quota', { p_feature_id: featureId });
     if (error) {
       console.warn('[tierService] check_pilot_quota error:', error.message);
-      return { allowed: true, remaining: 999, limit: 999, reason: 'error_fallback' };
+      return { allowed: false, remaining: 0, limit: 0, reason: 'error_checking_quota' };
     }
     return {
-      allowed: data?.allowed ?? true,
-      remaining: data?.remaining ?? 999,
-      limit: data?.limit ?? 999,
+      allowed: data?.allowed ?? false,
+      remaining: data?.remaining ?? 0,
+      limit: data?.limit ?? 0,
       reason: data?.reason ?? 'unknown',
     };
   } catch {
-    return { allowed: true, remaining: 999, limit: 999, reason: 'error_fallback' };
+    return { allowed: false, remaining: 0, limit: 0, reason: 'error_checking_quota' };
   }
 }
 
@@ -439,4 +439,55 @@ export function getQuotaForFeature(
   const featureId = FEATURE_TO_QUOTA[featureLabel];
   if (!featureId) return null;
   return quotas.quotas[featureId] ?? null;
+}
+
+/**
+ * Try to consume a pilot quota unit for the given feature.
+ * - If NOT on a pilot plan, returns { proceed: true } (no quota to track).
+ * - If on pilot and quota available, consumes 1 unit and returns { proceed: true }.
+ * - If on pilot and quota exhausted, returns { proceed: false }.
+ *
+ * Call this at the moment the user performs the action (starts PvP, buys item, etc.).
+ */
+export async function tryConsumePilotQuota(
+  featureId: PilotFeatureId
+): Promise<{ proceed: boolean; remaining?: number; error?: string }> {
+  try {
+    // Refresh pilot status
+    const status = await fetchPilotQuotas(true);
+
+    // Not on pilot — no quota tracking needed, proceed freely
+    if (!status || !status.is_pilot) {
+      return { proceed: true };
+    }
+
+    // Pilot expired — block (tier should already be 'free')
+    if (status.expired) {
+      return { proceed: false, error: 'Pilot trial has expired' };
+    }
+
+    // Check if quota exists for this feature
+    const quota = status.quotas?.[featureId];
+    if (!quota) {
+      // Feature not tracked → allow (shouldn't happen if DB is synced)
+      return { proceed: true };
+    }
+
+    // Already exhausted — block
+    if (quota.exhausted) {
+      return { proceed: false, remaining: 0, error: 'Pilot quota exhausted for this feature' };
+    }
+
+    // Consume 1 unit
+    const result = await consumePilotQuota(featureId, 1);
+    if (!result.success) {
+      return { proceed: false, remaining: result.remaining, error: result.error };
+    }
+
+    return { proceed: true, remaining: result.remaining };
+  } catch (err) {
+    console.warn('[tierService] tryConsumePilotQuota error:', err);
+    // Fail closed — don't let errors bypass quotas
+    return { proceed: false, error: 'Could not verify quota' };
+  }
 }

@@ -8,6 +8,7 @@ import { ShieldIcon, HackIcon, CoinIcon, XPIcon, GemIcon, BattleIcon, TrophyIcon
 import { createPortal } from 'react-dom';
 import AvatarWithFrame from './AvatarWithFrame';
 import { fetchNeonFrameOwners, fetchFlickerThemeOwners, fetchGlitchEffectOwners } from '../services/cosmeticService';
+import { tryConsumePilotQuota } from '../services/tierService';
 import ClickableUsername from './ClickableUsername';
 
 type PvPStage = 'loading' | 'targets' | 'cinematic' | 'result';
@@ -297,6 +298,13 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
   };
 
   const handleAttack = async (target: RaidTarget) => {
+    // Consume pilot quota if applicable
+    const quota = await tryConsumePilotQuota('pvp_battles');
+    if (!quota.proceed) {
+      alert(quota.error || 'PvP battle quota exhausted. Upgrade your plan to continue.');
+      return;
+    }
+
     if (profile.ap_now < RAID_AP_COST) {
       audioService.play('wrong');
       alert('Not enough Action Points to launch a raid. Regain AP before attacking again.');

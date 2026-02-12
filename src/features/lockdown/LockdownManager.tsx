@@ -3,7 +3,7 @@ import { SupabaseLockdownTransport } from '../../lib/lockdownSupabaseTransport';
 import { LockdownTeacherView } from './LockdownTeacherView';
 import { LockdownStudentView } from './LockdownStudentView';
 import { RoomId, PlayerId } from '../../lib/lockdownTransport';
-import { fetchLockdownLimits, type LockdownLimits, FREE_LOCKDOWN_LIMITS } from '../../../services/tierService';
+import { fetchLockdownLimits, type LockdownLimits, FREE_LOCKDOWN_LIMITS, tryConsumePilotQuota } from '../../../services/tierService';
 import { FreeTierWatermark } from '../../../components/FreeTierWatermark';
 
 export const LockdownManager: React.FC<{ onExit: () => void; isTeacher?: boolean; playerName?: string; clanId?: string | null; clanName?: string | null; clanAvatarUrl?: string | null }> = ({ onExit, isTeacher = false, playerName: initialPlayerName = '', clanId = null, clanName = null, clanAvatarUrl = null }) => {
@@ -47,6 +47,15 @@ export const LockdownManager: React.FC<{ onExit: () => void; isTeacher?: boolean
   const handleHost = async () => {
     setIsConnecting(true);
     setError(null);
+
+    // Consume pilot quota if applicable
+    const quota = await tryConsumePilotQuota('lockdown_sessions');
+    if (!quota.proceed) {
+      setError(quota.error || 'Lockdown session quota exhausted. Upgrade your plan to continue.');
+      setIsConnecting(false);
+      return;
+    }
+
     try {
       const id = await transport.createRoom({
         durationMs: durationMinutes * 60 * 1000,

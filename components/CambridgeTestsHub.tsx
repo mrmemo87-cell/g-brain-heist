@@ -1,6 +1,9 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../services/supabaseClient';
+import { tryConsumePilotQuota } from '../services/tierService';
 import type { Profile } from '../types';
+import ProfessionalCambridgeReport, { generateSerialNumber } from './ProfessionalCambridgeReport';
+import type { ProfessionalReportData } from './ProfessionalCambridgeReport';
 
 interface CambridgeTest {
   id: string;
@@ -644,6 +647,9 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
   const [feedbackData, setFeedbackData] = useState<WritingFeedbackView | null>(null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [activeFeedbackPart, setActiveFeedbackPart] = useState<'part1' | 'part2'>('part1');
+  const [showStudentReport, setShowStudentReport] = useState(false);
+  const [studentReportData, setStudentReportData] = useState<ProfessionalReportData | null>(null);
+  const [studentReportLoading, setStudentReportLoading] = useState(false);
   const [collapsedSubjects, setCollapsedSubjects] = useState<Record<string, boolean>>({});
   const [visibleTestIds, setVisibleTestIds] = useState<Set<string>>(new Set());
   const [showExitConfirm, setShowExitConfirm] = useState(false);
@@ -855,7 +861,14 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
     }
   };
 
-  const handleStartTest = (test: CambridgeTest) => {
+  const handleStartTest = async (test: CambridgeTest) => {
+    // Consume pilot quota if applicable
+    const quota = await tryConsumePilotQuota('cambridge_tests');
+    if (!quota.proceed) {
+      alert(quota.error || 'Cambridge test quota exhausted. Upgrade your plan to continue.');
+      return;
+    }
+
     // Store user info for the test form to use
     localStorage.setItem('cambridge_test_user', JSON.stringify({
       name: profile.username,
@@ -1000,6 +1013,107 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       setFeedbackData(null);
     } finally {
       setFeedbackLoading(false);
+    }
+  };
+
+  // ─── View Professional Score Report (Student Side) ────────────────────────
+  const viewStudentReport = async (test: CambridgeTest) => {
+    setStudentReportLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('quiz_scores')
+        .select('*')
+        .eq('student_name', profile.username)
+        .order('submitted_at', { ascending: false });
+
+      if (error) throw error;
+      if (!data || data.length === 0) return;
+
+      // Find matching test score
+      const normalizeTestName = (value: string) => value
+        .toLowerCase()
+        .replace(/cambridge/g, '')
+        .replace(/&/g, 'and')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      const normalizedTestId = normalizeTestName(test.id.replace(/-/g, ' '));
+      const normalizedTestName = normalizeTestName(test.name);
+      const scoreRow = data.find(c => {
+        const nq = normalizeTestName(c.quiz_name);
+        return nq.includes(normalizedTestId) || nq.includes(normalizedTestName) || normalizedTestName.includes(nq);
+      });
+
+      if (!scoreRow) {
+        console.warn('No matching score found for student report');
+        return;
+      }
+
+      // Grading helpers
+      const getGrade = (pct: number) => {
+        if (pct >= 90) return 'A+';
+        if (pct >= 80) return 'A';
+        if (pct >= 70) return 'B';
+        if (pct >= 60) return 'C';
+        if (pct >= 50) return 'D';
+        return 'F';
+      };
+      const getEncouragement = (grade: string) => {
+        switch (grade) {
+          case 'A+': return { title: '🌟 Outstanding Achievement!', message: "You've mastered this material! Keep challenging yourself." };
+          case 'A': return { title: '🎯 Excellent Work!', message: "You're performing at a high level. Focus on the few areas that need polish." };
+          case 'B': return { title: '👍 Good Progress!', message: 'You have a solid foundation. Target your weak areas for improvement.' };
+          case 'C': return { title: '📈 Room to Grow', message: "You're on the right track. More practice will boost your scores." };
+          case 'D': return { title: '💪 Keep Pushing!', message: "Don't give up! Focus on understanding core concepts." };
+          default: return { title: '🚀 Start Your Journey', message: 'Every expert was once a beginner. Let\'s work on building your skills.' };
+        }
+      };
+
+      const pct = scoreRow.percentage ?? 0;
+      const grade = getGrade(pct);
+      const encouragement = getEncouragement(grade);
+      const firstName = (scoreRow.student_name || profile.username || 'Student').split(' ')[0];
+
+      // Build a basic skill performance from the score (limited data on student side)
+      const skillPerformance: Record<string, { correct: number; total: number; percentage: number; icon: string }> = {
+        'Overall Performance': {
+          correct: scoreRow.score || 0,
+          total: scoreRow.total_questions || 1,
+          percentage: pct,
+          icon: '📊',
+        },
+      };
+
+      const personalizedNote = `${firstName}, you scored ${scoreRow.score}/${scoreRow.total_questions} (${pct}%). ${pct >= 80 ? 'Excellent work — keep it up!' : pct >= 60 ? 'Good effort. Review your weak areas to improve further.' : 'Keep practising and you will see improvement.'}`;
+
+      const reportData: ProfessionalReportData = {
+        id: scoreRow.id || '',
+        studentName: scoreRow.student_name || profile.username || 'Student',
+        studentClass: scoreRow.student_class || profile.batch || 'N/A',
+        quizName: scoreRow.quiz_name,
+        score: scoreRow.score || 0,
+        totalQuestions: scoreRow.total_questions || 0,
+        percentage: pct,
+        submittedAt: scoreRow.submitted_at,
+        timeTakenSeconds: scoreRow.time_taken_seconds,
+        skillPerformance,
+        correctCount: scoreRow.score || 0,
+        wrongCount: (scoreRow.total_questions || 0) - (scoreRow.score || 0),
+        unansweredCount: 0,
+        grade,
+        encouragement,
+        actionPlanItems: [],
+        fallbackPlan: pct < 80 ? { title: 'Focus on Practice', tips: ['Review the questions you got wrong', 'Re-read the relevant material', 'Try similar practice questions'] } : undefined,
+        personalizedNote,
+      };
+
+      setStudentReportData(reportData);
+      setShowStudentReport(true);
+    } catch (err) {
+      console.error('Error loading student report:', err);
+    } finally {
+      setStudentReportLoading(false);
     }
   };
 
@@ -1606,12 +1720,38 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                                   📝 View Teacher Feedback
                                 </button>
                               )}
+
+                              {/* View Professional Report button for completed tests with released scores */}
+                              {!test.requiresMarking && test.isCompleted && test.scoresReleased && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    viewStudentReport(test);
+                                  }}
+                                  disabled={studentReportLoading}
+                                  style={{
+                                    marginTop: '10px',
+                                    width: '100%',
+                                    padding: '8px',
+                                    borderRadius: '8px',
+                                    border: '1px solid #a78bfa',
+                                    background: 'linear-gradient(135deg, rgba(124,58,237,0.15), rgba(79,70,229,0.15))',
+                                    color: '#c4b5fd',
+                                    fontSize: '12px',
+                                    fontWeight: 600,
+                                    cursor: studentReportLoading ? 'wait' : 'pointer',
+                                    transition: 'all 0.2s',
+                                  }}
+                                >
+                                  {studentReportLoading ? '⏳ Loading...' : '📄 View Professional Report'}
+                                </button>
+                              )}
                             </div>
                           )}
 
                           <button
-                            onClick={() => handleStartTest(test)}
-                            disabled={chemistryLocked}
+                            onClick={() => chemistryReportReady ? viewStudentReport(test) : handleStartTest(test)}
+                            disabled={chemistryLocked || studentReportLoading}
                             style={{
                               width: '100%',
                               padding: '12px',
@@ -2073,6 +2213,18 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
             </div>
           </div>
         </div>
+      )}
+
+      {/* Professional Student Report Modal */}
+      {showStudentReport && studentReportData && (
+        <ProfessionalCambridgeReport
+          data={studentReportData}
+          onClose={() => {
+            setShowStudentReport(false);
+            setStudentReportData(null);
+          }}
+          isTeacherView={false}
+        />
       )}
     </div>
   );
