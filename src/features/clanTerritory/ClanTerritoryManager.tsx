@@ -1094,8 +1094,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                   <p className="text-white font-bold capitalize">{selectedMap}</p>
                 </div>
                 <div className="bg-slate-800/50 rounded-lg p-3">
-                  <p className="text-gray-400 text-xs mb-1">Class</p>
-                  <p className="text-white font-bold">{selectedBatch || "Not selected"}</p>
+                  <p className="text-gray-400 text-xs mb-1">Classes</p>
+                  <p className="text-white font-bold">{selectedBatches.length > 0 ? selectedBatches.join(', ') : "Not selected"}</p>
                 </div>
                 <div className="bg-slate-800/50 rounded-lg p-3">
                   <p className="text-gray-400 text-xs mb-1">Start</p>
@@ -1129,7 +1129,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
             </button>
             {!canCreateRoom && (
               <p className="text-xs text-amber-300 text-center">
-                {selectedBatch ? "Pick a scheduled start time before creating the arena." : "Select a class before creating the arena."}
+                {selectedBatches.length > 0 ? "Pick a scheduled start time before creating the arena." : "Select at least one class before creating the arena."}
               </p>
             )}
           </div>
@@ -1154,8 +1154,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                 <div className="text-sm font-bold text-cyan-400 capitalize">{selectedMap}</div>
               </div>
               <div className="text-left">
-                <span className="text-gray-400 text-xs uppercase tracking-wider block">Class</span>
-                <div className="text-sm font-bold text-emerald-300">{selectedBatch}</div>
+                <span className="text-gray-400 text-xs uppercase tracking-wider block">Classes</span>
+                <div className="text-sm font-bold text-emerald-300">{selectedBatches.join(', ') || "—"}</div>
               </div>
               {activeScheduledStartAt && (
                 <div className="text-left">
@@ -1310,7 +1310,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                             Map: <span className="text-white capitalize">{room.selectedMap}</span>
                           </p>
                           <p>
-                            Class: <span className="text-white">{room.selectedBatch || "—"}</span>
+                            Classes: <span className="text-white">{room.selectedBatches?.join(', ') || "—"}</span>
                           </p>
                           {room.scheduledStartAt && (
                             <p>
