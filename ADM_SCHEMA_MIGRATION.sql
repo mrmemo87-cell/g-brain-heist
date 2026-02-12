@@ -12,7 +12,7 @@
 -- ============================================================
 -- Logical groupings of questions by subject/stage/grade
 CREATE TABLE IF NOT EXISTS adm_question_pools (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     school_id UUID REFERENCES schools(id) ON DELETE CASCADE,  -- NULL = global/platform pool
     subject TEXT NOT NULL CHECK (subject IN ('english', 'math')),
     stage SMALLINT CHECK (stage BETWEEN 1 AND 12),
@@ -33,7 +33,7 @@ CREATE INDEX IF NOT EXISTS idx_adm_qpool_active ON adm_question_pools(is_active)
 -- 2. QUESTIONS
 -- ============================================================
 CREATE TABLE IF NOT EXISTS adm_questions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     pool_id UUID NOT NULL REFERENCES adm_question_pools(id) ON DELETE CASCADE,
     question_type TEXT NOT NULL CHECK (question_type IN (
         'mcq', 'gap_fill', 'error_correction', 'sentence_transformation',
@@ -72,7 +72,7 @@ CREATE INDEX IF NOT EXISTS idx_adm_q_pool_status ON adm_questions(pool_id, statu
 -- 3. SCHOOL GRADE ↔ STAGE MAPPING
 -- ============================================================
 CREATE TABLE IF NOT EXISTS adm_school_grade_stage_map (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     school_id UUID NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
     grade_level SMALLINT NOT NULL CHECK (grade_level BETWEEN 1 AND 13),
     cambridge_stage SMALLINT NOT NULL CHECK (cambridge_stage BETWEEN 1 AND 12),
@@ -88,7 +88,7 @@ CREATE INDEX IF NOT EXISTS idx_adm_gsmap_school ON adm_school_grade_stage_map(sc
 -- 4. BLUEPRINTS (test templates)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS adm_blueprints (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     school_id UUID REFERENCES schools(id) ON DELETE CASCADE,  -- NULL = platform-level blueprint
     name TEXT NOT NULL,
     subject TEXT NOT NULL CHECK (subject IN ('english', 'math')),
@@ -114,7 +114,7 @@ CREATE INDEX IF NOT EXISTS idx_adm_bp_subject ON adm_blueprints(subject, target_
 -- 5. TEST FORMS (generated from blueprints)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS adm_test_forms (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     blueprint_id UUID NOT NULL REFERENCES adm_blueprints(id) ON DELETE CASCADE,
     school_id UUID NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
     form_code TEXT NOT NULL,  -- human-readable code e.g. "ENG9-2026-A"
@@ -135,7 +135,7 @@ CREATE INDEX IF NOT EXISTS idx_adm_form_blueprint ON adm_test_forms(blueprint_id
 -- 6. TEST FORM QUESTIONS (which questions on which form)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS adm_test_form_questions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     form_id UUID NOT NULL REFERENCES adm_test_forms(id) ON DELETE CASCADE,
     question_id UUID NOT NULL REFERENCES adm_questions(id) ON DELETE CASCADE,
     question_order SMALLINT NOT NULL,
@@ -150,13 +150,13 @@ CREATE INDEX IF NOT EXISTS idx_adm_fq_form ON adm_test_form_questions(form_id);
 -- 7. CANDIDATES (external applicants — no game account)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS adm_candidates (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     school_id UUID NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
     full_name TEXT NOT NULL,
     email TEXT,
     parent_phone TEXT,
     applied_grade SMALLINT CHECK (applied_grade BETWEEN 1 AND 13),
-    token TEXT NOT NULL UNIQUE,  -- unique test access token
+    token TEXT NOT NULL UNIQUE DEFAULT encode(gen_random_bytes(16), 'hex'),  -- unique test access token
     status TEXT DEFAULT 'registered' CHECK (status IN ('registered', 'testing', 'completed', 'placed')),
     notes TEXT,
     created_by UUID REFERENCES users(id) ON DELETE SET NULL,
@@ -172,7 +172,7 @@ CREATE INDEX IF NOT EXISTS idx_adm_cand_status ON adm_candidates(status);
 -- 8. ATTEMPTS
 -- ============================================================
 CREATE TABLE IF NOT EXISTS adm_attempts (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     candidate_id UUID NOT NULL REFERENCES adm_candidates(id) ON DELETE CASCADE,
     form_id UUID NOT NULL REFERENCES adm_test_forms(id) ON DELETE CASCADE,
     school_id UUID NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
@@ -198,7 +198,7 @@ CREATE INDEX IF NOT EXISTS idx_adm_att_status ON adm_attempts(status);
 -- 9. ANSWERS (per question per attempt)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS adm_answers (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     attempt_id UUID NOT NULL REFERENCES adm_attempts(id) ON DELETE CASCADE,
     question_id UUID NOT NULL REFERENCES adm_questions(id) ON DELETE CASCADE,
     response JSONB,          -- candidate's answer
@@ -215,7 +215,7 @@ CREATE INDEX IF NOT EXISTS idx_adm_ans_attempt ON adm_answers(attempt_id);
 -- 10. PLACEMENT RESULTS
 -- ============================================================
 CREATE TABLE IF NOT EXISTS adm_placement_results (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     attempt_id UUID NOT NULL REFERENCES adm_attempts(id) ON DELETE CASCADE,
     candidate_id UUID NOT NULL REFERENCES adm_candidates(id) ON DELETE CASCADE,
     school_id UUID NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
@@ -239,7 +239,7 @@ CREATE INDEX IF NOT EXISTS idx_adm_place_band ON adm_placement_results(band);
 -- 11. IMPORT STAGING (for CSV/JSON question imports)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS adm_import_staging (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     school_id UUID REFERENCES schools(id) ON DELETE CASCADE,
     batch_ref TEXT NOT NULL,  -- e.g. "eng9-2026-02-11"
     row_number SMALLINT,
@@ -316,3 +316,10 @@ CREATE TRIGGER adm_candidates_updated_at BEFORE UPDATE ON adm_candidates
 -- DROP TABLE IF EXISTS adm_school_grade_stage_map CASCADE;
 -- DROP TABLE IF EXISTS adm_questions CASCADE;
 -- DROP TABLE IF EXISTS adm_question_pools CASCADE;
+
+-- ============================================================
+-- PATCH: If tables already exist, fix uuid + token defaults
+-- ============================================================
+-- Safe to run multiple times (idempotent)
+ALTER TABLE adm_candidates
+    ALTER COLUMN token SET DEFAULT encode(gen_random_bytes(16), 'hex');

@@ -113,7 +113,7 @@ BEGIN
 
     -- 6. Create new attempt
     v_expires_at := NOW() + (v_blueprint.duration_minutes || ' minutes')::INTERVAL;
-    v_attempt_id := uuid_generate_v4();
+    v_attempt_id := gen_random_uuid();
 
     INSERT INTO adm_attempts (id, candidate_id, form_id, school_id, expires_at, max_score, status)
     VALUES (v_attempt_id, v_candidate.id, v_form.id, v_candidate.school_id, v_expires_at,
@@ -579,7 +579,7 @@ BEGIN
     JOIN adm_test_forms tf ON tf.blueprint_id = bp.id
     WHERE tf.id = v_attempt.form_id;
 
-    v_placement_id := uuid_generate_v4();
+    v_placement_id := gen_random_uuid();
 
     INSERT INTO adm_placement_results (id, attempt_id, candidate_id, school_id, subject, band,
                                         recommended_grade, recommended_stage, notes, decided_at)
@@ -647,9 +647,9 @@ BEGIN
     -- Generate form code
     v_form_code := COALESCE(p_form_code,
         UPPER(LEFT(v_bp.subject, 3)) || COALESCE(v_bp.target_stage::text, '') ||
-        '-' || TO_CHAR(NOW(), 'YYYY') || '-' || SUBSTR(uuid_generate_v4()::text, 1, 4));
+        '-' || TO_CHAR(NOW(), 'YYYY') || '-' || SUBSTR(gen_random_uuid()::text, 1, 4));
 
-    v_form_id := uuid_generate_v4();
+    v_form_id := gen_random_uuid();
 
     INSERT INTO adm_test_forms (id, blueprint_id, school_id, form_code, status, created_by)
     VALUES (v_form_id, p_blueprint_id, v_bp.school_id, v_form_code, 'draft', v_bp.created_by);
