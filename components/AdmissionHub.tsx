@@ -1554,19 +1554,26 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   </div>
                 )}
 
-                {/* Generate AI Report Button */}
+                {/* Generate AI Report Button — grades writing, re-checks text answers */}
                 {!reportData.ai_summary && (
-                  <button
-                    onClick={() => handleGenerateAiReport(reportAttemptId!)}
-                    disabled={generatingAiReport || !reportAttemptId}
-                    className="w-full rounded-lg border border-purple-500/40 bg-purple-600/20 hover:bg-purple-600/30 px-4 py-2 text-sm text-purple-200 transition flex items-center justify-center gap-2 disabled:opacity-40"
-                  >
-                    {generatingAiReport ? (
-                      <><span className="animate-spin">🔄</span> Generating AI Report...</>
-                    ) : (
-                      <><span>🤖</span> Generate AI Report</>
+                  <div className="space-y-2">
+                    {(reportData.answers ?? []).some(a => ['email_writing','essay_writing','gap_fill','sentence_transformation','error_correction','word_formation','open_cloze','short_answer','structured'].includes(a.question_type)) && (
+                      <div className="rounded-lg border border-amber-500/30 bg-amber-900/10 px-3 py-2 text-xs text-amber-200">
+                        ⚠️ This test has writing and/or open-ended answers that need AI grading for accurate scores. Click below to run AI grading.
+                      </div>
                     )}
-                  </button>
+                    <button
+                      onClick={() => handleGenerateAiReport(reportAttemptId!)}
+                      disabled={generatingAiReport || !reportAttemptId}
+                      className="w-full rounded-lg border border-purple-500/40 bg-purple-600/20 hover:bg-purple-600/30 px-4 py-2 text-sm text-purple-200 transition flex items-center justify-center gap-2 disabled:opacity-40"
+                    >
+                      {generatingAiReport ? (
+                        <><span className="animate-spin">🔄</span> AI Grading in Progress (this may take a minute)...</>
+                      ) : (
+                        <><span>🤖</span> Run AI Grading &amp; Generate Report</>
+                      )}
+                    </button>
+                  </div>
                 )}
 
                 {/* Detailed Answers Section */}
@@ -1587,17 +1594,29 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                           className={`rounded-lg border p-3 ${
                             ans.is_correct
                               ? 'border-emerald-500/30 bg-emerald-900/10'
-                              : ans.question_type === 'email_writing' || ans.question_type === 'essay_writing'
+                              : ans.is_correct === null || ['email_writing','essay_writing'].includes(ans.question_type)
                               ? 'border-amber-500/30 bg-amber-900/10'
+                              : !ans.ai_feedback && ['gap_fill','sentence_transformation','error_correction','word_formation','open_cloze','short_answer','structured'].includes(ans.question_type)
+                              ? 'border-yellow-500/30 bg-yellow-900/10'
                               : 'border-red-500/30 bg-red-900/10'
                           }`}
                         >
                           <div className="flex items-start justify-between gap-2 mb-2">
-                            <span className="text-xs px-2 py-0.5 rounded bg-slate-700 text-gray-300 capitalize">
-                              {ans.question_type.replace(/_/g, ' ')}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs px-2 py-0.5 rounded bg-slate-700 text-gray-300 capitalize">
+                                {ans.question_type.replace(/_/g, ' ')}
+                              </span>
+                              {!ans.ai_feedback && ans.is_correct !== true && ['email_writing','essay_writing','gap_fill','sentence_transformation','error_correction','word_formation','open_cloze','short_answer','structured'].includes(ans.question_type) && (
+                                <span className="text-xs px-2 py-0.5 rounded bg-amber-800/50 text-amber-300">⏳ Needs AI</span>
+                              )}
+                              {ans.ai_feedback && (
+                                <span className="text-xs px-2 py-0.5 rounded bg-purple-800/50 text-purple-300">🤖 AI Graded</span>
+                              )}
+                            </div>
                             <span className={`text-xs font-bold ${
-                              ans.is_correct ? 'text-emerald-400' : 'text-red-400'
+                              ans.is_correct ? 'text-emerald-400' 
+                              : ans.is_correct === null ? 'text-amber-400'
+                              : 'text-red-400'
                             }`}>
                               {ans.marks_awarded}/{ans.marks_possible}
                             </span>
@@ -1607,7 +1626,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                           {/* Student Response */}
                           <div className="text-xs">
                             <span className="text-gray-400">Student answered: </span>
-                            <span className={ans.is_correct ? 'text-emerald-300' : 'text-red-300'}>
+                            <span className={ans.is_correct ? 'text-emerald-300' : ans.is_correct === null ? 'text-amber-300' : 'text-red-300'}>
                               {typeof ans.response === 'object'
                                 ? (ans.response?.text || ans.response?.index) ?? JSON.stringify(ans.response)
                                 : ans.response || '(no answer)'}

@@ -74,10 +74,23 @@ SCORING: 5=exceptional, 4=good with minor lapses, 3=satisfactory, 2=inadequate, 
 Return VALID JSON only:
 {"content":X,"communicative_achievement":X,"organisation":X,"language":X,"total":X,"max":20,"feedback":"2-3 paragraphs","strengths":["..."],"improvements":["..."],"corrected_version":"..."}`,
 
-  gap_fill: `You are grading a Cambridge-style gap-fill answer. Accept minor spelling variations if the intended word is clearly recognisable. Accept valid alternative answers that are grammatically correct in context. Case-insensitive.
+  gap_fill: `You are grading a Cambridge-style gap-fill answer.
+
+IMPORTANT: Students may include extra words around their answer:
+- "had already begun" when the answer is "had already begun" → CORRECT
+- "The hardly" when the answer is "hardly" → extract key word, accept
+- Full phrases or sentences containing the correct answer → extract and grade
+
+RULES:
+- Accept minor spelling variations if the intended word is clearly recognisable
+- Accept valid ALTERNATIVE answers that are grammatically correct in context (e.g. "hadn't finished" and "had not finished" are equivalent)
+- The answer must fit the gap grammatically AND semantically
+- Strip leading articles (the, a, an) and trailing punctuation before comparing
+- Case-insensitive
+- Accept contracted forms as equivalent to full forms (don't = do not, hadn't = had not)
 
 Return VALID JSON only:
-{"is_correct":true/false,"marks_awarded":X,"marks_possible":X,"feedback":"brief explanation","accepted_answer":"..."}`,
+{"is_correct":true/false,"marks_awarded":X,"marks_possible":X,"feedback":"brief explanation","accepted_answer":"the answer you accepted or the correct one"}`,
 
   sentence_transformation: `You are grading a Cambridge Key Word Transformation answer.
 RULES:
@@ -89,15 +102,41 @@ RULES:
 Return VALID JSON only:
 {"is_correct":true/false,"marks_awarded":X,"marks_possible":X,"feedback":"...","accepted_answer":"..."}`,
 
-  error_correction: `You are grading a Cambridge error correction answer. The student must provide the corrected word/phrase. Accept minor spelling issues if intent is clear. Case-insensitive.
+  error_correction: `You are grading a Cambridge error correction answer.
+
+IMPORTANT: Students may respond in TWO different ways:
+1. Just the corrected WORD (e.g. "doesn't") — compare directly to the correct answer
+2. The FULL corrected sentence (e.g. "I'm looking forward to meeting you") — check if the correction they made is the right one
+
+RULES:
+- If the student rewrites the full sentence, check WHETHER THE SPECIFIC ERROR was correctly fixed
+- The student must fix the CORRECT error (not change something else)
+- If they fixed the right error but also changed other words unnecessarily, still award the mark
+- Accept minor spelling variations if intent is clear
+- Case-insensitive
+- Example: Sentence has "to meet" (should be "to meeting"). Student writes "I'm looking forward to meeting you at the conference" → CORRECT (they fixed "meet" to "meeting")
+- Example: Sentence has "have" (should be "has"). Student writes full sentence changing "have" to "had" → INCORRECT (wrong correction)
 
 Return VALID JSON only:
-{"is_correct":true/false,"marks_awarded":X,"marks_possible":X,"feedback":"..."}`,
+{"is_correct":true/false,"marks_awarded":X,"marks_possible":X,"feedback":"explain what the error was and whether the student fixed it correctly"}`,
 
-  word_formation: `You are grading a Cambridge word formation answer. The student must transform the base word into the correct form. Spelling must be correct. Case-insensitive.
+  word_formation: `You are grading a Cambridge word formation answer. The student must transform the base word into the correct derived form.
+
+IMPORTANT: Students may include extra words around their answer:
+- "The competition" when the answer is "competition" → extract the key word and grade it
+- "completely" with a capital letter → accept (case-insensitive)
+- Strip articles (the, a, an), pronouns, and other filler words to find the actual answer word
+
+RULES:
+- The core transformed word must be the correct derived form (noun, adjective, adverb, verb, etc.)
+- Spelling must be correct for the KEY WORD (this type tests word knowledge)
+- Ignore extra words the student may have added around the answer
+- Case-insensitive
+- Example: Base word COMPETE, correct answer "competition". Student writes "The competition" → CORRECT
+- Example: Base word WILLING, correct answer "willingness". Student writes "Willing" → INCORRECT (not transformed to noun)
 
 Return VALID JSON only:
-{"is_correct":true/false,"marks_awarded":X,"marks_possible":X,"feedback":"..."}`,
+{"is_correct":true/false,"marks_awarded":X,"marks_possible":X,"feedback":"explain the correct word form and whether the student's answer matches"}`,
 
   open_cloze: `You are grading a Cambridge open cloze answer. Accept valid alternatives. Case-insensitive.
 

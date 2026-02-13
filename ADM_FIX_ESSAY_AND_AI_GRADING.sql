@@ -105,9 +105,15 @@ WHERE question_type = 'essay_writing' AND ai_grading_prompt IS NULL;
 UPDATE adm_questions
 SET ai_grading_prompt = 'Grade this gap-fill answer. The student must provide the correct word form or grammatical structure.
 
+IMPORTANT: Students may include extra words around their answer:
+- "had already begun" when the answer is "had already begun" → CORRECT
+- "The hardly" when the answer is "hardly" → extract key word and accept
+- Accept contracted forms as equivalent to full forms (don''t = do not, hadn''t = had not)
+
 RULES:
 - Accept minor spelling variations if the intended word is clearly recognisable
 - Accept valid alternative answers that are grammatically correct in context
+- Strip leading articles (the, a, an) and trailing punctuation before comparing
 - The answer must fit the gap grammatically AND semantically
 - Case-insensitive comparison
 
@@ -134,26 +140,39 @@ WHERE question_type = 'sentence_transformation' AND ai_grading_prompt IS NULL;
 UPDATE adm_questions
 SET ai_grading_prompt = 'Grade this error correction answer. The student must identify and provide the corrected word/phrase.
 
-RULES:
-- The student should provide the corrected form of the error in the sentence
-- Accept answers that correctly fix the identified error
-- Minor spelling mistakes in the corrected word are acceptable if intent is clear
-- Case-insensitive
+IMPORTANT: Students may respond in TWO different ways:
+1. Just the corrected WORD (e.g. "doesn''t") — compare directly to the correct answer
+2. The FULL corrected sentence (e.g. "I''m looking forward to meeting you") — check if the correction they made is the right one
 
-Return JSON: {"is_correct": true/false, "marks_awarded": X, "marks_possible": X, "feedback": "..."}'
+RULES:
+- If the student rewrites the full sentence, check WHETHER THE SPECIFIC ERROR was correctly fixed
+- The student must fix the CORRECT error (not change something else)
+- If they fixed the right error but also changed other words unnecessarily, still award the mark
+- Accept minor spelling mistakes in the corrected word if intent is clear
+- Case-insensitive
+- Example: Sentence has "to meet" (should be "to meeting"). Student writes "I''m looking forward to meeting you" → CORRECT
+- Example: Sentence has "have" (should be "has"). Student writes full sentence changing "have" to "had" → INCORRECT
+
+Return JSON: {"is_correct": true/false, "marks_awarded": X, "marks_possible": X, "feedback": "explain what the error was and whether the student fixed it correctly"}'
 WHERE question_type = 'error_correction' AND ai_grading_prompt IS NULL;
 
 -- Word formation AI grading prompt
 UPDATE adm_questions
 SET ai_grading_prompt = 'Grade this word formation answer. The student must transform the base word into the correct form to complete the sentence.
 
-RULES:
-- The answer must be the correct derived form (noun, adjective, adverb, verb, etc.)
-- Spelling must be correct (this type tests word knowledge specifically)
-- Only one answer is typically correct
-- Case-insensitive
+IMPORTANT: Students may include extra words around their answer:
+- "The competition" when the answer is "competition" → extract the key word and grade it
+- Strip articles (the, a, an), pronouns, and other filler words to find the actual answer word
 
-Return JSON: {"is_correct": true/false, "marks_awarded": X, "marks_possible": X, "feedback": "..."}'
+RULES:
+- The core transformed word must be the correct derived form (noun, adjective, adverb, verb, etc.)
+- Spelling must be correct for the KEY WORD (this type tests word knowledge specifically)
+- Ignore extra words the student may have added around the answer
+- Case-insensitive
+- Example: Base word COMPETE, correct "competition". Student writes "The competition" → CORRECT
+- Example: Base word WILLING, correct "willingness". Student writes "Willing" → INCORRECT (not transformed to noun)
+
+Return JSON: {"is_correct": true/false, "marks_awarded": X, "marks_possible": X, "feedback": "explain the correct form and whether the student''s answer matches"}'
 WHERE question_type = 'word_formation' AND ai_grading_prompt IS NULL;
 
 -- Math short_answer AI grading prompt

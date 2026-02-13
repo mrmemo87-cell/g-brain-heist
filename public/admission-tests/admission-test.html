@@ -625,7 +625,7 @@ function buildQuestionHTML(q, idx) {
         <textarea class="writing-answer" data-qidx="${idx}" rows="12"
                   placeholder="Write your ${q.question_type === 'email_writing' ? 'email' : 'essay'} here..."
                   oninput="handleWritingInput(${idx}, this.value)"></textarea>
-        <div class="writing-hint">ℹ️ Your writing will be evaluated by AI for content, organisation, and language.</div>
+        <div class="writing-hint">ℹ️ Your writing will be evaluated for content, organisation, and language.</div>
       </div>
     `;
   } else {
@@ -833,8 +833,17 @@ function scoreOffline() {
   let totalScore = 0;
   let maxScore = 0;
   let writingPendingCount = 0;
+  let aiPendingCount = 0;
   const perQuestion = [];
   const topicStats = {};
+
+  // Helper: clean answer for flexible comparison
+  function cleanAnswer(s) {
+    if (!s) return '';
+    return String(s).trim().toLowerCase()
+      .replace(/^(the|a|an)\s+/i, '')  // strip leading articles
+      .replace(/[.!?,;:]+$/, '');       // strip trailing punctuation
+  }
 
   STATE.questions.forEach(q => {
     const marks = q.marks || 1;
@@ -847,28 +856,61 @@ function scoreOffline() {
     if (q.question_type === 'email_writing' || q.question_type === 'essay_writing') {
       needsAiGrading = true;
       writingPendingCount++;
-      // Don't count toward maxScore for now - will be added after AI grading
       marksAwarded = 0;
       isCorrect = null; // Unknown until AI grades
+
     } else if (q.question_type === 'mcq' || q.question_type === 'reading_comprehension') {
       maxScore += marks;
       if (answer && typeof answer === 'object' && 'index' in answer) {
         isCorrect = answer.index === q.correct_index;
       }
       if (isCorrect) { totalScore += marks; marksAwarded = marks; }
+
+    } else if (q.question_type === 'error_correction') {
+      // Students often write the full corrected sentence
+      maxScore += marks;
+      const correct = cleanAnswer(typeof q.correct_answer === 'string' ? q.correct_answer : (q.correct_answer || ''));
+      const given = (typeof answer === 'string' ? answer : '').trim().toLowerCase();
+      // Check exact match OR if the correct word appears in their full sentence answer
+      if (given === correct || given.includes(correct)) {
+        isCorrect = true;
+      }
+      // Still mark as needing AI for a proper check
+      needsAiGrading = true;
+      aiPendingCount++;
+      if (isCorrect) { totalScore += marks; marksAwarded = marks; }
+
+    } else if (q.question_type === 'word_formation' || q.question_type === 'gap_fill' || q.question_type === 'open_cloze') {
+      // Students may add articles ("The competition" for "competition")
+      maxScore += marks;
+      const correct = cleanAnswer(typeof q.correct_answer === 'string' ? q.correct_answer : (q.correct_answer || ''));
+      const given = cleanAnswer(typeof answer === 'string' ? answer : '');
+      isCorrect = (given === correct);
+      // Still mark as needing AI for flexible grading
+      needsAiGrading = true;
+      aiPendingCount++;
+      if (isCorrect) { totalScore += marks; marksAwarded = marks; }
+
+    } else if (q.question_type === 'sentence_transformation') {
+      maxScore += marks;
+      const correct = cleanAnswer(typeof q.correct_answer === 'string' ? q.correct_answer : (q.correct_answer || ''));
+      const given = cleanAnswer(typeof answer === 'string' ? answer : '');
+      isCorrect = (given === correct);
+      // AI can award partial marks (1/2) for sentence transformation
+      needsAiGrading = true;
+      aiPendingCount++;
+      if (isCorrect) { totalScore += marks; marksAwarded = marks; }
+
     } else {
       maxScore += marks;
-      const correct = typeof q.correct_answer === 'string' ? q.correct_answer : (q.correct_answer || '');
-      const given = (typeof answer === 'string' ? answer : '').trim().toLowerCase();
-      // Allow some flexibility: trim, lowercase, ignore trailing punctuation
-      const cleanCorrect = String(correct).trim().toLowerCase().replace(/[.!?]+$/, '');
-      const cleanGiven = given.replace(/[.!?]+$/, '');
-      isCorrect = cleanGiven === cleanCorrect;
+      const correct = cleanAnswer(typeof q.correct_answer === 'string' ? q.correct_answer : (q.correct_answer || ''));
+      const given = cleanAnswer(typeof answer === 'string' ? answer : '');
+      isCorrect = (given === correct);
       if (isCorrect) { totalScore += marks; marksAwarded = marks; }
     }
 
     const topic = q.topic || 'general';
-    if (!needsAiGrading) {
+    if (q.question_type !== 'email_writing' && q.question_type !== 'essay_writing') {
       if (!topicStats[topic]) topicStats[topic] = { correct: 0, total: 0 };
       topicStats[topic].total++;
       if (isCorrect) topicStats[topic].correct++;
@@ -919,8 +961,10 @@ function showResults(r) {
       </p>
       ${r.writing_pending ? `
         <div style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);border-radius:12px;padding:16px;margin-bottom:20px;max-width:400px;margin-left:auto;margin-right:auto">
-          <div style="color:#c084fc;font-weight:600;margin-bottom:4px">🤖 Writing Tasks</div>
-          <div style="color:var(--text-muted);font-size:13px">${r.writing_pending} writing task${r.writing_pending > 1 ? 's' : ''} will be reviewed separately.</div>
+          <div style="color:#c084fc;font-weight:600;margin-bottom:4px">✍️ Writing Tasks</div>
+          <div style="color:var(--text-muted);font-size:13px">
+            Your writing task${r.writing_pending > 1 ? 's' : ''} will be reviewed and graded separately by the admissions team.
+          </div>
         </div>
       ` : ''}
       <div style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:12px;padding:20px;max-width:400px;margin:0 auto">

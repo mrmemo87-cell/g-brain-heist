@@ -241,6 +241,7 @@ DECLARE
     v_is_correct BOOLEAN;
     v_marks SMALLINT;
     v_writing_pending INT := 0;
+    v_ai_pending INT := 0;
 BEGIN
     -- Validate
     SELECT * INTO v_candidate FROM adm_candidates WHERE token = p_token;
@@ -275,13 +276,13 @@ BEGIN
         CASE v_ans.question_type
             WHEN 'email_writing', 'essay_writing' THEN
                 -- Writing tasks: cannot auto-score, needs AI grading
-                -- Mark as NULL (unknown) until AI grades it
                 v_is_correct := NULL;
                 v_marks := 0;
                 v_writing_pending := v_writing_pending + 1;
-                -- Don't add to max_score here - will be added after AI grading
+                -- Don't add to max_score here — will be counted after AI grading
+
             WHEN 'mcq', 'reading_comprehension' THEN
-                -- Compare selected index or text
+                -- MCQ: compare selected index (definitive, no AI needed)
                 IF v_ans.response IS NOT NULL THEN
                     IF v_ans.response ? 'index' THEN
                         v_is_correct := (v_ans.response->>'index')::int = v_ans.correct_index;
@@ -289,16 +290,65 @@ BEGIN
                         v_is_correct := LOWER(TRIM(v_ans.response #>> '{}')) = LOWER(TRIM(v_correct #>> '{}'));
                     END IF;
                 END IF;
-            WHEN 'gap_fill', 'sentence_transformation', 'error_correction', 'word_formation', 'open_cloze' THEN
-                -- Text-based English: exact match for now, AI will re-grade later
+
+            WHEN 'error_correction' THEN
+                -- Students often write full corrected sentence instead of just the word.
+                -- Check if the correct answer appears within their response (flexible).
                 IF v_ans.response IS NOT NULL AND v_correct IS NOT NULL THEN
-                    v_is_correct := LOWER(TRIM(v_ans.response #>> '{}')) = LOWER(TRIM(v_correct #>> '{}'));
+                    DECLARE
+                        v_given TEXT := LOWER(TRIM(v_ans.response #>> '{}'));
+                        v_expected TEXT := LOWER(TRIM(v_correct #>> '{}'));
+                    BEGIN
+                        -- Exact match first
+                        IF v_given = v_expected THEN
+                            v_is_correct := true;
+                        -- Check if the correct word appears in their full-sentence answer
+                        ELSIF v_given LIKE '%' || v_expected || '%' THEN
+                            v_is_correct := true;
+                        ELSE
+                            v_is_correct := false;
+                        END IF;
+                    END;
                 END IF;
-            WHEN 'short_answer', 'structured' THEN
-                -- Math: exact match for now, AI will re-grade with partial credit
+
+            WHEN 'word_formation', 'gap_fill', 'open_cloze' THEN
+                -- Students may include articles/determiners (e.g. "The competition" for "competition").
+                -- Strip leading articles and common filler, then compare.
                 IF v_ans.response IS NOT NULL AND v_correct IS NOT NULL THEN
-                    v_is_correct := LOWER(TRIM(v_ans.response #>> '{}')) = LOWER(TRIM(v_correct #>> '{}'));
+                    DECLARE
+                        v_given TEXT := LOWER(TRIM(v_ans.response #>> '{}'));
+                        v_expected TEXT := LOWER(TRIM(v_correct #>> '{}'));
+                        v_given_clean TEXT;
+                    BEGIN
+                        -- Strip leading articles: the, a, an
+                        v_given_clean := REGEXP_REPLACE(v_given, '^\s*(the|a|an)\s+', '', 'i');
+                        -- Strip trailing punctuation
+                        v_given_clean := REGEXP_REPLACE(v_given_clean, '[.!?,;:]+$', '');
+                        v_expected := REGEXP_REPLACE(v_expected, '[.!?,;:]+$', '');
+
+                        IF v_given_clean = v_expected THEN
+                            v_is_correct := true;
+                        ELSIF v_given = v_expected THEN
+                            v_is_correct := true;
+                        ELSE
+                            v_is_correct := false;
+                        END IF;
+                    END;
                 END IF;
+
+            WHEN 'sentence_transformation' THEN
+                -- Text comparison for initial pass; AI will do proper split-scoring later
+                IF v_ans.response IS NOT NULL AND v_correct IS NOT NULL THEN
+                    DECLARE
+                        v_given TEXT := LOWER(TRIM(v_ans.response #>> '{}'));
+                        v_expected TEXT := LOWER(TRIM(v_correct #>> '{}'));
+                    BEGIN
+                        v_given := REGEXP_REPLACE(v_given, '[.!?,;:]+$', '');
+                        v_expected := REGEXP_REPLACE(v_expected, '[.!?,;:]+$', '');
+                        v_is_correct := (v_given = v_expected);
+                    END;
+                END IF;
+
             ELSE
                 -- Any other type: case-insensitive trimmed comparison
                 IF v_ans.response IS NOT NULL AND v_correct IS NOT NULL THEN
@@ -312,6 +362,11 @@ BEGIN
                 v_marks := v_ans.marks_possible;
             END IF;
             v_max_score := v_max_score + v_ans.marks_possible;
+            -- Track text-based questions that need AI re-grading for flexible marking
+            IF v_ans.question_type IN ('gap_fill', 'sentence_transformation', 'error_correction',
+                                        'word_formation', 'open_cloze', 'short_answer', 'structured') THEN
+                v_ai_pending := v_ai_pending + 1;
+            END IF;
         END IF;
 
         v_total_score := v_total_score + v_marks;
@@ -387,7 +442,9 @@ BEGIN
         'percentage', v_pct,
         'band', v_band,
         'candidate_name', v_candidate.full_name,
-        'writing_pending', v_writing_pending
+        'writing_pending', v_writing_pending,
+        'ai_pending', v_ai_pending,
+        'needs_ai_grading', (v_writing_pending > 0 OR v_ai_pending > 0)
     );
 END;
 $$;
