@@ -474,6 +474,17 @@ BEGIN
         RETURN jsonb_build_object('success', false, 'error', 'Attempt not found');
     END IF;
 
+    -- School isolation: caller must belong to the same school
+    IF NOT EXISTS (
+        SELECT 1 FROM school_members sm
+        WHERE sm.school_id = v_attempt.school_id
+          AND sm.user_id = auth.uid()
+          AND sm.role_in_school IN ('school_admin', 'teacher')
+          AND sm.status = 'active'
+    ) THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Access denied — not a member of this school');
+    END IF;
+
     SELECT * INTO v_candidate FROM adm_candidates WHERE id = v_attempt.candidate_id;
 
     -- Per-question answers (including AI feedback)
@@ -594,6 +605,17 @@ BEGIN
         RETURN jsonb_build_object('success', false, 'error', 'Form not found');
     END IF;
 
+    -- School isolation: caller must belong to the same school
+    IF NOT EXISTS (
+        SELECT 1 FROM school_members sm
+        WHERE sm.school_id = v_form.school_id
+          AND sm.user_id = auth.uid()
+          AND sm.role_in_school = 'school_admin'
+          AND sm.status = 'active'
+    ) THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Access denied — not a school admin of this school');
+    END IF;
+
     -- Must have questions
     SELECT COUNT(*) INTO v_q_count FROM adm_test_form_questions WHERE form_id = p_form_id;
     IF v_q_count = 0 THEN
@@ -624,6 +646,17 @@ BEGIN
     SELECT * INTO v_form FROM adm_test_forms WHERE id = p_form_id;
     IF v_form.id IS NULL THEN
         RETURN jsonb_build_object('success', false, 'error', 'Form not found');
+    END IF;
+
+    -- School isolation: caller must belong to the same school
+    IF NOT EXISTS (
+        SELECT 1 FROM school_members sm
+        WHERE sm.school_id = v_form.school_id
+          AND sm.user_id = auth.uid()
+          AND sm.role_in_school = 'school_admin'
+          AND sm.status = 'active'
+    ) THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Access denied — not a school admin of this school');
     END IF;
 
     UPDATE adm_test_forms
@@ -666,6 +699,17 @@ BEGIN
     SELECT * INTO v_attempt FROM adm_attempts WHERE id = p_attempt_id;
     IF v_attempt.id IS NULL OR v_attempt.status != 'scored' THEN
         RETURN jsonb_build_object('success', false, 'error', 'Attempt not found or not yet scored');
+    END IF;
+
+    -- School isolation: caller must belong to the same school
+    IF NOT EXISTS (
+        SELECT 1 FROM school_members sm
+        WHERE sm.school_id = v_attempt.school_id
+          AND sm.user_id = auth.uid()
+          AND sm.role_in_school IN ('school_admin', 'teacher')
+          AND sm.status = 'active'
+    ) THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Access denied — not a member of this school');
     END IF;
 
     SELECT * INTO v_candidate FROM adm_candidates WHERE id = v_attempt.candidate_id;
@@ -726,6 +770,17 @@ BEGIN
     SELECT * INTO v_bp FROM adm_blueprints WHERE id = p_blueprint_id;
     IF v_bp.id IS NULL THEN
         RETURN jsonb_build_object('success', false, 'error', 'Blueprint not found');
+    END IF;
+
+    -- School isolation: caller must belong to the same school
+    IF v_bp.school_id IS NOT NULL AND NOT EXISTS (
+        SELECT 1 FROM school_members sm
+        WHERE sm.school_id = v_bp.school_id
+          AND sm.user_id = auth.uid()
+          AND sm.role_in_school = 'school_admin'
+          AND sm.status = 'active'
+    ) THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Access denied — not a school admin of this school');
     END IF;
 
     -- Get matching pool IDs (school's + global pools for this subject/stage)
@@ -804,6 +859,17 @@ AS $$
 DECLARE
     v_stage SMALLINT;
 BEGIN
+    -- School isolation: caller must belong to the school
+    IF NOT EXISTS (
+        SELECT 1 FROM school_members sm
+        WHERE sm.school_id = p_school_id
+          AND sm.user_id = auth.uid()
+          AND sm.role_in_school IN ('school_admin', 'teacher')
+          AND sm.status = 'active'
+    ) THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Access denied — not a member of this school');
+    END IF;
+
     -- Try subject-specific mapping first
     IF p_subject IS NOT NULL THEN
         SELECT cambridge_stage INTO v_stage

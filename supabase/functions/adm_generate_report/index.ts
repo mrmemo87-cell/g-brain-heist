@@ -349,6 +349,21 @@ serve(async (req: Request) => {
 
     if (attErr || !attempt) return json(404, { error: "Attempt not found" });
 
+    // ── School isolation: verify the caller belongs to this school ──
+    const { data: membership } = await supabase
+      .from("school_members")
+      .select("id")
+      .eq("school_id", attempt.school_id)
+      .eq("user_id", authData.user.id)
+      .in("role_in_school", ["school_admin", "teacher"])
+      .eq("status", "active")
+      .limit(1)
+      .maybeSingle();
+
+    if (!membership) {
+      return json(403, { error: "Access denied — not a member of this school" });
+    }
+
     // ── Fetch answers with question details ──
     const { data: answers, error: ansErr } = await supabase
       .from("adm_answers")
