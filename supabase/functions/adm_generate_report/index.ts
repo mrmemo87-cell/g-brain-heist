@@ -2,16 +2,13 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.46.1";
 import OpenAI from "https://esm.sh/openai@4.52.3";
 
-// ── Environment ──
-const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-const serviceKey  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const openAiKey   = Deno.env.get("OPENAI_API_KEY")!;
-if (!supabaseUrl || !serviceKey || !openAiKey) {
-  throw new Error("Missing SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, or OPENAI_API_KEY");
-}
+// ── Environment (deferred — don't crash on cold start so CORS still works) ──
+const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+const serviceKey  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const openAiKey   = Deno.env.get("OPENAI_API_KEY") ?? "";
 
-const supabase = createClient(supabaseUrl, serviceKey);
-const openai   = new OpenAI({ apiKey: openAiKey });
+const supabase = supabaseUrl && serviceKey ? createClient(supabaseUrl, serviceKey) : null;
+const openai   = openAiKey ? new OpenAI({ apiKey: openAiKey }) : null;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -262,9 +259,15 @@ async function gradeAnswer(a: AnswerToGrade): Promise<{
 // ────────────────────────────────────────────────────────────
 // MAIN HANDLER
 // ────────────────────────────────────────────────────────────
-serve(async (req) => {
+serve(async (req: Request) => {
+  // CORS preflight — must respond even if env vars are missing
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST")   return json(405, { error: "Method not allowed" });
+
+  // Check env vars (deferred to here so OPTIONS always works)
+  if (!supabase || !openai) {
+    return json(500, { error: "Server misconfigured — missing SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, or OPENAI_API_KEY" });
+  }
 
   try {
     // ── Auth ──
