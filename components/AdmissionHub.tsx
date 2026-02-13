@@ -482,10 +482,21 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       }
 
       const data = await response.json();
-      if (data.ai_summary && reportData) {
-        setReportData({ ...reportData, ai_summary: data.ai_summary, answers: data.answers ?? reportData.answers });
+      if (data.success && reportData) {
+        // Update ALL score fields so the UI reflects AI grading results
+        setReportData({
+          ...reportData,
+          total_score: data.total_score ?? reportData.total_score,
+          max_score: data.max_score ?? reportData.max_score,
+          percentage: data.percentage ?? reportData.percentage,
+          band: data.band ?? reportData.band,
+          ai_summary: data.ai_summary ?? reportData.ai_summary,
+          answers: data.answers ?? reportData.answers,
+        });
       }
-      addToast('AI report generated', 'success');
+      addToast('AI report generated — scores updated', 'success');
+      // Reload attempt list so the Results table also shows updated scores
+      await loadAll();
     } catch (err: any) {
       addToast(`AI report failed: ${err.message}`, 'error');
     } finally {

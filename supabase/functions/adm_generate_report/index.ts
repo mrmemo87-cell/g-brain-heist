@@ -44,111 +44,154 @@ const AI_GRADABLE_TYPES = new Set([
 // Cambridge-aligned default prompts (fallback when question
 // has no custom ai_grading_prompt)
 // ────────────────────────────────────────────────────────────
+// Global preamble added to ALL prompts to enforce flexible, student-friendly grading
+const FLEXIBILITY_PREAMBLE = `IMPORTANT GRADING PHILOSOPHY:
+- These are school ADMISSION tests for young students (ages 11-15). Be GENEROUS and encouraging.
+- Focus on whether the student UNDERSTANDS the concept, not on perfect wording.
+- Accept ANY answer that demonstrates the student knows the right idea, even if phrased differently.
+- Minor spelling mistakes should be IGNORED if the intended word is clearly recognisable.
+- Extra words, articles (the/a/an), punctuation differences, capitalisation — all should be IGNORED.
+- If the student's answer is substantially correct but slightly different from the model answer, mark it CORRECT.
+- When in doubt, give the student the benefit of the doubt and award the mark.
+- Partial credit should be given wherever possible.
+`;
+
 const DEFAULT_PROMPTS: Record<string, string> = {
   email_writing: `You are a Cambridge Assessment English examiner grading a student's email.
+These are young students applying to a school — be encouraging and fair. Reward effort and communication over perfection.
 
 MARKING CRITERIA (each 0-5):
-1. CONTENT: Are ALL bullet points addressed? Are ideas relevant and developed?
-2. COMMUNICATIVE ACHIEVEMENT: Is register appropriate? Does writing hold the reader's attention?
-3. ORGANISATION: Logical structure, paragraphing, cohesive devices, email conventions (greeting, body, sign-off)?
-4. LANGUAGE: Range of vocabulary, grammar accuracy, sentence variety, spelling/punctuation?
+1. CONTENT: Are the main points addressed? Even partial coverage = at least 2. Ideas don't need to be perfectly developed.
+2. COMMUNICATIVE ACHIEVEMENT: Reasonable register? Any attempt to engage the reader = at least 2.
+3. ORGANISATION: Some logical structure present? Has greeting/body/sign-off? = at least 2.
+4. LANGUAGE: Can the meaning be understood? Some variety attempted? = at least 2.
 
-SCORING: 5=exceptional, 4=good with minor lapses, 3=satisfactory, 2=inadequate, 1=very limited, 0=no relevant content.
+SCORING GUIDE: 5=exceptional, 4=good, 3=satisfactory (MOST students should score 3+ if they attempted it), 2=basic but attempted, 1=very limited, 0=ONLY for blank/completely irrelevant.
+Be generous — a genuine attempt should score at least 8-10/20.
 
 Return VALID JSON only:
-{"content":X,"communicative_achievement":X,"organisation":X,"language":X,"total":X,"max":20,"feedback":"2-3 paragraphs of examiner commentary","strengths":["..."],"improvements":["..."],"corrected_version":"rewritten version fixing all errors"}`,
+{"content":X,"communicative_achievement":X,"organisation":X,"language":X,"total":X,"max":20,"feedback":"2-3 paragraphs of encouraging examiner commentary","strengths":["..."],"improvements":["..."],"corrected_version":"rewritten version fixing all errors"}`,
 
   essay_writing: `You are a Cambridge Assessment English examiner grading a student's essay.
+These are young students applying to a school — be encouraging and fair. Reward effort and communication over perfection.
 
 MARKING CRITERIA (each 0-5):
-1. CONTENT: Clear argument/discussion? Both viewpoints considered? Personal opinion supported?
-2. COMMUNICATIVE ACHIEVEMENT: Appropriate register? Persuasive? Audience awareness?
-3. ORGANISATION: Clear intro, body, conclusion? Logical sequencing? Discourse markers?
-4. LANGUAGE: Precise vocabulary? Complex grammar attempted accurately? Sentence variety?
+1. CONTENT: Has the student addressed the topic? Even a basic attempt = at least 2.
+2. COMMUNICATIVE ACHIEVEMENT: Can the reader understand the student's position? = at least 2.
+3. ORGANISATION: Some structure (intro/body/conclusion attempted)? = at least 2.
+4. LANGUAGE: Meaning is clear? Some sentence variety? = at least 2.
 
-SCORING: 5=exceptional, 4=good with minor lapses, 3=satisfactory, 2=inadequate, 1=very limited, 0=no relevant content.
-
-Return VALID JSON only:
-{"content":X,"communicative_achievement":X,"organisation":X,"language":X,"total":X,"max":20,"feedback":"2-3 paragraphs","strengths":["..."],"improvements":["..."],"corrected_version":"..."}`,
-
-  gap_fill: `You are grading a Cambridge-style gap-fill answer.
-
-IMPORTANT: Students may include extra words around their answer:
-- "had already begun" when the answer is "had already begun" → CORRECT
-- "The hardly" when the answer is "hardly" → extract key word, accept
-- Full phrases or sentences containing the correct answer → extract and grade
-
-RULES:
-- Accept minor spelling variations if the intended word is clearly recognisable
-- Accept valid ALTERNATIVE answers that are grammatically correct in context (e.g. "hadn't finished" and "had not finished" are equivalent)
-- The answer must fit the gap grammatically AND semantically
-- Strip leading articles (the, a, an) and trailing punctuation before comparing
-- Case-insensitive
-- Accept contracted forms as equivalent to full forms (don't = do not, hadn't = had not)
+SCORING GUIDE: 5=exceptional, 4=good, 3=satisfactory (MOST students should score 3+ if they attempted it), 2=basic but attempted, 1=very limited, 0=ONLY for blank/completely irrelevant.
+Be generous — a genuine attempt should score at least 8-10/20.
 
 Return VALID JSON only:
-{"is_correct":true/false,"marks_awarded":X,"marks_possible":X,"feedback":"brief explanation","accepted_answer":"the answer you accepted or the correct one"}`,
+{"content":X,"communicative_achievement":X,"organisation":X,"language":X,"total":X,"max":20,"feedback":"2-3 paragraphs of encouraging commentary","strengths":["..."],"improvements":["..."],"corrected_version":"..."}`,
 
-  sentence_transformation: `You are grading a Cambridge Key Word Transformation answer.
+  gap_fill: `You are grading a gap-fill answer for a school admission test.
+
+BE VERY FLEXIBLE — these are young students. Accept the answer if the student clearly knows the right word.
+
+ACCEPT ALL OF THESE:
+- Extra words around the answer ("The hardly" for "hardly" → CORRECT)
+- Full phrases containing the answer → CORRECT
+- Minor spelling mistakes if the word is recognisable ("compettion" for "competition" → CORRECT)
+- Contracted forms = full forms (don't = do not, hadn't = had not → CORRECT)
+- Different but grammatically valid alternatives ("has been" vs "had been" if both work → CORRECT)
+- Articles, pronouns, determiners added by student → ignore them
+- Different capitalisation → ignore
+- Extra punctuation → ignore
+
+ONLY mark INCORRECT if the student clearly does not know the answer (completely wrong word/concept).
+
+Return VALID JSON only:
+{"is_correct":true/false,"marks_awarded":X,"marks_possible":X,"feedback":"brief encouraging explanation","accepted_answer":"the answer you accepted or the correct one"}`,
+
+  sentence_transformation: `You are grading a Key Word Transformation answer for a school admission test.
+
+BE FLEXIBLE — these are young students. Focus on whether they understood the transformation.
+
 RULES:
-- The keyword must be used WITHOUT changing its form
-- Same meaning as the original sentence
-- 2 marks: fully correct | 1 mark: one half correct | 0 marks: neither half correct
+- The keyword must appear in the answer (but minor additions around it are OK)
+- The meaning should be equivalent to the original sentence (doesn't have to be word-for-word identical to the model answer)
+- PARTIAL CREDIT: 2 marks = fully correct | 1 mark = partially correct (got the idea but phrasing is slightly off) | 0 = completely wrong
 - Contractions are acceptable
+- Extra words that don't change meaning → still award marks
+- Minor grammar slips but correct concept → award at least 1 mark
+- Different but equivalent phrasing → CORRECT (e.g., "I haven't eaten since Monday" and "I have not eaten since Monday" are the same)
 
 Return VALID JSON only:
-{"is_correct":true/false,"marks_awarded":X,"marks_possible":X,"feedback":"...","accepted_answer":"..."}`,
+{"is_correct":true/false,"marks_awarded":X,"marks_possible":X,"feedback":"brief encouraging explanation","accepted_answer":"..."}`,
 
-  error_correction: `You are grading a Cambridge error correction answer.
+  error_correction: `You are grading an error correction answer for a school admission test.
 
-IMPORTANT: Students may respond in TWO different ways:
-1. Just the corrected WORD (e.g. "doesn't") — compare directly to the correct answer
-2. The FULL corrected sentence (e.g. "I'm looking forward to meeting you") — check if the correction they made is the right one
+BE FLEXIBLE — these are young students. Focus on whether they identified and fixed the right error.
+
+Students may respond in TWO ways:
+1. Just the corrected WORD (e.g. "doesn't") → accept if it's the right correction
+2. The FULL corrected sentence → check if the specific error was fixed correctly
 
 RULES:
-- If the student rewrites the full sentence, check WHETHER THE SPECIFIC ERROR was correctly fixed
-- The student must fix the CORRECT error (not change something else)
-- If they fixed the right error but also changed other words unnecessarily, still award the mark
-- Accept minor spelling variations if intent is clear
+- If they fixed the right error, even if they also changed other words → CORRECT
+- If they wrote the full sentence with the error fixed → CORRECT
+- If the corrected word is a valid alternative (e.g., "doesn't" vs "does not") → CORRECT
+- Minor spelling mistakes in the corrected word → still CORRECT if intent is clear
 - Case-insensitive
-- Example: Sentence has "to meet" (should be "to meeting"). Student writes "I'm looking forward to meeting you at the conference" → CORRECT (they fixed "meet" to "meeting")
-- Example: Sentence has "have" (should be "has"). Student writes full sentence changing "have" to "had" → INCORRECT (wrong correction)
+- If the student identified the right area but used a slightly different correction that's still grammatically valid → CORRECT
+- ONLY mark incorrect if they completely missed the error or made the wrong correction
 
 Return VALID JSON only:
-{"is_correct":true/false,"marks_awarded":X,"marks_possible":X,"feedback":"explain what the error was and whether the student fixed it correctly"}`,
+{"is_correct":true/false,"marks_awarded":X,"marks_possible":X,"feedback":"briefly explain what the error was and whether the student got it right — be encouraging"}`,
 
-  word_formation: `You are grading a Cambridge word formation answer. The student must transform the base word into the correct derived form.
+  word_formation: `You are grading a word formation answer for a school admission test.
 
-IMPORTANT: Students may include extra words around their answer:
-- "The competition" when the answer is "competition" → extract the key word and grade it
-- "completely" with a capital letter → accept (case-insensitive)
-- Strip articles (the, a, an), pronouns, and other filler words to find the actual answer word
+BE FLEXIBLE — these are young students. Focus on whether they understood the word transformation.
 
 RULES:
-- The core transformed word must be the correct derived form (noun, adjective, adverb, verb, etc.)
-- Spelling must be correct for the KEY WORD (this type tests word knowledge)
-- Ignore extra words the student may have added around the answer
-- Case-insensitive
-- Example: Base word COMPETE, correct answer "competition". Student writes "The competition" → CORRECT
-- Example: Base word WILLING, correct answer "willingness". Student writes "Willing" → INCORRECT (not transformed to noun)
+- The student must transform the base word into a derived form (noun, adjective, adverb, verb, etc.)
+- Ignore extra words around the answer ("The competition" for "competition" → CORRECT)
+- Case-insensitive, ignore punctuation
+- Accept MINOR spelling mistakes if the intended word is clearly recognisable ("competion" for "competition" → CORRECT)
+- Accept valid alternative derivations if they fit the sentence context
+- If the student got the right word family but wrong specific form, award partial credit if marks_possible > 1
+- Example: Base word COMPETE → "competition" CORRECT, "competitive" may also be correct depending on context
+- ONLY mark incorrect if the word is not a valid transformation at all
 
 Return VALID JSON only:
-{"is_correct":true/false,"marks_awarded":X,"marks_possible":X,"feedback":"explain the correct word form and whether the student's answer matches"}`,
+{"is_correct":true/false,"marks_awarded":X,"marks_possible":X,"feedback":"briefly explain — be encouraging"}`,
 
-  open_cloze: `You are grading a Cambridge open cloze answer. Accept valid alternatives. Case-insensitive.
+  open_cloze: `You are grading an open cloze answer for a school admission test.
 
-Return VALID JSON only:
-{"is_correct":true/false,"marks_awarded":X,"marks_possible":X,"feedback":"..."}`,
-
-  short_answer: `You are grading a mathematics short answer. Accept equivalent forms (0.5 = 1/2 = 50%). Accept reasonable rounding.
-
-Return VALID JSON only:
-{"is_correct":true/false,"marks_awarded":X,"marks_possible":X,"feedback":"step-by-step explanation"}`,
-
-  structured: `You are grading a structured mathematics question. Award marks for correct method even if the final answer has arithmetic errors. Check each step.
+BE FLEXIBLE — accept any valid word that fits grammatically and makes sense in context.
+- Accept valid alternatives even if different from the model answer
+- Case-insensitive, ignore extra punctuation
+- Minor spelling mistakes → CORRECT if intent is clear
+- Extra articles/words around the answer → ignore, grade the key word
 
 Return VALID JSON only:
-{"is_correct":true/false,"marks_awarded":X,"marks_possible":X,"feedback":"detailed marking of each step","working_analysis":"..."}`,
+{"is_correct":true/false,"marks_awarded":X,"marks_possible":X,"feedback":"brief encouraging explanation"}`,
+
+  short_answer: `You are grading a mathematics short answer for a school admission test.
+
+BE FLEXIBLE:
+- Accept equivalent forms (0.5 = 1/2 = 50% = "half")
+- Accept reasonable rounding
+- Accept answers with or without units
+- If the method is right but there's a small arithmetic error, award partial credit
+- "About 5" for an answer of 5.1 → CORRECT
+
+Return VALID JSON only:
+{"is_correct":true/false,"marks_awarded":X,"marks_possible":X,"feedback":"brief step-by-step explanation — be encouraging"}`,
+
+  structured: `You are grading a structured mathematics question for a school admission test.
+
+BE GENEROUS WITH PARTIAL CREDIT:
+- Award marks for correct method even if the final answer has arithmetic errors
+- Award marks for each correct step separately
+- If the student shows understanding of the concept but makes calculation mistakes, still give significant credit
+- A student who gets the right approach but wrong final number should get most of the marks
+
+Return VALID JSON only:
+{"is_correct":true/false,"marks_awarded":X,"marks_possible":X,"feedback":"detailed but encouraging marking of each step","working_analysis":"..."}`,
 };
 
 // ────────────────────────────────────────────────────────────
@@ -177,10 +220,11 @@ async function gradeAnswer(a: AnswerToGrade): Promise<{
 }> {
   const isWriting = a.question_type === "email_writing" || a.question_type === "essay_writing";
 
-  // Build the system prompt
-  const systemPrompt = a.ai_grading_prompt
+  // Build the system prompt — always prepend flexibility preamble
+  const basePrompt = a.ai_grading_prompt
     || DEFAULT_PROMPTS[a.question_type]
     || DEFAULT_PROMPTS.gap_fill; // fallback
+  const systemPrompt = FLEXIBILITY_PREAMBLE + "\n" + basePrompt;
 
   // Build user message with all context
   let userMessage = `QUESTION:\n${a.stem}\n`;
@@ -207,7 +251,7 @@ async function gradeAnswer(a: AnswerToGrade): Promise<{
     const completion = await openai.chat.completions.create({
       model: "gpt-4-turbo",
       response_format: { type: "json_object" },
-      temperature: 0,
+      temperature: 0.15,
       max_tokens: isWriting ? 4096 : 1024,
       messages: [
         { role: "system", content: systemPrompt },
