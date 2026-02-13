@@ -123,6 +123,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   const [activeTab, setActiveTab] = useState<AdmTab>('overview');
   const [loading, setLoading] = useState(true);
   const [schoolId, setSchoolId] = useState<string | null>(null);
+  const [schoolName, setSchoolName] = useState<string>('');
 
   // Data
   const [pools, setPools] = useState<AdmQuestionPool[]>([]);
@@ -192,13 +193,16 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
     if (!user) return;
     const { data: membership } = await supabase
       .from('school_members')
-      .select('school_id')
+      .select('school_id, schools!inner(name)')
       .eq('user_id', user.id)
       .eq('status', 'active')
       .in('role_in_school', ['school_admin', 'teacher'])
       .limit(1)
       .maybeSingle();
-    if (membership) setSchoolId(membership.school_id);
+    if (membership) {
+      setSchoolId(membership.school_id);
+      setSchoolName((membership as any).schools?.name ?? '');
+    }
   }, []);
 
   const loadAll = useCallback(async () => {
@@ -429,16 +433,16 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   };
 
   // Share via WhatsApp
-  const shareViaWhatsApp = (phone: string | null, link: string, candidateName: string, testName: string) => {
-    const msg = encodeURIComponent(`Hi! Here is ${candidateName}'s *${testName}* admission test link:\n\n${link}\n\nPlease complete the test before the deadline. Good luck!`);
+  const shareViaWhatsApp = (phone: string | null, link: string, candidateName: string) => {
+    const msg = encodeURIComponent(`Hello,\n\nThis is the admission test for *${schoolName || 'our school'}* for the student *${candidateName}*.\n\n${link}\n\nPlease complete the test before the deadline. Good luck!`);
     const cleanPhone = (phone || '').replace(/[^0-9+]/g, '');
     window.open(`https://wa.me/${cleanPhone}?text=${msg}`, '_blank');
   };
 
   // Share via Email
-  const shareViaEmail = (email: string | null, link: string, candidateName: string, testName: string) => {
-    const subject = encodeURIComponent(`${testName} Admission Test Link for ${candidateName}`);
-    const body = encodeURIComponent(`Dear Parent/Guardian,\n\nHere is the ${testName} admission test link for ${candidateName}:\n\n${link}\n\nPlease ensure the test is completed before the deadline.\n\nBest regards,\nAdmissions Office`);
+  const shareViaEmail = (email: string | null, link: string, candidateName: string) => {
+    const subject = encodeURIComponent(`Admission Test for ${candidateName} — ${schoolName || 'Our School'}`);
+    const body = encodeURIComponent(`Hello,\n\nThis is the admission test for ${schoolName || 'our school'} for the student ${candidateName}.\n\n${link}\n\nPlease complete the test before the deadline. Good luck!`);
     window.open(`mailto:${email || ''}?subject=${subject}&body=${body}`, '_blank');
   };
 
@@ -1263,7 +1267,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                                   </button>
                                   {c.parent_phone && (
                                     <button
-                                      onClick={() => shareViaWhatsApp(c.parent_phone, link, c.full_name, f.form_code)}
+                                      onClick={() => shareViaWhatsApp(c.parent_phone, link, c.full_name)}
                                       className="text-xs px-2 py-1 rounded bg-green-600/30 text-green-300 hover:bg-green-600/50 transition"
                                       title="Send via WhatsApp"
                                     >
@@ -1272,7 +1276,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                                   )}
                                   {c.email && (
                                     <button
-                                      onClick={() => shareViaEmail(c.email, link, c.full_name, f.form_code)}
+                                      onClick={() => shareViaEmail(c.email, link, c.full_name)}
                                       className="text-xs px-2 py-1 rounded bg-blue-600/30 text-blue-300 hover:bg-blue-600/50 transition"
                                       title="Send via Email"
                                     >
