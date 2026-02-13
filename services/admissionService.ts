@@ -293,6 +293,39 @@ export async function updateBlueprint(
   if (error) throw error;
 }
 
+export async function deleteBlueprint(bpId: string): Promise<void> {
+  const { error } = await supabase.from('adm_blueprints').delete().eq('id', bpId);
+  if (error) throw error;
+}
+
+export async function deleteTestForm(formId: string): Promise<void> {
+  // Delete form questions first
+  await supabase.from('adm_test_form_questions').delete().eq('form_id', formId);
+  const { error } = await supabase.from('adm_test_forms').delete().eq('id', formId);
+  if (error) throw error;
+}
+
+export async function deleteCandidate(candidateId: string): Promise<void> {
+  // Delete related answers, attempts first
+  const { data: attemptIds } = await supabase.from('adm_attempts').select('id').eq('candidate_id', candidateId);
+  if (attemptIds?.length) {
+    for (const a of attemptIds) {
+      await supabase.from('adm_answers').delete().eq('attempt_id', a.id);
+    }
+  }
+  await supabase.from('adm_placement_results').delete().eq('candidate_id', candidateId);
+  await supabase.from('adm_attempts').delete().eq('candidate_id', candidateId);
+  const { error } = await supabase.from('adm_candidates').delete().eq('id', candidateId);
+  if (error) throw error;
+}
+
+export async function deleteAttempt(attemptId: string): Promise<void> {
+  await supabase.from('adm_answers').delete().eq('attempt_id', attemptId);
+  await supabase.from('adm_placement_results').delete().eq('attempt_id', attemptId);
+  const { error } = await supabase.from('adm_attempts').delete().eq('id', attemptId);
+  if (error) throw error;
+}
+
 // ── Test Form CRUD + RPCs ──
 
 export async function fetchTestForms(schoolId: string): Promise<AdmTestForm[]> {

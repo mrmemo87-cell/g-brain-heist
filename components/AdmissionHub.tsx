@@ -85,6 +85,38 @@ const PIPELINE_STEPS = [
   { key: 'results', icon: '🏆', label: 'Results', desc: 'Score & place' },
 ] as const;
 
+// ── Question types available per subject ──
+
+const QUESTION_TYPES: Record<string, { value: string; label: string }[]> = {
+  english: [
+    { value: 'mcq', label: 'Multiple Choice' },
+    { value: 'gap_fill', label: 'Gap Fill' },
+    { value: 'sentence_transformation', label: 'Sentence Transformation' },
+    { value: 'word_formation', label: 'Word Formation' },
+    { value: 'error_correction', label: 'Error Correction' },
+    { value: 'open_cloze', label: 'Open Cloze' },
+    { value: 'reading_comprehension', label: 'Reading Comprehension' },
+    { value: 'email_writing', label: 'Email Writing' },
+    { value: 'essay_writing', label: 'Essay Writing' },
+  ],
+  math: [
+    { value: 'mcq', label: 'Multiple Choice' },
+    { value: 'short_answer', label: 'Short Answer' },
+    { value: 'structured', label: 'Structured' },
+    { value: 'gap_fill', label: 'Gap Fill' },
+  ],
+  science: [
+    { value: 'mcq', label: 'Multiple Choice' },
+    { value: 'short_answer', label: 'Short Answer' },
+    { value: 'structured', label: 'Structured' },
+  ],
+  chemistry: [
+    { value: 'mcq', label: 'Multiple Choice' },
+    { value: 'short_answer', label: 'Short Answer' },
+    { value: 'structured', label: 'Structured' },
+  ],
+};
+
 // ── Main Component ──
 
 const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => {
@@ -116,6 +148,11 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   const [bpDelivery, setBpDelivery] = useState<'practice' | 'exam'>('exam');
   const [bpDistribution, setBpDistribution] = useState(BLUEPRINT_PRESETS.english.distribution);
 
+  // Distribution builder (interactive rows)
+  const [distRows, setDistRows] = useState<{type: string; easy: number; medium: number; hard: number}[]>([
+    { type: 'mcq', easy: 5, medium: 8, hard: 1 },
+  ]);
+
   // Candidate form
   const [candName, setCandName] = useState('');
   const [candEmail, setCandEmail] = useState('');
@@ -144,6 +181,9 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   const [showAnswers, setShowAnswers] = useState(false);
   const [generatingAiReport, setGeneratingAiReport] = useState(false);
   const [reportAttemptId, setReportAttemptId] = useState<string | null>(null);
+
+  // Candidate file modal
+  const [candidateFileId, setCandidateFileId] = useState<string | null>(null);
 
   // ── Bootstrap ──
 
@@ -207,6 +247,15 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       setBpDuration(preset.duration);
       setBpDistribution(preset.distribution);
       setBpName(`${preset.label} Stage ${bpTargetStage} — Admission Test`);
+      // Convert preset JSON to distRows for the builder UI
+      try {
+        const parsed = JSON.parse(preset.distribution);
+        const rows: {type: string; easy: number; medium: number; hard: number}[] = [];
+        Object.entries(parsed).forEach(([type, diffs]: [string, any]) => {
+          rows.push({ type, easy: diffs.easy || 0, medium: diffs.medium || 0, hard: diffs.hard || 0 });
+        });
+        setDistRows(rows.length ? rows : [{ type: 'mcq', easy: 0, medium: 0, hard: 0 }]);
+      } catch { setDistRows([{ type: 'mcq', easy: 5, medium: 5, hard: 0 }]); }
     }
   };
 
@@ -226,8 +275,17 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
     if (!schoolId || !bpName) return;
     setCreatingBlueprint(true);
     try {
-      let dist: Record<string, any>;
-      try { dist = JSON.parse(bpDistribution); } catch { addToast('Invalid JSON for distribution', 'error'); return; }
+      // Build distribution from distRows
+      const dist: Record<string, any> = {};
+      for (const row of distRows) {
+        if (!row.type) continue;
+        const diffs: Record<string, number> = {};
+        if (row.easy > 0) diffs.easy = row.easy;
+        if (row.medium > 0) diffs.medium = row.medium;
+        if (row.hard > 0) diffs.hard = row.hard;
+        if (Object.keys(diffs).length > 0) dist[row.type] = diffs;
+      }
+      if (Object.keys(dist).length === 0) { addToast('Add at least one question type with a count > 0', 'error'); return; }
       await AdmService.createBlueprint({
         school_id: schoolId,
         name: bpName,
@@ -289,8 +347,36 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
     else addToast(res.error || 'Failed to close', 'error');
   };
 
+  // Delete handlers
+  const handleDeleteBlueprint = async (id: string) => {
+    if (!confirm('Delete this blueprint? Any generated forms from it will remain.')) return;
+    try { await AdmService.deleteBlueprint(id); addToast('Blueprint deleted', 'success'); await loadAll(); }
+    catch (err: any) { addToast(err.message || 'Failed to delete blueprint', 'error'); }
+  };
+
+  const handleDeleteForm = async (id: string) => {
+    if (!confirm('Delete this test form and all its questions? Existing attempts will also be affected.')) return;
+    try { await AdmService.deleteTestForm(id); addToast('Form deleted', 'success'); await loadAll(); }
+    catch (err: any) { addToast(err.message || 'Failed to delete form', 'error'); }
+  };
+
+  const handleDeleteCandidate = async (id: string) => {
+    if (!confirm('Delete this candidate and ALL their test data (attempts, answers, placements)? This cannot be undone.')) return;
+    try { await AdmService.deleteCandidate(id); addToast('Candidate deleted', 'success'); await loadAll(); }
+    catch (err: any) { addToast(err.message || 'Failed to delete candidate', 'error'); }
+  };
+
+  const handleDeleteAttempt = async (id: string) => {
+    if (!confirm('Delete this test attempt and its answers? This cannot be undone.')) return;
+    try { await AdmService.deleteAttempt(id); addToast('Attempt deleted', 'success'); await loadAll(); }
+    catch (err: any) { addToast(err.message || 'Failed to delete attempt', 'error'); }
+  };
+
   const handleCreateCandidate = async () => {
-    if (!schoolId || !candName) return;
+    if (!schoolId || !candName || !candEmail || !candPhone || !candAppliedGrade) {
+      addToast('Please fill in all required fields (Name, Email, Phone, Grade)', 'error');
+      return;
+    }
     setCreatingCandidate(true);
     try {
       await AdmService.createCandidate({
@@ -828,9 +914,51 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">Question Distribution (JSON — nested by difficulty)</label>
-                <textarea className={`${inputClass} h-20 font-mono text-xs`} value={bpDistribution} onChange={e => setBpDistribution(e.target.value)} />
-                <p className="text-xs text-gray-500 mt-1">e.g. {`{"mcq": {"easy": 5, "medium": 8, "hard": 1}, "gap_fill": {"medium": 2}}`}</p>
+                <label className="block text-xs font-semibold text-gray-300 mb-2">Question Distribution</label>
+                <div className="space-y-2">
+                  {distRows.map((row, ri) => (
+                    <div key={ri} className="flex items-center gap-2">
+                      <select
+                        className={`${inputClass} w-44`}
+                        value={row.type}
+                        onChange={e => {
+                          const next = [...distRows]; next[ri].type = e.target.value; setDistRows(next);
+                        }}
+                      >
+                        <option value="">Pick type…</option>
+                        {(QUESTION_TYPES[bpSubject] || QUESTION_TYPES.english).map(qt => (
+                          <option key={qt.value} value={qt.value}>{qt.label}</option>
+                        ))}
+                      </select>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[10px] text-emerald-400">Easy</span>
+                        <input type="number" min={0} className={`${inputClass} w-14 text-center`} value={row.easy}
+                          onChange={e => { const next = [...distRows]; next[ri].easy = +e.target.value; setDistRows(next); }} />
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[10px] text-amber-400">Med</span>
+                        <input type="number" min={0} className={`${inputClass} w-14 text-center`} value={row.medium}
+                          onChange={e => { const next = [...distRows]; next[ri].medium = +e.target.value; setDistRows(next); }} />
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[10px] text-red-400">Hard</span>
+                        <input type="number" min={0} className={`${inputClass} w-14 text-center`} value={row.hard}
+                          onChange={e => { const next = [...distRows]; next[ri].hard = +e.target.value; setDistRows(next); }} />
+                      </div>
+                      <span className="text-xs text-gray-500 w-8 text-right">{row.easy + row.medium + row.hard}</span>
+                      <button onClick={() => setDistRows(distRows.filter((_, i) => i !== ri))} className="text-red-400 hover:text-red-300 text-sm px-1" title="Remove">✕</button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => setDistRows([...distRows, { type: '', easy: 0, medium: 0, hard: 0 }])}
+                    className="text-xs text-cyan-400 hover:text-cyan-300 mt-1"
+                  >
+                    + Add question type
+                  </button>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Total: <strong className="text-white">{distRows.reduce((s, r) => s + r.easy + r.medium + r.hard, 0)}</strong> questions
+                  </div>
+                </div>
               </div>
               <button onClick={handleCreateBlueprint} disabled={creatingBlueprint && !bpName} className={btnPrimary}>
                 Create Blueprint
@@ -853,7 +981,9 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                         {bp.duration_minutes}min · {bp.total_marks} marks · {bp.delivery_mode} · pass ≥ {bp.pass_percentage}%
                       </div>
                     </div>
-                    <div className="text-xs text-gray-500 font-mono">{bp.id.slice(0, 8)}</div>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => handleDeleteBlueprint(bp.id)} className="text-xs px-2 py-1 rounded bg-red-600/20 text-red-400 hover:bg-red-600/40 transition" title="Delete blueprint">🗑</button>
+                    </div>
                   </div>
                   <div className="mt-2 flex flex-wrap gap-1">
                     {Object.entries(bp.question_distribution).map(([type, val]) => {
@@ -929,6 +1059,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                           Close
                         </button>
                       )}
+                      <button onClick={() => handleDeleteForm(f.id)} className="text-xs px-2 py-1 rounded bg-red-600/20 text-red-400 hover:bg-red-600/40 transition" title="Delete form">🗑</button>
                     </div>
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
@@ -999,23 +1130,23 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   <input className={inputClass} value={candName} onChange={e => setCandName(e.target.value)} placeholder="Ahmed Al-Rashid" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Email</label>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Email *</label>
                   <input type="email" className={inputClass} value={candEmail} onChange={e => setCandEmail(e.target.value)} placeholder="parent@email.com" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Parent Phone</label>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Parent Phone *</label>
                   <input className={inputClass} value={candPhone} onChange={e => setCandPhone(e.target.value)} placeholder="+971 50 123 4567" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Applied Grade</label>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Applied Grade *</label>
                   <input type="number" className={inputClass} value={candAppliedGrade} onChange={e => setCandAppliedGrade(e.target.value)} placeholder="9" />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Notes</label>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Notes <span className="text-gray-500 font-normal">(optional)</span></label>
                   <input className={inputClass} value={candNotes} onChange={e => setCandNotes(e.target.value)} placeholder="Any additional notes…" />
                 </div>
               </div>
-              <button onClick={handleCreateCandidate} disabled={!candName} className={btnPrimary}>
+              <button onClick={handleCreateCandidate} disabled={!candName || !candEmail || !candPhone || !candAppliedGrade} className={btnPrimary}>
                 Register Candidate
               </button>
             </div>
@@ -1063,7 +1194,9 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                     <th className="pb-2 pr-4">Contact</th>
                     <th className="pb-2 pr-4">Grade</th>
                     <th className="pb-2 pr-4">Status</th>
-                    <th className="pb-2">Send Test</th>
+                    <th className="pb-2 pr-4">Send Test</th>
+                    <th className="pb-2 pr-4">File</th>
+                    <th className="pb-2 w-8"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800">
@@ -1144,6 +1277,12 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                             )}
                           </div>
                         </td>
+                        <td className="py-3">
+                          <button onClick={() => setCandidateFileId(c.id)} className="text-xs px-2 py-1 rounded bg-amber-600/20 text-amber-300 hover:bg-amber-600/40 transition" title="View candidate file">📁</button>
+                        </td>
+                        <td className="py-3">
+                          <button onClick={() => handleDeleteCandidate(c.id)} className="text-xs px-1.5 py-1 rounded bg-red-600/20 text-red-400 hover:bg-red-600/40 transition" title="Delete candidate">🗑</button>
+                        </td>
                       </tr>
                     );
                   })}
@@ -1175,76 +1314,99 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
               <p className="text-gray-500 text-xs mt-1">Results will appear here once candidates complete their tests.</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {attempts.map((a) => {
-                const cand = candidates.find(c => c.id === a.candidate_id);
-                const placement = placements.find(p => p.attempt_id === a.id);
-                const scorePct = a.percentage ?? 0;
-                const scoreColor = scorePct >= 80 ? 'text-emerald-400' : scorePct >= 60 ? 'text-cyan-400' : scorePct >= 40 ? 'text-amber-400' : 'text-red-400';
-                const barColor = scorePct >= 80 ? 'bg-emerald-500' : scorePct >= 60 ? 'bg-cyan-500' : scorePct >= 40 ? 'bg-amber-500' : 'bg-red-500';
-                return (
-                  <div key={a.id} className="rounded-xl border border-gray-700 bg-slate-800/60 p-4 hover:border-gray-600 transition">
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-lg font-bold text-white">
+            <div className="space-y-4">
+              {/* Group attempts by candidate */}
+              {(() => {
+                const candidateIds = [...new Set(attempts.map(a => a.candidate_id))];
+                return candidateIds.map(cId => {
+                  const cand = candidates.find(c => c.id === cId);
+                  const candAttempts = attempts.filter(a => a.candidate_id === cId);
+                  return (
+                    <div key={cId} className="rounded-2xl border border-gray-700 bg-slate-800/40 overflow-hidden">
+                      {/* Candidate header */}
+                      <div className="flex items-center gap-3 px-5 py-3 bg-slate-800/80 border-b border-gray-700/50">
+                        <div className="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center text-lg font-bold text-white">
                           {(cand?.full_name || 'U')[0].toUpperCase()}
                         </div>
-                        <div>
+                        <div className="flex-1">
                           <div className="font-semibold text-white">{cand?.full_name || 'Unknown'}</div>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            {statusPill(a.status)}
-                            <span className="text-xs text-gray-500">{new Date(a.created_at).toLocaleDateString()}</span>
+                          <div className="text-[11px] text-gray-500">
+                            {cand?.email || ''}{cand?.email && cand?.parent_phone ? ' · ' : ''}{cand?.parent_phone || ''}
+                            {cand?.applied_grade ? ` · Grade ${cand.applied_grade}` : ''}
                           </div>
                         </div>
+                        <div className="text-xs text-gray-500">{candAttempts.length} test{candAttempts.length > 1 ? 's' : ''}</div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        {a.percentage !== null && (
-                          <div className="text-right">
-                            <div className={`text-2xl font-bold ${scoreColor}`}>{a.percentage}%</div>
-                            <div className="text-xs text-gray-500">{a.total_score}/{a.max_score}</div>
-                          </div>
-                        )}
+
+                      {/* Per-test results */}
+                      <div className="divide-y divide-gray-700/50">
+                        {candAttempts.map(a => {
+                          const form = forms.find(f => f.id === a.form_id);
+                          const bp = form ? blueprints.find(b => b.id === form.blueprint_id) : null;
+                          const testLabel = bp ? `${bp.subject.charAt(0).toUpperCase() + bp.subject.slice(1)}` : (form?.form_code || 'Test');
+                          const placement = placements.find(p => p.attempt_id === a.id);
+                          const scorePct = a.percentage ?? 0;
+                          const scoreColor = scorePct >= 80 ? 'text-emerald-400' : scorePct >= 60 ? 'text-cyan-400' : scorePct >= 40 ? 'text-amber-400' : 'text-red-400';
+                          const barColor = scorePct >= 80 ? 'bg-emerald-500' : scorePct >= 60 ? 'bg-cyan-500' : scorePct >= 40 ? 'bg-amber-500' : 'bg-red-500';
+                          return (
+                            <div key={a.id} className="px-5 py-3">
+                              <div className="flex items-center justify-between flex-wrap gap-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs px-2 py-0.5 rounded bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 font-semibold">{testLabel}</span>
+                                  <span className="text-[10px] text-gray-500 font-mono">{form?.form_code}</span>
+                                  {statusPill(a.status)}
+                                  <span className="text-xs text-gray-500">{new Date(a.created_at).toLocaleDateString()}</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  {a.percentage !== null && (
+                                    <div className="text-right">
+                                      <span className={`text-xl font-bold ${scoreColor}`}>{a.percentage}%</span>
+                                      <span className="text-xs text-gray-500 ml-1">{a.total_score}/{a.max_score}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {a.percentage !== null && (
+                                <div className="mt-2 h-1.5 rounded-full bg-slate-700 overflow-hidden">
+                                  <div className={`h-full rounded-full ${barColor} transition-all`} style={{ width: `${scorePct}%` }} />
+                                </div>
+                              )}
+
+                              <div className="flex items-center justify-between mt-2">
+                                <div>{placement && <span className="mr-2">{bandBadge(placement.band)}</span>}</div>
+                                <div className="flex items-center gap-2">
+                                  {a.status === 'scored' && (
+                                    <button onClick={() => handleViewReport(a.id)} className="text-xs px-3 py-1 rounded-lg bg-blue-600/30 text-blue-300 hover:bg-blue-600/50 transition flex items-center gap-1">
+                                      📊 Report
+                                    </button>
+                                  )}
+                                  {a.status === 'scored' && !placement && (
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-xs text-gray-500 mr-1">Place:</span>
+                                      {(['A', 'B', 'C', 'D', 'E'] as PlacementBand[]).map(b => (
+                                        <button
+                                          key={b}
+                                          onClick={() => handleRecordPlacement(a.id, b)}
+                                          className={`text-xs px-2 py-0.5 rounded border ${BAND_COLORS[b]} hover:opacity-80 transition font-bold`}
+                                          title={`Band ${b} — ${BAND_LABELS[b]}`}
+                                        >
+                                          {b}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                  <button onClick={() => handleDeleteAttempt(a.id)} className="text-xs px-1.5 py-1 rounded bg-red-600/20 text-red-400 hover:bg-red-600/40 transition" title="Delete attempt">🗑</button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
-
-                    {/* Score bar */}
-                    {a.percentage !== null && (
-                      <div className="mt-3 h-2 rounded-full bg-slate-700 overflow-hidden">
-                        <div className={`h-full rounded-full ${barColor} transition-all`} style={{ width: `${scorePct}%` }} />
-                      </div>
-                    )}
-
-                    {/* Actions row */}
-                    <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-700/50">
-                      <div>
-                        {placement && <span className="mr-2">{bandBadge(placement.band)}</span>}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {a.status === 'scored' && (
-                          <button onClick={() => handleViewReport(a.id)} className="text-xs px-3 py-1.5 rounded-lg bg-blue-600/30 text-blue-300 hover:bg-blue-600/50 transition flex items-center gap-1">
-                            📊 View Report
-                          </button>
-                        )}
-                        {a.status === 'scored' && !placement && (
-                          <div className="flex items-center gap-1 ml-2">
-                            <span className="text-xs text-gray-500 mr-1">Place:</span>
-                            {(['A', 'B', 'C', 'D', 'E'] as PlacementBand[]).map(b => (
-                              <button
-                                key={b}
-                                onClick={() => handleRecordPlacement(a.id, b)}
-                                className={`text-xs px-2 py-1 rounded-lg border ${BAND_COLORS[b]} hover:opacity-80 transition font-bold`}
-                                title={`Band ${b} — ${BAND_LABELS[b]}`}
-                              >
-                                {b}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                });
+              })()}
             </div>
           )}
         </div>
@@ -1253,18 +1415,49 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       {/*  ━━━ AUDIT TAB ━━━  */}
       {activeTab === 'audit' && (
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-white">Audit Log</h2>
+          <h2 className="text-lg font-semibold text-white">Activity Log</h2>
           {auditLog.length === 0 ? (
             <div className="card-glass p-6 text-center text-gray-400 text-sm">No entries yet.</div>
           ) : (
-            <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
-              {auditLog.map((entry, i) => (
-                <div key={i} className="rounded-lg border border-gray-700/50 bg-slate-800/40 px-3 py-2 text-xs flex items-start gap-3">
-                  <span className="text-gray-500 shrink-0 w-36">{new Date(entry.created_at).toLocaleString()}</span>
-                  <span className="text-cyan-300 font-semibold shrink-0 w-20">{entry.action}</span>
-                  <span className="text-gray-300">{entry.target_type} · {entry.target_id?.slice(0, 8)}</span>
-                </div>
-              ))}
+            <div className="space-y-2 max-h-[70vh] overflow-y-auto pr-1">
+              {auditLog.map((entry, i) => {
+                const details = entry.details || {};
+                const actionMap: Record<string, { icon: string; label: string; color: string }> = {
+                  attempt_started: { icon: '🚀', label: 'Test Started', color: 'text-blue-300' },
+                  attempt_scored: { icon: '✅', label: 'Test Scored', color: 'text-emerald-300' },
+                  form_published: { icon: '📋', label: 'Form Published', color: 'text-indigo-300' },
+                  form_closed: { icon: '🔒', label: 'Form Closed', color: 'text-red-300' },
+                  placement_decided: { icon: '🎯', label: 'Placement Made', color: 'text-purple-300' },
+                };
+                const actionInfo = actionMap[entry.action] || { icon: '📝', label: entry.action.replace(/_/g, ' '), color: 'text-gray-300' };
+                const candidateName = details.candidate || '';
+                const formCode = details.form_code || '';
+                const score = details.score != null ? `${details.score}/${details.max}` : '';
+                const pct = details.percentage != null ? `${details.percentage}%` : '';
+                const band = details.band || '';
+
+                return (
+                  <div key={i} className="rounded-lg border border-gray-700/50 bg-slate-800/40 px-4 py-3 flex items-start gap-3">
+                    <span className="text-lg mt-0.5">{actionInfo.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`text-sm font-semibold ${actionInfo.color}`}>{actionInfo.label}</span>
+                        {candidateName && <span className="text-sm text-white">{candidateName}</span>}
+                        {formCode && <span className="text-xs px-1.5 py-0.5 rounded bg-slate-700 text-gray-400 font-mono">{formCode}</span>}
+                      </div>
+                      {(score || band) && (
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {score && <span className="text-xs text-gray-400">Score: {score} ({pct})</span>}
+                          {band && <span className="text-xs text-gray-400">Band: {band}</span>}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-[11px] text-gray-500 shrink-0">
+                      {new Date(entry.created_at).toLocaleDateString()} {new Date(entry.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -1463,6 +1656,150 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
           </div>
         </div>
       )}
+      {/* ━━━ CANDIDATE FILE MODAL ━━━ */}
+      {candidateFileId && (() => {
+        const cand = candidates.find(c => c.id === candidateFileId);
+        if (!cand) return null;
+        const candAttempts = attempts.filter(a => a.candidate_id === cand.id);
+        const candAuditEntries = auditLog.filter(e => {
+          const d = e.details || {};
+          return d.candidate === cand.full_name || e.target_id === cand.id || candAttempts.some(a => e.target_id === a.id);
+        });
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4" onClick={() => setCandidateFileId(null)}>
+            <div className="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl bg-slate-900 border border-gray-700 p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+              {/* Header */}
+              <div className="flex items-center gap-3 mb-5">
+                <span className="text-3xl">📁</span>
+                <div>
+                  <h2 className="text-xl font-bold text-white">{cand.full_name}</h2>
+                  <p className="text-xs text-gray-400">
+                    Candidate File · Registered {new Date(cand.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <button onClick={() => setCandidateFileId(null)} className="ml-auto text-gray-400 hover:text-white text-xl">✕</button>
+              </div>
+
+              {/* Personal Info */}
+              <div className="rounded-lg border border-gray-700/50 bg-slate-800/50 p-4 mb-4">
+                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Personal Information</h3>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-gray-500 text-xs">Email</span>
+                    <p className="text-white">{cand.email || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-xs">Phone</span>
+                    <p className="text-white">{cand.parent_phone || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-xs">Applied Grade</span>
+                    <p className="text-white">{cand.applied_grade || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-xs">Status</span>
+                    <p>{statusPill(cand.status)}</p>
+                  </div>
+                  {cand.notes && (
+                    <div className="col-span-2">
+                      <span className="text-gray-500 text-xs">Notes</span>
+                      <p className="text-white text-xs">{cand.notes}</p>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-gray-500 text-xs">Token</span>
+                    <p className="text-white font-mono text-xs">{cand.token}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Test Results */}
+              <div className="rounded-lg border border-gray-700/50 bg-slate-800/50 p-4 mb-4">
+                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                  Test Results ({candAttempts.length})
+                </h3>
+                {candAttempts.length === 0 ? (
+                  <p className="text-gray-500 text-sm">No tests taken yet.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {candAttempts.map(a => {
+                      const form = forms.find(f => f.id === a.form_id);
+                      const bp = form ? blueprints.find(b => b.id === form.blueprint_id) : null;
+                      const subjectLabel = bp?.subject ? bp.subject.charAt(0).toUpperCase() + bp.subject.slice(1) : 'Unknown';
+                      const pct = a.max_score ? Math.round((a.score / a.max_score) * 100) : 0;
+                      return (
+                        <div key={a.id} className="rounded-lg border border-gray-600/30 bg-slate-700/30 p-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-semibold text-white">{subjectLabel}</span>
+                              {form && <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-600 text-gray-400 font-mono">{form.form_code}</span>}
+                              {statusPill(a.status)}
+                            </div>
+                            <span className="text-[11px] text-gray-500">{new Date(a.started_at).toLocaleDateString()}</span>
+                          </div>
+                          {a.status === 'scored' && (
+                            <div className="mt-2">
+                              <div className="flex items-center justify-between text-xs mb-1">
+                                <span className="text-gray-400">Score: {a.score}/{a.max_score}</span>
+                                <span className={`font-bold ${pct >= 80 ? 'text-emerald-400' : pct >= 60 ? 'text-blue-400' : pct >= 40 ? 'text-amber-400' : 'text-red-400'}`}>{pct}%</span>
+                              </div>
+                              <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                <div className={`h-full rounded-full ${pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-blue-500' : pct >= 40 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${pct}%` }} />
+                              </div>
+                            </div>
+                          )}
+                          {a.status === 'submitted' && (
+                            <p className="text-xs text-amber-400 mt-1">⏳ Awaiting scoring…</p>
+                          )}
+                          {a.status === 'in_progress' && (
+                            <p className="text-xs text-blue-400 mt-1">🔄 Test in progress…</p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Activity Timeline */}
+              <div className="rounded-lg border border-gray-700/50 bg-slate-800/50 p-4">
+                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                  Activity Timeline ({candAuditEntries.length})
+                </h3>
+                {candAuditEntries.length === 0 ? (
+                  <p className="text-gray-500 text-sm">No activity recorded.</p>
+                ) : (
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {candAuditEntries.map((entry, i) => {
+                      const details = entry.details || {};
+                      const actionMap: Record<string, { icon: string; label: string }> = {
+                        attempt_started: { icon: '🚀', label: 'Started test' },
+                        attempt_scored: { icon: '✅', label: 'Test scored' },
+                        placement_decided: { icon: '🎯', label: 'Placement decided' },
+                      };
+                      const info = actionMap[entry.action] || { icon: '📝', label: entry.action.replace(/_/g, ' ') };
+                      return (
+                        <div key={i} className="flex items-center gap-2 text-xs">
+                          <span className="text-gray-500 w-28 shrink-0">{new Date(entry.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                          <span>{info.icon}</span>
+                          <span className="text-gray-300">{info.label}</span>
+                          {details.form_code && <span className="text-gray-500 font-mono">({details.form_code})</span>}
+                          {details.band && <span className="text-gray-500">Band {details.band}</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <button onClick={() => setCandidateFileId(null)} className={`${btnPrimary} w-full mt-5`}>
+                Close File
+              </button>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };
