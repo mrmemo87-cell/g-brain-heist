@@ -262,7 +262,7 @@ BEGIN
     -- Score each answer
     FOR v_ans IN
         SELECT a.id AS answer_id, a.question_id, a.response, a.marks_possible,
-               q.correct_answer, q.correct_index, q.question_type
+               q.correct_answer, q.correct_index, q.question_type, q.topic, q.skill_tag
         FROM adm_answers a
         JOIN adm_questions q ON q.id = a.question_id
         WHERE a.attempt_id = p_attempt_id
@@ -289,8 +289,18 @@ BEGIN
                         v_is_correct := LOWER(TRIM(v_ans.response #>> '{}')) = LOWER(TRIM(v_correct #>> '{}'));
                     END IF;
                 END IF;
+            WHEN 'gap_fill', 'sentence_transformation', 'error_correction', 'word_formation', 'open_cloze' THEN
+                -- Text-based English: exact match for now, AI will re-grade later
+                IF v_ans.response IS NOT NULL AND v_correct IS NOT NULL THEN
+                    v_is_correct := LOWER(TRIM(v_ans.response #>> '{}')) = LOWER(TRIM(v_correct #>> '{}'));
+                END IF;
+            WHEN 'short_answer', 'structured' THEN
+                -- Math: exact match for now, AI will re-grade with partial credit
+                IF v_ans.response IS NOT NULL AND v_correct IS NOT NULL THEN
+                    v_is_correct := LOWER(TRIM(v_ans.response #>> '{}')) = LOWER(TRIM(v_correct #>> '{}'));
+                END IF;
             ELSE
-                -- Text-based: case-insensitive trimmed comparison
+                -- Any other type: case-insensitive trimmed comparison
                 IF v_ans.response IS NOT NULL AND v_correct IS NOT NULL THEN
                     v_is_correct := LOWER(TRIM(v_ans.response #>> '{}')) = LOWER(TRIM(v_correct #>> '{}'));
                 END IF;
@@ -409,7 +419,7 @@ BEGIN
 
     SELECT * INTO v_candidate FROM adm_candidates WHERE id = v_attempt.candidate_id;
 
-    -- Per-question answers
+    -- Per-question answers (including AI feedback)
     SELECT jsonb_agg(
         jsonb_build_object(
             'question_id', q.id,
@@ -421,7 +431,8 @@ BEGIN
             'is_correct', a.is_correct,
             'marks_awarded', a.marks_awarded,
             'marks_possible', a.marks_possible,
-            'explanation', q.explanation
+            'explanation', q.explanation,
+            'ai_feedback', a.ai_feedback
         ) ORDER BY fq.question_order
     ) INTO v_answers
     FROM adm_answers a

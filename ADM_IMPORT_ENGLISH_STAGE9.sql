@@ -197,11 +197,11 @@ Today, billions of people rely on digital platforms for communication, education
  '"Excessive screen time and misinformation"', 1, 2, 'hard', 'reasoning', 'detail_retrieval', 'reading', 'Explicitly stated: ''excessive screen time and the spread of misinformation''.', 'published');
 
 -- ═══════════════════════════════
--- EMAIL WRITING — 2 questions (using open_cloze type with writing skill_tag)
+-- EMAIL WRITING — 2 questions (proper email_writing type)
 -- ═══════════════════════════════
 
 INSERT INTO adm_questions (pool_id, question_type, stem, correct_answer, marks, difficulty, cognitive_level, topic, skill_tag, explanation, status) VALUES
-(v_pool_id, 'open_cloze', 'You recently visited a local museum with your family. Write an email to your English-speaking friend telling them about your visit.
+(v_pool_id, 'email_writing', 'You recently visited a local museum with your family. Write an email to your English-speaking friend telling them about your visit.
 
 In your email:
 • describe what you saw at the museum
@@ -209,7 +209,7 @@ In your email:
 • suggest that your friend visits the museum
 
 Write 80-150 words.', '"AI_GRADED"', 10, 'medium', 'reasoning', 'email_writing', 'writing', 'Email should include all three bullet points with appropriate friendly tone and register.', 'published'),
-(v_pool_id, 'open_cloze', 'Your school is organising a charity event. Write an email to the head teacher suggesting an idea for the event.
+(v_pool_id, 'email_writing', 'Your school is organising a charity event. Write an email to the head teacher suggesting an idea for the event.
 
 In your email:
 • explain your idea for the charity event
@@ -219,16 +219,16 @@ In your email:
 Write 80-150 words.', '"AI_GRADED"', 10, 'hard', 'reasoning', 'email_writing', 'writing', 'Email should be semi-formal with clear suggestions and reasoning.', 'published');
 
 -- ═══════════════════════════════
--- ESSAY WRITING — 2 questions (using open_cloze type with writing skill_tag)
+-- ESSAY WRITING — 2 questions (proper essay_writing type)
 -- ═══════════════════════════════
 
 INSERT INTO adm_questions (pool_id, question_type, stem, correct_answer, marks, difficulty, cognitive_level, topic, skill_tag, explanation, status) VALUES
-(v_pool_id, 'open_cloze', 'Some people believe that students should wear school uniforms, while others think students should be free to choose their own clothes.
+(v_pool_id, 'essay_writing', 'Some people believe that students should wear school uniforms, while others think students should be free to choose their own clothes.
 
 Write an essay discussing both views and give your own opinion.
 
 Write 150-300 words.', '"AI_GRADED"', 15, 'hard', 'reasoning', 'essay_writing', 'writing', 'Essay should present both viewpoints with supporting arguments and a clear personal conclusion.', 'published'),
-(v_pool_id, 'open_cloze', '"Technology has made our lives easier but also more complicated."
+(v_pool_id, 'essay_writing', '"Technology has made our lives easier but also more complicated."
 
 Do you agree or disagree with this statement? Give reasons and examples to support your answer.
 
@@ -239,12 +239,14 @@ Write 150-300 words.', '"AI_GRADED"', 15, 'hard', 'reasoning', 'essay_writing', 
 -- ═══════════════════════════════
 -- This creates a global blueprint (school_id NULL)
 -- that schools can use out of the box.
--- Distribution requests 25 questions (matches ~30 min test):
+-- Distribution requests questions (including writing):
 --   mcq: 5 easy + 8 medium + 1 hard = 14
 --   gap_fill: 1 easy + 2 medium + 1 hard = 4
 --   error_correction: 1 medium + 1 hard = 2
 --   sentence_transformation: 2 medium + 1 hard = 3
 --   reading_comprehension: 1 easy + 1 medium = 2
+--   email_writing: 1 medium = 1 (10 marks)
+--   essay_writing: 1 hard = 1 (15 marks)
 
 INSERT INTO adm_blueprints (
     id, school_id, name, subject, target_stage, total_marks, duration_minutes,
@@ -255,14 +257,16 @@ INSERT INTO adm_blueprints (
     'English Stage 9 — Standard Admission Test',
     'english',
     9,
-    27,  -- 25 × 1 mark + 2 × 2 marks (reading comp)
-    45,  -- 45 minutes
+    52,  -- 25 × 1 mark + 2 × 2 marks (reading comp) + 10 (email) + 15 (essay)
+    75,  -- 75 minutes (extra time for writing)
     '{
       "mcq": {"easy": 5, "medium": 8, "hard": 1},
       "gap_fill": {"easy": 1, "medium": 2, "hard": 1},
       "error_correction": {"medium": 1, "hard": 1},
       "sentence_transformation": {"medium": 2, "hard": 1},
-      "reading_comprehension": {"easy": 1, "medium": 1}
+      "reading_comprehension": {"easy": 1, "medium": 1},
+      "email_writing": {"medium": 1},
+      "essay_writing": {"hard": 1}
     }'::jsonb,
     50,
     'exam',
@@ -270,6 +274,8 @@ INSERT INTO adm_blueprints (
 ) ON CONFLICT (id) DO UPDATE SET
     name = EXCLUDED.name,
     question_distribution = EXCLUDED.question_distribution,
+    total_marks = EXCLUDED.total_marks,
+    duration_minutes = EXCLUDED.duration_minutes,
     updated_at = NOW();
 
 END $$;
