@@ -807,6 +807,8 @@ BEGIN
 
     -- Select questions based on distribution
     -- distribution format: {"mcq": {"easy": 5, "medium": 8}, "gap_fill": {"medium": 5}}
+    -- Exclude questions already used in other forms from the same blueprint
+    -- so each generated form gets completely different questions.
     FOR v_dist_key, v_dist_val IN SELECT * FROM jsonb_each(v_bp.question_distribution)
     LOOP
         FOR v_diff_key, v_diff_count IN SELECT key, value::int FROM jsonb_each_text(v_dist_val)
@@ -817,6 +819,14 @@ BEGIN
                   AND question_type = v_dist_key
                   AND difficulty = v_diff_key
                   AND status = 'published'
+                  -- Exclude questions already used in other forms from this blueprint
+                  AND id NOT IN (
+                      SELECT fq.question_id
+                      FROM adm_test_form_questions fq
+                      JOIN adm_test_forms tf ON tf.id = fq.form_id
+                      WHERE tf.blueprint_id = p_blueprint_id
+                        AND tf.id != v_form_id
+                  )
                 ORDER BY RANDOM()
                 LIMIT v_diff_count
             LOOP
