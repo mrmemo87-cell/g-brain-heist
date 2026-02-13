@@ -834,6 +834,17 @@ BEGIN
         RETURN jsonb_build_object('success', false, 'error', 'No questions matched the blueprint distribution');
     END IF;
 
+    -- Shuffle the question order so candidates don't see questions in the same sequence
+    WITH shuffled AS (
+        SELECT id, ROW_NUMBER() OVER (ORDER BY RANDOM()) AS new_order
+        FROM adm_test_form_questions
+        WHERE form_id = v_form_id
+    )
+    UPDATE adm_test_form_questions fq
+    SET question_order = s.new_order
+    FROM shuffled s
+    WHERE fq.id = s.id;
+
     RETURN jsonb_build_object(
         'success', true,
         'form_id', v_form_id,
