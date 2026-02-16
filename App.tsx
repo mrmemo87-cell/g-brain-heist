@@ -553,11 +553,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       // Teachers skip AP regen, streak, clan, cosmetics, inventory, XP status.
       let profileData: Profile | null = null;
       try {
-        const { data: peekRow } = await supabase
+        const { data: peekRow, error: peekError } = await supabase
           .from('users')
           .select('role, username, level, coins, gemstones, streak, clan_name')
           .eq('id', data.session.user.id)
           .single();
+        if (peekError) {
+          throw peekError;
+        }
         if (peekRow?.username) {
           setPeekedUser({
             username: peekRow.username,
@@ -571,7 +574,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         if (peekRow?.role === 'teacher') {
           setPeekedRole('teacher');
           profileData = await GameService.whoamiTeacher();
-        } else {
+        } else if (peekRow?.role) {
           setPeekedRole(peekRow?.role === 'admin' ? 'admin' : 'student');
         }
       } catch { /* fall through to normal boot */ }
@@ -592,6 +595,18 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
       if (!profileData) {
         throw new Error('Profile not loaded');
+      }
+
+      setPeekedRole(profileData.role === 'teacher' || profileData.role === 'admin' ? profileData.role : 'student');
+      if (profileData.username) {
+        setPeekedUser({
+          username: profileData.username,
+          level: profileData.level ?? undefined,
+          coins: profileData.coins ?? undefined,
+          gems: profileData.gemstones ?? undefined,
+          streak: profileData.streak ?? undefined,
+          clanName: profileData.clan_name ?? undefined,
+        });
       }
 
       setProfile(profileData);
