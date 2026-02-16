@@ -186,6 +186,10 @@ const PRINT_STYLES = `
     .pro-report .rpt-student-bar {
       padding: 8px 16px !important;
     }
+    .pro-report .score-table-scroll {
+      max-height: none !important;
+      overflow: visible !important;
+    }
     .pro-report .rpt-body {
       padding: 10px 16px !important;
       gap: 12px !important;
@@ -595,17 +599,17 @@ const StudentOverviewReport: React.FC<StudentOverviewReportProps> = ({
     return dist;
   }, [data.tests]);
 
-  // Trend: compare first half vs second half average
+  // Trend: compare the last 3 tests (most recent by date) vs all earlier tests
   const trend = useMemo(() => {
-    if (data.tests.length < 2) return null;
+    if (data.tests.length < 4) return null;
     const sorted = [...data.tests].sort((a, b) => new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime());
-    const mid = Math.floor(sorted.length / 2);
-    const firstHalf = sorted.slice(0, mid);
-    const secondHalf = sorted.slice(mid);
-    const firstAvg = firstHalf.reduce((s, t) => s + t.percentage, 0) / firstHalf.length;
-    const secondAvg = secondHalf.reduce((s, t) => s + t.percentage, 0) / secondHalf.length;
-    const diff = Math.round(secondAvg - firstAvg);
-    return { firstAvg: Math.round(firstAvg), secondAvg: Math.round(secondAvg), diff };
+    const recentCount = Math.min(3, Math.floor(sorted.length / 2));
+    const earlier = sorted.slice(0, sorted.length - recentCount);
+    const recent = sorted.slice(sorted.length - recentCount);
+    const earlierAvg = earlier.reduce((s, t) => s + t.percentage, 0) / earlier.length;
+    const recentAvg = recent.reduce((s, t) => s + t.percentage, 0) / recent.length;
+    const diff = Math.round(recentAvg - earlierAvg);
+    return { firstAvg: Math.round(earlierAvg), secondAvg: Math.round(recentAvg), diff };
   }, [data.tests]);
 
   // Sort tests by date (newest first)
@@ -738,7 +742,7 @@ const StudentOverviewReport: React.FC<StudentOverviewReportProps> = ({
               <h3 style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#1e293b', padding: '10px 12px 6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ fontSize: '14px' }}>📝</span> Test Results
               </h3>
-              <div style={{ maxHeight: '220px', overflowY: 'auto' }}>
+              <div className="score-table-scroll" style={{ maxHeight: '220px', overflowY: 'auto' }}>
                 <table className="score-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
                   <thead>
                     <tr style={{ background: '#1e293b', color: '#fff' }}>
@@ -757,7 +761,7 @@ const StudentOverviewReport: React.FC<StudentOverviewReportProps> = ({
                       return (
                         <tr key={test.id} style={{ background: isEven ? '#fff' : '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                           <td style={{ padding: '5px 8px', color: '#94a3b8', fontWeight: 600 }}>{idx + 1}</td>
-                          <td style={{ padding: '5px 8px', color: '#334155', fontWeight: 500, maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <td style={{ padding: '5px 8px', color: '#334155', fontWeight: 500 }}>
                             {test.quizName.replace(/^Cambridge\s+/i, '')}
                           </td>
                           <td style={{ padding: '5px 8px', textAlign: 'center', color: '#475569', fontWeight: 600 }}>
@@ -874,7 +878,7 @@ const StudentOverviewReport: React.FC<StudentOverviewReportProps> = ({
                   const { gradeBg: tbg } = getGradeColors(test.percentage);
                   return (
                     <div key={test.id} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ width: '100px', fontSize: '9px', fontWeight: 500, color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span style={{ width: '140px', flexShrink: 0, fontSize: '8px', fontWeight: 500, color: '#64748b', lineHeight: 1.2, wordBreak: 'break-word' }}>
                         {test.quizName.replace(/^Cambridge\s+/i, '')}
                       </span>
                       <div style={{ flex: 1, height: '14px', background: '#e2e8f0', borderRadius: '7px', overflow: 'hidden' }}>
