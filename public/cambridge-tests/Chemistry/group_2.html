@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -1932,6 +1932,14 @@
       const { error } = await supabaseClient.from('quiz_scores').insert(payload);
       if (error) {
         console.error(error);
+        if (error.message && (error.message.includes('duplicate') || error.message.includes('unique') || error.message.includes('already exists'))) {
+          hasSubmitted = true;
+          btn.textContent = '✓ Already Submitted';
+          status.textContent = '⚠️ You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
+          document.querySelectorAll('input').forEach(i => i.disabled = true);
+          lockQuestions();
+          return;
+        }
         status.textContent = '❌ Failed to submit. Please try again.';
         btn.disabled = false;
         return;

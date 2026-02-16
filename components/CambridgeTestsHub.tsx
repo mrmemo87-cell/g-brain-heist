@@ -13,7 +13,7 @@ interface CambridgeTest {
   totalQuestions: number;
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
   category: 'Reading' | 'Listening' | 'Grammar' | 'Vocabulary' | 'Writing' | 'Science';
-  subject: 'English stage 9' | 'Chemistry';
+  subject: 'English stage 9' | 'Chemistry' | 'Biology';
   url: string;
   isCompleted?: boolean;
   score?: number;
@@ -588,9 +588,404 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
   },
 ];
 
+const AS_BIOLOGY_TESTS: CambridgeTest[] = [
+  // Ch1 — Cell structure
+  {
+    id: 'as-biology-ch1-cell-structure-part-1',
+    name: 'AS Biology Ch1 ( Cell structure ) (Part 1)',
+    description: 'Chapter 1 multiple-choice practice on cell organelles, microscopy, prokaryotes vs eukaryotes, and ultrastructure.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/cell_structure.html?part=1',
+  },
+  {
+    id: 'as-biology-ch1-cell-structure-part-2',
+    name: 'AS Biology Ch1 ( Cell structure ) (Part 2)',
+    description: 'Chapter 1 multiple-choice practice on cell organelles, microscopy, prokaryotes vs eukaryotes, and ultrastructure.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/cell_structure.html?part=2',
+  },
+  // Ch2 — Biological molecules
+  {
+    id: 'as-biology-ch2-biological-molecules-part-1',
+    name: 'AS Biology Ch2 ( Biological molecules ) (Part 1)',
+    description: 'Chapter 2 multiple-choice practice on carbohydrates, lipids, proteins, and biochemical tests.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/biological_molecules.html?part=1',
+  },
+  {
+    id: 'as-biology-ch2-biological-molecules-part-2',
+    name: 'AS Biology Ch2 ( Biological molecules ) (Part 2)',
+    description: 'Chapter 2 multiple-choice practice on carbohydrates, lipids, proteins, and biochemical tests.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/biological_molecules.html?part=2',
+  },
+  // Ch3 — Enzymes
+  {
+    id: 'as-biology-ch3-enzymes-part-1',
+    name: 'AS Biology Ch3 ( Enzymes ) (Part 1)',
+    description: 'Chapter 3 multiple-choice practice on enzyme action, kinetics, inhibition, and factors affecting rate.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/enzymes.html?part=1',
+  },
+  {
+    id: 'as-biology-ch3-enzymes-part-2',
+    name: 'AS Biology Ch3 ( Enzymes ) (Part 2)',
+    description: 'Chapter 3 multiple-choice practice on enzyme action, kinetics, inhibition, and factors affecting rate.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/enzymes.html?part=2',
+  },
+  // Ch4 — Cell membranes and transport
+  {
+    id: 'as-biology-ch4-cell-membranes-transport-part-1',
+    name: 'AS Biology Ch4 ( Cell membranes and transport ) (Part 1)',
+    description: 'Chapter 4 multiple-choice practice on fluid mosaic model, osmosis, diffusion, and active transport.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/cell_membranes_transport.html?part=1',
+  },
+  {
+    id: 'as-biology-ch4-cell-membranes-transport-part-2',
+    name: 'AS Biology Ch4 ( Cell membranes and transport ) (Part 2)',
+    description: 'Chapter 4 multiple-choice practice on fluid mosaic model, osmosis, diffusion, and active transport.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/cell_membranes_transport.html?part=2',
+  },
+  // Ch5 — The mitotic cell cycle
+  {
+    id: 'as-biology-ch5-mitotic-cell-cycle-part-1',
+    name: 'AS Biology Ch5 ( The mitotic cell cycle ) (Part 1)',
+    description: 'Chapter 5 multiple-choice practice on mitosis stages, cell cycle control, and chromosome behaviour.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/mitotic_cell_cycle.html?part=1',
+  },
+  {
+    id: 'as-biology-ch5-mitotic-cell-cycle-part-2',
+    name: 'AS Biology Ch5 ( The mitotic cell cycle ) (Part 2)',
+    description: 'Chapter 5 multiple-choice practice on mitosis stages, cell cycle control, and chromosome behaviour.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/mitotic_cell_cycle.html?part=2',
+  },
+  // Ch6 — Nucleic acids and protein synthesis
+  {
+    id: 'as-biology-ch6-nucleic-acids-protein-synthesis-part-1',
+    name: 'AS Biology Ch6 ( Nucleic acids and protein synthesis ) (Part 1)',
+    description: 'Chapter 6 multiple-choice practice on DNA/RNA structure, replication, transcription, and translation.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/nucleic_acids_protein_synthesis.html?part=1',
+  },
+  {
+    id: 'as-biology-ch6-nucleic-acids-protein-synthesis-part-2',
+    name: 'AS Biology Ch6 ( Nucleic acids and protein synthesis ) (Part 2)',
+    description: 'Chapter 6 multiple-choice practice on DNA/RNA structure, replication, transcription, and translation.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/nucleic_acids_protein_synthesis.html?part=2',
+  },
+  // Ch7 — Transport in plants
+  {
+    id: 'as-biology-ch7-transport-in-plants-part-1',
+    name: 'AS Biology Ch7 ( Transport in plants ) (Part 1)',
+    description: 'Chapter 7 multiple-choice practice on xylem, phloem, transpiration, and translocation.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/transport_in_plants.html?part=1',
+  },
+  {
+    id: 'as-biology-ch7-transport-in-plants-part-2',
+    name: 'AS Biology Ch7 ( Transport in plants ) (Part 2)',
+    description: 'Chapter 7 multiple-choice practice on xylem, phloem, transpiration, and translocation.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/transport_in_plants.html?part=2',
+  },
+  // Ch8 — Transport in mammals
+  {
+    id: 'as-biology-ch8-transport-in-mammals-part-1',
+    name: 'AS Biology Ch8 ( Transport in mammals ) (Part 1)',
+    description: 'Chapter 8 multiple-choice practice on heart structure, blood vessels, haemoglobin, and circulation.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/transport_in_mammals.html?part=1',
+  },
+  {
+    id: 'as-biology-ch8-transport-in-mammals-part-2',
+    name: 'AS Biology Ch8 ( Transport in mammals ) (Part 2)',
+    description: 'Chapter 8 multiple-choice practice on heart structure, blood vessels, haemoglobin, and circulation.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/transport_in_mammals.html?part=2',
+  },
+  // Ch9 — Gas exchange and smoking
+  {
+    id: 'as-biology-ch9-gas-exchange-smoking-part-1',
+    name: 'AS Biology Ch9 ( Gas exchange and smoking ) (Part 1)',
+    description: 'Chapter 9 multiple-choice practice on lung structure, gas exchange surfaces, and effects of smoking.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/gas_exchange_smoking.html?part=1',
+  },
+  {
+    id: 'as-biology-ch9-gas-exchange-smoking-part-2',
+    name: 'AS Biology Ch9 ( Gas exchange and smoking ) (Part 2)',
+    description: 'Chapter 9 multiple-choice practice on lung structure, gas exchange surfaces, and effects of smoking.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/gas_exchange_smoking.html?part=2',
+  },
+  // Ch10 — Infectious disease
+  {
+    id: 'as-biology-ch10-infectious-disease-part-1',
+    name: 'AS Biology Ch10 ( Infectious disease ) (Part 1)',
+    description: 'Chapter 10 multiple-choice practice on pathogens, transmission, antibiotics, and disease prevention.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/infectious_disease.html?part=1',
+  },
+  {
+    id: 'as-biology-ch10-infectious-disease-part-2',
+    name: 'AS Biology Ch10 ( Infectious disease ) (Part 2)',
+    description: 'Chapter 10 multiple-choice practice on pathogens, transmission, antibiotics, and disease prevention.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/infectious_disease.html?part=2',
+  },
+  // Ch11 — Immunity
+  {
+    id: 'as-biology-ch11-immunity-part-1',
+    name: 'AS Biology Ch11 ( Immunity ) (Part 1)',
+    description: 'Chapter 11 multiple-choice practice on immune response, antibodies, vaccination, and autoimmunity.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/immunity.html?part=1',
+  },
+  {
+    id: 'as-biology-ch11-immunity-part-2',
+    name: 'AS Biology Ch11 ( Immunity ) (Part 2)',
+    description: 'Chapter 11 multiple-choice practice on immune response, antibodies, vaccination, and autoimmunity.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/immunity.html?part=2',
+  },
+  // Ch12 — Energy and respiration
+  {
+    id: 'as-biology-ch12-energy-respiration-part-1',
+    name: 'AS Biology Ch12 ( Energy and respiration ) (Part 1)',
+    description: 'Chapter 12 multiple-choice practice on ATP, glycolysis, Krebs cycle, and oxidative phosphorylation.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/energy_respiration.html?part=1',
+  },
+  {
+    id: 'as-biology-ch12-energy-respiration-part-2',
+    name: 'AS Biology Ch12 ( Energy and respiration ) (Part 2)',
+    description: 'Chapter 12 multiple-choice practice on ATP, glycolysis, Krebs cycle, and oxidative phosphorylation.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/energy_respiration.html?part=2',
+  },
+  // Ch13 — Photosynthesis
+  {
+    id: 'as-biology-ch13-photosynthesis-part-1',
+    name: 'AS Biology Ch13 ( Photosynthesis ) (Part 1)',
+    description: 'Chapter 13 multiple-choice practice on light-dependent reactions, Calvin cycle, and limiting factors.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/photosynthesis.html?part=1',
+  },
+  {
+    id: 'as-biology-ch13-photosynthesis-part-2',
+    name: 'AS Biology Ch13 ( Photosynthesis ) (Part 2)',
+    description: 'Chapter 13 multiple-choice practice on light-dependent reactions, Calvin cycle, and limiting factors.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/photosynthesis.html?part=2',
+  },
+  // Ch14 — Inherited change
+  {
+    id: 'as-biology-ch14-inherited-change-part-1',
+    name: 'AS Biology Ch14 ( Inherited change ) (Part 1)',
+    description: 'Chapter 14 multiple-choice practice on meiosis, genetic variation, mutations, and inheritance patterns.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/inherited_change.html?part=1',
+  },
+  {
+    id: 'as-biology-ch14-inherited-change-part-2',
+    name: 'AS Biology Ch14 ( Inherited change ) (Part 2)',
+    description: 'Chapter 14 multiple-choice practice on meiosis, genetic variation, mutations, and inheritance patterns.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/inherited_change.html?part=2',
+  },
+  // Ch15 — Selection and evolution
+  {
+    id: 'as-biology-ch15-selection-evolution-part-1',
+    name: 'AS Biology Ch15 ( Selection and evolution ) (Part 1)',
+    description: 'Chapter 15 multiple-choice practice on natural selection, speciation, and evidence for evolution.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/selection_evolution.html?part=1',
+  },
+  {
+    id: 'as-biology-ch15-selection-evolution-part-2',
+    name: 'AS Biology Ch15 ( Selection and evolution ) (Part 2)',
+    description: 'Chapter 15 multiple-choice practice on natural selection, speciation, and evidence for evolution.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/selection_evolution.html?part=2',
+  },
+  // Ch16 — Biodiversity, classification and conservation
+  {
+    id: 'as-biology-ch16-biodiversity-classification-conservation-part-1',
+    name: 'AS Biology Ch16 ( Biodiversity, classification and conservation ) (Part 1)',
+    description: 'Chapter 16 multiple-choice practice on species diversity, taxonomy, ecosystems, and conservation.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/biodiversity_classification_conservation.html?part=1',
+  },
+  {
+    id: 'as-biology-ch16-biodiversity-classification-conservation-part-2',
+    name: 'AS Biology Ch16 ( Biodiversity, classification and conservation ) (Part 2)',
+    description: 'Chapter 16 multiple-choice practice on species diversity, taxonomy, ecosystems, and conservation.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/biodiversity_classification_conservation.html?part=2',
+  },
+  // Ch17 — Genetic technology
+  {
+    id: 'as-biology-ch17-genetic-technology-part-1',
+    name: 'AS Biology Ch17 ( Genetic technology ) (Part 1)',
+    description: 'Chapter 17 multiple-choice practice on genetic engineering, PCR, gel electrophoresis, and gene therapy.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/genetic_technology.html?part=1',
+  },
+  {
+    id: 'as-biology-ch17-genetic-technology-part-2',
+    name: 'AS Biology Ch17 ( Genetic technology ) (Part 2)',
+    description: 'Chapter 17 multiple-choice practice on genetic engineering, PCR, gel electrophoresis, and gene therapy.',
+    duration: '0 min',
+    totalQuestions: 0,
+    difficulty: 'Advanced',
+    category: 'Science',
+    subject: 'Biology',
+    url: '/cambridge-tests/Biology/genetic_technology.html?part=2',
+  },
+];
+
 const AVAILABLE_TESTS: CambridgeTest[] = [
   ...ENGLISH_TESTS,
   ...AS_CHEMISTRY_TESTS,
+  ...AS_BIOLOGY_TESTS,
 ];
 
 interface MistakeItem {
@@ -884,6 +1279,21 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
     }
     // If this is a retake, clear the previous submission lock from localStorage
     if (test.isCompleted && !isChemistryTest) {
+      // Delete old submission from database so unique constraint allows re-submission
+      try {
+        const { data: retakeResult, error: retakeError } = await supabase.rpc('rpc_allow_cambridge_retake', {
+          p_student_name: profile.username,
+          p_quiz_name_pattern: `%${test.name}%`,
+        });
+        if (retakeError) {
+          console.error('Failed to delete old submission for retake:', retakeError);
+        } else {
+          console.log('Old submission deleted for retake:', retakeResult);
+        }
+      } catch (e) {
+        console.error('Error calling retake RPC:', e);
+      }
+
       // Clear the submission lock for writing tests
       const quizId = test.id.replace(/-/g, '_');
       localStorage.removeItem(`quiz_submitted_${quizId}`);

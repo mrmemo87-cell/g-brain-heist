@@ -10,9 +10,10 @@ import DiagramBuilder from './geometry/DiagramBuilder';
 import QuestionBank from './teacher/QuestionBank';
 import '../src/styles/teacher-theme.css';
 import { chemistryAnswerKeys, chemistryQuestionRanges } from './chemistryAnswerKeys';
+import { biologyAnswerKeys, biologyQuestionRanges } from './biologyAnswerKeys';
 import { fetchSchoolPlanDetails, fetchEffectiveTier, isPro, fetchPilotQuotas, getQuotaForFeature, QUOTA_LABELS, FEATURE_TO_QUOTA, tryConsumePilotQuota, type SchoolPlanDetails, type AccountTier, type PilotQuotaStatus, type PilotQuota } from '../services/tierService';
-import ProfessionalCambridgeReport, { generateSerialNumber } from './ProfessionalCambridgeReport';
-import type { ProfessionalReportData } from './ProfessionalCambridgeReport';
+import ProfessionalCambridgeReport, { generateSerialNumber, StudentOverviewReport, getGradeFromPercentage } from './ProfessionalCambridgeReport';
+import type { ProfessionalReportData, StudentOverviewReportData, StudentTestEntry } from './ProfessionalCambridgeReport';
 
 interface TeacherPortalProps {
   profile: Profile;
@@ -163,6 +164,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [showCambridgeReport, setShowCambridgeReport] = useState(false);
   const [showCambridgeAnswers, setShowCambridgeAnswers] = useState(false);
   const [selectedCambridgeStudent, setSelectedCambridgeStudent] = useState<any | null>(null);
+  const [showStudentOverviewReport, setShowStudentOverviewReport] = useState(false);
+  const [studentOverviewData, setStudentOverviewData] = useState<StudentOverviewReportData | null>(null);
   const [cambridgeDrawerOpen, setCambridgeDrawerOpen] = useState(false);
   const [cambridgeDrawerAttempt, setCambridgeDrawerAttempt] = useState<any | null>(null);
 
@@ -1173,7 +1176,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   const getStudentResponses = (student: any) => {
     const answers = student?.answers || {};
-    if (student?.quiz_name?.toLowerCase().includes('chemistry')) {
+    if (student?.quiz_name?.toLowerCase().includes('chemistry') || student?.quiz_name?.toLowerCase().includes('biology')) {
       const responses = answers.responses || answers || {};
       if (typeof responses === 'string') {
         try {
@@ -1188,12 +1191,15 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     return answers;
   };
 
-  const getChemistryAnswerKey = (quizName: string | undefined) => {
+  const getScienceAnswerKey = (quizName: string | undefined) => {
     if (!quizName) return {};
     const baseName = quizName.replace(/\s*\(Part\s+\d+\)\s*/i, '').trim();
     const partMatch = quizName.match(/\(Part\s+(\d+)\)/i);
-    const baseKey = chemistryAnswerKeys[quizName] || chemistryAnswerKeys[baseName] || {};
-    const range = chemistryQuestionRanges[baseName];
+    const isBiology = quizName.toLowerCase().includes('biology');
+    const answerKeys = isBiology ? biologyAnswerKeys : chemistryAnswerKeys;
+    const questionRanges = isBiology ? biologyQuestionRanges : chemistryQuestionRanges;
+    const baseKey = answerKeys[quizName] || answerKeys[baseName] || {};
+    const range = questionRanges[baseName];
 
     if (!partMatch || !range) {
       return baseKey;
@@ -1328,6 +1334,40 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const openCambridgeReport = (student: any) => {
     setSelectedCambridgeStudent(student);
     setShowCambridgeReport(true);
+  };
+
+  // Open student overview report (general report for a student across all tests)
+  const openStudentOverviewReport = (studentName: string) => {
+    const studentScores = cambridgeScores.filter(s => s.student_name === studentName);
+    if (studentScores.length === 0) return;
+
+    const tests: StudentTestEntry[] = studentScores.map(s => ({
+      id: s.id,
+      quizName: s.quiz_name,
+      score: s.score || 0,
+      totalQuestions: s.total_questions || 0,
+      percentage: s.percentage || 0,
+      grade: getGradeFromPercentage(s.percentage || 0),
+      submittedAt: s.submitted_at,
+      timeTakenSeconds: s.time_taken_seconds,
+    }));
+
+    const avgPercentage = Math.round(tests.reduce((sum, t) => sum + t.percentage, 0) / tests.length);
+    const sorted = [...tests].sort((a, b) => b.percentage - a.percentage);
+
+    const overviewData: StudentOverviewReportData = {
+      studentName,
+      studentClass: studentScores[0]?.student_class || undefined,
+      tests,
+      averagePercentage: avgPercentage,
+      averageGrade: getGradeFromPercentage(avgPercentage),
+      totalTestsTaken: tests.length,
+      bestScore: sorted[0] || null,
+      worstScore: sorted[sorted.length - 1] || null,
+    };
+
+    setStudentOverviewData(overviewData);
+    setShowStudentOverviewReport(true);
   };
 
   // Open answers modal
@@ -5063,6 +5103,30 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   )}
                 </div>
               </details>
+              <details className="relative">
+                <summary className="list-none cursor-pointer select-none bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-teal-700">
+                  📄 Student Report ▾
+                </summary>
+                <div className="absolute right-0 mt-2 w-64 rounded-lg border border-slate-200 bg-white shadow-lg p-2 text-sm z-10 max-h-60 overflow-y-auto">
+                  {(() => {
+                    const studentNames = [...new Set(cambridgeScores.map(s => s.student_name))].sort();
+                    if (studentNames.length === 0) return <p className="text-slate-400 px-3 py-2">No students found.</p>;
+                    return studentNames.map(name => {
+                      const count = cambridgeScores.filter(s => s.student_name === name).length;
+                      return (
+                        <button
+                          key={name}
+                          onClick={() => openStudentOverviewReport(name)}
+                          className="w-full text-left px-3 py-2 rounded-md hover:bg-slate-100 text-slate-700 flex justify-between items-center"
+                        >
+                          <span className="truncate">{name}</span>
+                          <span className="text-xs text-slate-400 ml-2 shrink-0">{count} test{count !== 1 ? 's' : ''}</span>
+                        </button>
+                      );
+                    });
+                  })()}
+                </div>
+              </details>
               <button
                 onClick={exportCambridgeCSV}
                 disabled={cambridgeScores.length === 0}
@@ -5547,6 +5611,16 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                                     >
                                       Report
                                     </button>
+                                    <button
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        openStudentOverviewReport(score.student_name);
+                                      }}
+                                      className="px-2.5 py-1 rounded-md text-xs font-semibold bg-teal-100 text-teal-700 hover:bg-teal-200"
+                                      title="View all test results for this student"
+                                    >
+                                      Overview
+                                    </button>
                                   </>
                                 )}
                               </div>
@@ -5663,6 +5737,13 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   Create report
                 </button>
               )}
+              <button
+                onClick={() => openStudentOverviewReport(drawerAttempt.student_name)}
+                className="w-full px-4 py-2 rounded-md bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700"
+                title="View all test results for this student"
+              >
+                📄 Student Overview
+              </button>
               {drawerAttempt.scores_released ? (
                 <button
                   className="w-full px-4 py-2 rounded-md border border-slate-200 text-sm font-semibold text-slate-400 cursor-not-allowed"
@@ -5734,8 +5815,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       {/* Performance Report Modal - Professional Report with Serial Number */}
       {showCambridgeReport && selectedCambridgeStudent && (() => {
         const skillPerf = analyzeSkillPerformance(selectedCambridgeStudent);
-        const reportAnswerKey = selectedCambridgeStudent.quiz_name?.toLowerCase().includes('chemistry')
-          ? getChemistryAnswerKey(selectedCambridgeStudent.quiz_name)
+        const reportAnswerKey = (selectedCambridgeStudent.quiz_name?.toLowerCase().includes('chemistry') || selectedCambridgeStudent.quiz_name?.toLowerCase().includes('biology'))
+          ? getScienceAnswerKey(selectedCambridgeStudent.quiz_name)
           : (correctAnswers[selectedCambridgeStudent.quiz_name] || {});
         const responseSummary = buildResponseSummary(selectedCambridgeStudent, reportAnswerKey);
         const fallbackPlan = getGeneralActionPlan(selectedCambridgeStudent, responseSummary);
@@ -5776,11 +5857,16 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         return <ProfessionalCambridgeReport data={reportData} onClose={() => setShowCambridgeReport(false)} isTeacherView={true} />;
       })()}
 
+      {/* Student Overview Report Modal */}
+      {showStudentOverviewReport && studentOverviewData && (
+        <StudentOverviewReport data={studentOverviewData} onClose={() => setShowStudentOverviewReport(false)} />
+      )}
+
       {/* Answer Reflection Modal */}
       {showCambridgeAnswers && selectedCambridgeStudent && (() => {
         const answers = selectedCambridgeStudent.answers || {};
         const quizName = selectedCambridgeStudent.quiz_name;
-        const isChemistryTest = quizName?.toLowerCase().includes('chemistry');
+        const isChemistryTest = quizName?.toLowerCase().includes('chemistry') || quizName?.toLowerCase().includes('biology');
 
         const studentResponses = getStudentResponses(selectedCambridgeStudent);
         
@@ -5967,7 +6053,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         }
         
         // Regular test handling
-        const answerKey = isChemistryTest ? getChemistryAnswerKey(quizName) : (correctAnswers[quizName] || {});
+        const answerKey = isChemistryTest ? getScienceAnswerKey(quizName) : (correctAnswers[quizName] || {});
         const sections = testSections[quizName] || [];
         const summary = buildResponseSummary(selectedCambridgeStudent, answerKey);
         const mistakes = summary.details

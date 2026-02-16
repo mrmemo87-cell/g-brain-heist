@@ -11,6 +11,7 @@ import * as SchoolRequestService from '../services/schoolRequestService';
 import * as SchoolAdminService from '../services/schoolAdminService';
 import { SchoolMember } from '../services/schoolAdminService';
 import { chemistryAnswerKeys, chemistryQuestionRanges } from './chemistryAnswerKeys';
+import { biologyAnswerKeys, biologyQuestionRanges } from './biologyAnswerKeys';
 
 const SCHOOL_PLANS = ['none', 'pilot', 'core', 'standard', 'pro', 'enterprise'] as const;
 
@@ -717,15 +718,19 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       16:"B", 17:"C", 18:"C", 19:"A", 20:"A",
       21:"H", 22:"E", 23:"D", 24:"C", 25:"B"
     },
-    ...chemistryAnswerKeys
+    ...chemistryAnswerKeys,
+    ...biologyAnswerKeys
   };
 
-  const getChemistryAnswerKey = (quizName: string | undefined) => {
+  const getScienceAnswerKey = (quizName: string | undefined) => {
     if (!quizName) return {};
     const baseName = quizName.replace(/\s*\(Part\s+\d+\)\s*/i, '').trim();
     const partMatch = quizName.match(/\(Part\s+(\d+)\)/i);
-    const baseKey = chemistryAnswerKeys[quizName] || chemistryAnswerKeys[baseName] || {};
-    const range = chemistryQuestionRanges[baseName];
+    const isBiology = quizName.toLowerCase().includes('biology');
+    const answerKeys = isBiology ? biologyAnswerKeys : chemistryAnswerKeys;
+    const questionRanges = isBiology ? biologyQuestionRanges : chemistryQuestionRanges;
+    const baseKey = answerKeys[quizName] || answerKeys[baseName] || {};
+    const range = questionRanges[baseName];
 
     if (!partMatch || !range) {
       return baseKey;
@@ -826,7 +831,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       tips: ["Listen for different voices", "Focus on main ideas per speaker", "Match opinions to statements"]
     },
     "Overall Performance": {
-      title: "Improve Your Chemistry Knowledge",
+      title: "Improve Your Science Knowledge",
       tips: ["Review the questions you got wrong", "Study the relevant chapter in your textbook", "Practice more past paper questions", "Ask your teacher for help with difficult concepts"]
     }
   };
@@ -839,9 +844,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     const correctAnswersForQuiz = correctAnswers[quizName] || {};
     
     // Check if this is a Chemistry test (no predefined skill categories)
-    const isChemistryTest = quizName.toLowerCase().includes('chemistry');
+    const isChemistryTest = quizName.toLowerCase().includes('chemistry') || quizName.toLowerCase().includes('biology');
     
-    // For Chemistry tests, create a simple overall performance entry
+    // For Chemistry/Biology tests, create a simple overall performance entry
     if (isChemistryTest || Object.keys(categories).length === 0) {
       // Parse the answers structure - Chemistry tests store responses inside answers.responses
       const responses = rawAnswers.responses || rawAnswers || {};
@@ -3019,8 +3024,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                     📥 Export CSV
                   </button>
                 )}
-                {/* Bulk Release Scores for Chemistry tests */}
-                {quizFilter !== 'all' && quizFilter.toLowerCase().includes('chemistry') && (
+                {/* Bulk Release Scores for Science tests */}
+                {quizFilter !== 'all' && (quizFilter.toLowerCase().includes('chemistry') || quizFilter.toLowerCase().includes('biology')) && (
                   <button
                     onClick={async () => {
                       if (!window.confirm(`Release all unreleased scores for "${quizFilter}"${classFilter !== 'all' ? ` in class ${classFilter}` : ''}? Students will be able to see their results.`)) {
@@ -3170,8 +3175,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                                 >
                                   🗑️ Delete
                                 </button>
-                                {/* Show Release Score button for Chemistry tests */}
-                                {score.quiz_name && score.quiz_name.toLowerCase().includes('chemistry') && !score.scores_released && (
+                                {/* Show Release Score button for Science tests */}
+                                {score.quiz_name && (score.quiz_name.toLowerCase().includes('chemistry') || score.quiz_name.toLowerCase().includes('biology')) && !score.scores_released && (
                                   <button
                                     onClick={async () => {
                                       try {
@@ -3191,7 +3196,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                                     🔓 Release Score
                                   </button>
                                 )}
-                                {score.scores_released && score.quiz_name && score.quiz_name.toLowerCase().includes('chemistry') && (
+                                {score.scores_released && score.quiz_name && (score.quiz_name.toLowerCase().includes('chemistry') || score.quiz_name.toLowerCase().includes('biology')) && (
                                   <span className="text-xs text-green-400 px-2 py-1">✓ Released</span>
                                 )}
                               </div>
@@ -3584,15 +3589,15 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       {showAnswerReflection && reportStudent && (() => {
         const rawAnswers = reportStudent.answers || {};
         const quizName = reportStudent.quiz_name || '';
-        const isChemistryTest = quizName.toLowerCase().includes('chemistry');
+        const isChemistryTest = quizName.toLowerCase().includes('chemistry') || quizName.toLowerCase().includes('biology');
         
-        // For Chemistry tests, extract responses from answers.responses
+        // For Science tests, extract responses from answers.responses
         const studentResponses = isChemistryTest 
           ? (rawAnswers.responses || rawAnswers || {})
           : rawAnswers;
         
         // Get correct answers for tests that ship an answer key in the frontend
-        const correctAnswersForQuiz = isChemistryTest ? getChemistryAnswerKey(quizName) : (correctAnswers[quizName] || {});
+        const correctAnswersForQuiz = isChemistryTest ? getScienceAnswerKey(quizName) : (correctAnswers[quizName] || {});
         const sections = testSections[quizName] || [];
         
         let correctCount = reportStudent.score || 0;

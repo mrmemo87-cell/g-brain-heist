@@ -1456,7 +1456,7 @@
     }
     
     try {
-      await supabaseClient.from('quiz_scores').insert([{
+      const { error } = await supabaseClient.from('quiz_scores').insert([{
         student_name: studentName,
         student_class: studentClass,
         quiz_name: 'Cambridge Listening Test 1',
@@ -1466,6 +1466,22 @@
         answers: answers,
         time_taken_seconds: timeTaken
       }]);
+      
+      if (error) {
+        if (error.message && (error.message.includes('duplicate') || error.message.includes('unique') || error.message.includes('already exists'))) {
+          hasSubmitted = true;
+          submitBtn.textContent = '✓ Already Submitted';
+          statusDiv.className = 'submit-status submit-error';
+          statusDiv.textContent = '⚠️ You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
+          document.querySelectorAll('input').forEach(input => input.disabled = true);
+          const floatingBtn = document.getElementById('floatingSubmitBtn');
+          const floatingDiv = document.getElementById('floatingSubmit');
+          if (floatingBtn) { floatingBtn.disabled = true; floatingBtn.textContent = '✓ Already Submitted'; }
+          if (floatingDiv) { floatingDiv.classList.add('submitted'); }
+          return;
+        }
+        throw error;
+      }
       
       hasSubmitted = true;
       localStorage.setItem(`quiz_submitted_${QUIZ_ID}`, JSON.stringify({

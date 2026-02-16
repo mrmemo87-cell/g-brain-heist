@@ -793,7 +793,19 @@
           ...(schoolId && { school_id: schoolId })
         }]);
       
-      if (error) throw error;
+      if (error) {
+        if (error.message && (error.message.includes('duplicate') || error.message.includes('unique') || error.message.includes('already exists'))) {
+          hasSubmitted = true;
+          submitBtn.textContent = '✓ Already Submitted';
+          statusDiv.className = 'submit-status submit-error';
+          statusDiv.textContent = '⚠️ You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
+          document.querySelectorAll('input').forEach(input => input.disabled = true);
+          const floatingBtn = document.getElementById('floatingSubmit');
+          if (floatingBtn) { floatingBtn.disabled = true; floatingBtn.textContent = '✓ Already Submitted'; }
+          return;
+        }
+        throw error;
+      }
       
       // Mark as submitted in localStorage to prevent re-submission
       hasSubmitted = true;

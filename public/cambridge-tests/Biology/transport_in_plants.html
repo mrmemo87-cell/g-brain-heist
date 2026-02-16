@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
-  <title>AS Chemistry Ch20 ( Polymerisation)</title>
+  <title>AS Biology Ch7 — Transport in plants</title>
   <script src="../examguard.js"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
       --card-bg: rgba(255, 255, 255, 0.05);
       --border: rgba(255, 255, 255, 0.12);
-      --accent: #38bdf8;
-      --accent-2: #8b5cf6;
+      --accent: #22c55e;
+      --accent-2: #10b981;
       --text-main: #e2e8f0;
       --text-muted: #94a3b8;
       --success: #22c55e;
@@ -66,9 +66,9 @@
       margin: 14px 0 22px;
       padding: 12px 14px;
       border-radius: 12px;
-      background: rgba(56, 189, 248, 0.12);
-      border: 1px solid rgba(56, 189, 248, 0.4);
-      color: #bae6fd;
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      color: #bbf7d0;
       font-size: 14px;
       line-height: 1.4;
     }
@@ -114,7 +114,7 @@
     .student-info input:focus {
       outline: none;
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(56,189,248,0.25);
+      box-shadow: 0 0 0 3px rgba(34,197,94,0.25);
     }
     .question-card {
       background: var(--card-bg);
@@ -159,7 +159,7 @@
     }
     .option:hover {
       border-color: var(--accent);
-      background: rgba(56,189,248,0.06);
+      background: rgba(34,197,94,0.06);
     }
     .option strong {
       min-width: 22px;
@@ -198,11 +198,6 @@
     .nuclide sup {
       vertical-align: super;
     }
-    .chem-structure {
-      font-family: 'Courier New', monospace;
-      font-size: 0.95em;
-      letter-spacing: 0.2px;
-    }
     .nuclide sub {
       vertical-align: sub;
     }
@@ -214,14 +209,14 @@
       align-items: center;
     }
     button {
-      background: linear-gradient(135deg, #38bdf8, #8b5cf6);
+      background: linear-gradient(135deg, #22c55e, #10b981);
       color: #0b1033;
       border: none;
       border-radius: 12px;
       padding: 12px 22px;
       font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 10px 30px rgba(139,92,246,0.35);
+      box-shadow: 0 10px 30px rgba(16,185,129,0.35);
       transition: transform 0.2s, box-shadow 0.2s;
     }
     button:hover { transform: translateY(-1px); }
@@ -250,145 +245,6 @@
       .container { padding: 16px; }
     }
 
-    /* Prime Lock Overlay */
-    .prime-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(15, 23, 42, 0.97);
-      backdrop-filter: blur(12px);
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 1;
-      transition: opacity 0.4s ease, visibility 0.4s ease;
-    }
-    .prime-overlay.hidden {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-    }
-    .prime-card {
-      background: linear-gradient(145deg, rgba(139, 92, 246, 0.15), rgba(56, 189, 248, 0.1));
-      border: 2px solid rgba(139, 92, 246, 0.5);
-      border-radius: 24px;
-      padding: 48px 42px;
-      text-align: center;
-      max-width: 420px;
-      box-shadow: 0 30px 80px rgba(139, 92, 246, 0.3), 0 0 60px rgba(56, 189, 248, 0.15), inset 0 1px 0 rgba(255,255,255,0.1);
-      animation: floatIn 0.6s ease-out;
-    }
-    @keyframes floatIn {
-      from { opacity: 0; transform: translateY(30px) scale(0.95); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    .prime-icon {
-      font-size: 64px;
-      margin-bottom: 16px;
-      filter: drop-shadow(0 4px 20px rgba(139, 92, 246, 0.5));
-    }
-    .prime-title {
-      font-size: 32px;
-      font-weight: 800;
-      background: linear-gradient(135deg, #a78bfa, #38bdf8, #f472b6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin: 0 0 12px;
-      letter-spacing: -0.02em;
-    }
-    .prime-subtitle {
-      color: #94a3b8;
-      font-size: 15px;
-      margin-bottom: 28px;
-      line-height: 1.5;
-    }
-    .prime-btn {
-      background: linear-gradient(135deg, #8b5cf6, #6366f1, #38bdf8);
-      color: white;
-      border: none;
-      border-radius: 14px;
-      padding: 16px 36px;
-      font-size: 18px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 12px 35px rgba(139, 92, 246, 0.4);
-      transition: all 0.3s ease;
-      margin-bottom: 20px;
-    }
-    .prime-btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 18px 45px rgba(139, 92, 246, 0.5);
-    }
-    .prime-divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 20px 0;
-      color: #64748b;
-      font-size: 13px;
-    }
-    .prime-divider::before, .prime-divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: rgba(100, 116, 139, 0.3);
-    }
-    .prime-code-input {
-      width: 100%;
-      padding: 14px 18px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(139, 92, 246, 0.3);
-      border-radius: 12px;
-      color: #e2e8f0;
-      font-size: 16px;
-      text-align: center;
-      letter-spacing: 0.1em;
-      transition: all 0.2s ease;
-    }
-    .prime-code-input:focus {
-      outline: none;
-      border-color: #8b5cf6;
-      box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
-    }
-    .prime-code-input::placeholder {
-      color: #64748b;
-      letter-spacing: 0.05em;
-    }
-    .prime-unlock-btn {
-      margin-top: 14px;
-      background: rgba(139, 92, 246, 0.2);
-      border: 1px solid rgba(139, 92, 246, 0.4);
-      color: #a78bfa;
-      padding: 12px 28px;
-      border-radius: 10px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .prime-unlock-btn:hover {
-      background: rgba(139, 92, 246, 0.3);
-      border-color: #8b5cf6;
-    }
-    .prime-error {
-      color: #f87171;
-      font-size: 13px;
-      margin-top: 10px;
-      display: none;
-    }
-    .prime-error.show {
-      display: block;
-      animation: shake 0.4s ease;
-    }
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      20%, 60% { transform: translateX(-6px); }
-      40%, 80% { transform: translateX(6px); }
-    }
-  
     .timer-box {
       display: flex;
       align-items: center;
@@ -398,7 +254,7 @@
       padding: 12px 16px;
       border-radius: 12px;
       background: rgba(15, 23, 42, 0.6);
-      border: 1px solid rgba(56, 189, 248, 0.35);
+      border: 1px solid rgba(34, 197, 94, 0.35);
       color: #e2e8f0;
       font-size: 14px;
       font-weight: 600;
@@ -408,8 +264,6 @@
       color: #fecaca;
     }
 
-  
-    /* === Anti-cheat, review, and modal enhancements === */
     .timer-box.floating {
       position: fixed;
       top: 24px;
@@ -417,10 +271,10 @@
       z-index: 60;
       padding: 14px 18px;
       border-radius: 16px;
-      border: 1px solid rgba(56, 189, 248, 0.55);
+      border: 1px solid rgba(34, 197, 94, 0.55);
       background: rgba(15, 23, 42, 0.85);
       backdrop-filter: blur(10px);
-      box-shadow: 0 18px 45px rgba(0,0,0,0.35), 0 0 0 1px rgba(56,189,248,0.2);
+      box-shadow: 0 18px 45px rgba(0,0,0,0.35), 0 0 0 1px rgba(34,197,94,0.2);
       font-weight: 700;
       letter-spacing: 0.4px;
       display: flex;
@@ -434,7 +288,7 @@
     }
     .question-code { display: none; }
     .review-mode .question-code { display: inline; }
-    .review-mode .question-card { border-color: rgba(56, 189, 248, 0.4); }
+    .review-mode .question-card { border-color: rgba(34, 197, 94, 0.4); }
     .review-answer {
       margin-top: 10px;
       padding: 10px 12px;
@@ -480,7 +334,7 @@
     }
     .modal-card {
       background: rgba(15, 23, 42, 0.95);
-      border: 1px solid rgba(56, 189, 248, 0.4);
+      border: 1px solid rgba(34, 197, 94, 0.4);
       border-radius: 18px;
       padding: 20px 22px;
       width: min(480px, 90vw);
@@ -502,7 +356,7 @@
       font-weight: 600;
     }
     .modal-btn.primary {
-      background: linear-gradient(135deg, #38bdf8, #8b5cf6);
+      background: linear-gradient(135deg, #22c55e, #10b981);
       color: #fff;
     }
     .modal-btn.secondary {
@@ -553,34 +407,19 @@
   </style>
 </head>
 <body>
-  <!-- Prime Lock Overlay - DISABLED -->
-  <!--
-  <div class="prime-overlay" id="primeOverlay">
-    <div class="prime-card">
-      <div class="prime-icon">👑</div>
-      <h2 class="prime-title">GET PRIME</h2>
-      <p class="prime-subtitle">This AS Chemistry content is exclusive to Prime members. Upgrade to unlock all advanced materials.</p>
-      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">✨ Upgrade to Prime</button>
-      <div class="prime-divider">or enter activation code</div>
-      <input type="text" class="prime-code-input" id="primeCodeInput" placeholder="Enter code..." autocomplete="off" />
-      <button class="prime-unlock-btn" id="primeUnlockBtn">Unlock</button>
-      <div class="prime-error" id="primeError">Invalid activation code. Please try again.</div>
-    </div>
-  </div>
-  -->
 
   <div class="container">
     <div class="header">
       <img src="/logo.png" alt="Brains Heist" onerror="this.style.display='none';" />
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
-        <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch20 ( Polymerisation)</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 20 • 16 multiple-choice questions</div>
+        <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Biology Ch7 — Transport in plants</h1>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 7 • multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
-      <span class="badge">🧪 Category: Science</span>
+      <span class="badge">🧬 Category: Science</span>
       <span class="badge">🎯 Difficulty: Advanced</span>
       <span class="badge">📝 Format: Multiple Choice (A–D)</span>
       <span class="badge" id="partBadge"></span>
@@ -591,7 +430,6 @@
       ✅ Auto-marked: your score stays hidden until your teacher releases it.
     </div>
     <div id="timer" class="timer-box floating">⏳ Time remaining: 00:00</div>
-
 
     <div class="student-info">
       <input type="text" id="studentName" placeholder="Student Name" autocomplete="name" />
@@ -607,10 +445,9 @@
     <div id="score" class="score-box" style="display:none;"></div>
   </div>
 
-
   <div id="submitModal" class="modal-overlay">
     <div class="modal-card">
-      <h3 class="modal-title">Submit AS Chemistry Test</h3>
+      <h3 class="modal-title">Submit AS Biology Test</h3>
       <p class="modal-body" id="submitModalBody">You're about to submit your answers. Once submitted, you cannot retake this test. Your score will stay hidden until your teacher releases it.</p>
       <div class="modal-actions">
         <button class="modal-btn secondary" id="cancelSubmitBtn">Continue editing</button>
@@ -618,7 +455,7 @@
       </div>
     </div>
   </div>
-  
+
   <div id="antiCheatModal" class="modal-overlay">
     <div class="modal-card anti-cheat-card">
       <h3 class="modal-title">Anti-cheat rules</h3>
@@ -627,7 +464,7 @@
         <li>Stay on this tab. The first violation triggers a warning.</li>
         <li>Three violations (tab switches, copying, etc.) will auto-submit your test.</li>
         <li>Copying and cutting are disabled during the test.</li>
-        <li>Your timer starts only after you click “I understand”.</li>
+        <li>Your timer starts only after you click "I understand".</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
@@ -786,204 +623,42 @@
     }
 
 
-    const QUIZ_BASE_ID = 'as_chemistry_ch20_polymerisation';
+    // =====================================================
+    // QUIZ CONSTANTS — Edit these for each chapter
+    // =====================================================
+    const QUIZ_BASE_ID = 'as_biology_ch7_transport_in_plants';
     const QUIZ_PART = getQuizPart();
 
-    const QUIZ_BASE_NAME = 'AS Chemistry Ch20 ( Polymerisation)';
+    const QUIZ_BASE_NAME = 'AS Biology Ch7 ( Transport in plants )';
     const QUIZ_ID = `${QUIZ_BASE_ID}_part${QUIZ_PART.part}`;
     const QUIZ_NAME = `${QUIZ_BASE_NAME} (Part ${QUIZ_PART.part})`;
+
+    // =====================================================
+    // QUESTIONS — Paste your questions array here
+    // Each question object: { number, code, prompt, options/table/simpleOptions }
+    // =====================================================
     let QUESTIONS = [
-      {
-        number: 1,
-        code: '9701_m22_qp_12 Q: 37',
-        prompt: 'A molecule of a polymer contains the sequence shown in the diagram.<br><br>Which monomer could produce this polymer by addition polymerisation?',
-        options: {
-          A: 'CHCl=CHCl',
-          B: 'CH<sub>2</sub>=CHCl',
-          C: 'CH<sub>3</sub>CCl=CHCl',
-          D: 'CH<sub>3</sub>CCl=CH<sub>2</sub>',
-        }
-      },
-      {
-        number: 2,
-        code: '9701_m20_qp_12 Q: 24',
-        prompt: 'A section of a polymer chain is shown in the diagram.<br><br>What is the correct monomer?',
-        options: {
-          A: 'Structure A (as shown)',
-          B: 'Structure B (as shown)',
-          C: 'Structure C (as shown)',
-          D: 'Structure D (as shown)',
-        }
-      },
-      {
-        number: 3,
-        code: '9701_s20_qp_12 Q: 29',
-        prompt: 'PVC is used as a packaging material.<br><br>What holds the different polymer strands together in a piece of solid PVC?',
-        options: {
-          A: 'covalent bonds',
-          B: 'hydrogen bonds',
-          C: 'ionic bonds',
-          D: 'van der Waals’ forces',
-        }
-      },
-      {
-        number: 4,
-        code: '9701_w20_qp_11 Q: 22',
-        prompt: 'Which statement is correct when referring to the complete combustion of PVC?',
-        options: {
-          A: 'A gas is made which contributes to global warming.',
-          B: 'Carbon dioxide and water are the only products.',
-          C: 'If water is used to clean the exhaust gases, the water becomes alkaline.',
-          D: 'There is no need to treat the exhaust gases as the products are non-hazardous.',
-        }
-      },
-      {
-        number: 5,
-        code: '9701_w20_qp_12 Q: 22',
-        prompt: 'A polymer has the following repeat unit. It is made from two different monomers.<br><br><span class="chem-structure">{–CH<sub>2</sub>–CHCl–CH<sub>2</sub>–CH=CH–CH<sub>2</sub>–}</span><br><br>Which pair of monomers could be used to make this polymer?',
-        options: {
-          A: 'CH<sub>2</sub>=CHCl and CH<sub>2</sub>=CH<sub>2</sub>',
-          B: 'CH<sub>2</sub>=CHCl and CH<sub>2</sub>=CH–CH=CH<sub>2</sub>',
-          C: 'CH<sub>3</sub>–CH<sub>2</sub>Cl and CH<sub>3</sub>–CH=CH–CH<sub>3</sub>',
-          D: 'CH<sub>3</sub>–CH=CH–CH<sub>3</sub> and CH<sub>2</sub>=CHCl',
-        }
-      },
-      {
-        number: 6,
-        code: '9701_s19_qp_12 Q: 22',
-        prompt: 'The diagram shows the repeat unit of an addition polymer.<br><br><span class="chem-structure">[–C(C<sub>2</sub>H<sub>5</sub>)(CH<sub>3</sub>)–C(CH<sub>3</sub>)(C<sub>2</sub>H<sub>5</sub>)–]n</span><br><br>What is the correct name for the monomer that would form this polymer?',
-        options: {
-          A: 'cis-1,2-diethyl-1,2-dimethylethene',
-          B: 'cis-2-ethyl-3-methylpent-2-ene',
-          C: 'trans-2-ethyl-3-methylpent-2-ene',
-          D: 'trans-3,4-dimethylhex-3-ene',
-        }
-      },
-      {
-        number: 7,
-        code: '9701_m18_qp_12 Q: 27',
-        prompt: 'A reaction occurs when a sample of 1-chloropropane is heated under reflux with sodium hydroxide dissolved in ethanol.<br><br>Which row is correct?',
-        table: {
-          headers: ['type of reaction', 'name of product'],
-          rows: [
-            { label: 'A', values: ['elimination', 'propan-1-ol'] },
-            { label: 'B', values: ['elimination', 'propene'] },
-            { label: 'C', values: ['substitution', 'propan-1-ol'] },
-            { label: 'D', values: ['substitution', 'propene'] },
-          ]
-        }
-      },
-      {
-        number: 8,
-        code: '9701_s18_qp_13 Q: 22',
-        prompt: 'Which statement is not correct?',
-        options: {
-          A: 'Combustion of PVC produces a highly acidic gas.',
-          B: 'PVC molecules are saturated.',
-          C: 'The empirical formula of PVC is the same as the empirical formula of its monomer.',
-          D: 'The repeat unit of PVC is <span class="chem-structure">{–CHCl–CHCl–}</span>.',
-        }
-      },
-      {
-        number: 9,
-        code: '9701_w18_qp_12 Q: 22',
-        prompt: 'Polyethene is made by the polymerisation of ethene.<br><br>Which statement is correct?',
-        options: {
-          A: 'The monomer and the polymer have different empirical formulae.',
-          B: 'The monomer can be oxidised without heat whereas the polymer cannot.',
-          C: 'The monomer can be used as a fuel whereas the polymer cannot.',
-          D: 'The monomer has greater van der Waals’ forces than the polymer.',
-        }
-      },
-      {
-        number: 10,
-        code: '9701_m17_qp_12 Q: 24',
-        prompt: 'Polymerisation of ethene gives poly(ethene).<br><br>How does the bonding between carbon atoms in poly(ethene) compare with that in ethene?',
-        options: {
-          A: 'longer and stronger in poly(ethene)',
-          B: 'longer and weaker in poly(ethene)',
-          C: 'shorter and stronger in poly(ethene)',
-          D: 'shorter and weaker in poly(ethene)',
-        }
-      },
-      {
-        number: 11,
-        code: '9701_s17_qp_11 Q: 23',
-        prompt: 'The diagram shows a short length of an addition polymer chain. The polymer has a relative molecular mass of approximately 10 000.<br><br>Approximately how many monomer units are joined together in each polymer molecule?',
-        options: {
-          A: '180',
-          B: '360',
-          C: '625',
-          D: '710',
-        }
-      },
-      {
-        number: 12,
-        code: '9701_w17_qp_11 Q: 23',
-        prompt: 'A section of an addition polymer chain is shown: <span class="chem-structure">–CH(Cl)–CH<sub>2</sub>–CH<sub>2</sub>–CH(Cl)–</span>.<br><br>Which monomer could be used to make this polymer?',
-        options: {
-          A: 'CH<sub>2</sub>=CHCH<sub>2</sub>Cl',
-          B: 'CH<sub>2</sub>=CHCl',
-          C: 'CH<sub>3</sub>CH=CHCl',
-          D: 'CHCl=CHCH<sub>2</sub>CH<sub>2</sub>Cl',
-        }
-      },
-      {
-        number: 13,
-        code: '9701_m16_qp_12 Q: 22',
-        prompt: 'A section showing two repeat units of an addition polymer is shown in the diagram.<br><br>What is the identity of the monomer that produced this polymer?',
-        options: {
-          A: '2-chloro-3-methylbutane',
-          B: '2-chloro-3-methylbut-2-ene',
-          C: '2-chloropent-2-ene',
-          D: '2,4-dichloro-3,3,4,5-tetramethylhexane',
-        }
-      },
-      {
-        number: 14,
-        code: '9701_m16_qp_12 Q: 29',
-        prompt: 'Which statement about poly(chloroethene) is correct?',
-        options: {
-          A: 'The polymer can be cracked to produce chlorinated alkenes.',
-          B: 'The polymer has harmless combustion products.',
-          C: 'The polymer is readily biodegradable when buried.',
-          D: 'The repeat unit of the polymer has an M<sub>r</sub> of 97.',
-        }
-      },
-      {
-        number: 15,
-        code: '9701_s16_qp_12 Q: 21',
-        prompt: 'Synthetic resins can be made by polymerisation of a variety of monomers including prop-2-en-1-ol, CH<sub>2</sub>=CHCH<sub>2</sub>OH.<br><br>Which structure represents the repeat unit in poly(prop-2-en-1-ol)?',
-        options: {
-          A: '<span class="chem-structure">{–CH<sub>2</sub>–CH<sub>2</sub>–CH<sub>2</sub>–O–}</span>',
-          B: '<span class="chem-structure">{–CH<sub>2</sub>–CH(CH<sub>2</sub>OH)–}</span>',
-          C: '<span class="chem-structure">{–CH= C(CH<sub>2</sub>OH)–}</span>',
-          D: '<span class="chem-structure">{–CH<sub>2</sub>–CH<sub>2</sub>–CH(OH)–}</span>',
-        }
-      },
-      {
-        number: 16,
-        code: '9701_w16_qp_11 Q: 22',
-        prompt: 'PVC is difficult to dispose of. Two possible methods are burying it in landfill sites and disposal by combustion.<br><br>Which row of the table is correct?',
-        table: {
-          headers: ['rate of biodegradation of PVC in landfill sites', 'gases produced when PVC combusts'],
-          rows: [
-            { label: 'A', values: ['fast', 'CO<sub>2</sub>, H<sub>2</sub>O, HCl'] },
-            { label: 'B', values: ['fast', 'CO<sub>2</sub>, H<sub>2</sub>O, Cl<sub>2</sub>'] },
-            { label: 'C', values: ['slow', 'CO<sub>2</sub>, H<sub>2</sub>O, Cl<sub>2</sub>'] },
-            { label: 'D', values: ['slow', 'CO<sub>2</sub>, H<sub>2</sub>O, HCl'] },
-          ]
-        }
-      },
+      // PASTE QUESTIONS HERE
+      // Example:
+      // {
+      //   number: 1,
+      //   code: '9700_s20_qp_11 Q: 1',
+      //   prompt: 'Which organelle is found in both plant and animal cells?',
+      //   options: {
+      //     A: 'cell wall',
+      //     B: 'chloroplast',
+      //     C: 'mitochondrion',
+      //     D: 'large central vacuole',
+      //   }
+      // },
     ];
 
-
-    // Placeholder answer key (awaiting official answers)
+    // =====================================================
+    // ANSWER KEY — Paste answers here: { 1: 'A', 2: 'C', ... }
+    // =====================================================
     let ANSWER_KEY = {
-      1: 'B', 2: 'A', 3: 'D', 4: 'A', 5: 'B', 6: 'D', 7: 'B', 8: 'D',
-      9: 'B', 10: 'B', 11: 'B', 12: 'B', 13: 'B', 14: 'A', 15: 'B', 16: 'D',
+      // PASTE ANSWER KEY HERE
     };
-
 
     const quizSplit = splitQuiz(QUESTIONS, ANSWER_KEY, QUIZ_PART.part);
     QUESTIONS = quizSplit.questions;
@@ -1025,7 +700,6 @@
       timerInterval = setInterval(update, 1000);
     }
 
-
     function loadStudentInfoFromGame() {
       try {
         const stored = localStorage.getItem('cambridge_test_user');
@@ -1060,7 +734,7 @@
 
         const meta = document.createElement('div');
         meta.className = 'question-meta';
-                meta.innerHTML = `<span>#${q.number.toString().padStart(2, '0')}</span><span class="question-code">${q.code}</span>`;
+        meta.innerHTML = `<span>#${q.number.toString().padStart(2, '0')}</span><span class="question-code">${q.code}</span>`;
         card.appendChild(meta);
 
         const title = document.createElement('div');
@@ -1155,7 +829,6 @@
     }
 
     function checkPreviousSubmission() {
-
       const saved = localStorage.getItem(`quiz_submitted_${QUIZ_ID}`);
       if (!saved) return;
       const data = JSON.parse(saved);
@@ -1170,11 +843,9 @@
       scoreDiv.style.display = 'block';
       lockQuestions();
       stopTimer();
-
-      // Check if score is released by teacher
       checkScoreReleaseStatus(data);
     }
-    
+
     async function checkServerSubmission() {
       if (hasSubmitted) return;
       const name = document.getElementById('studentName')?.value.trim();
@@ -1191,27 +862,18 @@
           .single();
 
         if (error || !data) {
-          // Submission was deleted - reset UI to allow retake
           localStorage.removeItem(`quiz_submitted_${QUIZ_ID}`);
           localStorage.removeItem(`quiz_student_${QUIZ_ID}`);
           localStorage.removeItem(`quiz_class_${QUIZ_ID}`);
-          
-          // Reset UI state
           hasSubmitted = false;
           const submitBtn = document.getElementById('submitBtn');
-          if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Submit Answers';
-          }
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Answers'; }
           const statusDiv = document.getElementById('status');
           if (statusDiv) statusDiv.textContent = '';
           const scoreDiv = document.getElementById('score');
           if (scoreDiv) scoreDiv.style.display = 'none';
-          
-          // Re-enable all questions
           document.querySelectorAll('input').forEach(i => i.disabled = false);
           unlockQuestions();
-          
           return;
         }
 
@@ -1227,13 +889,13 @@
         console.error('Failed to check previous submission from server:', err);
       }
     }
+
     async function checkScoreReleaseStatus(savedData) {
       const scoreDiv = document.getElementById('score');
       const studentName = document.getElementById('studentName')?.value || localStorage.getItem(`quiz_student_${QUIZ_ID}`) || '';
       const studentClass = document.getElementById('studentClass')?.value || localStorage.getItem(`quiz_class_${QUIZ_ID}`) || '';
-      
+
       try {
-        // Query if score is released
         const { data, error } = await supabaseClient
           .from('quiz_scores')
           .select('scores_released, score, total_questions, percentage, answers, time_taken_seconds')
@@ -1242,50 +904,31 @@
           .order('submitted_at', { ascending: false })
           .limit(1)
           .single();
-        
+
         if (error || !data) {
-          // Submission was deleted - reset UI to allow retake
           localStorage.removeItem(`quiz_submitted_${QUIZ_ID}`);
           localStorage.removeItem(`quiz_student_${QUIZ_ID}`);
           localStorage.removeItem(`quiz_class_${QUIZ_ID}`);
-          
-          // Reset UI state
           hasSubmitted = false;
           const submitBtn = document.getElementById('submitBtn');
-          if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Submit Answers';
-          }
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Answers'; }
           const statusDiv = document.getElementById('status');
           if (statusDiv) statusDiv.textContent = '';
           scoreDiv.style.display = 'none';
-          
-          // Re-enable all questions
           document.querySelectorAll('input').forEach(i => i.disabled = false);
           unlockQuestions();
-          
-          // Notify parent component to refresh test list UI
           try {
-            window.parent.postMessage({
-              type: 'CAMBRIDGE_TEST_DELETED',
-              testId: QUIZ_ID,
-              testName: QUIZ_NAME
-            }, '*');
-          } catch (e) {
-            console.error('Failed to notify parent of test deletion:', e);
-          }
-          
+            window.parent.postMessage({ type: 'CAMBRIDGE_TEST_DELETED', testId: QUIZ_ID, testName: QUIZ_NAME }, '*');
+          } catch (e) { console.error('Failed to notify parent of test deletion:', e); }
           return;
         }
 
-        // Hide prime overlay since student has already submitted
         const overlay = document.getElementById('primeOverlay');
         if (overlay) overlay.classList.add('hidden');
-        
+
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` • ⏱️ Time: ${formatTimer(data.time_taken_seconds)}`
-            : '';
+            ? ` • ⏱️ Time: ${formatTimer(data.time_taken_seconds)}` : '';
           scoreDiv.textContent = `✅ Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
           hideTimer();
@@ -1330,20 +973,10 @@
       const isForced = options.force === true;
       const autoSubmitReason = options.reason || '';
       if (!name) {
-        if (isForced) {
-          name = 'Unknown Student';
-        } else {
-          status.textContent = '⚠️ Please enter your name.';
-          return;
-        }
+        if (isForced) { name = 'Unknown Student'; } else { status.textContent = '⚠️ Please enter your name.'; return; }
       }
       if (!cls) {
-        if (isForced) {
-          cls = 'Unknown Class';
-        } else {
-          status.textContent = '⚠️ Please enter your class.';
-          return;
-        }
+        if (isForced) { cls = 'Unknown Class'; } else { status.textContent = '⚠️ Please enter your class.'; return; }
       }
 
       const responses = {};
@@ -1392,7 +1025,6 @@
       }
 
       hasSubmitted = true;
-      // Save student info for score release check
       localStorage.setItem(`quiz_student_${QUIZ_ID}`, name);
       localStorage.setItem(`quiz_class_${QUIZ_ID}`, cls);
       localStorage.setItem(`quiz_submitted_${QUIZ_ID}`, JSON.stringify({
@@ -1426,7 +1058,6 @@
       }
     }
 
-
     function openSubmitModal() {
       const modal = document.getElementById('submitModal');
       if (!modal) return;
@@ -1441,16 +1072,12 @@
 
     function lockQuestions() {
       const questionWrap = document.getElementById('questions');
-      if (questionWrap) {
-        questionWrap.classList.add('hidden');
-      }
+      if (questionWrap) questionWrap.classList.add('hidden');
     }
 
     function unlockQuestions() {
       const questionWrap = document.getElementById('questions');
-      if (questionWrap) {
-        questionWrap.classList.remove('hidden');
-      }
+      if (questionWrap) questionWrap.classList.remove('hidden');
     }
 
     function openAntiCheatModal() {
@@ -1484,18 +1111,12 @@
     }
 
     function stopTimer() {
-      if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-      }
+      if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
     }
 
     function hideTimer() {
       const timerEl = document.getElementById('timer');
-      if (timerEl) {
-        timerEl.classList.remove('floating');
-        timerEl.style.display = 'none';
-      }
+      if (timerEl) { timerEl.classList.remove('floating'); timerEl.style.display = 'none'; }
     }
 
     function applyReviewMode(responses) {
@@ -1532,42 +1153,7 @@
       });
     }
 
-
-
     document.addEventListener('DOMContentLoaded', () => {
-      /*
-      // Prime Lock Logic
-      const PRIME_CODE = 'primesris';
-      const overlay = document.getElementById('primeOverlay');
-      const codeInput = document.getElementById('primeCodeInput');
-      const unlockBtn = document.getElementById('primeUnlockBtn');
-      const errorMsg = document.getElementById('primeError');
-
-      // Check if student has already submitted - if so, skip prime lock
-      const savedSubmission = localStorage.getItem(`quiz_submitted_${QUIZ_ID}`);
-      if (savedSubmission) {
-        overlay.classList.add('hidden');
-      }
-
-      function handleUnlock() {
-        const code = codeInput.value.trim().toLowerCase();
-        if (code === PRIME_CODE.toLowerCase()) {
-          overlay.classList.add('hidden');
-          errorMsg.classList.remove('show');
-          startTimerIfReady();
-        } else {
-          errorMsg.classList.add('show');
-          codeInput.value = '';
-          codeInput.focus();
-        }
-      }
-
-      unlockBtn.addEventListener('click', handleUnlock);
-      codeInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleUnlock();
-      });
-      */
-
       const confirmBtn = document.getElementById('confirmSubmitBtn');
       const cancelBtn = document.getElementById('cancelSubmitBtn');
       const antiCheatAcceptBtn = document.getElementById('antiCheatAcceptBtn');
@@ -1582,7 +1168,7 @@
       checkServerSubmission();
       startTimerIfReady();
       document.getElementById('submitBtn').addEventListener('click', openSubmitModal);
-      
+
       // Start ExamGuard after initialization
       setTimeout(() => {
         if (!hasSubmitted && typeof window.ExamGuard !== 'undefined') {
@@ -1596,7 +1182,7 @@
               handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'ExamGuard violation limit reached' });
             },
             onViolation: (event) => {
-              console.warn('ExamGuard violation (AS Chemistry - Polymerisation):', event);
+              console.warn('ExamGuard violation (AS Biology - Ch1 Cell structure):', event);
               if (event.violationsCount >= 3) {
                 if (!autoSubmitTriggered && !hasSubmitted) {
                   autoSubmitTriggered = true;
