@@ -131,24 +131,30 @@ const PRINT_STYLES = `
       margin: 0 !important;
       padding: 0 !important;
       overflow: visible !important;
+      height: auto !important;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
       color-adjust: exact !important;
     }
-    body * {
-      visibility: hidden;
+    body > *:not(.pro-report-portal) {
+      display: none !important;
     }
-    .pro-report,
-    .pro-report * {
-      visibility: visible !important;
+    .pro-report-portal {
+      position: static !important;
+      display: block !important;
+      background: white !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      overflow: visible !important;
+      height: auto !important;
+      min-height: 0 !important;
     }
     .pro-report {
-      position: fixed !important;
-      left: 0 !important;
-      top: 0 !important;
+      position: static !important;
       width: 100% !important;
       height: auto !important;
       max-height: none !important;
+      max-width: none !important;
       overflow: visible !important;
       background: white !important;
       margin: 0 !important;
@@ -243,7 +249,7 @@ const ProfessionalCambridgeReport: React.FC<ProfessionalCambridgeReportProps> = 
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-2 sm:p-4 overflow-y-auto print:p-0 print:bg-white print:overflow-visible print:block"
+      className="pro-report-portal fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-2 sm:p-4 overflow-y-auto"
       style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
     >
       <style>{PRINT_STYLES}</style>
@@ -621,7 +627,7 @@ const StudentOverviewReport: React.FC<StudentOverviewReportProps> = ({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-2 sm:p-4 overflow-y-auto print:p-0 print:bg-white print:overflow-visible print:block"
+      className="pro-report-portal fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-2 sm:p-4 overflow-y-auto"
       style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
     >
       <style>{PRINT_STYLES}</style>
