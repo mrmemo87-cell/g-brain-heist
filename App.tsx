@@ -3,6 +3,7 @@ import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage, Announceme
 import * as GameService from './services/gameService';
 import { supabase } from './services/supabaseClient';
 import Header from './components/Header';
+import BrainsLoader from './components/BrainsLoader';
 import { useLightMode } from './src/contexts/LightModeContext';
 import PlayerProfileCard from './components/PlayerProfileCard';
 import TaskList from './components/TaskList';
@@ -1464,14 +1465,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
   const renderView = () => {
     if (criticalLoading && !profile) {
-      return (
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="flex flex-col items-center gap-3 text-cyan-200">
-            <div className="h-10 w-10 rounded-full border-2 border-cyan-400/70 border-t-transparent animate-spin" />
-            <span className="text-sm">Loading portal…</span>
-          </div>
-        </div>
-      );
+      return <BrainsLoader message="Loading portal…" fullScreen={false} size={160} />;
     }
 
     // Block unverified users (except for IELTS-only users)
@@ -1641,14 +1635,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         default:
             // Still loading — don't flash student dashboard
             if (!profile) {
-              return (
-                <div className="flex min-h-[60vh] items-center justify-center">
-                  <div className="flex flex-col items-center gap-3 text-cyan-200">
-                    <div className="h-10 w-10 rounded-full border-2 border-cyan-400/70 border-t-transparent animate-spin" />
-                    <span className="text-sm">Loading portal…</span>
-                  </div>
-                </div>
-              );
+              return <BrainsLoader message="Loading portal…" fullScreen={false} size={160} />;
             }
             // Teacher goes directly to TeacherPortal - unified experience
             if (profile.role === 'teacher') {
