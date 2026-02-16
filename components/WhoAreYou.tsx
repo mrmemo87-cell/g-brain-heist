@@ -9,6 +9,7 @@ import React, { useState, useEffect } from 'react';
 
 const LINES = [
   'Who are you?',
+  'Dopamine boost incoming…',
   'Checking your clearance level…',
   'Are you a student or a mastermind?',
   'Scanning neural fingerprint…',
@@ -26,8 +27,10 @@ const LINES = [
   'One moment, agent…',
   'Establishing secure channel…',
   'Your secrets are safe with us…',
+  'Tiny wait. Massive comeback.',
   'Pulling up your records…',
   'Identity verification in progress…',
+  'Calibrating victory vibes…',
 ];
 
 function shuffleFrom(startIdx: number): number[] {

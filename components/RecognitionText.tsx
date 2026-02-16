@@ -119,6 +119,12 @@ function buildLines(props: RecognitionTextProps): string[] {
 
     /* generic hype – take a random subset so no two sessions feel the same */
     const hype = shuffle([
+      'Dopamine online. Focus mode activated.',
+      'Your next win is loading…',
+      'Momentum check: excellent.',
+      'Micro-wait, macro-glory.',
+      'Your brain is about to print XP.',
+      'Loading the fun part first.',
       'Your rivals should be worried.',
       'The leaderboard trembles.',
       'Time to stack some more.',
@@ -143,6 +149,9 @@ function buildLines(props: RecognitionTextProps): string[] {
     /* teacher / admin */
     lines.push(
       ...shuffle([
+        'You bring the strategy, we bring the spark.',
+        'Command aura detected.',
+        'Dopamine-friendly dashboard loading…',
         'The command center awaits.',
         'Dashboard warming up.',
         'Class data incoming.',
@@ -193,19 +202,37 @@ const RecognitionText: React.FC<RecognitionTextProps> = (props) => {
   /* ── pick style for this line ── */
   const color = idx <= 1 ? '#5eead4' : colorOrder[(idx - 2) % colorOrder.length];
   const anim = idx === 0 ? 'rcgPunch' : ANIM_POOL[animOrder[idx % animOrder.length]];
+  const pulse = idx <= 1 ? 'Identity sync' : 'Momentum boost';
 
   return (
-    <div className="flex items-center justify-center min-h-[60vh]">
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-6 text-center">
+      <div className="rounded-full border border-cyan-300/40 bg-cyan-300/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200">
+        {pulse}
+      </div>
+
       <p
         key={idx}
-        className="text-center font-heading text-2xl sm:text-3xl tracking-wide font-bold px-6"
+        className="font-heading text-2xl sm:text-3xl tracking-wide font-bold"
         style={{
           color,
           animation: `${anim} 0.25s cubic-bezier(0.22, 1, 0.36, 1)`,
+          textShadow: '0 0 25px rgba(94, 234, 212, 0.25)',
         }}
       >
         {text}
       </p>
+
+      <div className="h-1.5 w-56 overflow-hidden rounded-full bg-white/10">
+        <div
+          key={`bar-${idx}`}
+          className="h-full rounded-full"
+          style={{
+            width: `${20 + ((idx * 19) % 80)}%`,
+            background: 'linear-gradient(90deg, #22d3ee 0%, #a78bfa 50%, #f472b6 100%)',
+            transition: 'width 280ms ease-out',
+          }}
+        />
+      </div>
 
       {/* Hard-cut transition keyframes — each feels distinct */}
       <style>{`
