@@ -393,7 +393,10 @@ BEGIN
   LEFT JOIN school_cambridge_test_visibility sctv
     ON sctv.test_id = ct.id
     AND sctv.school_id = v_school_id
-  ORDER BY ct.subject, ct.name;
+  ORDER BY ct.subject,
+    COALESCE((regexp_match(ct.name, 'Ch(\d+)'))[1]::INTEGER, 0),
+    COALESCE((regexp_match(ct.name, '\(Part (\d+)\)'))[1]::INTEGER, 1),
+    ct.name;
 END;
 $$;
 
