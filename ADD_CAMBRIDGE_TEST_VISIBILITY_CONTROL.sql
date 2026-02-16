@@ -88,8 +88,9 @@ CREATE TABLE IF NOT EXISTS cambridge_test_visibility (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   
-  -- Ensure unique visibility setting per teacher/test combo
-  UNIQUE(school_id, teacher_user_id, test_id, subject, grade_level)
+  -- Shared visibility: one row per school/test/subject/grade
+  -- teacher_user_id tracks who last changed the setting
+  UNIQUE(school_id, test_id, subject, grade_level)
 );
 
 -- Create indexes for efficient queries
@@ -188,7 +189,8 @@ BEGIN
   FROM users u
   WHERE u.id = v_teacher_user_id;
   
-  -- Return all tests for this subject, with teacher's visibility setting (default FALSE)
+  -- Return all tests with SHARED visibility (no teacher_user_id filter)
+  -- All teachers in the same school see the same visibility state
   RETURN QUERY
   SELECT 
     ct.id,
@@ -205,12 +207,14 @@ BEGIN
   FROM cambridge_tests ct
   LEFT JOIN cambridge_test_visibility ctv ON 
     ctv.test_id = ct.id
-    AND ctv.teacher_user_id = v_teacher_user_id
     AND ctv.school_id = v_school_id
     AND ctv.grade_level = p_grade_level
     AND ctv.subject = ct.subject
   WHERE ct.subject = p_subject
-  ORDER BY ct.subject, ct.name;
+  ORDER BY ct.subject,
+    COALESCE((regexp_match(ct.name, 'Ch(\d+)'))[1]::INTEGER, 0),
+    COALESCE((regexp_match(ct.name, '\(Part (\d+)\)'))[1]::INTEGER, 1),
+    ct.name;
 END;
 $$;
 
@@ -324,7 +328,7 @@ BEGIN
     RETURN jsonb_build_object('error', 'Not assigned to this grade/subject');
   END IF;
   
-  -- Upsert visibility setting
+  -- Shared upsert — keyed on school/test/subject/grade (NOT per-teacher)
   INSERT INTO cambridge_test_visibility (
     school_id,
     teacher_user_id,
@@ -342,9 +346,10 @@ BEGIN
     p_is_visible,
     NOW()
   )
-  ON CONFLICT (school_id, teacher_user_id, test_id, subject, grade_level)
+  ON CONFLICT (school_id, test_id, subject, grade_level)
   DO UPDATE SET
     is_visible = p_is_visible,
+    teacher_user_id = v_teacher_user_id,   -- track who last changed it
     updated_at = NOW();
   
   RETURN jsonb_build_object(
@@ -396,7 +401,8 @@ BEGIN
   FROM users u
   WHERE u.id = v_teacher_user_id;
   
-  -- Return all visibility settings for this teacher
+  -- Return ALL shared visibility settings for this school
+  -- (not filtered by teacher — all teachers see the same state)
   RETURN QUERY
   SELECT 
     ctv.test_id,
@@ -405,8 +411,7 @@ BEGIN
     ctv.is_visible,
     ctv.updated_at
   FROM cambridge_test_visibility ctv
-  WHERE ctv.teacher_user_id = v_teacher_user_id
-    AND ctv.school_id = v_school_id
+  WHERE ctv.school_id = v_school_id
   ORDER BY ctv.grade_level, ctv.subject, ctv.test_id;
 END;
 $$;
@@ -500,9 +505,10 @@ BEGIN
       p_is_visible,
       NOW()
     )
-    ON CONFLICT (school_id, teacher_user_id, test_id, subject, grade_level)
+    ON CONFLICT (school_id, test_id, subject, grade_level)
     DO UPDATE SET
       is_visible = p_is_visible,
+      teacher_user_id = v_teacher_user_id,   -- track who last changed it
       updated_at = NOW();
     
     v_count := v_count + 1;

@@ -76,7 +76,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
     <button
       type="button"
       onClick={onClick}
-      className={`dashboard-action group relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-2xl border px-4 py-5 text-center transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_-22px_rgba(0,0,0,0.75)] active:scale-[0.99] sm:px-5 sm:py-6 ${isLocked ? '' : glowClass} ${className ?? ''}`}
+      className={`dashboard-action group relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-2xl border px-4 py-5 text-center transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_-22px_rgba(0,0,0,0.75)] active:scale-[0.99] sm:px-5 sm:py-6 ${isLocked ? 'opacity-60' : glowClass} ${className ?? ''}`}
       style={{
         background: `radial-gradient(circle at 18% 16%, rgba(255,255,255,0.06), transparent 30%), radial-gradient(circle at 82% 12%, rgba(255,255,255,0.05), transparent 26%), linear-gradient(150deg, ${panel}, rgba(15, 23, 42, 0.7))`,
         borderColor: border,
@@ -93,29 +93,19 @@ const ActionButton: React.FC<ActionButtonProps> = ({
       />
       {/* PRO lock badge (not on pilot — pilot users see quota badge instead) */}
       {locked && !quotaInfo && (
-        <>
-          <span className="absolute top-2 right-2 z-10 inline-flex items-center gap-1 rounded-full border border-amber-400/40 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300 shadow-sm shadow-amber-400/10">
-            ✦ PRO
+          <span className="absolute top-2 right-2 z-10 inline-flex items-center gap-1 rounded-full border border-amber-400/40 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-amber-300 shadow-sm shadow-amber-400/10">
+            🔒 PRO
           </span>
-          <span className="pointer-events-none absolute inset-0 z-[2] flex items-center justify-center bg-slate-950/30">
-            <span className="text-2xl opacity-60">🔒</span>
-          </span>
-        </>
       )}
       {/* Quota exhausted badge (pilot users who ran out) */}
       {quotaExhausted && (
-        <>
-          <span className="absolute top-2 right-2 z-10 inline-flex items-center gap-1 rounded-full border border-red-400/40 bg-gradient-to-r from-red-500/20 to-orange-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-300 shadow-sm shadow-red-400/10">
+          <span className="absolute top-2 right-2 z-10 inline-flex items-center gap-1 rounded-full border border-red-400/40 bg-gradient-to-r from-red-500/20 to-orange-500/20 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-red-300 shadow-sm shadow-red-400/10">
             ⚡ UPGRADE
           </span>
-          <span className="pointer-events-none absolute inset-0 z-[2] flex items-center justify-center bg-slate-950/30">
-            <span className="text-2xl opacity-60">🔒</span>
-          </span>
-        </>
       )}
       {/* Quota remaining badge (pilot users with quota left) */}
       {quotaInfo && !quotaExhausted && (
-        <span className="absolute top-2 right-2 z-10 inline-flex items-center gap-1 rounded-full border border-cyan-400/40 bg-gradient-to-r from-cyan-500/15 to-blue-500/15 px-2 py-0.5 text-[10px] font-bold tracking-wider text-cyan-300 shadow-sm shadow-cyan-400/10">
+        <span className="absolute top-2 right-2 z-10 inline-flex items-center gap-1 rounded-full border border-cyan-400/40 bg-gradient-to-r from-cyan-500/15 to-blue-500/15 px-2 py-0.5 text-[11px] font-bold tracking-wider text-cyan-300 shadow-sm shadow-cyan-400/10">
           {quotaInfo.remaining}/{quotaInfo.limit} {quotaLabel || ''}
         </span>
       )}
@@ -138,7 +128,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
         {label}
       </span>
       {subtitle && (
-        <span className="dashboard-action__subtitle relative z-[1] mt-2 max-w-[160px] text-[0.7rem] leading-snug text-slate-200/90 sm:text-xs">
+        <span className="dashboard-action__subtitle relative z-[1] mt-2 max-w-[160px] text-xs leading-snug text-slate-200/90 sm:text-sm">
           {subtitle}
         </span>
       )}
@@ -210,6 +200,7 @@ const MainActions: React.FC<MainActionsProps> = ({
   onUpgrade,
 }) => {
   const [pilotQuotas, setPilotQuotas] = useState<PilotQuotaStatus | null>(null);
+  const [showMore, setShowMore] = useState(false);
 
   // Fetch pilot quotas on mount (only if on pilot plan)
   useEffect(() => {
@@ -295,6 +286,7 @@ const MainActions: React.FC<MainActionsProps> = ({
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+            {/* ── Primary actions (always visible) ── */}
             {onOpenCompetitionPlay && (
               <ActionButton
                 onClick={onOpenCompetitionPlay}
@@ -386,7 +378,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={locked ? handleLocked('Tournaments') : handlePilotClick('Tournament', onOpenTournament)}
-              icon={<span aria-hidden className="text-3xl animate-bounce">🥇</span>}
+              icon={<span aria-hidden className="text-3xl">🥇</span>}
               label="Tournament"
               color="255, 140, 0"
               glowClass="glow-warn"
@@ -405,6 +397,19 @@ const MainActions: React.FC<MainActionsProps> = ({
               quotaInfo={q('Clan')}
               quotaLabel={ql('Clan')}
             />
+          </div>
+
+          {/* ── "More" collapsible section ── */}
+          <button
+            type="button"
+            onClick={() => setShowMore((v) => !v)}
+            className="group flex w-full items-center justify-center gap-2 rounded-xl border border-slate-800/60 bg-slate-900/40 px-4 py-2.5 text-sm font-semibold text-slate-300 transition-colors hover:border-slate-700 hover:bg-slate-800/50 hover:text-white"
+          >
+            {showMore ? '▲ Less' : '▼ More features'}
+          </button>
+
+          {showMore && (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
             <ActionButton
               onClick={locked ? handleLocked('Inventory') : handlePilotClick('Inventory', onVisitInventory)}
               icon={<span aria-hidden className="text-3xl">🎒</span>}
@@ -417,7 +422,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={locked ? handleLocked('Leaderboard') : handlePilotClick('Leaderboard', onViewLeaderboard)}
-              icon={<TrophyIcon className="w-8 h-8 animate-float" aria-hidden />}
+              icon={<TrophyIcon className="w-8 h-8" aria-hidden />}
               label="Leaderboard"
               color="255, 215, 0"
               glowClass="glow-warn"
@@ -427,7 +432,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             />
             <ActionButton
               onClick={locked ? handleLocked('Achievements') : handlePilotClick('Achievements', onViewAchievements)}
-              icon={<span aria-hidden className="text-3xl animate-float">🎖️</span>}
+              icon={<span aria-hidden className="text-3xl">🎖️</span>}
               label="Achievements"
               color="255, 100, 200"
               glowClass="glow-plasma"
@@ -458,10 +463,12 @@ const MainActions: React.FC<MainActionsProps> = ({
               quotaInfo={q('Cambridge Tests')}
               quotaLabel={ql('Cambridge Tests')}
             />
+
+            {/* ── Admin / staff actions ── */}
             {onOpenAdminPortal && (
               <ActionButton
                 onClick={onOpenAdminPortal}
-                icon={<span aria-hidden className="text-4xl animate-spin-slow">⚡</span>}
+                icon={<span aria-hidden className="text-4xl">⚡</span>}
                 label="ADMIN"
                 color="255, 215, 0"
                 glowClass="glow-warn"
@@ -522,7 +529,7 @@ const MainActions: React.FC<MainActionsProps> = ({
             {onOpenTournamentAdmin && (
               <ActionButton
                 onClick={onOpenTournamentAdmin}
-                icon={<span aria-hidden className="text-3xl animate-float">🎮🛰️</span>}
+                icon={<span aria-hidden className="text-3xl">🎮🛰️</span>}
                 label="Tournament Ops"
                 color="135, 206, 250"
                 glowClass="glow-ion"
@@ -532,13 +539,14 @@ const MainActions: React.FC<MainActionsProps> = ({
             {onOpenTeacherPortal && (
               <ActionButton
                 onClick={onOpenTeacherPortal}
-                icon={<span aria-hidden className="text-3xl animate-bounce">🧑‍🏫📘</span>}
+                icon={<span aria-hidden className="text-3xl">🧑‍🏫📘</span>}
                 label="Teacher"
                 color="100, 200, 255"
                 glowClass="glow-ion"
               />
             )}
           </div>
+          )}
         </div>
       </section>
     );

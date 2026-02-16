@@ -1588,3 +1588,47 @@ button {
     display: none;
   }
 }
+
+/* ── Reduced-motion accessibility ─────────────────────────────────────── */
+/* Disables decorative / infinite animations for users who prefer reduced  */
+/* motion. One-shot entrance animations are shortened to near-instant so   */
+/* layout still works but perceived motion is minimal.                     */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-float,
+  .animate-pulse-glow,
+  .shimmer-effect,
+  .neon-text,
+  .plan-badge--amber,
+  .plan-badge--cyan,
+  .plan-badge--purple {
+    animation: none !important;
+  }
+
+  /* Glitch cosmetics — freeze on first frame */
+  .glitch-frame,
+  .glitch-frame::before,
+  .glitch-frame::after,
+  .glitch-effect,
+  .glitch-effect::before,
+  .glitch-effect::after,
+  .glitch-lines-frame,
+  .flicker-theme {
+    animation: none !important;
+  }
+
+  /* Reduce heavy body gradient blur layers to static */
+  body::before,
+  body::after {
+    animation: none !important;
+    filter: blur(70px);
+  }
+}

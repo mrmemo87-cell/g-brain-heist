@@ -69,7 +69,7 @@ const StatChip: React.FC<{ icon: React.ReactNode; value: number; 'data-testid': 
             <div className="w-5 h-5 sm:w-6 sm:h-6">{icon}</div>
             <div className="flex flex-col">
                 <span className="font-mono font-semibold text-sm sm:text-base leading-none">{animatedValue.toLocaleString()}</span>
-                {subtitle && <span className="font-mono text-[10px] sm:text-xs text-gray-400 leading-none mt-0.5">{subtitle}</span>}
+                {subtitle && <span className="font-mono text-[11px] sm:text-xs text-gray-400 leading-none mt-0.5">{subtitle}</span>}
             </div>
         </div>
     );
@@ -246,15 +246,17 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
       return;
     }
 
-    const handleClick = (event: MouseEvent) => {
+    const handleDismiss = (event: MouseEvent | TouchEvent) => {
       if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
         setMobileMenuOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClick);
+    document.addEventListener('mousedown', handleDismiss);
+    document.addEventListener('touchstart', handleDismiss, { passive: true });
     return () => {
-      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('mousedown', handleDismiss);
+      document.removeEventListener('touchstart', handleDismiss);
     };
   }, [mobileMenuOpen]);
 
@@ -393,7 +395,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                 >
                   ☰
                   {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                    <span className="absolute -top-1 -right-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[11px] font-bold text-white">
                       {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                   )}
@@ -437,7 +439,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                           Notifications
                         </span>
                         {unreadCount > 0 && (
-                          <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                          <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-[11px] font-bold text-white">
                             {unreadCount > 9 ? '9+' : unreadCount}
                           </span>
                         )}
@@ -639,7 +641,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                 >
                   <span className="text-sm lg:text-base">🔔</span>
                   {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full min-w-[18px] text-center">
+                    <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[11px] font-bold bg-red-500 text-white rounded-full min-w-[18px] text-center">
                       {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                   )}

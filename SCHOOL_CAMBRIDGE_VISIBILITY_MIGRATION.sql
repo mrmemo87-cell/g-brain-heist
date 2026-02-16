@@ -453,6 +453,9 @@ GRANT EXECUTE ON FUNCTION get_visible_cambridge_tests_for_student(INTEGER, UUID)
 -- ────────────────────────────────────────────
 -- PATCH 2: get_all_cambridge_tests
 -- Filters out school-hidden tests from the teacher's test list.
+-- Uses SHARED visibility (no teacher_user_id filter) to match
+-- SYNC_CAMBRIDGE_VISIBILITY migration. All teachers in the same
+-- school see the same visibility state.
 -- Signature unchanged: (INTEGER, TEXT) → TABLE(...)
 -- ────────────────────────────────────────────
 
@@ -492,7 +495,7 @@ BEGIN
   FROM users u
   WHERE u.id = v_teacher_user_id;
 
-  -- Return tests for this subject, with teacher visibility (default FALSE),
+  -- Return tests with SHARED visibility (no teacher_user_id filter),
   -- excluding any tests the school admin has hidden.
   RETURN QUERY
   SELECT
@@ -510,7 +513,6 @@ BEGIN
   FROM cambridge_tests ct
   LEFT JOIN cambridge_test_visibility ctv
     ON ctv.test_id = ct.id
-    AND ctv.teacher_user_id = v_teacher_user_id
     AND ctv.school_id = v_school_id
     AND ctv.grade_level = p_grade_level
     AND ctv.subject = ct.subject
@@ -523,7 +525,10 @@ BEGIN
         AND sctv.test_id = ct.id
         AND sctv.is_visible = FALSE
     )
-  ORDER BY ct.subject, ct.name;
+  ORDER BY ct.subject,
+    COALESCE((regexp_match(ct.name, 'Ch(\d+)'))[1]::INTEGER, 0),
+    COALESCE((regexp_match(ct.name, '\(Part (\d+)\)'))[1]::INTEGER, 1),
+    ct.name;
 END;
 $$;
 

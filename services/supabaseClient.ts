@@ -1,12 +1,30 @@
-import { createClient } from '@supabase/supabase-js';
-import { getRequiredEnvVar } from './env.js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { getEnvVar } from './env.js';
 
 // Supabase configuration from environment variables
-const supabaseUrl = getRequiredEnvVar('VITE_SUPABASE_URL');
-const supabaseAnonKey = getRequiredEnvVar('VITE_SUPABASE_ANON_KEY');
+// Use getEnvVar (non-throwing) so the app can render a friendly error screen
+// instead of hard-crashing with a white page when vars are missing.
+const supabaseUrl = getEnvVar('VITE_SUPABASE_URL') ?? '';
+const supabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY') ?? '';
+
+/** True when required Supabase env vars are missing. UI should show a config
+ *  error screen instead of attempting network requests. */
+export const isMissingSupabaseConfig = !supabaseUrl || !supabaseAnonKey;
+
+if (isMissingSupabaseConfig) {
+  console.error(
+    '[supabaseClient] Missing required environment variables: ' +
+      [!supabaseUrl && 'VITE_SUPABASE_URL', !supabaseAnonKey && 'VITE_SUPABASE_ANON_KEY']
+        .filter(Boolean)
+        .join(', ') +
+      '. The app will display a configuration error screen.',
+  );
+}
 
 // Create Supabase client instance with enhanced settings
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+// (client is still created with empty strings so downstream imports don't blow up;
+//  all runtime calls will be gated behind the isMissingSupabaseConfig check.)
+export const supabase: SupabaseClient = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseAnonKey || 'placeholder', {
   auth: {
     autoRefreshToken: true,
     persistSession: true,

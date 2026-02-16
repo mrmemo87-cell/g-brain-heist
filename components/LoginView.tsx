@@ -83,13 +83,13 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     return (
         <div className="min-h-screen flex items-center justify-center p-4">
             <div className="w-full max-w-md">
-                <div className="text-center mb-8">
+                <div className="text-center mb-6 sm:mb-8">
                     <img 
                         src="/logo.png" 
                         alt="Brains Heist" 
-                        className="w-32 h-32 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]"
+                        className="w-20 h-20 sm:w-32 sm:h-32 mx-auto mb-3 sm:mb-4 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]"
                     />
-                    <h1 className="font-heading text-5xl font-bold tracking-wider" style={{ color: 'var(--ion-blue)' }}>
+                    <h1 className="font-heading text-3xl sm:text-5xl font-bold tracking-wider" style={{ color: 'var(--ion-blue)' }}>
                         Brains Heist
                     </h1>
                     <p className="text-mist-400 mt-2">Agent Access Terminal</p>
@@ -101,7 +101,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     </a>
                 </div>
 
-                <div className="bg-ink-900/50 backdrop-blur-sm border border-mist-800 rounded-lg p-8 shadow-xl">
+                <div className="bg-ink-900/50 backdrop-blur-sm border border-mist-800 rounded-lg p-5 sm:p-8 shadow-xl">
                     {error && (
                         <div className="mb-4 rounded-md border border-red-500/60 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                             ⚠️ {error}

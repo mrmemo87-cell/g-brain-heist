@@ -10,8 +10,9 @@ import EmailVerificationScreen from './components/EmailVerificationScreen';
 import IELTSApp from './components/ielts/IELTSApp';
 import IELTSLoginView from './components/ielts/IELTSLoginView';
 import ErrorBoundary from './components/ErrorBoundary';
+import ConfigErrorScreen from './components/ConfigErrorScreen';
 import * as AuthService from './services/authService';
-import { supabase } from './services/supabaseClient';
+import { supabase, isMissingSupabaseConfig } from './services/supabaseClient';
 import { LightModeProvider } from './src/contexts/LightModeContext';
 import './src/index.css';
 import './src/styles/light-mode.css';
@@ -445,11 +446,15 @@ const router = createBrowserRouter([
 root.render(
   <React.StrictMode>
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <LightModeProvider>
-          <RouterProvider router={router} />
-        </LightModeProvider>
-      </QueryClientProvider>
+      {isMissingSupabaseConfig ? (
+        <ConfigErrorScreen />
+      ) : (
+        <QueryClientProvider client={queryClient}>
+          <LightModeProvider>
+            <RouterProvider router={router} />
+          </LightModeProvider>
+        </QueryClientProvider>
+      )}
     </ErrorBoundary>
   </React.StrictMode>
 );

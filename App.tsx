@@ -1697,7 +1697,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                       onOpenCompetitionLeaderboard={hasSchool ? () => handleViewChange('phase1_leaderboard') : undefined}
                       onOpenCompetitionAdmin={profile?.is_admin && hasSchool ? () => handleViewChange('phase1_admin') : undefined}
                       onOpenIeltsPrep={() => {
-                        window.location.assign('https://www.brainsheist.com/ielts');
+                        window.location.href = '/ielts';
                       }}
                       onOpenCambridgeTests={() => handleViewChange('cambridge')}
                       onOpenLockdown={() => handleViewChange('lockdown')}
