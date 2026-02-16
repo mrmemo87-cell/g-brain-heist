@@ -12,8 +12,6 @@ import NewsFeed from './components/NewsFeed';
 import CapTracker from './components/CapTracker';
 import Toast from './components/Toast';
 import LevelUpModal from './components/LevelUpModal';
-import TutorialModal from './components/TutorialModal';
-import HelpModal from './components/HelpModal';
 import { ToastContainer } from './components/ToastNotification';
 import { isSuperadmin } from './services/adminService';
 import { isSchoolAdmin } from './services/schoolAdminService';
@@ -26,7 +24,11 @@ import { isEmailVerified } from './services/emailVerification';
 import EmailVerificationGate from './components/EmailVerificationGate';
 import UpgradeModal from './components/UpgradeModal';
 import { fetchEffectiveTier, isPro as isProTier, invalidateTierCache, fetchSchoolPlanDetails, type AccountTier } from './services/tierService';
-import IeltsHome from './src/pages/ielts/IeltsHome';
+
+// Lazy-loaded: only fetched when the user actually opens these views/modals
+const IeltsHome = React.lazy(() => import('./src/pages/ielts/IeltsHome'));
+const HelpModal = React.lazy(() => import('./components/HelpModal'));
+const TutorialModal = React.lazy(() => import('./components/TutorialModal'));
 
 const QuestView = React.lazy(() => import('./components/QuestView'));
 const PvPView = React.lazy(() => import('./components/PvPView'));
@@ -1599,7 +1601,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         ← Back to Dashboard
                     </button>
                   )}
-                  <IeltsHome />
+                  <Suspense fallback={null}><IeltsHome /></Suspense>
               </div>
             );
         case 'lockdown':
@@ -1895,6 +1897,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
         {/* Tutorial Modal */}
         {showTutorial && (
+          <Suspense fallback={null}>
           <TutorialModal
             profile={profile}
             onComplete={() => {
@@ -1923,11 +1926,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               }, 100);
             }}
           />
+          </Suspense>
         )}
 
         {/* Help Modal */}
         {showHelp && (
+          <Suspense fallback={null}>
           <HelpModal onClose={() => setShowHelp(false)} />
+          </Suspense>
         )}
 
         {/* Upgrade Modal */}

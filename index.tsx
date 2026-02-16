@@ -1,14 +1,8 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { Suspense, useState, useCallback, useEffect, useMemo } from 'react';
 import ReactDOM from 'react-dom/client';
 import BrainsLoader from './components/BrainsLoader';
 import App from './App';
 import LoginView from './components/LoginView';
-import FinishSetupModal from './components/FinishSetupModal';
-import EntryScreen from './components/onboarding/EntryScreen';
-import SetupWizard from './components/onboarding/SetupWizard';
-import EmailVerificationScreen from './components/EmailVerificationScreen';
-import IELTSApp from './components/ielts/IELTSApp';
-import IELTSLoginView from './components/ielts/IELTSLoginView';
 import ErrorBoundary from './components/ErrorBoundary';
 import ConfigErrorScreen from './components/ConfigErrorScreen';
 import * as AuthService from './services/authService';
@@ -17,19 +11,27 @@ import { LightModeProvider } from './src/contexts/LightModeContext';
 import './src/index.css';
 import './src/styles/light-mode.css';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
-import IeltsHome from './src/pages/ielts/IeltsHome';
-import IeltsSession from './src/pages/ielts/IeltsSession';
-import ReadingPractice from './src/pages/ielts/ReadingPractice';
-import SpeakingPractice from './src/pages/ielts/SpeakingPractice';
-import ListeningPractice from './src/pages/ielts/ListeningPractice';
-import WritingPractice from './src/pages/ielts/WritingPractice';
-import TrialListeningTest from './src/pages/ielts/TrialListeningTest';
-import TrialListeningTask2 from './src/pages/ielts/TrialListeningTask2';
-import IeltsPrime from './src/pages/ielts/IeltsPrime';
-import IeltsAdminGuard from './components/ielts/IeltsAdminGuard';
-import IeltsAdminDashboard from './components/IeltsAdminDashboard';
-import PasswordResetPage from './components/PasswordResetPage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+// ── Lazy-loaded pages & modals (only fetched when actually navigated to) ──
+const FinishSetupModal = React.lazy(() => import('./components/FinishSetupModal'));
+const EntryScreen = React.lazy(() => import('./components/onboarding/EntryScreen'));
+const SetupWizard = React.lazy(() => import('./components/onboarding/SetupWizard'));
+const EmailVerificationScreen = React.lazy(() => import('./components/EmailVerificationScreen'));
+const IELTSApp = React.lazy(() => import('./components/ielts/IELTSApp'));
+const IELTSLoginView = React.lazy(() => import('./components/ielts/IELTSLoginView'));
+const PasswordResetPage = React.lazy(() => import('./components/PasswordResetPage'));
+const IeltsHome = React.lazy(() => import('./src/pages/ielts/IeltsHome'));
+const IeltsSession = React.lazy(() => import('./src/pages/ielts/IeltsSession'));
+const ReadingPractice = React.lazy(() => import('./src/pages/ielts/ReadingPractice'));
+const SpeakingPractice = React.lazy(() => import('./src/pages/ielts/SpeakingPractice'));
+const ListeningPractice = React.lazy(() => import('./src/pages/ielts/ListeningPractice'));
+const WritingPractice = React.lazy(() => import('./src/pages/ielts/WritingPractice'));
+const TrialListeningTest = React.lazy(() => import('./src/pages/ielts/TrialListeningTest'));
+const TrialListeningTask2 = React.lazy(() => import('./src/pages/ielts/TrialListeningTask2'));
+const IeltsPrime = React.lazy(() => import('./src/pages/ielts/IeltsPrime'));
+const IeltsAdminGuard = React.lazy(() => import('./components/ielts/IeltsAdminGuard'));
+const IeltsAdminDashboard = React.lazy(() => import('./components/IeltsAdminDashboard'));
 
 const queryClient = new QueryClient();
 
@@ -83,10 +85,14 @@ const ProtectedRoute: React.FC<{ element: React.ReactElement }> = ({ element }) 
   }
 
   if (!isAuthenticated) {
-    return <IELTSLoginView onAuthenticated={() => setIsAuthenticated(true)} />;
+    return (
+      <Suspense fallback={<BrainsLoader message="Loading..." />}>
+        <IELTSLoginView onAuthenticated={() => setIsAuthenticated(true)} />
+      </Suspense>
+    );
   }
 
-  return element;
+  return <Suspense fallback={<BrainsLoader message="Loading..." />}>{element}</Suspense>;
 };
 
 const Main: React.FC = () => {
@@ -289,18 +295,20 @@ const Main: React.FC = () => {
   // Entry screen for first-time visitors (before auth)
   if (!isAuthenticated && showEntryScreen && !selectedApp) {
     return (
-      <EntryScreen
-        onSelectBrainsHeist={() => {
-          setSelectedApp('brains-heist');
-          setShowEntryScreen(false);
-        }}
-        onSelectIELTS={() => {
-          setSelectedApp('ielts');
-          setShowEntryScreen(false);
-          // Redirect to IELTS app
-          window.location.href = '/ielts';
-        }}
-      />
+      <Suspense fallback={<BrainsLoader message="Loading..." />}>
+        <EntryScreen
+          onSelectBrainsHeist={() => {
+            setSelectedApp('brains-heist');
+            setShowEntryScreen(false);
+          }}
+          onSelectIELTS={() => {
+            setSelectedApp('ielts');
+            setShowEntryScreen(false);
+            // Redirect to IELTS app
+            window.location.href = '/ielts';
+          }}
+        />
+      </Suspense>
     );
   }
 
@@ -311,25 +319,29 @@ const Main: React.FC = () => {
   // Show email verification screen if email is not verified
   if (isAuthenticated && needsEmailVerification && userEmail) {
     return (
-      <EmailVerificationScreen
-        email={userEmail}
-        onVerified={() => {
-          setNeedsEmailVerification(false);
-          // Trigger auth check to continue to setup or app
-          checkAuthAndSetup();
-        }}
-      />
+      <Suspense fallback={<BrainsLoader message="Loading..." />}>
+        <EmailVerificationScreen
+          email={userEmail}
+          onVerified={() => {
+            setNeedsEmailVerification(false);
+            // Trigger auth check to continue to setup or app
+            checkAuthAndSetup();
+          }}
+        />
+      </Suspense>
     );
   }
 
   // Show NEW setup wizard for users who need setup
   if (needsSetup) {
     return (
-      <SetupWizard 
-        onComplete={handleSetupComplete}
-        onLogout={handleLogout}
-        initialUsername={setupUsername}
-      />
+      <Suspense fallback={<BrainsLoader message="Loading..." />}>
+        <SetupWizard 
+          onComplete={handleSetupComplete}
+          onLogout={handleLogout}
+          initialUsername={setupUsername}
+        />
+      </Suspense>
     );
   }
 
@@ -369,10 +381,18 @@ const IELTSMain: React.FC = () => {
   }
 
   if (!isAuthenticated) {
-    return <IELTSLoginView onAuthenticated={handleAuthenticated} />;
+    return (
+      <Suspense fallback={<BrainsLoader message="Loading IELTS..." />}>
+        <IELTSLoginView onAuthenticated={handleAuthenticated} />
+      </Suspense>
+    );
   }
 
-  return <IELTSApp onLogout={handleLogout} />;
+  return (
+    <Suspense fallback={<BrainsLoader message="Loading IELTS..." />}>
+      <IELTSApp onLogout={handleLogout} />
+    </Suspense>
+  );
 };
 
 const rootElement = document.getElementById('root');
@@ -386,7 +406,7 @@ const root = ReactDOM.createRoot(rootElement);
 const router = createBrowserRouter([
   {
     path: '/auth/reset',
-    element: <PasswordResetPage />,
+    element: <Suspense fallback={<BrainsLoader message="Loading..." />}><PasswordResetPage /></Suspense>,
   },
   {
     path: '/ielts',
