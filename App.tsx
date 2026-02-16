@@ -176,7 +176,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const isFullScreenView = view === 'school_admin' || view === 'teacher' || view === 'admin' || view === 'admissions' || (view === 'dashboard' && isTeacherRole);
 
   const SkeletonBlock: React.FC<{ className?: string }> = ({ className }) => (
-    <div className={`animate-pulse rounded-xl bg-white/10 ${className ?? ''}`} />
+    <div className={`skeleton-bone rounded-xl bg-white/10 ${className ?? ''}`} />
   );
 
   const SectionPlaceholder: React.FC<{ title: string; lines?: number; action?: React.ReactNode }> = ({
@@ -222,8 +222,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       <div className="flex items-center justify-between">
         <SkeletonBlock className="h-6 w-32" />
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full border border-cyan-400/60 border-t-transparent animate-spin" />
-          <span className="text-xs text-cyan-200">Loading profile…</span>
+          <div className="h-8 w-8 rounded-full skeleton-bone bg-white/10" />
+          <SkeletonBlock className="h-4 w-20" />
         </div>
       </div>
     </div>
@@ -1324,6 +1324,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     );
   }
 
+  const isStudentRole = profile?.role === 'student' || !profile?.role;
+
   const renderAssignmentSection = () => {
     if (!profile) {
       return <SectionPlaceholder title="Assignment" lines={3} />;
@@ -1454,13 +1456,13 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       return <PlayerProfileCard profile={profile} />;
     }
     return (
-      <div className="card-glass p-5 flex items-center justify-between">
-        <div className="space-y-3">
-          <SkeletonBlock className="h-6 w-32" />
-          <SkeletonBlock className="h-4 w-40" />
-          <SkeletonBlock className="h-3 w-24" />
+      <div className="card-glass p-5 flex items-center gap-4">
+        <div className="h-14 w-14 rounded-full skeleton-bone bg-white/10 shrink-0" />
+        <div className="flex-1 space-y-2.5">
+          <SkeletonBlock className="h-5 w-28" />
+          <SkeletonBlock className="h-3.5 w-36" />
+          <SkeletonBlock className="h-2.5 w-20" />
         </div>
-        <div className="h-12 w-12 rounded-full border border-cyan-400/60 border-t-transparent animate-spin" />
       </div>
     );
   };
@@ -1702,13 +1704,13 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                     {profile && !hasSchool && (
                       <JoinSchoolCard onJoined={handleJoinSchoolSuccess} />
                     )}
-                    {renderTasksSection()}
+                    {(!profile || isStudentRole) && renderTasksSection()}
                   </div>
 
                   {/* Right Column */}
                   <div className="space-y-6 lg:col-span-3 xl:col-span-3">
-                    {renderAssignmentSection()}
-                    {renderCapsSection()}
+                    {(!profile || isStudentRole) && renderAssignmentSection()}
+                    {(!profile || isStudentRole) && renderCapsSection()}
                     {renderNewsSection()}
                   </div>
                 </section>
