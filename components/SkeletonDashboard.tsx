@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 /**
  * SkeletonDashboard – shows the real dashboard layout as grey placeholder
- * cards that "light up" (fade-in + scale) one-by-one on a staggered timer,
- * giving users the perception of progress even before any data arrives.
+ * cards that are visible instantly, then "pop" to life one-by-one on a
+ * fast staggered timer (~80 ms apart ≈ 500 ms total).
  *
- * Respects `prefers-reduced-motion` — falls back to a simple fade with no
- * translate/scale and disables the pulse shimmer.
+ * Cards start dim/muted and scale up with a glow when activated — the user
+ * never sees a blank page.
+ *
+ * Respects `prefers-reduced-motion`.
  */
 
 /* ---------- tiny building blocks ---------- */
@@ -17,14 +19,22 @@ const Bone: React.FC<{ className?: string }> = ({ className }) => (
   />
 );
 
+/**
+ * Cards are always rendered. Before their stage fires they sit at reduced
+ * opacity / slightly smaller; once active they pop to full size with a
+ * brief overshoot scale.
+ */
 const CardShell: React.FC<{
-  delay: number;          // ms pure CSS stagger from mount
+  active: boolean;
   children: React.ReactNode;
   className?: string;
-}> = ({ delay, children, className }) => (
+}> = ({ active, children, className }) => (
   <div
-    className={`skel-card rounded-2xl border border-white/10 bg-white/[0.04] p-5 ${className ?? ''}`}
-    style={{ animationDelay: `${delay}ms` }}
+    className={`rounded-2xl border p-5 transition-all duration-300 ease-out
+      ${active
+        ? 'border-white/10 bg-white/[0.04] opacity-100 scale-100 skel-pop'
+        : 'border-white/[0.05] bg-white/[0.02] opacity-40 scale-[0.97]'}
+      ${className ?? ''}`}
   >
     {children}
   </div>
@@ -33,8 +43,8 @@ const CardShell: React.FC<{
 /* ---------- section skeletons ---------- */
 
 /** Header bar skeleton */
-const HeaderSkeleton: React.FC = () => (
-  <CardShell delay={0} className="!rounded-2xl !p-3 mb-6">
+const HeaderSkeleton: React.FC<{ active: boolean }> = ({ active }) => (
+  <CardShell active={active} className="!rounded-2xl !p-3 mb-6">
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
         <Bone className="h-8 w-8 !rounded-full" />
@@ -50,8 +60,8 @@ const HeaderSkeleton: React.FC = () => (
 );
 
 /** Player profile card skeleton (left column) */
-const ProfileSkeleton: React.FC = () => (
-  <CardShell delay={60}>
+const ProfileSkeleton: React.FC<{ active: boolean }> = ({ active }) => (
+  <CardShell active={active}>
     <div className="flex items-center gap-4 mb-4">
       <Bone className="h-14 w-14 !rounded-full shrink-0" />
       <div className="flex-1 space-y-2">
@@ -72,8 +82,8 @@ const ProfileSkeleton: React.FC = () => (
 );
 
 /** Action grid skeleton (middle column) */
-const ActionGridSkeleton: React.FC = () => (
-  <CardShell delay={120}>
+const ActionGridSkeleton: React.FC<{ active: boolean }> = ({ active }) => (
+  <CardShell active={active}>
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="flex flex-col items-center gap-2 rounded-xl bg-white/[0.04] p-4">
@@ -86,8 +96,8 @@ const ActionGridSkeleton: React.FC = () => (
 );
 
 /** Tasks / feed skeleton (middle column, below actions) */
-const TasksSkeleton: React.FC = () => (
-  <CardShell delay={180}>
+const TasksSkeleton: React.FC<{ active: boolean }> = ({ active }) => (
+  <CardShell active={active}>
     <div className="flex items-center justify-between mb-4">
       <Bone className="h-5 w-20" />
       <Bone className="h-4 w-12" />
@@ -107,11 +117,11 @@ const TasksSkeleton: React.FC = () => (
 );
 
 /** Right-column cards skeleton (assignment, caps, news) */
-const SideCardSkeleton: React.FC<{ delay: number; lines?: number }> = ({
-  delay,
+const SideCardSkeleton: React.FC<{ active: boolean; lines?: number }> = ({
+  active,
   lines = 3,
 }) => (
-  <CardShell delay={delay}>
+  <CardShell active={active}>
     <Bone className="h-5 w-24 mb-4" />
     <div className="space-y-2.5">
       {Array.from({ length: lines }).map((_, i) => (
@@ -123,32 +133,45 @@ const SideCardSkeleton: React.FC<{ delay: number; lines?: number }> = ({
 
 /* ---------- main component ---------- */
 
-const SkeletonDashboard: React.FC = () => (
-  <div className="space-y-6 mt-2">
-    {/* Header skeleton */}
-    <HeaderSkeleton />
+const TOTAL_STAGES = 7;       // header, profile, actions, tasks, right-1, right-2, right-3
+const STAGE_INTERVAL = 80;    // 80 ms between pops ≈ 560 ms total
 
-    {/* 3-column grid matching real dashboard */}
-    <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-      {/* Left column – profile */}
-      <div className="space-y-6 lg:col-span-4 xl:col-span-3">
-        <ProfileSkeleton />
-      </div>
+const SkeletonDashboard: React.FC = () => {
+  const [stage, setStage] = useState(0);
 
-      {/* Middle column – actions + tasks */}
-      <div className="space-y-6 lg:col-span-5 xl:col-span-6">
-        <ActionGridSkeleton />
-        <TasksSkeleton />
-      </div>
+  useEffect(() => {
+    if (stage >= TOTAL_STAGES) return;
+    const id = window.setTimeout(() => setStage((s) => s + 1), STAGE_INTERVAL);
+    return () => clearTimeout(id);
+  }, [stage]);
 
-      {/* Right column – assignment, caps, news */}
-      <div className="space-y-6 lg:col-span-3 xl:col-span-3">
-        <SideCardSkeleton delay={240} lines={3} />
-        <SideCardSkeleton delay={300} lines={4} />
-        <SideCardSkeleton delay={360} lines={5} />
-      </div>
-    </section>
-  </div>
-);
+  return (
+    <div className="space-y-6 mt-2">
+      {/* Header skeleton */}
+      <HeaderSkeleton active={stage >= 1} />
+
+      {/* 3-column grid matching real dashboard */}
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        {/* Left column – profile */}
+        <div className="space-y-6 lg:col-span-4 xl:col-span-3">
+          <ProfileSkeleton active={stage >= 2} />
+        </div>
+
+        {/* Middle column – actions + tasks */}
+        <div className="space-y-6 lg:col-span-5 xl:col-span-6">
+          <ActionGridSkeleton active={stage >= 3} />
+          <TasksSkeleton active={stage >= 4} />
+        </div>
+
+        {/* Right column – assignment, caps, news */}
+        <div className="space-y-6 lg:col-span-3 xl:col-span-3">
+          <SideCardSkeleton active={stage >= 5} lines={3} />
+          <SideCardSkeleton active={stage >= 6} lines={4} />
+          <SideCardSkeleton active={stage >= 7} lines={5} />
+        </div>
+      </section>
+    </div>
+  );
+};
 
 export default SkeletonDashboard;
