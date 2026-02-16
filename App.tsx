@@ -3,6 +3,8 @@ import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage, Announceme
 import * as GameService from './services/gameService';
 import { supabase } from './services/supabaseClient';
 import Header from './components/Header';
+import WhoAreYou from './components/WhoAreYou';
+import SkeletonDashboard from './components/SkeletonDashboard';
 import { useLightMode } from './src/contexts/LightModeContext';
 import PlayerProfileCard from './components/PlayerProfileCard';
 import TaskList from './components/TaskList';
@@ -148,6 +150,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [isPilotPlan, setIsPilotPlan] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeFeatureLabel, setUpgradeFeatureLabel] = useState<string | undefined>(undefined);
+  const [peekedRole, setPeekedRole] = useState<'student' | 'teacher' | 'admin' | null>(null);
   const [nonCriticalStatus, setNonCriticalStatus] = useState({
     tasks: 'idle' as NonCriticalLoadState,
     caps: 'idle' as NonCriticalLoadState,
@@ -232,19 +235,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const renderLazy = (node: React.ReactNode) => (
     <Suspense
       fallback={(
-        <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-[#0a0a1a] via-[#1a1a2e] to-[#0a0a1a] z-[9999]">
-          <div className="flex flex-col items-center gap-4">
-            <img 
-              src="/BRAINS.svg" 
-              alt="Loading..." 
-              className="w-32 h-32 md:w-48 md:h-48 lg:w-64 lg:h-64"
-              style={{ 
-                filter: 'drop-shadow(0 0 30px rgba(0, 212, 255, 0.6))',
-                animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-              }}
-            />
-            <p className="text-cyan-400 text-lg animate-pulse">Loading...</p>
-          </div>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="skeleton-bone h-8 w-48 rounded-xl bg-white/10" />
         </div>
       )}
     >
@@ -532,6 +524,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     setIsInteractive(false);
     setAppMode('pending');
     setIsAdminMode(false);
+    setPeekedRole(null);
 
     try {
       const { data, error: sessionError } = await supabase.auth.getSession();
@@ -556,7 +549,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           .eq('id', data.session.user.id)
           .single();
         if (peekRow?.role === 'teacher') {
+          setPeekedRole('teacher');
           profileData = await GameService.whoamiTeacher();
+        } else {
+          setPeekedRole(peekRow?.role === 'admin' ? 'admin' : 'student');
         }
       } catch { /* fall through to normal boot */ }
 
@@ -1468,6 +1464,15 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   };
 
   const renderView = () => {
+    // Phase 1: No role known yet → "Who are you?" text animation
+    if (criticalLoading && !peekedRole && !profile) {
+      return <WhoAreYou />;
+    }
+
+    // Phase 2: Role known but profile not loaded → role-specific skeleton
+    if (criticalLoading && !profile && peekedRole) {
+      return <SkeletonDashboard role={peekedRole} />;
+    }
 
     // Block unverified users (except for IELTS-only users)
     if (emailVerified === false && profile && profile.school_name?.trim().toLowerCase() !== IELTS_ONLY_SCHOOL_NAME.toLowerCase()) {
@@ -1476,7 +1481,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
     if (isAdminMode) {
       if (!profile) {
-        return <SectionPlaceholder title="Admin Portal" lines={6} />;
+        return <SkeletonDashboard role="admin" />;
       }
       return renderLazy(<AdminPortal profile={profile} onComplete={handleViewComplete} addToast={addToast} />);
     }

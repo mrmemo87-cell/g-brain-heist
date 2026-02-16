@@ -133,37 +133,103 @@ const SideCardSkeleton: React.FC<{ active: boolean; lines?: number }> = ({
 
 /* ---------- main component ---------- */
 
-const TOTAL_STAGES = 7;       // header, profile, actions, tasks, right-1, right-2, right-3
-const STAGE_INTERVAL = 80;    // 80 ms between pops ≈ 560 ms total
+const STAGE_INTERVAL = 80;
 
-const SkeletonDashboard: React.FC = () => {
+interface SkeletonDashboardProps {
+  role?: 'student' | 'teacher' | 'admin';
+}
+
+/**
+ * Teacher / Admin skeleton – no game data.
+ * Shows a wide content area + sidebar skeleton.
+ */
+const TeacherAdminSkeleton: React.FC<{ stage: number; label: string }> = ({ stage, label }) => (
+  <div className="space-y-6 mt-2">
+    {/* Header */}
+    <HeaderSkeleton active={stage >= 1} />
+
+    {/* Wide 2-column layout */}
+    <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+      {/* Left sidebar – profile + tools */}
+      <div className="space-y-6 lg:col-span-3">
+        <CardShell active={stage >= 2}>
+          <div className="flex items-center gap-4 mb-4">
+            <Bone className="h-12 w-12 !rounded-full shrink-0" />
+            <div className="flex-1 space-y-2">
+              <Bone className="h-5 w-28" />
+              <Bone className="h-3 w-20" />
+            </div>
+          </div>
+          <Bone className="h-8 w-full !rounded-lg mt-3" />
+          <Bone className="h-8 w-full !rounded-lg mt-2" />
+        </CardShell>
+      </div>
+
+      {/* Main content area */}
+      <div className="space-y-6 lg:col-span-9">
+        <CardShell active={stage >= 3}>
+          <Bone className="h-6 w-40 mb-4" />
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="space-y-2 rounded-xl bg-white/[0.03] p-4">
+                <Bone className="h-8 w-8 !rounded-lg" />
+                <Bone className="h-3 w-20" />
+                <Bone className="h-2.5 w-14" />
+              </div>
+            ))}
+          </div>
+        </CardShell>
+        <CardShell active={stage >= 4}>
+          <Bone className="h-5 w-32 mb-3" />
+          <div className="space-y-2.5">
+            <Bone className="h-4 w-full" />
+            <Bone className="h-4 w-5/6" />
+            <Bone className="h-4 w-4/6" />
+          </div>
+        </CardShell>
+      </div>
+    </section>
+
+    {/* Subtle role label */}
+    <p className="text-center text-xs text-cyan-400/40 tracking-widest uppercase mt-2">
+      Loading {label} portal…
+    </p>
+  </div>
+);
+
+const SkeletonDashboard: React.FC<SkeletonDashboardProps> = ({ role = 'student' }) => {
+  const totalStages = role === 'student' ? 7 : 5;
   const [stage, setStage] = useState(0);
 
   useEffect(() => {
-    if (stage >= TOTAL_STAGES) return;
+    if (stage >= totalStages) return;
     const id = window.setTimeout(() => setStage((s) => s + 1), STAGE_INTERVAL);
     return () => clearTimeout(id);
-  }, [stage]);
+  }, [stage, totalStages]);
 
+  // Teacher / admin / school admin layout
+  if (role === 'teacher') {
+    return <TeacherAdminSkeleton stage={stage} label="teacher" />;
+  }
+  if (role === 'admin') {
+    return <TeacherAdminSkeleton stage={stage} label="admin" />;
+  }
+
+  // Student layout (3-column game dashboard)
   return (
     <div className="space-y-6 mt-2">
-      {/* Header skeleton */}
       <HeaderSkeleton active={stage >= 1} />
 
-      {/* 3-column grid matching real dashboard */}
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        {/* Left column – profile */}
         <div className="space-y-6 lg:col-span-4 xl:col-span-3">
           <ProfileSkeleton active={stage >= 2} />
         </div>
 
-        {/* Middle column – actions + tasks */}
         <div className="space-y-6 lg:col-span-5 xl:col-span-6">
           <ActionGridSkeleton active={stage >= 3} />
           <TasksSkeleton active={stage >= 4} />
         </div>
 
-        {/* Right column – assignment, caps, news */}
         <div className="space-y-6 lg:col-span-3 xl:col-span-3">
           <SideCardSkeleton active={stage >= 5} lines={3} />
           <SideCardSkeleton active={stage >= 6} lines={4} />

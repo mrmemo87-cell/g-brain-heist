@@ -1,6 +1,7 @@
 import React, { Suspense, useState, useCallback, useEffect, useMemo } from 'react';
 import ReactDOM from 'react-dom/client';
 import BrainsLoader from './components/BrainsLoader';
+import WhoAreYou from './components/WhoAreYou';
 import App from './App';
 import LoginView from './components/LoginView';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -94,6 +95,12 @@ const ProtectedRoute: React.FC<{ element: React.ReactElement }> = ({ element }) 
 
   return <Suspense fallback={<BrainsLoader message="Loading..." />}>{element}</Suspense>;
 };
+
+const MinimalFallback = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="skeleton-bone h-6 w-40 rounded-xl bg-white/10" />
+  </div>
+);
 
 const Main: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -259,7 +266,7 @@ const Main: React.FC = () => {
   }, []);
 
   if (isLoading) {
-    return <BrainsLoader message="Initializing Brains Heist..." />;
+    return <WhoAreYou />;
   }
 
   if (initError) {
@@ -295,7 +302,7 @@ const Main: React.FC = () => {
   // Entry screen for first-time visitors (before auth)
   if (!isAuthenticated && showEntryScreen && !selectedApp) {
     return (
-      <Suspense fallback={<BrainsLoader message="Loading..." />}>
+      <Suspense fallback={<MinimalFallback />}>
         <EntryScreen
           onSelectBrainsHeist={() => {
             setSelectedApp('brains-heist');
@@ -319,7 +326,7 @@ const Main: React.FC = () => {
   // Show email verification screen if email is not verified
   if (isAuthenticated && needsEmailVerification && userEmail) {
     return (
-      <Suspense fallback={<BrainsLoader message="Loading..." />}>
+      <Suspense fallback={<MinimalFallback />}>
         <EmailVerificationScreen
           email={userEmail}
           onVerified={() => {
@@ -335,7 +342,7 @@ const Main: React.FC = () => {
   // Show NEW setup wizard for users who need setup
   if (needsSetup) {
     return (
-      <Suspense fallback={<BrainsLoader message="Loading..." />}>
+      <Suspense fallback={<MinimalFallback />}>
         <SetupWizard 
           onComplete={handleSetupComplete}
           onLogout={handleLogout}
@@ -406,7 +413,7 @@ const root = ReactDOM.createRoot(rootElement);
 const router = createBrowserRouter([
   {
     path: '/auth/reset',
-    element: <Suspense fallback={<BrainsLoader message="Loading..." />}><PasswordResetPage /></Suspense>,
+    element: <Suspense fallback={<MinimalFallback />}><PasswordResetPage /></Suspense>,
   },
   {
     path: '/ielts',
