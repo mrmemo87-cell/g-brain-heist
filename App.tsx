@@ -165,7 +165,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const criticalAbortRef = useRef<AbortController | null>(null);
   const nonCriticalAbortRef = useRef<AbortController | null>(null);
   const isCambridgeView = view === 'cambridge';
-  const isFullScreenView = view === 'school_admin' || view === 'teacher' || view === 'admin' || view === 'admissions';
+  const isFullScreenView = view === 'school_admin' || view === 'teacher' || view === 'admin' || view === 'admissions' || (view === 'dashboard' && isTeacherRole);
   const isIeltsOnlyUser =
     profile?.school_name?.trim().toLowerCase() === IELTS_ONLY_SCHOOL_NAME.toLowerCase();
   const isPlayerMode = appMode === 'player';
