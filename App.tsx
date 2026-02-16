@@ -1475,11 +1475,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
     if (isAdminMode) {
       if (!profile) {
-        return (
-          <div className="card-glass p-6 text-center text-gray-300">
-            Loading admin portal…
-          </div>
-        );
+        return <BrainsLoader message="Loading admin portal…" fullScreen={false} size={160} />;
       }
       return renderLazy(<AdminPortal profile={profile} onComplete={handleViewComplete} addToast={addToast} />);
     }
