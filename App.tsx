@@ -5,6 +5,7 @@ import { supabase } from './services/supabaseClient';
 import Header from './components/Header';
 import WhoAreYou from './components/WhoAreYou';
 import SkeletonDashboard from './components/SkeletonDashboard';
+import RecognitionText from './components/RecognitionText';
 import { useLightMode } from './src/contexts/LightModeContext';
 import PlayerProfileCard from './components/PlayerProfileCard';
 import TaskList from './components/TaskList';
@@ -151,6 +152,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeFeatureLabel, setUpgradeFeatureLabel] = useState<string | undefined>(undefined);
   const [peekedRole, setPeekedRole] = useState<'student' | 'teacher' | 'admin' | null>(null);
+  const [peekedUser, setPeekedUser] = useState<{
+    username: string; level?: number; coins?: number;
+    gems?: number; streak?: number; clanName?: string;
+  } | null>(null);
   const [nonCriticalStatus, setNonCriticalStatus] = useState({
     tasks: 'idle' as NonCriticalLoadState,
     caps: 'idle' as NonCriticalLoadState,
@@ -525,6 +530,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     setAppMode('pending');
     setIsAdminMode(false);
     setPeekedRole(null);
+    setPeekedUser(null);
 
     try {
       const { data, error: sessionError } = await supabase.auth.getSession();
@@ -545,9 +551,19 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       try {
         const { data: peekRow } = await supabase
           .from('users')
-          .select('role')
+          .select('role, username, level, coins, gemstones, streak, clan_name')
           .eq('id', data.session.user.id)
           .single();
+        if (peekRow?.username) {
+          setPeekedUser({
+            username: peekRow.username,
+            level: peekRow.level ?? undefined,
+            coins: peekRow.coins ?? undefined,
+            gems: peekRow.gemstones ?? undefined,
+            streak: peekRow.streak ?? undefined,
+            clanName: peekRow.clan_name ?? undefined,
+          });
+        }
         if (peekRow?.role === 'teacher') {
           setPeekedRole('teacher');
           profileData = await GameService.whoamiTeacher();
@@ -1469,9 +1485,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       return <WhoAreYou />;
     }
 
-    // Phase 2: Role known but profile not loaded → role-specific skeleton
+    // Phase 2: Role known but profile not loaded → personalised recognition text
     if (criticalLoading && !profile && peekedRole) {
-      return <SkeletonDashboard role={peekedRole} />;
+      return peekedUser
+        ? <RecognitionText {...peekedUser} role={peekedRole} />
+        : <SkeletonDashboard role={peekedRole} />;
     }
 
     // Block unverified users (except for IELTS-only users)
