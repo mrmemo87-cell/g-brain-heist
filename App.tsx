@@ -1548,6 +1548,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
               <TeacherPortal
                 profile={profile}
                 onComplete={handleViewComplete}
+                onLogout={onLogout}
                 onLockdown={() => handleViewChange('lockdown')}
                 isSchoolAdmin={isUserSchoolAdmin}
                 onOpenSchoolAdmin={isUserSchoolAdmin && hasSchool ? () => handleViewChange('school_admin') : undefined}
@@ -1653,6 +1654,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                     <TeacherPortal
                         profile={profile}
                         onComplete={handleViewComplete}
+                        onLogout={onLogout}
                         onLockdown={() => handleViewChange('lockdown')}
                         isSchoolAdmin={isUserSchoolAdmin}
                         onOpenSchoolAdmin={isUserSchoolAdmin && hasSchool ? () => handleViewChange('school_admin') : undefined}

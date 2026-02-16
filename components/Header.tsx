@@ -701,7 +701,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
 
             {/* Row 2: Stats — only for students */}
             {profile.role !== 'teacher' && (
-              <div className="flex items-center justify-center gap-1.5 lg:gap-2">
+              <div className="flex items-center justify-center flex-wrap gap-1.5 lg:gap-2">
                 {/* Coins */}
                 <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-br from-yellow-600/20 to-orange-600/20 rounded-lg border border-yellow-500/50 backdrop-blur-sm">
                   <CoinAnimation width={16} height={16} />

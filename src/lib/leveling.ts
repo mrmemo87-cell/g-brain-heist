@@ -54,7 +54,9 @@ export function calculateLevelFromXp(xp: number): number {
 export function getXpProgress(totalXp: number, profileLevel?: number): XpProgress {
   const xp = totalXp || 0;
   const calculatedLevel = calculateLevelFromXp(xp);
-  const effectiveLevel = profileLevel ?? calculatedLevel;
+  // Always use the higher of calculated vs stored level so the bar
+  // never overflows when the DB trigger hasn't synced yet.
+  const effectiveLevel = Math.max(calculatedLevel, profileLevel ?? calculatedLevel);
   
   // XP thresholds for current level (hard curve)
   const levelXpStart = xpRequiredForLevel(effectiveLevel);

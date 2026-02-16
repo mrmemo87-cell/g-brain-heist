@@ -18,6 +18,7 @@ import type { ProfessionalReportData, StudentOverviewReportData, StudentTestEntr
 interface TeacherPortalProps {
   profile: Profile;
   onComplete: () => void;
+  onLogout?: () => void;
   onLockdown?: () => void;
   isSchoolAdmin?: boolean;
   onOpenSchoolAdmin?: () => void;
@@ -67,7 +68,7 @@ const WRITING_TEST_METADATA: Record<string, {
   },
 };
 
-const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLockdown, isSchoolAdmin, onOpenSchoolAdmin, onOpenAdmissions }) => {
+const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, onLockdown, isSchoolAdmin, onOpenSchoolAdmin, onOpenAdmissions }) => {
   const [view, setView] = useState<PortalView>('dashboard');
   const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [questions, setQuestions] = useState<TeacherQuestion[]>([]);
@@ -6926,8 +6927,91 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     { id: 'cambridge', label: 'Cambridge Tests', icon: '✍️', description: 'Writing & Test Results', proOnly: true },
   ];
 
+  // Plan badge info for top bar
+  const getPlanBadge = () => {
+    if (!_cachedPlanDetails || !_cachedPlanDetails.success) return null;
+    const plan = _cachedPlanDetails.plan;
+    if (plan === 'none') return null;
+    if (plan === 'pilot') {
+      let countdown: string | null = null;
+      if (_cachedPlanDetails.trial_ends_at) {
+        const end = new Date(_cachedPlanDetails.trial_ends_at).getTime();
+        const diff = end - Date.now();
+        countdown = diff > 0 ? `${Math.ceil(diff / (1000 * 60 * 60 * 24))}d left` : 'Expired';
+      }
+      return { label: 'PILOT', color: 'cyan', icon: '🚀', countdown };
+    }
+    const colorMap: Record<string, string> = { core: 'blue', standard: 'emerald', pro: 'amber', enterprise: 'purple' };
+    const iconMap: Record<string, string> = { core: '⚡', standard: '⚡', pro: '👑', enterprise: '💎' };
+    return { label: plan.toUpperCase(), color: colorMap[plan] || 'blue', icon: iconMap[plan] || '⚡', countdown: null };
+  };
+  const planBadge = getPlanBadge();
+
   return (
     <div className="teacher-portal">
+      {/* Top Navigation Bar */}
+      <header className="sticky top-0 z-40 border-b border-slate-800/60 bg-slate-950/90 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between px-3 py-2 sm:px-4 lg:px-6">
+          {/* Left: Logo + Brand */}
+          <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+            <img
+              src="/logo.png"
+              alt="Brains Heist"
+              className="w-8 h-8 lg:w-10 lg:h-10 drop-shadow-[0_0_10px_rgba(59,130,246,0.6)] flex-shrink-0"
+            />
+            <span className="font-heading text-lg lg:text-xl font-black tracking-wider select-none">
+              <span style={{ backgroundImage: 'linear-gradient(90deg, #22d3ee 0%, #3b82f6 25%, #8b5cf6 50%, #3b82f6 75%, #22d3ee 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundSize: '200% 100%', animation: 'shimmer 3s linear infinite' }}>BRAINS</span>
+              {' '}
+              <span style={{ backgroundImage: 'linear-gradient(90deg, #ec4899 0%, #ef4444 25%, #f97316 50%, #ef4444 75%, #ec4899 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundSize: '200% 100%', animation: 'shimmer 3s linear infinite', animationDelay: '1.5s' }}>HEIST</span>
+            </span>
+
+            {/* Username */}
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-black/40 rounded-full border border-cyan-500/30 backdrop-blur-sm">
+              <img
+                src={profile.avatar_url || '/BRAINS.svg'}
+                alt={profile.username}
+                className="w-6 h-6 rounded-full border border-pink-500/70 object-cover"
+              />
+              <span className="font-bold text-white text-sm truncate max-w-[120px]">{profile.username}</span>
+            </div>
+
+            {/* Plan Badge */}
+            {planBadge && (
+              <div className={`plan-badge plan-badge--${planBadge.color} flex-shrink-0`}>
+                <span className="plan-badge__icon">{planBadge.icon}</span>
+                <span className="plan-badge__label">{planBadge.label}</span>
+                {planBadge.countdown && <span className="plan-badge__countdown">{planBadge.countdown}</span>}
+              </div>
+            )}
+          </div>
+
+          {/* Right: Actions */}
+          <div className="flex items-center gap-1.5">
+            {isSchoolAdmin && onOpenSchoolAdmin && (
+              <button
+                onClick={onOpenSchoolAdmin}
+                className="p-1.5 lg:p-2 rounded-lg bg-gradient-to-br from-purple-600/40 to-indigo-600/40 border border-purple-500/80 hover:border-purple-400 hover:bg-purple-500/20 transition-all backdrop-blur-sm"
+                title="School Admin Portal"
+              >
+                <span className="text-sm lg:text-base">🏫</span>
+              </button>
+            )}
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="flex p-1.5 lg:p-2 rounded-lg bg-black/40 border border-gray-600 hover:border-red-500 hover:bg-red-500/10 transition-all backdrop-blur-sm items-center gap-1.5"
+                title="Log Out"
+              >
+                <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span className="hidden sm:inline text-xs text-red-400 font-semibold">Logout</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </header>
+
       <div className="teacher-portal-container">
         {/* Professional Header */}
         <div className="teacher-header">
