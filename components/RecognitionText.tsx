@@ -178,8 +178,8 @@ const RecognitionText: React.FC<RecognitionTextProps> = (props) => {
   const [idx, setIdx] = useState(0);
 
   useEffect(() => {
-    // opener lines hold a beat longer so users actually read them
-    const delay = idx === 0 ? 600 : idx === 1 ? 1500 : 800;
+    // "You look familiar" is the quick hook, "Are you X?" holds longer so they read it
+    const delay = idx === 0 ? 500 : idx === 1 ? 1800 : 800;
     const id = window.setTimeout(() => setIdx((p) => p + 1), delay);
     return () => clearTimeout(id);
   }, [idx]);

@@ -156,6 +156,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     username: string; level?: number; coins?: number;
     gems?: number; streak?: number; clanName?: string;
   } | null>(null);
+  const [recognitionHold, setRecognitionHold] = useState(true);
+  const recognitionTimerRef = useRef<number | null>(null);
   const [nonCriticalStatus, setNonCriticalStatus] = useState({
     tasks: 'idle' as NonCriticalLoadState,
     caps: 'idle' as NonCriticalLoadState,
@@ -531,6 +533,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     setIsAdminMode(false);
     setPeekedRole(null);
     setPeekedUser(null);
+    setRecognitionHold(true);
+    if (recognitionTimerRef.current) { clearTimeout(recognitionTimerRef.current); recognitionTimerRef.current = null; }
 
     try {
       const { data, error: sessionError } = await supabase.auth.getSession();
@@ -1479,17 +1483,32 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     );
   };
 
+  // Start recognition hold timer once peekedUser arrives (minimum 4s of personalised text)
+  useEffect(() => {
+    if (peekedUser && recognitionHold) {
+      recognitionTimerRef.current = window.setTimeout(() => {
+        setRecognitionHold(false);
+      }, 4000);
+      return () => { if (recognitionTimerRef.current) clearTimeout(recognitionTimerRef.current); };
+    }
+  }, [peekedUser, recognitionHold]);
+
   const renderView = () => {
     // Phase 1: No role known yet → "Who are you?" text animation
     if (criticalLoading && !peekedRole && !profile) {
       return <WhoAreYou />;
     }
 
-    // Phase 2: Role known but profile not loaded → personalised recognition text
-    if (criticalLoading && !profile && peekedRole) {
-      return peekedUser
-        ? <RecognitionText {...peekedUser} role={peekedRole} />
-        : <SkeletonDashboard role={peekedRole} />;
+    // Phase 2: Role known → show personalised recognition text
+    // Stays visible until BOTH profile is loaded AND minimum 4s elapsed.
+    // This kills perceived wait time — data loads in background, less skeleton later.
+    if (peekedRole && !loadError) {
+      if (peekedUser && (!profile || recognitionHold)) {
+        return <RecognitionText {...peekedUser} role={peekedRole} />;
+      }
+      if (criticalLoading && !profile) {
+        return <SkeletonDashboard role={peekedRole} />;
+      }
     }
 
     // Block unverified users (except for IELTS-only users)
