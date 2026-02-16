@@ -3,7 +3,6 @@ import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage, Announceme
 import * as GameService from './services/gameService';
 import { supabase } from './services/supabaseClient';
 import Header from './components/Header';
-import SkeletonDashboard from './components/SkeletonDashboard';
 import { useLightMode } from './src/contexts/LightModeContext';
 import PlayerProfileCard from './components/PlayerProfileCard';
 import TaskList from './components/TaskList';
@@ -1326,7 +1325,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }
 
   const renderAssignmentSection = () => {
-    if (!profile || profile.role !== 'student') {
+    if (!profile) {
+      return <SectionPlaceholder title="Assignment" lines={3} />;
+    }
+    if (profile.role !== 'student') {
       return null;
     }
 
@@ -1464,9 +1466,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   };
 
   const renderView = () => {
-    if (criticalLoading && !profile) {
-      return <SkeletonDashboard />;
-    }
 
     // Block unverified users (except for IELTS-only users)
     if (emailVerified === false && profile && profile.school_name?.trim().toLowerCase() !== IELTS_ONLY_SCHOOL_NAME.toLowerCase()) {
@@ -1475,7 +1474,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
     if (isAdminMode) {
       if (!profile) {
-        return <SkeletonDashboard />;
+        return <SectionPlaceholder title="Admin Portal" lines={6} />;
       }
       return renderLazy(<AdminPortal profile={profile} onComplete={handleViewComplete} addToast={addToast} />);
     }
@@ -1629,12 +1628,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           );
         case 'dashboard':
         default:
-            // Still loading — show skeleton dashboard
-            if (!profile) {
-              return <SkeletonDashboard />;
-            }
             // Teacher goes directly to TeacherPortal - unified experience
-            if (profile.role === 'teacher') {
+            if (profile?.role === 'teacher') {
                 return renderLazy(
                     <TeacherPortal
                         profile={profile}
@@ -1663,44 +1658,48 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
                   {/* Middle Column */}
                   <div className="space-y-6 lg:col-span-5 xl:col-span-6">
-                    <MainActions
-                      onStartQuest={handleQuestAction}
-                      onStartPvp={() => handleViewChange('pvp')}
-                      onOpenRaid={!isStudent ? () => handleViewChange('raids') : undefined}
-                      onVisitShop={() => handleViewChange('shop')}
-                      onGoToClan={hasSchool ? () => handleViewChange('clan') : undefined}
-                      onVisitInventory={() => handleViewChange('inventory')}
-                      onViewLeaderboard={hasSchool ? () => handleViewChange('leaderboard') : undefined}
-                      onViewAchievements={() => handleViewChange('achievements')}
-                      onOpenRaidAdmin={isAdminUser ? () => handleViewChange('raid_admin') : undefined}
-                      onOpenTournament={() => handleViewChange('tournament')}
-                      onOpenAdminPortal={isAdminUser ? () => handleViewChange('admin') : undefined}
-                      onOpenSchoolAdmin={isUserSchoolAdmin && hasSchool ? () => handleViewChange('school_admin') : undefined}
-                      onOpenAdmissions={isUserSchoolAdmin && hasSchool ? () => handleViewChange('admissions') : undefined}
-                      onOpenTournamentAdmin={isAdminUser ? () => handleViewChange('tournament_admin') : undefined}
-                      onOpenCompetitionPlay={!isStudent && profile?.grade && !profile?.is_banned && hasSchool ? () => handleViewChange('phase1_play') : undefined}
-                      onOpenCompetitionLeaderboard={hasSchool ? () => handleViewChange('phase1_leaderboard') : undefined}
-                      onOpenCompetitionAdmin={profile?.is_admin && hasSchool ? () => handleViewChange('phase1_admin') : undefined}
-                      onOpenIeltsPrep={() => {
-                        window.location.href = '/ielts';
-                      }}
-                      onOpenCambridgeTests={() => handleViewChange('cambridge')}
-                      onOpenLockdown={() => handleViewChange('lockdown')}
-                      onJoinSchool={undefined}
-                      profile={profile}
-                      hasPendingAssignment={Boolean(activeAssignment)}
-                      clanBadgeCount={pendingClanRequests}
-                      schoolName={profile?.school_name}
-                      schoolLogoUrl={profile?.school_logo_url}
-                      isPro={isProUser}
-                      isPilot={isPilotPlan}
-                      onUpgrade={(featureLabel) => {
-                        setUpgradeFeatureLabel(featureLabel);
-                        setShowUpgradeModal(true);
-                      }}
-                    />
+                    {profile ? (
+                      <MainActions
+                        onStartQuest={handleQuestAction}
+                        onStartPvp={() => handleViewChange('pvp')}
+                        onOpenRaid={!isStudent ? () => handleViewChange('raids') : undefined}
+                        onVisitShop={() => handleViewChange('shop')}
+                        onGoToClan={hasSchool ? () => handleViewChange('clan') : undefined}
+                        onVisitInventory={() => handleViewChange('inventory')}
+                        onViewLeaderboard={hasSchool ? () => handleViewChange('leaderboard') : undefined}
+                        onViewAchievements={() => handleViewChange('achievements')}
+                        onOpenRaidAdmin={isAdminUser ? () => handleViewChange('raid_admin') : undefined}
+                        onOpenTournament={() => handleViewChange('tournament')}
+                        onOpenAdminPortal={isAdminUser ? () => handleViewChange('admin') : undefined}
+                        onOpenSchoolAdmin={isUserSchoolAdmin && hasSchool ? () => handleViewChange('school_admin') : undefined}
+                        onOpenAdmissions={isUserSchoolAdmin && hasSchool ? () => handleViewChange('admissions') : undefined}
+                        onOpenTournamentAdmin={isAdminUser ? () => handleViewChange('tournament_admin') : undefined}
+                        onOpenCompetitionPlay={!isStudent && profile?.grade && !profile?.is_banned && hasSchool ? () => handleViewChange('phase1_play') : undefined}
+                        onOpenCompetitionLeaderboard={hasSchool ? () => handleViewChange('phase1_leaderboard') : undefined}
+                        onOpenCompetitionAdmin={profile?.is_admin && hasSchool ? () => handleViewChange('phase1_admin') : undefined}
+                        onOpenIeltsPrep={() => {
+                          window.location.href = '/ielts';
+                        }}
+                        onOpenCambridgeTests={() => handleViewChange('cambridge')}
+                        onOpenLockdown={() => handleViewChange('lockdown')}
+                        onJoinSchool={undefined}
+                        profile={profile}
+                        hasPendingAssignment={Boolean(activeAssignment)}
+                        clanBadgeCount={pendingClanRequests}
+                        schoolName={profile?.school_name}
+                        schoolLogoUrl={profile?.school_logo_url}
+                        isPro={isProUser}
+                        isPilot={isPilotPlan}
+                        onUpgrade={(featureLabel) => {
+                          setUpgradeFeatureLabel(featureLabel);
+                          setShowUpgradeModal(true);
+                        }}
+                      />
+                    ) : (
+                      <SectionPlaceholder title="Mission Console" lines={4} />
+                    )}
                     {/* Join School Card - replaces the annoying banner */}
-                    {!hasSchool && (
+                    {profile && !hasSchool && (
                       <JoinSchoolCard onJoined={handleJoinSchoolSuccess} />
                     )}
                     {renderTasksSection()}
