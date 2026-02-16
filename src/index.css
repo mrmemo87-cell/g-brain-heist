@@ -1589,6 +1589,16 @@ button {
   }
 }
 
+/* ── Skeleton dashboard shimmer ───────────────────────────────────────── */
+@keyframes skeleton-shimmer {
+  0%   { opacity: 0.5; }
+  50%  { opacity: 1;   }
+  100% { opacity: 0.5; }
+}
+.skeleton-bone {
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
 /* ── Reduced-motion accessibility ─────────────────────────────────────── */
 /* Disables decorative / infinite animations for users who prefer reduced  */
 /* motion. One-shot entrance animations are shortened to near-instant so   */

@@ -3,7 +3,7 @@ import { Profile, Task, SessionStatus, Caps, NewsEvent, ToastMessage, Announceme
 import * as GameService from './services/gameService';
 import { supabase } from './services/supabaseClient';
 import Header from './components/Header';
-import BrainsLoader from './components/BrainsLoader';
+import SkeletonDashboard from './components/SkeletonDashboard';
 import { useLightMode } from './src/contexts/LightModeContext';
 import PlayerProfileCard from './components/PlayerProfileCard';
 import TaskList from './components/TaskList';
@@ -1465,7 +1465,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
   const renderView = () => {
     if (criticalLoading && !profile) {
-      return <BrainsLoader message="Loading portal…" fullScreen={false} size={160} />;
+      return <SkeletonDashboard />;
     }
 
     // Block unverified users (except for IELTS-only users)
@@ -1475,7 +1475,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
     if (isAdminMode) {
       if (!profile) {
-        return <BrainsLoader message="Loading admin portal…" fullScreen={false} size={160} />;
+        return <SkeletonDashboard />;
       }
       return renderLazy(<AdminPortal profile={profile} onComplete={handleViewComplete} addToast={addToast} />);
     }
@@ -1629,9 +1629,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           );
         case 'dashboard':
         default:
-            // Still loading — don't flash student dashboard
+            // Still loading — show skeleton dashboard
             if (!profile) {
-              return <BrainsLoader message="Loading portal…" fullScreen={false} size={160} />;
+              return <SkeletonDashboard />;
             }
             // Teacher goes directly to TeacherPortal - unified experience
             if (profile.role === 'teacher') {
