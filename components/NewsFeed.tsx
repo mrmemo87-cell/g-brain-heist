@@ -40,7 +40,7 @@ const formatEventText = (event: NewsEvent) => {
         case 'pvp_win':
             return (
                 <>
-                    <span style={{...actorStyle, color: 'var(--success-teal)'}}>{actorName}</span> hacked{' '}
+                    <span style={{...actorStyle, color: 'var(--success-teal)'}}>{actorName}</span> attacked{' '}
                     <span style={{...actorStyle, color: 'var(--danger-red)'}}>{targetName}</span>
                     {coinsStolen ? <> and stole <span className="font-bold" style={{color: 'var(--amber-warn)'}}>{coinsStolen} coins</span></> : (details ? `. ${details}` : '')} 💪
                 </>
