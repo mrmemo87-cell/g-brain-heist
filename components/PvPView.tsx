@@ -378,15 +378,6 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
       
       setAttackResult(result);
 
-      // Play appropriate sound based on result
-      if (result.result === 'win') {
-        audioService.play('hack_win');
-      } else if (result.result === 'blocked') {
-        audioService.play('hack_fail');
-      } else {
-        audioService.play('hack_fail');
-      }
-
       const xpDelta = Number(result.attacker_deltas?.xp ?? 0);
       const coinsDelta = Number(result.attacker_deltas?.coins ?? 0);
       const gemstonesDelta = Number(result.attacker_deltas?.gemstones ?? 0);
@@ -398,9 +389,15 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
         gemstones: gemstonesDelta,
       }, result.final_profile_values);
 
-      // Wait for minimum animation time (2.8s) before showing result
+      // Wait for minimum animation time (2.8s) before showing result + play sound
       const elapsedTime = 2800;
       setTimeout(() => {
+        // Play appropriate sound when result screen appears
+        if (result.result === 'win') {
+          audioService.play('hack_win');
+        } else {
+          audioService.play('hack_fail');
+        }
         setStage('result');
       }, elapsedTime);
 

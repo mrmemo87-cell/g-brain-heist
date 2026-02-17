@@ -33,21 +33,24 @@ const formatEventText = (event: NewsEvent) => {
     const details = event.data.details?.trim();
     
     // Static messages - no randomization to keep feed stable
+    const coinsStolen = event.data.coins_stolen;
+    const coinsLost = event.data.coins_lost;
+
     switch (event.kind) {
         case 'pvp_win':
             return (
                 <>
                     <span style={{...actorStyle, color: 'var(--success-teal)'}}>{actorName}</span> hacked{' '}
                     <span style={{...actorStyle, color: 'var(--danger-red)'}}>{targetName}</span>
-                    {details ? `. ${details}` : ''} 💪
+                    {coinsStolen ? <> and stole <span className="font-bold" style={{color: 'var(--amber-warn)'}}>{coinsStolen} coins</span></> : (details ? `. ${details}` : '')} 💪
                 </>
             );
         
         case 'pvp_blocked':
-            return <><span style={{...actorStyle, color: 'var(--danger-red)'}}>{actorName}</span> was blocked by <span style={{...actorStyle, color: 'var(--success-teal)'}}>{targetName}</span>'s shield! 🛡️</>;
+            return <><span style={{...actorStyle, color: 'var(--danger-red)'}}>{actorName}</span> tried to hack <span style={{...actorStyle, color: 'var(--success-teal)'}}>{targetName}</span> but was blocked by their shield! 🛡️</>;
         
         case 'pvp_loss':
-            return <><span style={{...actorStyle, color: 'var(--danger-red)'}}>{actorName}</span> failed to hack <span style={{...actorStyle, color: 'var(--success-teal)'}}>{targetName}</span> 😅</>;
+            return <><span style={{...actorStyle, color: 'var(--danger-red)'}}>{actorName}</span> failed to hack <span style={{...actorStyle, color: 'var(--success-teal)'}}>{targetName}</span>{coinsLost ? <> and lost <span className="font-bold" style={{color: 'var(--danger-red)'}}>{coinsLost} coins</span></> : ''} 😅</>;
         
         case 'level_up':
             return <><span style={{...actorStyle, color: 'var(--amber-warn)'}}>{actorName}</span> leveled up to <span className="font-bold">{event.data.details}</span>! 🎉</>;
