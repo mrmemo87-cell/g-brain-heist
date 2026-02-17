@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -526,10 +526,10 @@
   <!--
   <div class="prime-overlay" id="primeOverlay">
     <div class="prime-card">
-      <div class="prime-icon">??</div>
+      <div class="prime-icon">👑</div>
       <h2 class="prime-title">GET PRIME</h2>
       <p class="prime-subtitle">This AS Chemistry content is exclusive to Prime members. Upgrade to unlock all advanced materials.</p>
-      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">? Upgrade to Prime</button>
+      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">✨ Upgrade to Prime</button>
       <div class="prime-divider">or enter activation code</div>
       <input type="text" class="prime-code-input" id="primeCodeInput" placeholder="Enter code..." autocomplete="off" />
       <button class="prime-unlock-btn" id="primeUnlockBtn">Unlock</button>
@@ -548,7 +548,7 @@
     </div>
 
     <div class="badge-row">
-      <div class="badge">?? Suggested time: 75 min</div>
+      <div class="badge">⏱️ Suggested time: 75 min</div>
       <div class="badge">Total questions: 85</div>
       <div class="badge">Level: Advanced</div>
       <div class="badge">Category: Science</div>
@@ -558,7 +558,7 @@
     <div class="status">
       Your score will be updated once the official answer key is published. Submit now to save your responses.
     </div>
-    <div id="timer" class="timer-box floating">? Time remaining: 00:00</div>
+    <div id="timer" class="timer-box floating">⏳ Time remaining: 00:00</div>
 
 
     <div class="student-info">
@@ -572,7 +572,7 @@
       </div>
     </div>
 
-    <div id="questions" class="hidden"></div>
+    <div id="questions"></div>
 
     <div class="submit-area">
       <button id="submitBtn">Submit Answers</button>
@@ -601,14 +601,14 @@
         <li>Stay on this tab. The first violation triggers a warning.</li>
         <li>Three violations (tab switches, copying, etc.) will auto-submit your test.</li>
         <li>Copying and cutting are disabled during the test.</li>
-        <li>Your timer starts only after you click �I understand�.</li>
+        <li>Your timer starts only after you click “I understand”.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
       </div>
     </div>
   </div>
-  <div id="antiCheatToast" class="anti-cheat-toast">?? Tab switching detected. Please stay on this test.</div>
+  <div id="antiCheatToast" class="anti-cheat-toast">⚠️ Tab switching detected. Please stay on this test.</div>
 
   <script>
     const SUPABASE_URL = window.__SUPABASE_ENV__?.VITE_SUPABASE_URL || 'https://sozodkxwhubespiedgxm.supabase.co';
@@ -739,11 +739,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} � Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} � ${totalQuestions} questions`;
-      if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
-      if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
-      document.title = `${title} � Part ${part}`;
+      if (titleEl) titleEl.textContent = `${title} — Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} • ${totalQuestions} questions`;
+      if (timeBadge) timeBadge.textContent = `⏱️ Suggested time: ${formatDuration(durationSeconds)}`;
+      if (partBadge) partBadge.textContent = `📌 Part ${part} of 2`;
+      document.title = `${title} — Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -786,16 +786,16 @@
         code: '9701_s19_qp_12 Q: 14',
         prompt: 'Elements D and E are both in Period 3. Element D has the smallest atomic radius in Period 3. There are only two elements with lower melting points than element E. Elements D and E react together to form compound L. Which compound could be L?',
         options: {
-          A: 'MgCl?',
+          A: 'MgCl₂',
           B: 'MgS',
-          C: 'Na?S',
-          D: 'PCl?',
+          C: 'Na₂S',
+          D: 'PCl₃',
         }
       },
       {
         number: 3,
         code: '9701_s19_qp_13 Q: 12',
-        prompt: 'Sodium and sulfur react together to form sodium sulfide, Na?S. How do the atomic radius and ionic radius of sodium compare with those of sulfur?',
+        prompt: 'Sodium and sulfur react together to form sodium sulfide, Na₂S. How do the atomic radius and ionic radius of sodium compare with those of sulfur?',
         optionTable: {
           headers: ['atomic radius', 'ionic radius'],
           rows: [
@@ -863,10 +863,10 @@
         optionTable: {
           headers: ['Y', 'Z'],
           rows: [
-            { label: 'A', values: ['Al?O?', 'SiCl?'] },
-            { label: 'B', values: ['NaF', 'Al?O?'] },
-            { label: 'C', values: ['NaF', 'SiCl?'] },
-            { label: 'D', values: ['SiCl?', 'Al?O?'] },
+            { label: 'A', values: ['Al₂O₃', 'SiCl₄'] },
+            { label: 'B', values: ['NaF', 'Al₂O₃'] },
+            { label: 'C', values: ['NaF', 'SiCl₄'] },
+            { label: 'D', values: ['SiCl₄', 'Al₂O₃'] },
           ]
         }
       },
@@ -877,10 +877,10 @@
         optionTable: {
           headers: ['atomic radius', 'ionic radius', 'atomic radius', 'ionic radius'],
           rows: [
-            { label: 'A', values: ['Mg > Mg??', 'S > S??'] },
-            { label: 'B', values: ['Mg > Mg??', 'S < S??'] },
-            { label: 'C', values: ['Mg < Mg??', 'S > S??'] },
-            { label: 'D', values: ['Mg < Mg??', 'S < S??'] },
+            { label: 'A', values: ['Mg > Mg²⁺', 'S > S²⁻'] },
+            { label: 'B', values: ['Mg > Mg²⁺', 'S < S²⁻'] },
+            { label: 'C', values: ['Mg < Mg²⁺', 'S > S²⁻'] },
+            { label: 'D', values: ['Mg < Mg²⁺', 'S < S²⁻'] },
           ]
         }
       },
@@ -933,16 +933,16 @@
         code: '9701_s16_qp_11 Q: 13',
         prompt: 'Elements D and E are both in Period 3. Element D has the smallest atomic radius in Period 3. There are only two elements with lower melting point than element E. Elements D and E react together to form compound L. Which compound could be L?',
         options: {
-          A: 'MgCl?',
+          A: 'MgCl₂',
           B: 'MgS',
-          C: 'Na?S',
-          D: 'PCl?',
+          C: 'Na₂S',
+          D: 'PCl₃',
         }
       },
       {
         number: 15,
         code: '9701_s16_qp_12 Q: 12',
-        prompt: 'Sodium and sulfur react together to form sodium sulfide, Na?S. How do the atomic radius and ionic radius of sodium compare with those of sulfur?',
+        prompt: 'Sodium and sulfur react together to form sodium sulfide, Na₂S. How do the atomic radius and ionic radius of sodium compare with those of sulfur?',
         optionTable: {
           headers: ['atomic radius', 'ionic radius'],
           rows: [
@@ -989,14 +989,14 @@
       {
         number: 19,
         code: '9701_s15_qp_13 Q: 17',
-        prompt: 'This question refers to isolated gaseous species.<br><br>The species F<sup>?</sup>, Ne and Na<sup>+</sup> are isoelectronic. This means they have the same number of electrons.<br><br>In which order do their radii increase?',
+        prompt: 'This question refers to isolated gaseous species.<br><br>The species F<sup>−</sup>, Ne and Na<sup>+</sup> are isoelectronic. This means they have the same number of electrons.<br><br>In which order do their radii increase?',
         optionTable: {
-          headers: ['smallest', '>', 'largest'],
+          headers: ['smallest', '→', 'largest'],
           rows: [
-            { label: 'A', values: ['Na<sup>+</sup>', 'F<sup>?</sup>', 'Ne'] },
-            { label: 'B', values: ['F<sup>?</sup>', 'Ne', 'Na<sup>+</sup>'] },
-            { label: 'C', values: ['Na<sup>+</sup>', 'Ne', 'F<sup>?</sup>'] },
-            { label: 'D', values: ['Ne', 'F<sup>?</sup>', 'Na<sup>+</sup>'] },
+            { label: 'A', values: ['Na<sup>+</sup>', 'F<sup>−</sup>', 'Ne'] },
+            { label: 'B', values: ['F<sup>−</sup>', 'Ne', 'Na<sup>+</sup>'] },
+            { label: 'C', values: ['Na<sup>+</sup>', 'Ne', 'F<sup>−</sup>'] },
+            { label: 'D', values: ['Ne', 'F<sup>−</sup>', 'Na<sup>+</sup>'] },
           ]
         }
       },
@@ -1018,7 +1018,7 @@
         options: {
           A: 'The changes in first ionisation energy from sodium to aluminium',
           B: 'The increase in electronegativity from sodium to aluminium',
-          C: 'The increase in the A? of the elements from sodium to aluminium',
+          C: 'The increase in the Aᵣ of the elements from sodium to aluminium',
           D: 'The increase in the number of outer electrons in each atom from sodium to aluminium',
         }
       },
@@ -1042,8 +1042,8 @@
         prompt: 'A student investigated the chloride of a Period 3 element and recorded:<div class="status" style="background:rgba(59,130,246,0.12); border-color:rgba(59,130,246,0.35); color:#bfdbfe; margin:10px 0;">The compound was a white crystalline solid. It dissolved easily in water to give a solution of pH 12. When heated strongly in a test-tube, the compound melted after several minutes.</div>What can be deduced from this record?',
         options: {
           A: 'At least one of the recorded observations is incorrect.',
-          B: 'The compound was magnesium chloride, MgCl?.',
-          C: 'The compound was phosphorus pentachloride, PCl?.',
+          B: 'The compound was magnesium chloride, MgCl₂.',
+          C: 'The compound was phosphorus pentachloride, PCl₅.',
           D: 'The compound was sodium chloride, NaCl.',
         }
       },
@@ -1054,17 +1054,17 @@
         optionTable: {
           headers: ['electronegativity of the elements', 'acid / base behaviour of the oxides of the elements'],
           rows: [
-            { label: 'A', values: ['decreases', 'basic > amphoteric > acidic'] },
-            { label: 'B', values: ['decreases', 'acidic > amphoteric > basic'] },
-            { label: 'C', values: ['increases', 'basic > amphoteric > acidic'] },
-            { label: 'D', values: ['increases', 'acidic > amphoteric > basic'] },
+            { label: 'A', values: ['decreases', 'basic → amphoteric → acidic'] },
+            { label: 'B', values: ['decreases', 'acidic → amphoteric → basic'] },
+            { label: 'C', values: ['increases', 'basic → amphoteric → acidic'] },
+            { label: 'D', values: ['increases', 'acidic → amphoteric → basic'] },
           ]
         }
       },
       {
         number: 25,
         code: '9701_m22_qp_12 Q: 19',
-        prompt: 'The table shows the melting points of SiO? and P?O?.<div class="table-wrapper"><table><thead><tr><th>oxide</th><th>SiO?</th><th>P?O?</th></tr></thead><tbody><tr><td>melting point / K</td><td>1883</td><td>297</td></tr></tbody></table></div>Which statement explains the difference?',
+        prompt: 'The table shows the melting points of SiO₂ and P₄O₆.<div class="table-wrapper"><table><thead><tr><th>oxide</th><th>SiO₂</th><th>P₄O₆</th></tr></thead><tbody><tr><td>melting point / K</td><td>1883</td><td>297</td></tr></tbody></table></div>Which statement explains the difference?',
         options: {
           A: 'The bonding of the oxides changes from ionic to covalent.',
           B: 'The metallic character of the elements decreases across Period 3.',
@@ -1075,7 +1075,7 @@
       {
         number: 26,
         code: '9701_m21_qp_12 Q: 12',
-        prompt: 'Which observations are made when a sample of silicon chloride, SiCl?, is added to a beaker of water?',
+        prompt: 'Which observations are made when a sample of silicon chloride, SiCl₄, is added to a beaker of water?',
         options: {
           A: 'No visible change is observed.',
           B: 'Steamy fumes and a precipitate are both observed.',
@@ -1108,7 +1108,7 @@
       {
         number: 29,
         code: '9701_s21_qp_12 Q: 12',
-        prompt: 'A sample of SiCl? is added to cold water. Which statement describes the mixture formed at the end of the reaction?',
+        prompt: 'A sample of SiCl₄ is added to cold water. Which statement describes the mixture formed at the end of the reaction?',
         options: {
           A: 'acidic solution with no precipitate',
           B: 'acidic solution with white precipitate',
@@ -1121,10 +1121,10 @@
         code: '9701_s21_qp_12 Q: 13',
         prompt: 'L and M are elements in Period 3 of the Periodic Table.<ul style="margin:10px 0 0 18px; color: var(--text-main);"><li>The oxide of L is a solid at room temperature with a giant structure.</li><li>The chloride of L does not react with water.</li><li>Argon is the only Period 3 element with a lower melting point than M.</li></ul>Which formula represents a compound of elements L and M?',
         options: {
-          A: 'Al?S?',
+          A: 'Al₂S₃',
           B: 'MgS',
           C: 'NaCl',
-          D: 'PCl?',
+          D: 'PCl₅',
         }
       },
       {
@@ -1132,10 +1132,10 @@
         code: '9701_s21_qp_13 Q: 19',
         prompt: 'Two oxides of Period 3 elements are added separately to water. Both react to form colourless solutions. One solution is alkaline, the other is acidic. What could be the two oxides?',
         options: {
-          A: 'Al?O? and SiO?',
-          B: 'Al?O? and P?O??',
-          C: 'Na?O and P?O??',
-          D: 'Na?O and SiO?',
+          A: 'Al₂O₃ and SiO₂',
+          B: 'Al₂O₃ and P₄O₁₀',
+          C: 'Na₂O and P₄O₁₀',
+          D: 'Na₂O and SiO₂',
         }
       },
       {
@@ -1165,10 +1165,10 @@
         code: '9701_w21_qp_12 Q: 12',
         prompt: 'A mixture of two Period 3 oxides are added to water. A solution forms with a pH of just below 7. What could be the constituents of the mixture?',
         options: {
-          A: 'Al?O? and MgO',
-          B: 'Na?O and MgO',
-          C: 'Na?O and P?O??',
-          D: 'SO? and P?O??',
+          A: 'Al₂O₃ and MgO',
+          B: 'Na₂O and MgO',
+          C: 'Na₂O and P₄O₁₀',
+          D: 'SO₃ and P₄O₁₀',
         }
       },
       {
@@ -1200,10 +1200,10 @@
         optionTable: {
           headers: ['X', 'Y'],
           rows: [
-            { label: 'A', values: ['P?O??', 'Al?O?'] },
-            { label: 'B', values: ['SO?', 'Al?O?'] },
-            { label: 'C', values: ['P?O??', 'Na?O'] },
-            { label: 'D', values: ['SO?', 'Na?O'] },
+            { label: 'A', values: ['P₄O₁₀', 'Al₂O₃'] },
+            { label: 'B', values: ['SO₃', 'Al₂O₃'] },
+            { label: 'C', values: ['P₄O₁₀', 'Na₂O'] },
+            { label: 'D', values: ['SO₃', 'Na₂O'] },
           ]
         }
       },
@@ -1274,7 +1274,7 @@
         prompt: 'Element X is in Period 3. It reacts rapidly with water to form an alkaline solution. Which statement about the chloride of element X is correct?',
         options: {
           A: 'It conducts electricity when molten.',
-          B: 'It has a melting point of less than 100 �C.',
+          B: 'It has a melting point of less than 100 °C.',
           C: 'It has covalent bonding.',
           D: 'It reacts rapidly with cold water.',
         }
@@ -1285,20 +1285,20 @@
         prompt: 'X and Y are two elements in Period 3 of the Periodic Table. They combine to form compound Z. X forms a soluble acidic oxide. The oxidation number of X in this oxide is +4. Y forms an amphoteric oxide. What is the formula of compound Z?',
         options: {
           A: 'AlP',
-          B: 'Al?S?',
-          C: 'Si?P?',
-          D: 'SiS?',
+          B: 'Al₂S₃',
+          C: 'Si₂P₅',
+          D: 'SiS₂',
         }
       },
       {
         number: 45,
         code: '9701_w20_qp_11 Q: 19',
-        prompt: 'Sulfur dioxide, SO?, reacts with calcium hydroxide in aqueous solution. What is the main product that is first formed?',
+        prompt: 'Sulfur dioxide, SO₂, reacts with calcium hydroxide in aqueous solution. What is the main product that is first formed?',
         options: {
-          A: 'Ca(HSO?)?',
+          A: 'Ca(HSO₃)₂',
           B: 'CaS',
-          C: 'CaSO?',
-          D: 'CaSO?',
+          C: 'CaSO₃',
+          D: 'CaSO₄',
         }
       },
       {
@@ -1315,18 +1315,18 @@
       {
         number: 47,
         code: '9701_w20_qp_12 Q: 19',
-        prompt: 'Compound X is the oxide of a Period 3 element and reacts with water to give an acidic solution. A solution is prepared by reacting 0.100 g of compound X with an excess of water. This solution is neutralised by exactly 25.0 cm? of 0.100 mol dm?? sodium hydroxide solution. What could be the identity of compound X?',
+        prompt: 'Compound X is the oxide of a Period 3 element and reacts with water to give an acidic solution. A solution is prepared by reacting 0.100 g of compound X with an excess of water. This solution is neutralised by exactly 25.0 cm³ of 0.100 mol dm⁻³ sodium hydroxide solution. What could be the identity of compound X?',
         options: {
-          A: 'Al?O?',
+          A: 'Al₂O₃',
           B: 'MgO',
-          C: 'P?O??',
-          D: 'SO?',
+          C: 'P₄O₁₀',
+          D: 'SO₃',
         }
       },
       {
         number: 48,
         code: '9701_m19_qp_12 Q: 12',
-        prompt: 'X, Y and Z are elements in Period 3 of the Periodic Table. Results of experiments are shown.<div class="table-wrapper"><table><thead><tr><th>element</th><th>result of adding the oxide of the element to H?O(l)</th><th>result of adding the chloride of the element to H?O(l)</th><th>result of adding the oxide of the element to HCl(aq)</th></tr></thead><tbody><tr><td>X</td><td>no reaction</td><td>hydrolyses</td><td>forms chloride salt</td></tr><tr><td>Y</td><td>forms hydroxide</td><td>dissolves</td><td>forms chloride salt</td></tr><tr><td>Z</td><td>forms acid</td><td>hydrolyses</td><td>hydrolyses</td></tr></tbody></table></div>Which statement could be correct?',
+        prompt: 'X, Y and Z are elements in Period 3 of the Periodic Table. Results of experiments are shown.<div class="table-wrapper"><table><thead><tr><th>element</th><th>result of adding the oxide of the element to H₂O(l)</th><th>result of adding the chloride of the element to H₂O(l)</th><th>result of adding the oxide of the element to HCl(aq)</th></tr></thead><tbody><tr><td>X</td><td>no reaction</td><td>hydrolyses</td><td>forms chloride salt</td></tr><tr><td>Y</td><td>forms hydroxide</td><td>dissolves</td><td>forms chloride salt</td></tr><tr><td>Z</td><td>forms acid</td><td>hydrolyses</td><td>hydrolyses</td></tr></tbody></table></div>Which statement could be correct?',
         options: {
           A: 'X is Al and Y is Mg.',
           B: 'X is Si and Y is Na.',
@@ -1339,10 +1339,10 @@
         code: '9701_m19_qp_12 Q: 13',
         prompt: 'A solid Period 3 element, Q, is reacted with oxygen gas. Compound R is formed. When R is added to water the pH decreases. What could be the empirical formula of R?',
         options: {
-          A: 'Q?O?',
-          B: 'Q?O?',
-          C: 'Q?O??',
-          D: 'Q?O?',
+          A: 'Q₂O₄',
+          B: 'Q₂O₅',
+          C: 'Q₄O₁₀',
+          D: 'Q₅O₂',
         }
       },
       {
@@ -1376,9 +1376,9 @@
         prompt: 'Which oxide will cause an increase in pH when added to water?',
         options: {
           A: 'MgO',
-          B: 'Al?O?',
-          C: 'SiO?',
-          D: 'SO?',
+          B: 'Al₂O₃',
+          C: 'SiO₂',
+          D: 'SO₂',
         }
       },
       {
@@ -1395,14 +1395,14 @@
       {
         number: 54,
         code: '9701_m18_qp_12 Q: 17',
-        prompt: 'Bromine is extracted from sea-water. In the final stages two redox reactions take place.<br>Br?(aq) + SO?(g) + 2H?O(l) > 2HBr(aq) + H?SO?(aq)<br>2HBr(aq) + Cl?(g) > Br?(g) + 2HCl(aq)<br>Which row is correct?',
+        prompt: 'Bromine is extracted from sea-water. In the final stages two redox reactions take place.<br>Br₂(aq) + SO₂(g) + 2H₂O(l) → 2HBr(aq) + H₂SO₄(aq)<br>2HBr(aq) + Cl₂(g) → Br₂(g) + 2HCl(aq)<br>Which row is correct?',
         optionTable: {
-          headers: ['strongest oxidising agent', '>', 'weakest oxidising agent'],
+          headers: ['strongest oxidising agent', '→', 'weakest oxidising agent'],
           rows: [
-            { label: 'A', values: ['Br?', 'SO?', 'Cl?'] },
-            { label: 'B', values: ['Cl?', 'Br?', 'SO?'] },
-            { label: 'C', values: ['Cl?', 'SO?', 'Br?'] },
-            { label: 'D', values: ['SO?', 'Br?', 'Cl?'] },
+            { label: 'A', values: ['Br₂', 'SO₂', 'Cl₂'] },
+            { label: 'B', values: ['Cl₂', 'Br₂', 'SO₂'] },
+            { label: 'C', values: ['Cl₂', 'SO₂', 'Br₂'] },
+            { label: 'D', values: ['SO₂', 'Br₂', 'Cl₂'] },
           ]
         }
       },
@@ -1413,8 +1413,8 @@
         optionTable: {
           headers: ['X', 'Y', 'Z'],
           rows: [
-            { label: 'A', values: ['?2', '+4', '+4'] },
-            { label: 'B', values: ['+2', '+4', '?2'] },
+            { label: 'A', values: ['−2', '+4', '+4'] },
+            { label: 'B', values: ['+2', '+4', '−2'] },
             { label: 'C', values: ['+4', '+6', '+6'] },
             { label: 'D', values: ['+6', '+4', '+6'] },
           ]
@@ -1439,10 +1439,10 @@
         code: '9701_s18_qp_12 Q: 12',
         prompt: 'Which oxide does <strong>not</strong> react with cold, dilute sodium hydroxide to produce a salt?',
         options: {
-          A: 'Al?O?',
-          B: 'P?O??',
-          C: 'SO?',
-          D: 'SiO?',
+          A: 'Al₂O₃',
+          B: 'P₄O₁₀',
+          C: 'SO₂',
+          D: 'SiO₂',
         }
       },
       {
@@ -1486,7 +1486,7 @@
         code: '9701_w18_qp_11 Q: 12',
         prompt: 'Sodium and sulfur are burned separately in oxygen. Each reaction has a distinctive coloured flame. Which row is correct?',
         optionTable: {
-          headers: ['Na + O?', 'S + O?'],
+          headers: ['Na + O₂', 'S + O₂'],
           rows: [
             { label: 'A', values: ['white', 'blue'] },
             { label: 'B', values: ['white', 'yellow'] },
@@ -1500,10 +1500,10 @@
         code: '9701_w18_qp_11 Q: 13',
         prompt: 'X and Y are elements in Period 3 of the Periodic Table.<ul style="margin:10px 0 0 18px; color: var(--text-main);"><li>The oxide of X is a solid at room temperature with a giant structure.</li><li>The chloride of X does not react with water.</li><li>Argon is the only element in Period 3 with a lower melting point than Y.</li></ul>What could be the formula of a compound formed between elements X and Y?',
         options: {
-          A: 'Al?S?',
+          A: 'Al₂S₃',
           B: 'MgS',
           C: 'NaCl',
-          D: 'PCl?',
+          D: 'PCl₅',
         }
       },
       {
@@ -1520,7 +1520,7 @@
       {
         number: 64,
         code: '9701_w18_qp_12 Q: 13',
-        prompt: 'Which observations are made when a sample of silicon chloride, SiCl?, is added to a beaker of water?',
+        prompt: 'Which observations are made when a sample of silicon chloride, SiCl₄, is added to a beaker of water?',
         options: {
           A: 'No visible change is observed.',
           B: 'Steamy fumes and a precipitate are both observed.',
@@ -1558,7 +1558,7 @@
         code: '9701_s17_qp_12 Q: 13',
         prompt: 'Which graph correctly shows relative electronegativity plotted against relative atomic radius for Na, Mg, Al and Si?',
         options: {
-          A: 'Graph A (electronegativity increases as atomic radius decreases Na > Mg > Al > Si)<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/518a.svg" alt="Electronegativity vs atomic radius graph A" class="option-graphic white-graphic" loading="lazy" />',
+          A: 'Graph A (electronegativity increases as atomic radius decreases Na → Mg → Al → Si)<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/518a.svg" alt="Electronegativity vs atomic radius graph A" class="option-graphic white-graphic" loading="lazy" />',
           B: 'Graph B (Si highest electronegativity at smallest radius; Al mid; Mg mid-large; Na largest radius lowest electronegativity)<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/518b.svg" alt="Electronegativity vs atomic radius graph B" class="option-graphic white-graphic" loading="lazy" />',
           C: 'Graph C (Na highest electronegativity with largest radius; Si lowest with smallest radius)<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/518c.svg" alt="Electronegativity vs atomic radius graph C" class="option-graphic white-graphic" loading="lazy" />',
           D: 'Graph D (Si highest electronegativity, Na lowest; Al and Mg in between, ordered by decreasing radius)<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/518d.svg" alt="Electronegativity vs atomic radius graph D" class="option-graphic white-graphic" loading="lazy" />',
@@ -1567,14 +1567,14 @@
       {
         number: 68,
         code: '9701_s17_qp_13 Q: 12',
-        prompt: 'Magnesium chloride, MgCl?, and silicon tetrachloride, SiCl?, are separately added to water. What are the approximate pH values of the solutions formed?',
+        prompt: 'Magnesium chloride, MgCl₂, and silicon tetrachloride, SiCl₄, are separately added to water. What are the approximate pH values of the solutions formed?',
         optionTable: {
-          headers: ['MgCl?', 'SiCl?'],
+          headers: ['MgCl₂', 'SiCl₄'],
           rows: [
-            { label: 'A', values: ['0�3', '0�3'] },
-            { label: 'B', values: ['0�3', '6�7'] },
-            { label: 'C', values: ['6�7', '0�3'] },
-            { label: 'D', values: ['6�7', '6�7'] },
+            { label: 'A', values: ['0–3', '0–3'] },
+            { label: 'B', values: ['0–3', '6–7'] },
+            { label: 'C', values: ['6–7', '0–3'] },
+            { label: 'D', values: ['6–7', '6–7'] },
           ]
         }
       },
@@ -1628,12 +1628,12 @@
       {
         number: 73,
         code: '9701_s16_qp_12 Q: 13',
-        prompt: 'Solid aluminium chloride sublimes at 178 �C. Which structure best represents the species in the vapour at this temperature?',
+        prompt: 'Solid aluminium chloride sublimes at 178 °C. Which structure best represents the species in the vapour at this temperature?',
         options: {
-          A: 'dimer Al?Cl? with two bridging chlorides<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/524a.svg" alt="Aluminium chloride structure option A" class="option-graphic white-graphic" loading="lazy" />',
-          B: 'cyclic (AlCl?)? trimer<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/524b.svg" alt="Aluminium chloride structure option B" class="option-graphic white-graphic" loading="lazy" />',
-          C: 'monomer AlCl?<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/524c.svg" alt="Aluminium chloride structure option C" class="option-graphic white-graphic" loading="lazy" />',
-          D: 'Al??(Cl?)? ionic species<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/524d.svg" alt="Aluminium chloride structure option D" class="option-graphic white-graphic" loading="lazy" />',
+          A: 'dimer Al₂Cl₆ with two bridging chlorides<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/524a.svg" alt="Aluminium chloride structure option A" class="option-graphic white-graphic" loading="lazy" />',
+          B: 'cyclic (AlCl₃)₃ trimer<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/524b.svg" alt="Aluminium chloride structure option B" class="option-graphic white-graphic" loading="lazy" />',
+          C: 'monomer AlCl₃<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/524c.svg" alt="Aluminium chloride structure option C" class="option-graphic white-graphic" loading="lazy" />',
+          D: 'Al³⁺(Cl⁻)₃ ionic species<br><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/524d.svg" alt="Aluminium chloride structure option D" class="option-graphic white-graphic" loading="lazy" />',
         }
       },
       {
@@ -1672,7 +1672,7 @@
       {
         number: 77,
         code: '9701_s15_qp_11 Q: 14',
-        prompt: 'Which observations are made when a sample of silicon chloride, SiCl?, is added to a beaker of water?',
+        prompt: 'Which observations are made when a sample of silicon chloride, SiCl₄, is added to a beaker of water?',
         options: {
           A: 'No visible changes are observed.',
           B: 'Steamy fumes and a white precipitate are both observed.',
@@ -1696,10 +1696,10 @@
         code: '9701_s15_qp_13 Q: 12',
         prompt: 'Which oxide will produce the solution with the highest pH when mixed with water?',
         options: {
-          A: 'Al?O?',
-          B: 'CO?',
-          C: 'Na?O',
-          D: 'SO?',
+          A: 'Al₂O₃',
+          B: 'CO₂',
+          C: 'Na₂O',
+          D: 'SO₂',
         }
       },
       {
@@ -1707,21 +1707,21 @@
         code: '9701_s15_qp_13 Q: 15',
         prompt: 'Labels were detached from four bottles in a laboratory. On addition of water, which bottle would <strong>not</strong> give fumes of hydrogen chloride?',
         options: {
-          A: 'Al?Cl?',
-          B: 'MgCl?',
-          C: 'PCl?',
-          D: 'SiCl?',
+          A: 'Al₂Cl₆',
+          B: 'MgCl₂',
+          C: 'PCl₅',
+          D: 'SiCl₄',
         }
       },
       {
         number: 81,
         code: '9701_w15_qp_11 Q: 16',
-        prompt: 'X is the oxide of a Period 3 element. X reacts with water to give an acidic solution. A solution is prepared by reacting 0.100 g of X with excess water. This solution is neutralised by exactly 25.0 cm? of 0.100 mol dm?? sodium hydroxide solution. What could be the identity of X?',
+        prompt: 'X is the oxide of a Period 3 element. X reacts with water to give an acidic solution. A solution is prepared by reacting 0.100 g of X with excess water. This solution is neutralised by exactly 25.0 cm³ of 0.100 mol dm⁻³ sodium hydroxide solution. What could be the identity of X?',
         options: {
-          A: 'Al?O?',
+          A: 'Al₂O₃',
           B: 'MgO',
-          C: 'P?O??',
-          D: 'SO?',
+          C: 'P₄O₁₀',
+          D: 'SO₃',
         }
       },
       {
@@ -1749,7 +1749,7 @@
       {
         number: 84,
         code: '9701_s18_qp_11 Q: 10',
-        prompt: 'Element X has a higher first ionisation energy than element Y. Only one student explanation is correct.<br><br><strong>student 1</strong>: �X has a higher first ionisation energy because an atom of X has more protons in its nucleus than an atom of Y.�<br><strong>student 2</strong>: �X has a higher first ionisation energy because X has a smaller atomic radius than Y.�<br><br>What could X and Y be?',
+        prompt: 'Element X has a higher first ionisation energy than element Y. Only one student explanation is correct.<br><br><strong>student 1</strong>: “X has a higher first ionisation energy because an atom of X has more protons in its nucleus than an atom of Y.”<br><strong>student 2</strong>: “X has a higher first ionisation energy because X has a smaller atomic radius than Y.”<br><br>What could X and Y be?',
         optionTable: {
           headers: ['X', 'Y'],
           rows: [
@@ -1821,7 +1821,7 @@
       const update = () => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         const remaining = Math.max(TEST_DURATION_SECONDS - elapsed, 0);
-        timerEl.textContent = `? Time remaining: ${formatTimer(remaining)}`;
+        timerEl.textContent = `⏳ Time remaining: ${formatTimer(remaining)}`;
         if (remaining === 0) {
           timerEl.classList.add('timer-expired');
           clearInterval(timerInterval);
@@ -2002,13 +2002,13 @@
         console.error(error);
         if (error.message && (error.message.includes('duplicate') || error.message.includes('unique') || error.message.includes('already exists'))) {
           hasSubmitted = true;
-          btn.textContent = '? Already Submitted';
-          status.textContent = '?? You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
+          btn.textContent = '✓ Already Submitted';
+          status.textContent = '⚠️ You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
           document.querySelectorAll('input').forEach(i => i.disabled = true);
           lockQuestions();
           return;
         }
-        status.textContent = '? Failed to submit. Please try again.';
+        status.textContent = '❌ Failed to submit. Please try again.';
         btn.disabled = false;
         return;
       }
@@ -2023,14 +2023,14 @@
         }));
 
         document.querySelectorAll('input').forEach(i => i.disabled = true);
-        btn.textContent = '? Submitted';
-        status.textContent = isForced ? `?? Auto-submitted: ${autoSubmitReason}` : '? Submitted successfully! Your teacher will release your score soon.';
+        btn.textContent = '✓ Submitted';
+        status.textContent = isForced ? `⚠️ Auto-submitted: ${autoSubmitReason}` : '✅ Submitted successfully! Your teacher will release your score soon.';
 
         const scoreDiv = document.getElementById('score');
         scoreDiv.style.display = 'block';
       lockQuestions();
       stopTimer();
-        scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+        scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
         scoreDiv.className = 'score-box pending';
 
         try {
@@ -2061,7 +2061,7 @@
         stopTimer();
         document.querySelectorAll('input').forEach(i => i.disabled = true);
         const btn = document.getElementById('submitBtn');
-        btn.textContent = '? Submitted';
+        btn.textContent = '✓ Submitted';
         btn.disabled = true;
         const status = document.getElementById('status');
         status.textContent = data.submittedAt
@@ -2112,10 +2112,6 @@
           document.querySelectorAll('input').forEach(i => i.disabled = false);
           unlockQuestions();
           
-                    // Re-show anti-cheat modal and restart timer gating
-          timerStarted = false;
-          antiCheatAcknowledged = false;
-          startTimerIfReady();
           return;
         }
 
@@ -2177,10 +2173,6 @@
             console.error('Failed to notify parent of test deletion:', e);
           }
           
-          // Reset anti-cheat state so modal shows again
-          timerStarted = false;
-          antiCheatAcknowledged = false;
-          startTimerIfReady();
           return;
         }
 
@@ -2190,20 +2182,20 @@
         
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` � ?? Time: ${formatTimer(data.time_taken_seconds)}`
+            ? ` • ⏱️ Time: ${formatTimer(data.time_taken_seconds)}`
             : '';
-          scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
+          scoreDiv.textContent = `✅ Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
           hideTimer();
           const responses = (data.answers && typeof data.answers === "string" ? JSON.parse(data.answers) : data.answers)?.responses || {};
           applyReviewMode(responses);
         } else {
-          scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+          scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
           scoreDiv.className = 'score-box pending';
         }
       } catch (err) {
         console.error('Failed to check score release status:', err);
-        scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+        scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
         scoreDiv.className = 'score-box pending';
       }
     }
@@ -2250,8 +2242,6 @@
     function acknowledgeAntiCheat() {
       antiCheatAcknowledged = true;
       closeAntiCheatModal();
-      // Show questions now that anti-cheat is acknowledged
-      unlockQuestions();
       startTimerIfReady();
     }
 
@@ -2260,7 +2250,6 @@
       const overlay = document.getElementById('primeOverlay');
       if (overlay && !overlay.classList.contains('hidden')) return;
       if (!antiCheatAcknowledged) {
-        lockQuestions();
         openAntiCheatModal();
         return;
       }
@@ -2308,10 +2297,10 @@
         const review = document.createElement('div');
         review.className = 'review-answer';
         if (studentAnswer && studentAnswer === correctAnswer) {
-          review.textContent = `? Correct: ${correctAnswer}`;
+          review.textContent = `✅ Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `? Your answer: ${studentAnswer || '�'} | ? Correct: ${correctAnswer}`;
+          review.textContent = `❌ Your answer: ${studentAnswer || '—'} | ✅ Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -2360,7 +2349,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('�')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('•')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -2406,7 +2395,7 @@
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test � auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
         }
       });
     });

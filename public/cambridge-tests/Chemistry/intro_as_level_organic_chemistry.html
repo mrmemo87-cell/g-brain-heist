@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -552,10 +552,10 @@
   <!--
   <div class="prime-overlay" id="primeOverlay">
     <div class="prime-card">
-      <div class="prime-icon">??</div>
+      <div class="prime-icon">👑</div>
       <h2 class="prime-title">GET PRIME</h2>
       <p class="prime-subtitle">This AS Chemistry content is exclusive to Prime members. Upgrade to unlock all advanced materials.</p>
-      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">? Upgrade to Prime</button>
+      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">✨ Upgrade to Prime</button>
       <div class="prime-divider">or enter activation code</div>
       <input type="text" class="prime-code-input" id="primeCodeInput" placeholder="Enter code..." autocomplete="off" />
       <button class="prime-unlock-btn" id="primeUnlockBtn">Unlock</button>
@@ -570,22 +570,22 @@
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
         <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch13 ( An introduction to AS Level organic chemistry )</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 13 � 76 multiple-choice questions</div>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 13 • 76 multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
-      <span class="badge">?? Category: Science</span>
-      <span class="badge">?? Difficulty: Advanced</span>
-      <span class="badge">?? Format: Multiple Choice (A�D)</span>
+      <span class="badge">🧪 Category: Science</span>
+      <span class="badge">🎯 Difficulty: Advanced</span>
+      <span class="badge">📝 Format: Multiple Choice (A–D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
 
     <div class="status">
-      ? Auto-marked: your score stays hidden until your teacher releases it.
+      ✅ Auto-marked: your score stays hidden until your teacher releases it.
     </div>
-    <div id="timer" class="timer-box floating">? Time remaining: 00:00</div>
+    <div id="timer" class="timer-box floating">⏳ Time remaining: 00:00</div>
 
 
     <div class="student-info">
@@ -593,7 +593,7 @@
       <input type="text" id="studentClass" placeholder="Class / Batch" autocomplete="section" />
     </div>
 
-    <div id="questions" class="hidden"></div>
+    <div id="questions"></div>
 
     <div class="submit-area">
       <button id="submitBtn">Submit Answers</button>
@@ -622,14 +622,14 @@
         <li>Stay on this tab. The first violation triggers a warning.</li>
         <li>Three violations (tab switches, copying, etc.) will auto-submit your test.</li>
         <li>Copying and cutting are disabled during the test.</li>
-        <li>Your timer starts only after you click �I understand�.</li>
+        <li>Your timer starts only after you click “I understand”.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
       </div>
     </div>
   </div>
-  <div id="antiCheatToast" class="anti-cheat-toast">?? Tab switching detected. Please stay on this test.</div>
+  <div id="antiCheatToast" class="anti-cheat-toast">⚠️ Tab switching detected. Please stay on this test.</div>
 
   <script>
     // Supabase helpers (fetch-based, no external SDK)
@@ -761,11 +761,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} � Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} � ${totalQuestions} questions`;
-      if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
-      if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
-      document.title = `${title} � Part ${part}`;
+      if (titleEl) titleEl.textContent = `${title} — Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} • ${totalQuestions} questions`;
+      if (timeBadge) timeBadge.textContent = `⏱️ Suggested time: ${formatDuration(durationSeconds)}`;
+      if (partBadge) partBadge.textContent = `📌 Part ${part} of 2`;
+      document.title = `${title} — Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -864,14 +864,14 @@
       {
         number: 7,
         code: '9701_m18_qp_12 Q: 23',
-        prompt: 'Which compound reacts with 2,4-dinitrophenylhydrazine reagent but does not react with Tollens� reagent?',
+        prompt: 'Which compound reacts with 2,4-dinitrophenylhydrazine reagent but does not react with Tollens’ reagent?',
         simpleOptions: {
           A: 'CH<sub>3</sub>COCO<sub>2</sub>H',
           B: 'CH<sub>3</sub>CH(OH)CHO',
           C: 'CH<sub>3</sub>COCHO',
           D: 'CH<sub>3</sub>CH(OH)CH<sub>3</sub>',
         },
-        explanation: '2,4-DNPH reacts with carbonyls, but Tollens� reacts with aldehydes. A is a ketone, so it reacts with DNPH but not Tollens� reagent.'
+        explanation: '2,4-DNPH reacts with carbonyls, but Tollens’ reacts with aldehydes. A is a ketone, so it reacts with DNPH but not Tollens’ reagent.'
       },
       {
         number: 8,
@@ -883,7 +883,7 @@
           C: 'HCO<sub>2</sub>CH<sub>3</sub>',
           D: 'HCO<sub>2</sub>H',
         },
-        explanation: 'Formic acid (HCO2H) can hydrogen-bond strongly through its O�H group.'
+        explanation: 'Formic acid (HCO2H) can hydrogen-bond strongly through its O–H group.'
       },
       {
         number: 9,
@@ -977,19 +977,19 @@
         code: '9701_w17_qp_11 Q: 24',
         prompt: 'Which organic reaction is an example of nucleophilic substitution?',
         simpleOptions: {
-          A: 'CH<sub>3</sub>CH<sub>2</sub>Br + NaOH > CH<sub>2</sub>=CH<sub>2</sub> + H<sub>2</sub>O + NaBr',
-          B: 'CH<sub>3</sub>CH<sub>2</sub>Br + NaOH > CH<sub>3</sub>CH<sub>2</sub>OH + NaBr',
-          C: 'CH<sub>2</sub>=CH<sub>2</sub> + HCl > C<sub>2</sub>H<sub>5</sub>Cl',
-          D: 'C<sub>2</sub>H<sub>6</sub> + Cl<sub>2</sub> > C<sub>2</sub>H<sub>5</sub>Cl + HCl',
+          A: 'CH<sub>3</sub>CH<sub>2</sub>Br + NaOH → CH<sub>2</sub>=CH<sub>2</sub> + H<sub>2</sub>O + NaBr',
+          B: 'CH<sub>3</sub>CH<sub>2</sub>Br + NaOH → CH<sub>3</sub>CH<sub>2</sub>OH + NaBr',
+          C: 'CH<sub>2</sub>=CH<sub>2</sub> + HCl → C<sub>2</sub>H<sub>5</sub>Cl',
+          D: 'C<sub>2</sub>H<sub>6</sub> + Cl<sub>2</sub> → C<sub>2</sub>H<sub>5</sub>Cl + HCl',
         },
-        explanation: 'Reaction B replaces Br with OH?, which is nucleophilic substitution.'
+        explanation: 'Reaction B replaces Br with OH−, which is nucleophilic substitution.'
       },
       {
         number: 17,
         code: '9701_s21_qp_12 Q: 3',
         prompt: 'The structures represent three compounds, each with four carbon atoms per molecule.<br><div style="margin: 12px 0; padding: 12px; border: 1px dashed var(--border); border-radius: 10px; color: var(--text-muted); font-size: 13px;">Diagram omitted.</div>Which row is correct?',
         table: {
-          headers: ['lowest boiling point', '>', 'highest boiling point'],
+          headers: ['lowest boiling point', '→', 'highest boiling point'],
           rows: [
             { label: 'A', values: ['X', 'Y', 'Z'] },
             { label: 'B', values: ['Y', 'X', 'Z'] },
@@ -1006,13 +1006,13 @@
         table: {
           headers: ['x', 'y', 'z'],
           rows: [
-            { label: 'A', values: ['90�', '90�', '109�'] },
-            { label: 'B', values: ['120�', '109�', '90�'] },
-            { label: 'C', values: ['120�', '120�', '109�'] },
-            { label: 'D', values: ['180�', '109�', '109�'] },
+            { label: 'A', values: ['90°', '90°', '109°'] },
+            { label: 'B', values: ['120°', '109°', '90°'] },
+            { label: 'C', values: ['120°', '120°', '109°'] },
+            { label: 'D', values: ['180°', '109°', '109°'] },
           ]
         },
-        explanation: 'The C=C atoms are trigonal planar (~120�) and the sp3 carbon is tetrahedral (~109�).'
+        explanation: 'The C=C atoms are trigonal planar (~120°) and the sp3 carbon is tetrahedral (~109°).'
       },
       {
         number: 19,
@@ -1021,13 +1021,13 @@
         table: {
           headers: ['shape', 'bonds present'],
           rows: [
-            { label: 'A', values: ['ammonia: pyramidal / ammonium: regular tetrahedral', 'ammonia: ? / ammonium: ?'] },
-            { label: 'B', values: ['ammonia: pyramidal / ammonium: regular tetrahedral', 'ammonia: ? / ammonium: ?'] },
-            { label: 'C', values: ['ammonia: regular tetrahedral / ammonium: pyramidal', 'ammonia: ? / ammonium: ?'] },
-            { label: 'D', values: ['ammonia: regular tetrahedral / ammonium: pyramidal', 'ammonia: ? / ammonium: ?'] },
+            { label: 'A', values: ['ammonia: pyramidal / ammonium: regular tetrahedral', 'ammonia: σ / ammonium: σ'] },
+            { label: 'B', values: ['ammonia: pyramidal / ammonium: regular tetrahedral', 'ammonia: σ / ammonium: π'] },
+            { label: 'C', values: ['ammonia: regular tetrahedral / ammonium: pyramidal', 'ammonia: σ / ammonium: σ'] },
+            { label: 'D', values: ['ammonia: regular tetrahedral / ammonium: pyramidal', 'ammonia: π / ammonium: σ'] },
           ]
         },
-        explanation: 'NH3 is pyramidal with ? bonds only; NH4+ is tetrahedral with ? bonds only.'
+        explanation: 'NH3 is pyramidal with σ bonds only; NH4+ is tetrahedral with σ bonds only.'
       },
       {
         number: 20,
@@ -1072,7 +1072,7 @@
             { label: 'D', values: ['120', '120', '109.5'] },
           ]
         },
-        explanation: 'Angle 1 is around an sp2 carbon (~120�), angle 2 is around an amine (~107�), angle 3 is tetrahedral (~109.5�).'
+        explanation: 'Angle 1 is around an sp2 carbon (~120°), angle 2 is around an amine (~107°), angle 3 is tetrahedral (~109.5°).'
       },
       {
         number: 23,
@@ -1089,26 +1089,26 @@
       {
         number: 24,
         code: '9701_w19_qp_12 Q: 20',
-        prompt: 'Structural isomerism and stereoisomerism should be considered when answering this question.<br><br>How many isomers with the formula C<sub>5</sub>H<sub>8</sub> have structures that involve ? bonding?',
+        prompt: 'Structural isomerism and stereoisomerism should be considered when answering this question.<br><br>How many isomers with the formula C<sub>5</sub>H<sub>8</sub> have structures that involve π bonding?',
         simpleOptions: {
           A: '3',
           B: '4',
           C: '5',
           D: '6',
         },
-        explanation: 'Counting the alkyne and diene stereoisomers that include ? bonds gives five isomers.'
+        explanation: 'Counting the alkyne and diene stereoisomers that include π bonds gives five isomers.'
       },
       {
         number: 25,
         code: '9701_w18_qp_12 Q: 21',
-        prompt: 'The diagram shows a molecule that has ? bonds and ? bonds.<br><div style="margin: 12px 0; padding: 12px; border: 1px dashed var(--border); border-radius: 10px; color: var(--text-muted); font-size: 13px;">Diagram omitted.</div>How many ? bonds are present in this molecule?',
+        prompt: 'The diagram shows a molecule that has σ bonds and π bonds.<br><div style="margin: 12px 0; padding: 12px; border: 1px dashed var(--border); border-radius: 10px; color: var(--text-muted); font-size: 13px;">Diagram omitted.</div>How many σ bonds are present in this molecule?',
         simpleOptions: {
           A: '15',
           B: '17',
           C: '18',
           D: '21',
         },
-        explanation: 'Counting all single bonds plus one ? bond per double bond gives 18 ? bonds.'
+        explanation: 'Counting all single bonds plus one σ bond per double bond gives 18 σ bonds.'
       },
       {
         number: 26,
@@ -1117,10 +1117,10 @@
         table: {
           headers: ['x', 'y', 'z'],
           rows: [
-            { label: 'A', values: ['90�', '90�', '109�'] },
-            { label: 'B', values: ['120�', '109�', '90�'] },
-            { label: 'C', values: ['120�', '120�', '109�'] },
-            { label: 'D', values: ['180�', '109�', '109�'] },
+            { label: 'A', values: ['90°', '90°', '109°'] },
+            { label: 'B', values: ['120°', '109°', '90°'] },
+            { label: 'C', values: ['120°', '120°', '109°'] },
+            { label: 'D', values: ['180°', '109°', '109°'] },
           ]
         },
         explanation: 'The alkene carbons are trigonal planar and the sp3 carbon is tetrahedral.'
@@ -1130,7 +1130,7 @@
         code: '9701_w16_qp_11 Q: 6',
         prompt: 'Histamine is produced in the body to help fight infection. Its shape allows it to fit into receptors which expand blood vessels.<br><div style="margin: 12px 0; padding: 12px; border: 1px dashed var(--border); border-radius: 10px; color: var(--text-muted); font-size: 13px;">Diagram omitted.</div>What are the bond angles x, y and z in histamine, from the smallest to the largest?',
         table: {
-          headers: ['smallest bond angle > largest bond angle'],
+          headers: ['smallest bond angle → largest bond angle'],
           rows: [
             { label: 'A', values: ['x', 'y', 'z'] },
             { label: 'B', values: ['y', 'x', 'z'] },
@@ -1407,9 +1407,9 @@
       {
         number: 49,
         code: '9701_s19_qp_11 Q: 20',
-        prompt: 'The diagrams show two different compounds.<br><div style="margin: 12px 0; padding: 12px; border: 1px dashed var(--border); border-radius: 10px; color: var(--text-muted); font-size: 13px;">Diagram omitted.</div>What is the total number of structural isomers, including compound 2, that could be formed by adding a second methyl group to the ring of compound 1, and the number of ? electrons in each compound?',
+        prompt: 'The diagrams show two different compounds.<br><div style="margin: 12px 0; padding: 12px; border: 1px dashed var(--border); border-radius: 10px; color: var(--text-muted); font-size: 13px;">Diagram omitted.</div>What is the total number of structural isomers, including compound 2, that could be formed by adding a second methyl group to the ring of compound 1, and the number of π electrons in each compound?',
         table: {
-          headers: ['number of isomers', 'number of ? electrons'],
+          headers: ['number of isomers', 'number of π electrons'],
           rows: [
             { label: 'A', values: ['3', '2'] },
             { label: 'B', values: ['3', '4'] },
@@ -1417,7 +1417,7 @@
             { label: 'D', values: ['5', '4'] },
           ]
         },
-        explanation: 'There are five distinct positional isomers, and each compound has two ? bonds (four ? electrons).' 
+        explanation: 'There are five distinct positional isomers, and each compound has two π bonds (four π electrons).' 
       },
       {
         number: 50,
@@ -1521,7 +1521,7 @@
       {
         number: 58,
         code: '9701_m17_qp_12 Q: 20',
-        prompt: 'Structural isomerism and stereoisomerism should be considered when answering this question.<br><br>How many isomers with the formula C<sub>4</sub>H<sub>8</sub> have structures that contain a ? bond?',
+        prompt: 'Structural isomerism and stereoisomerism should be considered when answering this question.<br><br>How many isomers with the formula C<sub>4</sub>H<sub>8</sub> have structures that contain a π bond?',
         simpleOptions: {
           A: '1',
           B: '2',
@@ -1629,9 +1629,9 @@
       {
         number: 67,
         code: '9701_s16_qp_11 Q: 20',
-        prompt: 'The diagrams show two different compounds.<br><div style="margin: 12px 0; padding: 12px; border: 1px dashed var(--border); border-radius: 10px; color: var(--text-muted); font-size: 13px;">Diagram omitted.</div>What is the total number of structural isomers, including compound 2, that could be formed by adding a second methyl group to the ring of compound 1, and the number of ? electrons in each compound?',
+        prompt: 'The diagrams show two different compounds.<br><div style="margin: 12px 0; padding: 12px; border: 1px dashed var(--border); border-radius: 10px; color: var(--text-muted); font-size: 13px;">Diagram omitted.</div>What is the total number of structural isomers, including compound 2, that could be formed by adding a second methyl group to the ring of compound 1, and the number of π electrons in each compound?',
         table: {
-          headers: ['number of isomers', 'number of ? electrons'],
+          headers: ['number of isomers', 'number of π electrons'],
           rows: [
             { label: 'A', values: ['3', '2'] },
             { label: 'B', values: ['3', '4'] },
@@ -1639,19 +1639,19 @@
             { label: 'D', values: ['5', '4'] },
           ]
         },
-        explanation: 'There are five positional isomers, and two double bonds give four ? electrons.'
+        explanation: 'There are five positional isomers, and two double bonds give four π electrons.'
       },
       {
         number: 68,
         code: '9701_w16_qp_11 Q: 20',
-        prompt: 'In 1865 Kekule suggested a ring structure for benzene, C<sub>6</sub>H<sub>6</sub>, in which a hydrogen atom is attached to each carbon atom. In this structure all of the bonds remain in the places shown. Assuming this is the structure of benzene, how many isomers of dichlorobenzene, C<sub>6</sub>H<sub>4</sub>Cl<sub>2</sub>, would exist?',
+        prompt: 'In 1865 Kekulé suggested a ring structure for benzene, C<sub>6</sub>H<sub>6</sub>, in which a hydrogen atom is attached to each carbon atom. In this structure all of the bonds remain in the places shown. Assuming this is the structure of benzene, how many isomers of dichlorobenzene, C<sub>6</sub>H<sub>4</sub>Cl<sub>2</sub>, would exist?',
         simpleOptions: {
           A: '3',
           B: '4',
           C: '5',
           D: '6',
         },
-        explanation: 'The Kekule structure gives four distinct positions for two chlorines.'
+        explanation: 'The Kekulé structure gives four distinct positions for two chlorines.'
       },
       {
         number: 69,
@@ -1680,7 +1680,7 @@
       {
         number: 71,
         code: '9701_w16_qp_12 Q: 30',
-        prompt: 'Some vegetable oils contain �trans fats� that are associated with undesirable increases in the amount of cholesterol in the blood. In these oils the word �trans� describes, in the usual way, the arrangement of groups at a C=C double bond. In the diagrams below, R<sub>1</sub> and R<sub>2</sub> are different unbranched hydrocarbon chains.<br><div style="margin: 12px 0; padding: 12px; border: 1px dashed var(--border); border-radius: 10px; color: var(--text-muted); font-size: 13px;">Diagram omitted.</div>Which diagram correctly shows an optically active �trans fat�?',
+        prompt: 'Some vegetable oils contain “trans fats” that are associated with undesirable increases in the amount of cholesterol in the blood. In these oils the word “trans” describes, in the usual way, the arrangement of groups at a C=C double bond. In the diagrams below, R<sub>1</sub> and R<sub>2</sub> are different unbranched hydrocarbon chains.<br><div style="margin: 12px 0; padding: 12px; border: 1px dashed var(--border); border-radius: 10px; color: var(--text-muted); font-size: 13px;">Diagram omitted.</div>Which diagram correctly shows an optically active “trans fat”?',
         simpleOptions: {
           A: 'A',
           B: 'B',
@@ -1704,7 +1704,7 @@
       {
         number: 73,
         code: '9701_s15_qp_13 Q: 27',
-        prompt: 'The compound aspartame is widely used as a sweetener in �diet� soft drinks.<br><div style="margin: 12px 0; padding: 12px; border: 1px dashed var(--border); border-radius: 10px; color: var(--text-muted); font-size: 13px;">Diagram omitted.</div>Aspartame is chiral. (There are no chiral carbon atoms in C<sub>6</sub>H<sub>5</sub>.) How many chiral carbon atoms are present in a molecule of aspartame?',
+        prompt: 'The compound aspartame is widely used as a sweetener in “diet” soft drinks.<br><div style="margin: 12px 0; padding: 12px; border: 1px dashed var(--border); border-radius: 10px; color: var(--text-muted); font-size: 13px;">Diagram omitted.</div>Aspartame is chiral. (There are no chiral carbon atoms in C<sub>6</sub>H<sub>5</sub>.) How many chiral carbon atoms are present in a molecule of aspartame?',
         simpleOptions: {
           A: '1',
           B: '2',
@@ -1862,7 +1862,7 @@
       const update = () => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         const remaining = Math.max(TEST_DURATION_SECONDS - elapsed, 0);
-        timerEl.textContent = `? Time remaining: ${formatTimer(remaining)}`;
+        timerEl.textContent = `⏳ Time remaining: ${formatTimer(remaining)}`;
         if (remaining === 0) {
           timerEl.classList.add('timer-expired');
           clearInterval(timerInterval);
@@ -2010,7 +2010,7 @@
       document.querySelectorAll('input').forEach(i => i.disabled = true);
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
-      btn.textContent = '? Submitted';
+      btn.textContent = '✓ Submitted';
       const status = document.getElementById('status');
       status.textContent = `You submitted this test on ${new Date(data.submittedAt).toLocaleString()}.`;
       const scoreDiv = document.getElementById('score');
@@ -2059,10 +2059,6 @@
           document.querySelectorAll('input').forEach(i => i.disabled = false);
           unlockQuestions();
           
-                    // Re-show anti-cheat modal and restart timer gating
-          timerStarted = false;
-          antiCheatAcknowledged = false;
-          startTimerIfReady();
           return;
         }
 
@@ -2126,10 +2122,6 @@
             console.error('Failed to notify parent of test deletion:', e);
           }
           
-          // Reset anti-cheat state so modal shows again
-          timerStarted = false;
-          antiCheatAcknowledged = false;
-          startTimerIfReady();
           return;
         }
 
@@ -2139,20 +2131,20 @@
         
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` � ?? Time: ${formatTimer(data.time_taken_seconds)}`
+            ? ` • ⏱️ Time: ${formatTimer(data.time_taken_seconds)}`
             : '';
-          scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
+          scoreDiv.textContent = `✅ Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
           hideTimer();
           const responses = (data.answers && typeof data.answers === "string" ? JSON.parse(data.answers) : data.answers)?.responses || {};
           applyReviewMode(responses);
         } else {
-          scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+          scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
           scoreDiv.className = 'score-box pending';
         }
       } catch (err) {
         console.error('Failed to check score release status:', err);
-        scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+        scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
         scoreDiv.className = 'score-box pending';
       }
     }
@@ -2188,7 +2180,7 @@
         if (isForced) {
           name = 'Unknown Student';
         } else {
-          status.textContent = '?? Please enter your name.';
+          status.textContent = '⚠️ Please enter your name.';
           return;
         }
       }
@@ -2196,7 +2188,7 @@
         if (isForced) {
           cls = 'Unknown Class';
         } else {
-          status.textContent = '?? Please enter your class.';
+          status.textContent = '⚠️ Please enter your class.';
           return;
         }
       }
@@ -2212,7 +2204,7 @@
       const result = calculateScore(responses);
 
       btn.disabled = true;
-      status.textContent = '?? Submitting...';
+      status.textContent = '📤 Submitting...';
 
       const payload = {
         student_name: name,
@@ -2235,13 +2227,13 @@
         console.error(error);
         if (error.message && (error.message.includes('duplicate') || error.message.includes('unique') || error.message.includes('already exists'))) {
           hasSubmitted = true;
-          btn.textContent = '? Already Submitted';
-          status.textContent = '?? You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
+          btn.textContent = '✓ Already Submitted';
+          status.textContent = '⚠️ You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
           document.querySelectorAll('input').forEach(i => i.disabled = true);
           lockQuestions();
           return;
         }
-        status.textContent = '? Failed to submit. Please try again.';
+        status.textContent = '❌ Failed to submit. Please try again.';
         btn.disabled = false;
         return;
       }
@@ -2257,13 +2249,13 @@
       }));
 
       document.querySelectorAll('input').forEach(i => i.disabled = true);
-      btn.textContent = '? Submitted';
-      status.textContent = isForced ? `?? Auto-submitted: ${autoSubmitReason}` : '? Submitted successfully! Your teacher will release your score soon.';
+      btn.textContent = '✓ Submitted';
+      status.textContent = isForced ? `⚠️ Auto-submitted: ${autoSubmitReason}` : '✅ Submitted successfully! Your teacher will release your score soon.';
 
       const scoreDiv = document.getElementById('score');
       scoreDiv.style.display = 'block';
       lockQuestions();
-      scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+      scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
       scoreDiv.className = 'score-box pending';
 
       try {
@@ -2323,8 +2315,6 @@
     function acknowledgeAntiCheat() {
       antiCheatAcknowledged = true;
       closeAntiCheatModal();
-      // Show questions now that anti-cheat is acknowledged
-      unlockQuestions();
       startTimerIfReady();
     }
 
@@ -2333,7 +2323,6 @@
       const overlay = document.getElementById('primeOverlay');
       if (overlay && !overlay.classList.contains('hidden')) return;
       if (!antiCheatAcknowledged) {
-        lockQuestions();
         openAntiCheatModal();
         return;
       }
@@ -2381,10 +2370,10 @@
         const review = document.createElement('div');
         review.className = 'review-answer';
         if (studentAnswer && studentAnswer === correctAnswer) {
-          review.textContent = `? Correct: ${correctAnswer}`;
+          review.textContent = `✅ Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `? Your answer: ${studentAnswer || '�'} | ? Correct: ${correctAnswer}`;
+          review.textContent = `❌ Your answer: ${studentAnswer || '—'} | ✅ Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -2433,7 +2422,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('�')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('•')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -2479,7 +2468,7 @@
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test � auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
         }
       });
     });
