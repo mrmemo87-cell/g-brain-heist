@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   createCheckoutSession,
   startPilot,
+  fetchSchoolPlanDetails,
   PAID_PLANS,
   PILOT_PLAN,
   PRO_FEATURES,
@@ -28,6 +29,22 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
   const [interval, setInterval] = useState<'monthly' | 'yearly'>('yearly');
   const [loading, setLoading] = useState<string | null>(null); // plan id being processed
   const [error, setError] = useState<string | null>(null);
+  const [pilotAlreadyUsed, setPilotAlreadyUsed] = useState(false);
+  const [planLoading, setPlanLoading] = useState(true);
+
+  // Fetch plan details when modal opens to determine pilot eligibility
+  useEffect(() => {
+    if (!isOpen) {
+      setPlanLoading(true);
+      return;
+    }
+    fetchSchoolPlanDetails().then((details) => {
+      // Pilot was already used if trial_ends_at was ever set, or school is currently on pilot
+      const alreadyUsed = details.plan === 'pilot' || details.trial_ends_at !== null;
+      setPilotAlreadyUsed(alreadyUsed);
+      setPlanLoading(false);
+    }).catch(() => setPlanLoading(false));
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -102,7 +119,8 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
           {/* Title */}
           <div className="mb-5 text-center">
             <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-4 py-1.5 text-sm font-semibold text-emerald-300">
-              🧠 Brain Heist
+              <img src="/logo.png" alt="Brains Heist" className="h-5 w-5 object-contain" />
+              Brains Heist
             </div>
             <h2 className="text-xl font-bold text-white sm:text-2xl">
               Choose Your School Plan
@@ -116,31 +134,50 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
           </div>
 
           {/* Pilot banner */}
-          <div className="mb-5 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2 text-sm font-semibold text-cyan-300">
-                  🚀 {PILOT_PLAN.label} — {PILOT_PLAN.days} Days Free
+          {!planLoading && (
+            <div className={`mb-5 rounded-2xl border p-4 ${
+              pilotAlreadyUsed
+                ? 'border-slate-700/40 bg-slate-800/20'
+                : 'border-cyan-500/20 bg-cyan-500/5'
+            }`}>
+              {pilotAlreadyUsed ? (
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2 text-sm font-semibold text-slate-300">
+                      Free Pilot Trial — Already Used
+                    </div>
+                    <p className="mt-1 text-xs text-slate-500">
+                      Your school has already completed its free pilot trial. Subscribe to a plan below to restore full access.
+                    </p>
+                  </div>
                 </div>
-                <p className="mt-1 text-xs text-slate-400">
-                  {PILOT_PLAN.seats.cambridge} Cambridge · {PILOT_PLAN.seats.ielts} IELTS · {PILOT_PLAN.seats.game} Game seats
-                </p>
-              </div>
-              <button
-                onClick={handleStartPilot}
-                disabled={loading !== null}
-                className="shrink-0 rounded-xl bg-cyan-500/20 border border-cyan-500/30 px-5 py-2.5 text-sm font-semibold text-cyan-200 transition-all hover:bg-cyan-500/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading === 'pilot' ? (
-                  <span className="flex items-center gap-2">
-                    <Spinner /> Starting…
-                  </span>
-                ) : (
-                  'Start Free Pilot'
-                )}
-              </button>
+              ) : (
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2 text-sm font-semibold text-cyan-300">
+                      🚀 {PILOT_PLAN.label} — {PILOT_PLAN.days} Days Free
+                    </div>
+                    <p className="mt-1 text-xs text-slate-400">
+                      {PILOT_PLAN.seats.cambridge} Cambridge · {PILOT_PLAN.seats.ielts} IELTS · {PILOT_PLAN.seats.game} Game seats
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleStartPilot}
+                    disabled={loading !== null}
+                    className="shrink-0 rounded-xl bg-cyan-500/20 border border-cyan-500/30 px-5 py-2.5 text-sm font-semibold text-cyan-200 transition-all hover:bg-cyan-500/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading === 'pilot' ? (
+                      <span className="flex items-center gap-2">
+                        <Spinner /> Starting…
+                      </span>
+                    ) : (
+                      'Start Free Pilot'
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
-          </div>
+          )}
 
           {/* Interval toggle */}
           <div className="mb-4 flex justify-center">

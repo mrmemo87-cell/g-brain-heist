@@ -6,7 +6,6 @@ import * as AuthService from '../services/authService';
 import * as SchoolAdminService from '../services/schoolAdminService';
 import { supabase } from '../services/supabaseClient';
 import BackButton from './BackButton';
-import BrainsLoader from './BrainsLoader';
 import DiagramBuilder from './geometry/DiagramBuilder';
 import QuestionBank from './teacher/QuestionBank';
 import '../src/styles/teacher-theme.css';
@@ -6913,7 +6912,11 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
   };
 
   if (loading) {
-    return <BrainsLoader message="Loading Teacher Portal..." size={200} />;
+    return (
+      <div className="teacher-loading" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <img src="/BRAINS.svg" alt="Loading..." style={{ width: '200px', height: '200px', filter: 'drop-shadow(0 0 30px rgba(0, 212, 255, 0.6))' }} />
+      </div>
+    );
   }
 
   const navTabs: Array<{ id: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge'; label: string; icon: string; description: string; proOnly?: boolean }> = [

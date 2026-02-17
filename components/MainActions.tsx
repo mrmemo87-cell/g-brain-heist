@@ -232,7 +232,7 @@ const MainActions: React.FC<MainActionsProps> = ({
   const handlePilotClick = (featureLabel: string, realHandler?: () => void) => () => {
     const quota = q(featureLabel);
     if (quota?.exhausted) {
-      if (onUpgrade) onUpgrade(`${featureLabel} — pilot quota used up`);
+      if (onUpgrade) onUpgrade(`${featureLabel} — usage limit reached on Pilot plan`);
       return;
     }
     realHandler?.();

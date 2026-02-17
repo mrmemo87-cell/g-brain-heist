@@ -334,7 +334,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
 
   return (
     <>
-      <header className="z-40 border-b border-slate-800/60 bg-slate-950/85 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-slate-800/60 bg-slate-950/85 backdrop-blur">
         <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-2 px-3 py-2 sm:px-4 lg:px-6">
           
           {/* Mobile Layout (< 768px) */}

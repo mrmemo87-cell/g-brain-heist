@@ -176,6 +176,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const bootTimingsRef = useRef<{ firstRender?: number; whoami?: number; nonCritical?: number }>({});
   const criticalAbortRef = useRef<AbortController | null>(null);
   const nonCriticalAbortRef = useRef<AbortController | null>(null);
+  const runNonCriticalLoadsRef = useRef<(targets?: NonCriticalKey[]) => void>(() => {});
   const isCambridgeView = view === 'cambridge';
   const isIeltsOnlyUser =
     profile?.school_name?.trim().toLowerCase() === IELTS_ONLY_SCHOOL_NAME.toLowerCase();
@@ -807,10 +808,15 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     }
   }, [sessionMissing, onLogout]);
 
+  // Keep the ref in sync so the effect below always calls the latest version
+  // without re-firing on every periodic profile refresh (which would flash a skeleton).
+  useEffect(() => { runNonCriticalLoadsRef.current = runNonCriticalLoads; }, [runNonCriticalLoads]);
+
   useEffect(() => {
     if (!isPlayerMode || !profile || !isInteractive) return;
-    runNonCriticalLoads();
-  }, [profile?.id, isInteractive, runNonCriticalLoads, isPlayerMode]);
+    runNonCriticalLoadsRef.current();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id, isInteractive, isPlayerMode]);
 
   useEffect(() => {
     return () => {
@@ -1780,8 +1786,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     <div
       className={
         isLiteMode
-          ? 'relative min-h-screen w-full p-4 md:p-6 lg:p-8 max-w-screen-xl mx-auto lite-mode-wrapper overflow-y-auto'
-          : 'relative min-h-screen overflow-x-hidden overflow-y-auto p-4 md:p-6 lg:p-8 max-w-screen-xl mx-auto'
+          ? 'relative min-h-screen w-full p-4 md:p-6 lg:p-8 max-w-screen-xl mx-auto lite-mode-wrapper'
+          : 'relative min-h-screen p-4 md:p-6 lg:p-8 max-w-screen-xl mx-auto'
       }
     >
       {attackAlert && isPlayerMode && !isTeacherRole && (
