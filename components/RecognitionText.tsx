@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import SignalBreachBg from './SignalBreachBg';
 
 /**
  * RecognitionText – shown once the role peek returns a username.
@@ -20,17 +21,18 @@ export interface RecognitionTextProps {
   gems?: number;
   streak?: number;
   clanName?: string;
+  avatarUrl?: string;
 }
 
 /* ── accent colours for dynamic lines ─────────────────────── */
 const ACCENT_POOL = [
-  '#5eead4', // teal
-  '#22d3ee', // cyan
+  '#44e7d5', // SB cyan
+  '#33d9ff', // bright cyan
+  '#d162ff', // SB magenta
   '#a78bfa', // purple
   '#f472b6', // pink
   '#facc15', // amber
   '#4ade80', // green
-  '#fb923c', // orange
   '#818cf8', // indigo
 ];
 
@@ -188,7 +190,7 @@ const RecognitionText: React.FC<RecognitionTextProps> = (props) => {
 
   useEffect(() => {
     // "You look familiar" is the quick hook, "Are you X?" holds longer so they read it
-    const delay = idx === 0 ? 500 : idx === 1 ? 1800 : 800;
+    const delay = idx === 0 ? 600 : idx === 1 ? 2200 : 1100;
     const id = window.setTimeout(() => setIdx((p) => p + 1), delay);
     return () => clearTimeout(id);
   }, [idx]);
@@ -200,13 +202,13 @@ const RecognitionText: React.FC<RecognitionTextProps> = (props) => {
   else text = dynaLines[(idx - 2) % dynaLines.length];
 
   /* ── pick style for this line ── */
-  const color = idx <= 1 ? '#5eead4' : colorOrder[(idx - 2) % colorOrder.length];
+  const color = idx <= 1 ? '#44e7d5' : colorOrder[(idx - 2) % colorOrder.length];
   const anim = idx === 0 ? 'rcgPunch' : ANIM_POOL[animOrder[idx % animOrder.length]];
-  const pulse = idx <= 1 ? 'Identity sync' : 'Momentum boost';
+  const pulse = idx <= 1 ? 'Signal sync' : 'Signal boost';
 
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-6 text-center">
-      <div className="rounded-full border border-cyan-300/40 bg-cyan-300/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200">
+    <SignalBreachBg avatarUrl={props.avatarUrl}>
+      <div className="rounded-full border px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.22em]" style={{ borderColor: 'rgba(68,231,213,.45)', background: 'rgba(68,231,213,.08)', color: '#d7eeff' }}>
         {pulse}
       </div>
 
@@ -216,19 +218,20 @@ const RecognitionText: React.FC<RecognitionTextProps> = (props) => {
         style={{
           color,
           animation: `${anim} 0.25s cubic-bezier(0.22, 1, 0.36, 1)`,
-          textShadow: '0 0 25px rgba(94, 234, 212, 0.25)',
+          textShadow: '0 0 20px rgba(68,231,213,.22)',
         }}
       >
         {text}
       </p>
 
-      <div className="h-1.5 w-56 overflow-hidden rounded-full bg-white/10">
+      <div className="h-2 w-56 overflow-hidden rounded-full" style={{ background: 'rgba(255,255,255,.10)', border: '1px solid rgba(255,255,255,.08)' }}>
         <div
           key={`bar-${idx}`}
           className="h-full rounded-full"
           style={{
             width: `${20 + ((idx * 19) % 80)}%`,
-            background: 'linear-gradient(90deg, #22d3ee 0%, #a78bfa 50%, #f472b6 100%)',
+            background: 'linear-gradient(90deg, #33d9ff, #44e7d5, #d162ff)',
+            boxShadow: '0 0 16px rgba(68,231,213,.45)',
             transition: 'width 280ms ease-out',
           }}
         />
@@ -270,7 +273,7 @@ const RecognitionText: React.FC<RecognitionTextProps> = (props) => {
           @keyframes rcgFlash  { 0% { opacity: 0 } 100% { opacity: 1 } }
         }
       `}</style>
-    </div>
+    </SignalBreachBg>
   );
 };
 

@@ -155,6 +155,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const [peekedUser, setPeekedUser] = useState<{
     username: string; level?: number; coins?: number;
     gems?: number; streak?: number; clanName?: string;
+    avatarUrl?: string;
   } | null>(null);
   const [recognitionHold, setRecognitionHold] = useState(true);
   const recognitionTimerRef = useRef<number | null>(null);
@@ -556,7 +557,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       try {
         const { data: peekRow, error: peekError } = await supabase
           .from('users')
-          .select('role, username, level, coins, gemstones, streak, clan_name')
+          .select('role, username, level, coins, gemstones, streak, clan_name, avatar_url')
           .eq('id', data.session.user.id)
           .single();
         if (peekError) {
@@ -570,6 +571,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             gems: peekRow.gemstones ?? undefined,
             streak: peekRow.streak ?? undefined,
             clanName: peekRow.clan_name ?? undefined,
+            avatarUrl: peekRow.avatar_url ?? undefined,
           });
         }
         if (peekRow?.role === 'teacher') {
@@ -607,6 +609,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           gems: profileData.gemstones ?? undefined,
           streak: profileData.streak ?? undefined,
           clanName: profileData.clan_name ?? undefined,
+          avatarUrl: profileData.avatar_url ?? undefined,
         });
       }
 

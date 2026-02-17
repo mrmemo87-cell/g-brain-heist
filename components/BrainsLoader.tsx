@@ -51,6 +51,9 @@ const BrainsLoader: React.FC<BrainsLoaderProps> = ({ message, fullScreen = true,
 
   return (
     <div className={loaderClass}>
+      {/* Signal Breach background grid (full-screen only) */}
+      {fullScreen && <div className="sb-grid" aria-hidden="true" />}
+
       {/* Scan-line overlay */}
       <div className="brains-loader__scanlines" aria-hidden />
 
@@ -97,7 +100,7 @@ const BrainsLoader: React.FC<BrainsLoaderProps> = ({ message, fullScreen = true,
           min-height: 100vh;
           width: 100%;
           z-index: 9999;
-          background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0a0a1a 100%);
+          background: radial-gradient(80% 55% at 50% 60%, #0c1530 0%, #070b14 60%);
         }
 
         .brains-loader--inline {
@@ -114,8 +117,8 @@ const BrainsLoader: React.FC<BrainsLoaderProps> = ({ message, fullScreen = true,
             0deg,
             transparent,
             transparent 3px,
-            rgba(0, 212, 255, 0.015) 3px,
-            rgba(0, 212, 255, 0.015) 4px
+            rgba(68, 231, 213, 0.015) 3px,
+            rgba(68, 231, 213, 0.015) 4px
           );
           animation: scanScroll 4s linear infinite;
         }
@@ -130,21 +133,21 @@ const BrainsLoader: React.FC<BrainsLoaderProps> = ({ message, fullScreen = true,
         }
         .brains-loader__image {
           object-fit: contain;
-          filter: drop-shadow(0 0 30px rgba(0, 212, 255, 0.6))
-                  drop-shadow(0 0 60px rgba(255, 0, 255, 0.3));
+          filter: drop-shadow(0 0 30px rgba(68, 231, 213, 0.6))
+                  drop-shadow(0 0 60px rgba(209, 98, 255, 0.3));
           animation: brainsPulse 2s ease-in-out infinite,
                      brainsGlitch 4s step-end infinite;
         }
 
         @keyframes brainsPulse {
           0%, 100% {
-            filter: drop-shadow(0 0 30px rgba(0, 212, 255, 0.6))
-                    drop-shadow(0 0 60px rgba(255, 0, 255, 0.3));
+            filter: drop-shadow(0 0 30px rgba(68, 231, 213, 0.6))
+                    drop-shadow(0 0 60px rgba(209, 98, 255, 0.3));
             transform: scale(1) translateX(0);
           }
           50% {
-            filter: drop-shadow(0 0 50px rgba(0, 212, 255, 0.8))
-                    drop-shadow(0 0 80px rgba(255, 0, 255, 0.5));
+            filter: drop-shadow(0 0 50px rgba(68, 231, 213, 0.8))
+                    drop-shadow(0 0 80px rgba(209, 98, 255, 0.5));
             transform: scale(1.03) translateX(0);
           }
         }
@@ -161,16 +164,18 @@ const BrainsLoader: React.FC<BrainsLoaderProps> = ({ message, fullScreen = true,
         /* ── Progress bar ── */
         .brains-loader__bar-track {
           width: min(280px, 70vw);
-          height: 4px;
-          border-radius: 2px;
-          background: rgba(255, 255, 255, 0.08);
+          height: 8px;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.10);
           overflow: hidden;
+          border: 1px solid rgba(255, 255, 255, 0.08);
         }
         .brains-loader__bar-fill {
           height: 100%;
-          border-radius: 2px;
-          background: linear-gradient(90deg, #00d4ff, #a855f7, #00d4ff);
+          border-radius: 999px;
+          background: linear-gradient(90deg, #33d9ff, #44e7d5, #d162ff);
           background-size: 200% 100%;
+          box-shadow: 0 0 16px rgba(68, 231, 213, 0.45);
           animation: barShimmer 1.6s linear infinite;
           transition: width 0.15s ease-out;
         }
@@ -181,7 +186,7 @@ const BrainsLoader: React.FC<BrainsLoaderProps> = ({ message, fullScreen = true,
 
         /* ── Flavor text ── */
         .brains-loader__flavor {
-          color: #5eead4;
+          color: #44e7d5;
           font-size: 0.85rem;
           font-family: 'IBM Plex Mono', 'Courier New', monospace;
           letter-spacing: 0.06em;
@@ -194,7 +199,7 @@ const BrainsLoader: React.FC<BrainsLoaderProps> = ({ message, fullScreen = true,
         }
 
         .brains-loader__message {
-          color: #7ce7ff;
+          color: #d7eeff;
           font-size: 1.125rem;
           letter-spacing: 0.04em;
           animation: fadeIn 0.8s ease-out;

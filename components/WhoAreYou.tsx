@@ -1,36 +1,28 @@
 import React, { useState, useEffect } from 'react';
+import SignalBreachBg from './SignalBreachBg';
 
 /**
  * WhoAreYou – shown while the app fetches the user's role.
  * Displays animated text that flips through entertaining lines fast enough
  * to keep users reading. Starts with "Who are you?" then cycles through
  * random lines, never repeating the same order twice.
+ *
+ * Wrapped in SignalBreachBg for the perspective-grid / scan-line aesthetic.
  */
 
 const LINES = [
   'Who are you?',
-  'Dopamine boost incoming…',
-  'Checking your clearance level…',
-  'Are you a student or a mastermind?',
+  'Signal breach initiated…',
   'Scanning neural fingerprint…',
-  'Verifying identity…',
-  'Running background check…',
-  'Looking up your dossier…',
-  'Agent or handler? Let me check…',
-  'Peeking at your file…',
-  'Hmmm, interesting…',
-  'Almost got it…',
-  'You look familiar…',
-  'Cross-referencing records…',
+  'Checking your clearance level…',
   'Decrypting your profile…',
-  'Accessing the vault…',
-  'One moment, agent…',
+  'Verifying identity…',
   'Establishing secure channel…',
-  'Your secrets are safe with us…',
-  'Tiny wait. Massive comeback.',
-  'Pulling up your records…',
-  'Identity verification in progress…',
-  'Calibrating victory vibes…',
+  'Cross-referencing records…',
+  'Intercepting data stream…',
+  'Almost got it…',
+  'Stabilizing neural channel…',
+  'One moment, agent…',
 ];
 
 function shuffleFrom(startIdx: number): number[] {
@@ -48,8 +40,8 @@ const WhoAreYou: React.FC = () => {
   const [idx, setIdx] = useState(0);
 
   useEffect(() => {
-    // First line stays 600ms, rest cycle every 900ms
-    const delay = idx === 0 ? 600 : 900;
+    // First line stays 1.2s, rest stay 1.5s each
+    const delay = idx === 0 ? 1200 : 1500;
     const id = window.setTimeout(() => {
       setIdx((prev) => (prev + 1) % order.length);
     }, delay);
@@ -59,17 +51,37 @@ const WhoAreYou: React.FC = () => {
   const line = LINES[order[idx]];
 
   return (
-    <div className="flex items-center justify-center min-h-[60vh]">
+    <SignalBreachBg>
       <p
         key={idx}
-        className="text-center font-heading text-2xl sm:text-3xl tracking-wide"
+        className="text-center font-heading text-2xl sm:text-3xl tracking-wide font-bold"
         style={{
-          color: '#5eead4',
+          color: '#d7eeff',
           animation: 'whoFlip 0.4s ease-out',
+          textShadow: '0 0 18px rgba(68,231,213,.22)',
         }}
       >
         {line}
       </p>
+
+      <div
+        className="w-56 h-2 rounded-full overflow-hidden"
+        style={{
+          background: 'rgba(255,255,255,.10)',
+          border: '1px solid rgba(255,255,255,.08)',
+        }}
+      >
+        <div
+          key={`bar-${idx}`}
+          className="h-full rounded-full"
+          style={{
+            width: `${15 + ((idx * 17) % 85)}%`,
+            background: 'linear-gradient(90deg, #33d9ff, #44e7d5, #d162ff)',
+            boxShadow: '0 0 16px rgba(68,231,213,.45)',
+            transition: 'width 0.5s ease',
+          }}
+        />
+      </div>
 
       <style>{`
         @keyframes whoFlip {
@@ -83,7 +95,7 @@ const WhoAreYou: React.FC = () => {
           }
         }
       `}</style>
-    </div>
+    </SignalBreachBg>
   );
 };
 

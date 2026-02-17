@@ -1589,6 +1589,206 @@ button {
   }
 }
 
+/* ── Signal Breach – loading screen aesthetic ─────────────────────────── */
+.sb-container {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(80% 55% at 50% 60%, #0c1530 0%, #070b14 60%);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+}
+
+/* ── Vignette pulse ── */
+.sb-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 160px 60px rgba(0,0,0,.8);
+  animation: sb-vignette-breathe 4s ease-in-out infinite;
+}
+@keyframes sb-vignette-breathe {
+  0%, 100% { box-shadow: inset 0 0 160px 60px rgba(0,0,0,.8); }
+  50%      { box-shadow: inset 0 0 120px 40px rgba(0,0,0,.55); }
+}
+
+/* ── Spinning outer ring (conic gradient) ── */
+.sb-spinner {
+  width: 210px;
+  height: 210px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    #44e7d5 60deg,
+    #d162ff 180deg,
+    transparent 300deg
+  );
+  padding: 2px;
+  -webkit-mask:
+    radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
+  mask:
+    radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
+  animation: sb-spin 2.5s linear infinite;
+  position: absolute;
+  filter: blur(0.5px) drop-shadow(0 0 12px rgba(68,231,213,.5));
+}
+@keyframes sb-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Horizontal scan beam ── */
+.sb-beam {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(68,231,213,.15) 20%,
+    rgba(68,231,213,.6) 50%,
+    rgba(68,231,213,.15) 80%,
+    transparent 100%
+  );
+  box-shadow: 0 0 20px 4px rgba(68,231,213,.25);
+  animation: sb-beam-sweep 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+@keyframes sb-beam-sweep {
+  0%   { top: 20%; opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { top: 80%; opacity: 0; }
+}
+
+.sb-center {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+.sb-grid {
+  position: absolute;
+  inset: -20%;
+  background:
+    linear-gradient(to right, rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,.03) 1px, transparent 1px);
+  background-size: 36px 36px;
+  transform: perspective(800px) rotateX(58deg) translateY(26%);
+  opacity: .35;
+  animation: sb-drift 8s linear infinite;
+}
+
+.sb-ring {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 1px solid rgba(68,231,213,.35);
+  box-shadow: 0 0 24px rgba(68,231,213,.20), inset 0 0 26px rgba(209,98,255,.12);
+  animation: sb-pulse 1.8s ease-in-out infinite,
+             sb-glitch 5s step-end infinite;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.sb-ring-logo {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 18px rgba(68,231,213,.5))
+          drop-shadow(0 0 40px rgba(209,98,255,.25));
+  animation: sb-logo-glow 2s ease-in-out infinite;
+  transition: opacity .4s ease;
+}
+.sb-ring-logo.sb-ring-avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(68,231,213,.6);
+}
+@keyframes sb-logo-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 18px rgba(68,231,213,.5))
+            drop-shadow(0 0 40px rgba(209,98,255,.25));
+  }
+  50% {
+    filter: drop-shadow(0 0 30px rgba(68,231,213,.7))
+            drop-shadow(0 0 55px rgba(209,98,255,.4));
+  }
+}
+
+.sb-content {
+  position: relative;
+  width: min(560px, 88vw);
+  display: grid;
+  gap: 14px;
+  text-align: center;
+  place-items: center;
+}
+
+.sb-skip-btn {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 10000;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.06);
+  color: #89a9c6;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  letter-spacing: .04em;
+  transition: color .15s ease;
+}
+.sb-skip-btn:hover {
+  color: #d7eeff;
+}
+
+body.sb-no-fx .sb-grid,
+body.sb-no-fx .sb-ring,
+body.sb-no-fx .sb-ring-logo,
+body.sb-no-fx .sb-vignette,
+body.sb-no-fx .sb-spinner,
+body.sb-no-fx .sb-beam {
+  animation: none !important;
+}
+body.sb-no-fx .sb-beam {
+  opacity: 0 !important;
+}
+
+@keyframes sb-pulse {
+  0%, 100% { transform: scale(.94); opacity: .7; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+@keyframes sb-glitch {
+  0%, 89%, 95%, 100% {
+    transform: scale(1) translate(0, 0);
+    border-color: rgba(68,231,213,.35);
+  }
+  90% {
+    transform: scale(1) translate(-3px, 1px);
+    border-color: rgba(209,98,255,.6);
+  }
+  91% {
+    transform: scale(1) translate(2px, -1px);
+    border-color: rgba(68,231,213,.6);
+  }
+  92% {
+    transform: scale(1) translate(-1px, 0);
+    border-color: rgba(209,98,255,.4);
+  }
+}
+@keyframes sb-drift {
+  from { transform: perspective(800px) rotateX(58deg) translateY(26%) translateX(0); }
+  to   { transform: perspective(800px) rotateX(58deg) translateY(26%) translateX(-36px); }
+}
+
 /* ── Skeleton dashboard ───────────────────────────────────────────────── */
 @keyframes skeleton-shimmer {
   0%   { opacity: 0.5; }
