@@ -539,7 +539,7 @@ export const submitReadingAttempt = async (
   // Consume pilot quota if applicable
   const quota = await tryConsumePilotQuota('ielts_tests');
   if (!quota.proceed) {
-    throw new Error(quota.error || 'IELTS test quota exhausted. Upgrade your plan to continue.');
+    throw new Error(quota.error || 'You\'ve reached the IELTS test limit on the Pilot plan. Upgrade to continue.');
   }
 
   const { data: session } = await supabase.auth.getSession();

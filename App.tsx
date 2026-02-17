@@ -1711,12 +1711,12 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
                 <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                   {/* Left Column */}
-                  <div className="space-y-6 lg:col-span-4 xl:col-span-3">
+                  <div className="space-y-6 lg:col-span-4">
                     {renderProfileSlot()}
                   </div>
 
                   {/* Middle Column */}
-                  <div className="space-y-6 lg:col-span-5 xl:col-span-6">
+                  <div className="space-y-6 lg:col-span-5">
                     {profile ? (
                       <MainActions
                         onStartQuest={handleQuestAction}
@@ -1765,7 +1765,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                   </div>
 
                   {/* Right Column */}
-                  <div className="space-y-6 lg:col-span-3 xl:col-span-3">
+                  <div className="space-y-6 lg:col-span-3">
                     {(!profile || isStudentRole) && renderAssignmentSection()}
                     {(!profile || isStudentRole) && renderCapsSection()}
                     {renderNewsSection()}
@@ -1780,8 +1780,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     <div
       className={
         isLiteMode
-          ? 'relative min-h-screen w-full p-4 md:p-6 lg:p-8 max-w-screen-2xl mx-auto lite-mode-wrapper overflow-y-auto'
-          : 'relative min-h-screen overflow-hidden p-4 md:p-6 lg:p-8 max-w-screen-2xl mx-auto'
+          ? 'relative min-h-screen w-full p-4 md:p-6 lg:p-8 max-w-screen-xl mx-auto lite-mode-wrapper overflow-y-auto'
+          : 'relative min-h-screen overflow-x-hidden overflow-y-auto p-4 md:p-6 lg:p-8 max-w-screen-xl mx-auto'
       }
     >
       {attackAlert && isPlayerMode && !isTeacherRole && (

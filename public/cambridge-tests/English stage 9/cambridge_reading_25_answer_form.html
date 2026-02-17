@@ -420,7 +420,7 @@
     <input type="text" id="studentClass" placeholder="Enter your class (e.g., 10A) *" required />
   </div>
 
-  <div id="questions"></div>
+  <div id="questions" class="hidden" style="display:none;"></div>
 
   <div class="btn-container">
     <button id="submitBtn" onclick="submitScore()">📤 Submit Answers</button>
@@ -525,6 +525,8 @@
   // Track submission state
   let hasSubmitted = false;
   let startTime = null;
+  let timerStarted = false;
+  let antiCheatAcknowledged = false;
   let timerInterval = null;
 
   // Total questions
@@ -621,10 +623,16 @@
     showFinalScore(studentName, score, percentage, 0);
   }
 
-  // Start timer when student starts typing
-  function startTimer() {
-    if (startTime) return; // Already started
-    
+  // Start timer when student starts typing (only if anti-cheat acknowledged)
+  function startTimerIfReady() {
+    if (timerStarted) return;
+    if (hasSubmitted) return;
+    if (!antiCheatAcknowledged) {
+      lockQuestions();
+      openAntiCheatModal();
+      return;
+    }
+    timerStarted = true;
     startTime = new Date();
     document.getElementById("timerBox").style.display = "block";
     
@@ -634,6 +642,20 @@
       const seconds = (elapsed % 60).toString().padStart(2, '0');
       document.getElementById("timer").textContent = `${minutes}:${seconds}`;
     }, 1000);
+  }
+
+  function startTimer() {
+    startTimerIfReady();
+  }
+
+  function lockQuestions() {
+    const q = document.getElementById('questions');
+    if (q) { q.classList.add('hidden'); q.style.display = 'none'; }
+  }
+
+  function unlockQuestions() {
+    const q = document.getElementById('questions');
+    if (q) { q.classList.remove('hidden'); q.style.display = ''; }
   }
 
   // Build inputs dynamically
@@ -935,8 +957,10 @@
   }
 
   function acknowledgeAntiCheat() {
+    antiCheatAcknowledged = true;
     closeAntiCheatModal();
-    // Timer logic should already be handled by startTimer() in each test
+    unlockQuestions();
+    startTimerIfReady();
   }
 
   // Allow Enter key to move to next input
@@ -961,8 +985,12 @@
   const antiCheatAcceptBtn = document.getElementById('antiCheatAcceptBtn');
   if (antiCheatAcceptBtn) antiCheatAcceptBtn.addEventListener('click', acknowledgeAntiCheat);
   
-  // Show anti-cheat modal on page load
-  openAntiCheatModal();
+  // Show anti-cheat modal on page load (only if not already submitted)
+  if (!hasSubmitted) {
+    openAntiCheatModal();
+  } else {
+    unlockQuestions();
+  }
   
   // Start ExamGuard after initialization
   setTimeout(() => {

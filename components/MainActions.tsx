@@ -251,7 +251,7 @@ const MainActions: React.FC<MainActionsProps> = ({
         }}
       />
       <div className="relative flex flex-col gap-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900/70 shadow-inner shadow-slate-900/60">
               <span aria-hidden className="text-3xl">🚀</span>

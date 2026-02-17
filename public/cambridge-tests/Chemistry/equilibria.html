@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -600,10 +600,10 @@
   <!--
   <div class="prime-overlay" id="primeOverlay">
     <div class="prime-card">
-      <div class="prime-icon">👑</div>
+      <div class="prime-icon">??</div>
       <h2 class="prime-title">GET PRIME</h2>
       <p class="prime-subtitle">This AS Chemistry content is exclusive to Prime members. Upgrade to unlock all advanced materials.</p>
-      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">✨ Upgrade to Prime</button>
+      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">? Upgrade to Prime</button>
       <div class="prime-divider">or enter activation code</div>
       <input type="text" class="prime-code-input" id="primeCodeInput" placeholder="Enter code..." autocomplete="off" />
       <button class="prime-unlock-btn" id="primeUnlockBtn">Unlock</button>
@@ -618,22 +618,22 @@
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
         <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch7 (Equilibria)</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 7 • 73 multiple-choice questions</div>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 7 � 73 multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
-      <span class="badge">🧪 Category: Science</span>
-      <span class="badge">🎯 Difficulty: Advanced</span>
-      <span class="badge">📝 Format: Multiple Choice (A–D)</span>
+      <span class="badge">?? Category: Science</span>
+      <span class="badge">?? Difficulty: Advanced</span>
+      <span class="badge">?? Format: Multiple Choice (A�D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
 
     <div class="status">
-      ✅ Auto-marked: correct answers are loaded. Submit to get your score instantly.
+      ? Auto-marked: correct answers are loaded. Submit to get your score instantly.
     </div>
-    <div id="timer" class="timer-box floating">⏳ Time remaining: 00:00</div>
+    <div id="timer" class="timer-box floating">? Time remaining: 00:00</div>
 
 
     <div class="student-info">
@@ -641,7 +641,7 @@
       <input type="text" id="studentClass" placeholder="Class / Batch" autocomplete="section" />
     </div>
 
-    <div id="questions"></div>
+    <div id="questions" class="hidden"></div>
 
     <div class="submit-area">
       <button id="submitBtn">Submit Answers</button>
@@ -670,14 +670,14 @@
         <li>Stay on this tab. The first violation triggers a warning.</li>
         <li>Three violations (tab switches, copying, etc.) will auto-submit your test.</li>
         <li>Copying and cutting are disabled during the test.</li>
-        <li>Your timer starts only after you click “I understand”.</li>
+        <li>Your timer starts only after you click �I understand�.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
       </div>
     </div>
   </div>
-  <div id="antiCheatToast" class="anti-cheat-toast">⚠️ Tab switching detected. Please stay on this test.</div>
+  <div id="antiCheatToast" class="anti-cheat-toast">?? Tab switching detected. Please stay on this test.</div>
 
   <script>
     const SUPABASE_URL = window.__SUPABASE_ENV__?.VITE_SUPABASE_URL || 'https://sozodkxwhubespiedgxm.supabase.co';
@@ -808,11 +808,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} — Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} • ${totalQuestions} questions`;
-      if (timeBadge) timeBadge.textContent = `⏱️ Suggested time: ${formatDuration(durationSeconds)}`;
-      if (partBadge) partBadge.textContent = `📌 Part ${part} of 2`;
-      document.title = `${title} — Part ${part}`;
+      if (titleEl) titleEl.textContent = `${title} � Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} � ${totalQuestions} questions`;
+      if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
+      if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
+      document.title = `${title} � Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -839,7 +839,7 @@
       {
         number: 1,
         code: '9701_m22_qp_12 Q: 12',
-        prompt: 'Hydrogen and iodine react to form hydrogen iodide in an exothermic reaction.<br><br>H<sub>2</sub>(g) + I<sub>2</sub>(g) ⇌ 2HI(g)<br><br>At equilibrium the total pressure is doubled at constant temperature.<br><br>What is the effect on K<sub>p</sub> and on the position of equilibrium?',
+        prompt: 'Hydrogen and iodine react to form hydrogen iodide in an exothermic reaction.<br><br>H<sub>2</sub>(g) + I<sub>2</sub>(g) ? 2HI(g)<br><br>At equilibrium the total pressure is doubled at constant temperature.<br><br>What is the effect on K<sub>p</sub> and on the position of equilibrium?',
         optionTable: {
           headers: ['effect on the value of K<sub>p</sub>', 'effect on the position of equilibrium'],
           rows: [
@@ -879,7 +879,7 @@
       {
         number: 4,
         code: '9701_s21_qp_12 Q: 10',
-        prompt: '3.60 moles of hydrogen gas and 2.00 moles of iodine vapour are placed in a sealed vessel and reach equilibrium at constant temperature.<br><br>H<sub>2</sub> + I<sub>2</sub> ⇌ 2HI<br><br>At equilibrium, 3.20 moles of hydrogen remain. All species are gaseous.<br><br>What is the value of K<sub>p</sub> under these conditions?',
+        prompt: '3.60 moles of hydrogen gas and 2.00 moles of iodine vapour are placed in a sealed vessel and reach equilibrium at constant temperature.<br><br>H<sub>2</sub> + I<sub>2</sub> ? 2HI<br><br>At equilibrium, 3.20 moles of hydrogen remain. All species are gaseous.<br><br>What is the value of K<sub>p</sub> under these conditions?',
         options: {
           A: '0.0313',
           B: '0.125',
@@ -901,7 +901,7 @@
       {
         number: 6,
         code: '9701_s21_qp_13 Q: 10',
-        prompt: 'Nitrogen reacts with hydrogen to produce ammonia in a 1 dm<sup>3</sup> vessel.<br><br>N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ⇌ 2NH<sub>3</sub>(g)<br><br>Initial amounts: 2.00 mol N<sub>2</sub>, 6.00 mol H<sub>2</sub>, 2.40 mol NH<sub>3</sub>. At equilibrium, 2.32 mol N<sub>2</sub> are present.<br><br>Which expression gives K<sub>c</sub>?',
+        prompt: 'Nitrogen reacts with hydrogen to produce ammonia in a 1 dm<sup>3</sup> vessel.<br><br>N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ? 2NH<sub>3</sub>(g)<br><br>Initial amounts: 2.00 mol N<sub>2</sub>, 6.00 mol H<sub>2</sub>, 2.40 mol NH<sub>3</sub>. At equilibrium, 2.32 mol N<sub>2</sub> are present.<br><br>Which expression gives K<sub>c</sub>?',
         optionTable: {
           headers: ['', 'K<sub>c</sub> expression'],
           rows: [
@@ -915,7 +915,7 @@
       {
         number: 7,
         code: '9701_s21_qp_13 Q: 11',
-        prompt: 'Nitric acid is produced by oxidising ammonia. The first step reacts ammonia with oxygen to form nitrogen monoxide.<br><br>4NH<sub>3</sub>(g) + 5O<sub>2</sub>(g) ⇌ 4NO(g) + 6H<sub>2</sub>O(g) &nbsp;&nbsp;&nbsp; ΔH = −1636 kJ mol<sup>−1</sup><br><br>Which conditions give the greatest yield of nitrogen monoxide at equilibrium?',
+        prompt: 'Nitric acid is produced by oxidising ammonia. The first step reacts ammonia with oxygen to form nitrogen monoxide.<br><br>4NH<sub>3</sub>(g) + 5O<sub>2</sub>(g) ? 4NO(g) + 6H<sub>2</sub>O(g) &nbsp;&nbsp;&nbsp; ?H = ?1636 kJ mol<sup>?1</sup><br><br>Which conditions give the greatest yield of nitrogen monoxide at equilibrium?',
         optionTable: {
           headers: ['temperature', 'pressure'],
           rows: [
@@ -929,7 +929,7 @@
       {
         number: 8,
         code: '9701_w21_qp_11 Q: 10',
-        prompt: `For the exothermic equilibrium H<sub>2</sub>(g) + I<sub>2</sub>(g) ⇌ 2HI(g), a mixture with equal amounts of H<sub>2</sub> and I<sub>2</sub> is monitored at temperature T<sub>1</sub>. The mole fraction of I<sub>2</sub> starts at 0.50 and falls to 0.23 at equilibrium.<br><br>
+        prompt: `For the exothermic equilibrium H<sub>2</sub>(g) + I<sub>2</sub>(g) ? 2HI(g), a mixture with equal amounts of H<sub>2</sub> and I<sub>2</sub> is monitored at temperature T<sub>1</sub>. The mole fraction of I<sub>2</sub> starts at 0.50 and falls to 0.23 at equilibrium.<br><br>
           <div style="text-align:center; margin:12px 0;">
             <img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/344.svg" alt="Mole fraction of iodine versus time axes" class="theme-aware-graphic white-graphic" loading="lazy" />
           </div>
@@ -944,18 +944,18 @@
       {
         number: 9,
         code: '9701_m20_qp_12 Q: 6',
-        prompt: 'AgCl(s) + 2NH<sub>3</sub>(aq) ⇌ [Ag(NH<sub>3</sub>)<sub>2</sub>]<sup>+</sup>(aq) + Cl<sup>−</sup>(aq)<br><br>What are the units of K<sub>c</sub> for this reaction?',
+        prompt: 'AgCl(s) + 2NH<sub>3</sub>(aq) ? [Ag(NH<sub>3</sub>)<sub>2</sub>]<sup>+</sup>(aq) + Cl<sup>?</sup>(aq)<br><br>What are the units of K<sub>c</sub> for this reaction?',
         options: {
           A: 'no units',
-          B: 'mol<sup>−1</sup> dm<sup>3</sup>',
-          C: 'mol dm<sup>−3</sup>',
-          D: 'mol<sup>2</sup> dm<sup>−6</sup>',
+          B: 'mol<sup>?1</sup> dm<sup>3</sup>',
+          C: 'mol dm<sup>?3</sup>',
+          D: 'mol<sup>2</sup> dm<sup>?6</sup>',
         }
       },
       {
         number: 10,
         code: '9701_m20_qp_12 Q: 11',
-        prompt: 'In the Contact process equilibrium 2SO<sub>2</sub> + O<sub>2</sub> ⇌ 2SO<sub>3</sub>, how do different conditions affect the equilibrium yield?',
+        prompt: 'In the Contact process equilibrium 2SO<sub>2</sub> + O<sub>2</sub> ? 2SO<sub>3</sub>, how do different conditions affect the equilibrium yield?',
         optionTable: {
           headers: ['presence of catalyst', 'high pressure', 'high temperature'],
           rows: [
@@ -969,9 +969,9 @@
       {
         number: 11,
         code: '9701_s20_qp_11 Q: 1',
-        prompt: 'Ethene can be oxidised to form epoxyethane at equilibrium.<br><br>C<sub>2</sub>H<sub>4</sub>(g) + <span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span>O<sub>2</sub>(g) ⇌ C<sub>2</sub>H<sub>4</sub>O(g) &nbsp;&nbsp;&nbsp; ΔH° = −107 kJ mol<sup>−1</sup><br><br>Which conditions give the greatest yield?',
+        prompt: 'Ethene can be oxidised to form epoxyethane at equilibrium.<br><br>C<sub>2</sub>H<sub>4</sub>(g) + <span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span>O<sub>2</sub>(g) ? C<sub>2</sub>H<sub>4</sub>O(g) &nbsp;&nbsp;&nbsp; ?H� = ?107 kJ mol<sup>?1</sup><br><br>Which conditions give the greatest yield?',
         optionTable: {
-          headers: ['pressure', 'temperature / °C'],
+          headers: ['pressure', 'temperature / �C'],
           rows: [
             { label: 'A', values: ['high', '100'] },
             { label: 'B', values: ['high', '200'] },
@@ -983,9 +983,9 @@
       {
         number: 12,
         code: '9701_s20_qp_12 Q: 7',
-        prompt: 'What are the units of K<sub>p</sub> for H<sub>2</sub>O(g) + C(s) ⇌ H<sub>2</sub>(g) + CO(g)?',
+        prompt: 'What are the units of K<sub>p</sub> for H<sub>2</sub>O(g) + C(s) ? H<sub>2</sub>(g) + CO(g)?',
         options: {
-          A: 'Pa<sup>−1</sup>',
+          A: 'Pa<sup>?1</sup>',
           B: 'Pa',
           C: 'Pa<sup>2</sup>',
           D: 'no units',
@@ -994,7 +994,7 @@
       {
         number: 13,
         code: '9701_s20_qp_12 Q: 3',
-        prompt: 'N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ⇌ 2NH<sub>3</sub>(g) &nbsp;&nbsp;&nbsp; ΔH = −92 kJ mol<sup>−1</sup><br><br>Which change increases both the rate and the equilibrium yield of ammonia?',
+        prompt: 'N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ? 2NH<sub>3</sub>(g) &nbsp;&nbsp;&nbsp; ?H = ?92 kJ mol<sup>?1</sup><br><br>Which change increases both the rate and the equilibrium yield of ammonia?',
         options: {
           A: 'decrease in the temperature',
           B: 'increase in the temperature',
@@ -1005,7 +1005,7 @@
       {
         number: 14,
         code: '9701_s20_qp_12 Q: 11',
-        prompt: 'PCl<sub>5</sub>(g) ⇌ PCl<sub>3</sub>(g) + Cl<sub>2</sub>(g)<br><br>1.0 mol of each species are placed in a 1 dm<sup>3</sup> container at 250 °C and allowed to reach equilibrium. The equilibrium mixture contains 1.8 moles of PCl<sub>3</sub>.<br><br>What is K<sub>c</sub> at 250 °C?',
+        prompt: 'PCl<sub>5</sub>(g) ? PCl<sub>3</sub>(g) + Cl<sub>2</sub>(g)<br><br>1.0 mol of each species are placed in a 1 dm<sup>3</sup> container at 250 �C and allowed to reach equilibrium. The equilibrium mixture contains 1.8 moles of PCl<sub>3</sub>.<br><br>What is K<sub>c</sub> at 250 �C?',
         options: {
           A: '1',
           B: '1.8',
@@ -1016,9 +1016,9 @@
       {
         number: 15,
         code: '9701_s20_qp_13 Q: 11',
-        prompt: 'Two reactions are shown.<br><br>reaction 1 &nbsp; X<sub>2</sub>(g) + Y<sub>2</sub>(g) ⇌ 2XY(g)<br>reaction 2 &nbsp; XY(g) ⇌ <span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span>X<sub>2</sub>(g) + <span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span>Y<sub>2</sub>(g)<br><br>K<sub>p</sub> for reaction 1 is 0.0052. What is K<sub>p</sub> for reaction 2?',
+        prompt: 'Two reactions are shown.<br><br>reaction 1 &nbsp; X<sub>2</sub>(g) + Y<sub>2</sub>(g) ? 2XY(g)<br>reaction 2 &nbsp; XY(g) ? <span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span>X<sub>2</sub>(g) + <span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span>Y<sub>2</sub>(g)<br><br>K<sub>p</sub> for reaction 1 is 0.0052. What is K<sub>p</sub> for reaction 2?',
         options: {
-          A: '2.6 × 10<sup>−3</sup>',
+          A: '2.6 ? 10<sup>?3</sup>',
           B: '13.9',
           C: '192.3',
           D: '384.6',
@@ -1027,18 +1027,18 @@
       {
         number: 16,
         code: '9701_w20_qp_11 Q: 10',
-        prompt: 'In aqueous solution, sulfuric acid dissociates as follows.<br><br>H<sub>2</sub>SO<sub>4</sub> → HSO<sub>4</sub><sup>−</sup> + H<sup>+</sup> (goes to completion)<br>HSO<sub>4</sub><sup>−</sup> ⇌ SO<sub>4</sub><sup>2−</sup> + H<sup>+</sup> (equilibrium with K<sub>c</sub>)<br><br>A 2.00 mol dm<sup>−3</sup> solution of H<sub>2</sub>SO<sub>4</sub> has [HSO<sub>4</sub><sup>−</sup>] = 1.988 mol dm<sup>−3</sup> at equilibrium.<br><br>What is K<sub>c</sub>?',
+        prompt: 'In aqueous solution, sulfuric acid dissociates as follows.<br><br>H<sub>2</sub>SO<sub>4</sub> > HSO<sub>4</sub><sup>?</sup> + H<sup>+</sup> (goes to completion)<br>HSO<sub>4</sub><sup>?</sup> ? SO<sub>4</sub><sup>2?</sup> + H<sup>+</sup> (equilibrium with K<sub>c</sub>)<br><br>A 2.00 mol dm<sup>?3</sup> solution of H<sub>2</sub>SO<sub>4</sub> has [HSO<sub>4</sub><sup>?</sup>] = 1.988 mol dm<sup>?3</sup> at equilibrium.<br><br>What is K<sub>c</sub>?',
         options: {
-          A: '1.381 × 10<sup>5</sup> dm<sup>3</sup> mol<sup>−1</sup>',
-          B: '82.34 dm<sup>3</sup> mol<sup>−1</sup>',
-          C: '1.214 × 10<sup>−2</sup> mol dm<sup>−3</sup>',
-          D: '7.244 × 10<sup>−5</sup> mol dm<sup>−3</sup>',
+          A: '1.381 ? 10<sup>5</sup> dm<sup>3</sup> mol<sup>?1</sup>',
+          B: '82.34 dm<sup>3</sup> mol<sup>?1</sup>',
+          C: '1.214 ? 10<sup>?2</sup> mol dm<sup>?3</sup>',
+          D: '7.244 ? 10<sup>?5</sup> mol dm<sup>?3</sup>',
         }
       },
       {
         number: 17,
         code: '9701_w20_qp_12 Q: 10',
-        prompt: '2SO<sub>2</sub>(g) + O<sub>2</sub>(g) ⇌ 2SO<sub>3</sub>(g) &nbsp;&nbsp;&nbsp; K<sub>p</sub> = 2.96 × 10<sup>−9</sup> Pa<sup>−1</sup> at 700 °C<br><br>At equilibrium at 700 °C, p(O<sub>2</sub>) = 375 kPa and p(SO<sub>3</sub>) = 20.3 kPa.<br><br>What is p(SO<sub>2</sub>)?',
+        prompt: '2SO<sub>2</sub>(g) + O<sub>2</sub>(g) ? 2SO<sub>3</sub>(g) &nbsp;&nbsp;&nbsp; K<sub>p</sub> = 2.96 ? 10<sup>?9</sup> Pa<sup>?1</sup> at 700 �C<br><br>At equilibrium at 700 �C, p(O<sub>2</sub>) = 375 kPa and p(SO<sub>3</sub>) = 20.3 kPa.<br><br>What is p(SO<sub>2</sub>)?',
         options: {
           A: '19.3 kPa',
           B: '609 kPa',
@@ -1049,7 +1049,7 @@
       {
         number: 18,
         code: '9701_w20_qp_12 Q: 11',
-        prompt: 'Ammonia is made by the Haber process.<br><br>N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ⇌ 2NH<sub>3</sub>(g) &nbsp;&nbsp;&nbsp; ΔH is negative<br><br>What change increases the rate of the forward reaction?',
+        prompt: 'Ammonia is made by the Haber process.<br><br>N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ? 2NH<sub>3</sub>(g) &nbsp;&nbsp;&nbsp; ?H is negative<br><br>What change increases the rate of the forward reaction?',
         options: {
           A: 'adding argon while keeping total volume constant',
           B: 'decreasing the temperature',
@@ -1060,29 +1060,29 @@
       {
         number: 19,
         code: '9701_w20_qp_12 Q: 14',
-        prompt: 'AgNO<sub>3</sub>(aq) is added to X<sup>−</sup>(aq), forming AgX(s). Ammonia is then added.<br><br>Equilibria:<br>Ag<sup>+</sup>(aq) + X<sup>−</sup>(aq) ⇌ AgX(s)<br>Ag<sup>+</sup>(aq) + 2NH<sub>3</sub>(aq) ⇌ [Ag(NH<sub>3</sub>)<sub>2</sub>]<sup>+</sup>(aq)<br><br>Which statement is correct?',
+        prompt: 'AgNO<sub>3</sub>(aq) is added to X<sup>?</sup>(aq), forming AgX(s). Ammonia is then added.<br><br>Equilibria:<br>Ag<sup>+</sup>(aq) + X<sup>?</sup>(aq) ? AgX(s)<br>Ag<sup>+</sup>(aq) + 2NH<sub>3</sub>(aq) ? [Ag(NH<sub>3</sub>)<sub>2</sub>]<sup>+</sup>(aq)<br><br>Which statement is correct?',
         options: {
-          A: 'Equilibrium 1 lies further left when X<sup>−</sup> = I<sup>−</sup>.',
+          A: 'Equilibrium 1 lies further left when X<sup>?</sup> = I<sup>?</sup>.',
           B: 'Increasing [NH<sub>3</sub>] moves equilibrium 1 to the left.',
-          C: 'K<sub>c</sub> for equilibrium 2 is larger when X<sup>−</sup> = Cl<sup>−</sup> than when X<sup>−</sup> = I<sup>−</sup>.',
+          C: 'K<sub>c</sub> for equilibrium 2 is larger when X<sup>?</sup> = Cl<sup>?</sup> than when X<sup>?</sup> = I<sup>?</sup>.',
           D: 'Equilibrium 2 is a redox reaction.',
         }
       },
       {
         number: 20,
         code: '9701_m19_qp_12 Q: 11',
-        prompt: 'Cu(s) + 2Ag<sup>+</sup>(aq) ⇌ Cu<sup>2+</sup>(aq) + 2Ag(s) &nbsp;&nbsp;&nbsp; K<sub>c</sub> = 1.0 × 10<sup>5</sup><br><br>What is [Ag<sup>+</sup>] at equilibrium when [Cu<sup>2+</sup>] = 0.10 mol dm<sup>−3</sup>?',
+        prompt: 'Cu(s) + 2Ag<sup>+</sup>(aq) ? Cu<sup>2+</sup>(aq) + 2Ag(s) &nbsp;&nbsp;&nbsp; K<sub>c</sub> = 1.0 ? 10<sup>5</sup><br><br>What is [Ag<sup>+</sup>] at equilibrium when [Cu<sup>2+</sup>] = 0.10 mol dm<sup>?3</sup>?',
         options: {
-          A: '5.0 × 10<sup>−7</sup> mol dm<sup>−3</sup>',
-          B: '5.0 × 10<sup>−4</sup> mol dm<sup>−3</sup>',
-          C: '1.0 × 10<sup>−3</sup> mol dm<sup>−3</sup>',
-          D: '1.0 × 10<sup>2</sup> mol dm<sup>−3</sup>',
+          A: '5.0 ? 10<sup>?7</sup> mol dm<sup>?3</sup>',
+          B: '5.0 ? 10<sup>?4</sup> mol dm<sup>?3</sup>',
+          C: '1.0 ? 10<sup>?3</sup> mol dm<sup>?3</sup>',
+          D: '1.0 ? 10<sup>2</sup> mol dm<sup>?3</sup>',
         }
       },
       {
         number: 21,
         code: '9701_s19_qp_11 Q: 10',
-        prompt: '2HI(g) ⇌ I<sub>2</sub>(g) + H<sub>2</sub>(g) &nbsp;&nbsp;&nbsp; ΔH = +12 kJ mol<sup>−1</sup><br><br>How does the position of equilibrium change with increasing pressure and temperature?',
+        prompt: '2HI(g) ? I<sub>2</sub>(g) + H<sub>2</sub>(g) &nbsp;&nbsp;&nbsp; ?H = +12 kJ mol<sup>?1</sup><br><br>How does the position of equilibrium change with increasing pressure and temperature?',
         optionTable: {
           headers: ['effect of increasing the pressure', 'effect of increasing the temperature'],
           rows: [
@@ -1096,34 +1096,34 @@
       {
         number: 22,
         code: '9701_s19_qp_11 Q: 11',
-        prompt: 'For 2SO<sub>2</sub>(g) + O<sub>2</sub>(g) ⇌ 2SO<sub>3</sub>(g), K<sub>c</sub> = 280 mol<sup>−1</sup> dm<sup>3</sup> at 1000 K.<br><br>In an equilibrium mixture at 1000 K, [SO<sub>3</sub>] = 6.00 mol dm<sup>−3</sup> and [SO<sub>2</sub>] is twice [O<sub>2</sub>].<br><br>What is [SO<sub>2</sub>]?',
+        prompt: 'For 2SO<sub>2</sub>(g) + O<sub>2</sub>(g) ? 2SO<sub>3</sub>(g), K<sub>c</sub> = 280 mol<sup>?1</sup> dm<sup>3</sup> at 1000 K.<br><br>In an equilibrium mixture at 1000 K, [SO<sub>3</sub>] = 6.00 mol dm<sup>?3</sup> and [SO<sub>2</sub>] is twice [O<sub>2</sub>].<br><br>What is [SO<sub>2</sub>]?',
         options: {
-          A: '0.175 mol dm<sup>−3</sup>',
-          B: '0.254 mol dm<sup>−3</sup>',
-          C: '0.318 mol dm<sup>−3</sup>',
-          D: '0.636 mol dm<sup>−3</sup>',
+          A: '0.175 mol dm<sup>?3</sup>',
+          B: '0.254 mol dm<sup>?3</sup>',
+          C: '0.318 mol dm<sup>?3</sup>',
+          D: '0.636 mol dm<sup>?3</sup>',
         }
       },
       {
         number: 23,
         code: '9701_s19_qp_12 Q: 10',
-        prompt: 'CH<sub>3</sub>CO<sub>2</sub>C<sub>2</sub>H<sub>5</sub> + H<sub>2</sub>O ⇌ C<sub>2</sub>H<sub>5</sub>OH + CH<sub>3</sub>CO<sub>2</sub>H &nbsp;&nbsp;&nbsp; K<sub>c</sub> = 0.27<br><br>Equal amounts of ethanoic acid and ethanol are mixed. At equilibrium their concentrations are 0.42 mol dm<sup>−3</sup> each.<br><br>What is the concentration of ethyl ethanoate at equilibrium?',
+        prompt: 'CH<sub>3</sub>CO<sub>2</sub>C<sub>2</sub>H<sub>5</sub> + H<sub>2</sub>O ? C<sub>2</sub>H<sub>5</sub>OH + CH<sub>3</sub>CO<sub>2</sub>H &nbsp;&nbsp;&nbsp; K<sub>c</sub> = 0.27<br><br>Equal amounts of ethanoic acid and ethanol are mixed. At equilibrium their concentrations are 0.42 mol dm<sup>?3</sup> each.<br><br>What is the concentration of ethyl ethanoate at equilibrium?',
         options: {
-          A: '0.22 mol dm<sup>−3</sup>',
-          B: '0.65 mol dm<sup>−3</sup>',
-          C: '0.81 mol dm<sup>−3</sup>',
-          D: '1.54 mol dm<sup>−3</sup>',
+          A: '0.22 mol dm<sup>?3</sup>',
+          B: '0.65 mol dm<sup>?3</sup>',
+          C: '0.81 mol dm<sup>?3</sup>',
+          D: '1.54 mol dm<sup>?3</sup>',
         }
       },
       {
         number: 24,
         code: '9701_s19_qp_13 Q: 9',
-        prompt: 'I<sub>2</sub>(aq) + 2Fe<sup>2+</sup>(aq) ⇌ 2I<sup>−</sup>(aq) + 2Fe<sup>3+</sup>(aq)<br><br>What is the correct expression for K<sub>c</sub>?',
+        prompt: 'I<sub>2</sub>(aq) + 2Fe<sup>2+</sup>(aq) ? 2I<sup>?</sup>(aq) + 2Fe<sup>3+</sup>(aq)<br><br>What is the correct expression for K<sub>c</sub>?',
         options: {
-          A: '<span class="fraction"><span class="fraction-top">[2I<sup>−</sup>][2Fe<sup>3+</sup>]</span><span class="fraction-bottom">[I<sub>2</sub>][2Fe<sup>2+</sup>]</span></span>',
-          B: '<span class="fraction"><span class="fraction-top">[I<sup>−</sup>][Fe<sup>3+</sup>]<sup>2</sup></span><span class="fraction-bottom">[I<sub>2</sub>][Fe<sup>2+</sup>]<sup>2</sup></span></span>',
-          C: '<span class="fraction"><span class="fraction-top">[I<sup>−</sup>]<sup>2</sup>[Fe<sup>2+</sup>]</span><span class="fraction-bottom">[2I<sub>2</sub>][2Fe<sup>3+</sup>]</span></span>',
-          D: '<span class="fraction"><span class="fraction-top">[I<sup>−</sup>][Fe<sup>2+</sup>]<sup>2</sup></span><span class="fraction-bottom">[I<sub>2</sub>][Fe<sup>3+</sup>]<sup>2</sup></span></span>',
+          A: '<span class="fraction"><span class="fraction-top">[2I<sup>?</sup>][2Fe<sup>3+</sup>]</span><span class="fraction-bottom">[I<sub>2</sub>][2Fe<sup>2+</sup>]</span></span>',
+          B: '<span class="fraction"><span class="fraction-top">[I<sup>?</sup>][Fe<sup>3+</sup>]<sup>2</sup></span><span class="fraction-bottom">[I<sub>2</sub>][Fe<sup>2+</sup>]<sup>2</sup></span></span>',
+          C: '<span class="fraction"><span class="fraction-top">[I<sup>?</sup>]<sup>2</sup>[Fe<sup>2+</sup>]</span><span class="fraction-bottom">[2I<sub>2</sub>][2Fe<sup>3+</sup>]</span></span>',
+          D: '<span class="fraction"><span class="fraction-top">[I<sup>?</sup>][Fe<sup>2+</sup>]<sup>2</sup></span><span class="fraction-bottom">[I<sub>2</sub>][Fe<sup>3+</sup>]<sup>2</sup></span></span>',
         }
       },
       {
@@ -1131,16 +1131,16 @@
         code: '9701_s19_qp_13 Q: 10',
         prompt: 'X and Y react reversibly to form Z. The yield of Z is lower at higher temperature and also lower at lower pressure.<br><br>Which equation could represent this reaction?',
         options: {
-          A: 'X(g) + Y(g) ⇌ Z(g) &nbsp;&nbsp; ΔH = −100 kJ mol<sup>−1</sup>',
-          B: 'X(g) + Y(g) ⇌ Z(g) &nbsp;&nbsp; ΔH = +100 kJ mol<sup>−1</sup>',
-          C: 'X(s) + Y(g) ⇌ 2Z(g) &nbsp;&nbsp; ΔH = −100 kJ mol<sup>−1</sup>',
-          D: 'X(s) + Y(g) ⇌ 2Z(g) &nbsp;&nbsp; ΔH = +100 kJ mol<sup>−1</sup>',
+          A: 'X(g) + Y(g) ? Z(g) &nbsp;&nbsp; ?H = ?100 kJ mol<sup>?1</sup>',
+          B: 'X(g) + Y(g) ? Z(g) &nbsp;&nbsp; ?H = +100 kJ mol<sup>?1</sup>',
+          C: 'X(s) + Y(g) ? 2Z(g) &nbsp;&nbsp; ?H = ?100 kJ mol<sup>?1</sup>',
+          D: 'X(s) + Y(g) ? 2Z(g) &nbsp;&nbsp; ?H = +100 kJ mol<sup>?1</sup>',
         }
       },
       {
         number: 26,
         code: '9701_w19_qp_11 Q: 10',
-        prompt: 'two compounds X and Y react to produce compound Z. The reaction is reversible.<br><br>X + Y ⇌ Z<br><br>When X and Y are mixed together in a closed system a dynamic equilibirium is gradually established.<br><br>Which graph could represent the change in the rates of the forward and reverse reactions over time?<br><br>Key<br>.............. rate of forward reaction<br>------- rate of reverse reaction',
+        prompt: 'two compounds X and Y react to produce compound Z. The reaction is reversible.<br><br>X + Y ? Z<br><br>When X and Y are mixed together in a closed system a dynamic equilibirium is gradually established.<br><br>Which graph could represent the change in the rates of the forward and reverse reactions over time?<br><br>Key<br>.............. rate of forward reaction<br>------- rate of reverse reaction',
         options: {
           A: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/362a.svg" alt="Reaction rate graph option A" class="option-graphic white-graphic" loading="lazy" />',
           B: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/362b.svg" alt="Reaction rate graph option B" class="option-graphic white-graphic" loading="lazy" />',
@@ -1151,18 +1151,18 @@
       {
         number: 27,
         code: '9701_w19_qp_11 Q: 11',
-        prompt: '2SO<sub>2</sub>(g) + O<sub>2</sub>(g) ⇌ 2SO<sub>3</sub>(g) &nbsp;&nbsp;&nbsp; K<sub>c</sub> = 280 mol<sup>−1</sup> dm<sup>3</sup> at 1000 K<br><br>An equilibrium mixture at 1000 K has [SO<sub>2</sub>] = 0.200 mol dm<sup>−3</sup> and [O<sub>2</sub>] = 0.100 mol dm<sup>−3</sup>.<br><br>What is [SO<sub>3</sub>]?',
+        prompt: '2SO<sub>2</sub>(g) + O<sub>2</sub>(g) ? 2SO<sub>3</sub>(g) &nbsp;&nbsp;&nbsp; K<sub>c</sub> = 280 mol<sup>?1</sup> dm<sup>3</sup> at 1000 K<br><br>An equilibrium mixture at 1000 K has [SO<sub>2</sub>] = 0.200 mol dm<sup>?3</sup> and [O<sub>2</sub>] = 0.100 mol dm<sup>?3</sup>.<br><br>What is [SO<sub>3</sub>]?',
         options: {
-          A: '1.058 mol dm<sup>−3</sup>',
-          B: '1.120 mol dm<sup>−3</sup>',
-          C: '2.366 mol dm<sup>−3</sup>',
-          D: '5.600 mol dm<sup>−3</sup>',
+          A: '1.058 mol dm<sup>?3</sup>',
+          B: '1.120 mol dm<sup>?3</sup>',
+          C: '2.366 mol dm<sup>?3</sup>',
+          D: '5.600 mol dm<sup>?3</sup>',
         }
       },
       {
         number: 28,
         code: '9701_w19_qp_12 Q: 10',
-        prompt: '2SO<sub>3</sub>(g) ⇌ 2SO<sub>2</sub>(g) + O<sub>2</sub>(g) is a dynamic equilibrium.<br><br>What happens when the pressure of the system is increased?',
+        prompt: '2SO<sub>3</sub>(g) ? 2SO<sub>2</sub>(g) + O<sub>2</sub>(g) is a dynamic equilibrium.<br><br>What happens when the pressure of the system is increased?',
         options: {
           A: 'The rate decreases and the position moves left.',
           B: 'The rate decreases and the position moves right.',
@@ -1184,7 +1184,7 @@
       {
         number: 30,
         code: '9701_m18_qp_12 Q: 14',
-        prompt: 'X, Y and Z are three third-period elements.<br><br>• X reacts with chlorine to give a liquid product.<br>• Y reacts with chlorine to give a solid product that dissolves in water to give a solution of pH 7.<br>• Z reacts with chlorine to give a solid product that dissolves in water to give a solution of pH 6.<br><br>Which elements are good conductors of electricity?',
+        prompt: 'X, Y and Z are three third-period elements.<br><br>� X reacts with chlorine to give a liquid product.<br>� Y reacts with chlorine to give a solid product that dissolves in water to give a solution of pH 7.<br>� Z reacts with chlorine to give a solid product that dissolves in water to give a solution of pH 6.<br><br>Which elements are good conductors of electricity?',
         options: {
           A: 'X and Y',
           B: 'Y and Z',
@@ -1195,7 +1195,7 @@
       {
         number: 31,
         code: '9701_s18_qp_12 Q: 5',
-        prompt: 'X(g) + Y(g) ⇌ Z(g)<br><br>An equilibrium mixture of these gases is compressed at constant temperature.<br><br>What are the changes in the mole fraction of Z and in K<sub>p</sub>?',
+        prompt: 'X(g) + Y(g) ? Z(g)<br><br>An equilibrium mixture of these gases is compressed at constant temperature.<br><br>What are the changes in the mole fraction of Z and in K<sub>p</sub>?',
         optionTable: {
           headers: ['mole fraction of Z', 'K<sub>p</sub>'],
           rows: [
@@ -1209,18 +1209,18 @@
       {
         number: 32,
         code: '9701_s18_qp_12 Q: 10',
-        prompt: 'In a reversible reaction the yield of product is increased when:<br>• the temperature is increased<br>• the pressure is decreased<br><br>Which equation could describe this reaction?',
+        prompt: 'In a reversible reaction the yield of product is increased when:<br>� the temperature is increased<br>� the pressure is decreased<br><br>Which equation could describe this reaction?',
         options: {
-          A: 'CH<sub>4</sub>(g) + H<sub>2</sub>O(g) ⇌ 3H<sub>2</sub>(g) + CO(g) &nbsp;&nbsp; ΔH = +206 kJ mol<sup>−1</sup>',
-          B: '4NH<sub>3</sub>(g) + 3O<sub>2</sub>(g) ⇌ 2N<sub>2</sub>(g) + 6H<sub>2</sub>O(g) &nbsp;&nbsp; ΔH = −227 kJ mol<sup>−1</sup>',
-          C: '2NO<sub>2</sub>(g) ⇌ N<sub>2</sub>O<sub>4</sub>(g) &nbsp;&nbsp; ΔH = −58 kJ mol<sup>−1</sup>',
-          D: '3O<sub>2</sub>(g) ⇌ 2O<sub>3</sub>(g) &nbsp;&nbsp; ΔH = +143 kJ mol<sup>−1</sup>',
+          A: 'CH<sub>4</sub>(g) + H<sub>2</sub>O(g) ? 3H<sub>2</sub>(g) + CO(g) &nbsp;&nbsp; ?H = +206 kJ mol<sup>?1</sup>',
+          B: '4NH<sub>3</sub>(g) + 3O<sub>2</sub>(g) ? 2N<sub>2</sub>(g) + 6H<sub>2</sub>O(g) &nbsp;&nbsp; ?H = ?227 kJ mol<sup>?1</sup>',
+          C: '2NO<sub>2</sub>(g) ? N<sub>2</sub>O<sub>4</sub>(g) &nbsp;&nbsp; ?H = ?58 kJ mol<sup>?1</sup>',
+          D: '3O<sub>2</sub>(g) ? 2O<sub>3</sub>(g) &nbsp;&nbsp; ?H = +143 kJ mol<sup>?1</sup>',
         }
       },
       {
         number: 33,
         code: '9701_s18_qp_13 Q: 9',
-        prompt: 'CH<sub>4</sub>(g) + H<sub>2</sub>O(g) ⇌ CO(g) + 3H<sub>2</sub>(g) &nbsp;&nbsp; ΔH° = +205 kJ mol<sup>−1</sup><br><br>Which conditions favour formation of hydrogen?',
+        prompt: 'CH<sub>4</sub>(g) + H<sub>2</sub>O(g) ? CO(g) + 3H<sub>2</sub>(g) &nbsp;&nbsp; ?H� = +205 kJ mol<sup>?1</sup><br><br>Which conditions favour formation of hydrogen?',
         optionTable: {
           headers: ['pressure', 'temperature'],
           rows: [
@@ -1234,7 +1234,7 @@
       {
         number: 34,
         code: '9701_s18_qp_13 Q: 10',
-        prompt: 'N<sub>2</sub> + 3H<sub>2</sub> ⇌ 2NH<sub>3</sub><br><br>At equilibrium: [N<sub>2</sub>] = 0.200 mol dm<sup>−3</sup>, [H<sub>2</sub>] = 0.300 mol dm<sup>−3</sup>, [NH<sub>3</sub>] = 0.600 mol dm<sup>−3</sup>.<br><br>What is K<sub>c</sub>?',
+        prompt: 'N<sub>2</sub> + 3H<sub>2</sub> ? 2NH<sub>3</sub><br><br>At equilibrium: [N<sub>2</sub>] = 0.200 mol dm<sup>?3</sup>, [H<sub>2</sub>] = 0.300 mol dm<sup>?3</sup>, [NH<sub>3</sub>] = 0.600 mol dm<sup>?3</sup>.<br><br>What is K<sub>c</sub>?',
         options: {
           A: '0.0150',
           B: '6.0',
@@ -1245,7 +1245,7 @@
       {
         number: 35,
         code: '9701_s18_qp_13 Q: 17',
-        prompt: 'Equilibria in water:<br>AgCl(s) ⇌ Ag<sup>+</sup>(aq) + Cl<sup>−</sup>(aq) &nbsp; K<sub>c</sub> = K<sub>1</sub> (lies to the left)<br>AgI(s) ⇌ Ag<sup>+</sup>(aq) + I<sup>−</sup>(aq) &nbsp; K<sub>c</sub> = K<sub>2</sub> (lies to the left)<br>Ag<sup>+</sup>(aq) + 2NH<sub>3</sub>(aq) ⇌ [Ag(NH<sub>3</sub>)<sub>2</sub>]<sup>+</sup>(aq) &nbsp; K<sub>c</sub> = K<sub>3</sub> (lies to the right)<br><br>Order of magnitude for K values?',
+        prompt: 'Equilibria in water:<br>AgCl(s) ? Ag<sup>+</sup>(aq) + Cl<sup>?</sup>(aq) &nbsp; K<sub>c</sub> = K<sub>1</sub> (lies to the left)<br>AgI(s) ? Ag<sup>+</sup>(aq) + I<sup>?</sup>(aq) &nbsp; K<sub>c</sub> = K<sub>2</sub> (lies to the left)<br>Ag<sup>+</sup>(aq) + 2NH<sub>3</sub>(aq) ? [Ag(NH<sub>3</sub>)<sub>2</sub>]<sup>+</sup>(aq) &nbsp; K<sub>c</sub> = K<sub>3</sub> (lies to the right)<br><br>Order of magnitude for K values?',
         options: {
           A: 'K<sub>1</sub> > K<sub>2</sub> > K<sub>3</sub>',
           B: 'K<sub>2</sub> > K<sub>1</sub> > K<sub>3</sub>',
@@ -1267,7 +1267,7 @@
       {
         number: 37,
         code: '9701_w18_qp_11 Q: 9',
-        prompt: 'H<sub>2</sub>(g) + I<sub>2</sub>(g) ⇌ 2HI(g) &nbsp;&nbsp; ΔH = −9.5 kJ mol<sup>−1</sup><br><br>For K<sub>p</sub> to remain constant for this equilibrium, what must be true?',
+        prompt: 'H<sub>2</sub>(g) + I<sub>2</sub>(g) ? 2HI(g) &nbsp;&nbsp; ?H = ?9.5 kJ mol<sup>?1</sup><br><br>For K<sub>p</sub> to remain constant for this equilibrium, what must be true?',
         options: {
           A: 'Partial pressures of H<sub>2</sub>, I<sub>2</sub> and HI are equal.',
           B: 'External pressure is constant.',
@@ -1278,18 +1278,18 @@
       {
         number: 38,
         code: '9701_w18_qp_11 Q: 10',
-        prompt: '0.200 mol SO<sub>2</sub> and 0.200 mol O<sub>2</sub> in 1.00 dm<sup>3</sup> react: 2SO<sub>2</sub> + O<sub>2</sub> ⇌ 2SO<sub>3</sub><br><br>At equilibrium there is 0.100 mol SO<sub>3</sub> in the container.<br><br>What is K<sub>c</sub>?',
+        prompt: '0.200 mol SO<sub>2</sub> and 0.200 mol O<sub>2</sub> in 1.00 dm<sup>3</sup> react: 2SO<sub>2</sub> + O<sub>2</sub> ? 2SO<sub>3</sub><br><br>At equilibrium there is 0.100 mol SO<sub>3</sub> in the container.<br><br>What is K<sub>c</sub>?',
         options: {
-          A: '0.150 mol dm<sup>−3</sup>',
-          B: '0.800 mol dm<sup>−3</sup>',
-          C: '1.25 mol<sup>−1</sup> dm<sup>3</sup>',
-          D: '6.67 mol<sup>−1</sup> dm<sup>3</sup>',
+          A: '0.150 mol dm<sup>?3</sup>',
+          B: '0.800 mol dm<sup>?3</sup>',
+          C: '1.25 mol<sup>?1</sup> dm<sup>3</sup>',
+          D: '6.67 mol<sup>?1</sup> dm<sup>3</sup>',
         }
       },
       {
         number: 39,
         code: '9701_w18_qp_12 Q: 9',
-        prompt: 'X + 3Y ⇌ 2Z (pressures in atm). K<sub>p</sub> at T<sub>1</sub> = 2.<br><br>At higher temperature T<sub>2</sub>, equilibrium partial pressures: X = 2, Y = 3, Z = 5 atm.<br><br>Which row is correct?',
+        prompt: 'X + 3Y ? 2Z (pressures in atm). K<sub>p</sub> at T<sub>1</sub> = 2.<br><br>At higher temperature T<sub>2</sub>, equilibrium partial pressures: X = 2, Y = 3, Z = 5 atm.<br><br>Which row is correct?',
         optionTable: {
           headers: ['numerical value of K<sub>p</sub> at T<sub>2</sub>', 'the forward reaction is'],
           rows: [
@@ -1305,16 +1305,16 @@
         code: '9701_m17_qp_12 Q: 3',
         prompt: 'Two moles of P are heated in a sealed container. At equilibrium x moles of R are present and total moles present are (2 + x / 2).<br><br>What is the equation for the reversible reaction?',
         options: {
-          A: 'P ⇌ 2Q + R',
-          B: '2P ⇌ 2Q + R',
-          C: '2P ⇌ Q + R',
-          D: '2P ⇌ Q + 2R',
+          A: 'P ? 2Q + R',
+          B: '2P ? 2Q + R',
+          C: '2P ? Q + R',
+          D: '2P ? Q + 2R',
         }
       },
       {
         number: 41,
         code: '9701_m17_qp_12 Q: 11',
-        prompt: 'N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ⇌ 2NH<sub>3</sub>(g)<br><br>What is the expression for K<sub>c</sub> for this equilibrium?',
+        prompt: 'N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ? 2NH<sub>3</sub>(g)<br><br>What is the expression for K<sub>c</sub> for this equilibrium?',
         options: {
           A: '<span class="el"><span class="fraction"><span class="fraction-top">2[NH<sub>3</sub>(g)]</span><span class="fraction-bottom">[N<sub>2</sub>(g)] + 3[H<sub>2</sub>(g)]</span></span></span>',
           B: '<span class="el"><span class="fraction"><span class="fraction-top">2[NH<sub>3</sub>(g)]</span><span class="fraction-bottom">[N<sub>2</sub>(g)] &times; 3[H<sub>2</sub>(g)]</span></span></span>',
@@ -1325,7 +1325,7 @@
       {
         number: 42,
         code: '9701_s17_qp_11 Q: 10',
-        prompt: '2H<sub>2</sub>(g) + CO(g) ⇌ CH<sub>3</sub>OH(g)<br><br>What is the expression for K<sub>p</sub> for this reaction?',
+        prompt: '2H<sub>2</sub>(g) + CO(g) ? CH<sub>3</sub>OH(g)<br><br>What is the expression for K<sub>p</sub> for this reaction?',
         options: {
           A: '<span class="el">K<sub>p</sub> = <span class="fraction"><span class="fraction-top">(2p<sub>H<sub>2</sub></sub>)<sup>2</sup> &times; p<sub>CO</sub></span><span class="fraction-bottom">p<sub>CH<sub>3</sub>OH</sub></span></span></span>',
           B: '<span class="el">K<sub>p</sub> = <span class="fraction"><span class="fraction-top">(p<sub>H<sub>2</sub></sub>)<sup>2</sup> &times; p<sub>CO</sub></span><span class="fraction-bottom">p<sub>CH<sub>3</sub>OH</sub></span></span></span>',
@@ -1336,7 +1336,7 @@
       {
         number: 43,
         code: '9701_s17_qp_12 Q: 9',
-        prompt: 'H<sub>2</sub>(g) + CO<sub>2</sub>(g) ⇌ H<sub>2</sub>O(g) + CO(g) &nbsp;&nbsp; K<sub>p</sub> = 0.288 at 800 K<br><br>At equilibrium p(H<sub>2</sub>) = p(CO<sub>2</sub>) = 10.0 kPa.<br><br>What is p(CO)?',
+        prompt: 'H<sub>2</sub>(g) + CO<sub>2</sub>(g) ? H<sub>2</sub>O(g) + CO(g) &nbsp;&nbsp; K<sub>p</sub> = 0.288 at 800 K<br><br>At equilibrium p(H<sub>2</sub>) = p(CO<sub>2</sub>) = 10.0 kPa.<br><br>What is p(CO)?',
         options: {
           A: '5.37 kPa',
           B: '18.6 kPa',
@@ -1347,7 +1347,7 @@
       {
         number: 44,
         code: '9701_s17_qp_12 Q: 10',
-        prompt: '2SO<sub>2</sub>(g) + O<sub>2</sub>(g) ⇌ 2SO<sub>3</sub>(g) &nbsp;&nbsp; ΔH° = −197 kJ mol<sup>−1</sup><br><br>K<sub>p</sub> measured at 200 kPa, 700 K is Y. Measured again at 1000 kPa, 700 K is Z.<br><br>Which statement comparing Y and Z is correct?',
+        prompt: '2SO<sub>2</sub>(g) + O<sub>2</sub>(g) ? 2SO<sub>3</sub>(g) &nbsp;&nbsp; ?H� = ?197 kJ mol<sup>?1</sup><br><br>K<sub>p</sub> measured at 200 kPa, 700 K is Y. Measured again at 1000 kPa, 700 K is Z.<br><br>Which statement comparing Y and Z is correct?',
         options: {
           A: 'Y and Z are the same.',
           B: 'Y is greater than Z.',
@@ -1358,7 +1358,7 @@
       {
         number: 45,
         code: '9701_s17_qp_13 Q: 9',
-        prompt: 'N<sub>2</sub> + 3H<sub>2</sub> ⇌ 2NH<sub>3</sub> &nbsp;&nbsp; ΔH° = −92 kJ mol<sup>−1</sup><br><br>During production, temperature accidentally increased to 600 °C for two hours.<br><br>What effect on ammonia production during this time?',
+        prompt: 'N<sub>2</sub> + 3H<sub>2</sub> ? 2NH<sub>3</sub> &nbsp;&nbsp; ?H� = ?92 kJ mol<sup>?1</sup><br><br>During production, temperature accidentally increased to 600 �C for two hours.<br><br>What effect on ammonia production during this time?',
         options: {
           A: 'Formed faster; equilibrium yield decreased.',
           B: 'Formed faster; equilibrium yield increased.',
@@ -1369,7 +1369,7 @@
       {
         number: 46,
         code: '9701_s17_qp_13 Q: 10',
-        prompt: 'N<sub>2</sub>O<sub>4</sub>(g) ⇌ 2NO<sub>2</sub>(g) at 700 K. K<sub>p</sub> = 9.80 kPa.<br><br>At equilibrium p(N<sub>2</sub>O<sub>4</sub>) = 80.0 kPa.<br><br>What is p(NO<sub>2</sub>)?',
+        prompt: 'N<sub>2</sub>O<sub>4</sub>(g) ? 2NO<sub>2</sub>(g) at 700 K. K<sub>p</sub> = 9.80 kPa.<br><br>At equilibrium p(N<sub>2</sub>O<sub>4</sub>) = 80.0 kPa.<br><br>What is p(NO<sub>2</sub>)?',
         options: {
           A: '8.16 kPa',
           B: '28.0 kPa',
@@ -1380,7 +1380,7 @@
       {
         number: 47,
         code: '9701_w17_qp_11 Q: 9',
-        prompt: '2HI(g) ⇌ H<sub>2</sub>(g) + I<sub>2</sub>(g)<br><br>b mol HI in a vessel at pressure p. At equilibrium x mol HI dissociated.<br><br>Which expression for K<sub>p</sub> is correct?',
+        prompt: '2HI(g) ? H<sub>2</sub>(g) + I<sub>2</sub>(g)<br><br>b mol HI in a vessel at pressure p. At equilibrium x mol HI dissociated.<br><br>Which expression for K<sub>p</sub> is correct?',
         options: {
           A: '<span class="el"><span class="fraction"><span class="fraction-top">x<sup>2</sup></span><span class="fraction-bottom">(b - x)<sup>2</sup></span></span></span>',
           B: '<span class="el"><span class="fraction"><span class="fraction-top">x<sup>2</sup>p<sup>2</sup></span><span class="fraction-bottom">(b - x)<sup>2</sup></span></span></span>',
@@ -1391,7 +1391,7 @@
       {
         number: 48,
         code: '9701_w17_qp_12 Q: 9',
-        prompt: '2NO<sub>2</sub>(g) ⇌ N<sub>2</sub>O<sub>4</sub>(g) &nbsp;&nbsp; ΔH = −57 kJ mol<sup>−1</sup><br><br>NO<sub>2</sub> is brown, N<sub>2</sub>O<sub>4</sub> is colourless.<br><br>Which row shows the colour change when pressure or temperature is increased?',
+        prompt: '2NO<sub>2</sub>(g) ? N<sub>2</sub>O<sub>4</sub>(g) &nbsp;&nbsp; ?H = ?57 kJ mol<sup>?1</sup><br><br>NO<sub>2</sub> is brown, N<sub>2</sub>O<sub>4</sub> is colourless.<br><br>Which row shows the colour change when pressure or temperature is increased?',
         optionTable: {
           headers: ['increasing the pressure', 'increasing the temperature'],
           rows: [
@@ -1405,7 +1405,7 @@
       {
         number: 49,
         code: '9701_m16_qp_12 Q: 11',
-        prompt: '2.00 mol H<sub>2</sub> and 3.00 mol I<sub>2</sub> in 1.00 dm<sup>3</sup> vessel: H<sub>2</sub> + I<sub>2</sub> ⇌ 2HI<br><br>At equilibrium, 2.40 mol I<sub>2</sub> remain.<br><br>What is K<sub>c</sub>?',
+        prompt: '2.00 mol H<sub>2</sub> and 3.00 mol I<sub>2</sub> in 1.00 dm<sup>3</sup> vessel: H<sub>2</sub> + I<sub>2</sub> ? 2HI<br><br>At equilibrium, 2.40 mol I<sub>2</sub> remain.<br><br>What is K<sub>c</sub>?',
         options: {
           A: '0.107',
           B: '0.357',
@@ -1416,7 +1416,7 @@
       {
         number: 50,
         code: '9701_s16_qp_11 Q: 9',
-        prompt: '1.0 mol AgNO<sub>3</sub> + 1.0 mol FeSO<sub>4</sub> in 1.00 dm<sup>3</sup> water. At equilibrium, 0.44 mol Ag<sup>+</sup> remain.<br><br>Ag<sup>+</sup>(aq) + Fe<sup>2+</sup>(aq) ⇌ Ag(s) + Fe<sup>3+</sup>(aq)<br><br>What is K<sub>c</sub>?',
+        prompt: '1.0 mol AgNO<sub>3</sub> + 1.0 mol FeSO<sub>4</sub> in 1.00 dm<sup>3</sup> water. At equilibrium, 0.44 mol Ag<sup>+</sup> remain.<br><br>Ag<sup>+</sup>(aq) + Fe<sup>2+</sup>(aq) ? Ag(s) + Fe<sup>3+</sup>(aq)<br><br>What is K<sub>c</sub>?',
         options: {
           A: '0.62',
           B: '1.40',
@@ -1427,18 +1427,18 @@
       {
         number: 51,
         code: '9701_s16_qp_11 Q: 10',
-        prompt: 'CO(g) + 3H<sub>2</sub>(g) ⇌ CH<sub>4</sub>(g) + H<sub>2</sub>O(g)<br><br>What are the units of K<sub>p</sub> for this reaction?',
+        prompt: 'CO(g) + 3H<sub>2</sub>(g) ? CH<sub>4</sub>(g) + H<sub>2</sub>O(g)<br><br>What are the units of K<sub>p</sub> for this reaction?',
         options: {
           A: 'kPa',
-          B: 'kPa<sup>−1</sup>',
+          B: 'kPa<sup>?1</sup>',
           C: 'kPa<sup>2</sup>',
-          D: 'kPa<sup>−2</sup>',
+          D: 'kPa<sup>?2</sup>',
         }
       },
       {
         number: 52,
         code: '9701_s16_qp_12 Q: 10',
-        prompt: 'When solid ammonium chloride dissociates at a certain temperature in a 0.500 dm<sup>3</sup> container, ammonia and hydrogen chloride are formed.<br><br>NH<sub>4</sub>Cl(s) ⇌ NH<sub>3</sub>(g) + HCl(g)<br><br>The initial amount of ammonium chloride was 1.00 mol, and when equilibrium was reached there was 0.300 mol of ammonium chloride.<br><br>What is the numerical value of K<sub>c</sub> for this reaction under these conditions?',
+        prompt: 'When solid ammonium chloride dissociates at a certain temperature in a 0.500 dm<sup>3</sup> container, ammonia and hydrogen chloride are formed.<br><br>NH<sub>4</sub>Cl(s) ? NH<sub>3</sub>(g) + HCl(g)<br><br>The initial amount of ammonium chloride was 1.00 mol, and when equilibrium was reached there was 0.300 mol of ammonium chloride.<br><br>What is the numerical value of K<sub>c</sub> for this reaction under these conditions?',
         options: {
           A: '0.490',
           B: '1.63',
@@ -1449,12 +1449,12 @@
       {
         number: 53,
         code: '9701_s16_qp_13 Q: 9',
-        prompt: 'For N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ⇌ 2NH<sub>3</sub>(g), K<sub>c</sub> = 2 mol<sup>−2</sup> dm<sup>6</sup> at 600 K.<br><br>Equilibrium concentrations: [N<sub>2</sub>] = [H<sub>2</sub>] = 2 mol dm<sup>−3</sup>. What is [NH<sub>3</sub>]?',
+        prompt: 'For N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ? 2NH<sub>3</sub>(g), K<sub>c</sub> = 2 mol<sup>?2</sup> dm<sup>6</sup> at 600 K.<br><br>Equilibrium concentrations: [N<sub>2</sub>] = [H<sub>2</sub>] = 2 mol dm<sup>?3</sup>. What is [NH<sub>3</sub>]?',
         options: {
-          A: '&radic;8 mol dm<sup>−3</sup>',
-          B: '&radic;16 mol dm<sup>−3</sup>',
-          C: '&radic;32 mol dm<sup>−3</sup>',
-          D: '32 mol dm<sup>−3</sup>',
+          A: '&radic;8 mol dm<sup>?3</sup>',
+          B: '&radic;16 mol dm<sup>?3</sup>',
+          C: '&radic;32 mol dm<sup>?3</sup>',
+          D: '32 mol dm<sup>?3</sup>',
         }
       },
       {
@@ -1462,7 +1462,7 @@
         code: '9701_s16_qp_13 Q: 11',
         prompt: 'Effect of catalyst on a reversible reaction:',
         optionTable: {
-          headers: ['position of equilibrium', 'effect on value of ΔH'],
+          headers: ['position of equilibrium', 'effect on value of ?H'],
           rows: [
             { label: 'A', values: ['moved to right', 'decreased'] },
             { label: 'B', values: ['unaffected', 'decreased'] },
@@ -1499,18 +1499,18 @@
               </tbody>
             </table>
           </div>
-          3H<sub>2</sub>(g) + N<sub>2</sub>(g) ⇌ 2NH<sub>3</sub>(g)<br><br>What is the numerical value of the equilibrium constant, K<sub>p</sub>, for this reaction?`,
+          3H<sub>2</sub>(g) + N<sub>2</sub>(g) ? 2NH<sub>3</sub>(g)<br><br>What is the numerical value of the equilibrium constant, K<sub>p</sub>, for this reaction?`,
         options: {
-          A: '4.46 × 10<sup>−9</sup>',
-          B: '4.76 × 10<sup>−5</sup>',
-          C: '7.14 × 10<sup>−5</sup>',
-          D: '2.24 × 10<sup>8</sup>',
+          A: '4.46 ? 10<sup>?9</sup>',
+          B: '4.76 ? 10<sup>?5</sup>',
+          C: '7.14 ? 10<sup>?5</sup>',
+          D: '2.24 ? 10<sup>8</sup>',
         }
       },
       {
         number: 56,
         code: '9701_w16_qp_12 Q: 10',
-        prompt: 'N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ⇌ 2NH<sub>3</sub>(g)<br><br>A 1 dm<sup>3</sup> vessel contains 2.00 mol N<sub>2</sub>, 6.00 mol H<sub>2</sub> and 2.40 mol NH<sub>3</sub>. At equilibrium 2.32 mol N<sub>2</sub> remain.<br><br>What is the value of K<sub>c</sub>?',
+        prompt: 'N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ? 2NH<sub>3</sub>(g)<br><br>A 1 dm<sup>3</sup> vessel contains 2.00 mol N<sub>2</sub>, 6.00 mol H<sub>2</sub> and 2.40 mol NH<sub>3</sub>. At equilibrium 2.32 mol N<sub>2</sub> remain.<br><br>What is the value of K<sub>c</sub>?',
         optionTable: {
           headers: ['', 'K<sub>c</sub> expression'],
           rows: [
@@ -1528,7 +1528,7 @@
           <div style="text-align:center; margin:12px 0;">
             <img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/393.svg" alt="Three connected vessels with taps A and B for the lithium and ammonia equilibrium setup." class="theme-aware-graphic white-graphic" style="width: 880px; max-width: 100%;" loading="lazy" />
           </div>
-          Left vessel evacuated; middle vessel holds N<sub>2</sub> + 3H<sub>2</sub> ⇌ 2NH<sub>3</sub> at equilibrium; right vessel contains lithium only.<br><br>Which action allows the equilibrium mixture to contain the most ammonia?`,
+          Left vessel evacuated; middle vessel holds N<sub>2</sub> + 3H<sub>2</sub> ? 2NH<sub>3</sub> at equilibrium; right vessel contains lithium only.<br><br>Which action allows the equilibrium mixture to contain the most ammonia?`,
         options: {
           A: 'Keep both A and B closed.',
           B: 'Open both A and B.',
@@ -1539,7 +1539,7 @@
       {
         number: 58,
         code: '9701_s15_qp_11 Q: 6',
-        prompt: 'One mole of PCl<sub>5</sub> is heated to 600 K in a 1 dm<sup>3</sup> flask: PCl<sub>5</sub>(g) ⇌ PCl<sub>3</sub>(g) + Cl<sub>2</sub>(g).<br><br>The experiment is repeated at 600 K in a 2 dm<sup>3</sup> flask.<br><br>How do the measurements vary?',
+        prompt: 'One mole of PCl<sub>5</sub> is heated to 600 K in a 1 dm<sup>3</sup> flask: PCl<sub>5</sub>(g) ? PCl<sub>3</sub>(g) + Cl<sub>2</sub>(g).<br><br>The experiment is repeated at 600 K in a 2 dm<sup>3</sup> flask.<br><br>How do the measurements vary?',
         options: {
           A: 'Equilibrium [PCl<sub>3</sub>] and [Cl<sub>2</sub>] are higher in the second experiment.',
           B: 'Equilibrium [PCl<sub>5</sub>] is lower in the second experiment.',
@@ -1550,18 +1550,18 @@
       {
         number: 59,
         code: '9701_s15_qp_11 Q: 9',
-        prompt: 'One molecule of haemoglobin, Hb, can bind with four molecules of oxygen according to the following equation.<br><br>Hb(aq) + 4O<sub>2</sub>(aq) ⇌ Hb(O<sub>2</sub>)<sub>4</sub>(aq)<br><br>When the equilibrium concentration of O<sub>2</sub> is 7.6 × 10<sup>−6</sup> mol dm<sup>−3</sup>, the equilibrium concentrations of Hb and Hb(O<sub>2</sub>)<sub>4</sub> are equal.<br><br>What is the value of K<sub>c</sub> for this equilibrium?',
+        prompt: 'One molecule of haemoglobin, Hb, can bind with four molecules of oxygen according to the following equation.<br><br>Hb(aq) + 4O<sub>2</sub>(aq) ? Hb(O<sub>2</sub>)<sub>4</sub>(aq)<br><br>When the equilibrium concentration of O<sub>2</sub> is 7.6 ? 10<sup>?6</sup> mol dm<sup>?3</sup>, the equilibrium concentrations of Hb and Hb(O<sub>2</sub>)<sub>4</sub> are equal.<br><br>What is the value of K<sub>c</sub> for this equilibrium?',
         options: {
-          A: '3.0 × 10<sup>20</sup>',
-          B: '1.3 × 10<sup>5</sup>',
-          C: '7.6 × 10<sup>−6</sup>',
-          D: '3.3 × 10<sup>−21</sup>',
+          A: '3.0 ? 10<sup>20</sup>',
+          B: '1.3 ? 10<sup>5</sup>',
+          C: '7.6 ? 10<sup>?6</sup>',
+          D: '3.3 ? 10<sup>?21</sup>',
         }
       },
       {
         number: 60,
         code: '9701_s15_qp_12 Q: 8',
-        prompt: '2NO<sub>2</sub>(g) ⇌ N<sub>2</sub>O<sub>4</sub>(g) &nbsp;&nbsp; ΔH = −57 kJ mol<sup>−1</sup><br><br>Which conditions give the greatest percentage of N<sub>2</sub>O<sub>4</sub> at equilibrium?',
+        prompt: '2NO<sub>2</sub>(g) ? N<sub>2</sub>O<sub>4</sub>(g) &nbsp;&nbsp; ?H = ?57 kJ mol<sup>?1</sup><br><br>Which conditions give the greatest percentage of N<sub>2</sub>O<sub>4</sub> at equilibrium?',
         optionTable: {
           headers: ['pressure', 'temperature'],
           rows: [
@@ -1575,9 +1575,9 @@
       {
         number: 61,
         code: '9701_s15_qp_12 Q: 9',
-        prompt: 'When a sample of HI is warmed to a particular temperature the equilibrium below is established.<br><br>2HI(g) ⇌ H<sub>2</sub>(g) + I<sub>2</sub>(g)<br><br>At this temperature, it is found that the partial pressure of HI(g) is 28 times the partial pressure of H<sub>2</sub>(g).<br><br>What is the value of K<sub>p</sub> at this temperature?',
+        prompt: 'When a sample of HI is warmed to a particular temperature the equilibrium below is established.<br><br>2HI(g) ? H<sub>2</sub>(g) + I<sub>2</sub>(g)<br><br>At this temperature, it is found that the partial pressure of HI(g) is 28 times the partial pressure of H<sub>2</sub>(g).<br><br>What is the value of K<sub>p</sub> at this temperature?',
         options: {
-          A: '1.28 × 10<sup>−3</sup>',
+          A: '1.28 ? 10<sup>?3</sup>',
           B: '0.035',
           C: '28',
           D: '784',
@@ -1586,18 +1586,18 @@
       {
         number: 62,
         code: '9701_w15_qp_11 Q: 10',
-        prompt: 'A mixture of nitrogen and hydrogen gases, at a temperature of 500 K, was put into an evacuated vessel of volume 6.0 dm<sup>3</sup>. The vessel was then sealed.<br><br>N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ⇌ 2NH<sub>3</sub>(g)<br><br>The mixture was allowed to reach equilibrium. It was found that 7.2 mol of N<sub>2</sub> and 12.0 mol of H<sub>2</sub> were present in the equilibrium mixture. The value of the equilibrium constant, K<sub>c</sub>, for this equilibrium is 6.0 × 10<sup>−2</sup> at 500 K.<br><br>What is the concentration of ammonia present in the equilibrium mixture at 500 K?',
+        prompt: 'A mixture of nitrogen and hydrogen gases, at a temperature of 500 K, was put into an evacuated vessel of volume 6.0 dm<sup>3</sup>. The vessel was then sealed.<br><br>N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ? 2NH<sub>3</sub>(g)<br><br>The mixture was allowed to reach equilibrium. It was found that 7.2 mol of N<sub>2</sub> and 12.0 mol of H<sub>2</sub> were present in the equilibrium mixture. The value of the equilibrium constant, K<sub>c</sub>, for this equilibrium is 6.0 ? 10<sup>?2</sup> at 500 K.<br><br>What is the concentration of ammonia present in the equilibrium mixture at 500 K?',
         options: {
-          A: '0.58 mol dm<sup>−3</sup>',
-          B: '0.76 mol dm<sup>−3</sup>',
-          C: '3.5 mol dm<sup>−3</sup>',
-          D: '27 mol dm<sup>−3</sup>',
+          A: '0.58 mol dm<sup>?3</sup>',
+          B: '0.76 mol dm<sup>?3</sup>',
+          C: '3.5 mol dm<sup>?3</sup>',
+          D: '27 mol dm<sup>?3</sup>',
         }
       },
       {
         number: 63,
         code: '9701_w15_qp_11 Q: 2',
-        prompt: 'N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ⇌ 2NH<sub>3</sub>(g) &nbsp;&nbsp; ΔH° = −92 kJ mol<sup>−1</sup><br><br>Which set of conditions gives the highest yield of ammonia at equilibrium?',
+        prompt: 'N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ? 2NH<sub>3</sub>(g) &nbsp;&nbsp; ?H� = ?92 kJ mol<sup>?1</sup><br><br>Which set of conditions gives the highest yield of ammonia at equilibrium?',
         optionTable: {
           headers: ['catalyst', 'pressure', 'temperature'],
           rows: [
@@ -1611,7 +1611,7 @@
       {
         number: 64,
         code: '9701_w15_qp_12 Q: 8',
-        prompt: 'CH<sub>4</sub>(g) + H<sub>2</sub>O(g) ⇌ CO(g) + 3H<sub>2</sub>(g) &nbsp;&nbsp; ΔH° = +210 kJ mol<sup>−1</sup><br><br>Which pressure and temperature give the greatest equilibrium yield of hydrogen?',
+        prompt: 'CH<sub>4</sub>(g) + H<sub>2</sub>O(g) ? CO(g) + 3H<sub>2</sub>(g) &nbsp;&nbsp; ?H� = +210 kJ mol<sup>?1</sup><br><br>Which pressure and temperature give the greatest equilibrium yield of hydrogen?',
         optionTable: {
           headers: ['pressure', 'temperature'],
           rows: [
@@ -1625,10 +1625,10 @@
       {
         number: 65,
         code: '9701_w15_qp_12 Q: 9',
-        prompt: '2NO(g) + O<sub>2</sub>(g) ⇌ 2NO<sub>2</sub>(g)<br><br>At equilibrium: p(NO) = 10 kPa, p(O<sub>2</sub>) = 30 kPa, p(NO<sub>2</sub>) = 20 kPa.<br><br>What is K<sub>p</sub>?',
+        prompt: '2NO(g) + O<sub>2</sub>(g) ? 2NO<sub>2</sub>(g)<br><br>At equilibrium: p(NO) = 10 kPa, p(O<sub>2</sub>) = 30 kPa, p(NO<sub>2</sub>) = 20 kPa.<br><br>What is K<sub>p</sub>?',
         options: {
-          A: '6.67 × 10<sup>−2</sup>',
-          B: '1.33 × 10<sup>−1</sup>',
+          A: '6.67 ? 10<sup>?2</sup>',
+          B: '1.33 ? 10<sup>?1</sup>',
           C: '7.50',
           D: '15.0',
         }
@@ -1636,7 +1636,7 @@
       {
         number: 66,
         code: '9701_m22_qp_12 Q: 13',
-        prompt: 'Diethylzinc, (C<sub>2</sub>H<sub>5</sub>)<sub>2</sub>Zn, is added to NaOH(aq). Two reactions occur:<br>1) (C<sub>2</sub>H<sub>5</sub>)<sub>2</sub>Zn + H<sub>2</sub>O → ZnO + 2C<sub>2</sub>H<sub>6</sub><br>2) H<sub>2</sub>O + ZnO + 2OH<sup>−</sup> → Zn(OH)<sub>4</sub><sup>2−</sup><br><br>Which compounds act as Brønsted–Lowry acids?',
+        prompt: 'Diethylzinc, (C<sub>2</sub>H<sub>5</sub>)<sub>2</sub>Zn, is added to NaOH(aq). Two reactions occur:<br>1) (C<sub>2</sub>H<sub>5</sub>)<sub>2</sub>Zn + H<sub>2</sub>O > ZnO + 2C<sub>2</sub>H<sub>6</sub><br>2) H<sub>2</sub>O + ZnO + 2OH<sup>?</sup> > Zn(OH)<sub>4</sub><sup>2?</sup><br><br>Which compounds act as Bronsted�Lowry acids?',
         optionTable: {
           headers: ['reaction 1', 'reaction 2'],
           rows: [
@@ -1650,23 +1650,23 @@
       {
         number: 67,
         code: '9701_m21_qp_12 Q: 9',
-        prompt: 'In which reaction is water behaving as a Brønsted–Lowry base?',
+        prompt: 'In which reaction is water behaving as a Bronsted�Lowry base?',
         options: {
-          A: 'H<sub>2</sub>O + Na → NaOH + <span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span>H<sub>2</sub>',
-          B: 'H<sub>2</sub>O + H<sub>3</sub>PO<sub>4</sub> → H<sub>3</sub>O<sup>+</sup> + H<sub>2</sub>PO<sub>4</sub><sup>−</sup>',
-          C: 'H<sub>2</sub>O + CaO → Ca(OH)<sub>2</sub>',
-          D: 'NH<sub>3</sub> + [Cu(H<sub>2</sub>O)<sub>6</sub>]<sup>2+</sup> → NH<sub>4</sub><sup>+</sup> + [Cu(H<sub>2</sub>O)<sub>5</sub>(OH)]<sup>+</sup>',
+          A: 'H<sub>2</sub>O + Na > NaOH + <span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span>H<sub>2</sub>',
+          B: 'H<sub>2</sub>O + H<sub>3</sub>PO<sub>4</sub> > H<sub>3</sub>O<sup>+</sup> + H<sub>2</sub>PO<sub>4</sub><sup>?</sup>',
+          C: 'H<sub>2</sub>O + CaO > Ca(OH)<sub>2</sub>',
+          D: 'NH<sub>3</sub> + [Cu(H<sub>2</sub>O)<sub>6</sub>]<sup>2+</sup> > NH<sub>4</sub><sup>+</sup> + [Cu(H<sub>2</sub>O)<sub>5</sub>(OH)]<sup>+</sup>',
         }
       },
       {
         number: 68,
         code: '9701_w21_qp_11 Q: 7',
-        prompt: 'In order to determine the enthalpy of neutralisation of a strong acid and a strong alkali, 25.0 cm<sup>3</sup> of 2.00 mol dm<sup>−3</sup> sodium hydroxide is added to 25.0 cm<sup>3</sup> of 2.00 mol dm<sup>−3</sup> hydrochloric acid. The increase in temperature is 12 °C.<br><br>In a second experiment, the same method is used, but 50.0 cm<sup>3</sup> of 2.00 mol dm<sup>−3</sup> sodium hydroxide is added to 50.0 cm<sup>3</sup> of 2.00 mol dm<sup>−3</sup> hydrochloric acid.<br><br>What is the increase in temperature in the second experiment?',
+        prompt: 'In order to determine the enthalpy of neutralisation of a strong acid and a strong alkali, 25.0 cm<sup>3</sup> of 2.00 mol dm<sup>?3</sup> sodium hydroxide is added to 25.0 cm<sup>3</sup> of 2.00 mol dm<sup>?3</sup> hydrochloric acid. The increase in temperature is 12 �C.<br><br>In a second experiment, the same method is used, but 50.0 cm<sup>3</sup> of 2.00 mol dm<sup>?3</sup> sodium hydroxide is added to 50.0 cm<sup>3</sup> of 2.00 mol dm<sup>?3</sup> hydrochloric acid.<br><br>What is the increase in temperature in the second experiment?',
         options: {
-          A: '6 °C',
-          B: '12 °C',
-          C: '24 °C',
-          D: '48 °C',
+          A: '6 �C',
+          B: '12 �C',
+          C: '24 �C',
+          D: '48 �C',
         }
       },
       {
@@ -1674,10 +1674,10 @@
         code: '9701_s20_qp_13 Q: 6',
         prompt: 'Which solution has the lowest pH value?',
         options: {
-          A: '0.01 mol dm<sup>−3</sup> butanoic acid',
-          B: '0.01 mol dm<sup>−3</sup> ethanoic acid',
-          C: '0.01 mol dm<sup>−3</sup> hydrochloric acid',
-          D: '0.01 mol dm<sup>−3</sup> sulfuric acid',
+          A: '0.01 mol dm<sup>?3</sup> butanoic acid',
+          B: '0.01 mol dm<sup>?3</sup> ethanoic acid',
+          C: '0.01 mol dm<sup>?3</sup> hydrochloric acid',
+          D: '0.01 mol dm<sup>?3</sup> sulfuric acid',
         }
       },
       {
@@ -1697,29 +1697,29 @@
       {
         number: 71,
         code: '9701_s18_qp_11 Q: 15',
-        prompt: 'In which reaction does ammonia behave as a Brønsted–Lowry base?',
+        prompt: 'In which reaction does ammonia behave as a Bronsted�Lowry base?',
         options: {
-          A: 'NH<sub>3</sub> + CH<sub>3</sub>CH<sub>2</sub>Br → CH<sub>3</sub>CH<sub>2</sub>NH<sub>2</sub> + HBr',
-          B: 'NH<sub>3</sub> + H<sub>2</sub>O + CO<sub>2</sub> → (NH<sub>4</sub>)HCO<sub>3</sub>',
-          C: '2NH<sub>3</sub> + 2Na → 2NaNH<sub>2</sub> + H<sub>2</sub>',
-          D: '4NH<sub>3</sub> + 3O<sub>2</sub> → 2N<sub>2</sub> + 6H<sub>2</sub>O',
+          A: 'NH<sub>3</sub> + CH<sub>3</sub>CH<sub>2</sub>Br > CH<sub>3</sub>CH<sub>2</sub>NH<sub>2</sub> + HBr',
+          B: 'NH<sub>3</sub> + H<sub>2</sub>O + CO<sub>2</sub> > (NH<sub>4</sub>)HCO<sub>3</sub>',
+          C: '2NH<sub>3</sub> + 2Na > 2NaNH<sub>2</sub> + H<sub>2</sub>',
+          D: '4NH<sub>3</sub> + 3O<sub>2</sub> > 2N<sub>2</sub> + 6H<sub>2</sub>O',
         }
       },
       {
         number: 72,
         code: '9701_s16_qp_13 Q: 10',
-        prompt: 'SO<sub>2</sub> is used as a preservative. In water:<br>H<sub>2</sub>O + SO<sub>2</sub> ⇌ HSO<sub>3</sub><sup>−</sup> + H<sup>+</sup><br>HSO<sub>3</sub><sup>−</sup> + H<sup>+</sup> ⇌ SO<sub>3</sub><sup>2−</sup> + 2H<sup>+</sup><br><br>Which statement about these reactions is correct?',
+        prompt: 'SO<sub>2</sub> is used as a preservative. In water:<br>H<sub>2</sub>O + SO<sub>2</sub> ? HSO<sub>3</sub><sup>?</sup> + H<sup>+</sup><br>HSO<sub>3</sub><sup>?</sup> + H<sup>+</sup> ? SO<sub>3</sub><sup>2?</sup> + 2H<sup>+</sup><br><br>Which statement about these reactions is correct?',
         options: {
-          A: 'HSO<sub>3</sub><sup>−</sup> acts as a base.',
+          A: 'HSO<sub>3</sub><sup>?</sup> acts as a base.',
           B: 'SO<sub>2</sub> acts as an oxidising agent.',
-          C: 'SO<sub>3</sub><sup>2−</sup> acts as an acid.',
-          D: 'SO<sub>3</sub><sup>2−</sup> acts as a reducing agent.',
+          C: 'SO<sub>3</sub><sup>2?</sup> acts as an acid.',
+          D: 'SO<sub>3</sub><sup>2?</sup> acts as a reducing agent.',
         }
       },
       {
         number: 73,
         code: '9701_s15_qp_11 Q: 8',
-        prompt: 'In which reaction is the underlined substance acting as a base?<br><br>A &nbsp; HNO<sub>3</sub> + <u>H<sub>2</sub>SO<sub>4</sub></u> → H<sub>2</sub>NO<sub>3</sub><sup>+</sup> + HSO<sub>4</sub><sup>−</sup><br>B &nbsp; HSiO<sub>3</sub><sup>−</sup> + <u>HCN</u> → CN<sup>−</sup> + H<sub>2</sub>O + SiO<sub>2</sub><br>C &nbsp; HNO<sub>2</sub> + <u>HCO<sub>3</sub><sup>−</sup></u> → H<sub>2</sub>O + CO<sub>2</sub> + NO<sub>2</sub><sup>−</sup><br>D &nbsp; C<sub>6</sub>H<sub>5</sub>O<sup>−</sup> + <u>CH<sub>2</sub>ClCO<sub>2</sub>H</u> → C<sub>6</sub>H<sub>5</sub>OH + CH<sub>2</sub>ClCO<sub>2</sub><sup>−</sup>',
+        prompt: 'In which reaction is the underlined substance acting as a base?<br><br>A &nbsp; HNO<sub>3</sub> + <u>H<sub>2</sub>SO<sub>4</sub></u> > H<sub>2</sub>NO<sub>3</sub><sup>+</sup> + HSO<sub>4</sub><sup>?</sup><br>B &nbsp; HSiO<sub>3</sub><sup>?</sup> + <u>HCN</u> > CN<sup>?</sup> + H<sub>2</sub>O + SiO<sub>2</sub><br>C &nbsp; HNO<sub>2</sub> + <u>HCO<sub>3</sub><sup>?</sup></u> > H<sub>2</sub>O + CO<sub>2</sub> + NO<sub>2</sub><sup>?</sup><br>D &nbsp; C<sub>6</sub>H<sub>5</sub>O<sup>?</sup> + <u>CH<sub>2</sub>ClCO<sub>2</sub>H</u> > C<sub>6</sub>H<sub>5</sub>OH + CH<sub>2</sub>ClCO<sub>2</sub><sup>?</sup>',
         options: {
           A: 'reaction A',
           B: 'reaction B',
@@ -1777,7 +1777,7 @@
       const update = () => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         const remaining = Math.max(TEST_DURATION_SECONDS - elapsed, 0);
-        timerEl.textContent = `⏳ Time remaining: ${formatTimer(remaining)}`;
+        timerEl.textContent = `? Time remaining: ${formatTimer(remaining)}`;
         if (remaining === 0) {
           timerEl.classList.add('timer-expired');
           clearInterval(timerInterval);
@@ -1896,7 +1896,7 @@
       document.querySelectorAll('input').forEach(i => i.disabled = true);
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
-      btn.textContent = '✓ Submitted';
+      btn.textContent = '? Submitted';
       const status = document.getElementById('status');
       status.textContent = `You submitted this test on ${new Date(data.submittedAt).toLocaleString()}.`;
       const scoreDiv = document.getElementById('score');
@@ -1945,6 +1945,10 @@
           document.querySelectorAll('input').forEach(i => i.disabled = false);
           unlockQuestions();
           
+                    // Re-show anti-cheat modal and restart timer gating
+          timerStarted = false;
+          antiCheatAcknowledged = false;
+          startTimerIfReady();
           return;
         }
 
@@ -2006,6 +2010,10 @@
             console.error('Failed to notify parent of test deletion:', e);
           }
           
+          // Reset anti-cheat state so modal shows again
+          timerStarted = false;
+          antiCheatAcknowledged = false;
+          startTimerIfReady();
           return;
         }
 
@@ -2015,20 +2023,20 @@
         
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` • ⏱️ Time: ${formatTimer(data.time_taken_seconds)}`
+            ? ` � ?? Time: ${formatTimer(data.time_taken_seconds)}`
             : '';
-          scoreDiv.textContent = `✅ Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
+          scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
           hideTimer();
           const responses = (data.answers && typeof data.answers === "string" ? JSON.parse(data.answers) : data.answers)?.responses || {};
           applyReviewMode(responses);
         } else {
-          scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+          scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
           scoreDiv.className = 'score-box pending';
         }
       } catch (err) {
         console.error('Failed to check score release status:', err);
-        scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+        scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
         scoreDiv.className = 'score-box pending';
       }
     }
@@ -2046,7 +2054,7 @@
         if (isForced) {
           name = 'Unknown Student';
         } else {
-          status.textContent = '⚠️ Please enter your name.';
+          status.textContent = '?? Please enter your name.';
           return;
         }
       }
@@ -2054,7 +2062,7 @@
         if (isForced) {
           cls = 'Unknown Class';
         } else {
-          status.textContent = '⚠️ Please enter your class.';
+          status.textContent = '?? Please enter your class.';
           return;
         }
       }
@@ -2070,7 +2078,7 @@
       const result = calculateScore(responses);
 
       btn.disabled = true;
-      status.textContent = '📤 Submitting...';
+      status.textContent = '?? Submitting...';
 
       const payload = {
         student_name: name,
@@ -2093,13 +2101,13 @@
         console.error(error);
         if (error.message && (error.message.includes('duplicate') || error.message.includes('unique') || error.message.includes('already exists'))) {
           hasSubmitted = true;
-          btn.textContent = '✓ Already Submitted';
-          status.textContent = '⚠️ You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
+          btn.textContent = '? Already Submitted';
+          status.textContent = '?? You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
           document.querySelectorAll('input').forEach(i => i.disabled = true);
           lockQuestions();
           return;
         }
-        status.textContent = '❌ Failed to submit. Please try again.';
+        status.textContent = '? Failed to submit. Please try again.';
         btn.disabled = false;
         return;
       }
@@ -2114,13 +2122,13 @@
       }));
 
       document.querySelectorAll('input').forEach(i => i.disabled = true);
-      btn.textContent = '✓ Submitted';
-      status.textContent = isForced ? `⚠️ Auto-submitted: ${autoSubmitReason}` : '✅ Submitted successfully! Your teacher will release your score soon.';
+      btn.textContent = '? Submitted';
+      status.textContent = isForced ? `?? Auto-submitted: ${autoSubmitReason}` : '? Submitted successfully! Your teacher will release your score soon.';
 
       const scoreDiv = document.getElementById('score');
       scoreDiv.style.display = 'block';
       lockQuestions();
-      scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+      scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
       scoreDiv.className = 'score-box pending';
 
       try {
@@ -2180,6 +2188,8 @@
     function acknowledgeAntiCheat() {
       antiCheatAcknowledged = true;
       closeAntiCheatModal();
+      // Show questions now that anti-cheat is acknowledged
+      unlockQuestions();
       startTimerIfReady();
     }
 
@@ -2188,6 +2198,7 @@
       const overlay = document.getElementById('primeOverlay');
       if (overlay && !overlay.classList.contains('hidden')) return;
       if (!antiCheatAcknowledged) {
+        lockQuestions();
         openAntiCheatModal();
         return;
       }
@@ -2235,10 +2246,10 @@
         const review = document.createElement('div');
         review.className = 'review-answer';
         if (studentAnswer && studentAnswer === correctAnswer) {
-          review.textContent = `✅ Correct: ${correctAnswer}`;
+          review.textContent = `? Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `❌ Your answer: ${studentAnswer || '—'} | ✅ Correct: ${correctAnswer}`;
+          review.textContent = `? Your answer: ${studentAnswer || '�'} | ? Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -2287,7 +2298,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('•')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('�')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -2333,7 +2344,7 @@
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test � auto-submitted' });
         }
       });
     });

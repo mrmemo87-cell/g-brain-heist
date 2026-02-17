@@ -641,7 +641,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       // Consume pilot quota if applicable
       const quota = await tryConsumePilotQuota('lockdown_sessions');
       if (!quota.proceed) {
-        alert(quota.error || 'Lockdown session quota exhausted. Upgrade your plan to continue.');
+        alert(quota.error || 'You\'ve reached the lockdown session limit on the Pilot plan. Upgrade to continue.');
         return;
       }
 

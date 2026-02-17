@@ -778,6 +778,7 @@
   function acknowledgeAntiCheat() {
     antiCheatAcknowledged = true;
     closeAntiCheatModal();
+    unlockQuestions();
     setupAntiCheat();
     startTimerIfReady();
   }
@@ -785,11 +786,24 @@
   function startTimerIfReady() {
     if (timerStarted || hasSubmitted) return;
     if (!antiCheatAcknowledged) {
+      lockQuestions();
       openAntiCheatModal();
       return;
     }
     timerStarted = true;
     beginTimer();
+  }
+
+  function lockQuestions() {
+    document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+    const btn = document.getElementById('submitBtn');
+    if (btn) btn.style.display = 'none';
+  }
+
+  function unlockQuestions() {
+    document.querySelectorAll('.section').forEach(s => s.style.display = '');
+    const btn = document.getElementById('submitBtn');
+    if (btn) btn.style.display = '';
   }
 
   function getAnswerValue(questionId) {

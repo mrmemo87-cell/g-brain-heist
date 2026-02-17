@@ -320,7 +320,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
     // Consume pilot quota if applicable
     const quota = await tryConsumePilotQuota('admission_tests');
     if (!quota.proceed) {
-      addToast(quota.error || 'Admission test quota exhausted. Upgrade your plan to continue.', 'error');
+      addToast(quota.error || 'You\'ve reached the admission test limit on the Pilot plan. Upgrade to continue.', 'error');
       return;
     }
 

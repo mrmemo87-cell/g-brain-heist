@@ -2397,7 +2397,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     // Consume pilot quota if applicable
     const quota = await tryConsumePilotQuota('questions_created');
     if (!quota.proceed) {
-      alert(quota.error || 'Question creation quota exhausted. Upgrade your plan to continue.');
+      alert(quota.error || 'You\'ve reached the question creation limit on the Pilot plan. Upgrade to continue.');
       return;
     }
 
@@ -2670,7 +2670,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       // Consume pilot quota if applicable
       const assignQuota = await tryConsumePilotQuota('assignments_created');
       if (!assignQuota.proceed) {
-        alert(assignQuota.error || 'Assignment creation quota exhausted. Upgrade your plan to continue.');
+        alert(assignQuota.error || 'You\'ve reached the assignment creation limit on the Pilot plan. Upgrade to continue.');
         setAssignmentSubmitting(false);
         return;
       }
@@ -2811,7 +2811,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     // Consume pilot quota if applicable
     const quota = await tryConsumePilotQuota('reports_generated');
     if (!quota.proceed) {
-      alert(quota.error || 'Report generation quota exhausted. Upgrade your plan to continue.');
+      alert(quota.error || 'You\'ve reached the report export limit on the Pilot plan. Upgrade to continue.');
       return;
     }
 

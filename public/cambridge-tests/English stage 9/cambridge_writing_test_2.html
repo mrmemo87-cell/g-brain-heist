@@ -368,6 +368,91 @@
       padding-bottom: max(20px, env(safe-area-inset-bottom));
     }
   }
+
+  /* Anti-cheat modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  .modal-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .modal-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 24px 28px;
+    width: min(480px, 90vw);
+    box-shadow: 0 30px 70px rgba(0,0,0,0.35);
+  }
+  .modal-title { font-size: 18px; font-weight: 700; margin: 0 0 8px; color: #333; }
+  .modal-body { font-size: 14px; color: #555; line-height: 1.5; }
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 18px;
+  }
+  .modal-btn {
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .modal-btn.primary {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+  }
+  .anti-cheat-card {
+    border: 2px solid #dc3545;
+  }
+  .anti-cheat-rules {
+    margin: 12px 0 0;
+    padding-left: 18px;
+    color: #333;
+    font-size: 14px;
+  }
+  .anti-cheat-rules li {
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .anti-cheat-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 80px;
+    transform: translateX(-50%);
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    padding: 12px 18px;
+    border-radius: 12px;
+    color: #856404;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .anti-cheat-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-6px);
+  }
+  .anti-cheat-toast.warning {
+    background: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+  }
 </style>
 </head>
 <body>
@@ -456,7 +541,7 @@
     
     <div class="writing-area">
       <label for="answer1">Write your message below:</label>
-      <textarea id="answer1" placeholder="Start writing your message here..." oninput="updateWordCount(1); startTimer(); autoSaveDraft();"></textarea>
+      <textarea id="answer1" placeholder="Start writing your message here..." oninput="updateWordCount(1); startTimerIfReady(); autoSaveDraft();"></textarea>
       <div class="word-counter">
         <span>Word count:</span>
         <span class="count" id="wordCount1">0 words</span>
@@ -508,7 +593,7 @@
     
     <div class="writing-area">
       <label for="answer2">Write your essay below:</label>
-      <textarea id="answer2" placeholder="Start writing your essay here..." style="min-height: 300px;" oninput="updateWordCount(2); startTimer(); autoSaveDraft();"></textarea>
+      <textarea id="answer2" placeholder="Start writing your essay here..." style="min-height: 300px;" oninput="updateWordCount(2); startTimerIfReady(); autoSaveDraft();"></textarea>
       <div class="word-counter">
         <span>Word count:</span>
         <span class="count" id="wordCount2">0 words</span>
@@ -527,6 +612,24 @@
     <p>Your teacher will mark your writing using the Cambridge marking scheme.<br>Check your results in the Cambridge Tests section later.</p>
   </div>
 </div>
+
+<!-- Anti-cheat Modal -->
+<div id="antiCheatModal" class="modal-overlay">
+  <div class="modal-card anti-cheat-card">
+    <h3 class="modal-title">⚠️ Anti-cheat rules</h3>
+    <p class="modal-body">This test uses anti-cheat protection. Please read before starting:</p>
+    <ul class="anti-cheat-rules">
+      <li>Stay on this tab. The first violation triggers a warning.</li>
+      <li>Three violations (tab switches, copying, etc.) will auto-submit your test.</li>
+      <li>Copying and cutting are disabled during the test.</li>
+      <li>Your timer starts only after you click "I understand".</li>
+    </ul>
+    <div class="modal-actions">
+      <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
+    </div>
+  </div>
+</div>
+<div id="antiCheatToast" class="anti-cheat-toast">⚠️ Tab switching detected. Please stay on this test.</div>
 
 <!-- Floating Submit Button for Mobile -->
 <div class="floating-submit show" id="floatingSubmit">
@@ -675,6 +778,8 @@
   let autoSubmitTriggered = false;
   let startTime = null;
   let timerInterval = null;
+  let antiCheatAcknowledged = false;
+  let timerStarted = false;
 
   // Word count limits
   const PART1_MIN = 45;
@@ -828,6 +933,35 @@
         updateWordCount(2);
       }
     }
+  }
+
+  // Anti-cheat modal functions
+  function openAntiCheatModal() {
+    const modal = document.getElementById('antiCheatModal');
+    if (!modal) return;
+    modal.classList.add('show');
+  }
+
+  function closeAntiCheatModal() {
+    const modal = document.getElementById('antiCheatModal');
+    if (!modal) return;
+    modal.classList.remove('show');
+  }
+
+  function acknowledgeAntiCheat() {
+    antiCheatAcknowledged = true;
+    closeAntiCheatModal();
+    startTimerIfReady();
+  }
+
+  function startTimerIfReady() {
+    if (timerStarted || hasSubmitted) return;
+    if (!antiCheatAcknowledged) {
+      openAntiCheatModal();
+      return;
+    }
+    timerStarted = true;
+    startTimer();
   }
 
   // Start timer
@@ -1197,6 +1331,11 @@
   loadStudentInfoFromGame();
   if (!hasSubmitted) {
     loadDraft();
+    // Wire up anti-cheat accept button
+    const antiCheatAcceptBtn = document.getElementById('antiCheatAcceptBtn');
+    if (antiCheatAcceptBtn) antiCheatAcceptBtn.addEventListener('click', acknowledgeAntiCheat);
+    // Show anti-cheat modal (timer won't start until acknowledged)
+    startTimerIfReady();
     startExamGuard();
   }
 

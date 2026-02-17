@@ -307,7 +307,7 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
     // Consume pilot quota if applicable
     const quota = await tryConsumePilotQuota('shop_purchases');
     if (!quota.proceed) {
-      addToast(quota.error || 'Shop purchase quota exhausted. Upgrade your plan to continue.', 'error');
+      addToast(quota.error || 'You\'ve reached the shop purchase limit on the Pilot plan. Upgrade to continue.', 'error');
       return;
     }
 

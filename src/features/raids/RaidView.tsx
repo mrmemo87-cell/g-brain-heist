@@ -451,7 +451,7 @@ const RaidView: React.FC<RaidViewProps> = ({ profile, onComplete, addToast }) =>
     // Consume pilot quota if applicable
     const quota = await tryConsumePilotQuota('raid_attempts');
     if (!quota.proceed) {
-      addToast?.(quota.error || 'Raid quota exhausted. Upgrade your plan to continue.', 'error');
+      addToast?.(quota.error || 'You\'ve reached the raid attempt limit on the Pilot plan. Upgrade to continue.', 'error');
       return;
     }
 

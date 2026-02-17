@@ -301,7 +301,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
     // Consume pilot quota if applicable
     const quota = await tryConsumePilotQuota('pvp_battles');
     if (!quota.proceed) {
-      alert(quota.error || 'PvP battle quota exhausted. Upgrade your plan to continue.');
+      alert(quota.error || 'You\'ve reached the PvP battle limit on the Pilot plan. Upgrade to continue.');
       return;
     }
 

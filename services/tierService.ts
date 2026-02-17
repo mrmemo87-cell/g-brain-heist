@@ -463,7 +463,7 @@ export async function tryConsumePilotQuota(
 
     // Pilot expired — block (tier should already be 'free')
     if (status.expired) {
-      return { proceed: false, error: 'Pilot trial has expired' };
+      return { proceed: false, error: 'Your pilot trial has ended. Subscribe to a plan to continue using this feature.' };
     }
 
     // Check if quota exists for this feature
@@ -475,7 +475,7 @@ export async function tryConsumePilotQuota(
 
     // Already exhausted — block
     if (quota.exhausted) {
-      return { proceed: false, remaining: 0, error: 'Pilot quota exhausted for this feature' };
+      return { proceed: false, remaining: 0, error: 'You\'ve reached the usage limit for this feature on the Pilot plan. Upgrade to a paid plan to continue.' };
     }
 
     // Consume 1 unit
@@ -488,6 +488,6 @@ export async function tryConsumePilotQuota(
   } catch (err) {
     console.warn('[tierService] tryConsumePilotQuota error:', err);
     // Fail closed — don't let errors bypass quotas
-    return { proceed: false, error: 'Could not verify quota' };
+    return { proceed: false, error: 'Unable to verify your plan usage at this time. Please try again shortly.' };
   }
 }

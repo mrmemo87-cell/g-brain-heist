@@ -228,7 +228,7 @@ const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ profile }) => {
             <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Stats</p>
             <span className="text-[11px] text-slate-400">Performance & combat</span>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-2">
             {secondaryStats.map((stat) => (
               <StatDisplay key={stat.label} {...stat} />
             ))}

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -557,10 +557,10 @@
   <!--
   <div class="prime-overlay" id="primeOverlay">
     <div class="prime-card">
-      <div class="prime-icon">👑</div>
+      <div class="prime-icon">??</div>
       <h2 class="prime-title">GET PRIME</h2>
       <p class="prime-subtitle">This AS Chemistry content is exclusive to Prime members. Upgrade to unlock all advanced materials.</p>
-      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">✨ Upgrade to Prime</button>
+      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">? Upgrade to Prime</button>
       <div class="prime-divider">or enter activation code</div>
       <input type="text" class="prime-code-input" id="primeCodeInput" placeholder="Enter code..." autocomplete="off" />
       <button class="prime-unlock-btn" id="primeUnlockBtn">Unlock</button>
@@ -575,22 +575,22 @@
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
         <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch6 (Electrochemistry)</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 6 • 56 multiple-choice questions</div>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 6 � 56 multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
-      <span class="badge">🧪 Category: Science</span>
-      <span class="badge">🎯 Difficulty: Advanced</span>
-      <span class="badge">📝 Format: Multiple Choice (A–D)</span>
+      <span class="badge">?? Category: Science</span>
+      <span class="badge">?? Difficulty: Advanced</span>
+      <span class="badge">?? Format: Multiple Choice (A�D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
 
     <div class="status">
-      ⚠️ Answer key pending: submit to save your responses. Scores will update once the official answers are added.
+      ?? Answer key pending: submit to save your responses. Scores will update once the official answers are added.
     </div>
-    <div id="timer" class="timer-box floating">⏳ Time remaining: 00:00</div>
+    <div id="timer" class="timer-box floating">? Time remaining: 00:00</div>
 
 
     <div class="student-info">
@@ -598,7 +598,7 @@
       <input type="text" id="studentClass" placeholder="Class / Batch" autocomplete="section" />
     </div>
 
-    <div id="questions"></div>
+    <div id="questions" class="hidden"></div>
 
     <div class="submit-area">
       <button id="submitBtn">Submit Answers</button>
@@ -627,14 +627,14 @@
         <li>Stay on this tab. The first violation triggers a warning.</li>
         <li>Three violations (tab switches, copying, etc.) will auto-submit your test.</li>
         <li>Copying and cutting are disabled during the test.</li>
-        <li>Your timer starts only after you click “I understand”.</li>
+        <li>Your timer starts only after you click �I understand�.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
       </div>
     </div>
   </div>
-  <div id="antiCheatToast" class="anti-cheat-toast">⚠️ Tab switching detected. Please stay on this test.</div>
+  <div id="antiCheatToast" class="anti-cheat-toast">?? Tab switching detected. Please stay on this test.</div>
 
   <script>
     const SUPABASE_URL = window.__SUPABASE_ENV__?.VITE_SUPABASE_URL || 'https://sozodkxwhubespiedgxm.supabase.co';
@@ -765,11 +765,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} — Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} • ${totalQuestions} questions`;
-      if (timeBadge) timeBadge.textContent = `⏱️ Suggested time: ${formatDuration(durationSeconds)}`;
-      if (partBadge) partBadge.textContent = `📌 Part ${part} of 2`;
-      document.title = `${title} — Part ${part}`;
+      if (titleEl) titleEl.textContent = `${title} � Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} � ${totalQuestions} questions`;
+      if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
+      if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
+      document.title = `${title} � Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -796,7 +796,7 @@
       {
         number: 1,
         code: '9701_m22_qp_12 Q: 10',
-        prompt: 'Two half-equations are shown.<br><br>MnO<sub>4</sub><sup>−</sup> + 2H<sub>2</sub>O + 3e<sup>−</sup> → MnO<sub>2</sub> + 4OH<sup>−</sup><br>2OH<sup>−</sup> + SO<sub>3</sub><sup>2−</sup> → SO<sub>4</sub><sup>2−</sup> + H<sub>2</sub>O + 2e<sup>−</sup><br><br>The equation for the reaction between manganate(VII) ions and sulfite ions is shown.<br><br>uMnO<sub>4</sub><sup>−</sup> + vH<sub>2</sub>O + wSO<sub>3</sub><sup>2−</sup> → xMnO<sub>2</sub> + ySO<sub>4</sub><sup>2−</sup> + zOH<sup>−</sup><br><br>Which statements are correct?<br>1 u = x = z<br>2 Manganese is reduced to oxidation state +4.<br>3 Sulfur is oxidised from oxidation state +4 to +6.',
+        prompt: 'Two half-equations are shown.<br><br>MnO<sub>4</sub><sup>?</sup> + 2H<sub>2</sub>O + 3e<sup>?</sup> > MnO<sub>2</sub> + 4OH<sup>?</sup><br>2OH<sup>?</sup> + SO<sub>3</sub><sup>2?</sup> > SO<sub>4</sub><sup>2?</sup> + H<sub>2</sub>O + 2e<sup>?</sup><br><br>The equation for the reaction between manganate(VII) ions and sulfite ions is shown.<br><br>uMnO<sub>4</sub><sup>?</sup> + vH<sub>2</sub>O + wSO<sub>3</sub><sup>2?</sup> > xMnO<sub>2</sub> + ySO<sub>4</sub><sup>2?</sup> + zOH<sup>?</sup><br><br>Which statements are correct?<br>1 u = x = z<br>2 Manganese is reduced to oxidation state +4.<br>3 Sulfur is oxidised from oxidation state +4 to +6.',
         options: {
           A: '1, 2 and 3',
           B: '1 and 2 only',
@@ -807,7 +807,7 @@
       {
         number: 2,
         code: '9701_m21_qp_12 Q: 8',
-        prompt: 'VO<sub>2</sub>Cl reacts with NaI under acidic conditions.<br><br>2VO<sub>2</sub>Cl + 2H<sub>2</sub>SO<sub>4</sub> + 2NaI → VOCl<sub>2</sub> + VOSO<sub>4</sub> + I<sub>2</sub> + Na<sub>2</sub>SO<sub>4</sub> + 2H<sub>2</sub>O<br><br>The oxidation state of Cl is −1 in VO<sub>2</sub>Cl and in VOCl<sub>2</sub>.<br><br>Which row about this reaction is correct?',
+        prompt: 'VO<sub>2</sub>Cl reacts with NaI under acidic conditions.<br><br>2VO<sub>2</sub>Cl + 2H<sub>2</sub>SO<sub>4</sub> + 2NaI > VOCl<sub>2</sub> + VOSO<sub>4</sub> + I<sub>2</sub> + Na<sub>2</sub>SO<sub>4</sub> + 2H<sub>2</sub>O<br><br>The oxidation state of Cl is ?1 in VO<sub>2</sub>Cl and in VOCl<sub>2</sub>.<br><br>Which row about this reaction is correct?',
         optionTable: {
           headers: ['vanadium', 'iodine'],
           rows: [
@@ -821,24 +821,24 @@
       {
         number: 3,
         code: '9701_s21_qp_11 Q: 9',
-        prompt: 'When hydrogen iodide is reacted with concentrated sulfuric acid, several reactions occur, including:<br><br>8HI + H<sub>2</sub>SO<sub>4</sub> → H<sub>2</sub>S + 4H<sub>2</sub>O + 4I<sub>2</sub><br><br>Which row gives the change in oxidation number of iodine and of sulfur in this reaction?',
+        prompt: 'When hydrogen iodide is reacted with concentrated sulfuric acid, several reactions occur, including:<br><br>8HI + H<sub>2</sub>SO<sub>4</sub> > H<sub>2</sub>S + 4H<sub>2</sub>O + 4I<sub>2</sub><br><br>Which row gives the change in oxidation number of iodine and of sulfur in this reaction?',
         optionTable: {
           headers: ['change in oxidation number of iodine', 'change in oxidation number of sulfur'],
           rows: [
-            { label: 'A', values: ['−1', '+6'] },
-            { label: 'B', values: ['−1', '+8'] },
-            { label: 'C', values: ['+1', '−6'] },
-            { label: 'D', values: ['+1', '−8'] },
+            { label: 'A', values: ['?1', '+6'] },
+            { label: 'B', values: ['?1', '+8'] },
+            { label: 'C', values: ['+1', '?6'] },
+            { label: 'D', values: ['+1', '?8'] },
           ]
         }
       },
       {
         number: 4,
         code: '9701_s21_qp_12 Q: 9',
-        prompt: 'The equation for a redox reaction is shown.<br><br>SnCl<sub>2</sub>(aq) + 2HgCl<sub>2</sub>(aq) → SnCl<sub>4</sub>(aq) + Hg<sub>2</sub>Cl<sub>2</sub>(s)<br><br>Which species is being oxidised in this reaction?',
+        prompt: 'The equation for a redox reaction is shown.<br><br>SnCl<sub>2</sub>(aq) + 2HgCl<sub>2</sub>(aq) > SnCl<sub>4</sub>(aq) + Hg<sub>2</sub>Cl<sub>2</sub>(s)<br><br>Which species is being oxidised in this reaction?',
         options: {
           A: 'Sn<sup>2+</sup>',
-          B: 'Cl<sup>−</sup>',
+          B: 'Cl<sup>?</sup>',
           C: 'Hg<sup>+</sup>',
           D: 'Hg<sup>2+</sup>',
         }
@@ -848,10 +848,10 @@
         code: '9701_w21_qp_11 Q: 9',
         prompt: 'Zinc atoms can be oxidised to Zn<sup>2+</sup> ions by dichromate(VI) ions in acid solution. Chromium is reduced to Cr<sup>3+</sup> in this reaction.<br><br>Which equation is correct?',
         options: {
-          A: 'Cr<sub>2</sub>O<sub>7</sub><sup>2−</sup> + Zn + 14H<sup>+</sup> → 2Cr<sup>3+</sup> + Zn<sup>2+</sup> + 7H<sub>2</sub>O',
-          B: 'Cr<sub>2</sub>O<sub>7</sub><sup>2−</sup> + Zn + 14H<sup>+</sup> → 2Cr<sup>3+</sup> + 3Zn<sup>2+</sup> + 7H<sub>2</sub>O',
-          C: 'Cr<sub>2</sub>O<sub>7</sub><sup>2−</sup> + 3Zn + 14H<sup>+</sup> → 2Cr<sup>3+</sup> + 3Zn<sup>2+</sup> + 7H<sub>2</sub>O',
-          D: '2Cr<sub>2</sub>O<sub>7</sub><sup>2−</sup> + 3Zn + 14H<sup>+</sup> → 2Cr<sup>3+</sup> + 3Zn<sup>2+</sup> + 7H<sub>2</sub>O',
+          A: 'Cr<sub>2</sub>O<sub>7</sub><sup>2?</sup> + Zn + 14H<sup>+</sup> > 2Cr<sup>3+</sup> + Zn<sup>2+</sup> + 7H<sub>2</sub>O',
+          B: 'Cr<sub>2</sub>O<sub>7</sub><sup>2?</sup> + Zn + 14H<sup>+</sup> > 2Cr<sup>3+</sup> + 3Zn<sup>2+</sup> + 7H<sub>2</sub>O',
+          C: 'Cr<sub>2</sub>O<sub>7</sub><sup>2?</sup> + 3Zn + 14H<sup>+</sup> > 2Cr<sup>3+</sup> + 3Zn<sup>2+</sup> + 7H<sub>2</sub>O',
+          D: '2Cr<sub>2</sub>O<sub>7</sub><sup>2?</sup> + 3Zn + 14H<sup>+</sup> > 2Cr<sup>3+</sup> + 3Zn<sup>2+</sup> + 7H<sub>2</sub>O',
         }
       },
       {
@@ -861,23 +861,23 @@
         optionTable: {
           headers: ['carbon', 'nitrogen'],
           rows: [
-            { label: 'A', values: ['−2', '+2'] },
-            { label: 'B', values: ['−1', '+1'] },
-            { label: 'C', values: ['+1', '−1'] },
-            { label: 'D', values: ['+2', '−2'] },
+            { label: 'A', values: ['?2', '+2'] },
+            { label: 'B', values: ['?1', '+1'] },
+            { label: 'C', values: ['+1', '?1'] },
+            { label: 'D', values: ['+2', '?2'] },
           ]
         }
       },
       {
         number: 7,
         code: '9701_m20_qp_12 Q: 5',
-        prompt: 'In the redox reaction shown, how do the oxidation states of vanadium and sulfur change?<br><br>VO<sub>2</sub><sup>+</sup> + SO<sub>2</sub> → V<sup>3+</sup> + SO<sub>4</sub><sup>2−</sup>',
+        prompt: 'In the redox reaction shown, how do the oxidation states of vanadium and sulfur change?<br><br>VO<sub>2</sub><sup>+</sup> + SO<sub>2</sub> > V<sup>3+</sup> + SO<sub>4</sub><sup>2?</sup>',
         optionTable: {
           headers: ['vanadium from', 'vanadium to', 'sulfur from', 'sulfur to'],
           rows: [
-            { label: 'A', values: ['+1', '+3', '0', '−2'] },
+            { label: 'A', values: ['+1', '+3', '0', '?2'] },
             { label: 'B', values: ['+1', '+3', '+4', '+6'] },
-            { label: 'C', values: ['+5', '+3', '0', '−2'] },
+            { label: 'C', values: ['+5', '+3', '0', '?2'] },
             { label: 'D', values: ['+5', '+3', '+4', '+6'] },
           ]
         }
@@ -885,7 +885,7 @@
       {
         number: 8,
         code: '9701_m20_qp_12 Q: 10',
-        prompt: 'When the equation is correctly balanced, what is the value of c?<br><br>aC<sub>2</sub>H<sub>4</sub> + bH<sub>2</sub>O + cH<sup>+</sup> + 2MnO<sub>4</sub><sup>−</sup> → dC<sub>2</sub>H<sub>6</sub>O<sub>2</sub> + eMn<sup>2+</sup>',
+        prompt: 'When the equation is correctly balanced, what is the value of c?<br><br>aC<sub>2</sub>H<sub>4</sub> + bH<sub>2</sub>O + cH<sup>+</sup> + 2MnO<sub>4</sub><sup>?</sup> > dC<sub>2</sub>H<sub>6</sub>O<sub>2</sub> + eMn<sup>2+</sup>',
         options: {
           A: '3',
           B: '4',
@@ -907,7 +907,7 @@
       {
         number: 10,
         code: '9701_m20_qp_11 Q: 8',
-        prompt: 'Acidified potassium dichromate(VI) solution can oxidise a solution of V<sup>2+</sup> ions. The equation for this reaction is shown.<br><br>aCr<sub>2</sub>O<sub>7</sub><sup>2−</sup> + bV<sup>2+</sup> + cH<sup>+</sup> → dCr<sup>3+</sup> + eVO<sub>3</sub><sup>−</sup> + fH<sub>2</sub>O<br><br>What is the ratio a : b in the correctly balanced equation?',
+        prompt: 'Acidified potassium dichromate(VI) solution can oxidise a solution of V<sup>2+</sup> ions. The equation for this reaction is shown.<br><br>aCr<sub>2</sub>O<sub>7</sub><sup>2?</sup> + bV<sup>2+</sup> + cH<sup>+</sup> > dCr<sup>3+</sup> + eVO<sub>3</sub><sup>?</sup> + fH<sub>2</sub>O<br><br>What is the ratio a : b in the correctly balanced equation?',
         options: {
           A: '1 : 1',
           B: '1 : 2',
@@ -918,7 +918,7 @@
       {
         number: 11,
         code: '9701_m20_qp_12 Q: 5',
-        prompt: 'The following reaction occurs when MnO<sub>2</sub> is warmed with dilute H<sub>2</sub>SO<sub>4</sub>.<br><br>aMnO<sub>2</sub> + bH<sup>+</sup> → cMn<sup>2+</sup> + dMnO<sub>4</sub><sup>−</sup> + eH<sub>2</sub>O<br><br>What is the ratio of c : d in the correctly balanced equation?',
+        prompt: 'The following reaction occurs when MnO<sub>2</sub> is warmed with dilute H<sub>2</sub>SO<sub>4</sub>.<br><br>aMnO<sub>2</sub> + bH<sup>+</sup> > cMn<sup>2+</sup> + dMnO<sub>4</sub><sup>?</sup> + eH<sub>2</sub>O<br><br>What is the ratio of c : d in the correctly balanced equation?',
         options: {
           A: '1 : 1',
           B: '1 : 2',
@@ -931,10 +931,10 @@
         code: '9701_m20_qp_12 Q: 10',
         prompt: 'In which reaction does an element undergo the largest change in oxidation number?',
         options: {
-          A: 'Cl<sub>2</sub> + 2OH<sup>−</sup> → OCl<sup>−</sup> + Cl<sup>−</sup> + H<sub>2</sub>O',
-          B: '3Cl<sub>2</sub> + 6OH<sup>−</sup> → ClO<sub>3</sub><sup>−</sup> + 5Cl<sup>−</sup> + 3H<sub>2</sub>O',
-          C: 'Cr<sub>2</sub>O<sub>7</sub><sup>2−</sup> + 6Fe<sup>2+</sup> + 14H<sup>+</sup> → 2Cr<sup>3+</sup> + 6Fe<sup>3+</sup> + 7H<sub>2</sub>O',
-          D: '3MnO<sub>4</sub><sup>2−</sup> + 4H<sup>+</sup> → MnO<sub>2</sub> + 2MnO<sub>4</sub><sup>−</sup> + 2H<sub>2</sub>O',
+          A: 'Cl<sub>2</sub> + 2OH<sup>?</sup> > OCl<sup>?</sup> + Cl<sup>?</sup> + H<sub>2</sub>O',
+          B: '3Cl<sub>2</sub> + 6OH<sup>?</sup> > ClO<sub>3</sub><sup>?</sup> + 5Cl<sup>?</sup> + 3H<sub>2</sub>O',
+          C: 'Cr<sub>2</sub>O<sub>7</sub><sup>2?</sup> + 6Fe<sup>2+</sup> + 14H<sup>+</sup> > 2Cr<sup>3+</sup> + 6Fe<sup>3+</sup> + 7H<sub>2</sub>O',
+          D: '3MnO<sub>4</sub><sup>2?</sup> + 4H<sup>+</sup> > MnO<sub>2</sub> + 2MnO<sub>4</sub><sup>?</sup> + 2H<sub>2</sub>O',
         }
       },
       {
@@ -942,9 +942,9 @@
         code: '9701_m20_qp_13 Q: 10',
         prompt: 'When solid KClO<sub>3</sub> is heated in the absence of air, a mixture of two chlorine compounds in the mole ratio of 3:1 is formed. Chlorine is the only element whose oxidation number changes in this reaction.<br><br>What could be the oxidation numbers of chlorine in the two compounds that are formed?',
         options: {
-          A: '+3 and −1',
+          A: '+3 and ?1',
           B: '+6 and +4',
-          C: '+7 and −1',
+          C: '+7 and ?1',
           D: '+7 and +1',
         }
       },
@@ -953,16 +953,16 @@
         code: '9701_w20_qp_11 Q: 8',
         prompt: 'In which reaction does the greatest change in oxidation number of sulfur occur?',
         options: {
-          A: 'S(s) + O<sub>2</sub>(g) → SO<sub>2</sub>(g)',
-          B: 'SO<sub>2</sub>(g) + <span class=\"fraction\"><span class=\"fraction-top\">1</span><span class=\"fraction-bottom\">2</span></span>O<sub>2</sub>(g) ⇌ SO<sub>3</sub>(g)',
-          C: 'SO<sub>3</sub>(g) + H<sub>2</sub>SO<sub>4</sub>(l) → H<sub>2</sub>S<sub>2</sub>O<sub>7</sub>(l)',
-          D: 'H<sub>2</sub>S<sub>2</sub>O<sub>7</sub>(l) + H<sub>2</sub>O(l) → 2H<sub>2</sub>SO<sub>4</sub>(l)',
+          A: 'S(s) + O<sub>2</sub>(g) > SO<sub>2</sub>(g)',
+          B: 'SO<sub>2</sub>(g) + <span class=\"fraction\"><span class=\"fraction-top\">1</span><span class=\"fraction-bottom\">2</span></span>O<sub>2</sub>(g) ? SO<sub>3</sub>(g)',
+          C: 'SO<sub>3</sub>(g) + H<sub>2</sub>SO<sub>4</sub>(l) > H<sub>2</sub>S<sub>2</sub>O<sub>7</sub>(l)',
+          D: 'H<sub>2</sub>S<sub>2</sub>O<sub>7</sub>(l) + H<sub>2</sub>O(l) > 2H<sub>2</sub>SO<sub>4</sub>(l)',
         }
       },
       {
         number: 15,
         code: '9701_w20_qp_11 Q: 9',
-        prompt: 'The first stage in the chloride process for the manufacture of titanium consists of the following reaction.<br><br>2TiO<sub>2</sub> + 4Cl<sub>2</sub> + 3C → 2TiCl<sub>4</sub> + 2CO + CO<sub>2</sub><br><br>What is reduced in this reaction?',
+        prompt: 'The first stage in the chloride process for the manufacture of titanium consists of the following reaction.<br><br>2TiO<sub>2</sub> + 4Cl<sub>2</sub> + 3C > 2TiCl<sub>4</sub> + 2CO + CO<sub>2</sub><br><br>What is reduced in this reaction?',
         options: {
           A: 'carbon',
           B: 'chlorine',
@@ -987,7 +987,7 @@
       {
         number: 17,
         code: '9701_w20_qp_12 Q: 9',
-        prompt: 'Chlorine dioxide, ClO<sub>2</sub>, reacts with sodium hydroxide in the reaction shown.<br><br>2ClO<sub>2</sub> + 2OH<sup>−</sup> → ClO<sub>2</sub><sup>−</sup> + ClO<sub>3</sub><sup>−</sup> + H<sub>2</sub>O<br><br>Which statement correctly describes this redox reaction?',
+        prompt: 'Chlorine dioxide, ClO<sub>2</sub>, reacts with sodium hydroxide in the reaction shown.<br><br>2ClO<sub>2</sub> + 2OH<sup>?</sup> > ClO<sub>2</sub><sup>?</sup> + ClO<sub>3</sub><sup>?</sup> + H<sub>2</sub>O<br><br>Which statement correctly describes this redox reaction?',
         options: {
           A: 'Chlorine atoms are oxidised and oxygen atoms are reduced.',
           B: 'Chlorine atoms are reduced and oxygen atoms are oxidised.',
@@ -998,7 +998,7 @@
       {
         number: 18,
         code: '9701_m19_qp_12 Q: 10',
-        prompt: 'Acidified potassium manganate(VII) reacts with iron(II) ethanedioate, FeC<sub>2</sub>O<sub>4</sub>.<br><br>The reactions taking place are shown.<br>MnO<sub>4</sub><sup>−</sup> + 8H<sup>+</sup> + 5e<sup>−</sup> → Mn<sup>2+</sup> + 4H<sub>2</sub>O<br>Fe<sup>2+</sup> → Fe<sup>3+</sup> + e<sup>−</sup><br>C<sub>2</sub>O<sub>4</sub><sup>2−</sup> → 2CO<sub>2</sub> + 2e<sup>−</sup><br><br>How many moles of iron(II) ethanedioate react with one mole of potassium manganate(VII)?',
+        prompt: 'Acidified potassium manganate(VII) reacts with iron(II) ethanedioate, FeC<sub>2</sub>O<sub>4</sub>.<br><br>The reactions taking place are shown.<br>MnO<sub>4</sub><sup>?</sup> + 8H<sup>+</sup> + 5e<sup>?</sup> > Mn<sup>2+</sup> + 4H<sub>2</sub>O<br>Fe<sup>2+</sup> > Fe<sup>3+</sup> + e<sup>?</sup><br>C<sub>2</sub>O<sub>4</sub><sup>2?</sup> > 2CO<sub>2</sub> + 2e<sup>?</sup><br><br>How many moles of iron(II) ethanedioate react with one mole of potassium manganate(VII)?',
         options: {
           A: '0.60',
           B: '1.67',
@@ -1009,7 +1009,7 @@
       {
         number: 19,
         code: '9701_s19_qp_11 Q: 9',
-        prompt: 'Ethanoic acid, HO<sub>2</sub>CCO<sub>2</sub>H, can be oxidised by KMnO<sub>4</sub> in dilute sulfuric acid. The products of this reaction are carbon dioxide, water, potassium sulfate and manganese(II) sulfate.<br><br>In this reaction each ethanedioic acid molecule loses two electrons as it is oxidised. A half-equation for this process is shown.<br>HO<sub>2</sub>CCO<sub>2</sub>H → 2CO<sub>2</sub> + 2H<sup>+</sup> + 2e<sup>−</sup><br><br>How many water molecules are produced when five ethanedioic acid molecules are oxidised by KMnO<sub>4</sub> in dilute sulfuric acid?',
+        prompt: 'Ethanoic acid, HO<sub>2</sub>CCO<sub>2</sub>H, can be oxidised by KMnO<sub>4</sub> in dilute sulfuric acid. The products of this reaction are carbon dioxide, water, potassium sulfate and manganese(II) sulfate.<br><br>In this reaction each ethanedioic acid molecule loses two electrons as it is oxidised. A half-equation for this process is shown.<br>HO<sub>2</sub>CCO<sub>2</sub>H > 2CO<sub>2</sub> + 2H<sup>+</sup> + 2e<sup>?</sup><br><br>How many water molecules are produced when five ethanedioic acid molecules are oxidised by KMnO<sub>4</sub> in dilute sulfuric acid?',
         options: {
           A: '5',
           B: '8',
@@ -1036,7 +1036,7 @@
           headers: ['manganese-containing species', 'nitrogen-containing species'],
           rows: [
             { label: 'A', values: ['MnCl<sub>4</sub>', 'N<sub>2</sub>'] },
-            { label: 'B', values: ['MnCO<sub>3</sub>', 'NO<sub>2</sub><sup>−</sup>'] },
+            { label: 'B', values: ['MnCO<sub>3</sub>', 'NO<sub>2</sub><sup>?</sup>'] },
             { label: 'C', values: ['K<sub>2</sub>MnO<sub>4</sub>', 'NH<sub>4</sub><sup>+</sup>'] },
             { label: 'D', values: ['Mn(OH)<sub>3</sub>', 'NH<sub>2</sub>OH'] },
           ]
@@ -1045,12 +1045,12 @@
       {
         number: 22,
         code: '9701_s19_qp_12 Q: 8',
-        prompt: 'Ethanol can be oxidised to ethanal by dilute acidified dichromate(VI) ions.<br><br>The oxidation reaction equation is C<sub>2</sub>H<sub>5</sub>OH → C<sub>2</sub>H<sub>4</sub>O + 2H<sup>+</sup> + 2e<sup>−</sup>.<br>The reduction reaction equation is Cr<sub>2</sub>O<sub>7</sub><sup>2−</sup> + 14H<sup>+</sup> + 6e<sup>−</sup> → 2Cr<sup>3+</sup> + 7H<sub>2</sub>O.<br><br>Which equation is correct?',
+        prompt: 'Ethanol can be oxidised to ethanal by dilute acidified dichromate(VI) ions.<br><br>The oxidation reaction equation is C<sub>2</sub>H<sub>5</sub>OH > C<sub>2</sub>H<sub>4</sub>O + 2H<sup>+</sup> + 2e<sup>?</sup>.<br>The reduction reaction equation is Cr<sub>2</sub>O<sub>7</sub><sup>2?</sup> + 14H<sup>+</sup> + 6e<sup>?</sup> > 2Cr<sup>3+</sup> + 7H<sub>2</sub>O.<br><br>Which equation is correct?',
         options: {
-          A: 'Cr<sub>2</sub>O<sub>7</sub><sup>2−</sup> + 8H<sup>+</sup> + 3C<sub>2</sub>H<sub>5</sub>OH → 2Cr<sup>3+</sup> + 7H<sub>2</sub>O + 3C<sub>2</sub>H<sub>4</sub>O',
-          B: 'Cr<sub>2</sub>O<sub>7</sub><sup>2−</sup> + 12H<sup>+</sup> + 3C<sub>2</sub>H<sub>5</sub>OH → 2Cr<sup>3+</sup> + 7H<sub>2</sub>O + C<sub>2</sub>H<sub>4</sub>O',
-          C: 'Cr<sub>2</sub>O<sub>7</sub><sup>2−</sup> + 12H<sup>+</sup> + 3C<sub>2</sub>H<sub>5</sub>OH → 2Cr<sup>3+</sup> + 6H<sub>2</sub>O + 3C<sub>2</sub>H<sub>4</sub>O',
-          D: 'Cr<sub>2</sub>O<sub>7</sub><sup>2−</sup> + 14H<sup>+</sup> + 3C<sub>2</sub>H<sub>5</sub>OH → 2Cr<sup>3+</sup> + 6H<sub>2</sub>O + 3C<sub>2</sub>H<sub>4</sub>O',
+          A: 'Cr<sub>2</sub>O<sub>7</sub><sup>2?</sup> + 8H<sup>+</sup> + 3C<sub>2</sub>H<sub>5</sub>OH > 2Cr<sup>3+</sup> + 7H<sub>2</sub>O + 3C<sub>2</sub>H<sub>4</sub>O',
+          B: 'Cr<sub>2</sub>O<sub>7</sub><sup>2?</sup> + 12H<sup>+</sup> + 3C<sub>2</sub>H<sub>5</sub>OH > 2Cr<sup>3+</sup> + 7H<sub>2</sub>O + C<sub>2</sub>H<sub>4</sub>O',
+          C: 'Cr<sub>2</sub>O<sub>7</sub><sup>2?</sup> + 12H<sup>+</sup> + 3C<sub>2</sub>H<sub>5</sub>OH > 2Cr<sup>3+</sup> + 6H<sub>2</sub>O + 3C<sub>2</sub>H<sub>4</sub>O',
+          D: 'Cr<sub>2</sub>O<sub>7</sub><sup>2?</sup> + 14H<sup>+</sup> + 3C<sub>2</sub>H<sub>5</sub>OH > 2Cr<sup>3+</sup> + 6H<sub>2</sub>O + 3C<sub>2</sub>H<sub>4</sub>O',
         }
       },
       {
@@ -1061,8 +1061,8 @@
           headers: ['H<sub>2</sub>S', 'SO<sub>2</sub>', 'H<sub>2</sub>SO<sub>3</sub>'],
           rows: [
             { label: 'A', values: ['+2', '+4', '+4'] },
-            { label: 'B', values: ['−2', '+4', '+4'] },
-            { label: 'C', values: ['+2', '−4', '+4'] },
+            { label: 'B', values: ['?2', '+4', '+4'] },
+            { label: 'C', values: ['+2', '?4', '+4'] },
             { label: 'D', values: ['+2', '+4', '+6'] },
           ]
         }
@@ -1070,7 +1070,7 @@
       {
         number: 24,
         code: '9701_w19_qp_11 Q: 9',
-        prompt: 'In the chemical equation, w, x, y and z are all whole numbers.<br><br>wClO<sub>3</sub><sup>−</sup> + xMnO<sub>4</sub><sup>−</sup> + yH<sup>+</sup> → wClO<sub>4</sub><sup>−</sup> + xMnO<sub>2</sub> + zH<sub>2</sub>O<br><br>When the equation is balanced, what are w, x and y?',
+        prompt: 'In the chemical equation, w, x, y and z are all whole numbers.<br><br>wClO<sub>3</sub><sup>?</sup> + xMnO<sub>4</sub><sup>?</sup> + yH<sup>+</sup> > wClO<sub>4</sub><sup>?</sup> + xMnO<sub>2</sub> + zH<sub>2</sub>O<br><br>When the equation is balanced, what are w, x and y?',
         options: {
           A: 'w = 1, x = 1, y = 2',
           B: 'w = 2, x = 2, y = 2',
@@ -1081,7 +1081,7 @@
       {
         number: 25,
         code: '9701_w19_qp_12 Q: 8',
-        prompt: '(NH<sub>4</sub>)<sub>2</sub>Cr<sub>2</sub>O<sub>7</sub> decomposes when heated.<br><br>(NH<sub>4</sub>)<sub>2</sub>Cr<sub>2</sub>O<sub>7</sub> → N<sub>2</sub> + 4H<sub>2</sub>O + Cr<sub>2</sub>O<sub>3</sub><br><br>Which element is oxidised and which element is reduced?',
+        prompt: '(NH<sub>4</sub>)<sub>2</sub>Cr<sub>2</sub>O<sub>7</sub> decomposes when heated.<br><br>(NH<sub>4</sub>)<sub>2</sub>Cr<sub>2</sub>O<sub>7</sub> > N<sub>2</sub> + 4H<sub>2</sub>O + Cr<sub>2</sub>O<sub>3</sub><br><br>Which element is oxidised and which element is reduced?',
         optionTable: {
           headers: ['oxidised', 'reduced'],
           rows: [
@@ -1095,7 +1095,7 @@
       {
         number: 26,
         code: '9701_w19_qp_12 Q: 15',
-        prompt: 'Chlorate(V) ions, ClO<sub>3</sub><sup>−</sup>, are produced in the redox reaction between chlorine and hot aqueous sodium hydroxide.<br><br>vCl<sub>2</sub>(g) + wOH<sup>−</sup>(aq) → xCl<sup>−</sup>(aq) + yClO<sub>3</sub><sup>−</sup>(aq) + zH<sub>2</sub>O(l)<br><br>What are the values of v, x and y in the balanced equation?',
+        prompt: 'Chlorate(V) ions, ClO<sub>3</sub><sup>?</sup>, are produced in the redox reaction between chlorine and hot aqueous sodium hydroxide.<br><br>vCl<sub>2</sub>(g) + wOH<sup>?</sup>(aq) > xCl<sup>?</sup>(aq) + yClO<sub>3</sub><sup>?</sup>(aq) + zH<sub>2</sub>O(l)<br><br>What are the values of v, x and y in the balanced equation?',
         options: {
           A: 'v = 2, x = 3, y = 1',
           B: 'v = 3, x = 4, y = 2',
@@ -1108,16 +1108,16 @@
         code: '9701_m18_qp_12 Q: 10',
         prompt: 'Which reaction is not a redox reaction?',
         options: {
-          A: 'Mg + 2HNO<sub>3</sub> → Mg(NO<sub>3</sub>)<sub>2</sub> + H<sub>2</sub>',
-          B: '2Mg(NO<sub>3</sub>)<sub>2</sub> → 2MgO + 4NO<sub>2</sub> + O<sub>2</sub>',
-          C: 'SO<sub>2</sub> + NO<sub>2</sub> → SO<sub>3</sub> + NO',
-          D: 'SO<sub>3</sub> + H<sub>2</sub>O → H<sub>2</sub>SO<sub>4</sub>',
+          A: 'Mg + 2HNO<sub>3</sub> > Mg(NO<sub>3</sub>)<sub>2</sub> + H<sub>2</sub>',
+          B: '2Mg(NO<sub>3</sub>)<sub>2</sub> > 2MgO + 4NO<sub>2</sub> + O<sub>2</sub>',
+          C: 'SO<sub>2</sub> + NO<sub>2</sub> > SO<sub>3</sub> + NO',
+          D: 'SO<sub>3</sub> + H<sub>2</sub>O > H<sub>2</sub>SO<sub>4</sub>',
         }
       },
       {
         number: 28,
         code: '9701_m18_qp_12 Q: 11',
-        prompt: 'The reaction between sulfur dioxide and oxygen is reversible.<br><br>2SO<sub>2</sub> + O<sub>2</sub> ⇌ 2SO<sub>3</sub> &nbsp;&nbsp;&nbsp;&nbsp;ΔH° = −196 kJ mol<sup>−1</sup><br><br>Which conditions of pressure and temperature favour the reverse reaction?',
+        prompt: 'The reaction between sulfur dioxide and oxygen is reversible.<br><br>2SO<sub>2</sub> + O<sub>2</sub> ? 2SO<sub>3</sub> &nbsp;&nbsp;&nbsp;&nbsp;?H� = ?196 kJ mol<sup>?1</sup><br><br>Which conditions of pressure and temperature favour the reverse reaction?',
         optionTable: {
           headers: ['pressure', 'temperature'],
           rows: [
@@ -1142,9 +1142,9 @@
       {
         number: 30,
         code: '9701_s18_qp_11 Q: 8',
-        prompt: 'Ethanedioate ions, C<sub>2</sub>O<sub>4</sub><sup>2−</sup>, react with a suitable reagent to form CO<sub>2</sub>. A half-equation for this reaction is shown.<br><br>C<sub>2</sub>O<sub>4</sub><sup>2−</sup> → 2CO<sub>2</sub> + 2e<sup>−</sup><br><br>Which row is correct?',
+        prompt: 'Ethanedioate ions, C<sub>2</sub>O<sub>4</sub><sup>2?</sup>, react with a suitable reagent to form CO<sub>2</sub>. A half-equation for this reaction is shown.<br><br>C<sub>2</sub>O<sub>4</sub><sup>2?</sup> > 2CO<sub>2</sub> + 2e<sup>?</sup><br><br>Which row is correct?',
         optionTable: {
-          headers: ['oxidation state of carbon in C<sub>2</sub>O<sub>4</sub><sup>2−</sup>', 'type of reaction'],
+          headers: ['oxidation state of carbon in C<sub>2</sub>O<sub>4</sub><sup>2?</sup>', 'type of reaction'],
           rows: [
             { label: 'A', values: ['+3', 'oxidation'] },
             { label: 'B', values: ['+3', 'reduction'] },
@@ -1167,21 +1167,21 @@
       {
         number: 32,
         code: '9701_s18_qp_12 Q: 8',
-        prompt: 'Sulfur reacts with concentrated nitric acid in a redox reaction.<br><br>S + 4HNO<sub>3</sub> → SO<sub>2</sub> + 4NO<sub>2</sub> + 2H<sub>2</sub>O<br><br>What are the changes in oxidation number of sulfur and of nitrogen in this reaction?',
+        prompt: 'Sulfur reacts with concentrated nitric acid in a redox reaction.<br><br>S + 4HNO<sub>3</sub> > SO<sub>2</sub> + 4NO<sub>2</sub> + 2H<sub>2</sub>O<br><br>What are the changes in oxidation number of sulfur and of nitrogen in this reaction?',
         optionTable: {
           headers: ['sulfur', 'nitrogen'],
           rows: [
-            { label: 'A', values: ['+2', '−3'] },
-            { label: 'B', values: ['+2', '−1'] },
-            { label: 'C', values: ['+4', '−3'] },
-            { label: 'D', values: ['+4', '−1'] },
+            { label: 'A', values: ['+2', '?3'] },
+            { label: 'B', values: ['+2', '?1'] },
+            { label: 'C', values: ['+4', '?3'] },
+            { label: 'D', values: ['+4', '?1'] },
           ]
         }
       },
       {
         number: 33,
         code: '9701_s18_qp_13 Q: 8',
-        prompt: 'Xenon hexafluoride, XeF<sub>6</sub>, reacts with water.<br><br>XeF<sub>6</sub> + 3H<sub>2</sub>O → XeO<sub>3</sub> + 6HF<br><br>Which statement is correct?',
+        prompt: 'Xenon hexafluoride, XeF<sub>6</sub>, reacts with water.<br><br>XeF<sub>6</sub> + 3H<sub>2</sub>O > XeO<sub>3</sub> + 6HF<br><br>Which statement is correct?',
         options: {
           A: 'Hydrogen is reduced in this reaction.',
           B: 'Hydrogen is the only element oxidised in this reaction.',
@@ -1192,14 +1192,14 @@
       {
         number: 34,
         code: '9701_w18_qp_11 Q: 7',
-        prompt: 'Nitric acid is known to take part in the oxidation of atmospheric sulfur dioxide. One possible reaction is shown.<br><br>SO<sub>2</sub> + HNO<sub>3</sub> → NO<sup>+</sup> + HSO<sub>4</sub><sup>−</sup><br><br>Which row shows the correct changes in oxidation numbers of nitrogen and sulfur?',
+        prompt: 'Nitric acid is known to take part in the oxidation of atmospheric sulfur dioxide. One possible reaction is shown.<br><br>SO<sub>2</sub> + HNO<sub>3</sub> > NO<sup>+</sup> + HSO<sub>4</sub><sup>?</sup><br><br>Which row shows the correct changes in oxidation numbers of nitrogen and sulfur?',
         optionTable: {
           headers: ['nitrogen', 'sulfur'],
           rows: [
-            { label: 'A', values: ['−3', '+3'] },
-            { label: 'B', values: ['−2', '+2'] },
-            { label: 'C', values: ['−2', '+3'] },
-            { label: 'D', values: ['−1', '+2'] },
+            { label: 'A', values: ['?3', '+3'] },
+            { label: 'B', values: ['?2', '+2'] },
+            { label: 'C', values: ['?2', '+3'] },
+            { label: 'D', values: ['?1', '+2'] },
           ]
         }
       },
@@ -1208,10 +1208,10 @@
         code: '9701_w18_qp_11 Q: 8',
         prompt: 'A transition metal ion, M<sup>2+</sup>, reacts with acidified dichromate(VI) ions to form M<sup>4+</sup> ions, Cr<sup>3+</sup> ions, and H<sub>2</sub>O.<br><br>Which equation correctly represents this reaction?',
         options: {
-          A: 'Cr<sub>2</sub>O<sub>7</sub><sup>2−</sup> + 14H<sup>+</sup> + M<sup>2+</sup> → 2Cr<sup>3+</sup> + 7H<sub>2</sub>O + M<sup>4+</sup>',
-          B: 'Cr<sub>2</sub>O<sub>7</sub><sup>2−</sup> + 14H<sup>+</sup> + 2M<sup>2+</sup> → 2Cr<sup>3+</sup> + 7H<sub>2</sub>O + 2M<sup>4+</sup>',
-          C: 'Cr<sub>2</sub>O<sub>7</sub><sup>2−</sup> + 14H<sup>+</sup> + 3M<sup>2+</sup> → 2Cr<sup>3+</sup> + 7H<sub>2</sub>O + 3M<sup>4+</sup>',
-          D: 'Cr<sub>2</sub>O<sub>7</sub><sup>2−</sup> + 14H<sup>+</sup> + 6M<sup>2+</sup> → 2Cr<sup>3+</sup> + 7H<sub>2</sub>O + 6M<sup>4+</sup>',
+          A: 'Cr<sub>2</sub>O<sub>7</sub><sup>2?</sup> + 14H<sup>+</sup> + M<sup>2+</sup> > 2Cr<sup>3+</sup> + 7H<sub>2</sub>O + M<sup>4+</sup>',
+          B: 'Cr<sub>2</sub>O<sub>7</sub><sup>2?</sup> + 14H<sup>+</sup> + 2M<sup>2+</sup> > 2Cr<sup>3+</sup> + 7H<sub>2</sub>O + 2M<sup>4+</sup>',
+          C: 'Cr<sub>2</sub>O<sub>7</sub><sup>2?</sup> + 14H<sup>+</sup> + 3M<sup>2+</sup> > 2Cr<sup>3+</sup> + 7H<sub>2</sub>O + 3M<sup>4+</sup>',
+          D: 'Cr<sub>2</sub>O<sub>7</sub><sup>2?</sup> + 14H<sup>+</sup> + 6M<sup>2+</sup> > 2Cr<sup>3+</sup> + 7H<sub>2</sub>O + 6M<sup>4+</sup>',
         }
       },
       {
@@ -1219,7 +1219,7 @@
         code: '9701_w18_qp_12 Q: 8',
         prompt: 'Ammonium metavanadate, NH<sub>4</sub>VO<sub>3</sub>, can be used to make a solution containing VO<sub>2</sub>Cl, which contains chloride ions.<br><br>What is the change in the oxidation number of vanadium in this reaction?',
         options: {
-          A: '−1',
+          A: '?1',
           B: '0',
           C: '+1',
           D: '+2',
@@ -1228,7 +1228,7 @@
       {
         number: 37,
         code: '9701_m17_qp_12 Q: 8',
-        prompt: 'HOCl(aq) is the molecule that kills bacteria when chlorine is added to water.<br><br>The following reaction produces this molecule.<br><br>Cl<sub>2</sub>(g) + H<sub>2</sub>O(l) ⇌ HOCl(aq) + H<sup>+</sup>(aq) + Cl<sup>−</sup>(aq)<br><br>Which statement about this reaction is correct?',
+        prompt: 'HOCl(aq) is the molecule that kills bacteria when chlorine is added to water.<br><br>The following reaction produces this molecule.<br><br>Cl<sub>2</sub>(g) + H<sub>2</sub>O(l) ? HOCl(aq) + H<sup>+</sup>(aq) + Cl<sup>?</sup>(aq)<br><br>Which statement about this reaction is correct?',
         options: {
           A: 'Chlorine is both oxidised and reduced.',
           B: 'Chlorine is oxidised but not reduced.',
@@ -1239,21 +1239,21 @@
       {
         number: 38,
         code: '9701_s17_qp_11 Q: 8',
-        prompt: 'Solutions containing chlorate(I) ions are used as household bleaches and disinfectants. These solutions decompose on heating as shown.<br><br>3ClO<sup>−</sup> → ClO<sub>3</sub><sup>−</sup> + 2Cl<sup>−</sup><br><br>Which oxidation state is shown by chlorine in each of these three ions?',
+        prompt: 'Solutions containing chlorate(I) ions are used as household bleaches and disinfectants. These solutions decompose on heating as shown.<br><br>3ClO<sup>?</sup> > ClO<sub>3</sub><sup>?</sup> + 2Cl<sup>?</sup><br><br>Which oxidation state is shown by chlorine in each of these three ions?',
         optionTable: {
-          headers: ['ClO<sup>−</sup>', 'ClO<sub>3</sub><sup>−</sup>', 'Cl<sup>−</sup>'],
+          headers: ['ClO<sup>?</sup>', 'ClO<sub>3</sub><sup>?</sup>', 'Cl<sup>?</sup>'],
           rows: [
-            { label: 'A', values: ['+1', '+3', '−1'] },
-            { label: 'B', values: ['−1', '+3', '+1'] },
-            { label: 'C', values: ['+1', '+5', '−1'] },
-            { label: 'D', values: ['−1', '+5', '+1'] },
+            { label: 'A', values: ['+1', '+3', '?1'] },
+            { label: 'B', values: ['?1', '+3', '+1'] },
+            { label: 'C', values: ['+1', '+5', '?1'] },
+            { label: 'D', values: ['?1', '+5', '+1'] },
           ]
         }
       },
       {
         number: 39,
         code: '9701_s17_qp_11 Q: 9',
-        prompt: 'When K<sub>2</sub>MnO<sub>4</sub> is dissolved in water, the following reaction occurs.<br><br>aMnO<sub>4</sub><sup>2−</sup>(aq) + bH<sub>2</sub>O(l) → cMnO<sub>4</sub><sup>−</sup>(aq) + dMnO<sub>2</sub>(s) + eOH<sup>−</sup>(aq)<br><br>What are the values of a and c in the balanced chemical equation?',
+        prompt: 'When K<sub>2</sub>MnO<sub>4</sub> is dissolved in water, the following reaction occurs.<br><br>aMnO<sub>4</sub><sup>2?</sup>(aq) + bH<sub>2</sub>O(l) > cMnO<sub>4</sub><sup>?</sup>(aq) + dMnO<sub>2</sub>(s) + eOH<sup>?</sup>(aq)<br><br>What are the values of a and c in the balanced chemical equation?',
         optionTable: {
           headers: ['a', 'c'],
           rows: [
@@ -1267,7 +1267,7 @@
       {
         number: 40,
         code: '9701_s17_qp_12 Q: 8',
-        prompt: 'A reaction sequence is shown.<br><br>SO<sub>2</sub> → SO<sub>3</sub> → H<sub>2</sub>SO<sub>4</sub> → H<sub>2</sub>S → SO<sub>2</sub><br><br>In each stage of this sequence the sulfur is oxidised, reduced or neither oxidised nor reduced.<br><br>Which row is correct?',
+        prompt: 'A reaction sequence is shown.<br><br>SO<sub>2</sub> > SO<sub>3</sub> > H<sub>2</sub>SO<sub>4</sub> > H<sub>2</sub>S > SO<sub>2</sub><br><br>In each stage of this sequence the sulfur is oxidised, reduced or neither oxidised nor reduced.<br><br>Which row is correct?',
         optionTable: {
           headers: ['1', '2', '3', '4'],
           rows: [
@@ -1281,12 +1281,12 @@
       {
         number: 41,
         code: '9701_s17_qp_13 Q: 4',
-        prompt: 'Two conversions are shown.<br><br>NH<sub>4</sub><sup>+</sup> → NH<sub>3</sub><br>C<sub>2</sub>H<sub>4</sub> → C<sub>2</sub>H<sub>6</sub><br><br>Which similar feature do these two conversions have?',
+        prompt: 'Two conversions are shown.<br><br>NH<sub>4</sub><sup>+</sup> > NH<sub>3</sub><br>C<sub>2</sub>H<sub>4</sub> > C<sub>2</sub>H<sub>6</sub><br><br>Which similar feature do these two conversions have?',
         options: {
           A: 'change in oxidation state of an element',
           B: 'decrease in bond angle',
           C: 'formation of a lone pair of electrons',
-          D: 'loss of a π bond',
+          D: 'loss of a ? bond',
         }
       },
       {
@@ -1303,7 +1303,7 @@
       {
         number: 43,
         code: '9701_s17_qp_13 Q: 8',
-        prompt: 'Na<sub>2</sub>S<sub>2</sub>O<sub>3</sub> reacts with HCl as shown.<br><br>Na<sub>2</sub>S<sub>2</sub>O<sub>3</sub>(aq) + 2HCl(aq) → 2NaCl(aq) + H<sub>2</sub>O(l) + SO<sub>2</sub>(g) + S(s)<br><br>When calculating the oxidation number of sulfur in Na<sub>2</sub>S<sub>2</sub>O<sub>3</sub>, the average oxidation number of the two sulfur atoms should be found.<br><br>What is the oxidation number of sulfur in each of Na<sub>2</sub>S<sub>2</sub>O<sub>3</sub>, SO<sub>2</sub>, and S?',
+        prompt: 'Na<sub>2</sub>S<sub>2</sub>O<sub>3</sub> reacts with HCl as shown.<br><br>Na<sub>2</sub>S<sub>2</sub>O<sub>3</sub>(aq) + 2HCl(aq) > 2NaCl(aq) + H<sub>2</sub>O(l) + SO<sub>2</sub>(g) + S(s)<br><br>When calculating the oxidation number of sulfur in Na<sub>2</sub>S<sub>2</sub>O<sub>3</sub>, the average oxidation number of the two sulfur atoms should be found.<br><br>What is the oxidation number of sulfur in each of Na<sub>2</sub>S<sub>2</sub>O<sub>3</sub>, SO<sub>2</sub>, and S?',
         optionTable: {
           headers: ['Na<sub>2</sub>S<sub>2</sub>O<sub>3</sub>', 'SO<sub>2</sub>', 'S'],
           rows: [
@@ -1317,7 +1317,7 @@
       {
         number: 44,
         code: '9701_w17_qp_11 Q: 6',
-        prompt: 'One of the reactions in a lead / acid cell is shown.<br><br>Pb(s) + PbO<sub>2</sub>(s) + 4H<sup>+</sup>(aq) + 2SO<sub>4</sub><sup>2−</sup>(aq) → 2PbSO<sub>4</sub>(s) + 2H<sub>2</sub>O(l)<br><br>Which statement about this reaction is correct?',
+        prompt: 'One of the reactions in a lead / acid cell is shown.<br><br>Pb(s) + PbO<sub>2</sub>(s) + 4H<sup>+</sup>(aq) + 2SO<sub>4</sub><sup>2?</sup>(aq) > 2PbSO<sub>4</sub>(s) + 2H<sub>2</sub>O(l)<br><br>Which statement about this reaction is correct?',
         options: {
           A: 'Lead is both oxidised and reduced.',
           B: 'Lead is neither oxidised nor reduced.',
@@ -1350,9 +1350,9 @@
       {
         number: 47,
         code: '9701_s16_qp_12 Q: 9',
-        prompt: 'In the treatment of domestic water supplies, chlorine is added to the water to form HClO.<br><br>Cl<sub>2</sub>(aq) + H<sub>2</sub>O(l) → H<sup>+</sup>(aq) + Cl<sup>−</sup>(aq) + HClO(aq)<br><br>The HClO reacts further to give ClO<sup>−</sup> ions.<br><br>HClO(aq) + H<sub>2</sub>O(l) ⇌ H<sub>3</sub>O<sup>+</sup>(aq) + ClO<sup>−</sup>(aq)<br><br>Both HClO and ClO<sup>−</sup> kill bacteria by oxidation.<br><br>What is the change in oxidation number of chlorine when forming the ClO<sup>−</sup> ion from aqueous chlorine?',
+        prompt: 'In the treatment of domestic water supplies, chlorine is added to the water to form HClO.<br><br>Cl<sub>2</sub>(aq) + H<sub>2</sub>O(l) > H<sup>+</sup>(aq) + Cl<sup>?</sup>(aq) + HClO(aq)<br><br>The HClO reacts further to give ClO<sup>?</sup> ions.<br><br>HClO(aq) + H<sub>2</sub>O(l) ? H<sub>3</sub>O<sup>+</sup>(aq) + ClO<sup>?</sup>(aq)<br><br>Both HClO and ClO<sup>?</sup> kill bacteria by oxidation.<br><br>What is the change in oxidation number of chlorine when forming the ClO<sup>?</sup> ion from aqueous chlorine?',
         options: {
-          A: '−1',
+          A: '?1',
           B: '0',
           C: '+1',
           D: '+2',
@@ -1375,18 +1375,18 @@
       {
         number: 49,
         code: '9701_w16_qp_11 Q: 3',
-        prompt: 'The reaction between acidified dichromate(VI) ions, Cr<sub>2</sub>O<sub>7</sub><sup>2−</sup>, and aqueous Fe<sup>2+</sup> ions results in the dichromate(VI) ions being reduced to Cr<sup>3+</sup> ions.<br><br>What is the correct equation for this reaction?',
+        prompt: 'The reaction between acidified dichromate(VI) ions, Cr<sub>2</sub>O<sub>7</sub><sup>2?</sup>, and aqueous Fe<sup>2+</sup> ions results in the dichromate(VI) ions being reduced to Cr<sup>3+</sup> ions.<br><br>What is the correct equation for this reaction?',
         options: {
-          A: 'Cr<sub>2</sub>O<sub>7</sub><sup>2−</sup> + Fe<sup>2+</sup> + 14H<sup>+</sup> → 2Cr<sup>3+</sup> + Fe<sup>3+</sup> + 7H<sub>2</sub>O',
-          B: 'Cr<sub>2</sub>O<sub>7</sub><sup>2−</sup> + 2Fe<sup>2+</sup> + 14H<sup>+</sup> → 2Cr<sup>3+</sup> + 2Fe<sup>3+</sup> + 7H<sub>2</sub>O',
-          C: 'Cr<sub>2</sub>O<sub>7</sub><sup>2−</sup> + 3Fe<sup>2+</sup> + 14H<sup>+</sup> → 2Cr<sup>3+</sup> + 3Fe<sup>3+</sup> + 7H<sub>2</sub>O',
-          D: 'Cr<sub>2</sub>O<sub>7</sub><sup>2−</sup> + 6Fe<sup>2+</sup> + 14H<sup>+</sup> → 2Cr<sup>3+</sup> + 6Fe<sup>3+</sup> + 7H<sub>2</sub>O',
+          A: 'Cr<sub>2</sub>O<sub>7</sub><sup>2?</sup> + Fe<sup>2+</sup> + 14H<sup>+</sup> > 2Cr<sup>3+</sup> + Fe<sup>3+</sup> + 7H<sub>2</sub>O',
+          B: 'Cr<sub>2</sub>O<sub>7</sub><sup>2?</sup> + 2Fe<sup>2+</sup> + 14H<sup>+</sup> > 2Cr<sup>3+</sup> + 2Fe<sup>3+</sup> + 7H<sub>2</sub>O',
+          C: 'Cr<sub>2</sub>O<sub>7</sub><sup>2?</sup> + 3Fe<sup>2+</sup> + 14H<sup>+</sup> > 2Cr<sup>3+</sup> + 3Fe<sup>3+</sup> + 7H<sub>2</sub>O',
+          D: 'Cr<sub>2</sub>O<sub>7</sub><sup>2?</sup> + 6Fe<sup>2+</sup> + 14H<sup>+</sup> > 2Cr<sup>3+</sup> + 6Fe<sup>3+</sup> + 7H<sub>2</sub>O',
         }
       },
       {
         number: 50,
         code: '9701_w16_qp_11 Q: 9',
-        prompt: 'Sodium chromate(VI), Na<sub>2</sub>CrO<sub>4</sub>, is manufactured by heating chromite, FeCr<sub>2</sub>O<sub>4</sub>, with sodium carbonate in an oxidising atmosphere. Chromite contains Cr<sub>2</sub>O<sub>4</sub><sup>2−</sup> ions.<br><br>2FeCr<sub>2</sub>O<sub>4</sub> + 4Na<sub>2</sub>CO<sub>3</sub> + 3<span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span> O<sub>2</sub> → 4Na<sub>2</sub>CrO<sub>4</sub> + Fe<sub>2</sub>O<sub>3</sub> + 4CO<sub>2</sub><br><br>What happens in this reaction?',
+        prompt: 'Sodium chromate(VI), Na<sub>2</sub>CrO<sub>4</sub>, is manufactured by heating chromite, FeCr<sub>2</sub>O<sub>4</sub>, with sodium carbonate in an oxidising atmosphere. Chromite contains Cr<sub>2</sub>O<sub>4</sub><sup>2?</sup> ions.<br><br>2FeCr<sub>2</sub>O<sub>4</sub> + 4Na<sub>2</sub>CO<sub>3</sub> + 3<span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span> O<sub>2</sub> > 4Na<sub>2</sub>CrO<sub>4</sub> + Fe<sub>2</sub>O<sub>3</sub> + 4CO<sub>2</sub><br><br>What happens in this reaction?',
         options: {
           A: 'Chromium and iron are the only elements oxidised.',
           B: 'Chromium, iron and carbon are oxidised.',
@@ -1397,7 +1397,7 @@
       {
         number: 51,
         code: '9701_s15_qp_11 Q: 4',
-        prompt: 'In oxygen difluoride, OF<sub>2</sub>, fluorine has an oxidation number of −1. OF<sub>2</sub> will react with sulfur dioxide according to the following equation.<br><br>OF<sub>2</sub> + SO<sub>2</sub> → SO<sub>3</sub> + F<sub>2</sub><br><br>What is oxidised and what is reduced in this reaction?',
+        prompt: 'In oxygen difluoride, OF<sub>2</sub>, fluorine has an oxidation number of ?1. OF<sub>2</sub> will react with sulfur dioxide according to the following equation.<br><br>OF<sub>2</sub> + SO<sub>2</sub> > SO<sub>3</sub> + F<sub>2</sub><br><br>What is oxidised and what is reduced in this reaction?',
         optionTable: {
           headers: ['fluorine', 'oxygen in OF<sub>2</sub>', 'sulfur'],
           rows: [
@@ -1411,7 +1411,7 @@
       {
         number: 52,
         code: '9701_s15_qp_12 Q: 10',
-        prompt: 'Photochromic glass, used for sunglasses, darkens when exposed to bright light and becomes more transparent again when the light is less bright. The darkness of the glass is related to the concentration of silver atoms.<br><br>The following reactions are involved.<br><br>reaction 1 Ag<sup>+</sup> + Cl<sup>−</sup> ⇌ Ag + Cl<br>reaction 2 Cu<sup>+</sup> + Cl → Cu<sup>2+</sup> + Cl<sup>−</sup><br>reaction 3 Cu<sup>2+</sup> + Ag → Cu<sup>+</sup> + Ag<sup>+</sup><br><br>Which statement about these reactions is correct?',
+        prompt: 'Photochromic glass, used for sunglasses, darkens when exposed to bright light and becomes more transparent again when the light is less bright. The darkness of the glass is related to the concentration of silver atoms.<br><br>The following reactions are involved.<br><br>reaction 1?Ag<sup>+</sup> + Cl<sup>?</sup> ? Ag + Cl<br>reaction 2?Cu<sup>+</sup> + Cl > Cu<sup>2+</sup> + Cl<sup>?</sup><br>reaction 3?Cu<sup>2+</sup> + Ag > Cu<sup>+</sup> + Ag<sup>+</sup><br><br>Which statement about these reactions is correct?',
         options: {
           A: 'Cu<sup>+</sup> and Cu<sup>2+</sup> ions act as catalysts.',
           B: 'Cu<sup>+</sup> ions act as an oxidising agent in reaction 2.',
@@ -1424,10 +1424,10 @@
         code: '9701_s15_qp_13 Q: 5',
         prompt: 'In which reaction does an element have the largest change in oxidation number?',
         options: {
-          A: 'Cr<sub>2</sub>O<sub>7</sub><sup>2−</sup> + 6Fe<sup>2+</sup> + 14H<sup>+</sup> → 2Cr<sup>3+</sup> + 6Fe<sup>3+</sup> + 7H<sub>2</sub>O',
-          B: '3OCl<sup>−</sup> → ClO<sub>3</sub><sup>−</sup> + 2Cl<sup>−</sup>',
-          C: '5Fe<sup>2+</sup> + MnO<sub>4</sub><sup>−</sup> + 8H<sup>+</sup> → 5Fe<sup>3+</sup> + Mn<sup>2+</sup> + 4H<sub>2</sub>O',
-          D: 'PbO<sub>2</sub> + Sn<sup>2+</sup> + 4H<sup>+</sup> → Sn<sup>4+</sup> + Pb<sup>2+</sup> + 2H<sub>2</sub>O',
+          A: 'Cr<sub>2</sub>O<sub>7</sub><sup>2?</sup> + 6Fe<sup>2+</sup> + 14H<sup>+</sup> > 2Cr<sup>3+</sup> + 6Fe<sup>3+</sup> + 7H<sub>2</sub>O',
+          B: '3OCl<sup>?</sup> > ClO<sub>3</sub><sup>?</sup> + 2Cl<sup>?</sup>',
+          C: '5Fe<sup>2+</sup> + MnO<sub>4</sub><sup>?</sup> + 8H<sup>+</sup> > 5Fe<sup>3+</sup> + Mn<sup>2+</sup> + 4H<sub>2</sub>O',
+          D: 'PbO<sub>2</sub> + Sn<sup>2+</sup> + 4H<sup>+</sup> > Sn<sup>4+</sup> + Pb<sup>2+</sup> + 2H<sub>2</sub>O',
         }
       },
       {
@@ -1447,7 +1447,7 @@
       {
         number: 55,
         code: '9701_w15_qp_11 Q: 19',
-        prompt: 'Element X forms a pollutant oxide Y. Y can be further oxidised to Z. Two students made the following statements.<br><br>Student P ‘The molecule of Y contains lone pairs of electrons.’<br>Student Q ‘The oxidation number of X increases by 1 from Y to Z.’<br><br>X could be carbon or nitrogen or sulfur.<br><br>Which student(s) made a correct statement?',
+        prompt: 'Element X forms a pollutant oxide Y. Y can be further oxidised to Z. Two students made the following statements.<br><br>Student P?�The molecule of Y contains lone pairs of electrons.�<br>Student Q?�The oxidation number of X increases by 1 from Y to Z.�<br><br>X could be carbon or nitrogen or sulfur.<br><br>Which student(s) made a correct statement?',
         options: {
           A: 'P only',
           B: 'Q only',
@@ -1458,7 +1458,7 @@
       {
         number: 56,
         code: '9701_w15_qp_12 Q: 5',
-        prompt: 'Calcium forms an ionic compound with carbon, called calcium carbide. The oxidation number of carbon in calcium carbide is −1.<br><br>Calcium carbide is readily hydrolysed by water giving two products only.<br><br>What could be the formulae of calcium carbide and the two products of hydrolysis?',
+        prompt: 'Calcium forms an ionic compound with carbon, called calcium carbide. The oxidation number of carbon in calcium carbide is ?1.<br><br>Calcium carbide is readily hydrolysed by water giving two products only.<br><br>What could be the formulae of calcium carbide and the two products of hydrolysis?',
         optionTable: {
           headers: ['calcium carbide', 'products'],
           rows: [
@@ -1516,7 +1516,7 @@
       const update = () => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         const remaining = Math.max(TEST_DURATION_SECONDS - elapsed, 0);
-        timerEl.textContent = `⏳ Time remaining: ${formatTimer(remaining)}`;
+        timerEl.textContent = `? Time remaining: ${formatTimer(remaining)}`;
         if (remaining === 0) {
           timerEl.classList.add('timer-expired');
           clearInterval(timerInterval);
@@ -1657,7 +1657,7 @@
       document.querySelectorAll('input').forEach(i => i.disabled = true);
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
-      btn.textContent = '✓ Submitted';
+      btn.textContent = '? Submitted';
       const status = document.getElementById('status');
       status.textContent = `You submitted this test on ${new Date(data.submittedAt).toLocaleString()}.`;
       const scoreDiv = document.getElementById('score');
@@ -1706,6 +1706,10 @@
           document.querySelectorAll('input').forEach(i => i.disabled = false);
           unlockQuestions();
           
+                    // Re-show anti-cheat modal and restart timer gating
+          timerStarted = false;
+          antiCheatAcknowledged = false;
+          startTimerIfReady();
           return;
         }
 
@@ -1767,6 +1771,10 @@
             console.error('Failed to notify parent of test deletion:', e);
           }
           
+          // Reset anti-cheat state so modal shows again
+          timerStarted = false;
+          antiCheatAcknowledged = false;
+          startTimerIfReady();
           return;
         }
           scoreDiv.className = 'score-box pending';
@@ -1779,20 +1787,20 @@
         
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` • ⏱️ Time: ${formatTimer(data.time_taken_seconds)}`
+            ? ` � ?? Time: ${formatTimer(data.time_taken_seconds)}`
             : '';
-          scoreDiv.textContent = `✅ Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
+          scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
           hideTimer();
           const responses = (data.answers && typeof data.answers === "string" ? JSON.parse(data.answers) : data.answers)?.responses || {};
           applyReviewMode(responses);
         } else {
-          scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+          scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
           scoreDiv.className = 'score-box pending';
         }
       } catch (err) {
         console.error('Failed to check score release status:', err);
-        scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+        scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
         scoreDiv.className = 'score-box pending';
       }
     }
@@ -1810,7 +1818,7 @@
         if (isForced) {
           name = 'Unknown Student';
         } else {
-          status.textContent = '⚠️ Please enter your name.';
+          status.textContent = '?? Please enter your name.';
           return;
         }
       }
@@ -1818,7 +1826,7 @@
         if (isForced) {
           cls = 'Unknown Class';
         } else {
-          status.textContent = '⚠️ Please enter your class.';
+          status.textContent = '?? Please enter your class.';
           return;
         }
       }
@@ -1834,7 +1842,7 @@
       const result = calculateScore(responses);
 
       btn.disabled = true;
-      status.textContent = '📤 Submitting...';
+      status.textContent = '?? Submitting...';
 
       const payload = {
         student_name: name,
@@ -1857,13 +1865,13 @@
         console.error(error);
         if (error.message && (error.message.includes('duplicate') || error.message.includes('unique') || error.message.includes('already exists'))) {
           hasSubmitted = true;
-          btn.textContent = '✓ Already Submitted';
-          status.textContent = '⚠️ You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
+          btn.textContent = '? Already Submitted';
+          status.textContent = '?? You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
           document.querySelectorAll('input').forEach(i => i.disabled = true);
           lockQuestions();
           return;
         }
-        status.textContent = '❌ Failed to submit. Please try again.';
+        status.textContent = '? Failed to submit. Please try again.';
         btn.disabled = false;
         return;
       }
@@ -1878,13 +1886,13 @@
       }));
 
       document.querySelectorAll('input').forEach(i => i.disabled = true);
-      btn.textContent = '✓ Submitted';
-      status.textContent = isForced ? `⚠️ Auto-submitted: ${autoSubmitReason}` : '✅ Submitted successfully! Your teacher will release your score soon.';
+      btn.textContent = '? Submitted';
+      status.textContent = isForced ? `?? Auto-submitted: ${autoSubmitReason}` : '? Submitted successfully! Your teacher will release your score soon.';
 
       const scoreDiv = document.getElementById('score');
       scoreDiv.style.display = 'block';
       lockQuestions();
-      scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+      scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
       scoreDiv.className = 'score-box pending';
 
       try {
@@ -1944,6 +1952,8 @@
     function acknowledgeAntiCheat() {
       antiCheatAcknowledged = true;
       closeAntiCheatModal();
+      // Show questions now that anti-cheat is acknowledged
+      unlockQuestions();
       startTimerIfReady();
     }
 
@@ -1952,6 +1962,7 @@
       const overlay = document.getElementById('primeOverlay');
       if (overlay && !overlay.classList.contains('hidden')) return;
       if (!antiCheatAcknowledged) {
+        lockQuestions();
         openAntiCheatModal();
         return;
       }
@@ -1999,10 +2010,10 @@
         const review = document.createElement('div');
         review.className = 'review-answer';
         if (studentAnswer && studentAnswer === correctAnswer) {
-          review.textContent = `✅ Correct: ${correctAnswer}`;
+          review.textContent = `? Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `❌ Your answer: ${studentAnswer || '—'} | ✅ Correct: ${correctAnswer}`;
+          review.textContent = `? Your answer: ${studentAnswer || '�'} | ? Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -2051,7 +2062,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('•')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('�')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -2097,7 +2108,7 @@
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test � auto-submitted' });
         }
       });
     });

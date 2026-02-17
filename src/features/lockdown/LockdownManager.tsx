@@ -51,7 +51,7 @@ export const LockdownManager: React.FC<{ onExit: () => void; isTeacher?: boolean
     // Consume pilot quota if applicable
     const quota = await tryConsumePilotQuota('lockdown_sessions');
     if (!quota.proceed) {
-      setError(quota.error || 'Lockdown session quota exhausted. Upgrade your plan to continue.');
+      setError(quota.error || 'You\'ve reached the lockdown session limit on the Pilot plan. Upgrade to continue.');
       setIsConnecting(false);
       return;
     }

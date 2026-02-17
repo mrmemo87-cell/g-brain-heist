@@ -1,4 +1,4 @@
-ï»¿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -557,10 +557,10 @@
   <!--
   <div class="prime-overlay" id="primeOverlay">
     <div class="prime-card">
-      <div class="prime-icon">ğŸ‘‘</div>
+      <div class="prime-icon">??</div>
       <h2 class="prime-title">GET PRIME</h2>
       <p class="prime-subtitle">This AS Chemistry content is exclusive to Prime members. Upgrade to unlock all advanced materials.</p>
-      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">âœ¨ Upgrade to Prime</button>
+      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">? Upgrade to Prime</button>
       <div class="prime-divider">or enter activation code</div>
       <input type="text" class="prime-code-input" id="primeCodeInput" placeholder="Enter code..." autocomplete="off" />
       <button class="prime-unlock-btn" id="primeUnlockBtn">Unlock</button>
@@ -575,22 +575,22 @@
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
         <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch20 ( Polymerisation)</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 20 â€¢ 16 multiple-choice questions</div>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 20 • 16 multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
-      <span class="badge">ğŸ§ª Category: Science</span>
-      <span class="badge">ğŸ¯ Difficulty: Advanced</span>
-      <span class="badge">ğŸ“ Format: Multiple Choice (Aâ€“D)</span>
+      <span class="badge">?? Category: Science</span>
+      <span class="badge">?? Difficulty: Advanced</span>
+      <span class="badge">?? Format: Multiple Choice (A–D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
 
     <div class="status">
-      âœ… Auto-marked: your score stays hidden until your teacher releases it.
+      ? Auto-marked: your score stays hidden until your teacher releases it.
     </div>
-    <div id="timer" class="timer-box floating">â³ Time remaining: 00:00</div>
+    <div id="timer" class="timer-box floating">? Time remaining: 00:00</div>
 
 
     <div class="student-info">
@@ -598,7 +598,7 @@
       <input type="text" id="studentClass" placeholder="Class / Batch" autocomplete="section" />
     </div>
 
-    <div id="questions"></div>
+    <div id="questions" class="hidden"></div>
 
     <div class="submit-area">
       <button id="submitBtn">Submit Answers</button>
@@ -627,14 +627,14 @@
         <li>Stay on this tab. The first violation triggers a warning.</li>
         <li>Three violations (tab switches, copying, etc.) will auto-submit your test.</li>
         <li>Copying and cutting are disabled during the test.</li>
-        <li>Your timer starts only after you click â€œI understandâ€.</li>
+        <li>Your timer starts only after you click “I understand”.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
       </div>
     </div>
   </div>
-  <div id="antiCheatToast" class="anti-cheat-toast">âš ï¸ Tab switching detected. Please stay on this test.</div>
+  <div id="antiCheatToast" class="anti-cheat-toast">?? Tab switching detected. Please stay on this test.</div>
 
   <script>
     // Supabase helpers (fetch-based, no external SDK)
@@ -766,11 +766,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} â€” Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} â€¢ ${totalQuestions} questions`;
-      if (timeBadge) timeBadge.textContent = `â±ï¸ Suggested time: ${formatDuration(durationSeconds)}`;
-      if (partBadge) partBadge.textContent = `ğŸ“Œ Part ${part} of 2`;
-      document.title = `${title} â€” Part ${part}`;
+      if (titleEl) titleEl.textContent = `${title} — Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} • ${totalQuestions} questions`;
+      if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
+      if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
+      document.title = `${title} — Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -823,7 +823,7 @@
           A: 'covalent bonds',
           B: 'hydrogen bonds',
           C: 'ionic bonds',
-          D: 'van der Waalsâ€™ forces',
+          D: 'van der Waals’ forces',
         }
       },
       {
@@ -840,18 +840,18 @@
       {
         number: 5,
         code: '9701_w20_qp_12 Q: 22',
-        prompt: 'A polymer has the following repeat unit. It is made from two different monomers.<br><br><span class="chem-structure">{â€“CH<sub>2</sub>â€“CHClâ€“CH<sub>2</sub>â€“CH=CHâ€“CH<sub>2</sub>â€“}</span><br><br>Which pair of monomers could be used to make this polymer?',
+        prompt: 'A polymer has the following repeat unit. It is made from two different monomers.<br><br><span class="chem-structure">{–CH<sub>2</sub>–CHCl–CH<sub>2</sub>–CH=CH–CH<sub>2</sub>–}</span><br><br>Which pair of monomers could be used to make this polymer?',
         options: {
           A: 'CH<sub>2</sub>=CHCl and CH<sub>2</sub>=CH<sub>2</sub>',
-          B: 'CH<sub>2</sub>=CHCl and CH<sub>2</sub>=CHâ€“CH=CH<sub>2</sub>',
-          C: 'CH<sub>3</sub>â€“CH<sub>2</sub>Cl and CH<sub>3</sub>â€“CH=CHâ€“CH<sub>3</sub>',
-          D: 'CH<sub>3</sub>â€“CH=CHâ€“CH<sub>3</sub> and CH<sub>2</sub>=CHCl',
+          B: 'CH<sub>2</sub>=CHCl and CH<sub>2</sub>=CH–CH=CH<sub>2</sub>',
+          C: 'CH<sub>3</sub>–CH<sub>2</sub>Cl and CH<sub>3</sub>–CH=CH–CH<sub>3</sub>',
+          D: 'CH<sub>3</sub>–CH=CH–CH<sub>3</sub> and CH<sub>2</sub>=CHCl',
         }
       },
       {
         number: 6,
         code: '9701_s19_qp_12 Q: 22',
-        prompt: 'The diagram shows the repeat unit of an addition polymer.<br><br><span class="chem-structure">[â€“C(C<sub>2</sub>H<sub>5</sub>)(CH<sub>3</sub>)â€“C(CH<sub>3</sub>)(C<sub>2</sub>H<sub>5</sub>)â€“]n</span><br><br>What is the correct name for the monomer that would form this polymer?',
+        prompt: 'The diagram shows the repeat unit of an addition polymer.<br><br><span class="chem-structure">[–C(C<sub>2</sub>H<sub>5</sub>)(CH<sub>3</sub>)–C(CH<sub>3</sub>)(C<sub>2</sub>H<sub>5</sub>)–]n</span><br><br>What is the correct name for the monomer that would form this polymer?',
         options: {
           A: 'cis-1,2-diethyl-1,2-dimethylethene',
           B: 'cis-2-ethyl-3-methylpent-2-ene',
@@ -881,7 +881,7 @@
           A: 'Combustion of PVC produces a highly acidic gas.',
           B: 'PVC molecules are saturated.',
           C: 'The empirical formula of PVC is the same as the empirical formula of its monomer.',
-          D: 'The repeat unit of PVC is <span class="chem-structure">{â€“CHClâ€“CHClâ€“}</span>.',
+          D: 'The repeat unit of PVC is <span class="chem-structure">{–CHCl–CHCl–}</span>.',
         }
       },
       {
@@ -892,7 +892,7 @@
           A: 'The monomer and the polymer have different empirical formulae.',
           B: 'The monomer can be oxidised without heat whereas the polymer cannot.',
           C: 'The monomer can be used as a fuel whereas the polymer cannot.',
-          D: 'The monomer has greater van der Waalsâ€™ forces than the polymer.',
+          D: 'The monomer has greater van der Waals’ forces than the polymer.',
         }
       },
       {
@@ -920,7 +920,7 @@
       {
         number: 12,
         code: '9701_w17_qp_11 Q: 23',
-        prompt: 'A section of an addition polymer chain is shown: <span class="chem-structure">â€“CH(Cl)â€“CH<sub>2</sub>â€“CH<sub>2</sub>â€“CH(Cl)â€“</span>.<br><br>Which monomer could be used to make this polymer?',
+        prompt: 'A section of an addition polymer chain is shown: <span class="chem-structure">–CH(Cl)–CH<sub>2</sub>–CH<sub>2</sub>–CH(Cl)–</span>.<br><br>Which monomer could be used to make this polymer?',
         options: {
           A: 'CH<sub>2</sub>=CHCH<sub>2</sub>Cl',
           B: 'CH<sub>2</sub>=CHCl',
@@ -955,10 +955,10 @@
         code: '9701_s16_qp_12 Q: 21',
         prompt: 'Synthetic resins can be made by polymerisation of a variety of monomers including prop-2-en-1-ol, CH<sub>2</sub>=CHCH<sub>2</sub>OH.<br><br>Which structure represents the repeat unit in poly(prop-2-en-1-ol)?',
         options: {
-          A: '<span class="chem-structure">{â€“CH<sub>2</sub>â€“CH<sub>2</sub>â€“CH<sub>2</sub>â€“Oâ€“}</span>',
-          B: '<span class="chem-structure">{â€“CH<sub>2</sub>â€“CH(CH<sub>2</sub>OH)â€“}</span>',
-          C: '<span class="chem-structure">{â€“CH= C(CH<sub>2</sub>OH)â€“}</span>',
-          D: '<span class="chem-structure">{â€“CH<sub>2</sub>â€“CH<sub>2</sub>â€“CH(OH)â€“}</span>',
+          A: '<span class="chem-structure">{–CH<sub>2</sub>–CH<sub>2</sub>–CH<sub>2</sub>–O–}</span>',
+          B: '<span class="chem-structure">{–CH<sub>2</sub>–CH(CH<sub>2</sub>OH)–}</span>',
+          C: '<span class="chem-structure">{–CH= C(CH<sub>2</sub>OH)–}</span>',
+          D: '<span class="chem-structure">{–CH<sub>2</sub>–CH<sub>2</sub>–CH(OH)–}</span>',
         }
       },
       {
@@ -1015,7 +1015,7 @@
       const update = () => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         const remaining = Math.max(TEST_DURATION_SECONDS - elapsed, 0);
-        timerEl.textContent = `â³ Time remaining: ${formatTimer(remaining)}`;
+        timerEl.textContent = `? Time remaining: ${formatTimer(remaining)}`;
         if (remaining === 0) {
           timerEl.classList.add('timer-expired');
           clearInterval(timerInterval);
@@ -1163,7 +1163,7 @@
       document.querySelectorAll('input').forEach(i => i.disabled = true);
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
-      btn.textContent = 'âœ“ Submitted';
+      btn.textContent = '? Submitted';
       const status = document.getElementById('status');
       status.textContent = `You submitted this test on ${new Date(data.submittedAt).toLocaleString()}.`;
       const scoreDiv = document.getElementById('score');
@@ -1212,6 +1212,10 @@
           document.querySelectorAll('input').forEach(i => i.disabled = false);
           unlockQuestions();
           
+                    // Re-show anti-cheat modal and restart timer gating
+          timerStarted = false;
+          antiCheatAcknowledged = false;
+          startTimerIfReady();
           return;
         }
 
@@ -1275,6 +1279,10 @@
             console.error('Failed to notify parent of test deletion:', e);
           }
           
+          // Reset anti-cheat state so modal shows again
+          timerStarted = false;
+          antiCheatAcknowledged = false;
+          startTimerIfReady();
           return;
         }
 
@@ -1284,20 +1292,20 @@
         
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` â€¢ â±ï¸ Time: ${formatTimer(data.time_taken_seconds)}`
+            ? ` • ?? Time: ${formatTimer(data.time_taken_seconds)}`
             : '';
-          scoreDiv.textContent = `âœ… Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
+          scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
           hideTimer();
           const responses = (data.answers && typeof data.answers === "string" ? JSON.parse(data.answers) : data.answers)?.responses || {};
           applyReviewMode(responses);
         } else {
-          scoreDiv.textContent = 'ğŸ“Š Score submitted. Waiting for teacher to release results.';
+          scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
           scoreDiv.className = 'score-box pending';
         }
       } catch (err) {
         console.error('Failed to check score release status:', err);
-        scoreDiv.textContent = 'ğŸ“Š Score submitted. Waiting for teacher to release results.';
+        scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
         scoreDiv.className = 'score-box pending';
       }
     }
@@ -1333,7 +1341,7 @@
         if (isForced) {
           name = 'Unknown Student';
         } else {
-          status.textContent = 'âš ï¸ Please enter your name.';
+          status.textContent = '?? Please enter your name.';
           return;
         }
       }
@@ -1341,7 +1349,7 @@
         if (isForced) {
           cls = 'Unknown Class';
         } else {
-          status.textContent = 'âš ï¸ Please enter your class.';
+          status.textContent = '?? Please enter your class.';
           return;
         }
       }
@@ -1357,7 +1365,7 @@
       const result = calculateScore(responses);
 
       btn.disabled = true;
-      status.textContent = 'ğŸ“¤ Submitting...';
+      status.textContent = '?? Submitting...';
 
       const payload = {
         student_name: name,
@@ -1380,13 +1388,13 @@
         console.error(error);
         if (error.message && (error.message.includes('duplicate') || error.message.includes('unique') || error.message.includes('already exists'))) {
           hasSubmitted = true;
-          btn.textContent = 'âœ“ Already Submitted';
-          status.textContent = 'âš ï¸ You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
+          btn.textContent = '? Already Submitted';
+          status.textContent = '?? You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
           document.querySelectorAll('input').forEach(i => i.disabled = true);
           lockQuestions();
           return;
         }
-        status.textContent = 'âŒ Failed to submit. Please try again.';
+        status.textContent = '? Failed to submit. Please try again.';
         btn.disabled = false;
         return;
       }
@@ -1402,13 +1410,13 @@
       }));
 
       document.querySelectorAll('input').forEach(i => i.disabled = true);
-      btn.textContent = 'âœ“ Submitted';
-      status.textContent = isForced ? `âš ï¸ Auto-submitted: ${autoSubmitReason}` : 'âœ… Submitted successfully! Your teacher will release your score soon.';
+      btn.textContent = '? Submitted';
+      status.textContent = isForced ? `?? Auto-submitted: ${autoSubmitReason}` : '? Submitted successfully! Your teacher will release your score soon.';
 
       const scoreDiv = document.getElementById('score');
       scoreDiv.style.display = 'block';
       lockQuestions();
-      scoreDiv.textContent = 'ğŸ“Š Score submitted. Waiting for teacher to release results.';
+      scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
       scoreDiv.className = 'score-box pending';
 
       try {
@@ -1468,6 +1476,8 @@
     function acknowledgeAntiCheat() {
       antiCheatAcknowledged = true;
       closeAntiCheatModal();
+      // Show questions now that anti-cheat is acknowledged
+      unlockQuestions();
       startTimerIfReady();
     }
 
@@ -1476,6 +1486,7 @@
       const overlay = document.getElementById('primeOverlay');
       if (overlay && !overlay.classList.contains('hidden')) return;
       if (!antiCheatAcknowledged) {
+        lockQuestions();
         openAntiCheatModal();
         return;
       }
@@ -1523,10 +1534,10 @@
         const review = document.createElement('div');
         review.className = 'review-answer';
         if (studentAnswer && studentAnswer === correctAnswer) {
-          review.textContent = `âœ… Correct: ${correctAnswer}`;
+          review.textContent = `? Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `âŒ Your answer: ${studentAnswer || 'â€”'} | âœ… Correct: ${correctAnswer}`;
+          review.textContent = `? Your answer: ${studentAnswer || '—'} | ? Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -1575,7 +1586,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('â€¢')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('•')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -1621,7 +1632,7 @@
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test â€” auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
         }
       });
     });

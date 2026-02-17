@@ -643,7 +643,7 @@
     <input type="text" id="studentClass" placeholder="Enter your class (e.g., 10A) *" required />
   </div>
 
-  <div id="questions"></div>
+  <div id="questions" class="hidden" style="display:none;"></div>
 
   <div class="btn-container">
     <button id="submitBtn" onclick="submitScore()">📤 Submit Answers</button>
@@ -752,6 +752,8 @@
   let hasSubmitted = false;
   let startTime = null;
   let timerInterval = null;
+  let timerStarted = false;
+  let antiCheatAcknowledged = false;
   const total = 28;
 
   // Correct Answers
@@ -937,8 +939,10 @@
   }
 
   function acknowledgeAntiCheat() {
+    antiCheatAcknowledged = true;
     closeAntiCheatModal();
-    // Timer logic should already be handled by startTimer() in each test
+    unlockQuestions();
+    // Timer will start when audio plays via startTimerIfReady()
   }
 
   function loadStudentInfoFromGame() {
@@ -989,8 +993,15 @@
     return false;
   }
 
-  function startTimer() {
-    if (startTime) return;
+  function startTimerIfReady() {
+    if (timerStarted) return;
+    if (hasSubmitted) return;
+    if (!antiCheatAcknowledged) {
+      lockQuestions();
+      openAntiCheatModal();
+      return;
+    }
+    timerStarted = true;
     startTime = new Date();
     document.getElementById("timerBox").style.display = "block";
     timerInterval = setInterval(() => {
@@ -999,6 +1010,20 @@
       const seconds = (elapsed % 60).toString().padStart(2, '0');
       document.getElementById("timer").textContent = `${minutes}:${seconds}`;
     }, 1000);
+  }
+
+  function startTimer() {
+    startTimerIfReady();
+  }
+
+  function lockQuestions() {
+    const q = document.getElementById('questions');
+    if (q) { q.classList.add('hidden'); q.style.display = 'none'; }
+  }
+
+  function unlockQuestions() {
+    const q = document.getElementById('questions');
+    if (q) { q.classList.remove('hidden'); q.style.display = ''; }
   }
 
   function buildTest() {
@@ -1543,14 +1568,18 @@
   loadStudentInfoFromGame();
   buildTest();
   
-  document.getElementById('testAudio').addEventListener('play', startTimer);
+  document.getElementById('testAudio').addEventListener('play', startTimerIfReady);
   
   // Anti-cheat modal event listener
   const antiCheatAcceptBtn = document.getElementById('antiCheatAcceptBtn');
   if (antiCheatAcceptBtn) antiCheatAcceptBtn.addEventListener('click', acknowledgeAntiCheat);
   
-  // Show anti-cheat modal on page load
-  openAntiCheatModal();
+  // Show anti-cheat modal on page load (only if not already submitted)
+  if (!hasSubmitted) {
+    openAntiCheatModal();
+  } else {
+    unlockQuestions();
+  }
   
   // Start ExamGuard after initialization
   setTimeout(() => {

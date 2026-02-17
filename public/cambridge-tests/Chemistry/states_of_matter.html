@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -560,10 +560,10 @@
   <!--
   <div class="prime-overlay" id="primeOverlay">
     <div class="prime-card">
-      <div class="prime-icon">👑</div>
+      <div class="prime-icon">??</div>
       <h2 class="prime-title">GET PRIME</h2>
       <p class="prime-subtitle">This AS Chemistry content is exclusive to Prime members. Upgrade to unlock all advanced materials.</p>
-      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">✨ Upgrade to Prime</button>
+      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">? Upgrade to Prime</button>
       <div class="prime-divider">or enter activation code</div>
       <input type="text" class="prime-code-input" id="primeCodeInput" placeholder="Enter code..." autocomplete="off" />
       <button class="prime-unlock-btn" id="primeUnlockBtn">Unlock</button>
@@ -578,22 +578,22 @@
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
         <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch4 (States of matter)</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 4 • 61 multiple-choice questions</div>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 4 � 61 multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
-      <span class="badge">🧪 Category: Science</span>
-      <span class="badge">🎯 Difficulty: Advanced</span>
-      <span class="badge">📝 Format: Multiple Choice (A–D)</span>
+      <span class="badge">?? Category: Science</span>
+      <span class="badge">?? Difficulty: Advanced</span>
+      <span class="badge">?? Format: Multiple Choice (A�D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
 
     <div class="status">
-      ✅ Auto-marked: your score stays hidden until your teacher releases it.
+      ? Auto-marked: your score stays hidden until your teacher releases it.
     </div>
-    <div id="timer" class="timer-box floating">⏳ Time remaining: 00:00</div>
+    <div id="timer" class="timer-box floating">? Time remaining: 00:00</div>
 
 
     <div class="student-info">
@@ -601,7 +601,7 @@
       <input type="text" id="studentClass" placeholder="Class / Batch" autocomplete="section" />
     </div>
 
-    <div id="questions"></div>
+    <div id="questions" class="hidden"></div>
 
     <div class="submit-area">
       <button id="submitBtn">Submit Answers</button>
@@ -630,14 +630,14 @@
         <li>Stay on this tab. The first violation triggers a warning.</li>
         <li>Three violations (tab switches, copying, etc.) will auto-submit your test.</li>
         <li>Copying and cutting are disabled during the test.</li>
-        <li>Your timer starts only after you click “I understand”.</li>
+        <li>Your timer starts only after you click �I understand�.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
       </div>
     </div>
   </div>
-  <div id="antiCheatToast" class="anti-cheat-toast">⚠️ Tab switching detected. Please stay on this test.</div>
+  <div id="antiCheatToast" class="anti-cheat-toast">?? Tab switching detected. Please stay on this test.</div>
 
   <script>
     // Supabase helpers (fetch-based, no external SDK)
@@ -769,11 +769,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} — Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} • ${totalQuestions} questions`;
-      if (timeBadge) timeBadge.textContent = `⏱️ Suggested time: ${formatDuration(durationSeconds)}`;
-      if (partBadge) partBadge.textContent = `📌 Part ${part} of 2`;
-      document.title = `${title} — Part ${part}`;
+      if (titleEl) titleEl.textContent = `${title} � Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} � ${totalQuestions} questions`;
+      if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
+      if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
+      document.title = `${title} � Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -800,7 +800,7 @@
       {
         number: 1,
         code: '9701_m21_qp_12 Q: 6',
-        prompt: 'A solution contains 0.25 g of sulfur dioxide in 1.00 dm<sup>3</sup> of water.<br><br>Which volume of sulfur dioxide, measured at 50 °C and a pressure of 1 × 10<sup>5</sup> Pa, must be added to 1.00 dm<sup>3</sup> of water to produce this solution?',
+        prompt: 'A solution contains 0.25 g of sulfur dioxide in 1.00 dm<sup>3</sup> of water.<br><br>Which volume of sulfur dioxide, measured at 50 �C and a pressure of 1 ? 10<sup>5</sup> Pa, must be added to 1.00 dm<sup>3</sup> of water to produce this solution?',
         options: {
           A: '0.0162 cm<sup>3</sup>',
           B: '0.105 cm<sup>3</sup>',
@@ -855,20 +855,20 @@
       {
         number: 6,
         code: '9701_m20_qp_12 Q: 9',
-        prompt: '1.8 g of water, heated to 227 °C in a sealed container, turns to steam with a pressure of 200 kPa.<br><br>What is the approximate volume of the container?',
+        prompt: '1.8 g of water, heated to 227 �C in a sealed container, turns to steam with a pressure of 200 kPa.<br><br>What is the approximate volume of the container?',
         options: {
-          A: '9 × 10<sup>−4</sup> m<sup>3</sup>',
-          B: '2 × 10<sup>−3</sup> m<sup>3</sup>',
+          A: '9 ? 10<sup>?4</sup> m<sup>3</sup>',
+          B: '2 ? 10<sup>?3</sup> m<sup>3</sup>',
           C: '2 m<sup>3</sup>',
-          D: '8 × 10<sup>7</sup> m<sup>3</sup>',
+          D: '8 ? 10<sup>7</sup> m<sup>3</sup>',
         }
       },
       {
         number: 7,
         code: '9701_s20_qp_11 Q: 9',
-        prompt: 'A sample of argon gas has a mass of 0.20 g, at a pressure of 100 000 Pa and a temperature of 12 °C.<br><br>Which volume does the gas occupy?',
+        prompt: 'A sample of argon gas has a mass of 0.20 g, at a pressure of 100 000 Pa and a temperature of 12 �C.<br><br>Which volume does the gas occupy?',
         options: {
-          A: '1.2 × 10<sup>−4</sup> cm<sup>3</sup>',
+          A: '1.2 ? 10<sup>?4</sup> cm<sup>3</sup>',
           B: '5.0 cm<sup>3</sup>',
           C: '59 cm<sup>3</sup>',
           D: '119 cm<sup>3</sup>',
@@ -877,7 +877,7 @@
       {
         number: 8,
         code: '9701_s20_qp_12 Q: 9',
-        prompt: 'The complete combustion of 2 moles of an alkane produces 400 dm<sup>3</sup> of carbon dioxide measured at 301 K and 1 × 10<sup>5</sup> Pa. Carbon dioxide can be assumed to behave as an ideal gas under these conditions.<br><br>What is the formula of the alkane?',
+        prompt: 'The complete combustion of 2 moles of an alkane produces 400 dm<sup>3</sup> of carbon dioxide measured at 301 K and 1 ? 10<sup>5</sup> Pa. Carbon dioxide can be assumed to behave as an ideal gas under these conditions.<br><br>What is the formula of the alkane?',
         options: {
           A: 'C<sub>8</sub>H<sub>18</sub>',
           B: 'C<sub>16</sub>H<sub>34</sub>',
@@ -911,10 +911,10 @@
       {
         number: 11,
         code: '9701_m19_qp_12 Q: 6',
-        prompt: 'A sample of gas occupies 240 cm<sup>3</sup> at 37 °C and 100 kPa.<br><br>How many moles of gas are present in the sample?',
+        prompt: 'A sample of gas occupies 240 cm<sup>3</sup> at 37 �C and 100 kPa.<br><br>How many moles of gas are present in the sample?',
         options: {
-          A: '9.32 × 10<sup>−6</sup>',
-          B: '9.32 × 10<sup>−3</sup>',
+          A: '9.32 ? 10<sup>?6</sup>',
+          B: '9.32 ? 10<sup>?3</sup>',
           C: '0.0781',
           D: '78.1',
         }
@@ -936,7 +936,7 @@
       {
         number: 13,
         code: '9701_s19_qp_11 Q: 12',
-        prompt: '1.15 g of a metallic element needs 300 cm<sup>3</sup> of oxygen for complete reaction, under room conditions, to form an oxide which contains O<sup>2−</sup> ions.<br><br>What could be the identity of this metallic element?',
+        prompt: '1.15 g of a metallic element needs 300 cm<sup>3</sup> of oxygen for complete reaction, under room conditions, to form an oxide which contains O<sup>2?</sup> ions.<br><br>What could be the identity of this metallic element?',
         options: {
           A: 'calcium',
           B: 'magnesium',
@@ -947,12 +947,12 @@
       {
         number: 14,
         code: '9701_s19_qp_12 Q: 6',
-        prompt: 'X, Y and Z are all gases that behave ideally and react according to the equation shown.<br><br>X(g) + 2Y(g) → 2Z(g)<br><br>When 3.0 mol of X and 3.0 mol of Y are placed inside a container with a volume of 1.0 dm<sup>3</sup>, they react to form the maximum amount of Z.<br><br>The final temperature of the reaction vessel is 120 °C.<br><br>What is the final pressure inside the reaction vessel?',
+        prompt: 'X, Y and Z are all gases that behave ideally and react according to the equation shown.<br><br>X(g) + 2Y(g) > 2Z(g)<br><br>When 3.0 mol of X and 3.0 mol of Y are placed inside a container with a volume of 1.0 dm<sup>3</sup>, they react to form the maximum amount of Z.<br><br>The final temperature of the reaction vessel is 120 �C.<br><br>What is the final pressure inside the reaction vessel?',
         options: {
-          A: '4.49 × 10<sup>6</sup> Pa',
-          B: '9.80 × 10<sup>6</sup> Pa',
-          C: '1.47 × 10<sup>7</sup> Pa',
-          D: '1.96 × 10<sup>7</sup> Pa',
+          A: '4.49 ? 10<sup>6</sup> Pa',
+          B: '9.80 ? 10<sup>6</sup> Pa',
+          C: '1.47 ? 10<sup>7</sup> Pa',
+          D: '1.96 ? 10<sup>7</sup> Pa',
         }
       },
       {
@@ -969,7 +969,7 @@
       {
         number: 16,
         code: '9701_w19_qp_12 Q: 5',
-        prompt: 'In this question you should assume the vapour behaves as an ideal gas.<br><br>0.175 g of a volatile liquid produces a vapour of volume 4.50 × 10<sup>−5</sup> m<sup>3</sup> at 100 °C and pressure of 1.013 × 10<sup>5</sup> Pa.<br><br>What is the M<sub>r</sub> of the liquid?',
+        prompt: 'In this question you should assume the vapour behaves as an ideal gas.<br><br>0.175 g of a volatile liquid produces a vapour of volume 4.50 ? 10<sup>?5</sup> m<sup>3</sup> at 100 �C and pressure of 1.013 ? 10<sup>5</sup> Pa.<br><br>What is the M<sub>r</sub> of the liquid?',
         options: {
           A: '31.9',
           B: '87.1',
@@ -980,7 +980,7 @@
       {
         number: 17,
         code: '9701_m18_qp_12 Q: 7',
-        prompt: 'The gas laws can be summarised in the ideal gas equation.<br><br>pV = nRT<br><br>0.960 g of oxygen gas is contained in a vessel of volume 7.00 × 10<sup>−3</sup> m<sup>3</sup> at a temperature of 30 °C.<br><br>Assume that the gas behaves as an ideal gas.<br><br>What is the pressure in the vessel?',
+        prompt: 'The gas laws can be summarised in the ideal gas equation.<br><br>pV = nRT<br><br>0.960 g of oxygen gas is contained in a vessel of volume 7.00 ? 10<sup>?3</sup> m<sup>3</sup> at a temperature of 30 �C.<br><br>Assume that the gas behaves as an ideal gas.<br><br>What is the pressure in the vessel?',
         options: {
           A: '1.07 kPa',
           B: '2.14 kPa',
@@ -1024,7 +1024,7 @@
       {
         number: 21,
         code: '9701_w18_qp_11 Q: 5',
-        prompt: 'In this question you should assume methane behaves as an ideal gas.<br><br>The gas laws can be summarised in the ideal gas equation below.<br><br>pV = nRT<br><br>The volume of a sample of methane is measured at a temperature of 60 °C and a pressure of 103 kPa. The volume measured is 5.37 × 10<sup>−3</sup> m<sup>3</sup>.<br><br>What is the mass of the sample of methane, given to two significant figures?',
+        prompt: 'In this question you should assume methane behaves as an ideal gas.<br><br>The gas laws can be summarised in the ideal gas equation below.<br><br>pV = nRT<br><br>The volume of a sample of methane is measured at a temperature of 60 �C and a pressure of 103 kPa. The volume measured is 5.37 ? 10<sup>?3</sup> m<sup>3</sup>.<br><br>What is the mass of the sample of methane, given to two significant figures?',
         options: {
           A: '0.0032 g',
           B: '0.018 g',
@@ -1035,7 +1035,7 @@
       {
         number: 22,
         code: '9701_w18_qp_12 Q: 6',
-        prompt: 'Exactly 1.00 g of a metallic element reacts completely with 300 cm<sup>3</sup> of oxygen at 298 K and 1 atm pressure to form an oxide which contains O<sup>2−</sup> ions.<br><br>The volume of one mole of gas at this temperature and pressure is 24.0 dm<sup>3</sup>.<br><br>What could be the identity of the metal?',
+        prompt: 'Exactly 1.00 g of a metallic element reacts completely with 300 cm<sup>3</sup> of oxygen at 298 K and 1 atm pressure to form an oxide which contains O<sup>2?</sup> ions.<br><br>The volume of one mole of gas at this temperature and pressure is 24.0 dm<sup>3</sup>.<br><br>What could be the identity of the metal?',
         options: {
           A: 'calcium',
           B: 'magnesium',
@@ -1048,16 +1048,16 @@
         code: '9701_m17_qp_12 Q: 6',
         prompt: 'Which gas sample contains the <strong>fewest</strong> molecules?',
         options: {
-          A: '1.00 dm<sup>3</sup> of carbon dioxide at 27 °C and 2.0 kPa',
-          B: '1.00 dm<sup>3</sup> of hydrogen at 100 °C and 2.0 kPa',
-          C: '1.00 dm<sup>3</sup> of nitrogen at 300 °C and 4.0 kPa',
-          D: '1.00 dm<sup>3</sup> of oxygen at 250 °C and 3.0 kPa',
+          A: '1.00 dm<sup>3</sup> of carbon dioxide at 27 �C and 2.0 kPa',
+          B: '1.00 dm<sup>3</sup> of hydrogen at 100 �C and 2.0 kPa',
+          C: '1.00 dm<sup>3</sup> of nitrogen at 300 �C and 4.0 kPa',
+          D: '1.00 dm<sup>3</sup> of oxygen at 250 �C and 3.0 kPa',
         }
       },
       {
         number: 24,
         code: '9701_s17_qp_12 Q: 5',
-        prompt: 'At a temperature of 2500 K and a pressure of 1.00 × 10<sup>−4</sup> Pa a sample of 0.321 g of sulfur vapour has a volume of 2.08 × 10<sup>6</sup> m<sup>3</sup>.<br><br>What is the molecular formula of sulfur under these conditions?',
+        prompt: 'At a temperature of 2500 K and a pressure of 1.00 ? 10<sup>?4</sup> Pa a sample of 0.321 g of sulfur vapour has a volume of 2.08 ? 10<sup>6</sup> m<sup>3</sup>.<br><br>What is the molecular formula of sulfur under these conditions?',
         options: {
           A: 'S',
           B: 'S<sub>2</sub>',
@@ -1081,10 +1081,10 @@
         code: '9701_w17_qp_11 Q: 5',
         prompt: 'A fluorescent light tube has an internal volume of 400 cm<sup>3</sup> and an internal pressure of 200 kPa. It is filled with 0.03 moles of an ideal gas.<br><br>What is the temperature of the gas inside the fluorescent light tube?',
         options: {
-          A: '3.21 × 10<sup>−1</sup> K',
-          B: '3.21 × 10<sup>2</sup> K',
-          C: '3.21 × 10<sup>5</sup> K',
-          D: '3.21 × 10<sup>8</sup> K',
+          A: '3.21 ? 10<sup>?1</sup> K',
+          B: '3.21 ? 10<sup>2</sup> K',
+          C: '3.21 ? 10<sup>5</sup> K',
+          D: '3.21 ? 10<sup>8</sup> K',
         }
       },
       {
@@ -1101,7 +1101,7 @@
       {
         number: 28,
         code: '9701_m16_qp_12 Q: 7',
-        prompt: 'What is the volume of steam produced when 1.00 g of ice is heated to 323 °C at a pressure of 101 kPa?',
+        prompt: 'What is the volume of steam produced when 1.00 g of ice is heated to 323 �C at a pressure of 101 kPa?',
         options: {
           A: '0.27 dm<sup>3</sup>',
           B: '1.3 dm<sup>3</sup>',
@@ -1126,12 +1126,12 @@
       {
         number: 30,
         code: '9701_s16_qp_12 Q: 7',
-        prompt: '0.10 g of the volatile liquid X formed 0.025 dm<sup>3</sup> of vapour at 100 °C and atmospheric pressure.<br><br>1 mol of vapour occupies 22.4 dm<sup>3</sup> at 0 °C and atmospheric pressure.<br><br>What is the relative molecular mass of X?',
+        prompt: '0.10 g of the volatile liquid X formed 0.025 dm<sup>3</sup> of vapour at 100 �C and atmospheric pressure.<br><br>1 mol of vapour occupies 22.4 dm<sup>3</sup> at 0 �C and atmospheric pressure.<br><br>What is the relative molecular mass of X?',
         options: {
-          A: '<span class="fraction"><span class="fraction-top">0.025 × 273 × 22.4</span><span class="fraction-bottom">0.10 × 373</span></span>',
-          B: '<span class="fraction"><span class="fraction-top">0.025 × 373 × 22.4</span><span class="fraction-bottom">0.10 × 273</span></span>',
-          C: '<span class="fraction"><span class="fraction-top">0.10 × 273 × 22.4</span><span class="fraction-bottom">0.025 × 373</span></span>',
-          D: '<span class="fraction"><span class="fraction-top">0.10 × 373 × 22.4</span><span class="fraction-bottom">0.025 × 273</span></span>',
+          A: '<span class="fraction"><span class="fraction-top">0.025 ? 273 ? 22.4</span><span class="fraction-bottom">0.10 ? 373</span></span>',
+          B: '<span class="fraction"><span class="fraction-top">0.025 ? 373 ? 22.4</span><span class="fraction-bottom">0.10 ? 273</span></span>',
+          C: '<span class="fraction"><span class="fraction-top">0.10 ? 273 ? 22.4</span><span class="fraction-bottom">0.025 ? 373</span></span>',
+          D: '<span class="fraction"><span class="fraction-top">0.10 ? 373 ? 22.4</span><span class="fraction-bottom">0.025 ? 273</span></span>',
         }
       },
       {
@@ -1152,9 +1152,9 @@
         optionTable: {
           headers: ['n', 'T'],
           rows: [
-            { label: 'A', values: ['no units', '°C'] },
+            { label: 'A', values: ['no units', '�C'] },
             { label: 'B', values: ['no units', 'K'] },
-            { label: 'C', values: ['mol', '°C'] },
+            { label: 'C', values: ['mol', '�C'] },
             { label: 'D', values: ['mol', 'K'] },
           ]
         }
@@ -1178,7 +1178,7 @@
       {
         number: 35,
         code: '9701_s15_qp_11 Q: 3',
-        prompt: '1.00 g of carbon is combusted in a limited supply of oxygen.<br>0.50 g forms CO<sub>2</sub> and 0.50 g forms CO.<br>The mixture passes through excess NaOH(aq) and the remaining gas is dried and collected at 25 °C and 1 atm. What is its volume?',
+        prompt: '1.00 g of carbon is combusted in a limited supply of oxygen.<br>0.50 g forms CO<sub>2</sub> and 0.50 g forms CO.<br>The mixture passes through excess NaOH(aq) and the remaining gas is dried and collected at 25 �C and 1 atm. What is its volume?',
         options: {
           A: '1 dm<sup>3</sup>',
           B: '1.5 dm<sup>3</sup>',
@@ -1222,7 +1222,7 @@
       {
         number: 39,
         code: '9701_m22_qp_12 Q: 7',
-        prompt: 'Elements X, Y and Z (first two periods) have Pauling electronegativities X = 1.0, Y = 2.1, Z = 4.0. Substances XZ, YZ and Z<sub>2</sub> exist. Which order lists them in increasing melting point?<br><br><table><thead><tr><th></th><th>lowest melting point</th><th>→</th><th>highest melting point</th></tr></thead><tbody><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q39" value="A" /><strong>A</strong></label></td><td>XZ</td><td>YZ</td><td>Z<sub>2</sub></td></tr><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q39" value="B" /><strong>B</strong></label></td><td>XZ</td><td>Z<sub>2</sub></td><td>YZ</td></tr><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q39" value="C" /><strong>C</strong></label></td><td>Z<sub>2</sub></td><td>YZ</td><td>XZ</td></tr><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q39" value="D" /><strong>D</strong></label></td><td>Z<sub>2</sub></td><td>XZ</td><td>YZ</td></tr></tbody></table>',
+        prompt: 'Elements X, Y and Z (first two periods) have Pauling electronegativities X = 1.0, Y = 2.1, Z = 4.0. Substances XZ, YZ and Z<sub>2</sub> exist. Which order lists them in increasing melting point?<br><br><table><thead><tr><th></th><th>lowest melting point</th><th>></th><th>highest melting point</th></tr></thead><tbody><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q39" value="A" /><strong>A</strong></label></td><td>XZ</td><td>YZ</td><td>Z<sub>2</sub></td></tr><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q39" value="B" /><strong>B</strong></label></td><td>XZ</td><td>Z<sub>2</sub></td><td>YZ</td></tr><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q39" value="C" /><strong>C</strong></label></td><td>Z<sub>2</sub></td><td>YZ</td><td>XZ</td></tr><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q39" value="D" /><strong>D</strong></label></td><td>Z<sub>2</sub></td><td>XZ</td><td>YZ</td></tr></tbody></table>',
       },
       {
         number: 40,
@@ -1241,7 +1241,7 @@
       {
         number: 41,
         code: '9701_s20_qp_11 Q: 19',
-        prompt: 'What is the order of increasing melting point of CCl<sub>4</sub>, MgCl<sub>2</sub> and PCl<sub>5</sub>?<br><br><table><thead><tr><th></th><th>lowest melting point</th><th>→</th><th>highest melting point</th></tr></thead><tbody><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q41" value="A" /><strong>A</strong></label></td><td>CCl<sub>4</sub></td><td>PCl<sub>5</sub></td><td>MgCl<sub>2</sub></td></tr><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q41" value="B" /><strong>B</strong></label></td><td>MgCl<sub>2</sub></td><td>CCl<sub>4</sub></td><td>PCl<sub>5</sub></td></tr><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q41" value="C" /><strong>C</strong></label></td><td>MgCl<sub>2</sub></td><td>PCl<sub>5</sub></td><td>CCl<sub>4</sub></td></tr><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q41" value="D" /><strong>D</strong></label></td><td>PCl<sub>5</sub></td><td>CCl<sub>4</sub></td><td>MgCl<sub>2</sub></td></tr></tbody></table>',
+        prompt: 'What is the order of increasing melting point of CCl<sub>4</sub>, MgCl<sub>2</sub> and PCl<sub>5</sub>?<br><br><table><thead><tr><th></th><th>lowest melting point</th><th>></th><th>highest melting point</th></tr></thead><tbody><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q41" value="A" /><strong>A</strong></label></td><td>CCl<sub>4</sub></td><td>PCl<sub>5</sub></td><td>MgCl<sub>2</sub></td></tr><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q41" value="B" /><strong>B</strong></label></td><td>MgCl<sub>2</sub></td><td>CCl<sub>4</sub></td><td>PCl<sub>5</sub></td></tr><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q41" value="C" /><strong>C</strong></label></td><td>MgCl<sub>2</sub></td><td>PCl<sub>5</sub></td><td>CCl<sub>4</sub></td></tr><tr><td><label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="q41" value="D" /><strong>D</strong></label></td><td>PCl<sub>5</sub></td><td>CCl<sub>4</sub></td><td>MgCl<sub>2</sub></td></tr></tbody></table>',
       },
       {
         number: 42,
@@ -1281,10 +1281,10 @@
         code: '9701_s19_qp_12 Q: 5',
         prompt: 'The table shows melting point and molten conductivity for four substances. Which could be potassium iodide?',
         optionTable: {
-          headers: ['melting point of solid / °C', 'electrical conductivity when molten'],
+          headers: ['melting point of solid / �C', 'electrical conductivity when molten'],
           rows: [
-            { label: 'A', values: ['−66', 'poor'] },
-            { label: 'B', values: ['−39', 'good'] },
+            { label: 'A', values: ['?66', 'poor'] },
+            { label: 'B', values: ['?39', 'good'] },
             { label: 'C', values: ['680', 'good'] },
             { label: 'D', values: ['1600', 'poor'] },
           ]
@@ -1322,7 +1322,7 @@
         options: {
           A: 'CH<sub>3</sub>F has a larger M<sub>r</sub> than CH<sub>3</sub>CH<sub>3</sub>.',
           B: 'CH<sub>3</sub>F has a permanent dipole; CH<sub>3</sub>CH<sub>3</sub> does not.',
-          C: 'CH<sub>3</sub>F has a strong C–F bond; CH<sub>3</sub>CH<sub>3</sub> does not.',
+          C: 'CH<sub>3</sub>F has a strong C�F bond; CH<sub>3</sub>CH<sub>3</sub> does not.',
           D: 'Hydrogen bonding occurs in CH<sub>3</sub>F, but not in CH<sub>3</sub>CH<sub>3</sub>.',
         }
       },
@@ -1353,7 +1353,7 @@
         code: '9701_s18_qp_12 Q: 9',
         prompt: 'Four substances have the properties shown. Which has a simple molecular structure?',
         optionTable: {
-          headers: ['melting point / °C', 'effect of adding water', 'electrical conductivity'],
+          headers: ['melting point / �C', 'effect of adding water', 'electrical conductivity'],
           rows: [
             { label: 'A', values: ['64', 'reacts', 'good when solid'] },
             { label: 'B', values: ['113', 'insoluble', 'always poor'] },
@@ -1369,7 +1369,7 @@
         options: {
           A: 'Ammonia molecules are polar; phosphine molecules are not.',
           B: 'Ammonia molecules have significant hydrogen bonding; phosphine molecules do not.',
-          C: 'N–H covalent bonds are stronger than P–H covalent bonds.',
+          C: 'N�H covalent bonds are stronger than P�H covalent bonds.',
           D: 'There is one lone pair in each ammonia molecule but no lone pair in each phosphine molecule.',
         }
       },
@@ -1392,9 +1392,9 @@
         code: '9701_m17_qp_12 Q: 4',
         prompt: 'Boiling points (K): CH<sub>4</sub> 112, CH<sub>3</sub>CH<sub>3</sub> 185, CH<sub>3</sub>CH<sub>2</sub>CH<sub>3</sub> 231, CH<sub>3</sub>CH<sub>2</sub>CH<sub>2</sub>CH<sub>3</sub> 273. Which statement explains the increase from methane to butane?',
         options: {
-          A: 'Closer packing of molecules results in stronger van der Waals’ forces.',
+          A: 'Closer packing of molecules results in stronger van der Waals� forces.',
           B: 'More covalent bonds are present and therefore more energy is required to break the bonds.',
-          C: 'More electrons in the molecules results in stronger van der Waals’ forces.',
+          C: 'More electrons in the molecules results in stronger van der Waals� forces.',
           D: 'More hydrogen atoms in the molecules results in stronger hydrogen bonding.',
         }
       },
@@ -1426,7 +1426,7 @@
       {
         number: 57,
         code: '9701_m16_qp_12 Q: 9',
-        prompt: '“It is lighter than a feather, stronger than steel, yet incredibly flexible and more conductive than copper.” Which form of carbon is being described?',
+        prompt: '�It is lighter than a feather, stronger than steel, yet incredibly flexible and more conductive than copper.� Which form of carbon is being described?',
         options: {
           A: 'buckminsterfullerene',
           B: 'diamond',
@@ -1473,7 +1473,7 @@
       {
         number: 61,
         code: '9701_w15_qp_12 Q: 3',
-        prompt: 'Three substances have the properties shown below.<br><br><table><thead><tr><th>substance</th><th>melting point / °C</th><th>boiling point / °C</th><th>conductivity (solid)</th><th>conductivity (liquid)</th><th>conductivity (aqueous)</th></tr></thead><tbody><tr><td>U</td><td>420</td><td>907</td><td>good</td><td>good</td><td>insoluble</td></tr><tr><td>V</td><td>993</td><td>1695</td><td>poor</td><td>good</td><td>good</td></tr><tr><td>W</td><td>−70</td><td>58</td><td>poor</td><td>poor</td><td>hydrolyses, resulting solution conducts well</td></tr></tbody></table><br>What could be the identities of U, V and W?',
+        prompt: 'Three substances have the properties shown below.<br><br><table><thead><tr><th>substance</th><th>melting point / �C</th><th>boiling point / �C</th><th>conductivity (solid)</th><th>conductivity (liquid)</th><th>conductivity (aqueous)</th></tr></thead><tbody><tr><td>U</td><td>420</td><td>907</td><td>good</td><td>good</td><td>insoluble</td></tr><tr><td>V</td><td>993</td><td>1695</td><td>poor</td><td>good</td><td>good</td></tr><tr><td>W</td><td>?70</td><td>58</td><td>poor</td><td>poor</td><td>hydrolyses, resulting solution conducts well</td></tr></tbody></table><br>What could be the identities of U, V and W?',
         optionTable: {
           headers: ['U', 'V', 'W'],
           rows: [
@@ -1530,7 +1530,7 @@
       const update = () => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         const remaining = Math.max(TEST_DURATION_SECONDS - elapsed, 0);
-        timerEl.textContent = `⏳ Time remaining: ${formatTimer(remaining)}`;
+        timerEl.textContent = `? Time remaining: ${formatTimer(remaining)}`;
         if (remaining === 0) {
           timerEl.classList.add('timer-expired');
           clearInterval(timerInterval);
@@ -1609,7 +1609,7 @@
             <circle cx="235" cy="90" r="6" fill="#8b5cf6" stroke="#7c3aed" stroke-width="2" />
             <text x="286" y="200" fill="#e2e8f0" font-size="14" font-weight="600">T</text>
             <text x="48" y="46" fill="#e2e8f0" font-size="14" font-weight="600">pV</text>
-            <text x="92" y="207" fill="#94a3b8" font-size="11">T≈900 K</text>
+            <text x="92" y="207" fill="#94a3b8" font-size="11">T?900 K</text>
             <text x="70" y="150" fill="#94a3b8" font-size="11">pV</text>
           </svg>
         </div>
@@ -1702,7 +1702,7 @@
       document.querySelectorAll('input').forEach(i => i.disabled = true);
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
-      btn.textContent = '✓ Submitted';
+      btn.textContent = '? Submitted';
       const status = document.getElementById('status');
       status.textContent = `You submitted this test on ${new Date(data.submittedAt).toLocaleString()}.`;
       const scoreDiv = document.getElementById('score');
@@ -1751,6 +1751,10 @@
           document.querySelectorAll('input').forEach(i => i.disabled = false);
           unlockQuestions();
           
+                    // Re-show anti-cheat modal and restart timer gating
+          timerStarted = false;
+          antiCheatAcknowledged = false;
+          startTimerIfReady();
           return;
         }
 
@@ -1812,6 +1816,10 @@
             console.error('Failed to notify parent of test deletion:', e);
           }
           
+          // Reset anti-cheat state so modal shows again
+          timerStarted = false;
+          antiCheatAcknowledged = false;
+          startTimerIfReady();
           return;
         }
 
@@ -1821,20 +1829,20 @@
         
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` • ⏱️ Time: ${formatTimer(data.time_taken_seconds)}`
+            ? ` � ?? Time: ${formatTimer(data.time_taken_seconds)}`
             : '';
-          scoreDiv.textContent = `✅ Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
+          scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
           hideTimer();
           const responses = (data.answers && typeof data.answers === "string" ? JSON.parse(data.answers) : data.answers)?.responses || {};
           applyReviewMode(responses);
         } else {
-          scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+          scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
           scoreDiv.className = 'score-box pending';
         }
       } catch (err) {
         console.error('Failed to check score release status:', err);
-        scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+        scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
         scoreDiv.className = 'score-box pending';
       }
     }
@@ -1870,7 +1878,7 @@
         if (isForced) {
           name = 'Unknown Student';
         } else {
-          status.textContent = '⚠️ Please enter your name.';
+          status.textContent = '?? Please enter your name.';
           return;
         }
       }
@@ -1878,7 +1886,7 @@
         if (isForced) {
           cls = 'Unknown Class';
         } else {
-          status.textContent = '⚠️ Please enter your class.';
+          status.textContent = '?? Please enter your class.';
           return;
         }
       }
@@ -1894,7 +1902,7 @@
       const result = calculateScore(responses);
 
       btn.disabled = true;
-      status.textContent = '📤 Submitting...';
+      status.textContent = '?? Submitting...';
 
       const payload = {
         student_name: name,
@@ -1917,13 +1925,13 @@
         console.error(error);
         if (error.message && (error.message.includes('duplicate') || error.message.includes('unique') || error.message.includes('already exists'))) {
           hasSubmitted = true;
-          btn.textContent = '✓ Already Submitted';
-          status.textContent = '⚠️ You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
+          btn.textContent = '? Already Submitted';
+          status.textContent = '?? You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
           document.querySelectorAll('input').forEach(i => i.disabled = true);
           lockQuestions();
           return;
         }
-        status.textContent = '❌ Failed to submit. Please try again.';
+        status.textContent = '? Failed to submit. Please try again.';
         btn.disabled = false;
         return;
       }
@@ -1938,13 +1946,13 @@
       }));
 
       document.querySelectorAll('input').forEach(i => i.disabled = true);
-      btn.textContent = '✓ Submitted';
-      status.textContent = isForced ? `⚠️ Auto-submitted: ${autoSubmitReason}` : '✅ Submitted successfully! Your teacher will release your score soon.';
+      btn.textContent = '? Submitted';
+      status.textContent = isForced ? `?? Auto-submitted: ${autoSubmitReason}` : '? Submitted successfully! Your teacher will release your score soon.';
 
       const scoreDiv = document.getElementById('score');
       scoreDiv.style.display = 'block';
       lockQuestions();
-      scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+      scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
       scoreDiv.className = 'score-box pending';
 
       try {
@@ -2004,6 +2012,8 @@
     function acknowledgeAntiCheat() {
       antiCheatAcknowledged = true;
       closeAntiCheatModal();
+      // Show questions now that anti-cheat is acknowledged
+      unlockQuestions();
       startTimerIfReady();
     }
 
@@ -2012,6 +2022,7 @@
       const overlay = document.getElementById('primeOverlay');
       if (overlay && !overlay.classList.contains('hidden')) return;
       if (!antiCheatAcknowledged) {
+        lockQuestions();
         openAntiCheatModal();
         return;
       }
@@ -2059,10 +2070,10 @@
         const review = document.createElement('div');
         review.className = 'review-answer';
         if (studentAnswer && studentAnswer === correctAnswer) {
-          review.textContent = `✅ Correct: ${correctAnswer}`;
+          review.textContent = `? Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `❌ Your answer: ${studentAnswer || '—'} | ✅ Correct: ${correctAnswer}`;
+          review.textContent = `? Your answer: ${studentAnswer || '�'} | ? Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -2111,7 +2122,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('•')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('�')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -2157,7 +2168,7 @@
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test � auto-submitted' });
         }
       });
     });

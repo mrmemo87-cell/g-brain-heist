@@ -1260,7 +1260,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
     // Consume pilot quota if applicable
     const quota = await tryConsumePilotQuota('cambridge_tests');
     if (!quota.proceed) {
-      alert(quota.error || 'Cambridge test quota exhausted. Upgrade your plan to continue.');
+      alert(quota.error || 'You\'ve reached the Cambridge test limit on the Pilot plan. Upgrade to continue.');
       return;
     }
 

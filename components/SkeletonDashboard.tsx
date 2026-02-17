@@ -221,16 +221,16 @@ const SkeletonDashboard: React.FC<SkeletonDashboardProps> = ({ role = 'student' 
       <HeaderSkeleton active={stage >= 1} />
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div className="space-y-6 lg:col-span-4 xl:col-span-3">
+        <div className="space-y-6 lg:col-span-4">
           <ProfileSkeleton active={stage >= 2} />
         </div>
 
-        <div className="space-y-6 lg:col-span-5 xl:col-span-6">
+        <div className="space-y-6 lg:col-span-5">
           <ActionGridSkeleton active={stage >= 3} />
           <TasksSkeleton active={stage >= 4} />
         </div>
 
-        <div className="space-y-6 lg:col-span-3 xl:col-span-3">
+        <div className="space-y-6 lg:col-span-3">
           <SideCardSkeleton active={stage >= 5} lines={3} />
           <SideCardSkeleton active={stage >= 6} lines={4} />
           <SideCardSkeleton active={stage >= 7} lines={5} />
