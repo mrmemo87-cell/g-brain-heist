@@ -47,10 +47,10 @@ const formatEventText = (event: NewsEvent) => {
             );
         
         case 'pvp_blocked':
-            return <><span style={{...actorStyle, color: 'var(--danger-red)'}}>{actorName}</span> tried to hack <span style={{...actorStyle, color: 'var(--success-teal)'}}>{targetName}</span> but was blocked by their shield! 🛡️</>;
+            return <><span style={{...actorStyle, color: 'var(--danger-red)'}}>{actorName}</span> tried to attack <span style={{...actorStyle, color: 'var(--success-teal)'}}>{targetName}</span> but was blocked by their shield! 🛡️</>;
         
         case 'pvp_loss':
-            return <><span style={{...actorStyle, color: 'var(--danger-red)'}}>{actorName}</span> failed to hack <span style={{...actorStyle, color: 'var(--success-teal)'}}>{targetName}</span>{coinsLost ? <> and lost <span className="font-bold" style={{color: 'var(--danger-red)'}}>{coinsLost} coins</span></> : ''} 😅</>;
+            return <><span style={{...actorStyle, color: 'var(--danger-red)'}}>{actorName}</span> failed to attack <span style={{...actorStyle, color: 'var(--success-teal)'}}>{targetName}</span>{coinsLost ? <> and lost <span className="font-bold" style={{color: 'var(--danger-red)'}}>{coinsLost} coins</span></> : ''} 😅</>;
         
         case 'level_up':
             return <><span style={{...actorStyle, color: 'var(--amber-warn)'}}>{actorName}</span> leveled up to <span className="font-bold">{event.data.details}</span>! 🎉</>;
