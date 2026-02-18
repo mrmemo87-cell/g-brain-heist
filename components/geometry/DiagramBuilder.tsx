@@ -11,6 +11,7 @@ import {
   generateShapeId 
 } from './geometryService';
 import BackButton from '../BackButton';
+import { brainsAlert } from '../../src/utils/brainsAlert';
 
 interface DiagramBuilderProps {
   teacherId: string;
@@ -114,19 +115,19 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
 
   const handleSave = async () => {
     if (!title.trim()) {
-      alert('Please enter a title for this diagram.');
+      brainsAlert('Please enter a title for this diagram.', 'info');
       return;
     }
 
     if (blanks.length === 0) {
-      alert('Please add at least one blank field for students to fill in.');
+      brainsAlert('Please add at least one blank field for students to fill in.', 'info');
       return;
     }
 
     // Check all blanks have answers
     const missingAnswers = blanks.filter(b => !b.expectedAnswer.trim());
     if (missingAnswers.length > 0) {
-      alert('Please set expected answers for all blank fields.');
+      brainsAlert('Please set expected answers for all blank fields.', 'info');
       return;
     }
 
@@ -159,7 +160,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
           points,
           time_limit: timeLimit
         });
-        alert('✅ Diagram updated successfully!');
+        brainsAlert('Diagram updated successfully.', 'success');
       } else {
         await saveGeometryQuestion(
           teacherId,
@@ -168,7 +169,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
           answers,
           { subject, topic, difficulty, points, timeLimit }
         );
-        alert('✅ Diagram saved successfully!');
+        brainsAlert('Diagram saved successfully.', 'success');
       }
 
       // Reset and reload
@@ -177,7 +178,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
       setView('list');
     } catch (error) {
       console.error('Failed to save:', error);
-      alert('❌ Failed to save diagram: ' + (error as Error).message);
+      brainsAlert('Unable to save diagram: ' + (error as Error).message, 'error');
     } finally {
       setSaving(false);
     }
@@ -220,7 +221,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
       setView('editor');
     } catch (error) {
       console.error('Failed to load question:', error);
-      alert('Failed to load question for editing.');
+      brainsAlert('Unable to load question for editing.', 'error');
     }
   };
 
@@ -230,10 +231,10 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
     try {
       await deleteGeometryQuestion(questionId);
       await loadSavedQuestions();
-      alert('✅ Question deleted.');
+      brainsAlert('Question deleted successfully.', 'success');
     } catch (error) {
       console.error('Failed to delete:', error);
-      alert('❌ Failed to delete question.');
+      brainsAlert('Unable to delete question. Please try again.', 'error');
     }
   };
 
@@ -408,7 +409,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
   const handleExportImage = () => {
     const stage = stageRef.current as { toDataURL?: (config: { pixelRatio: number }) => string } | null;
     if (!stage?.toDataURL) {
-      alert('Cannot export - canvas not ready');
+      brainsAlert('Cannot export — canvas not ready.', 'error');
       return;
     }
     
@@ -431,7 +432,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
             navigator.clipboard.write([
               new ClipboardItem({ 'image/png': blob })
             ]).then(() => {
-              alert('✅ Image downloaded AND copied to clipboard!\n\nYou can now paste this image directly into question creation.');
+              brainsAlert('Image downloaded and copied to clipboard. You can now paste it directly into question creation.', 'success');
             }).catch(() => {
               // Clipboard failed, but download succeeded
             });
@@ -439,7 +440,7 @@ const DiagramBuilder: React.FC<DiagramBuilderProps> = ({ teacherId, onComplete }
       }
     } catch (e) {
       console.error('Export failed:', e);
-      alert('Failed to export image');
+      brainsAlert('Unable to export image.', 'error');
     }
   };
 

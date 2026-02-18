@@ -326,7 +326,7 @@ const MainActions: React.FC<MainActionsProps> = ({
                 subtitle="Track your house on the leaderboard"
                 color="0, 160, 255"
                 glowClass="glow-ion"
-                className={onOpenCompetitionPlay ? 'col-span-2' : ''}
+                className="col-span-2 sm:col-span-3"
               />
             )}
             <QuestPlayButton

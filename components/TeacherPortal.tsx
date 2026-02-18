@@ -9,6 +9,7 @@ import BackButton from './BackButton';
 import DiagramBuilder from './geometry/DiagramBuilder';
 import QuestionBank from './teacher/QuestionBank';
 import '../src/styles/teacher-theme.css';
+import { brainsAlert } from '../src/utils/brainsAlert';
 import { chemistryAnswerKeys, chemistryQuestionRanges } from './chemistryAnswerKeys';
 import { biologyAnswerKeys, biologyQuestionRanges } from './biologyAnswerKeys';
 import { fetchSchoolPlanDetails, fetchEffectiveTier, isPro, fetchPilotQuotas, getQuotaForFeature, QUOTA_LABELS, FEATURE_TO_QUOTA, tryConsumePilotQuota, type SchoolPlanDetails, type AccountTier, type PilotQuotaStatus, type PilotQuota } from '../services/tierService';
@@ -764,12 +765,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
       if (error) {
         console.error('Error toggling test visibility:', error);
-        alert('Failed to update test visibility: ' + error.message);
+        brainsAlert('Unable to update test visibility: ' + error.message, 'error');
         return;
       }
 
       if (data && data.error) {
-        alert('Error: ' + data.error);
+        brainsAlert('Error: ' + data.error, 'error');
         return;
       }
 
@@ -783,7 +784,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       console.log('Test visibility updated:', data);
     } catch (error) {
       console.error('Exception toggling test visibility:', error);
-      alert('An error occurred while updating test visibility.');
+      brainsAlert('Something went wrong while updating test visibility.', 'error');
     }
   };
 
@@ -799,12 +800,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
       if (error) {
         console.error('Error bulk updating test visibility:', error);
-        alert('Failed to update test visibility: ' + error.message);
+        brainsAlert('Unable to update test visibility: ' + error.message, 'error');
         return;
       }
 
       if (data && data.error) {
-        alert('Error: ' + data.error);
+        brainsAlert('Error: ' + data.error, 'error');
         return;
       }
 
@@ -815,10 +816,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         return newMap;
       });
 
-      alert(`✅ ${data.message || 'Tests updated successfully'}`);
+      brainsAlert(data.message || 'Test visibility updated successfully.', 'success');
     } catch (error) {
       console.error('Exception bulk updating visibility:', error);
-      alert('An error occurred while updating test visibility.');
+      brainsAlert('Something went wrong while updating test visibility.', 'error');
     }
   };
 
@@ -830,13 +831,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       const { data, error } = await supabase.rpc('get_school_cambridge_test_visibility_settings');
       if (error) {
         console.error('Failed to load school visibility:', error);
-        alert('Failed to load school test visibility settings');
+        brainsAlert('Unable to load school test visibility settings.', 'error');
         return;
       }
       setSchoolVisibility(data || []);
     } catch (err) {
       console.error('Exception loading school visibility:', err);
-      alert('Failed to load school test visibility settings');
+      brainsAlert('Unable to load school test visibility settings.', 'error');
     } finally {
       setSchoolVisibilityLoading(false);
     }
@@ -850,11 +851,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       });
       if (error) {
         console.error('Toggle error:', error);
-        alert('Failed to update test visibility: ' + error.message);
+        brainsAlert('Unable to update test visibility: ' + error.message, 'error');
         return;
       }
       if (data && !data.success) {
-        alert(data.error || 'Failed to update');
+        brainsAlert(data.error || 'Unable to update visibility.', 'error');
         return;
       }
       setSchoolVisibility(prev => prev.map(t =>
@@ -862,7 +863,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       ));
     } catch (err) {
       console.error('Exception toggling school visibility:', err);
-      alert('Failed to update test visibility');
+      brainsAlert('Unable to update test visibility.', 'error');
     }
   };
 
@@ -874,11 +875,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       });
       if (error) {
         console.error('Bulk toggle error:', error);
-        alert('Failed to bulk update visibility: ' + error.message);
+        brainsAlert('Unable to bulk update visibility: ' + error.message, 'error');
         return;
       }
       if (data && !data.success) {
-        alert(data.error || 'Failed to update');
+        brainsAlert(data.error || 'Unable to update visibility.', 'error');
         return;
       }
       const idSet = new Set(testIds);
@@ -887,7 +888,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       ));
     } catch (err) {
       console.error('Exception in bulk school visibility:', err);
-      alert('Failed to bulk update visibility');
+      brainsAlert('Unable to bulk update visibility.', 'error');
     }
   };
 
@@ -943,11 +944,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         if (updateError) throw updateError;
       }
 
-      alert(`✅ Scores released for ${quizName}${classFilter ? ` (${classFilter})` : ''}!`);
+      brainsAlert(`Scores for ${quizName}${classFilter ? ` (${classFilter})` : ''} have been released to students.`, 'success');
       loadCambridgeScores(); // Refresh the list
     } catch (err) {
       console.error('Failed to release scores:', err);
-      alert('❌ Failed to release scores. Please try again.');
+      brainsAlert('Unable to release scores. Please try again.', 'error');
     } finally {
       setReleasingScores(false);
     }
@@ -983,11 +984,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         if (updateError) throw updateError;
       }
 
-      alert(`✅ Scores set to pending for ${quizName}${classFilter ? ` (${classFilter})` : ''}! Students will no longer see their results.`);
+      brainsAlert(`Scores for ${quizName}${classFilter ? ` (${classFilter})` : ''} are now hidden from students.`, 'success');
       loadCambridgeScores(); // Refresh the list
     } catch (err) {
       console.error('Failed to set scores to pending:', err);
-      alert('❌ Failed to update score status. Please try again.');
+      brainsAlert('Unable to update score status. Please try again.', 'error');
     } finally {
       setReleasingScores(false);
     }
@@ -1003,12 +1004,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         .in('id', ids);
 
       if (error) throw error;
-      alert(successMessage);
+      brainsAlert(successMessage, 'success');
       setCambridgeSelectedIds([]);
       loadCambridgeScores();
     } catch (err) {
       console.error('Failed to release selected scores:', err);
-      alert('❌ Failed to release selected scores. Please try again.');
+      brainsAlert('Unable to release the selected scores. Please try again.', 'error');
     } finally {
       setReleasingScores(false);
     }
@@ -1446,7 +1447,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   // Submit writing marks
   const submitWritingMarks = async (releaseToStudent: boolean = false) => {
     if (!selectedCambridgeStudent) {
-      alert('❌ No student selected');
+      brainsAlert('Please select a student before proceeding.', 'info');
       return;
     }
     
@@ -1510,9 +1511,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         console.warn('Update returned no data - this might indicate no rows were updated (RLS issue?)');
       }
       
-      alert(releaseToStudent 
-        ? '✅ Marked and released to student!' 
-        : '✅ Writing marked successfully! (Not yet visible to student)');
+      brainsAlert(releaseToStudent 
+        ? 'Writing has been marked and released to the student.' 
+        : 'Writing has been marked successfully. (Not yet visible to student)', 'success');
       setShowWritingMarkingModal(false);
       loadCambridgeScores(); // Refresh the list
     } catch (error: any) {
@@ -1520,9 +1521,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       
       // Check for RLS permission error
       if (error?.code === '42501' || error?.message?.includes('permission') || error?.message?.includes('policy')) {
-        alert('❌ Permission denied. You need to run the ADD_QUIZ_SCORES_UPDATE_POLICY.sql migration in Supabase to allow teachers to update marks.');
+        brainsAlert('Permission denied. The required database migration (ADD_QUIZ_SCORES_UPDATE_POLICY.sql) has not been applied yet.', 'error');
       } else {
-        alert('❌ Failed to submit marks: ' + (error instanceof Error ? error.message : String(error)));
+        brainsAlert('Unable to submit marks: ' + (error instanceof Error ? error.message : String(error)), 'error');
       }
     } finally {
       setSavingMarks(false);
@@ -1979,7 +1980,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     const part2Text = answers.part2 || '';
     
     if (!part1Text && !part2Text) {
-      alert('No student writing to proofread!');
+      brainsAlert('No student writing to proofread.', 'info');
       return;
     }
     
@@ -2087,11 +2088,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         }));
       }
 
-      alert('✅ AI Proofread complete! Review the suggested feedback and marks, then adjust as needed.');
+      brainsAlert('AI Proofread complete. Please review the suggested feedback and marks, then adjust as needed.', 'success');
 
     } catch (error) {
       console.error('Auto-proofread failed:', error);
-      alert('❌ AI proofread failed. Falling back to basic proofreading.');
+      brainsAlert('AI proofread was unavailable. Falling back to basic proofreading.', 'error');
       // Fall back to local proofreading
       const answers = selectedCambridgeStudent.answers || {};
       fallbackLocalProofread(answers.part1 || '', answers.part2 || '');
@@ -2108,7 +2109,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     );
 
     if (writingSubmissions.length === 0) {
-      alert('No pending writing submissions to proofread!');
+      brainsAlert('No pending writing submissions to proofread.', 'info');
       return;
     }
 
@@ -2125,7 +2126,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     const accessToken = sessionData?.session?.access_token;
 
     if (!accessToken) {
-      alert('Not authenticated');
+      brainsAlert('Not authenticated. Please sign in again.', 'error');
       setBulkProofreadLoading(false);
       return;
     }
@@ -2254,7 +2255,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     loadCambridgeScores(); // Refresh the list
 
     const releaseText = releaseToStudent ? 'and released to students' : 'as drafts';
-    alert(`✅ Bulk AI Proofread complete!\n\n${successCount} marked ${releaseText}\n${failCount} failed`);
+    brainsAlert(`Bulk AI Proofread complete.\n\n${successCount} marked ${releaseText}\n${failCount} failed`, 'success');
   };
 
   // Fallback to local regex-based proofreading if GPT fails
@@ -2312,10 +2313,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         overallComments: overallMessage
       }));
       
-      alert('✅ Basic proofread complete! (AI was unavailable)');
+      brainsAlert('Basic proofread complete. (AI was unavailable)', 'success');
     } catch (error) {
       console.error('Fallback proofread failed:', error);
-      alert('❌ Proofread failed. Please try again.');
+      brainsAlert('Proofread failed. Please try again.', 'error');
     }
   };
 
@@ -2396,12 +2397,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     // Consume pilot quota if applicable
     const quota = await tryConsumePilotQuota('questions_created');
     if (!quota.proceed) {
-      alert(quota.error || 'You\'ve reached the question creation limit on the Pilot plan. Upgrade to continue.');
+      brainsAlert(quota.error || 'You\'ve reached the question creation limit on the Pilot plan. Upgrade to continue.', 'error');
       return;
     }
 
     if (topicMode === 'custom' && !customTopicName.trim()) {
-      alert('Please enter a topic name for your question.');
+      brainsAlert('Please enter a topic name for your question.', 'info');
       return;
     }
 
@@ -2414,7 +2415,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         try {
           imageUrl = await GameService.upload_question_image(questionImage);
         } catch (uploadError) {
-          alert('❌ Failed to upload question image: ' + (uploadError as Error).message);
+          brainsAlert('Unable to upload question image: ' + (uploadError as Error).message, 'error');
           setUploadingImage(false);
           return;
         }
@@ -2433,7 +2434,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               try {
                 optImageUrl = await GameService.upload_question_image(optionImages[i]!);
               } catch (uploadError) {
-                alert(`❌ Failed to upload image for Option ${String.fromCharCode(65 + i)}: ` + (uploadError as Error).message);
+                brainsAlert(`Unable to upload image for Option ${String.fromCharCode(65 + i)}: ` + (uploadError as Error).message, 'error');
                 setUploadingImage(false);
                 return;
               }
@@ -2467,11 +2468,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       if (editingQuestion) {
         // Update existing question
         await GameService.update_question(editingQuestion.id, questionData);
-        alert('✅ Question updated successfully!');
+        brainsAlert('Question updated successfully.', 'success');
       } else {
         // Create new question
         await GameService.create_question(questionData);
-        alert('✅ Question created successfully!');
+        brainsAlert('Question created successfully.', 'success');
       }
 
       // Reset form
@@ -2498,7 +2499,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setView('question-bank');
     } catch (error) {
       console.error('Error saving question:', error);
-      alert('❌ Failed to save question: ' + (error as Error).message);
+      brainsAlert('Unable to save question: ' + (error as Error).message, 'error');
     }
   };
 
@@ -2509,10 +2510,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       await GameService.delete_question(questionId);
       const allQuestions = await GameService.get_all_questions();
       setQuestions(allQuestions);
-      alert('✅ Question deleted!');
+      brainsAlert('Question deleted successfully.', 'success');
     } catch (error) {
       console.error('Error deleting question:', error);
-      alert('❌ Failed to delete question');
+      brainsAlert('Unable to delete question. Please try again.', 'error');
     }
   };
 
@@ -2637,22 +2638,22 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     e.preventDefault();
 
     if (assignmentTopicMode === 'custom' && !assignmentTopicName.trim()) {
-      alert('Please enter a topic for this assignment.');
+      brainsAlert('Please enter a topic for this assignment.', 'info');
       return;
     }
 
     if (!assignmentQuestionIds.length) {
-      alert('Select at least one question to assign.');
+      brainsAlert('Select at least one question to assign.', 'info');
       return;
     }
 
     if (assignmentMode === 'batch' && assignmentBatches.length === 0) {
-      alert('Please select at least one class/batch for this assignment.');
+      brainsAlert('Please select at least one class/batch for this assignment.', 'info');
       return;
     }
 
     if (assignmentMode === 'custom' && selectedStudentIds.length === 0) {
-      alert('Please select at least one student for this assignment.');
+      brainsAlert('Please select at least one student for this assignment.', 'info');
       return;
     }
 
@@ -2669,7 +2670,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       // Consume pilot quota if applicable
       const assignQuota = await tryConsumePilotQuota('assignments_created');
       if (!assignQuota.proceed) {
-        alert(assignQuota.error || 'You\'ve reached the assignment creation limit on the Pilot plan. Upgrade to continue.');
+        brainsAlert(assignQuota.error || 'You\'ve reached the assignment creation limit on the Pilot plan. Upgrade to continue.', 'error');
         setAssignmentSubmitting(false);
         return;
       }
@@ -2702,7 +2703,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         }
 
         if (errors.length > 0) {
-          alert(`⚠️ Created for ${results.length} class(es), but failed for:\n${errors.join('\n')}`);
+          brainsAlert(`Assignment created for ${results.length} class(es), but failed for:\n${errors.join('\n')}`, 'error');
         }
       } else {
         // Custom mode — single creation for selected students
@@ -2723,7 +2724,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       }
 
       const classCount = assignmentMode === 'batch' ? assignmentBatches.length : 1;
-      alert(`📌 Assignment created and sent to ${assignmentMode === 'batch' ? `${classCount} class${classCount !== 1 ? 'es' : ''}` : `${selectedStudentIds.length} student${selectedStudentIds.length !== 1 ? 's' : ''}`}!`);
+      brainsAlert(`Assignment created and sent to ${assignmentMode === 'batch' ? `${classCount} class${classCount !== 1 ? 'es' : ''}` : `${selectedStudentIds.length} student${selectedStudentIds.length !== 1 ? 's' : ''}`}.`, 'success');
       setAssignmentQuestionIds([]);
       setAssignmentTitle('');
       setAssignmentDescription('');
@@ -2739,7 +2740,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setView('assignments');
     } catch (error) {
       console.error('Error creating assignment:', error);
-      alert('❌ Failed to create assignment: ' + (error as Error).message);
+      brainsAlert('Unable to create assignment: ' + (error as Error).message, 'error');
     } finally {
       setAssignmentSubmitting(false);
     }
@@ -2764,7 +2765,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setView('report-detail');
     } catch (error) {
       console.error('Error loading assignment report:', error);
-      alert('❌ Failed to load report: ' + (error as Error).message);
+      brainsAlert('Unable to load report: ' + (error as Error).message, 'error');
     } finally {
       setReportLoading(false);
     }
@@ -2798,7 +2799,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       setView('report-analysis');
     } catch (error) {
       console.error('Error loading student answers:', error);
-      alert('❌ Failed to load student analysis: ' + (error as Error).message);
+      brainsAlert('Unable to load student analysis: ' + (error as Error).message, 'error');
     } finally {
       setAnalysisLoading(false);
     }
@@ -2810,7 +2811,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     // Consume pilot quota if applicable
     const quota = await tryConsumePilotQuota('reports_generated');
     if (!quota.proceed) {
-      alert(quota.error || 'You\'ve reached the report export limit on the Pilot plan. Upgrade to continue.');
+      brainsAlert(quota.error || 'You\'ve reached the report export limit on the Pilot plan. Upgrade to continue.', 'error');
       return;
     }
 
@@ -2915,13 +2916,13 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
       setQuestions(allQuestions);
 
       // Show results
-      const message = `✅ Upload Complete!\n\nSuccess: ${successCount} questions\nFailed: ${errorCount} questions${errors.length > 0 ? '\n\nErrors:\n' + errors.slice(0, 5).join('\n') + (errors.length > 5 ? `\n... and ${errors.length - 5} more` : '') : ''}`;
-      alert(message);
+      const message = `CSV Upload Complete\n\nSuccess: ${successCount} questions\nFailed: ${errorCount} questions${errors.length > 0 ? '\n\nErrors:\n' + errors.slice(0, 5).join('\n') + (errors.length > 5 ? `\n... and ${errors.length - 5} more` : '') : ''}`;
+      brainsAlert(message, 'success');
       
       setView('question-bank');
     } catch (error) {
       console.error('CSV upload error:', error);
-      alert('❌ Failed to parse CSV: ' + (error as Error).message);
+      brainsAlert('Unable to parse CSV: ' + (error as Error).message, 'error');
     } finally {
       setUploading(false);
       setUploadProgress({ current: 0, total: 0 });

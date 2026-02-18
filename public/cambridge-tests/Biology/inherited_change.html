@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -874,6 +874,7 @@
           if (scoreDiv) scoreDiv.style.display = 'none';
           document.querySelectorAll('input').forEach(i => i.disabled = false);
           unlockQuestions();
+          startTimerIfReady();
           return;
         }
 
@@ -917,6 +918,7 @@
           scoreDiv.style.display = 'none';
           document.querySelectorAll('input').forEach(i => i.disabled = false);
           unlockQuestions();
+          startTimerIfReady();
           try {
             window.parent.postMessage({ type: 'CAMBRIDGE_TEST_DELETED', testId: QUIZ_ID, testName: QUIZ_NAME }, '*');
           } catch (e) { console.error('Failed to notify parent of test deletion:', e); }

@@ -21,6 +21,7 @@ import { audioService } from '../services/audioService';
 import { CoinIcon, GemIcon, XPIcon } from './icons';
 import BackButton from './BackButton';
 import { createPortal } from 'react-dom';
+import { brainsAlert } from '../src/utils/brainsAlert';
 import {
   calculateSoloQuestionScore,
   SoloQuestionScoreBreakdown,
@@ -654,7 +655,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     try {
       const data = await GameService.get_public_questions(selectedSubject.name as any);
       if (data.length === 0) {
-        alert('No teacher questions available for this quest yet!');
+        brainsAlert('No teacher questions available for this quest yet.', 'info');
         setStage('unified_subject_play');
         return;
       }
@@ -670,7 +671,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       setQuestionStartTime(Date.now());
     } catch (err) {
       console.error('Error loading teacher questions:', err);
-      alert('Failed to load teacher questions');
+      brainsAlert('Unable to load teacher questions.', 'error');
       setStage('unified_subject_play');
     }
   };
@@ -680,7 +681,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     const selectedQuestions = publicQuestions.filter((question) => questionIds.includes(question.id));
 
     if (selectedQuestions.length === 0) {
-      alert('No questions available for this set yet.');
+      brainsAlert('No questions available for this set yet.', 'info');
       return;
     }
 
@@ -972,9 +973,9 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         
         // If it's a profile update error, it means rewards failed to save
         if (errorMsg.includes('profile') || errorMsg.includes('persist')) {
-          alert('⚠️ ERROR: Your rewards could not be saved to the database.\n\nPlease:\n1. Try again\n2. Refresh the page\n\nIf the problem persists, contact your administrator.');
+          brainsAlert('Your rewards could not be saved.\n\nPlease:\n1. Try again\n2. Refresh the page\n\nIf the problem persists, contact your teacher.', 'error');
         } else {
-          alert('❌ Failed to submit answer. Please try again.');
+          brainsAlert('Unable to submit your answer. Please try again.', 'error');
         }
         setSelectedOption(null);
       } finally {
@@ -1043,7 +1044,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
         }
       } catch (error) {
         console.error('Error submitting teacher answer:', error);
-        alert('Failed to submit answer. Please try again.');
+        brainsAlert('Unable to submit answer. Please try again.', 'error');
         setSelectedOption(null);
       } finally {
         setIsSubmitting(false);

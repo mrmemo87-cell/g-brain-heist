@@ -1,0 +1,147 @@
+/**
+ * Brains Heist branded alert modal.
+ * Drop-in replacement for window.alert() that shows logo.png instead of emoji.
+ *
+ * Usage:
+ *   import { brainsAlert } from '../src/utils/brainsAlert';
+ *   brainsAlert('Scores released successfully.');
+ *   brainsAlert('Unable to save.', 'error');
+ */
+
+type AlertType = 'success' | 'error' | 'info';
+
+const GLOW: Record<AlertType, string> = {
+  success: '0 0 24px rgba(0,255,180,0.45)',
+  error:   '0 0 24px rgba(255,60,60,0.45)',
+  info:    '0 0 24px rgba(0,212,255,0.45)',
+};
+
+const BORDER: Record<AlertType, string> = {
+  success: 'rgba(0,255,180,0.5)',
+  error:   'rgba(255,60,60,0.5)',
+  info:    'rgba(0,212,255,0.5)',
+};
+
+export function brainsAlert(message: string, type: AlertType = 'info'): void {
+  // Backdrop
+  const backdrop = document.createElement('div');
+  Object.assign(backdrop.style, {
+    position: 'fixed',
+    inset: '0',
+    zIndex: '99999',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'rgba(0,0,0,0.6)',
+    backdropFilter: 'blur(6px)',
+    opacity: '0',
+    transition: 'opacity 0.2s ease',
+  } as CSSStyleDeclaration);
+
+  // Card
+  const card = document.createElement('div');
+  Object.assign(card.style, {
+    background: 'linear-gradient(135deg, #0d1117 0%, #161b22 100%)',
+    border: `1.5px solid ${BORDER[type]}`,
+    borderRadius: '16px',
+    boxShadow: GLOW[type],
+    padding: '28px 32px 24px',
+    maxWidth: '420px',
+    width: '90vw',
+    textAlign: 'center',
+    fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+    transform: 'scale(0.92)',
+    transition: 'transform 0.2s ease',
+  } as CSSStyleDeclaration);
+
+  // Logo
+  const logo = document.createElement('img');
+  logo.src = '/logo.png';
+  logo.alt = 'Brains Heist';
+  Object.assign(logo.style, {
+    width: '52px',
+    height: '52px',
+    objectFit: 'contain',
+    marginBottom: '8px',
+    filter: 'drop-shadow(0 0 14px rgba(0,212,255,0.5))',
+  } as CSSStyleDeclaration);
+
+  // Title
+  const title = document.createElement('div');
+  title.textContent = 'Brains Heist';
+  Object.assign(title.style, {
+    fontSize: '13px',
+    fontWeight: '700',
+    letterSpacing: '1.5px',
+    textTransform: 'uppercase',
+    color: '#6ee7f0',
+    marginBottom: '14px',
+  } as CSSStyleDeclaration);
+
+  // Message
+  const msg = document.createElement('div');
+  msg.style.whiteSpace = 'pre-wrap';
+  msg.style.fontSize = '14.5px';
+  msg.style.lineHeight = '1.55';
+  msg.style.color = '#e6edf3';
+  msg.style.marginBottom = '22px';
+  msg.textContent = message;
+
+  // Button
+  const btn = document.createElement('button');
+  btn.textContent = 'OK';
+  Object.assign(btn.style, {
+    padding: '8px 36px',
+    borderRadius: '8px',
+    border: 'none',
+    cursor: 'pointer',
+    fontWeight: '600',
+    fontSize: '14px',
+    color: '#0d1117',
+    background: 'linear-gradient(135deg, #00d4ff, #00ffb4)',
+    boxShadow: '0 0 12px rgba(0,212,255,0.35)',
+    transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+  } as CSSStyleDeclaration);
+
+  btn.addEventListener('mouseenter', () => {
+    btn.style.transform = 'scale(1.04)';
+    btn.style.boxShadow = '0 0 20px rgba(0,212,255,0.55)';
+  });
+  btn.addEventListener('mouseleave', () => {
+    btn.style.transform = 'scale(1)';
+    btn.style.boxShadow = '0 0 12px rgba(0,212,255,0.35)';
+  });
+
+  // Dismiss logic
+  const dismiss = () => {
+    backdrop.style.opacity = '0';
+    card.style.transform = 'scale(0.92)';
+    setTimeout(() => backdrop.remove(), 200);
+  };
+
+  btn.addEventListener('click', dismiss);
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop) dismiss();
+  });
+  document.addEventListener('keydown', function onKey(e: KeyboardEvent) {
+    if (e.key === 'Escape' || e.key === 'Enter') {
+      document.removeEventListener('keydown', onKey);
+      dismiss();
+    }
+  });
+
+  // Assemble
+  card.appendChild(logo);
+  card.appendChild(title);
+  card.appendChild(msg);
+  card.appendChild(btn);
+  backdrop.appendChild(card);
+  document.body.appendChild(backdrop);
+
+  // Animate in
+  requestAnimationFrame(() => {
+    backdrop.style.opacity = '1';
+    card.style.transform = 'scale(1)';
+    btn.focus();
+  });
+}

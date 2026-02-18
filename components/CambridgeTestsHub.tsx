@@ -1256,6 +1256,18 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
     }
   };
 
+  // Open the test in iframe for review mode (no retake, no deletion)
+  const viewDetailedAnswers = (test: CambridgeTest) => {
+    localStorage.setItem('cambridge_test_user', JSON.stringify({
+      name: profile.username,
+      class: profile.batch || 'N/A',
+      grade: profile.grade,
+      schoolId: profile.school_id ?? null,
+      userId: profile.id,
+    }));
+    setActiveTest(test);
+  };
+
   const handleStartTest = async (test: CambridgeTest) => {
     // Consume pilot quota if applicable
     const quota = await tryConsumePilotQuota('cambridge_tests');
@@ -1970,7 +1982,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                       const chemistryReportReady = isChemistryTest && test.isCompleted && test.scoresReleased;
                       const chemistryLocked = isChemistryTest && test.isCompleted && !test.scoresReleased;
                       const actionLabel = test.isCompleted
-                        ? (isChemistryTest ? (chemistryReportReady ? '📄 View Report' : '✅ Submitted') : '📄 Retake Test')
+                        ? (isChemistryTest ? (chemistryReportReady ? '� View Detailed Answers' : '✅ Submitted') : '📄 Retake Test')
                         : '▶️ Start Test';
                       return (
                       <div
@@ -2131,37 +2143,36 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                                 </button>
                               )}
 
-                              {/* View Professional Report button for completed tests with released scores */}
+                              {/* View Detailed Answers button for completed tests with released scores */}
                               {!test.requiresMarking && test.isCompleted && test.scoresReleased && (
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    viewStudentReport(test);
+                                    viewDetailedAnswers(test);
                                   }}
-                                  disabled={studentReportLoading}
                                   style={{
                                     marginTop: '10px',
                                     width: '100%',
                                     padding: '8px',
                                     borderRadius: '8px',
-                                    border: '1px solid #a78bfa',
-                                    background: 'linear-gradient(135deg, rgba(124,58,237,0.15), rgba(79,70,229,0.15))',
-                                    color: '#c4b5fd',
+                                    border: '1px solid #00f5ff',
+                                    background: 'linear-gradient(135deg, rgba(0,245,255,0.12), rgba(0,212,170,0.12))',
+                                    color: '#00f5ff',
                                     fontSize: '12px',
                                     fontWeight: 600,
-                                    cursor: studentReportLoading ? 'wait' : 'pointer',
+                                    cursor: 'pointer',
                                     transition: 'all 0.2s',
                                   }}
                                 >
-                                  {studentReportLoading ? '⏳ Loading...' : '📄 View Professional Report'}
+                                  🔍 View Detailed Answers
                                 </button>
                               )}
                             </div>
                           )}
 
                           <button
-                            onClick={() => chemistryReportReady ? viewStudentReport(test) : handleStartTest(test)}
-                            disabled={chemistryLocked || studentReportLoading}
+                            onClick={() => chemistryReportReady ? viewDetailedAnswers(test) : handleStartTest(test)}
+                            disabled={chemistryLocked}
                             style={{
                               width: '100%',
                               padding: '12px',
