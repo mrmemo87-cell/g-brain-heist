@@ -12,6 +12,7 @@ import '../src/styles/teacher-theme.css';
 import { brainsAlert } from '../src/utils/brainsAlert';
 import { chemistryAnswerKeys, chemistryQuestionRanges } from './chemistryAnswerKeys';
 import { biologyAnswerKeys, biologyQuestionRanges } from './biologyAnswerKeys';
+import { getQuestionsForQuiz, type QuestionData } from './cambridgeQuestionData';
 import { fetchSchoolPlanDetails, fetchEffectiveTier, isPro, fetchPilotQuotas, getQuotaForFeature, QUOTA_LABELS, FEATURE_TO_QUOTA, tryConsumePilotQuota, type SchoolPlanDetails, type AccountTier, type PilotQuotaStatus, type PilotQuota } from '../services/tierService';
 import ProfessionalCambridgeReport, { generateSerialNumber, StudentOverviewReport, getGradeFromPercentage } from './ProfessionalCambridgeReport';
 import type { ProfessionalReportData, StudentOverviewReportData, StudentTestEntry } from './ProfessionalCambridgeReport';
@@ -6058,6 +6059,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         const answerKey = isChemistryTest ? getScienceAnswerKey(quizName) : (correctAnswers[quizName] || {});
         const sections = testSections[quizName] || [];
         const summary = buildResponseSummary(selectedCambridgeStudent, answerKey);
+        const questionBank = getQuestionsForQuiz(quizName);
+        const questionMap = new Map<number, QuestionData>();
+        questionBank.forEach(q => questionMap.set(q.number, q));
         const mistakes = summary.details
           .filter((detail) => detail.status === 'wrong' || detail.status === 'unanswered')
           .map((detail) => ({
@@ -6183,49 +6187,128 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 {summary.details.length > 0 && (
                   <div className="border border-slate-200 rounded-xl overflow-hidden">
                     <div className="bg-slate-50 px-4 py-3 flex items-center justify-between">
-                      <h4 className="font-semibold text-slate-800">🧾 Full Answer Review</h4>
+                      <h4 className="font-semibold text-slate-800">🧾 Full Answer Review {questionMap.size > 0 && <span className="text-xs font-normal text-indigo-500 ml-2">with question details</span>}</h4>
                       {hasAnswerKey ? (
                         <span className="text-xs text-green-600 font-semibold">Answer key verified</span>
                       ) : (
                         <span className="text-xs text-amber-600 font-semibold">Answer key unavailable</span>
                       )}
                     </div>
-                    <div className="max-h-[320px] overflow-y-auto divide-y divide-slate-100">
-                      {summary.details.map((detail) => (
-                        <div key={detail.q} className="px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                          <div className="flex items-center gap-3">
-                            <span className="text-xs font-semibold text-slate-500">Q{detail.q}</span>
+                    <div className="max-h-[60vh] overflow-y-auto divide-y divide-slate-100">
+                      {summary.details.map((detail) => {
+                        const qData = questionMap.get(detail.q);
+                        return (
+                        <div key={detail.q} className={`px-4 py-4 ${
+                          detail.status === 'correct' ? 'bg-green-50/30' :
+                          detail.status === 'wrong' ? 'bg-red-50/30' :
+                          detail.status === 'unanswered' ? 'bg-amber-50/30' : ''
+                        }`}>
+                          {/* Question header */}
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className="text-sm font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">Q{detail.q}</span>
                             <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
                               detail.status === 'correct' ? 'bg-green-100 text-green-700' :
                               detail.status === 'wrong' ? 'bg-red-100 text-red-700' :
                               detail.status === 'answered' ? 'bg-blue-100 text-blue-700' :
                               'bg-amber-100 text-amber-700'
                             }`}>
-                              {detail.status === 'correct'
-                                ? 'Correct'
-                                : detail.status === 'wrong'
-                                  ? 'Wrong'
-                                  : detail.status === 'answered'
-                                    ? 'Answered'
-                                    : 'Unanswered'}
+                              {detail.status === 'correct' ? '✓ Correct' : detail.status === 'wrong' ? '✗ Wrong' : detail.status === 'answered' ? 'Answered' : '⚠ Unanswered'}
                             </span>
                           </div>
-                          <div className="flex flex-col md:flex-row gap-2 md:items-center text-xs text-slate-600">
-                            <span>Student: <strong className="text-slate-800">{detail.studentAns || '—'}</strong></span>
-                            <span className="hidden md:inline">•</span>
-                            <span>Correct: <strong className="text-emerald-600">{detail.correctAns || '—'}</strong></span>
-                          </div>
-                          <div className="text-[11px] text-slate-500">
-                            {detail.status === 'correct'
-                              ? 'Matched the official answer key.'
-                              : detail.status === 'answered'
-                                ? 'Answer submitted. Official key not available for verification yet.'
-                                : detail.status === 'unanswered'
-                                  ? 'No answer submitted. Review the concept and attempt this question again.'
-                                  : `Correct answer is ${detail.correctAns || '—'}. Revisit the related concept.`}
-                          </div>
+
+                          {/* Question prompt */}
+                          {qData?.prompt && (
+                            <div className="text-sm text-slate-700 mb-3 leading-relaxed pl-1 border-l-2 border-slate-200 ml-1 py-1" style={{ paddingLeft: '10px' }}>
+                              <span dangerouslySetInnerHTML={{ __html: qData.prompt }} />
+                            </div>
+                          )}
+
+                          {/* Table-based options (e.g., chemistry tables) */}
+                          {qData?.table && (
+                            <div className="mb-3 overflow-x-auto ml-2">
+                              <table className="text-xs border-collapse w-full max-w-lg">
+                                <thead>
+                                  <tr>
+                                    <th className="border border-slate-300 bg-slate-100 px-2 py-1 text-left font-semibold text-slate-600"></th>
+                                    {qData.table.headers.map((h, hi) => (
+                                      <th key={hi} className="border border-slate-300 bg-slate-100 px-2 py-1 text-left font-semibold text-slate-600" dangerouslySetInnerHTML={{ __html: h }} />
+                                    ))}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {qData.table.rows.map((row) => {
+                                    const isStudentChoice = detail.studentAns.toUpperCase() === row.label;
+                                    const isCorrectChoice = detail.correctAns.toUpperCase() === row.label;
+                                    return (
+                                      <tr key={row.label} className={`${
+                                        isCorrectChoice && isStudentChoice ? 'bg-green-100' :
+                                        isStudentChoice ? 'bg-red-100' :
+                                        isCorrectChoice ? 'bg-green-50' : ''
+                                      }`}>
+                                        <td className="border border-slate-300 px-2 py-1 font-bold text-slate-600">
+                                          {row.label}
+                                          {isStudentChoice && !isCorrectChoice && <span className="ml-1 text-red-500">✗</span>}
+                                          {isCorrectChoice && <span className="ml-1 text-green-600">✓</span>}
+                                        </td>
+                                        {row.values.map((v, vi) => (
+                                          <td key={vi} className="border border-slate-300 px-2 py-1" dangerouslySetInnerHTML={{ __html: v }} />
+                                        ))}
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+
+                          {/* Regular options (A/B/C/D) */}
+                          {qData?.options && !qData.table && (
+                            <div className="mb-3 ml-2 space-y-1">
+                              {Object.entries(qData.options).map(([letter, text]) => {
+                                const isStudentChoice = detail.studentAns.toUpperCase() === letter;
+                                const isCorrectChoice = detail.correctAns.toUpperCase() === letter;
+                                return (
+                                  <div key={letter} className={`flex items-start gap-2 px-2 py-1.5 rounded text-xs ${
+                                    isCorrectChoice && isStudentChoice ? 'bg-green-100 border border-green-300' :
+                                    isStudentChoice ? 'bg-red-100 border border-red-300' :
+                                    isCorrectChoice ? 'bg-green-50 border border-green-200' :
+                                    'bg-white border border-slate-100'
+                                  }`}>
+                                    <span className={`font-bold min-w-[20px] ${
+                                      isCorrectChoice ? 'text-green-700' :
+                                      isStudentChoice ? 'text-red-600' : 'text-slate-500'
+                                    }`}>
+                                      {letter}.
+                                      {isStudentChoice && !isCorrectChoice && <span className="ml-0.5">✗</span>}
+                                      {isCorrectChoice && <span className="ml-0.5">✓</span>}
+                                    </span>
+                                    <span className="text-slate-700" dangerouslySetInnerHTML={{ __html: text }} />
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+
+                          {/* Fallback when no question data available */}
+                          {!qData && (
+                            <div className="flex flex-col md:flex-row gap-2 md:items-center text-xs text-slate-600 mt-1">
+                              <span>Student: <strong className="text-slate-800">{detail.studentAns || '—'}</strong></span>
+                              <span className="hidden md:inline">•</span>
+                              <span>Correct: <strong className="text-emerald-600">{detail.correctAns || '—'}</strong></span>
+                            </div>
+                          )}
+
+                          {/* Answer summary line (when question data is present) */}
+                          {qData && (
+                            <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 ml-2">
+                              <span>Student chose: <strong className={detail.status === 'correct' ? 'text-green-700' : detail.status === 'unanswered' ? 'text-amber-600' : 'text-red-600'}>{detail.studentAns || '—'}</strong></span>
+                              <span>•</span>
+                              <span>Correct: <strong className="text-emerald-600">{detail.correctAns || '—'}</strong></span>
+                            </div>
+                          )}
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}

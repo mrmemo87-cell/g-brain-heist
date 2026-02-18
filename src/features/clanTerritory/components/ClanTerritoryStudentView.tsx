@@ -268,27 +268,23 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
         console.log("Claiming rewards:", myReward);
         setClaimingRewards(true);
         
-        // Direct Supabase RPC call (fallback for Vite dev environment without API routing)
+        // Use rpc_apply_reward_delta (the safe, trigger-compatible RPC) instead of
+        // claim_clan_territory_rewards which fails with "Direct XP/level updates are not allowed"
         import("../../../../services/supabaseClient").then(async ({ supabase }) => {
           const { data: { user }, error: authError } = await supabase.auth.getUser();
           if (authError || !user) {
             throw new Error("Not authenticated");
           }
-          return supabase.rpc("claim_clan_territory_rewards", {
-            p_student_id: user.id,
-            p_room_id: "clan-territory-session",
-            p_player_id: playerId,
-            p_coins: myReward.coins,
-            p_xp: myReward.xp,
-            p_gems: myReward.gems,
-            p_battle_score: myReward.battleScore,
-            p_questions_correct: myReward.questionsCorrect,
-            p_questions_answered: myReward.questionsAnswered,
+          return supabase.rpc("rpc_apply_reward_delta", {
+            p_xp_delta: myReward.xp,
+            p_coins_delta: myReward.coins,
+            p_gemstones_delta: myReward.gems,
+            p_apply_level_milestone: true,
           });
         })
           .then(({ data, error }) => {
             if (error) throw error;
-            console.log("Rewards claimed:", data);
+            console.log("Rewards claimed via rpc_apply_reward_delta:", data);
             setRewardsClaimed(true);
             setClaimingRewards(false);
             if (onRewardsClaimed) {

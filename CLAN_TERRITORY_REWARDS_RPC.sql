@@ -3,6 +3,9 @@
 -- ============================================================
 -- This function credits coins, XP, and gems to students who
 -- participated in a clan territory battle and earned rewards.
+--
+-- IMPORTANT: This function now internally calls rpc_apply_reward_delta
+-- to avoid the "Direct XP/level updates are not allowed" trigger error.
 -- ============================================================
 
 CREATE OR REPLACE FUNCTION claim_clan_territory_rewards(
@@ -22,56 +25,52 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_user_record users;
-  v_result jsonb;
+  v_caller_id uuid := auth.uid();
+  v_reward_result jsonb;
+  v_previous_level int;
 BEGIN
-  -- Ensure the caller is the student
+  -- Ensure the caller is the student (prevent spoofing another student's ID)
   IF p_student_id IS NULL THEN
     RAISE EXCEPTION 'Student ID is required';
   END IF;
 
-  -- Get current user data
-  SELECT * INTO v_user_record
-  FROM users
-  WHERE id = p_student_id;
+  IF v_caller_id IS NULL OR v_caller_id != p_student_id THEN
+    RAISE EXCEPTION 'You can only claim rewards for yourself';
+  END IF;
+
+  -- Get previous level for the response
+  SELECT COALESCE(level, 1) INTO v_previous_level
+  FROM users WHERE id = p_student_id;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Student not found';
   END IF;
 
-  -- Credit rewards
-  UPDATE users
-  SET
-    coins = COALESCE(coins, 0) + p_coins,
-    xp = COALESCE(xp, 0) + p_xp,
-    gemstones = COALESCE(gemstones, 0) + p_gems,
-    updated_at = NOW()
-  WHERE id = p_student_id;
+  -- Delegate to rpc_apply_reward_delta which is the approved way to
+  -- update XP/coins/gems without triggering the "Direct XP/level updates
+  -- are not allowed" validation trigger on the users table.
+  SELECT rpc_apply_reward_delta(
+    p_xp_delta := COALESCE(p_xp, 0),
+    p_coins_delta := COALESCE(p_coins, 0),
+    p_gemstones_delta := COALESCE(p_gems, 0),
+    p_apply_level_milestone := true
+  ) INTO v_reward_result;
 
-  -- Build result
-  v_result := jsonb_build_object(
+  -- Build result in the expected shape
+  RETURN jsonb_build_object(
     'student_id', p_student_id,
     'coins_awarded', p_coins,
     'xp_awarded', p_xp,
     'gems_awarded', p_gems,
-    'new_coins', COALESCE(v_user_record.coins, 0) + p_coins,
-    'new_xp', COALESCE(v_user_record.xp, 0) + p_xp,
-    'new_gems', COALESCE(v_user_record.gemstones, 0) + p_gems,
+    'new_coins', COALESCE((v_reward_result->'profile'->>'coins')::int, 0),
+    'new_xp', COALESCE((v_reward_result->'profile'->>'xp')::int, 0),
+    'new_gems', COALESCE((v_reward_result->'profile'->>'gemstones')::int, 0),
+    'new_level', COALESCE((v_reward_result->'profile'->>'level')::int, 1),
+    'previous_level', v_previous_level,
     'battle_score', p_battle_score,
     'questions_correct', p_questions_correct,
     'questions_answered', p_questions_answered
   );
-
-  -- Optional: Log the battle participation (create table if you want history)
-  -- INSERT INTO clan_territory_battle_log (
-  --   student_id, room_id, player_id, coins, xp, gems, 
-  --   battle_score, questions_correct, questions_answered, claimed_at
-  -- ) VALUES (
-  --   p_student_id, p_room_id, p_player_id, p_coins, p_xp, p_gems,
-  --   p_battle_score, p_questions_correct, p_questions_answered, NOW()
-  -- );
-
-  RETURN v_result;
 END;
 $$;
 
