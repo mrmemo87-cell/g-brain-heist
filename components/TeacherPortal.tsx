@@ -6079,6 +6079,15 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
             unanswered: detail.status === 'unanswered'
           }));
         const hasAnswerKey = Object.keys(answerKey).length > 0;
+
+        /** Fix encoding-damaged placeholders in chemistry HTML:
+         *  1) <span aria-label="p orbital" ...>?</span>  →  badge with label text (orbital shapes that were images)
+         *  2) <sup>?</sup>  →  <sup>−</sup>  (superscript minus signs lost to Windows-1252 encoding) */
+        const fixChemHtml = (html: string) =>
+          html
+            .replace(/<span\s+aria-label="([^"]+)"[^>]*>\s*\?\s*<\/span>/gi,
+              (_m: string, label: string) => `<span style="font-size:11px; background:#e0e7ff; color:#3730a3; padding:1px 5px; border-radius:4px; font-weight:600;">${label}</span>`)
+            .replace(/<sup>\?<\/sup>/g, '<sup>−</sup>');
         
         return createPortal(
           <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-2 sm:p-4 overflow-y-auto" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -6227,7 +6236,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                           {/* Question prompt */}
                           {qData?.prompt && (
                             <div className="text-sm text-slate-700 mb-3 leading-relaxed pl-1 border-l-2 border-slate-200 ml-1 py-1" style={{ paddingLeft: '10px' }}>
-                              <span dangerouslySetInnerHTML={{ __html: qData.prompt }} />
+                              <span dangerouslySetInnerHTML={{ __html: fixChemHtml(qData.prompt) }} />
                             </div>
                           )}
 
@@ -6239,7 +6248,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                                   <tr>
                                     <th className="border border-slate-300 bg-slate-100 px-2 py-1 text-left font-semibold text-slate-600"></th>
                                     {qData.table.headers.map((h, hi) => (
-                                      <th key={hi} className="border border-slate-300 bg-slate-100 px-2 py-1 text-left font-semibold text-slate-600" dangerouslySetInnerHTML={{ __html: h }} />
+                                      <th key={hi} className="border border-slate-300 bg-slate-100 px-2 py-1 text-left font-semibold text-slate-600" dangerouslySetInnerHTML={{ __html: fixChemHtml(h) }} />
                                     ))}
                                   </tr>
                                 </thead>
@@ -6259,7 +6268,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                                           {isCorrectChoice && <span className="ml-1 text-green-600">✓</span>}
                                         </td>
                                         {row.values.map((v, vi) => (
-                                          <td key={vi} className="border border-slate-300 px-2 py-1" dangerouslySetInnerHTML={{ __html: v }} />
+                                          <td key={vi} className="border border-slate-300 px-2 py-1" dangerouslySetInnerHTML={{ __html: fixChemHtml(v) }} />
                                         ))}
                                       </tr>
                                     );
@@ -6290,7 +6299,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                                       {isStudentChoice && !isCorrectChoice && <span className="ml-0.5">✗</span>}
                                       {isCorrectChoice && <span className="ml-0.5">✓</span>}
                                     </span>
-                                    <span className="text-slate-700" dangerouslySetInnerHTML={{ __html: text }} />
+                                    <span className="text-slate-700" dangerouslySetInnerHTML={{ __html: fixChemHtml(text) }} />
                                   </div>
                                 );
                               })}

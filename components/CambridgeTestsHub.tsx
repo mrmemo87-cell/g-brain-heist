@@ -103,10 +103,10 @@ const ENGLISH_TESTS: CambridgeTest[] = [
 ];
 
 const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
-  // Ch1 � Atomic Structure
+  // Ch1 — Atomic Structure
   {
     id: 'as-chemistry-atomic-structure-part-1',
-    name: 'AS Chemistry � Atomic Structure (Part 1)',
+    name: 'AS Chemistry — Atomic Structure (Part 1)',
     description: 'Chapter 1 multiple-choice practice focusing on protons, neutrons, electrons, isotopes, and particle behaviour in fields.',
     duration: '50 min',
     totalQuestions: 25,
@@ -117,7 +117,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
   },
   {
     id: 'as-chemistry-atomic-structure-part-2',
-    name: 'AS Chemistry � Atomic Structure (Part 2)',
+    name: 'AS Chemistry — Atomic Structure (Part 2)',
     description: 'Chapter 1 multiple-choice practice focusing on protons, neutrons, electrons, isotopes, and particle behaviour in fields.',
     duration: '48 min',
     totalQuestions: 24,
@@ -126,7 +126,7 @@ const AS_CHEMISTRY_TESTS: CambridgeTest[] = [
     subject: 'Chemistry',
     url: '/cambridge-tests/Chemistry/atomic_structure.html?part=2',
   },
-  // Ch2 � Atoms, molecules and stoichiometry
+  // Ch2 — Atoms, molecules and stoichiometry
   {
     id: 'as-chemistry-ch2-atoms-molecules-stoichiometry-part-1',
     name: 'AS Chemistry Ch2 (Atoms, molecules and stoichiometry) (Part 1)',

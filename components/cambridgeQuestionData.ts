@@ -302,7 +302,7 @@ export const cambridgeQuestionBank: Record<string, QuestionData[]> = {
     }
   ],
 
-  "AS Chemistry � Atomic Structure": [
+  "AS Chemistry — Atomic Structure": [
     {
       "number": 1,
       "prompt": "What number of protons, neutrons and electrons are present in the ion <span class=\"nuclide\"><sup>54</sup>Fe<sup>3+</sup></span>?",
