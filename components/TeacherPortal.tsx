@@ -1194,15 +1194,23 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     return answers;
   };
 
+  /** Normalize dash-like characters so DB names (may contain U+FFFD from
+   *  Windows-1252 0x97) match answer-key names (which use U+2014 em-dash). */
+  const normalizeDashes = (s: string) =>
+    s.replace(/[\u2012\u2013\u2014\u2015\uFFFD]/g, '\u2014');
+
   const getScienceAnswerKey = (quizName: string | undefined) => {
     if (!quizName) return {};
     const baseName = quizName.replace(/\s*\(Part\s+\d+\)\s*/i, '').trim();
+    const normalizedName = normalizeDashes(quizName);
+    const normalizedBase = normalizeDashes(baseName);
     const partMatch = quizName.match(/\(Part\s+(\d+)\)/i);
     const isBiology = quizName.toLowerCase().includes('biology');
     const answerKeys = isBiology ? biologyAnswerKeys : chemistryAnswerKeys;
     const questionRanges = isBiology ? biologyQuestionRanges : chemistryQuestionRanges;
-    const baseKey = answerKeys[quizName] || answerKeys[baseName] || {};
-    const range = questionRanges[baseName];
+    const baseKey = answerKeys[quizName] || answerKeys[baseName]
+      || answerKeys[normalizedName] || answerKeys[normalizedBase] || {};
+    const range = questionRanges[baseName] || questionRanges[normalizedBase];
 
     if (!partMatch || !range) {
       return baseKey;
