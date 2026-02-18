@@ -15733,6 +15733,11 @@ export const cambridgeQuestionBank: Record<string, QuestionData[]> = {
  * Look up questions for a given quiz_name (as stored in quiz_scores).
  * Handles part-based splitting automatically.
  */
+/** Normalize dash-like characters (U+FFFD from Windows-1252, various Unicode dashes) to U+2014 em-dash */
+function normalizeDashes(s: string): string {
+  return s.replace(/[\u2012\u2013\u2014\u2015\uFFFD]/g, '\u2014');
+}
+
 export function getQuestionsForQuiz(quizName: string): QuestionData[] {
   if (!quizName) return [];
 
@@ -15741,12 +15746,24 @@ export function getQuestionsForQuiz(quizName: string): QuestionData[] {
     return cambridgeQuestionBank[quizName];
   }
 
+  // Normalize dashes in case DB name and key use different dash characters
+  const dashNorm = normalizeDashes(quizName);
+  for (const key of Object.keys(cambridgeQuestionBank)) {
+    if (normalizeDashes(key) === dashNorm) {
+      return cambridgeQuestionBank[key];
+    }
+  }
+
   // Try stripping part suffix: "AS Chemistry Ch1 (Part 1)" -> "AS Chemistry Ch1"
   const partMatch = quizName.match(/^(.+?)\s*\(Part\s+(\d+)\)$/i);
   if (partMatch) {
     const baseName = partMatch[1].trim();
     const part = parseInt(partMatch[2], 10);
-    const allQuestions = cambridgeQuestionBank[baseName];
+    const allQuestions = cambridgeQuestionBank[baseName]
+      || Object.keys(cambridgeQuestionBank).reduce<QuestionData[] | undefined>(
+        (found, key) => found || (normalizeDashes(key) === normalizeDashes(baseName) ? cambridgeQuestionBank[key] : undefined),
+        undefined
+      );
     if (allQuestions && allQuestions.length > 0) {
       const splitIndex = Math.ceil(allQuestions.length / 2);
       if (part === 1) {
