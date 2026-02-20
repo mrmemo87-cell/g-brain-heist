@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { RaidTarget, RaidAttackResult, Profile, XpStatus } from '../types';
 import * as GameService from '../services/gameService';
 import { supabase } from '../services/supabaseClient';
@@ -12,6 +12,7 @@ import { tryConsumePilotQuota } from '../services/tierService';
 import ClickableUsername from './ClickableUsername';
 
 type PvPStage = 'loading' | 'targets' | 'cinematic' | 'result';
+type BreachPhase = 'lockon' | 'charge' | 'impact' | 'outcome';
 
 interface BattleNarration {
   text: string;
@@ -151,6 +152,8 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
   const [useCracker, setUseCracker] = useState(false);
   const [battleNarration, setBattleNarration] = useState<BattleNarration[]>([]);
   const [visibleNarrations, setVisibleNarrations] = useState<number>(0);
+  const [breachPhase, setBreachPhase] = useState<BreachPhase>('lockon');
+  const [breachOutcomeText, setBreachOutcomeText] = useState('EXECUTING...');
   const [clanModal, setClanModal] = useState<{ clanId: string; clanName: string; members: ClanMember[]; loading: boolean } | null>(null);
   const [filterTab, setFilterTab] = useState<TargetFilter>('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -158,6 +161,21 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
   const [levelRange, setLevelRange] = useState<number | null>(null);
   const [minCoins, setMinCoins] = useState<string>('');
   const [hideCooldown, setHideCooldown] = useState(false);
+  const cinematicTimersRef = useRef<number[]>([]);
+
+  const clearCinematicTimers = () => {
+    cinematicTimersRef.current.forEach(timer => window.clearTimeout(timer));
+    cinematicTimersRef.current = [];
+  };
+
+  const queueCinematicTimer = (cb: () => void, delay: number) => {
+    const timer = window.setTimeout(cb, delay);
+    cinematicTimersRef.current.push(timer);
+  };
+
+  useEffect(() => {
+    return () => clearCinematicTimers();
+  }, []);
 
   useEffect(() => {
     GameService.raid_targets().then(data => {
@@ -313,8 +331,11 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
 
     setSelectedTarget(target);
     setStage('cinematic');
+    setBreachPhase('lockon');
+    setBreachOutcomeText('EXECUTING...');
     setBattleNarration([]);
     setVisibleNarrations(0);
+    clearCinematicTimers();
 
     // Generate battle narration based on combat stats
     const narrativeSteps: BattleNarration[] = [];
@@ -362,14 +383,19 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
 
     setBattleNarration(narrativeSteps);
 
+    queueCinematicTimer(() => setBreachPhase('charge'), 400);
+    queueCinematicTimer(() => setBreachPhase('impact'), 1000);
+    queueCinematicTimer(() => setBreachPhase('outcome'), 1500);
+
     // Animate narrations appearing
     narrativeSteps.forEach((_, index) => {
-      setTimeout(() => {
+      queueCinematicTimer(() => {
         setVisibleNarrations(index + 1);
       }, narrativeSteps[index].delay);
     });
 
     try {
+      const attackStartTime = Date.now();
       const requestId = (crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`);
       // Call the actual attack (starts immediately but runs in parallel with animations)
       const result = await GameService.raid_attack(target.user_id, useCracker, target, requestId);
@@ -389,9 +415,19 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
         gemstones: gemstonesDelta,
       }, result.final_profile_values);
 
-      // Wait for minimum animation time (2.8s) before showing result + play sound
-      const elapsedTime = 2800;
-      setTimeout(() => {
+      const normalizedResult = normalizePvpResult(result.result);
+      if (normalizedResult === 'win') {
+        setBreachOutcomeText('BREACHED');
+      } else if (normalizedResult === 'blocked') {
+        setBreachOutcomeText('BLOCKED');
+      } else {
+        setBreachOutcomeText('REPELLED');
+      }
+
+      // Wait for minimum cinematic window (2.2s) before showing result + play sound
+      const elapsedTime = Date.now() - attackStartTime;
+      const remaining = Math.max(2200 - elapsedTime, 0);
+      queueCinematicTimer(() => {
         // Play appropriate sound when result screen appears
         if (result.result === 'win') {
           audioService.play('hack_win');
@@ -399,7 +435,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
           audioService.play('hack_fail');
         }
         setStage('result');
-      }, elapsedTime);
+      }, remaining);
 
     } catch (error) {
       console.error('Battle attack error:', error);
@@ -557,10 +593,11 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
       <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center z-50 p-4 overflow-hidden">
         {/* Battle Arena Background Effect */}
         <div className="absolute inset-0 bg-gradient-to-br from-red-900/20 via-purple-900/20 to-blue-900/20 animate-pulse"></div>
+        <div className="absolute inset-0 breach-grid-overlay"></div>
         
         {/* Combatants */}
         <div className="relative z-10 flex items-center justify-around w-full max-w-2xl mb-8">
-            <div className="flex flex-col items-center animate-slideInLeft">
+            <div className={`flex flex-col items-center animate-slide-in-left ${breachPhase === 'charge' ? 'breach-power-tick' : ''}`}>
                 <div className="relative">
                   <AvatarWithFrame
                     src={profile.avatar_url}
@@ -588,8 +625,8 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
               <div className="absolute inset-0 blur-xl bg-gradient-to-r from-red-500 via-yellow-500 to-red-500 opacity-50 animate-pulse"></div>
             </div>
             
-            <div className="flex flex-col items-center animate-slideInRight">
-                <div className="relative">
+            <div className="flex flex-col items-center animate-slide-in-right">
+                <div className={`relative ${breachPhase === 'lockon' ? 'breach-lock-pulse' : ''} ${breachPhase === 'impact' ? 'breach-impact-shake' : ''}`}>
                   <AvatarWithFrame
                     src={selectedTarget.avatar_url}
                     alt={selectedTarget.username}
@@ -602,7 +639,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
                     imgClassName="w-24 h-24 md:w-32 md:h-32"
                   />
                   {selectedTarget.has_shield && (
-                    <div className="absolute -top-2 -left-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse">
+                    <div className={`absolute -top-2 -left-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse ${breachPhase === 'impact' ? 'breach-shield-pop' : ''}`}>
                       🛡️ +20
                     </div>
                   )}
@@ -614,6 +651,18 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
                 <span className="text-sm text-gray-400">Level {selectedTarget.level}</span>
             </div>
         </div>
+
+        {breachPhase === 'lockon' && (
+          <div className="absolute right-[18%] top-[30%] w-20 h-20 md:w-24 md:h-24 breach-crosshair"></div>
+        )}
+
+        {breachPhase === 'charge' && (
+          <div className="absolute top-1/2 left-1/2 -translate-y-1/2 w-[42%] max-w-[460px] breach-attack-beam"></div>
+        )}
+
+        {breachPhase === 'impact' && (
+          <div className="absolute right-[17%] top-[30%] w-24 h-24 rounded-full breach-impact-flash"></div>
+        )}
 
         {/* Battle Narration */}
         <div className="relative z-10 w-full max-w-2xl bg-black/60 backdrop-blur-sm border-2 border-purple-500/50 rounded-2xl p-6 min-h-[280px] shadow-[0_0_50px_rgba(168,85,247,0.4)]">
@@ -642,6 +691,14 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
                   <div className="w-3 h-3 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                   <div className="w-3 h-3 bg-pink-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
                   <div className="w-3 h-3 bg-yellow-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
+              </div>
+            )}
+
+            {breachPhase === 'outcome' && (
+              <div className="mt-5 flex justify-center">
+                <div className="breach-outcome-chip">
+                  {breachOutcomeText}
                 </div>
               </div>
             )}
