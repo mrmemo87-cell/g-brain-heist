@@ -22,8 +22,8 @@ export type QuestionType =
 
 export type SubjectKey = 'english' | 'math' | 'science' | 'chemistry';
 
-export const SUBJECT_META: Record<SubjectKey, { label: string; icon: string; color: string; poolFile: string }> = {
-  english:   { label: 'English',   icon: '📖', color: 'cyan',    poolFile: 'english_stage9_pool.json' },
+export const SUBJECT_META: Record<SubjectKey, { label: string; icon: string; color: string; poolFile: string; pools?: Record<number, string> }> = {
+  english:   { label: 'English',   icon: '📖', color: 'cyan',    poolFile: 'english_stage9_pool.json', pools: { 8: 'english_stage8_pool.json', 9: 'english_stage9_pool.json' } },
   math:      { label: 'Mathematics', icon: '🔢', color: 'violet',  poolFile: 'math_stage9_pool.json' },
   science:   { label: 'Science',   icon: '🔬', color: 'emerald', poolFile: '' },
   chemistry: { label: 'Chemistry', icon: '⚗️', color: 'amber',   poolFile: '' },

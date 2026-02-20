@@ -290,6 +290,13 @@ ALTER TABLE adm_audit_log ENABLE ROW LEVEL SECURITY;
 -- ============================================================
 -- UPDATED_AT TRIGGERS (reuses existing update_updated_at())
 -- ============================================================
+-- Drop first so the script is idempotent (safe to re-run)
+DROP TRIGGER IF EXISTS adm_question_pools_updated_at ON adm_question_pools;
+DROP TRIGGER IF EXISTS adm_questions_updated_at ON adm_questions;
+DROP TRIGGER IF EXISTS adm_blueprints_updated_at ON adm_blueprints;
+DROP TRIGGER IF EXISTS adm_test_forms_updated_at ON adm_test_forms;
+DROP TRIGGER IF EXISTS adm_candidates_updated_at ON adm_candidates;
+
 CREATE TRIGGER adm_question_pools_updated_at BEFORE UPDATE ON adm_question_pools
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 CREATE TRIGGER adm_questions_updated_at BEFORE UPDATE ON adm_questions

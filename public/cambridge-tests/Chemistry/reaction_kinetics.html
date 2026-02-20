@@ -692,14 +692,14 @@
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
         <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch8 (Reaction kinetics)</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 8 • 41 multiple-choice questions</div>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 8 ï¿½ 41 multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
       <span class="badge">?? Category: Science</span>
       <span class="badge">?? Difficulty: Advanced</span>
-      <span class="badge">?? Format: Multiple Choice (A–D)</span>
+      <span class="badge">?? Format: Multiple Choice (Aï¿½D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
@@ -738,7 +738,7 @@
         <li>Stay on this tab. The first violation triggers a warning.</li>
         <li>Three violations (tab switches, copying, etc.) will auto-submit your test.</li>
         <li>Copying and cutting are disabled during the test.</li>
-        <li>Your timer starts only after you click “I understand”.</li>
+        <li>Your timer starts only after you click ï¿½I understandï¿½.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
@@ -876,11 +876,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} — Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} • ${totalQuestions} questions`;
+      if (titleEl) titleEl.textContent = `${title} ï¿½ Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} ï¿½ ${totalQuestions} questions`;
       if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
       if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
-      document.title = `${title} — Part ${part}`;
+      document.title = `${title} ï¿½ Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -908,7 +908,7 @@
       {
         number: 1,
         code: '9701_m21_qp_12 Q: 10',
-        prompt: 'A large excess of marble chips is reacted with 25 cm<sup>3</sup> of 1.0 mol dm<sup>?3</sup> hydrochloric acid at 40 °C.<br><br>How is the result different when the reaction is repeated with 60 cm<sup>3</sup> of 0.5 mol dm<sup>?3</sup> hydrochloric acid at 40 °C?',
+        prompt: 'A large excess of marble chips is reacted with 25 cm<sup>3</sup> of 1.0 mol dm<sup>?3</sup> hydrochloric acid at 40 ï¿½C.<br><br>How is the result different when the reaction is repeated with 60 cm<sup>3</sup> of 0.5 mol dm<sup>?3</sup> hydrochloric acid at 40 ï¿½C?',
         options: {
           A: 'The reaction is faster and more of the products are made.',
           B: 'The reaction is faster and less of the products are made.',
@@ -1380,15 +1380,15 @@
     ];
 
     let ANSWER_KEY = {
-      1: 'C', 2: 'C', 3: 'B', 4: 'D', 5: 'D',
-      6: 'A', 7: 'B', 8: 'D', 9: 'B', 10: 'C',
+      1: 'C', 2: 'C', 3: 'B', 4: 'D', 5: 'A',
+      6: 'B', 7: 'D', 8: 'B', 9: 'B', 10: 'C',
       11: 'B', 12: 'B', 13: 'B', 14: 'D', 15: 'C',
-      16: 'D', 17: 'B', 18: 'C', 19: 'C', 20: 'D',
+      16: 'D', 17: 'D', 18: 'C', 19: 'C', 20: 'D',
       21: 'D', 22: 'D', 23: 'C', 24: 'B', 25: 'B',
       26: 'C', 27: 'D', 28: 'C', 29: 'B', 30: 'D',
       31: 'C', 32: 'A', 33: 'A', 34: 'C', 35: 'C',
-      36: 'A', 37: 'C', 38: 'C', 39: 'D', 40: 'D',
-      41: 'D',
+      36: 'A', 37: 'C', 38: 'C', 39: 'C', 40: 'D',
+      41: 'C',
     };
 
     const quizSplit = splitQuiz(QUESTIONS, ANSWER_KEY, QUIZ_PART.part);
@@ -1673,7 +1673,7 @@
         
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` • ?? Time: ${formatTimer(data.time_taken_seconds)}`
+            ? ` ï¿½ ?? Time: ${formatTimer(data.time_taken_seconds)}`
             : '';
           scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
@@ -1897,7 +1897,7 @@
           review.textContent = `? Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `? Your answer: ${studentAnswer || '—'} | ? Correct: ${correctAnswer}`;
+          review.textContent = `? Your answer: ${studentAnswer || 'ï¿½'} | ? Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -1946,7 +1946,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('•')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('ï¿½')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -1992,7 +1992,7 @@
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test ï¿½ auto-submitted' });
         }
       });
     });

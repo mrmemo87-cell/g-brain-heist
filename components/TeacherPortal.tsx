@@ -16,6 +16,7 @@ import { getQuestionsForQuiz, type QuestionData } from './cambridgeQuestionData'
 import { fetchSchoolPlanDetails, fetchEffectiveTier, isPro, fetchPilotQuotas, getQuotaForFeature, QUOTA_LABELS, FEATURE_TO_QUOTA, tryConsumePilotQuota, type SchoolPlanDetails, type AccountTier, type PilotQuotaStatus, type PilotQuota } from '../services/tierService';
 import ProfessionalCambridgeReport, { generateSerialNumber, StudentOverviewReport, getGradeFromPercentage } from './ProfessionalCambridgeReport';
 import type { ProfessionalReportData, StudentOverviewReportData, StudentTestEntry } from './ProfessionalCambridgeReport';
+import CollectiveAssignmentReport from './CollectiveAssignmentReport';
 
 interface TeacherPortalProps {
   profile: Profile;
@@ -31,7 +32,7 @@ interface TeacherPortalProps {
 let _cachedPlanDetails: SchoolPlanDetails | null = null;
 let _cachedTeacherTier: AccountTier | null = null;
 
-type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'geometry-diagrams' | 'cambridge-reports';
+type PortalView = 'dashboard' | 'create-question' | 'question-bank' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'geometry-diagrams' | 'cambridge-reports';
 
 // XP points based on difficulty: Easy=10, Medium=15, Hard=20
 const getDefaultPointsForDifficulty = (diff: QuestionDifficulty): number => {
@@ -376,7 +377,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     if (view === 'question-bank' || view === 'create-question' || view === 'csv-upload') return 'questions';
     if (view === 'assignments' || view === 'create-assignment') return 'assignments';
     if (view === 'cambridge-reports') return 'cambridge';
-    return 'reports';
+    return 'reports'; // catches 'reports', 'report-detail', 'report-analysis', 'collective-report'
   }, [view]);
 
   const changeSection = (section: 'dashboard' | 'questions' | 'assignments' | 'reports' | 'cambridge') => {
@@ -4514,8 +4515,16 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
 
   const renderReports = () => (
     <div>
-      <div className="teacher-section-header">
+      <div className="teacher-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
         <h2>📊 Assignment Reports</h2>
+        {assignments.length > 0 && (
+          <button
+            onClick={() => setView('collective-report')}
+            className="teacher-btn teacher-btn-primary text-sm flex items-center gap-2"
+          >
+            📋 Collective Report
+          </button>
+        )}
       </div>
       {assignments.length === 0 ? (
         <div className="teacher-card p-10 text-center">
@@ -7264,6 +7273,13 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
           {view === 'reports' && renderReports()}
           {view === 'report-detail' && renderReportDetail()}
           {view === 'report-analysis' && renderReportAnalysis()}
+          {view === 'collective-report' && (
+            <CollectiveAssignmentReport
+              assignments={assignments}
+              onBack={() => setView('reports')}
+              onViewAssignment={(a) => handleOpenReport(a)}
+            />
+          )}
           {view === 'cambridge-reports' && renderCambridgeReports()}
           {view === 'geometry-diagrams' && teacher && (
             <DiagramBuilder

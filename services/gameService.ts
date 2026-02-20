@@ -5520,6 +5520,46 @@ export const get_teacher_assignment_report = async (
     return (data as TeacherAssignmentReportRow[]) || [];
 };
 
+/**
+ * Get reports for ALL assignments belonging to the current teacher.
+ * Returns a map of assignmentId → report rows, used by the Collective Report view.
+ */
+export const get_all_assignment_reports = async (
+    assignmentIds: string[]
+): Promise<Record<string, TeacherAssignmentReportRow[]>> => {
+    const teacher = await get_teacher_profile();
+    if (!teacher) throw new Error('User is not a teacher');
+
+    const results: Record<string, TeacherAssignmentReportRow[]> = {};
+
+    // Fetch reports in parallel batches (max 6 concurrent)
+    const BATCH_SIZE = 6;
+    for (let i = 0; i < assignmentIds.length; i += BATCH_SIZE) {
+        const batch = assignmentIds.slice(i, i + BATCH_SIZE);
+        const fetches = batch.map(async (id) => {
+            try {
+                const { data, error } = await rpcTeacherAssignmentReport({
+                    p_assignment_id: id,
+                    p_teacher_id: teacher.id,
+                });
+                if (error) {
+                    console.warn(`Report fetch failed for assignment ${id}:`, error.message);
+                    return { id, rows: [] as TeacherAssignmentReportRow[] };
+                }
+                return { id, rows: (data as TeacherAssignmentReportRow[]) || [] };
+            } catch {
+                return { id, rows: [] as TeacherAssignmentReportRow[] };
+            }
+        });
+        const batchResults = await Promise.all(fetches);
+        for (const { id, rows } of batchResults) {
+            results[id] = rows;
+        }
+    }
+
+    return results;
+};
+
 // ============================================================================
 // ASSIGNMENT ANSWER ANALYSIS FUNCTIONS
 // ============================================================================

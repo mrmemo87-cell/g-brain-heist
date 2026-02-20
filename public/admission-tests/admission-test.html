@@ -511,7 +511,8 @@ async function loadOfflineTest(formCode) {
   try {
     const code = formCode.toLowerCase();
     let poolPath;
-    if (code.startsWith('eng')) poolPath = '../pools/english_stage9_pool.json';
+    if (code.startsWith('eng8')) poolPath = '../pools/english_stage8_pool.json';
+    else if (code.startsWith('eng')) poolPath = '../pools/english_stage9_pool.json';
     else if (code.startsWith('mat') || code.startsWith('math')) poolPath = '../pools/math_stage9_pool.json';
     else poolPath = '../pools/math_stage9_pool.json'; // fallback
 
