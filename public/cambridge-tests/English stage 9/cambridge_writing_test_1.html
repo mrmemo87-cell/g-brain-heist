@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -655,6 +655,11 @@
     }
   }
 
+    function isReviewMode() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('mode') === 'review';
+    }
+
   const QUIZ_ID = 'cambridge_writing_test_1';
   let hasSubmitted = false;
   let autoSubmitTriggered = false;
@@ -761,6 +766,8 @@
   // Show locked state
   function showLockedState(data) {
     hasSubmitted = true;
+    // Notify parent we're in review mode (skip exit confirmation)
+    try { window.parent.postMessage({ type: 'CAMBRIDGE_TEST_REVIEW_MODE' }, '*'); } catch(e) {}
     if (window.ExamGuard) {
       window.ExamGuard.stop();
     }
@@ -1119,7 +1126,7 @@
   // Initialize
   checkPreviousSubmission();
   loadStudentInfoFromGame();
-  if (!hasSubmitted) {
+  if (!hasSubmitted && !isReviewMode()) {
     loadDraft();
     startExamGuard();
   }

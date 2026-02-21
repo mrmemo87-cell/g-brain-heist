@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ï»¿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -570,14 +570,14 @@
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
         <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch19 ( Nitrogen compounds )</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 19 • 6 multiple-choice questions</div>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 19 ï¿½ 6 multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
       <span class="badge">?? Category: Science</span>
       <span class="badge">?? Difficulty: Advanced</span>
-      <span class="badge">?? Format: Multiple Choice (A–D)</span>
+      <span class="badge">?? Format: Multiple Choice (Aï¿½D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
@@ -622,7 +622,7 @@
         <li>Stay on this tab. The first violation triggers a warning.</li>
         <li>Three violations (tab switches, copying, etc.) will auto-submit your test.</li>
         <li>Copying and cutting are disabled during the test.</li>
-        <li>Your timer starts only after you click “I understand”.</li>
+        <li>Your timer starts only after you click ï¿½I understandï¿½.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
@@ -735,7 +735,12 @@
     function getQuizPart() {
       const params = new URLSearchParams(window.location.search);
       const part = params.get('part') === '2' ? 2 : 1;
-      return { part };
+      return { part }
+
+    function isReviewMode() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('mode') === 'review';
+    };
     }
 
     function splitQuiz(questions, answerKey, part) {
@@ -761,11 +766,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} — Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} • ${totalQuestions} questions`;
+      if (titleEl) titleEl.textContent = `${title} ï¿½ Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} ï¿½ ${totalQuestions} questions`;
       if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
       if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
-      document.title = `${title} — Part ${part}`;
+      document.title = `${title} ï¿½ Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -830,10 +835,10 @@
         code: '9701_s21_qp_11 Q: 20',
         prompt: 'Bromoethane reacts with cyanide ions, producing propanenitrile.<br><br>Which statement about the S<sub>N</sub>2 mechanism of this reaction is correct?',
         options: {
-          A: 'The lone pair of electrons on C of CN<sup>?</sup> attacks the carbon atom of the C–Br bond.',
-          B: 'The lone pair of electrons on C of CN<sup>?</sup> attacks the carbocation formed when the C–Br bond breaks.',
-          C: 'The lone pair of electrons on N of CN<sup>?</sup> attacks the carbon atom of the C–Br bond.',
-          D: 'The lone pair of electrons on N of CN<sup>?</sup> attacks the carbocation formed when the C–Br bond breaks.',
+          A: 'The lone pair of electrons on C of CN<sup>?</sup> attacks the carbon atom of the Cï¿½Br bond.',
+          B: 'The lone pair of electrons on C of CN<sup>?</sup> attacks the carbocation formed when the Cï¿½Br bond breaks.',
+          C: 'The lone pair of electrons on N of CN<sup>?</sup> attacks the carbon atom of the Cï¿½Br bond.',
+          D: 'The lone pair of electrons on N of CN<sup>?</sup> attacks the carbocation formed when the Cï¿½Br bond breaks.',
         }
       },
       {
@@ -1043,6 +1048,7 @@
       if (!saved) return;
       const data = JSON.parse(saved);
       hasSubmitted = true;
+      antiCheatAcknowledged = true; // Skip anti-cheat in review mode
       document.querySelectorAll('input').forEach(i => i.disabled = true);
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
@@ -1055,6 +1061,9 @@
       stopTimer();
 
       // Check if score is released by teacher
+      // Notify parent we're in review mode (skip exit confirmation)
+      try { window.parent.postMessage({ type: 'CAMBRIDGE_TEST_REVIEW_MODE' }, '*'); } catch(e) {}
+
       checkScoreReleaseStatus(data);
     }
     
@@ -1169,7 +1178,7 @@
         
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` • ?? Time: ${formatTimer(data.time_taken_seconds)}`
+            ? ` ï¿½ ?? Time: ${formatTimer(data.time_taken_seconds)}`
             : '';
           scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
@@ -1411,7 +1420,7 @@
           review.textContent = `? Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `? Your answer: ${studentAnswer || '—'} | ? Correct: ${correctAnswer}`;
+          review.textContent = `? Your answer: ${studentAnswer || 'ï¿½'} | ? Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -1439,7 +1448,14 @@
         if (code === PRIME_CODE.toLowerCase()) {
           overlay.classList.add('hidden');
           errorMsg.classList.remove('show');
-          startTimerIfReady();
+          // In review mode (opened from 'View Answers'), skip anti-cheat and timer
+      if (isReviewMode()) {
+        antiCheatAcknowledged = true;
+        stopTimer();
+        if (typeof hideTimer === 'function') hideTimer();
+      } else {
+        startTimerIfReady();
+      }
         } else {
           errorMsg.classList.add('show');
           codeInput.value = '';
@@ -1460,7 +1476,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('•')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('ï¿½')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -1470,7 +1486,7 @@
       
       // Start ExamGuard after initialization
       setTimeout(() => {
-        if (!hasSubmitted && typeof window.ExamGuard !== 'undefined') {
+        if (!hasSubmitted && !isReviewMode() && typeof window.ExamGuard !== 'undefined') {
           let autoSubmitTriggered = false;
           window.ExamGuard.start({
             promptContainer: document.querySelector('.container'),
@@ -1506,7 +1522,7 @@
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test ï¿½ auto-submitted' });
         }
       });
     });

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -748,6 +748,11 @@
     }
   };
 
+    function isReviewMode() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('mode') === 'review';
+    }
+
   const QUIZ_ID = 'cambridge_listening_1';
   let hasSubmitted = false;
   let startTime = null;
@@ -967,6 +972,8 @@
     if (submitted) {
       const data = JSON.parse(submitted);
       hasSubmitted = true;
+      // Notify parent we're in review mode (skip exit confirmation)
+      try { window.parent.postMessage({ type: 'CAMBRIDGE_TEST_REVIEW_MODE' }, '*'); } catch(e) {}
       document.getElementById("alreadySubmitted").style.display = "block";
       document.querySelectorAll('input').forEach(input => input.disabled = true);
       document.getElementById("submitBtn").disabled = true;
@@ -1549,13 +1556,13 @@
   const antiCheatAcceptBtn = document.getElementById('antiCheatAcceptBtn');
   if (antiCheatAcceptBtn) antiCheatAcceptBtn.addEventListener('click', acknowledgeAntiCheat);
   
-  // Show anti-cheat modal on page load
-  openAntiCheatModal();
+  // Show anti-cheat modal on page load (skip in review mode)
+  if (!isReviewMode()) openAntiCheatModal();
   
   // Start ExamGuard after initialization
   setTimeout(() => {
     const hasSubmitted = localStorage.getItem(`quiz_submitted_listening_test_1`);
-    if (!hasSubmitted && typeof window.ExamGuard !== 'undefined') {
+    if (!hasSubmitted && !isReviewMode() && typeof window.ExamGuard !== 'undefined') {
       let autoSubmitTriggered = false;
       window.ExamGuard.start({
         promptContainer: document.querySelector('.container'),

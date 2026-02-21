@@ -1049,6 +1049,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
   const [visibleTestIds, setVisibleTestIds] = useState<Set<string>>(new Set());
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [testSubmittedInSession, setTestSubmittedInSession] = useState(false);
+  const [isReviewMode, setIsReviewMode] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const initialLoadDone = useRef(false);
@@ -1146,6 +1147,9 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
         setTimeout(() => {
           loadTestProgress();
         }, 500);
+      } else if (event.data?.type === 'CAMBRIDGE_TEST_REVIEW_MODE') {
+        // Iframe detected the test was already submitted — enter review mode
+        setIsReviewMode(true);
       }
     };
 
@@ -1265,7 +1269,10 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
       schoolId: profile.school_id ?? null,
       userId: profile.id,
     }));
-    setActiveTest(test);
+    setIsReviewMode(true);
+    // Append review mode parameter so the test page skips anti-cheat and loads review directly
+    const separator = test.url.includes('?') ? '&' : '?';
+    setActiveTest({ ...test, url: `${test.url}${separator}mode=review` });
   };
 
   const handleStartTest = async (test: CambridgeTest) => {
@@ -1321,13 +1328,14 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
     setActiveTest(null);
     setShowExitConfirm(false);
     setTestSubmittedInSession(false);
+    setIsReviewMode(false);
     loadTestProgress(); // Refresh completion status
   };
 
   // Show exit confirmation before leaving an active test
   const handleExitClick = () => {
-    if (testSubmittedInSession) {
-      // Test already submitted, just exit without confirmation
+    if (testSubmittedInSession || isReviewMode) {
+      // Test already submitted or in review mode, just exit without confirmation
       handleTestComplete();
       return;
     }
@@ -1618,10 +1626,11 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
         position: 'fixed',
         top: 0,
         left: 0,
-        width: '100vw',
+        width: '100%',
         height: '100vh',
         backgroundColor: '#fff',
         zIndex: 9999,
+        overflow: 'hidden',
       }}>
         {/* Minimal Test Header Bar */}
         <div style={{
@@ -1638,10 +1647,10 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
           borderBottom: '2px solid #00f5ff',
           zIndex: 10,
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '24px' }}>??</span>
-            <div>
-              <h2 style={{ margin: 0, color: '#fff', fontSize: '14px', fontWeight: 600 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1, overflow: 'hidden' }}>
+            <span style={{ fontSize: '24px', flexShrink: 0 }}>??</span>
+            <div style={{ minWidth: 0, overflow: 'hidden' }}>
+              <h2 style={{ margin: 0, color: '#fff', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {activeTest.name}
               </h2>
               <p style={{ margin: 0, color: 'rgba(255,255,255,0.7)', fontSize: '11px' }}>
@@ -1660,6 +1669,8 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
               cursor: 'pointer',
               fontSize: '13px',
               fontWeight: 600,
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
             }}
           >
             ✕ Exit

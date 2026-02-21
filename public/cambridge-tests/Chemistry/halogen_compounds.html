@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -735,7 +735,12 @@
     function getQuizPart() {
       const params = new URLSearchParams(window.location.search);
       const part = params.get('part') === '2' ? 2 : 1;
-      return { part };
+      return { part }
+
+    function isReviewMode() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('mode') === 'review';
+    };
     }
 
     function splitQuiz(questions, answerKey, part) {
@@ -1632,6 +1637,7 @@
       if (!saved) return;
       const data = JSON.parse(saved);
       hasSubmitted = true;
+      antiCheatAcknowledged = true; // Skip anti-cheat in review mode
       document.querySelectorAll('input').forEach(i => i.disabled = true);
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
@@ -1644,6 +1650,9 @@
       stopTimer();
 
       // Check if score is released by teacher
+      // Notify parent we're in review mode (skip exit confirmation)
+      try { window.parent.postMessage({ type: 'CAMBRIDGE_TEST_REVIEW_MODE' }, '*'); } catch(e) {}
+
       checkScoreReleaseStatus(data);
     }
     
@@ -2028,7 +2037,14 @@
         if (code === PRIME_CODE.toLowerCase()) {
           overlay.classList.add('hidden');
           errorMsg.classList.remove('show');
-          startTimerIfReady();
+          // In review mode (opened from 'View Answers'), skip anti-cheat and timer
+      if (isReviewMode()) {
+        antiCheatAcknowledged = true;
+        stopTimer();
+        if (typeof hideTimer === 'function') hideTimer();
+      } else {
+        startTimerIfReady();
+      }
         } else {
           errorMsg.classList.add('show');
           codeInput.value = '';
@@ -2059,7 +2075,7 @@
       
       // Start ExamGuard after initialization
       setTimeout(() => {
-        if (!hasSubmitted && typeof window.ExamGuard !== 'undefined') {
+        if (!hasSubmitted && !isReviewMode() && typeof window.ExamGuard !== 'undefined') {
           let autoSubmitTriggered = false;
           window.ExamGuard.start({
             promptContainer: document.querySelector('.container'),

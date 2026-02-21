@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -679,6 +679,11 @@
     }
   };
 
+    function isReviewMode() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('mode') === 'review';
+    }
+
   const QUIZ_ID = 'cambridge_end_unit_4_stage_8';
   const total = 40;
   let hasSubmitted = false;
@@ -690,6 +695,9 @@
   const existingSubmission = localStorage.getItem(`quiz_submitted_${QUIZ_ID}`);
   if (existingSubmission) {
     hasSubmitted = true;
+    antiCheatAcknowledged = true; // Skip anti-cheat in review mode
+    // Notify parent we're in review mode (skip exit confirmation)
+    try { window.parent.postMessage({ type: 'CAMBRIDGE_TEST_REVIEW_MODE' }, '*'); } catch(e) {}
   }
 
   const correct = {
@@ -1038,7 +1046,14 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     loadStudentInfoFromGame();
-    startTimerIfReady();
+    // In review mode (opened from 'View Answers'), skip anti-cheat and timer
+      if (isReviewMode()) {
+        antiCheatAcknowledged = true;
+        stopTimer();
+        if (typeof hideTimer === 'function') hideTimer();
+      } else {
+        startTimerIfReady();
+      }
     const antiCheatAcceptBtn = document.getElementById('antiCheatAcceptBtn');
     if (antiCheatAcceptBtn) antiCheatAcceptBtn.addEventListener('click', acknowledgeAntiCheat);
   });

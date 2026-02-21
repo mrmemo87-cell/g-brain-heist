@@ -421,7 +421,7 @@
     0 10px 40px -10px rgba(0, 0, 0, 0.1),
     0 0 0 1px rgba(0, 0, 0, 0.02);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .teacher-main-panel::before {
@@ -2404,5 +2404,88 @@
   .teacher-main-panel {
     box-shadow: none !important;
     border: none !important;
+  }
+}
+
+/* ============================================================
+   CAMBRIDGE REPORTS SECTION - Fixed Layout
+   ============================================================ */
+.cambridge-reports-container {
+  display: flex;
+  flex-direction: column;
+  color: #1e293b;
+}
+
+.cambridge-reports-header {
+  flex-shrink: 0;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 14px 18px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.cambridge-reports-body {
+  display: flex;
+  gap: 12px;
+  /* Use viewport height minus header/nav to fill remaining space */
+  height: calc(100vh - 340px);
+  min-height: 420px;
+}
+
+/* Filters sidebar - scrolls internally */
+.cambridge-reports-body > div:first-child > div {
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.cambridge-results-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.cambridge-results-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cambridge-results-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cambridge-results-scroll::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 3px;
+}
+
+.cambridge-results-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+
+/* Sticky table header inside scroll area */
+.cambridge-results-scroll table thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #f8fafc;
+}
+
+/* Tablet: stack sidebar above content */
+@media (max-width: 1023px) {
+  .cambridge-reports-body {
+    flex-direction: column;
+    height: calc(100vh - 300px);
+    min-height: 360px;
+  }
+}
+
+@media (max-width: 640px) {
+  .cambridge-reports-body {
+    height: calc(100vh - 260px);
+    min-height: 300px;
   }
 }

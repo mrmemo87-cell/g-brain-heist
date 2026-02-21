@@ -557,7 +557,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       try {
         const { data: peekRow, error: peekError } = await supabase
           .from('users')
-          .select('role, username, level, coins, gemstones, streak, clan_name, avatar_url')
+          .select('role, username, level, coins, gemstones, streak, avatar_url')
           .eq('id', data.session.user.id)
           .single();
         if (peekError) {
@@ -570,7 +570,6 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             coins: peekRow.coins ?? undefined,
             gems: peekRow.gemstones ?? undefined,
             streak: peekRow.streak ?? undefined,
-            clanName: peekRow.clan_name ?? undefined,
             avatarUrl: peekRow.avatar_url ?? undefined,
           });
         }

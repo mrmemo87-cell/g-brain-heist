@@ -1,9 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry Ch4 (States of matter)</title>
+  <script src="../examguard.js"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -578,14 +579,14 @@
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
         <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch4 (States of matter)</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 4 � 61 multiple-choice questions</div>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 4 – 61 multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
       <span class="badge">?? Category: Science</span>
       <span class="badge">?? Difficulty: Advanced</span>
-      <span class="badge">?? Format: Multiple Choice (A�D)</span>
+      <span class="badge">?? Format: Multiple Choice (A–D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
@@ -630,7 +631,7 @@
         <li>Stay on this tab. The first violation triggers a warning.</li>
         <li>Three violations (tab switches, copying, etc.) will auto-submit your test.</li>
         <li>Copying and cutting are disabled during the test.</li>
-        <li>Your timer starts only after you click �I understand�.</li>
+        <li>Your timer starts only after you click 'I understand'.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
@@ -746,6 +747,11 @@
       return { part };
     }
 
+    function isReviewMode() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('mode') === 'review';
+    }
+
     function splitQuiz(questions, answerKey, part) {
       const splitIndex = Math.ceil(questions.length / 2);
       const slice = part === 1 ? questions.slice(0, splitIndex) : questions.slice(splitIndex);
@@ -769,11 +775,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} � Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} � ${totalQuestions} questions`;
+      if (titleEl) titleEl.textContent = `${title} – Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} – ${totalQuestions} questions`;
       if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
       if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
-      document.title = `${title} � Part ${part}`;
+      document.title = `${title} – Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -800,7 +806,7 @@
       {
         number: 1,
         code: '9701_m21_qp_12 Q: 6',
-        prompt: 'A solution contains 0.25 g of sulfur dioxide in 1.00 dm<sup>3</sup> of water.<br><br>Which volume of sulfur dioxide, measured at 50 �C and a pressure of 1 ? 10<sup>5</sup> Pa, must be added to 1.00 dm<sup>3</sup> of water to produce this solution?',
+        prompt: 'A solution contains 0.25 g of sulfur dioxide in 1.00 dm<sup>3</sup> of water.<br><br>Which volume of sulfur dioxide, measured at 50 °C and a pressure of 1 × 10<sup>5</sup> Pa, must be added to 1.00 dm<sup>3</sup> of water to produce this solution?',
         options: {
           A: '0.0162 cm<sup>3</sup>',
           B: '0.105 cm<sup>3</sup>',
@@ -855,20 +861,20 @@
       {
         number: 6,
         code: '9701_m20_qp_12 Q: 9',
-        prompt: '1.8 g of water, heated to 227 �C in a sealed container, turns to steam with a pressure of 200 kPa.<br><br>What is the approximate volume of the container?',
+        prompt: '1.8 g of water, heated to 227 °C in a sealed container, turns to steam with a pressure of 200 kPa.<br><br>What is the approximate volume of the container?',
         options: {
-          A: '9 ? 10<sup>?4</sup> m<sup>3</sup>',
-          B: '2 ? 10<sup>?3</sup> m<sup>3</sup>',
+          A: '9 × 10<sup>−4</sup> m<sup>3</sup>',
+          B: '2 × 10<sup>−3</sup> m<sup>3</sup>',
           C: '2 m<sup>3</sup>',
-          D: '8 ? 10<sup>7</sup> m<sup>3</sup>',
+          D: '8 × 10<sup>7</sup> m<sup>3</sup>',
         }
       },
       {
         number: 7,
         code: '9701_s20_qp_11 Q: 9',
-        prompt: 'A sample of argon gas has a mass of 0.20 g, at a pressure of 100 000 Pa and a temperature of 12 �C.<br><br>Which volume does the gas occupy?',
+        prompt: 'A sample of argon gas has a mass of 0.20 g, at a pressure of 100 000 Pa and a temperature of 12 °C.<br><br>Which volume does the gas occupy?',
         options: {
-          A: '1.2 ? 10<sup>?4</sup> cm<sup>3</sup>',
+          A: '1.2 × 10<sup>−4</sup> cm<sup>3</sup>',
           B: '5.0 cm<sup>3</sup>',
           C: '59 cm<sup>3</sup>',
           D: '119 cm<sup>3</sup>',
@@ -877,7 +883,7 @@
       {
         number: 8,
         code: '9701_s20_qp_12 Q: 9',
-        prompt: 'The complete combustion of 2 moles of an alkane produces 400 dm<sup>3</sup> of carbon dioxide measured at 301 K and 1 ? 10<sup>5</sup> Pa. Carbon dioxide can be assumed to behave as an ideal gas under these conditions.<br><br>What is the formula of the alkane?',
+        prompt: 'The complete combustion of 2 moles of an alkane produces 400 dm<sup>3</sup> of carbon dioxide measured at 301 K and 1 × 10<sup>5</sup> Pa. Carbon dioxide can be assumed to behave as an ideal gas under these conditions.<br><br>What is the formula of the alkane?',
         options: {
           A: 'C<sub>8</sub>H<sub>18</sub>',
           B: 'C<sub>16</sub>H<sub>34</sub>',
@@ -911,10 +917,10 @@
       {
         number: 11,
         code: '9701_m19_qp_12 Q: 6',
-        prompt: 'A sample of gas occupies 240 cm<sup>3</sup> at 37 �C and 100 kPa.<br><br>How many moles of gas are present in the sample?',
+        prompt: 'A sample of gas occupies 240 cm<sup>3</sup> at 37 °C and 100 kPa.<br><br>How many moles of gas are present in the sample?',
         options: {
-          A: '9.32 ? 10<sup>?6</sup>',
-          B: '9.32 ? 10<sup>?3</sup>',
+          A: '9.32 × 10<sup>−6</sup>',
+          B: '9.32 × 10<sup>−3</sup>',
           C: '0.0781',
           D: '78.1',
         }
@@ -947,12 +953,12 @@
       {
         number: 14,
         code: '9701_s19_qp_12 Q: 6',
-        prompt: 'X, Y and Z are all gases that behave ideally and react according to the equation shown.<br><br>X(g) + 2Y(g) > 2Z(g)<br><br>When 3.0 mol of X and 3.0 mol of Y are placed inside a container with a volume of 1.0 dm<sup>3</sup>, they react to form the maximum amount of Z.<br><br>The final temperature of the reaction vessel is 120 �C.<br><br>What is the final pressure inside the reaction vessel?',
+        prompt: 'X, Y and Z are all gases that behave ideally and react according to the equation shown.<br><br>X(g) + 2Y(g) > 2Z(g)<br><br>When 3.0 mol of X and 3.0 mol of Y are placed inside a container with a volume of 1.0 dm<sup>3</sup>, they react to form the maximum amount of Z.<br><br>The final temperature of the reaction vessel is 120 °C.<br><br>What is the final pressure inside the reaction vessel?',
         options: {
-          A: '4.49 ? 10<sup>6</sup> Pa',
-          B: '9.80 ? 10<sup>6</sup> Pa',
-          C: '1.47 ? 10<sup>7</sup> Pa',
-          D: '1.96 ? 10<sup>7</sup> Pa',
+          A: '4.49 × 10<sup>6</sup> Pa',
+          B: '9.80 × 10<sup>6</sup> Pa',
+          C: '1.47 × 10<sup>7</sup> Pa',
+          D: '1.96 × 10<sup>7</sup> Pa',
         }
       },
       {
@@ -969,7 +975,7 @@
       {
         number: 16,
         code: '9701_w19_qp_12 Q: 5',
-        prompt: 'In this question you should assume the vapour behaves as an ideal gas.<br><br>0.175 g of a volatile liquid produces a vapour of volume 4.50 ? 10<sup>?5</sup> m<sup>3</sup> at 100 �C and pressure of 1.013 ? 10<sup>5</sup> Pa.<br><br>What is the M<sub>r</sub> of the liquid?',
+        prompt: 'In this question you should assume the vapour behaves as an ideal gas.<br><br>0.175 g of a volatile liquid produces a vapour of volume 4.50 × 10<sup>−5</sup> m<sup>3</sup> at 100 °C and pressure of 1.013 × 10<sup>5</sup> Pa.<br><br>What is the M<sub>r</sub> of the liquid?',
         options: {
           A: '31.9',
           B: '87.1',
@@ -980,7 +986,7 @@
       {
         number: 17,
         code: '9701_m18_qp_12 Q: 7',
-        prompt: 'The gas laws can be summarised in the ideal gas equation.<br><br>pV = nRT<br><br>0.960 g of oxygen gas is contained in a vessel of volume 7.00 ? 10<sup>?3</sup> m<sup>3</sup> at a temperature of 30 �C.<br><br>Assume that the gas behaves as an ideal gas.<br><br>What is the pressure in the vessel?',
+        prompt: 'The gas laws can be summarised in the ideal gas equation.<br><br>pV = nRT<br><br>0.960 g of oxygen gas is contained in a vessel of volume 7.00 × 10<sup>−3</sup> m<sup>3</sup> at a temperature of 30 °C.<br><br>Assume that the gas behaves as an ideal gas.<br><br>What is the pressure in the vessel?',
         options: {
           A: '1.07 kPa',
           B: '2.14 kPa',
@@ -1024,7 +1030,7 @@
       {
         number: 21,
         code: '9701_w18_qp_11 Q: 5',
-        prompt: 'In this question you should assume methane behaves as an ideal gas.<br><br>The gas laws can be summarised in the ideal gas equation below.<br><br>pV = nRT<br><br>The volume of a sample of methane is measured at a temperature of 60 �C and a pressure of 103 kPa. The volume measured is 5.37 ? 10<sup>?3</sup> m<sup>3</sup>.<br><br>What is the mass of the sample of methane, given to two significant figures?',
+        prompt: 'In this question you should assume methane behaves as an ideal gas.<br><br>The gas laws can be summarised in the ideal gas equation below.<br><br>pV = nRT<br><br>The volume of a sample of methane is measured at a temperature of 60 °C and a pressure of 103 kPa. The volume measured is 5.37 × 10<sup>−3</sup> m<sup>3</sup>.<br><br>What is the mass of the sample of methane, given to two significant figures?',
         options: {
           A: '0.0032 g',
           B: '0.018 g',
@@ -1048,16 +1054,16 @@
         code: '9701_m17_qp_12 Q: 6',
         prompt: 'Which gas sample contains the <strong>fewest</strong> molecules?',
         options: {
-          A: '1.00 dm<sup>3</sup> of carbon dioxide at 27 �C and 2.0 kPa',
-          B: '1.00 dm<sup>3</sup> of hydrogen at 100 �C and 2.0 kPa',
-          C: '1.00 dm<sup>3</sup> of nitrogen at 300 �C and 4.0 kPa',
-          D: '1.00 dm<sup>3</sup> of oxygen at 250 �C and 3.0 kPa',
+          A: '1.00 dm<sup>3</sup> of carbon dioxide at 27 °C and 2.0 kPa',
+          B: '1.00 dm<sup>3</sup> of hydrogen at 100 °C and 2.0 kPa',
+          C: '1.00 dm<sup>3</sup> of nitrogen at 300 °C and 4.0 kPa',
+          D: '1.00 dm<sup>3</sup> of oxygen at 250 °C and 3.0 kPa',
         }
       },
       {
         number: 24,
         code: '9701_s17_qp_12 Q: 5',
-        prompt: 'At a temperature of 2500 K and a pressure of 1.00 ? 10<sup>?4</sup> Pa a sample of 0.321 g of sulfur vapour has a volume of 2.08 ? 10<sup>6</sup> m<sup>3</sup>.<br><br>What is the molecular formula of sulfur under these conditions?',
+        prompt: 'At a temperature of 2500 K and a pressure of 1.00 × 10<sup>−4</sup> Pa a sample of 0.321 g of sulfur vapour has a volume of 2.08 × 10<sup>6</sup> m<sup>3</sup>.<br><br>What is the molecular formula of sulfur under these conditions?',
         options: {
           A: 'S',
           B: 'S<sub>2</sub>',
@@ -1081,10 +1087,10 @@
         code: '9701_w17_qp_11 Q: 5',
         prompt: 'A fluorescent light tube has an internal volume of 400 cm<sup>3</sup> and an internal pressure of 200 kPa. It is filled with 0.03 moles of an ideal gas.<br><br>What is the temperature of the gas inside the fluorescent light tube?',
         options: {
-          A: '3.21 ? 10<sup>?1</sup> K',
-          B: '3.21 ? 10<sup>2</sup> K',
-          C: '3.21 ? 10<sup>5</sup> K',
-          D: '3.21 ? 10<sup>8</sup> K',
+          A: '3.21 × 10<sup>−1</sup> K',
+          B: '3.21 × 10<sup>2</sup> K',
+          C: '3.21 × 10<sup>5</sup> K',
+          D: '3.21 × 10<sup>8</sup> K',
         }
       },
       {
@@ -1101,7 +1107,7 @@
       {
         number: 28,
         code: '9701_m16_qp_12 Q: 7',
-        prompt: 'What is the volume of steam produced when 1.00 g of ice is heated to 323 �C at a pressure of 101 kPa?',
+        prompt: 'What is the volume of steam produced when 1.00 g of ice is heated to 323 °C at a pressure of 101 kPa?',
         options: {
           A: '0.27 dm<sup>3</sup>',
           B: '1.3 dm<sup>3</sup>',
@@ -1126,12 +1132,12 @@
       {
         number: 30,
         code: '9701_s16_qp_12 Q: 7',
-        prompt: '0.10 g of the volatile liquid X formed 0.025 dm<sup>3</sup> of vapour at 100 �C and atmospheric pressure.<br><br>1 mol of vapour occupies 22.4 dm<sup>3</sup> at 0 �C and atmospheric pressure.<br><br>What is the relative molecular mass of X?',
+        prompt: '0.10 g of the volatile liquid X formed 0.025 dm<sup>3</sup> of vapour at 100 °C and atmospheric pressure.<br><br>1 mol of vapour occupies 22.4 dm<sup>3</sup> at 0 °C and atmospheric pressure.<br><br>What is the relative molecular mass of X?',
         options: {
-          A: '<span class="fraction"><span class="fraction-top">0.025 ? 273 ? 22.4</span><span class="fraction-bottom">0.10 ? 373</span></span>',
-          B: '<span class="fraction"><span class="fraction-top">0.025 ? 373 ? 22.4</span><span class="fraction-bottom">0.10 ? 273</span></span>',
-          C: '<span class="fraction"><span class="fraction-top">0.10 ? 273 ? 22.4</span><span class="fraction-bottom">0.025 ? 373</span></span>',
-          D: '<span class="fraction"><span class="fraction-top">0.10 ? 373 ? 22.4</span><span class="fraction-bottom">0.025 ? 273</span></span>',
+          A: '<span class="fraction"><span class="fraction-top">0.025 × 273 × 22.4</span><span class="fraction-bottom">0.10 × 373</span></span>',
+          B: '<span class="fraction"><span class="fraction-top">0.025 × 373 × 22.4</span><span class="fraction-bottom">0.10 × 273</span></span>',
+          C: '<span class="fraction"><span class="fraction-top">0.10 × 273 × 22.4</span><span class="fraction-bottom">0.025 × 373</span></span>',
+          D: '<span class="fraction"><span class="fraction-top">0.10 × 373 × 22.4</span><span class="fraction-bottom">0.025 × 273</span></span>',
         }
       },
       {
@@ -1152,9 +1158,9 @@
         optionTable: {
           headers: ['n', 'T'],
           rows: [
-            { label: 'A', values: ['no units', '�C'] },
+            { label: 'A', values: ['no units', '°C'] },
             { label: 'B', values: ['no units', 'K'] },
-            { label: 'C', values: ['mol', '�C'] },
+            { label: 'C', values: ['mol', '°C'] },
             { label: 'D', values: ['mol', 'K'] },
           ]
         }
@@ -1178,7 +1184,7 @@
       {
         number: 35,
         code: '9701_s15_qp_11 Q: 3',
-        prompt: '1.00 g of carbon is combusted in a limited supply of oxygen.<br>0.50 g forms CO<sub>2</sub> and 0.50 g forms CO.<br>The mixture passes through excess NaOH(aq) and the remaining gas is dried and collected at 25 �C and 1 atm. What is its volume?',
+        prompt: '1.00 g of carbon is combusted in a limited supply of oxygen.<br>0.50 g forms CO<sub>2</sub> and 0.50 g forms CO.<br>The mixture passes through excess NaOH(aq) and the remaining gas is dried and collected at 25 °C and 1 atm. What is its volume?',
         options: {
           A: '1 dm<sup>3</sup>',
           B: '1.5 dm<sup>3</sup>',
@@ -1281,7 +1287,7 @@
         code: '9701_s19_qp_12 Q: 5',
         prompt: 'The table shows melting point and molten conductivity for four substances. Which could be potassium iodide?',
         optionTable: {
-          headers: ['melting point of solid / �C', 'electrical conductivity when molten'],
+          headers: ['melting point of solid / °C', 'electrical conductivity when molten'],
           rows: [
             { label: 'A', values: ['?66', 'poor'] },
             { label: 'B', values: ['?39', 'good'] },
@@ -1322,7 +1328,7 @@
         options: {
           A: 'CH<sub>3</sub>F has a larger M<sub>r</sub> than CH<sub>3</sub>CH<sub>3</sub>.',
           B: 'CH<sub>3</sub>F has a permanent dipole; CH<sub>3</sub>CH<sub>3</sub> does not.',
-          C: 'CH<sub>3</sub>F has a strong C�F bond; CH<sub>3</sub>CH<sub>3</sub> does not.',
+          C: 'CH<sub>3</sub>F has a strong C–F bond; CH<sub>3</sub>CH<sub>3</sub> does not.',
           D: 'Hydrogen bonding occurs in CH<sub>3</sub>F, but not in CH<sub>3</sub>CH<sub>3</sub>.',
         }
       },
@@ -1353,7 +1359,7 @@
         code: '9701_s18_qp_12 Q: 9',
         prompt: 'Four substances have the properties shown. Which has a simple molecular structure?',
         optionTable: {
-          headers: ['melting point / �C', 'effect of adding water', 'electrical conductivity'],
+          headers: ['melting point / °C', 'effect of adding water', 'electrical conductivity'],
           rows: [
             { label: 'A', values: ['64', 'reacts', 'good when solid'] },
             { label: 'B', values: ['113', 'insoluble', 'always poor'] },
@@ -1369,7 +1375,7 @@
         options: {
           A: 'Ammonia molecules are polar; phosphine molecules are not.',
           B: 'Ammonia molecules have significant hydrogen bonding; phosphine molecules do not.',
-          C: 'N�H covalent bonds are stronger than P�H covalent bonds.',
+          C: 'N–H covalent bonds are stronger than P–H covalent bonds.',
           D: 'There is one lone pair in each ammonia molecule but no lone pair in each phosphine molecule.',
         }
       },
@@ -1392,9 +1398,9 @@
         code: '9701_m17_qp_12 Q: 4',
         prompt: 'Boiling points (K): CH<sub>4</sub> 112, CH<sub>3</sub>CH<sub>3</sub> 185, CH<sub>3</sub>CH<sub>2</sub>CH<sub>3</sub> 231, CH<sub>3</sub>CH<sub>2</sub>CH<sub>2</sub>CH<sub>3</sub> 273. Which statement explains the increase from methane to butane?',
         options: {
-          A: 'Closer packing of molecules results in stronger van der Waals� forces.',
+          A: 'Closer packing of molecules results in stronger van der Waals\' forces.',
           B: 'More covalent bonds are present and therefore more energy is required to break the bonds.',
-          C: 'More electrons in the molecules results in stronger van der Waals� forces.',
+          C: 'More electrons in the molecules results in stronger van der Waals\' forces.',
           D: 'More hydrogen atoms in the molecules results in stronger hydrogen bonding.',
         }
       },
@@ -1426,7 +1432,7 @@
       {
         number: 57,
         code: '9701_m16_qp_12 Q: 9',
-        prompt: '�It is lighter than a feather, stronger than steel, yet incredibly flexible and more conductive than copper.� Which form of carbon is being described?',
+        prompt: '\'It is lighter than a feather, stronger than steel, yet incredibly flexible and more conductive than copper.\' Which form of carbon is being described?',
         options: {
           A: 'buckminsterfullerene',
           B: 'diamond',
@@ -1473,7 +1479,7 @@
       {
         number: 61,
         code: '9701_w15_qp_12 Q: 3',
-        prompt: 'Three substances have the properties shown below.<br><br><table><thead><tr><th>substance</th><th>melting point / �C</th><th>boiling point / �C</th><th>conductivity (solid)</th><th>conductivity (liquid)</th><th>conductivity (aqueous)</th></tr></thead><tbody><tr><td>U</td><td>420</td><td>907</td><td>good</td><td>good</td><td>insoluble</td></tr><tr><td>V</td><td>993</td><td>1695</td><td>poor</td><td>good</td><td>good</td></tr><tr><td>W</td><td>?70</td><td>58</td><td>poor</td><td>poor</td><td>hydrolyses, resulting solution conducts well</td></tr></tbody></table><br>What could be the identities of U, V and W?',
+        prompt: 'Three substances have the properties shown below.<br><br><table><thead><tr><th>substance</th><th>melting point / °C</th><th>boiling point / °C</th><th>conductivity (solid)</th><th>conductivity (liquid)</th><th>conductivity (aqueous)</th></tr></thead><tbody><tr><td>U</td><td>420</td><td>907</td><td>good</td><td>good</td><td>insoluble</td></tr><tr><td>V</td><td>993</td><td>1695</td><td>poor</td><td>good</td><td>good</td></tr><tr><td>W</td><td>?70</td><td>58</td><td>poor</td><td>poor</td><td>hydrolyses, resulting solution conducts well</td></tr></tbody></table><br>What could be the identities of U, V and W?',
         optionTable: {
           headers: ['U', 'V', 'W'],
           rows: [
@@ -1626,7 +1632,7 @@
 
           const meta = document.createElement('div');
           meta.className = 'question-meta';
-          meta.innerHTML = `<span>Question ${q.number}</span><span>${q.code}</span>`;
+          meta.innerHTML = `<span>Question ${q.number}</span><span class="question-code">${q.code}</span>`;
           card.appendChild(meta);
 
           const title = document.createElement('div');
@@ -1699,6 +1705,7 @@
       if (!saved) return;
       const data = JSON.parse(saved);
       hasSubmitted = true;
+      antiCheatAcknowledged = true; // Skip anti-cheat in review mode
       document.querySelectorAll('input').forEach(i => i.disabled = true);
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
@@ -1709,6 +1716,9 @@
       scoreDiv.style.display = 'block';
       lockQuestions();
       stopTimer();
+
+      // Notify parent we're in review mode (skip exit confirmation)
+      try { window.parent.postMessage({ type: 'CAMBRIDGE_TEST_REVIEW_MODE' }, '*'); } catch(e) {}
 
       // Check if score is released by teacher
       checkScoreReleaseStatus(data);
@@ -1823,7 +1833,7 @@
         
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` � ?? Time: ${formatTimer(data.time_taken_seconds)}`
+            ? ` – ?? Time: ${formatTimer(data.time_taken_seconds)}`
             : '';
           scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
@@ -2064,7 +2074,7 @@
           review.textContent = `? Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `? Your answer: ${studentAnswer || '�'} | ? Correct: ${correctAnswer}`;
+          review.textContent = `? Your answer: ${studentAnswer || '–'} | ? Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -2113,17 +2123,25 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('�')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('–')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
       checkServerSubmission();
-      startTimerIfReady();
+
+      // In review mode (opened from "View Answers"), skip anti-cheat and timer
+      if (isReviewMode()) {
+        antiCheatAcknowledged = true;
+        stopTimer();
+        hideTimer();
+      } else {
+        startTimerIfReady();
+      }
       document.getElementById('submitBtn').addEventListener('click', openSubmitModal);
       
-      // Start ExamGuard after initialization
+      // Start ExamGuard after initialization (skip in review mode)
       setTimeout(() => {
-        if (!hasSubmitted && typeof window.ExamGuard !== 'undefined') {
+        if (!hasSubmitted && !isReviewMode() && typeof window.ExamGuard !== 'undefined') {
           let autoSubmitTriggered = false;
           window.ExamGuard.start({
             promptContainer: document.querySelector('.container'),
@@ -2159,7 +2177,7 @@
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test � auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test – auto-submitted' });
         }
       });
     });

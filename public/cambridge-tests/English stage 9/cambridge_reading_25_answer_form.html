@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -520,6 +520,11 @@
   };
 
   // Quiz ID for tracking
+    function isReviewMode() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('mode') === 'review';
+    }
+
   const QUIZ_ID = 'cambridge_reading_25';
   
   // Track submission state
@@ -600,6 +605,8 @@
   // Show locked state
   function showLockedState(score, totalQ, studentName) {
     hasSubmitted = true;
+      // Notify parent we're in review mode (skip exit confirmation)
+      try { window.parent.postMessage({ type: 'CAMBRIDGE_TEST_REVIEW_MODE' }, '*'); } catch(e) {}
     document.getElementById("alreadySubmitted").style.display = "block";
     
     // Disable all inputs
@@ -961,13 +968,13 @@
   const antiCheatAcceptBtn = document.getElementById('antiCheatAcceptBtn');
   if (antiCheatAcceptBtn) antiCheatAcceptBtn.addEventListener('click', acknowledgeAntiCheat);
   
-  // Show anti-cheat modal on page load
-  openAntiCheatModal();
+  // Show anti-cheat modal on page load (skip in review mode)
+  if (!isReviewMode()) openAntiCheatModal();
   
   // Start ExamGuard after initialization
   setTimeout(() => {
     const hasSubmitted = localStorage.getItem(`quiz_submitted_reading_25`);
-    if (!hasSubmitted && typeof window.ExamGuard !== 'undefined') {
+    if (!hasSubmitted && !isReviewMode() && typeof window.ExamGuard !== 'undefined') {
       let autoSubmitTriggered = false;
       window.ExamGuard.start({
         promptContainer: document.querySelector('.container'),

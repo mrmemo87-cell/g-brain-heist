@@ -5047,41 +5047,34 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
     );
 
     return (
-    <div className="flex min-h-0 flex-col space-y-6 text-slate-900 max-w-full overflow-y-auto">
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-sm">
-        <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4 sm:gap-6">
-          <div className="space-y-4 min-w-0 flex-1">
-            <div>
-              <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">Cambridge Test Results</h2>
-              <p className="text-xs sm:text-sm text-slate-500">Review student performance, release scores, and open detailed attempts.</p>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 auto-rows-fr">
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 sm:px-4 py-3 text-sm">
-                <p className="text-xs text-slate-500 font-medium">Total attempts</p>
-                <p className="text-lg sm:text-xl font-bold text-slate-900 mt-1">{cambridgeStats.totalSubmissions}</p>
-              </div>
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 sm:px-4 py-3 text-sm">
-                <p className="text-xs text-slate-500 font-medium">Average %</p>
-                <p className="text-lg sm:text-xl font-bold text-slate-900 mt-1">{cambridgeStats.avgPercentage}%</p>
-              </div>
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 sm:px-4 py-3 text-sm min-w-0">
-                <p className="text-xs text-slate-500 font-medium">Best student</p>
-                <p className="text-xs sm:text-sm font-bold text-slate-900 truncate max-w-full mt-1" title={cambridgeStats.highestScore?.name || '-'}>
-                  {cambridgeStats.highestScore?.name || '-'}
-                </p>
-                <p className="text-xs text-green-600 font-semibold mt-0.5">{cambridgeStats.highestScore?.percentage || 0}%</p>
-              </div>
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 sm:px-4 py-3 text-sm min-w-0">
-                <p className="text-xs text-slate-500 font-medium">Lowest student</p>
-                <p className="text-xs sm:text-sm font-bold text-slate-900 truncate max-w-full mt-1" title={cambridgeStats.lowestScore?.name || '-'}>
-                  {cambridgeStats.lowestScore?.name || '-'}
-                </p>
-                <p className="text-xs text-red-600 font-semibold mt-0.5">{cambridgeStats.lowestScore?.percentage || 0}%</p>
-              </div>
-            </div>
+    <div className="cambridge-reports-container">
+      {/* Fixed Header Section - Always Visible */}
+      <div className="cambridge-reports-header">
+        {/* Row 1: Title + Stats */}
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <h2 className="text-lg font-semibold tracking-tight flex items-center gap-2 whitespace-nowrap">
+              <span className="text-xl">📊</span> Cambridge Tests
+            </h2>
           </div>
-          <div className="flex flex-col items-start gap-3 lg:items-end">
-            <div className="flex flex-wrap items-center gap-2 justify-end">
+          <div className="flex flex-wrap items-center gap-2 text-xs flex-shrink-0">
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-100 border border-slate-200">
+              <span className="text-slate-500">Total:</span>
+              <span className="font-bold text-slate-900">{cambridgeStats.totalSubmissions}</span>
+            </span>
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-50 border border-blue-200">
+              <span className="text-blue-600">Avg:</span>
+              <span className="font-bold text-blue-700">{cambridgeStats.avgPercentage}%</span>
+            </span>
+            {pendingWriting > 0 && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-50 border border-amber-300 text-amber-700 font-semibold">
+                ⏳ {pendingWriting} marking
+              </span>
+            )}
+          </div>
+        </div>
+        {/* Row 2: Action Buttons */}
+        <div className="flex flex-wrap items-center gap-2">
               <details className="relative">
                 <summary className="list-none cursor-pointer select-none bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-blue-700">
                   Release Scores ▾
@@ -5190,14 +5183,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 </button>
               )}
             </div>
-            {pendingWriting > 0 && (
-              <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-semibold">
-                {pendingWriting} needs marking
-              </span>
-            )}
           </div>
-        </div>
-      </div>
 
       {/* School-Level Visibility Collapsible Panel */}
       {showSchoolLevelVisibility && (
@@ -5394,35 +5380,62 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
         document.body
       )}
 
-      <div className="flex min-h-0 flex-col lg:flex-row gap-6 flex-1">
-        <div className="lg:w-80 lg:shrink-0 min-h-0">
-          <div className="hidden lg:block bg-white border border-slate-200 rounded-2xl p-4 sticky top-6 h-fit flex flex-col min-h-0">
-            {filtersPanel}
+      <div className="cambridge-reports-body">
+        {/* Left Sidebar - Filters (Desktop) */}
+        <div className="hidden lg:flex lg:flex-col" style={{ width: '280px', flexShrink: 0 }}>
+          <div className="bg-white border border-slate-200 rounded-2xl p-3 flex flex-col h-full overflow-hidden">
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100 flex-shrink-0">
+              <span className="font-semibold text-slate-800 text-sm">🔍 Filters</span>
+              <button
+                onClick={() => {
+                  setCambridgeActiveTab('all');
+                  setCambridgeClassFilter('all');
+                  setCambridgeStudentFilter('all');
+                  setCambridgeSearchTerm('');
+                  setCambridgeStatusFilters([]);
+                  setCambridgeNeedsMarkingOnly(false);
+                  setCambridgeReleasedOnly(false);
+                }}
+                className="text-xs text-slate-500 hover:text-slate-700"
+              >
+                Reset
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 min-h-0 pr-1">
+              {filtersPanel}
+            </div>
           </div>
         </div>
 
-        <div className="flex-1 space-y-4 min-h-0 flex flex-col">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-3">
+        {/* Main Content Area */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0 }}>
+          {/* Toolbar Row */}
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-3 bg-white border border-slate-200 rounded-xl px-3 py-2" style={{ flexShrink: 0 }}>
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setCambridgeFiltersOpen(true)}
-                className="lg:hidden border border-slate-200 px-3 py-2 rounded-lg text-sm font-semibold text-slate-700"
+                className="lg:hidden border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 flex items-center gap-1"
               >
-                Filters
+                <span>🔍</span> Filters
               </button>
-              <p className="text-sm text-slate-600">
-                Showing <strong className="text-slate-900">{visibleScores.length}</strong> results
-              </p>
+              <span className="text-xs text-slate-600">
+                <strong className="text-slate-900">{visibleScores.length}</strong> results
+              </span>
               {cambridgeSelectedIds.length > 0 && (
-                <span className="text-xs font-semibold text-blue-600">
+                <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
                   {cambridgeSelectedIds.length} selected
+                </span>
+              )}
+              {cambridgeActiveTab !== 'all' && (
+                <span className="text-xs font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded">
+                  {cambridgeActiveTab.replace('Cambridge ', '')}
                 </span>
               )}
             </div>
             <div className="flex flex-wrap items-center gap-2">
               {WRITING_TEST_NAMES.includes(cambridgeActiveTab) && pendingCountForActiveTest > 0 && (
                 bulkProofreadLoading ? (
-                  <div className="flex items-center gap-2 px-3 py-2 bg-purple-50 text-purple-700 rounded-lg text-xs font-semibold">
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-xs font-semibold">
                     <span className="animate-spin">⏳</span>
                     <span>Processing {bulkProofreadProgress.current}/{bulkProofreadProgress.total}</span>
                   </div>
@@ -5430,13 +5443,13 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   <>
                     <button
                       onClick={() => bulkProofreadWriting(false)}
-                      className="px-3 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700"
+                      className="px-2.5 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700"
                     >
                       AI Proofread ({pendingCountForActiveTest}) Draft
                     </button>
                     <button
                       onClick={() => bulkProofreadWriting(true)}
-                      className="px-3 py-2 bg-green-600 text-white rounded-lg text-xs font-semibold hover:bg-green-700"
+                      className="px-2.5 py-1.5 bg-green-600 text-white rounded-lg text-xs font-semibold hover:bg-green-700"
                     >
                       AI Proofread ({pendingCountForActiveTest}) Release
                     </button>
@@ -5446,59 +5459,61 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
               <select
                 value={cambridgeSort}
                 onChange={(event) => setCambridgeSort(event.target.value)}
-                className="border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 bg-white"
+                className="border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-700 bg-white"
               >
-                <option value="newest">Sort: Newest</option>
-                <option value="oldest">Sort: Oldest</option>
-                <option value="highest">Sort: Highest %</option>
-                <option value="lowest">Sort: Lowest %</option>
-                <option value="student-asc">Sort: Student A–Z</option>
-                <option value="student-desc">Sort: Student Z–A</option>
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+                <option value="highest">Highest %</option>
+                <option value="lowest">Lowest %</option>
+                <option value="student-asc">A–Z</option>
+                <option value="student-desc">Z–A</option>
               </select>
             </div>
           </div>
 
-          {cambridgeScores.length === 0 ? (
-            cambridgeLoading ? (
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center">
-                <p className="text-slate-600">⏳ Loading submissions...</p>
-              </div>
-            ) : (
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center">
-                <div className="text-4xl mb-2">📭</div>
-                <p className="text-slate-600 font-medium">No test submissions yet</p>
-                <p className="text-sm text-slate-500">Click Refresh to check for new submissions</p>
-              </div>
-            )
-          ) : (
-            <>
-              {cambridgeSelectedIds.length > 0 && (
-                <div className="sticky top-4 z-20 bg-white border border-slate-200 rounded-xl px-4 py-3 flex flex-wrap items-center gap-3 shadow-sm">
-                  <span className="text-sm font-semibold text-slate-800">{cambridgeSelectedIds.length} selected</span>
-                  <button
-                    onClick={() => releaseScoresByIds(selectedReleaseIds, `✅ Released ${selectedReleaseIds.length} selected attempts.`)}
-                    disabled={selectedReleaseIds.length === 0 || releasingScores}
-                    className="px-3 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 disabled:opacity-50"
-                    title={selectedReleaseIds.length === 0 ? 'No eligible attempts selected' : 'Release selected attempts'}
-                  >
-                    Release selected
-                  </button>
-                  <button
-                    onClick={exportCambridgeCSV}
-                    className="px-3 py-2 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                  >
-                    Export CSV
-                  </button>
-                  <button
-                    onClick={() => setCambridgeSelectedIds([])}
-                    className="px-3 py-2 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                  >
-                    Clear selection
-                  </button>
+          {/* Scrollable Results Area */}
+          <div className="cambridge-results-scroll flex-1 min-h-0 overflow-y-auto">
+            {cambridgeScores.length === 0 ? (
+              cambridgeLoading ? (
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center">
+                  <p className="text-slate-600">⏳ Loading submissions...</p>
                 </div>
-              )}
+              ) : (
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center">
+                  <div className="text-4xl mb-2">📭</div>
+                  <p className="text-slate-600 font-medium">No test submissions yet</p>
+                  <p className="text-sm text-slate-500">Click Refresh to check for new submissions</p>
+                </div>
+              )
+            ) : (
+              <>
+                {cambridgeSelectedIds.length > 0 && (
+                  <div className="sticky top-0 z-20 bg-white border border-slate-200 rounded-xl px-4 py-2 flex flex-wrap items-center gap-3 shadow-sm mb-3">
+                    <span className="text-xs font-semibold text-slate-800">{cambridgeSelectedIds.length} selected</span>
+                    <button
+                      onClick={() => releaseScoresByIds(selectedReleaseIds, `✅ Released ${selectedReleaseIds.length} selected attempts.`)}
+                      disabled={selectedReleaseIds.length === 0 || releasingScores}
+                      className="px-2.5 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 disabled:opacity-50"
+                      title={selectedReleaseIds.length === 0 ? 'No eligible attempts selected' : 'Release selected attempts'}
+                    >
+                      Release
+                    </button>
+                    <button
+                      onClick={exportCambridgeCSV}
+                      className="px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                    >
+                      CSV
+                    </button>
+                    <button
+                      onClick={() => setCambridgeSelectedIds([])}
+                      className="px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
 
-              <div className="bg-white border border-slate-200 rounded-2xl shadow-sm flex-1 min-h-0 flex flex-col">
+                <div className="bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col">
                 <div className="overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100 scroll-smooth flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
                   <table className="w-full text-sm border-collapse min-w-[1100px]">
                     <thead className="bg-slate-50 text-slate-600">
@@ -5659,8 +5674,9 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                   </table>
                 </div>
               </div>
-            </>
-          )}
+              </>
+            )}
+          </div>
         </div>
       </div>
 
