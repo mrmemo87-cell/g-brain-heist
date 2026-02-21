@@ -71,7 +71,7 @@ begin
       return v_existing_response;
     end if;
   end if;
-  -- ====== Validate ======
+  -- ===== Validate =====
   if v_attacker_id is null then
     raise exception 'Not authenticated';
   end if;
