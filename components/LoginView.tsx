@@ -92,7 +92,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     <h1 className="font-heading text-3xl sm:text-5xl font-bold tracking-wider" style={{ color: 'var(--ion-blue)' }}>
                         Brains Heist
                     </h1>
-                    <p className="text-mist-400 mt-2">Agent Access Terminal</p>
+                    <p className="text-mist-400 mt-2">Sign in to continue your learning mission</p>
                     <a
                         href="/ielts"
                         className="inline-flex items-center gap-1 text-xs text-ion-green mt-3 px-3 py-1.5 border border-ion-green rounded-full hover:bg-ion-green/10 transition-colors"
@@ -122,7 +122,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                     : 'text-gray-400 hover:text-white'
                             }`}
                         >
-                            Login
+                            Sign in
                         </button>
                         <button
                             onClick={() => setMode('signup')}
@@ -132,7 +132,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                     : 'text-gray-400 hover:text-white'
                             }`}
                         >
-                            Sign Up
+                            Sign up
                         </button>
                     </div>
 
@@ -144,7 +144,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                     onClick={() => setMode('login')}
                                     className="text-cyan-400 hover:text-cyan-300 text-sm"
                                 >
-                                    ← Back to Login
+                                    ← Back to sign in
                                 </button>
                                 <h3 className="text-xl font-bold text-white mt-2">Reset Password</h3>
                             </div>
@@ -211,7 +211,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                             disabled={isLoading || (mode === 'signup' && !username.trim())}
                             className="w-full py-3 px-4 rounded-md font-bold transition-all bg-ion-blue text-ink-900 hover:bg-cyan-300 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {isLoading ? 'Loading...' : mode === 'login' ? 'Login' : mode === 'signup' ? 'Create Account' : 'Send Reset Link'}
+                            {isLoading ? 'Loading...' : mode === 'login' ? 'Sign in' : mode === 'signup' ? 'Create account' : 'Send reset link'}
                         </button>
                     </form>
 

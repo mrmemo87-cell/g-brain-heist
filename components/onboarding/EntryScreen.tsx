@@ -34,7 +34,7 @@ const EntryScreen: React.FC<EntryScreenProps> = ({ onSelectBrainsHeist, onSelect
             Choose Your Mission
           </h1>
           <p className="text-gray-400 text-lg md:text-xl">
-            Two paths. One platform. Your journey starts here.
+            One platform for school success and IELTS mastery.
           </p>
         </div>
 
@@ -57,7 +57,7 @@ const EntryScreen: React.FC<EntryScreenProps> = ({ onSelectBrainsHeist, onSelect
               </div>
               
               <p className="text-gray-300 mb-6 leading-relaxed">
-                Gamified learning platform. Compete in quests, join clans, climb leaderboards. Perfect for schools and competitive learners.
+                Build stronger subject mastery through quests, clan competition, and fast feedback designed to keep learners motivated.
               </p>
               
               <div className="flex flex-wrap gap-2 mb-6">
@@ -68,7 +68,7 @@ const EntryScreen: React.FC<EntryScreenProps> = ({ onSelectBrainsHeist, onSelect
                   Clan Wars
                 </span>
                 <span className="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 text-xs font-semibold border border-cyan-500/30">
-                  School Leaderboards
+                  Exam Confidence
                 </span>
               </div>
               
@@ -98,7 +98,7 @@ const EntryScreen: React.FC<EntryScreenProps> = ({ onSelectBrainsHeist, onSelect
               </div>
               
               <p className="text-gray-300 mb-6 leading-relaxed">
-                Dedicated IELTS preparation platform. Practice all four skills with authentic test materials and detailed feedback.
+                Prepare for all four IELTS skills with authentic practice, targeted feedback, and structured progress toward higher bands.
               </p>
               
               <div className="flex flex-wrap gap-2 mb-6">
@@ -128,7 +128,7 @@ const EntryScreen: React.FC<EntryScreenProps> = ({ onSelectBrainsHeist, onSelect
 
         {/* Footer note */}
         <p className="text-center text-gray-500 text-sm mt-8 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-          You can switch between platforms anytime from your dashboard
+          Start where you are now and switch paths anytime
         </p>
       </div>
 
