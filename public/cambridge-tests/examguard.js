@@ -20,6 +20,8 @@
     inputState: new WeakMap(),
     storedUserSelect: new Map(),
     storedDisabled: new Map(),
+    printStyleEl: null,
+    blurOverlayEl: null,
   };
 
   const toArray = (value) => {
@@ -155,11 +157,14 @@
 
   const restoreSessionStorage = (config) => {
     try {
-      const stored = sessionStorage.getItem(getStorageKey(config.testId));
+      const key = getStorageKey(config.testId);
+      const stored = sessionStorage.getItem(key);
       if (!stored) return;
-      const parsed = JSON.parse(stored);
-      state.violationsCount = parsed.count || 0;
-      state.violationTimestamps = Array.isArray(parsed.timestamps) ? parsed.timestamps : [];
+      // Clear stale violations on fresh page load so students aren't
+      // penalised for a page refresh or navigation back to the test.
+      sessionStorage.removeItem(key);
+      state.violationsCount = 0;
+      state.violationTimestamps = [];
     } catch (error) {
       console.warn('ExamGuard: unable to restore session state', error);
     }
@@ -281,22 +286,129 @@
     emitViolation('dragdrop', { length: droppedText.length });
   };
 
+  // ====== Screenshot & screen-capture prevention ======
+
+  const handlePrintScreen = (event) => {
+    const isPrintScreen = event.key === 'PrintScreen';
+    const isSnippingTool = (event.metaKey || event.key === 'Meta') && event.shiftKey && event.key.toLowerCase() === 's';
+    if (isPrintScreen || isSnippingTool) {
+      event.preventDefault();
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText('').catch(() => {});
+        }
+      } catch (e) { /* clipboard API may not be available */ }
+      emitViolation('screenshot_attempt', { key: event.key });
+    }
+  };
+
+  const injectPrintBlocker = () => {
+    if (state.printStyleEl) return;
+    const style = document.createElement('style');
+    style.id = 'examguard-print-blocker';
+    style.textContent = [
+      '@media print {',
+      '  body * { display: none !important; visibility: hidden !important; }',
+      '  body::after {',
+      '    content: "Printing is disabled during this exam.";',
+      '    display: block !important; visibility: visible !important;',
+      '    font-size: 24px; text-align: center; padding: 80px 20px;',
+      '    color: #333;',
+      '  }',
+      '}',
+    ].join('\n');
+    document.head.appendChild(style);
+    state.printStyleEl = style;
+  };
+
+  const removePrintBlocker = () => {
+    if (state.printStyleEl) {
+      state.printStyleEl.remove();
+      state.printStyleEl = null;
+    }
+  };
+
+  const handlePrintShortcut = (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'p') {
+      event.preventDefault();
+      emitViolation('print_attempt');
+    }
+  };
+
+  const createBlurOverlay = () => {
+    const el = document.createElement('div');
+    el.id = 'examguard-blur-overlay';
+    el.style.cssText = [
+      'position:fixed; inset:0; z-index:99999;',
+      'background:rgba(15,15,25,0.97);',
+      'display:flex; align-items:center; justify-content:center;',
+      'color:#fff; font-size:20px; font-family:system-ui,sans-serif;',
+      'pointer-events:none; opacity:0; transition:opacity 120ms ease;',
+    ].join('');
+    el.textContent = 'Return to your test to continue.';
+    document.body.appendChild(el);
+    return el;
+  };
+
+  const showBlurOverlay = () => {
+    if (!state.config?.actions?.blurOnHide) return;
+    if (!state.blurOverlayEl) {
+      state.blurOverlayEl = createBlurOverlay();
+    }
+    state.blurOverlayEl.style.opacity = '1';
+    state.blurOverlayEl.style.pointerEvents = 'auto';
+  };
+
+  const hideBlurOverlay = () => {
+    if (state.blurOverlayEl) {
+      state.blurOverlayEl.style.opacity = '0';
+      state.blurOverlayEl.style.pointerEvents = 'none';
+    }
+  };
+
+  const patchGetDisplayMedia = () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) return;
+    const original = navigator.mediaDevices.getDisplayMedia.bind(navigator.mediaDevices);
+    navigator.mediaDevices.getDisplayMedia = function (...args) {
+      emitViolation('screen_capture_attempt');
+      return original(...args);
+    };
+  };
+
+  // ====== Visibility / blur handlers (deduplicated) ======
+
   const handleVisibilityChange = () => {
     if (document.hidden) {
+      if (state.blurTimer) {
+        window.clearTimeout(state.blurTimer);
+        state.blurTimer = null;
+      }
+      showBlurOverlay();
+      console.log('[ExamGuard] tab_hidden violation — visibilitychange fired');
       emitViolation('tab_hidden');
+    } else {
+      if (state.blurTimer) {
+        window.clearTimeout(state.blurTimer);
+        state.blurTimer = null;
+      }
+      hideBlurOverlay();
     }
   };
 
   const handleBlur = () => {
     if (!state.config) return;
+    // If document is already hidden, visibilitychange already fired — skip.
+    if (document.hidden) return;
     const grace = state.config.blurGraceMs || DEFAULT_BLUR_GRACE_MS;
     if (grace <= 0) {
-      emitViolation('window_blur');
+      if (!document.hidden) {
+        emitViolation('window_blur');
+      }
       return;
     }
     if (state.blurTimer) window.clearTimeout(state.blurTimer);
     state.blurTimer = window.setTimeout(() => {
-      if (!document.hasFocus()) {
+      if (!document.hasFocus() && !document.hidden) {
         emitViolation('window_blur');
       }
     }, grace);
@@ -383,9 +495,13 @@
         disableEditor: false,
         autosubmit: true,
         blockSelectAll: false,
+        blockScreenshot: true,
+        blurOnHide: true,
         ...config.actions,
       },
     };
+
+    console.log('[ExamGuard] ACTIVATED for test:', config.testId);
 
     restoreSessionStorage(config);
 
@@ -414,6 +530,14 @@
     addListener(document, 'visibilitychange', handleVisibilityChange);
     addListener(window, 'blur', handleBlur);
     addListener(window, 'focus', handleFocus);
+
+    // Screenshot & print prevention
+    if (state.config.actions.blockScreenshot) {
+      addListener(document, 'keyup', handlePrintScreen, true);
+      addListener(document, 'keydown', handlePrintShortcut, true);
+      injectPrintBlocker();
+      patchGetDisplayMedia();
+    }
   };
 
   const start = (config) => {
@@ -452,6 +576,14 @@
 
     const editors = toArray(state.config?.editor);
     restoreEditors(editors);
+
+    // Clean up screenshot prevention
+    removePrintBlocker();
+    hideBlurOverlay();
+    if (state.blurOverlayEl) {
+      state.blurOverlayEl.remove();
+      state.blurOverlayEl = null;
+    }
 
     state.active = false;
     state.pending = false;
