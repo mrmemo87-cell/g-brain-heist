@@ -337,62 +337,11 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
     setVisibleNarrations(0);
     clearCinematicTimers();
 
-    // Generate battle narration based on combat stats
-    const narrativeSteps: BattleNarration[] = [];
-    
-    // Calculate estimated stats (client-side approximation)
-    const attackerAttack = profile.attack_power || 10;
-    const baseDefense = 10 + (target.level * 2); // Estimate based on level
-    const defenderDefense = baseDefense + (target.has_shield ? 20 : 0);
-    const winChance = Math.round((attackerAttack / (attackerAttack + defenderDefense)) * 100);
+    // No narrative text lines — the Breach Run visual phases carry the entire cinematic
 
-    // Opening
-    narrativeSteps.push({
-      text: `💥 ${profile.username} charges at ${target.username}!`,
-      delay: 0,
-      color: 'text-cyan-400'
-    });
-
-    // Show combat stats
-    narrativeSteps.push({
-      text: `⚔️ Your Attack Power: ${attackerAttack}`,
-      delay: 600,
-      color: 'text-green-400'
-    });
-
-    narrativeSteps.push({
-      text: `🛡️ Enemy Defense: ${defenderDefense}${target.has_shield ? ' (+20 Shield)' : ''}`,
-      delay: 1200,
-      color: 'text-yellow-400'
-    });
-
-    // Win chance calculation
-    narrativeSteps.push({
-      text: `🎲 Victory Chance: ${winChance}%`,
-      delay: 1800,
-      color: 'text-purple-400'
-    });
-
-    // Rolling
-    narrativeSteps.push({
-      text: `🎰 Rolling the dice of fate...`,
-      delay: 2400,
-      color: 'text-pink-400',
-      icon: '🎲'
-    });
-
-    setBattleNarration(narrativeSteps);
-
-    queueCinematicTimer(() => setBreachPhase('charge'), 400);
-    queueCinematicTimer(() => setBreachPhase('impact'), 1000);
-    queueCinematicTimer(() => setBreachPhase('outcome'), 1500);
-
-    // Animate narrations appearing
-    narrativeSteps.forEach((_, index) => {
-      queueCinematicTimer(() => {
-        setVisibleNarrations(index + 1);
-      }, narrativeSteps[index].delay);
-    });
+    queueCinematicTimer(() => setBreachPhase('charge'), 500);
+    queueCinematicTimer(() => setBreachPhase('impact'), 1200);
+    queueCinematicTimer(() => setBreachPhase('outcome'), 1800);
 
     try {
       const attackStartTime = Date.now();
@@ -424,9 +373,9 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
         setBreachOutcomeText('REPELLED');
       }
 
-      // Wait for minimum cinematic window (2.2s) before showing result + play sound
+      // Wait for minimum cinematic window (2.5s) before showing result + play sound
       const elapsedTime = Date.now() - attackStartTime;
-      const remaining = Math.max(2200 - elapsedTime, 0);
+      const remaining = Math.max(2500 - elapsedTime, 0);
       queueCinematicTimer(() => {
         // Play appropriate sound when result screen appears
         if (normalizedResult === 'win') {
@@ -589,125 +538,139 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
 
   const renderCinematic = () => {
     if (!selectedTarget) return null;
+    const defenderDefense = 10 + (selectedTarget.level * 2) + (selectedTarget.has_shield ? 20 : 0);
     return (
-      <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center z-50 p-4 overflow-hidden">
-        {/* Battle Arena Background Effect */}
-        <div className="absolute inset-0 bg-gradient-to-br from-red-900/20 via-purple-900/20 to-blue-900/20 animate-pulse"></div>
+      <div className={`fixed inset-0 bg-black flex flex-col items-center justify-center z-50 overflow-hidden ${breachPhase === 'impact' ? 'breach-screen-shake' : ''}`}>
+        {/* Layered background */}
         <div className="absolute inset-0 breach-grid-overlay"></div>
-        
-        {/* Combatants */}
-        <div className="relative z-10 flex items-center justify-around w-full max-w-2xl mb-8">
-            <div className={`flex flex-col items-center animate-slide-in-left ${breachPhase === 'charge' ? 'breach-power-tick' : ''}`}>
-                <div className="relative">
-                  <AvatarWithFrame
-                    src={profile.avatar_url}
-                    alt={profile.username}
-                    size="xl"
-                    hasNeonFrame={profile.active_cosmetic_frame === 'neon'}
-                    hasGlitchTheme={profile.active_cosmetic_theme === 'flicker'}
-                    hasGlitchEffect={profile.active_cosmetic_effect === 'glitch'}
-                    className="shadow-[0_0_30px_rgba(34,211,238,0.6)]"
-                    fallbackFrameClassName="border-4 border-cyan-500 shadow-[0_0_30px_rgba(34,211,238,0.6)]"
-                    imgClassName="w-24 h-24 md:w-32 md:h-32"
-                  />
-                  <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                    ⚔️ {profile.attack_power || 10}
-                  </div>
-                </div>
-                <span className="mt-3 font-heading text-xl text-cyan-400 font-bold">{profile.username}</span>
-                <span className="text-sm text-gray-400">Level {profile.level}</span>
-            </div>
-            
-            <div className="relative">
-              <div className="font-heading text-5xl md:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-500 to-red-500 animate-pulse font-black">
-                VS
-              </div>
-              <div className="absolute inset-0 blur-xl bg-gradient-to-r from-red-500 via-yellow-500 to-red-500 opacity-50 animate-pulse"></div>
-            </div>
-            
-            <div className="flex flex-col items-center animate-slide-in-right">
-                <div className={`relative ${breachPhase === 'lockon' ? 'breach-lock-pulse' : ''} ${breachPhase === 'impact' ? 'breach-impact-shake' : ''}`}>
-                  <AvatarWithFrame
-                    src={selectedTarget.avatar_url}
-                    alt={selectedTarget.username}
-                    size="xl"
-                    hasNeonFrame={selectedTarget.active_cosmetic_frame === 'neon'}
-                    hasGlitchTheme={selectedTarget.active_cosmetic_theme === 'flicker'}
-                    hasGlitchEffect={selectedTarget.active_cosmetic_effect === 'glitch'}
-                    className="shadow-[0_0_30px_rgba(236,72,153,0.6)]"
-                    fallbackFrameClassName="border-4 border-pink-500 shadow-[0_0_30px_rgba(236,72,153,0.6)]"
-                    imgClassName="w-24 h-24 md:w-32 md:h-32"
-                  />
-                  {selectedTarget.has_shield && (
-                    <div className={`absolute -top-2 -left-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse ${breachPhase === 'impact' ? 'breach-shield-pop' : ''}`}>
-                      🛡️ +20
-                    </div>
-                  )}
-                  <div className="absolute -bottom-2 -right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                    🛡️ {10 + (selectedTarget.level * 2) + (selectedTarget.has_shield ? 20 : 0)}
-                  </div>
-                </div>
-                <span className="mt-3 font-heading text-xl text-pink-400 font-bold">{selectedTarget.username}</span>
-                <span className="text-sm text-gray-400">Level {selectedTarget.level}</span>
-            </div>
+        <div className="absolute inset-0 breach-scanline pointer-events-none"></div>
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.85) 100%)' }}></div>
+
+        {/* Phase ambient overlays */}
+        {breachPhase === 'lockon' && <div className="absolute inset-0 bg-red-900/10 animate-pulse"></div>}
+        {breachPhase === 'charge' && <div className="absolute inset-0 breach-charge-bg"></div>}
+        {breachPhase === 'impact' && <div className="absolute inset-0 breach-white-flash"></div>}
+
+        {/* HUD corners */}
+        <div className="absolute top-4 left-4 z-20 font-mono text-[10px] tracking-[0.2em] uppercase breach-blink">
+          {breachPhase === 'lockon' && <span className="text-red-400/80">◉ Acquiring target</span>}
+          {breachPhase === 'charge' && <span className="text-cyan-400/80">⚡ Weapon systems armed</span>}
+          {breachPhase === 'impact' && <span className="text-yellow-400/80">💥 Direct hit</span>}
+          {breachPhase === 'outcome' && <span className="text-green-400/80">◈ Calculating result</span>}
         </div>
+        <div className="absolute top-4 right-4 z-20 font-mono text-[10px] tracking-[0.15em] text-cyan-500/40">BREACH://RUN</div>
 
-        {breachPhase === 'lockon' && (
-          <div className="absolute right-[18%] top-[30%] w-20 h-20 md:w-24 md:h-24 breach-crosshair"></div>
-        )}
-
-        {breachPhase === 'charge' && (
-          <div className="absolute top-1/2 left-1/2 -translate-y-1/2 w-[42%] max-w-[460px] breach-attack-beam"></div>
-        )}
-
-        {breachPhase === 'impact' && (
-          <div className="absolute right-[17%] top-[30%] w-24 h-24 rounded-full breach-impact-flash"></div>
-        )}
-
-        {/* Battle Narration */}
-        <div className="relative z-10 w-full max-w-2xl bg-black/60 backdrop-blur-sm border-2 border-purple-500/50 rounded-2xl p-6 min-h-[280px] shadow-[0_0_50px_rgba(168,85,247,0.4)]">
-          <div className="flex flex-col space-y-3">
-            {battleNarration.slice(0, visibleNarrations).map((narration, index) => (
-              <div 
-                key={index}
-                className={`${narration.color || 'text-white'} font-mono text-base md:text-lg font-semibold animate-fade-in-up flex items-center gap-3 ${
-                  index === visibleNarrations - 1 ? 'animate-pulse' : ''
-                }`}
-                style={{ 
-                  animationDelay: '0ms',
-                  animationFillMode: 'both'
-                }}
-              >
-                {narration.icon && (
-                  <span className="text-2xl animate-bounce">{narration.icon}</span>
-                )}
-                <span>{narration.text}</span>
+        {/* Combatants */}
+        <div className="relative z-10 flex items-center justify-around w-full max-w-3xl px-6">
+          {/* Attacker */}
+          <div className={`flex flex-col items-center ${breachPhase === 'charge' ? 'breach-power-tick' : ''} ${breachPhase === 'impact' ? 'breach-attacker-lunge' : ''}`}>
+            <div className={`relative ${breachPhase === 'charge' ? 'breach-charge-aura' : ''}`}>
+              <AvatarWithFrame
+                src={profile.avatar_url}
+                alt={profile.username}
+                size="xl"
+                hasNeonFrame={profile.active_cosmetic_frame === 'neon'}
+                hasGlitchTheme={profile.active_cosmetic_theme === 'flicker'}
+                hasGlitchEffect={profile.active_cosmetic_effect === 'glitch'}
+                className="shadow-[0_0_30px_rgba(34,211,238,0.6)]"
+                fallbackFrameClassName="border-4 border-cyan-500 shadow-[0_0_30px_rgba(34,211,238,0.6)]"
+                imgClassName="w-28 h-28 md:w-36 md:h-36"
+              />
+              <div className="absolute -top-3 -right-3 bg-green-500/90 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg shadow-green-500/30">
+                ⚔️ {profile.attack_power || 10}
               </div>
-            ))}
-            
-            {visibleNarrations === battleNarration.length && (
-              <div className="mt-4 flex items-center justify-center">
-                <div className="flex space-x-2">
-                  <div className="w-3 h-3 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                  <div className="w-3 h-3 bg-pink-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                </div>
+            </div>
+            <span className="mt-3 font-heading text-lg md:text-xl text-cyan-400 font-bold drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]">{profile.username}</span>
+            <span className="text-xs text-gray-500 tracking-wide">LVL {profile.level}</span>
+          </div>
+
+          {/* Center — phase indicator */}
+          <div className="relative flex flex-col items-center justify-center w-28 h-28 md:w-36 md:h-36">
+            {breachPhase === 'lockon' && (
+              <div className="breach-target-reticle">
+                <span className="text-5xl md:text-6xl drop-shadow-[0_0_20px_rgba(248,113,113,0.6)]">🎯</span>
               </div>
             )}
-
+            {breachPhase === 'charge' && <div className="breach-energy-core"></div>}
+            {breachPhase === 'impact' && (
+              <div className="text-6xl md:text-7xl breach-explosion-burst">💥</div>
+            )}
             {breachPhase === 'outcome' && (
-              <div className="mt-5 flex justify-center">
-                <div className="breach-outcome-chip">
-                  {breachOutcomeText}
-                </div>
+              <div className={`breach-outcome-banner ${
+                breachOutcomeText === 'BREACHED' ? 'breach-win' :
+                breachOutcomeText === 'BLOCKED' ? 'breach-blocked' : 'breach-lose'
+              }`}>
+                {breachOutcomeText}
               </div>
             )}
           </div>
+
+          {/* Defender */}
+          <div className="flex flex-col items-center">
+            <div className={`relative ${breachPhase === 'lockon' ? 'breach-lock-pulse' : ''} ${breachPhase === 'impact' ? 'breach-impact-shake' : ''}`}>
+              <AvatarWithFrame
+                src={selectedTarget.avatar_url}
+                alt={selectedTarget.username}
+                size="xl"
+                hasNeonFrame={selectedTarget.active_cosmetic_frame === 'neon'}
+                hasGlitchTheme={selectedTarget.active_cosmetic_theme === 'flicker'}
+                hasGlitchEffect={selectedTarget.active_cosmetic_effect === 'glitch'}
+                className="shadow-[0_0_30px_rgba(236,72,153,0.6)]"
+                fallbackFrameClassName="border-4 border-pink-500 shadow-[0_0_30px_rgba(236,72,153,0.6)]"
+                imgClassName="w-28 h-28 md:w-36 md:h-36"
+              />
+              {selectedTarget.has_shield && (
+                <div className={`absolute -top-3 -left-3 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg shadow-yellow-500/30 ${breachPhase === 'impact' ? 'breach-shield-pop' : 'animate-pulse'}`}>
+                  🛡️ +20
+                </div>
+              )}
+              <div className="absolute -bottom-3 -right-3 bg-blue-600/90 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg shadow-blue-500/30">
+                🛡️ {defenderDefense}
+              </div>
+            </div>
+            <span className="mt-3 font-heading text-lg md:text-xl text-pink-400 font-bold drop-shadow-[0_0_8px_rgba(236,72,153,0.5)]">{selectedTarget.username}</span>
+            <span className="text-xs text-gray-500 tracking-wide">LVL {selectedTarget.level}</span>
+          </div>
         </div>
 
-        {/* Energy waves animation */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-4 border-cyan-500/30 rounded-full animate-ping"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 border-4 border-pink-500/20 rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
+        {/* Crosshair on defender during lock-on */}
+        {breachPhase === 'lockon' && (
+          <div className="absolute right-[14%] md:right-[21%] top-[25%] w-32 h-32 md:w-40 md:h-40 breach-crosshair z-20"></div>
+        )}
+
+        {/* Attack beam during charge */}
+        {breachPhase === 'charge' && (
+          <div className="absolute top-[42%] left-[18%] right-[18%] breach-attack-beam z-20"></div>
+        )}
+
+        {/* Impact effects */}
+        {breachPhase === 'impact' && (
+          <>
+            <div className="absolute right-[15%] md:right-[22%] top-[22%] w-48 h-48 breach-impact-ring z-20"></div>
+            <div className="absolute right-[18%] md:right-[25%] top-[26%] w-36 h-36 rounded-full breach-impact-flash z-20"></div>
+          </>
+        )}
+
+        {/* Bottom HUD — phase progress bar */}
+        <div className="absolute bottom-0 left-0 right-0 z-20 px-6 pb-5">
+          <div className="max-w-lg mx-auto">
+            <div className="flex gap-1.5 mb-2">
+              <div className="h-1 flex-1 rounded-full bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.6)]"></div>
+              <div className={`h-1 flex-1 rounded-full transition-all duration-300 ${breachPhase !== 'lockon' ? 'bg-cyan-500 shadow-[0_0_6px_rgba(34,211,238,0.6)]' : 'bg-gray-800'}`}></div>
+              <div className={`h-1 flex-1 rounded-full transition-all duration-300 ${breachPhase === 'impact' || breachPhase === 'outcome' ? 'bg-yellow-500 shadow-[0_0_6px_rgba(251,191,36,0.6)]' : 'bg-gray-800'}`}></div>
+              <div className={`h-1 flex-1 rounded-full transition-all duration-300 ${breachPhase === 'outcome' ? 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]' : 'bg-gray-800'}`}></div>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-gray-500">
+                {breachPhase === 'lockon' && 'LOCK-ON'}
+                {breachPhase === 'charge' && 'CHARGING'}
+                {breachPhase === 'impact' && 'IMPACT'}
+                {breachPhase === 'outcome' && 'RESULT'}
+              </span>
+              <span className="font-mono text-[10px] tracking-[0.15em] text-gray-700">BREACH RUN</span>
+            </div>
+          </div>
+        </div>
       </div>
     );
   };

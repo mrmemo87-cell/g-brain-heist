@@ -13,26 +13,27 @@ import './src/index.css';
 import './src/styles/light-mode.css';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { lazyRetry } from './src/utils/lazyRetry';
 
-// ── Lazy-loaded pages & modals (only fetched when actually navigated to) ──
-const FinishSetupModal = React.lazy(() => import('./components/FinishSetupModal'));
-const EntryScreen = React.lazy(() => import('./components/onboarding/EntryScreen'));
-const SetupWizard = React.lazy(() => import('./components/onboarding/SetupWizard'));
-const EmailVerificationScreen = React.lazy(() => import('./components/EmailVerificationScreen'));
-const IELTSApp = React.lazy(() => import('./components/ielts/IELTSApp'));
-const IELTSLoginView = React.lazy(() => import('./components/ielts/IELTSLoginView'));
-const PasswordResetPage = React.lazy(() => import('./components/PasswordResetPage'));
-const IeltsHome = React.lazy(() => import('./src/pages/ielts/IeltsHome'));
-const IeltsSession = React.lazy(() => import('./src/pages/ielts/IeltsSession'));
-const ReadingPractice = React.lazy(() => import('./src/pages/ielts/ReadingPractice'));
-const SpeakingPractice = React.lazy(() => import('./src/pages/ielts/SpeakingPractice'));
-const ListeningPractice = React.lazy(() => import('./src/pages/ielts/ListeningPractice'));
-const WritingPractice = React.lazy(() => import('./src/pages/ielts/WritingPractice'));
-const TrialListeningTest = React.lazy(() => import('./src/pages/ielts/TrialListeningTest'));
-const TrialListeningTask2 = React.lazy(() => import('./src/pages/ielts/TrialListeningTask2'));
-const IeltsPrime = React.lazy(() => import('./src/pages/ielts/IeltsPrime'));
-const IeltsAdminGuard = React.lazy(() => import('./components/ielts/IeltsAdminGuard'));
-const IeltsAdminDashboard = React.lazy(() => import('./components/IeltsAdminDashboard'));
+// ── Lazy-loaded pages & modals (with automatic retry on stale-chunk errors) ──
+const FinishSetupModal = lazyRetry(() => import('./components/FinishSetupModal'), 'FinishSetupModal');
+const EntryScreen = lazyRetry(() => import('./components/onboarding/EntryScreen'), 'EntryScreen');
+const SetupWizard = lazyRetry(() => import('./components/onboarding/SetupWizard'), 'SetupWizard');
+const EmailVerificationScreen = lazyRetry(() => import('./components/EmailVerificationScreen'), 'EmailVerificationScreen');
+const IELTSApp = lazyRetry(() => import('./components/ielts/IELTSApp'), 'IELTSApp');
+const IELTSLoginView = lazyRetry(() => import('./components/ielts/IELTSLoginView'), 'IELTSLoginView');
+const PasswordResetPage = lazyRetry(() => import('./components/PasswordResetPage'), 'PasswordResetPage');
+const IeltsHome = lazyRetry(() => import('./src/pages/ielts/IeltsHome'), 'IeltsHome');
+const IeltsSession = lazyRetry(() => import('./src/pages/ielts/IeltsSession'), 'IeltsSession');
+const ReadingPractice = lazyRetry(() => import('./src/pages/ielts/ReadingPractice'), 'ReadingPractice');
+const SpeakingPractice = lazyRetry(() => import('./src/pages/ielts/SpeakingPractice'), 'SpeakingPractice');
+const ListeningPractice = lazyRetry(() => import('./src/pages/ielts/ListeningPractice'), 'ListeningPractice');
+const WritingPractice = lazyRetry(() => import('./src/pages/ielts/WritingPractice'), 'WritingPractice');
+const TrialListeningTest = lazyRetry(() => import('./src/pages/ielts/TrialListeningTest'), 'TrialListeningTest');
+const TrialListeningTask2 = lazyRetry(() => import('./src/pages/ielts/TrialListeningTask2'), 'TrialListeningTask2');
+const IeltsPrime = lazyRetry(() => import('./src/pages/ielts/IeltsPrime'), 'IeltsPrime');
+const IeltsAdminGuard = lazyRetry(() => import('./components/ielts/IeltsAdminGuard'), 'IeltsAdminGuard');
+const IeltsAdminDashboard = lazyRetry(() => import('./components/IeltsAdminDashboard'), 'IeltsAdminDashboard');
 
 const queryClient = new QueryClient();
 

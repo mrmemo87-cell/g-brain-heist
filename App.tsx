@@ -29,31 +29,33 @@ import UpgradeModal from './components/UpgradeModal';
 import { fetchEffectiveTier, isPro as isProTier, invalidateTierCache, fetchSchoolPlanDetails, type AccountTier } from './services/tierService';
 
 // Lazy-loaded: only fetched when the user actually opens these views/modals
-const IeltsHome = React.lazy(() => import('./src/pages/ielts/IeltsHome'));
-const HelpModal = React.lazy(() => import('./components/HelpModal'));
-const TutorialModal = React.lazy(() => import('./components/TutorialModal'));
+// Uses lazyRetry to auto-recover from stale deployment chunk errors
+import { lazyRetry } from './src/utils/lazyRetry';
+const IeltsHome = lazyRetry(() => import('./src/pages/ielts/IeltsHome'), 'IeltsHome');
+const HelpModal = lazyRetry(() => import('./components/HelpModal'), 'HelpModal');
+const TutorialModal = lazyRetry(() => import('./components/TutorialModal'), 'TutorialModal');
 
-const QuestView = React.lazy(() => import('./components/QuestView'));
-const PvPView = React.lazy(() => import('./components/PvPView'));
-const ShopView = React.lazy(() => import('./components/ShopView'));
-const ClanView = React.lazy(() => import('./components/ClanView'));
-const InventoryView = React.lazy(() => import('./components/InventoryView'));
-const LeaderboardView = React.lazy(() => import('./components/LeaderboardView'));
-const AchievementView = React.lazy(() => import('./components/AchievementView'));
-const TeacherPortal = React.lazy(() => import('./components/TeacherPortal'));
-const AdminPortal = React.lazy(() => import('./components/AdminPortal'));
-const TournamentHub = React.lazy(() => import('./components/TournamentHub'));
-const TournamentAdminDashboard = React.lazy(() => import('./components/TournamentAdminDashboard'));
-const Phase1PlayView = React.lazy(() => import('./components/phase1/Phase1PlayView'));
-const Phase1LeaderboardView = React.lazy(() => import('./components/phase1/Phase1LeaderboardView'));
-const Phase1AdminDashboard = React.lazy(() => import('./components/phase1/Phase1AdminDashboard'));
-const AnnouncementBanner = React.lazy(() => import('./components/phase1/AnnouncementBanner'));
-const RaidView = React.lazy(() => import('./src/features/raids/RaidView'));
-const RaidAdminView = React.lazy(() => import('./src/features/raids/RaidAdminView'));
-const ClanTerritoryManager = React.lazy(() => import('./src/features/clanTerritory/ClanTerritoryManager'));
-const CambridgeTestsHub = React.lazy(() => import('./components/CambridgeTestsHub'));
-const SchoolAdminPortal = React.lazy(() => import('./components/SchoolAdminPortal'));
-const AdmissionHub = React.lazy(() => import('./components/AdmissionHub'));
+const QuestView = lazyRetry(() => import('./components/QuestView'), 'QuestView');
+const PvPView = lazyRetry(() => import('./components/PvPView'), 'PvPView');
+const ShopView = lazyRetry(() => import('./components/ShopView'), 'ShopView');
+const ClanView = lazyRetry(() => import('./components/ClanView'), 'ClanView');
+const InventoryView = lazyRetry(() => import('./components/InventoryView'), 'InventoryView');
+const LeaderboardView = lazyRetry(() => import('./components/LeaderboardView'), 'LeaderboardView');
+const AchievementView = lazyRetry(() => import('./components/AchievementView'), 'AchievementView');
+const TeacherPortal = lazyRetry(() => import('./components/TeacherPortal'), 'TeacherPortal');
+const AdminPortal = lazyRetry(() => import('./components/AdminPortal'), 'AdminPortal');
+const TournamentHub = lazyRetry(() => import('./components/TournamentHub'), 'TournamentHub');
+const TournamentAdminDashboard = lazyRetry(() => import('./components/TournamentAdminDashboard'), 'TournamentAdminDashboard');
+const Phase1PlayView = lazyRetry(() => import('./components/phase1/Phase1PlayView'), 'Phase1PlayView');
+const Phase1LeaderboardView = lazyRetry(() => import('./components/phase1/Phase1LeaderboardView'), 'Phase1LeaderboardView');
+const Phase1AdminDashboard = lazyRetry(() => import('./components/phase1/Phase1AdminDashboard'), 'Phase1AdminDashboard');
+const AnnouncementBanner = lazyRetry(() => import('./components/phase1/AnnouncementBanner'), 'AnnouncementBanner');
+const RaidView = lazyRetry(() => import('./src/features/raids/RaidView'), 'RaidView');
+const RaidAdminView = lazyRetry(() => import('./src/features/raids/RaidAdminView'), 'RaidAdminView');
+const ClanTerritoryManager = lazyRetry(() => import('./src/features/clanTerritory/ClanTerritoryManager'), 'ClanTerritoryManager');
+const CambridgeTestsHub = lazyRetry(() => import('./components/CambridgeTestsHub'), 'CambridgeTestsHub');
+const SchoolAdminPortal = lazyRetry(() => import('./components/SchoolAdminPortal'), 'SchoolAdminPortal');
+const AdmissionHub = lazyRetry(() => import('./components/AdmissionHub'), 'AdmissionHub');
 
 const GRADE_TO_BATCH: Record<Grade, Batch[]> = {
   6: ['6A', '6B', '6C', 'N/A'],
