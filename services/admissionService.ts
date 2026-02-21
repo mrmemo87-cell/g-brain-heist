@@ -76,6 +76,7 @@ export interface AdmQuestion {
 export interface AdmBlueprint {
   id: string;
   school_id: string | null;
+  pool_id: string | null;
   name: string;
   subject: string;
   target_grade: number | null;

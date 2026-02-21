@@ -783,13 +783,19 @@ BEGIN
         RETURN jsonb_build_object('success', false, 'error', 'Access denied — not a school admin of this school');
     END IF;
 
-    -- Get matching pool IDs (school's + global pools for this subject/stage)
-    SELECT ARRAY_AGG(id) INTO v_pool_ids
-    FROM adm_question_pools
-    WHERE (school_id = v_bp.school_id OR school_id IS NULL)
-      AND subject = v_bp.subject
-      AND (stage = v_bp.target_stage OR v_bp.target_stage IS NULL)
-      AND is_active = true;
+    -- Get matching pool IDs
+    -- If blueprint has an explicit pool_id, use ONLY that pool.
+    -- Otherwise fall back to matching by subject + target_stage.
+    IF v_bp.pool_id IS NOT NULL THEN
+        v_pool_ids := ARRAY[v_bp.pool_id];
+    ELSE
+        SELECT ARRAY_AGG(id) INTO v_pool_ids
+        FROM adm_question_pools
+        WHERE (school_id = v_bp.school_id OR school_id IS NULL)
+          AND subject = v_bp.subject
+          AND (stage = v_bp.target_stage OR v_bp.target_stage IS NULL)
+          AND is_active = true;
+    END IF;
 
     IF v_pool_ids IS NULL THEN
         RETURN jsonb_build_object('success', false, 'error', 'No question pools match this blueprint');

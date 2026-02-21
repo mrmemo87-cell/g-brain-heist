@@ -142,6 +142,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
   // Blueprint form
   const [bpName, setBpName] = useState('');
   const [bpSubject, setBpSubject] = useState('english');
+  const [bpPoolId, setBpPoolId] = useState<string | null>(null);
   const [bpTargetStage, setBpTargetStage] = useState(9);
   const [bpDuration, setBpDuration] = useState(45);
   const [bpTotalMarks, setBpTotalMarks] = useState(27);
@@ -242,9 +243,13 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
   // ── Handlers ──
 
+  // Pools filtered by selected subject
+  const subjectPools = useMemo(() => pools.filter(p => p.subject === bpSubject && p.is_active), [pools, bpSubject]);
+
   // Auto-apply preset when subject changes
   const applySubjectPreset = (subject: string) => {
     setBpSubject(subject);
+    setBpPoolId(null); // reset pool selection
     const preset = BLUEPRINT_PRESETS[subject];
     if (preset) {
       setBpTotalMarks(preset.marks);
@@ -260,6 +265,19 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
         });
         setDistRows(rows.length ? rows : [{ type: 'mcq', easy: 0, medium: 0, hard: 0 }]);
       } catch { setDistRows([{ type: 'mcq', easy: 5, medium: 5, hard: 0 }]); }
+    }
+  };
+
+  // When a pool is selected, auto-fill stage and name
+  const handlePoolSelect = (poolId: string) => {
+    setBpPoolId(poolId || null);
+    if (!poolId) return;
+    const pool = pools.find(p => p.id === poolId);
+    if (pool) {
+      if (pool.stage) setBpTargetStage(pool.stage);
+      const preset = BLUEPRINT_PRESETS[pool.subject];
+      const label = preset?.label || pool.subject;
+      setBpName(`${label} Stage ${pool.stage || bpTargetStage} — Admission Test`);
     }
   };
 
@@ -292,6 +310,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
       if (Object.keys(dist).length === 0) { addToast('Add at least one question type with a count > 0', 'error'); return; }
       await AdmService.createBlueprint({
         school_id: schoolId,
+        pool_id: bpPoolId,
         name: bpName,
         subject: bpSubject,
         target_grade: null,
@@ -305,7 +324,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
         created_by: null,
       });
       addToast('Blueprint created', 'success');
-      setBpName(''); setBpDistribution(BLUEPRINT_PRESETS[bpSubject]?.distribution || '{}');
+      setBpName(''); setBpPoolId(null); setBpDistribution(BLUEPRINT_PRESETS[bpSubject]?.distribution || '{}');
       await loadAll();
     } catch (err: any) {
       addToast(err.message || 'Failed to create blueprint', 'error');
@@ -904,6 +923,27 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                     <option value="chemistry">Chemistry</option>
                   </select>
                 </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Question Pool</label>
+                  <select className={inputClass} value={bpPoolId ?? ''} onChange={e => handlePoolSelect(e.target.value)}>
+                    <option value="">Auto-match by stage</option>
+                    {subjectPools.map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}{p.stage ? ` (Stage ${p.stage})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  {bpPoolId && (
+                    <p className="text-[10px] text-cyan-400 mt-0.5">Questions will be drawn exclusively from this pool.</p>
+                  )}
+                  {!bpPoolId && subjectPools.length > 0 && (
+                    <p className="text-[10px] text-gray-500 mt-0.5">
+                      {subjectPools.filter(p => p.stage === bpTargetStage).length > 0
+                        ? `Will match: ${subjectPools.filter(p => p.stage === bpTargetStage).map(p => p.name).join(', ')}`
+                        : 'No pool matches this stage — select one above or adjust stage.'}
+                    </p>
+                  )}
+                </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-300 mb-1">Target Stage</label>
                   <input type="number" className={inputClass} value={bpTargetStage} onChange={e => setBpTargetStage(+e.target.value)} />
@@ -987,13 +1027,17 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
             </div>
           ) : (
             <div className="space-y-3">
-              {blueprints.map((bp) => (
+              {blueprints.map((bp) => {
+                const linkedPool = bp.pool_id ? pools.find(p => p.id === bp.pool_id) : null;
+                return (
                 <div key={bp.id} className="rounded-xl border border-gray-700 bg-slate-800/60 p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-semibold text-white">{bp.name}</div>
                       <div className="text-xs text-gray-400">
                         {bp.duration_minutes}min · {bp.total_marks} marks · {bp.delivery_mode} · pass ≥ {bp.pass_percentage}%
+                        {linkedPool && <span className="ml-1 text-cyan-400">· Pool: {linkedPool.name}</span>}
+                        {!linkedPool && bp.target_stage && <span className="ml-1 text-gray-500">· auto-match stage {bp.target_stage}</span>}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -1013,7 +1057,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                     })}
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
           )}
         </div>
