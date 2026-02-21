@@ -144,6 +144,8 @@ export interface NewsEvent {
     achievement_icon?: string;
     reward_xp?: number;
     reward_coins?: number;
+    coins_stolen?: number;
+    coins_lost?: number;
   };
   created_at: string;
   reactions: { [key: string]: number };
