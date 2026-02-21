@@ -923,6 +923,135 @@ body.lite-mode [class*="border-gray-7"] {
   animation: fade-in-up 0.6s ease-out forwards;
 }
 
+@keyframes breach-lock-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0); }
+  30% { box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.95), 0 0 32px rgba(248, 113, 113, 0.6); }
+  100% { box-shadow: 0 0 0 8px rgba(248, 113, 113, 0); }
+}
+
+@keyframes breach-power-tick {
+  0% { transform: scale(1); filter: brightness(1); }
+  22% { transform: scale(1.08); filter: brightness(1.25); }
+  42% { transform: scale(1); filter: brightness(1); }
+  62% { transform: scale(1.06); filter: brightness(1.2); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+@keyframes breach-impact-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
+}
+
+@keyframes breach-shield-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+@keyframes breach-crosshair-snap {
+  0% { transform: scale(1.35); opacity: 0; }
+  45% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.9; }
+}
+
+@keyframes breach-beam-fire {
+  0% { transform: translate(-50%, -50%) scaleX(0.08); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translate(-50%, -50%) scaleX(1); opacity: 0.75; }
+}
+
+@keyframes breach-impact-flash {
+  0% { transform: scale(0.3); opacity: 0.9; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+
+@keyframes breach-outcome-in {
+  0% { transform: translateY(18px) scale(0.92); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.breach-grid-overlay {
+  background-image: linear-gradient(rgba(236, 72, 153, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.breach-lock-pulse {
+  border-radius: 1rem;
+  animation: breach-lock-pulse 400ms ease-out;
+}
+
+.breach-power-tick {
+  animation: breach-power-tick 550ms ease-in-out 2;
+}
+
+.breach-impact-shake {
+  animation: breach-impact-shake 340ms ease-in-out;
+}
+
+.breach-shield-pop {
+  animation: breach-shield-pop 280ms ease-out;
+}
+
+.breach-crosshair {
+  border: 2px solid rgba(248, 113, 113, 0.95);
+  border-radius: 9999px;
+  box-shadow: 0 0 18px rgba(248, 113, 113, 0.55);
+  animation: breach-crosshair-snap 360ms ease-out forwards;
+}
+
+.breach-crosshair::before,
+.breach-crosshair::after {
+  content: '';
+  position: absolute;
+  background: rgba(248, 113, 113, 0.95);
+}
+
+.breach-crosshair::before {
+  width: 2px;
+  height: 120%;
+  left: 50%;
+  top: -10%;
+  transform: translateX(-50%);
+}
+
+.breach-crosshair::after {
+  height: 2px;
+  width: 120%;
+  top: 50%;
+  left: -10%;
+  transform: translateY(-50%);
+}
+
+.breach-attack-beam {
+  height: 3px;
+  background: linear-gradient(90deg, rgba(34, 211, 238, 0.05), rgba(34, 211, 238, 1), rgba(239, 68, 68, 0.95));
+  left: 50%;
+  transform-origin: left center;
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.6), 0 0 16px rgba(248, 113, 113, 0.4);
+  animation: breach-beam-fire 280ms ease-out forwards;
+}
+
+.breach-impact-flash {
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.65) 0%, rgba(239, 68, 68, 0.3) 35%, rgba(239, 68, 68, 0) 80%);
+  animation: breach-impact-flash 360ms ease-out forwards;
+}
+
+.breach-outcome-chip {
+  border: 1px solid rgba(34, 211, 238, 0.6);
+  background: linear-gradient(90deg, rgba(8, 17, 33, 0.95), rgba(33, 12, 40, 0.95));
+  color: #67e8f9;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  font-size: 0.78rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  box-shadow: 0 0 18px rgba(34, 211, 238, 0.35);
+  animation: breach-outcome-in 220ms ease-out forwards;
+}
+
 .emoji-spark {
   display: inline-flex;
   align-items: center;
