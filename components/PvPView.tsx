@@ -329,6 +329,21 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
       return;
     }
 
+    // Client-side cooldown guard (catches stale target list)
+    if (target.last_attacked_at) {
+      const elapsed = Date.now() - new Date(target.last_attacked_at).getTime();
+      if (elapsed < 5 * 60 * 1000) {
+        const remaining = Math.ceil((5 * 60 * 1000 - elapsed) / 1000);
+        audioService.play('wrong');
+        alert(`This target was recently attacked. Cooldown expires in ${remaining}s — pick a different target.`);
+        // Refresh target list to get updated cooldown data
+        GameService.raid_targets().then(data => {
+          setTargets(data.filter((t: any) => t.role !== 'admin'));
+        });
+        return;
+      }
+    }
+
     setSelectedTarget(target);
     setStage('cinematic');
     setBreachPhase('lockon');
@@ -388,11 +403,18 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
 
     } catch (error) {
       console.error('Battle attack error:', error);
-      // Show error and go back to targets
-      alert('Battle failed and no action points were consumed: ' + (error as Error).message);
+      clearCinematicTimers();
+      const msg = (error as Error).message || '';
+      if (msg.toLowerCase().includes('cooldown')) {
+        // Cooldown error from server — target was attacked by someone else since our list loaded
+        audioService.play('wrong');
+        alert('This target was just attacked by another player. Cooldown is active — pick a different target!');
+      } else {
+        alert('Battle failed — no AP was consumed. ' + msg);
+      }
       setStage('loading');
       GameService.raid_targets().then(data => {
-        setTargets(data);
+        setTargets(data.filter((t: any) => t.role !== 'admin'));
         setStage('targets');
       });
     }

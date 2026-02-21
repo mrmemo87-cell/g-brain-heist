@@ -2371,41 +2371,6 @@
           img.addEventListener('load', updateSvgColorsForBackground, { once: true });
         }
       });
-      
-      // Start ExamGuard after initialization
-      setTimeout(() => {
-        if (!hasSubmitted && typeof window.ExamGuard !== 'undefined') {
-          let autoSubmitTriggered = false;
-          window.ExamGuard.start({
-            promptContainer: document.querySelector('.container'),
-            editor: [],
-            onSubmit: () => {
-              if (autoSubmitTriggered || hasSubmitted) return;
-              autoSubmitTriggered = true;
-              handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'ExamGuard violation limit reached' });
-            },
-            onViolation: (event) => {
-              console.warn('ExamGuard violation (AS Chemistry - Ch2):', event);
-              if (event.violationsCount >= 3) {
-                if (!autoSubmitTriggered && !hasSubmitted) {
-                  autoSubmitTriggered = true;
-                  handleSubmit({ force: true, skipModal: true, autoSubmitReason: `ExamGuard: ${event.violationsCount} violations` });
-                }
-              }
-            },
-            testId: QUIZ_ID,
-            maxViolations: 3,
-            blurGraceMs: 300,
-            actions: {
-              warn: true,
-              showBanner: true,
-              autosubmit: true,
-              disableEditor: false,
-              blockSelectAll: false,
-            }
-          });
-        }
-      }, 500);
 
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
