@@ -222,6 +222,10 @@ begin
   roll := random();
   is_win := roll < win_chance;
 
+  -- Capture usernames before updates (RETURNING INTO will overwrite attacker record)
+  attacker_username := attacker.username;
+  defender_username := defender.username;
+
   -- ====== Apply results ======
   if is_win then
     -- Attacker wins
@@ -293,9 +297,6 @@ begin
   gemstones_delta := attacker.gemstones - pre_gemstones;
 
   -- ====== Log activity ======
-  attacker_username := attacker.username;
-  defender_username := defender.username;
-
   insert into public.activities (kind, actor_id, actor_username, target_id, target_username, data, created_at)
   values (
     result_kind,
