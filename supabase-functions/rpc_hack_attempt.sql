@@ -19,6 +19,7 @@ declare
   v_existing_response jsonb;
   v_response jsonb;
   v_xp_status jsonb;
+  v_reward_result jsonb;
 
   -- ====== CONFIG ======
   c_ap_cost int := 2;                 -- AP cost per hack attempt
@@ -248,15 +249,20 @@ begin
       result_kind := 'pvp_win';
     end if;
 
-    -- Update attacker (including earnings tracking)
+    -- Use rpc_apply_reward_delta to safely update attacker XP/coins
+    -- (bypasses the "Direct XP/level updates are not allowed" trigger)
+    v_reward_result := rpc_apply_reward_delta(
+      p_xp_delta := xp_delta,
+      p_coins_delta := coins_delta,
+      p_gemstones_delta := 0,
+      p_apply_level_milestone := true
+    );
+
+    -- Update earnings tracking separately (doesn't touch xp/level)
     update public.users
-    set xp = xp + xp_delta,
-        coins = coins + coins_delta,
-        xp_from_pvp = COALESCE(xp_from_pvp, 0) + GREATEST(0, xp_delta),
+    set xp_from_pvp = COALESCE(xp_from_pvp, 0) + GREATEST(0, xp_delta),
         coins_from_pvp = COALESCE(coins_from_pvp, 0) + GREATEST(0, coins_delta)
-    where id = v_attacker_id
-    returning xp, coins, level, gemstones
-    into attacker;
+    where id = v_attacker_id;
 
     -- Update defender (lose coins if not blocked, and set cooldown)
     update public.users
@@ -279,13 +285,14 @@ begin
     coins_delta := -coins_lost_to_def;  -- Negative because attacker loses coins
     result_kind := 'pvp_loss';
 
-    -- Update attacker (lose XP, lose coins to defender, and lose AP)
-    update public.users
-    set xp = xp + xp_delta,
-        coins = greatest(0, coins - coins_lost_to_def)
-    where id = v_attacker_id
-    returning xp, coins, level, gemstones
-    into attacker;
+    -- Use rpc_apply_reward_delta to safely update attacker XP/coins
+    -- (bypasses the "Direct XP/level updates are not allowed" trigger)
+    v_reward_result := rpc_apply_reward_delta(
+      p_xp_delta := xp_delta,
+      p_coins_delta := coins_delta,
+      p_gemstones_delta := 0,
+      p_apply_level_milestone := false
+    );
     
     -- Update defender (gains coins from failed attack, and set cooldown)
     update public.users
@@ -294,7 +301,7 @@ begin
     where id = p_defender_id;
   end if;
 
-  gemstones_delta := attacker.gemstones - pre_gemstones;
+  gemstones_delta := coalesce((v_reward_result->'profile'->>'gemstones')::int, 0) - pre_gemstones;
 
   -- ====== Log activity ======
   insert into public.activities (kind, actor_id, actor_username, target_id, target_username, data, created_at)
@@ -323,7 +330,7 @@ begin
   );
 
   -- ====== Return result ======
-  select to_jsonb(xp_status(p_xp => attacker.xp)) into v_xp_status;
+  v_xp_status := v_reward_result->'xp_status';
 
   v_response := jsonb_build_object(
     'result', case 
@@ -348,10 +355,10 @@ begin
       else 'remaining'
     end,
     'final_profile_values', jsonb_build_object(
-      'xp', attacker.xp,
-      'coins', attacker.coins,
-      'level', attacker.level,
-      'gemstones', attacker.gemstones,
+      'xp', (v_reward_result->'profile'->>'xp')::int,
+      'coins', (v_reward_result->'profile'->>'coins')::int,
+      'level', (v_reward_result->'profile'->>'level')::int,
+      'gemstones', (v_reward_result->'profile'->>'gemstones')::int,
       'xp_status', v_xp_status
     ),
     'combat_stats', json_build_object(
