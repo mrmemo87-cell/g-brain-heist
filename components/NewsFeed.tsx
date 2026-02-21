@@ -26,15 +26,40 @@ const normalizeDisplayName = (name: string | undefined, fallback: string) => {
     return trimmedName;
 };
 
+const parseCoinAmountFromDetails = (details?: string) => {
+  if (!details) {
+    return undefined;
+  }
+
+  const match = details.match(/(lost|stole)\s+(\d+)/i);
+  if (!match) {
+    return undefined;
+  }
+
+  const parsed = Number(match[2]);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
+const firstDefinedNumber = (...values: Array<number | undefined>) => {
+  for (const value of values) {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+  }
+  return undefined;
+};
+
 const formatEventText = (event: NewsEvent) => {
     const actorStyle = { color: 'var(--paper-50)', fontWeight: '600' };
     const actorName = normalizeDisplayName(event.actor, 'Someone');
-    const targetName = normalizeDisplayName(event.target, 'a rival');
+  const targetFromData = (event.data as any)?.target_username || (event.data as any)?.defender_username;
+  const targetName = normalizeDisplayName(event.target || targetFromData, 'a rival');
     const details = event.data.details?.trim();
     
     // Static messages - no randomization to keep feed stable
-    const coinsStolen = event.data.coins_stolen;
-    const coinsLost = event.data.coins_lost;
+  const parsedCoinAmount = parseCoinAmountFromDetails(details);
+  const coinsStolen = firstDefinedNumber((event.data as any).coins_stolen, (event.data as any).coins_stolen_from_def, parsedCoinAmount);
+  const coinsLost = firstDefinedNumber((event.data as any).coins_lost, (event.data as any).coins_lost_to_def, parsedCoinAmount);
 
     switch (event.kind) {
         case 'pvp_win':
@@ -42,7 +67,7 @@ const formatEventText = (event: NewsEvent) => {
                 <>
                     <span style={{...actorStyle, color: 'var(--success-teal)'}}>{actorName}</span> attacked{' '}
                     <span style={{...actorStyle, color: 'var(--danger-red)'}}>{targetName}</span>
-                    {coinsStolen ? <> and stole <span className="font-bold" style={{color: 'var(--amber-warn)'}}>{coinsStolen} coins</span></> : (details ? `. ${details}` : '')} 💪
+              {typeof coinsStolen === 'number' ? <> and stole <span className="font-bold" style={{color: 'var(--amber-warn)'}}>{coinsStolen} coins</span></> : (details ? `. ${details}` : '')} 💪
                 </>
             );
         
@@ -50,7 +75,7 @@ const formatEventText = (event: NewsEvent) => {
             return <><span style={{...actorStyle, color: 'var(--danger-red)'}}>{actorName}</span> tried to attack <span style={{...actorStyle, color: 'var(--success-teal)'}}>{targetName}</span> but was blocked by their shield! 🛡️</>;
         
         case 'pvp_loss':
-            return <><span style={{...actorStyle, color: 'var(--danger-red)'}}>{actorName}</span> failed to attack <span style={{...actorStyle, color: 'var(--success-teal)'}}>{targetName}</span>{coinsLost ? <> and lost <span className="font-bold" style={{color: 'var(--danger-red)'}}>{coinsLost} coins</span></> : (details ? `. ${details}` : '')} 😅</>;
+            return <><span style={{...actorStyle, color: 'var(--danger-red)'}}>{actorName}</span> failed to attack <span style={{...actorStyle, color: 'var(--success-teal)'}}>{targetName}</span>{coinsLost ? <> and lost <span className="font-bold" style={{color: 'var(--danger-red)'}}>{coinsLost} coins</span></> : ''} 😅</>;
         
         case 'level_up':
             return <><span style={{...actorStyle, color: 'var(--amber-warn)'}}>{actorName}</span> leveled up to <span className="font-bold">{event.data.details}</span>! 🎉</>;

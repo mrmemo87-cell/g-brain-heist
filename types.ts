@@ -139,6 +139,12 @@ export interface NewsEvent {
   data: {
     details?: string;
     item?: string;
+    coins_stolen?: number;
+    coins_lost?: number;
+    coins_stolen_from_def?: number;
+    coins_lost_to_def?: number;
+    target_username?: string;
+    defender_username?: string;
     achievement_id?: string;
     achievement_name?: string;
     achievement_icon?: string;
