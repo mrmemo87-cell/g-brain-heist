@@ -429,7 +429,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, onComplete, onGrantReward })
       const remaining = Math.max(2200 - elapsedTime, 0);
       queueCinematicTimer(() => {
         // Play appropriate sound when result screen appears
-        if (result.result === 'win') {
+        if (normalizedResult === 'win') {
           audioService.play('hack_win');
         } else {
           audioService.play('hack_fail');
