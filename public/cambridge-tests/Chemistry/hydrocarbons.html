@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry Ch14 ( Hydrocarbons )</title>
-  <script src="../examguard.js"></script>
+  <script src="../examguard.js?v=2"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -570,14 +570,14 @@
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
         <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch14 ( Hydrocarbons )</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 14 � 60 multiple-choice questions</div>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 14 ? 60 multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
       <span class="badge">?? Category: Science</span>
       <span class="badge">?? Difficulty: Advanced</span>
-      <span class="badge">?? Format: Multiple Choice (A�D)</span>
+      <span class="badge">?? Format: Multiple Choice (A?D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
@@ -622,7 +622,7 @@
         <li>Stay on this tab. The first violation triggers a warning.</li>
         <li>Three violations (tab switches, copying, etc.) will auto-submit your test.</li>
         <li>Copying and cutting are disabled during the test.</li>
-        <li>Your timer starts only after you click �I understand�.</li>
+        <li>Your timer starts only after you click ?I understand?.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
@@ -766,11 +766,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} � Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} � ${totalQuestions} questions`;
+      if (titleEl) titleEl.textContent = `${title} ? Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} ? ${totalQuestions} questions`;
       if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
       if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
-      document.title = `${title} � Part ${part}`;
+      document.title = `${title} ? Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -837,10 +837,10 @@
         code: '9701_w21_qp_12 Q: 23',
         prompt: 'Which equation represents a valid propagation step in the chlorination of ethane?',
         options: {
-          A: 'C<sub>2</sub>H<sub>5</sub>Cl + Cl� > C<sub>2</sub>H<sub>4</sub>Cl� + HCl',
-          B: 'C<sub>2</sub>H<sub>6</sub> + Cl� > C<sub>2</sub>H<sub>5</sub>Cl + H�',
-          C: 'C<sub>2</sub>H<sub>5</sub>Cl + H� > C<sub>2</sub>H<sub>5</sub>� + HCl',
-          D: 'C<sub>2</sub>H<sub>5</sub>� + Cl� > C<sub>2</sub>H<sub>5</sub>Cl',
+          A: 'C<sub>2</sub>H<sub>5</sub>Cl + Cl? > C<sub>2</sub>H<sub>4</sub>Cl? + HCl',
+          B: 'C<sub>2</sub>H<sub>6</sub> + Cl? > C<sub>2</sub>H<sub>5</sub>Cl + H?',
+          C: 'C<sub>2</sub>H<sub>5</sub>Cl + H? > C<sub>2</sub>H<sub>5</sub>? + HCl',
+          D: 'C<sub>2</sub>H<sub>5</sub>? + Cl? > C<sub>2</sub>H<sub>5</sub>Cl',
         }
       },
       {
@@ -879,13 +879,13 @@
       {
         number: 8,
         code: '9701_s19_qp_11 Q: 18',
-        prompt: 'At 550�C nitrogen dioxide reacts with unburnt hydrocarbon fragments such as CH<sub>3</sub> in the catalytic converter of a motor vehicle.<br><br>4CH<sub>3</sub> + 7NO<sub>2</sub> > 3.5N<sub>2</sub> + 4CO<sub>2</sub> + 6H<sub>2</sub>O<br><br>Which row gives the energy change for this reaction and a possible reason for it?',
+        prompt: 'At 550?C nitrogen dioxide reacts with unburnt hydrocarbon fragments such as CH<sub>3</sub> in the catalytic converter of a motor vehicle.<br><br>4CH<sub>3</sub> + 7NO<sub>2</sub> > 3.5N<sub>2</sub> + 4CO<sub>2</sub> + 6H<sub>2</sub>O<br><br>Which row gives the energy change for this reaction and a possible reason for it?',
         table: {
           headers: ['energy change of reaction', 'reason why the reaction is endothermic or exothermic'],
           rows: [
             { label: 'A', values: ['endothermic', 'chemical energy is converted to heat energy'] },
             { label: 'B', values: ['endothermic', 'the N?N bond energy is very high'] },
-            { label: 'C', values: ['exothermic', 'CO<sub>2</sub> and H<sub>2</sub>O have negative ?H<sub>f</sub>� values'] },
+            { label: 'C', values: ['exothermic', 'CO<sub>2</sub> and H<sub>2</sub>O have negative ?H<sub>f</sub>? values'] },
             { label: 'D', values: ['exothermic', 'double bonds are broken in NO<sub>2</sub>'] },
           ]
         }
@@ -917,10 +917,10 @@
         code: '9701_s18_qp_12 Q: 21',
         prompt: 'Which equation represents a valid propagation step in the chlorination of ethane?',
         options: {
-          A: 'C<sub>2</sub>H<sub>6</sub> + Cl� > C<sub>2</sub>H<sub>5</sub>Cl + H�',
-          B: 'C<sub>2</sub>H<sub>5</sub>Cl + Cl� > C<sub>2</sub>H<sub>4</sub>Cl� + HCl',
-          C: 'C<sub>2</sub>H<sub>5</sub>Cl + H� > C<sub>2</sub>H<sub>5</sub>� + HCl',
-          D: 'C<sub>2</sub>H<sub>5</sub>� + Cl� > C<sub>2</sub>H<sub>5</sub>Cl',
+          A: 'C<sub>2</sub>H<sub>6</sub> + Cl? > C<sub>2</sub>H<sub>5</sub>Cl + H?',
+          B: 'C<sub>2</sub>H<sub>5</sub>Cl + Cl? > C<sub>2</sub>H<sub>4</sub>Cl? + HCl',
+          C: 'C<sub>2</sub>H<sub>5</sub>Cl + H? > C<sub>2</sub>H<sub>5</sub>? + HCl',
+          D: 'C<sub>2</sub>H<sub>5</sub>? + Cl? > C<sub>2</sub>H<sub>5</sub>Cl',
         }
       },
       {
@@ -928,16 +928,16 @@
         code: '9701_s17_qp_12 Q: 22',
         prompt: 'Which equation represents the initiation step of the substitution reaction between methane and chlorine?',
         options: {
-          A: 'CH<sub>4</sub> > CH<sub>3</sub>� + H�',
+          A: 'CH<sub>4</sub> > CH<sub>3</sub>? + H?',
           B: 'CH<sub>4</sub> > CH<sub>3</sub><sup>?</sup> + H<sup>+</sup>',
-          C: 'Cl<sub>2</sub> > 2Cl�',
+          C: 'Cl<sub>2</sub> > 2Cl?',
           D: 'Cl<sub>2</sub> > Cl<sup>+</sup> + Cl<sup>?</sup>',
         }
       },
       {
         number: 13,
         code: '9701_s16_qp_11 Q: 23',
-        prompt: 'The first propagation step in the reaction between methane and chlorine is shown:<br><br>CH<sub>4</sub> + Cl� > CH<sub>3</sub>� + HCl<br><br>How many different first propagation steps are possible in the reaction between pentane and chlorine?',
+        prompt: 'The first propagation step in the reaction between methane and chlorine is shown:<br><br>CH<sub>4</sub> + Cl? > CH<sub>3</sub>? + HCl<br><br>How many different first propagation steps are possible in the reaction between pentane and chlorine?',
         options: {
           A: '2',
           B: '3',
@@ -950,16 +950,16 @@
         code: '9701_s16_qp_12 Q: 11',
         prompt: 'Which stage in the free radical substitution of ethane by chlorine has the lowest activation energy?',
         options: {
-          A: 'Cl<sub>2</sub> > 2Cl�',
-          B: 'Cl� + C<sub>2</sub>H<sub>6</sub> > C<sub>2</sub>H<sub>5</sub>� + HCl',
-          C: 'C<sub>2</sub>H<sub>5</sub>� + Cl<sub>2</sub> > C<sub>2</sub>H<sub>5</sub>Cl + Cl�',
-          D: 'Cl� + C<sub>2</sub>H<sub>5</sub>� > C<sub>2</sub>H<sub>5</sub>Cl',
+          A: 'Cl<sub>2</sub> > 2Cl?',
+          B: 'Cl? + C<sub>2</sub>H<sub>6</sub> > C<sub>2</sub>H<sub>5</sub>? + HCl',
+          C: 'C<sub>2</sub>H<sub>5</sub>? + Cl<sub>2</sub> > C<sub>2</sub>H<sub>5</sub>Cl + Cl?',
+          D: 'Cl? + C<sub>2</sub>H<sub>5</sub>? > C<sub>2</sub>H<sub>5</sub>Cl',
         }
       },
       {
         number: 15,
         code: '9701_s16_qp_13 Q: 23',
-        prompt: 'When heated with chlorine, the hydrocarbon 2,2-dimethylbutane undergoes free radical substitution. In a propagation step a free radical X is formed:<br><br>CH<sub>3</sub>CH<sub>2</sub>C(CH<sub>3</sub>)<sub>2</sub>CH<sub>3</sub> + Cl� > X� + HCl<br><br>How many different structures of X are possible?',
+        prompt: 'When heated with chlorine, the hydrocarbon 2,2-dimethylbutane undergoes free radical substitution. In a propagation step a free radical X is formed:<br><br>CH<sub>3</sub>CH<sub>2</sub>C(CH<sub>3</sub>)<sub>2</sub>CH<sub>3</sub> + Cl? > X? + HCl<br><br>How many different structures of X are possible?',
         options: {
           A: '2',
           B: '3',
@@ -997,7 +997,7 @@
           A: 'Boiling point is dependent upon the length of the carbon chain only.',
           B: 'Increased branching on a carbon chain increases the boiling point.',
           C: 'Increased branching reduces the strength of the intermolecular hydrogen bonding.',
-          D: 'Increased branching reduces the strength of the intermolecular van der Waals� forces.',
+          D: 'Increased branching reduces the strength of the intermolecular van der Waals? forces.',
         }
       },
       {
@@ -1030,10 +1030,10 @@
         code: '9701_s21_qp_13 Q: 22',
         prompt: 'What is the correct mechanism for the addition of hydrogen bromide to ethene?',
         options: {
-          A: 'HBr is polarised as Br?+�H??; the ? bond attacks Br?+ to form a bromo-carbocation, then H? adds.',
-          B: 'HBr is polarised as H?+�Br??; the ? bond attacks Br?? to form a bromide-substituted carbocation, then H<sup>+</sup> adds.',
-          C: 'HBr is polarised as Br?+�H??; the ? bond attacks H?? and Br<sup>+</sup> adds to the carbocation.',
-          D: 'HBr is polarised as H?+�Br??; the ? bond attacks H?+, the H�Br bond breaks to Br<sup>?</sup> forming a carbocation, and Br<sup>?</sup> attacks.',
+          A: 'HBr is polarised as Br?+?H??; the ? bond attacks Br?+ to form a bromo-carbocation, then H? adds.',
+          B: 'HBr is polarised as H?+?Br??; the ? bond attacks Br?? to form a bromide-substituted carbocation, then H<sup>+</sup> adds.',
+          C: 'HBr is polarised as Br?+?H??; the ? bond attacks H?? and Br<sup>+</sup> adds to the carbocation.',
+          D: 'HBr is polarised as H?+?Br??; the ? bond attacks H?+, the H?Br bond breaks to Br<sup>?</sup> forming a carbocation, and Br<sup>?</sup> attacks.',
         }
       },
       {
@@ -1041,9 +1041,9 @@
         code: '9701_w21_qp_11 Q: 20',
         prompt: 'Hex-2-ene can be made by reacting a haloalkane with (CH<sub>3</sub>)<sub>3</sub>CO<sup>?</sup>, producing hex-2-ene, (CH<sub>3</sub>)<sub>3</sub>COH, and I<sup>?</sup>. Which statement about this reaction is correct?',
         options: {
-          A: '(CH<sub>3</sub>)<sub>3</sub>CO<sup>?</sup> is behaving as a Bronsted�Lowry base.',
+          A: '(CH<sub>3</sub>)<sub>3</sub>CO<sup>?</sup> is behaving as a Bronsted?Lowry base.',
           B: '(CH<sub>3</sub>)<sub>3</sub>CO<sup>?</sup> is behaving as an oxidising agent.',
-          C: 'The C�I bond breaks via homolytic fission.',
+          C: 'The C?I bond breaks via homolytic fission.',
           D: 'This is a hydrolysis reaction.',
         }
       },
@@ -1072,12 +1072,12 @@
       {
         number: 25,
         code: '9701_s20_qp_11 Q: 24',
-        prompt: 'Poly(propene) is an addition polymer. What are the C�C�C bond angles along its polymer chain?',
+        prompt: 'Poly(propene) is an addition polymer. What are the C?C?C bond angles along its polymer chain?',
         options: {
-          A: 'They are all 109�.',
-          B: 'Half of them are 109� and half are 120�.',
-          C: 'Half of them are 90� and half are 180�.',
-          D: 'They are all 120�.',
+          A: 'They are all 109?.',
+          B: 'Half of them are 109? and half are 120?.',
+          C: 'Half of them are 90? and half are 180?.',
+          D: 'They are all 120?.',
         }
       },
       {
@@ -1264,7 +1264,7 @@
         code: '9701_s18_qp_12 Q: 1',
         prompt: 'Which feature is present in both ethene and poly(ethene)?',
         options: {
-          A: 'bond angles of 109�',
+          A: 'bond angles of 109?',
           B: '? covalent bonds',
           C: '? covalent bonds',
           D: 'sp<sup>3</sup> orbitals',
@@ -1342,7 +1342,7 @@
       {
         number: 49,
         code: '9701_w17_qp_11 Q: 22',
-        prompt: 'Many reactions need to be heated before a reaction occurs. Which reaction occurs quickly at room temperature, 20�C?',
+        prompt: 'Many reactions need to be heated before a reaction occurs. Which reaction occurs quickly at room temperature, 20?C?',
         options: {
           A: 'C<sub>2</sub>H<sub>4</sub> + Br<sub>2</sub> > C<sub>2</sub>H<sub>4</sub>Br<sub>2</sub>',
           B: 'C<sub>2</sub>H<sub>4</sub> + H<sub>2</sub>O > CH<sub>3</sub>CH<sub>2</sub>OH',
@@ -1449,10 +1449,10 @@
         code: '9701_s15_qp_11 Q: 22',
         prompt: 'Cottonseed oil contains large amounts of polyunsaturated carboxylic acids. When this oil is used to make margarine, the C=C double bonds in the unsaturated carboxylic acids are hydrogenated. What reagents and conditions would be suitable to bring about this hydrogenation reaction?',
         options: {
-          A: 'H<sub>2</sub> gas, nickel catalyst, 400�C',
+          A: 'H<sub>2</sub> gas, nickel catalyst, 400?C',
           B: 'LiAlH<sub>4</sub> in dry ether',
           C: 'NaBH<sub>4</sub>, aqueous solution',
-          D: 'steam, concentrated H<sub>2</sub>SO<sub>4</sub>, 300�C and 60 atm pressure',
+          D: 'steam, concentrated H<sub>2</sub>SO<sub>4</sub>, 300?C and 60 atm pressure',
         }
       },
       {
@@ -1469,7 +1469,7 @@
       {
         number: 60,
         code: '9701_s15_qp_12 Q: 22',
-        prompt: 'Four students, W, X, Y and Z, made the following statements about alkanes and alkenes.<br><br>W: �Bromine reacts with alkanes by electrophilic substitution.�<br>X: �Bromine reacts with alkenes by a free-radical addition mechanism.�<br>Y: �Alkenes can be oxidised by acidified manganate(VII) ions.�<br>Z: �Alkenes are formed from alkanes by cracking.�<br><br>Which two students are correct?',
+        prompt: 'Four students, W, X, Y and Z, made the following statements about alkanes and alkenes.<br><br>W: ?Bromine reacts with alkanes by electrophilic substitution.?<br>X: ?Bromine reacts with alkenes by a free-radical addition mechanism.?<br>Y: ?Alkenes can be oxidised by acidified manganate(VII) ions.?<br>Z: ?Alkenes are formed from alkanes by cracking.?<br><br>Which two students are correct?',
         options: {
           A: 'W and X',
           B: 'W and Z',
@@ -1795,7 +1795,7 @@
         
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` � ?? Time: ${formatTimer(data.time_taken_seconds)}`
+            ? ` ? ?? Time: ${formatTimer(data.time_taken_seconds)}`
             : '';
           scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
@@ -2037,7 +2037,7 @@
           review.textContent = `? Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `? Your answer: ${studentAnswer || '�'} | ? Correct: ${correctAnswer}`;
+          review.textContent = `? Your answer: ${studentAnswer || '?'} | ? Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -2093,7 +2093,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('�')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('?')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -2139,7 +2139,7 @@
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test � auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test ? auto-submitted' });
         }
       });
     });

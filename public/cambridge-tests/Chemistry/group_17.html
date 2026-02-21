@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry Ch11 ( Group 17 )</title>
-  <script src="../examguard.js"></script>
+  <script src="../examguard.js?v=2"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -532,14 +532,14 @@
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
         <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch11 ( Group 17 )</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 11 � 81 multiple-choice questions</div>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 11 ? 81 multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
       <span class="badge">?? Category: Science</span>
       <span class="badge">?? Difficulty: Advanced</span>
-      <span class="badge">?? Format: Multiple Choice (A�D)</span>
+      <span class="badge">?? Format: Multiple Choice (A?D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
@@ -584,7 +584,7 @@
         <li>Stay on this tab. The first violation triggers a warning.</li>
         <li>Three violations (tab switches, copying, etc.) will auto-submit your test.</li>
         <li>Copying and cutting are disabled during the test.</li>
-        <li>Your timer starts only after you click �I understand�.</li>
+        <li>Your timer starts only after you click ?I understand?.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
@@ -727,11 +727,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} � Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} � ${totalQuestions} questions`;
+      if (titleEl) titleEl.textContent = `${title} ? Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} ? ${totalQuestions} questions`;
       if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
       if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
-      document.title = `${title} � Part ${part}`;
+      document.title = `${title} ? Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -762,7 +762,7 @@
         options: {
           A: 'The hydrides become less thermally stable as they become weaker reducing agents.',
           B: 'The hydrides become more thermally stable as the reactivity of the elements decreases.',
-          C: 'The volatility of the elements decreases as the van der Waals� forces increase.',
+          C: 'The volatility of the elements decreases as the van der Waals? forces increase.',
           D: 'The volatility of the elements increases as the size of the molecules increases.',
         }
       },
@@ -784,7 +784,7 @@
         options: {
           A: 'Chlorine is more electronegative than iodine and so has more repulsion between its molecules.',
           B: 'The greater number of electrons in iodine leads to larger temporary dipole-induced dipole forces.',
-          C: 'The I�I bond energy is smaller than the Cl�Cl bond energy.',
+          C: 'The I?I bond energy is smaller than the Cl?Cl bond energy.',
           D: 'The iodine molecules have stronger permanent dipole-permanent dipole forces.',
         }
       },
@@ -794,9 +794,9 @@
         prompt: 'Which property explains the trend in volatility of the elements going down Group 17?',
         options: {
           A: 'decreasing covalent bond strength',
-          B: 'decreasing van der Waals� forces',
+          B: 'decreasing van der Waals? forces',
           C: 'increasing covalent bond strength',
-          D: 'increasing van der Waals� forces',
+          D: 'increasing van der Waals? forces',
         }
       },
       {
@@ -863,9 +863,9 @@
       {
         number: 10,
         code: '9701_w17_qp_11 Q: 19',
-        prompt: 'The strengths of the covalent bonds within halogen molecules, and the van der Waals� forces between halogen molecules, vary going down Group 17 from chlorine to bromine to iodine. Which row shows these correctly?',
+        prompt: 'The strengths of the covalent bonds within halogen molecules, and the van der Waals? forces between halogen molecules, vary going down Group 17 from chlorine to bromine to iodine. Which row shows these correctly?',
         optionTable: {
-          headers: ['strength of covalent bonds', 'strength of van der Waals� forces'],
+          headers: ['strength of covalent bonds', 'strength of van der Waals? forces'],
           rows: [
             { label: 'A', values: ['decreases', 'decreases'] },
             { label: 'B', values: ['decreases', 'increases'] },
@@ -877,9 +877,9 @@
       {
         number: 11,
         code: '9701_s16_qp_12 Q: 19',
-        prompt: 'Fluorine and iodine are Group 17 elements. Their melting points are different due to differing strengths of van der Waals� forces between molecules. Which row is correct?',
+        prompt: 'Fluorine and iodine are Group 17 elements. Their melting points are different due to differing strengths of van der Waals? forces between molecules. Which row is correct?',
         optionTable: {
-          headers: ['melting point', 'strength of van der Waals� forces between molecules'],
+          headers: ['melting point', 'strength of van der Waals? forces between molecules'],
           rows: [
             { label: 'A', values: ['F? > I?', 'F? > I?'] },
             { label: 'B', values: ['F? > I?', 'F? < I?'] },
@@ -913,7 +913,7 @@
       {
         number: 14,
         code: '9701_m22_qp_12 Q: 6',
-        prompt: 'The boiling points of some hydrogen halides are shown.<br><div class="table-wrapper"><table><thead><tr><th>hydrogen halide</th><th>boiling point / K</th></tr></thead><tbody><tr><td>H�Cl</td><td>188</td></tr><tr><td>H�Br</td><td>206</td></tr><tr><td>H�I</td><td>238</td></tr></tbody></table></div>What is the explanation for the trend in boiling point for the hydrogen halides from HCl to HI?',
+        prompt: 'The boiling points of some hydrogen halides are shown.<br><div class="table-wrapper"><table><thead><tr><th>hydrogen halide</th><th>boiling point / K</th></tr></thead><tbody><tr><td>H?Cl</td><td>188</td></tr><tr><td>H?Br</td><td>206</td></tr><tr><td>H?I</td><td>238</td></tr></tbody></table></div>What is the explanation for the trend in boiling point for the hydrogen halides from HCl to HI?',
         options: {
           A: 'The bond energies of the hydrogen halides increase from HCl to HI.',
           B: 'There is an increase in the strength of the intermolecular forces of attraction from HCl to HI.',
@@ -943,7 +943,7 @@
           A: 'bond strength of the hydrogen-halide bond',
           B: 'first ionisation energy',
           C: 'solubility of the silver halide in NH?(aq)',
-          D: 'strength of the van der Waals� forces between molecules of the element',
+          D: 'strength of the van der Waals? forces between molecules of the element',
         }
       },
       {
@@ -967,17 +967,17 @@
         optionTable: {
           headers: ['identity of the more thermally stable compound', 'explanation for the difference in stability'],
           rows: [
-            { label: 'A', values: ['hydrogen chloride', 'the Cl�Cl bond is stronger than the I�I bond'] },
-            { label: 'B', values: ['hydrogen chloride', 'the H�Cl bond is stronger than the H�I bond'] },
-            { label: 'C', values: ['hydrogen iodide', 'the Cl�Cl bond is stronger than the I�I bond'] },
-            { label: 'D', values: ['hydrogen iodide', 'the H�Cl bond is stronger than the H�I bond'] },
+            { label: 'A', values: ['hydrogen chloride', 'the Cl?Cl bond is stronger than the I?I bond'] },
+            { label: 'B', values: ['hydrogen chloride', 'the H?Cl bond is stronger than the H?I bond'] },
+            { label: 'C', values: ['hydrogen iodide', 'the Cl?Cl bond is stronger than the I?I bond'] },
+            { label: 'D', values: ['hydrogen iodide', 'the H?Cl bond is stronger than the H?I bond'] },
           ]
         }
       },
       {
         number: 19,
         code: '9701_s16_qp_13 Q: 17',
-        prompt: 'Two students, P and Q, were asked to draw bar charts to represent how some properties of the halogens and their compounds differ in magnitude. Their diagrams are described below. Student P shows the solubility of AgX(s) in NH?(aq) increasing from Cl to Br to I. Student Q shows ?H� for H?(g) + X?(g) > 2HX(g) becoming less negative from Cl to Br to I. Which of the students have drawn bar charts which show the trends correctly?',
+        prompt: 'Two students, P and Q, were asked to draw bar charts to represent how some properties of the halogens and their compounds differ in magnitude. Their diagrams are described below. Student P shows the solubility of AgX(s) in NH?(aq) increasing from Cl to Br to I. Student Q shows ?H? for H?(g) + X?(g) > 2HX(g) becoming less negative from Cl to Br to I. Which of the students have drawn bar charts which show the trends correctly?',
         options: {
           A: 'both P and Q',
           B: 'P only',
@@ -1372,7 +1372,7 @@
           A: 'bond strength of the hydrogen-halide bond',
           B: 'first ionisation energy',
           C: 'solubility of the silver halide in NH?(aq)',
-          D: 'strength of the van der Waals� forces between molecules of the element',
+          D: 'strength of the van der Waals? forces between molecules of the element',
         }
       },
       {
@@ -2011,7 +2011,7 @@
         
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` � ?? Time: ${formatTimer(data.time_taken_seconds)}`
+            ? ` ? ?? Time: ${formatTimer(data.time_taken_seconds)}`
             : '';
           scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
@@ -2234,7 +2234,7 @@
           review.textContent = `? Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `? Your answer: ${studentAnswer || '�'} | ? Correct: ${correctAnswer}`;
+          review.textContent = `? Your answer: ${studentAnswer || '?'} | ? Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -2290,7 +2290,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('�')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('?')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -2336,7 +2336,7 @@
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test � auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test ? auto-submitted' });
         }
       });
     });

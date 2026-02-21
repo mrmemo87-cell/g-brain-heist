@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry Ch13 ( An introduction to AS Level organic chemistry )</title>
-  <script src="../examguard.js"></script>
+  <script src="../examguard.js?v=2"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -570,14 +570,14 @@
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
         <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch13 ( An introduction to AS Level organic chemistry )</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 13 � 76 multiple-choice questions</div>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 13 ? 76 multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
       <span class="badge">?? Category: Science</span>
       <span class="badge">?? Difficulty: Advanced</span>
-      <span class="badge">?? Format: Multiple Choice (A�D)</span>
+      <span class="badge">?? Format: Multiple Choice (A?D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
@@ -622,7 +622,7 @@
         <li>Stay on this tab. The first violation triggers a warning.</li>
         <li>Three violations (tab switches, copying, etc.) will auto-submit your test.</li>
         <li>Copying and cutting are disabled during the test.</li>
-        <li>Your timer starts only after you click �I understand�.</li>
+        <li>Your timer starts only after you click ?I understand?.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
@@ -766,11 +766,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} � Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} � ${totalQuestions} questions`;
+      if (titleEl) titleEl.textContent = `${title} ? Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} ? ${totalQuestions} questions`;
       if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
       if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
-      document.title = `${title} � Part ${part}`;
+      document.title = `${title} ? Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -869,14 +869,14 @@
       {
         number: 7,
         code: '9701_m18_qp_12 Q: 23',
-        prompt: 'Which compound reacts with 2,4-dinitrophenylhydrazine reagent but does not react with Tollens� reagent?',
+        prompt: 'Which compound reacts with 2,4-dinitrophenylhydrazine reagent but does not react with Tollens? reagent?',
         simpleOptions: {
           A: 'CH<sub>3</sub>COCO<sub>2</sub>H',
           B: 'CH<sub>3</sub>CH(OH)CHO',
           C: 'CH<sub>3</sub>COCHO',
           D: 'CH<sub>3</sub>CH(OH)CH<sub>3</sub>',
         },
-        explanation: '2,4-DNPH reacts with carbonyls, but Tollens� reacts with aldehydes. A is a ketone, so it reacts with DNPH but not Tollens� reagent.'
+        explanation: '2,4-DNPH reacts with carbonyls, but Tollens? reacts with aldehydes. A is a ketone, so it reacts with DNPH but not Tollens? reagent.'
       },
       {
         number: 8,
@@ -888,7 +888,7 @@
           C: 'HCO<sub>2</sub>CH<sub>3</sub>',
           D: 'HCO<sub>2</sub>H',
         },
-        explanation: 'Formic acid (HCO2H) can hydrogen-bond strongly through its O�H group.'
+        explanation: 'Formic acid (HCO2H) can hydrogen-bond strongly through its O?H group.'
       },
       {
         number: 9,
@@ -1011,13 +1011,13 @@
         table: {
           headers: ['x', 'y', 'z'],
           rows: [
-            { label: 'A', values: ['90�', '90�', '109�'] },
-            { label: 'B', values: ['120�', '109�', '90�'] },
-            { label: 'C', values: ['120�', '120�', '109�'] },
-            { label: 'D', values: ['180�', '109�', '109�'] },
+            { label: 'A', values: ['90?', '90?', '109?'] },
+            { label: 'B', values: ['120?', '109?', '90?'] },
+            { label: 'C', values: ['120?', '120?', '109?'] },
+            { label: 'D', values: ['180?', '109?', '109?'] },
           ]
         },
-        explanation: 'The C=C atoms are trigonal planar (~120�) and the sp3 carbon is tetrahedral (~109�).'
+        explanation: 'The C=C atoms are trigonal planar (~120?) and the sp3 carbon is tetrahedral (~109?).'
       },
       {
         number: 19,
@@ -1077,7 +1077,7 @@
             { label: 'D', values: ['120', '120', '109.5'] },
           ]
         },
-        explanation: 'Angle 1 is around an sp2 carbon (~120�), angle 2 is around an amine (~107�), angle 3 is tetrahedral (~109.5�).'
+        explanation: 'Angle 1 is around an sp2 carbon (~120?), angle 2 is around an amine (~107?), angle 3 is tetrahedral (~109.5?).'
       },
       {
         number: 23,
@@ -1122,10 +1122,10 @@
         table: {
           headers: ['x', 'y', 'z'],
           rows: [
-            { label: 'A', values: ['90�', '90�', '109�'] },
-            { label: 'B', values: ['120�', '109�', '90�'] },
-            { label: 'C', values: ['120�', '120�', '109�'] },
-            { label: 'D', values: ['180�', '109�', '109�'] },
+            { label: 'A', values: ['90?', '90?', '109?'] },
+            { label: 'B', values: ['120?', '109?', '90?'] },
+            { label: 'C', values: ['120?', '120?', '109?'] },
+            { label: 'D', values: ['180?', '109?', '109?'] },
           ]
         },
         explanation: 'The alkene carbons are trigonal planar and the sp3 carbon is tetrahedral.'
@@ -1685,7 +1685,7 @@
       {
         number: 71,
         code: '9701_w16_qp_12 Q: 30',
-        prompt: 'Some vegetable oils contain �trans fats� that are associated with undesirable increases in the amount of cholesterol in the blood. In these oils the word �trans� describes, in the usual way, the arrangement of groups at a C=C double bond. In the diagrams below, R<sub>1</sub> and R<sub>2</sub> are different unbranched hydrocarbon chains.<br><div style="margin: 12px 0; padding: 12px; border: 1px dashed var(--border); border-radius: 10px; color: var(--text-muted); font-size: 13px;">Diagram omitted.</div>Which diagram correctly shows an optically active �trans fat�?',
+        prompt: 'Some vegetable oils contain ?trans fats? that are associated with undesirable increases in the amount of cholesterol in the blood. In these oils the word ?trans? describes, in the usual way, the arrangement of groups at a C=C double bond. In the diagrams below, R<sub>1</sub> and R<sub>2</sub> are different unbranched hydrocarbon chains.<br><div style="margin: 12px 0; padding: 12px; border: 1px dashed var(--border); border-radius: 10px; color: var(--text-muted); font-size: 13px;">Diagram omitted.</div>Which diagram correctly shows an optically active ?trans fat??',
         simpleOptions: {
           A: 'A',
           B: 'B',
@@ -1709,7 +1709,7 @@
       {
         number: 73,
         code: '9701_s15_qp_13 Q: 27',
-        prompt: 'The compound aspartame is widely used as a sweetener in �diet� soft drinks.<br><div style="margin: 12px 0; padding: 12px; border: 1px dashed var(--border); border-radius: 10px; color: var(--text-muted); font-size: 13px;">Diagram omitted.</div>Aspartame is chiral. (There are no chiral carbon atoms in C<sub>6</sub>H<sub>5</sub>.) How many chiral carbon atoms are present in a molecule of aspartame?',
+        prompt: 'The compound aspartame is widely used as a sweetener in ?diet? soft drinks.<br><div style="margin: 12px 0; padding: 12px; border: 1px dashed var(--border); border-radius: 10px; color: var(--text-muted); font-size: 13px;">Diagram omitted.</div>Aspartame is chiral. (There are no chiral carbon atoms in C<sub>6</sub>H<sub>5</sub>.) How many chiral carbon atoms are present in a molecule of aspartame?',
         simpleOptions: {
           A: '1',
           B: '2',
@@ -2142,7 +2142,7 @@
         
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` � ?? Time: ${formatTimer(data.time_taken_seconds)}`
+            ? ` ? ?? Time: ${formatTimer(data.time_taken_seconds)}`
             : '';
           scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
@@ -2384,7 +2384,7 @@
           review.textContent = `? Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `? Your answer: ${studentAnswer || '�'} | ? Correct: ${correctAnswer}`;
+          review.textContent = `? Your answer: ${studentAnswer || '?'} | ? Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -2440,7 +2440,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('�')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('?')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -2486,7 +2486,7 @@
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test � auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test ? auto-submitted' });
         }
       });
     });

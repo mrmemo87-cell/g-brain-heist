@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry Ch7 (Equilibria)</title>
-  <script src="../examguard.js"></script>
+  <script src="../examguard.js?v=2"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -619,14 +619,14 @@
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
         <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch7 (Equilibria)</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 7 � 73 multiple-choice questions</div>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 7 ? 73 multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
       <span class="badge">?? Category: Science</span>
       <span class="badge">?? Difficulty: Advanced</span>
-      <span class="badge">?? Format: Multiple Choice (A�D)</span>
+      <span class="badge">?? Format: Multiple Choice (A?D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
@@ -671,7 +671,7 @@
         <li>Stay on this tab. The first violation triggers a warning.</li>
         <li>Three violations (tab switches, copying, etc.) will auto-submit your test.</li>
         <li>Copying and cutting are disabled during the test.</li>
-        <li>Your timer starts only after you click �I understand�.</li>
+        <li>Your timer starts only after you click ?I understand?.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
@@ -814,11 +814,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} � Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} � ${totalQuestions} questions`;
+      if (titleEl) titleEl.textContent = `${title} ? Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} ? ${totalQuestions} questions`;
       if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
       if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
-      document.title = `${title} � Part ${part}`;
+      document.title = `${title} ? Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -975,9 +975,9 @@
       {
         number: 11,
         code: '9701_s20_qp_11 Q: 1',
-        prompt: 'Ethene can be oxidised to form epoxyethane at equilibrium.<br><br>C<sub>2</sub>H<sub>4</sub>(g) + <span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span>O<sub>2</sub>(g) ? C<sub>2</sub>H<sub>4</sub>O(g) &nbsp;&nbsp;&nbsp; ?H� = ?107 kJ mol<sup>?1</sup><br><br>Which conditions give the greatest yield?',
+        prompt: 'Ethene can be oxidised to form epoxyethane at equilibrium.<br><br>C<sub>2</sub>H<sub>4</sub>(g) + <span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span>O<sub>2</sub>(g) ? C<sub>2</sub>H<sub>4</sub>O(g) &nbsp;&nbsp;&nbsp; ?H? = ?107 kJ mol<sup>?1</sup><br><br>Which conditions give the greatest yield?',
         optionTable: {
-          headers: ['pressure', 'temperature / �C'],
+          headers: ['pressure', 'temperature / ?C'],
           rows: [
             { label: 'A', values: ['high', '100'] },
             { label: 'B', values: ['high', '200'] },
@@ -1011,7 +1011,7 @@
       {
         number: 14,
         code: '9701_s20_qp_12 Q: 11',
-        prompt: 'PCl<sub>5</sub>(g) ? PCl<sub>3</sub>(g) + Cl<sub>2</sub>(g)<br><br>1.0 mol of each species are placed in a 1 dm<sup>3</sup> container at 250 �C and allowed to reach equilibrium. The equilibrium mixture contains 1.8 moles of PCl<sub>3</sub>.<br><br>What is K<sub>c</sub> at 250 �C?',
+        prompt: 'PCl<sub>5</sub>(g) ? PCl<sub>3</sub>(g) + Cl<sub>2</sub>(g)<br><br>1.0 mol of each species are placed in a 1 dm<sup>3</sup> container at 250 ?C and allowed to reach equilibrium. The equilibrium mixture contains 1.8 moles of PCl<sub>3</sub>.<br><br>What is K<sub>c</sub> at 250 ?C?',
         options: {
           A: '1',
           B: '1.8',
@@ -1044,7 +1044,7 @@
       {
         number: 17,
         code: '9701_w20_qp_12 Q: 10',
-        prompt: '2SO<sub>2</sub>(g) + O<sub>2</sub>(g) ? 2SO<sub>3</sub>(g) &nbsp;&nbsp;&nbsp; K<sub>p</sub> = 2.96 ? 10<sup>?9</sup> Pa<sup>?1</sup> at 700 �C<br><br>At equilibrium at 700 �C, p(O<sub>2</sub>) = 375 kPa and p(SO<sub>3</sub>) = 20.3 kPa.<br><br>What is p(SO<sub>2</sub>)?',
+        prompt: '2SO<sub>2</sub>(g) + O<sub>2</sub>(g) ? 2SO<sub>3</sub>(g) &nbsp;&nbsp;&nbsp; K<sub>p</sub> = 2.96 ? 10<sup>?9</sup> Pa<sup>?1</sup> at 700 ?C<br><br>At equilibrium at 700 ?C, p(O<sub>2</sub>) = 375 kPa and p(SO<sub>3</sub>) = 20.3 kPa.<br><br>What is p(SO<sub>2</sub>)?',
         options: {
           A: '19.3 kPa',
           B: '609 kPa',
@@ -1190,7 +1190,7 @@
       {
         number: 30,
         code: '9701_m18_qp_12 Q: 14',
-        prompt: 'X, Y and Z are three third-period elements.<br><br>� X reacts with chlorine to give a liquid product.<br>� Y reacts with chlorine to give a solid product that dissolves in water to give a solution of pH 7.<br>� Z reacts with chlorine to give a solid product that dissolves in water to give a solution of pH 6.<br><br>Which elements are good conductors of electricity?',
+        prompt: 'X, Y and Z are three third-period elements.<br><br>? X reacts with chlorine to give a liquid product.<br>? Y reacts with chlorine to give a solid product that dissolves in water to give a solution of pH 7.<br>? Z reacts with chlorine to give a solid product that dissolves in water to give a solution of pH 6.<br><br>Which elements are good conductors of electricity?',
         options: {
           A: 'X and Y',
           B: 'Y and Z',
@@ -1215,7 +1215,7 @@
       {
         number: 32,
         code: '9701_s18_qp_12 Q: 10',
-        prompt: 'In a reversible reaction the yield of product is increased when:<br>� the temperature is increased<br>� the pressure is decreased<br><br>Which equation could describe this reaction?',
+        prompt: 'In a reversible reaction the yield of product is increased when:<br>? the temperature is increased<br>? the pressure is decreased<br><br>Which equation could describe this reaction?',
         options: {
           A: 'CH<sub>4</sub>(g) + H<sub>2</sub>O(g) ? 3H<sub>2</sub>(g) + CO(g) &nbsp;&nbsp; ?H = +206 kJ mol<sup>?1</sup>',
           B: '4NH<sub>3</sub>(g) + 3O<sub>2</sub>(g) ? 2N<sub>2</sub>(g) + 6H<sub>2</sub>O(g) &nbsp;&nbsp; ?H = ?227 kJ mol<sup>?1</sup>',
@@ -1226,7 +1226,7 @@
       {
         number: 33,
         code: '9701_s18_qp_13 Q: 9',
-        prompt: 'CH<sub>4</sub>(g) + H<sub>2</sub>O(g) ? CO(g) + 3H<sub>2</sub>(g) &nbsp;&nbsp; ?H� = +205 kJ mol<sup>?1</sup><br><br>Which conditions favour formation of hydrogen?',
+        prompt: 'CH<sub>4</sub>(g) + H<sub>2</sub>O(g) ? CO(g) + 3H<sub>2</sub>(g) &nbsp;&nbsp; ?H? = +205 kJ mol<sup>?1</sup><br><br>Which conditions favour formation of hydrogen?',
         optionTable: {
           headers: ['pressure', 'temperature'],
           rows: [
@@ -1353,7 +1353,7 @@
       {
         number: 44,
         code: '9701_s17_qp_12 Q: 10',
-        prompt: '2SO<sub>2</sub>(g) + O<sub>2</sub>(g) ? 2SO<sub>3</sub>(g) &nbsp;&nbsp; ?H� = ?197 kJ mol<sup>?1</sup><br><br>K<sub>p</sub> measured at 200 kPa, 700 K is Y. Measured again at 1000 kPa, 700 K is Z.<br><br>Which statement comparing Y and Z is correct?',
+        prompt: '2SO<sub>2</sub>(g) + O<sub>2</sub>(g) ? 2SO<sub>3</sub>(g) &nbsp;&nbsp; ?H? = ?197 kJ mol<sup>?1</sup><br><br>K<sub>p</sub> measured at 200 kPa, 700 K is Y. Measured again at 1000 kPa, 700 K is Z.<br><br>Which statement comparing Y and Z is correct?',
         options: {
           A: 'Y and Z are the same.',
           B: 'Y is greater than Z.',
@@ -1364,7 +1364,7 @@
       {
         number: 45,
         code: '9701_s17_qp_13 Q: 9',
-        prompt: 'N<sub>2</sub> + 3H<sub>2</sub> ? 2NH<sub>3</sub> &nbsp;&nbsp; ?H� = ?92 kJ mol<sup>?1</sup><br><br>During production, temperature accidentally increased to 600 �C for two hours.<br><br>What effect on ammonia production during this time?',
+        prompt: 'N<sub>2</sub> + 3H<sub>2</sub> ? 2NH<sub>3</sub> &nbsp;&nbsp; ?H? = ?92 kJ mol<sup>?1</sup><br><br>During production, temperature accidentally increased to 600 ?C for two hours.<br><br>What effect on ammonia production during this time?',
         options: {
           A: 'Formed faster; equilibrium yield decreased.',
           B: 'Formed faster; equilibrium yield increased.',
@@ -1603,7 +1603,7 @@
       {
         number: 63,
         code: '9701_w15_qp_11 Q: 2',
-        prompt: 'N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ? 2NH<sub>3</sub>(g) &nbsp;&nbsp; ?H� = ?92 kJ mol<sup>?1</sup><br><br>Which set of conditions gives the highest yield of ammonia at equilibrium?',
+        prompt: 'N<sub>2</sub>(g) + 3H<sub>2</sub>(g) ? 2NH<sub>3</sub>(g) &nbsp;&nbsp; ?H? = ?92 kJ mol<sup>?1</sup><br><br>Which set of conditions gives the highest yield of ammonia at equilibrium?',
         optionTable: {
           headers: ['catalyst', 'pressure', 'temperature'],
           rows: [
@@ -1617,7 +1617,7 @@
       {
         number: 64,
         code: '9701_w15_qp_12 Q: 8',
-        prompt: 'CH<sub>4</sub>(g) + H<sub>2</sub>O(g) ? CO(g) + 3H<sub>2</sub>(g) &nbsp;&nbsp; ?H� = +210 kJ mol<sup>?1</sup><br><br>Which pressure and temperature give the greatest equilibrium yield of hydrogen?',
+        prompt: 'CH<sub>4</sub>(g) + H<sub>2</sub>O(g) ? CO(g) + 3H<sub>2</sub>(g) &nbsp;&nbsp; ?H? = +210 kJ mol<sup>?1</sup><br><br>Which pressure and temperature give the greatest equilibrium yield of hydrogen?',
         optionTable: {
           headers: ['pressure', 'temperature'],
           rows: [
@@ -1642,7 +1642,7 @@
       {
         number: 66,
         code: '9701_m22_qp_12 Q: 13',
-        prompt: 'Diethylzinc, (C<sub>2</sub>H<sub>5</sub>)<sub>2</sub>Zn, is added to NaOH(aq). Two reactions occur:<br>1) (C<sub>2</sub>H<sub>5</sub>)<sub>2</sub>Zn + H<sub>2</sub>O > ZnO + 2C<sub>2</sub>H<sub>6</sub><br>2) H<sub>2</sub>O + ZnO + 2OH<sup>?</sup> > Zn(OH)<sub>4</sub><sup>2?</sup><br><br>Which compounds act as Bronsted�Lowry acids?',
+        prompt: 'Diethylzinc, (C<sub>2</sub>H<sub>5</sub>)<sub>2</sub>Zn, is added to NaOH(aq). Two reactions occur:<br>1) (C<sub>2</sub>H<sub>5</sub>)<sub>2</sub>Zn + H<sub>2</sub>O > ZnO + 2C<sub>2</sub>H<sub>6</sub><br>2) H<sub>2</sub>O + ZnO + 2OH<sup>?</sup> > Zn(OH)<sub>4</sub><sup>2?</sup><br><br>Which compounds act as Bronsted?Lowry acids?',
         optionTable: {
           headers: ['reaction 1', 'reaction 2'],
           rows: [
@@ -1656,7 +1656,7 @@
       {
         number: 67,
         code: '9701_m21_qp_12 Q: 9',
-        prompt: 'In which reaction is water behaving as a Bronsted�Lowry base?',
+        prompt: 'In which reaction is water behaving as a Bronsted?Lowry base?',
         options: {
           A: 'H<sub>2</sub>O + Na > NaOH + <span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span>H<sub>2</sub>',
           B: 'H<sub>2</sub>O + H<sub>3</sub>PO<sub>4</sub> > H<sub>3</sub>O<sup>+</sup> + H<sub>2</sub>PO<sub>4</sub><sup>?</sup>',
@@ -1667,12 +1667,12 @@
       {
         number: 68,
         code: '9701_w21_qp_11 Q: 7',
-        prompt: 'In order to determine the enthalpy of neutralisation of a strong acid and a strong alkali, 25.0 cm<sup>3</sup> of 2.00 mol dm<sup>?3</sup> sodium hydroxide is added to 25.0 cm<sup>3</sup> of 2.00 mol dm<sup>?3</sup> hydrochloric acid. The increase in temperature is 12 �C.<br><br>In a second experiment, the same method is used, but 50.0 cm<sup>3</sup> of 2.00 mol dm<sup>?3</sup> sodium hydroxide is added to 50.0 cm<sup>3</sup> of 2.00 mol dm<sup>?3</sup> hydrochloric acid.<br><br>What is the increase in temperature in the second experiment?',
+        prompt: 'In order to determine the enthalpy of neutralisation of a strong acid and a strong alkali, 25.0 cm<sup>3</sup> of 2.00 mol dm<sup>?3</sup> sodium hydroxide is added to 25.0 cm<sup>3</sup> of 2.00 mol dm<sup>?3</sup> hydrochloric acid. The increase in temperature is 12 ?C.<br><br>In a second experiment, the same method is used, but 50.0 cm<sup>3</sup> of 2.00 mol dm<sup>?3</sup> sodium hydroxide is added to 50.0 cm<sup>3</sup> of 2.00 mol dm<sup>?3</sup> hydrochloric acid.<br><br>What is the increase in temperature in the second experiment?',
         options: {
-          A: '6 �C',
-          B: '12 �C',
-          C: '24 �C',
-          D: '48 �C',
+          A: '6 ?C',
+          B: '12 ?C',
+          C: '24 ?C',
+          D: '48 ?C',
         }
       },
       {
@@ -1703,7 +1703,7 @@
       {
         number: 71,
         code: '9701_s18_qp_11 Q: 15',
-        prompt: 'In which reaction does ammonia behave as a Bronsted�Lowry base?',
+        prompt: 'In which reaction does ammonia behave as a Bronsted?Lowry base?',
         options: {
           A: 'NH<sub>3</sub> + CH<sub>3</sub>CH<sub>2</sub>Br > CH<sub>3</sub>CH<sub>2</sub>NH<sub>2</sub> + HBr',
           B: 'NH<sub>3</sub> + H<sub>2</sub>O + CO<sub>2</sub> > (NH<sub>4</sub>)HCO<sub>3</sub>',
@@ -2027,7 +2027,7 @@
         
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` � ?? Time: ${formatTimer(data.time_taken_seconds)}`
+            ? ` ? ?? Time: ${formatTimer(data.time_taken_seconds)}`
             : '';
           scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
@@ -2250,7 +2250,7 @@
           review.textContent = `? Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `? Your answer: ${studentAnswer || '�'} | ? Correct: ${correctAnswer}`;
+          review.textContent = `? Your answer: ${studentAnswer || '?'} | ? Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -2306,7 +2306,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('�')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('?')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -2352,7 +2352,7 @@
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test � auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test ? auto-submitted' });
         }
       });
     });

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -6,10 +6,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="format-detection" content="telephone=no" />
-<title>Cambridge Listening Test 1 — Answer Form</title>
+<title>Cambridge Listening Test 1 � Answer Form</title>
 
 <!-- No external Supabase library needed - using fetch API directly -->
-<script src="../examguard.js"></script>
+<script src="../examguard.js?v=2"></script>
 
 <style>
   * { box-sizing: border-box; }
@@ -585,26 +585,26 @@
       cursor: pointer;
       font-size: 14px;
       font-weight: 600;
-    ">← Back to Game</button>
+    ">< Back to Game</button>
   </div>
 
-  <h1>🎧 Cambridge Listening Test 1</h1>
-  <p class="subtitle">Answer Form — Questions 1–28</p>
+  <h1>?? Cambridge Listening Test 1</h1>
+  <p class="subtitle">Answer Form � Questions 1�28</p>
 
   <div class="warning-box">
-    <h3>⚠️ Important Rules</h3>
+    <h3>?? Important Rules</h3>
     <ul>
-      <li>You can only submit <b>ONCE</b> — answers cannot be changed after submission</li>
-      <li>The audio will play <b>ONCE ONLY</b> — you cannot pause, rewind, or skip ahead</li>
-      <li>Listen carefully — once the audio starts, it cannot be stopped</li>
+      <li>You can only submit <b>ONCE</b> � answers cannot be changed after submission</li>
+      <li>The audio will play <b>ONCE ONLY</b> � you cannot pause, rewind, or skip ahead</li>
+      <li>Listen carefully � once the audio starts, it cannot be stopped</li>
       <li>Correct answers will only be shown <b>AFTER</b> you submit</li>
       <li>Your submission time is recorded</li>
     </ul>
   </div>
 
   <div class="audio-box">
-    <h3>🎧 Listening Test Audio</h3>
-    <p>⚠️ Press play to start. The audio will play <b>once only</b> and cannot be paused or rewound.</p>
+    <h3>?? Listening Test Audio</h3>
+    <p>?? Press play to start. The audio will play <b>once only</b> and cannot be paused or rewound.</p>
     
     <!-- Hidden actual audio element - works on iOS and Android -->
     <audio id="testAudio" preload="auto" playsinline>
@@ -617,7 +617,7 @@
     <!-- Custom player UI -->
     <div class="custom-audio-player">
       <button id="playBtn" class="play-btn" onclick="startAudio()">
-        ▶
+        ?
       </button>
       <div class="audio-progress">
         <div id="progressBar" class="audio-progress-bar"></div>
@@ -630,11 +630,11 @@
   </div>
 
   <div id="timerBox" class="timer-box" style="display: none;">
-    ⏱️ Time: <span id="timer">00:00</span>
+    ?? Time: <span id="timer">00:00</span>
   </div>
 
   <div id="alreadySubmitted" class="already-submitted" style="display: none;">
-    <h3>✅ You have already submitted this test</h3>
+    <h3>? You have already submitted this test</h3>
     <p>Your score has been recorded.</p>
   </div>
 
@@ -646,7 +646,7 @@
   <div id="questions"></div>
 
   <div class="btn-container">
-    <button id="submitBtn" onclick="submitScore()">📤 Submit Answers</button>
+    <button id="submitBtn" onclick="submitScore()">?? Submit Answers</button>
   </div>
 
   <div id="score"></div>
@@ -655,7 +655,7 @@
 
 <!-- Floating Submit Button for Mobile -->
 <div class="floating-submit show" id="floatingSubmit">
-  <button id="floatingSubmitBtn" onclick="submitScore()">📤 Submit Answers</button>
+  <button id="floatingSubmitBtn" onclick="submitScore()">?? Submit Answers</button>
 </div>
 
 <!-- Anti-cheat modal -->
@@ -842,7 +842,7 @@
   // When audio ends
   audio.addEventListener('ended', function() {
     audioEnded = true;
-    playBtn.innerHTML = '✓';
+    playBtn.innerHTML = '?';
     playBtn.disabled = true;
     playBtn.classList.remove('playing');
     audioStatus.textContent = 'Audio completed - Answer the questions';
@@ -868,7 +868,7 @@
     if (playPromise !== undefined) {
       playPromise.then(() => {
         audioStarted = true;
-        playBtn.innerHTML = '🔊';
+        playBtn.innerHTML = '??';
         playBtn.classList.add('playing');
         playBtn.disabled = true; // Can't pause
         audioStatus.textContent = 'Playing... Listen carefully!';
@@ -878,8 +878,8 @@
       }).catch(err => {
         console.error('Audio play failed:', err);
         playBtn.disabled = false;
-        playBtn.innerHTML = '▶';
-        audioStatus.textContent = '❌ Tap again to play. Error: ' + err.message;
+        playBtn.innerHTML = '?';
+        audioStatus.textContent = '? Tap again to play. Error: ' + err.message;
       });
     }
   }
@@ -887,8 +887,8 @@
   // Audio error handling
   audio.addEventListener('error', function(e) {
     console.error('Audio error:', e);
-    audioStatus.textContent = '❌ Failed to load audio file';
-    playBtn.innerHTML = '⚠️';
+    audioStatus.textContent = '? Failed to load audio file';
+    playBtn.innerHTML = '??';
   });
 
   // When audio can play
@@ -977,14 +977,14 @@
       document.getElementById("alreadySubmitted").style.display = "block";
       document.querySelectorAll('input').forEach(input => input.disabled = true);
       document.getElementById("submitBtn").disabled = true;
-      document.getElementById("submitBtn").textContent = "✓ Already Submitted";
+      document.getElementById("submitBtn").textContent = "? Already Submitted";
       
       // Disable floating button too
       const floatingBtn = document.getElementById("floatingSubmitBtn");
       const floatingDiv = document.getElementById("floatingSubmit");
       if (floatingBtn) {
         floatingBtn.disabled = true;
-        floatingBtn.textContent = "✓ Already Submitted";
+        floatingBtn.textContent = "? Already Submitted";
       }
       if (floatingDiv) {
         floatingDiv.classList.add("submitted");
@@ -1015,14 +1015,14 @@
     const part1 = document.createElement("div");
     part1.className = "section";
     part1.innerHTML = `
-      <h2>Part 1: Questions 1–8</h2>
+      <h2>Part 1: Questions 1�8</h2>
       <div class="section-instructions">
         Complete the form below.<br>
         Write <strong>NO MORE THAN THREE WORDS AND/OR A NUMBER</strong> for each answer.
       </div>
       <div class="question-card">
         <div class="listening-form">
-          <div class="listening-form__title">Packham's Shipping Agency – customer quotation</div>
+          <div class="listening-form__title">Packham's Shipping Agency � customer quotation</div>
           <div class="listening-form__example">
             <strong>Example</strong> Country of destination: <b>Kenya</b>
           </div>
@@ -1088,7 +1088,7 @@
     const part2 = document.createElement("div");
     part2.className = "section";
     part2.innerHTML = `
-      <h2>Part 2: Questions 9–13</h2>
+      <h2>Part 2: Questions 9�13</h2>
       <div class="section-instructions">
         You will hear people talking in five different situations.<br>
         For each question, choose the correct answer <strong>A</strong>, <strong>B</strong> or <strong>C</strong>.
@@ -1165,7 +1165,7 @@
     const part3 = document.createElement("div");
     part3.className = "section";
     part3.innerHTML = `
-      <h2>Part 3: Questions 14–18</h2>
+      <h2>Part 3: Questions 14�18</h2>
       <div class="section-instructions">
         You will hear a teacher telling some students about the school orchestra.<br>
         For each question, fill in the missing information in the numbered space.
@@ -1211,7 +1211,7 @@
     const part4 = document.createElement("div");
     part4.className = "section";
     part4.innerHTML = `
-      <h2>Part 4: Questions 19–23</h2>
+      <h2>Part 4: Questions 19�23</h2>
       <div class="section-instructions">
         You will hear an interview with a girl called Mandy Livingstone who is talking about winning the Young Chef of the Year competition.<br>
         For each question, choose the correct answer <strong>A</strong>, <strong>B</strong> or <strong>C</strong>.
@@ -1288,22 +1288,22 @@
     const part5 = document.createElement("div");
     part5.className = "section";
     part5.innerHTML = `
-      <h2>Part 5: Questions 24–28</h2>
+      <h2>Part 5: Questions 24�28</h2>
       <div class="section-instructions">
         You will hear five people talking about playing different sports.<br>
-        For speakers 1–5, choose from the list A–H what each speaker says.<br>
+        For speakers 1�5, choose from the list A�H what each speaker says.<br>
         Use the letters only once. There are three extra letters which you do not need to use.
       </div>
       
       <div class="matching-options">
-        <div class="matching-option"><strong>A</strong> — I do the sport with a family member.</div>
-        <div class="matching-option"><strong>B</strong> — I started doing the sport at school.</div>
-        <div class="matching-option"><strong>C</strong> — I have made lots of friends doing the sport.</div>
-        <div class="matching-option"><strong>D</strong> — I was injured recently.</div>
-        <div class="matching-option"><strong>E</strong> — I enjoy the sport more than I expected.</div>
-        <div class="matching-option"><strong>F</strong> — I would like my friends to join me.</div>
-        <div class="matching-option"><strong>G</strong> — I took part in a competition recently.</div>
-        <div class="matching-option"><strong>H</strong> — I have just got some new sports equipment.</div>
+        <div class="matching-option"><strong>A</strong> � I do the sport with a family member.</div>
+        <div class="matching-option"><strong>B</strong> � I started doing the sport at school.</div>
+        <div class="matching-option"><strong>C</strong> � I have made lots of friends doing the sport.</div>
+        <div class="matching-option"><strong>D</strong> � I was injured recently.</div>
+        <div class="matching-option"><strong>E</strong> � I enjoy the sport more than I expected.</div>
+        <div class="matching-option"><strong>F</strong> � I would like my friends to join me.</div>
+        <div class="matching-option"><strong>G</strong> � I took part in a competition recently.</div>
+        <div class="matching-option"><strong>H</strong> � I have just got some new sports equipment.</div>
       </div>
       
       <div class="question-card">
@@ -1404,7 +1404,7 @@
         input.style.backgroundColor = "#fee2e2";
         const correction = document.createElement("span");
         correction.style.cssText = "color: #22c55e; font-weight: bold; font-size: 13px; margin-left: 10px;";
-        correction.textContent = `✓ ${formatCorrectAnswer(correct[i], i)}`;
+        correction.textContent = `? ${formatCorrectAnswer(correct[i], i)}`;
         input.parentElement.appendChild(correction);
       }
       input.disabled = true;
@@ -1420,22 +1420,22 @@
     
     if (hasSubmitted) {
       statusDiv.className = "submit-status submit-error";
-      statusDiv.textContent = "⚠️ You have already submitted.";
+      statusDiv.textContent = "?? You have already submitted.";
       return;
     }
     
     if (!studentName || studentName.length < 2) {
       statusDiv.className = "submit-status submit-error";
-      statusDiv.textContent = "⚠️ Please enter your full name.";
+      statusDiv.textContent = "?? Please enter your full name.";
       return;
     }
     if (!studentClass) {
       statusDiv.className = "submit-status submit-error";
-      statusDiv.textContent = "⚠️ Please enter your class.";
+      statusDiv.textContent = "?? Please enter your class.";
       return;
     }
     
-    if (!confirm("⚠️ ARE YOU SURE?\n\nYou can only submit ONCE.\nYour answers CANNOT be changed after this.\n\nClick OK to submit.")) return;
+    if (!confirm("?? ARE YOU SURE?\n\nYou can only submit ONCE.\nYour answers CANNOT be changed after this.\n\nClick OK to submit.")) return;
     
     const answers = {};
     for (let i = 1; i <= total; i++) {
@@ -1453,13 +1453,13 @@
     
     submitBtn.disabled = true;
     statusDiv.className = "submit-status submit-loading";
-    statusDiv.textContent = "📤 Submitting...";
+    statusDiv.textContent = "?? Submitting...";
     
     // Update floating button too
     const floatingBtn = document.getElementById("floatingSubmitBtn");
     if (floatingBtn) {
       floatingBtn.disabled = true;
-      floatingBtn.textContent = "📤 Submitting...";
+      floatingBtn.textContent = "?? Submitting...";
     }
     
     try {
@@ -1477,13 +1477,13 @@
       if (error) {
         if (error.message && (error.message.includes('duplicate') || error.message.includes('unique') || error.message.includes('already exists'))) {
           hasSubmitted = true;
-          submitBtn.textContent = '✓ Already Submitted';
+          submitBtn.textContent = '? Already Submitted';
           statusDiv.className = 'submit-status submit-error';
-          statusDiv.textContent = '⚠️ You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
+          statusDiv.textContent = '?? You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
           document.querySelectorAll('input').forEach(input => input.disabled = true);
           const floatingBtn = document.getElementById('floatingSubmitBtn');
           const floatingDiv = document.getElementById('floatingSubmit');
-          if (floatingBtn) { floatingBtn.disabled = true; floatingBtn.textContent = '✓ Already Submitted'; }
+          if (floatingBtn) { floatingBtn.disabled = true; floatingBtn.textContent = '? Already Submitted'; }
           if (floatingDiv) { floatingDiv.classList.add('submitted'); }
           return;
         }
@@ -1496,14 +1496,14 @@
       }));
       
       statusDiv.className = "submit-status submit-success";
-      statusDiv.textContent = "✅ Submitted successfully!";
-      submitBtn.textContent = "✓ Submitted";
+      statusDiv.textContent = "? Submitted successfully!";
+      submitBtn.textContent = "? Submitted";
       
       // Update floating button
       const floatingBtn = document.getElementById("floatingSubmitBtn");
       const floatingDiv = document.getElementById("floatingSubmit");
       if (floatingBtn) {
-        floatingBtn.textContent = "✓ Submitted";
+        floatingBtn.textContent = "? Submitted";
         floatingBtn.disabled = true;
       }
       if (floatingDiv) {
@@ -1517,21 +1517,21 @@
       showFinalScore(studentName, score, percentage, timeTaken);
     } catch (error) {
       statusDiv.className = "submit-status submit-error";
-      statusDiv.textContent = `❌ Failed: ${error.message}`;
+      statusDiv.textContent = `? Failed: ${error.message}`;
       submitBtn.disabled = false;
       
       // Re-enable floating button on error
       const floatingBtn = document.getElementById("floatingSubmitBtn");
       if (floatingBtn) {
         floatingBtn.disabled = false;
-        floatingBtn.textContent = "📤 Submit Answers";
+        floatingBtn.textContent = "?? Submit Answers";
       }
     }
   }
 
   function showFinalScore(studentName, score, percentage, timeTaken) {
     let scoreClass = percentage >= 90 ? "score-excellent" : percentage >= 70 ? "score-good" : percentage >= 50 ? "score-average" : "score-needs-work";
-    let emoji = percentage >= 90 ? "🏆" : percentage >= 70 ? "👍" : percentage >= 50 ? "📈" : "💪";
+    let emoji = percentage >= 90 ? "??" : percentage >= 70 ? "??" : percentage >= 50 ? "??" : "??";
     const minutes = Math.floor(timeTaken / 60);
     const seconds = timeTaken % 60;
     const timeStr = timeTaken > 0 ? `${minutes}m ${seconds}s` : '';

@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry Ch2 (Atoms, molecules and stoichiometry)</title>
-  <script src="../examguard.js"></script>
+  <script src="../examguard.js?v=2"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -607,14 +607,14 @@
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
         <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch2 (Atoms, molecules and stoichiometry)</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 2 � 64 multiple-choice questions</div>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 2 ? 64 multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
       <span class="badge">?? Category: Science</span>
       <span class="badge">?? Difficulty: Advanced</span>
-      <span class="badge">?? Format: Multiple Choice (A�D)</span>
+      <span class="badge">?? Format: Multiple Choice (A?D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
@@ -659,7 +659,7 @@
         <li>Stay on this tab. The first violation triggers a warning.</li>
         <li>Three violations (tab switches, copying, etc.) will auto-submit your test.</li>
         <li>Copying and cutting are disabled during the test.</li>
-        <li>Your timer starts only after you click �I understand�.</li>
+        <li>Your timer starts only after you click ?I understand?.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
@@ -803,11 +803,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} � Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} � ${totalQuestions} questions`;
+      if (titleEl) titleEl.textContent = `${title} ? Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} ? ${totalQuestions} questions`;
       if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
       if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
-      document.title = `${title} � Part ${part}`;
+      document.title = `${title} ? Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -1232,7 +1232,7 @@
       {
         number: 36,
         code: '9701_s15_qp_12 Q: 2',
-        prompt: 'The shell of a chicken�s egg makes up 5% of the mass of an average egg. An average egg has a mass of 50 g.<br><br>Assume the egg shell is pure calcium carbonate.<br><br>How many complete chicken�s egg shells would be needed to neutralise 50 cm<sup>3</sup> of 2.0 mol dm<sup>?3</sup> ethanoic acid?',
+        prompt: 'The shell of a chicken?s egg makes up 5% of the mass of an average egg. An average egg has a mass of 50 g.<br><br>Assume the egg shell is pure calcium carbonate.<br><br>How many complete chicken?s egg shells would be needed to neutralise 50 cm<sup>3</sup> of 2.0 mol dm<sup>?3</sup> ethanoic acid?',
         options: {
           A: '1',
           B: '2',
@@ -1396,7 +1396,7 @@
       {
         number: 49,
         code: '9701_s20_qp_11 Q: 4',
-        prompt: '10 cm<sup>3</sup> of ethane is burned in 45 cm<sup>3</sup> of oxygen at a pressure of 101 kPa and a temperature of 200 �C. Complete combustion takes place.<br><br>What is the total volume of gas present when the reaction is complete, measured under the same conditions?',
+        prompt: '10 cm<sup>3</sup> of ethane is burned in 45 cm<sup>3</sup> of oxygen at a pressure of 101 kPa and a temperature of 200 ?C. Complete combustion takes place.<br><br>What is the total volume of gas present when the reaction is complete, measured under the same conditions?',
         options: {
           A: '30 cm<sup>3</sup>',
           B: '50 cm<sup>3</sup>',
@@ -1520,7 +1520,7 @@
       {
         number: 60,
         code: '9701_w19_qp_12 Q: 2',
-        prompt: 'In this question it should be assumed that (NH<sub>4</sub>)<sub>2</sub>CO<sub>3</sub>�H<sub>2</sub>O(s) dissolves in water without causing an increase in volume.<br><br>Which mass of (NH<sub>4</sub>)<sub>2</sub>CO<sub>3</sub>�H<sub>2</sub>O(s) should be added to 800 cm<sup>3</sup> of water to form a 0.100 mol dm<sup>?3</sup> solution of NH<sub>4</sub><sup>+</sup> ions?',
+        prompt: 'In this question it should be assumed that (NH<sub>4</sub>)<sub>2</sub>CO<sub>3</sub>?H<sub>2</sub>O(s) dissolves in water without causing an increase in volume.<br><br>Which mass of (NH<sub>4</sub>)<sub>2</sub>CO<sub>3</sub>?H<sub>2</sub>O(s) should be added to 800 cm<sup>3</sup> of water to form a 0.100 mol dm<sup>?3</sup> solution of NH<sub>4</sub><sup>+</sup> ions?',
         options: {
           A: '4.56 g',
           B: '7.13 g',
@@ -2015,7 +2015,7 @@
         
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` � ?? Time: ${formatTimer(data.time_taken_seconds)}`
+            ? ` ? ?? Time: ${formatTimer(data.time_taken_seconds)}`
             : '';
           scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
@@ -2256,7 +2256,7 @@
           review.textContent = `? Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `? Your answer: ${studentAnswer || '�'} | ? Correct: ${correctAnswer}`;
+          review.textContent = `? Your answer: ${studentAnswer || '?'} | ? Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -2312,7 +2312,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('�')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('?')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -2375,7 +2375,7 @@
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test � auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test ? auto-submitted' });
         }
       });
     });

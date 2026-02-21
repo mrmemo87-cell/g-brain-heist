@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry Ch5 (Chemical Energetics)</title>
-  <script src="../examguard.js"></script>
+  <script src="../examguard.js?v=2"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -657,14 +657,14 @@
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
         <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch5 (Chemical Energetics)</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 5 � 53 multiple-choice questions</div>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 5 ? 53 multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
       <span class="badge">?? Category: Science</span>
       <span class="badge">?? Difficulty: Advanced</span>
-      <span class="badge">?? Format: Multiple Choice (A�D)</span>
+      <span class="badge">?? Format: Multiple Choice (A?D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
@@ -703,7 +703,7 @@
         <li>Stay on this tab. The first violation triggers a warning.</li>
         <li>Three violations (tab switches, copying, etc.) will auto-submit your test.</li>
         <li>Copying and cutting are disabled during the test.</li>
-        <li>Your timer starts only after you click �I understand�.</li>
+        <li>Your timer starts only after you click ?I understand?.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
@@ -846,11 +846,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} � Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} � ${totalQuestions} questions`;
+      if (titleEl) titleEl.textContent = `${title} ? Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} ? ${totalQuestions} questions`;
       if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
       if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
-      document.title = `${title} � Part ${part}`;
+      document.title = `${title} ? Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -900,7 +900,7 @@
       {
         number: 3,
         code: '9701_m21_qp_12 Q: 7',
-        prompt: 'An experiment was performed to determine the enthalpy of combustion of ethanol.<br><br><div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/230.svg" alt="Calorimetry setup diagram" class="theme-aware-graphic white-graphic" loading="lazy" /></div>Data collected:<ul style="margin: 10px 0 0 18px; padding-left: 4px; color: var(--text-main);"><li>mass of water = W g</li><li>mass of ethanol burned = X g</li><li>temperature rise = Y �C</li><li>molar mass of ethanol = Z g mol<sup>?1</sup></li><li>specific heat capacity of water = 4.2 J K<sup>?1</sup> g<sup>?1</sup></li></ul><br>Which expression calculates the enthalpy of combustion of ethanol in kJ mol<sup>?1</sup>?',
+        prompt: 'An experiment was performed to determine the enthalpy of combustion of ethanol.<br><br><div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/230.svg" alt="Calorimetry setup diagram" class="theme-aware-graphic white-graphic" loading="lazy" /></div>Data collected:<ul style="margin: 10px 0 0 18px; padding-left: 4px; color: var(--text-main);"><li>mass of water = W g</li><li>mass of ethanol burned = X g</li><li>temperature rise = Y ?C</li><li>molar mass of ethanol = Z g mol<sup>?1</sup></li><li>specific heat capacity of water = 4.2 J K<sup>?1</sup> g<sup>?1</sup></li></ul><br>Which expression calculates the enthalpy of combustion of ethanol in kJ mol<sup>?1</sup>?',
         options: {
           A: '<span class="fraction"><span class="fraction-top">?4.2WYZ</span><span class="fraction-bottom">1000X</span></span>',
           B: '<span class="fraction"><span class="fraction-top">?4.2WYX</span><span class="fraction-bottom">1000Z</span></span>',
@@ -1048,7 +1048,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
         code: '9701_w19_qp_11 Q: 8',
         prompt: 'Sodium burns in oxygen giving out heat energy and forming the compound Na<sub>2</sub>O.<br><br>2Na(s) + <span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span>O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> Na<sub>2</sub>O(s)<br><br>Which statement about the reaction is correct?',
         options: {
-          A: '?H<sup>?</sup> for the reaction is equal to twice the bond energy of the Na�O bond.',
+          A: '?H<sup>?</sup> for the reaction is equal to twice the bond energy of the Na?O bond.',
           B: '?H<sup>?</sup> for the reaction is positive.',
           C: 'The equation represents the standard enthalpy change of combustion of sodium.',
           D: 'The equation represents the standard enthalpy change of formation of sodium oxide.',
@@ -1101,7 +1101,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 20,
         code: '9701_s18_qp_13 Q: 7',
-        prompt: 'Anhydrous copper(II) chloride, CuCl<sub>2</sub>, combines with water to form CuCl<sub>2</sub>�2H<sub>2</sub>O. The standard enthalpy changes of formation for this reaction are shown in the table.<br><br><div class="table-wrapper"><table><thead><tr><th></th><th>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span> / kJ mol<sup>?1</sup></th></tr></thead><tbody><tr><td>H<sub>2</sub>O</td><td>?286</td></tr><tr><td>CuCl<sub>2</sub></td><td>?206</td></tr><tr><td>CuCl<sub>2</sub>�2H<sub>2</sub>O</td><td>?808</td></tr></tbody></table></div>What is the standard enthalpy change of the reaction shown?<br><br>CuCl<sub>2</sub> + 2H<sub>2</sub>O <span class="arrowTop"><span class="chemArrow"></span></span> CuCl<sub>2</sub>�2H<sub>2</sub>O',
+        prompt: 'Anhydrous copper(II) chloride, CuCl<sub>2</sub>, combines with water to form CuCl<sub>2</sub>?2H<sub>2</sub>O. The standard enthalpy changes of formation for this reaction are shown in the table.<br><br><div class="table-wrapper"><table><thead><tr><th></th><th>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span> / kJ mol<sup>?1</sup></th></tr></thead><tbody><tr><td>H<sub>2</sub>O</td><td>?286</td></tr><tr><td>CuCl<sub>2</sub></td><td>?206</td></tr><tr><td>CuCl<sub>2</sub>?2H<sub>2</sub>O</td><td>?808</td></tr></tbody></table></div>What is the standard enthalpy change of the reaction shown?<br><br>CuCl<sub>2</sub> + 2H<sub>2</sub>O <span class="arrowTop"><span class="chemArrow"></span></span> CuCl<sub>2</sub>?2H<sub>2</sub>O',
         options: {
           A: '?1586 kJ mol<sup>?1</sup>',
           B: '?316 kJ mol<sup>?1</sup>',
@@ -1112,7 +1112,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 21,
         code: '9701_w18_qp_11 Q: 6',
-        prompt: 'A butane burner is used to heat water. The M<sub>r</sub> of butane is 58.<br><br>� ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> of butane is ?2877 kJ mol<sup>?1</sup>.<br>� 250 g of water is heated from 12 �C to 100 �C.<br>� The burner transfers 47% of the heat released from the burning fuel to the water.<br><br>Assume that the butane undergoes complete combustion and none of the water evaporates.<br><br>What is the minimum mass of butane that must be burnt?',
+        prompt: 'A butane burner is used to heat water. The M<sub>r</sub> of butane is 58.<br><br>? ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> of butane is ?2877 kJ mol<sup>?1</sup>.<br>? 250 g of water is heated from 12 ?C to 100 ?C.<br>? The burner transfers 47% of the heat released from the burning fuel to the water.<br><br>Assume that the butane undergoes complete combustion and none of the water evaporates.<br><br>What is the minimum mass of butane that must be burnt?',
         options: {
           A: '0.068 g',
           B: '1.85 g',
@@ -1145,7 +1145,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 24,
         code: '9701_m17_qp_12 Q: 7',
-        prompt: 'A student mixed 25.0 cm<sup>3</sup> of 4.00 mol dm<sup>?3</sup> hydrochloric acid with an equal volume of 4.00 mol dm<sup>?3</sup> sodium hydroxide. The initial temperature of both solutions was 15.0 �C. The maximum temperature recorded was 30.0 �C.<br><br>Using these results, what is the enthalpy change of neutralisation of hydrochloric acid?',
+        prompt: 'A student mixed 25.0 cm<sup>3</sup> of 4.00 mol dm<sup>?3</sup> hydrochloric acid with an equal volume of 4.00 mol dm<sup>?3</sup> sodium hydroxide. The initial temperature of both solutions was 15.0 ?C. The maximum temperature recorded was 30.0 ?C.<br><br>Using these results, what is the enthalpy change of neutralisation of hydrochloric acid?',
         options: {
           A: '?62.7 kJ mol<sup>?1</sup>',
           B: '?31.4 kJ mol<sup>?1</sup>',
@@ -1211,7 +1211,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 30,
         code: '9701_w17_qp_11 Q: 11',
-        prompt: '200 g of water are at 25 �C. The water is heated to 75 �C by burning 2 g of ethanol.<br><br>What is the amount of energy transferred to the water?',
+        prompt: '200 g of water are at 25 ?C. The water is heated to 75 ?C by burning 2 g of ethanol.<br><br>What is the amount of energy transferred to the water?',
         options: {
           A: '0.418 kJ',
           B: '10.4 kJ',
@@ -1310,7 +1310,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 39,
         code: '9701_w16_qp_12 Q: 9',
-        prompt: 'In a calorimetric experiment 1.60 g of a fuel are burnt. 45.0% of the energy released is absorbed by 200 g of water. The temperature of the water rises from 18.0 �C to 66.0 �C.<br><br>What is the total energy released per gram of fuel burnt (to 3 significant figures)?',
+        prompt: 'In a calorimetric experiment 1.60 g of a fuel are burnt. 45.0% of the energy released is absorbed by 200 g of water. The temperature of the water rises from 18.0 ?C to 66.0 ?C.<br><br>What is the total energy released per gram of fuel burnt (to 3 significant figures)?',
         options: {
           A: '25 100 J',
           B: '55 700 J',
@@ -1387,7 +1387,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 46,
         code: '9701_w15_qp_11 Q: 7',
-        prompt: 'Use of the Data Booklet is relevant for this question.<br><br>In an experiment, the burning of 1.45 g (0.025 mol) of propanone was used to heat 100 g of water. The initial temperature of the water was 20.0 �C and the final temperature of the water was 78.0 �C.<br><br>Which experimental value for the enthalpy change of combustion for propanone can be calculated from these results?',
+        prompt: 'Use of the Data Booklet is relevant for this question.<br><br>In an experiment, the burning of 1.45 g (0.025 mol) of propanone was used to heat 100 g of water. The initial temperature of the water was 20.0 ?C and the final temperature of the water was 78.0 ?C.<br><br>Which experimental value for the enthalpy change of combustion for propanone can be calculated from these results?',
         options: {
           A: '?1304 kJ mol<sup>?1</sup>',
           B: '?970 kJ mol<sup>?1</sup>',
@@ -1442,7 +1442,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 51,
         code: '9701_w20_qp_11 Q: 7',
-        prompt: 'An energy cycle is drawn for the following reaction.<br><br>Br<sub>2</sub>(l) + 3F<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> 2BrF<sub>3</sub>(l)<br><div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/278.svg" alt="Energy cycle for bromine trifluoride formation" class="theme-aware-graphic white-graphic" loading="lazy" /></div>The standard enthalpy of formation of BrF<sub>3</sub>(l) = ?301 kJ mol<sup>?1</sup>.<br>The enthalpy change of BrF<sub>3</sub>(l) to BrF<sub>3</sub>(g) is +44 kJ mol<sup>?1</sup>.<br><br>What is the average bond energy of the Br�F bond in BrF<sub>3</sub>?',
+        prompt: 'An energy cycle is drawn for the following reaction.<br><br>Br<sub>2</sub>(l) + 3F<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> 2BrF<sub>3</sub>(l)<br><div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/278.svg" alt="Energy cycle for bromine trifluoride formation" class="theme-aware-graphic white-graphic" loading="lazy" /></div>The standard enthalpy of formation of BrF<sub>3</sub>(l) = ?301 kJ mol<sup>?1</sup>.<br>The enthalpy change of BrF<sub>3</sub>(l) to BrF<sub>3</sub>(g) is +44 kJ mol<sup>?1</sup>.<br><br>What is the average bond energy of the Br?F bond in BrF<sub>3</sub>?',
         options: {
           A: '152 kJ mol<sup>?1</sup>',
           B: '202 kJ mol<sup>?1</sup>',
@@ -1453,7 +1453,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 52,
         code: '9701_m18_qp_12 Q: 9',
-        prompt: 'Hess� Law and bond energy data can be used to calculate the enthalpy change of a reaction.<br><br>Bromoethane, CH<sub>3</sub>CH<sub>2</sub>Br, can be made by reacting ethene with hydrogen bromide.<br><br>CH<sub>2</sub>=CH<sub>2</sub> + HBr <span class="arrowTop"><span class="chemArrow"></span></span> CH<sub>3</sub>CH<sub>2</sub>Br<br><br>What is the enthalpy change for this reaction?',
+        prompt: 'Hess? Law and bond energy data can be used to calculate the enthalpy change of a reaction.<br><br>Bromoethane, CH<sub>3</sub>CH<sub>2</sub>Br, can be made by reacting ethene with hydrogen bromide.<br><br>CH<sub>2</sub>=CH<sub>2</sub> + HBr <span class="arrowTop"><span class="chemArrow"></span></span> CH<sub>3</sub>CH<sub>2</sub>Br<br><br>What is the enthalpy change for this reaction?',
         options: {
           A: '?674 kJ mol<sup>?1</sup>',
           B: '?64 kJ mol<sup>?1</sup>',
@@ -1464,7 +1464,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 53,
         code: '9701_w15_qp_12 Q: 6',
-        prompt: 'Hess� law may be used to determine enthalpy changes using average bond energies, as shown in the diagram.<br><br><div style="text-align:center;margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/280.svg" alt="Hess law bond energy diagram with U, V, and W" class="theme-aware-graphic white-graphic" loading="lazy" /></div>U is the sum of the average bond energies of the reactants, and V is the sum of the average bond energies of the products.<br><br>For the reaction shown below, which expression will give a value for W, the enthalpy change of combustion of methane?<br><br>CH<sub>4</sub> + 2O<sub>2</sub> <span class="arrowTop"><span class="chemArrow"></span></span> CO<sub>2</sub> + 2H<sub>2</sub>O',
+        prompt: 'Hess? law may be used to determine enthalpy changes using average bond energies, as shown in the diagram.<br><br><div style="text-align:center;margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/280.svg" alt="Hess law bond energy diagram with U, V, and W" class="theme-aware-graphic white-graphic" loading="lazy" /></div>U is the sum of the average bond energies of the reactants, and V is the sum of the average bond energies of the products.<br><br>For the reaction shown below, which expression will give a value for W, the enthalpy change of combustion of methane?<br><br>CH<sub>4</sub> + 2O<sub>2</sub> <span class="arrowTop"><span class="chemArrow"></span></span> CO<sub>2</sub> + 2H<sub>2</sub>O',
         options: {
           A: 'U ? V',
           B: 'U + V',
@@ -1791,7 +1791,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
         
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` � ?? Time: ${formatTimer(data.time_taken_seconds)}`
+            ? ` ? ?? Time: ${formatTimer(data.time_taken_seconds)}`
             : '';
           scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
@@ -2015,7 +2015,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
           review.textContent = `? Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `? Your answer: ${studentAnswer || '�'} | ? Correct: ${correctAnswer}`;
+          review.textContent = `? Your answer: ${studentAnswer || '?'} | ? Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -2071,7 +2071,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('�')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('?')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -2117,7 +2117,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test � auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test ? auto-submitted' });
         }
       });
     });

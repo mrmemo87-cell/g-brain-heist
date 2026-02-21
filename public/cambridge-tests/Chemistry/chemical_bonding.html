@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry Ch3 (Chemical bonding)</title>
-  <script src="../examguard.js"></script>
+  <script src="../examguard.js?v=2"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -1902,6 +1902,8 @@
           document.querySelectorAll('input').forEach(i => i.disabled = false);
           unlockQuestions();
           startTimerIfReady();
+          // Retry ExamGuard now that hasSubmitted is reset
+          if (typeof tryStartExamGuard === 'function') tryStartExamGuard();
           
           return;
         }
@@ -1955,6 +1957,8 @@
           document.querySelectorAll('input').forEach(i => i.disabled = false);
           unlockQuestions();
           startTimerIfReady();
+          // Retry ExamGuard now that hasSubmitted is reset
+          if (typeof tryStartExamGuard === 'function') tryStartExamGuard();
           
           // Notify parent component to refresh test list UI
           try {
@@ -2160,6 +2164,8 @@
       antiCheatAcknowledged = true;
       closeAntiCheatModal();
       startTimerIfReady();
+      // Also try to start ExamGuard now that anti-cheat is acknowledged
+      if (typeof tryStartExamGuard === 'function') tryStartExamGuard();
     }
 
     function startTimerIfReady() {
@@ -2283,40 +2289,47 @@
       updateSvgColorsForBackground();
       hydrateSupabaseSvgs();
       
-      // Start ExamGuard after initialization
-      setTimeout(() => {
-        if (!hasSubmitted && !isReviewMode() && typeof window.ExamGuard !== 'undefined') {
-          let autoSubmitTriggered = false;
-          window.ExamGuard.start({
-            promptContainer: document.querySelector('.container'),
-            editor: [],
-            onSubmit: () => {
-              if (autoSubmitTriggered || hasSubmitted) return;
-              autoSubmitTriggered = true;
-              handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'ExamGuard violation limit reached' });
-            },
-            onViolation: (event) => {
-              console.warn('ExamGuard violation (AS Chemistry - Chemical Bonding):', event);
-              if (event.violationsCount >= 3) {
-                if (!autoSubmitTriggered && !hasSubmitted) {
-                  autoSubmitTriggered = true;
-                  handleSubmit({ force: true, skipModal: true, autoSubmitReason: `ExamGuard: ${event.violationsCount} violations` });
-                }
+      // Start ExamGuard — robust, re-callable function
+      let examGuardAutoSubmitTriggered = false;
+      function tryStartExamGuard() {
+        console.log('[ExamGuard-Init] tryStartExamGuard called. hasSubmitted=' + hasSubmitted + ', isReviewMode=' + isReviewMode() + ', ExamGuard=' + (typeof window.ExamGuard));
+        if (hasSubmitted) { console.log('[ExamGuard-Init] SKIPPED: hasSubmitted is true'); return; }
+        if (isReviewMode()) { console.log('[ExamGuard-Init] SKIPPED: review mode'); return; }
+        if (typeof window.ExamGuard === 'undefined') { console.log('[ExamGuard-Init] SKIPPED: ExamGuard not loaded'); return; }
+        console.log('[ExamGuard-Init] Calling ExamGuard.start()...');
+        window.ExamGuard.start({
+          promptContainer: document.querySelector('.container'),
+          editor: [],
+          onSubmit: () => {
+            if (examGuardAutoSubmitTriggered || hasSubmitted) return;
+            examGuardAutoSubmitTriggered = true;
+            handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'ExamGuard violation limit reached' });
+          },
+          onViolation: (event) => {
+            console.warn('ExamGuard violation (AS Chemistry - Chemical Bonding):', event);
+            if (event.violationsCount >= 3) {
+              if (!examGuardAutoSubmitTriggered && !hasSubmitted) {
+                examGuardAutoSubmitTriggered = true;
+                handleSubmit({ force: true, skipModal: true, autoSubmitReason: `ExamGuard: ${event.violationsCount} violations` });
               }
-            },
-            testId: QUIZ_ID,
-            maxViolations: 3,
-            blurGraceMs: 300,
-            actions: {
-              warn: true,
-              showBanner: true,
-              autosubmit: true,
-              disableEditor: false,
-              blockSelectAll: false,
             }
-          });
-        }
-      }, 500);
+          },
+          testId: QUIZ_ID,
+          maxViolations: 3,
+          blurGraceMs: 300,
+          actions: {
+            warn: true,
+            showBanner: true,
+            autosubmit: true,
+            disableEditor: false,
+            blockSelectAll: false,
+          }
+        });
+      }
+      // Initial attempt after DOM settles
+      setTimeout(tryStartExamGuard, 500);
+      // Retry in case checkServerSubmission resets hasSubmitted after 500ms
+      setTimeout(tryStartExamGuard, 2000);
 
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {

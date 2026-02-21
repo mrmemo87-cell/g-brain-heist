@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>AS Chemistry Ch15 ( Halogen compounds )</title>
-  <script src="../examguard.js"></script>
+  <script src="../examguard.js?v=2"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1033 100%);
@@ -570,14 +570,14 @@
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
         <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch15 ( Halogen compounds )</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 15 � 56 multiple-choice questions</div>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 15 ? 56 multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
       <span class="badge">?? Category: Science</span>
       <span class="badge">?? Difficulty: Advanced</span>
-      <span class="badge">?? Format: Multiple Choice (A�D)</span>
+      <span class="badge">?? Format: Multiple Choice (A?D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
@@ -622,7 +622,7 @@
         <li>Stay on this tab. The first violation triggers a warning.</li>
         <li>Three violations (tab switches, copying, etc.) will auto-submit your test.</li>
         <li>Copying and cutting are disabled during the test.</li>
-        <li>Your timer starts only after you click �I understand�.</li>
+        <li>Your timer starts only after you click ?I understand?.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
@@ -766,11 +766,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} � Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} � ${totalQuestions} questions`;
+      if (titleEl) titleEl.textContent = `${title} ? Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} ? ${totalQuestions} questions`;
       if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
       if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
-      document.title = `${title} � Part ${part}`;
+      document.title = `${title} ? Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -824,7 +824,7 @@
       {
         number: 3,
         code: '9701_m21_qp_12 Q: 25',
-        prompt: 'Dibromopentanes can undergo �double elimination� reactions to produce hydrocarbons. Which isomer produces only one hydrocarbon product?',
+        prompt: 'Dibromopentanes can undergo ?double elimination? reactions to produce hydrocarbons. Which isomer produces only one hydrocarbon product?',
         options: {
           A: '1,5-dibromopentane',
           B: '1,4-dibromopentane',
@@ -924,7 +924,7 @@
       {
         number: 11,
         code: '9701_w20_qp_11 Q: 23',
-        prompt: 'Iodoethane, CH<sub>3</sub>CH<sub>2</sub>I, reacts with aqueous silver nitrate at 50&nbsp;�C. A precipitate forms during this reaction. Which row of the table is correct about this reaction?',
+        prompt: 'Iodoethane, CH<sub>3</sub>CH<sub>2</sub>I, reacts with aqueous silver nitrate at 50&nbsp;?C. A precipitate forms during this reaction. Which row of the table is correct about this reaction?',
         optionTable: {
           headers: ['type of organic reaction', 'colour of precipitate'],
           rows: [
@@ -1037,7 +1037,7 @@
       {
         number: 21,
         code: '9701_w19_qp_11 Q: 23',
-        prompt: 'A tertiary bromoalkane, indicated by &gt;C�Br, reacts with aqueous NaOH. The mechanism has the reaction pathway shown. Which point in the diagram is correctly identified?',
+        prompt: 'A tertiary bromoalkane, indicated by &gt;C?Br, reacts with aqueous NaOH. The mechanism has the reaction pathway shown. Which point in the diagram is correctly identified?',
         options: {
           A: 'X is &gt;C<sup>+</sup>',
           B: 'X is [HO?C?Br]<sup>?</sup>',
@@ -1191,10 +1191,10 @@
         code: '9701_m17_qp_12 Q: 22',
         prompt: 'Which radical is most likely to form by the homolytic fission of one covalent bond in bromochloromethane, CH<sub>2</sub>BrCl?',
         options: {
-          A: '�CH<sub>2</sub>Cl',
-          B: '�CH<sub>2</sub>Br',
-          C: '�CHBrCl',
-          D: '�CH<sub>2</sub>BrCl',
+          A: '?CH<sub>2</sub>Cl',
+          B: '?CH<sub>2</sub>Br',
+          C: '?CHBrCl',
+          D: '?CH<sub>2</sub>BrCl',
         }
       },
       {
@@ -1218,8 +1218,8 @@
         options: {
           A: 'A curly arrow from a lone pair on OH<sup>?</sup> to the C<sup>?+</sup> atom of 1-bromopropane.',
           B: 'A curly arrow from the C<sup>?+</sup> atom of 1-bromopropane to the OH<sup>?</sup> ion.',
-          C: 'A curly arrow from the C�Br bond to the C atom.',
-          D: 'The homolytic fission of the C�Br bond.',
+          C: 'A curly arrow from the C?Br bond to the C atom.',
+          D: 'The homolytic fission of the C?Br bond.',
         }
       },
       {
@@ -1241,10 +1241,10 @@
         code: '9701_s17_qp_12 Q: 29',
         prompt: 'Which compound is chiral and reacts with Na<sub>2</sub>CO<sub>3</sub> to give CO<sub>2</sub>?',
         options: {
-          A: 'HO<sub>2</sub>C�CH=CH�CO<sub>2</sub>H',
+          A: 'HO<sub>2</sub>C?CH=CH?CO<sub>2</sub>H',
           B: '1-methylcyclohex-1-en-1-ol',
           C: 'HCO<sub>2</sub>CH(CH<sub>3</sub>)CH<sub>2</sub>Br',
-          D: 'CH(Br)CO<sub>2</sub>H�CH<sub>2</sub>CH<sub>3</sub>',
+          D: 'CH(Br)CO<sub>2</sub>H?CH<sub>2</sub>CH<sub>3</sub>',
         }
       },
       {
@@ -1290,10 +1290,10 @@
         optionTable: {
           headers: ['change in condition', 'reason'],
           rows: [
-            { label: 'A', values: ['heat under reflux', 'C�Cl bond is more polar than the C�I bond'] },
-            { label: 'B', values: ['heat under reflux', 'C�Cl bond is stronger than the C�I bond'] },
-            { label: 'C', values: ['room temperature', 'C�Cl bond is more polar than the C�I bond'] },
-            { label: 'D', values: ['room temperature', 'C�Cl bond is shorter than the C�I bond'] },
+            { label: 'A', values: ['heat under reflux', 'C?Cl bond is more polar than the C?I bond'] },
+            { label: 'B', values: ['heat under reflux', 'C?Cl bond is stronger than the C?I bond'] },
+            { label: 'C', values: ['room temperature', 'C?Cl bond is more polar than the C?I bond'] },
+            { label: 'D', values: ['room temperature', 'C?Cl bond is shorter than the C?I bond'] },
           ]
         }
       },
@@ -1302,10 +1302,10 @@
         code: '9701_s16_qp_12 Q: 20',
         prompt: 'Chlorofluorocarbons damage the ozone layer by undergoing reactions with a free radical mechanism. The first stage of this is initiation. Which equation is most likely to be the initiation stage when chlorofluoromethane is involved in such a reaction?',
         options: {
-          A: 'CH<sub>2</sub>FCl > �CH<sub>2</sub>Cl + F�',
-          B: 'CH<sub>2</sub>FCl > �CH<sub>2</sub>F + Cl�',
-          C: 'CH<sub>2</sub>FCl > �CH<sub>2</sub>F + H�',
-          D: 'CH<sub>2</sub>FCl > �CH<sub>2</sub> + Cl� + F�',
+          A: 'CH<sub>2</sub>FCl > ?CH<sub>2</sub>Cl + F?',
+          B: 'CH<sub>2</sub>FCl > ?CH<sub>2</sub>F + Cl?',
+          C: 'CH<sub>2</sub>FCl > ?CH<sub>2</sub>F + H?',
+          D: 'CH<sub>2</sub>FCl > ?CH<sub>2</sub> + Cl? + F?',
         }
       },
       {
@@ -1355,7 +1355,7 @@
       {
         number: 48,
         code: '9701_s15_qp_11 Q: 24',
-        prompt: 'Coniine is the major constituent of the poison �oil of hemlock�. Coniine can be synthesised by reacting ammonia with a dibromo compound, X. What is the name of compound X?',
+        prompt: 'Coniine is the major constituent of the poison ?oil of hemlock?. Coniine can be synthesised by reacting ammonia with a dibromo compound, X. What is the name of compound X?',
         options: {
           A: '1,1-dibromo-2-propylcyclopentane',
           B: '1,2-dibromo-2-propylcyclopentane',
@@ -1410,7 +1410,7 @@
       {
         number: 53,
         code: '9701_s15_qp_13 Q: 28',
-        prompt: 'A tertiary bromoalkane, indicated here by >C�Br, reacts with aqueous NaOH. The mechanism has the reaction pathway below. Which point in the diagram is correctly identified?',
+        prompt: 'A tertiary bromoalkane, indicated here by >C?Br, reacts with aqueous NaOH. The mechanism has the reaction pathway below. Which point in the diagram is correctly identified?',
         options: {
           A: 'X is >C<sup>+</sup>',
           B: 'X is [HO?C?Br]<sup>?</sup>',
@@ -1421,12 +1421,12 @@
       {
         number: 54,
         code: '9701_s15_qp_13 Q: 29',
-        prompt: 'Four drops of 1-chlorobutane, 1-bromobutane and 1-iodobutane were put separately into three test-tubes containing 1.0 cm<sup>3</sup> of aqueous silver nitrate at 60��C. In each case, a hydrolysis reaction occurred. R represents the butane chain C<sub>4</sub>H<sub>9</sub> and X the halogen atom. The rate of formation of cloudiness in the test-tubes was in the order RCl < RBr < RI. Why is this?',
+        prompt: 'Four drops of 1-chlorobutane, 1-bromobutane and 1-iodobutane were put separately into three test-tubes containing 1.0 cm<sup>3</sup> of aqueous silver nitrate at 60??C. In each case, a hydrolysis reaction occurred. R represents the butane chain C<sub>4</sub>H<sub>9</sub> and X the halogen atom. The rate of formation of cloudiness in the test-tubes was in the order RCl < RBr < RI. Why is this?',
         options: {
-          A: 'The bond energy of R�X decreases from RCl to RI.',
+          A: 'The bond energy of R?X decreases from RCl to RI.',
           B: 'The first ionisation energy of the halogen decreases from Cl to I.',
           C: 'The solubility of AgX(s) decreases from AgCl to AgI.',
-          D: 'The R�X bond polarity decreases from RCl to RI.',
+          D: 'The R?X bond polarity decreases from RCl to RI.',
         }
       },
       {
@@ -1443,7 +1443,7 @@
       {
         number: 56,
         code: '9701_w15_qp_12 Q: 24',
-        prompt: 'The depletion of the ozone layer in the upper atmosphere reduces the Earth�s natural protection from harmful ultraviolet radiation. Which compound would cause the most depletion of the ozone layer?',
+        prompt: 'The depletion of the ozone layer in the upper atmosphere reduces the Earth?s natural protection from harmful ultraviolet radiation. Which compound would cause the most depletion of the ozone layer?',
         options: {
           A: 'CCl<sub>3</sub>F',
           B: 'CF<sub>4</sub>',
@@ -1767,7 +1767,7 @@
         
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` � ?? Time: ${formatTimer(data.time_taken_seconds)}`
+            ? ` ? ?? Time: ${formatTimer(data.time_taken_seconds)}`
             : '';
           scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
@@ -2009,7 +2009,7 @@
           review.textContent = `? Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `? Your answer: ${studentAnswer || '�'} | ? Correct: ${correctAnswer}`;
+          review.textContent = `? Your answer: ${studentAnswer || '?'} | ? Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -2065,7 +2065,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('�')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('?')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -2111,7 +2111,7 @@
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test � auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test ? auto-submitted' });
         }
       });
     });
