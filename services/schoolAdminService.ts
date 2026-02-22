@@ -677,20 +677,16 @@ export async function archiveSchoolClass(
 
 export async function listSchoolTeachers(schoolId: string): Promise<SchoolTeacher[]> {
   try {
-    console.log('[listSchoolTeachers] calling RPC with schoolId:', schoolId);
     const { data, error } = await supabase.rpc('school_admin_list_teachers', {
       p_school_id: schoolId,
     });
 
-    console.log('[listSchoolTeachers] RPC response - data:', data, 'error:', error);
-
     if (error) {
-      console.error('[listSchoolTeachers] RPC ERROR:', error.message, error.code, error.details);
+      console.error('Error fetching teachers:', error);
       return [];
     }
 
     const rows = (typeof data === 'string' ? JSON.parse(data) : data) || [];
-    console.log('[listSchoolTeachers] parsed rows count:', rows.length);
     return rows.map((row: any) => ({
       user_id: row.user_id,
       username: row.username,

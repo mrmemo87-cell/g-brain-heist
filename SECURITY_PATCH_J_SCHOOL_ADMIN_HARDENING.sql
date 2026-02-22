@@ -386,7 +386,7 @@ BEGIN
       'username', u.username,
       'email', u.email,
       'role_in_school', COALESCE(sm.role_in_school, 'teacher'),
-      'subject_specializations', COALESCE(t.subject_specializations, '[]'::jsonb),
+      'subject_specializations', COALESCE(to_jsonb(t.subject_specializations), '[]'::jsonb),
       'verified', COALESCE(t.verified, false)
     ) ORDER BY u.username ASC
   ), '[]'::jsonb)
