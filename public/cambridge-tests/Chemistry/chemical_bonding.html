@@ -797,12 +797,12 @@
     function getQuizPart() {
       const params = new URLSearchParams(window.location.search);
       const part = params.get('part') === '2' ? 2 : 1;
-      return { part }
+      return { part };
+    }
 
     function isReviewMode() {
       const params = new URLSearchParams(window.location.search);
       return params.get('mode') === 'review';
-    };
     }
 
     function splitQuiz(questions, answerKey, part) {
