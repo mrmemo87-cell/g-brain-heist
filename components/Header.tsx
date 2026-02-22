@@ -101,7 +101,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarUploadError, setAvatarUploadError] = useState<string | null>(null);
   const [apRegenCountdown, setApRegenCountdown] = useState<string>('');
-  const [calculatedAP, setCalculatedAP] = useState<number>(profile.ap_now);
+  const [calculatedAP, setCalculatedAP] = useState<number>(profile.ap_now ?? 0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [planDetails, setPlanDetails] = useState<SchoolPlanDetails | null>(null);
@@ -502,7 +502,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                 <div className="flex items-center gap-1.5 rounded-xl border border-yellow-500/40 bg-yellow-500/10 px-2.5 py-1.5">
                   <CoinAnimation width={18} height={18} />
                   <span id="coin-hud" className="font-mono text-xs font-bold text-white">
-                    {profile.coins.toLocaleString()}
+                    {(profile.coins ?? 0).toLocaleString()}
                   </span>
                 </div>
                 {/* Gemstones */}
@@ -511,7 +511,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                     <GemIcon />
                   </div>
                   <span id="gem-hud" className="font-mono text-xs font-bold text-white">
-                    {profile.gemstones.toLocaleString()}
+                    {(profile.gemstones ?? 0).toLocaleString()}
                   </span>
                 </div>
                 {/* XP */}
@@ -520,7 +520,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                     <XPIcon />
                   </div>
                   <span id="xp-hud" className="font-mono text-xs font-bold text-white">
-                    {profile.xp.toLocaleString()}
+                    {(profile.xp ?? 0).toLocaleString()}
                   </span>
                 </div>
                 {/* AP */}
@@ -707,19 +707,19 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
                 {/* Coins */}
                 <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-br from-yellow-600/20 to-orange-600/20 rounded-lg border border-yellow-500/50 backdrop-blur-sm">
                   <CoinAnimation width={16} height={16} />
-                  <span id="coin-hud" className="font-mono font-bold text-xs text-white">{profile.coins.toLocaleString()}</span>
+                  <span id="coin-hud" className="font-mono font-bold text-xs text-white">{(profile.coins ?? 0).toLocaleString()}</span>
                 </div>
 
                 {/* Gemstones */}
                 <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-br from-rose-700/25 to-pink-600/20 rounded-lg border border-rose-500/60 backdrop-blur-sm">
                   <div className="w-4 h-4"><GemIcon /></div>
-                  <span id="gem-hud" className="font-mono font-bold text-xs text-white">{profile.gemstones.toLocaleString()}</span>
+                  <span id="gem-hud" className="font-mono font-bold text-xs text-white">{(profile.gemstones ?? 0).toLocaleString()}</span>
                 </div>
 
                 {/* XP */}
                 <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-br from-blue-600/20 to-cyan-600/20 rounded-lg border border-cyan-500/50 backdrop-blur-sm">
                   <div className="w-4 h-4 text-cyan-400"><XPIcon /></div>
-                  <span id="xp-hud" className="font-mono font-bold text-xs text-white">{profile.xp.toLocaleString()}</span>
+                  <span id="xp-hud" className="font-mono font-bold text-xs text-white">{(profile.xp ?? 0).toLocaleString()}</span>
                 </div>
 
                 {/* AP */}
