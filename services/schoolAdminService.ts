@@ -2,6 +2,8 @@ import { supabase } from './supabaseClient';
 import type { SchoolRole } from '../types';
 
 // ============================================
+// School Admin Service — Patch J (RPC-backed)
+// ============================================
 // Types for School Admin Portal
 // ============================================
 

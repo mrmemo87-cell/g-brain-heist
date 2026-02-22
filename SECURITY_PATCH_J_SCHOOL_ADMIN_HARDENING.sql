@@ -342,6 +342,8 @@ STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+  v_result JSONB;
 BEGIN
   -- ================================================================
   -- RPC: school_admin_list_teachers
@@ -361,24 +363,43 @@ BEGIN
     RAISE EXCEPTION 'Forbidden: not a school admin of this school';
   END IF;
 
-  RETURN COALESCE((
-    SELECT jsonb_agg(
-      jsonb_build_object(
-        'user_id', sm.user_id,
-        'username', u.username,
-        'email', u.email,
-        'role_in_school', sm.role_in_school,
-        'subject_specializations', COALESCE(t.subject_specializations, '[]'::jsonb),
-        'verified', COALESCE(t.verified, false)
-      ) ORDER BY u.username ASC
-    )
+  -- Two sources of teachers:
+  --   1. school_members with role teacher/school_admin
+  --   2. users assigned to classes via class_teacher_assignments
+  -- UNIONed to catch teachers who were assigned but never added to school_members.
+  WITH teacher_ids AS (
+    -- Source 1: formal school members with teacher/admin role
+    SELECT sm.user_id
     FROM public.school_members sm
-    JOIN public.users u ON u.id = sm.user_id
-    LEFT JOIN public.teachers t ON t.user_id = sm.user_id
     WHERE sm.school_id = p_school_id
       AND sm.status = 'active'
       AND sm.role_in_school IN ('teacher', 'school_admin')
-  ), '[]'::jsonb);
+    UNION
+    -- Source 2: anyone assigned to teach a class in this school
+    SELECT DISTINCT a.teacher_user_id
+    FROM public.class_teacher_assignments a
+    WHERE a.school_id = p_school_id
+  )
+  SELECT COALESCE(jsonb_agg(
+    jsonb_build_object(
+      'user_id', ti.user_id,
+      'username', u.username,
+      'email', u.email,
+      'role_in_school', COALESCE(sm.role_in_school, 'teacher'),
+      'subject_specializations', COALESCE(t.subject_specializations, '[]'::jsonb),
+      'verified', COALESCE(t.verified, false)
+    ) ORDER BY u.username ASC
+  ), '[]'::jsonb)
+  INTO v_result
+  FROM teacher_ids ti
+  JOIN public.users u ON u.id = ti.user_id
+  LEFT JOIN public.school_members sm
+    ON sm.user_id = ti.user_id
+   AND sm.school_id = p_school_id
+   AND sm.status = 'active'
+  LEFT JOIN public.teachers t ON t.user_id = ti.user_id;
+
+  RETURN v_result;
 END;
 $$;
 
