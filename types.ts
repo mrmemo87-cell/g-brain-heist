@@ -22,7 +22,7 @@ export type Batch =
   | '12B'
   | '12C'
   | 'N/A';
-export type UserRole = 'student' | 'teacher' | 'admin';
+export type UserRole = 'student' | 'teacher' | 'admin' | 'school_admin';
 export type ClanRole = 'leader' | 'officer' | 'moderator' | 'member';
 export type SoloDifficulty = 'easy' | 'medium' | 'hard';
 export type TopicStatus = 'CRUSHED' | 'AVERAGE' | 'STRUGGLED';
@@ -76,6 +76,9 @@ export interface Profile {
   admin_visible?: boolean; // Whether admin is visible in leaderboards/PvP (default: false)
   is_admin?: boolean;
   is_banned?: boolean;
+  banned_until?: string | null;       // ISO timestamp — time-limited suspension
+  required_changes?: Record<string, any> | null; // JSONB — forced profile changes
+  profile_locked?: boolean;           // Profile locked until changes resolved
   account_tier?: 'free' | 'pro';  // Payment tier: free=lockdown only, pro=full access
   clan_id?: string | null;
   clan_name?: string | null;

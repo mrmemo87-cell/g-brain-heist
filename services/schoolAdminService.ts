@@ -26,6 +26,8 @@ export interface SchoolMember {
   xp: number;
   last_seen: string | null;
   is_banned: boolean;
+  banned_until: string | null;
+  required_changes: Record<string, any> | null;
   joined_at: string;
 }
 
@@ -378,6 +380,8 @@ export async function listSchoolMembers(
       xp: row.xp ?? 0,
       last_seen: row.last_seen,
       is_banned: !!row.is_banned,
+      banned_until: row.banned_until ?? null,
+      required_changes: row.required_changes ?? null,
       joined_at: row.joined_at,
     }));
 
@@ -1503,5 +1507,210 @@ export async function autoEnrollStudentsByGrade(
   } catch (err) {
     console.error('Exception auto-enrolling students:', err);
     return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+// ============================================
+// MODERATION — Time-limited suspension,
+// force profile change, audit log
+// ============================================
+
+export interface ModerationLogEntry {
+  id: number;
+  actor_id: string;
+  actor_username: string;
+  action: string;
+  target_type: string;
+  target_id: string;
+  target_username: string;
+  details: Record<string, any>;
+  created_at: string;
+}
+
+export interface StudentModStatus {
+  user_id: string;
+  username: string;
+  is_banned: boolean;
+  banned_until: string | null;
+  required_changes: Record<string, any> | null;
+  profile_locked: boolean;
+  mod_status: 'permanently_banned' | 'suspended' | 'profile_change_required' | 'clear';
+}
+
+/**
+ * Suspend a student for a limited time (1–720 hours).
+ */
+export async function suspendStudent(
+  studentId: string,
+  durationHours: number,
+  reason?: string
+): Promise<{ success: boolean; banned_until?: string; error?: string }> {
+  try {
+    const { data, error } = await supabase.rpc('school_admin_suspend_student', {
+      p_student_id: studentId,
+      p_duration_hours: durationHours,
+      p_reason: reason || 'Violation of school policy',
+    });
+
+    if (error) {
+      console.error('Error suspending student:', error);
+      return { success: false, error: error.message };
+    }
+
+    if (!data?.success) {
+      return { success: false, error: data?.error || 'Failed to suspend student' };
+    }
+
+    return { success: true, banned_until: data.banned_until };
+  } catch (err) {
+    console.error('Exception suspending student:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Remove a student's time-limited suspension early.
+ */
+export async function unsuspendStudent(
+  studentId: string,
+  reason?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { data, error } = await supabase.rpc('school_admin_unsuspend_student', {
+      p_student_id: studentId,
+      p_reason: reason || 'Suspension lifted by school admin',
+    });
+
+    if (error) {
+      console.error('Error unsuspending student:', error);
+      return { success: false, error: error.message };
+    }
+
+    if (!data?.success) {
+      return { success: false, error: data?.error || 'Failed to unsuspend student' };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error('Exception unsuspending student:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Require a student to change their username and/or avatar.
+ */
+export async function forceProfileChange(
+  studentId: string,
+  changes: { username?: boolean; avatar?: boolean },
+  reason?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { data, error } = await supabase.rpc('school_admin_force_profile_change', {
+      p_student_id: studentId,
+      p_changes: changes,
+      p_reason: reason || 'Profile change required by school administrator',
+    });
+
+    if (error) {
+      console.error('Error forcing profile change:', error);
+      return { success: false, error: error.message };
+    }
+
+    if (!data?.success) {
+      return { success: false, error: data?.error || 'Failed to set profile change requirement' };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error('Exception forcing profile change:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Clear a student's required profile changes (admin or student can call).
+ */
+export async function clearProfileChange(
+  studentId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { data, error } = await supabase.rpc('school_admin_clear_profile_change', {
+      p_student_id: studentId,
+    });
+
+    if (error) {
+      console.error('Error clearing profile change:', error);
+      return { success: false, error: error.message };
+    }
+
+    if (!data?.success) {
+      return { success: false, error: data?.error || 'Failed to clear profile change' };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error('Exception clearing profile change:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Get the moderation audit log for the school admin's school.
+ */
+export async function getModerationLog(
+  limit = 50,
+  offset = 0
+): Promise<{ entries: ModerationLogEntry[]; error?: string }> {
+  try {
+    const { data, error } = await supabase.rpc('school_admin_get_moderation_log', {
+      p_limit: limit,
+      p_offset: offset,
+    });
+
+    if (error) {
+      console.error('Error fetching moderation log:', error);
+      return { entries: [], error: error.message };
+    }
+
+    if (!data?.success) {
+      return { entries: [], error: data?.error || 'Failed to fetch moderation log' };
+    }
+
+    return { entries: (data.entries || []) as ModerationLogEntry[] };
+  } catch (err) {
+    console.error('Exception fetching moderation log:', err);
+    return { entries: [], error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Get a student's current moderation status.
+ */
+export async function getStudentModStatus(
+  studentId: string
+): Promise<StudentModStatus | null> {
+  try {
+    const { data, error } = await supabase.rpc('school_admin_get_student_mod_status', {
+      p_student_id: studentId,
+    });
+
+    if (error || !data?.success) {
+      console.error('Error fetching student mod status:', error || data?.error);
+      return null;
+    }
+
+    return {
+      user_id: data.user_id,
+      username: data.username,
+      is_banned: !!data.is_banned,
+      banned_until: data.banned_until ?? null,
+      required_changes: data.required_changes ?? null,
+      profile_locked: !!data.profile_locked,
+      mod_status: data.mod_status,
+    } as StudentModStatus;
+  } catch (err) {
+    console.error('Exception fetching student mod status:', err);
+    return null;
   }
 }

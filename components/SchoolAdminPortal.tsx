@@ -22,6 +22,8 @@ import type {
   SchoolClass,
   SchoolTeacher,
   ClassTeacherAssignment,
+  ModerationLogEntry,
+  StudentModStatus,
 } from '../services/schoolAdminService';
 import type { SchoolRole } from '../types';
 
@@ -30,7 +32,7 @@ interface SchoolAdminPortalProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
 }
 
-type AdminTab = 'dashboard' | 'members' | 'classes' | 'roster' | 'subjects' | 'teachers' | 'students' | 'invites' | 'settings' | 'billing' | 'cambridge';
+type AdminTab = 'dashboard' | 'members' | 'classes' | 'roster' | 'subjects' | 'teachers' | 'students' | 'invites' | 'settings' | 'billing' | 'cambridge' | 'moderation';
 
 const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addToast }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
@@ -136,6 +138,20 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
   const [schoolVisibilityLoading, setSchoolVisibilityLoading] = useState(false);
   const [schoolVisibilitySubjectFilter, setSchoolVisibilitySubjectFilter] = useState<string>('all');
   const [selectedSchoolTests, setSelectedSchoolTests] = useState<Set<string>>(new Set());
+
+  // Moderation state
+  const [modLog, setModLog] = useState<ModerationLogEntry[]>([]);
+  const [modLogLoading, setModLogLoading] = useState(false);
+  const [modTargetId, setModTargetId] = useState('');
+  const [modTargetStatus, setModTargetStatus] = useState<StudentModStatus | null>(null);
+  const [modTargetLoading, setModTargetLoading] = useState(false);
+  const [suspendDuration, setSuspendDuration] = useState<number>(24);
+  const [suspendReason, setSuspendReason] = useState('');
+  const [suspendLoading, setSuspendLoading] = useState(false);
+  const [forceChangeUsername, setForceChangeUsername] = useState(false);
+  const [forceChangeAvatar, setForceChangeAvatar] = useState(false);
+  const [forceChangeReason, setForceChangeReason] = useState('');
+  const [forceChangeLoading, setForceChangeLoading] = useState(false);
 
   // Load initial data
   useEffect(() => {
@@ -501,6 +517,137 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
       addToast(result.error || 'Failed to unban member', 'error');
     }
   };
+
+  // ============================================
+  // MODERATION HANDLERS
+  // ============================================
+
+  const loadModerationLog = useCallback(async () => {
+    setModLogLoading(true);
+    try {
+      const result = await SchoolAdminService.getModerationLog(50, 0);
+      setModLog(result.entries);
+      if (result.error) {
+        addToast(result.error, 'error');
+      }
+    } finally {
+      setModLogLoading(false);
+    }
+  }, [addToast]);
+
+  const loadStudentModStatus = useCallback(async (studentId: string) => {
+    if (!studentId) return;
+    setModTargetLoading(true);
+    try {
+      const status = await SchoolAdminService.getStudentModStatus(studentId);
+      setModTargetStatus(status);
+      if (!status) {
+        addToast('Could not load student moderation status', 'error');
+      }
+    } finally {
+      setModTargetLoading(false);
+    }
+  }, [addToast]);
+
+  const handleSuspendStudent = useCallback(async () => {
+    if (!modTargetStatus) return;
+    setSuspendLoading(true);
+    try {
+      const result = await SchoolAdminService.suspendStudent(
+        modTargetStatus.user_id,
+        suspendDuration,
+        suspendReason || undefined
+      );
+      if (result.success) {
+        addToast(`Suspended ${modTargetStatus.username} for ${suspendDuration}h`, 'success');
+        setSuspendReason('');
+        await loadStudentModStatus(modTargetStatus.user_id);
+        await loadModerationLog();
+        if (school) await loadMembers(school.id);
+      } else {
+        addToast(result.error || 'Failed to suspend student', 'error');
+      }
+    } finally {
+      setSuspendLoading(false);
+    }
+  }, [modTargetStatus, suspendDuration, suspendReason, addToast, loadStudentModStatus, loadModerationLog, school]);
+
+  const handleUnsuspendStudent = useCallback(async () => {
+    if (!modTargetStatus) return;
+    setSuspendLoading(true);
+    try {
+      const result = await SchoolAdminService.unsuspendStudent(
+        modTargetStatus.user_id,
+        'Early lift by school admin'
+      );
+      if (result.success) {
+        addToast(`Unsuspended ${modTargetStatus.username}`, 'success');
+        await loadStudentModStatus(modTargetStatus.user_id);
+        await loadModerationLog();
+        if (school) await loadMembers(school.id);
+      } else {
+        addToast(result.error || 'Failed to unsuspend student', 'error');
+      }
+    } finally {
+      setSuspendLoading(false);
+    }
+  }, [modTargetStatus, addToast, loadStudentModStatus, loadModerationLog, school]);
+
+  const handleForceProfileChange = useCallback(async () => {
+    if (!modTargetStatus) return;
+    if (!forceChangeUsername && !forceChangeAvatar) {
+      addToast('Select at least one change (username or avatar)', 'error');
+      return;
+    }
+    setForceChangeLoading(true);
+    try {
+      const changes: { username?: boolean; avatar?: boolean } = {};
+      if (forceChangeUsername) changes.username = true;
+      if (forceChangeAvatar) changes.avatar = true;
+
+      const result = await SchoolAdminService.forceProfileChange(
+        modTargetStatus.user_id,
+        changes,
+        forceChangeReason || undefined
+      );
+      if (result.success) {
+        addToast(`Required profile change for ${modTargetStatus.username}`, 'success');
+        setForceChangeUsername(false);
+        setForceChangeAvatar(false);
+        setForceChangeReason('');
+        await loadStudentModStatus(modTargetStatus.user_id);
+        await loadModerationLog();
+      } else {
+        addToast(result.error || 'Failed to set profile change', 'error');
+      }
+    } finally {
+      setForceChangeLoading(false);
+    }
+  }, [modTargetStatus, forceChangeUsername, forceChangeAvatar, forceChangeReason, addToast, loadStudentModStatus, loadModerationLog]);
+
+  const handleClearProfileChange = useCallback(async () => {
+    if (!modTargetStatus) return;
+    setForceChangeLoading(true);
+    try {
+      const result = await SchoolAdminService.clearProfileChange(modTargetStatus.user_id);
+      if (result.success) {
+        addToast(`Cleared profile change requirement for ${modTargetStatus.username}`, 'success');
+        await loadStudentModStatus(modTargetStatus.user_id);
+        await loadModerationLog();
+      } else {
+        addToast(result.error || 'Failed to clear profile change', 'error');
+      }
+    } finally {
+      setForceChangeLoading(false);
+    }
+  }, [modTargetStatus, addToast, loadStudentModStatus, loadModerationLog]);
+
+  // Auto-load moderation log when tab opens
+  useEffect(() => {
+    if (activeTab === 'moderation') {
+      loadModerationLog();
+    }
+  }, [activeTab, loadModerationLog]);
 
   // Invite code actions (single code per school)
   const handleRotateInviteCode = async () => {
@@ -1035,7 +1182,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
 
       {/* Premium Tab Navigation */}
       <div className="school-admin-tabs flex flex-wrap gap-2 mb-8 pb-2" role="tablist" aria-label="School admin navigation">
-        {(['dashboard', 'members', 'classes', 'roster', 'subjects', 'teachers', 'students', 'invites', 'billing', 'settings', 'cambridge'] as AdminTab[]).map((tab) => (
+        {(['dashboard', 'members', 'classes', 'roster', 'subjects', 'teachers', 'students', 'invites', 'moderation', 'billing', 'settings', 'cambridge'] as AdminTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -1055,6 +1202,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
             {tab === 'teachers' && '🧑‍🏫 Teachers'}
             {tab === 'students' && '🎒 Students'}
             {tab === 'invites' && '🔑 Invites'}
+            {tab === 'moderation' && '🛡️ Moderation'}
             {tab === 'billing' && '💳 Plan & Billing'}
             {tab === 'settings' && '⚙️ Settings'}
             {tab === 'cambridge' && '📚 Cambridge'}
@@ -2159,6 +2307,267 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
             <p className="text-xs text-gray-500 mt-3">
               Rotating invalidates the old code immediately.
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Moderation Tab */}
+      {activeTab === 'moderation' && (
+        <div className="space-y-6">
+          {/* Student Lookup */}
+          <div className="bg-gray-800 rounded-xl p-6 border border-purple-600/50">
+            <h3 className="text-xl font-bold text-purple-300 mb-4">🛡️ Student Moderation</h3>
+            <p className="text-sm text-gray-400 mb-4">
+              Look up a student by selecting from the members list, then apply moderation actions.
+            </p>
+
+            {/* Student selector — pick from members */}
+            <div className="flex flex-wrap gap-3 items-end mb-6">
+              <div className="flex-1 min-w-[200px]">
+                <label className="block text-sm font-medium text-gray-300 mb-1">Select Student</label>
+                <select
+                  value={modTargetId}
+                  onChange={(e) => {
+                    setModTargetId(e.target.value);
+                    setModTargetStatus(null);
+                  }}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                >
+                  <option value="">— Choose a student —</option>
+                  {members
+                    .filter(m => m.role === 'student')
+                    .map(m => (
+                      <option key={m.user_id} value={m.user_id}>
+                        {m.username} {m.is_banned ? '(BANNED)' : ''} {m.banned_until && new Date(m.banned_until) > new Date() ? '(SUSPENDED)' : ''} {m.required_changes ? '(CHANGE REQ)' : ''}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <button
+                onClick={() => modTargetId && loadStudentModStatus(modTargetId)}
+                disabled={!modTargetId || modTargetLoading}
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 rounded-lg transition-colors font-medium text-white"
+              >
+                {modTargetLoading ? 'Loading...' : 'Look Up'}
+              </button>
+            </div>
+
+            {/* Current status display */}
+            {modTargetStatus && (
+              <div className="space-y-4">
+                <div className={`rounded-lg p-4 border ${
+                  modTargetStatus.mod_status === 'permanently_banned' ? 'bg-red-900/30 border-red-500/50' :
+                  modTargetStatus.mod_status === 'suspended' ? 'bg-amber-900/30 border-amber-500/50' :
+                  modTargetStatus.mod_status === 'profile_change_required' ? 'bg-yellow-900/30 border-yellow-500/50' :
+                  'bg-green-900/30 border-green-500/50'
+                }`}>
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-lg font-bold text-white">{modTargetStatus.username}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                      modTargetStatus.mod_status === 'permanently_banned' ? 'bg-red-600 text-white' :
+                      modTargetStatus.mod_status === 'suspended' ? 'bg-amber-600 text-white' :
+                      modTargetStatus.mod_status === 'profile_change_required' ? 'bg-yellow-600 text-black' :
+                      'bg-green-600 text-white'
+                    }`}>
+                      {modTargetStatus.mod_status === 'permanently_banned' && 'PERMANENTLY BANNED'}
+                      {modTargetStatus.mod_status === 'suspended' && 'SUSPENDED'}
+                      {modTargetStatus.mod_status === 'profile_change_required' && 'PROFILE CHANGE REQUIRED'}
+                      {modTargetStatus.mod_status === 'clear' && 'CLEAR'}
+                    </span>
+                  </div>
+                  {modTargetStatus.banned_until && new Date(modTargetStatus.banned_until) > new Date() && (
+                    <p className="text-sm text-amber-300">
+                      Suspended until: {new Date(modTargetStatus.banned_until).toLocaleString()}
+                    </p>
+                  )}
+                  {modTargetStatus.required_changes && (
+                    <p className="text-sm text-yellow-300">
+                      Required changes: {modTargetStatus.required_changes.username ? 'Username ' : ''}{modTargetStatus.required_changes.avatar ? 'Avatar ' : ''}
+                      {modTargetStatus.required_changes.reason && `— ${modTargetStatus.required_changes.reason}`}
+                    </p>
+                  )}
+                </div>
+
+                {/* Suspension Controls */}
+                <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+                  <h4 className="text-sm font-semibold text-amber-300 mb-3">⏱️ Time-Limited Suspension</h4>
+                  {modTargetStatus.mod_status === 'permanently_banned' ? (
+                    <p className="text-sm text-gray-400">This student is permanently banned. Use the Members tab to unban first.</p>
+                  ) : modTargetStatus.mod_status === 'suspended' ? (
+                    <div className="flex flex-wrap gap-3 items-center">
+                      <p className="text-sm text-amber-200">Currently suspended until {new Date(modTargetStatus.banned_until!).toLocaleString()}</p>
+                      <button
+                        onClick={handleUnsuspendStudent}
+                        disabled={suspendLoading}
+                        className="px-4 py-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 rounded-lg transition-colors text-white font-medium"
+                      >
+                        {suspendLoading ? 'Processing...' : 'Lift Suspension Early'}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap gap-3 items-end">
+                        <div className="w-40">
+                          <label className="block text-xs text-gray-400 mb-1">Duration</label>
+                          <select
+                            value={suspendDuration}
+                            onChange={(e) => setSuspendDuration(Number(e.target.value))}
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm"
+                          >
+                            <option value={1}>1 hour</option>
+                            <option value={6}>6 hours</option>
+                            <option value={24}>24 hours</option>
+                            <option value={72}>3 days</option>
+                            <option value={168}>7 days</option>
+                            <option value={720}>30 days</option>
+                          </select>
+                        </div>
+                        <div className="flex-1 min-w-[200px]">
+                          <label className="block text-xs text-gray-400 mb-1">Reason (optional)</label>
+                          <input
+                            type="text"
+                            value={suspendReason}
+                            onChange={(e) => setSuspendReason(e.target.value)}
+                            placeholder="e.g. Inappropriate behavior in class"
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm"
+                          />
+                        </div>
+                        <button
+                          onClick={handleSuspendStudent}
+                          disabled={suspendLoading}
+                          className="px-4 py-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 rounded-lg transition-colors text-white font-medium"
+                        >
+                          {suspendLoading ? 'Suspending...' : 'Suspend'}
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        The student will be blocked from gameplay for the specified duration. They can still log in to see the suspension notice.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Force Profile Change Controls */}
+                <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+                  <h4 className="text-sm font-semibold text-yellow-300 mb-3">✏️ Force Profile Change</h4>
+                  {modTargetStatus.required_changes ? (
+                    <div className="flex flex-wrap gap-3 items-center">
+                      <p className="text-sm text-yellow-200">
+                        Pending: {modTargetStatus.required_changes.username ? 'Username ' : ''}{modTargetStatus.required_changes.avatar ? 'Avatar' : ''}
+                      </p>
+                      <button
+                        onClick={handleClearProfileChange}
+                        disabled={forceChangeLoading}
+                        className="px-4 py-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 rounded-lg transition-colors text-white font-medium"
+                      >
+                        {forceChangeLoading ? 'Clearing...' : 'Clear Requirement'}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap gap-4 items-center">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={forceChangeUsername}
+                            onChange={(e) => setForceChangeUsername(e.target.checked)}
+                            className="w-4 h-4 rounded border-gray-600 text-purple-600 focus:ring-purple-500"
+                          />
+                          <span className="text-sm text-gray-300">Require username change</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={forceChangeAvatar}
+                            onChange={(e) => setForceChangeAvatar(e.target.checked)}
+                            className="w-4 h-4 rounded border-gray-600 text-purple-600 focus:ring-purple-500"
+                          />
+                          <span className="text-sm text-gray-300">Require avatar change</span>
+                        </label>
+                      </div>
+                      <div className="flex flex-wrap gap-3 items-end">
+                        <div className="flex-1 min-w-[200px]">
+                          <label className="block text-xs text-gray-400 mb-1">Reason (optional)</label>
+                          <input
+                            type="text"
+                            value={forceChangeReason}
+                            onChange={(e) => setForceChangeReason(e.target.value)}
+                            placeholder="e.g. Inappropriate username"
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm"
+                          />
+                        </div>
+                        <button
+                          onClick={handleForceProfileChange}
+                          disabled={forceChangeLoading || (!forceChangeUsername && !forceChangeAvatar)}
+                          className="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 disabled:opacity-50 rounded-lg transition-colors text-white font-medium"
+                        >
+                          {forceChangeLoading ? 'Setting...' : 'Require Change'}
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        The student will be prompted to update their profile before they can resume gameplay.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Moderation Audit Log */}
+          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-200">📋 Moderation Log</h3>
+              <button
+                onClick={loadModerationLog}
+                disabled={modLogLoading}
+                className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 rounded-lg text-sm transition-colors"
+              >
+                {modLogLoading ? 'Loading...' : 'Refresh'}
+              </button>
+            </div>
+            {modLog.length === 0 && !modLogLoading && (
+              <p className="text-sm text-gray-500">No moderation actions recorded yet.</p>
+            )}
+            {modLog.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-gray-400 border-b border-gray-700">
+                      <th className="pb-2 pr-4">When</th>
+                      <th className="pb-2 pr-4">Admin</th>
+                      <th className="pb-2 pr-4">Action</th>
+                      <th className="pb-2 pr-4">Student</th>
+                      <th className="pb-2">Details</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-700/50">
+                    {modLog.map((entry) => (
+                      <tr key={entry.id} className="text-gray-300 hover:bg-gray-700/30">
+                        <td className="py-2 pr-4 whitespace-nowrap text-xs text-gray-500">
+                          {new Date(entry.created_at).toLocaleString()}
+                        </td>
+                        <td className="py-2 pr-4 whitespace-nowrap">{entry.actor_username}</td>
+                        <td className="py-2 pr-4 whitespace-nowrap">
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                            entry.action === 'student_suspended' ? 'bg-amber-600/30 text-amber-300' :
+                            entry.action === 'student_unsuspended' ? 'bg-green-600/30 text-green-300' :
+                            entry.action === 'force_profile_change' ? 'bg-yellow-600/30 text-yellow-300' :
+                            'bg-gray-600/30 text-gray-300'
+                          }`}>
+                            {entry.action.replace(/_/g, ' ')}
+                          </span>
+                        </td>
+                        <td className="py-2 pr-4 whitespace-nowrap">{entry.target_username}</td>
+                        <td className="py-2 text-xs text-gray-500 max-w-[300px] truncate">
+                          {entry.details?.reason || entry.details?.duration_hours ? `${entry.details.duration_hours ? entry.details.duration_hours + 'h — ' : ''}${entry.details.reason || ''}` : '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}

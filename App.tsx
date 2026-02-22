@@ -187,7 +187,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const hasSchool = Boolean(profile?.school_id);
   const isProUser = isProTier(accountTier);
   const isTeacherRole = profile?.role === 'teacher';
-  const isFullScreenView = view === 'school_admin' || view === 'teacher' || view === 'admin' || view === 'admissions' || (view === 'dashboard' && isTeacherRole);
+  const isSchoolAdminRole = isUserSchoolAdmin;
+  const isFullScreenView = view === 'school_admin' || view === 'teacher' || view === 'admin' || view === 'admissions' || (view === 'dashboard' && isTeacherRole) || (view === 'dashboard' && isSchoolAdminRole);
 
   const SkeletonBlock: React.FC<{ className?: string }> = ({ className }) => (
     <div className={`skeleton-bone rounded-xl bg-white/10 ${className ?? ''}`} />
@@ -267,6 +268,15 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   }, []);
 
   const handleViewChange = (nextView: typeof view) => {
+    // School admin is a formal account — only allow admin/school views
+    if (isSchoolAdminRole) {
+      const allowedSchoolAdminViews = ['school_admin', 'admissions', 'cambridge', 'ielts'];
+      if (!allowedSchoolAdminViews.includes(nextView)) {
+        addToast('School admin accounts manage the school — game features are not available.', 'info');
+        setView('school_admin');
+        return;
+      }
+    }
     if (!hasSchool && ['clan', 'leaderboard', 'phase1_play', 'phase1_leaderboard', 'phase1_admin', 'school_admin', 'admissions'].includes(nextView)) {
       addToast('Join a school to access school-based features.', 'info');
       return;
@@ -403,14 +413,14 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   };
 
   useEffect(() => {
-    if (!isPlayerMode || isTeacherRole) {
+    if (!isPlayerMode || isTeacherRole || isSchoolAdminRole) {
       return;
     }
     return aiHostService.init();
-  }, [isPlayerMode, isTeacherRole]);
+  }, [isPlayerMode, isTeacherRole, isSchoolAdminRole]);
 
   useEffect(() => {
-    if (!isPlayerMode || isTeacherRole) {
+    if (!isPlayerMode || isTeacherRole || isSchoolAdminRole) {
       return;
     }
 
@@ -450,7 +460,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
   useEffect(() => {
     if (!isPlayerMode) return;
-    if (!profile || profile.role === 'teacher' || profile.role === 'admin') {
+    if (!profile || profile.role === 'teacher' || profile.role === 'admin' || profile.role === 'school_admin') {
       setShowAcademicSetup(false);
       return;
     }
@@ -578,6 +588,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         if (peekRow?.role === 'teacher') {
           setPeekedRole('teacher');
           profileData = await GameService.whoamiTeacher();
+        } else if (peekRow?.role === 'school_admin') {
+          // School admin = formal account, use lightweight teacher path
+          setPeekedRole('teacher');
+          profileData = await GameService.whoamiTeacher();
         } else if (peekRow?.role) {
           setPeekedRole(peekRow?.role === 'admin' ? 'admin' : 'student');
         }
@@ -631,6 +645,19 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
         setIsAdminMode(false);
         setAppMode('player');
+        setCriticalLoading(false);
+        requestAnimationFrame(() => setIsInteractive(true));
+        return;
+      }
+
+      // ── SCHOOL ADMIN: formal account — go directly to portal ──
+      if (profileData.role === 'school_admin') {
+        fetchEffectiveTier().then(tier => setAccountTier(tier)).catch(() => {});
+        fetchSchoolPlanDetails().then(d => setIsPilotPlan(d.plan === 'pilot' && d.is_active)).catch(() => {});
+        setIsUserSchoolAdmin(true);
+        setIsAdminMode(false);
+        setAppMode('player');
+        setView('school_admin');
         setCriticalLoading(false);
         requestAnimationFrame(() => setIsInteractive(true));
         return;
@@ -709,9 +736,9 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
   const runNonCriticalLoads = useCallback((targets?: NonCriticalKey[]) => {
     if (!profile) return;
 
-    // Teachers don't need student game data (tasks, caps, news, assignments)
-    if (profile.role === 'teacher') {
-      // Only load session status for teachers
+    // Teachers and school admins don't need student game data (tasks, caps, news, assignments)
+    if (profile.role === 'teacher' || profile.role === 'school_admin') {
+      // Only load session status for teachers / school admins
       const teacherTargets: NonCriticalKey[] = targets
         ? targets.filter(t => t === 'sessionStatus')
         : ['sessionStatus'];
@@ -1028,6 +1055,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             newProfile.gemstones !== oldProfile?.gemstones ||
             newProfile.ap_now !== oldProfile?.ap_now ||
             newProfile.is_banned !== oldProfile?.is_banned ||
+            newProfile.banned_until !== oldProfile?.banned_until ||
+            newProfile.required_changes !== oldProfile?.required_changes ||
             newProfile.streak !== oldProfile?.streak;
           
           if (!significantChange) {
@@ -1697,6 +1726,15 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           );
         case 'dashboard':
         default:
+            // School admin goes directly to SchoolAdminPortal — formal account, no game
+            if (isSchoolAdminRole) {
+                return renderLazy(
+                    <SchoolAdminPortal
+                        onComplete={handleViewComplete}
+                        addToast={addToast}
+                    />
+                );
+            }
             // Teacher goes directly to TeacherPortal - unified experience
             if (profile?.role === 'teacher') {
                 return renderLazy(
@@ -1716,6 +1754,64 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
             const pendingTasks = tasks.filter((task) => !task.claimed && task.progress < task.target).length;
             const completedTasks = tasks.filter((task) => task.progress >= task.target).length;
             const studyProgress = tasks.length ? Math.round((completedTasks / tasks.length) * 100) : 0;
+
+            // ── Suspension overlay ──
+            const bannedUntil = profile?.banned_until ? new Date(profile.banned_until) : null;
+            const isSuspended = bannedUntil && bannedUntil > new Date();
+            if (isSuspended) {
+              return (
+                <main className="mt-6 flex items-center justify-center min-h-[60vh]">
+                  <div className="bg-gray-800 rounded-2xl p-8 max-w-lg w-full border-2 border-amber-500/50 text-center space-y-4">
+                    <div className="text-5xl">⏱️</div>
+                    <h2 className="text-2xl font-bold text-amber-400">Account Suspended</h2>
+                    <p className="text-gray-300">
+                      Your gameplay access has been temporarily suspended by a school administrator.
+                    </p>
+                    <div className="bg-gray-900/60 rounded-lg p-4">
+                      <p className="text-sm text-gray-400">Suspension ends:</p>
+                      <p className="text-lg font-mono text-amber-300">{bannedUntil.toLocaleString()}</p>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      If you believe this is an error, please speak with your school administrator.
+                    </p>
+                  </div>
+                </main>
+              );
+            }
+
+            // ── Required profile changes overlay ──
+            const reqChanges = profile?.required_changes;
+            if (reqChanges && typeof reqChanges === 'object' && Object.keys(reqChanges).length > 0) {
+              return (
+                <main className="mt-6 flex items-center justify-center min-h-[60vh]">
+                  <div className="bg-gray-800 rounded-2xl p-8 max-w-lg w-full border-2 border-yellow-500/50 text-center space-y-4">
+                    <div className="text-5xl">✏️</div>
+                    <h2 className="text-2xl font-bold text-yellow-400">Profile Update Required</h2>
+                    <p className="text-gray-300">
+                      A school administrator has requested that you update your profile before continuing.
+                    </p>
+                    {reqChanges.reason && (
+                      <div className="bg-gray-900/60 rounded-lg p-4">
+                        <p className="text-sm text-gray-400">Reason:</p>
+                        <p className="text-sm text-yellow-300">{reqChanges.reason}</p>
+                      </div>
+                    )}
+                    <div className="text-left space-y-2 bg-gray-900/60 rounded-lg p-4">
+                      <p className="text-sm font-semibold text-gray-300">Required changes:</p>
+                      {reqChanges.username && <p className="text-sm text-yellow-200">• Change your username</p>}
+                      {reqChanges.avatar && <p className="text-sm text-yellow-200">• Change your avatar</p>}
+                    </div>
+                    <p className="text-sm text-gray-300">
+                      Use the profile menu in the top-right header to update your {reqChanges.username ? 'username' : ''}{reqChanges.username && reqChanges.avatar ? ' and ' : ''}{reqChanges.avatar ? 'avatar' : ''}, then your access will be restored automatically.
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      After updating, your access will be restored automatically.
+                    </p>
+                  </div>
+                </main>
+              );
+            }
+
             return (
               <main className="mt-6 space-y-6">
 
