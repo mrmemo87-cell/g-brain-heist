@@ -343,6 +343,8 @@ export async function listSchoolMembers(
   options?: {
     role?: SchoolRole;
     search?: string;
+    sortKey?: string;
+    sortDirection?: 'asc' | 'desc';
     limit?: number;
     offset?: number;
   }
@@ -352,6 +354,8 @@ export async function listSchoolMembers(
       p_school_id: schoolId,
       p_role_filter: options?.role || null,
       p_search: options?.search || null,
+      p_sort_key: options?.sortKey || 'username',
+      p_sort_direction: options?.sortDirection || 'asc',
       p_limit: options?.limit || 50,
       p_offset: options?.offset || 0,
     });
@@ -828,37 +832,28 @@ export async function listClassStudents(classIds: string[], schoolId?: string): 
   }
 }
 
-export async function moveStudentToClass(
-  classIds: string[],
-  studentId: string,
-  newClassId: string
-): Promise<{ success: boolean; error?: string }> {
+/**
+ * Delete a quiz submission via RPC (school admin action)
+ */
+export async function deleteQuizSubmission(scoreId: string): Promise<{ success: boolean; error?: string }> {
   try {
-    if (classIds.length > 0) {
-      const { error: deleteError } = await supabase
-        .from('class_students')
-        .delete()
-        .eq('student_id', studentId)
-        .in('class_id', classIds);
+    const { data, error } = await supabase.rpc('school_admin_delete_quiz_submission', {
+      p_score_id: scoreId,
+    });
 
-      if (deleteError) {
-        console.error('Error removing old class assignment:', deleteError);
-        return { success: false, error: deleteError.message };
-      }
+    if (error) {
+      console.error('Error deleting quiz submission:', error);
+      return { success: false, error: error.message };
     }
 
-    const { error: insertError } = await supabase
-      .from('class_students')
-      .insert({ class_id: newClassId, student_id: studentId });
-
-    if (insertError) {
-      console.error('Error enrolling student:', insertError);
-      return { success: false, error: insertError.message };
+    const result = typeof data === 'string' ? JSON.parse(data) : data;
+    if (result && result.success === false) {
+      return { success: false, error: result.error || 'Failed to delete submission' };
     }
 
     return { success: true };
   } catch (err) {
-    console.error('Exception moving student:', err);
+    console.error('Exception deleting quiz submission:', err);
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -1052,8 +1047,8 @@ export async function updateSchoolSubject(
     const { data, error } = await supabase.rpc('school_admin_update_subject', {
       p_school_id: effectiveSchoolId,
       p_subject_id: subjectId,
-      p_name: updates.name || null,
-      p_code: updates.code || null,
+      p_name: updates.name !== undefined ? (updates.name || null) : null,
+      p_code: updates.code !== undefined ? updates.code : null,
       p_is_active: updates.is_active ?? null,
     });
 

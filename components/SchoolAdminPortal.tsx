@@ -74,19 +74,12 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
   const [editingSubjectCode, setEditingSubjectCode] = useState('');
   const [editingSubjectSaving, setEditingSubjectSaving] = useState(false);
 
-  // Legacy client-side subjects (kept for backward compatibility during migration)
-  const [subjects, setSubjects] = useState<string[]>([]);
-  const [subjectInput, setSubjectInput] = useState('');
-  const [editingSubject, setEditingSubject] = useState<string | null>(null);
-  const [editSubjectInput, setEditSubjectInput] = useState('');
-
   // Teacher assignment state
   const [teachers, setTeachers] = useState<SchoolTeacher[]>([]);
   const [teacherAssignments, setTeacherAssignments] = useState<ClassTeacherAssignment[]>([]);
   const [assignmentClassId, setAssignmentClassId] = useState('');
   const [assignmentTeacherId, setAssignmentTeacherId] = useState('');
   const [assignmentSubjectInput, setAssignmentSubjectInput] = useState('');
-  const [assignmentSubjects, setAssignmentSubjects] = useState<string[]>([]);
   const [assignmentActive, setAssignmentActive] = useState(true);
   const [assignmentFilterClassId, setAssignmentFilterClassId] = useState('');
   const [assignmentFilterTeacherId, setAssignmentFilterTeacherId] = useState('');
@@ -123,6 +116,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
     onConfirm: (reason?: string) => Promise<void> | void;
   } | null>(null);
   const [confirmReason, setConfirmReason] = useState('');
+  const [confirmBusy, setConfirmBusy] = useState(false);
 
   // Settings state
   const [settingsName, setSettingsName] = useState('');
@@ -185,7 +179,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
         SchoolAdminService.listSchoolClasses(schoolId),
         SchoolAdminService.listSchoolTeachers(schoolId),
         SchoolAdminService.listTeacherAssignments(schoolId),
-        SchoolAdminService.listSchoolMembers(schoolId, { role: 'student', limit: 200 }).then((res) => res.members),
+        SchoolAdminService.listSchoolMembers(schoolId, { role: 'student', limit: 10000 }).then((res) => res.members),
         SchoolAdminService.listSchoolSubjects(schoolId),
       ]);
 
@@ -194,18 +188,6 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
       setTeacherAssignments(assignmentsList);
       setStudents(studentList);
       setDbSubjects(subjectList);
-
-      // Extract unique subjects from assignments and teacher specializations (legacy support)
-      const subjectsSet = new Set<string>();
-      assignmentsList.forEach((a) => {
-        if (a.subject?.trim()) subjectsSet.add(a.subject.trim());
-      });
-      teacherList.forEach((t) => {
-        t.subject_specializations?.forEach((s) => {
-          if (s?.trim()) subjectsSet.add(s.trim());
-        });
-      });
-      setSubjects(Array.from(subjectsSet).sort());
 
       const classIds = classList.map((cls) => cls.id);
       const studentRows = await SchoolAdminService.listClassStudents(classIds, schoolId);
@@ -237,13 +219,15 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
     const { members: memberList, total } = await SchoolAdminService.listSchoolMembers(schoolId, {
       role: memberRoleFilter || undefined,
       search: memberSearch || undefined,
+      sortKey: memberSortKey,
+      sortDirection: memberSortDirection,
       limit: memberPageSize,
       offset: (memberPage - 1) * memberPageSize,
     });
     setMembers(memberList);
     setMembersTotal(total);
     setSelectedMemberIds(new Set());
-  }, [memberRoleFilter, memberSearch, memberPage, memberPageSize]);
+  }, [memberRoleFilter, memberSearch, memberPage, memberPageSize, memberSortKey, memberSortDirection]);
 
   // Reload members when filters change
   useEffect(() => {
@@ -252,9 +236,10 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
     }
   }, [school?.id, memberSearch, memberRoleFilter, loadMembers]);
 
+  // Reset to page 1 when filters or sort changes
   useEffect(() => {
     setMemberPage(1);
-  }, [memberSearch, memberRoleFilter, memberPageSize]);
+  }, [memberSearch, memberRoleFilter, memberPageSize, memberSortKey, memberSortDirection]);
 
   useEffect(() => {
     if (school?.id) {
@@ -292,32 +277,17 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
       isDestructive: true,
       onConfirm: async () => {
         try {
-          const { data, error } = await supabase
-            .from('quiz_scores')
-            .delete()
-            .eq('id', scoreId)
-            .select('id');
+          const result = await SchoolAdminService.deleteQuizSubmission(scoreId);
 
-          if (error) {
-            console.error('Delete error details:', error);
-            throw error;
-          }
-
-          if (!data || data.length === 0) {
-            console.warn('No rows deleted - RLS policy may be blocking deletion');
-            addToast('Failed to delete: Permission denied. This may be an RLS policy issue.', 'error');
+          if (!result.success) {
+            addToast(`Failed to delete: ${result.error || 'Unknown error'}`, 'error');
             return;
           }
 
           setQuizScores(prev => prev.filter(score => score.id !== scoreId));
           addToast(`Deleted submission for ${studentName}`, 'success');
         } catch (error: any) {
-          console.error('Failed to delete submission:', {
-            message: error.message,
-            code: error.code,
-            details: error.details,
-            hint: error.hint
-          });
+          console.error('Failed to delete submission:', error);
           addToast(`Failed to delete submission: ${error.message}`, 'error');
         }
       },
@@ -661,7 +631,6 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
       return;
     }
 
-    const currentClassId = studentAssignments[selectedStudentId];
     const enrolledStudentId = selectedStudentId;
     const enrolledClassId = selectedClassId;
 
@@ -993,46 +962,8 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
     setStudentPage(1);
   }, [studentSearch, studentPageSize]);
 
-  const sortedMembers = [...members].sort((a, b) => {
-    const direction = memberSortDirection === 'asc' ? 1 : -1;
-    const valueA = (() => {
-      switch (memberSortKey) {
-        case 'role':
-          return a.role;
-        case 'grade':
-          return a.grade ?? 0;
-        case 'level':
-          return a.level ?? 0;
-        case 'last_seen':
-          return a.last_seen ? new Date(a.last_seen).getTime() : 0;
-        case 'status':
-          return a.is_banned ? 1 : 0;
-        case 'username':
-        default:
-          return a.username.toLowerCase();
-      }
-    })();
-    const valueB = (() => {
-      switch (memberSortKey) {
-        case 'role':
-          return b.role;
-        case 'grade':
-          return b.grade ?? 0;
-        case 'level':
-          return b.level ?? 0;
-        case 'last_seen':
-          return b.last_seen ? new Date(b.last_seen).getTime() : 0;
-        case 'status':
-          return b.is_banned ? 1 : 0;
-        case 'username':
-        default:
-          return b.username.toLowerCase();
-      }
-    })();
-    if (valueA < valueB) return -1 * direction;
-    if (valueA > valueB) return 1 * direction;
-    return 0;
-  });
+  // Server-side sort: data arrives pre-sorted from the RPC
+  const sortedMembers = members;
 
   const memberTotalPages = Math.max(1, Math.ceil(membersTotal / memberPageSize));
   const assignmentTotalPages = Math.max(1, Math.ceil(filteredTeacherAssignments.length / assignmentPageSize));
@@ -1929,7 +1860,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                     return (
                       <tr key={assignment.id} className="hover:bg-gray-750">
                         <td className="px-4 py-3 text-sm text-gray-200">
-                          {cls ? `${cls.class_code} — ${cls.class_name}` : assignment.class_id}
+                          {cls ? `${cls.class_code} — ${cls.class_name}` : <span className="text-yellow-400 italic text-xs">Unknown class</span>}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-200">
                           {teacher ? (
@@ -1938,7 +1869,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                               {teacher.verified && <span className="text-cyan-400 text-xs">✓</span>}
                             </div>
                           ) : (
-                            <span className="text-gray-500 text-xs">User ID: {assignment.teacher_user_id}</span>
+                            <span className="text-yellow-400 italic text-xs">Unknown teacher</span>
                           )}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-300">{assignment.subject}</td>
@@ -2799,26 +2730,34 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
             <div className="flex items-center justify-end gap-3">
               <button
                 onClick={() => {
+                  if (confirmBusy) return;
                   setConfirmDialog(null);
                   setConfirmReason('');
                 }}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+                disabled={confirmBusy}
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 rounded-lg transition-colors"
               >
                 {confirmDialog.cancelLabel || 'Cancel'}
               </button>
               <button
+                disabled={confirmBusy}
                 onClick={async () => {
-                  await confirmDialog.onConfirm(confirmReason.trim() || undefined);
-                  setConfirmDialog(null);
-                  setConfirmReason('');
+                  setConfirmBusy(true);
+                  try {
+                    await confirmDialog.onConfirm(confirmReason.trim() || undefined);
+                  } finally {
+                    setConfirmBusy(false);
+                    setConfirmDialog(null);
+                    setConfirmReason('');
+                  }
                 }}
-                className={`px-4 py-2 rounded-lg transition-colors ${
+                className={`px-4 py-2 rounded-lg transition-colors disabled:opacity-50 ${
                   confirmDialog.isDestructive
                     ? 'bg-red-600 hover:bg-red-500 text-white'
                     : 'bg-cyan-600 hover:bg-cyan-500 text-white'
                 }`}
               >
-                {confirmDialog.confirmLabel || 'Confirm'}
+                {confirmBusy ? 'Processing…' : (confirmDialog.confirmLabel || 'Confirm')}
               </button>
             </div>
           </div>
@@ -2857,7 +2796,8 @@ const BillingTab: React.FC<BillingTabProps> = ({
 }) => {
   useEffect(() => {
     if (!planDetails) onRefreshPlan();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planDetails]);
 
   if (loading || !planDetails) {
     return (
