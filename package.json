@@ -15,7 +15,8 @@
     "test": "npm run test:clean && npm run test:build && NODE_ENV=test VITE_SUPABASE_URL=http://localhost VITE_SUPABASE_ANON_KEY=test node --test dist-tests/tests/*.js",
     "load:leaderboard": "k6 run load-tests/leaderboard.js",
     "load:shop": "k6 run load-tests/shop.js",
-    "load:pvp": "k6 run load-tests/pvp.js"
+    "load:pvp": "k6 run load-tests/pvp.js",
+    "security:tripwire": "pwsh scripts/run-tripwire.ps1"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.78.0",

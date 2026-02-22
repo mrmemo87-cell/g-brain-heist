@@ -69,6 +69,10 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
   const [subjectName, setSubjectName] = useState('');
   const [subjectCode, setSubjectCode] = useState('');
   const [subjectSaving, setSubjectSaving] = useState(false);
+  const [editingSubjectId, setEditingSubjectId] = useState<string | null>(null);
+  const [editingSubjectName, setEditingSubjectName] = useState('');
+  const [editingSubjectCode, setEditingSubjectCode] = useState('');
+  const [editingSubjectSaving, setEditingSubjectSaving] = useState(false);
 
   // Legacy client-side subjects (kept for backward compatibility during migration)
   const [subjects, setSubjects] = useState<string[]>([]);
@@ -204,7 +208,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
       setSubjects(Array.from(subjectsSet).sort());
 
       const classIds = classList.map((cls) => cls.id);
-      const studentRows = await SchoolAdminService.listClassStudents(classIds);
+      const studentRows = await SchoolAdminService.listClassStudents(classIds, schoolId);
       const assignmentMap: Record<string, string | null> = {};
       studentRows.forEach((row) => {
         assignmentMap[row.student_id] = row.class_id;
@@ -695,7 +699,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
     setClassesLoading(true);
     try {
       const classIds = classes.map((cls) => cls.id);
-      const studentRows = await SchoolAdminService.listClassStudents(classIds);
+      const studentRows = await SchoolAdminService.listClassStudents(classIds, school?.id);
       const assignmentMap: Record<string, string | null> = {};
       studentRows.forEach((row) => {
         assignmentMap[row.student_id] = row.class_id;
@@ -759,7 +763,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
       cancelLabel: 'Cancel',
       isDestructive: true,
       onConfirm: async () => {
-        const result = await SchoolAdminService.deleteSchoolSubject(subjectId);
+        const result = await SchoolAdminService.deleteSchoolSubject(subjectId, school.id);
         if (!result.success) {
           addToast(result.error || 'Failed to delete subject', 'error');
           return;
@@ -768,6 +772,41 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
         await loadAdminTools(school.id);
       },
     });
+  };
+
+  const handleStartEditSubject = (subject: SchoolAdminService.SchoolSubject) => {
+    setEditingSubjectId(subject.id);
+    setEditingSubjectName(subject.name);
+    setEditingSubjectCode(subject.code || '');
+  };
+
+  const handleCancelEditSubject = () => {
+    setEditingSubjectId(null);
+    setEditingSubjectName('');
+    setEditingSubjectCode('');
+  };
+
+  const handleSaveEditSubject = async () => {
+    if (!school || !editingSubjectId || !editingSubjectName.trim()) return;
+
+    setEditingSubjectSaving(true);
+    const result = await SchoolAdminService.updateSchoolSubject(
+      editingSubjectId,
+      { name: editingSubjectName.trim(), code: editingSubjectCode.trim() || undefined },
+      school.id
+    );
+    setEditingSubjectSaving(false);
+
+    if (!result.success) {
+      addToast(result.error || 'Failed to update subject', 'error');
+      return;
+    }
+
+    addToast('Subject updated successfully', 'success');
+    setEditingSubjectId(null);
+    setEditingSubjectName('');
+    setEditingSubjectCode('');
+    await loadAdminTools(school.id);
   };
 
   const formatDate = (dateString: string | null) => {
@@ -1546,13 +1585,40 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                           {schoolClass.is_active ? 'Active' : 'Inactive'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3 text-right space-x-2">
                         <button
                           onClick={() => handleEditClass(schoolClass)}
                           className="text-cyan-400 hover:text-cyan-300 text-sm"
                         >
                           Edit
                         </button>
+                        {schoolClass.is_active && (
+                          <button
+                            onClick={() => {
+                              setConfirmReason('');
+                              setConfirmDialog({
+                                title: 'Archive Class',
+                                description: `Archive "${schoolClass.class_name}" (${schoolClass.class_code})? This will make it inactive. You can reactivate it later by editing.`,
+                                confirmLabel: 'Archive',
+                                cancelLabel: 'Cancel',
+                                isDestructive: true,
+                                onConfirm: async () => {
+                                  if (!school) return;
+                                  const result = await SchoolAdminService.archiveSchoolClass(school.id, schoolClass.id);
+                                  if (result.success) {
+                                    addToast('Class archived successfully', 'success');
+                                    await loadAdminTools(school.id);
+                                  } else {
+                                    addToast(`Failed to archive: ${result.error}`, 'error');
+                                  }
+                                },
+                              });
+                            }}
+                            className="text-amber-400 hover:text-amber-300 text-sm"
+                          >
+                            Archive
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -1643,19 +1709,76 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                 <tbody className="divide-y divide-gray-700">
                   {dbSubjects.map((subject) => (
                     <tr key={subject.id} className="hover:bg-gray-750">
-                      <td className="px-4 py-3 text-sm text-gray-200 font-medium">📚 {subject.name}</td>
-                      <td className="px-4 py-3 text-sm text-gray-400">{subject.code || '-'}</td>
-                      <td className="px-4 py-3 text-sm text-gray-500">
-                        {new Date(subject.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <button
-                          onClick={() => handleDeleteSubject(subject.id, subject.name)}
-                          className="text-red-400 hover:text-red-300 text-sm font-medium"
-                        >
-                          Delete
-                        </button>
-                      </td>
+                      {editingSubjectId === subject.id ? (
+                        <>
+                          <td className="px-4 py-3">
+                            <input
+                              type="text"
+                              value={editingSubjectName}
+                              onChange={(e) => setEditingSubjectName(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSaveEditSubject();
+                                if (e.key === 'Escape') handleCancelEditSubject();
+                              }}
+                              className="w-full px-2 py-1 bg-gray-700 border border-cyan-500 rounded text-white text-sm focus:outline-none"
+                              autoFocus
+                            />
+                          </td>
+                          <td className="px-4 py-3">
+                            <input
+                              type="text"
+                              value={editingSubjectCode}
+                              onChange={(e) => setEditingSubjectCode(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSaveEditSubject();
+                                if (e.key === 'Escape') handleCancelEditSubject();
+                              }}
+                              className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:border-cyan-500"
+                              placeholder="Code"
+                            />
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-500">
+                            {new Date(subject.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="px-4 py-3 text-right space-x-2">
+                            <button
+                              onClick={handleSaveEditSubject}
+                              disabled={editingSubjectSaving || !editingSubjectName.trim()}
+                              className="text-green-400 hover:text-green-300 text-sm font-medium disabled:opacity-50"
+                            >
+                              {editingSubjectSaving ? 'Saving...' : 'Save'}
+                            </button>
+                            <button
+                              onClick={handleCancelEditSubject}
+                              className="text-gray-400 hover:text-gray-300 text-sm"
+                            >
+                              Cancel
+                            </button>
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="px-4 py-3 text-sm text-gray-200 font-medium">📚 {subject.name}</td>
+                          <td className="px-4 py-3 text-sm text-gray-400">{subject.code || '-'}</td>
+                          <td className="px-4 py-3 text-sm text-gray-500">
+                            {new Date(subject.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="px-4 py-3 text-right space-x-2">
+                            <button
+                              onClick={() => handleStartEditSubject(subject)}
+                              className="text-cyan-400 hover:text-cyan-300 text-sm font-medium"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteSubject(subject.id, subject.name)}
+                              className="text-red-400 hover:text-red-300 text-sm font-medium"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -1835,7 +1958,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, addTo
                                 cancelLabel: 'Cancel',
                                 isDestructive: true,
                                 onConfirm: async () => {
-                                  const result = await SchoolAdminService.deleteTeacherAssignment(assignment.id);
+                                  const result = await SchoolAdminService.deleteTeacherAssignment(assignment.id, school?.id);
                                   if (result.success) {
                                     addToast('Assignment deleted successfully', 'success');
                                     if (school) await loadAdminTools(school.id);

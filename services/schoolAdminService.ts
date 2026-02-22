@@ -585,19 +585,17 @@ export async function updateSchoolSettings(
 
 export async function listSchoolClasses(schoolId: string): Promise<SchoolClass[]> {
   try {
-    const { data, error } = await supabase
-      .from('classes')
-      .select('id, school_id, class_code, class_name, grade_level, is_active')
-      .eq('school_id', schoolId)
-      .order('grade_level', { ascending: true })
-      .order('class_name', { ascending: true });
+    const { data, error } = await supabase.rpc('school_admin_list_classes', {
+      p_school_id: schoolId,
+    });
 
     if (error) {
       console.error('Error fetching classes:', error);
       return [];
     }
 
-    return (data || []).map((row) => ({
+    const rows = (typeof data === 'string' ? JSON.parse(data) : data) || [];
+    return rows.map((row: any) => ({
       id: row.id,
       school_id: row.school_id,
       class_code: row.class_code,
@@ -622,39 +620,23 @@ export async function saveSchoolClass(
   }
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    if (payload.id) {
-      const { error } = await supabase
-        .from('classes')
-        .update({
-          class_code: payload.class_code,
-          class_name: payload.class_name,
-          grade_level: payload.grade_level,
-          is_active: payload.is_active,
-        })
-        .eq('id', payload.id)
-        .eq('school_id', schoolId);
-
-      if (error) {
-        console.error('Error updating class:', error);
-        return { success: false, error: error.message };
-      }
-
-      return { success: true };
-    }
-
-    const { error } = await supabase
-      .from('classes')
-      .insert({
-        school_id: schoolId,
-        class_code: payload.class_code,
-        class_name: payload.class_name,
-        grade_level: payload.grade_level,
-        is_active: payload.is_active,
-      });
+    const { data, error } = await supabase.rpc('school_admin_save_class', {
+      p_school_id: schoolId,
+      p_class_id: payload.id || null,
+      p_class_code: payload.class_code,
+      p_class_name: payload.class_name,
+      p_grade_level: payload.grade_level,
+      p_is_active: payload.is_active,
+    });
 
     if (error) {
-      console.error('Error creating class:', error);
+      console.error('Error saving class:', error);
       return { success: false, error: error.message };
+    }
+
+    const result = typeof data === 'string' ? JSON.parse(data) : data;
+    if (result && result.success === false) {
+      return { success: false, error: result.error };
     }
 
     return { success: true };
@@ -664,40 +646,52 @@ export async function saveSchoolClass(
   }
 }
 
-export async function listSchoolTeachers(schoolId: string): Promise<SchoolTeacher[]> {
+export async function archiveSchoolClass(
+  schoolId: string,
+  classId: string
+): Promise<{ success: boolean; error?: string }> {
   try {
-    const { members } = await listSchoolMembers(schoolId, { role: 'teacher', limit: 200 });
-    const teacherIds = members.map((member) => member.user_id);
-
-    if (teacherIds.length === 0) return [];
-
-    const { data: teacherRows, error } = await supabase
-      .from('teachers')
-      .select('user_id, subject_specializations, verified')
-      .in('user_id', teacherIds);
+    const { data, error } = await supabase.rpc('school_admin_archive_class', {
+      p_school_id: schoolId,
+      p_class_id: classId,
+    });
 
     if (error) {
-      console.error('Error fetching teachers table:', error);
+      console.error('Error archiving class:', error);
+      return { success: false, error: error.message };
     }
 
-    const teacherMap = new Map<string, { subject_specializations: string[]; verified: boolean }>();
-    (teacherRows || []).forEach((row) => {
-      teacherMap.set(row.user_id, {
-        subject_specializations: Array.isArray(row.subject_specializations) ? row.subject_specializations : [],
-        verified: !!row.verified,
-      });
+    const result = typeof data === 'string' ? JSON.parse(data) : data;
+    if (result && result.success === false) {
+      return { success: false, error: result.error };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error('Exception archiving class:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+export async function listSchoolTeachers(schoolId: string): Promise<SchoolTeacher[]> {
+  try {
+    const { data, error } = await supabase.rpc('school_admin_list_teachers', {
+      p_school_id: schoolId,
     });
 
-    return members.map((member) => {
-      const teacherMeta = teacherMap.get(member.user_id);
-      return {
-        user_id: member.user_id,
-        username: member.username,
-        email: member.email,
-        subject_specializations: teacherMeta?.subject_specializations ?? [],
-        verified: teacherMeta?.verified ?? false,
-      };
-    });
+    if (error) {
+      console.error('Error fetching teachers:', error);
+      return [];
+    }
+
+    const rows = (typeof data === 'string' ? JSON.parse(data) : data) || [];
+    return rows.map((row: any) => ({
+      user_id: row.user_id,
+      username: row.username,
+      email: row.email,
+      subject_specializations: Array.isArray(row.subject_specializations) ? row.subject_specializations : [],
+      verified: !!row.verified,
+    }));
   } catch (err) {
     console.error('Exception fetching teachers:', err);
     return [];
@@ -706,19 +700,17 @@ export async function listSchoolTeachers(schoolId: string): Promise<SchoolTeache
 
 export async function listTeacherAssignments(schoolId: string): Promise<ClassTeacherAssignment[]> {
   try {
-    const { data, error } = await supabase
-      .from('class_teacher_assignments')
-      .select('id, school_id, class_id, teacher_user_id, subject, active')
-      .eq('school_id', schoolId)
-      .order('class_id', { ascending: true })
-      .order('subject', { ascending: true });
+    const { data, error } = await supabase.rpc('school_admin_list_teacher_assignments', {
+      p_school_id: schoolId,
+    });
 
     if (error) {
       console.error('Error fetching teacher assignments:', error);
       return [];
     }
 
-    return (data || []).map((row) => ({
+    const rows = (typeof data === 'string' ? JSON.parse(data) : data) || [];
+    return rows.map((row: any) => ({
       id: row.id,
       school_id: row.school_id,
       class_id: row.class_id,
@@ -764,16 +756,31 @@ export async function assignTeacherToClassSubject(
   }
 }
 
-export async function deleteTeacherAssignment(assignmentId: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteTeacherAssignment(assignmentId: string, schoolId?: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error } = await supabase
-      .from('class_teacher_assignments')
-      .delete()
-      .eq('id', assignmentId);
+    // Get school ID if not provided
+    let effectiveSchoolId = schoolId;
+    if (!effectiveSchoolId) {
+      const overview = await getCurrentSchool();
+      effectiveSchoolId = overview?.school?.id;
+    }
+    if (!effectiveSchoolId) {
+      return { success: false, error: 'Could not determine school' };
+    }
+
+    const { data, error } = await supabase.rpc('school_admin_delete_teacher_assignment', {
+      p_school_id: effectiveSchoolId,
+      p_assignment_id: assignmentId,
+    });
 
     if (error) {
       console.error('Error deleting teacher assignment:', error);
       return { success: false, error: error.message };
+    }
+
+    const result = typeof data === 'string' ? JSON.parse(data) : data;
+    if (result && result.success === false) {
+      return { success: false, error: result.error };
     }
 
     return { success: true };
@@ -783,21 +790,33 @@ export async function deleteTeacherAssignment(assignmentId: string): Promise<{ s
   }
 }
 
-export async function listClassStudents(classIds: string[]): Promise<ClassStudentAssignment[]> {
+export async function listClassStudents(classIds: string[], schoolId?: string): Promise<ClassStudentAssignment[]> {
   try {
     if (classIds.length === 0) return [];
 
-    const { data, error } = await supabase
-      .from('class_students')
-      .select('class_id, student_id')
-      .in('class_id', classIds);
+    // Get school ID if not provided
+    let effectiveSchoolId = schoolId;
+    if (!effectiveSchoolId) {
+      const overview = await getCurrentSchool();
+      effectiveSchoolId = overview?.school?.id;
+    }
+    if (!effectiveSchoolId) {
+      console.error('Could not determine school for listClassStudents');
+      return [];
+    }
+
+    const { data, error } = await supabase.rpc('school_admin_list_class_students', {
+      p_school_id: effectiveSchoolId,
+      p_class_ids: classIds,
+    });
 
     if (error) {
       console.error('Error fetching class students:', error);
       return [];
     }
 
-    return (data || []).map((row) => ({
+    const rows = (typeof data === 'string' ? JSON.parse(data) : data) || [];
+    return rows.map((row: any) => ({
       class_id: row.class_id,
       student_id: row.student_id,
     }));
@@ -953,7 +972,7 @@ export async function filterClassesForTeacher(teacherUserId?: string, schoolId?:
 }
 
 // ============================================
-// School Subjects Management
+// School Subjects Management (via RPCs — Patch J)
 // ============================================
 
 /**
@@ -961,19 +980,17 @@ export async function filterClassesForTeacher(teacherUserId?: string, schoolId?:
  */
 export async function listSchoolSubjects(schoolId: string): Promise<SchoolSubject[]> {
   try {
-    const { data, error } = await supabase
-      .from('school_subjects')
-      .select('*')
-      .eq('school_id', schoolId)
-      .eq('is_active', true)
-      .order('name', { ascending: true });
+    const { data, error } = await supabase.rpc('school_admin_list_subjects', {
+      p_school_id: schoolId,
+    });
 
     if (error) {
       console.error('Error fetching school subjects:', error);
       return [];
     }
 
-    return data || [];
+    const rows = (typeof data === 'string' ? JSON.parse(data) : data) || [];
+    return rows;
   } catch (err) {
     console.error('Exception fetching school subjects:', err);
     return [];
@@ -989,26 +1006,23 @@ export async function createSchoolSubject(
   code?: string
 ): Promise<{ success: boolean; error?: string; subject?: SchoolSubject }> {
   try {
-    const { data: user } = await supabase.auth.getUser();
-    
-    const { data, error } = await supabase
-      .from('school_subjects')
-      .insert({
-        school_id: schoolId,
-        name: name.trim(),
-        code: code?.trim() || null,
-        is_active: true,
-        created_by: user.user?.id || null,
-      })
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc('school_admin_create_subject', {
+      p_school_id: schoolId,
+      p_name: name,
+      p_code: code || null,
+    });
 
     if (error) {
       console.error('Error creating subject:', error);
       return { success: false, error: error.message };
     }
 
-    return { success: true, subject: data };
+    const result = typeof data === 'string' ? JSON.parse(data) : data;
+    if (result && result.success === false) {
+      return { success: false, error: result.error };
+    }
+
+    return { success: true, subject: result?.subject };
   } catch (err) {
     console.error('Exception creating subject:', err);
     return { success: false, error: 'An unexpected error occurred' };
@@ -1020,17 +1034,35 @@ export async function createSchoolSubject(
  */
 export async function updateSchoolSubject(
   subjectId: string,
-  updates: { name?: string; code?: string; is_active?: boolean }
+  updates: { name?: string; code?: string; is_active?: boolean },
+  schoolId?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error } = await supabase
-      .from('school_subjects')
-      .update(updates)
-      .eq('id', subjectId);
+    let effectiveSchoolId = schoolId;
+    if (!effectiveSchoolId) {
+      const overview = await getCurrentSchool();
+      effectiveSchoolId = overview?.school?.id;
+    }
+    if (!effectiveSchoolId) {
+      return { success: false, error: 'Could not determine school' };
+    }
+
+    const { data, error } = await supabase.rpc('school_admin_update_subject', {
+      p_school_id: effectiveSchoolId,
+      p_subject_id: subjectId,
+      p_name: updates.name || null,
+      p_code: updates.code || null,
+      p_is_active: updates.is_active ?? null,
+    });
 
     if (error) {
       console.error('Error updating subject:', error);
       return { success: false, error: error.message };
+    }
+
+    const result = typeof data === 'string' ? JSON.parse(data) : data;
+    if (result && result.success === false) {
+      return { success: false, error: result.error };
     }
 
     return { success: true };
@@ -1043,17 +1075,30 @@ export async function updateSchoolSubject(
 /**
  * Delete (soft delete) a subject
  */
-export async function deleteSchoolSubject(subjectId: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteSchoolSubject(subjectId: string, schoolId?: string): Promise<{ success: boolean; error?: string }> {
   try {
-    // Soft delete by setting is_active = false
-    const { error } = await supabase
-      .from('school_subjects')
-      .update({ is_active: false })
-      .eq('id', subjectId);
+    let effectiveSchoolId = schoolId;
+    if (!effectiveSchoolId) {
+      const overview = await getCurrentSchool();
+      effectiveSchoolId = overview?.school?.id;
+    }
+    if (!effectiveSchoolId) {
+      return { success: false, error: 'Could not determine school' };
+    }
+
+    const { data, error } = await supabase.rpc('school_admin_delete_subject', {
+      p_school_id: effectiveSchoolId,
+      p_subject_id: subjectId,
+    });
 
     if (error) {
       console.error('Error deleting subject:', error);
       return { success: false, error: error.message };
+    }
+
+    const result = typeof data === 'string' ? JSON.parse(data) : data;
+    if (result && result.success === false) {
+      return { success: false, error: result.error };
     }
 
     return { success: true };

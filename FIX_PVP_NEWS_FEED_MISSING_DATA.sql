@@ -1,8 +1,27 @@
--- Brains Heist PvP Hack Attempt Function
--- Matches our game schema: users, inventory, activities tables
--- Inputs: p_defender_id uuid, p_request_id uuid (optional idempotency key)
--- Uses: auth.uid() as attacker
--- Returns: JSON with outcome + deltas
+-- ============================================================
+-- FIX: PvP news feed shows "a rival" and no coins on loss
+-- ============================================================
+-- BUG: After a failed attack the news feed showed:
+--   "Gulzada failed to attack a rival 😅 Just now"
+--   → no victim name, no coins amount
+--
+-- ROOT CAUSE: Both the win and loss UPDATE paths use
+--   RETURNING xp, coins, level, gemstones INTO attacker
+-- which *replaces* the RECORD variable with a 4-column shape.
+-- The subsequent `attacker_username := attacker.username` then
+-- either returns NULL or crashes because the column no longer
+-- exists on the record.
+--
+-- FIX: Capture attacker_username and defender_username
+-- immediately after the initial SELECT INTOs, before any
+-- UPDATE ... RETURNING can overwrite the records.
+-- Also store defender_username inside the JSONB data blob
+-- so the frontend has a redundant fallback.
+-- ============================================================
+
+-- Drop all overloads so we start clean
+DROP FUNCTION IF EXISTS public.rpc_hack_attempt(uuid);
+DROP FUNCTION IF EXISTS public.rpc_hack_attempt(uuid, uuid);
 
 create or replace function public.rpc_hack_attempt(
   p_defender_id uuid,
@@ -21,45 +40,46 @@ declare
   v_xp_status jsonb;
 
   -- ====== CONFIG ======
-  c_ap_cost int := 2;                 -- AP cost per hack attempt
-  c_shield_defense_bonus int := 20;  -- Shield adds +20 defense
-  c_attack_cooldown_seconds int := 300; -- 5 minutes cooldown after being attacked
+  c_ap_cost int := 2;
+  c_shield_defense_bonus int := 20;
+  c_attack_cooldown_seconds int := 300;
   c_xp_win int := 30;
-  c_coins_steal_percent numeric := 0.10;  -- Steal 10% of defender's coins (MASSIVE THEFT ENABLED)
-  c_xp_loss int := -10;               -- XP penalty for loss or blocked
-  c_coins_loss_min int := 100;        -- Minimum coins attacker loses to defender on loss
-  c_max_steal_percent_win numeric := 0.30;  -- Can steal up to 30% of defender's total coins
-  c_coins_loss_percent numeric := 0.35; -- Attacker loses 35% of their coins on loss
+  c_coins_steal_percent numeric := 0.10;
+  c_xp_loss int := -10;
+  c_coins_loss_min int := 100;
+  c_max_steal_percent_win numeric := 0.30;
+  c_coins_loss_percent numeric := 0.35;
 
   -- ====== Variables ======
   attacker record;
   defender record;
-  
+
   attacker_attack int;
   defender_defense int;
-  
+
   has_shield boolean := false;
   has_cracker boolean := false;
   shield_blocks boolean := false;
-  
+
   win_chance numeric;
   roll numeric;
   is_win boolean;
-  
+
   xp_delta int := 0;
   coins_delta int := 0;
   gemstones_delta int := 0;
   coins_stolen_from_def int := 0;
-  coins_lost_to_def int := 0;  -- Coins attacker loses to defender on loss
+  coins_lost_to_def int := 0;
 
   current_ap int;
   pre_gemstones int;
-  
+
   result_kind text;
   attacker_username text;
   defender_username text;
-  
+
 begin
+  -- ====== Idempotency check ======
   if p_request_id is not null then
     select response
     into v_existing_response
@@ -71,11 +91,12 @@ begin
       return v_existing_response;
     end if;
   end if;
-  -- ===== Validate =====
+
+  -- ====== Validate ======
   if v_attacker_id is null then
     raise exception 'Not authenticated';
   end if;
-  
+
   if p_defender_id is null or p_defender_id = v_attacker_id then
     raise exception 'Invalid defender';
   end if;
@@ -101,7 +122,7 @@ begin
     raise exception 'attacker_not_allowed';
   end if;
 
-  -- Capture username NOW, before any RETURNING ... INTO overwrites the record
+  -- ★ Capture username NOW, before any RETURNING ... INTO overwrites the record
   attacker_username := attacker.username;
   pre_gemstones := attacker.gemstones;
 
@@ -119,7 +140,7 @@ begin
   end if;
 
   -- ====== Fetch defender profile (with row lock) ======
-  select 
+  select
     id, username, level, xp, coins,
     coalesce(attack_power, 10) as attack_power,
     coalesce(defense_power, 10) as defense_power,
@@ -140,7 +161,7 @@ begin
     raise exception 'defender_not_attackable';
   end if;
 
-  -- Capture username NOW, before any RETURNING ... INTO could overwrite the record
+  -- ★ Capture username NOW, before any RETURNING ... INTO could overwrite the record
   defender_username := defender.username;
 
   -- ====== Check attack cooldown ======
@@ -164,14 +185,13 @@ begin
   end if;
 
   -- ====== Check for active shield on defender ======
-  -- Shield is active if: state='active' AND (expires_at is null OR expires_at > now)
   select exists(
     select 1
     from public.inventory
     where user_id = p_defender_id
       and kind in ('shield', 'firewall')
       and state = 'active'
-  and (expires_at is null or expires_at > v_now)
+      and (expires_at is null or expires_at > v_now)
   ) into has_shield;
 
   -- ====== Check if attacker has cracker in inventory ======
@@ -187,15 +207,12 @@ begin
   attacker_attack := attacker.attack_power;
   defender_defense := defender.defense_power;
 
-  -- If defender has shield and attacker doesn't use cracker, shield adds bonus defense
   if has_shield and not has_cracker then
     defender_defense := defender_defense + c_shield_defense_bonus;
-    shield_blocks := true; -- Shield will block coin theft even if attacker wins
+    shield_blocks := true;
   end if;
 
-  -- If attacker has cracker, consume it and negate shield
   if has_shield and has_cracker then
-    -- Consume one cracker
     update public.inventory
     set state = 'consumed'
     where id = (
@@ -206,21 +223,19 @@ begin
         and state = 'unused'
       limit 1
     );
-    
-    -- Break the shield
+
     update public.inventory
-  set state = 'consumed', expires_at = v_now
+    set state = 'consumed', expires_at = v_now
     where user_id = p_defender_id
       and kind in ('shield', 'firewall')
       and state = 'active'
-  and (expires_at is null or expires_at > v_now);
-    
+      and (expires_at is null or expires_at > v_now);
+
     shield_blocks := false;
-    has_shield := false; -- Shield broken
+    has_shield := false;
   end if;
 
   -- ====== Calculate win probability ======
-  -- Simple formula: P(win) = attacker_attack / (attacker_attack + defender_defense)
   win_chance := attacker_attack::numeric / (attacker_attack + defender_defense)::numeric;
 
   -- ====== Roll for outcome ======
@@ -229,18 +244,15 @@ begin
 
   -- ====== Apply results ======
   if is_win then
-    -- Attacker wins
     xp_delta := c_xp_win;
-    
-    -- Calculate coins stolen from defender (10% of their balance, capped at 30% max)
+
     coins_stolen_from_def := least(
       floor(defender.coins * c_coins_steal_percent),
       floor(defender.coins * c_max_steal_percent_win)
     );
-    
-    coins_delta := coins_stolen_from_def; -- NO BASE COINS, only what you steal
-    
-    -- If shield blocked, no coin theft
+
+    coins_delta := coins_stolen_from_def;
+
     if shield_blocks then
       coins_stolen_from_def := 0;
       coins_delta := 0;
@@ -249,7 +261,6 @@ begin
       result_kind := 'pvp_win';
     end if;
 
-    -- Update attacker (including earnings tracking)
     update public.users
     set xp = xp + xp_delta,
         coins = coins + coins_delta,
@@ -259,36 +270,30 @@ begin
     returning xp, coins, level, gemstones
     into attacker;
 
-    -- Update defender (lose coins if not blocked, and set cooldown)
     update public.users
     set coins = greatest(0, coins - coins_stolen_from_def),
         last_attacked_at = v_now
     where id = p_defender_id;
 
   else
-    -- Attacker loses
     xp_delta := c_xp_loss;
-    
-    -- Calculate coins lost to defender (capped at 20% of attacker balance)
+
     coins_lost_to_def := greatest(
       c_coins_loss_min,
       floor(attacker.coins * c_coins_loss_percent)
     );
-
     coins_lost_to_def := least(coins_lost_to_def, attacker.coins);
-    
-    coins_delta := -coins_lost_to_def;  -- Negative because attacker loses coins
+
+    coins_delta := -coins_lost_to_def;
     result_kind := 'pvp_loss';
 
-    -- Update attacker (lose XP, lose coins to defender, and lose AP)
     update public.users
     set xp = xp + xp_delta,
         coins = greatest(0, coins - coins_lost_to_def)
     where id = v_attacker_id
     returning xp, coins, level, gemstones
     into attacker;
-    
-    -- Update defender (gains coins from failed attack, and set cooldown)
+
     update public.users
     set coins = coins + coins_lost_to_def,
         last_attacked_at = v_now
@@ -299,7 +304,6 @@ begin
 
   -- ====== Log activity ======
   -- (attacker_username and defender_username already captured before UPDATEs)
-
   insert into public.activities (kind, actor_id, actor_username, target_id, target_username, data, created_at)
   values (
     result_kind,
@@ -308,7 +312,7 @@ begin
     p_defender_id,
     defender_username,
     jsonb_build_object(
-      'details', case 
+      'details', case
         when result_kind = 'pvp_win' then 'Stole ' || coins_stolen_from_def || ' Coins'
         when result_kind = 'pvp_blocked' then 'Attack blocked by Shield'
         else 'Lost ' || coins_lost_to_def || ' Coins'
@@ -330,7 +334,7 @@ begin
   select to_jsonb(xp_status(p_xp => attacker.xp)) into v_xp_status;
 
   v_response := jsonb_build_object(
-    'result', case 
+    'result', case
       when result_kind = 'pvp_win' then 'win'
       when result_kind = 'pvp_blocked' then 'blocked'
       else 'lose'
@@ -341,9 +345,9 @@ begin
       'gemstones', gemstones_delta
     ),
     'defender_deltas', json_build_object(
-      'coins_loss', case 
-        when result_kind = 'pvp_loss' then -coins_lost_to_def  -- Defender gains, so negative loss
-        else coins_stolen_from_def  -- Defender loses
+      'coins_loss', case
+        when result_kind = 'pvp_loss' then -coins_lost_to_def
+        else coins_stolen_from_def
       end
     ),
     'shield_state', case
@@ -375,5 +379,6 @@ begin
 end;
 $$;
 
--- Grant execute permission to authenticated users
-grant execute on function public.rpc_hack_attempt(uuid, uuid) to authenticated;
+-- Permissions
+REVOKE ALL ON FUNCTION public.rpc_hack_attempt(uuid, uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.rpc_hack_attempt(uuid, uuid) TO authenticated;
