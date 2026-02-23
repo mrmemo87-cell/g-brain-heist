@@ -676,7 +676,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       // Detect pilot plan
       fetchSchoolPlanDetails().then(d => setIsPilotPlan(d.plan === 'pilot' && d.is_active)).catch(() => {});
 
-      // Handle post-Stripe-checkout redirect
+      // Handle post-checkout redirect (Paddle / Stripe)
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('upgrade') === 'success') {
         // Clear URL param, refresh tier

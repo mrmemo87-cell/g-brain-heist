@@ -319,7 +319,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
 
           {/* Trust signals */}
           <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-slate-500">
-            <span>🔒 Secure via Stripe</span>
+            <span>🔒 Secure checkout via Paddle</span>
             <span>↩️ Cancel anytime</span>
             <span>⚡ Instant activation</span>
           </div>

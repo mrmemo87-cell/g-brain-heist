@@ -3394,7 +3394,7 @@ const BillingTab: React.FC<BillingTabProps> = ({
         <div className="rounded-xl p-5 border border-gray-700 bg-gray-800/40">
           <h4 className="font-semibold text-white mb-2">Manage Subscription</h4>
           <p className="text-sm text-gray-400 mb-3">
-            To change plans, update payment details, or cancel, visit the Stripe customer portal.
+            To change plans, update payment details, or cancel, use the Paddle customer portal below.
           </p>
           <p className="text-xs text-gray-500">
             Contact <a href="mailto:support@brainsheist.com" className="text-cyan-400 hover:underline">support@brainsheist.com</a> if you need help managing your subscription.

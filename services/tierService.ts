@@ -46,8 +46,8 @@ export const PAID_PLANS: PlanInfo[] = [
     id: 'core',
     label: 'Core',
     seats: { cambridge: 120, ielts: 40, game: 120 },
-    monthly: 499,
-    yearly: 4990,
+    monthly: 449,
+    yearly: 4490,
   },
   {
     id: 'standard',
@@ -270,14 +270,19 @@ export async function startPilot(): Promise<{ success: boolean; error?: string }
   }
 }
 
-// ── Stripe Checkout (school subscription) ──
+// ── Payment provider: 'paddle' (default) or 'stripe' (legacy) ──
+
+export const PAYMENT_PROVIDER: 'paddle' | 'stripe' = 'paddle';
+
+// ── Checkout (school subscription via Paddle or Stripe) ──
 
 export async function createCheckoutSession(options: {
   plan: 'core' | 'standard' | 'pro';
   interval: 'monthly' | 'yearly';
 }): Promise<{ checkout_url: string } | { error: string }> {
   try {
-    const { data, error } = await supabase.functions.invoke('stripe', {
+    const functionName = PAYMENT_PROVIDER === 'paddle' ? 'paddle' : 'stripe';
+    const { data, error } = await supabase.functions.invoke(functionName, {
       body: {
         plan: options.plan,
         interval: options.interval,
@@ -294,6 +299,55 @@ export async function createCheckoutSession(options: {
       return { checkout_url: data.checkout_url };
     }
     return { error: data?.error || 'Unknown error' };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'Network error' };
+  }
+}
+
+// ── Billing subscription info (from billing_subscriptions table) ──
+
+export interface BillingSubscription {
+  has_subscription: boolean;
+  provider: string | null;
+  status: string | null;
+  plan: string | null;
+  billing_interval: string | null;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+  management_url: string | null;
+  update_payment_url: string | null;
+  is_comp: boolean;
+  comp_expires_at: string | null;
+}
+
+export async function fetchBillingSubscription(): Promise<BillingSubscription> {
+  try {
+    const { data, error } = await supabase.rpc('get_billing_subscription');
+    if (error || !data?.success) {
+      return { has_subscription: false, provider: null, status: null, plan: null, billing_interval: null, current_period_end: null, cancel_at_period_end: false, management_url: null, update_payment_url: null, is_comp: false, comp_expires_at: null };
+    }
+    return data as BillingSubscription;
+  } catch {
+    return { has_subscription: false, provider: null, status: null, plan: null, billing_interval: null, current_period_end: null, cancel_at_period_end: false, management_url: null, update_payment_url: null, is_comp: false, comp_expires_at: null };
+  }
+}
+
+// ── Paddle portal URL (manage / cancel subscription) ──
+
+export async function fetchPortalUrl(): Promise<{ management_url?: string; update_payment_url?: string; error?: string }> {
+  try {
+    const { data, error } = await supabase.functions.invoke('paddle', {
+      body: {},
+      headers: { 'Content-Type': 'application/json' },
+    });
+    // The edge function route is /paddle/get-portal-url
+    // but Supabase functions.invoke only sends to the function root.
+    // We need a separate approach — query the stored URLs from billing subscription.
+    const sub = await fetchBillingSubscription();
+    if (sub.management_url) {
+      return { management_url: sub.management_url, update_payment_url: sub.update_payment_url || undefined };
+    }
+    return { error: 'No management URL available. Contact support@brainsheist.com.' };
   } catch (err) {
     return { error: err instanceof Error ? err.message : 'Network error' };
   }
