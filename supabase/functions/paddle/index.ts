@@ -461,6 +461,9 @@ async function handleWebhook(req: Request): Promise<Response> {
         const mgmtUrls = sub.management_urls || {};
 
         // Upsert billing_subscriptions
+        // NOTE: management_urls.cancel is the user-facing cancel page URL.
+        // Paddle doesn't provide a separate "manage" URL — cancel page
+        // doubles as the management portal link for the subscriber.
         await admin.from("billing_subscriptions").upsert(
           {
             school_id: school,
@@ -500,23 +503,42 @@ async function handleWebhook(req: Request): Promise<Response> {
         const meta = sub.custom_data || {};
         const school = meta.school_id || schoolId;
 
-        // Mark billing_subscriptions as cancelled
+        // Mark billing_subscriptions as cancelled, but preserve period end
         if (sub.id) {
           await admin
             .from("billing_subscriptions")
             .update({
               status: "cancelled",
               canceled_at: sub.canceled_at || new Date().toISOString(),
+              current_period_end: sub.current_billing_period?.ends_at || undefined,
             })
             .eq("provider_subscription_id", sub.id);
         }
 
-        // Downgrade school
-        if (school) {
+        // Only downgrade school if the billing period has already ended.
+        // If still in period, get_effective_tier honours cancelled + period_end > now.
+        const periodEnd = sub.current_billing_period?.ends_at;
+        const stillInPeriod = periodEnd && new Date(periodEnd) > new Date();
+
+        if (school && !stillInPeriod) {
           await admin
             .from("schools")
             .update({ school_plan: "none", trial_ends_at: null })
             .eq("id", school);
+        }
+
+        break;
+      }
+
+      // ── Subscription past_due (Paddle explicitly sends this) ──
+      case "subscription.past_due": {
+        const sub = event.data;
+
+        if (sub.id) {
+          await admin
+            .from("billing_subscriptions")
+            .update({ status: "past_due" })
+            .eq("provider_subscription_id", sub.id);
         }
 
         break;

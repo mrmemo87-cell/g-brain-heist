@@ -239,6 +239,15 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     )}
                 </div>
             </div>
+
+            {/* Legal footer */}
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-4 text-[11px] text-gray-600">
+                <a href="/terms.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Terms</a>
+                <span>·</span>
+                <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Privacy</a>
+                <span>·</span>
+                <a href="/contact.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Contact</a>
+            </div>
         </div>
     );
 };

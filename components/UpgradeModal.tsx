@@ -323,6 +323,15 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
             <span>↩️ Cancel anytime</span>
             <span>⚡ Instant activation</span>
           </div>
+
+          {/* Legal links */}
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-3 text-[11px] text-slate-600">
+            <a href="/terms.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Terms of Service</a>
+            <span>·</span>
+            <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Privacy Policy</a>
+            <span>·</span>
+            <a href="/refund.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Refund Policy</a>
+          </div>
         </div>
       </div>
     </div>

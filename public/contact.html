@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact Us — Brains Heist</title>
+  <meta name="description" content="Get in touch with the Brains Heist team for support, sales, or partnership inquiries." />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <style>
+    :root { --bg: #0f172a; --surface: #1e293b; --border: #334155; --text: #e2e8f0; --muted: #94a3b8; --accent: #10b981; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+    .container { max-width: 800px; margin: 0 auto; padding: 2rem 1.5rem; }
+    header { text-align: center; padding: 2rem 0 1.5rem; border-bottom: 1px solid var(--border); margin-bottom: 2rem; }
+    header img { height: 40px; margin-bottom: 0.75rem; }
+    h1 { font-size: 2rem; font-weight: 700; }
+    h2 { font-size: 1.25rem; font-weight: 700; margin: 2rem 0 0.75rem; color: var(--accent); }
+    p, li { color: var(--text); font-size: 0.95rem; margin-bottom: 0.75rem; }
+    ul { padding-left: 1.5rem; margin-bottom: 1rem; list-style: none; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin: 1.5rem 0; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; text-align: center; transition: border-color 0.2s; }
+    .card:hover { border-color: var(--accent); }
+    .card .icon { font-size: 2rem; margin-bottom: 0.75rem; }
+    .card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .card p { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem; }
+    .card a { font-weight: 600; font-size: 0.95rem; }
+
+    .sla { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin: 1.5rem 0; }
+    .sla-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+    .sla-row:last-child { border-bottom: none; }
+    .sla-row .label { color: var(--muted); font-size: 0.9rem; }
+    .sla-row .value { font-weight: 600; font-size: 0.9rem; }
+
+    .faq { margin-top: 1.5rem; }
+    .faq details { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 0.5rem; }
+    .faq summary { padding: 0.85rem 1rem; cursor: pointer; font-weight: 600; font-size: 0.95rem; }
+    .faq summary:hover { color: var(--accent); }
+    .faq .answer { padding: 0 1rem 0.85rem; font-size: 0.9rem; color: var(--muted); }
+
+    footer { text-align: center; padding: 2rem 0; border-top: 1px solid var(--border); margin-top: 3rem; font-size: 0.8rem; color: var(--muted); }
+    .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5rem; margin-bottom: 1rem; }
+    .footer-links a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="/"><img src="/logo.png" alt="Brains Heist" /></a>
+      <h1>Contact Us</h1>
+      <p style="color: var(--muted); margin-top: 0.5rem;">We're here to help — reach out to the right team below.</p>
+    </header>
+
+    <div class="cards">
+      <div class="card">
+        <div class="icon">🛟</div>
+        <h3>Support</h3>
+        <p>Technical issues, bug reports, how-to questions</p>
+        <a href="mailto:support@brainsheist.com">support@brainsheist.com</a>
+      </div>
+      <div class="card">
+        <div class="icon">💼</div>
+        <h3>Sales &amp; Partnerships</h3>
+        <p>Pricing, enterprise plans, school partnerships</p>
+        <a href="mailto:sales@brainsheist.com">sales@brainsheist.com</a>
+      </div>
+      <div class="card">
+        <div class="icon">🔒</div>
+        <h3>Privacy &amp; Data</h3>
+        <p>Data requests, GDPR inquiries, data deletion</p>
+        <a href="mailto:privacy@brainsheist.com">privacy@brainsheist.com</a>
+      </div>
+      <div class="card">
+        <div class="icon">💳</div>
+        <h3>Billing</h3>
+        <p>Refunds, invoices, subscription changes</p>
+        <a href="mailto:support@brainsheist.com">support@brainsheist.com</a>
+      </div>
+    </div>
+
+    <h2>Response Times</h2>
+    <div class="sla">
+      <div class="sla-row">
+        <span class="label">General support</span>
+        <span class="value">Within 24 hours</span>
+      </div>
+      <div class="sla-row">
+        <span class="label">Billing &amp; refund requests</span>
+        <span class="value">Within 1 business day</span>
+      </div>
+      <div class="sla-row">
+        <span class="label">Privacy / data requests</span>
+        <span class="value">Within 48 hours</span>
+      </div>
+      <div class="sla-row">
+        <span class="label">Sales inquiries</span>
+        <span class="value">Within 1 business day</span>
+      </div>
+      <div class="sla-row">
+        <span class="label">Urgent/critical issues</span>
+        <span class="value">Within 4 hours (business hours)</span>
+      </div>
+    </div>
+    <p style="font-size: 0.85rem; color: var(--muted);">Business hours: Monday – Friday, 08:00 – 18:00 GMT (excluding UK public holidays).</p>
+
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq">
+      <details>
+        <summary>How do I cancel my subscription?</summary>
+        <div class="answer">Go to School Admin Portal → Billing → Manage Subscription, or email support@brainsheist.com. See our <a href="/refund.html">Refund &amp; Cancellation Policy</a> for details.</div>
+      </details>
+      <details>
+        <summary>Can I get a refund?</summary>
+        <div class="answer">We offer a 14-day refund window from your initial purchase. Auto-renewal refunds are available within 48 hours. Full details in our <a href="/refund.html">Refund &amp; Cancellation Policy</a>.</div>
+      </details>
+      <details>
+        <summary>How do I switch plans?</summary>
+        <div class="answer">School admins can upgrade or downgrade in the Billing tab. Upgrades are instant with prorated pricing; downgrades take effect at the next billing cycle.</div>
+      </details>
+      <details>
+        <summary>Who processes my payment?</summary>
+        <div class="answer"><a href="https://www.paddle.com" target="_blank" rel="noopener">Paddle</a> is our Merchant of Record. They handle payment processing, invoicing, and tax. Your invoice will show Paddle as the seller.</div>
+      </details>
+      <details>
+        <summary>Is student data safe?</summary>
+        <div class="answer">Yes. We use Supabase with Row-Level Security, encrypted database connections, and never share student data with third parties for marketing. Read our <a href="/privacy.html">Privacy Policy</a> for full details.</div>
+      </details>
+      <details>
+        <summary>Do you support schools outside the UK?</summary>
+        <div class="answer">Yes — Brains Heist is available worldwide. Paddle handles multi-currency billing and local tax compliance so you're covered regardless of location.</div>
+      </details>
+    </div>
+
+    <h2>Business Information</h2>
+    <p>Brains Heist is an educational technology platform for schools.</p>
+    <ul>
+      <li>🌐 Website: <a href="https://brainsheist.com">brainsheist.com</a></li>
+      <li>📧 General: <a href="mailto:support@brainsheist.com">support@brainsheist.com</a></li>
+      <li>🏛️ Jurisdiction: England &amp; Wales</li>
+    </ul>
+
+    <footer>
+      <div class="footer-links">
+        <a href="/pricing.html">Pricing</a>
+        <a href="/terms.html">Terms of Service</a>
+        <a href="/privacy.html">Privacy Policy</a>
+        <a href="/refund.html">Refund &amp; Cancellation</a>
+        <a href="/contact.html">Contact</a>
+      </div>
+      <p>&copy; 2025 Brains Heist. All rights reserved.</p>
+    </footer>
+  </div>
+</body>
+</html>

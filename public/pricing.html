@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pricing — Brains Heist</title>
+  <meta name="description" content="Brains Heist school subscription pricing. Core, Standard, Pro, and Enterprise plans for schools." />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <style>
+    :root { --bg: #0f172a; --surface: #1e293b; --border: #334155; --text: #e2e8f0; --muted: #94a3b8; --accent: #10b981; --accent2: #06b6d4; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+    header { text-align: center; padding: 3rem 0 2rem; }
+    header img { height: 48px; margin-bottom: 1rem; }
+    h1 { font-size: 2.25rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .subtitle { color: var(--muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+    .toggle-wrap { display: flex; justify-content: center; margin: 2rem 0; }
+    .toggle { display: inline-flex; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); padding: 4px; }
+    .toggle button { padding: 0.5rem 1.25rem; border: none; background: transparent; color: var(--muted); font-size: 0.9rem; font-weight: 600; cursor: pointer; border-radius: 8px; transition: all 0.2s; }
+    .toggle button.active { background: var(--border); color: #fff; }
+    .toggle .badge { display: inline-block; margin-left: 6px; background: rgba(16,185,129,0.15); color: var(--accent); font-size: 0.7rem; padding: 2px 6px; border-radius: 999px; font-weight: 700; }
+    .plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin: 2rem 0; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; position: relative; transition: transform 0.2s; }
+    .card:hover { transform: translateY(-4px); }
+    .card.popular { border-color: rgba(16,185,129,0.4); box-shadow: 0 0 30px rgba(16,185,129,0.08); }
+    .pop-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #fff; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 14px; border-radius: 999px; }
+    .card h3 { font-size: 1.35rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .card.popular h3 { color: var(--accent); }
+    .price { font-size: 2rem; font-weight: 800; margin: 0.5rem 0 0.25rem; }
+    .price span { font-size: 0.9rem; font-weight: 400; color: var(--muted); }
+    .annual-note { font-size: 0.8rem; color: rgba(16,185,129,0.7); margin-bottom: 1rem; }
+    .seats { margin: 1rem 0; }
+    .seat-row { display: flex; justify-content: space-between; background: rgba(15,23,42,0.5); border-radius: 8px; padding: 0.5rem 0.75rem; margin-bottom: 0.4rem; font-size: 0.85rem; }
+    .seat-row .label { color: var(--muted); }
+    .seat-row .count { font-weight: 700; }
+    .cta { display: block; width: 100%; padding: 0.75rem; border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.2s; text-align: center; text-decoration: none; }
+    .cta-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+    .cta-primary:hover { filter: brightness(1.1); }
+    .cta-secondary { background: var(--border); color: #fff; }
+    .cta-secondary:hover { background: #475569; }
+    .enterprise { text-align: center; padding: 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; margin: 2rem 0; }
+    .enterprise p { color: var(--muted); }
+    .enterprise a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    .enterprise a:hover { text-decoration: underline; }
+    .pilot { text-align: center; background: rgba(6,182,212,0.05); border: 1px solid rgba(6,182,212,0.2); border-radius: 16px; padding: 1.5rem; margin: 2rem 0; }
+    .pilot h3 { color: var(--accent2); font-size: 1.1rem; }
+    .pilot p { color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem; }
+    .features { margin: 2.5rem 0; }
+    .features h2 { text-align: center; margin-bottom: 1.5rem; font-size: 1.5rem; }
+    .feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; }
+    .feat-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 0.65rem 1rem; }
+    .feat-item .check { color: var(--accent); font-weight: 700; }
+    .trust { display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; margin: 2rem 0; font-size: 0.85rem; color: var(--muted); }
+    footer { text-align: center; padding: 2rem 0; border-top: 1px solid var(--border); margin-top: 3rem; font-size: 0.8rem; color: var(--muted); }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5rem; margin-bottom: 1rem; }
+    @media (max-width: 640px) { h1 { font-size: 1.75rem; } .plans { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="/"><img src="/logo.png" alt="Brains Heist" /></a>
+      <h1>School Subscription Plans</h1>
+      <p class="subtitle">Unlock the full Brains Heist platform for your school. PvP battles, Cambridge &amp; IELTS prep, lockdown mode, and more.</p>
+    </header>
+
+    <div class="pilot">
+      <h3>🚀 30-Day Free Pilot</h3>
+      <p>Try everything free for 30 days — 60 Cambridge seats, 20 IELTS seats, 60 Game seats. No credit card required.</p>
+    </div>
+
+    <div class="toggle-wrap">
+      <div class="toggle">
+        <button id="btn-monthly">Monthly</button>
+        <button id="btn-yearly" class="active">Annual <span class="badge">Save ~17%</span></button>
+      </div>
+    </div>
+
+    <div class="plans" id="plans">
+      <!-- Core -->
+      <div class="card">
+        <h3>Core</h3>
+        <div class="price" data-monthly="449" data-yearly="4,490">$4,490<span>/yr</span></div>
+        <div class="annual-note" data-show="yearly">$374/mo billed annually</div>
+        <div class="seats">
+          <div class="seat-row"><span class="label">📚 Cambridge</span><span class="count">up to 120</span></div>
+          <div class="seat-row"><span class="label">🎧 IELTS</span><span class="count">up to 40</span></div>
+          <div class="seat-row"><span class="label">🎮 Game</span><span class="count">up to 120</span></div>
+        </div>
+        <a href="/" class="cta cta-secondary">Get Started</a>
+      </div>
+
+      <!-- Standard -->
+      <div class="card popular">
+        <div class="pop-badge">Most Popular</div>
+        <h3>Standard</h3>
+        <div class="price" data-monthly="649" data-yearly="6,490">$6,490<span>/yr</span></div>
+        <div class="annual-note" data-show="yearly">$541/mo billed annually</div>
+        <div class="seats">
+          <div class="seat-row"><span class="label">📚 Cambridge</span><span class="count">up to 220</span></div>
+          <div class="seat-row"><span class="label">🎧 IELTS</span><span class="count">up to 80</span></div>
+          <div class="seat-row"><span class="label">🎮 Game</span><span class="count">up to 220</span></div>
+        </div>
+        <a href="/" class="cta cta-primary">Get Started</a>
+      </div>
+
+      <!-- Pro -->
+      <div class="card">
+        <h3>Pro</h3>
+        <div class="price" data-monthly="1,149" data-yearly="11,490">$11,490<span>/yr</span></div>
+        <div class="annual-note" data-show="yearly">$957/mo billed annually</div>
+        <div class="seats">
+          <div class="seat-row"><span class="label">📚 Cambridge</span><span class="count">up to 450</span></div>
+          <div class="seat-row"><span class="label">🎧 IELTS</span><span class="count">up to 150</span></div>
+          <div class="seat-row"><span class="label">🎮 Game</span><span class="count">up to 450</span></div>
+        </div>
+        <a href="/" class="cta cta-secondary">Get Started</a>
+      </div>
+    </div>
+
+    <div class="enterprise">
+      <p><strong style="color:#fff;">🏢 Enterprise</strong> — Unlimited seats · Multi-campus · Custom pricing</p>
+      <p style="margin-top:0.5rem;"><a href="mailto:sales@brainsheist.com?subject=Enterprise%20Plan%20Inquiry">Contact sales@brainsheist.com →</a></p>
+    </div>
+
+    <div class="features">
+      <h2>All Paid Plans Include</h2>
+      <div class="feat-grid">
+        <div class="feat-item"><span class="check">✓</span> PvP Hacking Battles</div>
+        <div class="feat-item"><span class="check">✓</span> Clans &amp; Syndicates</div>
+        <div class="feat-item"><span class="check">✓</span> Shop &amp; Inventory</div>
+        <div class="feat-item"><span class="check">✓</span> Leaderboard Rankings</div>
+        <div class="feat-item"><span class="check">✓</span> Achievements &amp; Badges</div>
+        <div class="feat-item"><span class="check">✓</span> Raid Boss Battles</div>
+        <div class="feat-item"><span class="check">✓</span> Tournaments</div>
+        <div class="feat-item"><span class="check">✓</span> Cambridge Test Library</div>
+        <div class="feat-item"><span class="check">✓</span> IELTS Prep Suite</div>
+        <div class="feat-item"><span class="check">✓</span> Unlimited Lockdown</div>
+        <div class="feat-item"><span class="check">✓</span> Custom Questions</div>
+        <div class="feat-item"><span class="check">✓</span> Performance Reports</div>
+        <div class="feat-item"><span class="check">✓</span> Admission Tests</div>
+        <div class="feat-item"><span class="check">✓</span> Assignment Builder</div>
+        <div class="feat-item"><span class="check">✓</span> Question Bank</div>
+        <div class="feat-item"><span class="check">✓</span> All Lockdown Maps</div>
+      </div>
+    </div>
+
+    <div class="trust">
+      <span>🔒 Secure checkout via Paddle</span>
+      <span>↩️ Cancel anytime</span>
+      <span>⚡ Instant activation</span>
+      <span>💳 All major cards accepted</span>
+    </div>
+
+    <footer>
+      <div class="footer-links">
+        <a href="/pricing.html">Pricing</a>
+        <a href="/terms.html">Terms of Service</a>
+        <a href="/privacy.html">Privacy Policy</a>
+        <a href="/refund.html">Refund &amp; Cancellation</a>
+        <a href="/contact.html">Contact</a>
+      </div>
+      <p>&copy; 2025 Brains Heist. All rights reserved. Payments processed by <a href="https://www.paddle.com" target="_blank" rel="noopener">Paddle</a>.</p>
+    </footer>
+  </div>
+
+  <script>
+    const monthly = document.getElementById('btn-monthly');
+    const yearly = document.getElementById('btn-yearly');
+    function setInterval(mode) {
+      const isYearly = mode === 'yearly';
+      monthly.className = isYearly ? '' : 'active';
+      yearly.className = isYearly ? 'active' : '';
+      document.querySelectorAll('.price').forEach(el => {
+        const val = isYearly ? el.dataset.yearly : el.dataset.monthly;
+        const suffix = isYearly ? '/yr' : '/mo';
+        el.innerHTML = `$${val}<span>${suffix}</span>`;
+      });
+      document.querySelectorAll('[data-show]').forEach(el => {
+        el.style.display = el.dataset.show === mode ? 'block' : 'none';
+      });
+    }
+    monthly.addEventListener('click', () => setInterval('monthly'));
+    yearly.addEventListener('click', () => setInterval('yearly'));
+    setInterval('yearly');
+  </script>
+</body>
+</html>

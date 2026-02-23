@@ -103,6 +103,7 @@ CREATE TRIGGER trg_billing_subscriptions_updated
 ALTER TABLE public.billing_subscriptions ENABLE ROW LEVEL SECURITY;
 
 -- Users can read their own school's billing subscription
+DROP POLICY IF EXISTS "School members can view own subscription" ON public.billing_subscriptions;
 CREATE POLICY "School members can view own subscription"
   ON public.billing_subscriptions
   FOR SELECT
@@ -113,6 +114,7 @@ CREATE POLICY "School members can view own subscription"
   );
 
 -- Only service_role (webhooks) and superadmin can write
+DROP POLICY IF EXISTS "Service role manages billing subscriptions" ON public.billing_subscriptions;
 CREATE POLICY "Service role manages billing subscriptions"
   ON public.billing_subscriptions
   FOR ALL
@@ -168,6 +170,7 @@ CREATE INDEX IF NOT EXISTS idx_billing_events_unprocessed
 ALTER TABLE public.billing_events ENABLE ROW LEVEL SECURITY;
 
 -- Only service_role can read/write events (contains sensitive payload)
+DROP POLICY IF EXISTS "Service role manages billing events" ON public.billing_events;
 CREATE POLICY "Service role manages billing events"
   ON public.billing_events
   FOR ALL
@@ -175,6 +178,7 @@ CREATE POLICY "Service role manages billing events"
   WITH CHECK (auth.role() = 'service_role');
 
 -- Superadmin can read events for debugging
+DROP POLICY IF EXISTS "Superadmin can read billing events" ON public.billing_events;
 CREATE POLICY "Superadmin can read billing events"
   ON public.billing_events
   FOR SELECT
@@ -294,11 +298,13 @@ ON CONFLICT (plan, feature_key) DO NOTHING;
 -- RLS: everyone can read entitlements (public config), only service_role can write
 ALTER TABLE public.billing_entitlements ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Anyone can read entitlements" ON public.billing_entitlements;
 CREATE POLICY "Anyone can read entitlements"
   ON public.billing_entitlements
   FOR SELECT
   USING (TRUE);
 
+DROP POLICY IF EXISTS "Service role manages entitlements" ON public.billing_entitlements;
 CREATE POLICY "Service role manages entitlements"
   ON public.billing_entitlements
   FOR ALL
@@ -484,14 +490,29 @@ BEGIN
   IF v_user.account_tier = 'pro' THEN RETURN 'pro'; END IF;
 
   -- Priority 2: active billing subscription (Paddle/Stripe/comp)
+  --   Include past_due (grace period) and cancelled-but-still-in-period.
   IF v_user.school_id IS NOT NULL THEN
-    SELECT status, plan, is_comp, comp_expires_at
+    SELECT status, plan, is_comp, comp_expires_at, current_period_end,
+           cancel_at_period_end
       INTO v_billing
       FROM billing_subscriptions
      WHERE school_id = v_user.school_id
-       AND status IN ('active', 'trialing')
+       AND status IN ('active', 'trialing', 'past_due')
      ORDER BY created_at DESC
      LIMIT 1;
+
+    -- Fallback: cancelled sub whose billing period hasn't ended yet
+    IF NOT FOUND THEN
+      SELECT status, plan, is_comp, comp_expires_at, current_period_end,
+             cancel_at_period_end
+        INTO v_billing
+        FROM billing_subscriptions
+       WHERE school_id = v_user.school_id
+         AND status = 'cancelled'
+         AND current_period_end > now()
+       ORDER BY created_at DESC
+       LIMIT 1;
+    END IF;
 
     IF FOUND THEN
       -- Check if comp has expired

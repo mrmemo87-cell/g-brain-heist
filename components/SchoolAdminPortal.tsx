@@ -3404,10 +3404,23 @@ const BillingTab: React.FC<BillingTabProps> = ({
 
       {/* Trust / FAQ */}
       <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-gray-500 pt-2">
-        <span>🔒 Secure payment via Stripe</span>
+        <span>🔒 Secure payment via Paddle</span>
         <span>↩️ Cancel anytime</span>
         <span>⚡ Instant activation</span>
         <span>👥 Covers all teachers & students</span>
+      </div>
+
+      {/* Legal links */}
+      <div className="flex flex-wrap items-center justify-center gap-3 text-[11px] text-gray-600 pt-1.5">
+        <a href="/pricing.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Pricing</a>
+        <span>·</span>
+        <a href="/terms.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Terms</a>
+        <span>·</span>
+        <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Privacy</a>
+        <span>·</span>
+        <a href="/refund.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Refunds</a>
+        <span>·</span>
+        <a href="/contact.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Contact</a>
       </div>
     </div>
   );
