@@ -1,5 +1,4 @@
 import { supabase } from './supabaseClient';
-import type { AccountTier } from './tierService';
 
 // ============================================================================
 // Entitlement Service — centralized feature gating
@@ -42,22 +41,11 @@ export async function getEntitlements(force = false): Promise<EntitlementSet> {
     return cachedEntitlements;
   }
 
-  // Get effective tier
+  // Get effective tier — now returns the actual plan name (free|core|standard|pro|…)
   let effectivePlan = 'free';
   try {
     const { data: tierData } = await supabase.rpc('get_effective_tier');
-    const tier = (tierData as AccountTier) || 'free';
-
-    if (tier === 'pro') {
-      // Resolve the actual plan name from billing_subscription or school_plan
-      const { data: subData } = await supabase.rpc('get_billing_subscription');
-      if (subData?.has_subscription && subData.plan) {
-        effectivePlan = subData.plan;
-      } else {
-        // Fall back to 'core' for pro users without explicit billing record
-        effectivePlan = 'core';
-      }
-    }
+    effectivePlan = (tierData as string) || 'free';
   } catch {
     effectivePlan = 'free';
   }

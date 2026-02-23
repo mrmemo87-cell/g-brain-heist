@@ -59,10 +59,16 @@ CREATE TABLE IF NOT EXISTS public.billing_subscriptions (
   management_url        TEXT,
   update_payment_url    TEXT,
 
+  -- Out-of-order event guard: only accept events newer than this
+  last_event_at         TIMESTAMPTZ,
+
   -- Timestamps
   created_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at            TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Backfill column for re-runs on an existing table
+ALTER TABLE public.billing_subscriptions ADD COLUMN IF NOT EXISTS last_event_at TIMESTAMPTZ;
 
 -- Unique constraint: one active subscription per school per provider
 CREATE UNIQUE INDEX IF NOT EXISTS idx_billing_sub_school_provider_active
@@ -72,6 +78,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_billing_sub_school_provider_active
 -- Lookup by provider subscription ID (webhook resolution)
 CREATE UNIQUE INDEX IF NOT EXISTS idx_billing_sub_provider_sub_id
   ON public.billing_subscriptions (provider_subscription_id)
+  WHERE provider_subscription_id IS NOT NULL;
+
+-- Composite unique: provider + provider_subscription_id (upsert conflict target)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_billing_sub_provider_provider_sub_id
+  ON public.billing_subscriptions (provider, provider_subscription_id)
   WHERE provider_subscription_id IS NOT NULL;
 
 -- Lookup by provider customer ID
@@ -492,7 +503,7 @@ BEGIN
   -- Priority 2: active billing subscription (Paddle/Stripe/comp)
   --   Include past_due (grace period) and cancelled-but-still-in-period.
   IF v_user.school_id IS NOT NULL THEN
-    SELECT status, plan, is_comp, comp_expires_at, current_period_end,
+    SELECT id, status, plan, is_comp, comp_expires_at, current_period_end,
            cancel_at_period_end
       INTO v_billing
       FROM billing_subscriptions
@@ -503,7 +514,7 @@ BEGIN
 
     -- Fallback: cancelled sub whose billing period hasn't ended yet
     IF NOT FOUND THEN
-      SELECT status, plan, is_comp, comp_expires_at, current_period_end,
+      SELECT id, status, plan, is_comp, comp_expires_at, current_period_end,
              cancel_at_period_end
         INTO v_billing
         FROM billing_subscriptions
@@ -518,14 +529,13 @@ BEGIN
       -- Check if comp has expired
       IF v_billing.is_comp AND v_billing.comp_expires_at IS NOT NULL
          AND v_billing.comp_expires_at < now() THEN
-        -- Comp expired — mark it and fall through
+        -- Comp expired — update this specific row, then fall through
         UPDATE billing_subscriptions
            SET status = 'expired'
-         WHERE school_id = v_user.school_id
-           AND is_comp = TRUE
-           AND status IN ('active', 'trialing');
+         WHERE id = v_billing.id;
       ELSE
-        RETURN 'pro';
+        -- Return the actual plan; COALESCE guards against NULL
+        RETURN COALESCE(v_billing.plan, 'free');
       END IF;
     END IF;
   END IF;
@@ -539,11 +549,11 @@ BEGIN
 
     IF FOUND THEN
       IF v_school.school_plan IN ('core', 'standard', 'pro', 'enterprise') THEN
-        RETURN 'pro';
+        RETURN v_school.school_plan;
       END IF;
 
       IF v_school.school_plan = 'pilot' AND v_school.trial_ends_at > now() THEN
-        RETURN 'pro';
+        RETURN 'pilot';
       END IF;
 
       -- Lazy downgrade expired pilots

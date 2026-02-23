@@ -6,7 +6,7 @@ import { supabase } from './supabaseClient';
 
 // ── Types ──
 
-export type AccountTier = 'free' | 'pro';
+export type AccountTier = 'free' | 'pilot' | 'core' | 'standard' | 'pro' | 'enterprise';
 export type SchoolPlan = 'none' | 'pilot' | 'core' | 'standard' | 'pro' | 'enterprise';
 
 export interface LockdownLimits {
@@ -27,6 +27,8 @@ export interface SchoolPlanDetails {
   trial_expired: boolean;
   seats: { cambridge: number | null; ielts: number | null; game: number | null };
   current_members: number;
+  management_url?: string | null;
+  update_payment_url?: string | null;
   error?: string;
 }
 
@@ -170,7 +172,7 @@ export async function fetchEffectiveTier(): Promise<AccountTier> {
 }
 
 export function isPro(tier: AccountTier | null | undefined): boolean {
-  return tier === 'pro';
+  return tier !== null && tier !== undefined && tier !== 'free';
 }
 
 export function invalidateTierCache(): void {
@@ -195,7 +197,18 @@ export async function fetchSchoolPlanDetails(): Promise<SchoolPlanDetails> {
         error: error?.message || data?.error,
       };
     }
-    return data as SchoolPlanDetails;
+    const details = data as SchoolPlanDetails;
+
+    // Enrich with billing portal URLs (from billing_subscriptions)
+    try {
+      const { data: billing } = await supabase.rpc('get_billing_subscription');
+      if (billing?.success && billing.has_subscription) {
+        details.management_url = billing.management_url || null;
+        details.update_payment_url = billing.update_payment_url || null;
+      }
+    } catch { /* billing enrichment is best-effort */ }
+
+    return details;
   } catch {
     return {
       success: false,

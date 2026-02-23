@@ -3389,13 +3389,35 @@ const BillingTab: React.FC<BillingTabProps> = ({
         </>
       )}
 
-      {/* Already on paid — show manage link */}
+      {/* Already on paid — show manage links */}
       {isPaid && (
         <div className="rounded-xl p-5 border border-gray-700 bg-gray-800/40">
           <h4 className="font-semibold text-white mb-2">Manage Subscription</h4>
           <p className="text-sm text-gray-400 mb-3">
-            To change plans, update payment details, or cancel, use the Paddle customer portal below.
+            Update your payment method, change plans, or cancel via the Paddle customer portal.
           </p>
+          <div className="flex flex-wrap gap-3 mb-3">
+            {planDetails?.update_payment_url && (
+              <a
+                href={planDetails.update_payment_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 px-4 py-2 text-sm font-medium text-white transition-colors active:scale-[0.98]"
+              >
+                💳 Update Payment Method
+              </a>
+            )}
+            {planDetails?.management_url && planDetails.management_url !== planDetails.update_payment_url && (
+              <a
+                href={planDetails.management_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 px-4 py-2 text-sm font-medium text-white transition-colors active:scale-[0.98]"
+              >
+                ⚙️ Cancel / Change Plan
+              </a>
+            )}
+          </div>
           <p className="text-xs text-gray-500">
             Contact <a href="mailto:support@brainsheist.com" className="text-cyan-400 hover:underline">support@brainsheist.com</a> if you need help managing your subscription.
           </p>

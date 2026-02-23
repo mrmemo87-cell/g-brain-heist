@@ -328,17 +328,20 @@ async function handleGetPortalUrl(req: Request): Promise<Response> {
       const urls = paddleSub?.data?.management_urls;
       if (urls) {
         // Cache for next time
+        // Paddle provides cancel + update_payment_method; prefer update_payment_method
+        // as the general management portal link.
+        const mgmtUrl = urls.update_payment_method || urls.cancel;
         await admin
           .from("billing_subscriptions")
           .update({
-            management_url: urls.cancel,
+            management_url: mgmtUrl,
             update_payment_url: urls.update_payment_method,
           })
           .eq("provider_subscription_id", sub.provider_subscription_id);
 
         return jsonResponse(200, {
           success: true,
-          management_url: urls.cancel,
+          management_url: mgmtUrl,
           update_payment_url: urls.update_payment_method,
         });
       }
@@ -421,6 +424,7 @@ async function handleWebhook(req: Request): Promise<Response> {
 
   // ── Process event ──
   let processingError: string | null = null;
+  const eventOccurredAt: string = event.occurred_at || new Date().toISOString();
 
   try {
     switch (eventType) {
@@ -436,6 +440,23 @@ async function handleWebhook(req: Request): Promise<Response> {
         if (!school) {
           processingError = "No school_id in custom_data";
           break;
+        }
+
+        // ── Out-of-order guard: skip if we already processed a newer event ──
+        if (sub.id) {
+          const { data: existing } = await admin
+            .from("billing_subscriptions")
+            .select("last_event_at")
+            .eq("provider_subscription_id", sub.id)
+            .single();
+
+          if (
+            existing?.last_event_at &&
+            new Date(existing.last_event_at) > new Date(eventOccurredAt)
+          ) {
+            // Stale event — already superseded by a newer one
+            break;
+          }
         }
 
         // Resolve plan from price ID
@@ -458,32 +479,51 @@ async function handleWebhook(req: Request): Promise<Response> {
         const status = statusMap[sub.status] || "active";
 
         // Get management URLs
+        // Paddle Billing provides two URLs in management_urls:
+        //   cancel               — subscription cancel/manage page
+        //   update_payment_method — payment method update page
+        // There is no separate "manage" URL; cancel page doubles as
+        // the subscriber management portal.
         const mgmtUrls = sub.management_urls || {};
 
+        // Build upsert row — only include nullable temporal fields when
+        // actually present so we never overwrite valid data with null.
+        const row: Record<string, unknown> = {
+          school_id: school,
+          provider: "paddle",
+          provider_customer_id: sub.customer_id || null,
+          provider_subscription_id: sub.id,
+          purchased_by: purchasedBy,
+          status,
+          plan,
+          billing_interval: billingInterval,
+          price_id: currentPriceId,
+          cancel_at_period_end: sub.scheduled_change?.action === "cancel" || false,
+          management_url: mgmtUrls.update_payment_method || mgmtUrls.cancel || null,
+          update_payment_url: mgmtUrls.update_payment_method || null,
+          last_event_at: eventOccurredAt,
+        };
+
+        // Only set period dates when Paddle actually sends them
+        if (sub.current_billing_period?.starts_at) {
+          row.current_period_start = sub.current_billing_period.starts_at;
+        }
+        if (sub.current_billing_period?.ends_at) {
+          row.current_period_end = sub.current_billing_period.ends_at;
+        }
+
+        // Only set canceled_at / paused_at when relevant — avoid wiping history
+        if (status === "cancelled") {
+          row.canceled_at = sub.canceled_at || new Date().toISOString();
+        }
+        if (status === "paused") {
+          row.paused_at = sub.paused_at || new Date().toISOString();
+        }
+
         // Upsert billing_subscriptions
-        // NOTE: management_urls.cancel is the user-facing cancel page URL.
-        // Paddle doesn't provide a separate "manage" URL — cancel page
-        // doubles as the management portal link for the subscriber.
         await admin.from("billing_subscriptions").upsert(
-          {
-            school_id: school,
-            provider: "paddle",
-            provider_customer_id: sub.customer_id || null,
-            provider_subscription_id: sub.id,
-            purchased_by: purchasedBy,
-            status,
-            plan,
-            billing_interval: billingInterval,
-            price_id: currentPriceId,
-            current_period_start: sub.current_billing_period?.starts_at || null,
-            current_period_end: sub.current_billing_period?.ends_at || null,
-            cancel_at_period_end: sub.scheduled_change?.action === "cancel" || false,
-            canceled_at: status === "cancelled" ? (sub.canceled_at || new Date().toISOString()) : null,
-            paused_at: status === "paused" ? (sub.paused_at || new Date().toISOString()) : null,
-            management_url: mgmtUrls.cancel || null,
-            update_payment_url: mgmtUrls.update_payment_method || null,
-          },
-          { onConflict: "provider_subscription_id" },
+          row,
+          { onConflict: "provider,provider_subscription_id" },
         );
 
         // Update school plan for backward compat with get_effective_tier
@@ -505,12 +545,27 @@ async function handleWebhook(req: Request): Promise<Response> {
 
         // Mark billing_subscriptions as cancelled, but preserve period end
         if (sub.id) {
+          // Out-of-order guard
+          const { data: existing } = await admin
+            .from("billing_subscriptions")
+            .select("last_event_at")
+            .eq("provider_subscription_id", sub.id)
+            .single();
+
+          if (
+            existing?.last_event_at &&
+            new Date(existing.last_event_at) > new Date(eventOccurredAt)
+          ) {
+            break; // stale event
+          }
+
           await admin
             .from("billing_subscriptions")
             .update({
               status: "cancelled",
               canceled_at: sub.canceled_at || new Date().toISOString(),
               current_period_end: sub.current_billing_period?.ends_at || undefined,
+              last_event_at: eventOccurredAt,
             })
             .eq("provider_subscription_id", sub.id);
         }
@@ -537,7 +592,7 @@ async function handleWebhook(req: Request): Promise<Response> {
         if (sub.id) {
           await admin
             .from("billing_subscriptions")
-            .update({ status: "past_due" })
+            .update({ status: "past_due", last_event_at: eventOccurredAt })
             .eq("provider_subscription_id", sub.id);
         }
 
@@ -554,6 +609,7 @@ async function handleWebhook(req: Request): Promise<Response> {
             .update({
               status: "paused",
               paused_at: sub.paused_at || new Date().toISOString(),
+              last_event_at: eventOccurredAt,
             })
             .eq("provider_subscription_id", sub.id);
         }
@@ -571,6 +627,7 @@ async function handleWebhook(req: Request): Promise<Response> {
             .update({
               status: "active",
               paused_at: null,
+              last_event_at: eventOccurredAt,
             })
             .eq("provider_subscription_id", sub.id);
         }
@@ -606,7 +663,7 @@ async function handleWebhook(req: Request): Promise<Response> {
         if (subId) {
           await admin
             .from("billing_subscriptions")
-            .update({ status: "past_due" })
+            .update({ status: "past_due", last_event_at: eventOccurredAt })
             .eq("provider_subscription_id", subId);
         }
 

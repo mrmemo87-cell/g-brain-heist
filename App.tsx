@@ -684,7 +684,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         invalidateTierCache();
         fetchEffectiveTier().then(tier => {
           setAccountTier(tier);
-          if (tier === 'pro') {
+          if (isProTier(tier)) {
             addToast('🎉 Welcome to Brain Heist Pro! All features unlocked.', 'success');
           }
         }).catch(() => {});
