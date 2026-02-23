@@ -2989,16 +2989,32 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
                   <h4 className="text-sm font-medium text-yellow-400 mb-2">✏️ Force Profile Change</h4>
                   {modTargetStatus?.required_changes ? (
                     <div className="space-y-2">
-                      <p className="text-sm text-yellow-200">
-                        Pending: {modTargetStatus.required_changes.username ? 'Username ' : ''}{modTargetStatus.required_changes.avatar ? 'Avatar' : ''}
-                      </p>
-                      <button
-                        onClick={handleClearProfileChange}
-                        disabled={forceChangeLoading}
-                        className="w-full px-4 py-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 rounded-lg transition-colors text-white font-medium"
-                      >
-                        {forceChangeLoading ? 'Clearing...' : 'Clear Requirement'}
-                      </button>
+                      <div className="space-y-1">
+                        {modTargetStatus.required_changes.username && (
+                          <p className="text-sm text-yellow-200">⬜ Username change pending</p>
+                        )}
+                        {modTargetStatus.required_changes.avatar && (
+                          <p className="text-sm text-yellow-200">⬜ Avatar change pending</p>
+                        )}
+                        {modTargetStatus.required_changes.reason && (
+                          <p className="text-xs text-gray-400 mt-1">Reason: {modTargetStatus.required_changes.reason}</p>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => loadStudentModStatus(modTargetStatus.user_id)}
+                          className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg transition-colors text-white font-medium text-sm"
+                        >
+                          🔄 Refresh Status
+                        </button>
+                        <button
+                          onClick={handleClearProfileChange}
+                          disabled={forceChangeLoading}
+                          className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 rounded-lg transition-colors text-white font-medium text-sm"
+                        >
+                          {forceChangeLoading ? 'Clearing...' : 'Clear Requirement'}
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <div className="space-y-3">

@@ -15,6 +15,9 @@ interface SettingsModalProps {
   onAvatarUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onNeonFrameDeactivated?: () => void | Promise<void>;
   onFlickerThemeDeactivated?: () => void | Promise<void>;
+  onUsernameChange?: (newUsername: string) => Promise<void>;
+  avatarUploadSuccess?: boolean;
+  requiredChanges?: { username?: boolean; avatar?: boolean; reason?: string } | null;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ 
@@ -28,7 +31,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   onAvatarSelect,
   onAvatarUpload,
   onNeonFrameDeactivated,
-  onFlickerThemeDeactivated
+  onFlickerThemeDeactivated,
+  onUsernameChange,
+  avatarUploadSuccess,
+  requiredChanges
 }) => {
   const { isLightMode, toggleLightMode, autoEnabledReason, clearAutoEnabledReason } = useLightMode();
   const [hasNeonFrame, setHasNeonFrame] = useState(profile.active_cosmetic_frame === 'neon');
@@ -39,6 +45,19 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   const [flickerError, setFlickerError] = useState<string | null>(null);
   const [neonSuccess, setNeonSuccess] = useState<string | null>(null);
   const [flickerSuccess, setFlickerSuccess] = useState<string | null>(null);
+
+  // Username editing state
+  const [editingUsername, setEditingUsername] = useState(false);
+  const [newUsername, setNewUsername] = useState(profile.username);
+  const [usernameSaving, setUsernameSaving] = useState(false);
+  const [usernameError, setUsernameError] = useState<string | null>(null);
+  const [usernameSuccess, setUsernameSuccess] = useState(false);
+
+  // Track whether the original username/avatar at open differs from current
+  const [originalUsername] = useState(profile.username);
+  const [originalAvatar] = useState(profile.avatar_url);
+  const usernameChanged = profile.username !== originalUsername;
+  const avatarChanged = profile.avatar_url !== originalAvatar;
 
   useEffect(() => {
     setHasNeonFrame(profile.active_cosmetic_frame === 'neon');
@@ -99,6 +118,27 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     }
   };
 
+  const handleUsernameSave = async () => {
+    if (!onUsernameChange) return;
+    const trimmed = newUsername.trim();
+    if (trimmed === profile.username) {
+      setEditingUsername(false);
+      return;
+    }
+    setUsernameSaving(true);
+    setUsernameError(null);
+    setUsernameSuccess(false);
+    try {
+      await onUsernameChange(trimmed);
+      setUsernameSuccess(true);
+      setEditingUsername(false);
+    } catch (error: any) {
+      setUsernameError(error.message || 'Failed to update username.');
+    } finally {
+      setUsernameSaving(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
@@ -126,6 +166,42 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           className="overflow-y-auto p-6 space-y-6"
           style={{ maxHeight: 'calc(90vh - 80px)' }}
         >
+          {/* Required Changes Status Panel */}
+          {requiredChanges && (requiredChanges.username || requiredChanges.avatar) && (
+            <div className="rounded-xl border-2 border-yellow-500/60 bg-yellow-500/10 p-4 space-y-3">
+              <h3 className="font-heading text-lg text-yellow-400">⚠️ Profile Update Required</h3>
+              {requiredChanges.reason && (
+                <p className="text-sm text-yellow-200/80">Reason: {requiredChanges.reason}</p>
+              )}
+              <div className="space-y-2">
+                {requiredChanges.username && (
+                  <div className="flex items-center gap-2 text-sm">
+                    {usernameChanged || usernameSuccess
+                      ? <span className="text-green-400 text-lg">✅</span>
+                      : <span className="text-gray-500 text-lg">⬜</span>}
+                    <span className={usernameChanged || usernameSuccess ? 'text-green-300 line-through' : 'text-yellow-200'}>
+                      Change your username
+                    </span>
+                  </div>
+                )}
+                {requiredChanges.avatar && (
+                  <div className="flex items-center gap-2 text-sm">
+                    {avatarChanged || avatarUploadSuccess
+                      ? <span className="text-green-400 text-lg">✅</span>
+                      : <span className="text-gray-500 text-lg">⬜</span>}
+                    <span className={avatarChanged || avatarUploadSuccess ? 'text-green-300 line-through' : 'text-yellow-200'}>
+                      Change your avatar
+                    </span>
+                  </div>
+                )}
+              </div>
+              {((requiredChanges.username && (usernameChanged || usernameSuccess)) || !requiredChanges.username) &&
+               ((requiredChanges.avatar && (avatarChanged || avatarUploadSuccess)) || !requiredChanges.avatar) && (
+                <p className="text-sm text-green-300 font-semibold mt-2">🎉 All changes complete! Your access will be restored automatically.</p>
+              )}
+            </div>
+          )}
+
           {/* Avatar Selection */}
           <div>
             <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--amber-warn)' }}>Avatar</h3>
@@ -158,6 +234,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               {avatarUploadError && (
                 <p className="mt-2 text-xs text-red-300">{avatarUploadError}</p>
               )}
+              {avatarUploadSuccess && (
+                <p className="mt-2 text-xs text-green-300 font-semibold">✅ Avatar updated successfully!</p>
+              )}
             </div>
             {uploadingAvatar && (
               <p className="text-xs text-center text-cyan-400 animate-pulse mt-3">Saving avatar...</p>
@@ -168,9 +247,50 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           <div>
             <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--amber-warn)' }}>Profile</h3>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
-                <span className="text-gray-300">Username</span>
-                <span className="font-bold text-white">{profile.username}</span>
+              <div className="p-3 bg-black/20 rounded-lg space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-300">Username</span>
+                  {!editingUsername ? (
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-white">{profile.username}</span>
+                      {onUsernameChange && (
+                        <button
+                          onClick={() => { setEditingUsername(true); setNewUsername(profile.username); setUsernameError(null); setUsernameSuccess(false); }}
+                          className="text-xs px-2 py-1 rounded bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 transition"
+                        >
+                          Edit
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={newUsername}
+                        onChange={(e) => setNewUsername(e.target.value)}
+                        maxLength={30}
+                        autoFocus
+                        className="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-sm text-white w-40 focus:border-cyan-400 focus:outline-none"
+                        onKeyDown={(e) => { if (e.key === 'Enter') void handleUsernameSave(); if (e.key === 'Escape') setEditingUsername(false); }}
+                      />
+                      <button
+                        onClick={() => void handleUsernameSave()}
+                        disabled={usernameSaving || newUsername.trim().length < 2}
+                        className="text-xs px-2 py-1 rounded bg-green-500/20 hover:bg-green-500/30 text-green-300 border border-green-500/40 transition disabled:opacity-50"
+                      >
+                        {usernameSaving ? '...' : 'Save'}
+                      </button>
+                      <button
+                        onClick={() => setEditingUsername(false)}
+                        className="text-xs px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-300 transition"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {usernameError && <p className="text-xs text-red-300">{usernameError}</p>}
+                {usernameSuccess && <p className="text-xs text-green-300">✅ Username updated!</p>}
               </div>
               <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
                 <span className="text-gray-300">Level</span>
@@ -312,7 +432,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* Note about future features */}
           <div className="text-xs text-gray-500 text-center pt-4 border-t border-gray-700">
-            <p>Username editing, custom bio, and theme settings coming soon!</p>
+            <p>Custom bio and theme settings coming soon!</p>
           </div>
         </div>
       </div>

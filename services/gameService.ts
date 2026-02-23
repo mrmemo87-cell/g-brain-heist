@@ -4655,6 +4655,31 @@ export const update_avatar = async (avatar_url: string): Promise<Profile> => {
     return data as Profile;
 };
 
+export const update_username = async (newUsername: string): Promise<Profile> => {
+    const trimmed = newUsername.trim();
+    if (!trimmed || trimmed.length < 2) throw new Error('Username must be at least 2 characters.');
+    if (trimmed.length > 30) throw new Error('Username must be 30 characters or fewer.');
+    if (!/^[a-zA-Z0-9_ .\-]+$/.test(trimmed)) throw new Error('Username can only contain letters, numbers, spaces, hyphens, underscores, and dots.');
+
+    const { data: authData } = await supabase.auth.getUser();
+    if (!authData.user) throw new Error('Not authenticated');
+
+    const { data, error } = await supabase
+        .from('users')
+        .update({ username: trimmed })
+        .eq('id', authData.user.id)
+        .select()
+        .single();
+
+    if (error) {
+        if (error.message?.includes('unique') || error.code === '23505') {
+            throw new Error('That username is already taken. Please choose another.');
+        }
+        throw error;
+    }
+    return data as Profile;
+};
+
 /**
  * Upload a question image to Supabase storage
  */

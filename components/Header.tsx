@@ -5,7 +5,7 @@ import CoinAnimation from './CoinAnimation';
 import { audioService } from '../services/audioService';
 import { NotificationCenter } from './NotificationCenter';
 import { notificationService } from '../services/notificationService';
-import { update_avatar, upload_avatar_file } from '../services/gameService';
+import { update_avatar, upload_avatar_file, update_username } from '../services/gameService';
 import { isAdmin } from '../services/adminService';
 import SettingsModal from './SettingsModal';
 import UserProfileModal from './UserProfileModal';
@@ -100,6 +100,7 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   const [selectedAvatar, setSelectedAvatar] = useState<string>(profile.avatar_url || '');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarUploadError, setAvatarUploadError] = useState<string | null>(null);
+  const [avatarUploadSuccess, setAvatarUploadSuccess] = useState(false);
   const [apRegenCountdown, setApRegenCountdown] = useState<string>('');
   const [calculatedAP, setCalculatedAP] = useState<number>(profile.ap_now ?? 0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -169,10 +170,16 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
       
       // Update local state
       setSelectedAvatar(updatedProfile.avatar_url || avatarUrl);
+      setAvatarUploadSuccess(true);
       
       // Notify parent component
       if (onProfileAvatarChange) {
         onProfileAvatarChange(updatedProfile.avatar_url || avatarUrl);
+      }
+
+      // If required_changes is active, refresh full profile to pick up auto-cleared flags
+      if (profile.required_changes && onProfileRefresh) {
+        await onProfileRefresh();
       }
       
       audioService.play('collect');
@@ -237,6 +244,18 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
   useEffect(() => {
     setSelectedAvatar(profile.avatar_url || '');
   }, [profile.avatar_url]);
+
+  // Reset avatar upload success when settings modal opens
+  useEffect(() => {
+    if (showSettingsModal) {
+      setAvatarUploadSuccess(false);
+    }
+  }, [showSettingsModal]);
+
+  const handleUsernameChange = async (newUsername: string) => {
+    await update_username(newUsername);
+    if (onProfileRefresh) await onProfileRefresh();
+  };
 
   const hasNeonFrame = profile.active_cosmetic_frame === 'neon';
   const hasFlickerTheme = profile.active_cosmetic_theme === 'flicker';
@@ -758,6 +777,9 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
           onAvatarSelect={handleAvatarSelect}
           onAvatarUpload={handleAvatarUpload}
           onNeonFrameDeactivated={onProfileRefresh ? () => onProfileRefresh() : undefined}
+          onUsernameChange={handleUsernameChange}
+          avatarUploadSuccess={avatarUploadSuccess}
+          requiredChanges={profile.required_changes as { username?: boolean; avatar?: boolean; reason?: string } | null}
         />
       )}
 

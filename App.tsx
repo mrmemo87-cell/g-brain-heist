@@ -277,6 +277,13 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
         return;
       }
     }
+    // Block navigation when profile changes are required (student enforcement)
+    const rc = profile?.required_changes;
+    if (rc && typeof rc === 'object' && (rc.username || rc.avatar) && nextView !== 'dashboard') {
+      addToast('Please update your profile before accessing other features.', 'info');
+      setView('dashboard');
+      return;
+    }
     if (!hasSchool && ['clan', 'leaderboard', 'phase1_play', 'phase1_leaderboard', 'phase1_admin', 'school_admin', 'admissions'].includes(nextView)) {
       addToast('Join a school to access school-based features.', 'info');
       return;
