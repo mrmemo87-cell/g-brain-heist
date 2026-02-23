@@ -1133,6 +1133,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       setView('admin');
       return;
     }
+    // School admin is a formal account — never load game data
+    if (isSchoolAdminRole) {
+      setView('school_admin');
+      return;
+    }
     handleViewChange('dashboard');
     // Only refresh profile data (lightweight) instead of all game data
     refreshProfile();
@@ -1714,6 +1719,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
           return renderLazy(
             <SchoolAdminPortal
               onComplete={handleViewComplete}
+              onLogout={onLogout}
+              onNavigate={handleViewChange}
               addToast={addToast}
             />
           );
@@ -1731,6 +1738,8 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                 return renderLazy(
                     <SchoolAdminPortal
                         onComplete={handleViewComplete}
+                        onLogout={onLogout}
+                        onNavigate={handleViewChange}
                         addToast={addToast}
                     />
                 );
