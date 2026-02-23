@@ -962,7 +962,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
   // Real-time subscription for activity feed
   useEffect(() => {
-    if (!isPlayerMode || !profile || !isInteractive || isTeacherRole) return;
+    if (!isPlayerMode || !profile || !isInteractive || isTeacherRole || isSchoolAdminRole) return;
     
     const activityChannel = supabase
       .channel('activities')
@@ -993,11 +993,11 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     return () => {
       supabase.removeChannel(activityChannel);
     };
-  }, [profile, isInteractive, isPlayerMode]);
+  }, [profile, isInteractive, isPlayerMode, isSchoolAdminRole]);
 
   // Real-time subscription for profile updates
   useEffect(() => {
-    if (!isPlayerMode || !profile?.id || !isInteractive) return;
+    if (!isPlayerMode || !profile?.id || !isInteractive || isSchoolAdminRole) return;
 
     let isSubscribed = true;
     let lastUpdateTime = 0;
@@ -1118,7 +1118,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       isSubscribed = false;
       supabase.removeChannel(profileChannel);
     };
-  }, [profile?.id, previousLevel, isInteractive, isPlayerMode]);
+  }, [profile?.id, previousLevel, isInteractive, isPlayerMode, isSchoolAdminRole]);
   
   // Set initial level when profile loads
   useEffect(() => {
@@ -1145,7 +1145,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
 
   // Lightweight profile refresh (no loading screen)
   const refreshProfile = async () => {
-    if (!isPlayerMode) return;
+    if (!isPlayerMode || isSchoolAdminRole) return;
     try {
       const profileData = await GameService.whoami();
       setProfile(profileData);
