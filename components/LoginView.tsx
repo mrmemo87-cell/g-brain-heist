@@ -3,9 +3,40 @@ import { GoogleIcon } from './icons';
 import * as AuthService from '../services/authService';
 import { consumeBanMessage } from '../services/banMessage';
 
+/* ─── tiny inline icons (avoids new deps) ──────────────────────────────── */
+const CheckBadge = () => (
+    <svg className="w-5 h-5 shrink-0" style={{ color: 'var(--ion-blue)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+);
+const ShieldCheck = () => (
+    <svg className="w-4 h-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+    </svg>
+);
+
 interface LoginViewProps {
     onLogin: (email: string, pass: string) => Promise<void>;
 }
+
+/* ─── value props ──────────────────────────────────────────────────────── */
+const VALUE_BULLETS = [
+    'Admission Tests (English + Math) with Cambridge stage mapping',
+    'Lockdown Clan Territory mode for live class sessions',
+    'Reports for schools + parents (score + skill breakdown + placement band)',
+] as const;
+
+const TRUST_ITEMS = [
+    'Secure payments via Paddle (Merchant of Record)',
+    'Cancel anytime',
+    'Support response within 24–48 hours',
+] as const;
+
+const HOW_IT_WORKS = [
+    { step: '1', title: 'Create your school', desc: 'Sign up and register your school in under 2 minutes.' },
+    { step: '2', title: 'Add students & classes', desc: 'Import rosters or invite students with a class code.' },
+    { step: '3', title: 'Run assessments & battles', desc: 'Launch tests, clan battles, and track real-time progress.' },
+] as const;
 
 const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     const [mode, setMode] = useState<'login' | 'signup' | 'reset'>('login');
@@ -80,174 +111,341 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
         }
     };
 
-    return (
-        <div className="min-h-screen flex items-center justify-center p-4">
-            <div className="w-full max-w-md">
-                <div className="text-center mb-6 sm:mb-8">
-                    <img 
-                        src="/logo.png" 
-                        alt="Brains Heist" 
-                        className="w-20 h-20 sm:w-32 sm:h-32 mx-auto mb-3 sm:mb-4 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]"
+    /* ─── Auth form card (reused in both mobile & desktop) ─────────────── */
+    const authCard = (
+        <div className="bg-ink-900/50 backdrop-blur-sm border border-white/10 rounded-2xl p-5 sm:p-8 shadow-xl">
+            {error && (
+                <div className="mb-4 rounded-md border border-red-500/60 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                    ⚠️ {error}
+                </div>
+            )}
+            {success && (
+                <div className="mb-4 rounded-md border border-green-500/60 bg-green-500/10 px-4 py-3 text-sm text-green-200">
+                    ✓ {success}
+                </div>
+            )}
+
+            <div className="flex gap-4 mb-6">
+                <button
+                    onClick={() => setMode('login')}
+                    className={`flex-1 py-2 px-4 rounded-md font-semibold transition-all ${
+                        mode === 'login'
+                            ? 'bg-ion-blue text-ink-900'
+                            : 'text-gray-400 hover:text-white'
+                    }`}
+                >
+                    Sign in
+                </button>
+                <button
+                    onClick={() => setMode('signup')}
+                    className={`flex-1 py-2 px-4 rounded-md font-semibold transition-all ${
+                        mode === 'signup'
+                            ? 'bg-ion-blue text-ink-900'
+                            : 'text-gray-400 hover:text-white'
+                    }`}
+                >
+                    Sign up
+                </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+                {mode === 'reset' && (
+                    <div className="mb-4">
+                        <button
+                            type="button"
+                            onClick={() => setMode('login')}
+                            className="text-cyan-400 hover:text-cyan-300 text-sm"
+                        >
+                            ← Back to sign in
+                        </button>
+                        <h3 className="text-xl font-bold text-white mt-2">Reset Password</h3>
+                    </div>
+                )}
+
+                {mode === 'signup' && (
+                    <div>
+                        <label htmlFor="username" className="block text-sm font-medium text-gray-300">Username</label>
+                        <input
+                            id="username"
+                            type="text"
+                            required
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+                            placeholder="ChooseYourName"
+                        />
+                        <p className="mt-1 text-xs text-gray-400">You'll complete your profile in the next step</p>
+                    </div>
+                )}
+
+                <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-300">Email</label>
+                    <input
+                        id="email"
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+                        placeholder="agent@bh.os"
                     />
-                    <h1 className="font-heading text-3xl sm:text-5xl font-bold tracking-wider" style={{ color: 'var(--ion-blue)' }}>
-                        Brains Heist
-                    </h1>
-                    <p className="text-mist-400 mt-2">Sign in to continue your learning mission</p>
-                    <a
-                        href="/ielts"
-                        className="inline-flex items-center gap-1 text-xs text-ion-green mt-3 px-3 py-1.5 border border-ion-green rounded-full hover:bg-ion-green/10 transition-colors"
-                    >
-                        📚 IELTS PREPARATION
-                    </a>
                 </div>
 
-                <div className="bg-ink-900/50 backdrop-blur-sm border border-mist-800 rounded-lg p-5 sm:p-8 shadow-xl">
-                    {error && (
-                        <div className="mb-4 rounded-md border border-red-500/60 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                            ⚠️ {error}
-                        </div>
-                    )}
-                    {success && (
-                        <div className="mb-4 rounded-md border border-green-500/60 bg-green-500/10 px-4 py-3 text-sm text-green-200">
-                            ✓ {success}
-                        </div>
-                    )}
+                {mode !== 'reset' && (
+                    <div>
+                        <label htmlFor="password" className="block text-sm font-medium text-gray-300">Password</label>
+                        <input
+                            id="password"
+                            type="password"
+                            required
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+                            placeholder="••••••••"
+                        />
+                    </div>
+                )}
 
-                    <div className="flex gap-4 mb-6">
+                {mode === 'login' && (
+                    <div className="flex justify-end">
                         <button
-                            onClick={() => setMode('login')}
-                            className={`flex-1 py-2 px-4 rounded-md font-semibold transition-all ${
-                                mode === 'login'
-                                    ? 'bg-ion-blue text-ink-900'
-                                    : 'text-gray-400 hover:text-white'
-                            }`}
+                            type="button"
+                            onClick={() => setMode('reset')}
+                            className="text-xs text-cyan-300 hover:text-cyan-200"
                         >
-                            Sign in
-                        </button>
-                        <button
-                            onClick={() => setMode('signup')}
-                            className={`flex-1 py-2 px-4 rounded-md font-semibold transition-all ${
-                                mode === 'signup'
-                                    ? 'bg-ion-blue text-ink-900'
-                                    : 'text-gray-400 hover:text-white'
-                            }`}
-                        >
-                            Sign up
+                            Forgot password?
                         </button>
                     </div>
+                )}
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {mode === 'reset' && (
-                            <div className="mb-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setMode('login')}
-                                    className="text-cyan-400 hover:text-cyan-300 text-sm"
-                                >
-                                    ← Back to sign in
-                                </button>
-                                <h3 className="text-xl font-bold text-white mt-2">Reset Password</h3>
-                            </div>
-                        )}
+                <button
+                    type="submit"
+                    disabled={isLoading || (mode === 'signup' && !username.trim())}
+                    className="w-full py-3 px-4 rounded-md font-bold transition-all bg-ion-blue text-ink-900 hover:bg-cyan-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {isLoading ? 'Loading...' : mode === 'login' ? 'Sign in' : mode === 'signup' ? 'Create account' : 'Send reset link'}
+                </button>
+            </form>
 
-                        {mode === 'signup' && (
-                            <div>
-                                <label htmlFor="username" className="block text-sm font-medium text-gray-300">Username</label>
-                                <input
-                                    id="username"
-                                    type="text"
-                                    required
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
-                                    placeholder="ChooseYourName"
-                                />
-                                <p className="mt-1 text-xs text-gray-400">You'll complete your profile in the next step</p>
-                            </div>
-                        )}
-                        
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-300">Email</label>
-                            <input
-                                id="email"
-                                type="email"
-                                required
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
-                                placeholder="agent@bh.os"
+            {(mode === 'login' || mode === 'signup') && (
+                <>
+                    <div className="relative my-6">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-gray-600"></div>
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                            <span className="px-2 bg-ink-900/50 text-gray-400">or</span>
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={handleGoogleSignIn}
+                        disabled={isGoogleLoading}
+                        className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-md border-2 border-gray-600 hover:border-gray-500 text-white transition-all disabled:opacity-50"
+                    >
+                        <GoogleIcon />
+                        {isGoogleLoading ? 'Loading...' : mode === 'signup' ? 'Sign up with Google' : 'Sign in with Google'}
+                    </button>
+                </>
+            )}
+        </div>
+    );
+
+    return (
+        <div className="min-h-screen flex flex-col">
+            {/* ── HERO + AUTH (above the fold) ─────────────────────────────── */}
+            <section className="flex-1 flex items-center justify-center px-4 py-10 sm:py-16">
+                <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+
+                    {/* ── Left: hero / value props ──────────────────────────── */}
+                    <div className="text-center lg:text-left order-1">
+                        <div className="flex items-center justify-center lg:justify-start gap-3 mb-5">
+                            <img
+                                src="/logo.png"
+                                alt="Brains Heist"
+                                className="w-14 h-14 sm:w-16 sm:h-16 drop-shadow-[0_0_18px_rgba(44,246,200,0.45)]"
                             />
+                            <h1 className="font-heading text-3xl sm:text-4xl font-bold tracking-wide" style={{ color: 'var(--ion-blue)' }}>
+                                Brains Heist
+                            </h1>
                         </div>
 
-                        {mode !== 'reset' && (
-                            <div>
-                                <label htmlFor="password" className="block text-sm font-medium text-gray-300">Password</label>
-                                <input
-                                    id="password"
-                                    type="password"
-                                    required
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="mt-1 block w-full bg-gray-800 border border-gray-600 rounded-md p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
-                                    placeholder="••••••••"
-                                />
-                            </div>
-                        )}
+                        <p className="text-lg sm:text-xl text-gray-200 leading-relaxed max-w-lg mx-auto lg:mx-0">
+                            A gamified English &amp; Math platform for schools — assessments, leaderboards, and class battle modes.
+                        </p>
 
-                        {mode === 'login' && (
-                            <div className="flex justify-end">
-                                <button
-                                    type="button"
-                                    onClick={() => setMode('reset')}
-                                    className="text-xs text-cyan-300 hover:text-cyan-200"
-                                >
-                                    Forgot password?
-                                </button>
-                            </div>
-                        )}
+                        {/* value bullets */}
+                        <ul className="mt-6 space-y-3 text-sm sm:text-base text-gray-300 max-w-lg mx-auto lg:mx-0" role="list">
+                            {VALUE_BULLETS.map((b) => (
+                                <li key={b} className="flex items-start gap-2.5">
+                                    <CheckBadge />
+                                    <span>{b}</span>
+                                </li>
+                            ))}
+                        </ul>
 
-                        <button
-                            type="submit"
-                            disabled={isLoading || (mode === 'signup' && !username.trim())}
-                            className="w-full py-3 px-4 rounded-md font-bold transition-all bg-ion-blue text-ink-900 hover:bg-cyan-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {isLoading ? 'Loading...' : mode === 'login' ? 'Sign in' : mode === 'signup' ? 'Create account' : 'Send reset link'}
-                        </button>
-                    </form>
+                        {/* trust strip */}
+                        <div className="mt-8 flex flex-wrap items-center justify-center lg:justify-start gap-x-5 gap-y-2 text-xs sm:text-sm text-gray-400">
+                            {TRUST_ITEMS.map((t) => (
+                                <span key={t} className="flex items-center gap-1.5">
+                                    <ShieldCheck />
+                                    {t}
+                                </span>
+                            ))}
+                        </div>
 
-                    {(mode === 'login' || mode === 'signup') && (
-                        <>
-                            <div className="relative my-6">
-                                <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-gray-600"></div>
-                                </div>
-                                <div className="relative flex justify-center text-sm">
-                                    <span className="px-2 bg-ink-900/50 text-gray-400">or</span>
-                                </div>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={handleGoogleSignIn}
-                                disabled={isGoogleLoading}
-                                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-md border-2 border-gray-600 hover:border-gray-500 text-white transition-all disabled:opacity-50"
+                        {/* IELTS link */}
+                        <div className="mt-6 flex justify-center lg:justify-start">
+                            <a
+                                href="/ielts"
+                                className="inline-flex items-center gap-1 text-xs px-3 py-1.5 border border-emerald-500/40 rounded-full hover:bg-emerald-500/10 transition-colors"
+                                style={{ color: 'var(--ion-blue)' }}
                             >
-                                <GoogleIcon />
-                                {isGoogleLoading ? 'Loading...' : mode === 'signup' ? 'Sign up with Google' : 'Sign in with Google'}
-                            </button>
-                        </>
-                    )}
-                </div>
-            </div>
+                                📚 IELTS Preparation →
+                            </a>
+                        </div>
+                    </div>
 
-            {/* Legal footer */}
-            <div className="flex flex-wrap items-center justify-center gap-2 mt-4 text-[11px] text-gray-600">
-                <a href="/terms.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Terms</a>
-                <span>·</span>
-                <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Privacy</a>
-                <span>·</span>
-                <a href="/contact.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Contact</a>
-            </div>
+                    {/* ── Right: auth card ───────────────────────────────────── */}
+                    <div className="w-full max-w-md mx-auto lg:mx-0 lg:ml-auto order-2">
+                        {authCard}
+                    </div>
+
+                </div>
+            </section>
+
+            {/* ── HOW IT WORKS ─────────────────────────────────────────────── */}
+            <section className="px-4 py-12 sm:py-16 border-t border-white/5">
+                <div className="max-w-4xl mx-auto text-center">
+                    <h2 className="font-heading text-2xl sm:text-3xl font-bold mb-8" style={{ color: 'var(--ion-blue)' }}>
+                        How it works
+                    </h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
+                        {HOW_IT_WORKS.map((item) => (
+                            <div
+                                key={item.step}
+                                className="relative bg-white/[0.03] border border-white/10 rounded-2xl p-6 backdrop-blur-sm"
+                            >
+                                <span
+                                    className="inline-flex items-center justify-center w-10 h-10 rounded-full text-lg font-bold mb-4"
+                                    style={{ background: 'var(--ion-blue)', color: 'var(--ink-900)' }}
+                                >
+                                    {item.step}
+                                </span>
+                                <h3 className="text-white font-semibold text-base mb-1">{item.title}</h3>
+                                <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* ── FOR SCHOOLS / FOR STUDENTS ────────────────────────────────── */}
+            <section className="px-4 py-12 sm:py-16 border-t border-white/5">
+                <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 sm:p-8">
+                        <h3 className="font-heading text-lg font-bold text-white mb-2">🏫 For Schools</h3>
+                        <ul className="space-y-2 text-sm text-gray-300">
+                            <li>• Cambridge-aligned admission tests</li>
+                            <li>• Live Lockdown class battle mode</li>
+                            <li>• School-wide analytics &amp; placement reports</li>
+                            <li>• Manage classes, batches &amp; rosters</li>
+                        </ul>
+                        <a
+                            href="/pricing.html"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block mt-4 text-sm font-medium hover:underline"
+                            style={{ color: 'var(--ion-blue)' }}
+                        >
+                            View pricing →
+                        </a>
+                    </div>
+                    <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 sm:p-8">
+                        <h3 className="font-heading text-lg font-bold text-white mb-2">🎮 For Students</h3>
+                        <ul className="space-y-2 text-sm text-gray-300">
+                            <li>• Earn XP, coins &amp; gems through quests</li>
+                            <li>• Join clans and compete in PvP battles</li>
+                            <li>• Track your progress &amp; skill levels</li>
+                            <li>• Customize your avatar in the shop</li>
+                        </ul>
+                        <a
+                            href="/pricing.html"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block mt-4 text-sm font-medium hover:underline"
+                            style={{ color: 'var(--ion-blue)' }}
+                        >
+                            Get started free →
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            {/* ── FOOTER ───────────────────────────────────────────────────── */}
+            <footer className="border-t border-white/5 px-4 py-8 sm:py-10">
+                <div className="max-w-5xl mx-auto">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-sm">
+                        {/* Brand */}
+                        <div className="col-span-2 sm:col-span-1">
+                            <div className="flex items-center gap-2 mb-3">
+                                <img src="/logo.png" alt="" className="w-7 h-7" />
+                                <span className="font-heading font-bold text-white">Brains Heist</span>
+                            </div>
+                            <p className="text-gray-500 text-xs leading-relaxed">
+                                Gamified learning for English &amp; Math — built for schools, loved by students.
+                            </p>
+                        </div>
+
+                        {/* Legal */}
+                        <div>
+                            <h4 className="text-gray-400 font-semibold text-xs uppercase tracking-wider mb-3">Legal</h4>
+                            <ul className="space-y-2 text-gray-500">
+                                <li><a href="/terms.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Terms of Service</a></li>
+                                <li><a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Privacy Policy</a></li>
+                                <li><a href="/refund.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Refund Policy</a></li>
+                            </ul>
+                        </div>
+
+                        {/* Resources */}
+                        <div>
+                            <h4 className="text-gray-400 font-semibold text-xs uppercase tracking-wider mb-3">Resources</h4>
+                            <ul className="space-y-2 text-gray-500">
+                                <li><a href="/pricing.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Pricing</a></li>
+                                <li><a href="/contact.html" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors">Contact Us</a></li>
+                                <li><a href="/ielts" className="hover:text-emerald-400 transition-colors">IELTS Prep</a></li>
+                            </ul>
+                        </div>
+
+                        {/* Contact */}
+                        <div>
+                            <h4 className="text-gray-400 font-semibold text-xs uppercase tracking-wider mb-3">Get in touch</h4>
+                            <ul className="space-y-2 text-gray-500 text-xs sm:text-sm">
+                                <li>
+                                    <a href="mailto:support@brainsheist.com" className="hover:text-emerald-400 transition-colors">
+                                        support@brainsheist.com
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="mailto:sales@brainsheist.com" className="hover:text-emerald-400 transition-colors">
+                                        sales@brainsheist.com
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    {/* Bottom bar */}
+                    <div className="mt-8 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-600">
+                        <span>© {new Date().getFullYear()} Brains Heist. All rights reserved.</span>
+                        <span className="flex items-center gap-1">
+                            <ShieldCheck />
+                            Payments secured by Paddle — Merchant of Record
+                        </span>
+                    </div>
+                </div>
+            </footer>
         </div>
     );
 };
