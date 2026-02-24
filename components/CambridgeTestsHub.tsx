@@ -1172,11 +1172,18 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
     if (!silent) setLoading(true);
     try {
       // Fetch completed tests from quiz_scores table (include answers for marking status)
-      const { data: completedTests, error } = await supabase
+      let progressQuery = supabase
         .from('quiz_scores')
         .select('quiz_name, score, total_questions, percentage, submitted_at, answers, scores_released')
         .eq('student_name', profile.username)
         .order('submitted_at', { ascending: false });
+      
+      // Defense-in-depth: scope to own school
+      if (profile.school_id) {
+        progressQuery = progressQuery.eq('school_id', profile.school_id);
+      }
+
+      const { data: completedTests, error } = await progressQuery;
 
       if (error) throw error;
 
@@ -1364,14 +1371,20 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
     
     try {
       // Fetch the submission with feedback
-      const { data, error } = await supabase
+      let feedbackQuery = supabase
         .from('quiz_scores')
         .select('*')
         .eq('student_name', profile.username)
         .ilike('quiz_name', '%writing%')
         .order('submitted_at', { ascending: false })
-        .limit(1)
-        .single();
+        .limit(1);
+      
+      // Defense-in-depth: scope to own school
+      if (profile.school_id) {
+        feedbackQuery = feedbackQuery.eq('school_id', profile.school_id);
+      }
+
+      const { data, error } = await feedbackQuery.single();
 
       if (error) throw error;
 
@@ -1450,11 +1463,18 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
   const viewStudentReport = async (test: CambridgeTest) => {
     setStudentReportLoading(true);
     try {
-      const { data, error } = await supabase
+      let reportQuery = supabase
         .from('quiz_scores')
         .select('*')
         .eq('student_name', profile.username)
         .order('submitted_at', { ascending: false });
+      
+      // Defense-in-depth: scope to own school
+      if (profile.school_id) {
+        reportQuery = reportQuery.eq('school_id', profile.school_id);
+      }
+
+      const { data, error } = await reportQuery;
 
       if (error) throw error;
       if (!data || data.length === 0) return;

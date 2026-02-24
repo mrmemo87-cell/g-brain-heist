@@ -623,11 +623,17 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       if (error) {
         // Fallback to direct query if RPC doesn't exist yet (migration not run)
         console.warn('RPC get_school_cambridge_scores not available, falling back to direct query:', error.message);
-        const fallback = await supabase
+        let query = supabase
           .from('quiz_scores')
           .select('*')
           .order('submitted_at', { ascending: false });
         
+        // Always scope to own school
+        if (profile.school_id) {
+          query = query.eq('school_id', profile.school_id);
+        }
+        
+        const fallback = await query;
         if (fallback.error) throw fallback.error;
         setCambridgeScores(fallback.data || []);
         calculateCambridgeStats(fallback.data || []);
@@ -929,7 +935,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       if (error) {
         // Fallback to direct update if RPC doesn't exist
         console.warn('RPC not available, using direct update:', error.message);
-        const query = supabase
+        let query = supabase
           .from('quiz_scores')
           .update({ 
             scores_released: true, 
@@ -938,8 +944,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           .eq('quiz_name', quizName)
           .eq('scores_released', false);
         
+        // Always scope to own school
+        if (profile.school_id) {
+          query = query.eq('school_id', profile.school_id);
+        }
+        
         if (classFilter) {
-          query.eq('student_class', classFilter);
+          query = query.eq('student_class', classFilter);
         }
         
         const { error: updateError } = await query;
@@ -969,7 +980,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       if (error) {
         // Fallback to direct update if RPC doesn't exist
         console.warn('RPC not available, using direct update:', error.message);
-        const query = supabase
+        let query = supabase
           .from('quiz_scores')
           .update({ 
             scores_released: false, 
@@ -978,8 +989,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           .eq('quiz_name', quizName)
           .eq('scores_released', true);
         
+        // Always scope to own school
+        if (profile.school_id) {
+          query = query.eq('school_id', profile.school_id);
+        }
+        
         if (classFilter) {
-          query.eq('student_class', classFilter);
+          query = query.eq('student_class', classFilter);
         }
         
         const { error: updateError } = await query;
@@ -1000,10 +1016,17 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     if (ids.length === 0) return;
     setReleasingScores(true);
     try {
-      const { error } = await supabase
+      let query = supabase
         .from('quiz_scores')
         .update({ scores_released: true, released_at: new Date().toISOString() })
         .in('id', ids);
+      
+      // Defense-in-depth: scope to own school
+      if (profile.school_id) {
+        query = query.eq('school_id', profile.school_id);
+      }
+
+      const { error } = await query;
 
       if (error) throw error;
       brainsAlert(successMessage, 'success');
@@ -1499,11 +1522,17 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       
       console.log('Update payload:', JSON.stringify(updatePayload, null, 2));
       
-      const { data, error } = await supabase
+      let markQuery = supabase
         .from('quiz_scores')
         .update(updatePayload)
-        .eq('id', selectedCambridgeStudent.id)
-        .select();
+        .eq('id', selectedCambridgeStudent.id);
+      
+      // Defense-in-depth: scope to own school
+      if (profile.school_id) {
+        markQuery = markQuery.eq('school_id', profile.school_id);
+      }
+      
+      const { data, error } = await markQuery.select();
       
       if (error) {
         console.error('Supabase UPDATE error:', error);
@@ -2239,10 +2268,17 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           }
         };
 
-        const { error } = await supabase
+        let proofQuery = supabase
           .from('quiz_scores')
           .update(updatePayload)
           .eq('id', student.id);
+        
+        // Defense-in-depth: scope to own school
+        if (profile.school_id) {
+          proofQuery = proofQuery.eq('school_id', profile.school_id);
+        }
+
+        const { error } = await proofQuery;
 
         if (error) {
           console.error(`Failed to save ${student.student_name}:`, error);

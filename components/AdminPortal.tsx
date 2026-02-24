@@ -688,12 +688,14 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
   const playerUsers = users.filter(isPlayerAccount);
 
-  // Delete a quiz score entry
+  // Delete a quiz score entry (via RPC — school-scoped)
   const deleteQuizScore = async (id: string, studentName: string) => {
     if (!window.confirm(`Delete submission from ${studentName}? This will allow them to retake the test.`)) return;
     try {
-      const { error } = await supabase.from('quiz_scores').delete().eq('id', id);
+      const { data, error } = await supabase.rpc('school_admin_delete_quiz_submission', { p_score_id: id });
       if (error) throw error;
+      const result = typeof data === 'string' ? JSON.parse(data) : data;
+      if (result && result.success === false) throw new Error(result.error || 'Failed');
       addToast(`🗑️ Deleted submission from ${studentName}`, 'success');
       fetchQuizScores();
     } catch (error) {
@@ -3285,11 +3287,13 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
                   </button>
                   <button onClick={async () => {
                     try {
-                      // Clear all quiz scores (with confirmation)
-                      if (!confirm('Clear ALL Cambridge test scores? Students will need to retake tests.')) return;
-                      const { error } = await supabase.from('quiz_scores').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+                      // Clear all quiz scores for this school (via RPC — school-scoped)
+                      if (!confirm('Clear ALL Cambridge test scores for your school? Students will need to retake tests.')) return;
+                      const { data, error } = await supabase.rpc('admin_bulk_delete_quiz_scores');
                       if (error) throw error;
-                      addToast('🗑️ All quiz scores cleared', 'success');
+                      const result = typeof data === 'string' ? JSON.parse(data) : data;
+                      if (result && result.success === false) throw new Error(result.error || 'Failed');
+                      addToast(`🗑️ ${result.deleted ?? 'All'} quiz scores cleared`, 'success');
                     } catch (error) { reportRpcError('Failed:', error, 'Failed to clear scores'); }
                   }} className="bg-orange-500/20 hover:bg-orange-500/30 border-2 border-orange-400 text-white font-semibold px-4 py-4 rounded-xl transition-all hover:shadow-[0_0_20px_rgba(249,115,22,0.5)]">
                     🗑️ Clear All Quiz Scores
