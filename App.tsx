@@ -271,6 +271,10 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
     // School admin is a formal account — only allow admin/school views
     if (isSchoolAdminRole) {
       const allowedSchoolAdminViews = ['school_admin', 'admissions', 'cambridge', 'ielts'];
+      // Teachers who are also school admins can still access their teacher portal
+      if (isTeacherRole) allowedSchoolAdminViews.push('teacher');
+      // Superadmins can access the admin portal from school admin
+      if (isAdminMode) allowedSchoolAdminViews.push('admin');
       if (!allowedSchoolAdminViews.includes(nextView)) {
         addToast('School admin accounts manage the school — game features are not available.', 'info');
         setView('school_admin');
@@ -305,7 +309,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
       setView('dashboard');
       return;
     }
-    if (isAdminMode && nextView !== 'admin') {
+    if (isAdminMode && nextView !== 'admin' && nextView !== 'school_admin') {
       addToast('Admin mode is active. Gameplay screens are not available.', 'info');
       setView('admin');
       return;
@@ -1857,7 +1861,7 @@ const App: React.FC<AppProps> = ({ onLogout }) => {
                         onOpenTournamentAdmin={isAdminUser ? () => handleViewChange('tournament_admin') : undefined}
                         onOpenCompetitionPlay={!isStudent && profile?.grade && !profile?.is_banned && hasSchool ? () => handleViewChange('phase1_play') : undefined}
                         onOpenCompetitionLeaderboard={hasSchool ? () => handleViewChange('phase1_leaderboard') : undefined}
-                        onOpenCompetitionAdmin={profile?.is_admin && hasSchool ? () => handleViewChange('phase1_admin') : undefined}
+                        onOpenCompetitionAdmin={isAdminUser && hasSchool ? () => handleViewChange('phase1_admin') : undefined}
                         onOpenIeltsPrep={() => {
                           window.location.href = '/ielts';
                         }}
