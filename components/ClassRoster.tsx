@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import * as SchoolAdminService from '../services/schoolAdminService';
 import type { ClassRosterStudent, ClassWithRosterInfo, ClassStatistics } from '../services/schoolAdminService';
 
@@ -694,8 +695,8 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
       )}
 
       {/* Move Student Modal */}
-      {showMoveModal && studentToMove && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+      {showMoveModal && studentToMove && ReactDOM.createPortal(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4">
           <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-700">
             <h3 className="text-lg font-semibold text-white mb-4">
               Move Student to Another Class
@@ -736,12 +737,13 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Bulk Action Modal */}
-      {showBulkModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+      {showBulkModal && ReactDOM.createPortal(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4">
           <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-700">
             <h3 className="text-lg font-semibold text-white mb-4">
               Bulk Add Students to Class
@@ -781,7 +783,8 @@ const ClassRoster: React.FC<ClassRosterProps> = ({ schoolId, addToast, onRefresh
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
