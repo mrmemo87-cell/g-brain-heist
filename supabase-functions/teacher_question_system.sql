@@ -612,14 +612,19 @@ BEGIN
     v_points_earned := v_question.points;
   END IF;
 
-  -- Record the attempt
-  INSERT INTO question_attempts (
-    student_id, question_id, quest_session_id,
-    answer_given, is_correct, time_taken, points_earned
-  ) VALUES (
-    auth.uid(), p_question_id, p_quest_session_id,
-    p_answer_given, v_is_correct, p_time_taken, v_points_earned
-  );
+  -- Record the attempt (handle duplicate correct answers gracefully)
+  BEGIN
+    INSERT INTO question_attempts (
+      student_id, question_id, quest_session_id,
+      answer_given, is_correct, time_taken, points_earned
+    ) VALUES (
+      auth.uid(), p_question_id, p_quest_session_id,
+      p_answer_given, v_is_correct, p_time_taken, v_points_earned
+    );
+  EXCEPTION WHEN unique_violation THEN
+    -- Already answered correctly before; zero out rewards to prevent duplicates
+    v_points_earned := 0;
+  END;
 
   -- Update question stats
   UPDATE questions

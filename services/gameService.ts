@@ -5284,7 +5284,18 @@ export const submit_question_answer = async (
         p_quest_session_id: questSessionId
     });
 
-    if (error) throw error;
+    if (error) {
+        // Handle duplicate correct-answer constraint gracefully
+        if (error.message?.includes('unique') || error.code === '23505') {
+            return {
+                is_correct: true,
+                points_earned: 0,
+                correct_answer: answer,
+                explanation: 'Already answered correctly!',
+            } as QuestionAttemptResult;
+        }
+        throw error;
+    }
 
     const result = data as QuestionAttemptResult;
     const xpDelta = Math.max(0, result.points_earned || 0);
