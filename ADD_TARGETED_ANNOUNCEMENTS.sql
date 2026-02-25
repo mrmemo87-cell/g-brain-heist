@@ -9,7 +9,28 @@
 -- Run once. All statements are idempotent (IF NOT EXISTS / OR REPLACE).
 -- ============================================================
 
--- Step 1: Add targeting columns to announcements
+-- Step 1: Ensure prerequisite columns exist
+-- ============================================================
+
+ALTER TABLE announcements
+  ADD COLUMN IF NOT EXISTS title TEXT;
+
+ALTER TABLE announcements
+  ADD COLUMN IF NOT EXISTS content TEXT;
+
+ALTER TABLE announcements
+  ADD COLUMN IF NOT EXISTS priority TEXT DEFAULT 'normal';
+
+ALTER TABLE announcements
+  ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT TRUE;
+
+ALTER TABLE announcements
+  ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ;
+
+ALTER TABLE announcements
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+
+-- Step 2: Add targeting columns to announcements
 -- ============================================================
 
 ALTER TABLE announcements
@@ -40,7 +61,7 @@ CREATE INDEX IF NOT EXISTS idx_announcements_target_class_id
   ON announcements(target_class_id)
   WHERE target_class_id IS NOT NULL;
 
--- Step 2: Replace rpc_announcement_post with targeting support
+-- Step 3: Replace rpc_announcement_post with targeting support
 -- ============================================================
 
 -- Drop all existing overloads cleanly
@@ -171,7 +192,7 @@ $$;
 GRANT EXECUTE ON FUNCTION rpc_announcement_post TO authenticated;
 
 
--- Step 3: Replace rpc_announcement_next with targeting filters
+-- Step 4: Replace rpc_announcement_next with targeting filters
 -- ============================================================
 
 DROP FUNCTION IF EXISTS rpc_announcement_next();
@@ -291,7 +312,7 @@ $$;
 GRANT EXECUTE ON FUNCTION rpc_announcement_next TO authenticated;
 
 
--- Step 4: Update fetchAnnouncements admin query (add targeting cols)
+-- Step 5: Update fetchAnnouncements admin query (add targeting cols)
 -- ============================================================
 -- No RPC needed — the admin portal reads the table directly.
 -- The new columns are automatically available via .select('*').

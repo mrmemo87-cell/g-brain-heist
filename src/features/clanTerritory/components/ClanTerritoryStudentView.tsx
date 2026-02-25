@@ -69,6 +69,7 @@ const formatTimer = (seconds: number) => {
 interface ClanTerritoryStudentViewProps {
   gameState: ClanTerritoryGameState;
   playerId: string;
+  roomId?: string;
   fallbackPlayer?: {
     id: string;
     name: string;
@@ -84,6 +85,7 @@ interface ClanTerritoryStudentViewProps {
 export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> = ({
   gameState,
   playerId,
+  roomId,
   fallbackPlayer,
   onSelectZone,
   onSubmitAnswer,
@@ -112,19 +114,33 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   const [questionIndex, setQuestionIndex] = useState(0);
   const [answerStartTime, setAnswerStartTime] = useState<number>(Date.now());
   const [feedback, setFeedback] = useState<"correct" | "incorrect" | null>(null);
-  // Stable key for tracking whether rewards have been claimed for this game session
+  // Stable key for tracking whether rewards have been claimed for this game session.
+  // Uses roomId (stable from join) + playerId. Falls back to gameStartTime if roomId unavailable.
   const rewardStorageKey = React.useMemo(() => {
-    const sessionId = gameState.gameStartTime ?? 'unknown';
+    const sessionId = roomId ?? (gameState.gameStartTime ? String(gameState.gameStartTime) : null);
+    if (!sessionId) return null; // Not ready yet
     return `ct-rewards-claimed:${sessionId}:${playerId}`;
-  }, [gameState.gameStartTime, playerId]);
+  }, [roomId, gameState.gameStartTime, playerId]);
 
   const [rewardsClaimed, setRewardsClaimed] = useState(() => {
-    // Persist claimed status so re-visiting doesn't re-grant rewards
-    if (typeof window !== 'undefined') {
-      return sessionStorage.getItem(rewardStorageKey) === '1';
+    // Try to read from sessionStorage using roomId-based key (available immediately)
+    if (typeof window !== 'undefined' && roomId) {
+      const key = `ct-rewards-claimed:${roomId}:${playerId}`;
+      return sessionStorage.getItem(key) === '1';
     }
     return false;
   });
+
+  // Re-check sessionStorage whenever the key stabilises (e.g. gameStartTime arrives)
+  useEffect(() => {
+    if (!rewardStorageKey || rewardsClaimed) return;
+    if (typeof window !== 'undefined' && sessionStorage.getItem(rewardStorageKey) === '1') {
+      setRewardsClaimed(true);
+    }
+  }, [rewardStorageKey, rewardsClaimed]);
+
+  // Ref guard to prevent double reward claiming across rapid re-renders
+  const rewardClaimStartedRef = useRef(false);
   const [claimingRewards, setClaimingRewards] = useState(false);
   const lastQuestionKeyRef = useRef<string | null>(null);
   const clanList = React.useMemo(() => {
@@ -272,12 +288,15 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
       gameState.endReason !== "TEACHER_DISMISSED" &&
       !rewardsClaimed &&
       !claimingRewards &&
+      !rewardClaimStartedRef.current &&
+      rewardStorageKey &&
       hydratedPlayer
     ) {
       const results = calculateClanTerritoryResults(gameState);
       const myReward = results.playerRewards.find((r) => r.playerId === playerId);
       if (myReward && (myReward.coins > 0 || myReward.xp > 0 || myReward.gems > 0)) {
         console.log("Claiming rewards:", myReward);
+        rewardClaimStartedRef.current = true;
         setClaimingRewards(true);
         
         // Use rpc_apply_reward_delta (the safe, trigger-compatible RPC) instead of
@@ -299,7 +318,7 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
             console.log("Rewards claimed via rpc_apply_reward_delta:", data);
             setRewardsClaimed(true);
             // Persist to sessionStorage so revisiting doesn't re-grant
-            if (typeof window !== 'undefined') {
+            if (typeof window !== 'undefined' && rewardStorageKey) {
               sessionStorage.setItem(rewardStorageKey, '1');
             }
             setClaimingRewards(false);
@@ -309,17 +328,19 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
           })
           .catch((err) => {
             console.error("Failed to claim rewards:", err);
+            rewardClaimStartedRef.current = false; // allow retry on error
             setClaimingRewards(false);
           });
       } else if (myReward) {
         console.log("No rewards to claim (zero amounts)");
+        rewardClaimStartedRef.current = true;
         setRewardsClaimed(true);
-        if (typeof window !== 'undefined') {
+        if (typeof window !== 'undefined' && rewardStorageKey) {
           sessionStorage.setItem(rewardStorageKey, '1');
         }
       }
     }
-  }, [gameState.phase, gameState.endReason, playerId, rewardsClaimed, claimingRewards, hydratedPlayer]);
+  }, [gameState.phase, gameState.endReason, playerId, rewardsClaimed, claimingRewards, rewardStorageKey, hydratedPlayer]);
 
   const handleAnswerClick = (selectedAnswer: string) => {
     if (!currentQuestion) return;

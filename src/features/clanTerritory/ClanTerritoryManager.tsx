@@ -1317,10 +1317,11 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   }
 
   if (mode === "player" && playerId) {
-    // Check if kicked
-    // We assume if we have a playerId, we should be in the game state eventually.
-    // If the game state has players (meaning it's loaded) and we are NOT in it, we are kicked.
-    const isKicked = Object.keys(gameState.players).length > 0 && !gameState.players[playerId];
+    // Check if kicked (only during active play, NOT during ENDED phase)
+    // During ENDED phase the student should see results even if the host cleaned up player data.
+    const isKicked = gameState.phase !== "ENDED"
+      && Object.keys(gameState.players).length > 0
+      && !gameState.players[playerId];
 
     if (isKicked) {
         return (
@@ -1339,6 +1340,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
         <ClanTerritoryStudentView
           gameState={gameState}
           playerId={playerId}
+          roomId={roomId ?? undefined}
           fallbackPlayer={playerFallback ?? undefined}
           onRewardsClaimed={handleRefreshProfile}
           onSelectZone={(zoneId) => {
