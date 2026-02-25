@@ -265,6 +265,10 @@ export interface Announcement {
   created_by: string | null;
   expires_at?: string | null;
   seen_at?: string | null;
+  target_audience?: string;
+  target_school_id?: string | null;
+  target_grade?: number | null;
+  target_class_id?: string | null;
 }
 
 export interface AdminOverviewStats {

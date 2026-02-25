@@ -450,8 +450,8 @@ BEGIN
     EXECUTE 'CREATE POLICY "Students can view classes they''re in"
       ON classes FOR SELECT
       USING (id IN (
-        SELECT class_id FROM class_students WHERE student_id = auth.uid()
-      ))';
+        SELECT get_my_student_class_ids()
+      ))';    
   END IF;
 END;
 $$;
@@ -502,9 +502,7 @@ BEGIN
     EXECUTE 'CREATE POLICY "Teachers can manage students in their classes"
       ON class_students FOR ALL
       USING (class_id IN (
-        SELECT id FROM classes WHERE teacher_id IN (
-          SELECT id FROM teachers WHERE user_id = auth.uid()
-        )
+        SELECT get_my_teacher_class_ids()
       ))';
   END IF;
 END;
@@ -513,6 +511,31 @@ $$;
 -- ============================================================
 -- HELPER FUNCTIONS
 -- ============================================================
+
+-- Break RLS circular dependency between classes <-> class_students
+CREATE OR REPLACE FUNCTION get_my_teacher_class_ids()
+RETURNS SETOF UUID
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+AS $$
+  SELECT c.id FROM classes c
+  JOIN teachers t ON c.teacher_id = t.id
+  WHERE t.user_id = auth.uid();
+$$;
+
+CREATE OR REPLACE FUNCTION get_my_student_class_ids()
+RETURNS SETOF UUID
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+AS $$
+  SELECT cs.class_id FROM class_students cs
+  WHERE cs.student_id = auth.uid();
+$$;
+
+GRANT EXECUTE ON FUNCTION get_my_teacher_class_ids TO authenticated;
+GRANT EXECUTE ON FUNCTION get_my_student_class_ids TO authenticated;
 
 -- Function to create a teacher profile
 DO $$

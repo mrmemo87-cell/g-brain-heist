@@ -91,6 +91,12 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   const [announcementExpiry, setAnnouncementExpiry] = useState<'never' | '1d' | '7d' | '30d' | 'custom'>('never');
   const [customAnnouncementExpiry, setCustomAnnouncementExpiry] = useState('');
   const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false);
+  // Announcement targeting
+  const [announcementAudience, setAnnouncementAudience] = useState<'all' | 'school' | 'school_admins' | 'school_admins_school' | 'grade' | 'grade_school' | 'class' | 'teachers'>('all');
+  const [announcementTargetSchoolId, setAnnouncementTargetSchoolId] = useState<string>('');
+  const [announcementTargetGrade, setAnnouncementTargetGrade] = useState<string>('');
+  const [announcementTargetClassId, setAnnouncementTargetClassId] = useState<string>('');
+  const [targetSchoolClasses, setTargetSchoolClasses] = useState<{id: string; class_code: string; class_name: string}[]>([]);
   const [isResettingAll, setIsResettingAll] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -1299,9 +1305,41 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     }
   };
 
+  // Load classes for a school (for class-targeted announcements)
+  const loadClassesForSchool = async (schoolId: string) => {
+    if (!schoolId) { setTargetSchoolClasses([]); return; }
+    try {
+      const { data, error } = await supabase
+        .from('classes')
+        .select('id, class_code, class_name')
+        .eq('school_id', schoolId)
+        .eq('is_active', true)
+        .order('class_code');
+      if (!error && data) setTargetSchoolClasses(data);
+    } catch { setTargetSchoolClasses([]); }
+  };
+
   const sendAnnouncement = async () => {
     if (!announcementText.trim()) {
       addToast('Announcement text is empty', 'error');
+      return;
+    }
+
+    // Validate targeting
+    const needsSchool = ['school', 'school_admins_school', 'grade_school', 'class'].includes(announcementAudience);
+    const needsGrade = ['grade', 'grade_school'].includes(announcementAudience);
+    const needsClass = announcementAudience === 'class';
+
+    if (needsSchool && !announcementTargetSchoolId) {
+      addToast('Select a school for this audience target', 'error');
+      return;
+    }
+    if (needsGrade && !announcementTargetGrade) {
+      addToast('Select a grade for this audience target', 'error');
+      return;
+    }
+    if (needsClass && !announcementTargetClassId) {
+      addToast('Select a class for this audience target', 'error');
       return;
     }
 
@@ -1327,12 +1365,36 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
           expiresAt = expiryDate.toISOString();
         }
       }
+
+      // Build targeting
+      const target: CompetitionService.AnnouncementTarget = { audience: announcementAudience };
+      if (needsSchool) target.schoolId = announcementTargetSchoolId;
+      if (needsGrade) target.grade = Number(announcementTargetGrade);
+      if (needsClass) target.classId = announcementTargetClassId;
+
       setIsSendingAnnouncement(true);
-      await CompetitionService.postAnnouncement(announcementText.trim(), expiresAt);
-      addToast('📢 Announcement sent to all players', 'success');
+      await CompetitionService.postAnnouncement(announcementText.trim(), expiresAt, target);
+
+      const audienceLabels: Record<string, string> = {
+        all: 'all players',
+        school: `school "${schoolOptions.find(s => s.id === announcementTargetSchoolId)?.name || announcementTargetSchoolId}"`,
+        school_admins: 'all school admins',
+        school_admins_school: `school admins at "${schoolOptions.find(s => s.id === announcementTargetSchoolId)?.name || ''}"`,
+        grade: `Grade ${announcementTargetGrade} (all schools)`,
+        grade_school: `Grade ${announcementTargetGrade} at "${schoolOptions.find(s => s.id === announcementTargetSchoolId)?.name || ''}"`,
+        class: `class "${targetSchoolClasses.find(c => c.id === announcementTargetClassId)?.class_code || announcementTargetClassId}"`,
+        teachers: 'all teachers',
+      };
+      addToast(`📢 Announcement sent to ${audienceLabels[announcementAudience] || 'selected audience'}`, 'success');
+
       setAnnouncementText('');
       setAnnouncementExpiry('never');
       setCustomAnnouncementExpiry('');
+      setAnnouncementAudience('all');
+      setAnnouncementTargetSchoolId('');
+      setAnnouncementTargetGrade('');
+      setAnnouncementTargetClassId('');
+      setTargetSchoolClasses([]);
       setShowAnnouncementComposer(false);
     } catch (error) {
       reportRpcError('Failed to send announcement:', error, 'Failed to send announcement');
@@ -1553,6 +1615,11 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     showAnnouncementComposer, setShowAnnouncementComposer,
     announcementText, setAnnouncementText, announcementExpiry, setAnnouncementExpiry,
     customAnnouncementExpiry, setCustomAnnouncementExpiry, isSendingAnnouncement,
+    announcementAudience, setAnnouncementAudience,
+    announcementTargetSchoolId, setAnnouncementTargetSchoolId,
+    announcementTargetGrade, setAnnouncementTargetGrade,
+    announcementTargetClassId, setAnnouncementTargetClassId,
+    targetSchoolClasses, loadClassesForSchool,
     isResettingAll, setIsResettingAll,
     quizScores, quizScoresLoading, quizFilter, setQuizFilter, classFilter, setClassFilter,
     showReportModal, setShowReportModal, reportStudent,

@@ -263,7 +263,7 @@ export const fetchBatchSummaries = async (): Promise<BatchLeaderboardSummary[]> 
 export const fetchAnnouncements = async (limit = 10): Promise<Announcement[]> => {
   const { data, error } = await supabase
     .from('announcements')
-    .select('id, text, created_at, created_by, expires_at')
+    .select('id, text, created_at, created_by, expires_at, target_audience, target_school_id, target_grade, target_class_id')
     .order('created_at', { ascending: false })
     .limit(limit);
 
@@ -277,22 +277,32 @@ export const fetchAnnouncements = async (limit = 10): Promise<Announcement[]> =>
   })) as Announcement[];
 };
 
-export const postAnnouncement = async (text: string, expiresAt?: string | null): Promise<void> => {
-  const payload: Record<string, string | null> = { p_text: text };
+export interface AnnouncementTarget {
+  audience: 'all' | 'school' | 'school_admins' | 'school_admins_school' | 'grade' | 'grade_school' | 'class' | 'teachers';
+  schoolId?: string | null;
+  grade?: number | null;
+  classId?: string | null;
+}
+
+export const postAnnouncement = async (
+  text: string,
+  expiresAt?: string | null,
+  target?: AnnouncementTarget
+): Promise<void> => {
+  const payload: Record<string, unknown> = { p_text: text };
 
   if (expiresAt) {
     payload['p_expires_at'] = expiresAt;
   }
 
-  const { error } = await supabase.rpc('rpc_announcement_post', payload);
-
-  if (error && expiresAt) {
-    const fallback = await supabase.rpc('rpc_announcement_post', { p_text: text });
-    if (!fallback.error) {
-      return;
-    }
-    throw new Error(fallback.error.message || error.message || 'Failed to send announcement');
+  if (target) {
+    payload['p_target_audience'] = target.audience;
+    if (target.schoolId) payload['p_target_school_id'] = target.schoolId;
+    if (target.grade != null) payload['p_target_grade'] = target.grade;
+    if (target.classId) payload['p_target_class_id'] = target.classId;
   }
+
+  const { error } = await supabase.rpc('rpc_announcement_post', payload);
 
   if (error) {
     throw new Error(error.message || 'Failed to send announcement');
