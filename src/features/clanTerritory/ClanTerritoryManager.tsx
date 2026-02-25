@@ -152,6 +152,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const [teacherUserId, setTeacherUserId] = useState<string | null>(null);
   const [storedHostRooms, setStoredHostRooms] = useState<StoredHostRoom[]>([]);
   const [loadedAssignedClasses, setLoadedAssignedClasses] = useState<SchoolAdminService.TeacherAssignedClass[]>(assignedClasses || []);
+  const assignedClassesLoadedRef = useRef(false);
+  const batchAutoSelectedRef = useRef(false);
   const previousBgMusicEnabled = useRef<boolean | null>(null);
   const discoveredRoomsRef = useRef<Record<string, DiscoveredRoom>>({});
   const autoStartTriggeredRef = useRef(false);
@@ -222,6 +224,9 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
     loadAssignedClasses();
   }, [isTeacher, assignedClasses]);
+
+  // Stable count of loaded assigned classes to avoid re-triggering batch effect on array ref change
+  const assignedClassCount = loadedAssignedClasses.length;
 
   const pruneExpiredHostRooms = useCallback((rooms: StoredHostRoom[]) => {
     const now = Date.now();
@@ -479,19 +484,20 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       
       setAvailableBatches(batches);
 
-      if (selectedBatches.length === 0 && batches.length > 0) {
+      if (!batchAutoSelectedRef.current && selectedBatches.length === 0 && batches.length > 0) {
         // Only auto-select from actual available batches (not studentBatch which may be invalid for teachers)
         const validBatch = studentBatch && batches.some(b => b.batch === studentBatch)
           ? studentBatch
           : batches[0]?.batch;
         if (validBatch) {
+          batchAutoSelectedRef.current = true;
           setSelectedBatches([validBatch]);
         }
       }
     };
 
     loadBatches();
-  }, [isTeacher, selectedBatches.length, studentBatch, loadedAssignedClasses]);
+  }, [isTeacher, studentBatch, assignedClassCount]);
 
   // Fetch available clans for the teacher's school
   useEffect(() => {

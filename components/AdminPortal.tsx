@@ -582,6 +582,13 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     }
   }, [activeTab, loadSchoolRequests, loadSchoolOptions]);
 
+  // Load school options when announcement composer opens (needed for targeting)
+  useEffect(() => {
+    if (showAnnouncementComposer && schoolOptions.length === 0) {
+      loadSchoolOptions();
+    }
+  }, [showAnnouncementComposer, schoolOptions.length, loadSchoolOptions]);
+
   useEffect(() => {
     let isMounted = true;
 
