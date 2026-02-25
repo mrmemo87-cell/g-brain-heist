@@ -112,7 +112,19 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
   const [questionIndex, setQuestionIndex] = useState(0);
   const [answerStartTime, setAnswerStartTime] = useState<number>(Date.now());
   const [feedback, setFeedback] = useState<"correct" | "incorrect" | null>(null);
-  const [rewardsClaimed, setRewardsClaimed] = useState(false);
+  // Stable key for tracking whether rewards have been claimed for this game session
+  const rewardStorageKey = React.useMemo(() => {
+    const sessionId = gameState.gameStartTime ?? 'unknown';
+    return `ct-rewards-claimed:${sessionId}:${playerId}`;
+  }, [gameState.gameStartTime, playerId]);
+
+  const [rewardsClaimed, setRewardsClaimed] = useState(() => {
+    // Persist claimed status so re-visiting doesn't re-grant rewards
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem(rewardStorageKey) === '1';
+    }
+    return false;
+  });
   const [claimingRewards, setClaimingRewards] = useState(false);
   const lastQuestionKeyRef = useRef<string | null>(null);
   const clanList = React.useMemo(() => {
@@ -286,6 +298,10 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
             if (error) throw error;
             console.log("Rewards claimed via rpc_apply_reward_delta:", data);
             setRewardsClaimed(true);
+            // Persist to sessionStorage so revisiting doesn't re-grant
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem(rewardStorageKey, '1');
+            }
             setClaimingRewards(false);
             if (onRewardsClaimed) {
               void Promise.resolve(onRewardsClaimed());
@@ -298,6 +314,9 @@ export const ClanTerritoryStudentView: React.FC<ClanTerritoryStudentViewProps> =
       } else if (myReward) {
         console.log("No rewards to claim (zero amounts)");
         setRewardsClaimed(true);
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem(rewardStorageKey, '1');
+        }
       }
     }
   }, [gameState.phase, gameState.endReason, playerId, rewardsClaimed, claimingRewards, hydratedPlayer]);

@@ -479,11 +479,13 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
       
       setAvailableBatches(batches);
 
-      if (selectedBatches.length === 0) {
-        if (studentBatch) {
-          setSelectedBatches([studentBatch]);
-        } else if (batches.length > 0) {
-          setSelectedBatches([batches[0].batch]);
+      if (selectedBatches.length === 0 && batches.length > 0) {
+        // Only auto-select from actual available batches (not studentBatch which may be invalid for teachers)
+        const validBatch = studentBatch && batches.some(b => b.batch === studentBatch)
+          ? studentBatch
+          : batches[0]?.batch;
+        if (validBatch) {
+          setSelectedBatches([validBatch]);
         }
       }
     };
@@ -1076,7 +1078,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                 </p>
               )}
               {selectedBatches.length === 1 && (
-                <p className="text-xs text-gray-400">Only students from {selectedBatches[0]} can join this arena.</p>
+                <p className="text-xs text-gray-400">Only students from {selectedBatches[0] || 'the selected class'} can join this arena.</p>
               )}
               {selectedBatches.length === 0 && (
                 <p className="text-xs text-amber-400">Please select at least one class to continue.</p>
