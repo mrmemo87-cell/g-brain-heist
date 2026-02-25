@@ -360,6 +360,9 @@ BEGIN
     RAISE EXCEPTION 'Not authenticated';
   END IF;
 
+  -- Allow XP/level writes so block_direct_xp_level_updates trigger passes
+  PERFORM set_config('app.allow_xp_level_write', '1', true);
+
   -- Clamp deltas to safe maximums
   p_xp_delta := LEAST(GREATEST(p_xp_delta, -c_max_xp), c_max_xp);
   p_coins_delta := LEAST(GREATEST(p_coins_delta, -c_max_coins), c_max_coins);

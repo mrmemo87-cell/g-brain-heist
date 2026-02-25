@@ -25,6 +25,9 @@ begin
     raise exception 'Not authenticated';
   end if;
 
+  -- Allow XP/level writes so block_direct_xp_level_updates trigger passes
+  PERFORM set_config('app.allow_xp_level_write', '1', true);
+
   select xp, coins, gemstones, level
   into v_profile
   from public.users
