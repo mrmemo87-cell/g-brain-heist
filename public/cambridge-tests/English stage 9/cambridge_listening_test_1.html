@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="format-detection" content="telephone=no" />
-<title>Cambridge Listening Test 1 — Answer Form</title>
+<title>Cambridge Listening Test 1 ï¿½ Answer Form</title>
 
 <!-- No external Supabase library needed - using fetch API directly -->
 <script src="../examguard.js?v=2"></script>
@@ -589,14 +589,14 @@
   </div>
 
   <h1>?? Cambridge Listening Test 1</h1>
-  <p class="subtitle">Answer Form — Questions 1–28</p>
+  <p class="subtitle">Answer Form ï¿½ Questions 1ï¿½28</p>
 
   <div class="warning-box">
     <h3>?? Important Rules</h3>
     <ul>
-      <li>You can only submit <b>ONCE</b> — answers cannot be changed after submission</li>
-      <li>The audio will play <b>ONCE ONLY</b> — you cannot pause, rewind, or skip ahead</li>
-      <li>Listen carefully — once the audio starts, it cannot be stopped</li>
+      <li>You can only submit <b>ONCE</b> ï¿½ answers cannot be changed after submission</li>
+      <li>The audio will play <b>ONCE ONLY</b> ï¿½ you cannot pause, rewind, or skip ahead</li>
+      <li>Listen carefully ï¿½ once the audio starts, it cannot be stopped</li>
       <li>Correct answers will only be shown <b>AFTER</b> you submit</li>
       <li>Your submission time is recorded</li>
     </ul>
@@ -718,6 +718,16 @@
   // Supabase Configuration - using REST API directly (no eval/external library needed)
   const SUPABASE_URL = window.__SUPABASE_ENV__?.VITE_SUPABASE_URL || 'https://sozodkxwhubespiedgxm.supabase.co';
   const SUPABASE_ANON_KEY = window.__SUPABASE_ENV__?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvem9ka3h3aHViZXNwaWVkZ3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTUxNjYsImV4cCI6MjA3NzQ3MTE2Nn0.DBfFFWvVjpqXTga0uZcH5qR4ej6VOFBUm-CiCTgGLVA';
+    const SUPABASE_PROJECT_REF = 'sozodkxwhubespiedgxm';
+    const SUPABASE_AUTH_STORAGE_KEY = `sb-${SUPABASE_PROJECT_REF}-auth-token`;
+    function getSupabaseAccessToken() {
+      try {
+        const raw = localStorage.getItem(SUPABASE_AUTH_STORAGE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return parsed?.access_token || null;
+      } catch (e) { return null; }
+    }
   const SUPABASE_IMAGES = 'https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/cambridge-images';
   
   // Simple Supabase REST API wrapper (CSP-safe, no eval needed)
@@ -731,7 +741,7 @@
               headers: {
                 'Content-Type': 'application/json',
                 'apikey': SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Authorization': `Bearer ${getSupabaseAccessToken() ?? SUPABASE_ANON_KEY}`,
                 'Prefer': 'return=minimal'
               },
               body: JSON.stringify(Array.isArray(data) ? data : [data])
@@ -1016,14 +1026,14 @@
     const part1 = document.createElement("div");
     part1.className = "section";
     part1.innerHTML = `
-      <h2>Part 1: Questions 1–8</h2>
+      <h2>Part 1: Questions 1ï¿½8</h2>
       <div class="section-instructions">
         Complete the form below.<br>
         Write <strong>NO MORE THAN THREE WORDS AND/OR A NUMBER</strong> for each answer.
       </div>
       <div class="question-card">
         <div class="listening-form">
-          <div class="listening-form__title">Packham's Shipping Agency – customer quotation</div>
+          <div class="listening-form__title">Packham's Shipping Agency ï¿½ customer quotation</div>
           <div class="listening-form__example">
             <strong>Example</strong> Country of destination: <b>Kenya</b>
           </div>
@@ -1089,7 +1099,7 @@
     const part2 = document.createElement("div");
     part2.className = "section";
     part2.innerHTML = `
-      <h2>Part 2: Questions 9–13</h2>
+      <h2>Part 2: Questions 9ï¿½13</h2>
       <div class="section-instructions">
         You will hear people talking in five different situations.<br>
         For each question, choose the correct answer <strong>A</strong>, <strong>B</strong> or <strong>C</strong>.
@@ -1166,7 +1176,7 @@
     const part3 = document.createElement("div");
     part3.className = "section";
     part3.innerHTML = `
-      <h2>Part 3: Questions 14–18</h2>
+      <h2>Part 3: Questions 14ï¿½18</h2>
       <div class="section-instructions">
         You will hear a teacher telling some students about the school orchestra.<br>
         For each question, fill in the missing information in the numbered space.
@@ -1212,7 +1222,7 @@
     const part4 = document.createElement("div");
     part4.className = "section";
     part4.innerHTML = `
-      <h2>Part 4: Questions 19–23</h2>
+      <h2>Part 4: Questions 19ï¿½23</h2>
       <div class="section-instructions">
         You will hear an interview with a girl called Mandy Livingstone who is talking about winning the Young Chef of the Year competition.<br>
         For each question, choose the correct answer <strong>A</strong>, <strong>B</strong> or <strong>C</strong>.
@@ -1289,22 +1299,22 @@
     const part5 = document.createElement("div");
     part5.className = "section";
     part5.innerHTML = `
-      <h2>Part 5: Questions 24–28</h2>
+      <h2>Part 5: Questions 24ï¿½28</h2>
       <div class="section-instructions">
         You will hear five people talking about playing different sports.<br>
-        For speakers 1–5, choose from the list A–H what each speaker says.<br>
+        For speakers 1ï¿½5, choose from the list Aï¿½H what each speaker says.<br>
         Use the letters only once. There are three extra letters which you do not need to use.
       </div>
       
       <div class="matching-options">
-        <div class="matching-option"><strong>A</strong> — I do the sport with a family member.</div>
-        <div class="matching-option"><strong>B</strong> — I started doing the sport at school.</div>
-        <div class="matching-option"><strong>C</strong> — I have made lots of friends doing the sport.</div>
-        <div class="matching-option"><strong>D</strong> — I was injured recently.</div>
-        <div class="matching-option"><strong>E</strong> — I enjoy the sport more than I expected.</div>
-        <div class="matching-option"><strong>F</strong> — I would like my friends to join me.</div>
-        <div class="matching-option"><strong>G</strong> — I took part in a competition recently.</div>
-        <div class="matching-option"><strong>H</strong> — I have just got some new sports equipment.</div>
+        <div class="matching-option"><strong>A</strong> ï¿½ I do the sport with a family member.</div>
+        <div class="matching-option"><strong>B</strong> ï¿½ I started doing the sport at school.</div>
+        <div class="matching-option"><strong>C</strong> ï¿½ I have made lots of friends doing the sport.</div>
+        <div class="matching-option"><strong>D</strong> ï¿½ I was injured recently.</div>
+        <div class="matching-option"><strong>E</strong> ï¿½ I enjoy the sport more than I expected.</div>
+        <div class="matching-option"><strong>F</strong> ï¿½ I would like my friends to join me.</div>
+        <div class="matching-option"><strong>G</strong> ï¿½ I took part in a competition recently.</div>
+        <div class="matching-option"><strong>H</strong> ï¿½ I have just got some new sports equipment.</div>
       </div>
       
       <div class="question-card">

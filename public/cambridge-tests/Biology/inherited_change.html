@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
-  <title>AS Biology Ch14 — Inherited change</title>
+  <title>AS Biology Ch14 ï¿½ Inherited change</title>
   <script src="../examguard.js?v=2"></script>
   <style>
     :root {
@@ -413,15 +413,15 @@
       <img src="/logo.png" alt="Brains Heist" onerror="this.style.display='none';" />
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
-        <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Biology Ch14 — Inherited change</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 14 • multiple-choice questions</div>
+        <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Biology Ch14 ï¿½ Inherited change</h1>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 14 ï¿½ multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
       <span class="badge">?? Category: Science</span>
       <span class="badge">?? Difficulty: Advanced</span>
-      <span class="badge">?? Format: Multiple Choice (A–D)</span>
+      <span class="badge">?? Format: Multiple Choice (Aï¿½D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
@@ -479,6 +479,16 @@
     const SUPABASE_URL = window.__SUPABASE_ENV__?.VITE_SUPABASE_URL || 'https://sozodkxwhubespiedgxm.supabase.co';
     const SUPABASE_ANON_KEY = window.__SUPABASE_ENV__?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvem9ka3h3aHViZXNwaWVkZ3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTUxNjYsImV4cCI6MjA3NzQ3MTE2Nn0.DBfFFWvVjpqXTga0uZcH5qR4ej6VOFBUm-CiCTgGLVA';
 
+    const SUPABASE_PROJECT_REF = 'sozodkxwhubespiedgxm';
+    const SUPABASE_AUTH_STORAGE_KEY = `sb-${SUPABASE_PROJECT_REF}-auth-token`;
+    function getSupabaseAccessToken() {
+      try {
+        const raw = localStorage.getItem(SUPABASE_AUTH_STORAGE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return parsed?.access_token || null;
+      } catch (e) { return null; }
+    }
     function createSupabaseClient(url, key) {
       return {
         from(table) {
@@ -529,7 +539,7 @@
                   headers: {
                     'Content-Type': 'application/json',
                     'apikey': key,
-                    'Authorization': `Bearer ${key}`
+                    'Authorization': `Bearer ${getSupabaseAccessToken() ?? key}`
                   }
                 });
                 if (!response.ok) {
@@ -553,7 +563,7 @@
                   headers: {
                     'Content-Type': 'application/json',
                     'apikey': key,
-                    'Authorization': `Bearer ${key}`,
+                    'Authorization': `Bearer ${getSupabaseAccessToken() ?? key}`,
                     'Prefer': 'return=minimal'
                   },
                   body: JSON.stringify(Array.isArray(data) ? data : [data])
@@ -609,11 +619,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} — Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} • ${totalQuestions} questions`;
+      if (titleEl) titleEl.textContent = `${title} ï¿½ Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} ï¿½ ${totalQuestions} questions`;
       if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
       if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
-      document.title = `${title} — Part ${part}`;
+      document.title = `${title} ï¿½ Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -630,7 +640,7 @@
 
 
     // =====================================================
-    // QUIZ CONSTANTS — Edit these for each chapter
+    // QUIZ CONSTANTS ï¿½ Edit these for each chapter
     // =====================================================
     const QUIZ_BASE_ID = 'as_biology_ch14_inherited_change';
     const QUIZ_PART = getQuizPart();
@@ -640,7 +650,7 @@
     const QUIZ_NAME = `${QUIZ_BASE_NAME} (Part ${QUIZ_PART.part})`;
 
     // =====================================================
-    // QUESTIONS — Paste your questions array here
+    // QUESTIONS ï¿½ Paste your questions array here
     // Each question object: { number, code, prompt, options/table/simpleOptions }
     // =====================================================
     let QUESTIONS = [
@@ -660,7 +670,7 @@
     ];
 
     // =====================================================
-    // ANSWER KEY — Paste answers here: { 1: 'A', 2: 'C', ... }
+    // ANSWER KEY ï¿½ Paste answers here: { 1: 'A', 2: 'C', ... }
     // =====================================================
     let ANSWER_KEY = {
       // PASTE ANSWER KEY HERE
@@ -940,7 +950,7 @@
 
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` • ?? Time: ${formatTimer(data.time_taken_seconds)}` : '';
+            ? ` ï¿½ ?? Time: ${formatTimer(data.time_taken_seconds)}` : '';
           scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
           hideTimer();
@@ -1159,7 +1169,7 @@
           review.textContent = `? Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `? Your answer: ${studentAnswer || '—'} | ? Correct: ${correctAnswer}`;
+          review.textContent = `? Your answer: ${studentAnswer || 'ï¿½'} | ? Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -1173,7 +1183,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('•')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('ï¿½')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -1226,7 +1236,7 @@
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test ï¿½ auto-submitted' });
         }
       });
     });

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -699,6 +699,16 @@
     const SUPABASE_URL = window.__SUPABASE_ENV__?.VITE_SUPABASE_URL || 'https://sozodkxwhubespiedgxm.supabase.co';
     const SUPABASE_ANON_KEY = window.__SUPABASE_ENV__?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvem9ka3h3aHViZXNwaWVkZ3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTUxNjYsImV4cCI6MjA3NzQ3MTE2Nn0.DBfFFWvVjpqXTga0uZcH5qR4ej6VOFBUm-CiCTgGLVA';
 
+    const SUPABASE_PROJECT_REF = 'sozodkxwhubespiedgxm';
+    const SUPABASE_AUTH_STORAGE_KEY = `sb-${SUPABASE_PROJECT_REF}-auth-token`;
+    function getSupabaseAccessToken() {
+      try {
+        const raw = localStorage.getItem(SUPABASE_AUTH_STORAGE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return parsed?.access_token || null;
+      } catch (e) { return null; }
+    }
     function createSupabaseClient(url, key) {
       return {
         from(table) {
@@ -749,7 +759,7 @@
                   headers: {
                     'Content-Type': 'application/json',
                     'apikey': key,
-                    'Authorization': `Bearer ${key}`
+                    'Authorization': `Bearer ${getSupabaseAccessToken() ?? key}`
                   }
                 });
                 if (!response.ok) {
@@ -773,7 +783,7 @@
                   headers: {
                     'Content-Type': 'application/json',
                     'apikey': key,
-                    'Authorization': `Bearer ${key}`,
+                    'Authorization': `Bearer ${getSupabaseAccessToken() ?? key}`,
                     'Prefer': 'return=minimal'
                   },
                   body: JSON.stringify(Array.isArray(data) ? data : [data])

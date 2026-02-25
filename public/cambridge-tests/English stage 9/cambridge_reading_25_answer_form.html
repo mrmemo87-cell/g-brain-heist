@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="format-detection" content="telephone=no" />
-<title>Cambridge Reading 25 — Answer Form</title>
+<title>Cambridge Reading 25 ï¿½ Answer Form</title>
 
 <!-- No external Supabase library needed - using fetch API directly -->
 <script src="../examguard.js?v=2"></script>
@@ -394,12 +394,12 @@
   </div>
 
   <h1>?? Cambridge Reading 25</h1>
-  <p class="subtitle">Answer Form — Questions 1–42</p>
+  <p class="subtitle">Answer Form ï¿½ Questions 1ï¿½42</p>
 
   <div class="warning-box">
     <h3>?? Important Rules</h3>
     <ul>
-      <li>You can only submit <b>ONCE</b> — answers cannot be changed after submission</li>
+      <li>You can only submit <b>ONCE</b> ï¿½ answers cannot be changed after submission</li>
       <li>Correct answers will only be shown <b>AFTER</b> you submit</li>
       <li>Your submission time is recorded</li>
       <li>Do NOT refresh the page after submitting</li>
@@ -491,6 +491,16 @@
   const SUPABASE_URL = window.__SUPABASE_ENV__?.VITE_SUPABASE_URL || 'https://sozodkxwhubespiedgxm.supabase.co';
   const SUPABASE_ANON_KEY = window.__SUPABASE_ENV__?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvem9ka3h3aHViZXNwaWVkZ3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTUxNjYsImV4cCI6MjA3NzQ3MTE2Nn0.DBfFFWvVjpqXTga0uZcH5qR4ej6VOFBUm-CiCTgGLVA';
   
+    const SUPABASE_PROJECT_REF = 'sozodkxwhubespiedgxm';
+    const SUPABASE_AUTH_STORAGE_KEY = `sb-${SUPABASE_PROJECT_REF}-auth-token`;
+    function getSupabaseAccessToken() {
+      try {
+        const raw = localStorage.getItem(SUPABASE_AUTH_STORAGE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return parsed?.access_token || null;
+      } catch (e) { return null; }
+    }
   // Simple Supabase REST API wrapper (CSP-safe, no eval needed)
   const supabaseClient = {
     from: function(table) {
@@ -502,7 +512,7 @@
               headers: {
                 'Content-Type': 'application/json',
                 'apikey': SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Authorization': `Bearer ${getSupabaseAccessToken() ?? SUPABASE_ANON_KEY}`,
                 'Prefer': 'return=minimal'
               },
               body: JSON.stringify(Array.isArray(data) ? data : [data])
@@ -572,7 +582,7 @@
     }
   }
 
-  // Correct Answers (1–42) - Checked ONLY after submission
+  // Correct Answers (1ï¿½42) - Checked ONLY after submission
   const correct = {
     1:"common", 2:"typically", 3:"access", 4:"stay", 5:"hunt", 6:"defend", 7:"escape", 8:"number",
     9:"B", 10:"A", 11:"A", 12:"C", 13:"A",
@@ -584,12 +594,12 @@
 
   // Section definitions
   const sections = [
-    { title: "Section 1 — Questions 1-8 (Gap Fill)", start: 1, end: 8 },
-    { title: "Section 1 — Questions 9-13 (Multiple Choice)", start: 9, end: 13 },
-    { title: "Section 2 — Questions 14-18 (Matching)", start: 14, end: 18 },
-    { title: "Section 2 — Questions 19-26 (Gap Fill)", start: 19, end: 26 },
-    { title: "Section 3 — Questions 27-36 (Multiple Choice)", start: 27, end: 36 },
-    { title: "Section 3 — Questions 37-42 (Multiple Choice)", start: 37, end: 42 }
+    { title: "Section 1 ï¿½ Questions 1-8 (Gap Fill)", start: 1, end: 8 },
+    { title: "Section 1 ï¿½ Questions 9-13 (Multiple Choice)", start: 9, end: 13 },
+    { title: "Section 2 ï¿½ Questions 14-18 (Matching)", start: 14, end: 18 },
+    { title: "Section 2 ï¿½ Questions 19-26 (Gap Fill)", start: 19, end: 26 },
+    { title: "Section 3 ï¿½ Questions 27-36 (Multiple Choice)", start: 27, end: 36 },
+    { title: "Section 3 ï¿½ Questions 37-42 (Multiple Choice)", start: 37, end: 42 }
   ];
 
   // Check if already submitted (using localStorage)
@@ -733,9 +743,9 @@
     // Confirm submission
     const confirmSubmit = confirm(
       "?? ARE YOU SURE?\n\n" +
-      "• You can only submit ONCE\n" +
-      "• Your answers CANNOT be changed after this\n" +
-      "• Your score will be sent to your teacher\n\n" +
+      "ï¿½ You can only submit ONCE\n" +
+      "ï¿½ Your answers CANNOT be changed after this\n" +
+      "ï¿½ Your score will be sent to your teacher\n\n" +
       "Click OK to submit, or Cancel to review your answers."
     );
     

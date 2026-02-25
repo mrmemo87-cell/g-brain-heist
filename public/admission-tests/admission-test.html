@@ -371,6 +371,16 @@
 const SUPABASE_URL = 'https://sozodkxwhubespiedgxm.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvem9ka3h3aHViZXNwaWVkZ3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTUxNjYsImV4cCI6MjA3NzQ3MTE2Nn0.DBfFFWvVjpqXTga0uZcH5qR4ej6VOFBUm-CiCTgGLVA';
 
+    const SUPABASE_PROJECT_REF = 'sozodkxwhubespiedgxm';
+    const SUPABASE_AUTH_STORAGE_KEY = `sb-${SUPABASE_PROJECT_REF}-auth-token`;
+    function getSupabaseAccessToken() {
+      try {
+        const raw = localStorage.getItem(SUPABASE_AUTH_STORAGE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return parsed?.access_token || null;
+      } catch (e) { return null; }
+    }
 // ── State ──
 let STATE = {
   mode: 'offline',  // 'online' | 'offline'
@@ -461,7 +471,7 @@ async function handleStart() {
         headers: {
           'Content-Type': 'application/json',
           'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${getSupabaseAccessToken() ?? SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({ p_token: token, p_form_code: formCode }),
       });
@@ -772,7 +782,7 @@ async function autoSave(questionId, response) {
       headers: {
         'Content-Type': 'application/json',
         'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Authorization': `Bearer ${getSupabaseAccessToken() ?? SUPABASE_ANON_KEY}`,
       },
       body: JSON.stringify({
         p_token: STATE.token,
@@ -811,7 +821,7 @@ async function handleSubmit(expired = false) {
         headers: {
           'Content-Type': 'application/json',
           'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${getSupabaseAccessToken() ?? SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({ p_token: STATE.token, p_attempt_id: STATE.attemptId }),
       });
