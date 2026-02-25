@@ -105,6 +105,8 @@ const createClanlessIdentity = (playerName: string, playerId?: string | null) =>
   };
 };
 
+const EMPTY_CLASSES: SchoolAdminService.TeacherAssignedClass[] = [];
+
 const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   onExit,
   isTeacher = false,
@@ -113,7 +115,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   clanName,
   onRefreshProfile,
   onGoToClan,
-  assignedClasses = [],
+  assignedClasses,
 }) => {
   const [transport] = useState(() => new SupabaseClanTerritoryTransport());
   const [gameState, setGameState] = useState<ClanTerritoryGameState>(INITIAL_STATE);
@@ -151,7 +153,8 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const [teacherUserId, setTeacherUserId] = useState<string | null>(null);
   const [storedHostRooms, setStoredHostRooms] = useState<StoredHostRoom[]>([]);
-  const [loadedAssignedClasses, setLoadedAssignedClasses] = useState<SchoolAdminService.TeacherAssignedClass[]>(assignedClasses || []);
+  const stableAssignedClasses = assignedClasses && assignedClasses.length > 0 ? assignedClasses : EMPTY_CLASSES;
+  const [loadedAssignedClasses, setLoadedAssignedClasses] = useState<SchoolAdminService.TeacherAssignedClass[]>(stableAssignedClasses);
   const assignedClassesLoadedRef = useRef(false);
   const batchAutoSelectedRef = useRef(false);
   const previousBgMusicEnabled = useRef<boolean | null>(null);
@@ -208,8 +211,14 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
 
   // Load teacher's assigned classes if not provided
   useEffect(() => {
-    if (!isTeacher || (assignedClasses && assignedClasses.length > 0)) return;
+    if (!isTeacher || assignedClassesLoadedRef.current) return;
+    // If parent already provided classes, skip fetching
+    if (stableAssignedClasses.length > 0) {
+      assignedClassesLoadedRef.current = true;
+      return;
+    }
 
+    assignedClassesLoadedRef.current = true;
     const loadAssignedClasses = async () => {
       try {
         console.log("📚 Loading teacher assigned classes...");
@@ -223,7 +232,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     };
 
     loadAssignedClasses();
-  }, [isTeacher, assignedClasses]);
+  }, [isTeacher, stableAssignedClasses]);
 
   // Stable count of loaded assigned classes to avoid re-triggering batch effect on array ref change
   const assignedClassCount = loadedAssignedClasses.length;
