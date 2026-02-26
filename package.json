@@ -36,11 +36,14 @@
     "@vercel/node": "^5.5.15",
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.20",
+    "canvas": "^3.2.1",
     "mammoth": "^1.11.0",
     "pdf-parse": "^2.4.5",
     "pdf2json": "^4.0.2",
+    "pdfjs-dist": "^3.11.174",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.16",
+    "tesseract.js": "^7.0.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }

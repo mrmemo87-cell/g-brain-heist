@@ -165,6 +165,19 @@
       min-width: 22px;
       display: inline-block;
     }
+    .option-letter-only {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      width: 56px;
+      padding: 10px 0;
+      text-align: center;
+    }
+    .option-list:has(.option-letter-only) {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
     .table-wrapper {
       margin: 12px 0;
       overflow-x: auto;
@@ -587,7 +600,8 @@
 
     function getQuizPart() {
       const params = new URLSearchParams(window.location.search);
-      const part = params.get('part') === '2' ? 2 : 1;
+      const raw = parseInt(params.get('part'), 10);
+      const part = (raw >= 1 && raw <= 5) ? raw : 1;
       return { part };
     }
 
@@ -597,8 +611,11 @@
     }
 
     function splitQuiz(questions, answerKey, part) {
-      const splitIndex = Math.ceil(questions.length / 2);
-      const slice = part === 1 ? questions.slice(0, splitIndex) : questions.slice(splitIndex);
+      const PART_SIZE = 43;
+      const TOTAL_PARTS = 5;
+      const start = (part - 1) * PART_SIZE;
+      const end = Math.min(start + PART_SIZE, questions.length);
+      const slice = questions.slice(start, end);
       const numbers = new Set(slice.map(q => q.number));
       const filteredKey = {};
       Object.entries(answerKey).forEach(([num, ans]) => {
@@ -606,7 +623,7 @@
           filteredKey[num] = ans;
         }
       });
-      return { questions: slice, answerKey: filteredKey, splitIndex };
+      return { questions: slice, answerKey: filteredKey, totalParts: TOTAL_PARTS };
     }
 
     function formatDuration(seconds) {
@@ -622,7 +639,7 @@
       if (titleEl) titleEl.textContent = `${title} � Part ${part}`;
       if (subtitleEl) subtitleEl.textContent = `${subtitle} � ${totalQuestions} questions`;
       if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
-      if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
+      if (partBadge) partBadge.textContent = `?? Part ${part} of 5`;
       document.title = `${title} � Part ${part}`;
     }
 
@@ -654,19 +671,2371 @@
     // Each question object: { number, code, prompt, options/table/simpleOptions }
     // =====================================================
     let QUESTIONS = [
-      // PASTE QUESTIONS HERE
-      // Example:
-      // {
-      //   number: 1,
-      //   code: '9700_s20_qp_11 Q: 1',
-      //   prompt: 'Which organelle is found in both plant and animal cells?',
-      //   options: {
-      //     A: 'cell wall',
-      //     B: 'chloroplast',
-      //     C: 'mitochondrion',
-      //     D: 'large central vacuole',
-      //   }
-      // },
+      {
+        number: 1,
+        code: '9700_m20_qp_12 Q: 1',
+        prompt: '<img src="assets/questions/page_001.png" alt="Question 1" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 2,
+        code: '9700_s20_qp_11 Q: 1',
+        prompt: 'The photomicrograph shows the ultrastructure of part of a cell. ath Zils ke NY iid | j No Ty i ez iE ae a SER Fo B LPN HY] Pa °§ : 2 E-4) No oe 1 by & Mo SANE i A BYE “apt RR et WE cE Which statement about the type of cell shown in the photomicrograph is correct?',
+        options: {
+          A: 'ltis a plant cell because it has both chloroplasts and a nucleus.',
+          B: 'tis a plant cell because it has chloroplasts.',
+          C: 'Itis an animal cell because it has a cell membrane.',
+          D: 'tis an animal cell because it has mitochondria.'
+        }
+      },
+      {
+        number: 3,
+        code: '9700_s20_qp_11 Q: 3',
+        prompt: 'A student d a slide of human blood with a light microscope and made a careful drawing of the different cell types. The student used an eyepiece graticule so that the relative sizes of the different cell types were drawn accurately. In the drawing: e red blood cells were 7mm in diameter e lymphocytes were 6 mm in diameter e neutrophils were 14mm in diameter. What is the linear magnification of the drawing?',
+        options: {
+          A: 'x10',
+          B: 'x40',
+          C: 'x100',
+          D: 'x1000'
+        }
+      },
+      {
+        number: 4,
+        code: '9700_s20_qp_11 Q: 4',
+        prompt: 'The diagram shows a graduated slide, with divisions of 0.1mm viewed using an eyepiece graticule. A, Pollen grains were grown in a sugar solution and viewed using the eyepiece graticule. Diagram 1 shows the pollen grains at the start. Diagram 2 shows the pollen grains after four hours. diagram 1 diagram 2 a pollen a 8) tube 3 PS Y oO [e) [e) Oo= » id ia i wal | wu | 0 10 20 30 40 50 60 70 80 90 100f 0 10 20 30 40 50 60 70 80 90 100| at start after 4 hours What is the growth rate of the pollen tubes?',
+        options: {
+          A: 'the degree of sharpness produced by the microscope',
+          B: 'the greatest distance between two objects visible in the same field of view',
+          C: 'the minimum distance that allows two objects to be viewed as separate',
+          D: 'the size of the smallest object visible using the microscope'
+        }
+      },
+      {
+        number: 5,
+        code: '9700_s20_qp_12 Q: 1',
+        prompt: '<img src="assets/questions/page_003.png" alt="Question 5" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 6,
+        code: '9700_s20_qp_12 Q: 2',
+        prompt: 'The electron micrograph shows a type of virus at a magnification of x30 000.',
+        options: {
+          A: '22x10°nm',
+          B: '22x10°nm',
+          C: '22x10\'nm',
+          D: '22x10°nm'
+        }
+      },
+      {
+        number: 7,
+        code: '9700_s20_qp_13 Q: 1',
+        prompt: '<img src="assets/questions/page_004.png" alt="Question 7" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: '1.0 x 10* n',
+          B: '1.0x 10° Ix',
+          C: 'TODO',
+          D: '1.0x 10 I1x'
+        }
+      },
+      {
+        number: 8,
+        code: '9700_w20_qp_11 Q: 1',
+        prompt: '<img src="assets/questions/page_005.png" alt="Question 8" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 9,
+        code: '9700_w20_qp_11 Q: 2',
+        prompt: 'The diagram shows a stage micrometer scale viewed through an eyepiece containing a graticule. The small divisions of the stage micrometer scale are 0.1 mm. 0 10 20 30 40 50 60 70 80 90 10Q The stage micrometer scale is replaced by a slide of a plant cell. PB o o». ) 4 . ; mre a ae 0 10 20 30 40 50 60 70 80 90 100 What is the actual length of the nucleus in the plant cell?',
+        options: {
+          A: '8um',
+          B: '25um',
+          C: '200pum',
+          D: '0.8mm'
+        }
+      },
+      {
+        number: 10,
+        code: '9700_w20_qp_12 Q: 1',
+        prompt: 'The size of the measles virus, Morbillivirus, is approximately 150 nm. The Mimivirus is approximately 4.5 times larger than Morbillivirus, whilst the Pandoravirus is approximately 1.5 times larger than the Mimivirus. Which viruses can be seen using a light microscope with a maximum resolution of 0.25 um and using an electron microscope?',
+        options: {
+          A: '1.1nm B 11nm C 110nm D 1100nm',
+          B: 'Xx Vv Vv v= can be seen',
+          C: 'TODO',
+          D: 'X Xx X'
+        }
+      },
+      {
+        number: 11,
+        code: '9700_w20_qp_12 Q: 2',
+        prompt: '<img src="assets/questions/page_007.png" alt="Question 11" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" /><br><br>The electron micrograph shows a type of virus at a magnification of x60 000. eT oe B 5 on ay ol «ae = =] Ba. A I 0 ns le ; ¢ he CEA fez EJ) fei LOT el What is the actual length of the virus? A 1.1nm B 11nm C 110nm D 1100nm',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 12,
+        code: '9700_w20_qp_13 Q: 1',
+        prompt: '<img src="assets/questions/page_007.png" alt="Question 12" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 13,
+        code: '9700_w20_qp_13 Q: 2',
+        prompt: 'The actual diameter of a prokaryotic cell is 0.5um. An electron micrograph of the cell has a magnification of x50 000. What is the diameter of the cell in the image?',
+        options: {
+          A: 'B',
+          B: '25x10°mm',
+          C: '25x10\'mm',
+          D: '25x10°mm'
+        }
+      },
+      {
+        number: 14,
+        code: '9700_m19_qp_12 Q: 1',
+        prompt: '<img src="assets/questions/page_009.png" alt="Question 14" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" /><br><br>The diagram below was drawn from an electron micrograph of an animal cell. AN ay 7: ° K Which diagram would represent the same cell seen under a simple light microscope, using daylight as the only light source? A B % ° a>, ® Po o S ° [4 D + g ® ) Z" o',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 15,
+        code: '9700_m19_qp_12 Q: 2',
+        prompt: '<img src="assets/questions/page_009.png" alt="Question 15" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 16,
+        code: '9700_m19_qp_12 Q: 3',
+        prompt: '<img src="assets/questions/page_010.png" alt="Question 16" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 17,
+        code: '9700_s19_qp_11 Q: 1',
+        prompt: '<img src="assets/questions/page_010.png" alt="Question 17" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 18,
+        code: '9700_s19_qp_12 Q: 1',
+        prompt: 'The actual length of a cell structure is 8 um. Which steps are used to calculate the magnification of an electron micrograph of this cell structure? step 1 measure the length of the cell structure image on the micrograph in centimetres step 2 measure the length of the cell structure image on the micrograph in millimetres step 3 divide the image length by 1000 step 4 multiply the image length by 1000 step 5 divide by 8 step 6 multiply by 8',
+        options: {
+          A: '0.20nm B 200nm C 100um D 400m',
+          B: 'steps1,4and6',
+          C: 'steps2,3and5',
+          D: 'steps2,4and5'
+        }
+      },
+      {
+        number: 19,
+        code: '9700_s19_qp_12 Q: 2',
+        prompt: '<img src="assets/questions/page_011.png" alt="Question 19" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" /><br><br>What is the typical resolution of a microscope using daylight as a light source with a x10 eyepiece lens and a x40 objective lens? A 0.20nm B 200nm C 100um D 400m',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 20,
+        code: '9700_s19_qp_13 Q: 1',
+        prompt: '<img src="assets/questions/page_011.png" alt="Question 20" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 21,
+        code: '9700_s19_qp_13 Q: 2',
+        prompt: 'The photomicrograph shows some mesophyll tissue from a dicotyledonous leaf. ¥ er ay wr 1 ap I Nas, 5 di \\ FH od & a ©. JRE TORR 4 f Bs 0 KF phir > 78 ~ All AO] 4 NCE fe t Newey). — 5um What is the magnification of the photomicrograph?',
+        options: {
+          A: 'x280',
+          B: 'x2800',
+          C: 'x3570',
+          D: 'x7000'
+        }
+      },
+      {
+        number: 22,
+        code: '9700_w19_qp_11 Q: 3',
+        prompt: 'The drawing has been made from a section showing part of an alveolus and a red blood cell in a capillary. The magnification of the drawing is x5000. alveolus [et —— Fo red blood cell What is the minimum distance that oxygen must diffuse from air in an alveolus into the red blood cell?',
+        options: {
+          A: '0.1nm',
+          B: '1.0nm',
+          C: '0.1um',
+          D: '1.0pm'
+        }
+      },
+      {
+        number: 23,
+        code: '9700_w19_qp_12 Q: 1',
+        prompt: 'A student calibrated the scale on an eyepiece graticule in the eyepiece lens of a light microscope. The student was given a stage micrometer scale to use. The divisions on the stage micrometer scale were 0.1 mm apart. Which data must the student collect in order to calibrate the eyepiece graticule? 1 magnification of the eyepiece lens of the microscope 2 number of divisions of the stage micrometer scale seen in one field of view of the microscope 3 number of divisions of the eyepiece graticule scale equivalent to each division of the stage micrometer scale',
+        options: {
+          A: '1and3',
+          B: '2and3',
+          C: '2only',
+          D: '3only'
+        }
+      },
+      {
+        number: 24,
+        code: '9700_w19_qp_12 Q: 2',
+        prompt: '<img src="assets/questions/page_013.png" alt="Question 24" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 25,
+        code: '9700_w19_qp_13 Q: 2',
+        prompt: 'How many nanometres are there in one millimetre?',
+        options: {
+          A: '1000',
+          B: '10000',
+          C: '100000',
+          D: '1000000'
+        }
+      },
+      {
+        number: 26,
+        code: '9700_m18_qp_12 Q: 1',
+        prompt: 'The eyepiece lens of a microscope can be fitted with an eyepiece graticule. Which of these statements about eyepiece graticules are correct? 1 They measure the actual length of cells in micrometres. 2 They help biologists to draw cells with correct proportions. 3 They change in size when the objective lens is changed from x10 to x40.',
+        options: {
+          A: '1,2and3',
+          B: '1and3only',
+          C: '1only',
+          D: '2only'
+        }
+      },
+      {
+        number: 27,
+        code: '9700_m18_qp_12 Q: 2',
+        prompt: '<img src="assets/questions/page_014.png" alt="Question 27" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'student was asked to use the scale bar shown to calculate the magnification of a cell on a photomicrograph. [I— 2um Which method could the student use to calculate the magnification of the cell? A divide the diameter of the cell by the length of the scale bar, both measured in the same units of length',
+          B: 'measure the diameter of the cell in millimetres, multiply by 2000 and divide by the length of the scale bar measured in millimetres',
+          C: 'measure the length of the scale bar in millimetres, convert to micrometres and divide by 2',
+          D: 'measure the length of the scale bar in millimetres, convert to micrometres and multiply by 2'
+        }
+      },
+      {
+        number: 28,
+        code: '9700_m18_qp_12 Q: 3',
+        prompt: '<img src="assets/questions/page_014.png" alt="Question 28" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 29,
+        code: '9700_s18_qp_11 Q: 1',
+        prompt: 'Which statements about resolution and magnification are correct? I RS B.S',
+        options: {
+          A: '| the ability to distinguish between two the number of times larger an image is',
+          B: '| the clarity of the image formed the power of the microscope to focus',
+          C: '| the number of times larger an image is the ability to distinguish between two',
+          D: '| the power of the microscope to focus the clarity of the image formed'
+        }
+      },
+      {
+        number: 30,
+        code: '9700_s18_qp_11 Q: 2',
+        prompt: 'An eyepiece graticule has a scale with 100 divisions. A stage micrometer has a scale with 50 divisions, each of which is 0.040 mm apart. Using a x40 objective lens, the whole length of this stage micrometer scale lines up with 15 divisions of the eyepiece graticule. What is the actual length of the 100 division scale of the eyepiece graticule?',
+        options: {
+          A: '13mm',
+          B: '13mm',
+          C: '75um',
+          D: '750um'
+        }
+      },
+      {
+        number: 31,
+        code: '9700_s18_qp_11 Q: 3',
+        prompt: 'A prokaryotic cell which is 1 um in diameter, is magnified 50000 times in an electron micrograph. What is the diameter of the cell in the electron micrograph?',
+        options: {
+          A: '5x10"\'mm',
+          B: '5x10°mm',
+          C: '5x10"mm',
+          D: '5x10°mm'
+        }
+      },
+      {
+        number: 32,
+        code: '9700_s18_qp_12 Q: 2',
+        prompt: 'Which of these statements about light microscopy are correct? 1 The greater the resolution of a light microscope, the greater the detail that can be seen. 2 The greater the magnification of a light microscope, the greater the detail that can be seen. 3 Increasing the magnification of a light microscope up to its limit of resolution allows more detail to be seen. 4 The shorter the wavelength of light used in a light microscope, the greater the detail that can be seen.',
+        options: {
+          A: '1,2,3and4',
+          B: '1and2only',
+          C: '2,3and4 only',
+          D: '3and4only'
+        }
+      },
+      {
+        number: 33,
+        code: '9700_s18_qp_13 Q: 1',
+        prompt: '<img src="assets/questions/page_016.png" alt="Question 33" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 34,
+        code: '9700_w18_qp_11 Q: 1',
+        prompt: '<img src="assets/questions/page_017.png" alt="Question 34" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 35,
+        code: '9700_w18_qp_11 Q: 2',
+        prompt: 'The diagram shows a slide of a transverse section of a stem. This diagram is the same size as the actual slide.',
+        options: {
+          A: 'The actual size of the stem should have been checked using an eyepiece graticule.',
+          B: 'The actual size of the stem was smaller under low power.',
+          C: 'The image size in the drawing was larger than x40.',
+          D: 'The image size in the drawing was smaller than x40.'
+        }
+      },
+      {
+        number: 36,
+        code: '9700_w18_qp_12 Q: 2',
+        prompt: '<img src="assets/questions/page_018.png" alt="Question 36" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'decreases decreases',
+          B: 'increases increases',
+          C: 'TODO',
+          D: 'remains the same increases'
+        }
+      },
+      {
+        number: 37,
+        code: '9700_w18_qp_13 Q: 1',
+        prompt: 'Which statement explains why it is necessary to use an electron microscope to see the cristae of a mitochondrion?',
+        options: {
+          A: '125x10"\'mm',
+          B: '1.25x10°mm',
+          C: '1.25x10\'mm',
+          D: '1.25x10°mm'
+        }
+      },
+      {
+        number: 38,
+        code: '9700_w18_qp_13 Q: 2',
+        prompt: '<img src="assets/questions/page_019.png" alt="Question 38" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" /><br><br>A prokaryotic cell which is 0.25um in diameter, is magnified 50000 times on an electron micrograph. How big will its diameter be in the electron micrograph? A 125x10"\'mm B 1.25x10°mm C 1.25x10\'mm D 1.25x10°mm',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 39,
+        code: '9700_w18_qp_13 Q: 3',
+        prompt: '<img src="assets/questions/page_019.png" alt="Question 39" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 40,
+        code: '9700_m17_qp_12 Q: 2',
+        prompt: 'A light microscope is used to observe two structures that are 200 nm apart. How far apart are the structures when the magnification is changed from x40 to x400?',
+        options: {
+          A: '2pm',
+          B: '20pm',
+          C: '200nm',
+          D: '2000nm'
+        }
+      },
+      {
+        number: 41,
+        code: '9700_m17_qp_12 Q: 3',
+        prompt: 'The diagram shows a stage micrometer scale viewed through an eyepiece containing a graticule. The small divisions of the stage micrometer scale are 0.1mm. 0 10 20 30 40 50 60 70 80 90 10Q The stage micrometer scale is replaced by a slide of a plant cell. y: [7 i (po emmy a Tm 0 10 20 30 40 50 60 70 80 90 100 What is the length of the nucleus in the plant cell?',
+        options: {
+          A: '08mm',
+          B: '8um',
+          C: '25um',
+          D: '200pm'
+        }
+      },
+      {
+        number: 42,
+        code: '9700_s17_qp_11 Q: 1',
+        prompt: 'Which definition of the magnification of a drawing of a leaf is correct?',
+        options: {
+          A: 'the actual size of an object multiplied by the magnification of the microscope',
+          B: 'the difference in size between an actual object and a drawing of the object',
+          C: 'the increase in size of an object when observed using a microscope',
+          D: 'the size of the drawing of a specimen in comparison to the actual size'
+        }
+      },
+      {
+        number: 43,
+        code: '9700_s17_qp_11 Q: 4',
+        prompt: '<img src="assets/questions/page_021.png" alt="Question 43" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 44,
+        code: '9700_s17_qp_12 Q: 3',
+        prompt: 'The recently discovered Pandoravirus measures 1000 nm in diameter. The Mimivirus has a diameter of 400 nm. What can be detected using a light microscope with a maximum resolution of 0.25 um?',
+        options: {
+          A: 'both the Mimivirus and the Pandoravirus',
+          B: 'neither the Mimivirus nor the Pandoravirus',
+          C: 'the Mimivirus, but not the Pandoravirus',
+          D: 'the Pandoravirus, but not the Mimivirus'
+        }
+      },
+      {
+        number: 45,
+        code: '9700_s17_qp_13 Q: 2',
+        prompt: 'The diagram shows an eyepiece graticule and part of a stage micrometer scale as seen using x100 magnification. eyepios graticule nino i stage micrometer scale | | | | | | | | | | | fe 0.1mm How is the value, in um, of one eyepiece graticule unit calculated?',
+        options: {
+          A: 'divide 100 by 0.1 and multiply by 1000',
+          B: 'divide 100 by 0.1 and multiply by 1000 divided by 100',
+          C: 'multiply 0.1 by 1000 and divide by 100',
+          D: 'multiply 0.1 by 1000 and divide by 100 then divide again by 100'
+        }
+      },
+      {
+        number: 46,
+        code: '9700_w17_qp_11 Q: 4',
+        prompt: 'Which set of measurements is correct? diameter of diameter of red thickre ss of col Surface capillary blood cell mem faba red bloof',
+        options: {
+          A: 'v Vv Vv',
+          B: 'Xx Vv Vv v= can be seen',
+          C: 'TODO',
+          D: 'Xx X X'
+        }
+      },
+      {
+        number: 47,
+        code: '9700_w17_qp_11 Q: 5',
+        prompt: '<img src="assets/questions/page_023.png" alt="Question 47" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" /><br><br>The size of the measles virus is approximately 150 nm. The Mimivirus is approximately 4.5 times larger than the measles virus, whilst the Pandoravirus is approximately 1.5 times larger than the Mimivirus. Which viruses can be seen using both a light microscope with a maximum',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 48,
+        code: '9700_w17_qp_12 Q: 1',
+        prompt: 'Which equation for calculating the actual size of a specimen, A, or image size, I, or magnification, M, is correct?',
+        options: {
+          A: 'A=M=I',
+          B: 'A=Ix',
+          C: 'I=M=A',
+          D: 'M=I+A'
+        }
+      },
+      {
+        number: 49,
+        code: '9700_w17_qp_13 Q: 1',
+        prompt: 'Which statement about the light microscope is correct?',
+        options: {
+          A: 'As the smallest distance to see two points as distinct separate points decreases, the',
+          B: 'If the resolution is 220 nm, then a bacterium 0.2 um in diameter will not be visible.',
+          C: 'If the wavelength of light is 600 nm, then two membranes 300 nm apart will be visible as two',
+          D: 'Using visible light of a longer wavelength, such as red light, will improve the resolution.'
+        }
+      },
+      {
+        number: 50,
+        code: '9700_w17_qp_13 Q: 2',
+        prompt: 'The diagram shows a stage micrometer scale viewed with an eyepiece graticule, using a magnification of x200. Using the same magnification, a chloroplast is measured as 4 eyepiece graticule divisions long. How long is the chloroplast?',
+        options: {
+          A: '1.0x10\'um',
+          B: '4.0x10*um',
+          C: '25x10"\'um',
+          D: '25x102um'
+        }
+      },
+      {
+        number: 51,
+        code: '9700_m16_qp_12 Q: 1',
+        prompt: 'A student has drawn a cell structure as seen using a light microscope. The magnification of the drawing is x600. The length of the structure on the drawing is 6mm. What is the actual length of the cell structure?',
+        options: {
+          A: '1x10"\'um',
+          B: '1x10°um',
+          C: '1x10\'ym',
+          D: '1x10°um'
+        }
+      },
+      {
+        number: 52,
+        code: '9700_s16_qp_11 Q: 2',
+        prompt: 'The drawing from an electron micrograph shows a ciliated epithelial cell, magnified x1500, which is found in the trachea. Line X-Y shows the widest dimension of the cell. x vo What is the number of these cells that could be found along a 1 cm length of the trachea?',
+        options: {
+          A: '5',
+          B: '50',
+          C: '500',
+          D: '5000'
+        }
+      },
+      {
+        number: 53,
+        code: '9700_s16_qp_12 Q: 1',
+        prompt: 'A student was presented with a photomicrograph of a cell organelle. The magnification of the photomicrograph is known. Which calculation of the actual length of the organelle in pm is correct?',
+        options: {
+          A: 'actual size in cm x 100 divided by the magnification',
+          B: 'actual size in mm x 100 divided by the magnification',
+          C: 'image size in cm x 1000 divided by the magnification',
+          D: 'image size in mm x 1000 divided by the magnification'
+        }
+      },
+      {
+        number: 54,
+        code: '9700_s16_qp_13 Q: 1',
+        prompt: 'An eyepiece graticule can be calibrated using a stage micrometer. What is the correct reason why an eyepiece graticule is calibrated?',
+        options: {
+          A: 'An eyepiece graticule can be used to make measurements.',
+          B: 'An eyepiece graticule is magnified by the objective lens.',
+          C: 'An eyepiece graticule magnifies the specimen.',
+          D: 'An eyepiece graticule makes comparisons.'
+        }
+      },
+      {
+        number: 55,
+        code: '9700_w16_qp_11 Q: 1',
+        prompt: 'The diagram shows a transverse section through a blood capillary. wall of endothelium lumen ——] 7um What is the magnification of the drawing?',
+        options: {
+          A: 'x200',
+          B: 'x245',
+          C: 'x500',
+          D: 'x5000'
+        }
+      },
+      {
+        number: 56,
+        code: '9700_w16_qp_12 Q: 1',
+        prompt: '<img src="assets/questions/page_026.png" alt="Question 56" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 57,
+        code: '9700_w16_qp_12 Q: 2',
+        prompt: 'This electron micrograph of a section of a leaf has a magnification of x210. s X re >. € ~ ul [0 SEER) 2 Pe ATE ) wat ee RE EE A LAA b \\ V7 0 al EO & 1 Lodi] / Jil yf 1 i en AL 7 dL J F A DEANE {= VCO Maal 5 QAM a =. & =< fey © Je What is the actual length along the line X-Y?',
+        options: {
+          A: '2.43pm',
+          B: '24.3pm',
+          C: '243.0um',
+          D: '2430pm'
+        }
+      },
+      {
+        number: 58,
+        code: '9700_w16_qp_12 Q: 4',
+        prompt: 'The diagram shows a stage micrometer scale, with divisions 0.1 mm apart, viewed through an eyepiece containing a graticule. D 10 20 30 40 50 60 70 80 90 1 What is the area of the field of view of the microscope at this magnification? (rn = 3.14)',
+        options: {
+          A: '1x125x125=49x 10°um?',
+          B: '7x 50x50=7.9x 10°um?',
+          C: '7x 125x 125=4.9 x 10* ym?',
+          D: 'nx 250x250 =2.0 x 10° um?'
+        }
+      },
+      {
+        number: 59,
+        code: '9700_w16_qp_13 Q: 2',
+        prompt: '<img src="assets/questions/page_028.png" alt="Question 59" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 60,
+        code: '9700_w16_qp_13 Q: 3',
+        prompt: 'Which calculation is used to find the actual length of an organelle from an image?',
+        options: {
+          A: 'image size + magnification',
+          B: 'image size x magnification',
+          C: 'image size x resolution',
+          D: 'magnification + image size'
+        }
+      },
+      {
+        number: 61,
+        code: '9700_s15_qp_11 Q: 1',
+        prompt: '<img src="assets/questions/page_028.png" alt="Question 61" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 62,
+        code: '9700_s15_qp_11 Q: 3',
+        prompt: 'The diagram shows a stage micrometer scale on which the small divisions are 0.1 mm. It is viewed through an eyepiece containing a graticule. 0 10 20 30 40 50 60 70 80 90 10Q The stage micrometer scale is replaced by a slide of a plant cell. Fmcowmw a ama 0 10 20 30 40 50 60 70 80 90 100 What is the width of a chloroplast?',
+        options: {
+          A: '05mm',
+          B: '10um',
+          C: '50um',
+          D: '100um'
+        }
+      },
+      {
+        number: 63,
+        code: '9700_s15_qp_11 Q: 6',
+        prompt: '<img src="assets/questions/page_030.png" alt="Question 63" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 64,
+        code: '9700_s15_qp_12 Q: 1',
+        prompt: 'What is the diameter of a typical plant cell?',
+        options: {
+          A: '40x10\'um',
+          B: '1.0x10°um',
+          C: '4.0x10°nm',
+          D: '1.0x10°nm'
+        }
+      },
+      {
+        number: 65,
+        code: '9700_s15_qp_12 Q: 2',
+        prompt: '<img src="assets/questions/page_031.png" alt="Question 65" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'decreased remains the same',
+          B: 'increased increased',
+          C: 'TODO',
+          D: 'remains the same increased'
+        }
+      },
+      {
+        number: 66,
+        code: '9700_s15_qp_13 Q: 2',
+        prompt: 'Which statements about light microscopes are correct? 1 To calculate the magnification of a light microscope the eyepiece lens and objective lens magnifications are added together. 2 As the magnification increases the resolution decreases. 3 The resolution of a light microscope is limited by the wavelength of light. 4 The scale on a stage micrometer is resolved more clearly than an eyepiece graticule.',
+        options: {
+          A: '1,2,3and4',
+          B: '1,3and4only',
+          C: '2and3only',
+          D: '2and4only'
+        }
+      },
+      {
+        number: 67,
+        code: '9700_w15_qp_11 Q: 2',
+        prompt: 'Pancreatic cells have a diameter of 35pm. Red blood cells have a diameter of 7000 nm. Which statement is correct?',
+        options: {
+          A: 'Pancreatic cells are 5 times larger than red blood cells.',
+          B: 'Pancreatic cells are 50 times larger than red blood cells.',
+          C: 'Pancreatic cells are 5 times smaller than red blood cells.',
+          D: 'Pancreatic cells are 50 times smaller than red blood cells.'
+        }
+      },
+      {
+        number: 68,
+        code: '9700_w15_qp_12 Q: 2',
+        prompt: 'Different units are used when measuring biological specimens. Which measurement in mm has not been correctly converted into both pm and nm? ET ET',
+        options: {
+          A: '1,2,3and4',
+          B: '1,2and4only',
+          C: '1and2only',
+          D: '3and4only'
+        }
+      },
+      {
+        number: 69,
+        code: '9700_w15_qp_13 Q: 2',
+        prompt: '<img src="assets/questions/page_032.png" alt="Question 69" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 70,
+        code: '9700_m20_qp_12 Q: 2',
+        prompt: '<img src="assets/questions/page_033.png" alt="Question 70" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 71,
+        code: '9700_m20_qp_12 Q: 3',
+        prompt: '<img src="assets/questions/page_033.png" alt="Question 71" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 72,
+        code: '9700_m20_qp_12 Q: 4',
+        prompt: 'Which cell structures contain RNA? 1 centrioles 2 mitochondria 3 nucleus 4 ribosomes',
+        options: {
+          A: '1,2,3and4',
+          B: '1and2only',
+          C: '2,3and4only',
+          D: '3and4only'
+        }
+      },
+      {
+        number: 73,
+        code: '9700_m20_qp_12 Q: 5',
+        prompt: 'It is possible for a bacterium to synthesise a eukaryotic protein. This involves introducing a eukaryotic gene into the bacterial DNA. The eukaryotic gene is then translated by the bacterium. What explains why a bacterial cell can produce a eukaryotic protein but cannot produce a eukaryotic glycoprotein?',
+        options: {
+          A: 'Bacteria do not have rough endoplasmic reticulum.',
+          B: 'Bacteria do not have a nuclear envelope.',
+          C: 'Bacteria do not have mitochondria.',
+          D: 'Bacteria do not have Golgi bodies.'
+        }
+      },
+      {
+        number: 74,
+        code: '9700_m20_qp_12 Q: 6',
+        prompt: 'Which structures are found in typical prokaryotic cells and also in typical plant cells?',
+        options: {
+          A: 'cell walls',
+          B: 'histones',
+          C: 'telomeres',
+          D: 'tonoplasts'
+        }
+      },
+      {
+        number: 75,
+        code: '9700_s20_qp_11 Q: 2',
+        prompt: 'Which structures are found in typical eukaryotic cells? 1 70S ribosomes 2 80S ribosomes 3 linear DNA (chromosomes) 4 circular DNA',
+        options: {
+          A: 'v v X X',
+          B: 'v xX v Xx v= present',
+          C: '1and4only',
+          D: 'X X v v'
+        }
+      },
+      {
+        number: 76,
+        code: '9700_s20_qp_11 Q: 5',
+        prompt: '<img src="assets/questions/page_035.png" alt="Question 76" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" /><br><br>The table shows a comparison between two features of a typical eukaryotic cell and a typical prokaryotic cell. Which row shows the correct comparison between these cells? eukaryotic | prokaryotic | eukaryotic | prokaryotic cell cell cell cell A v v X X key B v xX v Xx v= pre',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 77,
+        code: '9700_s20_qp_12 Q: 3',
+        prompt: 'Which row correctly shows a feature of a cell structure? site of protein makes lysosomes synthesis',
+        options: {
+          A: '| smooth endoplasmic | rough endoplasmic',
+          B: 'ribosomes Golgi body',
+          C: '| rough endoplasmic ribosomes',
+          D: 'Golgi body smooth endoplasmic'
+        }
+      },
+      {
+        number: 78,
+        code: '9700_s20_qp_12 Q: 4',
+        prompt: '<img src="assets/questions/page_036.png" alt="Question 78" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 79,
+        code: '9700_s20_qp_12 Q: 5',
+        prompt: '<img src="assets/questions/page_036.png" alt="Question 79" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 80,
+        code: '9700_s20_qp_12 Q: 6',
+        prompt: 'Mitochondria are thought to have evolved from prokaryotic cells that were ingested by an ancestral cell. Which feature have these prokaryotes lost during their evolution into mitochondria?',
+        options: {
+          A: 'cell wall',
+          B: 'circular chromosome',
+          C: 'internal membranes',
+          D: 'ribosomes'
+        }
+      },
+      {
+        number: 81,
+        code: '9700_s20_qp_13 Q: 2',
+        prompt: '<img src="assets/questions/page_037.png" alt="Question 81" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 82,
+        code: '9700_s20_qp_13 Q: 3',
+        prompt: 'Some stains can be used to identify cell structures in living cells.',
+        options: {
+          A: 'endoplasmic reticulum',
+          B: 'Golgi body',
+          C: 'lysosome',
+          D: 'mitochondrion'
+        }
+      },
+      {
+        number: 83,
+        code: '9700_s20_qp_13 Q: 4',
+        prompt: '<img src="assets/questions/page_038.png" alt="Question 83" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 84,
+        code: '9700_s20_qp_13 Q: 5',
+        prompt: '<img src="assets/questions/page_038.png" alt="Question 84" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 85,
+        code: '9700_w20_qp_11 Q: 3',
+        prompt: '<img src="assets/questions/page_039.png" alt="Question 85" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 86,
+        code: '9700_w20_qp_11 Q: 4',
+        prompt: 'The electron micrograph shows a cell structure in a eukaryotic cell. rT or ee pe EE ea i” 27 Ree CRT 4 og ML ] RT RNR = ay, io vs SEMEL A i> 4 4 Rie ty fins Baar Levi RE Oy WEL Past UT oa ho a Ay HBX Wa SE Rx NEY 2 9 I, ne het of 2 x ; boli We Pk ay, 2d Fir ar Bo Bins RC oF 48 as Eat Li re Which statements about this cell structure are correct? 1 ATP is synthesised in this cell structure. 2 The cell structure is made of protein molecules. 3 The cell structure replicates during interphase of the cell cycle.',
+        options: {
+          A: '1and2',
+          B: '1and3',
+          C: '2and3',
+          D: '3only'
+        }
+      },
+      {
+        number: 87,
+        code: '9700_w20_qp_11 Q: 5',
+        prompt: '<img src="assets/questions/page_040.png" alt="Question 87" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 88,
+        code: '9700_w20_qp_11 Q: 6',
+        prompt: 'The DNA of typical prokaryotes is naked and circular. Which statement describes how the DNA of eukaryotes differs from the DNA of typical prokaryotes?',
+        options: {
+          A: 'Only DNA of eukaryotes has a nuclear envelope around it and is a double helix.',
+          B: 'Only DNA of eukaryotes has a nuclear envelope around it and is circular.',
+          C: 'Only DNA of eukaryotes has proteins attached to it and is a double helix.',
+          D: 'Only DNA of eukaryotes has proteins attached to it and is linear.'
+        }
+      },
+      {
+        number: 89,
+        code: '9700_w20_qp_12 Q: 3',
+        prompt: 'The electron micrograph shows a structure found in the cytoplasm of an animal cell. Eo Which biological molecules are found in this structure? 1 nucleic acid 2 protein 3 phospholipid',
+        options: {
+          A: '1and3',
+          B: '1only',
+          C: '2and3',
+          D: '2only'
+        }
+      },
+      {
+        number: 90,
+        code: '9700_w20_qp_12 Q: 4',
+        prompt: 'Four students were asked to match the function with the appearance of some cell structures in an animal cell. The functions were listed by number. 1 mRNA passes through to the ribosome 2 synthesis of lipids 3 packaging of hydrolytic enzymes that will remain in the cell The appearances were listed by letter. V membranes which surround an enclosed inner cavity W non-membrane-bound, spherical structures X a double membrane interspersed with pores Y non-membrane-bound, cylindrical structures Z membrane-bound sacs, arranged as a flattened stack Which student correctly matched the numbered function with the appearance of the cell structure? [+r [2 [3]',
+        options: {
+          A: '1,2and3 B 1and2only C€ 1and3only D 2and3only',
+          B: '2 z Y',
+          C: 'TODO',
+          D: 'X \\ 4'
+        }
+      },
+      {
+        number: 91,
+        code: '9700_w20_qp_12 Q: 5',
+        prompt: '<img src="assets/questions/page_042.png" alt="Question 91" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 92,
+        code: '9700_w20_qp_12 Q: 6',
+        prompt: 'The diagram shows some features that occur in organisms. 4 1 RNA DNA 3 2 708 protein ribosomes Which features can be present in viruses?',
+        options: {
+          A: '1,2and3',
+          B: '1,2and4',
+          C: '1,3and4',
+          D: '2,3and4'
+        }
+      },
+      {
+        number: 93,
+        code: '9700_w20_qp_13 Q: 3',
+        prompt: 'The electron micrograph shows some cell structures. ae Re eR TA 25. en BE mT Sa BE ee a Ne Tene =] [6S abasic Sesame od Canaan a GT Pelee ad Eh Gite GE NEC Tg Wen proene pL Mma Shia Resale Sars CRE pl ara es SRT) En BRE INA NR Be ARE BR ease Sel NEGRI i - TO WEASEL Ble rg Pot es ea ie or TUG len Fae Bo Vveralt Sonanind an BERSRERRSF Te phe “ifn SEAT NGIERSTION La = re OE, SIRE fe Some cell structures are listed. 1 nucleolus 2 chloroplast 3 microtubules 4 ribosomes 5 mitochondria 6 plasmodesmata Which cell structures can be seen in the electron micrograph?',
+        options: {
+          A: '1,2,3and4',
+          B: '1,4 5and6',
+          C: '2,3, 5and6',
+          D: '24,5and6'
+        }
+      },
+      {
+        number: 94,
+        code: '9700_w20_qp_13 Q: 4',
+        prompt: 'Which part of the cell is often continuous with the rough endoplasmic reticulum?',
+        options: {
+          A: '1,2and5 B 1,3and5 C 2,3,4and5 D 2and4only',
+          B: 'Golgi body',
+          C: 'mitochondrion',
+          D: 'nuclear envelope'
+        }
+      },
+      {
+        number: 95,
+        code: '9700_w20_qp_13 Q: 5',
+        prompt: '<img src="assets/questions/page_045.png" alt="Question 95" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" /><br><br>Which statements about ATP are correct? 1 ltis produced in chloroplasts. 2 ltis used during protein synthesis. 3 It contains deoxyribose. 4 Itis used in facilitated diffusion. 5 ltis used to load sucrose into companion cells. A 1,2and5 B 1,3and5 C 2,3,4and5 D 2and4only',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 96,
+        code: '9700_w20_qp_13 Q: 6',
+        prompt: '<img src="assets/questions/page_045.png" alt="Question 96" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 97,
+        code: '9700_m19_qp_12 Q: 4',
+        prompt: 'Which structures are found in both chloroplasts and mitochondria? 1 70S ribosomes 2 80S ribosomes 3 circular DNA',
+        options: {
+          A: '1and3',
+          B: '2and3',
+          C: '1only',
+          D: '3only'
+        }
+      },
+      {
+        number: 98,
+        code: '9700_m19_qp_12 Q: 5',
+        prompt: '<img src="assets/questions/page_046.png" alt="Question 98" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 99,
+        code: '9700_m19_qp_12 Q: 6',
+        prompt: 'Ribosomes exist as separate subunits that are bound together during protein synthesis. What do these subunits consist of?',
+        options: {
+          A: 'mRNA and protein',
+          B: 'mRNA and tRNA',
+          C: 'rRNA and protein',
+          D: 'rRNA and tRNA'
+        }
+      },
+      {
+        number: 100,
+        code: '9700_s19_qp_11 Q: 2',
+        prompt: '<img src="assets/questions/page_047.png" alt="Question 100" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 101,
+        code: '9700_s19_qp_11 Q: 3',
+        prompt: '<img src="assets/questions/page_047.png" alt="Question 101" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 102,
+        code: '9700_s19_qp_11 Q: 4',
+        prompt: '<img src="assets/questions/page_047.png" alt="Question 102" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 103,
+        code: '9700_s19_qp_11 Q: 5',
+        prompt: 'Which cell structures have ribosomal RNA (rRNA)? 1 chloroplast 2 mitochondrion 3 nucleus 4 rough endoplasmic reticulum',
+        options: {
+          A: '1,2,3and4',
+          B: '1,2and3only',
+          C: '1,2and4 only',
+          D: '2,3and4only'
+        }
+      },
+      {
+        number: 104,
+        code: '9700_s19_qp_11 Q: 6',
+        prompt: 'A cell structure in the macrophage destroys bacteria. Some bacteria stop this cell structure from functioning. Which cell structure in the macrophage is stopped from functioning by the bacteria?',
+        options: {
+          A: 'Golgi body',
+          B: 'lysosome',
+          C: 'ribosome',
+          D: 'vesicle'
+        }
+      },
+      {
+        number: 105,
+        code: '9700_s19_qp_12 Q: 3',
+        prompt: '<img src="assets/questions/page_048.png" alt="Question 105" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 106,
+        code: '9700_s19_qp_12 Q: 4',
+        prompt: 'Which features shown in the diagram can be present in viruses? 4 1 RNA DNA 3 2 70S protein coat ribosomes',
+        options: {
+          A: '1,2and3',
+          B: '1,2and4',
+          C: '1,3and4',
+          D: '23and4'
+        }
+      },
+      {
+        number: 107,
+        code: '9700_s19_qp_13 Q: 3',
+        prompt: 'The diagram shows a typical animal cell as seen using an electron microscope. Do & ° x 1 TY J 0 APEEN ° o 5 «? ys © 2 € = 4 Qe 3 Which of the numbered structures are needed for proteins to be secreted at the cell surface membrane?',
+        options: {
+          A: '23 4and5',
+          B: '1,2and4',
+          C: '1and3',
+          D: 'S5only'
+        }
+      },
+      {
+        number: 108,
+        code: '9700_s19_qp_13 Q: 4',
+        prompt: 'Lysosomes vary in shape and size, making them difficult to identify. What describes a lysosome?',
+        options: {
+          A: 'a vesicle containing enzymes, enclosed by a double membrane, that is budded off the',
+          B: 'a vesicle containing hydrolytic enzymes and surrounded by a single membrane, found only in',
+          C: 'a vesicle enclosed by a single membrane, containing several different hydrolytic enzymes',
+          D: 'a vesicle surrounded by a double membrane, containing enzymes which can hydrolyse'
+        }
+      },
+      {
+        number: 109,
+        code: '9700_s19_qp_13 Q: 5',
+        prompt: 'Which statements about ATP are correct? 1 Itis produced in mitochondria only. 2 lt can be hydrolysed to form ADP. 3 It contains deoxyribose.',
+        options: {
+          A: '1and3',
+          B: '1only',
+          C: '2and3',
+          D: '2only'
+        }
+      },
+      {
+        number: 110,
+        code: '9700_s19_qp_13 Q: 6',
+        prompt: 'A single-celled organism lives inside the body of a fish. This single-celled organism is rod-shaped, 700 um long, enclosed in a cell wall and has cytoplasm containing thousands of copies of small, circular DNA. Which statement about this single-celled organism is correct?',
+        options: {
+          A: 'tis a eukaryote, because it can be seen without using a microscope.',
+          B: 'tis a eukaryote, because it is too large to be a prokaryote.',
+          C: 'ltis a plant, because it is enclosed in a cell wall.',
+          D: 'tis a prokaryote, because it has small, circular DNA in its cytoplasm.'
+        }
+      },
+      {
+        number: 111,
+        code: '9700_w19_qp_11 Q: 1',
+        prompt: 'Which cell structure contains cytoplasm?',
+        options: {
+          A: 'chloroplasts',
+          B: 'mitochondria',
+          C: 'plasmodesmata',
+          D: 'smooth endoplasmic reticulum'
+        }
+      },
+      {
+        number: 112,
+        code: '9700_w19_qp_11 Q: 2',
+        prompt: 'Some cell structures are listed in a particular order. 1 nucleus 2 ribosome 3 Golgi body 4 vesicle What determines the order in which these cell structures are listed?',
+        options: {
+          A: 'sequence used in synthesis of a lipid',
+          B: 'sequence used in synthesis of an antibody',
+          C: 'size from largest to smallest',
+          D: 'size from smallest to largest'
+        }
+      },
+      {
+        number: 113,
+        code: '9700_w19_qp_11 Q: 4',
+        prompt: '<img src="assets/questions/page_051.png" alt="Question 113" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 114,
+        code: '9700_w19_qp_11 Q: 5',
+        prompt: '<img src="assets/questions/page_052.png" alt="Question 114" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 115,
+        code: '9700_w19_qp_12 Q: 3',
+        prompt: 'Which structures are found in animal cells and in plant cells? 1 centriole 2 lysosome 3 nucleolus 4 vacuole',
+        options: {
+          A: '1and3only',
+          B: '2and4only',
+          C: '2,3and4only',
+          D: '1,2,3and4'
+        }
+      },
+      {
+        number: 116,
+        code: '9700_w19_qp_12 Q: 4',
+        prompt: 'Which features shown in the diagram can be present in eukaryotes? 4 peptidoglycan 1 cell wall DNA 3 2 708 RNA ribosomes .',
+        options: {
+          A: '1,2and3',
+          B: '1,2and4',
+          C: '1,3and4',
+          D: '23and4'
+        }
+      },
+      {
+        number: 117,
+        code: '9700_w19_qp_12 Q: 5',
+        prompt: '<img src="assets/questions/page_053.png" alt="Question 117" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 118,
+        code: '9700_w19_qp_12 Q: 6',
+        prompt: '<img src="assets/questions/page_053.png" alt="Question 118" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 119,
+        code: '9700_w19_qp_13 Q: 1',
+        prompt: 'Plant cells are stained and then seen with a simple light microscope using daylight as the only light source. Which cell structures are clearly visible at a magnification of x400?',
+        options: {
+          A: 'chloroplast grana',
+          B: 'lysosomes',
+          C: 'nucleoli',
+          D: 'ribosomes'
+        }
+      },
+      {
+        number: 120,
+        code: '9700_w19_qp_13 Q: 3',
+        prompt: 'Which cell structures contain 70S ribosomes? 1 chloroplasts 2 mitochondria 3 nucleus 4 cytoplasm',
+        options: {
+          A: '1and2only',
+          B: '1only',
+          C: '2,3and4',
+          D: '2and4only'
+        }
+      },
+      {
+        number: 121,
+        code: '9700_w19_qp_13 Q: 4',
+        prompt: '<img src="assets/questions/page_055.png" alt="Question 121" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 122,
+        code: '9700_w19_qp_13 Q: 5',
+        prompt: '<img src="assets/questions/page_056.png" alt="Question 122" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 123,
+        code: '9700_m18_qp_12 Q: 4',
+        prompt: '<img src="assets/questions/page_056.png" alt="Question 123" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 124,
+        code: '9700_m18_qp_12 Q: 5',
+        prompt: 'Which animal cells would have the most extensive Golgi bodies?',
+        options: {
+          A: 'ciliated epithelial cells',
+          B: 'goblet cells',
+          C: 'red blood cells',
+          D: 'smooth muscle cells'
+        }
+      },
+      {
+        number: 125,
+        code: '9700_m18_qp_12 Q: 6',
+        prompt: '<img src="assets/questions/page_057.png" alt="Question 125" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 126,
+        code: '9700_s18_qp_11 Q: 4',
+        prompt: '<img src="assets/questions/page_058.png" alt="Question 126" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'nucleus lysosomes mitochondria ribosomes',
+          B: 'nucleus mitochondria lysosomes ribosomes',
+          C: 'TODO',
+          D: 'ribosomes mitochondria lysosomes nucleus'
+        }
+      },
+      {
+        number: 127,
+        code: '9700_s18_qp_11 Q: 5',
+        prompt: 'Radioactively-labelled nucleotides are introduced into a cell. 1 sy ve 2 & Soh y ). E57 ( Jo Wet Za 77, o [2] [¢} 090 In which cell structures will the radioactivity first become concentrated?',
+        options: {
+          A: '1and2',
+          B: '1and4',
+          C: '2and3',
+          D: '3and4'
+        }
+      },
+      {
+        number: 128,
+        code: '9700_s18_qp_12 Q: 1',
+        prompt: '<img src="assets/questions/page_059.png" alt="Question 128" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 129,
+        code: '9700_s18_qp_12 Q: 3',
+        prompt: 'Which type of cell contains the highest proportion of cell structures bound by a single membrane?',
+        options: {
+          A: 'ciliated epithelial cell',
+          B: 'goblet cell',
+          C: 'red blood cell',
+          D: 'smooth muscle cell'
+        }
+      },
+      {
+        number: 130,
+        code: '9700_s18_qp_12 Q: 4',
+        prompt: '<img src="assets/questions/page_060.png" alt="Question 130" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 131,
+        code: '9700_s18_qp_12 Q: 5',
+        prompt: '<img src="assets/questions/page_060.png" alt="Question 131" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 132,
+        code: '9700_s18_qp_13 Q: 2',
+        prompt: '<img src="assets/questions/page_061.png" alt="Question 132" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 133,
+        code: '9700_s18_qp_13 Q: 3',
+        prompt: 'Which cell structures produce ATP? 1 chloroplasts 2 mitochondria 3 nucleus',
+        options: {
+          A: 'Vv v v Vv Vv v',
+          B: 'Vv xX v Xx X v',
+          C: 'TODO',
+          D: 'Xx v X Xx Vv Xx'
+        }
+      },
+      {
+        number: 134,
+        code: '9700_s18_qp_13 Q: 5',
+        prompt: '<img src="assets/questions/page_062.png" alt="Question 134" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" /><br><br>Which row could be correct for a virus? A Vv v v Vv Vv v B Vv xX v Xx X v Cc Xx v xX Xx X v D Xx v X Xx Vv Xx key Vv = present X =not present',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 135,
+        code: '9700_s18_qp_13 Q: 6',
+        prompt: '<img src="assets/questions/page_062.png" alt="Question 135" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 136,
+        code: '9700_w18_qp_11 Q: 3',
+        prompt: '<img src="assets/questions/page_062.png" alt="Question 136" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 137,
+        code: '9700_w18_qp_11 Q: 4',
+        prompt: '<img src="assets/questions/page_063.png" alt="Question 137" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 138,
+        code: '9700_w18_qp_11 Q: 5',
+        prompt: '<img src="assets/questions/page_063.png" alt="Question 138" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 139,
+        code: '9700_w18_qp_12 Q: 1',
+        prompt: 'What is the diameter of a typical prokaryote, such as Streptococcus?',
+        options: {
+          A: '75x10\'nm',
+          B: '7.5x10°nm',
+          C: '75x10°um',
+          D: '75x10\'um'
+        }
+      },
+      {
+        number: 140,
+        code: '9700_w18_qp_12 Q: 3',
+        prompt: '<img src="assets/questions/page_064.png" alt="Question 140" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 141,
+        code: '9700_w18_qp_12 Q: 4',
+        prompt: 'The removal of a plant cell wall by enzyme digestion leaves an intact membrane-bound structure called a protoplast. Which statement explains why protoplasts are easily damaged?',
+        options: {
+          A: 'Mitochondria stop producing ATP to maintain membrane integrity.',
+          B: 'Net movement of water is no longer limited by turgor.',
+          C: 'Secretory vesicles are unable to fuse with the cell surface membrane.',
+          D: 'The shape of the cell structures is changed by the loss of cell shape.'
+        }
+      },
+      {
+        number: 142,
+        code: '9700_w18_qp_12 Q: 5',
+        prompt: '<img src="assets/questions/page_065.png" alt="Question 142" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 143,
+        code: '9700_w18_qp_12 Q: 6',
+        prompt: 'Which processes occur in eukaryotes and prokaryotes? 1 hydrolysis 2 mitosis 3 transcription 4 translation',
+        options: {
+          A: '1,2and3',
+          B: '1,2and4',
+          C: '1,3and4',
+          D: '2,3and4'
+        }
+      },
+      {
+        number: 144,
+        code: '9700_w18_qp_13 Q: 4',
+        prompt: 'The diagram is a drawing from an electron micrograph of a typical animal cell. ECE . & Be to o° Lo O-5 : ie a A . Co OTN W y . ORE BiH A . | ® i i ho A) ’ Sy to . Co Oa) C= What is the function of the membrane system labelled X?',
+        options: {
+          A: 'lipid synthesis only',
+          B: 'protein synthesis and transport',
+          C: 'protein synthesis only',
+          D: 'protein transport only .'
+        }
+      },
+      {
+        number: 145,
+        code: '9700_w18_qp_13 Q: 5',
+        prompt: '<img src="assets/questions/page_066.png" alt="Question 145" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 146,
+        code: '9700_w18_qp_13 Q: 6',
+        prompt: 'The diagram shows some similarities between chloroplasts, mitochondria and typical prokaryotes. Which row is correct? ET ANT ET TE',
+        options: {
+          A: 'chloroplasts circular DNA mitochondria linear DNA prokaryotes',
+          B: '| mitochondria | 70S ribosomes | chloroplasts linear DNA prokaryotes',
+          C: '| mitochondria linear DNA chloroplasts | 70S ribosomes prokaryotes',
+          D: 'prokaryotes | 70S ribosomes | mitochondria | 70S ribosomes | chloroplasts'
+        }
+      },
+      {
+        number: 147,
+        code: '9700_m17_qp_12 Q: 1',
+        prompt: '<img src="assets/questions/page_067.png" alt="Question 147" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 148,
+        code: '9700_m17_qp_12 Q: 4',
+        prompt: 'Some features of cells are listed. 1 cytoplasm 2 cell surface membrane 3 ribosomes Which features are found in both animal and prokaryotic cells?',
+        options: {
+          A: '1,2and3',
+          B: '1and2only',
+          C: '1and3only',
+          D: '2and3only'
+        }
+      },
+      {
+        number: 149,
+        code: '9700_m17_qp_12 Q: 5',
+        prompt: 'Which size of ribosomes is found in chloroplasts?',
+        options: {
+          A: '60',
+          B: '70',
+          C: '80s',
+          D: '90'
+        }
+      },
+      {
+        number: 150,
+        code: '9700_m17_qp_12 Q: 6',
+        prompt: '<img src="assets/questions/page_068.png" alt="Question 150" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 151,
+        code: '9700_s17_qp_11 Q: 2',
+        prompt: 'The electron micrograph shows part of two cells. 0 Pl w oy A ? » e 2 FRR oY X TF A Ww i 4 (se i wk: ¢ ® a aie ma Y & ol 2 - Vo URE an er 9A is - EE he Which labelled features identify these cells as eukaryotic?',
+        options: {
+          A: 'W,XandY',
+          B: 'WandXonly',
+          C: 'Wonly',
+          D: 'Xonly'
+        }
+      },
+      {
+        number: 152,
+        code: '9700_s17_qp_11 Q: 3',
+        prompt: 'Plant cells are fixed, stained and viewed using a student microscope. The light source was natural light. What would be clearly visible at x400 magnification?',
+        options: {
+          A: '3,412 B 3421 C 4,312 D 4321',
+          B: 'grana of chloroplasts',
+          C: 'nucleoli',
+          D: 'ribosomes'
+        }
+      },
+      {
+        number: 153,
+        code: '9700_s17_qp_11 Q: 5',
+        prompt: 'Some secretory cells synthesise and release glycoproteins.<br><br>What is the correct order of the sequence of events as they occur in the secretory cell?<br><br>1 exocytosis<br>2 product accumulates in secretory vesicle<br>3 mRNA binds to ribosomes<br>4 synthesis of glycoprotein',
+        options: {
+          A: '3, 4, 1, 2',
+          B: '3, 4, 2, 1',
+          C: '4, 3, 1, 2',
+          D: '4, 3, 2, 1'
+        }
+      },
+      {
+        number: 154,
+        code: '9700_s17_qp_11 Q: 6',
+        prompt: 'A scientist carried out an experiment to separate the organelles in an animal cell by mass. The scientist mixed the cells with a buffer solution which had the same water potential as the cells. He then broke the cells open with a blender to release the organelles. The extracted mixture was filtered and then spun in a centrifuge at a speed to separate the heaviest organelle. This sank to the bottom, forming a solid pellet, 1. liquid above pellet solid pellet The liquid above pellet 1 was poured into a clean centrifuge tube and spun in the centrifuge at a higher speed to separate the next heaviest organelle. This organelle sank to the bottom, to form a solid pellet, 2. He repeated this procedure twice more to obtain pellet 3 and pellet 4, each containing a single organelle. What is the function of the organelle extracted in pellet 3?',
+        options: {
+          A: 'digestion of old organelles',
+          B: 'production of ATP',
+          C: 'synthesis of MRNA',
+          D: 'synthesis of protein'
+        }
+      },
+      {
+        number: 155,
+        code: '9700_s17_qp_12 Q: 1',
+        prompt: 'Which organelles are enclosed in a single phospholipid bilayer and contain hydrolytic enzymes?',
+        options: {
+          A: 'endocytotic vesicles',
+          B: 'Golgi body',
+          C: 'lysosomes',
+          D: 'mitochondria'
+        }
+      },
+      {
+        number: 156,
+        code: '9700_s17_qp_12 Q: 2',
+        prompt: 'The DNA of prokaryotes is naked and circular. Which statement describes how the DNA of eukaryotes differs from that of prokaryotes?',
+        options: {
+          A: 'lt has a nuclear envelope around it and is a double helix.',
+          B: 'It has a nuclear envelope around it and is circular.',
+          C: 'It has proteins attached to it and is a double helix.',
+          D: 'It has proteins attached to it and is linear.'
+        }
+      },
+      {
+        number: 157,
+        code: '9700_s17_qp_12 Q: 4',
+        prompt: 'What are found in chloroplasts and mitochondria?<br><br>1 DNA<br>2 70S ribosomes<br>3 mRNA',
+        options: {
+          A: '1, 2 and 3',
+          B: '1 and 2 only',
+          C: '1 only',
+          D: '2 and 3 only'
+        }
+      },
+      {
+        number: 158,
+        code: '9700_s17_qp_13 Q: 1',
+        prompt: 'Where are cisternae found in a cell? 1 endoplasmic reticulum 2 Golgi body 3 mitochondrion',
+        options: {
+          A: '1and2',
+          B: '1and3',
+          C: '1only',
+          D: '2and3'
+        }
+      },
+      {
+        number: 159,
+        code: '9700_s17_qp_13 Q: 3',
+        prompt: 'It is possible for a bacterium to synthesise a eukaryotic protein.<br><br>This involves introducing a eukaryotic gene into the bacterial DNA, which can be translated.<br><br>What explains why a bacterial cell can produce a eukaryotic protein but cannot produce a eukaryotic glycoprotein?',
+        options: {
+          A: 'Bacteria do not have 70S ribosomes.',
+          B: 'Bacteria do not have a nuclear envelope.',
+          C: 'Bacteria do not have Golgi bodies.',
+          D: 'Bacteria do not have mitochondria.'
+        }
+      },
+      {
+        number: 160,
+        code: '9700_s17_qp_13 Q: 4',
+        prompt: 'Which structures are found in both typical eukaryotic cells and typical prokaryotic cells? 1 70S ribosomes 2 80S ribosomes 3 circular DNA',
+        options: {
+          A: '1,2and3',
+          B: '1and3only',
+          C: '1only',
+          D: '2only'
+        }
+      },
+      {
+        number: 161,
+        code: '9700_w17_qp_11 Q: 2',
+        prompt: 'An electron micrograph of a cell shows large quantities of rough endoplasmic reticulum and many Golgi bodies. What type of cell is being viewed?',
+        options: {
+          A: 'bacterium',
+          B: 'guard cell',
+          C: 'lymphocyte',
+          D: 'mesophyll'
+        }
+      },
+      {
+        number: 162,
+        code: '9700_w17_qp_11 Q: 3',
+        prompt: '<img src="assets/questions/page_072.png" alt="Question 162" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 163,
+        code: '9700_w17_qp_12 Q: 2',
+        prompt: '<img src="assets/questions/page_073.png" alt="Question 163" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 164,
+        code: '9700_w17_qp_12 Q: 3',
+        prompt: '<img src="assets/questions/page_073.png" alt="Question 164" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 165,
+        code: '9700_w17_qp_12 Q: 4',
+        prompt: 'The electron micrograph shows part of an animal cell. T fot, WIE oa ge RE oe 7 7 EG a VY dws 0 ashe 0 Chait” Tora dR Ev ATE) i ce SS gc. He Ip REE ESA Hos ASE Lg Wola What will be synthesised in large quantities in this cell? 1 ATP 2 glucose 3 RNA',
+        options: {
+          A: '1,2and3',
+          B: '1and3only',
+          C: '1only',
+          D: '2only'
+        }
+      },
+      {
+        number: 166,
+        code: '9700_w17_qp_12 Q: 5',
+        prompt: 'Mitochondria are thought to have evolved from prokaryotic cells that were ingested by an ancestral cell. Which feature have the prokaryotes lost during their evolution into mitochondria?',
+        options: {
+          A: 'cell wall',
+          B: 'circular chromosome',
+          C: 'endoplasmic reticulum',
+          D: 'ribosomes'
+        }
+      },
+      {
+        number: 167,
+        code: '9700_w17_qp_12 Q: 6',
+        prompt: 'Which statement is correct?',
+        options: {
+          A: 'Avirus is composed of a protein coat which may surround RNA or DNA.',
+          B: 'Eukaryotic plant cell walls contain peptidoglycans in addition to cellulose.',
+          C: 'Plasmodesmata and centrioles are found in all plant cells.',
+          D: 'Prokaryotic cells contain 80S ribosomes which they use to manufacture proteins.'
+        }
+      },
+      {
+        number: 168,
+        code: '9700_w17_qp_13 Q: 3',
+        prompt: 'A cell was supplied with cytosine labelled with radioactive carbon. In which cell structure would radioactivity be detected first?',
+        options: {
+          A: 'endoplasmic reticulum',
+          B: 'Golgi body',
+          C: 'nucleus',
+          D: 'ribosome'
+        }
+      },
+      {
+        number: 169,
+        code: '9700_w17_qp_13 Q: 4',
+        prompt: 'The diagram shows some similarities between chloroplasts, mitochondria and typical prokaryotes. Which row is correct? I EN I ET ER CN',
+        options: {
+          A: '| chloroplasts circular DNA mitochondria | 80S ribosomes | prokaryotes',
+          B: '| chloroplasts | 80S ribosomes | mitochondria circular DNA prokaryotes',
+          C: '| prokaryotes circular DNA mitochondria circular DNA chloroplasts',
+          D: '| prokaryotes | 70S ribosomes | chloroplasts | 80S ribosomes | mitochondria'
+        }
+      },
+      {
+        number: 170,
+        code: '9700_w17_qp_13 Q: 5',
+        prompt: 'Which statement supports the fact that mature plant cells can carry out the same role as lysosomes?',
+        options: {
+          A: 'Arange of hydrolytic enzymes can be found within mature plant vacuoles.',
+          B: 'Glycogen, found within vesicles, can be hydrolysed to glucose molecules.',
+          C: 'Single membrane-bound vesicles are formed from plant Golgi bodies.',
+          D: 'Vesicles, formed from smooth endoplasmic reticulum, contain enzymes.'
+        }
+      },
+      {
+        number: 171,
+        code: '9700_m16_qp_12 Q: 2',
+        prompt: '<img src="assets/questions/page_076.png" alt="Question 171" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 172,
+        code: '9700_m16_qp_12 Q: 3',
+        prompt: 'Inside a cell, a damaged mitochondrion can be surrounded and enclosed by a membrane to form a vesicle. What happens after the fusion of a lysosome with the vesicle?',
+        options: {
+          A: 'ATP production by the mitochondrion increases.',
+          B: 'Enzymes from the lysosome repair the mitochondrion.',
+          C: 'Hydrolytic enzymes catalyse the breakdown of the mitochondrion.',
+          D: 'The mitochondrion is released from the cell by exocytosis.'
+        }
+      },
+      {
+        number: 173,
+        code: '9700_m16_qp_12 Q: 4',
+        prompt: '<img src="assets/questions/page_076.png" alt="Question 173" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 174,
+        code: '9700_m16_qp_12 Q: 5',
+        prompt: 'Which structures will be present in a cell that causes cholera? 1 circular DNA 2 naked DNA 3 70S ribosomes',
+        options: {
+          A: '1,2and3',
+          B: '1and2only',
+          C: '1and3only',
+          D: '2and3only'
+        }
+      },
+      {
+        number: 175,
+        code: '9700_s16_qp_11 Q: 1',
+        prompt: '<img src="assets/questions/page_077.png" alt="Question 175" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 176,
+        code: '9700_s16_qp_11 Q: 3',
+        prompt: 'What are correct locations of ribosomes in the typical eukaryotic cell? 1 free in the cytoplasm 2 attached to the outside of the endoplasmic reticulum 3 attached to the inside of the endoplasmic reticulum',
+        options: {
+          A: '1,2and3',
+          B: '1and2only',
+          C: '1and3only',
+          D: '2and3only'
+        }
+      },
+      {
+        number: 177,
+        code: '9700_s16_qp_11 Q: 4',
+        prompt: 'Visking tubing is an artificial partially permeable membrane used to demonstrate diffusion. Glucose molecules can pass through the pores in the membrane which are approximately 2.4 nm in diameter. Which of the following could pass through the pores? 1 bacteria 2 haemoglobin 3 ribosomes 4 glycogen',
+        options: {
+          A: '1and3',
+          B: '2and4',
+          C: '2only',
+          D: 'none of the above'
+        }
+      },
+      {
+        number: 178,
+        code: '9700_s16_qp_11 Q: 5',
+        prompt: 'What are found in both chloroplasts and typical prokaryotic cells?',
+        options: {
+          A: '70S ribosomes and circular DNA',
+          B: '70S ribosomes only',
+          C: '80S ribosomes and circular DNA',
+          D: 'circular DNA only'
+        }
+      },
+      {
+        number: 179,
+        code: '9700_s16_qp_12 Q: 2',
+        prompt: 'Which statements about both mitochondria and chloroplasts are correct? 1 They contain 80S ribosomes. 2 They contain circular DNA molecules. 3 They produce ATP.',
+        options: {
+          A: '1,2and3',
+          B: '1and2only',
+          C: '1and3only',
+          D: '2and3only'
+        }
+      },
+      {
+        number: 180,
+        code: '9700_s16_qp_12 Q: 3',
+        prompt: 'Which range of sizes would include most eukaryotic cells?',
+        options: {
+          A: '1x10°nmto 1um',
+          B: '1umto1x10\'um',
+          C: '1x10\'umto 1x 102um',
+          D: '1x10°umto 1x 10°um'
+        }
+      },
+      {
+        number: 181,
+        code: '9700_s16_qp_12 Q: 4',
+        prompt: 'A scientist carried out an experiment to separate the organelles in an animal cell by mass. The scientist mixed the cells with a buffer solution which had the same water potential as the cells. He then broke the cells open with a blender to release the organelles. The extracted mixture was filtered and then spun in a centrifuge at a speed that separates the heaviest organelle. This organelle sank to the bottom, forming a solid pellet, 1. liquid above pellet solid pellet The liquid above pellet 1 was poured into a clean centrifuge tube and spun in the centrifuge at a higher speed to separate the next heaviest organelle. This organelle sank to the bottom, forming a solid pellet, 2. He repeated this procedure twice more to obtain pellet 3 and pellet 4, each containing a single organelle. What is the function of the organelle extracted in pellet 4?',
+        options: {
+          A: 'digestion of old organelles',
+          B: 'production of ATP',
+          C: 'production of MRNA',
+          D: 'synthesis of protein'
+        }
+      },
+      {
+        number: 182,
+        code: '9700_s16_qp_13 Q: 2',
+        prompt: 'For which cell component would nanometres be the most appropriate unit of measurement?',
+        options: {
+          A: 'a cell surface membrane',
+          B: 'a chloroplast',
+          C: 'a mitochondrion',
+          D: 'a nucleolus'
+        }
+      },
+      {
+        number: 183,
+        code: '9700_s16_qp_13 Q: 3',
+        prompt: '<img src="assets/questions/page_080.png" alt="Question 183" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 184,
+        code: '9700_s16_qp_13 Q: 4',
+        prompt: 'What are found in both chloroplasts and mitochondria?',
+        options: {
+          A: '70S ribosomes only',
+          B: '70S ribosomes and circular DNA',
+          C: '80S ribosomes and circular DNA',
+          D: 'circular DNA only'
+        }
+      },
+      {
+        number: 185,
+        code: '9700_s16_qp_13 Q: 5',
+        prompt: '<img src="assets/questions/page_080.png" alt="Question 185" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 186,
+        code: '9700_w16_qp_11 Q: 2',
+        prompt: 'A culture of human cells had its cell surface membranes removed, releasing the cell contents. This material became contaminated by bacteria. The material was then centrifuged, separating out the various cell structures according to size and mass. Which cell structure would be separated out along with the bacteria?',
+        options: {
+          A: 'endoplasmic reticulum',
+          B: 'mitochondria',
+          C: 'nuclei',
+          D: 'ribosomes'
+        }
+      },
+      {
+        number: 187,
+        code: '9700_w16_qp_11 Q: 3',
+        prompt: 'Which parts of a cell contain ribosomes? 1 chloroplast 2 mitochondrion 3 nucleus 4 cytoplasm',
+        options: {
+          A: '1,2,3and4',
+          B: '1,2and3only',
+          C: '1,2and4only',
+          D: '3and4 only'
+        }
+      },
+      {
+        number: 188,
+        code: '9700_w16_qp_11 Q: 4',
+        prompt: 'The electron micrograph shows part of two eukaryotic cells. y v ¥ 1 fd J € w 4 & # AS Pia Su 5 a Wp x Radia rine I Vihear 4 hap $ E Aorta i Ae ha 2 NORE LAA ’ Ree CI SR BG [ 4 RRS aE Ng Qa. Vid ee Co Which features are also found in prokaryotes?',
+        options: {
+          A: 'Wonly',
+          B: 'Xonly',
+          C: 'XandYonly',
+          D: 'W,XandY'
+        }
+      },
+      {
+        number: 189,
+        code: '9700_w16_qp_11 Q: 5',
+        prompt: 'Which of the structures are found in photosynthetic prokaryotes? 1 cell surface membrane 2 cellulose wall 3 ribosomes 4 chloroplasts',
+        options: {
+          A: '1,2,3and4',
+          B: '1,2and3only',
+          C: '1and3only',
+          D: '2and4 only'
+        }
+      },
+      {
+        number: 190,
+        code: '9700_w16_qp_12 Q: 3',
+        prompt: 'What is the correct order in which organelles function to make and secrete an enzyme?',
+        options: {
+          A: 'digestion of old organelles',
+          B: 'production of ATP',
+          C: 'production of mRNA',
+          D: 'synthesis of protein'
+        }
+      },
+      {
+        number: 191,
+        code: '9700_w16_qp_12 Q: 5',
+        prompt: '<img src="assets/questions/page_083.png" alt="Question 191" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" /><br><br>A scientist carried out an experiment to separate the organelles in an animal cell by mass. The scientist mixed the cells with a buffer solution which had the same water potential as the cells. He then broke the cells open with a blender to release the organelles. The extra',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 192,
+        code: '9700_w16_qp_12 Q: 6',
+        prompt: '<img src="assets/questions/page_083.png" alt="Question 192" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 193,
+        code: '9700_w16_qp_13 Q: 1',
+        prompt: 'Which structure is only found in typical eukaryotic animal cells?',
+        options: {
+          A: 'cell surface membrane',
+          B: 'centriole',
+          C: 'Golgi body',
+          D: 'ribosome'
+        }
+      },
+      {
+        number: 194,
+        code: '9700_w16_qp_13 Q: 4',
+        prompt: 'Which statement is correct?',
+        options: {
+          A: 'Prokaryotes and chloroplasts have circular DNA where genes carrying the code for cell walls',
+          B: 'Prokaryotes and chloroplasts have 70S ribosomes that are the sites for translation and',
+          C: 'Prokaryotes and mitochondria have an outer membrane and a separate inner, folded',
+          D: 'Prokaryotes and mitochondria have double-stranded linear DNA where genes carrying coded'
+        }
+      },
+      {
+        number: 195,
+        code: '9700_w16_qp_13 Q: 5',
+        prompt: '<img src="assets/questions/page_085.png" alt="Question 195" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 196,
+        code: '9700_s15_qp_11 Q: 2',
+        prompt: 'The diagram shows a high-power drawing of a bacterium. capsule cell wall cell membrane WE JN YSN, ribosome DNA Which three components are found in both this bacterium and an animal cell?',
+        options: {
+          A: 'capsule, cell membrane and cell wall',
+          B: 'capsule, DNA and ribosome',
+          C: 'cell membrane, cell wall and DNA',
+          D: 'cell membrane, DNA and ribosome'
+        }
+      },
+      {
+        number: 197,
+        code: '9700_s15_qp_11 Q: 4',
+        prompt: 'Which structures are found in typical eukaryotic cells? 1 70S ribosomes 2 80S ribosomes 3 linear DNA (chromosomes) 4 circular DNA',
+        options: {
+          A: '1,2,3and4',
+          B: '1,2and 3only',
+          C: '1and4only',
+          D: '2and 3 only'
+        }
+      },
+      {
+        number: 198,
+        code: '9700_s15_qp_11 Q: 5',
+        prompt: 'What is the function of the nucleolus?',
+        options: {
+          A: 'The formation and breakdown of the nuclear envelope.',
+          B: 'The formation of rough endoplasmic reticulum.',
+          C: 'The synthesis of ribosomal proteins.',
+          D: 'The synthesis of rRNA.'
+        }
+      },
+      {
+        number: 199,
+        code: '9700_s15_qp_12 Q: 3',
+        prompt: 'What is the function of plasmodesmata in plant cells?',
+        options: {
+          A: 'to actas a barrier to water soluble substances',
+          B: 'to allow active transport of ions and sucrose between cells',
+          C: 'to allow the symplastic movement of substances between cells',
+          D: 'to enable cells to recognise each other'
+        }
+      },
+      {
+        number: 200,
+        code: '9700_s15_qp_12 Q: 4',
+        prompt: 'Which size of ribosome is found in both chloroplasts and mitochondria?',
+        options: {
+          A: '60',
+          B: '70',
+          C: '80s',
+          D: '90'
+        }
+      },
+      {
+        number: 201,
+        code: '9700_s15_qp_12 Q: 5',
+        prompt: '<img src="assets/questions/page_087.png" alt="Question 201" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 202,
+        code: '9700_s15_qp_12 Q: 6',
+        prompt: 'Ribosomes consist of two subunits, each containing rRNA. An analysis of all the 70S ribosomes from a single cell of the bacterium, Escherichia coli, showed that there were: + 38000 rRNA molecules * 2 main types of rRNA molecule * 19000 copies of each type of rRNA molecule How many 70S ribosomes were there in the E. coli cell?',
+        options: {
+          A: '9500',
+          B: '19000',
+          C: '38000',
+          D: '76000'
+        }
+      },
+      {
+        number: 203,
+        code: '9700_s15_qp_13 Q: 1',
+        prompt: 'What are found in both mitochondria and typical prokaryotic cells?',
+        options: {
+          A: '70S ribosomes and circular DNA',
+          B: '70S ribosomes only',
+          C: '80S ribosomes and circular DNA',
+          D: 'circular DNA only'
+        }
+      },
+      {
+        number: 204,
+        code: '9700_s15_qp_13 Q: 6',
+        prompt: 'What is the diameter of a typical prokaryote, such as Streptococcus?',
+        options: {
+          A: '60S B 70S C 80s D 90',
+          B: '7.5x10%nm',
+          C: '7.5x10°um',
+          D: '75x10\'um'
+        }
+      },
+      {
+        number: 205,
+        code: '9700_w15_qp_11 Q: 1',
+        prompt: '<img src="assets/questions/page_088.png" alt="Question 205" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" /><br><br>Which size of ribosome is found in chloroplasts and typical prokaryotic cells? A 60S B 70S C 80s D 90S',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 206,
+        code: '9700_w15_qp_11 Q: 6',
+        prompt: 'Which order of organelles is correct when a protein is synthesised and secreted?',
+        options: {
+          A: '60S B 70S C 80S D 90',
+          B: 'nucleus — ribosome — Golgi body — vesicle',
+          C: 'ribosome —» nucleus — lysosome —> Golgi body',
+          D: 'vesicle — Golgi body — nucleus — ribosome'
+        }
+      },
+      {
+        number: 207,
+        code: '9700_w15_qp_12 Q: 1',
+        prompt: '<img src="assets/questions/page_088.png" alt="Question 207" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 208,
+        code: '9700_w15_qp_12 Q: 3',
+        prompt: '<img src="assets/questions/page_089.png" alt="Question 208" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 209,
+        code: '9700_w15_qp_12 Q: 4',
+        prompt: 'Lysosomes have a variety of different shapes and sizes, making them difficult to identify. What describes a lysosome?',
+        options: {
+          A: '1 2 3 4',
+          B: '1 4 3 2',
+          C: 'a vesicle enclosed by a single membrane, containing several different hydrolytic enzymes',
+          D: '4 3 2 1'
+        }
+      },
+      {
+        number: 210,
+        code: '9700_w15_qp_12 Q: 5',
+        prompt: '<img src="assets/questions/page_090.png" alt="Question 210" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" /><br><br>Radioactively-labelled amino acids were introduced into a tracheal cell that uses them to make mucus (a glycoprotein). Oo fe) 1 O 0 Og 2 o o Q y) 3 =—> 0 BS — Tarn ~~ What route will the amino acids take? |] st ———— ast A 1 2 3 4 B 1 4 3 2 [+ 4 1 2 3 D 4 3 2 1',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 211,
+        code: '9700_w15_qp_13 Q: 1',
+        prompt: 'Which size of ribosome is found in chloroplasts?',
+        options: {
+          A: '60',
+          B: '70',
+          C: '80s',
+          D: '90'
+        }
+      },
+      {
+        number: 212,
+        code: '9700_w15_qp_13 Q: 3',
+        prompt: '<img src="assets/questions/page_090.png" alt="Question 212" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 213,
+        code: '9700_w15_qp_13 Q: 4',
+        prompt: '<img src="assets/questions/page_091.png" alt="Question 213" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 214,
+        code: '9700_w15_qp_13 Q: 5',
+        prompt: '<img src="assets/questions/page_091.png" alt="Question 214" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      },
+      {
+        number: 215,
+        code: '9700_w15_qp_13 Q: 6',
+        prompt: '<img src="assets/questions/page_092.png" alt="Question 215" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;" />',
+        options: {
+          A: 'TODO',
+          B: 'TODO',
+          C: 'TODO',
+          D: 'TODO'
+        }
+      }
     ];
 
     // =====================================================
@@ -764,6 +3133,18 @@
         });
         card.appendChild(title);
 
+        // Detect image-based or TODO-option questions
+        const hasImg = q.prompt.includes('<img');
+        const hasTodoOpt = q.options && Object.values(q.options).some(v => v === 'TODO');
+        const isImageQ = hasImg || hasTodoOpt;
+
+        if (hasImg && hasTodoOpt) {
+          const hint = document.createElement('div');
+          hint.style.cssText = 'font-size:0.85rem;color:#94a3b8;font-style:italic;margin:4px 0 8px 0;';
+          hint.textContent = 'Use the image above to read the options.';
+          card.appendChild(hint);
+        }
+
         if (q.table) {
           const wrapper = document.createElement('div');
           wrapper.className = 'table-wrapper';
@@ -831,10 +3212,18 @@
           Object.entries(q.options).forEach(([letter, text]) => {
             const option = document.createElement('label');
             option.className = 'option';
-            option.innerHTML = `
-              <input type="radio" name="q${q.number}" value="${letter}" />
-              <div><strong>${letter}</strong> <span>${text}</span></div>
-            `;
+            if (isImageQ) {
+              option.className = 'option option-letter-only';
+              option.innerHTML = `
+                <input type="radio" name="q${q.number}" value="${letter}" />
+                <div><strong>${letter}</strong></div>
+              `;
+            } else {
+              option.innerHTML = `
+                <input type="radio" name="q${q.number}" value="${letter}" />
+                <div><strong>${letter}</strong> <span>${text}</span></div>
+              `;
+            }
             list.appendChild(option);
           });
           card.appendChild(list);

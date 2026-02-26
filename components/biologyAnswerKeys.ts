@@ -66,7 +66,7 @@ export const biologyAnswerKeys: Record<string, Record<number, string>> = {
 // Update these as you add questions to each chapter.
 // =====================================================
 export const biologyQuestionRanges: Record<string, { total: number; splitIndex: number }> = {
-  'AS Biology Ch1 ( Cell structure )': { total: 0, splitIndex: 0 },
+  'AS Biology Ch1 ( Cell structure )': { total: 215, splitIndex: 43 },
   'AS Biology Ch2 ( Biological molecules )': { total: 0, splitIndex: 0 },
   'AS Biology Ch3 ( Enzymes )': { total: 0, splitIndex: 0 },
   'AS Biology Ch4 ( Cell membranes and transport )': { total: 0, splitIndex: 0 },
