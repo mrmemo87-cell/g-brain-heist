@@ -1505,6 +1505,19 @@
     QUESTIONS = quizSplit.questions;
     ANSWER_KEY = quizSplit.answerKey;
 
+    // Shuffle questions on each page load (Fisher-Yates) and re-number sequentially
+    for (let i = QUESTIONS.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [QUESTIONS[i], QUESTIONS[j]] = [QUESTIONS[j], QUESTIONS[i]];
+    }
+    const _shuffledAK = {};
+    QUESTIONS.forEach((q, idx) => {
+      _shuffledAK[idx + 1] = ANSWER_KEY[q.number];
+      q.number = idx + 1;
+    });
+    Object.keys(ANSWER_KEY).forEach(k => delete ANSWER_KEY[k]);
+    Object.assign(ANSWER_KEY, _shuffledAK);
+
     const totalQuestions = QUESTIONS.length;
     let hasSubmitted = false;
     let startTime = null;
