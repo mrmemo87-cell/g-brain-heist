@@ -748,8 +748,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
       const visMap = new Map<string, boolean>();
       if (data) {
-        data.forEach((row: { test_id: string; is_visible: boolean }) => {
-          visMap.set(row.test_id, row.is_visible);
+        data.forEach((row: { test_id: string; grade_level: number; subject: string; is_visible: boolean }) => {
+          visMap.set(`${row.test_id}|${row.grade_level}|${row.subject}`, row.is_visible);
         });
       }
       setTestVisibilitySettings(visMap);
@@ -785,7 +785,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       // Update local state
       setTestVisibilitySettings(prev => {
         const newMap = new Map(prev);
-        newMap.set(testId, newVisibility);
+        newMap.set(`${testId}|${gradeLevel}|${subject}`, newVisibility);
         return newMap;
       });
 
@@ -820,7 +820,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       // Update local state
       setTestVisibilitySettings(prev => {
         const newMap = new Map(prev);
-        testIds.forEach(id => newMap.set(id, visibility));
+        testIds.forEach(id => newMap.set(`${id}|${gradeLevel}|${subject}`, visibility));
         return newMap;
       });
 
@@ -6973,8 +6973,8 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                 ) : (
                   groups.map(group => {
                     const groupTests = group.tests;
-                    const allVisible = groupTests.every(t => testVisibilitySettings.get(t.test_id) === true);
-                    const someVisible = groupTests.some(t => testVisibilitySettings.get(t.test_id) === true);
+                    const allVisible = groupTests.every(t => testVisibilitySettings.get(`${t.test_id}|${group.gradeLevel}|${group.subject}`) === true);
+                    const someVisible = groupTests.some(t => testVisibilitySettings.get(`${t.test_id}|${group.gradeLevel}|${group.subject}`) === true);
                     const noneVisible = !someVisible;
 
                     return (
@@ -6987,7 +6987,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                                 Grade {group.gradeLevel} - {group.subject}
                               </h3>
                               <p className="text-xs text-gray-500 mt-0.5">
-                                {groupTests.filter(t => testVisibilitySettings.get(t.test_id) === true).length} / {groupTests.length} visible
+                                {groupTests.filter(t => testVisibilitySettings.get(`${t.test_id}|${group.gradeLevel}|${group.subject}`) === true).length} / {groupTests.length} visible
                               </p>
                             </div>
                             <div className="flex gap-2">
@@ -7022,7 +7022,7 @@ English,Grammar,hard,short_answer,"What is the past tense of 'go'?","","","","",
                         {/* Tests List */}
                         <div className="divide-y divide-gray-100">
                           {groupTests.map(test => {
-                            const isVisible = testVisibilitySettings.get(test.test_id) === true;
+                            const isVisible = testVisibilitySettings.get(`${test.test_id}|${test.grade_level}|${test.subject}`) === true;
                             
                             return (
                               <div key={test.test_id} className="px-4 py-3 hover:bg-gray-50 flex items-center justify-between">
