@@ -1603,7 +1603,8 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
   const gradeSubjectMap: Record<number, CambridgeTest['subject'][]> = {
     7: ['English stage 9'],
     8: ['English stage 9'],
-    11: ['Chemistry'],
+    11: ['Chemistry', 'Biology'],
+    12: ['Chemistry', 'Biology'],
   };
 
   const eligibleSubjects = profile.grade === null
