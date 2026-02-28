@@ -10,7 +10,7 @@ export interface QuestionOption {
 
 export interface QuestionTable {
   headers: string[];
-  rows: Array<{ label: string; values: string[] }>;
+  rows: Array<{ label: string; values: string[]; isOption?: boolean }>;
 }
 
 export interface QuestionData {

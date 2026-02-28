@@ -5286,7 +5286,7 @@ export const submit_question_answer = async (
 
     if (error) {
         // Handle duplicate correct-answer constraint gracefully
-        if (error.message?.includes('unique') || error.code === '23505') {
+        if (error.message?.includes('unique') || ('code' in error && (error as any).code === '23505')) {
             return {
                 is_correct: true,
                 points_earned: 0,
@@ -5944,7 +5944,7 @@ export const generate_assignment_analysis = async (
 
         // Call the edge function
         const response = await fetch(
-            `${supabase.supabaseUrl}/functions/v1/analyze_assignment_answers`,
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze_assignment_answers`,
             {
                 method: 'POST',
                 headers: {
