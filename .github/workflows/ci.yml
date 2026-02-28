@@ -31,8 +31,4 @@ jobs:
         run: npm run build
 
       - name: Test
-        env:
-          NODE_ENV: test
-          VITE_SUPABASE_URL: http://localhost
-          VITE_SUPABASE_ANON_KEY: test
         run: npm test
