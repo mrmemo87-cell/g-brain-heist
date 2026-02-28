@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
+   "typecheck": "tsc --noEmit -p tsconfig.ci.json",
     "lint": "npm run typecheck",
     "test:clean": "rm -rf dist-tests",
     "test:build": "tsc --project tsconfig.tests.json",
