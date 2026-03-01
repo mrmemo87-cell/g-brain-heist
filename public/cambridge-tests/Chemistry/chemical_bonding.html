@@ -991,7 +991,7 @@
         code: '9701_m22_qp_12 Q: 25',
         prompt: 'When ammonia, NH<sub>3</sub>, is dissolved in water, a small concentration of ammonium ions, NH<sub>4</sub><sup>+</sup>, is formed.<br><br>Which row is correct?',
         optionTable: {
-          headers: ['number of electrons in one ammonium ion', 'change of the H — NΔH angle from ammonia to the ammonium ion'],
+          headers: ['number of electrons in one ammonium ion', 'change of the H–N–H angle from ammonia to the ammonium ion'],
           rows: [
             { label: 'A', values: ['8', 'decreases'] },
             { label: 'B', values: ['8', 'increases'] },
@@ -2048,7 +2048,7 @@
       let cls = document.getElementById('studentClass').value.trim();
 
       const isForced = options.force === true;
-      const autoSubmitReason = options.reason || '';
+      const autoSubmitReason = options.autoSubmitReason || options.reason || '';
       if (!name) {
         if (isForced) {
           name = 'Unknown Student';

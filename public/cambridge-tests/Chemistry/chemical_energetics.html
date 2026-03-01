@@ -1059,7 +1059,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
         code: '9701_w19_qp_11 Q: 8',
         prompt: 'Sodium burns in oxygen giving out heat energy and forming the compound Na<sub>2</sub>O.<br><br>2Na(s) + <span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span>O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> Na<sub>2</sub>O(s)<br><br>Which statement about the reaction is correct?',
         options: {
-          A: 'ΔH<sup>⦵</sup> for the reaction is equal to twice the bond energy of the Na–O bond.',
+          A: 'ΔH<sup>⦵</sup> for the reaction is equal to twice the bond energy of the Na₂O bond.',
           B: 'ΔH<sup>⦵</sup> for the reaction is positive.',
           C: 'The equation represents the standard enthalpy change of combustion of sodium.',
           D: 'The equation represents the standard enthalpy change of formation of sodium oxide.',
@@ -1838,7 +1838,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       let cls = document.getElementById('studentClass').value.trim();
 
       const isForced = options.force === true;
-      const autoSubmitReason = options.reason || '';
+      const autoSubmitReason = options.autoSubmitReason || options.reason || '';
       if (!name) {
         if (isForced) {
           name = 'Unknown Student';

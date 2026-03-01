@@ -628,7 +628,7 @@
     document.getElementById("submitBtn").textContent = "✓ Already Submitted";
     
     // Disable floating button too
-    const floatingBtn = document.getElementById("floatingSubmit");
+    const floatingBtn = document.getElementById("floatingSubmitBtn");
     if (floatingBtn) {
       floatingBtn.disabled = true;
       floatingBtn.textContent = "✓ Submitted";
@@ -818,7 +818,7 @@
           statusDiv.className = 'submit-status submit-error';
           statusDiv.textContent = '🚨 You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
           document.querySelectorAll('input').forEach(input => input.disabled = true);
-          const floatingBtn = document.getElementById('floatingSubmit');
+          const floatingBtn = document.getElementById('floatingSubmitBtn');
           if (floatingBtn) { floatingBtn.disabled = true; floatingBtn.textContent = '✅ Already Submitted'; }
           return;
         }
@@ -839,7 +839,7 @@
       submitBtn.textContent = "✓ Submitted";
       
       // Disable floating button too
-      const floatingBtn = document.getElementById("floatingSubmit");
+      const floatingBtn = document.getElementById("floatingSubmitBtn");
       if (floatingBtn) {
         floatingBtn.disabled = true;
         floatingBtn.textContent = "✓ Submitted";
@@ -870,7 +870,7 @@
       submitBtn.disabled = false;
       
       // Re-enable floating button on error
-      const floatingBtn = document.getElementById("floatingSubmit");
+      const floatingBtn = document.getElementById("floatingSubmitBtn");
       if (floatingBtn) {
         floatingBtn.disabled = false;
         floatingBtn.textContent = "📤 Submit Test";
