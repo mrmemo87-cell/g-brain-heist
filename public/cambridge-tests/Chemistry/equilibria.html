@@ -849,6 +849,8 @@
     const QUIZ_PART = getQuizPart();
 
     const QUIZ_BASE_NAME = 'AS Chemistry Ch7 (Equilibria)';
+    const QUIZ_SUBTITLE = 'Chapter 7';
+    const PENDING_SCORE_MESSAGE = '📊 Score submitted. Waiting for teacher to release results.';
     const QUIZ_ID = `${QUIZ_BASE_ID}_part${QUIZ_PART.part}`;
     const QUIZ_NAME = `${QUIZ_BASE_NAME} (Part ${QUIZ_PART.part})`;
 
@@ -1138,7 +1140,7 @@
         prompt: 'I<sub>2</sub>(aq) + 2Fe<sup>2+</sup>(aq) ⇌ 2I<sup>−</sup>(aq) + 2Fe<sup>3+</sup>(aq)<br><br>What is the correct expression for K<sub>c</sub>?',
         options: {
           A: '<span class="fraction"><span class="fraction-top">[2I<sup>−</sup>][2Fe<sup>3+</sup>]</span><span class="fraction-bottom">[I<sub>2</sub>][2Fe<sup>2+</sup>]</span></span>',
-          B: '<span class="fraction"><span class="fraction-top">[I<sup>−</sup>][Fe<sup>3+</sup>]<sup>2</sup></span><span class="fraction-bottom">[I<sub>2</sub>][Fe<sup>2+</sup>]<sup>2</sup></span></span>',
+          B: '<span class="fraction"><span class="fraction-top">[I<sup>−</sup>]<sup>2</sup>[Fe<sup>3+</sup>]<sup>2</sup></span><span class="fraction-bottom">[I<sub>2</sub>][Fe<sup>2+</sup>]<sup>2</sup></span></span>',
           C: '<span class="fraction"><span class="fraction-top">[I<sup>−</sup>]<sup>2</sup>[Fe<sup>2+</sup>]</span><span class="fraction-bottom">[2I<sub>2</sub>][2Fe<sup>3+</sup>]</span></span>',
           D: '<span class="fraction"><span class="fraction-top">[I<sup>−</sup>][Fe<sup>2+</sup>]<sup>2</sup></span><span class="fraction-bottom">[I<sub>2</sub>][Fe<sup>3+</sup>]<sup>2</sup></span></span>',
         }
@@ -1667,7 +1669,7 @@
       {
         number: 67,
         code: '9701_m21_qp_12 Q: 9',
-        prompt: 'In which reaction is water behaving as a Bronsted–Lowry base?',
+        prompt: 'In which reaction is water behaving as a Brønsted–Lowry base?',
         options: {
           A: 'H<sub>2</sub>O + Na → NaOH + <span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span>H<sub>2</sub>',
           B: 'H<sub>2</sub>O + H<sub>3</sub>PO<sub>4</sub> → H<sub>3</sub>O<sup>+</sup> + H<sub>2</sub>PO<sub>4</sub><sup>−</sup>',
@@ -1714,7 +1716,7 @@
       {
         number: 71,
         code: '9701_s18_qp_11 Q: 15',
-        prompt: 'In which reaction does ammonia behave as a Bronsted–Lowry base?',
+        prompt: 'In which reaction does ammonia behave as a Brønsted–Lowry base?',
         options: {
           A: 'NH<sub>3</sub> + CH<sub>3</sub>CH<sub>2</sub>Br → CH<sub>3</sub>CH<sub>2</sub>NH<sub>2</sub> + HBr',
           B: 'NH<sub>3</sub> + H<sub>2</sub>O + CO<sub>2</sub> → (NH<sub>4</sub>)HCO<sub>3</sub>',
@@ -2059,12 +2061,12 @@
           const responses = (data.answers && typeof data.answers === "string" ? JSON.parse(data.answers) : data.answers)?.responses || {};
           applyReviewMode(responses);
         } else {
-          scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+          scoreDiv.textContent = PENDING_SCORE_MESSAGE;
           scoreDiv.className = 'score-box pending';
         }
       } catch (err) {
         console.error('Failed to check score release status:', err);
-        scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+        scoreDiv.textContent = PENDING_SCORE_MESSAGE;
         scoreDiv.className = 'score-box pending';
       }
     }
@@ -2156,7 +2158,7 @@
       const scoreDiv = document.getElementById('score');
       scoreDiv.style.display = 'block';
       lockQuestions();
-      scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+      scoreDiv.textContent = PENDING_SCORE_MESSAGE;
       scoreDiv.className = 'score-box pending';
 
       try {
@@ -2330,7 +2332,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('•')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, QUIZ_SUBTITLE, QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();

@@ -620,7 +620,10 @@
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
       if (titleEl) titleEl.textContent = `${title} — Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} • ${totalQuestions} questions`;
+      if (subtitleEl) {
+        const noun = totalQuestions === 1 ? 'question' : 'questions';
+        subtitleEl.textContent = `${subtitle} • ${totalQuestions} ${noun}`;
+      }
       if (timeBadge) timeBadge.textContent = `⏱️ Suggested time: ${formatDuration(durationSeconds)}`;
       if (partBadge) partBadge.textContent = `📌 Part ${part} of 2`;
       document.title = `${title} — Part ${part}`;
