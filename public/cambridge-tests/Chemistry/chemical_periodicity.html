@@ -1984,11 +1984,23 @@
       const btn = document.getElementById('submitBtn');
       const status = document.getElementById('status');
       let name = document.getElementById('studentName').value.trim();
-      const studentClass = document.getElementById('studentClass').value.trim();
+      let studentClass = document.getElementById('studentClass').value.trim();
 
-      if (!isForced && (!name || !studentClass)) {
-        status.textContent = 'Please enter your name and class before submitting.';
-        return;
+      if (!name) {
+        if (isForced) {
+          name = 'Unknown Student';
+        } else {
+          status.textContent = '⚠️ Please enter your name.';
+          return;
+        }
+      }
+      if (!studentClass) {
+        if (isForced) {
+          studentClass = 'Unknown Class';
+        } else {
+          status.textContent = '⚠️ Please enter your class.';
+          return;
+        }
       }
 
       const responses = {};

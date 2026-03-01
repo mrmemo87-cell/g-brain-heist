@@ -573,7 +573,12 @@
         if (infoDiv && user.name) {
           const badge = document.createElement('div');
           badge.style.cssText = 'width: 100%; text-align: center; color: #4caf50; font-size: 12px; margin-top: -10px; margin-bottom: 10px;';
-          badge.innerHTML = '✅ Logged in as <strong>' + user.name + '</strong> from Brains Heist';
+          badge.textContent = '';
+          badge.appendChild(document.createTextNode('✅ Logged in as '));
+          const strong = document.createElement('strong');
+          strong.textContent = user.name;
+          badge.appendChild(strong);
+          badge.appendChild(document.createTextNode(' from Brains Heist'));
           infoDiv.parentNode.insertBefore(badge, infoDiv.nextSibling);
         }
       }
