@@ -598,8 +598,10 @@
 
     const supabaseClient = createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    const TOTAL_PARTS = 5;
+    const PART_SIZE = 43;
+
     function getQuizPart() {
-      const TOTAL_PARTS = 5;
       const params = new URLSearchParams(window.location.search);
       const raw = parseInt(params.get('part'), 10);
       const part = (raw >= 1 && raw <= TOTAL_PARTS) ? raw : 1;
@@ -612,8 +614,6 @@
     }
 
     function splitQuiz(questions, answerKey, part) {
-      const PART_SIZE = 43;
-      const TOTAL_PARTS = 5;
       const start = (part - 1) * PART_SIZE;
       const end = Math.min(start + PART_SIZE, questions.length);
       const slice = questions.slice(start, end);
