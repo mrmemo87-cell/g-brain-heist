@@ -1216,7 +1216,7 @@
               handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'ExamGuard violation limit reached' });
             },
             onViolation: (event) => {
-              console.warn('ExamGuard violation (AS Biology - Ch1 Cell structure):', event);
+              console.warn('ExamGuard violation (AS Biology - Ch17 Genetic technology):', event);
               if (event.violationsCount >= 3) {
                 if (!autoSubmitTriggered && !hasSubmitted) {
                   autoSubmitTriggered = true;
