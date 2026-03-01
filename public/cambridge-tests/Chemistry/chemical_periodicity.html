@@ -549,11 +549,11 @@
     </div>
 
     <div class="badge-row">
-      <div class="badge">⏱️ Suggested time: 75 min</div>
+      <div class="badge" id="timeBadge">⏱️ Suggested time: 75 min</div>
       <div class="badge">Total questions: 85</div>
       <div class="badge">Level: Advanced</div>
       <div class="badge">Category: Science</div>
-      <div class="badge">Answer key pending (teacher review)</div>
+      <div class="badge" id="partBadge">Answer key pending (teacher review)</div>
     </div>
 
     <div class="status">
@@ -1303,7 +1303,7 @@
         options: {
           A: 'AlP',
           B: 'Al₂S₃',
-          C: 'Si–P₅',
+          C: 'Si₂P₅',
           D: 'SiS₂',
         }
       },
@@ -1985,7 +1985,7 @@
       let name = document.getElementById('studentName').value.trim();
       const studentClass = document.getElementById('studentClass').value.trim();
 
-      if (!name || !studentClass) {
+      if (!isForced && (!name || !studentClass)) {
         status.textContent = 'Please enter your name and class before submitting.';
         return;
       }
@@ -2000,7 +2000,7 @@
         }
       });
 
-      if (answered < totalQuestions) {
+      if (!isForced && answered < totalQuestions) {
         status.textContent = `You have answered ${answered}/${totalQuestions} questions. Please answer all questions.`;
         return;
       }

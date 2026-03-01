@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -801,6 +801,8 @@
     const QUIZ_PART = getQuizPart();
 
     const QUIZ_BASE_NAME = 'AS Chemistry Ch17 ( Carbonyl compounds )';
+    const QUIZ_SUBTITLE = 'Chapter 17';
+    const PENDING_SCORE_MESSAGE = '📊 Score submitted. Waiting for teacher to release results.';
     const QUIZ_ID = `${QUIZ_BASE_ID}_part${QUIZ_PART.part}`;
     const QUIZ_NAME = `${QUIZ_BASE_NAME} (Part ${QUIZ_PART.part})`;
 
@@ -1925,12 +1927,12 @@
           const responses = (data.answers && typeof data.answers === "string" ? JSON.parse(data.answers) : data.answers)?.responses || {};
           applyReviewMode(responses);
         } else {
-          scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+          scoreDiv.textContent = PENDING_SCORE_MESSAGE;
           scoreDiv.className = 'score-box pending';
         }
       } catch (err) {
         console.error('Failed to check score release status:', err);
-        scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+        scoreDiv.textContent = PENDING_SCORE_MESSAGE;
         scoreDiv.className = 'score-box pending';
       }
     }
@@ -2041,7 +2043,7 @@
       const scoreDiv = document.getElementById('score');
       scoreDiv.style.display = 'block';
       lockQuestions();
-      scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
+      scoreDiv.textContent = PENDING_SCORE_MESSAGE;
       scoreDiv.className = 'score-box pending';
 
       try {
@@ -2215,7 +2217,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('•')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, QUIZ_SUBTITLE, QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
