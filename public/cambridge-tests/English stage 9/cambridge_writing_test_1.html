@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="format-detection" content="telephone=no" />
-<title>Cambridge Writing Test 1 � E2L Stage 9 Paper 3</title>
+<title>Cambridge Writing Test 1 — E2L Stage 9 Paper 3</title>
 
 <style>
   * { box-sizing: border-box; }
@@ -387,26 +387,26 @@
     ">< Back to Game</button>
   </div>
 
-  <h1>?? Cambridge Writing Test 1</h1>
-  <p class="subtitle">E2L Stage 9 Paper 3 � Parts 1 & 2</p>
+  <h1>✍️ Cambridge Writing Test 1</h1>
+  <p class="subtitle">E2L Stage 9 Paper 3 — Parts 1 & 2</p>
 
   <div class="warning-box">
-    <h3>?? Important Rules</h3>
+    <h3>⚠️ Important Rules</h3>
     <ul>
-      <li>You can only submit <b>ONCE</b> � your writing cannot be changed after submission</li>
+      <li>You can only submit <b>ONCE</b> — your writing cannot be changed after submission</li>
       <li>Your teacher will mark your writing using the official marking scheme</li>
       <li>Your submission time is recorded</li>
-      <li>Save your progress by staying on this page � do NOT refresh</li>
+      <li>Save your progress by staying on this page — do NOT refresh</li>
       <li>Check your word count before submitting</li>
     </ul>
   </div>
 
   <div id="timerBox" class="timer-box" style="display: none;">
-    ?? Time: <span id="timer">00:00</span>
+    ⏱️ Time: <span id="timer">00:00</span>
   </div>
 
   <div id="alreadySubmitted" class="already-submitted" style="display: none;">
-    <h3>? You have already submitted this test</h3>
+    <h3>✅ You have already submitted this test</h3>
     <p>Your writing has been sent to your teacher for marking. Check back for your score later.</p>
   </div>
 
@@ -417,11 +417,11 @@
 
   <!-- Part 1 -->
   <div class="section">
-    <h2>?? Part 1 � Question 1</h2>
+    <h2>📝 Part 1 — Question 1</h2>
     
     <div class="examguard-prompt">
       <div class="marking-info">
-        <h3>Marking Criteria � Total: 15 marks</h3>
+        <h3>Marking Criteria — Total: 15 marks</h3>
         <div class="criteria">
           <div class="criterion">
             <div class="criterion-name">Content</div>
@@ -439,7 +439,7 @@
       </div>
       
       <div class="task-box">
-        <h3>?? Photography Lessons Message</h3>
+        <h3>📷 Photography Lessons Message</h3>
         <p>You want to learn how to take better photographs. You see a notice for photography lessons on your school noticeboard.</p>
         <p><strong>Write a message to the person who is offering the lessons.</strong></p>
         <p><strong>In your message you should:</strong></p>
@@ -451,7 +451,7 @@
       </div>
       
       <div class="word-count-box">
-        ?? Write <strong>45�55 words</strong>
+        📏 Write <strong>45–55 words</strong>
       </div>
     </div>
     
@@ -467,11 +467,11 @@
 
   <!-- Part 2 -->
   <div class="section">
-    <h2>?? Part 2 � Question 2</h2>
+    <h2>📝 Part 2 — Question 2</h2>
     
     <div class="examguard-prompt">
       <div class="marking-info">
-        <h3>Marking Criteria � Total: 20 marks</h3>
+        <h3>Marking Criteria — Total: 20 marks</h3>
         <div class="criteria">
           <div class="criterion">
             <div class="criterion-name">Content</div>
@@ -493,7 +493,7 @@
       </div>
       
       <div class="task-box">
-        <h3>?? Shopping Essay</h3>
+        <h3>🛒 Shopping Essay</h3>
         <p>In your English class, you have been talking about shopping.</p>
         <p><strong>Your teacher has asked you to write this essay:</strong></p>
         <p style="font-style: italic; background: #f0f0f0; padding: 15px; border-radius: 8px; margin: 15px 0; font-size: 16px; color: #333;">
@@ -503,7 +503,7 @@
       </div>
       
       <div class="word-count-box">
-        ?? Write <strong>110�130 words</strong>
+        📏 Write <strong>110–130 words</strong>
       </div>
     </div>
     
@@ -518,20 +518,20 @@
   </div>
 
   <div class="btn-container">
-    <button id="submitBtn" onclick="submitWriting()">?? Submit Writing</button>
+    <button id="submitBtn" onclick="submitWriting()">📤 Submit Writing</button>
   </div>
 
   <div id="submitStatus"></div>
   
   <div id="successMessage" class="success-message">
-    <h2>? Writing Submitted Successfully!</h2>
+    <h2>✅ Writing Submitted Successfully!</h2>
     <p>Your teacher will mark your writing using the Cambridge marking scheme.<br>Check your results in the Cambridge Tests section later.</p>
   </div>
 </div>
 
 <!-- Floating Submit Button for Mobile -->
 <div class="floating-submit show" id="floatingSubmit">
-  <button id="floatingSubmitBtn" onclick="submitWriting()">?? Submit Writing</button>
+  <button id="floatingSubmitBtn" onclick="submitWriting()">📤 Submit Writing</button>
 </div>
 
 <script src="../examguard.js?v=2"></script>
@@ -698,7 +698,7 @@
         if (infoDiv && user.name) {
           const badge = document.createElement('div');
           badge.style.cssText = 'width: 100%; text-align: center; color: #4caf50; font-size: 12px; margin-top: -10px; margin-bottom: 10px;';
-          badge.innerHTML = '? Logged in as <strong>' + user.name + '</strong> from Brains Heist';
+          badge.innerHTML = '✅ Logged in as <strong>' + user.name + '</strong> from Brains Heist';
           infoDiv.parentNode.insertBefore(badge, infoDiv.nextSibling);
         }
       }
@@ -739,7 +739,7 @@
       counter.textContent += ` (max ${max})`;
     } else {
       counter.className = 'count success';
-      counter.textContent += ' ?';
+      counter.textContent += ' ✓';
     }
   }
 
@@ -777,12 +777,12 @@
       input.disabled = true;
     });
     document.getElementById("submitBtn").disabled = true;
-    document.getElementById("submitBtn").textContent = "? Already Submitted";
+    document.getElementById("submitBtn").textContent = "✓ Already Submitted";
     
     const floatingBtn = document.getElementById("floatingSubmitBtn");
     if (floatingBtn) {
       floatingBtn.disabled = true;
-      floatingBtn.textContent = "? Submitted";
+      floatingBtn.textContent = "✓ Submitted";
     }
     
     // Show their previous answers (read-only)
@@ -825,7 +825,7 @@
     
     if (hasSubmitted) {
       statusDiv.className = "submit-status submit-error";
-      statusDiv.textContent = "?? You have already submitted. Contact your teacher to retake.";
+      statusDiv.textContent = "⚠️ You have already submitted. Contact your teacher to retake.";
       return;
     }
     
@@ -834,7 +834,7 @@
       if (!studentName || studentName.length < 2) {
         document.getElementById("studentName").classList.add("required-field");
         statusDiv.className = "submit-status submit-error";
-        statusDiv.textContent = "?? Please enter your full name (at least 2 characters).";
+        statusDiv.textContent = "⚠️ Please enter your full name (at least 2 characters).";
         return;
       }
       document.getElementById("studentName").classList.remove("required-field");
@@ -842,7 +842,7 @@
       if (!studentClass || studentClass.length < 1) {
         document.getElementById("studentClass").classList.add("required-field");
         statusDiv.className = "submit-status submit-error";
-        statusDiv.textContent = "?? Please enter your class.";
+        statusDiv.textContent = "⚠️ Please enter your class.";
         return;
       }
       document.getElementById("studentClass").classList.remove("required-field");
@@ -850,14 +850,14 @@
       // Check if writing is empty
       if (!answer1 || countWords(answer1) < 10) {
         statusDiv.className = "submit-status submit-error";
-        statusDiv.textContent = "?? Please write your Part 1 message (at least 10 words).";
+        statusDiv.textContent = "⚠️ Please write your Part 1 message (at least 10 words).";
         document.getElementById("answer1").focus();
         return;
       }
       
       if (!answer2 || countWords(answer2) < 20) {
         statusDiv.className = "submit-status submit-error";
-        statusDiv.textContent = "?? Please write your Part 2 essay (at least 20 words).";
+        statusDiv.textContent = "⚠️ Please write your Part 2 essay (at least 20 words).";
         document.getElementById("answer2").focus();
         return;
       }
@@ -878,13 +878,13 @@
       warnings.push(`Part 2: ${words2} words (should be ${PART2_MIN}-${PART2_MAX})`);
     }
     
-    let confirmMessage = "?? ARE YOU SURE?\n\n" +
-      "� You can only submit ONCE\n" +
-      "� Your writing CANNOT be changed after this\n" +
-      "� Your teacher will mark your work\n\n";
+    let confirmMessage = "⚠️ ARE YOU SURE?\n\n" +
+      "• You can only submit ONCE\n" +
+      "• Your writing CANNOT be changed after this\n" +
+      "• Your teacher will mark your work\n\n";
     
     if (warnings.length > 0) {
-      confirmMessage += "?? WORD COUNT WARNING:\n" + warnings.join("\n") + "\n\n";
+      confirmMessage += "⚠️ WORD COUNT WARNING:\n" + warnings.join("\n") + "\n\n";
     }
     
     confirmMessage += "Click OK to submit, or Cancel to review.";
@@ -906,7 +906,7 @@
     // Show loading
     submitBtn.disabled = true;
     statusDiv.className = "submit-status submit-loading";
-    statusDiv.textContent = "?? Submitting your writing...";
+    statusDiv.textContent = "📤 Submitting your writing...";
     
     try {
       // Fetch school_id from authenticated user
@@ -922,11 +922,11 @@
           
           if (userData && userData.school_id) {
             schoolId = userData.school_id;
-            console.log('? Fetched school_id:', schoolId);
+            console.log('✅ Fetched school_id:', schoolId);
           }
         }
       } catch (e) {
-        console.log('?? Could not fetch school_id (student may be unauthenticated)');
+        console.log('ℹ️ Could not fetch school_id (student may be unauthenticated)');
       }
 
       const { data, error } = await supabaseClient
@@ -954,9 +954,9 @@
       if (error) {
         if (error.message && (error.message.includes('duplicate') || error.message.includes('unique') || error.message.includes('already exists'))) {
           hasSubmitted = true;
-          submitBtn.textContent = '? Already Submitted';
+          submitBtn.textContent = '✅ Already Submitted';
           statusDiv.className = 'submit-status submit-error';
-          statusDiv.textContent = '?? You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
+          statusDiv.textContent = '🚨 You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
           document.querySelectorAll('input, textarea').forEach(input => input.disabled = true);
           return;
         }
@@ -975,14 +975,14 @@
       
       statusDiv.className = "submit-status submit-success";
       statusDiv.textContent = forceSubmit
-        ? "?? Submitted due to maximum ExamGuard violations. Your teacher has been notified."
-        : "? Submitted successfully! Your teacher will mark your writing.";
-      submitBtn.textContent = "? Submitted";
+        ? "⚠️ Submitted due to maximum ExamGuard violations. Your teacher has been notified."
+        : "✅ Submitted successfully! Your teacher will mark your writing.";
+      submitBtn.textContent = "✓ Submitted";
       
       const floatingBtn = document.getElementById("floatingSubmitBtn");
       if (floatingBtn) {
         floatingBtn.disabled = true;
-        floatingBtn.textContent = "? Submitted";
+        floatingBtn.textContent = "✓ Submitted";
       }
       
       document.getElementById("successMessage").classList.add("show");
@@ -1016,13 +1016,13 @@
     } catch (error) {
       console.error('Submit error:', error);
       statusDiv.className = "submit-status submit-error";
-      statusDiv.textContent = `? Failed to submit: ${error.message}. Please try again.`;
+      statusDiv.textContent = `❌ Failed to submit: ${error.message}. Please try again.`;
       submitBtn.disabled = false;
       
       const floatingBtn = document.getElementById("floatingSubmitBtn");
       if (floatingBtn) {
         floatingBtn.disabled = false;
-        floatingBtn.textContent = "?? Submit Writing";
+        floatingBtn.textContent = "📤 Submit Writing";
       }
       
       // Re-enable inputs on error
@@ -1079,7 +1079,7 @@
         if (infoDiv && (data.answer1 || data.answer2)) {
           const badge = document.createElement('div');
           badge.style.cssText = 'background: #cce5ff; border: 1px solid #b8daff; border-radius: 8px; padding: 10px; text-align: center; color: #004085; font-size: 13px; margin-bottom: 15px;';
-          badge.innerHTML = `?? Draft restored from ${savedMinutesAgo} minute${savedMinutesAgo !== 1 ? 's' : ''} ago`;
+          badge.innerHTML = `📝 Draft restored from ${savedMinutesAgo} minute${savedMinutesAgo !== 1 ? 's' : ''} ago`;
           infoDiv.parentNode.insertBefore(badge, infoDiv.nextSibling);
         }
       }

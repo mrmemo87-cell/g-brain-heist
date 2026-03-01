@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="format-detection" content="telephone=no" />
-<title>Cambridge Reading 25 � Answer Form</title>
+<title>Cambridge Reading 25 — Answer Form</title>
 
 <!-- No external Supabase library needed - using fetch API directly -->
 <script src="../examguard.js?v=2"></script>
@@ -393,13 +393,13 @@
     ">< Back to Game</button>
   </div>
 
-  <h1>?? Cambridge Reading 25</h1>
-  <p class="subtitle">Answer Form � Questions 1�42</p>
+  <h1>📚 Cambridge Reading 25</h1>
+  <p class="subtitle">Answer Form — Questions 1 — 42</p>
 
   <div class="warning-box">
-    <h3>?? Important Rules</h3>
+    <h3>⚠️ Important Rules</h3>
     <ul>
-      <li>You can only submit <b>ONCE</b> � answers cannot be changed after submission</li>
+      <li>You can only submit <b>ONCE</b> – answers cannot be changed after submission</li>
       <li>Correct answers will only be shown <b>AFTER</b> you submit</li>
       <li>Your submission time is recorded</li>
       <li>Do NOT refresh the page after submitting</li>
@@ -407,11 +407,11 @@
   </div>
 
   <div id="timerBox" class="timer-box" style="display: none;">
-    ?? Time: <span id="timer">00:00</span>
+    ⏱️ Time: <span id="timer">00:00</span>
   </div>
 
   <div id="alreadySubmitted" class="already-submitted" style="display: none;">
-    <h3>? You have already submitted this quiz</h3>
+    <h3>✅ You have already submitted this quiz</h3>
     <p>Your score has been recorded. Contact your teacher if you need to retake.</p>
   </div>
 
@@ -423,7 +423,7 @@
   <div id="questions"></div>
 
   <div class="btn-container">
-    <button id="submitBtn" onclick="submitScore()">?? Submit Answers</button>
+    <button id="submitBtn" onclick="submitScore()">📤 Submit Answers</button>
   </div>
 
   <div id="score"></div>
@@ -432,7 +432,7 @@
 
 <!-- Floating Submit Button for Mobile -->
 <div class="floating-submit show" id="floatingSubmit">
-  <button id="floatingSubmitBtn" onclick="submitScore()">?? Submit Answers</button>
+  <button id="floatingSubmitBtn" onclick="submitScore()">📤 Submit Answers</button>
 </div>
 
 <!-- Anti-cheat modal -->
@@ -445,7 +445,7 @@
       <li>Three violations will auto-submit your test immediately.</li>
       <li>Copy, cut, paste, right-click, and drag-and-drop are all disabled.</li>
         <li>Screenshots, screen recording, and printing are blocked.</li>
-      <li>Your timer starts only after you click "I understand".</li>
+      <li>Your timer starts only after you click “I understand”.</li>
     </ul>
     <div class="modal-actions">
       <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
@@ -573,7 +573,7 @@
         if (infoDiv && user.name) {
           const badge = document.createElement('div');
           badge.style.cssText = 'width: 100%; text-align: center; color: #4caf50; font-size: 12px; margin-top: -10px; margin-bottom: 10px;';
-          badge.innerHTML = '? Logged in as <strong>' + user.name + '</strong> from Brains Heist';
+          badge.innerHTML = '✅ Logged in as <strong>' + user.name + '</strong> from Brains Heist';
           infoDiv.parentNode.insertBefore(badge, infoDiv.nextSibling);
         }
       }
@@ -582,7 +582,7 @@
     }
   }
 
-  // Correct Answers (1�42) - Checked ONLY after submission
+  // Correct Answers (1 — 42) - Checked ONLY after submission
   const correct = {
     1:"common", 2:"typically", 3:"access", 4:"stay", 5:"hunt", 6:"defend", 7:"escape", 8:"number",
     9:"B", 10:"A", 11:"A", 12:"C", 13:"A",
@@ -594,12 +594,12 @@
 
   // Section definitions
   const sections = [
-    { title: "Section 1 � Questions 1-8 (Gap Fill)", start: 1, end: 8 },
-    { title: "Section 1 � Questions 9-13 (Multiple Choice)", start: 9, end: 13 },
-    { title: "Section 2 � Questions 14-18 (Matching)", start: 14, end: 18 },
-    { title: "Section 2 � Questions 19-26 (Gap Fill)", start: 19, end: 26 },
-    { title: "Section 3 � Questions 27-36 (Multiple Choice)", start: 27, end: 36 },
-    { title: "Section 3 � Questions 37-42 (Multiple Choice)", start: 37, end: 42 }
+    { title: "Section 1 — Questions 1-8 (Gap Fill)", start: 1, end: 8 },
+    { title: "Section 1 — Questions 9-13 (Multiple Choice)", start: 9, end: 13 },
+    { title: "Section 2 — Questions 14-18 (Matching)", start: 14, end: 18 },
+    { title: "Section 2 — Questions 19-26 (Gap Fill)", start: 19, end: 26 },
+    { title: "Section 3 — Questions 27-36 (Multiple Choice)", start: 27, end: 36 },
+    { title: "Section 3 — Questions 37-42 (Multiple Choice)", start: 37, end: 42 }
   ];
 
   // Check if already submitted (using localStorage)
@@ -625,13 +625,13 @@
       input.disabled = true;
     });
     document.getElementById("submitBtn").disabled = true;
-    document.getElementById("submitBtn").textContent = "? Already Submitted";
+    document.getElementById("submitBtn").textContent = "✓ Already Submitted";
     
     // Disable floating button too
     const floatingBtn = document.getElementById("floatingSubmit");
     if (floatingBtn) {
       floatingBtn.disabled = true;
-      floatingBtn.textContent = "? Submitted";
+      floatingBtn.textContent = "✓ Submitted";
     }
     
     // Show their previous score
@@ -698,7 +698,7 @@
         // Show correct answer ONLY after submission
         const correction = document.createElement("div");
         correction.className = "correction";
-        correction.textContent = `? ${correct[i]}`;
+        correction.textContent = `✓ ${correct[i]}`;
         qrow.appendChild(correction);
       }
       
@@ -719,7 +719,7 @@
     // Check if already submitted
     if (hasSubmitted) {
       statusDiv.className = "submit-status submit-error";
-      statusDiv.textContent = "?? You have already submitted. Contact your teacher to retake.";
+      statusDiv.textContent = "⚠️ You have already submitted. Contact your teacher to retake.";
       return;
     }
     
@@ -727,7 +727,7 @@
     if (!studentName || studentName.length < 2) {
       document.getElementById("studentName").classList.add("required-field");
       statusDiv.className = "submit-status submit-error";
-      statusDiv.textContent = "?? Please enter your full name (at least 2 characters).";
+      statusDiv.textContent = "⚠️ Please enter your full name (at least 2 characters).";
       return;
     }
     document.getElementById("studentName").classList.remove("required-field");
@@ -735,17 +735,17 @@
     if (!studentClass || studentClass.length < 1) {
       document.getElementById("studentClass").classList.add("required-field");
       statusDiv.className = "submit-status submit-error";
-      statusDiv.textContent = "?? Please enter your class.";
+      statusDiv.textContent = "⚠️ Please enter your class.";
       return;
     }
     document.getElementById("studentClass").classList.remove("required-field");
     
     // Confirm submission
     const confirmSubmit = confirm(
-      "?? ARE YOU SURE?\n\n" +
-      "� You can only submit ONCE\n" +
-      "� Your answers CANNOT be changed after this\n" +
-      "� Your score will be sent to your teacher\n\n" +
+      "⚠️ ARE YOU SURE?\n\n" +
+      "• You can only submit ONCE\n" +
+      "• Your answers CANNOT be changed after this\n" +
+      "• Your score will be sent to your teacher\n\n" +
       "Click OK to submit, or Cancel to review your answers."
     );
     
@@ -774,7 +774,7 @@
     // Show loading
     submitBtn.disabled = true;
     statusDiv.className = "submit-status submit-loading";
-    statusDiv.textContent = "?? Submitting your answers...";
+    statusDiv.textContent = "📤 Submitting your answers...";
     
     try {
       // Fetch school_id from authenticated user
@@ -790,11 +790,11 @@
           
           if (userData && userData.school_id) {
             schoolId = userData.school_id;
-            console.log('? Fetched school_id:', schoolId);
+            console.log('✅ Fetched school_id:', schoolId);
           }
         }
       } catch (e) {
-        console.log('?? Could not fetch school_id (student may be unauthenticated)');
+        console.log('ℹ️ Could not fetch school_id (student may be unauthenticated)');
       }
 
       const { data, error } = await supabaseClient
@@ -814,12 +814,12 @@
       if (error) {
         if (error.message && (error.message.includes('duplicate') || error.message.includes('unique') || error.message.includes('already exists'))) {
           hasSubmitted = true;
-          submitBtn.textContent = '? Already Submitted';
+          submitBtn.textContent = '✅ Already Submitted';
           statusDiv.className = 'submit-status submit-error';
-          statusDiv.textContent = '?? You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
+          statusDiv.textContent = '🚨 You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
           document.querySelectorAll('input').forEach(input => input.disabled = true);
           const floatingBtn = document.getElementById('floatingSubmit');
-          if (floatingBtn) { floatingBtn.disabled = true; floatingBtn.textContent = '? Already Submitted'; }
+          if (floatingBtn) { floatingBtn.disabled = true; floatingBtn.textContent = '✅ Already Submitted'; }
           return;
         }
         throw error;
@@ -835,14 +835,14 @@
       }));
       
       statusDiv.className = "submit-status submit-success";
-      statusDiv.textContent = "? Submitted successfully! Your teacher can now see your result.";
-      submitBtn.textContent = "? Submitted";
+      statusDiv.textContent = "✅ Submitted successfully! Your teacher can now see your result.";
+      submitBtn.textContent = "✓ Submitted";
       
       // Disable floating button too
       const floatingBtn = document.getElementById("floatingSubmit");
       if (floatingBtn) {
         floatingBtn.disabled = true;
-        floatingBtn.textContent = "? Submitted";
+        floatingBtn.textContent = "✓ Submitted";
       }
       
       // Notify parent window (if in iframe) that test is complete
@@ -866,14 +866,14 @@
     } catch (error) {
       console.error('Submit error:', error);
       statusDiv.className = "submit-status submit-error";
-      statusDiv.textContent = `? Failed to submit: ${error.message}. Please try again.`;
+      statusDiv.textContent = `❌ Failed to submit: ${error.message}. Please try again.`;
       submitBtn.disabled = false;
       
       // Re-enable floating button on error
       const floatingBtn = document.getElementById("floatingSubmit");
       if (floatingBtn) {
         floatingBtn.disabled = false;
-        floatingBtn.textContent = "?? Submit Test";
+        floatingBtn.textContent = "📤 Submit Test";
       }
       
       // Re-enable inputs on error
@@ -888,16 +888,16 @@
     
     if (percentage >= 90) {
       scoreClass = "score-excellent";
-      emoji = "??";
+      emoji = "🏆";
     } else if (percentage >= 70) {
       scoreClass = "score-good";
-      emoji = "??";
+      emoji = "👍";
     } else if (percentage >= 50) {
       scoreClass = "score-average";
-      emoji = "??";
+      emoji = "📈";
     } else {
       scoreClass = "score-needs-work";
-      emoji = "??";
+      emoji = "💪";
     }
 
     const minutes = Math.floor(timeTaken / 60);
@@ -925,7 +925,7 @@
     const selection = window.getSelection().toString();
     if (selection.length > 50) {
       e.preventDefault();
-      alert("?? Copying large amounts of text is disabled during the quiz.");
+      alert("⚠️ Copying large amounts of text is disabled during the quiz.");
     }
   });
 

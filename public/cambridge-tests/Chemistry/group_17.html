@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -514,10 +514,10 @@
   <!--
   <div class="prime-overlay" id="primeOverlay">
     <div class="prime-card">
-      <div class="prime-icon">??</div>
+      <div class="prime-icon">👑</div>
       <h2 class="prime-title">GET PRIME</h2>
       <p class="prime-subtitle">This AS Chemistry content is exclusive to Prime members. Upgrade to unlock all advanced materials.</p>
-      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">? Upgrade to Prime</button>
+      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">✨ Upgrade to Prime</button>
       <div class="prime-divider">or enter activation code</div>
       <input type="text" class="prime-code-input" id="primeCodeInput" placeholder="Enter code..." autocomplete="off" />
       <button class="prime-unlock-btn" id="primeUnlockBtn">Unlock</button>
@@ -532,22 +532,22 @@
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
         <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch11 ( Group 17 )</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 11 ? 81 multiple-choice questions</div>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 11 • 81 multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
-      <span class="badge">?? Category: Science</span>
-      <span class="badge">?? Difficulty: Advanced</span>
-      <span class="badge">?? Format: Multiple Choice (A?D)</span>
+      <span class="badge">🧪 Category: Science</span>
+      <span class="badge">🎯 Difficulty: Advanced</span>
+      <span class="badge">📝 Format: Multiple Choice (A–D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
 
     <div class="status">
-      ?? Answer key pending: submit to save your responses. Scores will update once the official answers are added.
+      ⚠️ Answer key pending: submit to save your responses. Scores will update once the official answers are added.
     </div>
-    <div id="timer" class="timer-box floating">? Time remaining: 00:00</div>
+    <div id="timer" class="timer-box floating">⏳ Time remaining: 00:00</div>
 
 
     <div class="student-info">
@@ -585,14 +585,14 @@
         <li>Three violations will auto-submit your test immediately.</li>
         <li>Copy, cut, paste, right-click, and drag-and-drop are all disabled.</li>
         <li>Screenshots, screen recording, and printing are blocked.</li>
-        <li>Your timer starts only after you click "I understand".</li>
+        <li>Your timer starts only after you click “I understand”.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
       </div>
     </div>
   </div>
-  <div id="antiCheatToast" class="anti-cheat-toast">?? Tab switching detected. Please stay on this test.</div>
+  <div id="antiCheatToast" class="anti-cheat-toast">⚠️ Tab switching detected. Please stay on this test.</div>
 
   <script>
     const SUPABASE_URL = window.__SUPABASE_ENV__?.VITE_SUPABASE_URL || 'https://sozodkxwhubespiedgxm.supabase.co';
@@ -738,11 +738,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} ? Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} ? ${totalQuestions} questions`;
-      if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
-      if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
-      document.title = `${title} ? Part ${part}`;
+      if (titleEl) titleEl.textContent = `${title} — Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} • ${totalQuestions} questions`;
+      if (timeBadge) timeBadge.textContent = `⏱️ Suggested time: ${formatDuration(durationSeconds)}`;
+      if (partBadge) partBadge.textContent = `📌 Part ${part} of 2`;
+      document.title = `${title} — Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -773,7 +773,7 @@
         options: {
           A: 'The hydrides become less thermally stable as they become weaker reducing agents.',
           B: 'The hydrides become more thermally stable as the reactivity of the elements decreases.',
-          C: 'The volatility of the elements decreases as the van der Waals? forces increase.',
+          C: 'The volatility of the elements decreases as the van der Waals’ forces increase.',
           D: 'The volatility of the elements increases as the size of the molecules increases.',
         }
       },
@@ -795,7 +795,7 @@
         options: {
           A: 'Chlorine is more electronegative than iodine and so has more repulsion between its molecules.',
           B: 'The greater number of electrons in iodine leads to larger temporary dipole-induced dipole forces.',
-          C: 'The I?I bond energy is smaller than the Cl?Cl bond energy.',
+          C: 'The I–I bond energy is smaller than the Cl–Cl bond energy.',
           D: 'The iodine molecules have stronger permanent dipole-permanent dipole forces.',
         }
       },
@@ -805,9 +805,9 @@
         prompt: 'Which property explains the trend in volatility of the elements going down Group 17?',
         options: {
           A: 'decreasing covalent bond strength',
-          B: 'decreasing van der Waals? forces',
+          B: 'decreasing van der Waals’ forces',
           C: 'increasing covalent bond strength',
-          D: 'increasing van der Waals? forces',
+          D: 'increasing van der Waals’ forces',
         }
       },
       {
@@ -815,10 +815,10 @@
         code: '9701_m19_qp_12 Q: 18',
         prompt: 'Under standard conditions, which statement is correct?',
         options: {
-          A: 'Cl?(aq) can oxidise Br?(aq).',
-          B: 'Cl?(aq) can reduce Br?(aq).',
-          C: 'Cl?(aq) can oxidise Br?(aq).',
-          D: 'Cl?(aq) can reduce Br?(aq).',
+          A: 'Cl₂(aq) can oxidise Br⁻(aq).',
+          B: 'Cl₂(aq) can reduce Br⁻(aq).',
+          C: 'Cl⁻(aq) can oxidise Br₂(aq).',
+          D: 'Cl⁻(aq) can reduce Br₂(aq).',
         }
       },
       {
@@ -842,8 +842,8 @@
         options: {
           A: 'Instantaneous dipole-induced dipole forces between molecules become stronger.',
           B: 'Permanent dipole-permanent dipole forces between molecules become stronger.',
-          C: 'The bond energy of the X? molecules decreases.',
-          D: 'The first ionisation energy X(g) > X?(g) + e? decreases.',
+          C: 'The bond energy of the X₂ molecules decreases.',
+          D: 'The first ionisation energy X(g) → X⁺(g) + e⁻ decreases.',
         }
       },
       {
@@ -865,18 +865,18 @@
         code: '9701_s17_qp_11 Q: 19',
         prompt: 'Redox reactions are common in the chemistry of Group 17. Which statement is correct?',
         options: {
-          A: 'Br? ions will reduce Cl? but not I?.',
-          B: 'Cl? will oxidise Br? ions but not I? ions.',
-          C: 'F? is the weakest oxidising agent out of F?, Cl?, Br? and I?.',
-          D: 'I? ions are the weakest reducing agent out of F?, Cl?, Br? and I?.',
+          A: 'Br⁻ ions will reduce Cl₂ but not I₂.',
+          B: 'Cl₂ will oxidise Br⁻ ions but not I⁻ ions.',
+          C: 'F₂ is the weakest oxidising agent out of F₂, Cl₂, Br₂ and I₂.',
+          D: 'I⁻ ions are the weakest reducing agent out of F⁻, Cl⁻, Br⁻ and I⁻.',
         }
       },
       {
         number: 10,
         code: '9701_w17_qp_11 Q: 19',
-        prompt: 'The strengths of the covalent bonds within halogen molecules, and the van der Waals? forces between halogen molecules, vary going down Group 17 from chlorine to bromine to iodine. Which row shows these correctly?',
+        prompt: 'The strengths of the covalent bonds within halogen molecules, and the van der Waals’ forces between halogen molecules, vary going down Group 17 from chlorine to bromine to iodine. Which row shows these correctly?',
         optionTable: {
-          headers: ['strength of covalent bonds', 'strength of van der Waals? forces'],
+          headers: ['strength of covalent bonds', 'strength of van der Waals’ forces'],
           rows: [
             { label: 'A', values: ['decreases', 'decreases'] },
             { label: 'B', values: ['decreases', 'increases'] },
@@ -888,14 +888,14 @@
       {
         number: 11,
         code: '9701_s16_qp_12 Q: 19',
-        prompt: 'Fluorine and iodine are Group 17 elements. Their melting points are different due to differing strengths of van der Waals? forces between molecules. Which row is correct?',
+        prompt: 'Fluorine and iodine are Group 17 elements. Their melting points are different due to differing strengths of van der Waals’ forces between molecules. Which row is correct?',
         optionTable: {
-          headers: ['melting point', 'strength of van der Waals? forces between molecules'],
+          headers: ['melting point', 'strength of van der Waals’ forces between molecules'],
           rows: [
-            { label: 'A', values: ['F? > I?', 'F? > I?'] },
-            { label: 'B', values: ['F? > I?', 'F? < I?'] },
-            { label: 'C', values: ['F? < I?', 'F? < I?'] },
-            { label: 'D', values: ['F? < I?', 'F? > I?'] },
+            { label: 'A', values: ['F₂ > I₂', 'F₂ > I₂'] },
+            { label: 'B', values: ['F₂ > I₂', 'F₂ < I₂'] },
+            { label: 'C', values: ['F₂ < I₂', 'F₂ < I₂'] },
+            { label: 'D', values: ['F₂ < I₂', 'F₂ > I₂'] },
           ]
         }
       },
@@ -913,7 +913,7 @@
       {
         number: 13,
         code: '9701_w15_qp_12 Q: 17',
-        prompt: 'A student observed the reactions when sodium chloride and sodium iodide were each reacted separately with concentrated sulfuric acid and with concentrated phosphoric acid. Some observations are recorded in the table.<br><div class="table-wrapper"><table><thead><tr><th></th><th>sodium chloride</th><th>sodium iodide</th></tr></thead><tbody><tr><td>conc. H?SO?</td><td>colourless acidic gas formed</td><td>purple vapour formed</td></tr><tr><td>conc. H?PO?</td><td>colourless acidic gas formed</td><td>colourless acidic gas formed</td></tr></tbody></table></div>Which deduction can be made from these observations?',
+        prompt: 'A student observed the reactions when sodium chloride and sodium iodide were each reacted separately with concentrated sulfuric acid and with concentrated phosphoric acid. Some observations are recorded in the table.<br><div class="table-wrapper"><table><thead><tr><th></th><th>sodium chloride</th><th>sodium iodide</th></tr></thead><tbody><tr><td>conc. H₂SO₄</td><td>colourless acidic gas formed</td><td>purple vapour formed</td></tr><tr><td>conc. H₃PO₄</td><td>colourless acidic gas formed</td><td>colourless acidic gas formed</td></tr></tbody></table></div>Which deduction can be made from these observations?',
         options: {
           A: 'Concentrated phosphoric acid is a stronger oxidising agent than concentrated sulfuric acid.',
           B: 'Concentrated phosphoric acid is a stronger oxidising agent than iodine.',
@@ -924,7 +924,7 @@
       {
         number: 14,
         code: '9701_m22_qp_12 Q: 6',
-        prompt: 'The boiling points of some hydrogen halides are shown.<br><div class="table-wrapper"><table><thead><tr><th>hydrogen halide</th><th>boiling point / K</th></tr></thead><tbody><tr><td>H?Cl</td><td>188</td></tr><tr><td>H?Br</td><td>206</td></tr><tr><td>H?I</td><td>238</td></tr></tbody></table></div>What is the explanation for the trend in boiling point for the hydrogen halides from HCl to HI?',
+        prompt: 'The boiling points of some hydrogen halides are shown.<br><div class="table-wrapper"><table><thead><tr><th>hydrogen halide</th><th>boiling point / K</th></tr></thead><tbody><tr><td>H–Cl</td><td>188</td></tr><tr><td>H–Br</td><td>206</td></tr><tr><td>H–I</td><td>238</td></tr></tbody></table></div>What is the explanation for the trend in boiling point for the hydrogen halides from HCl to HI?',
         options: {
           A: 'The bond energies of the hydrogen halides increase from HCl to HI.',
           B: 'There is an increase in the strength of the intermolecular forces of attraction from HCl to HI.',
@@ -953,8 +953,8 @@
         options: {
           A: 'bond strength of the hydrogen-halide bond',
           B: 'first ionisation energy',
-          C: 'solubility of the silver halide in NH?(aq)',
-          D: 'strength of the van der Waals? forces between molecules of the element',
+          C: 'solubility of the silver halide in NH₃(aq)',
+          D: 'strength of the van der Waals’ forces between molecules of the element',
         }
       },
       {
@@ -978,17 +978,17 @@
         optionTable: {
           headers: ['identity of the more thermally stable compound', 'explanation for the difference in stability'],
           rows: [
-            { label: 'A', values: ['hydrogen chloride', 'the Cl?Cl bond is stronger than the I?I bond'] },
-            { label: 'B', values: ['hydrogen chloride', 'the H?Cl bond is stronger than the H?I bond'] },
-            { label: 'C', values: ['hydrogen iodide', 'the Cl?Cl bond is stronger than the I?I bond'] },
-            { label: 'D', values: ['hydrogen iodide', 'the H?Cl bond is stronger than the H?I bond'] },
+            { label: 'A', values: ['hydrogen chloride', 'the Cl–Cl bond is stronger than the I–I bond'] },
+            { label: 'B', values: ['hydrogen chloride', 'the H–Cl bond is stronger than the H–I bond'] },
+            { label: 'C', values: ['hydrogen iodide', 'the Cl–Cl bond is stronger than the I–I bond'] },
+            { label: 'D', values: ['hydrogen iodide', 'the H–Cl bond is stronger than the H–I bond'] },
           ]
         }
       },
       {
         number: 19,
         code: '9701_s16_qp_13 Q: 17',
-        prompt: 'Two students, P and Q, were asked to draw bar charts to represent how some properties of the halogens and their compounds differ in magnitude. Their diagrams are described below. Student P shows the solubility of AgX(s) in NH?(aq) increasing from Cl to Br to I. Student Q shows ?H? for H?(g) + X?(g) > 2HX(g) becoming less negative from Cl to Br to I. Which of the students have drawn bar charts which show the trends correctly?',
+        prompt: 'Two students, P and Q, were asked to draw bar charts to represent how some properties of the halogens and their compounds differ in magnitude. Their diagrams are described below. Student P shows the solubility of AgX(s) in NH₃(aq) increasing from Cl to Br to I. Student Q shows ΔH° for H₂(g) + X₂(g) → 2HX(g) becoming less negative from Cl to Br to I. Which of the students have drawn bar charts which show the trends correctly?',
         options: {
           A: 'both P and Q',
           B: 'P only',
@@ -1010,18 +1010,18 @@
       {
         number: 21,
         code: '9701_w16_qp_11 Q: 19',
-        prompt: 'X, Y and Z represent different halogens. The table shows the results of nine experiments in which aqueous solutions of X?, Y? and Z? were separately added to separate aqueous solutions containing X?, Y? and Z? ions.<br><div class="table-wrapper"><table><thead><tr><th></th><th>X?(aq)</th><th>Y?(aq)</th><th>Z?(aq)</th></tr></thead><tbody><tr><td>X?(aq)</td><td>no reaction</td><td>no reaction</td><td>no reaction</td></tr><tr><td>Y?(aq)</td><td>X? formed</td><td>no reaction</td><td>Z? formed</td></tr><tr><td>Z?(aq)</td><td>X? formed</td><td>no reaction</td><td>no reaction</td></tr></tbody></table></div>Which row of the following table contains the ions X?, Y? and Z? in order of their decreasing strength as reducing agents?',
+        prompt: 'X, Y and Z represent different halogens. The table shows the results of nine experiments in which aqueous solutions of X₂, Y₂ and Z₂ were separately added to separate aqueous solutions containing X⁻, Y⁻ and Z⁻ ions.<br><div class="table-wrapper"><table><thead><tr><th></th><th>X⁻(aq)</th><th>Y⁻(aq)</th><th>Z⁻(aq)</th></tr></thead><tbody><tr><td>X₂(aq)</td><td>no reaction</td><td>no reaction</td><td>no reaction</td></tr><tr><td>Y₂(aq)</td><td>X₂ formed</td><td>no reaction</td><td>Z₂ formed</td></tr><tr><td>Z₂(aq)</td><td>X₂ formed</td><td>no reaction</td><td>no reaction</td></tr></tbody></table></div>Which row of the following table contains the ions X⁻, Y⁻ and Z⁻ in order of their decreasing strength as reducing agents?',
         options: {
-          A: 'X?, Y?, Z?',
-          B: 'X?, Z?, Y?',
-          C: 'Y?, Z?, X?',
-          D: 'Z?, X?, Y?',
+          A: 'X⁻, Y⁻, Z⁻',
+          B: 'X⁻, Z⁻, Y⁻',
+          C: 'Y⁻, Z⁻, X⁻',
+          D: 'Z⁻, X⁻, Y⁻',
         }
       },
       {
         number: 22,
         code: '9701_m22_qp_12 Q: 11',
-        prompt: 'Hydrogen peroxide, H?O?, decomposes to form water and oxygen. The reaction is catalysed by bromide ions.<br><br>step 1&nbsp;&nbsp;&nbsp;2Br?(aq) + H?O?(aq) + 2H?(aq) > 2H?O(l) + Br?(aq)<br>step 2&nbsp;&nbsp;&nbsp;H?O?(aq) + Br?(aq) > 2Br?(aq) + 2H?(aq) + O?(g)<br><br>Which row is correct?',
+        prompt: 'Hydrogen peroxide, H–O₂, decomposes to form water and oxygen. The reaction is catalysed by bromide ions.<br><br>step 1&nbsp;&nbsp;&nbsp;2Br⁻(aq) + H–O₂(aq) + 2H⁺(aq) > 2H₂O(l) + Br₂(aq)<br>step 2&nbsp;&nbsp;&nbsp;H–O₂(aq) + Br₂(aq) > 2Br⁻(aq) + 2H⁺(aq) + O₂(g)<br><br>Which row is correct?',
         optionTable: {
           headers: ['type of catalyst', 'in step 1'],
           rows: [
@@ -1057,7 +1057,7 @@
       {
         number: 25,
         code: '9701_s21_qp_11 Q: 16',
-        prompt: 'A 5 cm? sample of 0.05 mol dm?? sodium chloride is mixed with a 5 cm? sample of 0.05 mol dm?? potassium iodide. 10 cm? of acidified 0.05 mol dm?? silver nitrate is then added, followed by the addition of an excess of concentrated ammonia solution. What is seen after the addition of an excess of concentrated ammonia solution?',
+        prompt: 'A 5 cm³ sample of 0.05 mol dm⁻³ sodium chloride is mixed with a 5 cm³ sample of 0.05 mol dm⁻³ potassium iodide. 10 cm³ of acidified 0.05 mol dm⁻³ silver nitrate is then added, followed by the addition of an excess of concentrated ammonia solution. What is seen after the addition of an excess of concentrated ammonia solution?',
         options: {
           A: 'a cream precipitate',
           B: 'a white precipitate',
@@ -1072,10 +1072,10 @@
         optionTable: {
           headers: ['mixture 1', 'mixture 2'],
           rows: [
-            { label: 'A', values: ['AgNO?(aq) and NaCl(aq)', 'concentrated H?SO?(aq) and HI(aq)'] },
-            { label: 'B', values: ['Br?(aq) and NaCl(aq)', 'concentrated H?SO?(aq) and HCl(aq)'] },
-            { label: 'C', values: ['Cl?(aq) and NaBr(aq)', 'CH?CHBrCH?(l) + NaOH (ethanolic)'] },
-            { label: 'D', values: ['Br?(aq) and NaI(aq)', 'concentrated H?SO?(aq) and NaBr(s)'] },
+            { label: 'A', values: ['AgNO₃(aq) and NaCl(aq)', 'concentrated H₂SO₄(aq) and HI(aq)'] },
+            { label: 'B', values: ['Br₂(aq) and NaCl(aq)', 'concentrated H₂SO₄(aq) and HCl(aq)'] },
+            { label: 'C', values: ['Cl₂(aq) and NaBr(aq)', 'CH₃CHBrCH₃(l) + NaOH (ethanolic)'] },
+            { label: 'D', values: ['Br₂(aq) and NaI(aq)', 'concentrated H₂SO₄(aq) and NaBr(s)'] },
           ]
         }
       },
@@ -1107,35 +1107,35 @@
         code: '9701_w21_qp_12 Q: 15',
         prompt: 'Redox reactions are common in the chemistry of Group 17 elements. Which statement is correct?',
         options: {
-          A: 'Br? ions will reduce Cl? but not I?.',
-          B: 'Cl? will oxidise Br? ions but not I? ions.',
-          C: 'F? is the weakest oxidising agent out of F?, Cl?, Br? and I?.',
-          D: 'I? ions are the weakest reducing agent out of F?, Cl?, Br? and I?.',
+          A: 'Br⁻ ions will reduce Cl₂ but not I₂.',
+          B: 'Cl₂ will oxidise Br⁻ ions but not I⁻ ions.',
+          C: 'F₂ is the weakest oxidising agent out of F₂, Cl₂, Br₂ and I₂.',
+          D: 'I⁻ ions are the weakest reducing agent out of F⁻, Cl⁻, Br⁻ and I⁻.',
         }
       },
       {
         number: 30,
         code: '9701_w21_qp_12 Q: 16',
-        prompt: 'Silver chloride and silver iodide form equilibria when added to water.<br><br>AgCl(s) ? Ag?(aq) + Cl?(aq) &nbsp;&nbsp; Kc = K?<br>AgI(s) ? Ag?(aq) + I?(aq) &nbsp;&nbsp; Kc = K?<br><br>Each equilibrium position lies well to the left. Silver iodide will not dissolve in aqueous ammonia. Silver chloride will dissolve in aqueous ammonia. Another equilibrium is formed.<br><br>Ag?(aq) + 2NH?(aq) ? Ag(NH?)??(aq) &nbsp;&nbsp; Kc = K?<br><br>The position of this equilibrium lies to the right. What is the order of magnitude for these three equilibrium constants?',
+        prompt: 'Silver chloride and silver iodide form equilibria when added to water.<br><br>AgCl(s) ⇌ Ag⁺(aq) + Cl⁻(aq) &nbsp;&nbsp; Kc = K₁<br>AgI(s) ⇌ Ag⁺(aq) + I⁻(aq) &nbsp;&nbsp; Kc = K₂<br><br>Each equilibrium position lies well to the left. Silver iodide will not dissolve in aqueous ammonia. Silver chloride will dissolve in aqueous ammonia. Another equilibrium is formed.<br><br>Ag⁺(aq) + 2NH₃(aq) ⇌ Ag(NH₃)₂⁺(aq) &nbsp;&nbsp; Kc = K₃<br><br>The position of this equilibrium lies to the right. What is the order of magnitude for these three equilibrium constants?',
         optionTable: {
-          headers: ['smallest', '>', 'largest'],
+          headers: ['smallest', '→', 'largest'],
           rows: [
-            { label: 'A', values: ['K?', 'K?', 'K?'] },
-            { label: 'B', values: ['K?', 'K?', 'K?'] },
-            { label: 'C', values: ['K?', 'K?', 'K?'] },
-            { label: 'D', values: ['K?', 'K?', 'K?'] },
+            { label: 'A', values: ['K₃', 'K₂', 'K₁'] },
+            { label: 'B', values: ['K₃', 'K₁', 'K₂'] },
+            { label: 'C', values: ['K₂', 'K₁', 'K₃'] },
+            { label: 'D', values: ['K₁', 'K₂', 'K₃'] },
           ]
         }
       },
       {
         number: 31,
         code: '9701_w21_qp_12 Q: 17',
-        prompt: 'X is the ion of a metal which burns with a red flame. Y is an ion that reacts with concentrated H?SO? to produce H?S. What could be the formula of a compound containing X and Y?',
+        prompt: 'X is the ion of a metal which burns with a red flame. Y is an ion that reacts with concentrated H₂SO₄ to produce H–S. What could be the formula of a compound containing X and Y?',
         options: {
-          A: 'BaBr?',
-          B: 'BaI?',
-          C: 'SrBr?',
-          D: 'SrI?',
+          A: 'BaBr₂',
+          B: 'BaI₂',
+          C: 'SrBr₂',
+          D: 'SrI₂',
         }
       },
       {
@@ -1145,10 +1145,10 @@
         optionTable: {
           headers: ['shape (ammonia molecule)', 'shape (ammonium ion)', 'bonds present (ammonia molecule)', 'bonds present (ammonium ion)'],
           rows: [
-            { label: 'A', values: ['pyramidal', 'regular tetrahedral', '?', '?'] },
-            { label: 'B', values: ['pyramidal', 'regular tetrahedral', '?', '?'] },
-            { label: 'C', values: ['regular tetrahedral', 'pyramidal', '?', '?'] },
-            { label: 'D', values: ['regular tetrahedral', 'pyramidal', '?', '?'] },
+            { label: 'A', values: ['pyramidal', 'regular tetrahedral', 'σ', 'σ'] },
+            { label: 'B', values: ['pyramidal', 'regular tetrahedral', 'σ', 'π'] },
+            { label: 'C', values: ['regular tetrahedral', 'pyramidal', 'σ', 'σ'] },
+            { label: 'D', values: ['regular tetrahedral', 'pyramidal', 'π', 'σ'] },
           ]
         }
       },
@@ -1191,9 +1191,9 @@
         prompt: 'The addition of aqueous silver nitrate to aqueous barium chloride produces a white precipitate which dissolves in an excess of dilute aqueous ammonia to form a colourless solution. The addition of an excess of dilute nitric acid to the colourless solution produces a white precipitate, Z. What is Z?',
         options: {
           A: 'AgCl',
-          B: 'BaCl?',
-          C: 'Ba(NO?)?',
-          D: 'NH?NO?',
+          B: 'BaCl₂',
+          C: 'Ba(NO₃)₂',
+          D: 'NH₄NO₃',
         }
       },
       {
@@ -1232,7 +1232,7 @@
       {
         number: 40,
         code: '9701_s19_qp_13 Q: 16',
-        prompt: 'The solids sodium chloride and sodium iodide both react with concentrated sulfuric acid at room temperature. With NaCl, the products are NaHSO? and HCl. With NaI, the products are NaHSO?, HI, I?, SO?, H?O, S and H?S. What is the explanation for this difference in products?',
+        prompt: 'The solids sodium chloride and sodium iodide both react with concentrated sulfuric acid at room temperature. With NaCl, the products are NaHSO₄ and HCl. With NaI, the products are NaHSO₄, HI, I₂, SO₂, H–O, S and H–S. What is the explanation for this difference in products?',
         options: {
           A: 'Chloride ions will displace iodine from solution.',
           B: 'Hydrogen chloride is more volatile than hydrogen iodide.',
@@ -1254,14 +1254,14 @@
       {
         number: 42,
         code: '9701_w19_qp_11 Q: 17',
-        prompt: 'Sodium azide, NaN?, is dissolved in water. Acidified silver nitrate is added to the solution and a white precipitate forms. Aqueous ammonia is then added to the white precipitate. The azide ion, N??, has similar chemical properties to the Cl? ion. Which row of the table can be predicted from this information?',
+        prompt: 'Sodium azide, NaN₃, is dissolved in water. Acidified silver nitrate is added to the solution and a white precipitate forms. Aqueous ammonia is then added to the white precipitate. The azide ion, N₃⁻, has similar chemical properties to the Cl⁻ ion. Which row of the table can be predicted from this information?',
         optionTable: {
           headers: ['formula of white precipitate', 'observation on adding aqueous ammonia'],
           rows: [
-            { label: 'A', values: ['AgN?', 'colourless solution formed'] },
-            { label: 'B', values: ['AgN?', 'precipitate remains'] },
-            { label: 'C', values: ['Ag?N', 'colourless solution formed'] },
-            { label: 'D', values: ['Ag?N', 'precipitate remains'] },
+            { label: 'A', values: ['AgN₃', 'colourless solution formed'] },
+            { label: 'B', values: ['AgN₃', 'precipitate remains'] },
+            { label: 'C', values: ['Ag–N', 'colourless solution formed'] },
+            { label: 'D', values: ['Ag–N', 'precipitate remains'] },
           ]
         }
       },
@@ -1270,7 +1270,7 @@
         code: '9701_w19_qp_12 Q: 17',
         prompt: 'Solid sodium iodide reacts with concentrated sulfuric acid to form more than one product that contains sulfur. What is the lowest oxidation number of sulfur in these products?',
         options: {
-          A: '?2',
+          A: '−2',
           B: '0',
           C: '+4',
           D: '+6',
@@ -1301,7 +1301,7 @@
       {
         number: 46,
         code: '9701_s18_qp_13 Q: 16',
-        prompt: 'When concentrated sulfuric acid is added to solid sodium chloride, HCl is formed but not Cl?. When concentrated sulfuric acid is added to solid sodium iodide, I? is formed. Which statement explains these observations?',
+        prompt: 'When concentrated sulfuric acid is added to solid sodium chloride, HCl is formed but not Cl₂. When concentrated sulfuric acid is added to solid sodium iodide, I₂ is formed. Which statement explains these observations?',
         options: {
           A: 'Sulfuric acid is an oxidising agent and chloride ions are more easily oxidised.',
           B: 'Sulfuric acid is an oxidising agent and iodide ions are more easily oxidised.',
@@ -1350,7 +1350,7 @@
           A: 'AgCl',
           B: 'NaBr',
           C: 'NaCl',
-          D: 'PbBr?',
+          D: 'PbBr₂',
         }
       },
       {
@@ -1360,14 +1360,14 @@
         options: {
           A: 'A coloured vapour is produced.',
           B: 'A purple solid is formed.',
-          C: 'A strong smell of H?S is detected.',
+          C: 'A strong smell of H–S is detected.',
           D: 'Yellow sulfur is formed.',
         }
       },
       {
         number: 52,
         code: '9701_s16_qp_11 Q: 15',
-        prompt: 'The solids sodium chloride and sodium iodide both react with concentrated sulfuric acid at room temperature. With NaCl, the products are NaHSO? and HCl. With NaI, the products are NaHSO?, HI, I?, SO?, H?O, S and H?S. What is the best explanation for this difference in products?',
+        prompt: 'The solids sodium chloride and sodium iodide both react with concentrated sulfuric acid at room temperature. With NaCl, the products are NaHSO₄ and HCl. With NaI, the products are NaHSO₄, HI, I₂, SO₂, H–O, S and H–S. What is the best explanation for this difference in products?',
         options: {
           A: 'Chloride ions will displace iodine from solution.',
           B: 'Hydrogen chloride is more volatile than hydrogen iodide.',
@@ -1382,14 +1382,14 @@
         options: {
           A: 'bond strength of the hydrogen-halide bond',
           B: 'first ionisation energy',
-          C: 'solubility of the silver halide in NH?(aq)',
-          D: 'strength of the van der Waals? forces between molecules of the element',
+          C: 'solubility of the silver halide in NH₃(aq)',
+          D: 'strength of the van der Waals’ forces between molecules of the element',
         }
       },
       {
         number: 54,
         code: '9701_w16_qp_12 Q: 16',
-        prompt: 'J is a salt of one of the halogens chlorine, bromine, iodine or astatine. The reaction scheme shows a series of reactions using a solution of J as the starting reagent.<br><div class="table-wrapper"><table><thead><tr><th>step</th><th>observation</th></tr></thead><tbody><tr><td>J(aq) + HNO?(aq) + AgNO?(aq)</td><td>a precipitate</td></tr><tr><td>an excess of dilute NH?(aq)</td><td>a colourless solution</td></tr><tr><td>an excess of HNO?(aq)</td><td>a precipitate</td></tr></tbody></table></div>What could J be?',
+        prompt: 'J is a salt of one of the halogens chlorine, bromine, iodine or astatine. The reaction scheme shows a series of reactions using a solution of J as the starting reagent.<br><div class="table-wrapper"><table><thead><tr><th>step</th><th>observation</th></tr></thead><tbody><tr><td>J(aq) + HNO₃(aq) + AgNO₃(aq)</td><td>a precipitate</td></tr><tr><td>an excess of dilute NH₃(aq)</td><td>a colourless solution</td></tr><tr><td>an excess of HNO₃(aq)</td><td>a precipitate</td></tr></tbody></table></div>What could J be?',
         options: {
           A: 'sodium chloride',
           B: 'sodium bromide',
@@ -1415,10 +1415,10 @@
         optionTable: {
           headers: ['solution P', 'solution Q'],
           rows: [
-            { label: 'A', values: ['Ba??(aq)', 'Cl?(aq)'] },
-            { label: 'B', values: ['Ba??(aq)', 'I?(aq)'] },
-            { label: 'C', values: ['Mg??(aq)', 'Cl?(aq)'] },
-            { label: 'D', values: ['Mg??(aq)', 'I?(aq)'] },
+            { label: 'A', values: ['Ba²⁺(aq)', 'Cl⁻(aq)'] },
+            { label: 'B', values: ['Ba²⁺(aq)', 'I⁻(aq)'] },
+            { label: 'C', values: ['Mg²⁺(aq)', 'Cl⁻(aq)'] },
+            { label: 'D', values: ['Mg²⁺(aq)', 'I⁻(aq)'] },
           ]
         }
       },
@@ -1428,9 +1428,9 @@
         prompt: 'The addition of aqueous silver nitrate to aqueous barium chloride produces a white precipitate which dissolves in excess dilute aqueous ammonia to form a colourless solution. The addition of excess dilute nitric acid to the colourless solution produces a white precipitate, Z. What is Z?',
         options: {
           A: 'AgCl',
-          B: 'BaCl?',
-          C: 'Ba(NO?)?',
-          D: 'NH?NO?',
+          B: 'BaCl₂',
+          C: 'Ba(NO₃)₂',
+          D: 'NH₄NO₃',
         }
       },
       {
@@ -1448,7 +1448,7 @@
       {
         number: 59,
         code: '9701_m22_qp_12 Q: 23',
-        prompt: 'An excess of chlorine was bubbled into 100 cm? of hot 6.0 mol dm?? sodium hydroxide. How many moles of sodium chloride would be produced in the reaction?',
+        prompt: 'An excess of chlorine was bubbled into 100 cm³ of hot 6.0 mol dm⁻³ sodium hydroxide. How many moles of sodium chloride would be produced in the reaction?',
         options: {
           A: '0.30',
           B: '0.50',
@@ -1459,7 +1459,7 @@
       {
         number: 60,
         code: '9701_m21_qp_12 Q: 16',
-        prompt: 'Chlorine gas is reacted with aqueous sodium hydroxide. The oxidation number of chlorine changes from 0 to ?1 and also from 0 to +1. Under what conditions does this reaction occur and what is the colour of the solid silver salt with chlorine in the oxidation state ?1?',
+        prompt: 'Chlorine gas is reacted with aqueous sodium hydroxide. The oxidation number of chlorine changes from 0 to −1 and also from 0 to +1. Under what conditions does this reaction occur and what is the colour of the solid silver salt with chlorine in the oxidation state −1?',
         optionTable: {
           headers: ['reaction conditions', 'colour of silver salt'],
           rows: [
@@ -1475,10 +1475,10 @@
         code: '9701_s21_qp_12 Q: 17',
         prompt: 'Chlorine gas is widely used to treat contaminated water. When chlorine is added to water, which chemical species present is responsible for killing bacteria?',
         options: {
-          A: 'ClO??',
-          B: 'Cl?',
+          A: 'ClO₂⁻',
+          B: 'Cl⁻',
           C: 'HCl',
-          D: 'ClO?',
+          D: 'ClO⁻',
         }
       },
       {
@@ -1498,11 +1498,11 @@
       {
         number: 63,
         code: '9701_m20_qp_12 Q: 14',
-        prompt: 'Hot aqueous sodium hydroxide reacts with chlorine.<br><br>6NaOH(aq) + 3Cl?(g) > 5NaCl(aq) + NaClO?(aq) + 3H?O(l)<br><br>Which statement is correct?',
+        prompt: 'Hot aqueous sodium hydroxide reacts with chlorine.<br><br>6NaOH(aq) + 3Cl₂(g) → 5NaCl(aq) + NaClO₃(aq) + 3H₂O(l)<br><br>Which statement is correct?',
         options: {
           A: 'The oxidation numbers of chlorine and hydrogen both change in the reaction.',
-          B: 'The oxidation numbers of chlorine in the products are ?1 and +1.',
-          C: 'If the aqueous sodium hydroxide is cold the reaction produces NaClO instead of NaClO?.',
+          B: 'The oxidation numbers of chlorine in the products are −1 and +1.',
+          C: 'If the aqueous sodium hydroxide is cold the reaction produces NaClO instead of NaClO₃.',
           D: 'Sodium undergoes disproportionation in this reaction.',
         }
       },
@@ -1511,7 +1511,7 @@
         code: '9701_w20_qp_12 Q: 17',
         prompt: 'Which statement about Group 17 elements and their compounds is correct?',
         options: {
-          A: 'Chlorine reacts with cold concentrated sodium hydroxide to form NaCl and NaClO?.',
+          A: 'Chlorine reacts with cold concentrated sodium hydroxide to form NaCl and NaClO₃.',
           B: 'HCl is more thermally stable than HBr because chlorine is less electronegative than bromine.',
           C: 'Iodide ions are oxidised to iodine by concentrated sulfuric acid.',
           D: 'Silver iodide is soluble in dilute aqueous ammonia.',
@@ -1531,7 +1531,7 @@
       {
         number: 66,
         code: '9701_s19_qp_12 Q: 17',
-        prompt: 'An excess of chlorine was bubbled into 100 cm? of hot 6.0 mol dm?? sodium hydroxide. How many moles of sodium chloride would be produced in the reaction?',
+        prompt: 'An excess of chlorine was bubbled into 100 cm³ of hot 6.0 mol dm⁻³ sodium hydroxide. How many moles of sodium chloride would be produced in the reaction?',
         options: {
           A: '0.3',
           B: '0.5',
@@ -1542,12 +1542,12 @@
       {
         number: 67,
         code: '9701_m18_qp_12 Q: 24',
-        prompt: 'Structural isomerism and stereoisomerism should be considered when answering this question. The molecular formula of compound X is C?H??O. Compound X reacts with alkaline aqueous iodine and can be dehydrated to form two alkenes only. What could be the identity of compound X?',
+        prompt: 'Structural isomerism and stereoisomerism should be considered when answering this question. The molecular formula of compound X is C–H₁₂O. Compound X reacts with alkaline aqueous iodine and can be dehydrated to form two alkenes only. What could be the identity of compound X?',
         options: {
-          A: 'CH?CH?CH(CH?)CH?OH',
-          B: 'CH?CH?CH(OH)CH?CH?',
-          C: '(CH?)?CHCH(OH)CH?',
-          D: 'CH?CH?CH?CH(OH)CH?',
+          A: 'CH₃CH₂CH(CH₃)CH₂OH',
+          B: 'CH₃CH₂CH(OH)CH₂CH₃',
+          C: '(CH₃)₂CHCH(OH)CH₃',
+          D: 'CH₃CH₂CH₂CH(OH)CH₃',
         }
       },
       {
@@ -1557,9 +1557,9 @@
         optionTable: {
           headers: ['X', 'Y'],
           rows: [
-            { label: 'A', values: ['?1', '?5'] },
-            { label: 'B', values: ['?1', '+5'] },
-            { label: 'C', values: ['+1', '?5'] },
+            { label: 'A', values: ['−1', '−5'] },
+            { label: 'B', values: ['−1', '+5'] },
+            { label: 'C', values: ['+1', '−5'] },
             { label: 'D', values: ['+1', '+5'] },
           ]
         }
@@ -1567,14 +1567,14 @@
       {
         number: 69,
         code: '9701_w18_qp_11 Q: 17',
-        prompt: 'Reaction 1: chlorine reacts with cold aqueous sodium hydroxide to form solution Z. Reaction 2: solution Z is heated and forms ClO??(aq) and Cl?(aq). Which equations represent reaction 1 and reaction 2?',
+        prompt: 'Reaction 1: chlorine reacts with cold aqueous sodium hydroxide to form solution Z. Reaction 2: solution Z is heated and forms ClO₃⁻(aq) and Cl⁻(aq). Which equations represent reaction 1 and reaction 2?',
         optionTable: {
           headers: ['reaction 1', 'reaction 2'],
           rows: [
-            { label: 'A', values: ['2Cl? + 4OH? > ClO?? + 3Cl? + 2H?O', '3ClO?? > 2ClO?? + Cl?'] },
-            { label: 'B', values: ['2Cl? + 4OH? > ClO?? + 3Cl? + 2H?O', '3ClO? > ClO?? + 2Cl?'] },
-            { label: 'C', values: ['Cl? + 2OH? > ClO? + Cl? + H?O', '2ClO? + 2OH? > ClO?? + Cl? + H?O'] },
-            { label: 'D', values: ['Cl? + 2OH? > ClO? + Cl? + H?O', '3ClO? > ClO?? + 2Cl?'] },
+            { label: 'A', values: ['2Cl₂ + 4OH⁻ → ClO₂⁻ + 3Cl⁻ + 2H₂O', '3ClO₂⁻ → 2ClO₃⁻ + Cl⁻'] },
+            { label: 'B', values: ['2Cl₂ + 4OH⁻ → ClO₂⁻ + 3Cl⁻ + 2H₂O', '3ClO⁻ → ClO₃⁻ + 2Cl⁻'] },
+            { label: 'C', values: ['Cl₂ + 2OH⁻ → ClO⁻ + Cl⁻ + H₂O', '2ClO⁻ + 2OH⁻ → ClO₃⁻ + Cl⁻ + H₂O'] },
+            { label: 'D', values: ['Cl₂ + 2OH⁻ → ClO⁻ + Cl⁻ + H₂O', '3ClO⁻ → ClO₃⁻ + 2Cl⁻'] },
           ]
         }
       },
@@ -1583,8 +1583,8 @@
         code: '9701_w18_qp_12 Q: 17',
         prompt: 'Chlorine reacts with both hot and cold sodium hydroxide to form products containing chlorine. Cold sodium hydroxide forms sodium chlorate(X) and hot sodium hydroxide forms sodium chlorate(Y). X and Y are oxidation numbers. Which equation is correct?',
         options: {
-          A: 'Y = X ? 6',
-          B: 'Y = X ? 4',
+          A: 'Y = X − 6',
+          B: 'Y = X − 4',
           C: 'Y = X + 4',
           D: 'Y = X + 6',
         }
@@ -1603,7 +1603,7 @@
       {
         number: 72,
         code: '9701_m17_qp_12 Q: 17',
-        prompt: 'In an experiment, 0.600 mol of chlorine gas, Cl?, is reacted with an excess of hot aqueous sodium hydroxide. One of the products is NaClO?. Which mass of NaClO? is formed?',
+        prompt: 'In an experiment, 0.600 mol of chlorine gas, Cl₂, is reacted with an excess of hot aqueous sodium hydroxide. One of the products is NaClO₃. Which mass of NaClO₃ is formed?',
         options: {
           A: '21.3 g',
           B: '44.7 g',
@@ -1617,9 +1617,9 @@
         prompt: 'A solution of sodium hydroxide reacts with 3 mol of chlorine under certain conditions. The reaction produces 5 mol of sodium chloride and 1 mol of X, the only other chlorine-containing product. What is the formula of compound X?',
         options: {
           A: 'NaClO',
-          B: 'NaClO?',
-          C: 'NaClO?',
-          D: 'NaClO?',
+          B: 'NaClO₂',
+          C: 'NaClO₃',
+          D: 'NaClO₄',
         }
       },
       {
@@ -1631,8 +1631,8 @@
           rows: [
             { label: 'A', values: ['0', '+1'] },
             { label: 'B', values: ['0', '+5'] },
-            { label: 'C', values: ['?1', '+1'] },
-            { label: 'D', values: ['?1', '+5'] },
+            { label: 'C', values: ['−1', '+1'] },
+            { label: 'D', values: ['−1', '+5'] },
           ]
         }
       },
@@ -1641,27 +1641,27 @@
         code: '9701_s17_qp_13 Q: 16',
         prompt: 'Chlorine gas is added to cold, aqueous sodium hydroxide. In a separate experiment, chlorine gas is added to hot, aqueous sodium hydroxide. Which oxidation states of chlorine are found in the reactants and products of the two reactions that take place?',
         options: {
-          A: '0, ?1, +1 and +5',
-          B: '0, ?1 and +1 only',
-          C: '0, ?1 and +5 only',
+          A: '0, −1, +1 and +5',
+          B: '0, −1 and +1 only',
+          C: '0, −1 and +5 only',
           D: '0, +1 and +5 only',
         }
       },
       {
         number: 76,
         code: '9701_w17_qp_11 Q: 17',
-        prompt: '71.0 g of chlorine, Cl?, react with an excess of sodium hydroxide solution at a particular temperature. The reaction produces exactly 35.5 g of product X. What is product X?',
+        prompt: '71.0 g of chlorine, Cl₂, react with an excess of sodium hydroxide solution at a particular temperature. The reaction produces exactly 35.5 g of product X. What is product X?',
         options: {
-          A: 'H?O',
+          A: 'H–O',
           B: 'NaCl',
           C: 'NaClO',
-          D: 'NaClO?',
+          D: 'NaClO₃',
         }
       },
       {
         number: 77,
         code: '9701_w17_qp_12 Q: 16',
-        prompt: 'In an experiment, 0.125 mol of chlorine gas, Cl?, is reacted with an excess of cold, aqueous sodium hydroxide. One of the products is a compound of sodium, oxygen and chlorine. Which mass of this product is formed?',
+        prompt: 'In an experiment, 0.125 mol of chlorine gas, Cl₂, is reacted with an excess of cold, aqueous sodium hydroxide. One of the products is a compound of sodium, oxygen and chlorine. Which mass of this product is formed?',
         options: {
           A: '9.31 g',
           B: '13.3 g',
@@ -1674,16 +1674,16 @@
         code: '9701_m16_qp_12 Q: 14',
         prompt: 'Chlorine gas is widely used to treat contaminated water. Which species present in water when chlorine gas has been added is responsible for killing bacteria?',
         options: {
-          A: 'ClO??',
-          B: 'Cl?',
+          A: 'ClO₂⁻',
+          B: 'Cl⁻',
           C: 'HCl',
-          D: 'OCl?',
+          D: 'OCl⁻',
         }
       },
       {
         number: 79,
         code: '9701_s16_qp_12 Q: 18',
-        prompt: 'An excess of chlorine gas, Cl?, is passed through 60 cm? of cold aqueous 0.1 mol dm?? sodium hydroxide. In a separate experiment an excess of chlorine gas is passed through 60 cm? of hot aqueous 0.1 mol dm?? sodium hydroxide until no further reaction takes place. How much more sodium chloride will be produced by the reaction with hot NaOH than with cold NaOH?',
+        prompt: 'An excess of chlorine gas, Cl₂, is passed through 60 cm³ of cold aqueous 0.1 mol dm⁻³ sodium hydroxide. In a separate experiment an excess of chlorine gas is passed through 60 cm³ of hot aqueous 0.1 mol dm⁻³ sodium hydroxide until no further reaction takes place. How much more sodium chloride will be produced by the reaction with hot NaOH than with cold NaOH?',
         options: {
           A: '0.002 moles',
           B: '0.003 moles',
@@ -1694,12 +1694,12 @@
       {
         number: 80,
         code: '9701_w16_qp_12 Q: 15',
-        prompt: 'When chlorine reacts with hot aqueous sodium hydroxide, two chlorine-containing ions are formed. One of these is the chloride ion, Cl?. What is the other ion?',
+        prompt: 'When chlorine reacts with hot aqueous sodium hydroxide, two chlorine-containing ions are formed. One of these is the chloride ion, Cl⁻. What is the other ion?',
         options: {
-          A: 'ClO?',
-          B: 'ClO??',
-          C: 'ClO??',
-          D: 'ClO??',
+          A: 'ClO⁻',
+          B: 'ClO₂⁻',
+          C: 'ClO₃⁻',
+          D: 'ClO₄⁻',
         }
       },
       {
@@ -1707,10 +1707,10 @@
         code: '9701_s15_qp_11 Q: 16',
         prompt: 'Chlorine is widely used in water treatment plants. Which reaction takes place when chlorine dissolves in water?',
         options: {
-          A: 'Cl? + H?O > HCl + HClO',
-          B: '2Cl? + 2H?O > 3HCl + HClO?',
-          C: '3Cl? + 3H?O > 5HCl + HClO?',
-          D: '4Cl? + 4H?O > 7HCl + HClO?',
+          A: 'Cl₂ + H–O > HCl + HClO',
+          B: '2Cl₂ + 2H₂O → 3HCl + HClO₂',
+          C: '3Cl₂ + 3H₂O → 5HCl + HClO₃',
+          D: '4Cl₂ + 4H₂O → 7HCl + HClO₄',
         }
       },
     ];
@@ -1769,7 +1769,7 @@
       const update = () => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         const remaining = Math.max(TEST_DURATION_SECONDS - elapsed, 0);
-        timerEl.textContent = `? Time remaining: ${formatTimer(remaining)}`;
+        timerEl.textContent = `⏳ Time remaining: ${formatTimer(remaining)}`;
         if (remaining === 0) {
           timerEl.classList.add('timer-expired');
           clearInterval(timerInterval);
@@ -1911,7 +1911,7 @@
       document.querySelectorAll('input').forEach(i => i.disabled = true);
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
-      btn.textContent = '? Submitted';
+      btn.textContent = '✓ Submitted';
       const status = document.getElementById('status');
       status.textContent = `You submitted this test on ${new Date(data.submittedAt).toLocaleString()}.`;
       const scoreDiv = document.getElementById('score');
@@ -2035,20 +2035,20 @@
         
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` ? ?? Time: ${formatTimer(data.time_taken_seconds)}`
+            ? ` • ⏱️ Time: ${formatTimer(data.time_taken_seconds)}`
             : '';
-          scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
+          scoreDiv.textContent = `✅ Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
           hideTimer();
           const responses = (data.answers && typeof data.answers === "string" ? JSON.parse(data.answers) : data.answers)?.responses || {};
           applyReviewMode(responses);
         } else {
-          scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+          scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
           scoreDiv.className = 'score-box pending';
         }
       } catch (err) {
         console.error('Failed to check score release status:', err);
-        scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+        scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
         scoreDiv.className = 'score-box pending';
       }
     }
@@ -2066,7 +2066,7 @@
         if (isForced) {
           name = 'Unknown Student';
         } else {
-          status.textContent = '?? Please enter your name.';
+          status.textContent = '⚠️ Please enter your name.';
           return;
         }
       }
@@ -2074,7 +2074,7 @@
         if (isForced) {
           cls = 'Unknown Class';
         } else {
-          status.textContent = '?? Please enter your class.';
+          status.textContent = '⚠️ Please enter your class.';
           return;
         }
       }
@@ -2090,7 +2090,7 @@
       const result = calculateScore(responses);
 
       btn.disabled = true;
-      status.textContent = '?? Submitting...';
+      status.textContent = '📤 Submitting...';
 
       const payload = {
         student_name: name,
@@ -2113,13 +2113,13 @@
         console.error(error);
         if (error.message && (error.message.includes('duplicate') || error.message.includes('unique') || error.message.includes('already exists'))) {
           hasSubmitted = true;
-          btn.textContent = '? Already Submitted';
-          status.textContent = '?? You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
+          btn.textContent = '✅ Already Submitted';
+          status.textContent = '🚨 You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
           document.querySelectorAll('input').forEach(i => i.disabled = true);
           lockQuestions();
           return;
         }
-        status.textContent = '? Failed to submit. Please try again.';
+        status.textContent = '❌ Failed to submit. Please try again.';
         btn.disabled = false;
         return;
       }
@@ -2134,13 +2134,13 @@
       }));
 
       document.querySelectorAll('input').forEach(i => i.disabled = true);
-      btn.textContent = '? Submitted';
-      status.textContent = isForced ? `?? Auto-submitted: ${autoSubmitReason}` : '? Submitted successfully! Your teacher will release your score soon.';
+      btn.textContent = '✓ Submitted';
+      status.textContent = isForced ? `⚠️ Auto-submitted: ${autoSubmitReason}` : '✅ Submitted successfully! Your teacher will release your score soon.';
 
       const scoreDiv = document.getElementById('score');
       scoreDiv.style.display = 'block';
       lockQuestions();
-      scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+      scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
       scoreDiv.className = 'score-box pending';
 
       try {
@@ -2255,10 +2255,10 @@
         const review = document.createElement('div');
         review.className = 'review-answer';
         if (studentAnswer && studentAnswer === correctAnswer) {
-          review.textContent = `? Correct: ${correctAnswer}`;
+          review.textContent = `✅ Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `? Your answer: ${studentAnswer || '?'} | ? Correct: ${correctAnswer}`;
+          review.textContent = `❌ Your answer: ${studentAnswer || '—'} | ✅ Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -2314,7 +2314,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('?')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('•')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -2360,7 +2360,7 @@
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test ? auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
         }
       });
     });

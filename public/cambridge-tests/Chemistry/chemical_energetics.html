@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -639,10 +639,10 @@
   <!--
   <div class="prime-overlay" id="primeOverlay">
     <div class="prime-card">
-      <div class="prime-icon">??</div>
+      <div class="prime-icon">👑</div>
       <h2 class="prime-title">GET PRIME</h2>
       <p class="prime-subtitle">This AS Chemistry content is exclusive to Prime members. Upgrade to unlock all advanced materials.</p>
-      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">? Upgrade to Prime</button>
+      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">✨ Upgrade to Prime</button>
       <div class="prime-divider">or enter activation code</div>
       <input type="text" class="prime-code-input" id="primeCodeInput" placeholder="Enter code..." autocomplete="off" />
       <button class="prime-unlock-btn" id="primeUnlockBtn">Unlock</button>
@@ -657,19 +657,19 @@
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
         <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch5 (Chemical Energetics)</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 5 ? 53 multiple-choice questions</div>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 5 • 53 multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
-      <span class="badge">?? Category: Science</span>
-      <span class="badge">?? Difficulty: Advanced</span>
-      <span class="badge">?? Format: Multiple Choice (A?D)</span>
+      <span class="badge">🧪 Category: Science</span>
+      <span class="badge">🎯 Difficulty: Advanced</span>
+      <span class="badge">📝 Format: Multiple Choice (A–D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
 
-    <div id="timer" class="timer-box floating">? Time remaining: 00:00</div>
+    <div id="timer" class="timer-box floating">⏳ Time remaining: 00:00</div>
 
       <input type="text" id="studentName" placeholder="Student Name" autocomplete="name" />
       <input type="text" id="studentClass" placeholder="Class / Batch" autocomplete="section" />
@@ -704,14 +704,14 @@
         <li>Three violations will auto-submit your test immediately.</li>
         <li>Copy, cut, paste, right-click, and drag-and-drop are all disabled.</li>
         <li>Screenshots, screen recording, and printing are blocked.</li>
-        <li>Your timer starts only after you click "I understand".</li>
+        <li>Your timer starts only after you click “I understand”.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
       </div>
     </div>
   </div>
-  <div id="antiCheatToast" class="anti-cheat-toast">?? Tab switching detected. Please stay on this test.</div>
+  <div id="antiCheatToast" class="anti-cheat-toast">⚠️ Tab switching detected. Please stay on this test.</div>
 
   <script>
     const SUPABASE_URL = window.__SUPABASE_ENV__?.VITE_SUPABASE_URL || 'https://sozodkxwhubespiedgxm.supabase.co';
@@ -857,11 +857,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} ? Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} ? ${totalQuestions} questions`;
-      if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
-      if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
-      document.title = `${title} ? Part ${part}`;
+      if (titleEl) titleEl.textContent = `${title} — Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} • ${totalQuestions} questions`;
+      if (timeBadge) timeBadge.textContent = `⏱️ Suggested time: ${formatDuration(durationSeconds)}`;
+      if (partBadge) partBadge.textContent = `📌 Part ${part} of 2`;
+      document.title = `${title} — Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -889,12 +889,12 @@
       {
         number: 1,
         code: '9701_m22_qp_12 Q: 8',
-        prompt: 'The equation for reaction 1 is shown.<br><br><strong>reaction 1</strong><br>C<sub>6</sub>H<sub>12</sub>O<sub>6</sub> <span class="arrowTop"><span class="chemArrow"></span></span> 2CO<sub>2</sub> + 2C<sub>2</sub>H<sub>5</sub>OH<br><br><div class="table-wrapper"><table><thead><tr><th></th><th>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span> / kJ mol<sup>?1</sup></th></tr></thead><tbody><tr><td>C<sub>6</sub>H<sub>12</sub>O<sub>6</sub></td><td>a</td></tr><tr><td>C<sub>2</sub>H<sub>5</sub>OH</td><td>b</td></tr></tbody></table></div>What is the correct expression for the enthalpy change of reaction 1?',
+        prompt: 'The equation for reaction 1 is shown.<br><br><strong>reaction 1</strong><br>C<sub>6</sub>H<sub>12</sub>O<sub>6</sub> <span class="arrowTop"><span class="chemArrow"></span></span> 2CO<sub>2</sub> + 2C<sub>2</sub>H<sub>5</sub>OH<br><br><div class="table-wrapper"><table><thead><tr><th></th><th>ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span> / kJ mol<sup>−1</sup></th></tr></thead><tbody><tr><td>C<sub>6</sub>H<sub>12</sub>O<sub>6</sub></td><td>a</td></tr><tr><td>C<sub>2</sub>H<sub>5</sub>OH</td><td>b</td></tr></tbody></table></div>What is the correct expression for the enthalpy change of reaction 1?',
         options: {
           A: 'a + b',
-          B: 'a ? b',
+          B: 'a − b',
           C: 'a + 2b',
-          D: 'a ? 2b',
+          D: 'a − 2b',
         }
       },
       {
@@ -911,32 +911,32 @@
       {
         number: 3,
         code: '9701_m21_qp_12 Q: 7',
-        prompt: 'An experiment was performed to determine the enthalpy of combustion of ethanol.<br><br><div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/230.svg" alt="Calorimetry setup diagram" class="theme-aware-graphic white-graphic" loading="lazy" /></div>Data collected:<ul style="margin: 10px 0 0 18px; padding-left: 4px; color: var(--text-main);"><li>mass of water = W g</li><li>mass of ethanol burned = X g</li><li>temperature rise = Y ?C</li><li>molar mass of ethanol = Z g mol<sup>?1</sup></li><li>specific heat capacity of water = 4.2 J K<sup>?1</sup> g<sup>?1</sup></li></ul><br>Which expression calculates the enthalpy of combustion of ethanol in kJ mol<sup>?1</sup>?',
+        prompt: 'An experiment was performed to determine the enthalpy of combustion of ethanol.<br><br><div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/230.svg" alt="Calorimetry setup diagram" class="theme-aware-graphic white-graphic" loading="lazy" /></div>Data collected:<ul style="margin: 10px 0 0 18px; padding-left: 4px; color: var(--text-main);"><li>mass of water = W g</li><li>mass of ethanol burned = X g</li><li>temperature rise = Y °C</li><li>molar mass of ethanol = Z g mol<sup>−1</sup></li><li>specific heat capacity of water = 4.2 J K<sup>−1</sup> g<sup>−1</sup></li></ul><br>Which expression calculates the enthalpy of combustion of ethanol in kJ mol<sup>−1</sup>?',
         options: {
-          A: '<span class="fraction"><span class="fraction-top">?4.2WYZ</span><span class="fraction-bottom">1000X</span></span>',
-          B: '<span class="fraction"><span class="fraction-top">?4.2WYX</span><span class="fraction-bottom">1000Z</span></span>',
-          C: '<span class="fraction"><span class="fraction-top">?4.2XYZ</span><span class="fraction-bottom">1000W</span></span>',
-          D: '<span class="fraction"><span class="fraction-top">?4.2X(Y + 273)Z</span><span class="fraction-bottom">1000W</span></span>',
+          A: '<span class="fraction"><span class="fraction-top">−4.2WYZ</span><span class="fraction-bottom">1000X</span></span>',
+          B: '<span class="fraction"><span class="fraction-top">−4.2WYX</span><span class="fraction-bottom">1000Z</span></span>',
+          C: '<span class="fraction"><span class="fraction-top">−4.2XYZ</span><span class="fraction-bottom">1000W</span></span>',
+          D: '<span class="fraction"><span class="fraction-top">−4.2X(Y + 273)Z</span><span class="fraction-bottom">1000W</span></span>',
         }
       },
       {
         number: 4,
         code: '9701_s21_qp_11 Q: 4',
-        prompt: `?H<span class="subsup"><span class="supSym">?</span><span class="subSym">1</span></span> is the standard enthalpy of formation of methane.<br>
-?H<span class="subsup"><span class="supSym">?</span><span class="subSym">2</span></span> is the standard enthalpy of combustion of carbon.<br>
-?H<span class="subsup"><span class="supSym">?</span><span class="subSym">3</span></span> is the standard enthalpy of combustion of hydrogen.<br><br>
+        prompt: `ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">1</span></span> is the standard enthalpy of formation of methane.<br>
+ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">2</span></span> is the standard enthalpy of combustion of carbon.<br>
+ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">3</span></span> is the standard enthalpy of combustion of hydrogen.<br><br>
 CH<sub>4</sub>(g) + 2O<sub>2</sub>(g)
 <span class="arrowTop">
-  <span class="top">?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span></span>
+  <span class="top">ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span></span>
   <span class="chemArrow"></span>
 </span>
 CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
-<br><br>Which expression is equivalent to ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span>?`,
+<br><br>Which expression is equivalent to ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span>?`,
         options: {
-          A: '?H<span class="subsup"><span class="supSym">?</span><span class="subSym">1</span></span> ? ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">2</span></span> + ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">3</span></span>',
-          B: '?H<span class="subsup"><span class="supSym">?</span><span class="subSym">1</span></span> ? 2?H<span class="subsup"><span class="supSym">?</span><span class="subSym">3</span></span> + ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">2</span></span>',
-          C: '?H<span class="subsup"><span class="supSym">?</span><span class="subSym">2</span></span> ? ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">3</span></span> + ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">1</span></span>',
-          D: '?H<span class="subsup"><span class="supSym">?</span><span class="subSym">2</span></span> + 2?H<span class="subsup"><span class="supSym">?</span><span class="subSym">3</span></span> ? ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">1</span></span>',
+          A: 'ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">1</span></span> − ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">2</span></span> + ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">3</span></span>',
+          B: 'ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">1</span></span> − 2ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">3</span></span> + ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">2</span></span>',
+          C: 'ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">2</span></span> − ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">3</span></span> + ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">1</span></span>',
+          D: 'ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">2</span></span> + 2ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">3</span></span> − ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">1</span></span>',
         }
       },
 
@@ -944,10 +944,10 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 5,
         code: '9701_s21_qp_13 Q: 7',
-        prompt: 'Using the information in the table, what is the enthalpy change, q, for the reaction described?<br><br>Cs<sup>+</sup>(g) + Br<sup>?</sup>(g) <span class="arrowTop"><span class="chemArrow"></span></span> CsBr(s) &nbsp;&nbsp; ?H = q kJ mol<sup>?1</sup><br><br><div class="table-wrapper"><table><thead><tr><th>standard enthalpy change</th><th>value / kJ mol<sup>?1</sup></th></tr></thead><tbody><tr><td>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">sol</span></span> CsBr(s)</td><td>+25.9</td></tr><tr><td>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">hyd</span></span> Cs<sup>+</sup>(g)</td><td>?276</td></tr><tr><td>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">hyd</span></span> Br<sup>?</sup>(g)</td><td>?335</td></tr></tbody></table></div>',
+        prompt: 'Using the information in the table, what is the enthalpy change, q, for the reaction described?<br><br>Cs<sup>+</sup>(g) + Br<sup>−</sup>(g) <span class="arrowTop"><span class="chemArrow"></span></span> CsBr(s) &nbsp;&nbsp; ΔH = q kJ mol<sup>−1</sup><br><br><div class="table-wrapper"><table><thead><tr><th>standard enthalpy change</th><th>value / kJ mol<sup>−1</sup></th></tr></thead><tbody><tr><td>ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">sol</span></span> CsBr(s)</td><td>+25.9</td></tr><tr><td>ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">hyd</span></span> Cs<sup>+</sup>(g)</td><td>−276</td></tr><tr><td>ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">hyd</span></span> Br<sup>−</sup>(g)</td><td>−335</td></tr></tbody></table></div>',
         options: {
-          A: '?636.9',
-          B: '?585.1',
+          A: '−636.9',
+          B: '−585.1',
           C: '+585.1',
           D: '+636.9',
         }
@@ -955,7 +955,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 6,
         code: '9701_w21_qp_12 Q: 9',
-        prompt: 'The equation for the formation of ammonium chloride is shown.<br><br>NH<sub>3</sub>(g) + HCl(g) <span class="arrowTop"><span class="chemArrow"></span></span> NH<sub>4</sub>Cl(s) &nbsp;&nbsp; ?H = ?314 kJ mol<sup>?1</sup><br><br>Which diagram shows the correctly labelled reaction pathway diagram for the decomposition of ammonium chloride?',
+        prompt: 'The equation for the formation of ammonium chloride is shown.<br><br>NH<sub>3</sub>(g) + HCl(g) <span class="arrowTop"><span class="chemArrow"></span></span> NH<sub>4</sub>Cl(s) &nbsp;&nbsp; ΔH = −314 kJ mol<sup>−1</sup><br><br>Which diagram shows the correctly labelled reaction pathway diagram for the decomposition of ammonium chloride?',
         options: {
           A: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/233a.svg" alt="Reaction pathway option A" class="option-graphic white-graphic" loading="lazy" />',
           B: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/233b.svg" alt="Reaction pathway option B" class="option-graphic white-graphic" loading="lazy" />',
@@ -988,12 +988,12 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 9,
         code: '9701_m19_qp_12 Q: 8',
-        prompt: 'The standard enthalpy changes of combustion of carbon, hydrogen and methanol are shown.<br><br>C(s) + O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> CO<sub>2</sub>(g) &nbsp;&nbsp; ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> = ?394 kJ mol<sup>?1</sup><br>H<sub>2</sub>(g) + <span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span> O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> H<sub>2</sub>O(l) &nbsp;&nbsp; ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> = ?286 kJ mol<sup>?1</sup><br>CH<sub>3</sub>OH(l) + <span class="fraction"><span class="fraction-top">3</span><span class="fraction-bottom">2</span></span> O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l) &nbsp;&nbsp; ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> = ?726 kJ mol<sup>?1</sup><br><br>Which expression gives the standard enthalpy change of formation of methanol in kJ mol<sup>?1</sup>?',
+        prompt: 'The standard enthalpy changes of combustion of carbon, hydrogen and methanol are shown.<br><br>C(s) + O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> CO<sub>2</sub>(g) &nbsp;&nbsp; ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span> = −394 kJ mol<sup>−1</sup><br>H<sub>2</sub>(g) + <span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span> O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> H<sub>2</sub>O(l) &nbsp;&nbsp; ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span> = −286 kJ mol<sup>−1</sup><br>CH<sub>3</sub>OH(l) + <span class="fraction"><span class="fraction-top">3</span><span class="fraction-bottom">2</span></span> O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l) &nbsp;&nbsp; ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span> = −726 kJ mol<sup>−1</sup><br><br>Which expression gives the standard enthalpy change of formation of methanol in kJ mol<sup>−1</sup>?',
         options: {
-          A: '?394 + (?286) ? (?726)',
-          B: '?394 + (?286 ? 2) ? 726',
-          C: '?394 + (?286 ? 2) ? (?726)',
-          D: '?726 ? (?394) ? (?286 ? 2)',
+          A: '−394 + (−286) − (−726)',
+          B: '−394 + (−286 × 2) − 726',
+          C: '−394 + (−286 × 2) − (−726)',
+          D: '−726 − (−394) − (−286 × 2)',
         }
       },
       {
@@ -1010,12 +1010,12 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 11,
         code: '9701_s19_qp_11 Q: 8',
-        prompt: 'Two reactions and their enthalpy changes are shown.<br><br>2C(s) + 2H<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> C<sub>2</sub>H<sub>4</sub>(g) &nbsp;&nbsp; ?H<sup>?</sup> = +52.2 kJ mol<sup>?1</sup><br>C<sub>2</sub>H<sub>2</sub>(g) + H<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> C<sub>2</sub>H<sub>4</sub>(g) &nbsp;&nbsp; ?H<sup>?</sup> = ?175.8 kJ mol<sup>?1</sup><br><br>These data can be used to calculate the enthalpy change for the reaction shown.<br><br>2C(s) + H<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> C<sub>2</sub>H<sub>2</sub>(g) &nbsp;&nbsp; ?H<sup>?</sup> = X<br><br>What is the value of X?',
+        prompt: 'Two reactions and their enthalpy changes are shown.<br><br>2C(s) + 2H<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> C<sub>2</sub>H<sub>4</sub>(g) &nbsp;&nbsp; ΔH<sup>⦵</sup> = +52.2 kJ mol<sup>−1</sup><br>C<sub>2</sub>H<sub>2</sub>(g) + H<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> C<sub>2</sub>H<sub>4</sub>(g) &nbsp;&nbsp; ΔH<sup>⦵</sup> = −175.8 kJ mol<sup>−1</sup><br><br>These data can be used to calculate the enthalpy change for the reaction shown.<br><br>2C(s) + H<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> C<sub>2</sub>H<sub>2</sub>(g) &nbsp;&nbsp; ΔH<sup>⦵</sup> = X<br><br>What is the value of X?',
         options: {
-          A: '?228.0 kJ mol<sup>?1</sup>',
-          B: '?123.6 kJ mol<sup>?1</sup>',
-          C: '+123.6 kJ mol<sup>?1</sup>',
-          D: '+228.0 kJ mol<sup>?1</sup>',
+          A: '−228.0 kJ mol<sup>−1</sup>',
+          B: '−123.6 kJ mol<sup>−1</sup>',
+          C: '+123.6 kJ mol<sup>−1</sup>',
+          D: '+228.0 kJ mol<sup>−1</sup>',
         }
       },
       {
@@ -1046,12 +1046,12 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 14,
         code: '9701_w19_qp_11 Q: 7',
-        prompt: 'The following data are needed for this question.<br><br>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span>(N<sub>2</sub>H<sub>4</sub>(l)) = 50.6 kJ mol<sup>?1</sup><br>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span>(N<sub>2</sub>O<sub>4</sub>(g)) = 9.2 kJ mol<sup>?1</sup><br>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span>(H<sub>2</sub>O(g)) = ?241.8 kJ mol<sup>?1</sup><br><br>Hydrazine reacts with dinitrogen tetraoxide to form nitrogen gas and water vapour.<br><br>2N<sub>2</sub>H<sub>4</sub>(l) + N<sub>2</sub>O<sub>4</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> 3N<sub>2</sub>(g) + 4H<sub>2</sub>O(g)<br><br>What is the enthalpy change for this reaction?',
+        prompt: 'The following data are needed for this question.<br><br>ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span>(N<sub>2</sub>H<sub>4</sub>(l)) = 50.6 kJ mol<sup>−1</sup><br>ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span>(N<sub>2</sub>O<sub>4</sub>(g)) = 9.2 kJ mol<sup>−1</sup><br>ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span>(H<sub>2</sub>O(g)) = −241.8 kJ mol<sup>−1</sup><br><br>Hydrazine reacts with dinitrogen tetraoxide to form nitrogen gas and water vapour.<br><br>2N<sub>2</sub>H<sub>4</sub>(l) + N<sub>2</sub>O<sub>4</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> 3N<sub>2</sub>(g) + 4H<sub>2</sub>O(g)<br><br>What is the enthalpy change for this reaction?',
         options: {
-          A: '?1077.6 kJ mol<sup>?1</sup>',
-          B: '?856.8 kJ mol<sup>?1</sup>',
-          C: '?301.6 kJ mol<sup>?1</sup>',
-          D: '?182.0 kJ mol<sup>?1</sup>',
+          A: '−1077.6 kJ mol<sup>−1</sup>',
+          B: '−856.8 kJ mol<sup>−1</sup>',
+          C: '−301.6 kJ mol<sup>−1</sup>',
+          D: '−182.0 kJ mol<sup>−1</sup>',
         }
       },
       {
@@ -1059,8 +1059,8 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
         code: '9701_w19_qp_11 Q: 8',
         prompt: 'Sodium burns in oxygen giving out heat energy and forming the compound Na<sub>2</sub>O.<br><br>2Na(s) + <span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span>O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> Na<sub>2</sub>O(s)<br><br>Which statement about the reaction is correct?',
         options: {
-          A: '?H<sup>?</sup> for the reaction is equal to twice the bond energy of the Na?O bond.',
-          B: '?H<sup>?</sup> for the reaction is positive.',
+          A: 'ΔH<sup>⦵</sup> for the reaction is equal to twice the bond energy of the Na–O bond.',
+          B: 'ΔH<sup>⦵</sup> for the reaction is positive.',
           C: 'The equation represents the standard enthalpy change of combustion of sodium.',
           D: 'The equation represents the standard enthalpy change of formation of sodium oxide.',
         }
@@ -1071,7 +1071,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
         prompt: 'Which reaction is endothermic?',
         options: {
           A: 'Ca(OH)<sub>2</sub>(aq) + 2HCl(aq) <span class="arrowTop"><span class="chemArrow"></span></span> CaCl<sub>2</sub>(aq) + 2H<sub>2</sub>O(l)',
-          B: '2Cl<sup>?</sup>(g) <span class="arrowTop"><span class="chemArrow"></span></span> Cl<sub>2</sub>(g)',
+          B: '2Cl<sup>−</sup>(g) <span class="arrowTop"><span class="chemArrow"></span></span> Cl<sub>2</sub>(g)',
           C: '2Ca(s) + O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> 2CaO(s)',
           D: 'CaCO<sub>3</sub>(s) <span class="arrowTop"><span class="chemArrow"></span></span> CaO(s) + CO<sub>2</sub>(g)',
         }
@@ -1090,40 +1090,40 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 18,
         code: '9701_s18_qp_11 Q: 7',
-        prompt: 'Enthalpy changes of combustion can be used to determine enthalpy changes of formation. The following equation represents the enthalpy change of formation of butane.<br><br>4C(s) + 5H<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> C<sub>4</sub>H<sub>10</sub>(g)<br><br>Using the standard enthalpy of combustion data in the table, what is the value of the standard enthalpy change of formation, ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span>, of butane?<br><br><div class="table-wrapper"><table><thead><tr><th>substance</th><th>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> / kJ mol<sup>?1</sup></th></tr></thead><tbody><tr><td>C(s)</td><td>?394</td></tr><tr><td>H<sub>2</sub>(g)</td><td>?286</td></tr><tr><td>C<sub>4</sub>H<sub>10</sub>(g)</td><td>?2877</td></tr></tbody></table></div>',
+        prompt: 'Enthalpy changes of combustion can be used to determine enthalpy changes of formation. The following equation represents the enthalpy change of formation of butane.<br><br>4C(s) + 5H<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> C<sub>4</sub>H<sub>10</sub>(g)<br><br>Using the standard enthalpy of combustion data in the table, what is the value of the standard enthalpy change of formation, ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span>, of butane?<br><br><div class="table-wrapper"><table><thead><tr><th>substance</th><th>ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span> / kJ mol<sup>−1</sup></th></tr></thead><tbody><tr><td>C(s)</td><td>−394</td></tr><tr><td>H<sub>2</sub>(g)</td><td>−286</td></tr><tr><td>C<sub>4</sub>H<sub>10</sub>(g)</td><td>−2877</td></tr></tbody></table></div>',
         options: {
-          A: '?5883 kJ mol<sup>?1</sup>',
-          B: '?129 kJ mol<sup>?1</sup>',
-          C: '+129 kJ mol<sup>?1</sup>',
-          D: '+2197 kJ mol<sup>?1</sup>',
+          A: '−5883 kJ mol<sup>−1</sup>',
+          B: '−129 kJ mol<sup>−1</sup>',
+          C: '+129 kJ mol<sup>−1</sup>',
+          D: '+2197 kJ mol<sup>−1</sup>',
         }
       },
       {
         number: 19,
         code: '9701_s18_qp_12 Q: 7',
-        prompt: 'The enthalpy change of reaction 1 is ?114 kJ mol<sup>?1</sup>.<br><br>2NaOH(aq) + H<sub>2</sub>SO<sub>4</sub>(aq) <span class="arrowTop"><span class="chemArrow"></span></span> Na<sub>2</sub>SO<sub>4</sub>(aq) + 2H<sub>2</sub>O(l) &nbsp;&nbsp; reaction 1<br><br>Using this information, what is the most likely value for the enthalpy change of reaction 2?<br><br>Ba(OH)<sub>2</sub>(aq) + 2HCl(aq) <span class="arrowTop"><span class="chemArrow"></span></span> BaCl<sub>2</sub>(aq) + 2H<sub>2</sub>O(l) &nbsp;&nbsp; reaction 2',
+        prompt: 'The enthalpy change of reaction 1 is −114 kJ mol<sup>−1</sup>.<br><br>2NaOH(aq) + H<sub>2</sub>SO<sub>4</sub>(aq) <span class="arrowTop"><span class="chemArrow"></span></span> Na<sub>2</sub>SO<sub>4</sub>(aq) + 2H<sub>2</sub>O(l) &nbsp;&nbsp; reaction 1<br><br>Using this information, what is the most likely value for the enthalpy change of reaction 2?<br><br>Ba(OH)<sub>2</sub>(aq) + 2HCl(aq) <span class="arrowTop"><span class="chemArrow"></span></span> BaCl<sub>2</sub>(aq) + 2H<sub>2</sub>O(l) &nbsp;&nbsp; reaction 2',
         options: {
-          A: '?57 kJ mol<sup>?1</sup>',
-          B: '?76 kJ mol<sup>?1</sup>',
-          C: '?114 kJ mol<sup>?1</sup>',
-          D: '?228 kJ mol<sup>?1</sup>',
+          A: '−57 kJ mol<sup>−1</sup>',
+          B: '−76 kJ mol<sup>−1</sup>',
+          C: '−114 kJ mol<sup>−1</sup>',
+          D: '−228 kJ mol<sup>−1</sup>',
         }
       },
       {
         number: 20,
         code: '9701_s18_qp_13 Q: 7',
-        prompt: 'Anhydrous copper(II) chloride, CuCl<sub>2</sub>, combines with water to form CuCl<sub>2</sub>?2H<sub>2</sub>O. The standard enthalpy changes of formation for this reaction are shown in the table.<br><br><div class="table-wrapper"><table><thead><tr><th></th><th>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span> / kJ mol<sup>?1</sup></th></tr></thead><tbody><tr><td>H<sub>2</sub>O</td><td>?286</td></tr><tr><td>CuCl<sub>2</sub></td><td>?206</td></tr><tr><td>CuCl<sub>2</sub>?2H<sub>2</sub>O</td><td>?808</td></tr></tbody></table></div>What is the standard enthalpy change of the reaction shown?<br><br>CuCl<sub>2</sub> + 2H<sub>2</sub>O <span class="arrowTop"><span class="chemArrow"></span></span> CuCl<sub>2</sub>?2H<sub>2</sub>O',
+        prompt: 'Anhydrous copper(II) chloride, CuCl<sub>2</sub>, combines with water to form CuCl<sub>2</sub>·2H<sub>2</sub>O. The standard enthalpy changes of formation for this reaction are shown in the table.<br><br><div class="table-wrapper"><table><thead><tr><th></th><th>ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span> / kJ mol<sup>−1</sup></th></tr></thead><tbody><tr><td>H<sub>2</sub>O</td><td>−286</td></tr><tr><td>CuCl<sub>2</sub></td><td>−206</td></tr><tr><td>CuCl<sub>2</sub>·2H<sub>2</sub>O</td><td>−808</td></tr></tbody></table></div>What is the standard enthalpy change of the reaction shown?<br><br>CuCl<sub>2</sub> + 2H<sub>2</sub>O <span class="arrowTop"><span class="chemArrow"></span></span> CuCl<sub>2</sub>·2H<sub>2</sub>O',
         options: {
-          A: '?1586 kJ mol<sup>?1</sup>',
-          B: '?316 kJ mol<sup>?1</sup>',
-          C: '?110 kJ mol<sup>?1</sup>',
-          D: '?30 kJ mol<sup>?1</sup>',
+          A: '−1586 kJ mol<sup>−1</sup>',
+          B: '−316 kJ mol<sup>−1</sup>',
+          C: '−110 kJ mol<sup>−1</sup>',
+          D: '−30 kJ mol<sup>−1</sup>',
         }
       },
       {
         number: 21,
         code: '9701_w18_qp_11 Q: 6',
-        prompt: 'A butane burner is used to heat water. The M<sub>r</sub> of butane is 58.<br><br>? ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> of butane is ?2877 kJ mol<sup>?1</sup>.<br>? 250 g of water is heated from 12 ?C to 100 ?C.<br>? The burner transfers 47% of the heat released from the burning fuel to the water.<br><br>Assume that the butane undergoes complete combustion and none of the water evaporates.<br><br>What is the minimum mass of butane that must be burnt?',
+        prompt: 'A butane burner is used to heat water. The M<sub>r</sub> of butane is 58.<br><br>• ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span> of butane is −2877 kJ mol<sup>−1</sup>.<br>• 250 g of water is heated from 12 °C to 100 °C.<br>• The burner transfers 47% of the heat released from the burning fuel to the water.<br><br>Assume that the butane undergoes complete combustion and none of the water evaporates.<br><br>What is the minimum mass of butane that must be burnt?',
         options: {
           A: '0.068 g',
           B: '1.85 g',
@@ -1145,23 +1145,23 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 23,
         code: '9701_w18_qp_12 Q: 7',
-        prompt: 'Ethanol is increasingly being used as a fuel for cars.<br><br>The standard enthalpy change of formation of carbon dioxide is ?393 kJ mol<sup>?1</sup>.<br>The standard enthalpy change of formation of water is ?286 kJ mol<sup>?1</sup>.<br>The standard enthalpy change of formation of ethanol is ?277 kJ mol<sup>?1</sup>.<br><br>What is the standard enthalpy change of combustion of ethanol?',
+        prompt: 'Ethanol is increasingly being used as a fuel for cars.<br><br>The standard enthalpy change of formation of carbon dioxide is −393 kJ mol<sup>−1</sup>.<br>The standard enthalpy change of formation of water is −286 kJ mol<sup>−1</sup>.<br>The standard enthalpy change of formation of ethanol is −277 kJ mol<sup>−1</sup>.<br><br>What is the standard enthalpy change of combustion of ethanol?',
         options: {
-          A: '?1921 kJ mol<sup>?1</sup>',
-          B: '?1367 kJ mol<sup>?1</sup>',
-          C: '?956 kJ mol<sup>?1</sup>',
-          D: '?402 kJ mol<sup>?1</sup>',
+          A: '−1921 kJ mol<sup>−1</sup>',
+          B: '−1367 kJ mol<sup>−1</sup>',
+          C: '−956 kJ mol<sup>−1</sup>',
+          D: '−402 kJ mol<sup>−1</sup>',
         }
       },
       {
         number: 24,
         code: '9701_m17_qp_12 Q: 7',
-        prompt: 'A student mixed 25.0 cm<sup>3</sup> of 4.00 mol dm<sup>?3</sup> hydrochloric acid with an equal volume of 4.00 mol dm<sup>?3</sup> sodium hydroxide. The initial temperature of both solutions was 15.0 ?C. The maximum temperature recorded was 30.0 ?C.<br><br>Using these results, what is the enthalpy change of neutralisation of hydrochloric acid?',
+        prompt: 'A student mixed 25.0 cm<sup>3</sup> of 4.00 mol dm<sup>−3</sup> hydrochloric acid with an equal volume of 4.00 mol dm<sup>−3</sup> sodium hydroxide. The initial temperature of both solutions was 15.0 °C. The maximum temperature recorded was 30.0 °C.<br><br>Using these results, what is the enthalpy change of neutralisation of hydrochloric acid?',
         options: {
-          A: '?62.7 kJ mol<sup>?1</sup>',
-          B: '?31.4 kJ mol<sup>?1</sup>',
-          C: '?15.7 kJ mol<sup>?1</sup>',
-          D: '?3.14 kJ mol<sup>?1</sup>',
+          A: '−62.7 kJ mol<sup>−1</sup>',
+          B: '−31.4 kJ mol<sup>−1</sup>',
+          C: '−15.7 kJ mol<sup>−1</sup>',
+          D: '−3.14 kJ mol<sup>−1</sup>',
         }
       },
       {
@@ -1169,10 +1169,10 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
         code: '9701_m17_qp_12 Q: 9',
         prompt: 'All the reactants and products of an exothermic reaction are gaseous.<br><br>Which statement about this reaction is correct?',
         options: {
-          A: 'The total bond energy of the products is less than the total bond energy of the reactants, and ?H for the reaction is negative.',
-          B: 'The total bond energy of the products is less than the total bond energy of the reactants, and ?H for the reaction is positive.',
-          C: 'The total bond energy of the products is more than the total bond energy of the reactants, and ?H for the reaction is negative.',
-          D: 'The total bond energy of the products is more than the total bond energy of the reactants, and ?H for the reaction is positive.',
+          A: 'The total bond energy of the products is less than the total bond energy of the reactants, and ΔH for the reaction is negative.',
+          B: 'The total bond energy of the products is less than the total bond energy of the reactants, and ΔH for the reaction is positive.',
+          C: 'The total bond energy of the products is more than the total bond energy of the reactants, and ΔH for the reaction is negative.',
+          D: 'The total bond energy of the products is more than the total bond energy of the reactants, and ΔH for the reaction is positive.',
         }
       },
       {
@@ -1180,16 +1180,16 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
         code: '9701_s17_qp_11 Q: 7',
         prompt: 'Which expression gives the standard enthalpy change of combustion of methane?',
         options: {
-          A: '?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span>(CH<sub>4</sub>) + ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span>(CO<sub>2</sub>) ? 2?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span>(H<sub>2</sub>O)',
-          B: '?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span>(CO<sub>2</sub>) + 2?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span>(H<sub>2</sub>O) + ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span>(CH<sub>4</sub>)',
-          C: '?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span>(CH<sub>4</sub>) + 2?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span>(H<sub>2</sub>O) ? ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span>(CO<sub>2</sub>)',
-          D: '?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span>(CO<sub>2</sub>) + 2?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span>(H<sub>2</sub>O) ? ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span>(CH<sub>4</sub>)',
+          A: 'ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span>(CH<sub>4</sub>) + ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span>(CO<sub>2</sub>) − 2ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span>(H<sub>2</sub>O)',
+          B: 'ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span>(CO<sub>2</sub>) + 2ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span>(H<sub>2</sub>O) + ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span>(CH<sub>4</sub>)',
+          C: 'ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span>(CH<sub>4</sub>) + 2ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span>(H<sub>2</sub>O) − ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span>(CO<sub>2</sub>)',
+          D: 'ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span>(CO<sub>2</sub>) + 2ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span>(H<sub>2</sub>O) − ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span>(CH<sub>4</sub>)',
         }
       },
       {
         number: 27,
         code: '9701_s17_qp_12 Q: 7',
-        prompt: 'In the high temperatures of car engines, nitrogen reacts with oxygen to give nitrogen monoxide.<br><br><span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span> N<sub>2</sub>(g) + <span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span> O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> NO(g) &nbsp;&nbsp; ?H<sup>?</sup> = +90 kJ mol<sup>?1</sup><br><br>This reaction has activation energy E<sub>a</sub>.<br><br>Which reaction pathway diagram could correctly represent this reaction?',
+        prompt: 'In the high temperatures of car engines, nitrogen reacts with oxygen to give nitrogen monoxide.<br><br><span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span> N<sub>2</sub>(g) + <span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span> O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> NO(g) &nbsp;&nbsp; ΔH<sup>⦵</sup> = +90 kJ mol<sup>−1</sup><br><br>This reaction has activation energy E<sub>a</sub>.<br><br>Which reaction pathway diagram could correctly represent this reaction?',
         options: {
           A: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/254a.svg" alt="Reaction pathway option A" class="option-graphic white-graphic" loading="lazy" />',
           B: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/254b.svg" alt="Reaction pathway option B" class="option-graphic white-graphic" loading="lazy" />',
@@ -1200,10 +1200,10 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 28,
         code: '9701_s17_qp_13 Q: 6',
-        prompt: 'The following data are needed for this question.<br><br>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span>(CO(g)) = ?111 kJ mol<sup>?1</sup><br>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span>(CO<sub>2</sub>(g)) = ?394 kJ mol<sup>?1</sup><br>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span>(Fe<sub>2</sub>O<sub>3</sub>(s)) = ?822 kJ mol<sup>?1</sup><br><br>Carbon monoxide reacts with iron(III) oxide.<br><br>3CO(g) + Fe<sub>2</sub>O<sub>3</sub>(s) <span class="arrowTop"><span class="chemArrow"></span></span> 3CO<sub>2</sub>(g) + 2Fe(s)<br><br>What is the enthalpy change when 55.8 g of iron are produced by this reaction?',
+        prompt: 'The following data are needed for this question.<br><br>ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span>(CO(g)) = −111 kJ mol<sup>−1</sup><br>ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span>(CO<sub>2</sub>(g)) = −394 kJ mol<sup>−1</sup><br>ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span>(Fe<sub>2</sub>O<sub>3</sub>(s)) = −822 kJ mol<sup>−1</sup><br><br>Carbon monoxide reacts with iron(III) oxide.<br><br>3CO(g) + Fe<sub>2</sub>O<sub>3</sub>(s) <span class="arrowTop"><span class="chemArrow"></span></span> 3CO<sub>2</sub>(g) + 2Fe(s)<br><br>What is the enthalpy change when 55.8 g of iron are produced by this reaction?',
         options: {
-          A: '?27.0 kJ',
-          B: '?13.5 kJ',
+          A: '−27.0 kJ',
+          B: '−13.5 kJ',
           C: '+13.5 kJ',
           D: '+27.0 kJ',
         }
@@ -1211,18 +1211,18 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 29,
         code: '9701_w17_qp_11 Q: 8',
-        prompt: 'Sulfur can be oxidised in two ways.<br><br>S(s) + O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> SO<sub>2</sub>(g) &nbsp;&nbsp; ?H<sup>?</sup> = ?296.5 kJ mol<sup>?1</sup><br>2S(s) + 3O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> 2SO<sub>3</sub>(g) &nbsp;&nbsp; ?H<sup>?</sup> = ?791.4 kJ mol<sup>?1</sup><br><br>Sulfur trioxide can be made from sulfur dioxide and oxygen.<br><br>2SO<sub>2</sub>(g) + O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> 2SO<sub>3</sub>(g)<br><br>What is the standard enthalpy change for this reaction?',
+        prompt: 'Sulfur can be oxidised in two ways.<br><br>S(s) + O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> SO<sub>2</sub>(g) &nbsp;&nbsp; ΔH<sup>⦵</sup> = −296.5 kJ mol<sup>−1</sup><br>2S(s) + 3O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> 2SO<sub>3</sub>(g) &nbsp;&nbsp; ΔH<sup>⦵</sup> = −791.4 kJ mol<sup>−1</sup><br><br>Sulfur trioxide can be made from sulfur dioxide and oxygen.<br><br>2SO<sub>2</sub>(g) + O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> 2SO<sub>3</sub>(g)<br><br>What is the standard enthalpy change for this reaction?',
         options: {
-          A: '?1384.4 kJ mol<sup>?1</sup>',
-          B: '?989.8 kJ mol<sup>?1</sup>',
-          C: '?494.9 kJ mol<sup>?1</sup>',
-          D: '?198.4 kJ mol<sup>?1</sup>',
+          A: '−1384.4 kJ mol<sup>−1</sup>',
+          B: '−989.8 kJ mol<sup>−1</sup>',
+          C: '−494.9 kJ mol<sup>−1</sup>',
+          D: '−198.4 kJ mol<sup>−1</sup>',
         }
       },
       {
         number: 30,
         code: '9701_w17_qp_11 Q: 11',
-        prompt: '200 g of water are at 25 ?C. The water is heated to 75 ?C by burning 2 g of ethanol.<br><br>What is the amount of energy transferred to the water?',
+        prompt: '200 g of water are at 25 °C. The water is heated to 75 °C by burning 2 g of ethanol.<br><br>What is the amount of energy transferred to the water?',
         options: {
           A: '0.418 kJ',
           B: '10.4 kJ',
@@ -1233,29 +1233,29 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 31,
         code: '9701_w17_qp_12 Q: 6',
-        prompt: 'In calculating the enthalpy change, ?H, of an experiment involving solutions, the mass of the solution, m, specific heat capacity of the solution, c, and the temperature change, ?T, are needed.<br><br>?T = T<sub>final</sub> ? T<sub>initial</sub><br><br>Which expression for ?H is correct?',
+        prompt: 'In calculating the enthalpy change, ΔH, of an experiment involving solutions, the mass of the solution, m, specific heat capacity of the solution, c, and the temperature change, ΔT, are needed.<br><br>ΔT = T<sub>final</sub> − T<sub>initial</sub><br><br>Which expression for ΔH is correct?',
         options: {
-          A: '?H = <span class="fraction"><span class="fraction-top">mc</span><span class="fraction-bottom">?T</span></span>',
-          B: '?H = <span class="fraction"><span class="fraction-top">?mc</span><span class="fraction-bottom">?T</span></span>',
-          C: '?H = mc?T',
-          D: '?H = ?mc?T',
+          A: 'ΔH = <span class="fraction"><span class="fraction-top">mc</span><span class="fraction-bottom">ΔT</span></span>',
+          B: 'ΔH = <span class="fraction"><span class="fraction-top">−mc</span><span class="fraction-bottom">ΔT</span></span>',
+          C: 'ΔH = mcΔT',
+          D: 'ΔH = −mcΔT',
         }
       },
       {
         number: 32,
         code: '9701_w17_qp_12 Q: 7',
-        prompt: 'The following data are needed for this question.<br><br>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span>(P<sub>4</sub>O<sub>10</sub>(s)) = ?3012 kJ mol<sup>?1</sup><br>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span>(H<sub>2</sub>O(l)) = ?286 kJ mol<sup>?1</sup><br>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span>(H<sub>3</sub>PO<sub>4</sub>(s)) = ?1279 kJ mol<sup>?1</sup><br><br>What is ?H<sup>?</sup> for the reaction shown?<br><br>P<sub>4</sub>O<sub>10</sub>(s) + 6H<sub>2</sub>O(l) <span class="arrowTop"><span class="chemArrow"></span></span> 4H<sub>3</sub>PO<sub>4</sub>(s)',
+        prompt: 'The following data are needed for this question.<br><br>ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span>(P<sub>4</sub>O<sub>10</sub>(s)) = −3012 kJ mol<sup>−1</sup><br>ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span>(H<sub>2</sub>O(l)) = −286 kJ mol<sup>−1</sup><br>ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span>(H<sub>3</sub>PO<sub>4</sub>(s)) = −1279 kJ mol<sup>−1</sup><br><br>What is ΔH<sup>⦵</sup> for the reaction shown?<br><br>P<sub>4</sub>O<sub>10</sub>(s) + 6H<sub>2</sub>O(l) <span class="arrowTop"><span class="chemArrow"></span></span> 4H<sub>3</sub>PO<sub>4</sub>(s)',
         options: {
-          A: '?9844 kJ mol<sup>?1</sup>',
-          B: '?388 kJ mol<sup>?1</sup>',
-          C: '?97 kJ mol<sup>?1</sup>',
-          D: '+2019 kJ mol<sup>?1</sup>',
+          A: '−9844 kJ mol<sup>−1</sup>',
+          B: '−388 kJ mol<sup>−1</sup>',
+          C: '−97 kJ mol<sup>−1</sup>',
+          D: '+2019 kJ mol<sup>−1</sup>',
         }
       },
       {
         number: 33,
         code: '9701_m16_qp_12 Q: 5',
-        prompt: 'Nitric oxide, NO, and bromine vapour react together according to the equation.<br><br>2NO(g) + Br<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> 2NOBr(g) &nbsp;&nbsp; ?H<sup>?</sup> = ?23 kJ mol<sup>?1</sup><br><br>The reaction has an activation energy of +5.4 kJ mol<sup>?1</sup>.<br><br>What is the correct reaction pathway diagram for this reaction?',
+        prompt: 'Nitric oxide, NO, and bromine vapour react together according to the equation.<br><br>2NO(g) + Br<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> 2NOBr(g) &nbsp;&nbsp; ΔH<sup>⦵</sup> = −23 kJ mol<sup>−1</sup><br><br>The reaction has an activation energy of +5.4 kJ mol<sup>−1</sup>.<br><br>What is the correct reaction pathway diagram for this reaction?',
         options: {
           A: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/260a.svg" alt="Reaction pathway option A" class="option-graphic white-graphic" loading="lazy" />',
           B: '<img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/260b.svg" alt="Reaction pathway option B" class="option-graphic white-graphic" loading="lazy" />',
@@ -1266,29 +1266,29 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 34,
         code: '9701_s16_qp_11 Q: 8',
-        prompt: 'Gaseous phosphorus pentachloride can be decomposed into gaseous phosphorus trichloride and chlorine by heating. The table gives the bond energies.<br><br><div class="table-wrapper"><table><thead><tr><th>bond</th><th>bond energy / kJ mol<sup>?1</sup></th></tr></thead><tbody><tr><td>P?Cl (in both chlorides)</td><td>330</td></tr><tr><td>Cl?Cl</td><td>242</td></tr></tbody></table></div>What is the enthalpy change for the decomposition of PCl<sub>5</sub> to PCl<sub>3</sub> and Cl<sub>2</sub>?',
+        prompt: 'Gaseous phosphorus pentachloride can be decomposed into gaseous phosphorus trichloride and chlorine by heating. The table gives the bond energies.<br><br><div class="table-wrapper"><table><thead><tr><th>bond</th><th>bond energy / kJ mol<sup>−1</sup></th></tr></thead><tbody><tr><td>P–Cl (in both chlorides)</td><td>330</td></tr><tr><td>Cl–Cl</td><td>242</td></tr></tbody></table></div>What is the enthalpy change for the decomposition of PCl<sub>5</sub> to PCl<sub>3</sub> and Cl<sub>2</sub>?',
         options: {
-          A: '?418 kJ mol<sup>?1</sup>',
-          B: '?88 kJ mol<sup>?1</sup>',
-          C: '+88 kJ mol<sup>?1</sup>',
-          D: '+418 kJ mol<sup>?1</sup>',
+          A: '−418 kJ mol<sup>−1</sup>',
+          B: '−88 kJ mol<sup>−1</sup>',
+          C: '+88 kJ mol<sup>−1</sup>',
+          D: '+418 kJ mol<sup>−1</sup>',
         }
       },
       {
         number: 35,
         code: '9701_s16_qp_12 Q: 8',
-        prompt: 'The equation for the complete combustion of propan-1-ol is shown.<br><br>CH<sub>3</sub>CH<sub>2</sub>CH<sub>2</sub>OH(l) + 4 <span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span> O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> 3CO<sub>2</sub>(g) + 4H<sub>2</sub>O(l)<br><br>Standard enthalpy changes of formation are given.<br><br><div class="table-wrapper"><table><thead><tr><th>compound</th><th>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span> / kJ mol<sup>?1</sup></th></tr></thead><tbody><tr><td>CH<sub>3</sub>CH<sub>2</sub>CH<sub>2</sub>OH(l)</td><td>?303</td></tr><tr><td>CO<sub>2</sub>(g)</td><td>?394</td></tr><tr><td>H<sub>2</sub>O(l)</td><td>?286</td></tr></tbody></table></div>What is the standard enthalpy change of combustion of propan-1-ol, in kJ mol<sup>?1</sup>?',
+        prompt: 'The equation for the complete combustion of propan-1-ol is shown.<br><br>CH<sub>3</sub>CH<sub>2</sub>CH<sub>2</sub>OH(l) + 4 <span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span> O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> 3CO<sub>2</sub>(g) + 4H<sub>2</sub>O(l)<br><br>Standard enthalpy changes of formation are given.<br><br><div class="table-wrapper"><table><thead><tr><th>compound</th><th>ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span> / kJ mol<sup>−1</sup></th></tr></thead><tbody><tr><td>CH<sub>3</sub>CH<sub>2</sub>CH<sub>2</sub>OH(l)</td><td>−303</td></tr><tr><td>CO<sub>2</sub>(g)</td><td>−394</td></tr><tr><td>H<sub>2</sub>O(l)</td><td>−286</td></tr></tbody></table></div>What is the standard enthalpy change of combustion of propan-1-ol, in kJ mol<sup>−1</sup>?',
         options: {
-          A: '?394 ? 286 ? 303',
-          B: '303 ? (4 ? 286) ? (3 ? 394)',
-          C: '394 + 286 ? 303',
-          D: '(3 ? 394) + (4 ? 286) + 303',
+          A: '−394 × 286 × 303',
+          B: '303 − (4 × 286) − (3 × 394)',
+          C: '394 + 286 × 303',
+          D: '(3 × 394) + (4 × 286) + 303',
         }
       },
       {
         number: 36,
         code: '9701_s16_qp_13 Q: 1',
-        prompt: 'Enthalpy changes, ?H, can be positive or negative.<br><br>Which row is correct?<br><br><div class="table-wrapper"><table><thead><tr><th>?H positive</th><th>?H negative</th></tr></thead><tbody><tr><td>atomisation</td><td>bond breaking</td></tr><tr><td>bond breaking</td><td>neutralisation</td></tr><tr><td>bond making</td><td>combustion</td></tr><tr><td>bond making</td><td>bond making</td></tr></tbody></table></div>',
+        prompt: 'Enthalpy changes, ΔH, can be positive or negative.<br><br>Which row is correct?<br><br><div class="table-wrapper"><table><thead><tr><th>ΔH positive</th><th>ΔH negative</th></tr></thead><tbody><tr><td>atomisation</td><td>bond breaking</td></tr><tr><td>bond breaking</td><td>neutralisation</td></tr><tr><td>bond making</td><td>combustion</td></tr><tr><td>bond making</td><td>bond making</td></tr></tbody></table></div>',
         options: {
           A: 'atomisation | bond breaking',
           B: 'bond breaking | neutralisation',
@@ -1299,29 +1299,29 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 37,
         code: '9701_s16_qp_13 Q: 8',
-        prompt: 'Methanol may be prepared by the reaction between carbon monoxide and hydrogen.<br><br>CO(g) + 2H<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> CH<sub>3</sub>OH(g)<br><br>The relevant average bond energies are given below.<br><br>E(C=O) 1077 kJ mol<sup>?1</sup><br>E(C?O) 360 kJ mol<sup>?1</sup><br>E(C?H) 410 kJ mol<sup>?1</sup><br>E(H?H) 436 kJ mol<sup>?1</sup><br>E(O?H) 460 kJ mol<sup>?1</sup><br><br>What is the enthalpy change of this reaction?',
+        prompt: 'Methanol may be prepared by the reaction between carbon monoxide and hydrogen.<br><br>CO(g) + 2H<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> CH<sub>3</sub>OH(g)<br><br>The relevant average bond energies are given below.<br><br>E(C=O) 1077 kJ mol<sup>−1</sup><br>E(C–O) 360 kJ mol<sup>−1</sup><br>E(C–H) 410 kJ mol<sup>−1</sup><br>E(H–H) 436 kJ mol<sup>−1</sup><br>E(O–H) 460 kJ mol<sup>−1</sup><br><br>What is the enthalpy change of this reaction?',
         options: {
-          A: '?537 kJ mol<sup>?1</sup>',
-          B: '?101 kJ mol<sup>?1</sup>',
-          C: '+101 kJ mol<sup>?1</sup>',
-          D: '+537 kJ mol<sup>?1</sup>',
+          A: '−537 kJ mol<sup>−1</sup>',
+          B: '−101 kJ mol<sup>−1</sup>',
+          C: '+101 kJ mol<sup>−1</sup>',
+          D: '+537 kJ mol<sup>−1</sup>',
         }
       },
       {
         number: 38,
         code: '9701_w16_qp_11 Q: 8',
-        prompt: 'An important reaction in the manufacture of nitric acid is the catalytic oxidation of ammonia.<br><br>4NH<sub>3</sub>(g) + 5O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrowBoth"><span class="chemArrowBoth-left"></span></span></span> 4NO(g) + 6H<sub>2</sub>O(g)<br><br>For every mole of O<sub>2</sub> that reacts in this way, 181.8 kJ of energy are released.<br><br>A factory makes 2.50 ? 10<sup>5</sup> mol of NO every day.<br><br>How much energy, in kJ, is released every day?',
+        prompt: 'An important reaction in the manufacture of nitric acid is the catalytic oxidation of ammonia.<br><br>4NH<sub>3</sub>(g) + 5O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrowBoth"><span class="chemArrowBoth-left"></span></span></span> 4NO(g) + 6H<sub>2</sub>O(g)<br><br>For every mole of O<sub>2</sub> that reacts in this way, 181.8 kJ of energy are released.<br><br>A factory makes 2.50 × 10<sup>5</sup> mol of NO every day.<br><br>How much energy, in kJ, is released every day?',
         options: {
-          A: '3.64 ? 10<sup>7</sup>',
-          B: '4.55 ? 10<sup>7</sup>',
-          C: '5.68 ? 10<sup>7</sup>',
-          D: '2.27 ? 10<sup>8</sup>',
+          A: '3.64 × 10<sup>7</sup>',
+          B: '4.55 × 10<sup>7</sup>',
+          C: '5.68 × 10<sup>7</sup>',
+          D: '2.27 × 10<sup>8</sup>',
         }
       },
       {
         number: 39,
         code: '9701_w16_qp_12 Q: 9',
-        prompt: 'In a calorimetric experiment 1.60 g of a fuel are burnt. 45.0% of the energy released is absorbed by 200 g of water. The temperature of the water rises from 18.0 ?C to 66.0 ?C.<br><br>What is the total energy released per gram of fuel burnt (to 3 significant figures)?',
+        prompt: 'In a calorimetric experiment 1.60 g of a fuel are burnt. 45.0% of the energy released is absorbed by 200 g of water. The temperature of the water rises from 18.0 °C to 66.0 °C.<br><br>What is the total energy released per gram of fuel burnt (to 3 significant figures)?',
         options: {
           A: '25 100 J',
           B: '55 700 J',
@@ -1332,12 +1332,12 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 40,
         code: '9701_s15_qp_11 Q: 7',
-        prompt: 'The standard enthalpy changes of combustion of glucose and ethanol are given as ?2820 and ?1368 kJ mol<sup>?1</sup> respectively.<br><br>Glucose, C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>, can be converted into ethanol.<br><br>C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>(s) <span class="arrowTop"><span class="chemArrow"></span></span> 2C<sub>2</sub>H<sub>5</sub>OH(l) + 2CO<sub>2</sub>(g)<br><br>What is the standard enthalpy change for this reaction?',
+        prompt: 'The standard enthalpy changes of combustion of glucose and ethanol are given as −2820 and −1368 kJ mol<sup>−1</sup> respectively.<br><br>Glucose, C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>, can be converted into ethanol.<br><br>C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>(s) <span class="arrowTop"><span class="chemArrow"></span></span> 2C<sub>2</sub>H<sub>5</sub>OH(l) + 2CO<sub>2</sub>(g)<br><br>What is the standard enthalpy change for this reaction?',
         options: {
-          A: '?1452 kJ mol<sup>?1</sup>',
-          B: '?84 kJ mol<sup>?1</sup>',
-          C: '+84 kJ mol<sup>?1</sup>',
-          D: '+1452 kJ mol<sup>?1</sup>',
+          A: '−1452 kJ mol<sup>−1</sup>',
+          B: '−84 kJ mol<sup>−1</sup>',
+          C: '+84 kJ mol<sup>−1</sup>',
+          D: '+1452 kJ mol<sup>−1</sup>',
         }
       },
       {
@@ -1354,133 +1354,133 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       {
         number: 42,
         code: '9701_s15_qp_12 Q: 6',
-        prompt: 'Metaldehyde, (CH<sub>3</sub>CHO)<sub>4</sub>, is used as a solid fuel for camping stoves. The equation for the complete combustion of metaldehyde is shown.<br><br>(CH<sub>3</sub>CHO)<sub>4</sub>(s) + 10O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> 8CO<sub>2</sub>(g) + 8H<sub>2</sub>O(l)<br><br>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> = standard enthalpy change of combustion.<br><br>Which expression will give a correct value for the enthalpy change of formation of metaldehyde?',
+        prompt: 'Metaldehyde, (CH<sub>3</sub>CHO)<sub>4</sub>, is used as a solid fuel for camping stoves. The equation for the complete combustion of metaldehyde is shown.<br><br>(CH<sub>3</sub>CHO)<sub>4</sub>(s) + 10O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> 8CO<sub>2</sub>(g) + 8H<sub>2</sub>O(l)<br><br>ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span> = standard enthalpy change of combustion.<br><br>Which expression will give a correct value for the enthalpy change of formation of metaldehyde?',
         options: {
-          A: '?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> metaldehyde ? (8?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> carbon + 8?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> hydrogen)',
-          B: '?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> metaldehyde ? (8?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> carbon + 16?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> hydrogen)',
-          C: '(8?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> carbon + 8?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> hydrogen) ? ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> metaldehyde',
-          D: '(8?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> carbon + 16?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> hydrogen) ? ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> metaldehyde',
+          A: 'ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span> metaldehyde − (8ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span> carbon + 8ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span> hydrogen)',
+          B: 'ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span> metaldehyde − (8ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span> carbon + 16ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span> hydrogen)',
+          C: '(8ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span> carbon + 8ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span> hydrogen) − ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span> metaldehyde',
+          D: '(8ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span> carbon + 16ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span> hydrogen) − ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span> metaldehyde',
         }
       },
       {
         number: 43,
         code: '9701_s15_qp_13 Q: 3',
-        prompt: 'A student performed an experiment to measure the enthalpy change of combustion of ethane.<br><br>He used the following values for the standard enthalpy changes of combustion of carbon and hydrogen.<br><br>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> carbon = ?394 kJ mol<sup>?1</sup><br>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> hydrogen = ?286 kJ mol<sup>?1</sup><br><br>He calculated the enthalpy change of formation of ethane to be ?140 kJ mol<sup>?1</sup>.<br><br>What was his experimental value for the standard enthalpy change of combustion of ethane?',
+        prompt: 'A student performed an experiment to measure the enthalpy change of combustion of ethane.<br><br>He used the following values for the standard enthalpy changes of combustion of carbon and hydrogen.<br><br>ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span> carbon = −394 kJ mol<sup>−1</sup><br>ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span> hydrogen = −286 kJ mol<sup>−1</sup><br><br>He calculated the enthalpy change of formation of ethane to be −140 kJ mol<sup>−1</sup>.<br><br>What was his experimental value for the standard enthalpy change of combustion of ethane?',
         options: {
-          A: '?2364 kJ mol<sup>?1</sup>',
-          B: '?1506 kJ mol<sup>?1</sup>',
-          C: '?1112 kJ mol<sup>?1</sup>',
-          D: '?540 kJ mol<sup>?1</sup>',
+          A: '−2364 kJ mol<sup>−1</sup>',
+          B: '−1506 kJ mol<sup>−1</sup>',
+          C: '−1112 kJ mol<sup>−1</sup>',
+          D: '−540 kJ mol<sup>−1</sup>',
         }
       },
       {
         number: 44,
         code: '9701_s15_qp_13 Q: 7',
-        prompt: 'Carbon monoxide and methanol can react together to form ethanoic acid.<br><br>CO(g) + CH<sub>3</sub>OH(l) <span class="arrowTop"><span class="chemArrow"></span></span> CH<sub>3</sub>CO<sub>2</sub>H(l)<br><br>Standard enthalpy changes of combustion are given in the table.<br><br><div class="table-wrapper"><table><thead><tr><th>compound</th><th>standard enthalpy change of combustion, ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span></th></tr></thead><tbody><tr><td>CO</td><td>?283.0 kJ mol<sup>?1</sup></td></tr><tr><td>CH<sub>3</sub>OH</td><td>?726.0 kJ mol<sup>?1</sup></td></tr><tr><td>CH<sub>3</sub>CO<sub>2</sub>H</td><td>?874.1 kJ mol<sup>?1</sup></td></tr></tbody></table></div>What is the value for ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">r</span></span> for the reaction between carbon monoxide and methanol?',
+        prompt: 'Carbon monoxide and methanol can react together to form ethanoic acid.<br><br>CO(g) + CH<sub>3</sub>OH(l) <span class="arrowTop"><span class="chemArrow"></span></span> CH<sub>3</sub>CO<sub>2</sub>H(l)<br><br>Standard enthalpy changes of combustion are given in the table.<br><br><div class="table-wrapper"><table><thead><tr><th>compound</th><th>standard enthalpy change of combustion, ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span></th></tr></thead><tbody><tr><td>CO</td><td>−283.0 kJ mol<sup>−1</sup></td></tr><tr><td>CH<sub>3</sub>OH</td><td>−726.0 kJ mol<sup>−1</sup></td></tr><tr><td>CH<sub>3</sub>CO<sub>2</sub>H</td><td>−874.1 kJ mol<sup>−1</sup></td></tr></tbody></table></div>What is the value for ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">r</span></span> for the reaction between carbon monoxide and methanol?',
         options: {
-          A: '?1883.1 kJ mol<sup>?1</sup>',
-          B: '?134.9 kJ mol<sup>?1</sup>',
-          C: '+134.9 kJ mol<sup>?1</sup>',
-          D: '+1883.1 kJ mol<sup>?1</sup>',
+          A: '−1883.1 kJ mol<sup>−1</sup>',
+          B: '−134.9 kJ mol<sup>−1</sup>',
+          C: '+134.9 kJ mol<sup>−1</sup>',
+          D: '+1883.1 kJ mol<sup>−1</sup>',
         }
       },
       {
         number: 45,
         code: '9701_w15_qp_11 Q: 6',
-        prompt: 'Solid sulfur consists of molecules made up of eight atoms covalently bonded together. The bonding in sulfur dioxide is O=S=O.<br><br>enthalpy change of combustion of S<sub>8</sub>, ?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> S<sub>8</sub>(s) = ?2376 kJ mol<sup>?1</sup><br>energy required to break 1 mole S<sub>8</sub>(s) into gaseous atoms = 2232 kJ mol<sup>?1</sup><br>O=O bond enthalpy = 496 kJ mol<sup>?1</sup><br><br>Using these data, what is the value of the S=O bond enthalpy?',
+        prompt: 'Solid sulfur consists of molecules made up of eight atoms covalently bonded together. The bonding in sulfur dioxide is O=S=O.<br><br>enthalpy change of combustion of S<sub>8</sub>, ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span> S<sub>8</sub>(s) = −2376 kJ mol<sup>−1</sup><br>energy required to break 1 mole S<sub>8</sub>(s) into gaseous atoms = 2232 kJ mol<sup>−1</sup><br>O=O bond enthalpy = 496 kJ mol<sup>−1</sup><br><br>Using these data, what is the value of the S=O bond enthalpy?',
         options: {
-          A: '239 kJ mol<sup>?1</sup>',
-          B: '257 kJ mol<sup>?1</sup>',
-          C: '319 kJ mol<sup>?1</sup>',
-          D: '536 kJ mol<sup>?1</sup>',
+          A: '239 kJ mol<sup>−1</sup>',
+          B: '257 kJ mol<sup>−1</sup>',
+          C: '319 kJ mol<sup>−1</sup>',
+          D: '536 kJ mol<sup>−1</sup>',
         }
       },
       {
         number: 46,
         code: '9701_w15_qp_11 Q: 7',
-        prompt: 'Use of the Data Booklet is relevant for this question.<br><br>In an experiment, the burning of 1.45 g (0.025 mol) of propanone was used to heat 100 g of water. The initial temperature of the water was 20.0 ?C and the final temperature of the water was 78.0 ?C.<br><br>Which experimental value for the enthalpy change of combustion for propanone can be calculated from these results?',
+        prompt: 'Use of the Data Booklet is relevant for this question.<br><br>In an experiment, the burning of 1.45 g (0.025 mol) of propanone was used to heat 100 g of water. The initial temperature of the water was 20.0 °C and the final temperature of the water was 78.0 °C.<br><br>Which experimental value for the enthalpy change of combustion for propanone can be calculated from these results?',
         options: {
-          A: '?1304 kJ mol<sup>?1</sup>',
-          B: '?970 kJ mol<sup>?1</sup>',
-          C: '?352 kJ mol<sup>?1</sup>',
-          D: '?24.2 kJ mol<sup>?1</sup>',
+          A: '−1304 kJ mol<sup>−1</sup>',
+          B: '−970 kJ mol<sup>−1</sup>',
+          C: '−352 kJ mol<sup>−1</sup>',
+          D: '−24.2 kJ mol<sup>−1</sup>',
         }
       },
       {
         number: 47,
         code: '9701_w15_qp_12 Q: 10',
-        prompt: 'The decomposition reaction SF<sub>6</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> SF<sub>4</sub>(g) + F<sub>2</sub>(g) can be described by the pathway diagram shown.<br><div style="text-align:center;margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/274.svg" alt="Reaction pathway diagram for SF6 decomposition" class="theme-aware-graphic white-graphic" loading="lazy" /></div>What are the values of ?H<sup>?</sup> and E<sub>a</sub> for this reaction?',
+        prompt: 'The decomposition reaction SF<sub>6</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> SF<sub>4</sub>(g) + F<sub>2</sub>(g) can be described by the pathway diagram shown.<br><div style="text-align:center;margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/274.svg" alt="Reaction pathway diagram for SF6 decomposition" class="theme-aware-graphic white-graphic" loading="lazy" /></div>What are the values of ΔH<sup>⦵</sup> and E<sub>a</sub> for this reaction?',
         options: {
-          A: '?H<sup>?</sup> = X, E<sub>a</sub> = X + Y',
-          B: '?H<sup>?</sup> = X, E<sub>a</sub> = Y',
-          C: '?H<sup>?</sup> = X ? Y, E<sub>a</sub> = X',
-          D: '?H<sup>?</sup> = Y ? X, E<sub>a</sub> = X',
+          A: 'ΔH<sup>⦵</sup> = X, E<sub>a</sub> = X + Y',
+          B: 'ΔH<sup>⦵</sup> = X, E<sub>a</sub> = Y',
+          C: 'ΔH<sup>⦵</sup> = X − Y, E<sub>a</sub> = X',
+          D: 'ΔH<sup>⦵</sup> = Y − X, E<sub>a</sub> = X',
         }
       },
       {
         number: 48,
         code: '9701_s21_qp_13 Q: 8',
-        prompt: 'Which enthalpy change is indicated by X in the enthalpy cycle shown?<br><br><div class="table-wrapper"><table><thead><tr><th colspan="2">C(s) + 2H<sub>2</sub>(g) + 2O<sub>2</sub>(g)</th></tr></thead><tbody><tr><td>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span> CH<sub>4</sub>(g)</td><td>?H<span class="subsup"><span class="supSym">?</span><span class="subSym">f</span></span> CO<sub>2</sub>(g) + X</td></tr><tr><td colspan="2" style="text-align:center;">CH<sub>4</sub>(g) + 2O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l) (?H<span class="subsup"><span class="supSym">?</span><span class="subSym">c</span></span> CH<sub>4</sub>(g))</td></tr></tbody></table></div>',
+        prompt: 'Which enthalpy change is indicated by X in the enthalpy cycle shown?<br><br><div class="table-wrapper"><table><thead><tr><th colspan="2">C(s) + 2H<sub>2</sub>(g) + 2O<sub>2</sub>(g)</th></tr></thead><tbody><tr><td>ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span> CH<sub>4</sub>(g)</td><td>ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">f</span></span> CO<sub>2</sub>(g) + X</td></tr><tr><td colspan="2" style="text-align:center;">CH<sub>4</sub>(g) + 2O<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l) (ΔH<span class="subsup"><span class="supSym">⦵</span><span class="subSym">c</span></span> CH<sub>4</sub>(g))</td></tr></tbody></table></div>',
         options: {
-          A: '?4 ? the enthalpy of combustion of hydrogen',
-          B: '+4 ? the enthalpy of combustion of hydrogen',
-          C: '?2 ? the enthalpy of formation of water',
-          D: '+2 ? the enthalpy of formation of water',
+          A: '−4 × the enthalpy of combustion of hydrogen',
+          B: '+4 × the enthalpy of combustion of hydrogen',
+          C: '−2 × the enthalpy of formation of water',
+          D: '+2 × the enthalpy of formation of water',
         }
       },
       {
         number: 49,
         code: '9701_m20_qp_12 Q: 4',
-        prompt: 'The following data are needed for this question.<br><br>NaHCO<sub>3</sub>(s) + HCl(aq) <span class="arrowTop"><span class="chemArrow"></span></span> NaCl(aq) + H<sub>2</sub>O(l) + CO<sub>2</sub>(g) &nbsp;&nbsp; ?H = ?38.97 kJ mol<sup>?1</sup><br>Na<sub>2</sub>CO<sub>3</sub>(s) + 2HCl(aq) <span class="arrowTop"><span class="chemArrow"></span></span> 2NaCl(aq) + H<sub>2</sub>O(l) + CO<sub>2</sub>(g) &nbsp;&nbsp; ?H = ?96.59 kJ mol<sup>?1</sup><br><br>On heating, sodium hydrogencarbonate decomposes as shown.<br><br>2NaHCO<sub>3</sub>(s) <span class="arrowTop"><span class="chemArrow"></span></span> Na<sub>2</sub>CO<sub>3</sub>(s) + H<sub>2</sub>O(l) + CO<sub>2</sub>(g)<br><br>What is the enthalpy change for this decomposition?',
+        prompt: 'The following data are needed for this question.<br><br>NaHCO<sub>3</sub>(s) + HCl(aq) <span class="arrowTop"><span class="chemArrow"></span></span> NaCl(aq) + H<sub>2</sub>O(l) + CO<sub>2</sub>(g) &nbsp;&nbsp; ΔH = −38.97 kJ mol<sup>−1</sup><br>Na<sub>2</sub>CO<sub>3</sub>(s) + 2HCl(aq) <span class="arrowTop"><span class="chemArrow"></span></span> 2NaCl(aq) + H<sub>2</sub>O(l) + CO<sub>2</sub>(g) &nbsp;&nbsp; ΔH = −96.59 kJ mol<sup>−1</sup><br><br>On heating, sodium hydrogencarbonate decomposes as shown.<br><br>2NaHCO<sub>3</sub>(s) <span class="arrowTop"><span class="chemArrow"></span></span> Na<sub>2</sub>CO<sub>3</sub>(s) + H<sub>2</sub>O(l) + CO<sub>2</sub>(g)<br><br>What is the enthalpy change for this decomposition?',
         options: {
-          A: '?57.62 kJ mol<sup>?1</sup>',
-          B: '?18.65 kJ mol<sup>?1</sup>',
-          C: '18.65 kJ mol<sup>?1</sup>',
-          D: '57.62 kJ mol<sup>?1</sup>',
+          A: '−57.62 kJ mol<sup>−1</sup>',
+          B: '−18.65 kJ mol<sup>−1</sup>',
+          C: '18.65 kJ mol<sup>−1</sup>',
+          D: '57.62 kJ mol<sup>−1</sup>',
         }
       },
       {
         number: 50,
         code: '9701_s20_qp_13 Q: 4',
-        prompt: 'The enthalpy changes of two reactions are shown.<br><br>K<sub>2</sub>CO<sub>3</sub>(s) + 2HCl(aq) <span class="arrowTop"><span class="chemArrow"></span></span> 2KCl(aq) + H<sub>2</sub>O(l) + CO<sub>2</sub>(g) &nbsp;&nbsp; ?H = ?34.0 kJ mol<sup>?1</sup><br>KHCO<sub>3</sub>(s) + HCl(aq) <span class="arrowTop"><span class="chemArrow"></span></span> KCl(aq) + H<sub>2</sub>O(l) + CO<sub>2</sub>(g) &nbsp;&nbsp; ?H = +32.8 kJ mol<sup>?1</sup><br><br>What is the enthalpy change for the reaction shown?<br><br>2KHCO<sub>3</sub>(s) <span class="arrowTop"><span class="chemArrow"></span></span> K<sub>2</sub>CO<sub>3</sub>(s) + H<sub>2</sub>O(l) + CO<sub>2</sub>(g)',
+        prompt: 'The enthalpy changes of two reactions are shown.<br><br>K<sub>2</sub>CO<sub>3</sub>(s) + 2HCl(aq) <span class="arrowTop"><span class="chemArrow"></span></span> 2KCl(aq) + H<sub>2</sub>O(l) + CO<sub>2</sub>(g) &nbsp;&nbsp; ΔH = −34.0 kJ mol<sup>−1</sup><br>KHCO<sub>3</sub>(s) + HCl(aq) <span class="arrowTop"><span class="chemArrow"></span></span> KCl(aq) + H<sub>2</sub>O(l) + CO<sub>2</sub>(g) &nbsp;&nbsp; ΔH = +32.8 kJ mol<sup>−1</sup><br><br>What is the enthalpy change for the reaction shown?<br><br>2KHCO<sub>3</sub>(s) <span class="arrowTop"><span class="chemArrow"></span></span> K<sub>2</sub>CO<sub>3</sub>(s) + H<sub>2</sub>O(l) + CO<sub>2</sub>(g)',
         options: {
-          A: '?31.6 kJ mol<sup>?1</sup>',
-          B: '1.2 kJ mol<sup>?1</sup>',
-          C: '66.8 kJ mol<sup>?1</sup>',
-          D: '99.6 kJ mol<sup>?1</sup>',
+          A: '−31.6 kJ mol<sup>−1</sup>',
+          B: '1.2 kJ mol<sup>−1</sup>',
+          C: '66.8 kJ mol<sup>−1</sup>',
+          D: '99.6 kJ mol<sup>−1</sup>',
         }
       },
       {
         number: 51,
         code: '9701_w20_qp_11 Q: 7',
-        prompt: 'An energy cycle is drawn for the following reaction.<br><br>Br<sub>2</sub>(l) + 3F<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> 2BrF<sub>3</sub>(l)<br><div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/278.svg" alt="Energy cycle for bromine trifluoride formation" class="theme-aware-graphic white-graphic" loading="lazy" /></div>The standard enthalpy of formation of BrF<sub>3</sub>(l) = ?301 kJ mol<sup>?1</sup>.<br>The enthalpy change of BrF<sub>3</sub>(l) to BrF<sub>3</sub>(g) is +44 kJ mol<sup>?1</sup>.<br><br>What is the average bond energy of the Br?F bond in BrF<sub>3</sub>?',
+        prompt: 'An energy cycle is drawn for the following reaction.<br><br>Br<sub>2</sub>(l) + 3F<sub>2</sub>(g) <span class="arrowTop"><span class="chemArrow"></span></span> 2BrF<sub>3</sub>(l)<br><div style="text-align:center; margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/278.svg" alt="Energy cycle for bromine trifluoride formation" class="theme-aware-graphic white-graphic" loading="lazy" /></div>The standard enthalpy of formation of BrF<sub>3</sub>(l) = −301 kJ mol<sup>−1</sup>.<br>The enthalpy change of BrF<sub>3</sub>(l) to BrF<sub>3</sub>(g) is +44 kJ mol<sup>−1</sup>.<br><br>What is the average bond energy of the Br–F bond in BrF<sub>3</sub>?',
         options: {
-          A: '152 kJ mol<sup>?1</sup>',
-          B: '202 kJ mol<sup>?1</sup>',
-          C: '304 kJ mol<sup>?1</sup>',
-          D: '404 kJ mol<sup>?1</sup>',
+          A: '152 kJ mol<sup>−1</sup>',
+          B: '202 kJ mol<sup>−1</sup>',
+          C: '304 kJ mol<sup>−1</sup>',
+          D: '404 kJ mol<sup>−1</sup>',
         }
       },
       {
         number: 52,
         code: '9701_m18_qp_12 Q: 9',
-        prompt: 'Hess? Law and bond energy data can be used to calculate the enthalpy change of a reaction.<br><br>Bromoethane, CH<sub>3</sub>CH<sub>2</sub>Br, can be made by reacting ethene with hydrogen bromide.<br><br>CH<sub>2</sub>=CH<sub>2</sub> + HBr <span class="arrowTop"><span class="chemArrow"></span></span> CH<sub>3</sub>CH<sub>2</sub>Br<br><br>What is the enthalpy change for this reaction?',
+        prompt: 'Hess’ Law and bond energy data can be used to calculate the enthalpy change of a reaction.<br><br>Bromoethane, CH<sub>3</sub>CH<sub>2</sub>Br, can be made by reacting ethene with hydrogen bromide.<br><br>CH<sub>2</sub>=CH<sub>2</sub> + HBr <span class="arrowTop"><span class="chemArrow"></span></span> CH<sub>3</sub>CH<sub>2</sub>Br<br><br>What is the enthalpy change for this reaction?',
         options: {
-          A: '?674 kJ mol<sup>?1</sup>',
-          B: '?64 kJ mol<sup>?1</sup>',
-          C: '+186 kJ mol<sup>?1</sup>',
-          D: '+346 kJ mol<sup>?1</sup>',
+          A: '−674 kJ mol<sup>−1</sup>',
+          B: '−64 kJ mol<sup>−1</sup>',
+          C: '+186 kJ mol<sup>−1</sup>',
+          D: '+346 kJ mol<sup>−1</sup>',
         }
       },
       {
         number: 53,
         code: '9701_w15_qp_12 Q: 6',
-        prompt: 'Hess? law may be used to determine enthalpy changes using average bond energies, as shown in the diagram.<br><br><div style="text-align:center;margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/280.svg" alt="Hess law bond energy diagram with U, V, and W" class="theme-aware-graphic white-graphic" loading="lazy" /></div>U is the sum of the average bond energies of the reactants, and V is the sum of the average bond energies of the products.<br><br>For the reaction shown below, which expression will give a value for W, the enthalpy change of combustion of methane?<br><br>CH<sub>4</sub> + 2O<sub>2</sub> <span class="arrowTop"><span class="chemArrow"></span></span> CO<sub>2</sub> + 2H<sub>2</sub>O',
+        prompt: 'Hess’ law may be used to determine enthalpy changes using average bond energies, as shown in the diagram.<br><br><div style="text-align:center;margin:12px 0;"><img src="https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/AS%20Chemistry/280.svg" alt="Hess law bond energy diagram with U, V, and W" class="theme-aware-graphic white-graphic" loading="lazy" /></div>U is the sum of the average bond energies of the reactants, and V is the sum of the average bond energies of the products.<br><br>For the reaction shown below, which expression will give a value for W, the enthalpy change of combustion of methane?<br><br>CH<sub>4</sub> + 2O<sub>2</sub> <span class="arrowTop"><span class="chemArrow"></span></span> CO<sub>2</sub> + 2H<sub>2</sub>O',
         options: {
-          A: 'U ? V',
+          A: 'U − V',
           B: 'U + V',
-          C: '2(U ? V)',
-          D: 'V ? U',
+          C: '2(U − V)',
+          D: 'V − U',
         }
       },
     ];
@@ -1542,7 +1542,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       const update = () => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         const remaining = Math.max(TEST_DURATION_SECONDS - elapsed, 0);
-        timerEl.textContent = `? Time remaining: ${formatTimer(remaining)}`;
+        timerEl.textContent = `⏳ Time remaining: ${formatTimer(remaining)}`;
         if (remaining === 0) {
           timerEl.classList.add('timer-expired');
           clearInterval(timerInterval);
@@ -1687,7 +1687,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       document.querySelectorAll('input').forEach(i => i.disabled = true);
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
-      btn.textContent = '? Submitted';
+      btn.textContent = '✓ Submitted';
       const status = document.getElementById('status');
       status.textContent = `You submitted this test on ${new Date(data.submittedAt).toLocaleString()}.`;
       const scoreDiv = document.getElementById('score');
@@ -1812,20 +1812,20 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
         
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` ? ?? Time: ${formatTimer(data.time_taken_seconds)}`
+            ? ` • ⏱️ Time: ${formatTimer(data.time_taken_seconds)}`
             : '';
-          scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
+          scoreDiv.textContent = `✅ Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
           hideTimer();
           const responses = (data.answers && typeof data.answers === "string" ? JSON.parse(data.answers) : data.answers)?.responses || {};
           applyReviewMode(responses);
         } else {
-          scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+          scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
           scoreDiv.className = 'score-box pending';
         }
       } catch (err) {
         console.error('Failed to check score release status:', err);
-        scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+        scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
         scoreDiv.className = 'score-box pending';
       }
     }
@@ -1843,7 +1843,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
         if (isForced) {
           name = 'Unknown Student';
         } else {
-          status.textContent = '?? Please enter your name.';
+          status.textContent = '⚠️ Please enter your name.';
           return;
         }
       }
@@ -1851,7 +1851,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
         if (isForced) {
           cls = 'Unknown Class';
         } else {
-          status.textContent = '?? Please enter your class.';
+          status.textContent = '⚠️ Please enter your class.';
           return;
         }
       }
@@ -1867,7 +1867,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       const result = calculateScore(responses);
 
       btn.disabled = true;
-      status.textContent = '?? Submitting...';
+      status.textContent = '📤 Submitting...';
 
       const payload = {
         student_name: name,
@@ -1890,13 +1890,13 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
         console.error(error);
         if (error.message && (error.message.includes('duplicate') || error.message.includes('unique') || error.message.includes('already exists'))) {
           hasSubmitted = true;
-          btn.textContent = '? Already Submitted';
-          status.textContent = '?? You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
+          btn.textContent = '✅ Already Submitted';
+          status.textContent = '🚨 You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
           document.querySelectorAll('input').forEach(i => i.disabled = true);
           lockQuestions();
           return;
         }
-        status.textContent = '? Failed to submit. Please try again.';
+        status.textContent = '❌ Failed to submit. Please try again.';
         btn.disabled = false;
         return;
       }
@@ -1912,13 +1912,13 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       }));
 
       document.querySelectorAll('input').forEach(i => i.disabled = true);
-      btn.textContent = '? Submitted';
-      status.textContent = isForced ? `?? Auto-submitted: ${autoSubmitReason}` : '? Submitted successfully! Your teacher will release your score soon.';
+      btn.textContent = '✓ Submitted';
+      status.textContent = isForced ? `⚠️ Auto-submitted: ${autoSubmitReason}` : '✅ Submitted successfully! Your teacher will release your score soon.';
 
       const scoreDiv = document.getElementById('score');
       scoreDiv.style.display = 'block';
       lockQuestions();
-      scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+      scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
       scoreDiv.className = 'score-box pending';
 
       try {
@@ -2033,10 +2033,10 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
         const review = document.createElement('div');
         review.className = 'review-answer';
         if (studentAnswer && studentAnswer === correctAnswer) {
-          review.textContent = `? Correct: ${correctAnswer}`;
+          review.textContent = `✅ Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `? Your answer: ${studentAnswer || '?'} | ? Correct: ${correctAnswer}`;
+          review.textContent = `❌ Your answer: ${studentAnswer || '—'} | ✅ Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -2092,7 +2092,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('?')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('•')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -2138,7 +2138,7 @@ CO<sub>2</sub>(g) + 2H<sub>2</sub>O(l)
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test ? auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
         }
       });
     });
