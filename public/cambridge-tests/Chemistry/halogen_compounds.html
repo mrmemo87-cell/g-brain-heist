@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -552,10 +552,10 @@
   <!--
   <div class="prime-overlay" id="primeOverlay">
     <div class="prime-card">
-      <div class="prime-icon">??</div>
+      <div class="prime-icon">👑</div>
       <h2 class="prime-title">GET PRIME</h2>
       <p class="prime-subtitle">This AS Chemistry content is exclusive to Prime members. Upgrade to unlock all advanced materials.</p>
-      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">? Upgrade to Prime</button>
+      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">✨ Upgrade to Prime</button>
       <div class="prime-divider">or enter activation code</div>
       <input type="text" class="prime-code-input" id="primeCodeInput" placeholder="Enter code..." autocomplete="off" />
       <button class="prime-unlock-btn" id="primeUnlockBtn">Unlock</button>
@@ -570,22 +570,22 @@
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
         <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch15 ( Halogen compounds )</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 15 ? 56 multiple-choice questions</div>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 15 • 56 multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
-      <span class="badge">?? Category: Science</span>
-      <span class="badge">?? Difficulty: Advanced</span>
-      <span class="badge">?? Format: Multiple Choice (A?D)</span>
+      <span class="badge">🧪 Category: Science</span>
+      <span class="badge">🎯 Difficulty: Advanced</span>
+      <span class="badge">📝 Format: Multiple Choice (A–D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
 
     <div class="status">
-      ? Auto-marked: your score stays hidden until your teacher releases it.
+      ✅ Auto-marked: your score stays hidden until your teacher releases it.
     </div>
-    <div id="timer" class="timer-box floating">? Time remaining: 00:00</div>
+    <div id="timer" class="timer-box floating">⏳ Time remaining: 00:00</div>
 
 
     <div class="student-info">
@@ -623,14 +623,14 @@
         <li>Three violations will auto-submit your test immediately.</li>
         <li>Copy, cut, paste, right-click, and drag-and-drop are all disabled.</li>
         <li>Screenshots, screen recording, and printing are blocked.</li>
-        <li>Your timer starts only after you click "I understand".</li>
+        <li>Your timer starts only after you click “I understand”.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
       </div>
     </div>
   </div>
-  <div id="antiCheatToast" class="anti-cheat-toast">?? Tab switching detected. Please stay on this test.</div>
+  <div id="antiCheatToast" class="anti-cheat-toast">⚠️ Tab switching detected. Please stay on this test.</div>
 
   <script>
     // Supabase helpers (fetch-based, no external SDK)
@@ -777,11 +777,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} ? Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} ? ${totalQuestions} questions`;
-      if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
-      if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
-      document.title = `${title} ? Part ${part}`;
+      if (titleEl) titleEl.textContent = `${title} — Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} • ${totalQuestions} questions`;
+      if (timeBadge) timeBadge.textContent = `⏱️ Suggested time: ${formatDuration(durationSeconds)}`;
+      if (partBadge) partBadge.textContent = `📌 Part ${part} of 2`;
+      document.title = `${title} — Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -835,7 +835,7 @@
       {
         number: 3,
         code: '9701_m21_qp_12 Q: 25',
-        prompt: 'Dibromopentanes can undergo ?double elimination? reactions to produce hydrocarbons. Which isomer produces only one hydrocarbon product?',
+        prompt: 'Dibromopentanes can undergo “double elimination” reactions to produce hydrocarbons. Which isomer produces only one hydrocarbon product?',
         options: {
           A: '1,5-dibromopentane',
           B: '1,4-dibromopentane',
@@ -860,21 +860,21 @@
       {
         number: 5,
         code: '9701_s21_qp_12 Q: 25',
-        prompt: 'Sodium methoxide, Na<sup>+</sup>CH<sub>3</sub>O<sup>?</sup>, reacts with 2-chloro-2-methylpropane in a nucleophilic substitution reaction. The nucleophile is the CH<sub>3</sub>O<sup>?</sup> ion. Which row is correct?',
+        prompt: 'Sodium methoxide, Na<sup>+</sup>CH<sub>3</sub>O<sup>−</sup>, reacts with 2-chloro-2-methylpropane in a nucleophilic substitution reaction. The nucleophile is the CH<sub>3</sub>O<sup>−</sup> ion. Which row is correct?',
         optionTable: {
           headers: ['intermediate or transition state', 'product'],
           rows: [
             { label: 'A', values: ['(CH<sub>3</sub>)<sub>3</sub>C<sup>+</sup>', '(CH<sub>3</sub>)<sub>3</sub>COCH<sub>3</sub>'] },
             { label: 'B', values: ['(CH<sub>3</sub>)<sub>3</sub>C<sup>+</sup>', '(CH<sub>3</sub>)<sub>3</sub>CCH<sub>2</sub>OH'] },
-            { label: 'C', values: ['[CH<sub>3</sub>O?C(CH<sub>3</sub>)<sub>3</sub>?Cl]<sup>?</sup>', 'HOCH<sub>2</sub>C(CH<sub>3</sub>)<sub>3</sub>'] },
-            { label: 'D', values: ['[CH<sub>3</sub>O?C(CH<sub>3</sub>)<sub>3</sub>?Cl]<sup>?</sup>', 'CH<sub>3</sub>OC(CH<sub>3</sub>)<sub>3</sub>'] },
+            { label: 'C', values: ['[CH<sub>3</sub>O–C(CH<sub>3</sub>)<sub>3</sub>⋯Cl]<sup>−</sup>', 'HOCH<sub>2</sub>C(CH<sub>3</sub>)<sub>3</sub>'] },
+            { label: 'D', values: ['[CH<sub>3</sub>O–C(CH<sub>3</sub>)<sub>3</sub>⋯Cl]<sup>−</sup>', 'CH<sub>3</sub>OC(CH<sub>3</sub>)<sub>3</sub>'] },
           ]
         }
       },
       {
         number: 6,
         code: '9701_s21_qp_13 Q: 23',
-        prompt: 'Halogenoalkanes react with nucleophiles such as OH<sup>?</sup>. Which pair of halogenoalkanes <strong>both</strong> react via an S<sub>N</sub>1 mechanism?',
+        prompt: 'Halogenoalkanes react with nucleophiles such as OH<sup>−</sup>. Which pair of halogenoalkanes <strong>both</strong> react via an S<sub>N</sub>1 mechanism?',
         options: {
           A: 'tert-butyl bromide and tert-butyl chloride',
           B: '2-bromobutane and 1-chlorobutane',
@@ -935,7 +935,7 @@
       {
         number: 11,
         code: '9701_w20_qp_11 Q: 23',
-        prompt: 'Iodoethane, CH<sub>3</sub>CH<sub>2</sub>I, reacts with aqueous silver nitrate at 50&nbsp;?C. A precipitate forms during this reaction. Which row of the table is correct about this reaction?',
+        prompt: 'Iodoethane, CH<sub>3</sub>CH<sub>2</sub>I, reacts with aqueous silver nitrate at 50&nbsp;°C. A precipitate forms during this reaction. Which row of the table is correct about this reaction?',
         optionTable: {
           headers: ['type of organic reaction', 'colour of precipitate'],
           rows: [
@@ -951,9 +951,9 @@
         code: '9701_w20_qp_11 Q: 25',
         prompt: '1-chloro-1-methylcyclohexane is hydrolysed by heating with NaOH(aq). The reaction pathway is shown. One carbon atom in 1-chloro-1-methylcyclohexane is bonded to three other carbon atoms. What is the charge on this carbon atom at point Z?',
         options: {
-          A: '1?',
-          B: '??',
-          C: '?+',
+          A: '1−',
+          B: 'δ−',
+          C: 'δ+',
           D: '1+',
         }
       },
@@ -971,7 +971,7 @@
       {
         number: 14,
         code: '9701_m19_qp_12 Q: 24',
-        prompt: 'Bromopropane reacts with water as shown: CH<sub>3</sub>CH<sub>2</sub>CH<sub>2</sub>Br + H<sub>2</sub>O > CH<sub>3</sub>CH<sub>2</sub>CH<sub>2</sub>OH + HBr. Which statement is correct?',
+        prompt: 'Bromopropane reacts with water as shown: CH<sub>3</sub>CH<sub>2</sub>CH<sub>2</sub>Br + H<sub>2</sub>O → CH<sub>3</sub>CH<sub>2</sub>CH<sub>2</sub>OH + HBr. Which statement is correct?',
         options: {
           A: 'This is an elimination reaction.',
           B: 'This is a hydrolysis reaction.',
@@ -1048,12 +1048,12 @@
       {
         number: 21,
         code: '9701_w19_qp_11 Q: 23',
-        prompt: 'A tertiary bromoalkane, indicated by &gt;C?Br, reacts with aqueous NaOH. The mechanism has the reaction pathway shown. Which point in the diagram is correctly identified?',
+        prompt: 'A tertiary bromoalkane, indicated by &gt;C–Br, reacts with aqueous NaOH. The mechanism has the reaction pathway shown. Which point in the diagram is correctly identified?',
         options: {
           A: 'X is &gt;C<sup>+</sup>',
-          B: 'X is [HO?C?Br]<sup>?</sup>',
+          B: 'X is [HO⋯C–Br]<sup>−</sup>',
           C: 'Y is &gt;C<sup>+</sup>',
-          D: 'Y is [HO?C?Br]<sup>?</sup>',
+          D: 'Y is [HO⋯C–Br]<sup>−</sup>',
         }
       },
       {
@@ -1075,8 +1075,8 @@
         code: '9701_w19_qp_12 Q: 23',
         prompt: '1-chloro-2-methylbutane reacts with sodium cyanide in ethanol in a nucleophilic substitution reaction. What is the most likely intermediate or transition state in this reaction?',
         options: {
-          A: 'SN2 transition state with CN<sup>?</sup> attacking a primary carbon bearing two H atoms (backside attack).',
-          B: 'SN2 transition state with CN<sup>?</sup> attacking a secondary carbon bearing CH<sub>3</sub> and CH<sub>2</sub>CH<sub>3</sub> groups.',
+          A: 'SN2 transition state with CN<sup>−</sup> attacking a primary carbon bearing two H atoms (backside attack).',
+          B: 'SN2 transition state with CN<sup>−</sup> attacking a secondary carbon bearing CH<sub>3</sub> and CH<sub>2</sub>CH<sub>3</sub> groups.',
           C: 'Secondary carbocation intermediate (CH<sub>3</sub>CH<sub>2</sub>C<sup>+</sup>(CH<sub>3</sub>)CH<sub>3</sub>).',
           D: 'Primary carbocation intermediate (CH<sub>3</sub>CH<sub>2</sub>CH(CH<sub>3</sub>)CH<sub>2</sub><sup>+</sup>).',
         }
@@ -1095,14 +1095,14 @@
       {
         number: 25,
         code: '9701_s18_qp_11 Q: 22',
-        prompt: 'Sodium methoxide, Na<sup>+</sup>CH<sub>3</sub>O<sup>?</sup>, reacts with 2-chloro-2-methylpropane in a nucleophilic substitution reaction. The nucleophile is the CH<sub>3</sub>O<sup>?</sup> ion. Which row is correct?',
+        prompt: 'Sodium methoxide, Na<sup>+</sup>CH<sub>3</sub>O<sup>−</sup>, reacts with 2-chloro-2-methylpropane in a nucleophilic substitution reaction. The nucleophile is the CH<sub>3</sub>O<sup>−</sup> ion. Which row is correct?',
         optionTable: {
           headers: ['intermediate or transition state', 'product'],
           rows: [
             { label: 'A', values: ['(CH<sub>3</sub>)<sub>3</sub>C<sup>+</sup>', '(CH<sub>3</sub>)<sub>3</sub>COCH<sub>3</sub>'] },
             { label: 'B', values: ['(CH<sub>3</sub>)<sub>3</sub>C<sup>+</sup>', '(CH<sub>3</sub>)<sub>3</sub>CCH<sub>2</sub>OH'] },
-            { label: 'C', values: ['[HOCH<sub>2</sub>?C(CH<sub>3</sub>)<sub>3</sub>?Cl]<sup>?</sup>', 'HOCH<sub>2</sub>C(CH<sub>3</sub>)<sub>3</sub>'] },
-            { label: 'D', values: ['[CH<sub>3</sub>O?C(CH<sub>3</sub>)<sub>3</sub>?Cl]<sup>?</sup>', 'CH<sub>3</sub>OC(CH<sub>3</sub>)<sub>3</sub>'] },
+            { label: 'C', values: ['[HOCH<sub>2</sub>⋯C(CH<sub>3</sub>)<sub>3</sub>⋯Cl]<sup>−</sup>', 'HOCH<sub>2</sub>C(CH<sub>3</sub>)<sub>3</sub>'] },
+            { label: 'D', values: ['[CH<sub>3</sub>O–C(CH<sub>3</sub>)<sub>3</sub>⋯Cl]<sup>−</sup>', 'CH<sub>3</sub>OC(CH<sub>3</sub>)<sub>3</sub>'] },
           ]
         }
       },
@@ -1202,10 +1202,10 @@
         code: '9701_m17_qp_12 Q: 22',
         prompt: 'Which radical is most likely to form by the homolytic fission of one covalent bond in bromochloromethane, CH<sub>2</sub>BrCl?',
         options: {
-          A: '?CH<sub>2</sub>Cl',
-          B: '?CH<sub>2</sub>Br',
-          C: '?CHBrCl',
-          D: '?CH<sub>2</sub>BrCl',
+          A: '•CH<sub>2</sub>Cl',
+          B: '•CH<sub>2</sub>Br',
+          C: '•CHBrCl',
+          D: '•CH<sub>2</sub>BrCl',
         }
       },
       {
@@ -1227,10 +1227,10 @@
         code: '9701_s17_qp_12 Q: 23',
         prompt: 'Aqueous sodium hydroxide reacts with 1-bromopropane to give propan-1-ol. What should be included in a diagram for the first step in the mechanism?',
         options: {
-          A: 'A curly arrow from a lone pair on OH<sup>?</sup> to the C<sup>?+</sup> atom of 1-bromopropane.',
-          B: 'A curly arrow from the C<sup>?+</sup> atom of 1-bromopropane to the OH<sup>?</sup> ion.',
-          C: 'A curly arrow from the C?Br bond to the C atom.',
-          D: 'The homolytic fission of the C?Br bond.',
+          A: 'A curly arrow from a lone pair on OH<sup>−</sup> to the C<sup>δ+</sup> atom of 1-bromopropane.',
+          B: 'A curly arrow from the C<sup>δ+</sup> atom of 1-bromopropane to the OH<sup>−</sup> ion.',
+          C: 'A curly arrow from the C–Br bond to the C atom.',
+          D: 'The homolytic fission of the C–Br bond.',
         }
       },
       {
@@ -1252,10 +1252,10 @@
         code: '9701_s17_qp_12 Q: 29',
         prompt: 'Which compound is chiral and reacts with Na<sub>2</sub>CO<sub>3</sub> to give CO<sub>2</sub>?',
         options: {
-          A: 'HO<sub>2</sub>C?CH=CH?CO<sub>2</sub>H',
+          A: 'HO<sub>2</sub>C–CH=CH–CO<sub>2</sub>H',
           B: '1-methylcyclohex-1-en-1-ol',
           C: 'HCO<sub>2</sub>CH(CH<sub>3</sub>)CH<sub>2</sub>Br',
-          D: 'CH(Br)CO<sub>2</sub>H?CH<sub>2</sub>CH<sub>3</sub>',
+          D: 'CH(Br)CO<sub>2</sub>H–CH<sub>2</sub>CH<sub>3</sub>',
         }
       },
       {
@@ -1301,10 +1301,10 @@
         optionTable: {
           headers: ['change in condition', 'reason'],
           rows: [
-            { label: 'A', values: ['heat under reflux', 'C?Cl bond is more polar than the C?I bond'] },
-            { label: 'B', values: ['heat under reflux', 'C?Cl bond is stronger than the C?I bond'] },
-            { label: 'C', values: ['room temperature', 'C?Cl bond is more polar than the C?I bond'] },
-            { label: 'D', values: ['room temperature', 'C?Cl bond is shorter than the C?I bond'] },
+            { label: 'A', values: ['heat under reflux', 'C–Cl bond is more polar than the C–I bond'] },
+            { label: 'B', values: ['heat under reflux', 'C–Cl bond is stronger than the C–I bond'] },
+            { label: 'C', values: ['room temperature', 'C–Cl bond is more polar than the C–I bond'] },
+            { label: 'D', values: ['room temperature', 'C–Cl bond is shorter than the C–I bond'] },
           ]
         }
       },
@@ -1313,10 +1313,10 @@
         code: '9701_s16_qp_12 Q: 20',
         prompt: 'Chlorofluorocarbons damage the ozone layer by undergoing reactions with a free radical mechanism. The first stage of this is initiation. Which equation is most likely to be the initiation stage when chlorofluoromethane is involved in such a reaction?',
         options: {
-          A: 'CH<sub>2</sub>FCl > ?CH<sub>2</sub>Cl + F?',
-          B: 'CH<sub>2</sub>FCl > ?CH<sub>2</sub>F + Cl?',
-          C: 'CH<sub>2</sub>FCl > ?CH<sub>2</sub>F + H?',
-          D: 'CH<sub>2</sub>FCl > ?CH<sub>2</sub> + Cl? + F?',
+          A: 'CH<sub>2</sub>FCl → •CH<sub>2</sub>Cl + F•',
+          B: 'CH<sub>2</sub>FCl → •CH<sub>2</sub>F + Cl•',
+          C: 'CH<sub>2</sub>FCl → •CH<sub>2</sub>F + H•',
+          D: 'CH<sub>2</sub>FCl → •CH<sub>2</sub> + Cl• + F•',
         }
       },
       {
@@ -1324,10 +1324,10 @@
         code: '9701_s16_qp_12 Q: 24',
         prompt: '1-chloro-1-methylcyclohexane is hydrolysed by heating with NaOH(aq). The reaction pathway is shown. One carbon atom in 1-chloro-1-methylcyclohexane is bonded to three other carbon atoms. What is the charge on this carbon atom at point Z?',
         options: {
-          A: '?+',
+          A: 'δ+',
           B: '+',
-          C: '??',
-          D: '?',
+          C: 'δ−',
+          D: '−',
         }
       },
       {
@@ -1335,10 +1335,10 @@
         code: '9701_s16_qp_13 Q: 25',
         prompt: 'A reaction pathway diagram is shown. The four reactions that follow are all exothermic. Which reaction would <strong>not</strong> have such a pathway?',
         options: {
-          A: 'CH<sub>3</sub>I + NaCN > CH<sub>3</sub>CN + NaI',
-          B: 'A tertiary bromoalkane + 2NH<sub>3</sub> > tertiary amine + NH<sub>4</sub>Br',
-          C: 'Cyclohexene + HBr > bromocyclohexane',
-          D: '1-methylcyclohexene + H<sub>2</sub>O (conc. H<sub>2</sub>SO<sub>4</sub>, heat) > tertiary alcohol',
+          A: 'CH<sub>3</sub>I + NaCN → CH<sub>3</sub>CN + NaI',
+          B: 'A tertiary bromoalkane + 2NH<sub>3</sub> → tertiary amine + NH<sub>4</sub>Br',
+          C: 'Cyclohexene + HBr → bromocyclohexane',
+          D: '1-methylcyclohexene + H<sub>2</sub>O (conc. H<sub>2</sub>SO<sub>4</sub>, heat) → tertiary alcohol',
         }
       },
       {
@@ -1355,7 +1355,7 @@
       {
         number: 47,
         code: '9701_w16_qp_12 Q: 22',
-        prompt: 'The reaction CH<sub>3</sub>CH<sub>2</sub>CH<sub>2</sub>CH<sub>2</sub>Br + OH<sup>?</sup> > CH<sub>3</sub>CH<sub>2</sub>CH<sub>2</sub>CH<sub>2</sub>OH + Br<sup>?</sup> proceeds via an S<sub>N</sub>2 mechanism. The reaction (CH<sub>3</sub>)<sub>3</sub>CBr + OH<sup>?</sup> > (CH<sub>3</sub>)<sub>3</sub>COH + Br<sup>?</sup> proceeds via an S<sub>N</sub>1 mechanism. Which statement about these two reactions is correct?',
+        prompt: 'The reaction CH<sub>3</sub>CH<sub>2</sub>CH<sub>2</sub>CH<sub>2</sub>Br + OH<sup>−</sup> → CH<sub>3</sub>CH<sub>2</sub>CH<sub>2</sub>CH<sub>2</sub>OH + Br<sup>−</sup> proceeds via an S<sub>N</sub>2 mechanism. The reaction (CH<sub>3</sub>)<sub>3</sub>CBr + OH<sup>−</sup> → (CH<sub>3</sub>)<sub>3</sub>COH + Br<sup>−</sup> proceeds via an S<sub>N</sub>1 mechanism. Which statement about these two reactions is correct?',
         options: {
           A: 'Both reactions involve homolytic bond fission.',
           B: 'Both reactions involve hydroxide ions acting as electron pair donors.',
@@ -1366,7 +1366,7 @@
       {
         number: 48,
         code: '9701_s15_qp_11 Q: 24',
-        prompt: 'Coniine is the major constituent of the poison ?oil of hemlock?. Coniine can be synthesised by reacting ammonia with a dibromo compound, X. What is the name of compound X?',
+        prompt: 'Coniine is the major constituent of the poison “oil of hemlock”. Coniine can be synthesised by reacting ammonia with a dibromo compound, X. What is the name of compound X?',
         options: {
           A: '1,1-dibromo-2-propylcyclopentane',
           B: '1,2-dibromo-2-propylcyclopentane',
@@ -1421,29 +1421,29 @@
       {
         number: 53,
         code: '9701_s15_qp_13 Q: 28',
-        prompt: 'A tertiary bromoalkane, indicated here by >C?Br, reacts with aqueous NaOH. The mechanism has the reaction pathway below. Which point in the diagram is correctly identified?',
+        prompt: 'A tertiary bromoalkane, indicated here by >C–Br, reacts with aqueous NaOH. The mechanism has the reaction pathway below. Which point in the diagram is correctly identified?',
         options: {
           A: 'X is >C<sup>+</sup>',
-          B: 'X is [HO?C?Br]<sup>?</sup>',
+          B: 'X is [HO⋯C–Br]<sup>−</sup>',
           C: 'Y is >C<sup>+</sup>',
-          D: 'Y is [HO?C?Br]<sup>?</sup>',
+          D: 'Y is [HO⋯C–Br]<sup>−</sup>',
         }
       },
       {
         number: 54,
         code: '9701_s15_qp_13 Q: 29',
-        prompt: 'Four drops of 1-chlorobutane, 1-bromobutane and 1-iodobutane were put separately into three test-tubes containing 1.0 cm<sup>3</sup> of aqueous silver nitrate at 60??C. In each case, a hydrolysis reaction occurred. R represents the butane chain C<sub>4</sub>H<sub>9</sub> and X the halogen atom. The rate of formation of cloudiness in the test-tubes was in the order RCl < RBr < RI. Why is this?',
+        prompt: 'Four drops of 1-chlorobutane, 1-bromobutane and 1-iodobutane were put separately into three test-tubes containing 1.0 cm<sup>3</sup> of aqueous silver nitrate at 60 °C. In each case, a hydrolysis reaction occurred. R represents the butane chain C<sub>4</sub>H<sub>9</sub> and X the halogen atom. The rate of formation of cloudiness in the test-tubes was in the order RCl < RBr < RI. Why is this?',
         options: {
-          A: 'The bond energy of R?X decreases from RCl to RI.',
+          A: 'The bond energy of R–X decreases from RCl to RI.',
           B: 'The first ionisation energy of the halogen decreases from Cl to I.',
           C: 'The solubility of AgX(s) decreases from AgCl to AgI.',
-          D: 'The R?X bond polarity decreases from RCl to RI.',
+          D: 'The R–X bond polarity decreases from RCl to RI.',
         }
       },
       {
         number: 55,
         code: '9701_w15_qp_11 Q: 24',
-        prompt: 'Which compound undergoes an S<sub>N</sub>1 substitution reaction with NaOH(aq)?',
+        prompt: 'Which compound undergoes an S<sub>N</sub>1 substitution reaction with NaOH(aq)→',
         options: {
           A: 'CH<sub>3</sub>CH<sub>2</sub>CH<sub>2</sub>Br',
           B: '(CH<sub>3</sub>)<sub>3</sub>CCH<sub>2</sub>I',
@@ -1454,7 +1454,7 @@
       {
         number: 56,
         code: '9701_w15_qp_12 Q: 24',
-        prompt: 'The depletion of the ozone layer in the upper atmosphere reduces the Earth?s natural protection from harmful ultraviolet radiation. Which compound would cause the most depletion of the ozone layer?',
+        prompt: 'The depletion of the ozone layer in the upper atmosphere reduces the Earth’s natural protection from harmful ultraviolet radiation. Which compound would cause the most depletion of the ozone layer?',
         options: {
           A: 'CCl<sub>3</sub>F',
           B: 'CF<sub>4</sub>',
@@ -1516,7 +1516,7 @@
       const update = () => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         const remaining = Math.max(TEST_DURATION_SECONDS - elapsed, 0);
-        timerEl.textContent = `? Time remaining: ${formatTimer(remaining)}`;
+        timerEl.textContent = `⏳ Time remaining: ${formatTimer(remaining)}`;
         if (remaining === 0) {
           timerEl.classList.add('timer-expired');
           clearInterval(timerInterval);
@@ -1665,7 +1665,7 @@
       document.querySelectorAll('input').forEach(i => i.disabled = true);
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
-      btn.textContent = '? Submitted';
+      btn.textContent = '✓ Submitted';
       const status = document.getElementById('status');
       status.textContent = `You submitted this test on ${new Date(data.submittedAt).toLocaleString()}.`;
       const scoreDiv = document.getElementById('score');
@@ -1791,20 +1791,20 @@
         
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` ? ?? Time: ${formatTimer(data.time_taken_seconds)}`
+            ? ` • ⏱️ Time: ${formatTimer(data.time_taken_seconds)}`
             : '';
-          scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
+          scoreDiv.textContent = `✅ Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
           hideTimer();
           const responses = (data.answers && typeof data.answers === "string" ? JSON.parse(data.answers) : data.answers)?.responses || {};
           applyReviewMode(responses);
         } else {
-          scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+          scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
           scoreDiv.className = 'score-box pending';
         }
       } catch (err) {
         console.error('Failed to check score release status:', err);
-        scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+        scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
         scoreDiv.className = 'score-box pending';
       }
     }
@@ -1835,12 +1835,12 @@
       let cls = document.getElementById('studentClass').value.trim();
 
       const isForced = options.force === true;
-      const autoSubmitReason = options.reason || '';
+      const autoSubmitReason = options.autoSubmitReason || options.reason || '';
       if (!name) {
         if (isForced) {
           name = 'Unknown Student';
         } else {
-          status.textContent = '?? Please enter your name.';
+          status.textContent = '⚠️ Please enter your name.';
           return;
         }
       }
@@ -1848,7 +1848,7 @@
         if (isForced) {
           cls = 'Unknown Class';
         } else {
-          status.textContent = '?? Please enter your class.';
+          status.textContent = '⚠️ Please enter your class.';
           return;
         }
       }
@@ -1864,7 +1864,7 @@
       const result = calculateScore(responses);
 
       btn.disabled = true;
-      status.textContent = '?? Submitting...';
+      status.textContent = '📤 Submitting...';
 
       const payload = {
         student_name: name,
@@ -1887,13 +1887,13 @@
         console.error(error);
         if (error.message && (error.message.includes('duplicate') || error.message.includes('unique') || error.message.includes('already exists'))) {
           hasSubmitted = true;
-          btn.textContent = '? Already Submitted';
-          status.textContent = '?? You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
+          btn.textContent = '✅ Already Submitted';
+          status.textContent = '🚨 You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
           document.querySelectorAll('input').forEach(i => i.disabled = true);
           lockQuestions();
           return;
         }
-        status.textContent = '? Failed to submit. Please try again.';
+        status.textContent = '❌ Failed to submit. Please try again.';
         btn.disabled = false;
         return;
       }
@@ -1909,13 +1909,13 @@
       }));
 
       document.querySelectorAll('input').forEach(i => i.disabled = true);
-      btn.textContent = '? Submitted';
-      status.textContent = isForced ? `?? Auto-submitted: ${autoSubmitReason}` : '? Submitted successfully! Your teacher will release your score soon.';
+      btn.textContent = '✓ Submitted';
+      status.textContent = isForced ? `⚠️ Auto-submitted: ${autoSubmitReason}` : '✅ Submitted successfully! Your teacher will release your score soon.';
 
       const scoreDiv = document.getElementById('score');
       scoreDiv.style.display = 'block';
       lockQuestions();
-      scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+      scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
       scoreDiv.className = 'score-box pending';
 
       try {
@@ -2030,10 +2030,10 @@
         const review = document.createElement('div');
         review.className = 'review-answer';
         if (studentAnswer && studentAnswer === correctAnswer) {
-          review.textContent = `? Correct: ${correctAnswer}`;
+          review.textContent = `✅ Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `? Your answer: ${studentAnswer || '?'} | ? Correct: ${correctAnswer}`;
+          review.textContent = `❌ Your answer: ${studentAnswer || '—'} | ✅ Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -2089,7 +2089,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('?')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('•')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -2135,7 +2135,7 @@
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test ? auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
         }
       });
     });

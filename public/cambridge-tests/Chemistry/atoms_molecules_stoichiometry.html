@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -589,10 +589,10 @@
   <!--
   <div class="prime-overlay" id="primeOverlay">
     <div class="prime-card">
-      <div class="prime-icon">??</div>
+      <div class="prime-icon">👑</div>
       <h2 class="prime-title">GET PRIME</h2>
       <p class="prime-subtitle">This AS Chemistry content is exclusive to Prime members. Upgrade to unlock all advanced materials.</p>
-      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">? Upgrade to Prime</button>
+      <button class="prime-btn" onclick="window.open('https://brainsheist.com/prime', '_blank')">✨ Upgrade to Prime</button>
       <div class="prime-divider">or enter activation code</div>
       <input type="text" class="prime-code-input" id="primeCodeInput" placeholder="Enter code..." autocomplete="off" />
       <button class="prime-unlock-btn" id="primeUnlockBtn">Unlock</button>
@@ -607,22 +607,22 @@
       <div>
         <div style="font-size: 13px; color: var(--text-muted); letter-spacing: 0.03em;">Cambridge Practice</div>
         <h1 id="quizTitle" style="margin: 2px 0 6px; font-size: 26px;">AS Chemistry Ch2 (Atoms, molecules and stoichiometry)</h1>
-        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 2 ? 64 multiple-choice questions</div>
+        <div id="quizSubtitle" style="color: var(--text-muted); font-size: 14px;">Chapter 2 • 64 multiple-choice questions</div>
       </div>
     </div>
 
     <div class="badge-row">
-      <span class="badge">?? Category: Science</span>
-      <span class="badge">?? Difficulty: Advanced</span>
-      <span class="badge">?? Format: Multiple Choice (A?D)</span>
+      <span class="badge">🧪 Category: Science</span>
+      <span class="badge">🎯 Difficulty: Advanced</span>
+      <span class="badge">📝 Format: Multiple Choice (A–D)</span>
       <span class="badge" id="partBadge"></span>
       <span class="badge" id="timeBadge"></span>
     </div>
 
     <div class="status">
-      ? Auto-marked: your score stays hidden until your teacher releases it.
+      ✅ Auto-marked: your score stays hidden until your teacher releases it.
     </div>
-    <div id="timer" class="timer-box floating">? Time remaining: 00:00</div>
+    <div id="timer" class="timer-box floating">⏳ Time remaining: 00:00</div>
 
 
     <div class="student-info">
@@ -660,14 +660,14 @@
         <li>Three violations will auto-submit your test immediately.</li>
         <li>Copy, cut, paste, right-click, and drag-and-drop are all disabled.</li>
         <li>Screenshots, screen recording, and printing are blocked.</li>
-        <li>Your timer starts only after you click "I understand".</li>
+        <li>Your timer starts only after you click “I understand”.</li>
       </ul>
       <div class="modal-actions">
         <button class="modal-btn primary" id="antiCheatAcceptBtn">I understand</button>
       </div>
     </div>
   </div>
-  <div id="antiCheatToast" class="anti-cheat-toast">?? Tab switching detected. Please stay on this test.</div>
+  <div id="antiCheatToast" class="anti-cheat-toast">⚠️ Tab switching detected. Please stay on this test.</div>
 
   <script>
     // Supabase helpers (fetch-based, no external SDK)
@@ -814,11 +814,11 @@
       const subtitleEl = document.getElementById('quizSubtitle');
       const timeBadge = document.getElementById('timeBadge');
       const partBadge = document.getElementById('partBadge');
-      if (titleEl) titleEl.textContent = `${title} ? Part ${part}`;
-      if (subtitleEl) subtitleEl.textContent = `${subtitle} ? ${totalQuestions} questions`;
-      if (timeBadge) timeBadge.textContent = `?? Suggested time: ${formatDuration(durationSeconds)}`;
-      if (partBadge) partBadge.textContent = `?? Part ${part} of 2`;
-      document.title = `${title} ? Part ${part}`;
+      if (titleEl) titleEl.textContent = `${title} — Part ${part}`;
+      if (subtitleEl) subtitleEl.textContent = `${subtitle} • ${totalQuestions} questions`;
+      if (timeBadge) timeBadge.textContent = `⏱️ Suggested time: ${formatDuration(durationSeconds)}`;
+      if (partBadge) partBadge.textContent = `📌 Part ${part} of 2`;
+      document.title = `${title} — Part ${part}`;
     }
 
     function showToast(message, options = {}) {
@@ -872,7 +872,7 @@
           A: '0.10 mol of pentane',
           B: '0.20 mol of but-2-ene',
           C: '1.00 mol of hydrogen molecules',
-          D: '6.02 ? 10<sup>23</sup> hydrogen atoms',
+          D: '6.02 × 10<sup>23</sup> hydrogen atoms',
         }
       },
       {
@@ -881,7 +881,7 @@
         prompt: 'Which statement about the Avogadro constant is correct?',
         options: {
           A: 'It is the mass of one mole of any element.',
-          B: 'It is the mass of 6.02 ? 10<sup>23</sup> atoms of any element.',
+          B: 'It is the mass of 6.02 × 10<sup>23</sup> atoms of any element.',
           C: 'It is the number of atoms in one mole of neon.',
           D: 'It is the number of atoms in 12 g of any element.',
         }
@@ -891,32 +891,32 @@
         code: '9701_w21_qp_12 Q: 2',
         prompt: 'Which statement is correct?',
         options: {
-          A: '1.0 g of hydrogen gas contains 3.0 ? 10<sup>23</sup> atoms.',
-          B: '4.0 g of helium gas contains 1.2 ? 10<sup>24</sup> atoms.',
-          C: '16 g of methane gas contains 3.0 ? 10<sup>24</sup> atoms.',
-          D: '44 g of carbon dioxide gas contains 6.0 ? 10<sup>23</sup> atoms.',
+          A: '1.0 g of hydrogen gas contains 3.0 × 10<sup>23</sup> atoms.',
+          B: '4.0 g of helium gas contains 1.2 × 10<sup>24</sup> atoms.',
+          C: '16 g of methane gas contains 3.0 × 10<sup>24</sup> atoms.',
+          D: '44 g of carbon dioxide gas contains 6.0 × 10<sup>23</sup> atoms.',
         }
       },
       {
         number: 6,
         code: '9701_s20_qp_11 Q: 11',
-        prompt: 'A sample of solid ammonium chloride decomposes on heating.<br><br>solid ammonium chloride > ammonia gas + hydrogen chloride gas<br><br>A total of 2.4 ? 10<sup>21</sup> molecules of gas is formed.<br><br>How many hydrogen atoms are present in the gaseous products?',
+        prompt: 'A sample of solid ammonium chloride decomposes on heating.<br><br>solid ammonium chloride → ammonia gas + hydrogen chloride gas<br><br>A total of 2.4 × 10<sup>21</sup> molecules of gas is formed.<br><br>How many hydrogen atoms are present in the gaseous products?',
         options: {
-          A: '1.2 ? 10<sup>21</sup>',
-          B: '2.4 ? 10<sup>21</sup>',
-          C: '4.8 ? 10<sup>21</sup>',
-          D: '9.6 ? 10<sup>21</sup>',
+          A: '1.2 × 10<sup>21</sup>',
+          B: '2.4 × 10<sup>21</sup>',
+          C: '4.8 × 10<sup>21</sup>',
+          D: '9.6 × 10<sup>21</sup>',
         }
       },
       {
         number: 7,
         code: '9701_w19_qp_11 Q: 2',
-        prompt: 'Diamond is a pure form of carbon. The mass of a diamond can be measured in carats. One carat is 0.200 g of carbon.<br><br>Which expression gives the number of carats that contain 6.02 ? 10<sup>23</sup> carbon atoms?',
+        prompt: 'Diamond is a pure form of carbon. The mass of a diamond can be measured in carats. One carat is 0.200 g of carbon.<br><br>Which expression gives the number of carats that contain 6.02 × 10<sup>23</sup> carbon atoms?',
         options: {
-          A: '0.200 ? 12.0',
+          A: '0.200 × 12.0',
           B: '<span class="fraction"><span class="fraction-top">0.200</span><span class="fraction-bottom">12.0</span></span>',
           C: '<span class="fraction"><span class="fraction-top">12.0</span><span class="fraction-bottom">0.200</span></span>',
-          D: '<span class="fraction"><span class="fraction-top">0.200</span><span class="fraction-bottom">6.02 ? 10<sup>23</sup></span></span> ? 12.0',
+          D: '<span class="fraction"><span class="fraction-top">0.200</span><span class="fraction-bottom">6.02 × 10<sup>23</sup></span></span> × 12.0',
         }
       },
       {
@@ -924,16 +924,16 @@
         code: '9701_s17_qp_11 Q: 3',
         prompt: 'A sports medal has a total surface area of 150 cm<sup>2</sup>. It was evenly coated with silver by electrolysis. Its mass increased by 0.216 g.<br><br>How many atoms of silver were deposited per cm<sup>2</sup> on the surface of the medal?',
         options: {
-          A: '8.0 ? 10<sup>18</sup>',
-          B: '1.8 ? 10<sup>19</sup>',
-          C: '8.7 ? 10<sup>20</sup>',
-          D: '1.2 ? 10<sup>21</sup>',
+          A: '8.0 × 10<sup>18</sup>',
+          B: '1.8 × 10<sup>19</sup>',
+          C: '8.7 × 10<sup>20</sup>',
+          D: '1.2 × 10<sup>21</sup>',
         }
       },
       {
         number: 9,
         code: '9701_s17_qp_12 Q: 2',
-        prompt: 'Which would contain 9.03 ? 10<sup>23</sup> oxygen atoms?',
+        prompt: 'Which would contain 9.03 × 10<sup>23</sup> oxygen atoms?',
         options: {
           A: '0.25 mol aluminium oxide',
           B: '0.75 mol sulfur dioxide',
@@ -958,7 +958,7 @@
         prompt: 'Which statement about atoms and molecules is correct?',
         options: {
           A: 'The molecular formula of a compound is the simplest whole number ratio of atoms of each element in the compound.',
-          B: 'One mole of any substance contains 6 ? 10<sup>23</sup> atoms.',
+          B: 'One mole of any substance contains 6 × 10<sup>23</sup> atoms.',
           C: 'The relative atomic mass of an element is the ratio of the average mass of one atom of the element to the mass of an atom of carbon-12.',
           D: 'The relative formula mass of a compound is the sum of the individual atomic masses of all the atoms in the formula.',
         }
@@ -1053,7 +1053,7 @@
       {
         number: 19,
         code: '9701_w15_qp_11 Q: 1',
-        prompt: 'The table gives the successive ionisation energies for an element X.<br><br><table style="border-collapse: collapse; margin: 10px 0; text-align: center;"><thead><tr><th style="border:1px solid #ccc; padding:6px;"></th><th style="border:1px solid #ccc; padding:6px;">1st</th><th style="border:1px solid #ccc; padding:6px;">2nd</th><th style="border:1px solid #ccc; padding:6px;">3rd</th><th style="border:1px solid #ccc; padding:6px;">4th</th><th style="border:1px solid #ccc; padding:6px;">5th</th><th style="border:1px solid #ccc; padding:6px;">6th</th></tr></thead><tbody><tr><td style="border:1px solid #ccc; padding:6px;">ionisation energy / kJ mol<sup>?1</sup></td><td style="border:1px solid #ccc; padding:6px;">950</td><td style="border:1px solid #ccc; padding:6px;">1800</td><td style="border:1px solid #ccc; padding:6px;">2700</td><td style="border:1px solid #ccc; padding:6px;">4800</td><td style="border:1px solid #ccc; padding:6px;">6000</td><td style="border:1px solid #ccc; padding:6px;">12300</td></tr></tbody></table>What could be the formula of a chloride of X?',
+        prompt: 'The table gives the successive ionisation energies for an element X.<br><br><table style="border-collapse: collapse; margin: 10px 0; text-align: center;"><thead><tr><th style="border:1px solid #ccc; padding:6px;"></th><th style="border:1px solid #ccc; padding:6px;">1st</th><th style="border:1px solid #ccc; padding:6px;">2nd</th><th style="border:1px solid #ccc; padding:6px;">3rd</th><th style="border:1px solid #ccc; padding:6px;">4th</th><th style="border:1px solid #ccc; padding:6px;">5th</th><th style="border:1px solid #ccc; padding:6px;">6th</th></tr></thead><tbody><tr><td style="border:1px solid #ccc; padding:6px;">ionisation energy / kJ mol<sup>−1</sup></td><td style="border:1px solid #ccc; padding:6px;">950</td><td style="border:1px solid #ccc; padding:6px;">1800</td><td style="border:1px solid #ccc; padding:6px;">2700</td><td style="border:1px solid #ccc; padding:6px;">4800</td><td style="border:1px solid #ccc; padding:6px;">6000</td><td style="border:1px solid #ccc; padding:6px;">12300</td></tr></tbody></table>What could be the formula of a chloride of X?',
         options: {
           A: 'XCl',
           B: 'XCl<sub>2</sub>',
@@ -1088,10 +1088,10 @@
         code: '9701_w19_qp_12 Q: 9',
         prompt: 'When lead(II) sulfide, PbS, is heated in air, sulfur dioxide and lead(II) oxide are formed.<br><br>What is the equation for the reaction between PbS and oxygen?',
         options: {
-          A: 'PbS + 2O<sub>2</sub> > SO<sub>2</sub> + PbO<sub>2</sub>',
-          B: 'PbS + 2<span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span>O<sub>2</sub> > SO<sub>3</sub> + PbO<sub>2</sub>',
-          C: 'PbS + 1<span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span>O<sub>2</sub> > SO<sub>2</sub> + PbO',
-          D: 'PbS + 2O<sub>2</sub> > SO<sub>3</sub> + PbO',
+          A: 'PbS + 2O<sub>2</sub> → SO<sub>2</sub> + PbO<sub>2</sub>',
+          B: 'PbS + 2<span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span>O<sub>2</sub> → SO<sub>3</sub> + PbO<sub>2</sub>',
+          C: 'PbS + 1<span class="fraction"><span class="fraction-top">1</span><span class="fraction-bottom">2</span></span>O<sub>2</sub> → SO<sub>2</sub> + PbO',
+          D: 'PbS + 2O<sub>2</sub> → SO<sub>3</sub> + PbO',
         }
       },
       {
@@ -1119,7 +1119,7 @@
       {
         number: 25,
         code: '9701_s18_qp_13 Q: 5',
-        prompt: 'Aspirin, C<sub>9</sub>H<sub>8</sub>O<sub>4</sub>, M<sub>r</sub> = 180.0, can be made by a reaction between 2-hydroxybenzoic acid, C<sub>7</sub>H<sub>6</sub>O<sub>3</sub>, M<sub>r</sub> = 138.0, and ethanoic anhydride, C<sub>4</sub>H<sub>6</sub>O<sub>3</sub>, M<sub>r</sub> = 102.0. The balanced equation for the reaction is shown.<br><br>C<sub>7</sub>H<sub>6</sub>O<sub>3</sub> + C<sub>4</sub>H<sub>6</sub>O<sub>3</sub> > C<sub>9</sub>H<sub>8</sub>O<sub>4</sub> + C<sub>2</sub>H<sub>4</sub>O<sub>2</sub><br><br>If a reaction mixture consists of 10.0 g of each of the two reactants, what is the maximum mass of aspirin that can be produced?',
+        prompt: 'Aspirin, C<sub>9</sub>H<sub>8</sub>O<sub>4</sub>, M<sub>r</sub> = 180.0, can be made by a reaction between 2-hydroxybenzoic acid, C<sub>7</sub>H<sub>6</sub>O<sub>3</sub>, M<sub>r</sub> = 138.0, and ethanoic anhydride, C<sub>4</sub>H<sub>6</sub>O<sub>3</sub>, M<sub>r</sub> = 102.0. The balanced equation for the reaction is shown.<br><br>C<sub>7</sub>H<sub>6</sub>O<sub>3</sub> + C<sub>4</sub>H<sub>6</sub>O<sub>3</sub> → C<sub>9</sub>H<sub>8</sub>O<sub>4</sub> + C<sub>2</sub>H<sub>4</sub>O<sub>2</sub><br><br>If a reaction mixture consists of 10.0 g of each of the two reactants, what is the maximum mass of aspirin that can be produced?',
         options: {
           A: '5.7 g',
           B: '10.0 g',
@@ -1143,16 +1143,16 @@
         code: '9701_s17_qp_13 Q: 3',
         prompt: 'Which equation correctly describes the complete combustion of an alkene, C<sub>n</sub>H<sub>2n</sub>?',
         options: {
-          A: 'C<sub>n</sub>H<sub>2n</sub> + <span class="fraction"><span class="fraction-top">3</span><span class="fraction-bottom">2</span></span>nO<sub>2</sub> > nCO<sub>2</sub> + 2nH<sub>2</sub>O',
-          B: 'C<sub>n</sub>H<sub>2n</sub> + <span class="fraction"><span class="fraction-top">3</span><span class="fraction-bottom">2</span></span>nO<sub>2</sub> > nCO<sub>2</sub> + nH<sub>2</sub>O',
-          C: 'C<sub>n</sub>H<sub>2n</sub> + 2nO<sub>2</sub> > nCO<sub>2</sub> + nH<sub>2</sub>O',
-          D: 'C<sub>n</sub>H<sub>2n</sub> + 2nO<sub>2</sub> > nCO<sub>2</sub> + 2nH<sub>2</sub>O',
+          A: 'C<sub>n</sub>H<sub>2n</sub> + <span class="fraction"><span class="fraction-top">3</span><span class="fraction-bottom">2</span></span>nO<sub>2</sub> → nCO<sub>2</sub> + 2nH<sub>2</sub>O',
+          B: 'C<sub>n</sub>H<sub>2n</sub> + <span class="fraction"><span class="fraction-top">3</span><span class="fraction-bottom">2</span></span>nO<sub>2</sub> → nCO<sub>2</sub> + nH<sub>2</sub>O',
+          C: 'C<sub>n</sub>H<sub>2n</sub> + 2nO<sub>2</sub> → nCO<sub>2</sub> + nH<sub>2</sub>O',
+          D: 'C<sub>n</sub>H<sub>2n</sub> + 2nO<sub>2</sub> → nCO<sub>2</sub> + 2nH<sub>2</sub>O',
         }
       },
       {
         number: 28,
         code: '9701_w17_qp_12 Q: 3',
-        prompt: 'The airbags in cars contain sodium azide, NaN<sub>3</sub>, and an excess of potassium nitrate, KNO<sub>3</sub>.<br><br>In a car accident, the reactions shown occur, producing nitrogen. This causes the airbag to inflate rapidly.<br><br>2NaN<sub>3</sub> > 2Na + 3N<sub>2</sub><br>10Na + 2KNO<sub>3</sub> > K<sub>2</sub>O + 5Na<sub>2</sub>O + N<sub>2</sub><br><br>How many moles of nitrogen gas are produced in total when 1 mol of sodium azide, NaN<sub>3</sub>, decomposes in an airbag?',
+        prompt: 'The airbags in cars contain sodium azide, NaN<sub>3</sub>, and an excess of potassium nitrate, KNO<sub>3</sub>.<br><br>In a car accident, the reactions shown occur, producing nitrogen. This causes the airbag to inflate rapidly.<br><br>2NaN<sub>3</sub> → 2Na + 3N<sub>2</sub><br>10Na + 2KNO<sub>3</sub> → K<sub>2</sub>O + 5Na<sub>2</sub>O + N<sub>2</sub><br><br>How many moles of nitrogen gas are produced in total when 1 mol of sodium azide, NaN<sub>3</sub>, decomposes in an airbag?',
         options: {
           A: '1.5',
           B: '1.6',
@@ -1174,7 +1174,7 @@
       {
         number: 30,
         code: '9701_s16_qp_11 Q: 17',
-        prompt: 'A piece of rock has a mass of 2.00 g. It contains calcium carbonate, but no other basic substances. It neutralises exactly 36.0 cm<sup>3</sup> of 0.500 mol dm<sup>?3</sup> hydrochloric acid.<br><br>What is the percentage of calcium carbonate in the 2.00 g piece of rock?',
+        prompt: 'A piece of rock has a mass of 2.00 g. It contains calcium carbonate, but no other basic substances. It neutralises exactly 36.0 cm<sup>3</sup> of 0.500 mol dm<sup>−3</sup> hydrochloric acid.<br><br>What is the percentage of calcium carbonate in the 2.00 g piece of rock?',
         options: {
           A: '22.5%',
           B: '45.0%',
@@ -1229,7 +1229,7 @@
       {
         number: 35,
         code: '9701_w16_qp_12 Q: 4',
-        prompt: 'When copper reacts with a 50% solution of nitric acid, nitrogen monoxide is evolved and a blue solution results.<br><br>The balanced equation for this reaction is shown.<br><br>pCu + qHNO<sub>3</sub> > rCu(NO<sub>3</sub>)<sub>2</sub> + sH<sub>2</sub>O + tNO<br><br>What are the values of the integers p, q, r, s and t?',
+        prompt: 'When copper reacts with a 50% solution of nitric acid, nitrogen monoxide is evolved and a blue solution results.<br><br>The balanced equation for this reaction is shown.<br><br>pCu + qHNO<sub>3</sub> → rCu(NO<sub>3</sub>)<sub>2</sub> + sH<sub>2</sub>O + tNO<br><br>What are the values of the integers p, q, r, s and t?',
         table: {
           headers: ['p', 'q', 'r', 's', 't'],
           rows: [
@@ -1243,7 +1243,7 @@
       {
         number: 36,
         code: '9701_s15_qp_12 Q: 2',
-        prompt: 'The shell of a chicken?s egg makes up 5% of the mass of an average egg. An average egg has a mass of 50 g.<br><br>Assume the egg shell is pure calcium carbonate.<br><br>How many complete chicken?s egg shells would be needed to neutralise 50 cm<sup>3</sup> of 2.0 mol dm<sup>?3</sup> ethanoic acid?',
+        prompt: 'The shell of a chicken’s egg makes up 5% of the mass of an average egg. An average egg has a mass of 50 g.<br><br>Assume the egg shell is pure calcium carbonate.<br><br>How many complete chicken’s egg shells would be needed to neutralise 50 cm<sup>3</sup> of 2.0 mol dm<sup>−3</sup> ethanoic acid?',
         options: {
           A: '1',
           B: '2',
@@ -1265,7 +1265,7 @@
       {
         number: 38,
         code: '9701_w15_qp_12 Q: 2',
-        prompt: 'Arsenic chloride, AsCl<sub>3</sub>, reacts with sodium borohydride, NaBH<sub>4</sub>.<br><br>pAsCl<sub>3</sub> + qNaBH<sub>4</sub> > rAsH<sub>3</sub> + sNaCl + tBCl<sub>3</sub><br><br>What are the numbers p, q, r, s and t when this equation is balanced correctly?',
+        prompt: 'Arsenic chloride, AsCl<sub>3</sub>, reacts with sodium borohydride, NaBH<sub>4</sub>.<br><br>pAsCl<sub>3</sub> + qNaBH<sub>4</sub> → rAsH<sub>3</sub> + sNaCl + tBCl<sub>3</sub><br><br>What are the numbers p, q, r, s and t when this equation is balanced correctly?',
         table: {
           headers: ['p', 'q', 'r', 's', 't'],
           rows: [
@@ -1374,7 +1374,7 @@
       {
         number: 46,
         code: '9701_w21_qp_11 Q: 28',
-        prompt: 'Citric acid is found in lemon juice.<br><br>Which volume of 0.40 mol dm<sup>?3</sup> sodium hydroxide solution is required to neutralise a solution containing 0.0050 mol of citric acid?',
+        prompt: 'Citric acid is found in lemon juice.<br><br>Which volume of 0.40 mol dm<sup>−3</sup> sodium hydroxide solution is required to neutralise a solution containing 0.0050 mol of citric acid?',
         options: {
           A: '12.5 cm<sup>3</sup>',
           B: '25.0 cm<sup>3</sup>',
@@ -1396,7 +1396,7 @@
       {
         number: 48,
         code: '9701_m20_qp_12 Q: 7',
-        prompt: 'Sodium azide, NaN<sub>3</sub>, decomposes as shown.<br><br>2NaN<sub>3</sub> > 2Na + 3N<sub>2</sub><br><br>Which volume of nitrogen, measured at room temperature and pressure, will be produced by the decomposition of 150 g of sodium azide?',
+        prompt: 'Sodium azide, NaN<sub>3</sub>, decomposes as shown.<br><br>2NaN<sub>3</sub> → 2Na + 3N<sub>2</sub><br><br>Which volume of nitrogen, measured at room temperature and pressure, will be produced by the decomposition of 150 g of sodium azide?',
         options: {
           A: '166 dm<sup>3</sup>',
           B: '83 dm<sup>3</sup>',
@@ -1407,7 +1407,7 @@
       {
         number: 49,
         code: '9701_s20_qp_11 Q: 4',
-        prompt: '10 cm<sup>3</sup> of ethane is burned in 45 cm<sup>3</sup> of oxygen at a pressure of 101 kPa and a temperature of 200 ?C. Complete combustion takes place.<br><br>What is the total volume of gas present when the reaction is complete, measured under the same conditions?',
+        prompt: '10 cm<sup>3</sup> of ethane is burned in 45 cm<sup>3</sup> of oxygen at a pressure of 101 kPa and a temperature of 200 °C. Complete combustion takes place.<br><br>What is the total volume of gas present when the reaction is complete, measured under the same conditions?',
         options: {
           A: '30 cm<sup>3</sup>',
           B: '50 cm<sup>3</sup>',
@@ -1473,7 +1473,7 @@
       {
         number: 55,
         code: '9701_w20_qp_11 Q: 2',
-        prompt: 'Strontium metal can be extracted from strontium oxide, SrO, by reduction with aluminium. One of the possible reactions is shown.<br><br>6SrO + 2Al > 3Sr + Sr<sub>3</sub>Al<sub>2</sub>O<sub>6</sub><br><br>What is the maximum mass of strontium metal that can be produced from the reduction of 100 g of strontium oxide using this reaction?',
+        prompt: 'Strontium metal can be extracted from strontium oxide, SrO, by reduction with aluminium. One of the possible reactions is shown.<br><br>6SrO + 2Al → 3Sr + Sr<sub>3</sub>Al<sub>2</sub>O<sub>6</sub><br><br>What is the maximum mass of strontium metal that can be produced from the reduction of 100 g of strontium oxide using this reaction?',
         options: {
           A: '41.3 g',
           B: '42.3 g',
@@ -1495,7 +1495,7 @@
       {
         number: 57,
         code: '9701_w20_qp_12 Q: 5',
-        prompt: 'A white powder is known to be a mixture of magnesium oxide and aluminium oxide.<br><br>100 cm<sup>3</sup> of 2 mol dm<sup>?3</sup> NaOH(aq) is just enough to dissolve the aluminium oxide in x grams of the mixture. The reaction is shown.<br><br>Al<sub>2</sub>O<sub>3</sub> + 2OH<sup>?</sup> + 3H<sub>2</sub>O > 2Al(OH)<sub>4</sub><sup>?</sup><br><br>800 cm<sup>3</sup> of 2 mol dm<sup>?3</sup> HCl(aq) is just enough to dissolve all of the oxide in x grams of the mixture. The reactions are shown.<br><br>Al<sub>2</sub>O<sub>3</sub> + 6H<sup>+</sup> > 2Al<sup>3+</sup> + 3H<sub>2</sub>O<br>MgO + 2H<sup>+</sup> > Mg<sup>2+</sup> + H<sub>2</sub>O<br><br>How many moles of each oxide are present in x grams of the mixture?',
+        prompt: 'A white powder is known to be a mixture of magnesium oxide and aluminium oxide.<br><br>100 cm<sup>3</sup> of 2 mol dm<sup>−3</sup> NaOH(aq) is just enough to dissolve the aluminium oxide in x grams of the mixture. The reaction is shown.<br><br>Al<sub>2</sub>O<sub>3</sub> + 2OH<sup>−</sup> + 3H<sub>2</sub>O → 2Al(OH)<sub>4</sub><sup>−</sup><br><br>800 cm<sup>3</sup> of 2 mol dm<sup>−3</sup> HCl(aq) is just enough to dissolve all of the oxide in x grams of the mixture. The reactions are shown.<br><br>Al<sub>2</sub>O<sub>3</sub> + 6H<sup>+</sup> → 2Al<sup>3+</sup> + 3H<sub>2</sub>O<br>MgO + 2H<sup>+</sup> → Mg<sup>2+</sup> + H<sub>2</sub>O<br><br>How many moles of each oxide are present in x grams of the mixture?',
         optionTable: {
           headers: ['aluminium oxide', 'magnesium oxide'],
           rows: [
@@ -1509,7 +1509,7 @@
       {
         number: 58,
         code: '9701_m19_qp_12 Q: 2',
-        prompt: 'A 3.7 g sample of copper(II) carbonate is added to 25 cm<sup>3</sup> of 2.0 mol dm<sup>?3</sup> hydrochloric acid.<br><br>Which volume of gas is produced under room conditions?',
+        prompt: 'A 3.7 g sample of copper(II) carbonate is added to 25 cm<sup>3</sup> of 2.0 mol dm<sup>−3</sup> hydrochloric acid.<br><br>Which volume of gas is produced under room conditions?',
         options: {
           A: '0.60 dm<sup>3</sup>',
           B: '0.72 dm<sup>3</sup>',
@@ -1520,7 +1520,7 @@
       {
         number: 59,
         code: '9701_s19_qp_11 Q: 3',
-        prompt: 'A washing powder contains sodium hydrogencarbonate, NaHCO<sub>3</sub>, as one of the ingredients.<br><br>In a titration, a solution containing 1.00 g of this washing powder requires 7.15 cm<sup>3</sup> of 0.100 mol dm<sup>?3</sup> sulfuric acid for complete reaction. The sodium hydrogencarbonate is the only ingredient that reacts with the acid.<br><br>What is the percentage by mass of sodium hydrogencarbonate in the washing powder?',
+        prompt: 'A washing powder contains sodium hydrogencarbonate, NaHCO<sub>3</sub>, as one of the ingredients.<br><br>In a titration, a solution containing 1.00 g of this washing powder requires 7.15 cm<sup>3</sup> of 0.100 mol dm<sup>−3</sup> sulfuric acid for complete reaction. The sodium hydrogencarbonate is the only ingredient that reacts with the acid.<br><br>What is the percentage by mass of sodium hydrogencarbonate in the washing powder?',
         options: {
           A: '3.0%',
           B: '6.0%',
@@ -1531,7 +1531,7 @@
       {
         number: 60,
         code: '9701_w19_qp_12 Q: 2',
-        prompt: 'In this question it should be assumed that (NH<sub>4</sub>)<sub>2</sub>CO<sub>3</sub>?H<sub>2</sub>O(s) dissolves in water without causing an increase in volume.<br><br>Which mass of (NH<sub>4</sub>)<sub>2</sub>CO<sub>3</sub>?H<sub>2</sub>O(s) should be added to 800 cm<sup>3</sup> of water to form a 0.100 mol dm<sup>?3</sup> solution of NH<sub>4</sub><sup>+</sup> ions?',
+        prompt: 'In this question it should be assumed that (NH<sub>4</sub>)<sub>2</sub>CO<sub>3</sub>·H<sub>2</sub>O(s) dissolves in water without causing an increase in volume.<br><br>Which mass of (NH<sub>4</sub>)<sub>2</sub>CO<sub>3</sub>·H<sub>2</sub>O(s) should be added to 800 cm<sup>3</sup> of water to form a 0.100 mol dm<sup>−3</sup> solution of NH<sub>4</sub><sup>+</sup> ions?',
         options: {
           A: '4.56 g',
           B: '7.13 g',
@@ -1564,7 +1564,7 @@
       {
         number: 63,
         code: 'Stoichiometry practice 63',
-        prompt: 'The equation for the reduction of iron(III) oxide by carbon is shown.<br><br>2Fe<sub>2</sub>O<sub>3</sub> + 3C > 4Fe + 3CO<sub>2</sub><br><br>What mass of iron is produced from 15.9 g of iron(III) oxide?',
+        prompt: 'The equation for the reduction of iron(III) oxide by carbon is shown.<br><br>2Fe<sub>2</sub>O<sub>3</sub> + 3C → 4Fe + 3CO<sub>2</sub><br><br>What mass of iron is produced from 15.9 g of iron(III) oxide?',
         options: {
           A: '5.6 g',
           B: '7.9 g',
@@ -1644,7 +1644,7 @@
       const update = () => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         const remaining = Math.max(TEST_DURATION_SECONDS - elapsed, 0);
-        timerEl.textContent = `? Time remaining: ${formatTimer(remaining)}`;
+        timerEl.textContent = `⏳ Time remaining: ${formatTimer(remaining)}`;
         if (remaining === 0) {
           timerEl.classList.add('timer-expired');
           clearInterval(timerInterval);
@@ -1913,7 +1913,7 @@
       document.querySelectorAll('input').forEach(i => i.disabled = true);
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
-      btn.textContent = '? Submitted';
+      btn.textContent = '✓ Submitted';
       const status = document.getElementById('status');
       status.textContent = `You submitted this test on ${new Date(data.submittedAt).toLocaleString()}.`;
       const scoreDiv = document.getElementById('score');
@@ -2039,20 +2039,20 @@
         
         if (data.scores_released) {
           const timeTaken = typeof data.time_taken_seconds === 'number'
-            ? ` ? ?? Time: ${formatTimer(data.time_taken_seconds)}`
+            ? ` • ⏱️ Time: ${formatTimer(data.time_taken_seconds)}`
             : '';
-          scoreDiv.textContent = `? Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
+          scoreDiv.textContent = `✅ Score: ${data.score}/${data.total_questions} (${data.percentage}%)${timeTaken}`;
           scoreDiv.className = 'score-box';
           hideTimer();
           const responses = (data.answers && typeof data.answers === "string" ? JSON.parse(data.answers) : data.answers)?.responses || {};
           applyReviewMode(responses);
         } else {
-          scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+          scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
           scoreDiv.className = 'score-box pending';
         }
       } catch (err) {
         console.error('Failed to check score release status:', err);
-        scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+        scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
         scoreDiv.className = 'score-box pending';
       }
     }
@@ -2083,12 +2083,12 @@
       let cls = document.getElementById('studentClass').value.trim();
 
       const isForced = options.force === true;
-      const autoSubmitReason = options.reason || '';
+      const autoSubmitReason = options.autoSubmitReason || options.reason || '';
       if (!name) {
         if (isForced) {
           name = 'Unknown Student';
         } else {
-          status.textContent = '?? Please enter your name.';
+          status.textContent = '⚠️ Please enter your name.';
           return;
         }
       }
@@ -2096,7 +2096,7 @@
         if (isForced) {
           cls = 'Unknown Class';
         } else {
-          status.textContent = '?? Please enter your class.';
+          status.textContent = '⚠️ Please enter your class.';
           return;
         }
       }
@@ -2112,7 +2112,7 @@
       const result = calculateScore(responses);
 
       btn.disabled = true;
-      status.textContent = '?? Submitting...';
+      status.textContent = '📤 Submitting...';
 
       const payload = {
         student_name: name,
@@ -2135,13 +2135,13 @@
         console.error(error);
         if (error.message && (error.message.includes('duplicate') || error.message.includes('unique') || error.message.includes('already exists'))) {
           hasSubmitted = true;
-          btn.textContent = '? Already Submitted';
-          status.textContent = '?? You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
+          btn.textContent = '✅ Already Submitted';
+          status.textContent = '🚨 You have already submitted this test (possibly from another tab). Contact your teacher if you need to retake.';
           document.querySelectorAll('input').forEach(i => i.disabled = true);
           lockQuestions();
           return;
         }
-        status.textContent = '? Failed to submit. Please try again.';
+        status.textContent = '❌ Failed to submit. Please try again.';
         btn.disabled = false;
         return;
       }
@@ -2156,13 +2156,13 @@
       }));
 
       document.querySelectorAll('input').forEach(i => i.disabled = true);
-      btn.textContent = '? Submitted';
-      status.textContent = isForced ? `?? Auto-submitted: ${autoSubmitReason}` : '? Submitted successfully! Your teacher will release your score soon.';
+      btn.textContent = '✓ Submitted';
+      status.textContent = isForced ? `⚠️ Auto-submitted: ${autoSubmitReason}` : '✅ Submitted successfully! Your teacher will release your score soon.';
 
       const scoreDiv = document.getElementById('score');
       scoreDiv.style.display = 'block';
       lockQuestions();
-      scoreDiv.textContent = '?? Score submitted. Waiting for teacher to release results.';
+      scoreDiv.textContent = '📊 Score submitted. Waiting for teacher to release results.';
       scoreDiv.className = 'score-box pending';
 
       try {
@@ -2277,10 +2277,10 @@
         const review = document.createElement('div');
         review.className = 'review-answer';
         if (studentAnswer && studentAnswer === correctAnswer) {
-          review.textContent = `? Correct: ${correctAnswer}`;
+          review.textContent = `✅ Correct: ${correctAnswer}`;
         } else {
           review.classList.add('incorrect');
-          review.textContent = `? Your answer: ${studentAnswer || '?'} | ? Correct: ${correctAnswer}`;
+          review.textContent = `❌ Your answer: ${studentAnswer || '—'} | ✅ Correct: ${correctAnswer}`;
         }
         card.appendChild(review);
       });
@@ -2336,7 +2336,7 @@
       if (confirmBtn) confirmBtn.addEventListener('click', () => { closeSubmitModal(); handleSubmit(); });
       if (cancelBtn) cancelBtn.addEventListener('click', closeSubmitModal);
 
-      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('?')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
+      updateQuizMeta(QUIZ_BASE_NAME, document.getElementById('quizSubtitle')?.textContent?.split('•')[0].trim() || '', QUIZ_PART.part, totalQuestions, TEST_DURATION_SECONDS);
       renderQuestions();
       loadStudentInfoFromGame();
       checkPreviousSubmission();
@@ -2399,7 +2399,7 @@
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
-          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test ? auto-submitted' });
+          handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
         }
       });
     });

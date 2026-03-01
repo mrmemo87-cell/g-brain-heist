@@ -917,7 +917,7 @@
 
   async function submitScore(options = {}) {
     const isForced = options.force === true;
-    const autoSubmitReason = options.reason || '';
+    const autoSubmitReason = options.autoSubmitReason || options.reason || '';
     let studentName = document.getElementById('studentName').value.trim();
     let studentClass = document.getElementById('studentClass').value.trim();
     const statusDiv = document.getElementById('submitStatus');
