@@ -3138,7 +3138,9 @@
         // Detect image-based or TODO-option questions
         const hasImg = q.prompt.includes('<img');
         const hasTodoOpt = q.options && Object.values(q.options).some(v => v === 'TODO');
-        const isImageQ = hasImg || hasTodoOpt;
+        // Only treat as image-only question if it has TODO options (meaning options are in the image)
+        // If it has actual text options, show them even if there's an image
+        const isImageQ = hasTodoOpt;
 
         if (hasImg && hasTodoOpt) {
           const hint = document.createElement('div');
