@@ -599,10 +599,11 @@
     const supabaseClient = createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     function getQuizPart() {
+      const TOTAL_PARTS = 5;
       const params = new URLSearchParams(window.location.search);
       const raw = parseInt(params.get('part'), 10);
-      const part = (raw >= 1 && raw <= 5) ? raw : 1;
-      return { part };
+      const part = (raw >= 1 && raw <= TOTAL_PARTS) ? raw : 1;
+      return { part, totalParts: TOTAL_PARTS };
     }
 
     function isReviewMode() {
