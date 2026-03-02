@@ -195,11 +195,34 @@
       height: auto;
       margin: 8px auto 0;
     }
+    /* SVG responsive styling for options */
+    .option svg,
+    .question-title svg {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: 8px auto 0;
+      max-height: 300px;
+      width: auto;
+    }
     .option .option-graphic {
       max-width: 220px;
-      width: 220px;
+      width: 100%;
       margin-left: auto;
       margin-right: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: visible;
+    }
+    .option .option-graphic img {
+      max-width: 100%;
+      max-height: 300px;
+      width: 100%;
+      height: auto;
+      display: block;
+      margin: 0;
+      object-fit: contain;
     }
     table {
       width: 100%;

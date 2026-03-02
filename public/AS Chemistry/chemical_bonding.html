@@ -108,11 +108,24 @@
     .option-graphic {
       display: block;
       max-width: min(460px, 100%);
+      width: 100%;
       height: auto;
       margin-top: 6px;
       background: rgba(255, 255, 255, 0.02);
       border-radius: 10px;
       border: 1px solid var(--border);
+      object-fit: contain;
+    }
+    /* SVG responsive styling */
+    .option-graphic svg {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+    .option-graphic img {
+      max-width: 100%;
+      height: auto;
+      display: block;
     }
     .molecule-diagram line {
       stroke: currentColor;
