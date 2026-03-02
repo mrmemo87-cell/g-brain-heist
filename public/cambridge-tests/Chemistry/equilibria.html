@@ -632,7 +632,7 @@
     </div>
 
     <div class="status">
-      ✅ Auto-marked: correct answers are loaded. Submit to get your score instantly.
+      ✅ Auto-marked: your score stays hidden until your teacher releases it.
     </div>
     <div id="timer" class="timer-box floating">⏳ Time remaining: 00:00</div>
 
@@ -2377,6 +2377,7 @@
 
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
+        if (e.origin !== window.location.origin) return;
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
           handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
         }

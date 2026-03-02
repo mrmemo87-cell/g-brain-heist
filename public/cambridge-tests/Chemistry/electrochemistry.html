@@ -1025,7 +1025,7 @@
       {
         number: 19,
         code: '9701_s19_qp_11 Q: 9',
-        prompt: 'Ethanoic acid, HO<sub>2</sub>CCO<sub>2</sub>H, can be oxidised by KMnO<sub>4</sub> in dilute sulfuric acid. The products of this reaction are carbon dioxide, water, potassium sulfate and manganese(II) sulfate.<br><br>In this reaction each ethanedioic acid molecule loses two electrons as it is oxidised. A half-equation for this process is shown.<br>HO<sub>2</sub>CCO<sub>2</sub>H → 2CO<sub>2</sub> + 2H<sup>+</sup> + 2e<sup>−</sup><br><br>How many water molecules are produced when five ethanedioic acid molecules are oxidised by KMnO<sub>4</sub> in dilute sulfuric acid?',
+        prompt: 'Ethanedioic acid, HO<sub>2</sub>CCO<sub>2</sub>H, can be oxidised by KMnO<sub>4</sub> in dilute sulfuric acid. The products of this reaction are carbon dioxide, water, potassium sulfate and manganese(II) sulfate.<br><br>In this reaction each ethanedioic acid molecule loses two electrons as it is oxidised. A half-equation for this process is shown.<br>HO<sub>2</sub>CCO<sub>2</sub>H → 2CO<sub>2</sub> + 2H<sup>+</sup> + 2e<sup>−</sup><br><br>How many water molecules are produced when five ethanedioic acid molecules are oxidised by KMnO<sub>4</sub> in dilute sulfuric acid?',
         options: {
           A: '5',
           B: '8',
@@ -2136,6 +2136,7 @@
 
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
+        if (e.origin !== window.location.origin) return;
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
           handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
         }

@@ -1473,7 +1473,7 @@
       {
         number: 65,
         code: '9701_s15_qp_11 Q: 13',
-        prompt: 'The three minerals below are obtained from mines around the world. Each behaves as a mixture of two carbonate compounds. They can be used as fire retardants because they decompose in the heat, producing CO₂. This gas smothers the fire.<br><br>barytocite &nbsp;&nbsp; BaCa(CO₃)₂<br>dolomite &nbsp;&nbsp;&nbsp;&nbsp; CaMg(CO₃)₂<br>huntite &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Mg₃Ca(CO₃)₄<br><br>What is the order of effectiveness as fire retardant, from best to worst?<br><div class="table-wrapper"><table><thead><tr><th></th><th>best</th><th>→</th><th>worst</th></tr></thead><tbody><tr><td>A</td><td>dolomite</td><td></td><td>barytocite</td><td>huntite</td></tr><tr><td>B</td><td>dolomite</td><td></td><td>huntite</td><td>barytocite</td></tr><tr><td>C</td><td>huntite</td><td></td><td>barytocite</td><td>dolomite</td></tr><tr><td>D</td><td>huntite</td><td></td><td>dolomite</td><td>barytocite</td></tr></tbody></table></div>',
+        prompt: 'The three minerals below are obtained from mines around the world. Each behaves as a mixture of two carbonate compounds. They can be used as fire retardants because they decompose in the heat, producing CO₂. This gas smothers the fire.<br><br>barytocite &nbsp;&nbsp; BaCa(CO₃)₂<br>dolomite &nbsp;&nbsp;&nbsp;&nbsp; CaMg(CO₃)₂<br>huntite &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Mg₃Ca(CO₃)₄<br><br>What is the order of effectiveness as fire retardant, from best to worst?<br><div class="table-wrapper"><table><thead><tr><th></th><th>best</th><th></th><th>→</th><th>worst</th></tr></thead><tbody><tr><td>A</td><td>dolomite</td><td></td><td>barytocite</td><td>huntite</td></tr><tr><td>B</td><td>dolomite</td><td></td><td>huntite</td><td>barytocite</td></tr><tr><td>C</td><td>huntite</td><td></td><td>barytocite</td><td>dolomite</td></tr><tr><td>D</td><td>huntite</td><td></td><td>dolomite</td><td>barytocite</td></tr></tbody></table></div>',
         options: {
           A: 'dolomite → barytocite → huntite',
           B: 'dolomite → huntite → barytocite',
@@ -2216,6 +2216,7 @@
 
       // Listen for FORCE_SUBMIT from parent (exit button auto-submit)
       window.addEventListener('message', (e) => {
+        if (e.origin !== window.location.origin) return;
         if (e.data && e.data.type === 'FORCE_SUBMIT' && !hasSubmitted) {
           handleSubmit({ force: true, skipModal: true, autoSubmitReason: 'Exited test — auto-submitted' });
         }
