@@ -1716,20 +1716,26 @@
               const inputHtml = `<input type="radio" name="q${q.number}" value="${label}">`;
               const labelSpan = `<strong>${label}</strong>`;
               
+              // Generate descriptive alt text for accessibility
+              const altText = content.altText || content.description || `${label} option image`;
+              
               // Build option content based on type
               let contentHtml = '';
               if (content.svgUrl) {
                 contentHtml = `<div class="option-graphic">
                   <div class="svg-container">
-                    <img src="${content.svgUrl}" alt="${label}" class="responsive-svg" />
+                    <img src="${content.svgUrl}" alt="${altText}" class="responsive-svg" />
                   </div>
                 </div>`;
               } else if (content.imageUrl) {
                 contentHtml = `<div class="option-graphic">
-                  <img src="${content.imageUrl}" alt="${label}" class="responsive-image" />
+                  <img src="${content.imageUrl}" alt="${altText}" class="responsive-image" />
                 </div>`;
               } else if (content.text) {
                 contentHtml = `<span>${content.text}</span>`;
+              } else {
+                // Fallback for empty objects without svgUrl, imageUrl, or text
+                contentHtml = `<span class="option-content-placeholder">[Content unavailable]</span>`;
               }
               
               opt.innerHTML = inputHtml + labelSpan + contentHtml;
